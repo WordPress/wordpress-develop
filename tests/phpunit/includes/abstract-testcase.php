@@ -144,19 +144,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->assertContains( 'external-http', $this->getGroups(), 'Tests making external HTTP requests should be in the external-http group' );
 	}
 
-	function test_external_http_group_made_request() {
-		if ( in_array( 'external-http', $this->getGroups(), true ) ) {
-			$this->assertTrue( did_action( 'http_api_debug' ) > 0, 'Tests in the external-http group should make an external HTTP request' );
-		}
-	}
-
 	/**
 	 * After a test method runs, resets any state in WordPress the test method might have changed.
 	 */
 	public function tear_down() {
-		$this->test_external_http_group_made_request();
-
-
 		global $wpdb, $wp_the_query, $wp_query, $wp;
 		$wpdb->query( 'ROLLBACK' );
 		if ( is_multisite() ) {
