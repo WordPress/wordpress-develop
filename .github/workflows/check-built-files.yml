@@ -74,9 +74,7 @@ jobs:
           GH_APP_ID: ${{ secrets.GH_APP_ID }}
           GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
         run: |
-          echo "${{ env.GH_APP_PRIVATE_KEY }}" > private-key.pem
-
-          APP_ID=${{ env.GH_APP_ID }}
+          echo "$GH_APP_PRIVATE_KEY" > private-key.pem
 
           # Generate JWT
           JWT=$(python3 - <<EOF
@@ -85,7 +83,7 @@ jobs:
           payload = {
               "iat": int(time.time()),
               "exp": int(time.time()) + 600,  # 10-minute expiration
-              "iss": $APP_ID
+              "iss": $GH_APP_ID
           }
           print(jwt.encode(payload, private_key, algorithm="RS256"))
           EOF
@@ -99,7 +97,7 @@ jobs:
           # Request Installation Access Token
           ACCESS_TOKEN=$(curl -s -X POST -H "Authorization: Bearer $JWT" \
             -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/app/installations/$INSTALLATION_ID/access_tokens | jq -r '.token')
+            "https://api.github.com/app/installations/$INSTALLATION_ID/access_tokens" | jq -r '.token')
 
           echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_ENV"
 
@@ -165,7 +163,7 @@ jobs:
         run: |
           diff_output=$(git diff)
           if [ -n "$diff_output" ]; then
-            echo "uncommitted_changes=$(echo $diff_output)" >> "$GITHUB_OUTPUT"
+            echo "uncommitted_changes=$diff_output" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Stage changes
