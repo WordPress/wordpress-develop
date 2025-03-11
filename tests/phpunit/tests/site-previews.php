@@ -20,7 +20,7 @@ class Tests_Site_Previews extends WP_UnitTestCase {
 	 */
 	public function test_initialize_site_preview_hooks() {
 		$_GET['wp_site_preview'] = 1;
-		do_action( 'init' ); // Ensure `plugins_loaded` triggers `wp_initialize_site_preview_hooks`.
+		do_action( 'init' ); // Ensure `init` triggers `wp_initialize_site_preview_hooks`.
 		$this->assertEquals( has_filter( 'show_admin_bar', '__return_false' ), 10 );
 	}
 
