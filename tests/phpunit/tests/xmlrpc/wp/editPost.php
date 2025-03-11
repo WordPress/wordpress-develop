@@ -528,4 +528,41 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$after = get_post( $post_id );
 		$this->assertSame( '0000-00-00 00:00:00', $after->post_date_gmt );
 	}
+
+	/**
+	 * @ticket 39699
+	 */
+	public function test_xmlrpc_before_insert_post() {
+		$this->make_user_by_role( 'editor' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Post title',
+				'post_content' => 'Post edited',
+				'post_status'  => 'draft',
+				'post_type'    => 'post',
+			)
+		);
+
+		// Add filter
+		add_filter( 'xmlrpc_before_insert_post', array( $this, 'filter_xmlrpc_before_insert_post' ), 10, 3 );
+
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, array( 'post_title' => 'Too short' ) ) );
+		$this->assertInstanceOf( 'IXR_Error', $result );
+		$this->assertEquals( 500, $result->code );
+		$this->assertEquals( 'Post title too short.', $result->message );
+
+		$result       = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, array( 'post_title' => 'Right title' ) ) );
+		$fetched_post = get_post( $post_id );
+		$this->assertNotInstanceOf( 'IXR_Error', $result );
+		$this->assertTrue( $result );
+		$this->assertEquals( 'Right title', $fetched_post->post_title );
+	}
+
+	public function filter_xmlrpc_before_insert_post( $post_data, $content_struct, $user ) {
+		if ( strlen( $post_data['post_title'] ) < 10 ) {
+			return new \IXR_Error( 500, 'Post title too short.' );
+		}
+		return $post_data;
+	}
 }
