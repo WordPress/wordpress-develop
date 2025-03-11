@@ -5,7 +5,7 @@
 window.wp = window.wp || {};
 window.wp.viewTransitions = {};
 window.wp.viewTransitions.init = ( config ) => {
-	if ( ! window.navigation || ! 'CSSViewTransitionRule' in window ) {
+	if ( ! window.navigation || 'CSSViewTransitionRule' in window === false ) {
 		window.console.warn( 'View transitions not loaded as the browser is lacking support.' );
 		return;
 	}
@@ -13,21 +13,22 @@ window.wp.viewTransitions.init = ( config ) => {
 	const getViewTransitionEntries = ( transitionType, bodyElement, articleElement ) => {
 		const isMainSlide = transitionType === 'forwards' || transitionType === 'backwards';
 		let foundMainElement = false;
+		const globalEntries = Object.entries( config.globalTransitionNames || {} ).map( ( [ selector, name ] ) => {
+			const element = bodyElement.querySelector( selector );
+			if ( name === 'main' && element ) {
+				foundMainElement = true;
+			}
+			return [ element, name ];
+		} );
+		if ( ! articleElement || isMainSlide && foundMainElement ) {
+			return globalEntries;
+		}
 		return [
-			...Object.entries( config.globalTransitionNames || {} ).map( ( [ selector, name ] ) => {
-				const element = bodyElement.querySelector( selector );
-				if ( name === 'main' && element ) {
-					foundMainElement = true;
-				}
+			...globalEntries,
+			...Object.entries( config.postTransitionNames || {} ).map( ( [ selector, name ] ) => {
+				const element = articleElement.querySelector( selector );
 				return [ element, name ];
 			} ),
-			...( articleElement && ( ! isMainSlide || ! foundMainElement )
-				? Object.entries( config.postTransitionNames || {} ).map( ( [ selector, name ] ) => {
-					const element = articleElement.querySelector( selector );
-					return [ element, name ];
-				} )
-				: []
-			),
 		];
 	};
 
@@ -41,7 +42,7 @@ window.wp.viewTransitions.init = ( config ) => {
 
 		await vtPromise;
 
-		for ( const [ element, _ ] of entries ) {
+		for ( const [ element ] of entries ) {
 			if ( ! element ) {
 				continue;
 			}
