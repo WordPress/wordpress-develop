@@ -199,6 +199,12 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 		// Restores the more descriptive, specific name for use within this method.
 		$item_id = $item;
 
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-search-controller.php */
+			return apply_filters( 'rest_prepare_search', new WP_REST_Response(), $item, $request );
+		}
+
 		$handler = $this->get_search_handler( $request );
 		if ( is_wp_error( $handler ) ) {
 			return new WP_REST_Response();
