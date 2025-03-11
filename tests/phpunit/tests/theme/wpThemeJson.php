@@ -4627,6 +4627,80 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tests that block style variation selectors are generated correctly
+	 * for block selectors of various structures.
+	 *
+	 * @ticket 62471
+	 */
+	public function test_get_styles_for_block_with_style_variations_and_custom_selectors() {
+		register_block_type(
+			'test/milk',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'root'  => '.milk',
+					'color' => '.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle',
+				),
+			)
+		);
+
+		register_block_style(
+			'test/milk',
+			array(
+				'name'  => 'chocolate',
+				'label' => 'Chocolate',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'test/milk' => array(
+							'color'      => array(
+								'background' => 'white',
+							),
+							'variations' => array(
+								'chocolate' => array(
+									'color' => array(
+										'background' => '#35281E',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$metadata = array(
+			'name'       => 'test/milk',
+			'path'       => array( 'styles', 'blocks', 'test/milk' ),
+			'selector'   => '.wp-block-test-milk',
+			'selectors'  => array(
+				'color' => '.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle',
+			),
+			'variations' => array(
+				'chocolate' => array(
+					'path'     => array( 'styles', 'blocks', 'test/milk', 'variations', 'chocolate' ),
+					'selector' => '.is-style-chocolate.wp-block-test-milk',
+				),
+			),
+		);
+
+		$actual_styles    = $theme_json->get_styles_for_block( $metadata );
+		$default_styles   = ':root :where(.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle){background-color: white;}';
+		$variation_styles = ':root :where(.is-style-chocolate.wp-block-test-milk .liquid,.is-style-chocolate.wp-block-test-milk:not(.spoiled),.is-style-chocolate.wp-block-test-milk.in-bottle){background-color: #35281E;}';
+		$expected         = $default_styles . $variation_styles;
+
+		unregister_block_style( 'test/milk', 'chocolate' );
+		unregister_block_type( 'test/milk' );
+
+		$this->assertSame( $expected, $actual_styles );
+	}
+
 	public function test_block_style_variations() {
 		wp_set_current_user( static::$administrator_id );
 

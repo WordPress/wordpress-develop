@@ -120,7 +120,7 @@ jobs:
   phpunit-tests:
     name: ${{ inputs.phpunit-test-groups && format( '{0} / ', inputs.phpunit-test-groups ) || '' }}PHP ${{ inputs.php }} ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report && '/ ' || 'with ' }}${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.db-innovation && ' (innovation release)' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
     runs-on: ${{ inputs.os }}
-    timeout-minutes: ${{ inputs.coverage-report && 120 || 20 }}
+    timeout-minutes: ${{ inputs.coverage-report && 120 || inputs.php == '8.4' && 30 || 20 }}
 
     steps:
       - name: Configure environment variables
