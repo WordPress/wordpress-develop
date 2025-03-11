@@ -336,7 +336,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 * Tests that column_author() displays the correct author link when an author exists.
 	 *
 	 * @ticket 62913
-	 * @covers WP_Media_List_Table::column_author
+	 * @covers WP_Posts_List_Table::column_author
 	 */
 	public function test_column_author_with_valid_author() {
 		wp_set_current_user( self::$admin );
@@ -359,7 +359,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 * Tests that column_author() displays the correct fallback when no author exists.
 	 *
 	 * @ticket 62913
-	 * @covers WP_Media_List_Table::column_author
+	 * @covers WP_Posts_List_Table::column_author
 	 */
 	public function test_column_author_with_no_author() {
 		wp_set_current_user( self::$admin );
