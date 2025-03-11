@@ -145,6 +145,32 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_block_patterns_data() {
+		wp_set_current_user( self::$contributor_id );
+		self::mock_successful_response( 'browse-all', true );
+
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/pattern-directory/patterns' );
+
+		$hook_name = 'rest_prepare_block_pattern';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+
+		add_filter( $hook_name, $callback );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+
+		$this->assertNotWPError( $response );
+		$response = rest_ensure_response( $response );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
 	 * @covers WP_REST_Pattern_Directory_Controller::get_items
 	 *
 	 * @since 5.8.0
@@ -219,27 +245,49 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
 	 * @covers WP_REST_Pattern_Directory_Controller::get_items
 	 *
 	 * @since 5.8.0
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_wdotorg_unavailable() {
+	public function test_get_items_wdotorg_unavailable( $method ) {
 		wp_set_current_user( self::$contributor_id );
 		self::prevent_requests_to_host( 'api.wordpress.org' );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/pattern-directory/patterns' );
 		$response = rest_do_request( $request );
 
 		$this->assertErrorResponse( 'patterns_api_failed', $response, 500 );
 	}
 
 	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
 	 * @covers WP_REST_Pattern_Directory_Controller::get_items
 	 *
 	 * @since 5.8.0
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_logged_out() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns' );
+	public function test_get_items_logged_out( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/pattern-directory/patterns' );
 		$request->set_query_params( array( 'search' => 'button' ) );
 		$response = rest_do_request( $request );
 
@@ -283,15 +331,20 @@ class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
 	 * @covers WP_REST_Pattern_Directory_Controller::get_items
 	 *
 	 * @since 5.8.0
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_invalid_response_data() {
+	public function test_get_items_invalid_response_data( $method ) {
 		wp_set_current_user( self::$contributor_id );
 		self::mock_successful_response( 'invalid-data', true );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/pattern-directory/patterns' );
 		$response = rest_do_request( $request );
 
 		$this->assertSame( 500, $response->status );
