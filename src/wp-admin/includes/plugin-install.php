@@ -117,8 +117,19 @@ function plugins_api( $action, $args = array() ) {
 	}
 
 	if ( 'plugin_information' === $action ) {
-		if ( ! isset( $args->downloaded ) ) {
-			$args->downloaded = true;
+		// Initialize fields array if it doesn't exist
+		if ( ! isset( $args->fields ) ) {
+			$args->fields = array();
+		}
+
+		// Convert fields to array if it's an object
+		if ( is_object( $args->fields ) ) {
+			$args->fields = (array) $args->fields;
+		}
+
+		// Set downloaded in fields array if not already set
+		if ( ! isset( $args->fields['downloaded'] ) ) {
+			$args->fields['downloaded'] = true;
 		}
 	}
 
