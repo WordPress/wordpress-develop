@@ -163,7 +163,7 @@ jobs:
         run: |
           diff_output=$(git diff)
           if [ -n "$diff_output" ]; then
-            echo "uncommitted_changes=$(echo $diff_output)" >> "$GITHUB_OUTPUT"
+            echo "uncommitted_changes=$diff_output" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Stage changes
