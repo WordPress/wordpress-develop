@@ -8,6 +8,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	protected static $children      = array();
 	protected static $grandchildren = array();
 	protected static $post_ids      = array();
+	protected static $admin         = 1;
 
 	/**
 	 * @var WP_Posts_List_Table
@@ -329,5 +330,50 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Tests that column_author() displays the correct author link when an author exists.
+	 *
+	 * @ticket 62913
+	 * @covers WP_Media_List_Table::column_author
+	 */
+	public function test_column_author_with_valid_author() {
+		wp_set_current_user( self::$admin );
+
+		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post      = self::factory()->post->create_and_get( array( 'post_author' => $author_id ) );
+
+		$author_name  = get_the_author_meta( 'display_name', $author_id );
+		$expected_url = esc_url( add_query_arg( array( 'author' => $author_id ), 'upload.php' ) );
+
+		ob_start();
+		self::$list_table->column_author( $post );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '<a href="' . $expected_url . '">', $output );
+		$this->assertStringContainsString( '>' . esc_html( $author_name ) . '</a>', $output );
+	}
+
+	/**
+	 * Tests that column_author() displays the correct fallback when no author exists.
+	 *
+	 * @ticket 62913
+	 * @covers WP_Media_List_Table::column_author
+	 */
+	public function test_column_author_with_no_author() {
+		wp_set_current_user( self::$admin );
+
+		// Create an attachment post with no author (post_author set to 0).
+		$post_id = self::factory()->attachment->create( array( 'post_author' => 0 ) );
+		$post    = get_post( $post_id );
+
+		ob_start();
+		self::$list_table->column_author( $post );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '<span aria-hidden="true">&#8212;</span>', $output );
+		$this->assertStringContainsString( '<span class="screen-reader-text">(no author)</span>', $output );
+		$this->assertStringNotContainsString( '<a href="', $output );
 	}
 }
