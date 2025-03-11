@@ -1636,7 +1636,7 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
 	}
 
 	return sprintf(
-		"<!-- wp:%s%s -->%s%s%s<!-- /wp:%s -->",
+		'<!-- wp:%1$s %2$s -->' . "\n" . '%3$s' . "\n" . '<!-- /wp:%1$s -->',
 		$serialized_block_name,
 		$serialized_attributes,
 		$block_content,
