@@ -8,6 +8,15 @@ name: Run pull request cleanup
 
 on:
   workflow_call:
+  workflow_dispatch:
+    inputs:
+      test_commit_message:
+        description: 'Test commit message'
+        default: |
+          Fixes #12345. This is a test commit message.
+
+          git-svn-id: https://develop.svn.wordpress.org/trunk@54321 abc123
+        required: true
 
 jobs:
   # Finds and closes pull requests referencing fixed Trac tickets in commit messages using the
