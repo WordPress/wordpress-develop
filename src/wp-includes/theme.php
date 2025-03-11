@@ -2935,6 +2935,8 @@ function add_theme_support( $feature, ...$args ) {
 				return false;
 			}
 
+			break;
+
 		case 'view-transitions':
 			$defaults = array(
 				'post-selector'              => '.wp-block-post.post, article.post, body.single main',
@@ -2960,6 +2962,8 @@ function add_theme_support( $feature, ...$args ) {
 					$args['post-transition-names'] = array();
 				}
 			}
+
+			break;
 	}
 
 	$_wp_theme_features[ $feature ] = $args;
