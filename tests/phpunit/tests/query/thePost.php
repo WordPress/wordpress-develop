@@ -191,4 +191,141 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 			'post ids and parent'       => array( 'id=>parent', 4 ),
 		);
 	}
+
+	/**
+	 * Ensure draft content is shown for post previews and permalinks for logged in users.
+	 *
+	 * @ticket 56992
+	 */
+	public function test_post_preview_links_draft_posts() {
+		$user_id = self::$author_ids[0];
+		wp_set_current_user( $user_id );
+		$draft_post = $this->factory()->post->create(
+			array(
+				'post_status'  => 'draft',
+				'post_author'  => $user_id,
+				'post_content' => 'ticket 56992',
+			)
+		);
+
+		// Ensure the global post is populated with the draft content for the preview link.
+		$this->go_to( get_preview_post_link( $draft_post ) );
+		if ( have_posts() ) {
+			the_post();
+		}
+		$this->assertSame( 'ticket 56992', get_the_content(), 'Preview link should show draft content to logged in user' );
+
+		// Ensure the global post is populated with the draft content for the permalink.
+		$this->go_to( get_permalink( $draft_post ) );
+		if ( have_posts() ) {
+			the_post();
+		}
+		$this->assertSame( 'ticket 56992', get_the_content(), 'Permalink should show draft content to logged in user' );
+
+		// Ensure the global post is not populated with the draft content for the preview link when logged out.
+		wp_set_current_user( 0 );
+		$this->go_to( get_preview_post_link( $draft_post ) );
+		if ( have_posts() ) {
+			the_post();
+		}
+		$this->assertEmpty( get_the_content(), 'Preview link should not show draft content to logged out users' );
+
+		// Ensure the global post is not populated with the draft content for the permalink when logged out.
+		$this->go_to( get_permalink( $draft_post ) );
+		if ( have_posts() ) {
+			the_post();
+		}
+		$this->assertEmpty( get_the_content(), 'Permalink should not show draft content to logged out users' );
+	}
+
+	/**
+	 * Ensure autosave content is shown for post previews.
+	 *
+	 * @ticket 56992
+	 */
+	public function test_post_preview_links_autosaves() {
+		$user_id = self::$author_ids[0];
+		wp_set_current_user( $user_id );
+		$published_post = $this->factory()->post->create(
+			array(
+				'post_status'  => 'publish',
+				'post_author'  => $user_id,
+				'post_content' => 'ticket 56992',
+			)
+		);
+
+		// Create an autosave for the published post.
+		$autosave                 = get_post( $published_post, ARRAY_A );
+		$autosave['post_ID']      = $published_post;
+		$autosave['post_content'] = 'ticket 56992 edited';
+		wp_create_post_autosave( $autosave );
+
+		// Set up the preview $_GET parameters.
+		$nonce                       = wp_create_nonce( 'post_preview_' . $published_post );
+		$query_args['preview_id']    = $published_post;
+		$query_args['preview_nonce'] = $nonce;
+		$post_preview_link           = get_preview_post_link( $published_post, $query_args );
+
+		/*
+		 * Set up the GET parameters for the preview link.
+		 *
+		 * _show_post_preview() checks the $_GET super global for preview
+		 * and nonce parameters. It needs to run prior to the global query
+		 * being set up in WP_Query (via $this->go_to()), so the preview
+		 * parameters are created here to ensure _show_post_preview()
+		 * runs correctly.
+		 */
+		$_GET['preview_id']    = $published_post;
+		$_GET['preview_nonce'] = $nonce;
+		_show_post_preview();
+
+		// Ensure the global post is populated with the autosave content for the preview link.
+		$this->go_to( $post_preview_link );
+		if ( have_posts() ) {
+			the_post();
+		}
+		$this->assertSame( 'ticket 56992 edited', get_the_content(), 'Preview link should show autosave content to logged in user' );
+
+		// Ensure the global post is populated with the published content for the permalink.
+		$this->go_to( get_permalink( $published_post ) );
+		if ( have_posts() ) {
+			the_post();
+		}
+		$this->assertSame( 'ticket 56992', get_the_content(), 'Permalink should show published content to logged in user' );
+
+		wp_set_current_user( 0 );
+
+		// New user, new nonce; set up the preview $_GET parameters.
+		$nonce                       = wp_create_nonce( 'post_preview_' . $published_post );
+		$query_args['preview_id']    = $published_post;
+		$query_args['preview_nonce'] = $nonce;
+		$post_preview_link           = get_preview_post_link( $published_post, $query_args );
+
+		/*
+		 * Set up the GET parameters for the preview link.
+		 *
+		 * _show_post_preview() checks the $_GET super global for preview
+		 * and nonce parameters. It needs to run prior to the global query
+		 * being set up in WP_Query (via $this->go_to()), so the preview
+		 * parameters are created here to ensure _show_post_preview()
+		 * runs correctly.
+		 */
+		$_GET['preview_id']    = $published_post;
+		$_GET['preview_nonce'] = $nonce;
+		_show_post_preview();
+
+		// Ensure the global post is not populated with the draft content for the preview link when logged out.
+		$this->go_to( $post_preview_link );
+		if ( have_posts() ) {
+			the_post();
+		}
+		$this->assertSame( 'ticket 56992', get_the_content(), 'Preview link should show published content to logged out users' );
+
+		// Ensure the global post is not populated with the draft content for the permalink when logged out.
+		$this->go_to( get_permalink( $published_post ) );
+		if ( have_posts() ) {
+			the_post();
+		}
+		$this->assertSame( 'ticket 56992', get_the_content(), 'Permalink should show published content to logged out users' );
+	}
 }
