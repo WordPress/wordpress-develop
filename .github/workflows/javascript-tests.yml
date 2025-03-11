@@ -50,6 +50,8 @@ jobs:
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    with:
+      disable-apparmor: true
 
   slack-notifications:
     name: Slack Notifications
