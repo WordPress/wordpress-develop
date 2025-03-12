@@ -58,7 +58,7 @@ window.wp.viewTransitions.init = ( config ) => {
 	 *
 	 * @param {Array[]}       entries   View transition entries as received from `getViewTransitionEntries()`.
 	 * @param {Promise<void>} vtPromise Promise that resolves after the view transition has been completed.
-	 * @return {Promise<void} Promise that resolves after the view transition names were reset.
+	 * @return {Promise<void>} Promise that resolves after the view transition names were reset.
 	 */
 	const setTemporaryViewTransitionNames = async ( entries, vtPromise ) => {
 		for ( const [ element, name ] of entries ) {
