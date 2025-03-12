@@ -472,6 +472,11 @@ class Tests_Query_QueryVars extends WP_UnitTestCase {
 				'posts_per_page',
 				5,
 			),
+			'posts_per_page'                  =>
+			array(
+				'posts_per_page',
+				-1,
+			),
 			'nopaging'                        =>
 			array(
 				'nopaging',
