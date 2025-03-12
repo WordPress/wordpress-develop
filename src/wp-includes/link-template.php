@@ -4298,8 +4298,8 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
  *                                  - 'monsterid' (a monster)
  *                                  - 'wavatar' (a cartoon face)
  *                                  - 'identicon' (the "quilt", a geometric pattern)
- *                              	- 'initials' (initials based avatar with background color)
- *                              	- 'color' (generated background color)
+ *                                  - 'initials' (initials based avatar with background color)
+ *                                  - 'color' (generated background color)
  *                                  - 'mystery', 'mm', or 'mysteryman' (The Oyster Man)
  *                                  - 'blank' (transparent GIF)
  *                                  - 'gravatar_default' (the Gravatar logo)
@@ -4550,13 +4550,13 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	);
 
 	// Handle additional parameters for the 'initials' avatar type
-	if ('initials' === $args['default'] && $user) {
-		$display_name = !empty($user->display_name) ? $user->display_name : $user->user_login;
-		if (!empty($display_name)) {
-			$url_args['name'] = urlencode($display_name);
+	if ( 'initials' === $args['default'] && $user ) {
+		$display_name = ! empty( $user->display_name ) ? $user->display_name : $user->user_login;
+		if ( ! empty( $display_name ) ) {
+			$url_args['name'] = urlencode( $display_name );
 		}
-	} elseif ('initials' === $args['default'] && is_object($id_or_email) && isset($id_or_email->comment_author)) {
-		$url_args['name'] = urlencode($id_or_email->comment_author);
+	} elseif ( 'initials' === $args['default'] && is_object( $id_or_email ) && isset( $id_or_email->comment_author ) ) {
+		$url_args['name'] = urlencode( $id_or_email->comment_author );
 	}
 
 	/*
