@@ -286,13 +286,8 @@ final class WP_Customize_Manager {
 			$args['messenger_channel'] = sanitize_key( wp_unslash( $_REQUEST['customize_messenger_channel'] ) );
 		}
 
-		// Do not load 'widgets' component if a block theme is activated.
-		if ( ! wp_is_block_theme() ) {
-			$this->components[] = 'widgets';
-		}
-
 		$this->original_stylesheet = get_stylesheet();
-		$this->theme               = wp_get_theme( 0 === validate_file( $args['theme'] ) ? $args['theme'] : null );
+		$this->theme               = 0 === validate_file( $args['theme'] ) ? $args['theme'] : null;
 		$this->messenger_channel   = $args['messenger_channel'];
 		$this->_changeset_uuid     = $args['changeset_uuid'];
 
@@ -514,6 +509,13 @@ final class WP_Customize_Manager {
 	 */
 	public function setup_theme() {
 		global $pagenow;
+
+		// Do not load 'widgets' component if a block theme is activated.
+		if ( ! wp_is_block_theme() ) {
+			$this->components[] = 'widgets';
+		}
+
+		$this->theme = wp_get_theme( $this->theme );
 
 		// Check permissions for customize.php access since this method is called before customize.php can run any code.
 		if ( 'customize.php' === $pagenow && ! current_user_can( 'customize' ) ) {
