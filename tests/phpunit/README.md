@@ -12,8 +12,8 @@ This documentation will assume you have a local development environment of your 
 	cd wordpress-develop
 	```
 2. Run `composer update --with-all-dependencies`.
-3. Create a clean MySQL database and user. **DO NOT USE AN EXISTING DATABASE** or you will lose data, guaranteed.
-4. Copy `wp-tests-config-sample.php` to `wp-tests-config.php`, edit it to include your testing database credentials.
+3. Create a clean MySQL database and user. **DO NOT USE AN EXISTING DATABASE.** The test database is emptied and repopulated every time tests are run.
+4. Copy `wp-tests-config-sample.php` to `wp-tests-config.php` and enter your database credentials. **Again, use a separate database.**
 5. Run the tests from the repository root:
    - To execute a particular test:
       ```
