@@ -18,7 +18,7 @@ window.wp.viewTransitions = {};
  *                                                 (date- or pagination-based) should be enabled.
  */
 window.wp.viewTransitions.init = ( config ) => {
-	if ( ! window.navigation || 'CSSViewTransitionRule' in window === false ) {
+	if ( ! window.navigation || ! ( 'CSSViewTransitionRule' in window ) ) {
 		window.console.warn( 'View transitions not loaded as the browser is lacking support.' );
 		return;
 	}
