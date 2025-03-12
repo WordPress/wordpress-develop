@@ -4550,13 +4550,31 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	);
 
 	// Handle additional parameters for the 'initials' avatar type
-	if ( 'initials' === $args['default'] && $user ) {
-		$display_name = ! empty( $user->display_name ) ? $user->display_name : $user->user_login;
-		if ( ! empty( $display_name ) ) {
-			$url_args['name'] = urlencode( $display_name );
+	if ( 'initials' === $args['default'] ) {
+		$name = '';
+
+		if ( $user ) {
+			if ( ! empty( $user->first_name ) && ! empty( $user->last_name ) ) {
+				$name = $user->first_name . ' ' . $user->last_name;
+			} else {
+				$name = ! empty( $user->display_name ) ? $user->display_name : $user->user_login;
+			}
+		} elseif ( is_object( $id_or_email ) && isset( $id_or_email->comment_author ) ) {
+			$name = $id_or_email->comment_author;
+		} elseif ( is_string( $id_or_email ) && strpos( $id_or_email, '@' ) !== false ) {
+			$name = substr( $id_or_email, 0, strpos( $id_or_email, '@' ) );
+			$name = str_replace( array( '.', '_', '-' ), ' ', $name );
 		}
-	} elseif ( 'initials' === $args['default'] && is_object( $id_or_email ) && isset( $id_or_email->comment_author ) ) {
-		$url_args['name'] = urlencode( $id_or_email->comment_author );
+
+		if ( ! empty( $name ) ) {
+			$name_parts = preg_split( '/\s+/', $name );
+			if ( count( $name_parts ) > 1 ) {
+				$initials = mb_substr( $name_parts[0], 0, 1 ) . mb_substr( $name_parts[ count( $name_parts ) - 1 ], 0, 1 );
+			} else {
+				$initials = mb_substr( $name, 0, min( 2, mb_strlen( $name ) ) );
+			}
+			$url_args['initials'] = urlencode( $initials );
+		}
 	}
 
 	/*
