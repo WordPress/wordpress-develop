@@ -25,7 +25,7 @@ class Tests_Query_QueryVars extends WP_UnitTestCase {
 			function ( $args ) {
 				return $args[0];
 			},
-			$this->data_query_vars(),
+			$this->data_query_vars()
 		);
 
 		// Remove duplicates from the data provider.
