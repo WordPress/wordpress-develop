@@ -35,7 +35,7 @@ class Tests_Query_QueryVars extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that query vars are set correctly.
+	 * Test that query vars are set correctly when passed using array format arguments.
 	 *
 	 * @dataProvider data_query_vars
 	 *
@@ -57,7 +57,7 @@ class Tests_Query_QueryVars extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that query vars are set correctly.
+	 * Test that query vars are set correctly when passed using string format arguments.
 	 *
 	 * @dataProvider data_query_vars
 	 *
