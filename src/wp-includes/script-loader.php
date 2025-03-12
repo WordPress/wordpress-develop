@@ -2,13 +2,13 @@
 /**
  * WordPress scripts and styles default loader.
  *
- * Several constants are used to manage the loading, concatenating and compression of scripts and CSS:
+ * These constants are used to manage the loading and concatenating of scripts and CSS:
  * define('SCRIPT_DEBUG', true); loads the development (non-minified) versions of all scripts and CSS, and disables compression and concatenation,
  * define('CONCATENATE_SCRIPTS', false); disables compression and concatenation of scripts and CSS,
  *
- * The globals $concatenate_scripts, $compress_scripts and $compress_css can be set by plugins
- * to temporarily override the above settings. Also a compression test is run once and the result is saved
- * as option 'can_compress_scripts' (0/1). The test will run again if that option is deleted.
+ * The global $concatenate_scripts can be set by plugins to temporarily override the above settings.
+ * Also a compression test is run once and the result is saved as option 'can_compress_scripts' (0/1).
+ * The test will run again if that option is deleted.
  *
  * @package WordPress
  */
