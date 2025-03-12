@@ -467,15 +467,29 @@ class Tests_Query_QueryVars extends WP_UnitTestCase {
 				'post_type',
 				'page',
 			),
-			'posts_per_page'                  =>
+			'posts_per_page (5)'              =>
 			array(
 				'posts_per_page',
 				5,
 			),
-			'posts_per_page'                  =>
+			'posts_per_page (-1)'             =>
 			array(
 				'posts_per_page',
 				-1,
+			),
+			'posts_per_page (0)'              =>
+			array(
+				'posts_per_page',
+				0,
+				null,
+				10, // since r27456
+			),
+			'posts_per_page ("")'             =>
+			array(
+				'posts_per_page',
+				'',
+				null,
+				10,
 			),
 			'nopaging'                        =>
 			array(
