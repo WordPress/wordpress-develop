@@ -232,24 +232,24 @@
 				return ! isIdentical;
 			case 'emoji':
 				/*
-				 * Four and twenty blackbirds baked in a pie.
+				 * Person Running Facing Right: Medium Skin Tone
 				 *
-				 * To test for Emoji 15.0 support, try to render a new emoji: Blackbird.
+				 * To test for Emoji 15.1 support, try to render a new emoji: Person Running Facing Right.
 				 *
-				 * The Blackbird is a ZWJ sequence combining 🐦 Bird and ⬛ large black square.,
+				 * The Person Running Facing Right emoji is a ZWJ sequence combining 🏃 Runner,
+				 * Zero Width Joiner and ➡️ Black Rightwards Arrow.
 				 *
-				 * 0x1F426 (\uD83D\uDC26) == Bird
-				 * 0x200D == Zero-Width Joiner (ZWJ) that links the code points for the new emoji or
-				 * 0x200B == Zero-Width Space (ZWS) that is rendered for clients not supporting the new emoji.
-				 * 0x2B1B == Large Black Square
+				 * 0x1F3C3 (\uD83C\uDFC3) == Person Running
+				 * 0x200D                 == Zero-Width Joiner (ZWJ) that links the code points for the new emoji or
+				 * 0x27A1 0xFE0F          == Black Rightwards Arrow
 				 *
 				 * When updating this test for future Emoji releases, ensure that individual emoji that make up the
 				 * sequence come from older emoji standards.
 				 */
 				isIdentical = emojiSetsRenderIdentically(
 					context,
-					'\uD83D\uDC26\u200D\u2B1B', // as the zero-width joiner sequence
-					'\uD83D\uDC26\u200B\u2B1B' // separated by a zero-width space
+					'\uD83C\uDFC3\u200D\u27A1\uFE0F', // as the zero-width joiner sequence
+					'\uD83C\uDFC3\u200B\u27A1\uFE0F' // separated by a zero-width space
 				);
 
 				return ! isIdentical;
