@@ -36,6 +36,17 @@ ob_start(
 			$output = (string) apply_filters( 'wp_output_buffer_html', $output );
 		}
 
+		/**
+		 * Fires after the output buffer has been filtered prior to sending to the client.
+		 *
+		 * This is useful for caching plugins to capture the page output for storage.
+		 *
+		 * @since n.e.x.t
+		 *
+		 * @param string $output Output buffer.
+		 */
+		do_action( 'wp_final_output_buffer', $output );
+
 		return $output;
 	},
 	0, // Unlimited buffer size so that entire output is passed to the filter.
