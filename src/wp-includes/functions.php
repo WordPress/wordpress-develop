@@ -654,23 +654,23 @@ function maybe_serialize( $data ) {
  */
 function maybe_unserialize( $data ) {
 	if ( is_serialized( $data ) ) { // Don't attempt to unserialize data that wasn't serialized going in.
-		$previous_error_handler = set_error_handler( 
-            function( $errno, $errstr ) {
-                restore_error_handler();
-                if ( ( E_WARNING === $errno || E_NOTICE === $errno ) && strpos( $errstr, 'unserialize' ) !== false ) {
-                    if ( wp_is_development_mode() ) {
-                        return false;
-                    }
-                    return true;
-                }
-                return false;
-            },
-            E_WARNING | E_NOTICE
-        );
+		$previous_error_handler = set_error_handler(
+			function ( $errno, $errstr ) {
+				restore_error_handler();
+				if ( ( E_WARNING === $errno || E_NOTICE === $errno ) && strpos( $errstr, 'unserialize' ) !== false ) {
+					if ( wp_is_development_mode() ) {
+						return false;
+					}
+					return true;
+				}
+				return false;
+			},
+			E_WARNING | E_NOTICE
+		);
 
-        $unserialized = unserialize( trim( $data ) );
-        restore_error_handler();
-        return $unserialized;
+		$unserialized = unserialize( trim( $data ) );
+		restore_error_handler();
+		return $unserialized;
 	}
 
 	return $data;
@@ -3141,13 +3141,13 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			$mime_to_ext = apply_filters(
 				'getimagesize_mimes_to_exts',
 				array(
-					'image/jpeg' => 'jpg',
-					'image/png'  => 'png',
-					'image/gif'  => 'gif',
-					'image/bmp'  => 'bmp',
-					'image/tiff' => 'tif',
-					'image/webp' => 'webp',
-					'image/avif' => 'avif',
+					'image/jpeg'          => 'jpg',
+					'image/png'           => 'png',
+					'image/gif'           => 'gif',
+					'image/bmp'           => 'bmp',
+					'image/tiff'          => 'tif',
+					'image/webp'          => 'webp',
+					'image/avif'          => 'avif',
 
 					/*
 					 * In theory there are/should be file extensions that correspond to the
@@ -3155,8 +3155,8 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					 * with any of the mime types commonly have a .heic file extension.
 					 * Seems keeping the status quo here is best for compatibility.
 					 */
-					'image/heic' => 'heic',
-					'image/heif' => 'heic',
+					'image/heic'          => 'heic',
+					'image/heif'          => 'heic',
 					'image/heic-sequence' => 'heic',
 					'image/heif-sequence' => 'heic',
 				)
