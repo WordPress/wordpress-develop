@@ -453,7 +453,8 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 		wp_set_current_user( self::$admin );
 
 		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
-		$post      = self::factory()->post->create_and_get( array( 'post_author' => $author_id ) );
+		$post_id   = self::factory()->attachment->create( array( 'post_author' => $author_id ) );
+		$post      = get_post( $post_id );
 
 		$author_name  = get_the_author_meta( 'display_name', $author_id );
 		$expected_url = esc_url( add_query_arg( array( 'author' => $author_id ), 'upload.php' ) );

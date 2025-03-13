@@ -342,7 +342,8 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		wp_set_current_user( self::$admin );
 
 		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
-		$post      = self::factory()->post->create_and_get( array( 'post_author' => $author_id ) );
+		$post_id   = self::factory()->post->create_and_get( array( 'post_author' => $author_id ) );
+		$post      = get_post( $post_id );
 
 		$author_name  = get_the_author_meta( 'display_name', $author_id );
 		$expected_url = esc_url( add_query_arg( array( 'author' => $author_id ), 'upload.php' ) );
@@ -364,8 +365,8 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	public function test_column_author_with_no_author() {
 		wp_set_current_user( self::$admin );
 
-		// Create an attachment post with no author (post_author set to 0).
-		$post_id = self::factory()->attachment->create( array( 'post_author' => 0 ) );
+		// Create a post with no author (post_author set to 0).
+		$post_id = self::factory()->post->create_and_get( array( 'post_author' => 0 ) );
 		$post    = get_post( $post_id );
 
 		ob_start();
