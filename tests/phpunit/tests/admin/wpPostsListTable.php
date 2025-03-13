@@ -341,7 +341,13 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	public function test_column_author_with_valid_author() {
 		wp_set_current_user( self::$admin );
 
-		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$author_id = self::factory()->user->create(
+			array(
+				'role'         => 'author',
+				'user_login'   => 'test_author_x',
+				'display_name' => 'Test Author',
+			)
+		);
 		$post_id   = self::factory()->post->create_and_get( array( 'post_author' => $author_id ) );
 		$post      = get_post( $post_id );
 
