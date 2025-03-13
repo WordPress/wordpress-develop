@@ -1277,6 +1277,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Handles the post author column output.
 	 *
 	 * @since 4.3.0
+	 * @since 6.8.0 Added fallback text for posts that have no author.
 	 *
 	 * @param WP_Post $post The current WP_Post object.
 	 */
