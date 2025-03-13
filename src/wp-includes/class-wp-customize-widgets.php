@@ -1492,7 +1492,7 @@ final class WP_Customize_Widgets {
 			return;
 		}
 
-		$instance = unserialize( $decoded );
+		$instance = maybe_unserialize( $decoded );
 		if ( false === $instance ) {
 			return;
 		}

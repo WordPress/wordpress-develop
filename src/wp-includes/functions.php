@@ -647,13 +647,30 @@ function maybe_serialize( $data ) {
  * Unserializes data only if it was serialized.
  *
  * @since 2.0.0
+ * @since 6.8.0 Added checking for unserialize warnings including PHP 8.3's trailing data warnings.
  *
  * @param string $data Data that might be unserialized.
  * @return mixed Unserialized data can be any type.
  */
 function maybe_unserialize( $data ) {
 	if ( is_serialized( $data ) ) { // Don't attempt to unserialize data that wasn't serialized going in.
-		return @unserialize( trim( $data ) );
+		$previous_error_handler = set_error_handler( 
+            function( $errno, $errstr ) {
+                restore_error_handler();
+                if ( ( E_WARNING === $errno || E_NOTICE === $errno ) && strpos( $errstr, 'unserialize' ) !== false ) {
+                    if ( wp_is_development_mode() ) {
+                        return false;
+                    }
+                    return true;
+                }
+                return false;
+            },
+            E_WARNING | E_NOTICE
+        );
+
+        $unserialized = unserialize( trim( $data ) );
+        restore_error_handler();
+        return $unserialized;
 	}
 
 	return $data;
