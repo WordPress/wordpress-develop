@@ -1,9 +1,9 @@
 === Twenty Twenty-Two ===
 Contributors: wordpressdotorg
 Requires at least: 5.9
-Tested up to: 6.5
+Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 1.7
+Stable tag: 1.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,7 +15,39 @@ The true richness of Twenty Twenty-Two lies in its opportunity for customization
 
 Whether you’re building a single-page website, a blog, a business website, or a portfolio, Twenty Twenty-Two will help you create a site that is uniquely yours.
 
+== Comment Block Support ==
+
+If you are using WordPress version 6.1 or newer, you are recommended to update the comment block to the latest version.
+
+= Instructions =
+
+1. From the WordPress admin, open Appearance > Site Editor.
+2. Select "Templates" from the menu in the Site Editor sidebar.
+3. Select the template (see the list below) and open it in the Site Editor.
+4. Locate the comments block.
+5. If the comments block has a button with the text "Switch to editable mode", activate the button.
+6. Save the template.
+
+If the button is not present, then you may have already updated the block, and you do not need to make any changes.
+
+Follow these instructions for each of the following templates:
+
+- Pages
+- Page (No Separators)
+- Single Posts
+- Single Post (No Separators)
+
 == Changelog ==
+
+= 1.9 =
+* Released: November 12, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version_1.9
+
+= 1.8 =
+* Released: July 16, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version_1.8
 
 = 1.7 =
 * Released: April 2, 2024
@@ -59,7 +91,7 @@ https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version
 
 == Copyright ==
 
-Twenty Twenty-Two WordPress Theme, 2021-2024 WordPress.org
+Twenty Twenty-Two WordPress Theme, 2021-2025 WordPress.org and contributors.
 Twenty Twenty-Two is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify

@@ -15,11 +15,13 @@
  * @param array[][] $fonts {
  *     Optional. The font-families and their font faces. Default empty array.
  *
- *     @type array {
+ *     @type array ...$0 {
  *         An indexed or associative (keyed by font-family) array of font variations for this font-family.
  *         Each font face has the following structure.
  *
- *         @type array {
+ *         @type array ...$0 {
+ *             The font face properties.
+ *
  *             @type string          $font-family             The font-family property.
  *             @type string|string[] $src                     The URL(s) to each resource containing the font data.
  *             @type string          $font-style              Optional. The font-style property. Default 'normal'.
@@ -50,6 +52,22 @@ function wp_print_font_faces( $fonts = array() ) {
 
 	$wp_font_face = new WP_Font_Face();
 	$wp_font_face->generate_and_print( $fonts );
+}
+
+/**
+ * Generates and prints font-face styles defined the the theme style variations.
+ *
+ * @since 6.7.0
+ *
+ */
+function wp_print_font_faces_from_style_variations() {
+	$fonts = WP_Font_Face_Resolver::get_fonts_from_style_variations();
+
+	if ( empty( $fonts ) ) {
+		return;
+	}
+
+	wp_print_font_faces( $fonts );
 }
 
 /**
@@ -228,7 +246,7 @@ function _wp_before_delete_font_face( $post_id, $post ) {
 	}
 
 	$font_files = get_post_meta( $post_id, '_wp_font_face_file', false );
-	$font_dir   = wp_get_font_dir()['path'];
+	$font_dir   = untrailingslashit( wp_get_font_dir()['basedir'] );
 
 	foreach ( $font_files as $font_file ) {
 		wp_delete_file( $font_dir . '/' . $font_file );
@@ -247,7 +265,7 @@ function _wp_register_default_font_collections() {
 		array(
 			'name'          => _x( 'Google Fonts', 'font collection name' ),
 			'description'   => __( 'Install from Google Fonts. Fonts are copied to and served from your site.' ),
-			'font_families' => 'https://s.w.org/images/fonts/wp-6.5/collections/google-fonts-with-preview.json',
+			'font_families' => 'https://s.w.org/images/fonts/wp-6.7/collections/google-fonts-with-preview.json',
 			'categories'    => array(
 				array(
 					'name' => _x( 'Sans Serif', 'font category' ),

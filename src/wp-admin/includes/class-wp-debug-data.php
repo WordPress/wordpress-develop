@@ -27,26 +27,132 @@ class WP_Debug_Data {
 	 * @since 5.3.0 Added database charset, database collation,
 	 *              and timezone information.
 	 * @since 5.5.0 Added pretty permalinks support information.
+	 * @since 6.7.0 Modularized into separate theme-oriented methods.
 	 *
 	 * @throws ImagickException
-	 * @global wpdb  $wpdb               WordPress database abstraction object.
-	 * @global array $_wp_theme_features
 	 *
 	 * @return array The debug data for the site.
 	 */
 	public static function debug_data() {
-		global $wpdb, $_wp_theme_features;
+		/*
+		 * Set up the array that holds all debug information.
+		 *
+		 * When iterating through the debug data, the ordering of the sections
+		 * occurs in insertion-order of the assignments into this array.
+		 *
+		 * This is the single assignment of the sections before filtering. Null-entries will
+		 * be automatically be removed.
+		 */
+		$info = array(
+			'wp-core'             => self::get_wp_core(),
+			'wp-paths-sizes'      => self::get_wp_paths_sizes(),
+			'wp-dropins'          => self::get_wp_dropins(),
+			'wp-active-theme'     => self::get_wp_active_theme(),
+			'wp-parent-theme'     => self::get_wp_parent_theme(),
+			'wp-themes-inactive'  => self::get_wp_themes_inactive(),
+			'wp-mu-plugins'       => self::get_wp_mu_plugins(),
+			'wp-plugins-active'   => self::get_wp_plugins_active(),
+			'wp-plugins-inactive' => self::get_wp_plugins_inactive(),
+			'wp-media'            => self::get_wp_media(),
+			'wp-server'           => self::get_wp_server(),
+			'wp-database'         => self::get_wp_database(),
+			'wp-constants'        => self::get_wp_constants(),
+			'wp-filesystem'       => self::get_wp_filesystem(),
+		);
 
+		/*
+		 * Remove null elements from the array. The individual methods are
+		 * allowed to return `null`, which communicates that the category
+		 * of debug data isn't relevant and shouldn't be passed through.
+		 */
+		$info = array_filter(
+			$info,
+			static function ( $section ) {
+				return isset( $section );
+			}
+		);
+
+		/**
+		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
+		 *
+		 * Plugin or themes may wish to introduce their own debug information without creating
+		 * additional admin pages. They can utilize this filter to introduce their own sections
+		 * or add more data to existing sections.
+		 *
+		 * Array keys for sections added by core are all prefixed with `wp-`. Plugins and themes
+		 * should use their own slug as a prefix, both for consistency as well as avoiding
+		 * key collisions. Note that the array keys are used as labels for the copied data.
+		 *
+		 * All strings are expected to be plain text except `$description` that can contain
+		 * inline HTML tags (see below).
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param array $args {
+		 *     The debug information to be added to the core information page.
+		 *
+		 *     This is an associative multi-dimensional array, up to three levels deep.
+		 *     The topmost array holds the sections, keyed by section ID.
+		 *
+		 *     @type array ...$0 {
+		 *         Each section has a `$fields` associative array (see below), and each `$value` in `$fields`
+		 *         can be another associative array of name/value pairs when there is more structured data
+		 *         to display.
+		 *
+		 *         @type string $label       Required. The title for this section of the debug output.
+		 *         @type string $description Optional. A description for your information section which
+		 *                                   may contain basic HTML markup, inline tags only as it is
+		 *                                   outputted in a paragraph.
+		 *         @type bool   $show_count  Optional. If set to `true`, the amount of fields will be included
+		 *                                   in the title for this section. Default false.
+		 *         @type bool   $private     Optional. If set to `true`, the section and all associated fields
+		 *                                   will be excluded from the copied data. Default false.
+		 *         @type array  $fields {
+		 *             Required. An associative array containing the fields to be displayed in the section,
+		 *             keyed by field ID.
+		 *
+		 *             @type array ...$0 {
+		 *                 An associative array containing the data to be displayed for the field.
+		 *
+		 *                 @type string $label    Required. The label for this piece of information.
+		 *                 @type mixed  $value    Required. The output that is displayed for this field.
+		 *                                        Text should be translated. Can be an associative array
+		 *                                        that is displayed as name/value pairs.
+		 *                                        Accepted types: `string|int|float|(string|int|float)[]`.
+		 *                 @type string $debug    Optional. The output that is used for this field when
+		 *                                        the user copies the data. It should be more concise and
+		 *                                        not translated. If not set, the content of `$value`
+		 *                                        is used. Note that the array keys are used as labels
+		 *                                        for the copied data.
+		 *                 @type bool   $private  Optional. If set to `true`, the field will be excluded
+		 *                                        from the copied data, allowing you to show, for example,
+		 *                                        API keys here. Default false.
+		 *             }
+		 *         }
+		 *     }
+		 * }
+		 */
+		$info = apply_filters( 'debug_information', $info );
+
+		return $info;
+	}
+
+	/**
+	 * Gets the WordPress core section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_core(): array {
 		// Save few function calls.
-		$upload_dir             = wp_upload_dir();
 		$permalink_structure    = get_option( 'permalink_structure' );
 		$is_ssl                 = is_ssl();
-		$is_multisite           = is_multisite();
 		$users_can_register     = get_option( 'users_can_register' );
 		$blog_public            = get_option( 'blog_public' );
 		$default_comment_status = get_option( 'default_comment_status' );
 		$environment_type       = wp_get_environment_type();
-		$core_version           = get_bloginfo( 'version' );
+		$core_version           = wp_get_wp_version();
 		$core_updates           = get_core_updates();
 		$core_update_needed     = '';
 
@@ -61,321 +167,68 @@ class WP_Debug_Data {
 			}
 		}
 
-		// Set up the array that holds all debug information.
-		$info = array();
-
-		$info['wp-core'] = array(
-			'label'  => __( 'WordPress' ),
-			'fields' => array(
-				'version'                => array(
-					'label' => __( 'Version' ),
-					'value' => $core_version . $core_update_needed,
-					'debug' => $core_version,
-				),
-				'site_language'          => array(
-					'label' => __( 'Site Language' ),
-					'value' => get_locale(),
-				),
-				'user_language'          => array(
-					'label' => __( 'User Language' ),
-					'value' => get_user_locale(),
-				),
-				'timezone'               => array(
-					'label' => __( 'Timezone' ),
-					'value' => wp_timezone_string(),
-				),
-				'home_url'               => array(
-					'label'   => __( 'Home URL' ),
-					'value'   => get_bloginfo( 'url' ),
-					'private' => true,
-				),
-				'site_url'               => array(
-					'label'   => __( 'Site URL' ),
-					'value'   => get_bloginfo( 'wpurl' ),
-					'private' => true,
-				),
-				'permalink'              => array(
-					'label' => __( 'Permalink structure' ),
-					'value' => $permalink_structure ? $permalink_structure : __( 'No permalink structure set' ),
-					'debug' => $permalink_structure,
-				),
-				'https_status'           => array(
-					'label' => __( 'Is this site using HTTPS?' ),
-					'value' => $is_ssl ? __( 'Yes' ) : __( 'No' ),
-					'debug' => $is_ssl,
-				),
-				'multisite'              => array(
-					'label' => __( 'Is this a multisite?' ),
-					'value' => $is_multisite ? __( 'Yes' ) : __( 'No' ),
-					'debug' => $is_multisite,
-				),
-				'user_registration'      => array(
-					'label' => __( 'Can anyone register on this site?' ),
-					'value' => $users_can_register ? __( 'Yes' ) : __( 'No' ),
-					'debug' => $users_can_register,
-				),
-				'blog_public'            => array(
-					'label' => __( 'Is this site discouraging search engines?' ),
-					'value' => $blog_public ? __( 'No' ) : __( 'Yes' ),
-					'debug' => $blog_public,
-				),
-				'default_comment_status' => array(
-					'label' => __( 'Default comment status' ),
-					'value' => 'open' === $default_comment_status ? _x( 'Open', 'comment status' ) : _x( 'Closed', 'comment status' ),
-					'debug' => $default_comment_status,
-				),
-				'environment_type'       => array(
-					'label' => __( 'Environment type' ),
-					'value' => $environment_type,
-					'debug' => $environment_type,
-				),
+		$fields = array(
+			'version'                => array(
+				'label' => __( 'Version' ),
+				'value' => $core_version . $core_update_needed,
+				'debug' => $core_version,
 			),
-		);
-
-		if ( ! $is_multisite ) {
-			$info['wp-paths-sizes'] = array(
-				'label'  => __( 'Directories and Sizes' ),
-				'fields' => array(),
-			);
-		}
-
-		$info['wp-dropins'] = array(
-			'label'       => __( 'Drop-ins' ),
-			'show_count'  => true,
-			'description' => sprintf(
-				/* translators: %s: wp-content directory name. */
-				__( 'Drop-ins are single files, found in the %s directory, that replace or enhance WordPress features in ways that are not possible for traditional plugins.' ),
-				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '</code>'
+			'site_language'          => array(
+				'label' => __( 'Site Language' ),
+				'value' => get_locale(),
 			),
-			'fields'      => array(),
-		);
-
-		$info['wp-active-theme'] = array(
-			'label'  => __( 'Active Theme' ),
-			'fields' => array(),
-		);
-
-		$info['wp-parent-theme'] = array(
-			'label'  => __( 'Parent Theme' ),
-			'fields' => array(),
-		);
-
-		$info['wp-themes-inactive'] = array(
-			'label'      => __( 'Inactive Themes' ),
-			'show_count' => true,
-			'fields'     => array(),
-		);
-
-		$info['wp-mu-plugins'] = array(
-			'label'      => __( 'Must Use Plugins' ),
-			'show_count' => true,
-			'fields'     => array(),
-		);
-
-		$info['wp-plugins-active'] = array(
-			'label'      => __( 'Active Plugins' ),
-			'show_count' => true,
-			'fields'     => array(),
-		);
-
-		$info['wp-plugins-inactive'] = array(
-			'label'      => __( 'Inactive Plugins' ),
-			'show_count' => true,
-			'fields'     => array(),
-		);
-
-		$info['wp-media'] = array(
-			'label'  => __( 'Media Handling' ),
-			'fields' => array(),
-		);
-
-		$info['wp-server'] = array(
-			'label'       => __( 'Server' ),
-			'description' => __( 'The options shown below relate to your server setup. If changes are required, you may need your web host&#8217;s assistance.' ),
-			'fields'      => array(),
-		);
-
-		$info['wp-database'] = array(
-			'label'  => __( 'Database' ),
-			'fields' => array(),
-		);
-
-		// Check if WP_DEBUG_LOG is set.
-		$wp_debug_log_value = __( 'Disabled' );
-
-		if ( is_string( WP_DEBUG_LOG ) ) {
-			$wp_debug_log_value = WP_DEBUG_LOG;
-		} elseif ( WP_DEBUG_LOG ) {
-			$wp_debug_log_value = __( 'Enabled' );
-		}
-
-		// Check CONCATENATE_SCRIPTS.
-		if ( defined( 'CONCATENATE_SCRIPTS' ) ) {
-			$concatenate_scripts       = CONCATENATE_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
-			$concatenate_scripts_debug = CONCATENATE_SCRIPTS ? 'true' : 'false';
-		} else {
-			$concatenate_scripts       = __( 'Undefined' );
-			$concatenate_scripts_debug = 'undefined';
-		}
-
-		// Check COMPRESS_SCRIPTS.
-		if ( defined( 'COMPRESS_SCRIPTS' ) ) {
-			$compress_scripts       = COMPRESS_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
-			$compress_scripts_debug = COMPRESS_SCRIPTS ? 'true' : 'false';
-		} else {
-			$compress_scripts       = __( 'Undefined' );
-			$compress_scripts_debug = 'undefined';
-		}
-
-		// Check COMPRESS_CSS.
-		if ( defined( 'COMPRESS_CSS' ) ) {
-			$compress_css       = COMPRESS_CSS ? __( 'Enabled' ) : __( 'Disabled' );
-			$compress_css_debug = COMPRESS_CSS ? 'true' : 'false';
-		} else {
-			$compress_css       = __( 'Undefined' );
-			$compress_css_debug = 'undefined';
-		}
-
-		// Check WP_ENVIRONMENT_TYPE.
-		if ( defined( 'WP_ENVIRONMENT_TYPE' ) && WP_ENVIRONMENT_TYPE ) {
-			$wp_environment_type = WP_ENVIRONMENT_TYPE;
-		} else {
-			$wp_environment_type = __( 'Undefined' );
-		}
-
-		$info['wp-constants'] = array(
-			'label'       => __( 'WordPress Constants' ),
-			'description' => __( 'These settings alter where and how parts of WordPress are loaded.' ),
-			'fields'      => array(
-				'ABSPATH'             => array(
-					'label'   => 'ABSPATH',
-					'value'   => ABSPATH,
-					'private' => true,
-				),
-				'WP_HOME'             => array(
-					'label' => 'WP_HOME',
-					'value' => ( defined( 'WP_HOME' ) ? WP_HOME : __( 'Undefined' ) ),
-					'debug' => ( defined( 'WP_HOME' ) ? WP_HOME : 'undefined' ),
-				),
-				'WP_SITEURL'          => array(
-					'label' => 'WP_SITEURL',
-					'value' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : __( 'Undefined' ) ),
-					'debug' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : 'undefined' ),
-				),
-				'WP_CONTENT_DIR'      => array(
-					'label' => 'WP_CONTENT_DIR',
-					'value' => WP_CONTENT_DIR,
-				),
-				'WP_PLUGIN_DIR'       => array(
-					'label' => 'WP_PLUGIN_DIR',
-					'value' => WP_PLUGIN_DIR,
-				),
-				'WP_MEMORY_LIMIT'     => array(
-					'label' => 'WP_MEMORY_LIMIT',
-					'value' => WP_MEMORY_LIMIT,
-				),
-				'WP_MAX_MEMORY_LIMIT' => array(
-					'label' => 'WP_MAX_MEMORY_LIMIT',
-					'value' => WP_MAX_MEMORY_LIMIT,
-				),
-				'WP_DEBUG'            => array(
-					'label' => 'WP_DEBUG',
-					'value' => WP_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
-					'debug' => WP_DEBUG,
-				),
-				'WP_DEBUG_DISPLAY'    => array(
-					'label' => 'WP_DEBUG_DISPLAY',
-					'value' => WP_DEBUG_DISPLAY ? __( 'Enabled' ) : __( 'Disabled' ),
-					'debug' => WP_DEBUG_DISPLAY,
-				),
-				'WP_DEBUG_LOG'        => array(
-					'label' => 'WP_DEBUG_LOG',
-					'value' => $wp_debug_log_value,
-					'debug' => WP_DEBUG_LOG,
-				),
-				'SCRIPT_DEBUG'        => array(
-					'label' => 'SCRIPT_DEBUG',
-					'value' => SCRIPT_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
-					'debug' => SCRIPT_DEBUG,
-				),
-				'WP_CACHE'            => array(
-					'label' => 'WP_CACHE',
-					'value' => WP_CACHE ? __( 'Enabled' ) : __( 'Disabled' ),
-					'debug' => WP_CACHE,
-				),
-				'CONCATENATE_SCRIPTS' => array(
-					'label' => 'CONCATENATE_SCRIPTS',
-					'value' => $concatenate_scripts,
-					'debug' => $concatenate_scripts_debug,
-				),
-				'COMPRESS_SCRIPTS'    => array(
-					'label' => 'COMPRESS_SCRIPTS',
-					'value' => $compress_scripts,
-					'debug' => $compress_scripts_debug,
-				),
-				'COMPRESS_CSS'        => array(
-					'label' => 'COMPRESS_CSS',
-					'value' => $compress_css,
-					'debug' => $compress_css_debug,
-				),
-				'WP_ENVIRONMENT_TYPE' => array(
-					'label' => 'WP_ENVIRONMENT_TYPE',
-					'value' => $wp_environment_type,
-					'debug' => $wp_environment_type,
-				),
-				'WP_DEVELOPMENT_MODE' => array(
-					'label' => 'WP_DEVELOPMENT_MODE',
-					'value' => WP_DEVELOPMENT_MODE ? WP_DEVELOPMENT_MODE : __( 'Disabled' ),
-					'debug' => WP_DEVELOPMENT_MODE,
-				),
-				'DB_CHARSET'          => array(
-					'label' => 'DB_CHARSET',
-					'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
-					'debug' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : 'undefined' ),
-				),
-				'DB_COLLATE'          => array(
-					'label' => 'DB_COLLATE',
-					'value' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : __( 'Undefined' ) ),
-					'debug' => ( defined( 'DB_COLLATE' ) ? DB_COLLATE : 'undefined' ),
-				),
+			'user_language'          => array(
+				'label' => __( 'User Language' ),
+				'value' => get_user_locale(),
 			),
-		);
-
-		$is_writable_abspath            = wp_is_writable( ABSPATH );
-		$is_writable_wp_content_dir     = wp_is_writable( WP_CONTENT_DIR );
-		$is_writable_upload_dir         = wp_is_writable( $upload_dir['basedir'] );
-		$is_writable_wp_plugin_dir      = wp_is_writable( WP_PLUGIN_DIR );
-		$is_writable_template_directory = wp_is_writable( get_theme_root( get_template() ) );
-
-		$info['wp-filesystem'] = array(
-			'label'       => __( 'Filesystem Permissions' ),
-			'description' => __( 'Shows whether WordPress is able to write to the directories it needs access to.' ),
-			'fields'      => array(
-				'wordpress'  => array(
-					'label' => __( 'The main WordPress directory' ),
-					'value' => ( $is_writable_abspath ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_abspath ? 'writable' : 'not writable' ),
-				),
-				'wp-content' => array(
-					'label' => __( 'The wp-content directory' ),
-					'value' => ( $is_writable_wp_content_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_wp_content_dir ? 'writable' : 'not writable' ),
-				),
-				'uploads'    => array(
-					'label' => __( 'The uploads directory' ),
-					'value' => ( $is_writable_upload_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_upload_dir ? 'writable' : 'not writable' ),
-				),
-				'plugins'    => array(
-					'label' => __( 'The plugins directory' ),
-					'value' => ( $is_writable_wp_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_wp_plugin_dir ? 'writable' : 'not writable' ),
-				),
-				'themes'     => array(
-					'label' => __( 'The themes directory' ),
-					'value' => ( $is_writable_template_directory ? __( 'Writable' ) : __( 'Not writable' ) ),
-					'debug' => ( $is_writable_template_directory ? 'writable' : 'not writable' ),
-				),
+			'timezone'               => array(
+				'label' => __( 'Timezone' ),
+				'value' => wp_timezone_string(),
+			),
+			'home_url'               => array(
+				'label'   => __( 'Home URL' ),
+				'value'   => get_bloginfo( 'url' ),
+				'private' => true,
+			),
+			'site_url'               => array(
+				'label'   => __( 'Site URL' ),
+				'value'   => get_bloginfo( 'wpurl' ),
+				'private' => true,
+			),
+			'permalink'              => array(
+				'label' => __( 'Permalink structure' ),
+				'value' => $permalink_structure ? $permalink_structure : __( 'No permalink structure set' ),
+				'debug' => $permalink_structure,
+			),
+			'https_status'           => array(
+				'label' => __( 'Is this site using HTTPS?' ),
+				'value' => $is_ssl ? __( 'Yes' ) : __( 'No' ),
+				'debug' => $is_ssl,
+			),
+			'multisite'              => array(
+				'label' => __( 'Is this a multisite?' ),
+				'value' => is_multisite() ? __( 'Yes' ) : __( 'No' ),
+				'debug' => is_multisite(),
+			),
+			'user_registration'      => array(
+				'label' => __( 'Can anyone register on this site?' ),
+				'value' => $users_can_register ? __( 'Yes' ) : __( 'No' ),
+				'debug' => $users_can_register,
+			),
+			'blog_public'            => array(
+				'label' => __( 'Is this site discouraging search engines?' ),
+				'value' => $blog_public ? __( 'No' ) : __( 'Yes' ),
+				'debug' => $blog_public,
+			),
+			'default_comment_status' => array(
+				'label' => __( 'Default comment status' ),
+				'value' => 'open' === $default_comment_status ? _x( 'Open', 'comment status' ) : _x( 'Closed', 'comment status' ),
+				'debug' => $default_comment_status,
+			),
+			'environment_type'       => array(
+				'label' => __( 'Environment type' ),
+				'value' => $environment_type,
+				'debug' => $environment_type,
 			),
 		);
 
@@ -383,7 +236,7 @@ class WP_Debug_Data {
 		if ( is_multisite() ) {
 			$site_id = get_current_blog_id();
 
-			$info['wp-core']['fields']['site_id'] = array(
+			$fields['site_id'] = array(
 				'label' => __( 'Site ID' ),
 				'value' => $site_id,
 				'debug' => $site_id,
@@ -403,18 +256,18 @@ class WP_Debug_Data {
 				$site_count += get_blog_count( $network_id );
 			}
 
-			$info['wp-core']['fields']['site_count'] = array(
+			$fields['site_count'] = array(
 				'label' => __( 'Site count' ),
 				'value' => $site_count,
 			);
 
-			$info['wp-core']['fields']['network_count'] = array(
+			$fields['network_count'] = array(
 				'label' => __( 'Network count' ),
 				'value' => $network_query->found_networks,
 			);
 		}
 
-		$info['wp-core']['fields']['user_count'] = array(
+		$fields['user_count'] = array(
 			'label' => __( 'User count' ),
 			'value' => get_user_count(),
 		);
@@ -423,16 +276,16 @@ class WP_Debug_Data {
 		$wp_dotorg = wp_remote_get( 'https://wordpress.org', array( 'timeout' => 10 ) );
 
 		if ( ! is_wp_error( $wp_dotorg ) ) {
-			$info['wp-core']['fields']['dotorg_communication'] = array(
+			$fields['dotorg_communication'] = array(
 				'label' => __( 'Communication with WordPress.org' ),
 				'value' => __( 'WordPress.org is reachable' ),
 				'debug' => 'true',
 			);
 		} else {
-			$info['wp-core']['fields']['dotorg_communication'] = array(
+			$fields['dotorg_communication'] = array(
 				'label' => __( 'Communication with WordPress.org' ),
 				'value' => sprintf(
-					/* translators: 1: The IP address WordPress.org resolves to. 2: The error returned by the lookup. */
+				/* translators: 1: The IP address WordPress.org resolves to. 2: The error returned by the lookup. */
 					__( 'Unable to reach WordPress.org at %1$s: %2$s' ),
 					gethostbyname( 'wordpress.org' ),
 					$wp_dotorg->get_error_message()
@@ -441,79 +294,281 @@ class WP_Debug_Data {
 			);
 		}
 
-		// Remove accordion for Directories and Sizes if in Multisite.
-		if ( ! $is_multisite ) {
-			$loading = __( 'Loading&hellip;' );
+		return array(
+			'label'  => __( 'WordPress' ),
+			'fields' => $fields,
+		);
+	}
 
-			$info['wp-paths-sizes']['fields'] = array(
-				'wordpress_path' => array(
-					'label' => __( 'WordPress directory location' ),
-					'value' => untrailingslashit( ABSPATH ),
-				),
-				'wordpress_size' => array(
-					'label' => __( 'WordPress directory size' ),
-					'value' => $loading,
-					'debug' => 'loading...',
-				),
-				'uploads_path'   => array(
-					'label' => __( 'Uploads directory location' ),
-					'value' => $upload_dir['basedir'],
-				),
-				'uploads_size'   => array(
-					'label' => __( 'Uploads directory size' ),
-					'value' => $loading,
-					'debug' => 'loading...',
-				),
-				'themes_path'    => array(
-					'label' => __( 'Themes directory location' ),
-					'value' => get_theme_root(),
-				),
-				'themes_size'    => array(
-					'label' => __( 'Themes directory size' ),
-					'value' => $loading,
-					'debug' => 'loading...',
-				),
-				'plugins_path'   => array(
-					'label' => __( 'Plugins directory location' ),
-					'value' => WP_PLUGIN_DIR,
-				),
-				'plugins_size'   => array(
-					'label' => __( 'Plugins directory size' ),
-					'value' => $loading,
-					'debug' => 'loading...',
-				),
-				'database_size'  => array(
-					'label' => __( 'Database size' ),
-					'value' => $loading,
-					'debug' => 'loading...',
-				),
-				'total_size'     => array(
-					'label' => __( 'Total installation size' ),
-					'value' => $loading,
-					'debug' => 'loading...',
-				),
-			);
-		}
-
+	/**
+	 * Gets the WordPress drop-in section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_dropins(): array {
 		// Get a list of all drop-in replacements.
 		$dropins = get_dropins();
 
-		// Get dropins descriptions.
+		// Get drop-ins descriptions.
 		$dropin_descriptions = _get_dropins();
 
-		// Spare few function calls.
-		$not_available = __( 'Not available' );
-
+		$fields = array();
 		foreach ( $dropins as $dropin_key => $dropin ) {
-			$info['wp-dropins']['fields'][ sanitize_text_field( $dropin_key ) ] = array(
+			$fields[ sanitize_text_field( $dropin_key ) ] = array(
 				'label' => $dropin_key,
 				'value' => $dropin_descriptions[ $dropin_key ][0],
 				'debug' => 'true',
 			);
 		}
 
+		return array(
+			'label'       => __( 'Drop-ins' ),
+			'show_count'  => true,
+			'description' => sprintf(
+				/* translators: %s: wp-content directory name. */
+				__( 'Drop-ins are single files, found in the %s directory, that replace or enhance WordPress features in ways that are not possible for traditional plugins.' ),
+				'<code>' . str_replace( ABSPATH, '', WP_CONTENT_DIR ) . '</code>'
+			),
+			'fields'      => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress server section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_server(): array {
+		// Populate the server debug fields.
+		if ( function_exists( 'php_uname' ) ) {
+			$server_architecture = sprintf( '%s %s %s', php_uname( 's' ), php_uname( 'r' ), php_uname( 'm' ) );
+		} else {
+			$server_architecture = 'unknown';
+		}
+
+		$php_version_debug = PHP_VERSION;
+		// Whether PHP supports 64-bit.
+		$php64bit = ( PHP_INT_SIZE * 8 === 64 );
+
+		$php_version = sprintf(
+			'%s %s',
+			$php_version_debug,
+			( $php64bit ? __( '(Supports 64bit values)' ) : __( '(Does not support 64bit values)' ) )
+		);
+
+		if ( $php64bit ) {
+			$php_version_debug .= ' 64bit';
+		}
+
+		$fields = array();
+
+		$fields['server_architecture'] = array(
+			'label' => __( 'Server architecture' ),
+			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
+			'debug' => $server_architecture,
+		);
+		$fields['httpd_software']      = array(
+			'label' => __( 'Web server' ),
+			'value' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : __( 'Unable to determine what web server software is used' ) ),
+			'debug' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : 'unknown' ),
+		);
+		$fields['php_version']         = array(
+			'label' => __( 'PHP version' ),
+			'value' => $php_version,
+			'debug' => $php_version_debug,
+		);
+		$fields['php_sapi']            = array(
+			'label' => __( 'PHP SAPI' ),
+			'value' => PHP_SAPI,
+			'debug' => PHP_SAPI,
+		);
+
+		// Some servers disable `ini_set()` and `ini_get()`, we check this before trying to get configuration values.
+		if ( ! function_exists( 'ini_get' ) ) {
+			$fields['ini_get'] = array(
+				'label' => __( 'Server settings' ),
+				'value' => sprintf(
+				/* translators: %s: ini_get() */
+					__( 'Unable to determine some settings, as the %s function has been disabled.' ),
+					'ini_get()'
+				),
+				'debug' => 'ini_get() is disabled',
+			);
+		} else {
+			$fields['max_input_variables'] = array(
+				'label' => __( 'PHP max input variables' ),
+				'value' => ini_get( 'max_input_vars' ),
+			);
+			$fields['time_limit']          = array(
+				'label' => __( 'PHP time limit' ),
+				'value' => ini_get( 'max_execution_time' ),
+			);
+
+			if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
+				$fields['memory_limit']       = array(
+					'label' => __( 'PHP memory limit' ),
+					'value' => WP_Site_Health::get_instance()->php_memory_limit,
+				);
+				$fields['admin_memory_limit'] = array(
+					'label' => __( 'PHP memory limit (only for admin screens)' ),
+					'value' => ini_get( 'memory_limit' ),
+				);
+			} else {
+				$fields['memory_limit'] = array(
+					'label' => __( 'PHP memory limit' ),
+					'value' => ini_get( 'memory_limit' ),
+				);
+			}
+
+			$fields['max_input_time']      = array(
+				'label' => __( 'Max input time' ),
+				'value' => ini_get( 'max_input_time' ),
+			);
+			$fields['upload_max_filesize'] = array(
+				'label' => __( 'Upload max filesize' ),
+				'value' => ini_get( 'upload_max_filesize' ),
+			);
+			$fields['php_post_max_size']   = array(
+				'label' => __( 'PHP post max size' ),
+				'value' => ini_get( 'post_max_size' ),
+			);
+		}
+
+		if ( function_exists( 'curl_version' ) ) {
+			$curl = curl_version();
+
+			$fields['curl_version'] = array(
+				'label' => __( 'cURL version' ),
+				'value' => sprintf( '%s %s', $curl['version'], $curl['ssl_version'] ),
+			);
+		} else {
+			$fields['curl_version'] = array(
+				'label' => __( 'cURL version' ),
+				'value' => __( 'Not available' ),
+				'debug' => 'not available',
+			);
+		}
+
+		// SUHOSIN.
+		$suhosin_loaded = ( extension_loaded( 'suhosin' ) || ( defined( 'SUHOSIN_PATCH' ) && constant( 'SUHOSIN_PATCH' ) ) );
+
+		$fields['suhosin'] = array(
+			'label' => __( 'Is SUHOSIN installed?' ),
+			'value' => ( $suhosin_loaded ? __( 'Yes' ) : __( 'No' ) ),
+			'debug' => $suhosin_loaded,
+		);
+
+		// Imagick.
+		$imagick_loaded = extension_loaded( 'imagick' );
+
+		$fields['imagick_availability'] = array(
+			'label' => __( 'Is the Imagick library available?' ),
+			'value' => ( $imagick_loaded ? __( 'Yes' ) : __( 'No' ) ),
+			'debug' => $imagick_loaded,
+		);
+
+		// Pretty permalinks.
+		$pretty_permalinks_supported = got_url_rewrite();
+
+		$fields['pretty_permalinks'] = array(
+			'label' => __( 'Are pretty permalinks supported?' ),
+			'value' => ( $pretty_permalinks_supported ? __( 'Yes' ) : __( 'No' ) ),
+			'debug' => $pretty_permalinks_supported,
+		);
+
+		// Check if a .htaccess file exists.
+		if ( is_file( ABSPATH . '.htaccess' ) ) {
+			// If the file exists, grab the content of it.
+			$htaccess_content = file_get_contents( ABSPATH . '.htaccess' );
+
+			// Filter away the core WordPress rules.
+			$filtered_htaccess_content = trim( preg_replace( '/\# BEGIN WordPress[\s\S]+?# END WordPress/si', '', $htaccess_content ) );
+			$filtered_htaccess_content = ! empty( $filtered_htaccess_content );
+
+			if ( $filtered_htaccess_content ) {
+				/* translators: %s: .htaccess */
+				$htaccess_rules_string = sprintf( __( 'Custom rules have been added to your %s file.' ), '.htaccess' );
+			} else {
+				/* translators: %s: .htaccess */
+				$htaccess_rules_string = sprintf( __( 'Your %s file contains only core WordPress features.' ), '.htaccess' );
+			}
+
+			$fields['htaccess_extra_rules'] = array(
+				'label' => __( '.htaccess rules' ),
+				'value' => $htaccess_rules_string,
+				'debug' => $filtered_htaccess_content,
+			);
+		}
+
+		// Check if a robots.txt file exists.
+		if ( is_file( ABSPATH . 'robots.txt' ) ) {
+			// If the file exists, turn debug info to true.
+			$robotstxt_debug = true;
+
+			/* translators: %s: robots.txt */
+			$robotstxt_string = sprintf( __( 'There is a static %s file in your installation folder. WordPress cannot dynamically serve one.' ), 'robots.txt' );
+		} elseif ( got_url_rewrite() ) {
+			// No robots.txt file available and rewrite rules in place, turn debug info to false.
+			$robotstxt_debug = false;
+
+			/* translators: %s: robots.txt */
+			$robotstxt_string = sprintf( __( 'Your site is using the dynamic %s file which is generated by WordPress.' ), 'robots.txt' );
+		} else {
+			// No robots.txt file, but without rewrite rules WP can't serve one.
+			$robotstxt_debug = true;
+
+			/* translators: %s: robots.txt */
+			$robotstxt_string = sprintf( __( 'WordPress cannot dynamically serve a %s file due to a lack of rewrite rule support' ), 'robots.txt' );
+
+		}
+
+		$fields['static_robotstxt_file'] = array(
+			'label' => __( 'robots.txt' ),
+			'value' => $robotstxt_string,
+			'debug' => $robotstxt_debug,
+		);
+
+		// Server time.
+		$date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+
+		$fields['current']     = array(
+			'label' => __( 'Current time' ),
+			'value' => $date->format( DateTime::ATOM ),
+		);
+		$fields['utc-time']    = array(
+			'label' => __( 'Current UTC time' ),
+			'value' => $date->format( DateTime::RFC850 ),
+		);
+		$fields['server-time'] = array(
+			'label' => __( 'Current Server time' ),
+			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
+		);
+
+		return array(
+			'label'       => __( 'Server' ),
+			'description' => __( 'The options shown below relate to your server setup. If changes are required, you may need your web host&#8217;s assistance.' ),
+			'fields'      => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress media section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @throws ImagickException
+	 * @return array
+	 */
+	private static function get_wp_media(): array {
+		// Spare few function calls.
+		$not_available = __( 'Not available' );
+
 		// Populate the media fields.
-		$info['wp-media']['fields']['image_editor'] = array(
+		$fields['image_editor'] = array(
 			'label' => __( 'Active editor' ),
 			'value' => _wp_image_editor_choose(),
 		);
@@ -527,28 +582,28 @@ class WP_Debug_Data {
 			$imagemagick_version = __( 'Not available' );
 		}
 
-		$info['wp-media']['fields']['imagick_module_version'] = array(
+		$fields['imagick_module_version'] = array(
 			'label' => __( 'ImageMagick version number' ),
 			'value' => ( is_array( $imagemagick_version ) ? $imagemagick_version['versionNumber'] : $imagemagick_version ),
 		);
 
-		$info['wp-media']['fields']['imagemagick_version'] = array(
+		$fields['imagemagick_version'] = array(
 			'label' => __( 'ImageMagick version string' ),
 			'value' => ( is_array( $imagemagick_version ) ? $imagemagick_version['versionString'] : $imagemagick_version ),
 		);
 
 		$imagick_version = phpversion( 'imagick' );
 
-		$info['wp-media']['fields']['imagick_version'] = array(
+		$fields['imagick_version'] = array(
 			'label' => __( 'Imagick version' ),
 			'value' => ( $imagick_version ) ? $imagick_version : __( 'Not available' ),
 		);
 
 		if ( ! function_exists( 'ini_get' ) ) {
-			$info['wp-media']['fields']['ini_get'] = array(
+			$fields['ini_get'] = array(
 				'label' => __( 'File upload settings' ),
 				'value' => sprintf(
-					/* translators: %s: ini_get() */
+				/* translators: %s: ini_get() */
 					__( 'Unable to determine some settings, as the %s function has been disabled.' ),
 					'ini_get()'
 				),
@@ -563,26 +618,26 @@ class WP_Debug_Data {
 			$effective           = min( wp_convert_hr_to_bytes( $post_max_size ), wp_convert_hr_to_bytes( $upload_max_filesize ) );
 
 			// Add info in Media section.
-			$info['wp-media']['fields']['file_uploads']        = array(
+			$fields['file_uploads']        = array(
 				'label' => __( 'File uploads' ),
 				'value' => $file_uploads ? __( 'Enabled' ) : __( 'Disabled' ),
 				'debug' => $file_uploads,
 			);
-			$info['wp-media']['fields']['post_max_size']       = array(
+			$fields['post_max_size']       = array(
 				'label' => __( 'Max size of post data allowed' ),
 				'value' => $post_max_size,
 			);
-			$info['wp-media']['fields']['upload_max_filesize'] = array(
+			$fields['upload_max_filesize'] = array(
 				'label' => __( 'Max size of an uploaded file' ),
 				'value' => $upload_max_filesize,
 			);
-			$info['wp-media']['fields']['max_effective_size']  = array(
+			$fields['max_effective_size']  = array(
 				'label' => __( 'Max effective file size' ),
 				'value' => size_format( $effective ),
 			);
-			$info['wp-media']['fields']['max_file_uploads']    = array(
-				'label' => __( 'Max number of files allowed' ),
-				'value' => number_format( $max_file_uploads ),
+			$fields['max_file_uploads']    = array(
+				'label' => __( 'Max simultaneous file uploads' ),
+				'value' => $max_file_uploads,
 			);
 		}
 
@@ -608,7 +663,7 @@ class WP_Debug_Data {
 				'imagick::RESOURCETYPE_TIME'   => ( defined( 'imagick::RESOURCETYPE_TIME' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_TIME ) : 'not available' ),
 			);
 
-			$info['wp-media']['fields']['imagick_limits'] = array(
+			$fields['imagick_limits'] = array(
 				'label' => __( 'Imagick Resource Limits' ),
 				'value' => $limits,
 				'debug' => $limits_debug,
@@ -620,7 +675,7 @@ class WP_Debug_Data {
 				$formats = array();
 			}
 
-			$info['wp-media']['fields']['imagemagick_file_formats'] = array(
+			$fields['imagemagick_file_formats'] = array(
 				'label' => __( 'ImageMagick supported file formats' ),
 				'value' => ( empty( $formats ) ) ? __( 'Unable to determine' ) : implode( ', ', $formats ),
 				'debug' => ( empty( $formats ) ) ? 'Unable to determine' : implode( ', ', $formats ),
@@ -634,7 +689,7 @@ class WP_Debug_Data {
 			$gd = false;
 		}
 
-		$info['wp-media']['fields']['gd_version'] = array(
+		$fields['gd_version'] = array(
 			'label' => __( 'GD version' ),
 			'value' => ( is_array( $gd ) ? $gd['GD Version'] : $not_available ),
 			'debug' => ( is_array( $gd ) ? $gd['GD Version'] : 'not available' ),
@@ -661,7 +716,7 @@ class WP_Debug_Data {
 		}
 
 		if ( ! empty( $gd_image_formats ) ) {
-			$info['wp-media']['fields']['gd_formats'] = array(
+			$fields['gd_formats'] = array(
 				'label' => __( 'GD supported file formats' ),
 				'value' => implode( ', ', $gd_image_formats ),
 			);
@@ -682,263 +737,29 @@ class WP_Debug_Data {
 			$gs_debug = 'unknown';
 		}
 
-		$info['wp-media']['fields']['ghostscript_version'] = array(
+		$fields['ghostscript_version'] = array(
 			'label' => __( 'Ghostscript version' ),
 			'value' => $gs,
 			'debug' => $gs_debug,
 		);
 
-		// Populate the server debug fields.
-		if ( function_exists( 'php_uname' ) ) {
-			$server_architecture = sprintf( '%s %s %s', php_uname( 's' ), php_uname( 'r' ), php_uname( 'm' ) );
-		} else {
-			$server_architecture = 'unknown';
-		}
-
-		$php_version_debug = PHP_VERSION;
-		// Whether PHP supports 64-bit.
-		$php64bit = ( PHP_INT_SIZE * 8 === 64 );
-
-		$php_version = sprintf(
-			'%s %s',
-			$php_version_debug,
-			( $php64bit ? __( '(Supports 64bit values)' ) : __( '(Does not support 64bit values)' ) )
+		return array(
+			'label'  => __( 'Media Handling' ),
+			'fields' => $fields,
 		);
+	}
 
-		if ( $php64bit ) {
-			$php_version_debug .= ' 64bit';
-		}
-
-		$info['wp-server']['fields']['server_architecture'] = array(
-			'label' => __( 'Server architecture' ),
-			'value' => ( 'unknown' !== $server_architecture ? $server_architecture : __( 'Unable to determine server architecture' ) ),
-			'debug' => $server_architecture,
-		);
-		$info['wp-server']['fields']['httpd_software']      = array(
-			'label' => __( 'Web server' ),
-			'value' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : __( 'Unable to determine what web server software is used' ) ),
-			'debug' => ( isset( $_SERVER['SERVER_SOFTWARE'] ) ? $_SERVER['SERVER_SOFTWARE'] : 'unknown' ),
-		);
-		$info['wp-server']['fields']['php_version']         = array(
-			'label' => __( 'PHP version' ),
-			'value' => $php_version,
-			'debug' => $php_version_debug,
-		);
-		$info['wp-server']['fields']['php_sapi']            = array(
-			'label' => __( 'PHP SAPI' ),
-			'value' => PHP_SAPI,
-			'debug' => PHP_SAPI,
-		);
-
-		// Some servers disable `ini_set()` and `ini_get()`, we check this before trying to get configuration values.
-		if ( ! function_exists( 'ini_get' ) ) {
-			$info['wp-server']['fields']['ini_get'] = array(
-				'label' => __( 'Server settings' ),
-				'value' => sprintf(
-					/* translators: %s: ini_get() */
-					__( 'Unable to determine some settings, as the %s function has been disabled.' ),
-					'ini_get()'
-				),
-				'debug' => 'ini_get() is disabled',
-			);
-		} else {
-			$info['wp-server']['fields']['max_input_variables'] = array(
-				'label' => __( 'PHP max input variables' ),
-				'value' => ini_get( 'max_input_vars' ),
-			);
-			$info['wp-server']['fields']['time_limit']          = array(
-				'label' => __( 'PHP time limit' ),
-				'value' => ini_get( 'max_execution_time' ),
-			);
-
-			if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
-				$info['wp-server']['fields']['memory_limit']       = array(
-					'label' => __( 'PHP memory limit' ),
-					'value' => WP_Site_Health::get_instance()->php_memory_limit,
-				);
-				$info['wp-server']['fields']['admin_memory_limit'] = array(
-					'label' => __( 'PHP memory limit (only for admin screens)' ),
-					'value' => ini_get( 'memory_limit' ),
-				);
-			} else {
-				$info['wp-server']['fields']['memory_limit'] = array(
-					'label' => __( 'PHP memory limit' ),
-					'value' => ini_get( 'memory_limit' ),
-				);
-			}
-
-			$info['wp-server']['fields']['max_input_time']      = array(
-				'label' => __( 'Max input time' ),
-				'value' => ini_get( 'max_input_time' ),
-			);
-			$info['wp-server']['fields']['upload_max_filesize'] = array(
-				'label' => __( 'Upload max filesize' ),
-				'value' => ini_get( 'upload_max_filesize' ),
-			);
-			$info['wp-server']['fields']['php_post_max_size']   = array(
-				'label' => __( 'PHP post max size' ),
-				'value' => ini_get( 'post_max_size' ),
-			);
-		}
-
-		if ( function_exists( 'curl_version' ) ) {
-			$curl = curl_version();
-
-			$info['wp-server']['fields']['curl_version'] = array(
-				'label' => __( 'cURL version' ),
-				'value' => sprintf( '%s %s', $curl['version'], $curl['ssl_version'] ),
-			);
-		} else {
-			$info['wp-server']['fields']['curl_version'] = array(
-				'label' => __( 'cURL version' ),
-				'value' => $not_available,
-				'debug' => 'not available',
-			);
-		}
-
-		// SUHOSIN.
-		$suhosin_loaded = ( extension_loaded( 'suhosin' ) || ( defined( 'SUHOSIN_PATCH' ) && constant( 'SUHOSIN_PATCH' ) ) );
-
-		$info['wp-server']['fields']['suhosin'] = array(
-			'label' => __( 'Is SUHOSIN installed?' ),
-			'value' => ( $suhosin_loaded ? __( 'Yes' ) : __( 'No' ) ),
-			'debug' => $suhosin_loaded,
-		);
-
-		// Imagick.
-		$imagick_loaded = extension_loaded( 'imagick' );
-
-		$info['wp-server']['fields']['imagick_availability'] = array(
-			'label' => __( 'Is the Imagick library available?' ),
-			'value' => ( $imagick_loaded ? __( 'Yes' ) : __( 'No' ) ),
-			'debug' => $imagick_loaded,
-		);
-
-		// Pretty permalinks.
-		$pretty_permalinks_supported = got_url_rewrite();
-
-		$info['wp-server']['fields']['pretty_permalinks'] = array(
-			'label' => __( 'Are pretty permalinks supported?' ),
-			'value' => ( $pretty_permalinks_supported ? __( 'Yes' ) : __( 'No' ) ),
-			'debug' => $pretty_permalinks_supported,
-		);
-
-		// Check if a .htaccess file exists.
-		if ( is_file( ABSPATH . '.htaccess' ) ) {
-			// If the file exists, grab the content of it.
-			$htaccess_content = file_get_contents( ABSPATH . '.htaccess' );
-
-			// Filter away the core WordPress rules.
-			$filtered_htaccess_content = trim( preg_replace( '/\# BEGIN WordPress[\s\S]+?# END WordPress/si', '', $htaccess_content ) );
-			$filtered_htaccess_content = ! empty( $filtered_htaccess_content );
-
-			if ( $filtered_htaccess_content ) {
-				/* translators: %s: .htaccess */
-				$htaccess_rules_string = sprintf( __( 'Custom rules have been added to your %s file.' ), '.htaccess' );
-			} else {
-				/* translators: %s: .htaccess */
-				$htaccess_rules_string = sprintf( __( 'Your %s file contains only core WordPress features.' ), '.htaccess' );
-			}
-
-			$info['wp-server']['fields']['htaccess_extra_rules'] = array(
-				'label' => __( '.htaccess rules' ),
-				'value' => $htaccess_rules_string,
-				'debug' => $filtered_htaccess_content,
-			);
-		}
-
-		// Server time.
-		$date = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
-
-		$info['wp-server']['fields']['current']     = array(
-			'label' => __( 'Current time' ),
-			'value' => $date->format( DateTime::ATOM ),
-		);
-		$info['wp-server']['fields']['utc-time']    = array(
-			'label' => __( 'Current UTC time' ),
-			'value' => $date->format( DateTime::RFC850 ),
-		);
-		$info['wp-server']['fields']['server-time'] = array(
-			'label' => __( 'Current Server time' ),
-			'value' => wp_date( 'c', $_SERVER['REQUEST_TIME'] ),
-		);
-
-		// Populate the database debug fields.
-		if ( is_object( $wpdb->dbh ) ) {
-			// mysqli or PDO.
-			$extension = get_class( $wpdb->dbh );
-		} else {
-			// Unknown sql extension.
-			$extension = null;
-		}
-
-		$server = $wpdb->get_var( 'SELECT VERSION()' );
-
-		$client_version = $wpdb->dbh->client_info;
-
-		$info['wp-database']['fields']['extension'] = array(
-			'label' => __( 'Extension' ),
-			'value' => $extension,
-		);
-
-		$info['wp-database']['fields']['server_version'] = array(
-			'label' => __( 'Server version' ),
-			'value' => $server,
-		);
-
-		$info['wp-database']['fields']['client_version'] = array(
-			'label' => __( 'Client version' ),
-			'value' => $client_version,
-		);
-
-		$info['wp-database']['fields']['database_user'] = array(
-			'label'   => __( 'Database username' ),
-			'value'   => $wpdb->dbuser,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['database_host'] = array(
-			'label'   => __( 'Database host' ),
-			'value'   => $wpdb->dbhost,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['database_name'] = array(
-			'label'   => __( 'Database name' ),
-			'value'   => $wpdb->dbname,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['database_prefix'] = array(
-			'label'   => __( 'Table prefix' ),
-			'value'   => $wpdb->prefix,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['database_charset'] = array(
-			'label'   => __( 'Database charset' ),
-			'value'   => $wpdb->charset,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['database_collate'] = array(
-			'label'   => __( 'Database collation' ),
-			'value'   => $wpdb->collate,
-			'private' => true,
-		);
-
-		$info['wp-database']['fields']['max_allowed_packet'] = array(
-			'label' => __( 'Max allowed packet size' ),
-			'value' => self::get_mysql_var( 'max_allowed_packet' ),
-		);
-
-		$info['wp-database']['fields']['max_connections'] = array(
-			'label' => __( 'Max connections number' ),
-			'value' => self::get_mysql_var( 'max_connections' ),
-		);
-
+	/**
+	 * Gets the WordPress MU plugins section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_mu_plugins(): array {
 		// List must use plugins if there are any.
 		$mu_plugins = get_mu_plugins();
+		$fields     = array();
 
 		foreach ( $mu_plugins as $plugin_path => $plugin ) {
 			$plugin_version = $plugin['Version'];
@@ -965,19 +786,148 @@ class WP_Debug_Data {
 				}
 			}
 
-			$info['wp-mu-plugins']['fields'][ sanitize_text_field( $plugin['Name'] ) ] = array(
+			$fields[ sanitize_text_field( $plugin['Name'] ) ] = array(
 				'label' => $plugin['Name'],
 				'value' => $plugin_version_string,
 				'debug' => $plugin_version_string_debug,
 			);
 		}
 
+		return array(
+			'label'      => __( 'Must Use Plugins' ),
+			'show_count' => true,
+			'fields'     => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress paths and sizes section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array|null Paths and sizes debug data for single sites,
+	 *                    otherwise `null` for multi-site installs.
+	 */
+	private static function get_wp_paths_sizes(): ?array {
+		if ( is_multisite() ) {
+			return null;
+		}
+
+		$loading = __( 'Loading&hellip;' );
+
+		$fields = array(
+			'wordpress_path' => array(
+				'label' => __( 'WordPress directory location' ),
+				'value' => untrailingslashit( ABSPATH ),
+			),
+			'wordpress_size' => array(
+				'label' => __( 'WordPress directory size' ),
+				'value' => $loading,
+				'debug' => 'loading...',
+			),
+			'uploads_path'   => array(
+				'label' => __( 'Uploads directory location' ),
+				'value' => wp_upload_dir()['basedir'],
+			),
+			'uploads_size'   => array(
+				'label' => __( 'Uploads directory size' ),
+				'value' => $loading,
+				'debug' => 'loading...',
+			),
+			'themes_path'    => array(
+				'label' => __( 'Themes directory location' ),
+				'value' => get_theme_root(),
+			),
+			'themes_size'    => array(
+				'label' => __( 'Themes directory size' ),
+				'value' => $loading,
+				'debug' => 'loading...',
+			),
+			'plugins_path'   => array(
+				'label' => __( 'Plugins directory location' ),
+				'value' => WP_PLUGIN_DIR,
+			),
+			'plugins_size'   => array(
+				'label' => __( 'Plugins directory size' ),
+				'value' => $loading,
+				'debug' => 'loading...',
+			),
+			'fonts_path'     => array(
+				'label' => __( 'Fonts directory location' ),
+				'value' => wp_get_font_dir()['basedir'],
+			),
+			'fonts_size'     => array(
+				'label' => __( 'Fonts directory size' ),
+				'value' => $loading,
+				'debug' => 'loading...',
+			),
+			'database_size'  => array(
+				'label' => __( 'Database size' ),
+				'value' => $loading,
+				'debug' => 'loading...',
+			),
+			'total_size'     => array(
+				'label' => __( 'Total installation size' ),
+				'value' => $loading,
+				'debug' => 'loading...',
+			),
+		);
+
+		return array(
+			/* translators: Filesystem directory paths and storage sizes. */
+			'label'  => __( 'Directories and Sizes' ),
+			'fields' => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress active plugins section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_plugins_active(): array {
+		return array(
+			'label'      => __( 'Active Plugins' ),
+			'show_count' => true,
+			'fields'     => self::get_wp_plugins_raw_data()['wp-plugins-active'],
+		);
+	}
+
+	/**
+	 * Gets the WordPress inactive plugins section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_plugins_inactive(): array {
+		return array(
+			'label'      => __( 'Inactive Plugins' ),
+			'show_count' => true,
+			'fields'     => self::get_wp_plugins_raw_data()['wp-plugins-inactive'],
+		);
+	}
+
+	/**
+	 * Gets the raw plugin data for the WordPress active and inactive sections of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_plugins_raw_data(): array {
 		// List all available plugins.
 		$plugins        = get_plugins();
 		$plugin_updates = get_plugin_updates();
 		$transient      = get_site_transient( 'update_plugins' );
 
 		$auto_updates = array();
+		$fields       = array(
+			'wp-plugins-active'   => array(),
+			'wp-plugins-inactive' => array(),
+		);
 
 		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'plugin' );
 
@@ -1071,12 +1021,27 @@ class WP_Debug_Data {
 				$plugin_version_string_debug .= ', ' . $auto_updates_string;
 			}
 
-			$info[ $plugin_part ]['fields'][ sanitize_text_field( $plugin['Name'] ) ] = array(
+			$fields[ $plugin_part ][ sanitize_text_field( $plugin['Name'] ) ] = array(
 				'label' => $plugin['Name'],
 				'value' => $plugin_version_string,
 				'debug' => $plugin_version_string_debug,
 			);
 		}
+
+		return $fields;
+	}
+
+	/**
+	 * Gets the WordPress active theme section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @global array $_wp_theme_features
+	 *
+	 * @return array
+	 */
+	private static function get_wp_active_theme(): array {
+		global $_wp_theme_features;
 
 		// Populate the section for the currently active theme.
 		$theme_features = array();
@@ -1127,7 +1092,7 @@ class WP_Debug_Data {
 			$active_theme_parent_theme_debug = 'none';
 		}
 
-		$info['wp-active-theme']['fields'] = array(
+		$fields = array(
 			'name'           => array(
 				'label' => __( 'Name' ),
 				'value' => sprintf(
@@ -1199,14 +1164,39 @@ class WP_Debug_Data {
 			/** This filter is documented in wp-admin/includes/class-wp-debug-data.php */
 			$auto_updates_string = apply_filters( 'theme_auto_update_debug_string', $auto_updates_string, $active_theme, $enabled );
 
-			$info['wp-active-theme']['fields']['auto_update'] = array(
+			$fields['auto_update'] = array(
 				'label' => __( 'Auto-updates' ),
 				'value' => $auto_updates_string,
 				'debug' => $auto_updates_string,
 			);
 		}
 
+		return array(
+			'label'  => __( 'Active Theme' ),
+			'fields' => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress parent theme section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_parent_theme(): array {
+		$theme_updates = get_theme_updates();
+		$transient     = get_site_transient( 'update_themes' );
+
+		$auto_updates         = array();
+		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
+		if ( $auto_updates_enabled ) {
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+		}
+
+		$active_theme = wp_get_theme();
 		$parent_theme = $active_theme->parent();
+		$fields       = array();
 
 		if ( $parent_theme ) {
 			$parent_theme_version       = $parent_theme->version;
@@ -1222,7 +1212,7 @@ class WP_Debug_Data {
 
 			$parent_theme_author_uri = $parent_theme->display( 'AuthorURI' );
 
-			$info['wp-parent-theme']['fields'] = array(
+			$fields = array(
 				'name'           => array(
 					'label' => __( 'Name' ),
 					'value' => sprintf(
@@ -1283,9 +1273,9 @@ class WP_Debug_Data {
 				}
 
 				/** This filter is documented in wp-admin/includes/class-wp-debug-data.php */
-				$parent_theme_auto_update_string = apply_filters( 'theme_auto_update_debug_string', $auto_updates_string, $parent_theme, $enabled );
+				$parent_theme_auto_update_string = apply_filters( 'theme_auto_update_debug_string', $parent_theme_auto_update_string, $parent_theme, $enabled );
 
-				$info['wp-parent-theme']['fields']['auto_update'] = array(
+				$fields['auto_update'] = array(
 					'label' => __( 'Auto-update' ),
 					'value' => $parent_theme_auto_update_string,
 					'debug' => $parent_theme_auto_update_string,
@@ -1293,8 +1283,33 @@ class WP_Debug_Data {
 			}
 		}
 
-		// Populate a list of all themes available in the install.
+		return array(
+			'label'  => __( 'Parent Theme' ),
+			'fields' => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress inactive themes section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_themes_inactive(): array {
+		$active_theme  = wp_get_theme();
+		$parent_theme  = $active_theme->parent();
+		$theme_updates = get_theme_updates();
+
+		$auto_updates         = array();
+		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
+		if ( $auto_updates_enabled ) {
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+		}
+
+		// Populate a list of all themes available in the installation.
 		$all_themes = wp_get_themes();
+		$fields     = array();
 
 		foreach ( $all_themes as $theme_slug => $theme ) {
 			// Exclude the currently active theme from the list of all themes.
@@ -1385,7 +1400,7 @@ class WP_Debug_Data {
 				$theme_version_string_debug .= ', ' . $auto_updates_string;
 			}
 
-			$info['wp-themes-inactive']['fields'][ sanitize_text_field( $theme->name ) ] = array(
+			$fields[ sanitize_text_field( $theme->name ) ] = array(
 				'label' => sprintf(
 					/* translators: 1: Theme name. 2: Theme slug. */
 					__( '%1$s (%2$s)' ),
@@ -1397,80 +1412,329 @@ class WP_Debug_Data {
 			);
 		}
 
+		return array(
+			'label'      => __( 'Inactive Themes' ),
+			'show_count' => true,
+			'fields'     => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress constants section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_constants(): array {
+		// Check if WP_DEBUG_LOG is set.
+		$wp_debug_log_value = __( 'Disabled' );
+		if ( is_string( WP_DEBUG_LOG ) ) {
+			$wp_debug_log_value = WP_DEBUG_LOG;
+		} elseif ( WP_DEBUG_LOG ) {
+			$wp_debug_log_value = __( 'Enabled' );
+		}
+
+		// Check CONCATENATE_SCRIPTS.
+		if ( defined( 'CONCATENATE_SCRIPTS' ) ) {
+			$concatenate_scripts       = CONCATENATE_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
+			$concatenate_scripts_debug = CONCATENATE_SCRIPTS ? 'true' : 'false';
+		} else {
+			$concatenate_scripts       = __( 'Undefined' );
+			$concatenate_scripts_debug = 'undefined';
+		}
+
+		// Check COMPRESS_SCRIPTS.
+		if ( defined( 'COMPRESS_SCRIPTS' ) ) {
+			$compress_scripts       = COMPRESS_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
+			$compress_scripts_debug = COMPRESS_SCRIPTS ? 'true' : 'false';
+		} else {
+			$compress_scripts       = __( 'Undefined' );
+			$compress_scripts_debug = 'undefined';
+		}
+
+		// Check COMPRESS_CSS.
+		if ( defined( 'COMPRESS_CSS' ) ) {
+			$compress_css       = COMPRESS_CSS ? __( 'Enabled' ) : __( 'Disabled' );
+			$compress_css_debug = COMPRESS_CSS ? 'true' : 'false';
+		} else {
+			$compress_css       = __( 'Undefined' );
+			$compress_css_debug = 'undefined';
+		}
+
+		// Check WP_ENVIRONMENT_TYPE.
+		if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+			$wp_environment_type       = WP_ENVIRONMENT_TYPE ? WP_ENVIRONMENT_TYPE : __( 'Empty value' );
+			$wp_environment_type_debug = WP_ENVIRONMENT_TYPE;
+		} else {
+			$wp_environment_type       = __( 'Undefined' );
+			$wp_environment_type_debug = 'undefined';
+		}
+
+		// Check DB_COLLATE.
+		if ( defined( 'DB_COLLATE' ) ) {
+			$db_collate       = DB_COLLATE ? DB_COLLATE : __( 'Empty value' );
+			$db_collate_debug = DB_COLLATE;
+		} else {
+			$db_collate       = __( 'Undefined' );
+			$db_collate_debug = 'undefined';
+		}
+
+		$fields = array(
+			'ABSPATH'             => array(
+				'label'   => 'ABSPATH',
+				'value'   => ABSPATH,
+				'private' => true,
+			),
+			'WP_HOME'             => array(
+				'label' => 'WP_HOME',
+				'value' => ( defined( 'WP_HOME' ) ? WP_HOME : __( 'Undefined' ) ),
+				'debug' => ( defined( 'WP_HOME' ) ? WP_HOME : 'undefined' ),
+			),
+			'WP_SITEURL'          => array(
+				'label' => 'WP_SITEURL',
+				'value' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : __( 'Undefined' ) ),
+				'debug' => ( defined( 'WP_SITEURL' ) ? WP_SITEURL : 'undefined' ),
+			),
+			'WP_CONTENT_DIR'      => array(
+				'label' => 'WP_CONTENT_DIR',
+				'value' => WP_CONTENT_DIR,
+			),
+			'WP_PLUGIN_DIR'       => array(
+				'label' => 'WP_PLUGIN_DIR',
+				'value' => WP_PLUGIN_DIR,
+			),
+			'WP_MEMORY_LIMIT'     => array(
+				'label' => 'WP_MEMORY_LIMIT',
+				'value' => WP_MEMORY_LIMIT,
+			),
+			'WP_MAX_MEMORY_LIMIT' => array(
+				'label' => 'WP_MAX_MEMORY_LIMIT',
+				'value' => WP_MAX_MEMORY_LIMIT,
+			),
+			'WP_DEBUG'            => array(
+				'label' => 'WP_DEBUG',
+				'value' => WP_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => WP_DEBUG,
+			),
+			'WP_DEBUG_DISPLAY'    => array(
+				'label' => 'WP_DEBUG_DISPLAY',
+				'value' => WP_DEBUG_DISPLAY ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => WP_DEBUG_DISPLAY,
+			),
+			'WP_DEBUG_LOG'        => array(
+				'label' => 'WP_DEBUG_LOG',
+				'value' => $wp_debug_log_value,
+				'debug' => WP_DEBUG_LOG,
+			),
+			'SCRIPT_DEBUG'        => array(
+				'label' => 'SCRIPT_DEBUG',
+				'value' => SCRIPT_DEBUG ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => SCRIPT_DEBUG,
+			),
+			'WP_CACHE'            => array(
+				'label' => 'WP_CACHE',
+				'value' => WP_CACHE ? __( 'Enabled' ) : __( 'Disabled' ),
+				'debug' => WP_CACHE,
+			),
+			'CONCATENATE_SCRIPTS' => array(
+				'label' => 'CONCATENATE_SCRIPTS',
+				'value' => $concatenate_scripts,
+				'debug' => $concatenate_scripts_debug,
+			),
+			'COMPRESS_SCRIPTS'    => array(
+				'label' => 'COMPRESS_SCRIPTS',
+				'value' => $compress_scripts,
+				'debug' => $compress_scripts_debug,
+			),
+			'COMPRESS_CSS'        => array(
+				'label' => 'COMPRESS_CSS',
+				'value' => $compress_css,
+				'debug' => $compress_css_debug,
+			),
+			'WP_ENVIRONMENT_TYPE' => array(
+				'label' => 'WP_ENVIRONMENT_TYPE',
+				'value' => $wp_environment_type,
+				'debug' => $wp_environment_type_debug,
+			),
+			'WP_DEVELOPMENT_MODE' => array(
+				'label' => 'WP_DEVELOPMENT_MODE',
+				'value' => WP_DEVELOPMENT_MODE ? WP_DEVELOPMENT_MODE : __( 'Disabled' ),
+				'debug' => WP_DEVELOPMENT_MODE,
+			),
+			'DB_CHARSET'          => array(
+				'label' => 'DB_CHARSET',
+				'value' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : __( 'Undefined' ) ),
+				'debug' => ( defined( 'DB_CHARSET' ) ? DB_CHARSET : 'undefined' ),
+			),
+			'DB_COLLATE'          => array(
+				'label' => 'DB_COLLATE',
+				'value' => $db_collate,
+				'debug' => $db_collate_debug,
+			),
+		);
+
+		return array(
+			'label'       => __( 'WordPress Constants' ),
+			'description' => __( 'These settings alter where and how parts of WordPress are loaded.' ),
+			'fields'      => $fields,
+		);
+	}
+
+	/**
+	 * Gets the WordPress database section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @return array
+	 */
+	private static function get_wp_database(): array {
+		global $wpdb;
+
+		// Populate the database debug fields.
+		if ( is_object( $wpdb->dbh ) ) {
+			// mysqli or PDO.
+			$extension = get_class( $wpdb->dbh );
+		} else {
+			// Unknown sql extension.
+			$extension = null;
+		}
+
+		$server = $wpdb->get_var( 'SELECT VERSION()' );
+
+		$client_version = $wpdb->dbh->client_info;
+
+		$fields = array(
+			'extension'          => array(
+				'label' => __( 'Database Extension' ),
+				'value' => $extension,
+			),
+			'server_version'     => array(
+				'label' => __( 'Server version' ),
+				'value' => $server,
+			),
+			'client_version'     => array(
+				'label' => __( 'Client version' ),
+				'value' => $client_version,
+			),
+			'database_user'      => array(
+				'label'   => __( 'Database username' ),
+				'value'   => $wpdb->dbuser,
+				'private' => true,
+			),
+			'database_host'      => array(
+				'label'   => __( 'Database host' ),
+				'value'   => $wpdb->dbhost,
+				'private' => true,
+			),
+			'database_name'      => array(
+				'label'   => __( 'Database name' ),
+				'value'   => $wpdb->dbname,
+				'private' => true,
+			),
+			'database_prefix'    => array(
+				'label'   => __( 'Table prefix' ),
+				'value'   => $wpdb->prefix,
+				'private' => true,
+			),
+			'database_charset'   => array(
+				'label'   => __( 'Database charset' ),
+				'value'   => $wpdb->charset,
+				'private' => true,
+			),
+			'database_collate'   => array(
+				'label'   => __( 'Database collation' ),
+				'value'   => $wpdb->collate,
+				'private' => true,
+			),
+			'max_allowed_packet' => array(
+				'label' => __( 'Max allowed packet size' ),
+				'value' => self::get_mysql_var( 'max_allowed_packet' ),
+			),
+			'max_connections'    => array(
+				'label' => __( 'Max connections number' ),
+				'value' => self::get_mysql_var( 'max_connections' ),
+			),
+		);
+
+		return array(
+			'label'  => __( 'Database' ),
+			'fields' => $fields,
+		);
+	}
+
+	/**
+	 * Gets the file system section of the debug data.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array
+	 */
+	private static function get_wp_filesystem(): array {
+		$upload_dir                     = wp_upload_dir();
+		$fonts_dir_exists               = file_exists( wp_get_font_dir()['basedir'] );
+		$is_writable_abspath            = wp_is_writable( ABSPATH );
+		$is_writable_wp_content_dir     = wp_is_writable( WP_CONTENT_DIR );
+		$is_writable_upload_dir         = wp_is_writable( $upload_dir['basedir'] );
+		$is_writable_wp_plugin_dir      = wp_is_writable( WP_PLUGIN_DIR );
+		$is_writable_template_directory = wp_is_writable( get_theme_root( get_template() ) );
+		$is_writable_fonts_dir          = $fonts_dir_exists ? wp_is_writable( wp_get_font_dir()['basedir'] ) : false;
+
+		$fields = array(
+			'wordpress'  => array(
+				'label' => __( 'The main WordPress directory' ),
+				'value' => ( $is_writable_abspath ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_abspath ? 'writable' : 'not writable' ),
+			),
+			'wp-content' => array(
+				'label' => __( 'The wp-content directory' ),
+				'value' => ( $is_writable_wp_content_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_wp_content_dir ? 'writable' : 'not writable' ),
+			),
+			'uploads'    => array(
+				'label' => __( 'The uploads directory' ),
+				'value' => ( $is_writable_upload_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_upload_dir ? 'writable' : 'not writable' ),
+			),
+			'plugins'    => array(
+				'label' => __( 'The plugins directory' ),
+				'value' => ( $is_writable_wp_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_wp_plugin_dir ? 'writable' : 'not writable' ),
+			),
+			'themes'     => array(
+				'label' => __( 'The themes directory' ),
+				'value' => ( $is_writable_template_directory ? __( 'Writable' ) : __( 'Not writable' ) ),
+				'debug' => ( $is_writable_template_directory ? 'writable' : 'not writable' ),
+			),
+			'fonts'      => array(
+				'label' => __( 'The fonts directory' ),
+				'value' => $fonts_dir_exists
+					? ( $is_writable_fonts_dir ? __( 'Writable' ) : __( 'Not writable' ) )
+					: __( 'Does not exist' ),
+				'debug' => $fonts_dir_exists
+					? ( $is_writable_fonts_dir ? 'writable' : 'not writable' )
+					: 'does not exist',
+			),
+		);
+
 		// Add more filesystem checks.
 		if ( defined( 'WPMU_PLUGIN_DIR' ) && is_dir( WPMU_PLUGIN_DIR ) ) {
 			$is_writable_wpmu_plugin_dir = wp_is_writable( WPMU_PLUGIN_DIR );
 
-			$info['wp-filesystem']['fields']['mu-plugins'] = array(
+			$fields['mu-plugins'] = array(
 				'label' => __( 'The must use plugins directory' ),
 				'value' => ( $is_writable_wpmu_plugin_dir ? __( 'Writable' ) : __( 'Not writable' ) ),
 				'debug' => ( $is_writable_wpmu_plugin_dir ? 'writable' : 'not writable' ),
 			);
 		}
 
-		/**
-		 * Filters the debug information shown on the Tools -> Site Health -> Info screen.
-		 *
-		 * Plugin or themes may wish to introduce their own debug information without creating
-		 * additional admin pages. They can utilize this filter to introduce their own sections
-		 * or add more data to existing sections.
-		 *
-		 * Array keys for sections added by core are all prefixed with `wp-`. Plugins and themes
-		 * should use their own slug as a prefix, both for consistency as well as avoiding
-		 * key collisions. Note that the array keys are used as labels for the copied data.
-		 *
-		 * All strings are expected to be plain text except `$description` that can contain
-		 * inline HTML tags (see below).
-		 *
-		 * @since 5.2.0
-		 *
-		 * @param array $args {
-		 *     The debug information to be added to the core information page.
-		 *
-		 *     This is an associative multi-dimensional array, up to three levels deep.
-		 *     The topmost array holds the sections, keyed by section ID.
-		 *
-		 *     @type array ...$0 {
-		 *         Each section has a `$fields` associative array (see below), and each `$value` in `$fields`
-		 *         can be another associative array of name/value pairs when there is more structured data
-		 *         to display.
-		 *
-		 *         @type string $label       Required. The title for this section of the debug output.
-		 *         @type string $description Optional. A description for your information section which
-		 *                                   may contain basic HTML markup, inline tags only as it is
-		 *                                   outputted in a paragraph.
-		 *         @type bool   $show_count  Optional. If set to `true`, the amount of fields will be included
-		 *                                   in the title for this section. Default false.
-		 *         @type bool   $private     Optional. If set to `true`, the section and all associated fields
-		 *                                   will be excluded from the copied data. Default false.
-		 *         @type array  $fields {
-		 *             Required. An associative array containing the fields to be displayed in the section,
-		 *             keyed by field ID.
-		 *
-		 *             @type array ...$0 {
-		 *                 An associative array containing the data to be displayed for the field.
-		 *
-		 *                 @type string $label    Required. The label for this piece of information.
-		 *                 @type mixed  $value    Required. The output that is displayed for this field.
-		 *                                        Text should be translated. Can be an associative array
-		 *                                        that is displayed as name/value pairs.
-		 *                                        Accepted types: `string|int|float|(string|int|float)[]`.
-		 *                 @type string $debug    Optional. The output that is used for this field when
-		 *                                        the user copies the data. It should be more concise and
-		 *                                        not translated. If not set, the content of `$value`
-		 *                                        is used. Note that the array keys are used as labels
-		 *                                        for the copied data.
-		 *                 @type bool   $private  Optional. If set to `true`, the field will be excluded
-		 *                                        from the copied data, allowing you to show, for example,
-		 *                                        API keys here. Default false.
-		 *             }
-		 *         }
-		 *     }
-		 * }
-		 */
-		$info = apply_filters( 'debug_information', $info );
-
-		return $info;
+		return array(
+			'label'       => __( 'Filesystem Permissions' ),
+			'description' => __( 'Shows whether WordPress is able to write to the directories it needs access to.' ),
+			'fields'      => $fields,
+		);
 	}
 
 	/**
@@ -1636,6 +1900,7 @@ class WP_Debug_Data {
 			'themes_size'    => get_theme_root(),
 			'plugins_size'   => WP_PLUGIN_DIR,
 			'uploads_size'   => $upload_dir['basedir'],
+			'fonts_size'     => wp_get_font_dir()['basedir'],
 		);
 
 		$exclude = $paths;
@@ -1652,6 +1917,18 @@ class WP_Debug_Data {
 				'path' => $path,
 				'raw'  => 0,
 			);
+
+			// If the directory does not exist, skip checking it, as it will skew the other results.
+			if ( ! is_dir( $path ) ) {
+				$all_sizes[ $name ] = array(
+					'path'  => $path,
+					'raw'   => 0,
+					'size'  => __( 'The directory does not exist.' ),
+					'debug' => 'directory not found',
+				);
+
+				continue;
+			}
 
 			if ( microtime( true ) - WP_START_TIMESTAMP < $max_execution_time ) {
 				if ( 'wordpress_size' === $name ) {

@@ -733,7 +733,10 @@ final class WP_Customize_Widgets {
 				<p class="description">{description}</p>
 				<ul class="widget-area-select">
 					<% _.each( sidebars, function ( sidebar ){ %>
-						<li class="" data-id="<%- sidebar.id %>" title="<%- sidebar.description %>" tabindex="0"><%- sidebar.name %></li>
+						<li class="" data-id="<%- sidebar.id %>" tabindex="0">
+							<div><strong><%- sidebar.name %></strong></div>
+							<div><%- sidebar.description %></div>
+						</li>
 					<% }); %>
 				</ul>
 				<div class="move-widget-actions">
@@ -866,6 +869,24 @@ final class WP_Customize_Widgets {
 				'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . ');'
 			);
 
+			// Preload server-registered block bindings sources.
+			$registered_sources = get_all_registered_block_bindings_sources();
+			if ( ! empty( $registered_sources ) ) {
+				$filtered_sources = array();
+				foreach ( $registered_sources as $source ) {
+					$filtered_sources[] = array(
+						'name'        => $source->name,
+						'label'       => $source->label,
+						'usesContext' => $source->uses_context,
+					);
+				}
+				$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources ) );
+				wp_add_inline_script(
+					'wp-blocks',
+					$script
+				);
+			}
+
 			wp_add_inline_script(
 				'wp-blocks',
 				sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( get_block_categories( $block_editor_context ) ) ),
@@ -909,13 +930,13 @@ final class WP_Customize_Widgets {
 				</h3>
 			</div>
 			<div id="available-widgets-filter">
-				<label class="screen-reader-text" for="widgets-search">
+				<label for="widgets-search">
 					<?php
 					/* translators: Hidden accessibility text. */
 					_e( 'Search Widgets' );
 					?>
 				</label>
-				<input type="text" id="widgets-search" placeholder="<?php esc_attr_e( 'Search widgets&hellip;' ); ?>" aria-describedby="widgets-search-desc" />
+				<input type="text" id="widgets-search" aria-describedby="widgets-search-desc" />
 				<div class="search-icon" aria-hidden="true"></div>
 				<button type="button" class="clear-results"><span class="screen-reader-text">
 					<?php

@@ -15,6 +15,18 @@ $title = _x( 'About', 'page title' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
 
+$release_notes_url = sprintf(
+	/* translators: %s: WordPress version number. */
+	__( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ),
+	'6-7'
+);
+
+$field_guide_url = sprintf(
+	/* translators: %s: WordPress version number. */
+	__( 'https://make.wordpress.org/core/wordpress-%s-field-guide/' ),
+	'6-7'
+);
+
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 	<div class="wrap about__container">
@@ -53,172 +65,122 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</h2>
 				<p class="is-subheading">
-					<?php _e( 'Take your site-building experience further with WordPress 6.5. Explore more avenues to make it your own, with new features and enhancements that will help fine-tune your creative work. Discover the latest additions to the developer experience, with fresh foundational tools poised to transform the future of blocks.' ); ?>
+					<?php _e( 'WordPress 6.7 debuts the modern Twenty Twenty-Five theme, offering ultimate design flexibility for any blog at any scale. Control your site typography like never before with new font management features. The new Zoom Out feature lets you design your site with a macro view, stepping back from the details to bring the big picture to life.' ); ?>
 				</p>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/1-font-library.webp" alt="" height="436" width="436" />
-				</div>
+				<h3><?php _e( 'Introducing Twenty Twenty-Five' ); ?></h3>
+				<p>
+					<strong><?php _e( 'Endless possibility without complexity' ); ?></strong><br />
+					<?php _e( 'Twenty Twenty-Five offers a flexible, design-focused theme that lets you build stunning sites with ease. Tailor your aesthetic with an array of style options, block patterns, and color palettes. Pared down to the essentials, this is a theme that can truly grow with you.' ); ?>
+				</p>
 			</div>
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Add and manage fonts across your site' ); ?></h3>
-				<p><?php _e( 'The new Font Library puts you in control of an essential piece of your site&#8217;s design—typography—without coding or extra steps. Effortlessly install, remove, and activate local and Google Fonts across your site for any block theme. The ability to include custom typography collections gives site creators and publishers even more choice.' ); ?></p>
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.7/feature-tt5-2.webp" alt="" height="436" width="436" />
+				</div>
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
-				<h3><?php _e( 'Get more details from your style revisions' ); ?></h3>
-				<p><?php _e( 'Work through creative projects with a more comprehensive picture of what&#8217;s been done—and what you can fall back on. Get details like time stamps, quick summaries, and a paginated list of total revisions. View revisions from the Style Book to see changes outside of what you&#8217;re working on. Revisions are also now available for templates and template parts.' ); ?></p>
+				<div class="about__image">
+					<img src="https://s.w.org/images/core/6.7/feature-zoom-2.webp" alt="" height="436" width="436" />
+				</div>
+			</div>
+			<div class="column is-vertically-aligned-center">
+				<h3><?php _e( 'Get the big picture with Zoom Out' ); ?></h3>
+				<p>
+					<strong><?php _e( 'Explore your content from a new perspective' ); ?></strong><br />
+					<?php _e( 'Edit and arrange entire sections of your content like never before. A broader view of your site lets you add, edit, shuffle, or remove patterns to your liking. Embrace your inner architect.' ); ?>
+				</p>
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns">
+			<div class="column is-vertically-aligned-center">
+				<h3><?php _e( 'Connect blocks and custom fields with no hassle (or code)' ); ?></h3>
+				<p>
+					<strong><?php _e( 'A streamlined way to create dynamic content' ); ?></strong><br />
+					<?php _e( 'This feature introduces a new UI for connecting blocks to custom fields, putting control of dynamic content directly in the editor. Link blocks with fields in just a few clicks, enhancing flexibility and efficiency when building. Your clients will love you—as if they didn&#8217;t already.' ); ?>
+				</p>
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/3-style-revisions.webp" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/6.7/feature-block-bindings-2.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
 
-		<div class="about__section has-3-columns">
-			<div class="column">
+		<div class="about__section has-2-columns">
+			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/4-background-images.webp" alt="" height="270" width="270" />
+					<img src="https://s.w.org/images/core/6.7/feature-font-presets-2.png" alt="" height="436" width="436" />
 				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Do more with background images in Group blocks' ); ?></h3>
-				<p><?php _e( 'Control size, repeat, and focal point options so you can play around with subtle or splashy ways to add visual interest to layouts.' ); ?></p>
 			</div>
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/5-cover-aspect-ratio.webp" alt="" height="270" width="270" />
-				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Get more control over images in Cover blocks' ); ?></h3>
-				<p><?php _e( 'Set aspect ratios for Cover block images and easily add color overlays that automatically source color from your chosen image.' ); ?></p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/6-box-shadow.webp" alt="" height="270" width="270" />
-				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Add box shadow supports to even more blocks' ); ?></h3>
-				<p><?php _e( 'With shadow supports enabled, you can create layouts with visual depth or add a little personality to your design.' ); ?></p>
+			<div class="column is-vertically-aligned-center">
+				<h3><?php _e( 'Embrace your inner font nerd' ); ?></h3>
+				<p>
+					<strong><?php _e( 'New style section, new possibilities' ); ?></strong><br />
+					<?php _e( 'Create, edit, remove, and apply font size presets with the next addition to the Styles interface. Override theme defaults or create your own custom font size, complete with fluid typography for responsive font scaling. Get into the details!' ); ?>
+				</p>
 			</div>
 		</div>
 
-		<div class="about__section has-3-columns">
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/7-data-views.webp" alt="" height="270" width="270" />
-				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Discover new Data Views' ); ?></h3>
-				<p><?php _e( 'Find and organize your data however you like with data views for pages, templates, patterns, and template parts. Arrange it in a table or grid view with the option to toggle fields and make bulk changes.' ); ?></p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/8-drag-n-drop.webp" alt="" height="270" width="270" />
-				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Smoother drag-and-drop' ); ?></h3>
-				<p><?php _e( 'Feel the difference when you move things around, with helpful visual cues like displaced items in List View or frictionless dragging to anywhere in your workspace—from beginning to end.' ); ?></p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<img src="https://s.w.org/images/core/6.5/9-link-controls.webp" alt="" height="270" width="270" />
-				</div>
-				<h3 class="is-smaller-heading" style="margin-bottom:calc(var(--gap) / 4);"><?php _e( 'Improved link controls' ); ?></h3>
-				<p><?php _e( 'Create and manage links easily with a more intuitive link-building experience, like a streamlined UI and a shortcut for copying links.' ); ?></p>
-			</div>
-		</div>
-
-		<hr />
+		<hr class="is-invisible is-large" />
 
 		<div class="about__section has-2-columns">
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="6" fill="#ededed"/>
-						<path d="M18.9167 16.5C18.2757 16.5 17.661 16.7546 17.2078 17.2078C16.7546 17.661 16.5 18.2757 16.5 18.9167V21.3333H18.3125V18.9167C18.3125 18.7564 18.3762 18.6028 18.4895 18.4895C18.6028 18.3762 18.7564 18.3125 18.9167 18.3125H21.3333V16.5H18.9167ZM21.3333 29.1875H18.9167C18.7564 29.1875 18.6028 29.1238 18.4895 29.0105C18.3762 28.8972 18.3125 28.7436 18.3125 28.5833V26.1667H16.5V28.5833C16.5 29.2243 16.7546 29.839 17.2078 30.2922C17.661 30.7454 18.2757 31 18.9167 31H21.3333V29.1875ZM26.1667 31V29.1875H28.5833C28.7436 29.1875 28.8972 29.1238 29.0105 29.0105C29.1238 28.8972 29.1875 28.7436 29.1875 28.5833V26.1667H31V28.5833C31 29.2243 30.7454 29.839 30.2922 30.2922C29.839 30.7454 29.2243 31 28.5833 31H26.1667ZM28.5833 16.5C29.2243 16.5 29.839 16.7546 30.2922 17.2078C30.7454 17.661 31 18.2757 31 18.9167V21.3333H29.1875V18.9167C29.1875 18.7564 29.1238 18.6028 29.0105 18.4895C28.8972 18.3762 28.7436 18.3125 28.5833 18.3125H26.1667V16.5H28.5833Z" fill="#1e1e1e"/>
+						<path fill="#1e1e1e" d="M32.455 17.72a1.592 1.592 0 0 1 .599 2.195l-7.637 12.99a1.653 1.653 0 0 1-2.235.589 1.592 1.592 0 0 1-.599-2.195l7.637-12.99a1.653 1.653 0 0 1 2.235-.589ZM13.774 23.21a1.653 1.653 0 0 0-2.236.589 1.592 1.592 0 0 0 .6 2.195l.944.536c.783.444 1.783.18 2.235-.588a1.592 1.592 0 0 0-.599-2.196l-.944-.535ZM16.432 17.72a1.653 1.653 0 0 1 2.236.588l.545.928a1.592 1.592 0 0 1-.599 2.196 1.653 1.653 0 0 1-2.235-.588l-.546-.928a1.592 1.592 0 0 1 .6-2.196ZM25.637 16.5c0-.888-.733-1.607-1.637-1.607s-1.636.72-1.636 1.607v1.071c0 .888.732 1.608 1.636 1.608.904 0 1.637-.72 1.637-1.608V16.5Z"/>
+						<path fill="#1e1e1e" fill-rule="evenodd" d="M4.91 27.75C4.91 17.395 13.455 9 24 9s19.091 8.395 19.091 18.75c0 3.909-1.22 7.542-3.305 10.548l-.488.702H8.702l-.488-.702A18.438 18.438 0 0 1 4.91 27.75ZM24 12.214c-8.736 0-15.818 6.956-15.818 15.536 0 2.943.832 5.692 2.277 8.036h27.082a15.25 15.25 0 0 0 2.277-8.036c0-8.58-7.082-15.536-15.818-15.536Z" clip-rule="evenodd"/>
 					</svg>
 				</div>
-				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Bring interactions to blocks with the Interactivity API' ); ?></h3>
-				<p><?php _e( 'The Interactivity API offers developers a standardized method for building interactive front-end experiences with blocks. It simplifies the process, with fewer dependencies on external tooling, while maintaining optimal performance. Use it to create memorable user experiences, like fetching search results instantly or letting visitors interact with content in real time.' ); ?></p>
+				<h3><?php _e( 'Performance updates' ); ?></h3>
+				<p><?php _e( 'WordPress 6.7 delivers important performance updates, including faster pattern loading, optimized previews in the data views component, improved PHP 8+ support and removal of deprecated code, auto sizes for lazy-loaded images, and more efficient tag processing in the HTML API.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="6" fill="#ededed"/>
-						<path d="M18.95 19.45H27.15L25.45 21.25L26.55 22.35L30.15 18.75L26.65 14.75L25.55 15.75L27.45 18.05H18.95C18.05 18.05 17.25 18.35 16.65 18.95C15.25 20.45 15.25 23.15 15.25 24.55V24.75H16.75V24.45C16.75 23.35 16.75 20.95 17.75 19.95C18.05 19.65 18.45 19.45 18.95 19.45ZM32.75 23.45V23.25H31.25V23.55C31.25 24.65 31.25 27.05 30.25 28.05C29.95 28.35 29.55 28.55 28.95 28.55H20.75L22.45 26.85L21.35 25.75L17.85 29.25L21.35 33.25L22.45 32.25L20.55 29.95H28.95C29.85 29.95 30.65 29.65 31.25 29.05C32.75 27.65 32.75 24.85 32.75 23.45Z" fill="#1e1e1e"/>
+						<path fill="#1e1e1e" d="M24 13.84c-.752 0-1.397-.287-1.936-.86a2.902 2.902 0 0 1-.809-2.06c0-.8.27-1.487.809-2.06S23.248 8 24 8c.753 0 1.398.287 1.937.86.54.573.809 1.26.809 2.06s-.27 1.487-.809 2.06-1.184.86-1.937.86ZM19.976 40V18.68a69.562 69.562 0 0 1-4.945-.56 45.877 45.877 0 0 1-4.57-.92l.565-2.4a46.79 46.79 0 0 0 6.356 1.14c2.106.227 4.312.34 6.618.34 2.307 0 4.513-.113 6.62-.34a46.786 46.786 0 0 0 6.355-1.14l.564 2.4c-1.454.373-2.977.68-4.57.92a69.55 69.55 0 0 1-4.945.56V40h-2.256V29.6h-3.535V40h-2.257Z"/>
 					</svg>
 				</div>
-				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Connect blocks to custom fields or other dynamic content' ); ?></h3>
-				<p><?php _e( 'Link core block attributes to custom fields and use the value of custom fields without creating custom blocks. Powered by the Block Bindings API, developers can extend this capability further to connect blocks to any dynamic content—even beyond custom fields. If there&#8217;s data stored elsewhere, easily point blocks to that new source with only a few lines of code.' ); ?></p>
+				<h3><?php _e( 'Accessibility improvements' ); ?></h3>
+				<p><?php _e( '65+ accessibility fixes and enhancements focus on foundational aspects of the WordPress experience, from improving user interface components and keyboard navigation in the Editor, to an accessible heading on WordPress login screens and clearer labeling throughout.' ); ?></p>
 			</div>
 		</div>
 
-		<div class="about__section has-2-columns">
+		<hr class="is-invisible is-large" style="margin-bottom:calc(2 * var(--gap));" />
+
+		<div class="about__section has-2-columns is-wider-left is-feature" style="background-color:var(--background);border-radius:var(--border-radius);">
+			<h3 class="is-section-header"><?php _e( 'And much more' ); ?></h3>
 			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="6" fill="#ededed"/>
-						<path d="M33 18.75H23.1925C22.7954 17.7305 21.7239 17 20.4643 17C19.2047 17 18.1332 17.7305 17.736 18.75H15V20.5H17.736C18.1332 21.5195 19.2047 22.25 20.4643 22.25C21.7239 22.25 22.7954 21.5195 23.1925 20.5H33V18.75Z" fill="#1e1e1e"/>
-						<path d="M33 27.5H30.264C29.8668 26.4805 28.7953 25.75 27.5357 25.75C26.2761 25.75 25.2046 26.4805 24.8075 27.5H15V29.25H24.8075C25.2046 30.2695 26.2761 31 27.5357 31C28.7953 31 29.8668 30.2695 30.264 29.25H33V27.5Z" fill="#1e1e1e"/>
-					</svg>
-				</div>
-				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Add appearance tools to Classic themes' ); ?></h3>
-				<p><?php _e( 'Give designers and creators using Classic themes access to an upgraded design experience. Opt in to support for spacing, border, typography, and color options, even without using theme.json. Once support is enabled, more tools will be automatically added as they become available.' ); ?></p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="6" fill="#ededed"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M22.5 16L22.5 20H25.5V16H27V20H28.5C29.0523 20 29.5 20.4477 29.5 21V25L26.5 29V31C26.5 31.5523 26.0523 32 25.5 32H22.5C21.9477 32 21.5 31.5523 21.5 31V29L18.5 25V21C18.5 20.4477 18.9477 20 19.5 20H21L21 16H22.5ZM23 28.5V30.5H25V28.5L28 24.5V21.5H20V24.5L23 28.5Z" fill="#1e1e1e"/>
-					</svg>
-				</div>
-				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Explore improvements to the plugin experience' ); ?></h3>
 				<p>
 					<?php
 					printf(
-						/* translators: %s: Requires Plugins */
-						__( 'There&#8217;s now an easier way to manage plugin dependencies. Plugin authors can supply a new %s header with a comma-separated list of required plugin slugs, presenting users with links to install and activate those plugins first.' ),
-						'<code lang="en">Requires Plugins</code>'
+						/* translators: %s: Version number. */
+						__( 'For a comprehensive overview of all the new features and enhancements in WordPress %s, please visit the feature-showcase website.' ),
+						$display_version
 					);
 					?>
 				</p>
 			</div>
-		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column">
+			<div class="column aligncenter">
 				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#ededed"/>
-						<path d="M28.4287 20.6507C28.8387 20.8874 28.9791 21.4116 28.7424 21.8215L24.7424 28.7498C24.5057 29.1597 23.9815 29.3002 23.5715 29.0635C23.1616 28.8268 23.0211 28.3026 23.2578 27.8926L27.2578 20.9644C27.4945 20.5544 28.0187 20.414 28.4287 20.6507Z" fill="#1e1e1e"/>
-						<path d="M18.6433 23.579C18.2333 23.3423 17.7091 23.4828 17.4724 23.8927C17.2357 24.3027 17.3761 24.8269 17.7861 25.0636L18.281 25.3493C18.691 25.586 19.2152 25.4456 19.4519 25.0356C19.6886 24.6256 19.5481 24.1014 19.1381 23.8647L18.6433 23.579Z" fill="#1e1e1e"/>
-						<path d="M20.0358 20.6508C20.4458 20.4141 20.97 20.5546 21.2067 20.9645L21.4924 21.4594C21.7291 21.8694 21.5887 22.3936 21.1787 22.6303C20.7687 22.867 20.2445 22.7265 20.0078 22.3166L19.7221 21.8217C19.4854 21.4117 19.6259 20.8875 20.0358 20.6508Z" fill="#1e1e1e"/>
-						<path d="M24.8571 20C24.8571 19.5266 24.4734 19.1429 24 19.1429C23.5266 19.1429 23.1429 19.5266 23.1429 20V20.5714C23.1429 21.0448 23.5266 21.4286 24 21.4286C24.4734 21.4286 24.8571 21.0448 24.8571 20.5714V20Z" fill="#1e1e1e"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M14 26C14 20.4772 18.4772 16 24 16C29.5228 16 34 20.4772 34 26C34 28.0846 33.3612 30.0225 32.2686 31.6256L32.0135 32H15.9865L15.7314 31.6256C14.6388 30.0225 14 28.0846 14 26ZM24 17.7143C19.4239 17.7143 15.7143 21.4239 15.7143 26C15.7143 27.5698 16.1501 29.0357 16.9072 30.2857H31.0928C31.8499 29.0357 32.2857 27.5698 32.2857 26C32.2857 21.4239 28.5761 17.7143 24 17.7143Z" fill="#1e1e1e"/>
-					</svg>
+					<a href="<?php echo esc_url( __( 'https://wordpress.org/download/releases/6-7/' ) ); ?>" class="button button-primary button-hero"><?php _e( 'See everything new' ); ?></a>
 				</div>
-				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Performance updates' ); ?></h3>
-				<p><?php _e( 'This release includes 110+ performance updates, with an impressive increase in speed and efficiency across the Post Editor and Site Editor. Loading is over two times faster than in 6.4, with input processing speed up to five times faster than the previous release. Translated sites see up to 25% improvement in load time for this release.' ); ?></p>
-			</div>
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#ededed"/>
-						<path d="M24 18.285C23.55 18.285 23.1637 18.1237 22.8412 17.8012C22.5187 17.4788 22.3575 17.0925 22.3575 16.6425C22.3575 16.1925 22.5187 15.8062 22.8412 15.4837C23.1637 15.1612 23.55 15 24 15C24.45 15 24.8362 15.1612 25.1587 15.4837C25.4812 15.8062 25.6425 16.1925 25.6425 16.6425C25.6425 17.0925 25.4812 17.4788 25.1587 17.8012C24.8362 18.1237 24.45 18.285 24 18.285ZM21.5925 33V21.0075C20.5725 20.9325 19.5862 20.8275 18.6337 20.6925C17.6812 20.5575 16.77 20.385 15.9 20.175L16.2375 18.825C17.5125 19.125 18.78 19.3387 20.04 19.4662C21.3 19.5938 22.62 19.6575 24 19.6575C25.38 19.6575 26.7 19.5938 27.96 19.4662C29.22 19.3387 30.4875 19.125 31.7625 18.825L32.1 20.175C31.23 20.385 30.3187 20.5575 29.3662 20.6925C28.4137 20.8275 27.4275 20.9325 26.4075 21.0075V33H25.0575V27.15H22.9425V33H21.5925Z" fill="#1e1e1e"/>
-					</svg>
-				</div>
-				<h3 style="margin-top:calc(var(--gap) * 0.75);margin-bottom:calc(var(--gap) * 0.5)"><?php _e( 'Accessibility improvements' ); ?></h3>
-				<p><?php _e( 'This release includes more than 65 accessibility improvements across the platform, making it more accessible than ever. This release adds fixes to contrast settings, cursor focus, submenus, and positioning of elements, among many others, that help improve the WordPress experience for everyone.' ); ?></p>
 			</div>
 		</div>
 
-		<hr />
+		<hr class="is-large" style="margin-top:calc(2 * var(--gap));" />
 
 		<div class="about__section has-3-columns">
 			<div class="column about__image is-vertically-aligned-top">
-				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.5' ) ); ?>" alt="" height="280" width="280" />
+				<img src="<?php echo esc_url( admin_url( 'images/about-release-badge.svg?ver=6.7' ) ); ?>" alt="" height="280" width="280" />
 			</div>
 			<div class="column is-vertically-aligned-center" style="grid-column-end:span 2">
 				<h3>
@@ -247,17 +209,27 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#ededed"/>
-						<path d="M23 34v-4h-5l-2.293-2.293a1 1 0 0 1 0-1.414L18 24h5v-2h-7v-6h7v-2h2v2h5l2.293 2.293a1 1 0 0 1 0 1.414L30 22h-5v2h7v6h-7v4h-2Zm-5-14h11.175l.646-.646a.5.5 0 0 0 0-.708L29.175 18H18v2Zm.825 8H30v-2H18.825l-.646.646a.5.5 0 0 0 0 .708l.646.646Z" fill="#1e1e1e"/>
+						<path fill="#1e1e1e" d="M32 15.5H16v3h16v-3ZM16 22h16v3H16v-3ZM28 28.5H16v3h12v-3Z"/>
+						<path fill="#1e1e1e" fill-rule="evenodd" d="M34 8H14a4 4 0 0 0-4 4v24a4 4 0 0 0 4 4h20a4 4 0 0 0 4-4V12a4 4 0 0 0-4-4Zm-20 3h20a1 1 0 0 1 1 1v24a1 1 0 0 1-1 1H14a1 1 0 0 1-1-1V12a1 1 0 0 1 1-1Z" clip-rule="evenodd"/>
 					</svg>
 				</div>
-				<p style="margin-top:calc(var(--gap) / 2);">
+				<h4 style="margin-top: calc(var(--gap) / 2); margin-bottom: calc(var(--gap) / 2);">
+					<a href="<?php echo esc_url( $release_notes_url ); ?>">
+						<?php
+						printf(
+							/* translators: %s: WordPress version number. */
+							__( 'WordPress %s Release Notes' ),
+							'6.7'
+						);
+						?>
+					</a>
+				</h4>
+				<p>
 					<?php
 					printf(
-						/* translators: 1: WordPress Field Guide link, 2: WordPress version number. */
-						__( 'Explore the <a href="%1$s">WordPress %2$s Field Guide</a>. Learn about the changes in this release with detailed developer notes to help you build with WordPress.' ),
-						esc_url( __( 'https://make.wordpress.org/core/wordpress-6-5-field-guide/' ) ),
-						'6.5'
+						/* translators: %s: WordPress version number. */
+						__( 'Read the WordPress %s Release Notes for information on installation, enhancements, fixed issues, release contributors, learning resources, and the list of file changes.' ),
+						'6.7'
 					);
 					?>
 				</p>
@@ -265,22 +237,26 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<rect width="48" height="48" rx="4" fill="#ededed"/>
-						<path d="M28 19.75h-8v1.5h8v-1.5ZM20 23h8v1.5h-8V23ZM26 26.25h-6v1.5h6v-1.5Z" fill="#151515"/>
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M29 16H19a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V18a2 2 0 0 0-2-2Zm-10 1.5h10a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5H19a.5.5 0 0 1-.5-.5V18a.5.5 0 0 1 .5-.5Z" fill="#1e1e1e"/>
+						<path fill="#1e1e1e" stroke="#fff" stroke-width=".5" d="M26.5 24.25h13.75v11.5h-14v8h-3.5v-8H12.604L8.09 31.237a1.75 1.75 0 0 1 0-2.474l4.513-4.513H22.75v-4.5h-14V8.25h14v-4h3.5v4h10.146l4.513 4.513a1.75 1.75 0 0 1 0 2.474l-4.513 4.513H26.25v4.5h.25ZM12.25 16v.25h22.704l.073-.073 1.293-1.293a1.25 1.25 0 0 0 0-1.768l-1.293-1.293-.073-.073H12.25V16Zm1.723 16.177.073.073H36.75v-4.5H14.046l-.073.073-1.293 1.293a1.25 1.25 0 0 0 0 1.768l1.293 1.293Z"/>
 					</svg>
 				</div>
-				<p style="margin-top:calc(var(--gap) / 2);">
+				<h4 style="margin-top: calc(var(--gap) / 2); margin-bottom: calc(var(--gap) / 2);">
+					<a href="<?php echo esc_url( $field_guide_url ); ?>">
+						<?php
+						printf(
+							/* translators: %s: WordPress version number. */
+							__( 'WordPress %s Field Guide' ),
+							'6.7'
+						);
+						?>
+					</a>
+				</h4>
+				<p>
 					<?php
 					printf(
-						/* translators: 1: WordPress Release Notes link, 2: WordPress version number. */
-						__( '<a href="%1$s">Read the WordPress %2$s Release Notes</a> for information on installation, enhancements, fixed issues, release contributors, learning resources, and the list of file changes.' ),
-						sprintf(
-							/* translators: %s: WordPress version number. */
-							esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
-							'6-5'
-						),
-						'6.5'
+						/* translators: %s: WordPress version number. */
+						__( 'Explore the WordPress %s Field Guide. Learn about the changes in this release with detailed developer notes to help you build with WordPress.' ),
+						'6.7'
 					);
 					?>
 				</p>

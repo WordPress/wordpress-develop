@@ -223,6 +223,7 @@ function get_default_block_editor_settings() {
 		'imageEditing'                     => true,
 		'imageSizes'                       => $available_image_sizes,
 		'maxUploadFileSize'                => $max_upload_size,
+		'__experimentalDashboardLink'      => admin_url( '/' ),
 		// The following flag is required to enable the new Gallery block format on the mobile apps in 5.9.
 		'__unstableGalleryWithImageBlocks' => true,
 	);
@@ -366,6 +367,7 @@ function _wp_get_iframed_editor_assets() {
 	ob_start();
 	wp_print_styles();
 	wp_print_font_faces();
+	wp_print_font_faces_from_style_variations();
 	$styles = ob_get_clean();
 
 	if ( $has_emoji_styles ) {
@@ -532,7 +534,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		 * entered by users does not break other global styles.
 		 */
 		$global_styles[] = array(
-			'css'            => wp_get_global_styles_custom_css(),
+			'css'            => wp_get_global_stylesheet( array( 'custom-css' ) ),
 			'__unstableType' => 'user',
 			'isGlobalStyles' => true,
 		);
@@ -647,6 +649,8 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	if ( isset( $post_content_block_attributes ) ) {
 		$editor_settings['postContentAttributes'] = $post_content_block_attributes;
 	}
+
+	$editor_settings['canUpdateBlockBindings'] = current_user_can( 'edit_block_binding', $block_editor_context );
 
 	/**
 	 * Filters the settings to pass to the block editor for all editor type.
@@ -814,6 +818,7 @@ function get_block_editor_theme_styles() {
  * Returns the classic theme supports settings for block editor.
  *
  * @since 6.2.0
+ * @since 6.6.0 Add support for 'editor-spacing-sizes' theme support.
  *
  * @return array The classic theme supports settings.
  */
@@ -842,6 +847,11 @@ function get_classic_theme_supports_block_editor_settings() {
 	$gradient_presets = current( (array) get_theme_support( 'editor-gradient-presets' ) );
 	if ( false !== $gradient_presets ) {
 		$theme_settings['gradients'] = $gradient_presets;
+	}
+
+	$spacing_sizes = current( (array) get_theme_support( 'editor-spacing-sizes' ) );
+	if ( false !== $spacing_sizes ) {
+		$theme_settings['spacingSizes'] = $spacing_sizes;
 	}
 
 	return $theme_settings;

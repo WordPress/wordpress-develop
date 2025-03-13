@@ -236,7 +236,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
-		$this->assertCount( 1, $data, 'There should be 2 properties in the response data.' );
+		$this->assertCount( 1, $data, 'There should be 1 property in the response data.' );
 		$this->assertArrayHasKey( 'id', $data[0], 'The id property should exist in the response data.' );
 		$this->assertSame( $font_family->ID, $data[0]['id'], 'The id should match the expected ID in the response data.' );
 	}
@@ -431,7 +431,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	public function data_create_item_invalid_theme_json_version() {
 		return array(
 			array( 1 ),
-			array( 3 ),
+			array( 4 ),
 		);
 	}
 

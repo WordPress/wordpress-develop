@@ -574,7 +574,7 @@ function wpautop( $text, $br = true ) {
 		// Replace newlines that shouldn't be touched with a placeholder.
 		$text = preg_replace_callback( '/<(script|style|svg|math).*?<\/\\1>/s', '_autop_newline_preservation_helper', $text );
 
-		// Normalize <br>
+		// Normalize <br>.
 		$text = str_replace( array( '<br>', '<br/>' ), '<br />', $text );
 
 		// Replace any new line characters that aren't preceded by a <br /> with a <br />.
@@ -621,7 +621,7 @@ function wp_html_split( $input ) {
  *
  * @since 4.4.0
  *
- * @return string The regular expression
+ * @return string The regular expression.
  */
 function get_html_split_regex() {
 	static $regex;
@@ -681,7 +681,7 @@ function get_html_split_regex() {
  * @since 4.4.0
  *
  * @param string $shortcode_regex Optional. The result from _get_wptexturize_shortcode_regex().
- * @return string The regular expression
+ * @return string The regular expression.
  */
 function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
 	static $html_regex;
@@ -723,7 +723,7 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
  * @since 4.4.0
  *
  * @param string[] $tagnames Array of shortcodes to find.
- * @return string The regular expression
+ * @return string The regular expression.
  */
 function _get_wptexturize_shortcode_regex( $tagnames ) {
 	$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
@@ -762,8 +762,8 @@ function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
 	// Optimize when searching for one item.
 	if ( 1 === count( $replace_pairs ) ) {
 		// Extract $needle and $replace.
-		foreach ( $replace_pairs as $needle => $replace ) {
-		}
+		$needle  = array_key_first( $replace_pairs );
+		$replace = $replace_pairs[ $needle ];
 
 		// Loop through delimiters (elements) only.
 		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
@@ -877,7 +877,7 @@ function shortcode_unautop( $text ) {
  * @author bmorel at ssi dot fr (modified)
  * @since 1.2.1
  *
- * @param string $str The string to be checked
+ * @param string $str The string to be checked.
  * @return bool True if $str fits a UTF-8 model, false otherwise.
  */
 function seems_utf8( $str ) {
@@ -904,7 +904,7 @@ function seems_utf8( $str ) {
 			return false; // Does not match any model.
 		}
 
-		for ( $j = 0; $j < $n; $j++ ) { // n bytes matching 10bbbbbb follow ?
+		for ( $j = 0; $j < $n; $j++ ) { // n bytes matching 10bbbbbb follow?
 			if ( ( ++$i === $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) !== 0x80 ) ) {
 				return false;
 			}
@@ -960,19 +960,7 @@ function _wp_specialchars( $text, $quote_style = ENT_NOQUOTES, $charset = false,
 		$quote_style = ENT_QUOTES;
 	}
 
-	// Store the site charset as a static to avoid multiple calls to wp_load_alloptions().
-	if ( ! $charset ) {
-		static $_charset = null;
-		if ( ! isset( $_charset ) ) {
-			$alloptions = wp_load_alloptions();
-			$_charset   = isset( $alloptions['blog_charset'] ) ? $alloptions['blog_charset'] : '';
-		}
-		$charset = $_charset;
-	}
-
-	if ( in_array( $charset, array( 'utf8', 'utf-8', 'UTF8' ), true ) ) {
-		$charset = 'UTF-8';
-	}
+	$charset = _canonical_charset( $charset ? $charset : get_option( 'blog_charset' ) );
 
 	$_quote_style = $quote_style;
 
@@ -1114,7 +1102,7 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
 	// Store the site charset as a static to avoid multiple calls to get_option().
 	static $is_utf8 = null;
 	if ( ! isset( $is_utf8 ) ) {
-		$is_utf8 = in_array( get_option( 'blog_charset' ), array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true );
+		$is_utf8 = is_utf8_charset();
 	}
 	if ( ! $is_utf8 ) {
 		return $text;
@@ -1151,7 +1139,7 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
  * @since 5.8.3 Added the `encode_ascii_characters` parameter.
  *
  * @param string $utf8_string             String to encode.
- * @param int    $length                  Max length of the string
+ * @param int    $length                  Max length of the string.
  * @param bool   $encode_ascii_characters Whether to encode ascii characters such as < " '
  * @return string String with Unicode encoded for URI.
  */
@@ -2548,9 +2536,9 @@ function convert_invalid_entities( $content ) {
  *
  * @since 0.71
  *
- * @param string $text  Text to be balanced
+ * @param string $text  Text to be balanced.
  * @param bool   $force If true, forces balancing, ignoring the value of the option. Default false.
- * @return string Balanced text
+ * @return string Balanced text.
  */
 function balanceTags( $text, $force = false ) {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	if ( $force || (int) get_option( 'use_balanceTags' ) === 1 ) {
@@ -2824,7 +2812,7 @@ function trailingslashit( $value ) {
  *
  * @since 2.2.0
  *
- * @param string $text Value from which trailing slashes will be removed.
+ * @param string $value Value from which trailing slashes will be removed.
  * @return string String without the trailing slashes.
  */
 function untrailingslashit( $value ) {
@@ -2953,6 +2941,10 @@ function _make_url_clickable_cb( $matches ) {
 		$suffix = '';
 	} else {
 		$suffix = $matches[3];
+	}
+
+	if ( isset( $matches[4] ) && ! empty( $matches[4] ) ) {
+		$url .= $matches[4];
 	}
 
 	// Include parentheses in the URL only if paired.
@@ -3127,6 +3119,7 @@ function make_clickable( $text ) {
 					)*
 				)
 				(\)?)                                          # 3: Trailing closing parenthesis (for parenthesis balancing post processing).
+				(\\.\\w{2,6})?                                 # 4: Allowing file extensions (e.g., .jpg, .png).
 			~xS';
 			/*
 			 * The regex is a non-anchored pattern and does not have a single fixed starting character.
@@ -3306,11 +3299,14 @@ function wp_rel_ugc( $text ) {
  *
  * @since 5.1.0
  * @since 5.6.0 Removed 'noreferrer' relationship.
+ * @deprecated 6.7.0
  *
  * @param string $text Content that may contain HTML A elements.
  * @return string Converted content.
  */
 function wp_targeted_link_rel( $text ) {
+	_deprecated_function( __FUNCTION__, '6.7.0' );
+
 	// Don't run (more expensive) regex if no links with targets.
 	if ( stripos( $text, 'target' ) === false || stripos( $text, '<a ' ) === false || is_serialized( $text ) ) {
 		return $text;
@@ -3344,11 +3340,14 @@ function wp_targeted_link_rel( $text ) {
  *
  * @since 5.1.0
  * @since 5.6.0 Removed 'noreferrer' relationship.
+ * @deprecated 6.7.0
  *
  * @param array $matches Single match.
  * @return string HTML A Element with `rel="noopener"` in addition to any existing values.
  */
 function wp_targeted_link_rel_callback( $matches ) {
+	_deprecated_function( __FUNCTION__, '6.7.0' );
+
 	$link_html          = $matches[1];
 	$original_link_html = $link_html;
 
@@ -3395,46 +3394,20 @@ function wp_targeted_link_rel_callback( $matches ) {
  * Adds all filters modifying the rel attribute of targeted links.
  *
  * @since 5.1.0
+ * @deprecated 6.7.0
  */
 function wp_init_targeted_link_rel_filters() {
-	$filters = array(
-		'title_save_pre',
-		'content_save_pre',
-		'excerpt_save_pre',
-		'content_filtered_save_pre',
-		'pre_comment_content',
-		'pre_term_description',
-		'pre_link_description',
-		'pre_link_notes',
-		'pre_user_description',
-	);
-
-	foreach ( $filters as $filter ) {
-		add_filter( $filter, 'wp_targeted_link_rel' );
-	}
+	_deprecated_function( __FUNCTION__, '6.7.0' );
 }
 
 /**
  * Removes all filters modifying the rel attribute of targeted links.
  *
  * @since 5.1.0
+ * @deprecated 6.7.0
  */
 function wp_remove_targeted_link_rel_filters() {
-	$filters = array(
-		'title_save_pre',
-		'content_save_pre',
-		'excerpt_save_pre',
-		'content_filtered_save_pre',
-		'pre_comment_content',
-		'pre_term_description',
-		'pre_link_description',
-		'pre_link_notes',
-		'pre_user_description',
-	);
-
-	foreach ( $filters as $filter ) {
-		remove_filter( $filter, 'wp_targeted_link_rel' );
-	}
+	_deprecated_function( __FUNCTION__, '6.7.0' );
 }
 
 /**
@@ -3500,40 +3473,49 @@ function translate_smiley( $matches ) {
  */
 function convert_smilies( $text ) {
 	global $wp_smiliessearch;
-	$output = '';
-	if ( get_option( 'use_smilies' ) && ! empty( $wp_smiliessearch ) ) {
-		// HTML loop taken from texturize function, could possible be consolidated.
-		$textarr = preg_split( '/(<.*>)/U', $text, -1, PREG_SPLIT_DELIM_CAPTURE ); // Capture the tags as well as in between.
-		$stop    = count( $textarr ); // Loop stuff.
 
-		// Ignore processing of specific tags.
-		$tags_to_ignore       = 'code|pre|style|script|textarea';
-		$ignore_block_element = '';
-
-		for ( $i = 0; $i < $stop; $i++ ) {
-			$content = $textarr[ $i ];
-
-			// If we're in an ignore block, wait until we find its closing tag.
-			if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')[^>]*>/', $content, $matches ) ) {
-				$ignore_block_element = $matches[1];
-			}
-
-			// If it's not a tag and not in ignore block.
-			if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] ) {
-				$content = preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $content );
-			}
-
-			// Did we exit ignore block?
-			if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
-				$ignore_block_element = '';
-			}
-
-			$output .= $content;
-		}
-	} else {
+	if ( ! get_option( 'use_smilies' ) || empty( $wp_smiliessearch ) ) {
 		// Return default text.
-		$output = $text;
+		return $text;
 	}
+
+	// HTML loop taken from texturize function, could possible be consolidated.
+	$textarr = preg_split( '/(<[^>]*>)/U', $text, -1, PREG_SPLIT_DELIM_CAPTURE ); // Capture the tags as well as in between.
+
+	if ( false === $textarr ) {
+		// Return default text.
+		return $text;
+	}
+
+	// Loop stuff.
+	$stop   = count( $textarr );
+	$output = '';
+
+	// Ignore processing of specific tags.
+	$tags_to_ignore       = 'code|pre|style|script|textarea';
+	$ignore_block_element = '';
+
+	for ( $i = 0; $i < $stop; $i++ ) {
+		$content = $textarr[ $i ];
+
+		// If we're in an ignore block, wait until we find its closing tag.
+		if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')[^>]*>/', $content, $matches ) ) {
+			$ignore_block_element = $matches[1];
+		}
+
+		// If it's not a tag and not in ignore block.
+		if ( '' === $ignore_block_element && strlen( $content ) > 0 && '<' !== $content[0] ) {
+			$content = preg_replace_callback( $wp_smiliessearch, 'translate_smiley', $content );
+		}
+
+		// Did we exit ignore block?
+		if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
+			$ignore_block_element = '';
+		}
+
+		$output .= $content;
+	}
+
 	return $output;
 }
 
@@ -3868,7 +3850,7 @@ function sanitize_email( $email ) {
  * Determines the difference between two timestamps.
  *
  * The difference is returned in a human-readable format such as "1 hour",
- * "5 mins", "2 days".
+ * "5 minutes", "2 days".
  *
  * @since 1.5.0
  * @since 5.3.0 Added support for showing a difference in seconds.
@@ -3896,8 +3878,8 @@ function human_time_diff( $from, $to = 0 ) {
 		if ( $mins <= 1 ) {
 			$mins = 1;
 		}
-		/* translators: Time difference between two dates, in minutes (min=minute). %s: Number of minutes. */
-		$since = sprintf( _n( '%s min', '%s mins', $mins ), $mins );
+		/* translators: Time difference between two dates, in minutes. %s: Number of minutes. */
+		$since = sprintf( _n( '%s minute', '%s minutes', $mins ), $mins );
 	} elseif ( $diff < DAY_IN_SECONDS && $diff >= HOUR_IN_SECONDS ) {
 		$hours = round( $diff / HOUR_IN_SECONDS );
 		if ( $hours <= 1 ) {
@@ -4802,12 +4784,13 @@ EOF;
  * Escapes an HTML tag name.
  *
  * @since 2.5.0
+ * @since 6.5.5 Allow hyphens in tag names (i.e. custom elements).
  *
  * @param string $tag_name
  * @return string
  */
 function tag_escape( $tag_name ) {
-	$safe_tag = strtolower( preg_replace( '/[^a-zA-Z0-9_:]/', '', $tag_name ) );
+	$safe_tag = strtolower( preg_replace( '/[^a-zA-Z0-9-_:]/', '', $tag_name ) );
 	/**
 	 * Filters a string cleaned and escaped for output as an HTML tag.
 	 *
@@ -5418,9 +5401,9 @@ function wp_html_excerpt( $str, $count, $more = null ) {
  *
  * @global string $_links_add_base
  *
- * @param string $content String to search for links in.
- * @param string $base    The base URL to prefix to links.
- * @param array  $attrs   The attributes which should be processed.
+ * @param string   $content String to search for links in.
+ * @param string   $base    The base URL to prefix to links.
+ * @param string[] $attrs   The attributes which should be processed.
  * @return string The processed content.
  */
 function links_add_base_url( $content, $base, $attrs = array( 'src', 'href' ) ) {
@@ -5510,11 +5493,11 @@ function normalize_whitespace( $str ) {
 }
 
 /**
- * Properly strips all HTML tags including script and style
+ * Properly strips all HTML tags including 'script' and 'style'.
  *
  * This differs from strip_tags() because it removes the contents of
  * the `<script>` and `<style>` tags. E.g. `strip_tags( '<script>something</script>' )`
- * will return 'something'. wp_strip_all_tags will return ''
+ * will return 'something'. wp_strip_all_tags() will return an empty string.
  *
  * @since 2.9.0
  *
@@ -5530,10 +5513,11 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 	if ( ! is_scalar( $text ) ) {
 		/*
 		 * To maintain consistency with pre-PHP 8 error levels,
-		 * trigger_error() is used to trigger an E_USER_WARNING,
+		 * wp_trigger_error() is used to trigger an E_USER_WARNING,
 		 * rather than _doing_it_wrong(), which triggers an E_USER_NOTICE.
 		 */
-		trigger_error(
+		wp_trigger_error(
+			'',
 			sprintf(
 				/* translators: 1: The function name, 2: The argument number, 3: The argument name, 4: The expected type, 5: The provided type. */
 				__( 'Warning: %1$s expects parameter %2$s (%3$s) to be a %4$s, %5$s given.' ),

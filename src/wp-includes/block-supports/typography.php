@@ -31,6 +31,7 @@ function wp_register_typography_support( $block_type ) {
 	$has_font_weight_support     = isset( $typography_supports['__experimentalFontWeight'] ) ? $typography_supports['__experimentalFontWeight'] : false;
 	$has_letter_spacing_support  = isset( $typography_supports['__experimentalLetterSpacing'] ) ? $typography_supports['__experimentalLetterSpacing'] : false;
 	$has_line_height_support     = isset( $typography_supports['lineHeight'] ) ? $typography_supports['lineHeight'] : false;
+	$has_text_align_support      = isset( $typography_supports['textAlign'] ) ? $typography_supports['textAlign'] : false;
 	$has_text_columns_support    = isset( $typography_supports['textColumns'] ) ? $typography_supports['textColumns'] : false;
 	$has_text_decoration_support = isset( $typography_supports['__experimentalTextDecoration'] ) ? $typography_supports['__experimentalTextDecoration'] : false;
 	$has_text_transform_support  = isset( $typography_supports['__experimentalTextTransform'] ) ? $typography_supports['__experimentalTextTransform'] : false;
@@ -42,6 +43,7 @@ function wp_register_typography_support( $block_type ) {
 		|| $has_font_weight_support
 		|| $has_letter_spacing_support
 		|| $has_line_height_support
+		|| $has_text_align_support
 		|| $has_text_columns_support
 		|| $has_text_decoration_support
 		|| $has_text_transform_support
@@ -106,6 +108,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	$has_font_weight_support     = isset( $typography_supports['__experimentalFontWeight'] ) ? $typography_supports['__experimentalFontWeight'] : false;
 	$has_letter_spacing_support  = isset( $typography_supports['__experimentalLetterSpacing'] ) ? $typography_supports['__experimentalLetterSpacing'] : false;
 	$has_line_height_support     = isset( $typography_supports['lineHeight'] ) ? $typography_supports['lineHeight'] : false;
+	$has_text_align_support      = isset( $typography_supports['textAlign'] ) ? $typography_supports['textAlign'] : false;
 	$has_text_columns_support    = isset( $typography_supports['textColumns'] ) ? $typography_supports['textColumns'] : false;
 	$has_text_decoration_support = isset( $typography_supports['__experimentalTextDecoration'] ) ? $typography_supports['__experimentalTextDecoration'] : false;
 	$has_text_transform_support  = isset( $typography_supports['__experimentalTextTransform'] ) ? $typography_supports['__experimentalTextTransform'] : false;
@@ -117,6 +120,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	$should_skip_font_style      = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'fontStyle' );
 	$should_skip_font_weight     = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'fontWeight' );
 	$should_skip_line_height     = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'lineHeight' );
+	$should_skip_text_align      = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'textAlign' );
 	$should_skip_text_columns    = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'textColumns' );
 	$should_skip_text_decoration = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'textDecoration' );
 	$should_skip_text_transform  = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'textTransform' );
@@ -176,6 +180,12 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 			: null;
 	}
 
+	if ( $has_text_align_support && ! $should_skip_text_align ) {
+		$typography_block_styles['textAlign'] = isset( $block_attributes['style']['typography']['textAlign'] )
+			? $block_attributes['style']['typography']['textAlign']
+			: null;
+	}
+
 	if ( $has_text_columns_support && ! $should_skip_text_columns && isset( $block_attributes['style']['typography']['textColumns'] ) ) {
 		$typography_block_styles['textColumns'] = isset( $block_attributes['style']['typography']['textColumns'] )
 			? $block_attributes['style']['typography']['textColumns']
@@ -225,13 +235,22 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	}
 
 	$attributes = array();
+	$classnames = array();
 	$styles     = wp_style_engine_get_styles(
 		array( 'typography' => $typography_block_styles ),
 		array( 'convert_vars_to_classnames' => true )
 	);
 
 	if ( ! empty( $styles['classnames'] ) ) {
-		$attributes['class'] = $styles['classnames'];
+		$classnames[] = $styles['classnames'];
+	}
+
+	if ( $has_text_align_support && ! $should_skip_text_align && isset( $block_attributes['style']['typography']['textAlign'] ) ) {
+		$classnames[] = 'has-text-align-' . $block_attributes['style']['typography']['textAlign'];
+	}
+
+	if ( ! empty( $classnames ) ) {
+		$attributes['class'] = implode( ' ', $classnames );
 	}
 
 	if ( ! empty( $styles['css'] ) ) {
@@ -498,50 +517,70 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  * @since 6.2.0 Added 'settings.typography.fluid.minFontSize' support.
  * @since 6.3.0 Using layout.wideSize as max viewport width, and logarithmic scale factor to calculate minimum font scale.
  * @since 6.4.0 Added configurable min and max viewport width values to the typography.fluid theme.json schema.
+ * @since 6.6.0 Deprecated bool argument $should_use_fluid_typography.
+ * @since 6.7.0 Font size presets can enable fluid typography individually, even if it’s disabled globally.
  *
- * @param array $preset                     {
+ * @param array      $preset   {
  *     Required. fontSizes preset value as seen in theme.json.
  *
  *     @type string           $name Name of the font size preset.
  *     @type string           $slug Kebab-case, unique identifier for the font size preset.
  *     @type string|int|float $size CSS font-size value, including units if applicable.
  * }
- * @param bool  $should_use_fluid_typography An override to switch fluid typography "on". Can be used for unit testing.
- *                                           Default is false.
+ * @param bool|array $settings Optional Theme JSON settings array that overrides any global theme settings.
+ *                             Default is false.
  * @return string|null Font-size value or null if a size is not passed in $preset.
  */
-function wp_get_typography_font_size_value( $preset, $should_use_fluid_typography = false ) {
+
+
+function wp_get_typography_font_size_value( $preset, $settings = array() ) {
 	if ( ! isset( $preset['size'] ) ) {
 		return null;
 	}
 
 	/*
-	 * Catches empty values and 0/'0'.
-	 * Fluid calculations cannot be performed on 0.
+	 * Catches falsy values and 0/'0'. Fluid calculations cannot be performed on `0`.
+	 * Also returns early when a preset font size explicitly disables fluid typography with `false`.
 	 */
-	if ( empty( $preset['size'] ) ) {
+	$fluid_font_size_settings = $preset['fluid'] ?? null;
+	if ( false === $fluid_font_size_settings || empty( $preset['size'] ) ) {
 		return $preset['size'];
 	}
 
-	// Checks if fluid font sizes are activated.
-	$global_settings     = wp_get_global_settings();
-	$typography_settings = isset( $global_settings['typography'] ) ? $global_settings['typography'] : array();
-	$layout_settings     = isset( $global_settings['layout'] ) ? $global_settings['layout'] : array();
-
-	if (
-		isset( $typography_settings['fluid'] ) &&
-		( true === $typography_settings['fluid'] || is_array( $typography_settings['fluid'] ) )
-	) {
-		$should_use_fluid_typography = true;
+	/*
+	 * As a boolean (deprecated since 6.6), $settings acts as an override to switch fluid typography "on" (`true`) or "off" (`false`).
+	 */
+	if ( is_bool( $settings ) ) {
+		_deprecated_argument( __FUNCTION__, '6.6.0', __( '`boolean` type for second argument `$settings` is deprecated. Use `array()` instead.' ) );
+		$settings = array(
+			'typography' => array(
+				'fluid' => $settings,
+			),
+		);
 	}
 
-	if ( ! $should_use_fluid_typography ) {
+	// Fallback to global settings as default.
+	$global_settings = wp_get_global_settings();
+	$settings        = wp_parse_args(
+		$settings,
+		$global_settings
+	);
+
+	$typography_settings = $settings['typography'] ?? array();
+
+	/*
+	 * Return early when fluid typography is disabled in the settings, and there
+	 * are no local settings to enable it for the individual preset.
+	 *
+	 * If this condition isn't met, either the settings or individual preset settings
+	 * have enabled fluid typography.
+	 */
+	if ( empty( $typography_settings['fluid'] ) && empty( $fluid_font_size_settings ) ) {
 		return $preset['size'];
 	}
 
-	$fluid_settings = isset( $typography_settings['fluid'] ) && is_array( $typography_settings['fluid'] )
-		? $typography_settings['fluid']
-		: array();
+	$fluid_settings  = isset( $typography_settings['fluid'] ) ? $typography_settings['fluid'] : array();
+	$layout_settings = isset( $settings['layout'] ) ? $settings['layout'] : array();
 
 	// Defaults.
 	$default_maximum_viewport_width       = '1600px';
@@ -559,14 +598,6 @@ function wp_get_typography_font_size_value( $preset, $should_use_fluid_typograph
 	}
 	$has_min_font_size       = isset( $fluid_settings['minFontSize'] ) && ! empty( wp_get_typography_value_and_unit( $fluid_settings['minFontSize'] ) );
 	$minimum_font_size_limit = $has_min_font_size ? $fluid_settings['minFontSize'] : $default_minimum_font_size_limit;
-
-	// Font sizes.
-	$fluid_font_size_settings = isset( $preset['fluid'] ) ? $preset['fluid'] : null;
-
-	// A font size has explicitly bypassed fluid calculations.
-	if ( false === $fluid_font_size_settings ) {
-		return $preset['size'];
-	}
 
 	// Try to grab explicit min and max fluid font sizes.
 	$minimum_font_size_raw = isset( $fluid_font_size_settings['min'] ) ? $fluid_font_size_settings['min'] : null;

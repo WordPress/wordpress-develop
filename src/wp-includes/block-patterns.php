@@ -26,7 +26,6 @@ function _register_core_block_patterns_and_categories() {
 			'query-grid-posts',
 			'query-large-title-posts',
 			'query-offset-posts',
-			'social-links-shared-background-color',
 		);
 
 		foreach ( $core_block_patterns as $core_block_pattern ) {
@@ -36,7 +35,13 @@ function _register_core_block_patterns_and_categories() {
 		}
 	}
 
-	register_block_pattern_category( 'banner', array( 'label' => _x( 'Banners', 'Block pattern category' ) ) );
+	register_block_pattern_category(
+		'banner',
+		array(
+			'label'       => _x( 'Banners', 'Block pattern category' ),
+			'description' => __( 'Bold sections designed to showcase key content.' ),
+		)
+	);
 	register_block_pattern_category(
 		'buttons',
 		array(
@@ -75,7 +80,7 @@ function _register_core_block_patterns_and_categories() {
 	register_block_pattern_category(
 		'call-to-action',
 		array(
-			'label'       => _x( 'Call to Action', 'Block pattern category' ),
+			'label'       => _x( 'Call to action', 'Block pattern category' ),
 			'description' => __( 'Sections whose purpose is to trigger a specific action.' ),
 		)
 	);

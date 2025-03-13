@@ -19,16 +19,20 @@ on:
     paths:
       # Any change to a JavaScript file should run tests.
       - '**.js'
-      # These files configure npm. Changes could affect the outcome.
+      # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
       # This file configures ESLint. Changes could affect the outcome.
       - '.eslintignore'
       # This file configures JSHint. Changes could affect the outcome.
       - '.jshintrc'
       # Any change to the QUnit directory should run tests.
       - 'tests/qunit/**'
-      # Changes to workflow files should always verify all workflows are successful.
-      - '.github/workflows/*.yml'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/javascript-tests.yml'
+      - '.github/workflows/reusable-javascript-tests.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -43,53 +47,17 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Runs the QUnit tests for WordPress.
-  #
-  # Performs the following steps:
-  # - Checks out the repository.
-  # - Sets up Node.js.
-  # - Logs debug information about the GitHub Action runner.
-  # - Installs npm dependencies.
-  # - Run the WordPress QUnit tests.
-  # - Ensures version-controlled files are not modified or deleted.
+  # Runs the WordPress Core JavaScript tests.
   test-js:
     name: QUnit Tests
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/reusable-javascript-tests.yml
     permissions:
       contents: read
-    timeout-minutes: 20
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-        with:
-          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
-
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-          git --version
-
-      - name: Install npm Dependencies
-        run: npm ci
-
-      - name: Run QUnit tests
-        run: npm run grunt qunit:compiled
-
-      - name: Ensure version-controlled files are not modified or deleted
-        run: git diff --exit-code
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
@@ -105,7 +73,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
@@ -132,6 +100,6 @@ jobs:
               workflow_id: 'failed-workflow.yml',
               ref: 'trunk',
               inputs: {
-                run_id: '${{ github.run_id }}'
+                run_id: `${context.runId}`,
               }
             });
