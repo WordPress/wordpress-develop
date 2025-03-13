@@ -865,7 +865,12 @@ function get_classic_theme_supports_block_editor_settings() {
  * @since 6.8.0
  */
 function wp_initialize_site_preview_hooks() {
-	if ( ! defined( 'IFRAME_REQUEST' ) && isset( $_GET['wp_site_preview'] ) && 1 === (int) $_GET['wp_site_preview'] ) {
+	if (
+		! defined( 'IFRAME_REQUEST' ) &&
+		isset( $_GET['wp_site_preview'] ) &&
+		1 === (int) $_GET['wp_site_preview'] &&
+		current_user_can( 'edit_theme_options' )
+	) {
 		define( 'IFRAME_REQUEST', true );
 	}
 }
