@@ -1576,6 +1576,11 @@ final class WP_Theme implements ArrayAccess {
 	 * @return bool
 	 */
 	public function is_block_theme() {
+		if ( ! did_action( 'setup_theme' ) ) {
+			_doing_it_wrong( __METHOD__, __( 'This method should not be called before themes are set up.' ), '6.8.0' );
+			return false;
+		}
+
 		if ( isset( $this->block_theme ) ) {
 			return $this->block_theme;
 		}
@@ -1848,7 +1853,7 @@ final class WP_Theme implements ArrayAccess {
 			$this->delete_pattern_cache();
 		}
 
-		$dirpath      = $this->get_stylesheet_directory() . '/patterns/';
+		$dirpath      = $this->get_stylesheet_directory() . '/patterns';
 		$pattern_data = array();
 
 		if ( ! file_exists( $dirpath ) ) {
@@ -1857,7 +1862,11 @@ final class WP_Theme implements ArrayAccess {
 			}
 			return $pattern_data;
 		}
-		$files = glob( $dirpath . '*.php' );
+
+		$files = (array) self::scandir( $dirpath, 'php', -1 );
+
+		$dirpath = trailingslashit( $dirpath );
+
 		if ( ! $files ) {
 			if ( $can_use_cached ) {
 				$this->set_pattern_cache( $pattern_data );
