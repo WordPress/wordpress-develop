@@ -161,21 +161,25 @@ jobs:
       - name: Check for changes to versioned files
         id: built-file-check
         run: |
-          diff_output=$(git diff)
-          if [ -n "$diff_output" ]; then
-            echo "uncommitted_changes=$diff_output" >> "$GITHUB_OUTPUT"
+          if git diff --quiet; then
+            echo "uncommitted_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "uncommitted_changes=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Display changes to versioned files
+        run: git diff
+
       - name: Stage changes
-        if: ${{ steps.built-file-check.outputs.uncommitted_changes != '' }}
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
         run: git add .
 
       - name: Commit changes
-        if: ${{ steps.built-file-check.outputs.uncommitted_changes != '' }}
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
         run: |
           git commit -m "Automation: Updating built files with changes. [dependabot skip]"
 
       - name: Push changes
-        if: ${{ steps.built-file-check.outputs.uncommitted_changes != '' }}
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
         run: git push
 
