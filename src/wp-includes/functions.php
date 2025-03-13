@@ -9189,6 +9189,16 @@ function wp_verify_fast_hash(
  * @return string The generated unique ID for the array.
  */
 function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
+	if ( empty( $data ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				__( 'The $data argument must not be empty.' ),
+				gettype( $data )
+			),
+			'6.8.0'
+		);
+	}
 	$serialized = wp_json_encode( $data );
 	$hash       = substr( md5( $serialized ), 0, 8 );
 	return $prefix . $hash;
