@@ -32,6 +32,7 @@ concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
   # or the commit hash for any other events.
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.head_ref || github.sha }}
+  cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -43,6 +44,7 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/reusable-check-built-files.yml
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     secrets:
       GH_APP_ID: ${{ secrets.GH_APP_ID }}
       GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}

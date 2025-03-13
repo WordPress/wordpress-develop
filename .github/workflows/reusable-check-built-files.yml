@@ -29,18 +29,20 @@ jobs:
   # - Builds Emoji files.
   # - Builds bundled Root Certificate files.
   # - Builds WordPress.
-  # - Configures the Git author.
   # - Checks for changes to versioned files.
+  # - Displays the result of git diff for debugging purposes.
+  # - Configures the Git author.
   # - Stages changes.
   # - Commits changes.
   # - Pushes changes.
   update-built-files:
     name: Check and update built files
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
     # This prevents a second run after changes are committed back because Dependabot always rebases updates onto trunk.
     if: ${{ github.actor != 'dependabot[bot]' || github.event.commits < 2 }}
+    timeout-minutes: 10
+    permissions:
+      contents: write
     steps:
       - name: Generate Installation Token
         id: generate_token
@@ -127,11 +129,6 @@ jobs:
       - name: Build WordPress
         run: npm run build:dev
 
-      - name: Configure git user name and email
-        run: |
-          git config user.name "dependabot[bot]"
-          git config user.email 49699333+dependabot[bot]@users.noreply.github.com
-
       - name: Check for changes to versioned files
         id: built-file-check
         run: |
@@ -142,7 +139,14 @@ jobs:
           fi
 
       - name: Display changes to versioned files
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
         run: git diff
+
+      - name: Configure git user name and email
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
+        run: |
+          git config user.name "dependabot[bot]"
+          git config user.email 49699333+dependabot[bot]@users.noreply.github.com
 
       - name: Stage changes
         if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
