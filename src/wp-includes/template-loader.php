@@ -7,18 +7,36 @@ ob_start(
 			return $output;
 		}
 
-		/**
-		 * Filters the template output buffer prior to sending to the client.
-		 *
-		 * The output buffer is started before the `template_redirect` action is triggered, allowing templates rendered
-		 * at that action to also have their output filtered.
-		 *
-		 * @since n.e.x.t
-		 *
-		 * @param string $output Output buffer.
-		 * @return string Filtered output buffer.
-		 */
-		return (string) apply_filters( 'wp_template_output_buffer', $output );
+		// Detect if the response is an HTML content type.
+		$is_html_content_type = false;
+		$headers_list         = array_merge(
+			array( 'Content-Type: ' . ini_get( 'default_mimetype' ) ),
+			headers_list()
+		);
+		foreach ( $headers_list as $header ) {
+			$header_parts = preg_split( '/\s*[:;]\s*/', strtolower( $header ) );
+			if ( is_array( $header_parts ) && count( $header_parts ) >= 2 && 'content-type' === $header_parts[0] ) {
+				$is_html_content_type = in_array( $header_parts[1], array( 'text/html', 'application/xhtml+xml' ), true );
+			}
+		}
+		// TODO: Also check if str_starts_with( ltrim( $buffer ), '<' )? Or check if str_contains( '<html' ) in case a PHP warning output an error before the HTML tag.
+
+		if ( $is_html_content_type ) {
+			/**
+			 * Filters the HTML output buffer prior to sending to the client.
+			 *
+			 * The output buffer is started before the `template_redirect` action is triggered, allowing templates rendered
+			 * at that action to also have their output filtered.
+			 *
+			 * @since n.e.x.t
+			 *
+			 * @param string $output Output buffer HTML.
+			 * @return string Filtered output buffer HTML.
+			 */
+			$output = (string) apply_filters( 'wp_output_buffer_html', $output );
+		}
+
+		return $output;
 	},
 	0, // Unlimited buffer size so that entire output is passed to the filter.
 	/*
