@@ -348,7 +348,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$expected_url = esc_url( add_query_arg( array( 'author' => $author_id ), 'upload.php' ) );
 
 		ob_start();
-		self::$list_table->column_author( $post );
+		$this->table->column_author( $post );
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( '<a href="' . $expected_url . '">', $output );
@@ -369,7 +369,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$post    = get_post( $post_id );
 
 		ob_start();
-		self::$list_table->column_author( $post );
+		$this->table->column_author( $post );
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( '<span aria-hidden="true">&#8212;</span>', $output );
