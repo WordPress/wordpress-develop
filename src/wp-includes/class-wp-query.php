@@ -2068,7 +2068,8 @@ class WP_Query {
 				$fields = "{$wpdb->posts}.ID, {$wpdb->posts}.post_parent";
 				break;
 			default:
-				$fields = "{$wpdb->posts}.*";
+				$q['fields'] = 'all'; // Ensure that the default is 'all'.
+				$fields      = "{$wpdb->posts}.*";
 		}
 
 		if ( '' !== $q['menu_order'] ) {
@@ -3739,28 +3740,30 @@ class WP_Query {
 		global $post;
 
 		if ( ! $this->in_the_loop ) {
-			// Get post IDs to prime incomplete post objects.
-			$post_ids = array_reduce(
-				$this->posts,
-				function ( $carry, $post ) {
-					if ( is_numeric( $post ) && $post > 0 ) {
-						// Query for post ID.
-						$carry[] = $post;
-					}
+			if ( $this->posts[0] instanceof WP_Post ) {
+				// Full post objects queried.
+				$post_objects = $this->posts;
+			} else {
+				if ( 'ids' === $this->query_vars['fields'] ) {
+					// Post IDs queried.
+					$post_ids = $this->posts;
+				} else {
+					// Only partial objects queried, need to prime the cache for the loop.
+					$post_ids = array_reduce(
+						$this->posts,
+						function ( $carry, $post ) {
+							if ( isset( $post->ID ) ) {
+								$carry[] = $post->ID;
+							}
 
-					if ( is_object( $post ) && isset( $post->ID ) ) {
-						// Query for object, either WP_Post or stdClass.
-						$carry[] = $post->ID;
-					}
-
-					return $carry;
-				},
-				array()
-			);
-			if ( $post_ids ) {
+							return $carry;
+						},
+						array()
+					);
+				}
 				_prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
+				$post_objects = array_map( 'get_post', $post_ids );
 			}
-			$post_objects = array_map( 'get_post', $post_ids );
 			update_post_author_caches( $post_objects );
 		}
 
@@ -3781,12 +3784,14 @@ class WP_Query {
 		$post = $this->next_post();
 
 		// Ensure a full post object is available.
-		if ( $post instanceof stdClass ) {
-			// stdClass indicates that a partial post object was queried.
-			$post = get_post( $post->ID );
-		} elseif ( is_numeric( $post ) ) {
-			// Numeric indicates that only post IDs were queried.
-			$post = get_post( $post );
+		if ( ! $post instanceof WP_Post ) {
+			if ( 'ids' === $this->query_vars['fields'] ) {
+				// Post IDs queried.
+				$post = get_post( $post );
+			} elseif ( isset( $post->ID ) ) {
+				// Partial object (stdClass) queried.
+				$post = get_post( $post->ID );
+			}
 		}
 
 		// Set up the global post object for the loop.
