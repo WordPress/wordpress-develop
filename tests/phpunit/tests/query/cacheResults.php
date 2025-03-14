@@ -1793,7 +1793,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function test_query_cache_should_exclude_post_with_excluded_term() {
 		$term_id = self::$t1;
-		// Post 0 has the term applied
+		// Post 0 has the term applied.
 		$post_id = self::$posts[0];
 
 		$args = array(
