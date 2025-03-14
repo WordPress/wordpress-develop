@@ -38,7 +38,8 @@ jobs:
   update-built-files:
     name: Check and update built files
     runs-on: ubuntu-24.04
-    # This prevents a second run after changes are committed back because Dependabot always rebases updates onto trunk.
+    # This prevents an unnecessary second run after changes are committed back because Dependabot always rebases
+    # updates and force pushes.
     if: ${{ github.actor != 'dependabot[bot]' || github.event.commits < 2 }}
     timeout-minutes: 10
     permissions:

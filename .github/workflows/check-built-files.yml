@@ -44,7 +44,7 @@ jobs:
     permissions:
       contents: write
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-    # This should never be changed to use local reference. Always reference the workflow in trunk.
+    # This should always reference a version of the workflow committed through SVN and never a local reference.
     uses: WordPress/wordpress-develop/.github/workflows/reusable-check-built-files.yml@trunk
     secrets:
       GH_APP_ID: ${{ secrets.GH_APP_ID }}
