@@ -49,6 +49,41 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure custom 'fields' values are respected.
+	 *
+	 * @ticket 56992
+	 */
+	public function test_wp_query_respects_custom_fields_values() {
+		global $wpdb;
+		add_filter(
+			'posts_fields',
+			function ( $fields, $query ) {
+				global $wpdb;
+
+				if ( $query->get( 'fields' ) === 'custom' ) {
+					$fields = "$wpdb->posts.ID,$wpdb->posts.post_author";
+				}
+
+				return $fields;
+			},
+			10,
+			2
+		);
+
+		$query = new WP_Query(
+			array(
+				'fields'    => 'custom',
+				'post_type' => 'page',
+				'post__in'  => self::$page_child_ids,
+			)
+		);
+
+		$this->assertNotEmpty( $query->posts, 'The query is expected to return results' );
+		$this->assertSame( $query->get( 'fields' ), 'custom', 'The query is expected to use the custom fields value' );
+		$this->assertStringContainsString( "$wpdb->posts.ID,$wpdb->posts.post_author", $query->request, 'The query is expected to use the custom fields value' );
+	}
+
+	/**
 	 * Ensure that a secondary loop populates the global post completely regardless of the fields parameter.
 	 *
 	 * @ticket 56992
