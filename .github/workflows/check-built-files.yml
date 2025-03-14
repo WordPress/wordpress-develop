@@ -43,8 +43,9 @@ jobs:
     name: Update built files
     permissions:
       contents: write
-    uses: ./.github/workflows/reusable-check-built-files.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    # This should never be changed to use local reference. Always reference the workflow in trunk.
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-check-built-files.yml@trunk
     secrets:
       GH_APP_ID: ${{ secrets.GH_APP_ID }}
       GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
