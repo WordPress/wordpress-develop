@@ -286,10 +286,10 @@ final class WP_Customize_Manager {
 			$args['messenger_channel'] = sanitize_key( wp_unslash( $_REQUEST['customize_messenger_channel'] ) );
 		}
 
-		// Do not load 'widgets' component if a block theme is activated.
-		if ( ! wp_is_block_theme() ) {
-			$this->components[] = 'widgets';
-		}
+		// Revert the conditional, is problematic. See #63086
+		$this->components[] = 'widgets';
+
+		add_action( 'after_setup_theme', array( $this, 'maybe_remove_widgets_component' ) );
 
 		$this->original_stylesheet = get_stylesheet();
 		$this->theme               = wp_get_theme( 0 === validate_file( $args['theme'] ) ? $args['theme'] : null );
@@ -6159,5 +6159,18 @@ final class WP_Customize_Manager {
 	 */
 	public function _render_custom_logo_partial() {
 		return get_custom_logo();
+	}
+
+	/**
+	 * Maybe remove the 'widgets' component if a block theme is active.
+	 *
+	 * @see Ticket #63086
+	 *
+	 * @since 6.8.0
+	 */
+	public function maybe_remove_widgets_component() {
+		if ( wp_is_block_theme() ) {
+			$this->components = array_diff( $this->components, array( 'widgets' ) );
+		}
 	}
 }

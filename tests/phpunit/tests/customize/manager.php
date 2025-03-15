@@ -3675,6 +3675,64 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			$this->assertSame( $video_url, $sanitized );
 		}
 	}
+
+	/**
+	 * Test that widgets component is properly handled with block themes.
+	 *
+	 * @ticket #63086
+	 * @covers WP_Customize_Manager::__construct
+	 * @covers WP_Customize_Manager::maybe_remove_widgets_component
+	 */
+	public function test_widgets_component_with_block_theme() {
+		// Mock a wp_is_block_theme() to return true
+		add_filter( 'wp_is_block_theme', '__return_true' );
+
+		$manager = new WP_Customize_Manager();
+		$this->assertContains( 'widgets', $this->get_property( 'components', $manager ) );
+
+		do_action( 'after_setup_theme' );
+		$this->assertNotContains( 'widgets', $this->get_property( 'components', $manager ) );
+
+		// Clean up
+		remove_filter( 'wp_is_block_theme', '__return_true' );
+	}
+
+	/**
+	 * Test that widgets component remains for non-block themes.
+	 *
+	 * @ticket #63086
+	 * @covers WP_Customize_Manager::__construct
+	 * @covers WP_Customize_Manager::maybe_remove_widgets_component
+	 */
+	public function test_widgets_component_with_non_block_theme() {
+		// Mock a wp_is_block_theme() to return false
+		add_filter( 'wp_is_block_theme', '__return_false' );
+
+		$manager = new WP_Customize_Manager();
+		$this->assertContains( 'widgets', $this->get_property( 'components', $manager ) );
+
+		do_action( 'after_setup_theme' );
+		$this->assertContains( 'widgets', $this->get_property( 'components', $manager ) );
+
+		// Clean up
+		remove_filter( 'wp_is_block_theme', '__return_false' );
+	}
+
+	/**
+	 * Helper method to access protected properties in
+	 * test_widgets_component_with_block_theme and
+	 * test_widgets_component_with_non_block_theme.
+	 *
+	 * @param string $name      Property name.
+	 * @param object $instance  Object instance.
+	 * @return mixed Property value.
+	 */
+	private function get_property( $name, $instance ) {
+		$reflection = new ReflectionClass( get_class( $instance ) );
+		$property   = $reflection->getProperty( $name );
+		$property->setAccessible( true );
+		return $property->getValue( $instance );
+	}
 }
 
 require_once ABSPATH . WPINC . '/class-wp-customize-setting.php';

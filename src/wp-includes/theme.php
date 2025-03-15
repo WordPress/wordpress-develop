@@ -4352,7 +4352,14 @@ function create_initial_theme_features() {
  * @return bool Whether the active theme is a block-based theme or not.
  */
 function wp_is_block_theme() {
-	return wp_get_theme()->is_block_theme();
+	/**
+	 * Filters whether the active theme is a block-based theme or not.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @return bool $is_block_theme Whether the active theme is a block-based theme or not.
+	 */
+	return apply_filters( 'wp_is_block_theme', wp_get_theme()->is_block_theme() );
 }
 
 /**
