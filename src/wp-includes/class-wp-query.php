@@ -3748,7 +3748,7 @@ class WP_Query {
 		global $post;
 
 		if ( ! $this->in_the_loop ) {
-			if ( $this->posts[0] instanceof WP_Post ) {
+			if ( 'all' === $this->query_vars['fields'] ) {
 				// Full post objects queried.
 				$post_objects = $this->posts;
 			} else {
@@ -3792,12 +3792,17 @@ class WP_Query {
 		$post = $this->next_post();
 
 		// Ensure a full post object is available.
-		if ( ! $post instanceof WP_Post ) {
+		if ( 'all' !== $this->query_vars['fields'] ) {
 			if ( 'ids' === $this->query_vars['fields'] ) {
 				// Post IDs queried.
 				$post = get_post( $post );
 			} elseif ( isset( $post->ID ) ) {
-				// Partial object (stdClass) queried.
+				/*
+				 * Partial objecct queried.
+				 *
+				 * The post object was queried with a partial set of
+				 * fields, populate the entire object for the loop.
+				 */
 				$post = get_post( $post->ID );
 			}
 		}
