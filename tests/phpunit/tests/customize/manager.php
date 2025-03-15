@@ -3680,6 +3680,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Test that widgets component is properly handled with block themes.
 	 *
 	 * @ticket #63086
+	 *
+	 * @group is_block_theme
+	 *
 	 * @covers WP_Customize_Manager::__construct
 	 * @covers WP_Customize_Manager::maybe_remove_widgets_component
 	 */
@@ -3701,6 +3704,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Test that widgets component remains for non-block themes.
 	 *
 	 * @ticket #63086
+	 *
+	 * @group is_block_theme
+	 *
 	 * @covers WP_Customize_Manager::__construct
 	 * @covers WP_Customize_Manager::maybe_remove_widgets_component
 	 */

@@ -1458,4 +1458,108 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		$this->assertSame( $template_path, $new_template_path, 'Switching blogs switches the template path' );
 	}
+
+	/**
+	 * Test that is_block_theme() returns correct value when called after setup_theme.
+	 *
+	 * @ticket 63086
+	 *
+	 * @group is_block_theme
+	 *
+	 * @covers ::is_block_theme
+	 */
+	public function test_is_block_theme_after_setup() {
+		global $wp_theme_directories;
+		$theme = new WP_Theme( 'block-theme', $wp_theme_directories[1] );
+
+		$this->mock_block_theme();
+
+		$this->assertFalse( $theme->is_block_theme() );
+
+		do_action( 'setup_theme' );
+		$theme->cache_delete(); // Clear the cache to force re-evaluation
+		$this->assertTrue( $theme->is_block_theme() );
+	}
+
+	/**
+	 * Test that is_block_theme() returns false for non-block themes.
+	 *
+	 * @ticket 63086
+	 *
+	 * @group is_block_theme
+	 *
+	 * @covers ::is_block_theme
+	 */
+	public function test_is_block_theme_returns_false_for_non_block_theme() {
+		global $wp_theme_directories;
+		$theme = new WP_Theme( 'default', $this->orig_theme_dir[1] );
+
+		// No templates/index.html should exist
+		add_filter(
+			'theme_file_path',
+			function ( $path, $file ) {
+				if ( '/templates/index.html' === $file || '/block-templates/index.html' === $file ) {
+					return '/path/that/does/not/exist';
+				}
+				return $path;
+			},
+			10,
+			2
+		);
+		$this->assertFalse( $theme->is_block_theme() );
+
+		do_action( 'setup_theme' );
+		$theme->cache_delete(); // Clear the cache to force re-evaluation
+		$this->assertFalse( $theme->is_block_theme() );
+	}
+
+	/**
+	 * Tests that _update_cached_block_theme updates the cache with the correct block theme status.
+	 *
+	 * @ticket 63086
+	 *
+	 * @group is_block_theme
+	 *
+	 * @covers WP_Theme::_update_cached_block_theme
+	 */
+	public function test_update_cached_block_theme() {
+		global $wp_theme_directories;
+		$theme = new WP_Theme( 'block-theme', $wp_theme_directories[1] );
+		$this->mock_block_theme();
+
+		// Initially, block_theme should be false
+		$this->assertFalse( $theme->is_block_theme(), 'Theme should not be identified as a block theme yet' );
+
+		do_action( 'setup_theme' );
+		$theme->_update_cached_block_theme();
+
+		$reflection = new ReflectionClass( $theme );
+		$property   = $reflection->getProperty( 'block_theme' );
+		$property->setAccessible( true );
+		$property->setValue( $theme, null );
+
+		$this->assertTrue( $theme->is_block_theme(), 'Theme should be identified as a block theme after cache update' );
+	}
+
+	/*
+	 * Mock a block theme by creating a temporary file in the theme directory.
+	 *
+	 * @ticket 63086
+	 */
+	public function mock_block_theme() {
+
+		add_filter(
+			'theme_file_path',
+			function ( $path, $file ) {
+				if ( '/templates/index.html' === $file ) {
+					$temp_file = wp_tempnam( 'block-theme-test' );
+					file_put_contents( $temp_file, 'test' );
+					return $temp_file;
+				}
+				return $path;
+			},
+			10,
+			2
+		);
+	}
 }
