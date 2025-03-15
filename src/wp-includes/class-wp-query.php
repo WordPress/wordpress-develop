@@ -2067,9 +2067,17 @@ class WP_Query {
 			case 'id=>parent':
 				$fields = "{$wpdb->posts}.ID, {$wpdb->posts}.post_parent";
 				break;
+			case '':
+				/*
+				 * Set the default to 'all'.
+				 *
+				 * This is used in `WP_Query::the_post` to determine if the
+				 * entire post object has been queried.
+				 */
+				$q['fields'] = 'all';
+				// Falls through.
 			default:
-				$q['fields'] = 'all'; // Ensure that the default is 'all'.
-				$fields      = "{$wpdb->posts}.*";
+				$fields = "{$wpdb->posts}.*";
 		}
 
 		if ( '' !== $q['menu_order'] ) {
