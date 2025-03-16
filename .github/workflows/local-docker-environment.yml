@@ -12,8 +12,11 @@ on:
       - 'docker-compose.yml'
       # Any changes to local environment related files
       - 'tools/local-env/**'
-      # These files manage packages used by the local environment.
+      # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the local environment.
       - 'composer.*'
       # These files define the versions to test.
@@ -33,8 +36,11 @@ on:
       - 'docker-compose.yml'
       # Any changes to local environment related files
       - 'tools/local-env/**'
-      # These files manage packages used by the local environment.
+      # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the local environment.
       - 'composer.*'
       # These files define the versions to test.
@@ -63,7 +69,7 @@ jobs:
   #
   build-test-matrix:
     name: Build Test Matrix
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-support-json-reader-v1.yml@trunk
+    uses: ./.github/workflows/reusable-support-json-reader-v1.yml
     permissions:
       contents: read
     secrets: inherit
@@ -74,7 +80,7 @@ jobs:
   # Tests the local Docker environment.
   environment-tests-mysql:
     name: PHP ${{ matrix.php }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-local-docker-environment-v1.yml@trunk
+    uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -82,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-24.04 ]
         memcached: [ false, true ]
         php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
         db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
@@ -104,11 +110,10 @@ jobs:
       db-type: 'mysql'
       db-version: ${{ matrix.db-version }}
       memcached: ${{ matrix.memcached }}
-      tests-domain: ${{ matrix.tests-domain }}
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
@@ -124,7 +129,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ build-test-matrix, environment-tests-mysql, slack-notifications ]
@@ -151,6 +156,6 @@ jobs:
               workflow_id: 'failed-workflow.yml',
               ref: 'trunk',
               inputs: {
-                run_id: '${{ github.run_id }}'
+                run_id: `${context.runId}`,
               }
             });
