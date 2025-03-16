@@ -3394,7 +3394,6 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		'class'    => 'wp-audio-shortcode',
 		'style'    => 'width: 100%;',
 	);
-
 	foreach ( $default_types as $type ) {
 		$defaults_atts[ $type ] = '';
 	}
