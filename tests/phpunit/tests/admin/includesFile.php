@@ -415,7 +415,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 	 * Data provider for test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined
 	 *
 	 * @see test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined()
-	 * @test
+	 *
 	 * @ticket 54738
 	 *
 	 * @return Generator
