@@ -3394,6 +3394,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		'class'    => 'wp-audio-shortcode',
 		'style'    => 'width: 100%;',
 	);
+
 	foreach ( $default_types as $type ) {
 		$defaults_atts[ $type ] = '';
 	}
@@ -3415,8 +3416,13 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 			if ( ! empty( $atts[ $ext ] ) ) {
 				$type = wp_check_filetype( $atts[ $ext ], wp_get_mime_types() );
 
+				$ext_set_as_src = false;
 				if ( strtolower( $type['ext'] ) === $ext ) {
 					$primary = true;
+					if ( ! $ext_set_as_src ) {
+						$atts['src']    = $atts[ $ext ];
+						$ext_set_as_src = true;
+					}
 				}
 			}
 		}
