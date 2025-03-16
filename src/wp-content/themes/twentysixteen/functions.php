@@ -391,10 +391,10 @@ function twentysixteen_scripts() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20201208' );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentysixteen-style', get_stylesheet_uri(), array(), '20240402' );
+	wp_enqueue_style( 'twentysixteen-style', get_stylesheet_uri(), array(), '20241112' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentysixteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentysixteen-style' ), '20240117' );
+	wp_enqueue_style( 'twentysixteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentysixteen-style' ), '20240817' );
 
 	// Load the Internet Explorer specific stylesheet.
 	wp_enqueue_style( 'twentysixteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentysixteen-style' ), '20170530' );
@@ -452,7 +452,7 @@ add_action( 'wp_enqueue_scripts', 'twentysixteen_scripts' );
  */
 function twentysixteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20240209' );
+	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20240817' );
 	// Add custom fonts.
 	$font_version = ( 0 === strpos( (string) twentysixteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), $font_version );
@@ -528,10 +528,17 @@ function twentysixteen_hex2rgb( $color ) {
  */
 require get_template_directory() . '/inc/template-tags.php';
 
+
 /**
- * Block Patterns.
+ * Register block patterns and pattern categories.
+ *
+ * @since Twenty Sixteen 3.4
  */
-require get_template_directory() . '/inc/block-patterns.php';
+function twentysixteen_register_block_patterns() {
+	require get_template_directory() . '/inc/block-patterns.php';
+}
+
+add_action( 'init', 'twentysixteen_register_block_patterns' );
 
 /**
  * Customizer additions.

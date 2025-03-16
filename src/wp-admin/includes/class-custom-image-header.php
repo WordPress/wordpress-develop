@@ -17,24 +17,24 @@ class Custom_Image_Header {
 	/**
 	 * Callback for administration header.
 	 *
-	 * @var callable
 	 * @since 2.1.0
+	 * @var callable
 	 */
 	public $admin_header_callback;
 
 	/**
 	 * Callback for header div.
 	 *
-	 * @var callable
 	 * @since 3.0.0
+	 * @var callable
 	 */
 	public $admin_image_div_callback;
 
 	/**
 	 * Holds default headers.
 	 *
-	 * @var array
 	 * @since 3.0.0
+	 * @var array
 	 */
 	public $default_headers = array();
 
@@ -664,7 +664,7 @@ class Custom_Image_Header {
 		<input type="file" id="upload" name="import" />
 		<input type="hidden" name="action" value="save" />
 			<?php wp_nonce_field( 'custom-header-upload', '_wpnonce-custom-header-upload' ); ?>
-			<?php submit_button( __( 'Upload' ), '', 'submit', false ); ?>
+			<?php submit_button( _x( 'Upload', 'verb' ), '', 'submit', false ); ?>
 	</p>
 			<?php
 			$modal_update_href = add_query_arg(
@@ -830,8 +830,8 @@ endif;
 
 		if ( ! current_theme_supports( 'custom-header', 'uploads' ) ) {
 			wp_die(
-				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-				'<p>' . __( 'The active theme does not support uploading a custom header image.' ) . '</p>',
+				'<h1>' . __( 'An error occurred while processing your header image.' ) . '</h1>' .
+				'<p>' . __( 'The active theme does not support uploading a custom header image. Please ensure your theme supports custom headers and try again.' ) . '</p>',
 				403
 			);
 		}
@@ -1018,8 +1018,8 @@ endif;
 
 		if ( ! current_theme_supports( 'custom-header', 'uploads' ) ) {
 			wp_die(
-				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-				'<p>' . __( 'The active theme does not support uploading a custom header image.' ) . '</p>',
+				'<h1>' . __( 'An error occurred while processing your header image.' ) . '</h1>' .
+				'<p>' . __( 'The active theme does not support uploading a custom header image. Please ensure your theme supports custom headers and try again.' ) . '</p>',
 				403
 			);
 		}
@@ -1029,7 +1029,7 @@ endif;
 			&& ! current_theme_supports( 'custom-header', 'flex-width' )
 		) {
 			wp_die(
-				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
+				'<h1>' . __( 'An error occurred while processing your header image.' ) . '</h1>' .
 				'<p>' . __( 'The active theme does not support a flexible sized header image.' ) . '</p>',
 				403
 			);

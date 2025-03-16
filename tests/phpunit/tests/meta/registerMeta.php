@@ -92,6 +92,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				'' => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
@@ -117,6 +118,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				'' => array(
 					'category_icon' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
@@ -172,6 +174,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				'' => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => array( $this, '_new_sanitize_meta_cb' ),
@@ -254,6 +257,19 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		unregister_meta_key( 'post', 'registered_key2' );
 
 		$this->assertEmpty( $meta_keys );
+	}
+
+	/**
+	 * @ticket 61998
+	 */
+	public function test_get_registered_meta_keys_label_arg() {
+		register_meta( 'post', 'registered_key1', array( 'label' => 'Field label' ) );
+
+		$meta_keys = get_registered_meta_keys( 'post' );
+
+		unregister_meta_key( 'post', 'registered_key1' );
+
+		$this->assertSame( 'Field label', $meta_keys['registered_key1']['label'] );
 	}
 
 	public function test_get_registered_meta_keys_description_arg() {
@@ -340,6 +356,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				$subtype => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,
@@ -394,6 +411,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 				$subtype => array(
 					'flight_number' => array(
 						'type'              => 'string',
+						'label'             => '',
 						'description'       => '',
 						'single'            => false,
 						'sanitize_callback' => null,

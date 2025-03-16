@@ -4,6 +4,7 @@
 remove_action( 'init', 'register_block_core_archives' );
 remove_action( 'init', 'register_block_core_avatar' );
 remove_action( 'init', 'register_block_core_block' );
+remove_action( 'init', 'register_block_core_button' );
 remove_action( 'init', 'register_block_core_calendar' );
 remove_action( 'init', 'register_block_core_categories' );
 remove_action( 'init', 'register_block_core_comment_author_name' );
@@ -55,6 +56,7 @@ remove_action( 'init', 'register_block_core_query_pagination_next' );
 remove_action( 'init', 'register_block_core_query_pagination_numbers' );
 remove_action( 'init', 'register_block_core_query_pagination_previous' );
 remove_action( 'init', 'register_block_core_query_title' );
+remove_action( 'init', 'register_block_core_query_total' );
 remove_action( 'init', 'register_block_core_read_more' );
 remove_action( 'init', 'register_block_core_rss' );
 remove_action( 'init', 'register_block_core_search' );

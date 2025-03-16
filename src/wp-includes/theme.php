@@ -14,7 +14,7 @@
  *
  * @since 3.4.0
  *
- * @global array $wp_theme_directories
+ * @global string[] $wp_theme_directories
  *
  * @param array $args {
  *     Optional. The search arguments.
@@ -91,7 +91,7 @@ function wp_get_themes( $args = array() ) {
 
 	if ( null !== $args['errors'] ) {
 		foreach ( $themes as $theme => $wp_theme ) {
-			if ( $wp_theme->errors() != $args['errors'] ) {
+			if ( (bool) $wp_theme->errors() !== $args['errors'] ) {
 				unset( $themes[ $theme ] );
 			}
 		}
@@ -105,7 +105,7 @@ function wp_get_themes( $args = array() ) {
  *
  * @since 3.4.0
  *
- * @global array $wp_theme_directories
+ * @global string[] $wp_theme_directories
  *
  * @param string $stylesheet Optional. Directory name for the theme. Defaults to active theme.
  * @param string $theme_root Optional. Absolute path of the theme root to look in.
@@ -380,7 +380,7 @@ function get_template_directory_uri() {
  *
  * @since 2.9.0
  *
- * @global array $wp_theme_directories
+ * @global string[] $wp_theme_directories
  *
  * @return array|string An array of theme roots keyed by template/stylesheet
  *                      or a single theme root if all themes have the same root.
@@ -405,7 +405,7 @@ function get_theme_roots() {
  *
  * @since 2.9.0
  *
- * @global array $wp_theme_directories
+ * @global string[] $wp_theme_directories
  *
  * @param string $directory Either the full filesystem path to a theme folder
  *                          or a folder within WP_CONTENT_DIR.
@@ -441,7 +441,7 @@ function register_theme_directory( $directory ) {
  *
  * @since 2.9.0
  *
- * @global array $wp_theme_directories
+ * @global string[] $wp_theme_directories
  *
  * @param bool $force Optional. Whether to force a new directory scan. Default false.
  * @return array|false Valid themes found on success, false on failure.
@@ -514,7 +514,7 @@ function search_theme_directories( $force = false ) {
 		// Start with directories in the root of the active theme directory.
 		$dirs = @ scandir( $theme_root );
 		if ( ! $dirs ) {
-			trigger_error( "$theme_root is not readable", E_USER_NOTICE );
+			wp_trigger_error( __FUNCTION__, "$theme_root is not readable" );
 			continue;
 		}
 		foreach ( $dirs as $dir ) {
@@ -538,7 +538,7 @@ function search_theme_directories( $force = false ) {
 				 */
 				$sub_dirs = @ scandir( $theme_root . '/' . $dir );
 				if ( ! $sub_dirs ) {
-					trigger_error( "$theme_root/$dir is not readable", E_USER_NOTICE );
+					wp_trigger_error( __FUNCTION__, "$theme_root/$dir is not readable" );
 					continue;
 				}
 				foreach ( $sub_dirs as $sub_dir ) {
@@ -577,7 +577,7 @@ function search_theme_directories( $force = false ) {
 		$theme_roots[ $theme_dir ] = $relative_theme_roots[ $theme_data['theme_root'] ]; // Convert absolute to relative.
 	}
 
-	if ( get_site_transient( 'theme_roots' ) != $theme_roots ) {
+	if ( get_site_transient( 'theme_roots' ) !== $theme_roots ) {
 		set_site_transient( 'theme_roots', $theme_roots, $cache_expiration );
 	}
 
@@ -591,7 +591,7 @@ function search_theme_directories( $force = false ) {
  *
  * @since 1.5.0
  *
- * @global array $wp_theme_directories
+ * @global string[] $wp_theme_directories
  *
  * @param string $stylesheet_or_template Optional. The stylesheet or template name of the theme.
  *                                       Default is to leverage the main theme root.
@@ -636,7 +636,7 @@ function get_theme_root( $stylesheet_or_template = '' ) {
  *
  * @since 1.5.0
  *
- * @global array $wp_theme_directories
+ * @global string[] $wp_theme_directories
  *
  * @param string $stylesheet_or_template Optional. The stylesheet or template name of the theme.
  *                                       Default is to leverage the main theme root.
@@ -687,7 +687,7 @@ function get_theme_root_uri( $stylesheet_or_template = '', $theme_root = '' ) {
  *
  * @since 3.1.0
  *
- * @global array $wp_theme_directories
+ * @global string[] $wp_theme_directories
  *
  * @param string $stylesheet_or_template The stylesheet or template name of the theme.
  * @param bool   $skip_cache             Optional. Whether to skip the cache.
@@ -705,9 +705,9 @@ function get_raw_theme_root( $stylesheet_or_template, $skip_cache = false ) {
 
 	// If requesting the root for the active theme, consult options to avoid calling get_theme_roots().
 	if ( ! $skip_cache ) {
-		if ( get_option( 'stylesheet' ) == $stylesheet_or_template ) {
+		if ( get_option( 'stylesheet' ) === $stylesheet_or_template ) {
 			$theme_root = get_option( 'stylesheet_root' );
-		} elseif ( get_option( 'template' ) == $stylesheet_or_template ) {
+		} elseif ( get_option( 'template' ) === $stylesheet_or_template ) {
 			$theme_root = get_option( 'template_root' );
 		}
 	}
@@ -750,7 +750,7 @@ function locale_stylesheet() {
  *
  * @since 2.5.0
  *
- * @global array                $wp_theme_directories
+ * @global string[]             $wp_theme_directories
  * @global WP_Customize_Manager $wp_customize
  * @global array                $sidebars_widgets
  * @global array                $wp_registered_sidebars
@@ -786,7 +786,7 @@ function switch_theme( $stylesheet ) {
 	}
 
 	$nav_menu_locations = get_theme_mod( 'nav_menu_locations' );
-	update_option( 'theme_switch_menu_locations', $nav_menu_locations );
+	update_option( 'theme_switch_menu_locations', $nav_menu_locations, true );
 
 	if ( func_num_args() > 1 ) {
 		$stylesheet = func_get_arg( 1 );
@@ -942,7 +942,7 @@ function validate_current_theme() {
 	 * if it turns out there is no default theme installed. (That's `false`.)
 	 */
 	$default = WP_Theme::get_core_default_theme();
-	if ( false === $default || get_stylesheet() == $default->get_stylesheet() ) {
+	if ( false === $default || get_stylesheet() === $default->get_stylesheet() ) {
 		return true;
 	}
 
@@ -1567,7 +1567,7 @@ function get_custom_header() {
 			if ( ! empty( $_wp_default_headers ) ) {
 				foreach ( (array) $_wp_default_headers as $default_header ) {
 					$url = vsprintf( $default_header['url'], $directory_args );
-					if ( $data['url'] == $url ) {
+					if ( $data['url'] === $url ) {
 						$data                  = $default_header;
 						$data['url']           = $url;
 						$data['thumbnail_url'] = vsprintf( $data['thumbnail_url'], $directory_args );
@@ -1893,7 +1893,7 @@ function _custom_background_cb() {
 		return;
 	}
 
-	$style = $color ? "background-color: #$color;" : '';
+	$style = $color ? 'background-color: ' . maybe_hash_hex_color( $color ) . ';' : '';
 
 	if ( $background ) {
 		$image = ' background-image: url("' . sanitize_url( $background ) . '");';
@@ -3001,7 +3001,7 @@ function _custom_logo_header_styles() {
 		<style id="custom-logo-css"<?php echo $type_attr; ?>>
 			<?php echo $classes; ?> {
 				position: absolute;
-				clip: rect(1px, 1px, 1px, 1px);
+				clip-path: inset(50%);
 			}
 		</style>
 		<?php
@@ -3444,24 +3444,24 @@ function _delete_attachment_theme_mod( $id ) {
 	$attachment_image = wp_get_attachment_url( $id );
 	$header_image     = get_header_image();
 	$background_image = get_background_image();
-	$custom_logo_id   = get_theme_mod( 'custom_logo' );
-	$site_logo_id     = get_option( 'site_logo' );
+	$custom_logo_id   = (int) get_theme_mod( 'custom_logo' );
+	$site_logo_id     = (int) get_option( 'site_logo' );
 
-	if ( $custom_logo_id && $custom_logo_id == $id ) {
+	if ( $custom_logo_id && $custom_logo_id === $id ) {
 		remove_theme_mod( 'custom_logo' );
 		remove_theme_mod( 'header_text' );
 	}
 
-	if ( $site_logo_id && $site_logo_id == $id ) {
+	if ( $site_logo_id && $site_logo_id === $id ) {
 		delete_option( 'site_logo' );
 	}
 
-	if ( $header_image && $header_image == $attachment_image ) {
+	if ( $header_image && $header_image === $attachment_image ) {
 		remove_theme_mod( 'header_image' );
 		remove_theme_mod( 'header_image_data' );
 	}
 
-	if ( $background_image && $background_image == $attachment_image ) {
+	if ( $background_image && $background_image === $attachment_image ) {
 		remove_theme_mod( 'background_image' );
 	}
 }
@@ -4395,6 +4395,7 @@ function _add_default_theme_supports() {
 	add_theme_support( 'automatic-feed-links' );
 
 	add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+	add_filter( 'should_load_block_assets_on_demand', '__return_true' );
 
 	/*
 	 * Remove the Customizer's Menus panel when block theme is active.

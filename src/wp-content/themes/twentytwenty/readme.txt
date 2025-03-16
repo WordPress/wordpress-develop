@@ -1,9 +1,9 @@
 === Twenty Twenty ===
 Contributors: the WordPress team
 Requires at least: 4.7
-Tested up to: 6.5
+Tested up to: 6.7
 Requires PHP: 5.2.4
-Stable tag: 2.6
+Stable tag: 2.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,16 @@ all elements on your site are automatically calculated based on the colors
 you pick, ensuring a high, accessible color contrast for your visitors.
 
 == Changelog ==
+
+= 2.8 =
+* Released: November 12, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_2.8
+
+= 2.7 =
+* Released: July 16, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-changelog/#Version_2.7
 
 = 2.6 =
 * Released: April 2, 2024
@@ -111,7 +121,7 @@ Initial release
 
 == Copyright ==
 
-Twenty Twenty WordPress Theme, Copyright 2019-2024 WordPress.org
+Twenty Twenty WordPress Theme, Copyright 2019-2025 WordPress.org and contributors.
 Twenty Twenty is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify
@@ -160,7 +170,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Source: WordPress Social Link Block (See wp-includes\blocks\social-link.php)
 
 Code from Twenty Nineteen
-Copyright (c) 2018-2024 WordPress.org
+Copyright (c) 2018-2025 WordPress.org
 License: GPLv2
 Source: https://wordpress.org/themes/twentynineteen/
 Included as part of the following classes and functions:
@@ -170,11 +180,11 @@ Included as part of the following classes and functions:
 - twentytwenty_nav_menu_social_icons()
 
 Code from Twenty Seventeen
-Copyright (c) 2016-2024 WordPress.org
+Copyright (c) 2016-2025 WordPress.org
 License: GPLv2
 Source: https://wordpress.org/themes/twentyseventeen/
 Included as part of the following classes and functions:
 - twentytwenty_unique_id()
 
 Underscores
-https://underscores.me/, (C) 2012-2024 Automattic, Inc., [GPLv2 or later](https://www.gnu.org/licenses/gpl-2.0.html)
+https://underscores.me/, (C) 2012-2025 Automattic, Inc., [GPLv2 or later](https://www.gnu.org/licenses/gpl-2.0.html)

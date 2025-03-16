@@ -204,7 +204,7 @@ function wp_nav_menu_setup() {
  *
  * @since 3.0.0
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  */
 function wp_initial_nav_menu_meta_boxes() {
 	global $wp_meta_boxes;
@@ -351,6 +351,7 @@ function wp_nav_menu_item_link_meta_box() {
 				type="text"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
 				class="code menu-item-textbox form-required" placeholder="https://"
 			/>
+			<span id="custom-url-error" class="error-message" style="display: none;"><?php _e( 'Please provide a valid link.' ); ?></span>
 		</p>
 
 		<p id="menu-item-name-wrap" class="wp-clearfix">
@@ -875,7 +876,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 	}
 
 	$num_pages = (int) ceil(
-		wp_count_terms(
+		(int) wp_count_terms(
 			array_merge(
 				$args,
 				array(
@@ -1484,7 +1485,7 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 		wp_get_nav_menus( array( 'fields' => 'ids' ) )
 	);
 
-	update_option( 'nav_menu_options', $nav_menu_option );
+	update_option( 'nav_menu_options', $nav_menu_option, false );
 
 	wp_defer_term_counting( false );
 

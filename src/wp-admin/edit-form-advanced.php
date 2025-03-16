@@ -12,8 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * @global string       $post_type
- * @global WP_Post_Type $post_type_object
+ * @global string       $post_type        Global post type.
+ * @global WP_Post_Type $post_type_object Global post type object.
  * @global WP_Post      $post             Global post object.
  */
 global $post_type, $post_type_object, $post;
@@ -25,14 +25,7 @@ $current_screen->is_block_editor( false );
 if ( is_multisite() ) {
 	add_action( 'admin_footer', '_admin_notice_post_locked' );
 } else {
-	$check_users = get_users(
-		array(
-			'fields' => 'ID',
-			'number' => 2,
-		)
-	);
-
-	if ( count( $check_users ) > 1 ) {
+	if ( get_user_count() > 1 ) {
 		add_action( 'admin_footer', '_admin_notice_post_locked' );
 	}
 
@@ -290,9 +283,9 @@ if ( 'post' === $post_type ) {
 	);
 
 	$title_and_editor  = '<p>' . __( '<strong>Title</strong> &mdash; Enter a title for your post. After you enter a title, you&#8217;ll see the permalink below, which you can edit.' ) . '</p>';
-	$title_and_editor .= '<p>' . __( '<strong>Post editor</strong> &mdash; Enter the text for your post. There are two modes of editing: Visual and Text. Choose the mode by clicking on the appropriate tab.' ) . '</p>';
+	$title_and_editor .= '<p>' . __( '<strong>Post editor</strong> &mdash; Enter the text for your post. There are two modes of editing: Visual and Code. Choose the mode by clicking on the appropriate tab.' ) . '</p>';
 	$title_and_editor .= '<p>' . __( 'Visual mode gives you an editor that is similar to a word processor. Click the Toolbar Toggle button to get a second row of controls.' ) . '</p>';
-	$title_and_editor .= '<p>' . __( 'The Text mode allows you to enter HTML along with your post text. Note that &lt;p&gt; and &lt;br&gt; tags are converted to line breaks when switching to the Text editor to make it less cluttered. When you type, a single line break can be used instead of typing &lt;br&gt;, and two line breaks instead of paragraph tags. The line breaks are converted back to tags automatically.' ) . '</p>';
+	$title_and_editor .= '<p>' . __( 'The Code mode allows you to enter HTML along with your post text. Note that &lt;p&gt; and &lt;br&gt; tags are converted to line breaks when switching to the Code editor to make it less cluttered. When you type, a single line break can be used instead of typing &lt;br&gt;, and two line breaks instead of paragraph tags. The line breaks are converted back to tags automatically.' ) . '</p>';
 	$title_and_editor .= '<p>' . __( 'You can insert media files by clicking the button above the post editor and following the directions. You can align or edit images using the inline formatting toolbar available in Visual mode.' ) . '</p>';
 	$title_and_editor .= '<p>' . __( 'You can enable distraction-free writing mode using the icon to the right. This feature is not available for old browsers or devices with small screens, and requires that the full-height editor be enabled in Screen Options.' ) . '</p>';
 	$title_and_editor .= '<p>' . sprintf(
@@ -321,7 +314,7 @@ if ( 'post' === $post_type ) {
 	);
 } elseif ( 'page' === $post_type ) {
 	$about_pages = '<p>' . __( 'Pages are similar to posts in that they have a title, body text, and associated metadata, but they are different in that they are not part of the chronological blog stream, kind of like permanent posts. Pages are not categorized or tagged, but can have a hierarchy. You can nest pages under other pages by making one the &#8220;Parent&#8221; of the other, creating a group of pages.' ) . '</p>' .
-		'<p>' . __( 'Creating a Page is very similar to creating a Post, and the screens can be customized in the same way using drag and drop, the Screen Options tab, and expanding/collapsing boxes as you choose. This screen also has the distraction-free writing space, available in both the Visual and Text modes via the Fullscreen buttons. The Page editor mostly works the same as the Post editor, but there are some Page-specific features in the Page Attributes box.' ) . '</p>';
+		'<p>' . __( 'Creating a Page is very similar to creating a Post, and the screens can be customized in the same way using drag and drop, the Screen Options tab, and expanding/collapsing boxes as you choose. This screen also has the distraction-free writing space, available in both the Visual and Code modes via the Fullscreen buttons. The Page editor mostly works the same as the Post editor, but there are some Page-specific features in the Page Attributes box.' ) . '</p>';
 
 	get_current_screen()->add_help_tab(
 		array(
@@ -434,7 +427,7 @@ echo esc_html( $title );
 
 <?php
 if ( isset( $post_new_file ) && current_user_can( $post_type_object->cap->create_posts ) ) {
-	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new ) . '</a>';
+	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new_item ) . '</a>';
 }
 ?>
 
@@ -546,6 +539,13 @@ do_action( 'edit_form_top', $post );
 	?>
 	<label class="screen-reader-text" id="title-prompt-text" for="title"><?php echo $title_placeholder; ?></label>
 	<input type="text" name="post_title" size="30" value="<?php echo esc_attr( $post->post_title ); ?>" id="title" spellcheck="true" autocomplete="off" />
+	<?php
+	if ( post_type_supports( $post_type, 'editor' ) ) {
+		?>
+		<a href="#content" class="button-secondary screen-reader-text skiplink" onclick="if (tinymce) { tinymce.execCommand( 'mceFocus', false, 'content' ); }"><?php esc_html_e( 'Skip to Editor' ); ?></a>
+		<?php
+	}
+	?>
 </div>
 	<?php
 	/**
@@ -621,18 +621,16 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 		array(
 			'_content_editor_dfw' => $_content_editor_dfw,
 			'drag_drop_upload'    => true,
-			'tabfocus_elements'   => 'content-html,save-post',
 			'editor_height'       => 300,
 			'tinymce'             => array(
 				'resize'                  => false,
 				'wp_autoresize_on'        => $_wp_editor_expand,
 				'add_unload_trigger'      => false,
-				'wp_keep_scroll_position' => ! $is_IE,
 			),
 		)
 	);
 	?>
-<table id="post-status-info"><tbody><tr>
+<table id="post-status-info" role="presentation"><tbody><tr>
 	<td id="wp-word-count" class="hide-if-no-js">
 	<?php
 	printf(

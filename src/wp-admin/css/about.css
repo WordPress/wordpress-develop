@@ -340,7 +340,8 @@
 }
 
 @media screen and (max-width: 480px) {
-	.about__section.is-feature .column {
+	.about__section.is-feature .column,
+	.about__section .is-section-header {
 		padding: 0;
 	}
 
@@ -378,7 +379,7 @@
 .about__container h2,
 .about__container h3.is-larger-heading {
 	margin-top: 0;
-	margin-bottom: 0.5em;
+	margin-bottom: calc(0.5 * var(--gap));
 	font-size: 2rem;
 	font-weight: 700;
 	line-height: 1.16;
@@ -388,6 +389,7 @@
 .about__container h1.is-smaller-heading,
 .about__container h2.is-smaller-heading {
 	margin-top: 0;
+	margin-bottom: calc(0.5 * var(--gap));
 	font-size: 1.625rem;
 	font-weight: 700;
 	line-height: 1.4;
@@ -405,8 +407,12 @@
 .about__container h2,
 .about__container h3,
 .about__container h4 {
-	text-wrap: balance;
+	text-wrap: pretty;
 	color: inherit;
+}
+
+.about__container :is(h1, h2, h3, h4):lang(en) {
+	text-wrap: balance;
 }
 
 .about__container p {
@@ -445,6 +451,15 @@
 .wp-credits-list a:active,
 .wp-credits-list a:focus {
 	text-decoration: underline;
+}
+
+.about__section a.button.button-hero {
+	padding-top: 1.1875rem;
+	padding-bottom: 1.1875rem;
+	font-size: 1.5rem;
+	line-height: 1.4;
+	white-space: normal;
+	text-wrap: pretty;
 }
 
 .about__container ul {
@@ -488,7 +503,7 @@
 }
 
 .about__container .about__image + h3 {
-	margin-top: 1.5em;
+	margin-top: calc(0.75 * var(--gap));
 }
 
 .about__container hr {
@@ -505,6 +520,10 @@
 
 .about__container hr.is-large {
 	margin: var(--gap) auto;
+}
+
+.about__container hr.is-invisible {
+	border: none;
 }
 
 .about__container div.updated,

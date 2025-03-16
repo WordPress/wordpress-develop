@@ -59,7 +59,7 @@ jobs:
   # - Checks for zero-byte (empty) files.
   check-for-empty-files:
     name: ${{ matrix.theme }} empty file check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     timeout-minutes: 10
@@ -68,6 +68,7 @@ jobs:
       fail-fast: false
       matrix:
         theme: [
+          'twentytwentyfive',
           'twentytwentyfour',
           'twentytwentythree',
           'twentytwentytwo',
@@ -86,14 +87,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Check for zero-byte (empty) files
         run: |
-          [[ ! $(find src/wp-content/themes/${{ matrix.theme }} -empty) ]]
+          [[ ! $(find "src/wp-content/themes/${THEME}" -empty) ]]
+        env:
+          THEME: ${{ matrix.theme }}
 
   # Tests the build script for themes that have one.
   #
@@ -105,7 +109,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
     name: Test ${{ matrix.theme }} build script
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     timeout-minutes: 10
@@ -125,13 +129,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -153,7 +158,7 @@ jobs:
   # - Uploads the theme files as a workflow artifact (files uploaded as an artifact are automatically zipped).
   bundle-theme:
     name: Create ${{ matrix.theme }} ZIP file
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     needs: [ check-for-empty-files, test-build-scripts ]
@@ -163,6 +168,7 @@ jobs:
       fail-fast: false
       matrix:
         theme: [
+            'twentytwentyfive',
             'twentytwentyfour',
             'twentytwentythree',
             'twentytwentytwo',
@@ -181,21 +187,23 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
 
       - name: Upload theme ZIP as an artifact
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
-          if-no-files-found: error
           name: ${{ matrix.theme }}
           path: src/wp-content/themes/${{ matrix.theme }}
+          if-no-files-found: error
+          include-hidden-files: true
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
@@ -211,7 +219,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ slack-notifications ]
@@ -238,6 +246,6 @@ jobs:
               workflow_id: 'failed-workflow.yml',
               ref: 'trunk',
               inputs: {
-                run_id: '${{ github.run_id }}'
+                run_id: `${context.runId}`,
               }
             });

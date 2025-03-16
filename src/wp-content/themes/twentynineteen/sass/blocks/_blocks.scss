@@ -137,6 +137,7 @@
 		width: 100%;
 
 		audio {
+			display: block;
 			width: 100%;
 		}
 
@@ -244,6 +245,14 @@
 
 		&.has-custom-font-size .wp-block-button__link {
 			font-size: 1em;
+		}
+
+		&[style*="font-weight"] .wp-block-button__link {
+			font-weight: inherit;
+		}
+
+		&[style*="text-decoration"] .wp-block-button__link {
+			text-decoration: inherit;
 		}
 	}
 
@@ -370,6 +379,7 @@
 		border-color: transparent;
 		border-width: 2px;
 		padding: $size__spacing-unit;
+		font-size: 1em;
 
 		blockquote {
 			border: none;
@@ -396,7 +406,7 @@
 		}
 
 		cite {
-			display: inline-block;
+			display: block;
 			@include font-family( $font__heading );
 			line-height: 1.6;
 			text-transform: none;
@@ -932,19 +942,11 @@
 			font-size: inherit;
 		}
 
-		&.has-avatars {
-
-		}
-
 		&.has-dates {
 
 			.wp-block-latest-comments__comment-date {
 				font-size: $font__size-xs;
 			}
-		}
-
-		&.has-excerpts {
-
 		}
 	}
 
