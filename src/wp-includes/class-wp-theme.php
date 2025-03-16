@@ -397,7 +397,7 @@ final class WP_Theme implements ArrayAccess {
 			}
 		}
 
-			// If we got our data from cache, we can assume that 'template' is pointing to the right place.
+		// If we got our data from cache, we can assume that 'template' is pointing to the right place.
 		if ( ! is_array( $cache )
 			&& $this->template !== $this->stylesheet
 			&& ! file_exists( $this->theme_root . '/' . $this->template . '/index.php' )
