@@ -429,7 +429,7 @@ twentytwenty.primaryMenu = {
 	// by adding the '.focus' class to all 'li.menu-item-has-children' when the focus is on the 'a' element.
 	focusMenuWithChildren: function() {
 		// Get all the link elements within the primary menu.
-		var links, i, len, focusedElement,
+		var links, i, len,
 			menu = document.querySelector( '.primary-menu-wrapper' );
 
 		if ( ! menu ) {
@@ -445,15 +445,15 @@ twentytwenty.primaryMenu = {
 
 		menu.addEventListener( 'focusout', removeFocus, true );
 
-		//Remove focus class from menu entirly
+		// Remove focus class from menu entirely.
 		function removeFocus(e){
 			const leavingParent = !menu.contains(e.relatedTarget);
 
-    		if (leavingParent) {
+    		if ( leavingParent ) {
         		// Remove focus from all li elements of primary-menu.
-				menu.querySelectorAll('li').forEach( function(el){
-					if(el.classList.contains('focus')){
-						el.classList.remove('focus');
+				menu.querySelectorAll('li').forEach( function(el) {
+					if ( el.classList.contains( 'focus' ) ) {
+						el.classList.remove( 'focus' );
 					}
 				});
     		}
@@ -487,17 +487,17 @@ twentytwenty.primaryMenu = {
 
 		}
 
-		// Each time esc key is pressed while in menu, remove focus.
+		// When the `esc` key is pressed while in menu, move focus up one level.
 		menu.addEventListener('keydown', removeFocusEsc, true);
 
-		// Remove focus when esc key pressed.
-		function removeFocusEsc(e){
+		// Remove focus when `esc` key pressed.
+		function removeFocusEsc( e ) {
 			e = e || window.event;
 			var isEscape = false,
 				focusedElement = this;
 
-			// Find if pressed key is esc.
-			if ('key' in e) {
+			// Find if pressed key is `esc`.
+			if ( 'key' in e ) {
 				isEscape = (e.key === 'Escape' || e.key === 'Esc');
 			} else {
 				isEscape = (e.keyCode === 27);
@@ -513,7 +513,7 @@ twentytwenty.primaryMenu = {
 						subMenu.style.display = 'none';
 					} else {
 						nestedParent.querySelector('a').focus();
-						nestedParent.classList.add('focus');
+						nestedParent.classList.add( 'focus' );
 						parentLi.closest('ul.sub-menu').style.display = 'none';
 					}
 				} else {
