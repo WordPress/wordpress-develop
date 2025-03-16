@@ -182,7 +182,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
 		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
-		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**
@@ -300,7 +300,39 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		if ( 'GET' === $method ) {
 			return null;
 		}
-		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'HEAD', sprintf( $path, self::$post_id, $this->revision_id1 ) );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+
+			'get_item request'  => array( '/wp/v2/posts/%d/revisions/%d' ),
+			'get_items request' => array( '/wp/v2/posts/%d/revisions' ),
+		);
 	}
 
 	public function test_get_item_embed_context() {
@@ -1017,32 +1049,32 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	 *
 	 * @covers WP_REST_Revisions_Controller::get_items
 	 */
-	public function test_get_template_revisions_pagination() {
+	public function test_get_revisions_pagination() {
 		wp_set_current_user( self::$editor_id );
 
-		// Test offset
+		// Test offset.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_param( 'offset', 1 );
 		$request->set_param( 'per_page', 1 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $this->total_revisions, $response->get_headers()['X-WP-Total'] );
-		$this->assertEquals( $this->total_revisions, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( $this->total_revisions, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( $this->total_revisions, $response->get_headers()['X-WP-TotalPages'] );
 
-		// Test paged
+		// Test paged.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_param( 'page', 2 );
 		$request->set_param( 'per_page', 2 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $this->total_revisions, $response->get_headers()['X-WP-Total'] );
-		$this->assertEquals( (int) ceil( $this->total_revisions / 2 ), $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( $this->total_revisions, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( (int) ceil( $this->total_revisions / 2 ), $response->get_headers()['X-WP-TotalPages'] );
 
-		// Test out of bounds
+		// Test out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_param( 'page', $this->total_revisions + 1 );
 		$request->set_param( 'per_page', 1 );
