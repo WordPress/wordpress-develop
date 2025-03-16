@@ -336,6 +336,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 * Tests that column_author() displays the correct author link when an author exists.
 	 *
 	 * @ticket 62913
+	 *
 	 * @covers WP_Posts_List_Table::column_author
 	 */
 	public function test_column_author_with_valid_author() {
@@ -348,7 +349,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$expected_url = esc_url( add_query_arg( array( 'author' => $author_id ), 'upload.php' ) );
 
 		ob_start();
-		self::$list_table->column_author( $post );
+		$this->table->column_author( $post );
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( '<a href="' . $expected_url . '">', $output, 'Author column contains author URL' );
@@ -359,6 +360,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 * Tests that column_author() displays the correct fallback when no author exists.
 	 *
 	 * @ticket 62913
+	 *
 	 * @covers WP_Posts_List_Table::column_author
 	 */
 	public function test_column_author_with_no_author() {
@@ -369,7 +371,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$post    = get_post( $post_id );
 
 		ob_start();
-		self::$list_table->column_author( $post );
+		$this->table->column_author( $post );
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( '<span aria-hidden="true">&#8212;</span>', $output, 'Author column with no author shows em dash.' );
