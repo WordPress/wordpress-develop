@@ -12,6 +12,13 @@ on:
   schedule:
     - cron: '0 0 1 * *'
     - cron: '0 0 15 * *'
+  workflow_dispatch:
+    inputs:
+      strategy:
+        description: 'The branches to test. Accepts X.Y branch names, or "all". Defaults to only the currently supported branch.'
+        required: false
+        type: string
+        default: ''
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -23,7 +30,7 @@ env:
 jobs:
   dispatch-workflows-for-old-branches:
     name: ${{ matrix.workflow }} for ${{ matrix.branch }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     timeout-minutes: 20
@@ -111,7 +118,7 @@ jobs:
     steps:
       - name: Dispatch workflow run
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: ${{ github.event_name == 'push' || github.event.schedule == '0 0 15 * *' || matrix.branch == env.CURRENTLY_SUPPORTED_BRANCH }}
+        if: ${{ github.event_name == 'push' || ( github.event_name == 'workflow_dispatch' && matrix.branch == inputs.strategy || inputs.strategy == 'all' ) || github.event.schedule == '0 0 15 * *' || matrix.branch == env.CURRENTLY_SUPPORTED_BRANCH }}
         with:
           retries: 2
           retry-exempt-status-codes: 418
@@ -125,7 +132,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read

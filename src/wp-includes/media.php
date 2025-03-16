@@ -6,6 +6,11 @@
  * @subpackage Media
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Retrieves additional image sizes.
  *
@@ -3750,8 +3755,20 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	}
 
 	$attr_strings = array();
-	foreach ( $html_atts as $k => $v ) {
-		$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
+	foreach ( $html_atts as $attribute_name => $attribute_value ) {
+		if ( in_array( $attribute_name, array( 'loop', 'autoplay', 'muted' ), true ) && true === $attribute_value ) {
+			// Add boolean attributes without their value for true.
+			$attr_strings[] = esc_attr( $attribute_name );
+		} elseif ( 'preload' === $attribute_name && ! empty( $attribute_value ) ) {
+			// Handle the preload attribute with specific allowed values.
+			$allowed_preload_values = array( 'none', 'metadata', 'auto' );
+			if ( in_array( $attribute_value, $allowed_preload_values, true ) ) {
+				$attr_strings[] = sprintf( '%s="%s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+			}
+		} elseif ( ! empty( $attribute_value ) ) {
+			// For non-boolean attributes, add them with their value.
+			$attr_strings[] = sprintf( '%s="%s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+		}
 	}
 
 	$html = '';
@@ -4455,7 +4472,6 @@ function wp_plupload_default_settings() {
  *     @type string $url                   Direct URL to the attachment file (from wp-content).
  *     @type int    $width                 If the attachment is an image, represents the width of the image in pixels.
  * }
- *
  */
 function wp_prepare_attachment_for_js( $attachment ) {
 	$attachment = get_post( $attachment );
@@ -5466,6 +5482,8 @@ function attachment_url_to_postid( $url ) {
 	 * {@link https://www.php.net/manual/en/language.types.boolean.php PHP documentation}.
 	 * Use the === operator for testing the post ID when developing filters using
 	 * this hook.
+	 *
+	 * @since 6.7.0
 	 *
 	 * @param int|null $post_id The result of the post ID lookup. Null to indicate
 	 *                          no lookup has been attempted. Default null.

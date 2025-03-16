@@ -484,7 +484,38 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
-				$this->image->setOption( 'png:exclude-chunk', 'all' );
+				// Check to see if a PNG is indexed, and find the pixel depth.
+				if ( is_callable( array( $this->image, 'getImageDepth' ) ) ) {
+					$indexed_pixel_depth = $this->image->getImageDepth();
+
+					// Indexed PNG files get some additional handling.
+					if ( 0 < $indexed_pixel_depth && 8 >= $indexed_pixel_depth ) {
+						// Check for an alpha channel.
+						if (
+							is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+							&& $this->image->getImageAlphaChannel()
+						) {
+							$this->image->setOption( 'png:include-chunk', 'tRNS' );
+						} else {
+							$this->image->setOption( 'png:exclude-chunk', 'all' );
+						}
+
+						// Reduce colors in the images to maximum needed, using the global colorspace.
+						$max_colors = pow( 2, $indexed_pixel_depth );
+						if ( is_callable( array( $this->image, 'getImageColors' ) ) ) {
+							$current_colors = $this->image->getImageColors();
+							$max_colors = min( $max_colors, $current_colors );
+						}
+						$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
+
+						/**
+						 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
+						 */
+						if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
+							$this->image->setOption( 'png:format', 'png8' );
+						}
+					}
+				}
 			}
 
 			/*
@@ -503,11 +534,23 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				}
 			}
 
-			// Limit the bit depth of resized images to 8 bits per channel.
+			// Limit the bit depth of resized images.
 			if ( is_callable( array( $this->image, 'getImageDepth' ) ) && is_callable( array( $this->image, 'setImageDepth' ) ) ) {
-				if ( 8 < $this->image->getImageDepth() ) {
-					$this->image->setImageDepth( 8 );
-				}
+				/**
+				 * Filters the maximum bit depth of resized images.
+				 *
+				 * This filter only applies when resizing using the Imagick editor since GD
+				 * does not support getting or setting bit depth.
+				 *
+				 * Use this to adjust the maximum bit depth of resized images.
+				 *
+				 * @since 6.8.0
+				 *
+				 * @param int $max_depth   The maximum bit depth. Default is the input depth.
+				 * @param int $image_depth The bit depth of the original image.
+				 */
+				$max_depth = apply_filters( 'image_max_bit_depth', $this->image->getImageDepth(), $this->image->getImageDepth() );
+				$this->image->setImageDepth( $max_depth );
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_resize_error', $e->getMessage() );
