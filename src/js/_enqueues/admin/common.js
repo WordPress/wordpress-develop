@@ -428,7 +428,7 @@ window.columns = {
 				page: pagenow
 			},
 			function() {
-				wp.a11y.speak( __( 'Screen Options saved.' ) );
+				wp.a11y.speak( __( 'Screen Options updated.' ) );
 			}
 		);
 	},
