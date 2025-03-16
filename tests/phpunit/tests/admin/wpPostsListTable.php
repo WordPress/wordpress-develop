@@ -352,8 +352,8 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$this->table->column_author( $post );
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '<a href="' . $expected_url . '">', $output, 'Author column contains author URL' );
 		$this->assertStringContainsString( '>' . esc_html( $author_name ) . '</a>', $output, 'Author column contains linked author name.' );
+		$this->assertStringContainsString( '<a href="' . $expected_url . '">', $output, 'Author column contains author URL' );
 	}
 
 	/**
