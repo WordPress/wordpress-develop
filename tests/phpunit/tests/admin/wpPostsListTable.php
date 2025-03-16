@@ -351,8 +351,8 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		self::$list_table->column_author( $post );
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '<a href="' . $expected_url . '">', $output );
-		$this->assertStringContainsString( '>' . esc_html( $author_name ) . '</a>', $output );
+		$this->assertStringContainsString( '<a href="' . $expected_url . '">', $output, 'Author column contains author URL' );
+		$this->assertStringContainsString( '>' . esc_html( $author_name ) . '</a>', $output, 'Author column contains linked author name.' );
 	}
 
 	/**
@@ -372,8 +372,8 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		self::$list_table->column_author( $post );
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '<span aria-hidden="true">&#8212;</span>', $output );
-		$this->assertStringContainsString( '<span class="screen-reader-text">(no author)</span>', $output );
-		$this->assertStringNotContainsString( '<a href="', $output );
+		$this->assertStringContainsString( '<span aria-hidden="true">&#8212;</span>', $output, 'Author column with no author shows em dash.' );
+		$this->assertStringContainsString( '<span class="screen-reader-text">(no author)</span>', $output, 'Author column with no author contains screen reader text.' );
+		$this->assertStringNotContainsString( '<a href="', $output, 'Author column with no author does not contain link.' );
 	}
 }
