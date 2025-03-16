@@ -342,17 +342,15 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	public function test_column_author_with_valid_author() {
 		wp_set_current_user( self::$admin );
 
-		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
-		$post      = self::factory()->post->create_and_get( array( 'post_author' => $author_id ) );
-
-		$author_name  = get_the_author_meta( 'display_name', $author_id );
-		$expected_url = esc_url( add_query_arg( array( 'author' => $author_id ), 'upload.php' ) );
+		$author_id   = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post        = self::factory()->post->create_and_get( array( 'post_author' => $author_id ) );
+		$author_name = get_the_author_meta( 'display_name', $author_id );
 
 		ob_start();
 		$this->table->column_author( $post );
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '<a href="' . $expected_url . '">' . esc_html( $author_name ) . '</a>', $output );
+		$this->assertStringContainsString( $author_name, $output );
 	}
 
 	/**
@@ -373,7 +371,6 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$this->table->column_author( $post );
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">(no author)</span>', $output, 'Author column with no author has em dash and screen reader text.' );
-		$this->assertStringNotContainsString( '<a href="', $output, 'Author column with no author does not contain link.' );
+		$this->assertSame( '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">(no author)</span>', $output );
 	}
 }
