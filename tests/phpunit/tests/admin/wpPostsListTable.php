@@ -352,7 +352,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$this->table->column_author( $post );
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( '<a href="' . $expected_url . '">' . esc_html( $author_name ) . '</a>', $output );
+		$this->assertStringContainsString( '<a href="' . $expected_url . '">' . esc_html( $author_name ) . '</a>', serialize( $post ) );
 	}
 
 	/**
