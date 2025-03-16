@@ -13,6 +13,49 @@ if ( ! defined( 'ABSPATH' ) ) {
 require ABSPATH . WPINC . '/option.php';
 
 /**
+ * Determines whether the incoming request is for a file, allowing WordPress to short-circuit unnecessary processing.
+ *
+ * When a missing file (e.g., script, image, CSS) is referenced in HTML or CSS, WordPress unnecessarily runs a full cycle 
+ * for each occurrence. This function checks the requested file extension and helps mitigate redundant executions.
+ *
+ * Developers can use the following filters to customize behavior:
+ * - 'wp_is_file_request_extensions': Modify the list of recognized file extensions.
+ * - 'wp_is_file_request': Override the function's boolean return value.
+ *
+ * Plugin developers should leverage this function to prevent unnecessary plugin execution.
+ *
+ * @uses wp_get_mime_types() Retrieves the list of MIME types and their associated file extensions.
+ * 
+ * @author Robert D Payne <rpayne@rdptechsolutions.com>
+ *
+ * @param string $extension The file extension of the requested resource.
+ * @return bool True if the request is considered a file request, false otherwise.
+ */
+function wp_is_file_request($extension = '') {
+    $is_file_request = false;
+
+    if (empty($extension)) {
+        $url = $_SERVER['REQUEST_URI'] ?? '';
+        $path = parse_url($url, PHP_URL_PATH) ?? '';
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+    }
+
+    if (!empty($extension)) {
+        $ext = strtolower($extension);
+        $mimes = apply_filters('wp_is_file_request_extensions', wp_get_mime_types());
+        $ext_list = [];
+
+        foreach ($mimes as $key => $value) {
+            $ext_list = array_merge($ext_list, explode('|', $key));
+        }
+
+        $is_file_request = in_array($ext, $ext_list, true);
+    }
+
+    return apply_filters('wp_is_file_request', $is_file_request);
+}
+
+/**
  * Converts given MySQL date string into a different format.
  *
  *  - `$format` should be a PHP date format string.
