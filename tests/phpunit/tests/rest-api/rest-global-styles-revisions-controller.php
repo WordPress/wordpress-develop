@@ -958,22 +958,22 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$request->set_param( 'offset', 1 );
 		$request->set_param( 'per_page', 1 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( 3, $response->get_headers()['X-WP-Total'] );
-		$this->assertEquals( 3, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( 3, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 3, $response->get_headers()['X-WP-TotalPages'] );
 
 		// Test paged.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$request->set_param( 'page', 2 );
 		$request->set_param( 'per_page', 2 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( 3, $response->get_headers()['X-WP-Total'] );
-		$this->assertEquals( 2, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( 3, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 2, $response->get_headers()['X-WP-TotalPages'] );
 
 		// Test out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );

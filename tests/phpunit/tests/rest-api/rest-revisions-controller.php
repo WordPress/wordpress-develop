@@ -1057,22 +1057,22 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$request->set_param( 'offset', 1 );
 		$request->set_param( 'per_page', 1 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $this->total_revisions, $response->get_headers()['X-WP-Total'] );
-		$this->assertEquals( $this->total_revisions, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( $this->total_revisions, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( $this->total_revisions, $response->get_headers()['X-WP-TotalPages'] );
 
 		// Test paged.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
 		$request->set_param( 'page', 2 );
 		$request->set_param( 'per_page', 2 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $this->total_revisions, $response->get_headers()['X-WP-Total'] );
-		$this->assertEquals( (int) ceil( $this->total_revisions / 2 ), $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( $this->total_revisions, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( (int) ceil( $this->total_revisions / 2 ), $response->get_headers()['X-WP-TotalPages'] );
 
 		// Test out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/revisions' );
