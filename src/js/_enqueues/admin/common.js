@@ -2227,6 +2227,14 @@ $( function( $ ) {
 	}
 })();
 
+// Attach a click event listener to the dismiss button for media upload errors.
+$( document ).on( 'click', 'button.button-link.dismiss', function( event ) {
+    event.preventDefault();
+    $( this ).parents( 'div.media-item' ).slideUp( 200, function() {
+        $( this ).remove();
+    });
+});
+
 }( jQuery, window ));
 
 /**
