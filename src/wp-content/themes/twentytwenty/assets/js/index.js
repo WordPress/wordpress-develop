@@ -461,9 +461,9 @@ twentytwenty.primaryMenu = {
 
 		// Update focus class on an element.
 		function updateFocus() {
-			var self = focusedElement = this;
+			var self = this;
 
-			//Removing display: none from previous child menu.
+			// Remove `display: none` from previous child menu.
 			menu.querySelectorAll('li.menu-item-has-children > ul.sub-menu').forEach( function( el ){
 				el.style.display = 'block';
 			});
@@ -475,7 +475,7 @@ twentytwenty.primaryMenu = {
 				}
 			});
 			
-			// Set focus on current a element's parent li.
+			// Set focus on current `a` element's parent `li`.
 			self.parentElement.classList.add('focus');
 
 			// If current element is inside sub-menu find main parent li and add focus.
@@ -493,9 +493,10 @@ twentytwenty.primaryMenu = {
 		// Remove focus when esc key pressed.
 		function removeFocusEsc(e){
 			e = e || window.event;
-			var isEscape = false;
+			var isEscape = false,
+				focusedElement = this;
 
-			// Find is pressed key is esc.
+			// Find if pressed key is esc.
 			if ('key' in e) {
 				isEscape = (e.key === 'Escape' || e.key === 'Esc');
 			} else {
@@ -503,12 +504,12 @@ twentytwenty.primaryMenu = {
 			}
 
 			// If pressed key is esc, remove focus class from main parent menu li.
-			if (isEscape) {
+			if ( isEscape ) {
 				var parentLi = focusedElement.parentNode,
-					nestedParent = parentLi.closest('li.menu-item-has-children');
-				if( parentLi.classList.contains('menu-item-has-children') ){
-					var subMenu = parentLi.querySelector('ul.sub-menu');
-					if( subMenu.style.display === 'block'){
+					nestedParent = parentLi.closest( 'li.menu-item-has-children' );
+				if ( parentLi.classList.contains( 'menu-item-has-children' ) ) {
+					var subMenu = parentLi.querySelector( 'ul.sub-menu' );
+					if ( subMenu.style.display === 'block' ) {
 						subMenu.style.display = 'none';
 					} else {
 						nestedParent.querySelector('a').focus();
