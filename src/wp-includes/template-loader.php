@@ -1,8 +1,10 @@
 <?php
 
-// Check if the request is for a file
+// Check if the request is for a file, and if so, stop further processing
+// This short-circuits WordPress processing for unnecessary file requests, 
+// preventing it from loading the full WordPress environment when only a file is being requested.
 if (wp_is_file_request()) {
-	exit;
+    exit;
 }
 
 /**
