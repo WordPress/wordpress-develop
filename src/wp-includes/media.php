@@ -3345,6 +3345,7 @@ function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
  * WordPress mp3s in a post.
  *
  * @since 3.6.0
+ * @since 6.8.0 Added the 'muted' attribute.
  *
  * @param array  $attr {
  *     Attributes of the audio shortcode.
@@ -3352,6 +3353,7 @@ function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
  *     @type string $src      URL to the source of the audio file. Default empty.
  *     @type string $loop     The 'loop' attribute for the `<audio>` element. Default empty.
  *     @type string $autoplay The 'autoplay' attribute for the `<audio>` element. Default empty.
+ *     @type string $muted    The 'muted' attribute for the `<audio>` element. Default 'false'.
  *     @type string $preload  The 'preload' attribute for the `<audio>` element. Default 'none'.
  *     @type string $class    The 'class' attribute for the `<audio>` element. Default 'wp-audio-shortcode'.
  *     @type string $style    The 'style' attribute for the `<audio>` element. Default 'width: 100%;'.
@@ -3390,7 +3392,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		'src'      => '',
 		'loop'     => '',
 		'autoplay' => '',
-		'muted'    => false,
+		'muted'    => 'false',
 		'preload'  => 'none',
 		'class'    => 'wp-audio-shortcode',
 		'style'    => 'width: 100%;',
