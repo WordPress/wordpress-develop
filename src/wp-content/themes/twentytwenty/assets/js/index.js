@@ -494,7 +494,7 @@ twentytwenty.primaryMenu = {
 		function removeFocusEsc( e ) {
 			e = e || window.event;
 			var isEscape = false,
-				focusedElement = this;
+				focusedElement = e.target;
 
 			// Find if pressed key is `esc`.
 			if ( 'key' in e ) {
