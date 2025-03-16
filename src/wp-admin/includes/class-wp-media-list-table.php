@@ -507,11 +507,17 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_author( $post ) {
-		printf(
-			'<a href="%s">%s</a>',
-			esc_url( add_query_arg( array( 'author' => get_the_author_meta( 'ID' ) ), 'upload.php' ) ),
-			get_the_author()
-		);
+		$author = get_the_author();
+
+		if ( ! empty( $author ) ) {
+			printf(
+				'<a href="%s">%s</a>',
+				esc_url( add_query_arg( array( 'author' => get_the_author_meta( 'ID' ) ), 'upload.php' ) ),
+				$author
+			);
+		} else {
+			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . __( '(no author)' ) . '</span>';
+		}
 	}
 
 	/**
