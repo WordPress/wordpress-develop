@@ -79,8 +79,8 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $query->posts, 'The query is expected to return results' );
-		$this->assertSame( $query->get( 'fields' ), 'custom', 'The query is expected to use the custom fields value' );
-		$this->assertStringContainsString( "$wpdb->posts.ID,$wpdb->posts.post_author", $query->request, 'The query is expected to use the custom fields value' );
+		$this->assertSame( $query->get( 'fields' ), 'custom', 'The WP_Query class is expected to use the custom fields value' );
+		$this->assertStringContainsString( "$wpdb->posts.ID,$wpdb->posts.post_author", $query->request, 'The database query is expected to use the custom fields value' );
 	}
 
 	/**
