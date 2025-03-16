@@ -121,11 +121,11 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		$global_post   = get_post();
 		$specific_post = get_post( self::$page_child_ids[0], ARRAY_A );
 
+		$this->assertSameSetsWithIndex( $specific_post, $global_post->to_array(), 'The global post is expected to be fully populated.' );
+
 		$this->assertNotEmpty( get_the_title(), 'The title is expected to be populated.' );
 		$this->assertNotEmpty( get_the_content(), 'The content is expected to be populated.' );
 		$this->assertNotEmpty( get_the_excerpt(), 'The excerpt is expected to be populated.' );
-
-		$this->assertSameSetsWithIndex( $specific_post, $global_post->to_array(), 'The global post is expected to be fully populated.' );
 	}
 
 	/**
@@ -155,11 +155,11 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		$global_post   = get_post();
 		$specific_post = get_post( self::$page_child_ids[0], ARRAY_A );
 
+		$this->assertSameSetsWithIndex( $specific_post, $global_post->to_array(), 'The global post is expected to be fully populated.' );
+
 		$this->assertNotEmpty( get_the_title(), 'The title is expected to be populated.' );
 		$this->assertNotEmpty( get_the_content(), 'The content is expected to be populated.' );
 		$this->assertNotEmpty( get_the_excerpt(), 'The excerpt is expected to be populated.' );
-
-		$this->assertSameSetsWithIndex( $specific_post, $global_post->to_array(), 'The global post is expected to be fully populated.' );
 	}
 
 	/**
