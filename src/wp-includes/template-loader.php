@@ -1,4 +1,10 @@
 <?php
+
+// Check if the request is for a file
+if (wp_is_file_request()) {
+	exit;
+}
+
 /**
  * Loads the correct template based on the visitor's url
  *
