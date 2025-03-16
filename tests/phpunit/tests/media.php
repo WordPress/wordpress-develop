@@ -941,6 +941,7 @@ VIDEO;
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp3', $actual );
 		$this->assertStringNotContainsString( 'loop', $actual );
 		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringNotContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="none"', $actual );
 		$this->assertStringContainsString( 'class="wp-audio-shortcode"', $actual );
 		$this->assertStringContainsString( 'style="width: 100%;"', $actual );
@@ -950,16 +951,18 @@ VIDEO;
 				'src'      => 'https://example.com/foo.mp3',
 				'loop'     => true,
 				'autoplay' => true,
-				'preload'  => true,
+				'muted'    => true,
+				'preload'  => 'none',
 				'class'    => 'foobar',
 				'style'    => 'padding:0;',
 			)
 		);
 
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp3', $actual );
-		$this->assertStringContainsString( 'loop="1"', $actual );
-		$this->assertStringContainsString( 'autoplay="1"', $actual );
-		$this->assertStringContainsString( 'preload="1"', $actual );
+		$this->assertStringContainsString( 'loop', $actual );
+		$this->assertStringContainsString( 'autoplay', $actual );
+		$this->assertStringContainsString( 'muted', $actual );
+		$this->assertStringContainsString( 'preload="none"', $actual );
 		$this->assertStringContainsString( 'class="foobar"', $actual );
 		$this->assertStringContainsString( 'style="padding:0;"', $actual );
 	}
