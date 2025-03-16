@@ -14,6 +14,23 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
+    paths:
+      # Any change to a PHP, CSS, JavaScript, or JSON file should run checks.
+      - '**.css'
+      - '**.js'
+      - '**.json'
+      - '**.php'
+      # These files configure npm and the task runner. Changes could affect the outcome.
+      - 'package*.json'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/test-build-processes.yml'
+      - '.github/workflows/reusable-test-core-build-process.yml'
+      - '.github/workflows/reusable-test-gutenberg-build-process.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -38,11 +55,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
+        os: [ ubuntu-24.04, windows-2022 ]
         directory: [ 'src', 'build' ]
         include:
           # Only prepare artifacts for Playground once.
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             directory: 'build'
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
@@ -70,7 +87,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-latest ]
+        os: [ macos-14 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -86,7 +103,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
+        os: [ ubuntu-24.04, windows-2022 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -109,7 +126,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-latest ]
+        os: [ macos-14 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -133,7 +150,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ slack-notifications ]

@@ -115,7 +115,7 @@ jobs:
   # - Ensure version-controlled files are not modified or deleted.
   performance:
     name: ${{ inputs.multisite && 'Multisite' || 'Single site' }} / ${{ inputs.memcached && 'Memcached' || 'Default' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     if: ${{ ! contains( github.event.before, '00000000' ) }}

@@ -12,8 +12,11 @@ on:
       - 'docker-compose.yml'
       # Any changes to local environment related files
       - 'tools/local-env/**'
-      # These files manage packages used by the local environment.
+      # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the local environment.
       - 'composer.*'
       # These files define the versions to test.
@@ -33,8 +36,11 @@ on:
       - 'docker-compose.yml'
       # Any changes to local environment related files
       - 'tools/local-env/**'
-      # These files manage packages used by the local environment.
+      # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the local environment.
       - 'composer.*'
       # These files define the versions to test.
@@ -82,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-24.04 ]
         memcached: [ false, true ]
         php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
         db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
@@ -123,7 +129,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ build-test-matrix, environment-tests-mysql, slack-notifications ]

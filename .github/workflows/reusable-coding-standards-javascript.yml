@@ -27,7 +27,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   jshint:
     name: Run coding standards checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     timeout-minutes: 20

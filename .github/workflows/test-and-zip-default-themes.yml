@@ -59,7 +59,7 @@ jobs:
   # - Checks for zero-byte (empty) files.
   check-for-empty-files:
     name: ${{ matrix.theme }} empty file check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     timeout-minutes: 10
@@ -109,7 +109,7 @@ jobs:
   # - Ensures version-controlled files are not modified or deleted.
   test-build-scripts:
     name: Test ${{ matrix.theme }} build script
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     timeout-minutes: 10
@@ -158,7 +158,7 @@ jobs:
   # - Uploads the theme files as a workflow artifact (files uploaded as an artifact are automatically zipped).
   bundle-theme:
     name: Create ${{ matrix.theme }} ZIP file
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     needs: [ check-for-empty-files, test-build-scripts ]
@@ -219,7 +219,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ slack-notifications ]

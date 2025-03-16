@@ -14,7 +14,7 @@ on:
         description: 'Operating system to run tests on'
         required: false
         type: 'string'
-        default: 'ubuntu-latest'
+        default: 'ubuntu-24.04'
       php:
         description: 'The version of PHP to use, in the format of X.Y'
         required: true

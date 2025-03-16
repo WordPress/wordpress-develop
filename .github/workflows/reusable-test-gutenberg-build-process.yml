@@ -10,7 +10,7 @@ on:
         description: 'Operating system to run tests on'
         required: false
         type: 'string'
-        default: 'ubuntu-latest'
+        default: 'ubuntu-24.04'
       directory:
         description: 'Directory to run WordPress from. Valid values are `src` or `build`'
         required: false
