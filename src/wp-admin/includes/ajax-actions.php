@@ -3819,7 +3819,7 @@ function wp_ajax_parse_embed() {
 			array(
 				'type'    => 'not-embeddable',
 				/* translators: %s: URL that could not be embedded. */
-				'message' => sprintf( __( '%s failed to embed.' ), '<code>' . esc_html( $url ) . '</code>' ),
+				'message' => sprintf( __( '%s failed to embed.' ), '<code>' . esc_url( $url ) . '</code>' ),
 			)
 		);
 	}
