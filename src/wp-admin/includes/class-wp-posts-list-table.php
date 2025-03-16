@@ -1281,7 +1281,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_author( $post ) {
-		$author = get_the_author();
+		$author = $post->post_author;
 
 		if ( ! empty( $author ) ) {
 			$args = array(
