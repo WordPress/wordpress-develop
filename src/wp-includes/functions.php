@@ -19,7 +19,7 @@ require ABSPATH . WPINC . '/option.php';
  * for each occurrence. This function checks the requested file extension and helps mitigate redundant executions.
  *
  * Developers can use the following filters to customize behavior:
- * - 'wp_is_file_request_extensions': Modify the list of recognized file extensions.
+ * - 'wp_is_file_request_mime_types': Modify the list of recognized file extensions.
  * - 'wp_is_file_request': Override the function's boolean return value.
  *
  * Plugin developers should leverage this function to prevent unnecessary plugin execution.
@@ -42,7 +42,7 @@ function wp_is_file_request($extension = '') {
 
     if (!empty($extension)) {
         $ext = strtolower($extension);
-        $mimes = apply_filters('wp_is_file_request_extensions', wp_get_mime_types());
+        $mimes = apply_filters('wp_is_file_request_mime_types', wp_get_mime_types());
         $ext_list = [];
 
         foreach ($mimes as $key => $value) {
