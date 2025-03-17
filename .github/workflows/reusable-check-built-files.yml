@@ -88,7 +88,7 @@ jobs:
           token: ${{ env.ACCESS_TOKEN }}
 
       - name: Set up Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -102,7 +102,7 @@ jobs:
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
+        uses: ramsey/composer-install@a2636af0004d1c0499ffca16ac0b4cc94df70565 # v3.1.0
         with:
           custom-cache-suffix: ${{ steps.get-date.outputs.date }}
 
