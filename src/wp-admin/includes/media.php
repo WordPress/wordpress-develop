@@ -2195,7 +2195,7 @@ function media_upload_form( $errors = null ) {
 	}
 
 	/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php */
-	$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_image_uploads', true );
+	$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, null );
 
 	if ( $prevent_unsupported_uploads ) {
 		// Check if WebP images can be edited.

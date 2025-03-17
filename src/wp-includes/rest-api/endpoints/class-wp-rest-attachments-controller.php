@@ -134,6 +134,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
+		$files = $request->get_file_params();
 
 		/**
 		 * Filter whether the server should prevent uploads for image types it doesn't support. Default true.
@@ -142,12 +143,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 *
 		 * @since 6.8.0
 		 *
-		 * @param bool $check_mime Whether to prevent uploads of unsupported image types.
+		 * @param bool        $check_mime Whether to prevent uploads of unsupported image types.
+		 * @param string|null $mime_type  The mime type of the file being uploaded (if available).
 		 */
-		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_image_uploads', true );
+		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, isset( $files['file']['type'] ) ? $files['file']['type'] : null );
 
 		// If the upload is an image, check if the server can handle the mime type.
-		$files = $request->get_file_params();
 		if (
 			$prevent_unsupported_uploads &&
 			isset( $files['file']['type'] ) &&
