@@ -465,8 +465,11 @@ twentytwenty.primaryMenu = {
 
 			// Remove focus from all li elements of primary-menu.
 			menu.querySelectorAll( 'li' ).forEach( function( el ){
+				if ( el.classList.contains( 'closed' ) ) {
+					el.classList.remove( 'closed' );
+				}
 				if ( el.classList.contains( 'focus' ) ) {
-					el.classList.remove( 'focus', 'closed' );
+					el.classList.remove( 'focus' );
 				}
 			});
 			
