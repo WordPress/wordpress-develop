@@ -445,50 +445,44 @@ twentytwenty.primaryMenu = {
 
 		menu.addEventListener( 'focusout', removeFocus, true );
 
-		// Remove focus class from menu entirely.
+		// Remove focus classes from menu.
 		function removeFocus(e){
-			const leavingParent = !menu.contains(e.relatedTarget);
+			const leavingMenu = ! menu.contains( e.relatedTarget );
 
-    		if ( leavingParent ) {
-        		// Remove focus from all li elements of primary-menu.
-				menu.querySelectorAll('li').forEach( function(el) {
+			if ( leavingMenu ) {
+				// Remove focus from all li elements of primary-menu.
+				menu.querySelectorAll( 'li' ).forEach( function( el ) {
 					if ( el.classList.contains( 'focus' ) ) {
 						el.classList.remove( 'focus' );
 					}
 				});
-    		}
+			}
 		}
 
 		// Update focus class on an element.
 		function updateFocus() {
 			var self = this;
 
-			// Remove `display: none` from previous child menu.
-			menu.querySelectorAll('li.menu-item-has-children > ul.sub-menu').forEach( function( el ){
-				el.style.display = 'block';
-			});
-
 			// Remove focus from all li elements of primary-menu.
-			menu.querySelectorAll('li').forEach( function( el ){
-				if(el.classList.contains('focus')){
-					el.classList.remove('focus');
+			menu.querySelectorAll( 'li' ).forEach( function( el ){
+				if ( el.classList.contains( 'focus' ) ) {
+					el.classList.remove( 'focus' );
+					el.classList.remove( 'closed' );
 				}
 			});
 			
 			// Set focus on current `a` element's parent `li`.
-			self.parentElement.classList.add('focus');
-
+			self.parentElement.classList.add( 'focus' );
 			// If current element is inside sub-menu find main parent li and add focus.
-			if(self.closest('.menu-item-has-children')) {
+			if ( self.closest( '.menu-item-has-children' ) ) {
 				twentytwentyFindParents( self, 'li.menu-item-has-children' ).forEach( function( element ) {
-					element.classList.add('focus');
-				} );
+					element.classList.add( 'focus' );
+				});
 			}
-
 		}
 
 		// When the `esc` key is pressed while in menu, move focus up one level.
-		menu.addEventListener('keydown', removeFocusEsc, true);
+		menu.addEventListener( 'keydown', removeFocusEsc, true );
 
 		// Remove focus when `esc` key pressed.
 		function removeFocusEsc( e ) {
@@ -498,30 +492,35 @@ twentytwenty.primaryMenu = {
 
 			// Find if pressed key is `esc`.
 			if ( 'key' in e ) {
-				isEscape = (e.key === 'Escape' || e.key === 'Esc');
+				isEscape = ( e.key === 'Escape' || e.key === 'Esc' );
 			} else {
-				isEscape = (e.keyCode === 27);
+				isEscape = ( e.keyCode === 27 );
 			}
 
-			// If pressed key is esc, remove focus class from main parent menu li.
+			// If pressed key is esc, remove focus class from parent menu li.
 			if ( isEscape ) {
-				var parentLi = focusedElement.parentNode,
-					nestedParent = parentLi.closest( 'li.menu-item-has-children' );
-				if ( parentLi.classList.contains( 'menu-item-has-children' ) ) {
-					var subMenu = parentLi.querySelector( 'ul.sub-menu' );
-					if ( subMenu.style.display === 'block' ) {
-						subMenu.style.display = 'none';
-					} else {
-						nestedParent.querySelector('a').focus();
+				var parentLi = focusedElement.closest( 'li' ),
+					nestedParent = closestExcludingSelf( parentLi, 'li.menu-item-has-children' ),
+					focusPosition = nestedParent ? nestedParent.querySelector('a') : false;
+
+					console.log( nestedParent );
+					if ( null !== nestedParent ) {
 						nestedParent.classList.add( 'focus' );
-						parentLi.closest('ul.sub-menu').style.display = 'none';
+						focusPosition.focus();
+					} else {
+						parentLi.classList.remove( 'focus' );
+						parentLi.classList.add( 'closed' );
 					}
-				} else {
-					nestedParent.querySelector('a').focus();
-					nestedParent.classList.add('focus');
-					parentLi.closest('ul.sub-menu').style.display = 'none';
-				}
 			}
+		}
+
+		function closestExcludingSelf(element, selector) {
+			if ( ! element || ! selector ) {
+				return null;
+			}
+			const parent = element.parentElement;
+
+			return parent ? parent.closest(selector) : null;
 		}
 	}
 }; // twentytwenty.primaryMenu
