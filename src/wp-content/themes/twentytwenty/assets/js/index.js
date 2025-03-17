@@ -453,7 +453,7 @@ twentytwenty.primaryMenu = {
 				// Remove focus from all li elements of primary-menu.
 				menu.querySelectorAll( 'li' ).forEach( function( el ) {
 					if ( el.classList.contains( 'focus' ) ) {
-						el.classList.remove( 'focus' );
+						el.classList.remove( 'focus', 'closed' );
 					}
 				});
 			}
@@ -466,8 +466,7 @@ twentytwenty.primaryMenu = {
 			// Remove focus from all li elements of primary-menu.
 			menu.querySelectorAll( 'li' ).forEach( function( el ){
 				if ( el.classList.contains( 'focus' ) ) {
-					el.classList.remove( 'focus' );
-					el.classList.remove( 'closed' );
+					el.classList.remove( 'focus', 'closed' );
 				}
 			});
 			
