@@ -458,7 +458,7 @@ class WP_REST_Request implements ArrayAccess {
 		$found_key = false;
 
 		foreach ( $order as $type ) {
-			if ( 'defaults' !== $type && isset( $this->params[ $type ] ) ) { 
+			if ( 'defaults' !== $type && isset( $this->params[ $type ] ) ) {
 
 				if ( ! is_array( $this->params[ $type ] ) ) {
 					$this->params[ $type ] = array();
