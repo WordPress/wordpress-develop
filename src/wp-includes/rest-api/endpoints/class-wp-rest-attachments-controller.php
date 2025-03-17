@@ -140,6 +140,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 *
 		 * Developers can use this filter to enable uploads of certain image types.
 		 *
+		 * @since 6.8.0
+		 *
 		 * @param bool $check_mime Whether to prevent uploads of unsupported image types.
 		 */
 		$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_image_uploads', true );
