@@ -37,7 +37,7 @@ jobs:
   # Runs the end-to-end test suite.
   e2e-tests:
     name: Test with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
-    uses: ./.github/workflows/reusable-end-to-end-tests.yml
+    uses: desrosj/WordPress/.github/workflows/reusable-end-to-end-tests.yml@stop-installing-playwright-browsers
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
