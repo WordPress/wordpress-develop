@@ -379,21 +379,21 @@ EXPECTED;
 
 		$links = paginate_links( $args );
 
-		// Test page 1 link (should have trailing slash)
+		// Test page 1 link (should have trailing slash).
 		$this->assertStringContainsString(
 			'href="http://example.org/category/test/"',
 			$links,
 			'Page 1 link should have trailing slash when permalink structure has trailing slash'
 		);
 
-		// Test page 3 link (should have trailing slash)
+		// Test page 3 link (should have trailing slash).
 		$this->assertStringContainsString(
 			'href="http://example.org/category/test/page/3/"',
 			$links,
 			'Page 3 link should have trailing slash when permalink structure has trailing slash'
 		);
 
-		// Test previous link (should have trailing slash)
+		// Test previous link (should have trailing slash).
 		$this->assertStringContainsString(
 			'class="prev page-numbers" href="http://example.org/category/test/"',
 			$links,
@@ -417,21 +417,21 @@ EXPECTED;
 
 		$links = paginate_links( $args );
 
-		// Test page 1 link (should not have trailing slash)
+		// Test page 1 link (should not have trailing slash).
 		$this->assertStringContainsString(
 			'href="http://example.org/category/test"',
 			$links,
 			'Page 1 link should not have trailing slash when permalink structure has no trailing slash'
 		);
 
-		// Test page 3 link (should not have trailing slash)
+		// Test page 3 link (should not have trailing slash).
 		$this->assertStringContainsString(
 			'href="http://example.org/category/test/page/3"',
 			$links,
 			'Page 3 link should not have trailing slash when permalink structure has no trailing slash'
 		);
 
-		// Test previous link (should not have trailing slash)
+		// Test previous link (should not have trailing slash).
 		$this->assertStringContainsString(
 			'class="prev page-numbers" href="http://example.org/category/test"',
 			$links,
