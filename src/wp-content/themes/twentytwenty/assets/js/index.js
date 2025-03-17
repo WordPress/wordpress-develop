@@ -505,7 +505,6 @@ twentytwenty.primaryMenu = {
 					nestedParent = closestExcludingSelf( parentLi, 'li.menu-item-has-children' ),
 					focusPosition = nestedParent ? nestedParent.querySelector('a') : false;
 
-					console.log( nestedParent );
 					if ( null !== nestedParent ) {
 						nestedParent.classList.add( 'focus' );
 						focusPosition.focus();
