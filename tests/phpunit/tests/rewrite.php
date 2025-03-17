@@ -504,4 +504,47 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertIsArray( $rewrite_rules );
 		$this->assertNotEmpty( $rewrite_rules );
 	}
+
+	/**
+	 * @ticket 17246
+	 */
+	public function test_static_files_rewrite_rule() {
+		global $wp_rewrite;
+		$wp_rewrite->permalink_structure = '/%year%/%monthnum%/%day%/%postname%/';
+
+		$rules = $wp_rewrite->mod_rewrite_rules();
+
+		$this->assertStringContainsString(
+			'RewriteRule ([^.]+\.(jpe?g|gif|bmp|png|css|js|webp|svg|ico))$ - [END,NC]',
+			$rules,
+			'Static files rewrite rule should be included in the generated rules'
+		);
+	}
+
+	/**
+	 * @ticket 17246
+	 */
+	public function test_static_files_rewrite_rule_filter() {
+		global $wp_rewrite;
+		$wp_rewrite->permalink_structure = '/%year%/%monthnum%/%day%/%postname%/';
+
+		add_filter( 'wp_static_files_rewrite_rule', array( $this, 'filter_static_files_rule' ) );
+
+		$rules = $wp_rewrite->mod_rewrite_rules();
+
+		$this->assertStringContainsString(
+			'RewriteRule ([^.]+\.(pdf|doc|zip))$ - [END,NC]',
+			$rules,
+			'Filtered static files rewrite rule should be included in the generated rules'
+		);
+
+		remove_filter( 'wp_static_files_rewrite_rule', array( $this, 'filter_static_files_rule' ) );
+	}
+
+	/**
+	 * Filter callback for test_static_files_rewrite_rule_filter.
+	 */
+	public function filter_static_files_rule( $rule ) {
+		return "RewriteRule ([^.]+\.(pdf|doc|zip))$ - [END,NC]\n";
+	}
 }
