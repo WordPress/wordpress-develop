@@ -503,7 +503,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * Handles the author column output.
 	 *
 	 * @since 4.3.0
-	 * @since 6.8.0 Added fallback text for attachments that have no author.
+	 * @since 6.8.0 Added fallback text when author's name is unknown.
 	 *
 	 * @param WP_Post $post The current WP_Post object.
 	 */
