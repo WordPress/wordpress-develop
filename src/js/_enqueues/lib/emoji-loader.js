@@ -232,24 +232,27 @@
 				return ! isIdentical;
 			case 'emoji':
 				/*
-				 * Person Running Facing Right: Medium Skin Tone
+				 * Rise Like a Phoenix.
 				 *
-				 * To test for Emoji 15.1 support, try to render a new emoji: Person Running Facing Right.
+				 * To test for Emoji 15.1 support, try to render a new emoji: Phoenix.
 				 *
-				 * The Person Running Facing Right emoji is a ZWJ sequence combining 🏃 Runner,
-				 * Zero Width Joiner and ➡️ Black Rightwards Arrow.
+				 * A phoenix, a mythical immortal bird with flame-like feathers found in the folklore of many global
+				 * cultures. Often used to symbolize renewal or rebirth.
 				 *
-				 * 0x1F3C3 (\uD83C\uDFC3) == Person Running
-				 * 0x200D                 == Zero-Width Joiner (ZWJ) that links the code points for the new emoji or
-				 * 0x27A1 0xFE0F          == Black Rightwards Arrow
+				 * The Phoenix emoji is a ZWJ sequence combining 🐦 Bird, Zero Width Joiner and 🔥 Fire.
+				 * These display as a single emoji on supported platforms.
+				 *
+				 * 0xD83D 0xDC26 (\uD83D\uDC26) == 🐦 Bird
+				 * 0x200D                       == Zero-Width Joiner (ZWJ) that links the code points for the new emoji or
+				 * 0xD83D 0xDD25 (\uD83D\uDD25) == 🔥 Fire
 				 *
 				 * When updating this test for future Emoji releases, ensure that individual emoji that make up the
 				 * sequence come from older emoji standards.
 				 */
 				isIdentical = emojiSetsRenderIdentically(
 					context,
-					'\uD83C\uDFC3\u200D\u27A1\uFE0F', // as the zero-width joiner sequence
-					'\uD83C\uDFC3\u200B\u27A1\uFE0F' // separated by a zero-width space
+					'\uD83D\uDC26\u200D\uD83D\uDD25', // as the zero-width joiner sequence
+					'\uD83D\uDC26\u200B\uD83D\uDD25' // separated by a zero-width space
 				);
 
 				return ! isIdentical;
