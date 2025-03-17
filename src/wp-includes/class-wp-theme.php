@@ -504,7 +504,6 @@ final class WP_Theme implements ArrayAccess {
 		// We're good. If we didn't retrieve from cache, set it.
 		if ( ! is_array( $cache ) ) {
 			$cache = array(
-				'block_theme'            => false, // See #63086
 				'block_template_folders' => $this->get_block_template_folders(),
 				'headers'                => $this->headers,
 				'errors'                 => $this->errors,
@@ -2186,7 +2185,6 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.8.0
 	 */
 	public function _update_cached_block_theme() {
-		// Update the cached value with the correct block_theme status
 		$cache = $this->cache_get( 'theme' );
 		if ( is_array( $cache ) ) {
 			$cache['block_theme'] = $this->is_block_theme();
