@@ -91,7 +91,7 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Post count be correct after reassigning posts to another user.
+	 * Post count should be correct after reassigning posts to another user.
 	 *
 	 * @ticket 39242
 	 */
@@ -116,7 +116,7 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Post count be correct after deleting user without reassigning posts.
+	 * Post count should be correct after deleting user without reassigning posts.
 	 *
 	 * @ticket 39242
 	 */
@@ -186,7 +186,7 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 	 * @ticket 39242
 	 */
 	public function test_cache_should_be_hit_regardless_of_post_type_order() {
-		// Prime Cache.
+		// Prime cache.
 		count_user_posts( self::$user_id, array( 'wptests_pt', 'post' ) );
 
 		$query_num_start = get_num_queries();
@@ -202,7 +202,7 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 	 * @ticket 39242
 	 */
 	public function test_cache_should_be_hit_for_string_and_array_equivalent_queries() {
-		// Prime Cache.
+		// Prime cache.
 		count_user_posts( self::$user_id, 'post' );
 
 		$query_num_start = get_num_queries();
@@ -218,7 +218,7 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 	 * @ticket 39242
 	*/
 	public function test_cache_should_be_hit_for_and_array_duplicates_equivalent_queries() {
-		// Prime Cache
+		// Prime cache.
 		count_user_posts( self::$user_id, array( 'post', 'post', 'post' ) );
 
 		$query_num_start = get_num_queries();
