@@ -4554,29 +4554,25 @@ function get_avatar_data( $id_or_email, $args = null ) {
 		$name = '';
 
 		if ( $user ) {
-			if ( ! empty( $user->display_name ) ) {
-				$name = $user->display_name;
-			} elseif ( ! empty( $user->first_name ) && ! empty( $user->last_name ) ) {
-				$name = $user->first_name . ' ' . $user->last_name;
-			} else {
-				$name = $user->user_login;
-			}
+			$name = ! empty( $user->display_name ) ? $user->display_name :
+					( ! empty( $user->first_name ) && ! empty( $user->last_name ) ?
+					$user->first_name . ' ' . $user->last_name : $user->user_login );
 		} elseif ( is_object( $id_or_email ) && isset( $id_or_email->comment_author ) ) {
 			$name = $id_or_email->comment_author;
-		} elseif ( is_string( $id_or_email ) && strpos( $id_or_email, '@' ) !== false ) {
-			$name = substr( $id_or_email, 0, strpos( $id_or_email, '@' ) );
-			$name = str_replace( array( '.', '_', '-' ), ' ', $name );
+		} elseif ( is_string( $id_or_email ) && false !== strpos( $id_or_email, '@' ) ) {
+			$name = str_replace( array( '.', '_', '-' ), ' ', substr( $id_or_email, 0, strpos( $id_or_email, '@' ) ) );
 		}
 
 		if ( ! empty( $name ) ) {
-			$name_parts = preg_split( '/\s+/u', $name );
-			if ( count( $name_parts ) > 1 ) {
-				$initials = mb_substr( $name_parts[0], 0, 1, 'UTF-8' ) .
-							mb_substr( $name_parts[ count( $name_parts ) - 1 ], 0, 1, 'UTF-8' );
-			} else {
+			if ( preg_match( '/\p{Han}|\p{Hiragana}|\p{Katakana}|\p{Hangul}/u', $name ) || false === strpos( $name, ' ' ) ) {
 				$initials = mb_substr( $name, 0, min( 2, mb_strlen( $name, 'UTF-8' ) ), 'UTF-8' );
+			} else {
+				$first    = mb_substr( $name, 0, 1, 'UTF-8' );
+				$last     = mb_substr( $name, strrpos( $name, ' ' ) + 1, 1, 'UTF-8' );
+				$initials = $first . $last;
 			}
-			$url_args['initials'] = rawurlencode( $initials );
+
+			$url_args['initials'] = $initials;
 		}
 	}
 
