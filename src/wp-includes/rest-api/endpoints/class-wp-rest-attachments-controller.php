@@ -139,7 +139,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		/**
 		 * Filter whether the server should prevent uploads for image types it doesn't support. Default true.
 		 *
-		 * Developers can use this filter to enable uploads of certain image types.
+		 * Developers can use this filter to enable uploads of certain image types. By default image types that are not
+		 * supported by the server are prevented from being uploaded.
 		 *
 		 * @since 6.8.0
 		 *
