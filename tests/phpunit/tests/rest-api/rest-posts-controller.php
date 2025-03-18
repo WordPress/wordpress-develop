@@ -295,7 +295,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$headers = $response->get_headers();
 		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
 		$this->assertArrayHasKey( 'Link', $headers, 'The "Link" header should be present in the response.' );
-		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**
@@ -320,7 +320,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		if ( $request->is_method( 'HEAD' ) ) {
-			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 		} else {
 			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is an empty array for GET request.' );
 		}
@@ -351,7 +351,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$this->assertCount( $total_posts, $response->get_data() );
 
 		} else {
-			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( $total_posts, $headers['X-WP-Total'] );
 		}
@@ -366,7 +366,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$this->assertCount( 2, $data );
 			$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
 		} else {
-			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$this->assertSame( array(), $data, 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 2.' );
 		}
@@ -381,7 +381,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$this->assertCount( 1, $data );
 			$this->assertSame( self::$editor_id, $data[0]['author'] );
 		} else {
-			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$this->assertSame( array(), $data, 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( 1, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 1.' );
 		}
@@ -407,7 +407,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		if ( $request->is_method( 'get' ) ) {
 			$this->assertCount( $total_posts, $response->get_data() );
 		} else {
-			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( $total_posts, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
 		}
@@ -424,7 +424,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
 			$this->assertNotEquals( self::$author_id, $data[0]['author'] );
 		} else {
-			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( $total_posts - 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
 		}
@@ -441,7 +441,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
 			$this->assertNotEquals( self::$editor_id, $data[1]['author'] );
 		} else {
-			$this->assertNull( $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( $total_posts - 1, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
 		}
@@ -483,7 +483,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$this->assertCount( 2, $data );
 			$this->assertSame( $id2, $data[0]['id'] );
 		} else {
-			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$this->assertSame( array(), $data, 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
 		}
@@ -498,7 +498,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$this->assertCount( 2, $data );
 			$this->assertSame( $id1, $data[0]['id'] );
 		} else {
-			$this->assertNull( $data, 'Failed asserting that response data is null for HEAD request.' );
+			$this->assertSame( array(), $data, 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
 			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
 		}
@@ -2193,7 +2193,37 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		if ( 'HEAD' !== $method ) {
 			return null;
 		}
-		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		$request = new WP_REST_Request( 'HEAD', sprintf( $path, self::$post_id ) );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/posts/%d' ),
+			'get_items request' => array( '/wp/v2/posts' ),
+		);
 	}
 
 	public function test_get_item_links() {
@@ -5909,29 +5939,29 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	 */
 	public function test_get_posts_with_pagination() {
 
-		// Test offset
+		// Test offset.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'offset', 1 );
 		$request->set_param( 'per_page', 1 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( 30, $response->get_headers()['X-WP-Total'] );
-		$this->assertEquals( 30, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( 30, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 30, $response->get_headers()['X-WP-TotalPages'] );
 
-		// Test paged
+		// Test paged.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'page', 2 );
 		$request->set_param( 'per_page', 2 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 2, $data );
-		$this->assertEquals( 30, $response->get_headers()['X-WP-Total'] );
-		$this->assertEquals( 15, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( 30, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 15, $response->get_headers()['X-WP-TotalPages'] );
 
-		// Test out of bounds
+		// Test out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'page', 4 );
 		$request->set_param( 'per_page', 10 );
