@@ -7566,10 +7566,10 @@ function get_tag_regex( $tag ) {
  * @return bool Whether the slug represents the UTF-8 encoding.
  */
 function is_utf8_charset( $blog_charset = null ) {
-	if ( empty( $blog_charset ) ) {
-		$blog_charset = 'UTF-8'; // Default to UTF-8 when empty
-	} else {
-		$blog_charset = $blog_charset ?? get_option( 'blog_charset', 'UTF-8' );
+	if ( null === $blog_charset ) {
+		$blog_charset = get_option( 'blog_charset', 'UTF-8' );
+	} elseif ( empty( $blog_charset ) ) {
+		return false;
 	}
 
 	return _is_utf8_charset( $blog_charset );

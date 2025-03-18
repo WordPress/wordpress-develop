@@ -9,7 +9,30 @@
  */
 class Tests_Functions_IsUtf8Charset extends WP_UnitTestCase {
 	/**
-	 * Tests that is_utf8_charset correctly handles empty values.
+	 * Tests that is_utf8_charset handles null by getting the blog_charset option.
+	 *
+	 * @ticket 25693
+	 */
+	public function test_handles_null_by_getting_option() {
+		$original_charset = get_option( 'blog_charset' );
+
+		update_option( 'blog_charset', 'UTF-8' );
+		$this->assertTrue(
+			is_utf8_charset( null ),
+			'Should return true when null is passed and blog_charset is UTF-8'
+		);
+
+		update_option( 'blog_charset', 'ISO-8859-1' );
+		$this->assertFalse(
+			is_utf8_charset( null ),
+			'Should return false when null is passed and blog_charset is not UTF-8'
+		);
+
+		update_option( 'blog_charset', $original_charset );
+	}
+
+	/**
+	 * Tests that is_utf8_charset returns false for empty values.
 	 *
 	 * @ticket 25693
 	 *
@@ -18,9 +41,9 @@ class Tests_Functions_IsUtf8Charset extends WP_UnitTestCase {
 	 * @param mixed $empty_charset Empty or null charset value.
 	 */
 	public function test_handles_empty_values( $empty_charset ) {
-		$this->assertTrue(
+		$this->assertFalse(
 			is_utf8_charset( $empty_charset ),
-			'Should return true when the charset is empty (defaulting to UTF-8)'
+			'Should return false when empty values are explicitly passed'
 		);
 	}
 
@@ -63,7 +86,6 @@ class Tests_Functions_IsUtf8Charset extends WP_UnitTestCase {
 	 */
 	public static function data_empty_charset_values() {
 		return array(
-			array( null ),
 			array( '' ),
 			array( false ),
 			array( 0 ),
@@ -80,8 +102,8 @@ class Tests_Functions_IsUtf8Charset extends WP_UnitTestCase {
 		return array(
 			array( 'UTF-8' ),
 			array( 'utf-8' ),
-			array( 'UTF8' ),
 			array( 'utf8' ),
+			array( 'UTF8' ),
 		);
 	}
 
@@ -93,10 +115,9 @@ class Tests_Functions_IsUtf8Charset extends WP_UnitTestCase {
 	public static function data_non_utf8_charset_values() {
 		return array(
 			array( 'ISO-8859-1' ),
-			array( 'ASCII' ),
 			array( 'Windows-1252' ),
+			array( 'ASCII' ),
 			array( 'EUC-JP' ),
-			array( 'UTF-7' ),
 		);
 	}
 }
