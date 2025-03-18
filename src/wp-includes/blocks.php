@@ -1636,10 +1636,10 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
 	}
 
 	return sprintf(
-		'<!-- wp:%1$s %2$s -->' . "\n" . '%3$s' . "\n" . '<!-- /wp:%1$s -->',
+		"<!-- wp:%s%s -->\n%s\n<!-- /wp:%s -->",
 		$serialized_block_name,
-		$serialized_attributes,
-		$block_content,
+		$serialized_attributes ? ' ' . $serialized_attributes : '',
+		trim( $block_content ),
 		$serialized_block_name
 	);
 }
