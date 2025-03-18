@@ -723,7 +723,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			 *
 			 * @since 2.5.0
 			 *
-			 * @param string[] $post_columns An associative array of column headings.
+			 * @param string[] $posts_columns An associative array of column headings.
 			 */
 			$posts_columns = apply_filters( 'manage_pages_columns', $posts_columns );
 		} else {
@@ -733,8 +733,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 			 *
 			 * @since 1.5.0
 			 *
-			 * @param string[] $post_columns An associative array of column headings.
-			 * @param string   $post_type    The post type slug.
+			 * @param string[] $posts_columns An associative array of column headings.
+			 * @param string   $post_type     The post type slug.
 			 */
 			$posts_columns = apply_filters( 'manage_posts_columns', $posts_columns, $post_type );
 		}
@@ -751,7 +751,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 *
 		 * @since 3.0.0
 		 *
-		 * @param string[] $post_columns An associative array of column headings.
+		 * @param string[] $posts_columns An associative array of column headings.
 		 */
 		return apply_filters( "manage_{$post_type}_posts_columns", $posts_columns );
 	}
@@ -1277,15 +1277,22 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Handles the post author column output.
 	 *
 	 * @since 4.3.0
+	 * @since 6.8.0 Added fallback text when author's name is unknown.
 	 *
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_author( $post ) {
-		$args = array(
-			'post_type' => $post->post_type,
-			'author'    => get_the_author_meta( 'ID' ),
-		);
-		echo $this->get_edit_link( $args, get_the_author() );
+		$author = get_the_author();
+
+		if ( ! empty( $author ) ) {
+			$args = array(
+				'post_type' => $post->post_type,
+				'author'    => get_the_author_meta( 'ID' ),
+			);
+			echo $this->get_edit_link( $args, esc_html( $author ) );
+		} else {
+			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . __( '(no author)' ) . '</span>';
+		}
 	}
 
 	/**
@@ -1842,6 +1849,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 							if ( $bulk ) {
 								$dropdown_args['show_option_no_change'] = __( '&mdash; No Change &mdash;' );
+								$dropdown_args['id']                    = 'bulk_edit_post_parent';
 							}
 
 							/**

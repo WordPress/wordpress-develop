@@ -31,8 +31,8 @@ function render_block_core_search( $attributes ) {
 
 	$input_id            = wp_unique_id( 'wp-block-search__input-' );
 	$classnames          = classnames_for_block_core_search( $attributes );
-	$show_label          = ( ! empty( $attributes['showLabel'] ) ) ? true : false;
-	$use_icon_button     = ( ! empty( $attributes['buttonUseIcon'] ) ) ? true : false;
+	$show_label          = ! empty( $attributes['showLabel'] );
+	$use_icon_button     = ! empty( $attributes['buttonUseIcon'] );
 	$show_button         = ( ! empty( $attributes['buttonPosition'] ) && 'no-button' === $attributes['buttonPosition'] ) ? false : true;
 	$button_position     = $show_button ? $attributes['buttonPosition'] : null;
 	$query_params        = ( ! empty( $attributes['query'] ) ) ? $attributes['query'] : array();
@@ -80,18 +80,7 @@ function render_block_core_search( $attributes ) {
 		// If it's interactive, enqueue the script module and add the directives.
 		$is_expandable_searchfield = 'button-only' === $button_position;
 		if ( $is_expandable_searchfield ) {
-			$suffix = wp_scripts_get_suffix();
-			if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
-				$module_url = gutenberg_url( '/build/interactivity/search.min.js' );
-			}
-
-			wp_register_script_module(
-				'@wordpress/block-library/search',
-				isset( $module_url ) ? $module_url : includes_url( "blocks/search/view{$suffix}.js" ),
-				array( '@wordpress/interactivity' ),
-				defined( 'GUTENBERG_VERSION' ) ? GUTENBERG_VERSION : get_bloginfo( 'version' )
-			);
-			wp_enqueue_script_module( '@wordpress/block-library/search' );
+			wp_enqueue_script_module( '@wordpress/block-library/search/view' );
 
 			$input->set_attribute( 'data-wp-bind--aria-hidden', '!context.isSearchInputVisible' );
 			$input->set_attribute( 'data-wp-bind--tabindex', 'state.tabindex' );
@@ -188,9 +177,9 @@ function render_block_core_search( $attributes ) {
 			)
 		);
 		$form_directives      = '
-		 data-wp-interactive="core/search"'
-		. $form_context .
-		'data-wp-class--wp-block-search__searchfield-hidden="!context.isSearchInputVisible"
+		 data-wp-interactive="core/search"
+		 ' . $form_context . '
+		 data-wp-class--wp-block-search__searchfield-hidden="!context.isSearchInputVisible"
 		 data-wp-on-async--keydown="actions.handleSearchKeydown"
 		 data-wp-on-async--focusout="actions.handleSearchFocusout"
 		';

@@ -949,6 +949,107 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `WP_Upgrader::install_package()` returns a WP_Error object
+	 * when the source directory's file list cannot be retrieved.
+	 *
+	 * @ticket 61114
+	 *
+	 * @covers WP_Upgrader::install_package
+	 */
+	public function test_install_package_should_return_wp_error_when_source_directory_file_list_cannot_be_retrieved() {
+		self::$instance->generic_strings();
+
+		self::$upgrader_skin_mock
+				->expects( $this->once() )
+				->method( 'feedback' )
+				->with( 'installing_package' );
+
+		self::$wp_filesystem_mock
+				->expects( $this->once() )
+				->method( 'dirlist' )
+				->willReturn( false );
+
+		$args = array(
+			'source'      => '/',
+			'destination' => '/',
+		);
+
+		$actual = self::$instance->install_package( $args );
+
+		$this->assertWPError(
+			$actual,
+			'WP_Upgrader::install_package() did not return a WP_Error object'
+		);
+
+		$this->assertSame(
+			'source_read_failed',
+			$actual->get_error_code(),
+			'Unexpected WP_Error code'
+		);
+	}
+
+	/**
+	 * Tests that `WP_Upgrader::install_package()` returns a WP_Error object
+	 * when the source directory is filtered and its file list cannot be retrieved.
+	 *
+	 * @ticket 61114
+	 *
+	 * @covers WP_Upgrader::install_package
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_install_package_should_return_wp_error_when_a_filtered_source_directory_file_list_cannot_be_retrieved() {
+		define( 'FS_CHMOD_DIR', 0755 );
+
+		self::$instance->generic_strings();
+
+		self::$upgrader_skin_mock
+				->expects( $this->once() )
+				->method( 'feedback' )
+				->with( 'installing_package' );
+
+		$first_source = array(
+			'subdir' => array(
+				'name'  => 'subdir',
+				'type'  => 'd',
+				'files' => array( 'subfile.php' ),
+			),
+		);
+
+		self::$wp_filesystem_mock
+				->expects( $this->exactly( 2 ) )
+				->method( 'dirlist' )
+				->willReturn( $first_source, false );
+
+		$args = array(
+			'source'      => '/',
+			'destination' => '/',
+		);
+
+		// Filter the source to something else.
+		add_filter(
+			'upgrader_source_selection',
+			static function () {
+				return '/not_original_source/';
+			}
+		);
+
+		$actual = self::$instance->install_package( $args );
+
+		$this->assertWPError(
+			$actual,
+			'WP_Upgrader::install_package() did not return a WP_Error object'
+		);
+
+		$this->assertSame(
+			'new_source_read_failed',
+			$actual->get_error_code(),
+			'Unexpected WP_Error code'
+		);
+	}
+
+	/**
 	 * Tests that `WP_Upgrader::install_package()` adds a trailing slash to
 	 * the source directory of a single file.
 	 *

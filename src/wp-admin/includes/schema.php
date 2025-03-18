@@ -424,7 +424,7 @@ function populate_options( array $options = array() ) {
 		'rss_use_excerpt'                 => 0,
 		'mailserver_url'                  => 'mail.example.com',
 		'mailserver_login'                => 'login@example.com',
-		'mailserver_pass'                 => 'password',
+		'mailserver_pass'                 => '',
 		'mailserver_port'                 => 110,
 		'default_category'                => 1,
 		'default_comment_status'          => 'open',
@@ -1046,6 +1046,11 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 			'subdomain_install' => $subdomain_install,
 		)
 	);
+
+	// Remove the cron event since Recovery Mode is not used in Multisite.
+	if ( wp_next_scheduled( 'recovery_mode_clean_expired_keys' ) ) {
+		wp_clear_scheduled_hook( 'recovery_mode_clean_expired_keys' );
+	}
 
 	/*
 	 * When upgrading from single to multisite, assume the current site will

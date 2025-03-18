@@ -482,6 +482,10 @@ function rss_enclosure() {
 			foreach ( (array) $val as $enc ) {
 				$enclosure = explode( "\n", $enc );
 
+				if ( count( $enclosure ) < 3 ) {
+					continue;
+				}
+
 				// Only get the first element, e.g. 'audio/mpeg' from 'audio/mpeg mpga mp2 mp3'.
 				$t    = preg_split( '/[ \t]/', trim( $enclosure[2] ) );
 				$type = $t[0];
@@ -791,10 +795,10 @@ function feed_content_type( $type = '' ) {
  * @param string|string[] $url URL of feed to retrieve. If an array of URLs, the feeds are merged
  *                             using SimplePie's multifeed feature.
  *                             See also {@link http://simplepie.org/wiki/faq/typical_multifeed_gotchas}
- * @return SimplePie|WP_Error SimplePie object on success or WP_Error object on failure.
+ * @return SimplePie\SimplePie|WP_Error SimplePie object on success or WP_Error object on failure.
  */
 function fetch_feed( $url ) {
-	if ( ! class_exists( 'SimplePie', false ) ) {
+	if ( ! class_exists( 'SimplePie\SimplePie', false ) ) {
 		require_once ABSPATH . WPINC . '/class-simplepie.php';
 	}
 
@@ -802,7 +806,7 @@ function fetch_feed( $url ) {
 	require_once ABSPATH . WPINC . '/class-wp-simplepie-file.php';
 	require_once ABSPATH . WPINC . '/class-wp-simplepie-sanitize-kses.php';
 
-	$feed = new SimplePie();
+	$feed = new SimplePie\SimplePie();
 
 	$feed->set_sanitize_class( 'WP_SimplePie_Sanitize_KSES' );
 	/*
@@ -832,13 +836,13 @@ function fetch_feed( $url ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param SimplePie       $feed SimplePie feed object (passed by reference).
-	 * @param string|string[] $url  URL of feed or array of URLs of feeds to retrieve.
+	 * @param SimplePie\SimplePie $feed SimplePie feed object (passed by reference).
+	 * @param string|string[]     $url  URL of feed or array of URLs of feeds to retrieve.
 	 */
 	do_action_ref_array( 'wp_feed_options', array( &$feed, $url ) );
 
 	$feed->init();
-	$feed->set_output_encoding( get_option( 'blog_charset' ) );
+	$feed->set_output_encoding( get_bloginfo( 'charset' ) );
 
 	if ( $feed->error() ) {
 		return new WP_Error( 'simplepie-error', $feed->error() );

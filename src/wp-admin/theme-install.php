@@ -54,7 +54,7 @@ wp_localize_script(
 			'adminUrl'   => parse_url( self_admin_url(), PHP_URL_PATH ),
 		),
 		'l10n'            => array(
-			'addNew'              => __( 'Add New Theme' ),
+			'addNew'              => __( 'Add Theme' ),
 			'search'              => __( 'Search Themes' ),
 			'upload'              => __( 'Upload Theme' ),
 			'back'                => __( 'Back' ),
@@ -230,7 +230,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			?>
 			<p class="install-help"><?php _e( 'If you have marked themes as favorites on WordPress.org, you can browse them here.' ); ?></p>
 
-			<p>
+			<p class="favorites-username">
 				<label for="wporg-username-input"><?php _e( 'Your WordPress.org username:' ); ?></label>
 				<input type="hidden" id="wporg-username-nonce" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( $action ) ); ?>" />
 				<input type="search" id="wporg-username-input" value="<?php echo esc_attr( $user ); ?>" />
