@@ -770,10 +770,10 @@ function wp_default_scripts( $scripts ) {
 		 * @since 6.7.3
 		 *
 		 * @param array $bulk_field_relations {
-		 * 		An array of field relations for the bulk actions.
+		 *      An array of field relations for the bulk actions.
 		 *
-		 *  	@type string $bulk_action The bulk action field name. Default 'action'.
-		 * 		@type string $changeit    The new role field name. Default 'new_role'.
+		 *      @type string $bulk_action The bulk action field name. Default 'action'.
+		 *      @type string $changeit    The new role field name. Default 'new_role'.
 		 * }
 		 */
 		apply_filters( 'buld_field_relations', $bulk_field_relations )
