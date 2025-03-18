@@ -3248,5 +3248,5 @@ function wp_autoload_values_to_autoload() {
  * @return string The character set, defaulting to UTF-8 when empty.
  */
 function _wp_ensure_blog_charset( $charset ) {
-    return empty( $charset ) ? 'UTF-8' : $charset;
+	return empty( $charset ) ? 'UTF-8' : $charset;
 }
