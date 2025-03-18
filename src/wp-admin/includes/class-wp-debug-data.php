@@ -696,7 +696,7 @@ class WP_Debug_Data {
 		}
 
 		$fields['image_format_transforms'] = array(
-			'label' => __( 'Image Format Transforms' ),
+			'label' => __( 'Image format transforms' ),
 			'value' => $mappings_display,
 			'debug' => ( empty( $mappings ) ) ? 'No format transforms defined' : $mappings_display,
 		);
