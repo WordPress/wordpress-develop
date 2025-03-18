@@ -4353,7 +4353,7 @@ function create_initial_theme_features() {
  */
 function wp_is_block_theme() {
 	if ( empty( $GLOBALS['wp_theme_directories'] ) ) {
-		_doing_it_wrong( __FUNCTION__, __( 'This function should not be called before themes are set up.' ), '6.8.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'This function should not be called before the theme directory is registered.' ), '6.8.0' );
 		return false;
 	}
 
