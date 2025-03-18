@@ -7567,12 +7567,12 @@ function get_tag_regex( $tag ) {
  */
 function is_utf8_charset( $blog_charset = null ) {
 	if ( empty( $blog_charset ) ) {
-        $blog_charset = 'UTF-8'; // Default to UTF-8 when empty
-    } else {
-        $blog_charset = $blog_charset ?? get_option( 'blog_charset', 'UTF-8' );
-    }
-    
-    return _is_utf8_charset( $blog_charset );
+		$blog_charset = 'UTF-8'; // Default to UTF-8 when empty
+	} else {
+		$blog_charset = $blog_charset ?? get_option( 'blog_charset', 'UTF-8' );
+	}
+
+	return _is_utf8_charset( $blog_charset );
 }
 
 /**
@@ -7588,9 +7588,9 @@ function is_utf8_charset( $blog_charset = null ) {
  * @return string The canonical form of the charset.
  */
 function _canonical_charset( $charset ) {
-    if ( empty( $charset ) ) {
-        return '';
-    }
+	if ( empty( $charset ) ) {
+		return '';
+	}
 
 	if ( is_utf8_charset( $charset ) ) {
 		return 'UTF-8';
