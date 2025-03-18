@@ -212,6 +212,17 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that the deprecated register_script_modules method is deprecated but does not throw.
+	 *
+	 * @ticket 60647
+	 *
+	 * @expectedDeprecated WP_Interactivity_API::register_script_modules
+	 */
+	public function test_register_script_modules_deprecated() {
+		$this->interactivity->register_script_modules();
+	}
+
+	/**
 	 * Sets up an activity, runs an optional callback, and returns a MockAction for inspection.
 	 *
 	 * @since 6.7.0
@@ -221,7 +232,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	private function get_script_data_filter_result( ?Closure $callback = null ): MockAction {
 		$this->interactivity->add_hooks();
-		$this->interactivity->register_script_modules();
 		wp_enqueue_script_module( '@wordpress/interactivity' );
 		$filter = new MockAction();
 		add_filter( 'script_module_data_@wordpress/interactivity', array( $filter, 'filter' ) );
@@ -1070,6 +1080,38 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the `evaluate` method operates correctly when used with the
+	 * negation operator (!) with non-existent paths.
+	 *
+	 * @ticket 62374
+	 *
+	 * @covers ::evaluate
+	 */
+	public function test_evaluate_value_negation_non_existent_path() {
+		$this->interactivity->state( 'myPlugin', array() );
+		$this->interactivity->state( 'otherPlugin', array() );
+		$this->set_internal_context_stack(
+			array(
+				'myPlugin'    => array(),
+				'otherPlugin' => array(),
+			)
+		);
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
+		$result = $this->evaluate( '!state.missing' );
+		$this->assertTrue( $result );
+
+		$result = $this->evaluate( '!context.missing' );
+		$this->assertTrue( $result );
+
+		$result = $this->evaluate( 'otherPlugin::!state.deeply.nested.missing' );
+		$this->assertTrue( $result );
+
+		$result = $this->evaluate( 'otherPlugin::!context.deeply.nested.missing' );
+		$this->assertTrue( $result );
+	}
+
+	/**
 	 * Tests the `evaluate` method with non-existent paths.
 	 *
 	 * @ticket 60356
@@ -1364,5 +1406,183 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertSame( 'myItem', $method->invoke( $this->interactivity, '-my-item' ) );
 		$this->assertSame( 'myItem', $method->invoke( $this->interactivity, 'my-item-' ) );
 		$this->assertSame( 'myItem', $method->invoke( $this->interactivity, '-my-item-' ) );
+	}
+
+	/**
+	 * Tests that `wp_interactivity_get_element` returns an array with the
+	 * current element's attributes.
+	 *
+	 * @ticket 62136
+	 *
+	 * @covers wp_interactivity_get_element
+	 * @covers ::process_directives
+	 */
+	public function test_get_element_returns_current_element_representation() {
+		/*
+		 * The global WP_Interactivity_API instance is momentarily replaced to
+		 * make the global function `wp_interactivity_get_element` work as expected.
+		 */
+		global $wp_interactivity;
+		$wp_interactivity_prev = $wp_interactivity;
+		$wp_interactivity      = $this->interactivity;
+
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'dataTest' => function () {
+					$element = wp_interactivity_get_element();
+					return $element['attributes']['data-test'];
+				},
+			)
+		);
+
+		$html = <<<HTML
+			<section data-wp-interactive="myPlugin">
+				<div class="buttons">
+					<button
+						class="button"
+						data-test="button 1"
+						data-wp-bind--data-test-value="state.dataTest"
+					></button>
+					<button
+						class="button"
+						data-test="button 2"
+						data-wp-bind--data-test-value="state.dataTest"
+					></button>
+				</div>
+			</section>
+HTML;
+
+		$processed_html = $this->interactivity->process_directives( $html );
+		$p              = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag( 'button' );
+		$this->assertSame( 'button 1', $p->get_attribute( 'data-test-value' ) );
+		$p->next_tag( 'button' );
+		$this->assertSame( 'button 2', $p->get_attribute( 'data-test-value' ) );
+
+		// Restore the original WP_Interactivity_API instance.
+		$wp_interactivity = $wp_interactivity_prev;
+	}
+
+	/**
+	 * Tests that the attributes returned by `wp_interactivity_get_element` are
+	 * those originally present before directives are processed.
+	 *
+	 * @ticket 62136
+	 *
+	 * @covers wp_interactivity_get_element
+	 * @covers ::process_directives
+	 */
+	public function test_get_element_returns_original_attributes_only() {
+		/*
+		 * The global WP_Interactivity_API instance is momentarily replaced to
+		 * make the global function `wp_interactivity_get_element` work as expected.
+		 */
+		global $wp_interactivity;
+		$wp_interactivity_prev = $wp_interactivity;
+		$wp_interactivity      = $this->interactivity;
+
+		$attributes = null;
+
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'processAttributes' => function () use ( &$attributes ) {
+					$element = wp_interactivity_get_element();
+					$attributes = $element['attributes'];
+					return 'processed';
+				},
+			)
+		);
+
+		$html = <<<HTML
+			<section data-wp-interactive="myPlugin">
+				<div class="buttons">
+					<button
+						disabled
+						class="original"
+						data-attr="original"
+						data-wp-bind--data-attr="state.processAttributes"
+					></button>
+				</div>
+			</section>
+HTML;
+
+		$processed_html = $this->interactivity->process_directives( $html );
+
+		$this->assertSame(
+			array(
+				'disabled'                => true,
+				'class'                   => 'original',
+				'data-attr'               => 'original',
+				'data-wp-bind--data-attr' => 'state.processAttributes',
+			),
+			$attributes
+		);
+
+		$p = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag( 'button' );
+		$this->assertSame( 'processed', $p->get_attribute( 'data-attr' ) );
+
+		// Restore the original WP_Interactivity_API instance.
+		$wp_interactivity = $wp_interactivity_prev;
+	}
+
+	/**
+	 * Tests that `wp_interactivity_get_element` should not be called outside of
+	 * `process_directives` execution.
+	 *
+	 * @ticket 62136
+	 *
+	 * @covers wp_interactivity_get_element
+	 * @expectedIncorrectUsage WP_Interactivity_API::get_element
+	 */
+	public function test_get_element_outside_of_directive_processing() {
+		$element = $this->interactivity->get_element();
+		$this->assertNull( $element );
+	}
+
+	/**
+	 * Verify behavior of .length directive access.
+	 *
+	 * @ticket 62582
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_length_directives
+	 *
+	 * @param mixed $value     The property value.
+	 * @param string $expected The expected property length as a string,
+	 *                         or "" if no length is expected.
+	 */
+	public function test_process_directives_string_array_length( $value, string $expected ) {
+		$this->interactivity->state(
+			'myPlugin',
+			array( 'prop' => $value )
+		);
+		$html           = '<div data-wp-text="myPlugin::state.prop.length"></div>';
+		$processed_html = $this->interactivity->process_directives( $html );
+		$processor      = new WP_HTML_Tag_Processor( $processed_html );
+		$processor->next_tag( 'DIV' );
+		$processor->next_token();
+		$this->assertSame( $expected, $processor->get_modifiable_text() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_length_directives(): array {
+		return array(
+			'numeric array'     => array( array( 'a', 'b', 'c' ), '3' ),
+			'empty array'       => array( array(), '0' ),
+			'string'            => array( 'abc', '3' ),
+			'empty string'      => array( '', '0' ),
+
+			// Failure cases resulting in empty string.
+			'non-numeric array' => array( array( 'a' => 'a' ), '' ),
+			'object'            => array( new stdClass(), '' ),
+		);
 	}
 }

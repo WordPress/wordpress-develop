@@ -1618,14 +1618,18 @@ function get_edit_comment_link( $comment_id = 0, $context = 'display' ) {
 
 	$location = admin_url( $action ) . $comment->comment_ID;
 
+	// Ensure the $comment_id variable passed to the filter is always an ID.
+	$comment_id = (int) $comment->comment_ID;
+
 	/**
 	 * Filters the comment edit link.
 	 *
+	 * @since 2.3.0
 	 * @since 6.7.0 The $comment_id and $context parameters are now being passed to the filter.
 	 *
-	 * @param string $location The edit link.
-	 * @param int    $comment_id Optional. Unique ID of the comment to generate an edit link.
-	 * @param int    $context    Optional. Context to include HTML entities in link. Default 'display'.
+	 * @param string $location   The edit link.
+	 * @param int    $comment_id Unique ID of the comment to generate an edit link.
+	 * @param string $context    Context to include HTML entities in link. Default 'display'.
 	 */
 	return apply_filters( 'get_edit_comment_link', $location, $comment_id, $context );
 }
@@ -2927,8 +2931,8 @@ function the_posts_navigation( $args = array() ) {
  *     Optional. Default pagination arguments, see paginate_links().
  *
  *     @type string $screen_reader_text Screen reader text for navigation element.
- *                                      Default 'Posts navigation'.
- *     @type string $aria_label         ARIA label text for the nav element. Default 'Posts'.
+ *                                      Default 'Posts pagination'.
+ *     @type string $aria_label         ARIA label text for the nav element. Default 'Posts pagination'.
  *     @type string $class              Custom class for the nav element. Default 'pagination'.
  * }
  * @return string Markup for pagination links.
@@ -2951,8 +2955,8 @@ function get_the_posts_pagination( $args = array() ) {
 				'mid_size'           => 1,
 				'prev_text'          => _x( 'Previous', 'previous set of posts' ),
 				'next_text'          => _x( 'Next', 'next set of posts' ),
-				'screen_reader_text' => __( 'Posts navigation' ),
-				'aria_label'         => __( 'Posts' ),
+				'screen_reader_text' => __( 'Posts pagination' ),
+				'aria_label'         => __( 'Posts pagination' ),
 				'class'              => 'pagination',
 			)
 		);
@@ -3047,7 +3051,6 @@ function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_re
 	 *
 	 * @param string $template  The default template.
 	 * @param string $css_class The class passed by the calling function.
-	 * @return string Navigation template.
 	 */
 	$template = apply_filters( 'navigation_markup_template', $template, $css_class );
 
@@ -3105,21 +3108,25 @@ function get_comments_pagenum_link( $pagenum = 1, $max_page = 0 ) {
  * Retrieves the link to the next comments page.
  *
  * @since 2.7.1
+ * @since 6.7.0 Added the `page` parameter.
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @param string $label    Optional. Label for link text. Default empty.
- * @param int    $max_page Optional. Max page. Default 0.
+ * @param string   $label    Optional. Label for link text. Default empty.
+ * @param int      $max_page Optional. Max page. Default 0.
+ * @param int|null $page     Optional. Page number. Default null.
  * @return string|void HTML-formatted link for the next page of comments.
  */
-function get_next_comments_link( $label = '', $max_page = 0 ) {
+function get_next_comments_link( $label = '', $max_page = 0, $page = null ) {
 	global $wp_query;
 
 	if ( ! is_singular() ) {
 		return;
 	}
 
-	$page = get_query_var( 'cpage' );
+	if ( is_null( $page ) ) {
+		$page = get_query_var( 'cpage' );
+	}
 
 	if ( ! $page ) {
 		$page = 1;
@@ -3176,16 +3183,20 @@ function next_comments_link( $label = '', $max_page = 0 ) {
  * Retrieves the link to the previous comments page.
  *
  * @since 2.7.1
+ * @since 6.7.0 Added the `page` parameter.
  *
- * @param string $label Optional. Label for comments link text. Default empty.
+ * @param string   $label Optional. Label for comments link text. Default empty.
+ * @param int|null $page  Optional. Page number. Default null.
  * @return string|void HTML-formatted link for the previous page of comments.
  */
-function get_previous_comments_link( $label = '' ) {
+function get_previous_comments_link( $label = '', $page = null ) {
 	if ( ! is_singular() ) {
 		return;
 	}
 
-	$page = get_query_var( 'cpage' );
+	if ( is_null( $page ) ) {
+		$page = get_query_var( 'cpage' );
+	}
 
 	if ( (int) $page <= 1 ) {
 		return;
@@ -3355,8 +3366,8 @@ function the_comments_navigation( $args = array() ) {
  * @param array $args {
  *     Optional. Default pagination arguments.
  *
- *     @type string $screen_reader_text Screen reader text for the nav element. Default 'Comments navigation'.
- *     @type string $aria_label         ARIA label text for the nav element. Default 'Comments'.
+ *     @type string $screen_reader_text Screen reader text for the nav element. Default 'Comments pagination'.
+ *     @type string $aria_label         ARIA label text for the nav element. Default 'Comments pagination'.
  *     @type string $class              Custom class for the nav element. Default 'comments-pagination'.
  * }
  * @return string Markup for pagination links.
@@ -3372,8 +3383,8 @@ function get_the_comments_pagination( $args = array() ) {
 	$args         = wp_parse_args(
 		$args,
 		array(
-			'screen_reader_text' => __( 'Comments navigation' ),
-			'aria_label'         => __( 'Comments' ),
+			'screen_reader_text' => __( 'Comments pagination' ),
+			'aria_label'         => __( 'Comments pagination' ),
 			'class'              => 'comments-pagination',
 		)
 	);
@@ -4235,11 +4246,12 @@ function wp_shortlink_header() {
  * Call like the_shortlink( __( 'Shortlinkage FTW' ) )
  *
  * @since 3.0.0
+ * @since 6.8.0 Removed title attribute.
  *
- * @param string $text   Optional The link text or HTML to be displayed. Defaults to 'This is the short link.'
- * @param string $title  Optional The tooltip for the link. Must be sanitized. Defaults to the sanitized post title.
- * @param string $before Optional HTML to display before the link. Default empty.
- * @param string $after  Optional HTML to display after the link. Default empty.
+ * @param string $text   Optional. The link text or HTML to be displayed. Defaults to 'This is the short link.'
+ * @param string $title  Unused.
+ * @param string $before Optional. HTML to display before the link. Default empty.
+ * @param string $after  Optional. HTML to display after the link. Default empty.
  */
 function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
 	$post = get_post();
@@ -4248,14 +4260,10 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
 		$text = __( 'This is the short link.' );
 	}
 
-	if ( empty( $title ) ) {
-		$title = the_title_attribute( array( 'echo' => false ) );
-	}
-
 	$shortlink = wp_get_shortlink( $post->ID );
 
 	if ( ! empty( $shortlink ) ) {
-		$link = '<a rel="shortlink" href="' . esc_url( $shortlink ) . '" title="' . $title . '">' . $text . '</a>';
+		$link = '<a rel="shortlink" href="' . esc_url( $shortlink ) . '">' . $text . '</a>';
 
 		/**
 		 * Filters the short link anchor tag for a post.
@@ -4265,7 +4273,7 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
 		 * @param string $link      Shortlink anchor tag.
 		 * @param string $shortlink Shortlink URL.
 		 * @param string $text      Shortlink's text.
-		 * @param string $title     Shortlink's title attribute.
+		 * @param string $title     Shortlink's title attribute. Unused.
 		 */
 		$link = apply_filters( 'the_shortlink', $link, $shortlink, $text, $title );
 		echo $before, $link, $after;
@@ -4277,7 +4285,7 @@ function the_shortlink( $text = '', $title = '', $before = '', $after = '' ) {
  *
  * @since 4.2.0
  *
- * @param mixed $id_or_email The avatar to retrieve a URL for. Accepts a user ID, Gravatar MD5 hash,
+ * @param mixed $id_or_email The avatar to retrieve a URL for. Accepts a user ID, Gravatar SHA-256 or MD5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
  * @param array $args {
  *     Optional. Arguments to use instead of the default arguments.
@@ -4341,8 +4349,9 @@ function is_avatar_comment_type( $comment_type ) {
  *
  * @since 4.2.0
  * @since 6.7.0 Gravatar URLs always use HTTPS.
+ * @since 6.8.0 Gravatar URLs use the SHA-256 hashing algorithm.
  *
- * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+ * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar SHA-256 or MD5 hash,
  *                           user email, WP_User object, WP_Post object, or WP_Comment object.
  * @param array $args {
  *     Optional. Arguments to use instead of the default arguments.
@@ -4462,7 +4471,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	 * @since 4.2.0
 	 *
 	 * @param array $args        Arguments passed to get_avatar_data(), after processing.
-	 * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+	 * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar SHA-256 or MD5 hash,
 	 *                           user email, WP_User object, WP_Post object, or WP_Comment object.
 	 */
 	$args = apply_filters( 'pre_get_avatar_data', $args, $id_or_email );
@@ -4484,7 +4493,10 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	if ( is_numeric( $id_or_email ) ) {
 		$user = get_user_by( 'id', absint( $id_or_email ) );
 	} elseif ( is_string( $id_or_email ) ) {
-		if ( str_contains( $id_or_email, '@md5.gravatar.com' ) ) {
+		if ( str_contains( $id_or_email, '@sha256.gravatar.com' ) ) {
+			// SHA-256 hash.
+			list( $email_hash ) = explode( '@', $id_or_email );
+		} elseif ( str_contains( $id_or_email, '@md5.gravatar.com' ) ) {
 			// MD5 hash.
 			list( $email_hash ) = explode( '@', $id_or_email );
 		} else {
@@ -4518,7 +4530,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 		}
 
 		if ( $email ) {
-			$email_hash = md5( strtolower( trim( $email ) ) );
+			$email_hash = hash( 'sha256', strtolower( trim( $email ) ) );
 		}
 	}
 
@@ -4552,7 +4564,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	 * @since 4.2.0
 	 *
 	 * @param string $url         The URL of the avatar.
-	 * @param mixed  $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+	 * @param mixed  $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar SHA-256 or MD5 hash,
 	 *                            user email, WP_User object, WP_Post object, or WP_Comment object.
 	 * @param array  $args        Arguments passed to get_avatar_data(), after processing.
 	 */
@@ -4564,7 +4576,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	 * @since 4.2.0
 	 *
 	 * @param array $args        Arguments passed to get_avatar_data(), after processing.
-	 * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar MD5 hash,
+	 * @param mixed $id_or_email The avatar to retrieve. Accepts a user ID, Gravatar SHA-256 or MD5 hash,
 	 *                           user email, WP_User object, WP_Post object, or WP_Comment object.
 	 */
 	return apply_filters( 'get_avatar_data', $args, $id_or_email );

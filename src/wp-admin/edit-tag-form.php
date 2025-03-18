@@ -44,7 +44,7 @@ if ( 'category' === $taxonomy ) {
 	do_action_deprecated( 'edit_tag_form_pre', array( $tag ), '3.0.0', '{$taxonomy}_pre_edit_form' );
 }
 
-$wp_http_referer = ! empty( $_REQUEST['wp_http_referer'] ) ? sanitize_text_field( $_REQUEST['wp_http_referer'] ) : '';
+$wp_http_referer = ! empty( $_REQUEST['wp_http_referer'] ) ? sanitize_url( $_REQUEST['wp_http_referer'] ) : '';
 $wp_http_referer = remove_query_arg( array( 'action', 'message', 'tag_ID' ), $wp_http_referer );
 
 // Also used by Edit Tags.
@@ -72,7 +72,7 @@ do_action( "{$taxonomy}_pre_edit_form", $tag, $taxonomy ); ?>
 <h1><?php echo $tax->labels->edit_item; ?></h1>
 
 <?php
-$class = ( isset( $msg ) && 5 === $msg ) ? 'error' : 'success';
+$class = ( isset( $_REQUEST['error'] ) ) ? 'error' : 'success';
 
 if ( $message ) {
 	$message = '<p><strong>' . $message . '</strong></p>';
@@ -83,6 +83,7 @@ if ( $message ) {
 			esc_html( $tax->labels->back_to_items )
 		);
 	}
+
 	wp_admin_notice(
 		$message,
 		array(

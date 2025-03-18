@@ -2237,6 +2237,35 @@ HTML;
 	}
 
 	/**
+	 * Ensures that null bytes are replaced with the replacement character (U+FFFD) in class_list.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_null_bytes_replaced() {
+		$processor = new WP_HTML_Tag_Processor( "<div class='a \0 b\0 \0c\0'>" );
+		$processor->next_tag();
+
+		$found_classes = iterator_to_array( $processor->class_list() );
+
+		$this->assertSame( array( 'a', "\u{FFFD}", "b\u{FFFD}", "\u{FFFD}c\u{FFFD}" ), $found_classes );
+	}
+
+	/**
+	 * Ensures that the tag processor matches class names with null bytes correctly.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_class
+	 */
+	public function test_has_class_null_byte_class_name() {
+		$processor = new WP_HTML_Tag_Processor( "<div class='null-byte-\0-there'>" );
+		$processor->next_tag();
+		$this->assertTrue( $processor->has_class( 'null-byte-�-there' ) );
+	}
+
+	/**
 	 * @ticket 59209
 	 *
 	 * @covers WP_HTML_Tag_Processor::has_class
@@ -2938,5 +2967,83 @@ HTML
 		$processor = new WP_HTML_Tag_Processor( '</#' );
 		$this->assertFalse( $processor->next_tag() );
 		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test basic DOCTYPE handling.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_doctype_doc_name() {
+		$processor = new WP_HTML_Tag_Processor( '<!DOCTYPE html>' );
+		$this->assertTrue( $processor->next_token() );
+		$doctype = $processor->get_doctype_info();
+		$this->assertNotNull( $doctype );
+		$this->assertSame( 'html', $doctype->name );
+		$this->assertSame( 'no-quirks', $doctype->indicated_compatability_mode );
+		$this->assertNull( $doctype->public_identifier );
+		$this->assertNull( $doctype->system_identifier );
+	}
+
+	/**
+	 * @ticket 62522
+	 *
+	 * @dataProvider data_alphabet_by_characters_lowercase
+	 */
+	public function test_recognizes_lowercase_tag_name( string $char ) {
+		/*
+		 * The spacing in the HTML string is important to the problematic
+		 * codepath in ticket #62522.
+		 */
+		$html      = " <{$char}> </{$char}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), "Failed to find open tag in '{$html}'." );
+		$this->assertTrue(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			"Failed to find close tag in '{$html}'."
+		);
+	}
+
+	/**
+	 * @ticket 62522
+	 *
+	 * @dataProvider data_alphabet_by_characters_uppercase
+	 */
+	public function test_recognizes_uppercase_tag_name( string $char ) {
+		/*
+		 * The spacing in the HTML string is important to the problematic
+		 * codepath in ticket #62522.
+		 */
+		$html      = " <{$char}> </{$char}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), "Failed to find open tag in '{$html}'." );
+		$this->assertTrue(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			"Failed to find close tag in '{$html}'."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator<array>
+	 */
+	public static function data_alphabet_by_characters_lowercase() {
+		$char = 'a';
+		while ( $char <= 'z' ) {
+			yield $char => array( $char );
+			$char = chr( ord( $char ) + 1 );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator<array>
+	 */
+	public static function data_alphabet_by_characters_uppercase() {
+		foreach ( self::data_alphabet_by_characters_lowercase() as $data ) {
+			yield strtoupper( $data[0] ) => array( strtoupper( $data[0] ) );
+		}
 	}
 }

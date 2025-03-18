@@ -2335,6 +2335,253 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 61858
+	 */
+	public function test_merge_incoming_background_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'backgroundImage' => array(
+							'id'     => 'uploaded',
+							'source' => 'file',
+							'url'    => 'http://example.org/quote.png',
+						),
+						'backgroundSize'  => 'cover',
+					),
+					'blocks'     => array(
+						'core/group' => array(
+							'background' => array(
+								'backgroundImage'      => array(
+									'ref' => 'styles.blocks.core/verse.background.backgroundImage',
+								),
+								'backgroundAttachment' => 'fixed',
+							),
+						),
+						'core/quote' => array(
+							'background' => array(
+								'backgroundImage'      => array(
+									'url' => 'http://example.org/quote.png',
+								),
+								'backgroundAttachment' => array(
+									'ref' => 'styles.blocks.core/group.background.backgroundAttachment',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$update_background_image_styles = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'background' => array(
+					'backgroundImage' => array(
+						'url' => 'http://example.org/site.png',
+					),
+					'backgroundSize'  => 'contain',
+				),
+				'blocks'     => array(
+					'core/group' => array(
+						'background' => array(
+							'backgroundImage' => array(
+								'url' => 'http://example.org/group.png',
+							),
+						),
+					),
+					'core/quote' => array(
+						'background' => array(
+							'backgroundAttachment' => 'fixed',
+						),
+					),
+					'core/verse' => array(
+						'background' => array(
+							'backgroundImage' => array(
+								'ref' => 'styles.blocks.core/group.background.backgroundImage',
+							),
+						),
+					),
+				),
+			),
+		);
+		$expected                       = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'background' => array(
+					'backgroundImage' => array(
+						'url' => 'http://example.org/site.png',
+					),
+					'backgroundSize'  => 'contain',
+				),
+				'blocks'     => array(
+					'core/group' => array(
+						'background' => array(
+							'backgroundImage'      => array(
+								'url' => 'http://example.org/group.png',
+							),
+							'backgroundAttachment' => 'fixed',
+						),
+					),
+					'core/quote' => array(
+						'background' => array(
+							'backgroundImage'      => array(
+								'url' => 'http://example.org/quote.png',
+							),
+							'backgroundAttachment' => 'fixed',
+						),
+					),
+					'core/verse' => array(
+						'background' => array(
+							'backgroundImage' => array(
+								'ref' => 'styles.blocks.core/group.background.backgroundImage',
+							),
+						),
+					),
+				),
+			),
+		);
+		$theme_json->merge( new WP_Theme_JSON( $update_background_image_styles ) );
+		$actual = $theme_json->get_raw_data();
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * This test covers `get_block_nodes` with the `$include_node_paths_only` option.
+	 * When `true`, `$include_node_paths_only` should return only the paths of the block nodes.
+	 *
+	 * @ticket 61858
+	 */
+	public function test_return_block_node_paths() {
+		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
+
+		$func = $theme_json->getMethod( 'get_block_nodes' );
+		$func->setAccessible( true );
+
+		$theme_json = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'typography' => array(
+					'fontSize' => '16px',
+				),
+				'blocks'     => array(
+					'core/button' => array(
+						'color' => array(
+							'background' => 'red',
+						),
+					),
+					'core/group'  => array(
+						'elements' => array(
+							'link' => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$block_nodes = $func->invoke( null, $theme_json, array(), array( 'include_node_paths_only' => true ) );
+
+		$expected = array(
+			array(
+				'path' => array( 'styles', 'blocks', 'core/button' ),
+			),
+			array(
+				'path' => array( 'styles', 'blocks', 'core/group' ),
+			),
+			array(
+				'path' => array( 'styles', 'blocks', 'core/group', 'elements', 'link' ),
+			),
+		);
+
+		$this->assertEquals( $expected, $block_nodes );
+	}
+
+	/**
+	 * This test covers `get_block_nodes` with the `$include_node_paths_only`
+	 * and `include_block_style_variations` options.
+	 *
+	 * @ticket 62399
+	 */
+	public function test_return_block_node_paths_with_variations() {
+		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
+
+		$func = $theme_json->getMethod( 'get_block_nodes' );
+		$func->setAccessible( true );
+
+		$theme_json = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'typography' => array(
+					'fontSize' => '16px',
+				),
+				'blocks'     => array(
+					'core/button' => array(
+						'color'      => array(
+							'background' => 'red',
+						),
+						'variations' => array(
+							'cheese' => array(
+								'color' => array(
+									'background' => 'cheese',
+								),
+							),
+						),
+					),
+					'core/group'  => array(
+						'color'      => array(
+							'background' => 'blue',
+						),
+						'variations' => array(
+							'apricot' => array(
+								'color' => array(
+									'background' => 'apricot',
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$block_nodes = $func->invoke(
+			null,
+			$theme_json,
+			array(),
+			array(
+				'include_node_paths_only'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+
+		$expected = array(
+			array(
+				'path'       => array( 'styles', 'blocks', 'core/button' ),
+				'variations' => array(
+					array(
+						'path' => array( 'styles', 'blocks', 'core/button', 'variations', 'cheese' ),
+					),
+				),
+			),
+			array(
+				'path'       => array( 'styles', 'blocks', 'core/group' ),
+				'variations' => array(
+					array(
+						'path' => array( 'styles', 'blocks', 'core/group', 'variations', 'apricot' ),
+					),
+				),
+			),
+		);
+
+		$this->assertEquals( $expected, $block_nodes );
+	}
+
+	/**
 	 * @ticket 54336
 	 */
 	public function test_remove_insecure_properties_removes_unsafe_styles() {
@@ -4380,6 +4627,80 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Tests that block style variation selectors are generated correctly
+	 * for block selectors of various structures.
+	 *
+	 * @ticket 62471
+	 */
+	public function test_get_styles_for_block_with_style_variations_and_custom_selectors() {
+		register_block_type(
+			'test/milk',
+			array(
+				'api_version' => 3,
+				'selectors'   => array(
+					'root'  => '.milk',
+					'color' => '.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle',
+				),
+			)
+		);
+
+		register_block_style(
+			'test/milk',
+			array(
+				'name'  => 'chocolate',
+				'label' => 'Chocolate',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'test/milk' => array(
+							'color'      => array(
+								'background' => 'white',
+							),
+							'variations' => array(
+								'chocolate' => array(
+									'color' => array(
+										'background' => '#35281E',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$metadata = array(
+			'name'       => 'test/milk',
+			'path'       => array( 'styles', 'blocks', 'test/milk' ),
+			'selector'   => '.wp-block-test-milk',
+			'selectors'  => array(
+				'color' => '.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle',
+			),
+			'variations' => array(
+				'chocolate' => array(
+					'path'     => array( 'styles', 'blocks', 'test/milk', 'variations', 'chocolate' ),
+					'selector' => '.is-style-chocolate.wp-block-test-milk',
+				),
+			),
+		);
+
+		$actual_styles    = $theme_json->get_styles_for_block( $metadata );
+		$default_styles   = ':root :where(.wp-block-test-milk .liquid, .wp-block-test-milk:not(.spoiled), .wp-block-test-milk.in-bottle){background-color: white;}';
+		$variation_styles = ':root :where(.is-style-chocolate.wp-block-test-milk .liquid,.is-style-chocolate.wp-block-test-milk:not(.spoiled),.is-style-chocolate.wp-block-test-milk.in-bottle){background-color: #35281E;}';
+		$expected         = $default_styles . $variation_styles;
+
+		unregister_block_style( 'test/milk', 'chocolate' );
+		unregister_block_type( 'test/milk' );
+
+		$this->assertSame( $expected, $actual_styles );
+	}
+
 	public function test_block_style_variations() {
 		wp_set_current_user( static::$administrator_id );
 
@@ -4457,6 +4778,190 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$actual = WP_Theme_JSON::remove_insecure_properties( $partially_invalid_variation );
 
 		$this->assertSameSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * Test ensures that inner block type styles and their element styles are
+	 * preserved for block style variations when removing insecure properties.
+	 *
+	 * @ticket 62372
+	 */
+	public function test_block_style_variations_with_inner_blocks_and_elements() {
+		wp_set_current_user( static::$administrator_id );
+		register_block_style(
+			array( 'core/group' ),
+			array(
+				'name'  => 'custom-group',
+				'label' => 'Custom Group',
+			)
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/group' => array(
+						'color'      => array(
+							'background' => 'blue',
+						),
+						'variations' => array(
+							'custom-group' => array(
+								'color'    => array(
+									'background' => 'purple',
+								),
+								'blocks'   => array(
+									'core/paragraph' => array(
+										'color'    => array(
+											'text' => 'red',
+										),
+										'elements' => array(
+											'link' => array(
+												'color'  => array(
+													'text' => 'blue',
+												),
+												':hover' => array(
+													'color' => array(
+														'text' => 'green',
+													),
+												),
+											),
+										),
+									),
+									'core/heading'   => array(
+										'typography' => array(
+											'fontSize' => '24px',
+										),
+									),
+								),
+								'elements' => array(
+									'link' => array(
+										'color'  => array(
+											'text' => 'yellow',
+										),
+										':hover' => array(
+											'color' => array(
+												'text' => 'orange',
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$actual = WP_Theme_JSON::remove_insecure_properties( $expected );
+
+		// The sanitization processes blocks in a specific order which might differ to the theme.json input.
+		$this->assertEqualsCanonicalizing(
+			$expected,
+			$actual,
+			'Block style variations data does not match when inner blocks or element styles present'
+		);
+	}
+
+	/**
+	 * Test ensures that inner block type styles and their element styles for block
+	 * style variations have all unsafe values removed.
+	 *
+	 * @ticket 62372
+	 */
+	public function test_block_style_variations_with_invalid_inner_block_or_element_styles() {
+		wp_set_current_user( static::$administrator_id );
+		register_block_style(
+			array( 'core/group' ),
+			array(
+				'name'  => 'custom-group',
+				'label' => 'Custom Group',
+			)
+		);
+
+		$input = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/group' => array(
+						'variations' => array(
+							'custom-group' => array(
+								'blocks'   => array(
+									'core/paragraph' => array(
+										'color'      => array(
+											'text' => 'red',
+										),
+										'typography' => array(
+											'fontSize' => 'alert(1)', // Should be removed.
+										),
+										'elements'   => array(
+											'link' => array(
+												'color' => array(
+													'text' => 'blue',
+												),
+												'css'   => 'unsafe-value', // Should be removed.
+											),
+										),
+										'custom'     => 'unsafe-value', // Should be removed.
+									),
+								),
+								'elements' => array(
+									'link' => array(
+										'color'      => array(
+											'text' => 'yellow',
+										),
+										'javascript' => 'alert(1)', // Should be removed.
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/group' => array(
+						'variations' => array(
+							'custom-group' => array(
+								'blocks'   => array(
+									'core/paragraph' => array(
+										'color'    => array(
+											'text' => 'red',
+										),
+										'elements' => array(
+											'link' => array(
+												'color' => array(
+													'text' => 'blue',
+												),
+											),
+										),
+									),
+								),
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'yellow',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$actual = WP_Theme_JSON::remove_insecure_properties( $input );
+
+		// The sanitization processes blocks in a specific order which might differ to the theme.json input.
+		$this->assertEqualsCanonicalizing(
+			$expected,
+			$actual,
+			'Insecure properties were not removed from block style variation inner block types or elements'
+		);
 	}
 
 	/**
@@ -5006,12 +5511,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that theme background image styles are correctly generated.
+	 * Tests that theme background image styles are correctly generated,
+	 * and that default background size of "cover" isn't
+	 * applied (it's only applied to blocks).
 	 *
 	 * @ticket 61123
 	 * @ticket 61165
 	 * @ticket 61720
 	 * @ticket 61704
+	 * @ticket 61858
 	 */
 	public function test_get_top_level_background_image_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -5022,7 +5530,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'backgroundImage'      => array(
 							'url' => 'http://example.org/image.png',
 						),
-						'backgroundSize'       => 'contain',
 						'backgroundRepeat'     => 'no-repeat',
 						'backgroundPosition'   => 'center center',
 						'backgroundAttachment' => 'fixed',
@@ -5036,7 +5543,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			'selector' => 'body',
 		);
 
-		$expected_styles = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: url('http://example.org/image.png');background-position: center center;background-repeat: no-repeat;background-size: contain;background-attachment: fixed;}";
+		$expected_styles = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: url('http://example.org/image.png');background-position: center center;background-repeat: no-repeat;background-attachment: fixed;}";
 		$this->assertSame( $expected_styles, $theme_json->get_styles_for_block( $body_node ), 'Styles returned from "::get_stylesheet()" with top-level background styles type do not match expectations' );
 
 		$theme_json = new WP_Theme_JSON(
@@ -5059,8 +5566,11 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Block-level global background image styles.
+	 *
 	 * @ticket 61588
 	 * @ticket 61720
+	 * @ticket 61858
 	 */
 	public function test_get_block_background_image_styles() {
 		$theme_json = new WP_Theme_JSON(
@@ -5071,7 +5581,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						'core/group' => array(
 							'background' => array(
 								'backgroundImage'      => "url('http://example.org/group.png')",
-								'backgroundSize'       => 'cover',
 								'backgroundRepeat'     => 'no-repeat',
 								'backgroundPosition'   => 'center center',
 								'backgroundAttachment' => 'fixed',
@@ -5079,30 +5588,25 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						),
 						'core/quote' => array(
 							'background' => array(
-								'backgroundImage'    => array(
+								'backgroundImage' => array(
 									'url' => 'http://example.org/quote.png',
+									'id'  => 321,
 								),
-								'backgroundSize'     => 'cover',
-								'backgroundRepeat'   => 'no-repeat',
-								'backgroundPosition' => 'center center',
+								'backgroundSize'  => 'contain',
+							),
+						),
+						'core/verse' => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'url' => 'http://example.org/verse.png',
+									'id'  => 123,
+								),
 							),
 						),
 					),
 				),
 			)
 		);
-
-		$quote_node = array(
-			'name'      => 'core/quote',
-			'path'      => array( 'styles', 'blocks', 'core/quote' ),
-			'selector'  => '.wp-block-quote',
-			'selectors' => array(
-				'root' => '.wp-block-quote',
-			),
-		);
-
-		$quote_styles = ":root :where(.wp-block-quote){background-image: url('http://example.org/quote.png');background-position: center center;background-repeat: no-repeat;background-size: cover;}";
-		$this->assertSame( $quote_styles, $theme_json->get_styles_for_block( $quote_node ), 'Styles returned from "::get_styles_for_block()" with block-level background styles do not match expectations' );
 
 		$group_node = array(
 			'name'      => 'core/group',
@@ -5113,8 +5617,88 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$group_styles = ":root :where(.wp-block-group){background-image: url('http://example.org/group.png');background-position: center center;background-repeat: no-repeat;background-size: cover;background-attachment: fixed;}";
-		$this->assertSame( $group_styles, $theme_json->get_styles_for_block( $group_node ), 'Styles returned from "::get_styles_for_block()" with block-level background styles as string type do not match expectations' );
+		$group_styles = ":root :where(.wp-block-group){background-image: url('http://example.org/group.png');background-position: center center;background-repeat: no-repeat;background-attachment: fixed;}";
+		$this->assertSame( $group_styles, $theme_json->get_styles_for_block( $group_node ), 'Styles returned from "::get_styles_for_block()" with core/group background styles as string type do not match expectations.' );
+
+		$quote_node = array(
+			'name'      => 'core/quote',
+			'path'      => array( 'styles', 'blocks', 'core/quote' ),
+			'selector'  => '.wp-block-quote',
+			'selectors' => array(
+				'root' => '.wp-block-quote',
+			),
+		);
+
+		$quote_styles = ":root :where(.wp-block-quote){background-image: url('http://example.org/quote.png');background-position: 50% 50%;background-size: contain;}";
+		$this->assertSame( $quote_styles, $theme_json->get_styles_for_block( $quote_node ), 'Styles returned from "::get_styles_for_block()" with core/quote default background styles do not match expectations.' );
+
+		$verse_node = array(
+			'name'      => 'core/verse',
+			'path'      => array( 'styles', 'blocks', 'core/verse' ),
+			'selector'  => '.wp-block-verse',
+			'selectors' => array(
+				'root' => '.wp-block-verse',
+			),
+		);
+
+		$verse_styles = ":root :where(.wp-block-verse){background-image: url('http://example.org/verse.png');background-size: cover;}";
+		$this->assertSame( $verse_styles, $theme_json->get_styles_for_block( $verse_node ), 'Styles returned from "::get_styles_for_block()" with default core/verse background styles as string type do not match expectations.' );
+	}
+
+	/**
+	 * Testing background dynamic properties in theme.json.
+	 *
+	 * @ticket 61858
+	 */
+	public function test_get_resolved_background_image_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'background' => array(
+						'backgroundImage'      => array(
+							'url' => 'http://example.org/top.png',
+						),
+						'backgroundSize'       => 'contain',
+						'backgroundRepeat'     => 'repeat',
+						'backgroundPosition'   => '10% 20%',
+						'backgroundAttachment' => 'scroll',
+					),
+					'blocks'     => array(
+						'core/group'        => array(
+							'background' => array(
+								'backgroundImage' => array(
+									'id'  => 123,
+									'url' => 'http://example.org/group.png',
+								),
+							),
+						),
+						'core/post-content' => array(
+							'background' => array(
+								'backgroundImage'      => array(
+									'ref' => 'styles.background.backgroundImage',
+								),
+								'backgroundSize'       => array(
+									'ref' => 'styles.background.backgroundSize',
+								),
+								'backgroundRepeat'     => array(
+									'ref' => 'styles.background.backgroundRepeat',
+								),
+								'backgroundPosition'   => array(
+									'ref' => 'styles.background.backgroundPosition',
+								),
+								'backgroundAttachment' => array(
+									'ref' => 'styles.background.backgroundAttachment',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = "html{min-height: calc(100% - var(--wp-admin--admin-bar--height, 0px));}body{background-image: url('http://example.org/top.png');background-position: 10% 20%;background-repeat: repeat;background-size: contain;background-attachment: scroll;}:root :where(.wp-block-group){background-image: url('http://example.org/group.png');background-size: cover;}:root :where(.wp-block-post-content){background-image: url('http://example.org/top.png');background-position: 10% 20%;background-repeat: repeat;background-size: contain;background-attachment: scroll;}";
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 	}
 
 	/**

@@ -18,6 +18,32 @@ function _add_template_loader_filters() {
 }
 
 /**
+ * Renders a warning screen for empty block templates.
+ *
+ * @since 6.8.0
+ *
+ * @param WP_Block_Template $block_template The block template object.
+ * @return string The warning screen HTML.
+ */
+function wp_render_empty_block_template_warning( $block_template ) {
+	wp_enqueue_style( 'wp-empty-template-alert' );
+	return sprintf(
+		/* translators: %1$s: Block template title. %2$s: Empty template warning message. %3$s: Edit template link. %4$s: Edit template button label. */
+		'<div id="wp-empty-template-alert">
+			<h2>%1$s</h2>
+			<p>%2$s</p>
+			<a href="%3$s" class="wp-element-button">
+				%4$s
+			</a>
+		</div>',
+		esc_html( $block_template->title ),
+		__( 'This page is blank because the template is empty. You can reset or customize it in the Site Editor.' ),
+		get_edit_post_link( $block_template->wp_id, 'site-editor' ),
+		__( 'Edit template' )
+	);
+}
+
+/**
  * Finds a block template with equal or higher specificity than a given PHP template file.
  *
  * Internally, this communicates the block content that needs to be used by the template canvas through a global variable.
@@ -68,13 +94,18 @@ function locate_block_template( $template, $type, array $templates ) {
 	if ( $block_template ) {
 		$_wp_current_template_id = $block_template->id;
 
-		if ( empty( $block_template->content ) && is_user_logged_in() ) {
-			$_wp_current_template_content =
-			sprintf(
-				/* translators: %s: Template title */
-				__( 'Empty template: %s' ),
-				$block_template->title
-			);
+		if ( empty( $block_template->content ) ) {
+			if ( is_user_logged_in() ) {
+				$_wp_current_template_content = wp_render_empty_block_template_warning( $block_template );
+			} else {
+				if ( $block_template->has_theme_file ) {
+					// Show contents from theme template if user is not logged in.
+					$theme_template = _get_block_template_file( 'wp_template', $block_template->slug );
+					$_wp_current_template_content = file_get_contents( $theme_template['path'] );
+				} else {
+					$_wp_current_template_content = $block_template->content;
+				}
+			}
 		} elseif ( ! empty( $block_template->content ) ) {
 			$_wp_current_template_content = $block_template->content;
 		}
@@ -357,4 +388,39 @@ function _resolve_template_for_new_post( $wp_query ) {
 	) {
 		$wp_query->set( 'post_status', 'auto-draft' );
 	}
+}
+
+/**
+ * Register a block template.
+ *
+ * @since 6.7.0
+ *
+ * @param string       $template_name  Template name in the form of `plugin_uri//template_name`.
+ * @param array|string $args           {
+ *     @type string        $title                 Optional. Title of the template as it will be shown in the Site Editor
+ *                                                and other UI elements.
+ *     @type string        $description           Optional. Description of the template as it will be shown in the Site
+ *                                                Editor.
+ *     @type string        $content               Optional. Default content of the template that will be used when the
+ *                                                template is rendered or edited in the editor.
+ *     @type string[]      $post_types            Optional. Array of post types to which the template should be available.
+ *     @type string        $plugin                Optional. Slug of the plugin that registers the template.
+ * }
+ * @return WP_Block_Template|WP_Error The registered template object on success, WP_Error object on failure.
+ */
+function register_block_template( $template_name, $args = array() ) {
+	return WP_Block_Templates_Registry::get_instance()->register( $template_name, $args );
+}
+
+/**
+ * Unregister a block template.
+ *
+ * @since 6.7.0
+ *
+ * @param string $template_name Template name in the form of `plugin_uri//template_name`.
+ * @return WP_Block_Template|WP_Error The unregistered template object on success, WP_Error object on failure or if the
+ *                                    template doesn't exist.
+ */
+function unregister_block_template( $template_name ) {
+	return WP_Block_Templates_Registry::get_instance()->unregister( $template_name );
 }

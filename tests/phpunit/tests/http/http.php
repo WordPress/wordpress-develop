@@ -549,7 +549,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				'url' => 'http://[exam]ple.com/caniload.php',
 			),
 			'a host whose IPv4 address cannot be resolved' => array(
-				'url' => 'http://exampleeeee.com/caniload.php',
+				'url' => 'http://example.invalid/caniload.php',
 			),
 			'an external request when not allowed'         => array(
 				'url'           => 'http://192.168.0.1/caniload.php',

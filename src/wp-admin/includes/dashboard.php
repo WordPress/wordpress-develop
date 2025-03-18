@@ -1279,7 +1279,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 			}
 		}
 
-		update_option( 'dashboard_widget_options', $widget_options );
+		update_option( 'dashboard_widget_options', $widget_options, false );
 
 		$locale    = get_user_locale();
 		$cache_key = 'dash_v2_' . md5( $widget_id . '_' . $locale );
@@ -1912,7 +1912,7 @@ function wp_dashboard_php_nag() {
 	<p class="button-container">
 		<?php
 		printf(
-			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+			'<a class="button button-primary" href="%1$s" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 			esc_url( wp_get_update_php_url() ),
 			__( 'Learn more about updating PHP' ),
 			/* translators: Hidden accessibility text. */
@@ -2056,7 +2056,7 @@ function wp_dashboard_empty() {}
  * @since 5.9.0 Send users to the Site Editor if the active theme is block-based.
  */
 function wp_welcome_panel() {
-	list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
+	list( $display_version ) = explode( '-', wp_get_wp_version() );
 	$can_customize           = current_user_can( 'customize' );
 	$is_block_theme          = wp_is_block_theme();
 	?>
@@ -2070,7 +2070,7 @@ function wp_welcome_panel() {
 			<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
 			<?php
 				/* translators: %s: Current WordPress version. */
-				printf( __( 'Learn more about the %s version.' ), $display_version );
+				printf( __( 'Learn more about the %s version.' ), esc_html( $display_version ) );
 			?>
 			</a>
 		</p>
