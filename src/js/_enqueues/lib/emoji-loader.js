@@ -244,6 +244,7 @@
 				 *
 				 * 0xD83D 0xDC26 (\uD83D\uDC26) == 🐦 Bird
 				 * 0x200D                       == Zero-Width Joiner (ZWJ) that links the code points for the new emoji or
+				 * 0x200B                       == Zero-Width Space (ZWS) that is rendered for clients not supporting the new emoji.
 				 * 0xD83D 0xDD25 (\uD83D\uDD25) == 🔥 Fire
 				 *
 				 * When updating this test for future Emoji releases, ensure that individual emoji that make up the
