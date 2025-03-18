@@ -328,6 +328,7 @@ final class WP_Theme implements ArrayAccess {
 			return;
 		} else {
 			$this->headers = get_file_data( $this->theme_root . '/' . $theme_file, self::$file_headers, 'theme' );
+
 			/*
 			 * Default themes always trump their pretenders.
 			 * Properly identify default themes that are inside a directory within wp-content/themes.
@@ -338,7 +339,7 @@ final class WP_Theme implements ArrayAccess {
 			}
 		}
 
-		// Check for circular reference
+		// Check for circular reference.
 		if ( ! $this->template && $this->stylesheet === $this->headers['Template'] ) {
 			$this->set_error(
 				'theme_child_invalid',
@@ -351,12 +352,12 @@ final class WP_Theme implements ArrayAccess {
 			return;
 		}
 
-		// (If template is set from cache [and there are no errors], we know it's good.)
+		// If template is set from cache [and there are no errors], we know it's good.
 		if ( ! $this->template ) {
 			$this->template = $this->headers['Template'];
 		}
 
-		// Handle missing template
+		// Handle missing template.
 		if ( ! $this->template ) {
 			$this->template = $this->stylesheet;
 			$theme_path     = $this->theme_root . '/' . $this->stylesheet;
@@ -380,6 +381,7 @@ final class WP_Theme implements ArrayAccess {
 		if ( ! is_array( $cache )
 			&& $this->template !== $this->stylesheet
 			&& ! file_exists( $this->theme_root . '/' . $this->template . '/index.php' )
+			&& ! $this->is_block_theme()
 		) {
 			/*
 			 * If we're in a directory of themes inside /themes, look for the parent nearby.
@@ -390,7 +392,8 @@ final class WP_Theme implements ArrayAccess {
 			$theme_root_template = null;
 
 			if ( '.' !== $parent_dir
-				&& file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' ) ) {
+				&& file_exists( $this->theme_root . '/' . $parent_dir . '/' . $this->template . '/index.php' )
+			) {
 				$this->template = $parent_dir . '/' . $this->template;
 			} elseif ( $directories && isset( $directories[ $this->template ] ) ) {
 				/*
@@ -400,10 +403,10 @@ final class WP_Theme implements ArrayAccess {
 				$theme_root_template = $directories[ $this->template ]['theme_root'];
 			} else {
 				// Parent theme is missing.
-				$this->errors = new WP_Error(
+				$this->set_error(
 					'theme_no_parent',
 					sprintf(
-						// translators: %s: Theme directory name.
+						/* translators: %s: Theme directory name. */
 						__( 'The parent theme is missing. Please install the "%s" parent theme.' ),
 						esc_html( $this->template )
 					)
@@ -447,7 +450,7 @@ final class WP_Theme implements ArrayAccess {
 			$this->parent      = new WP_Theme( $this->template, $parent_theme_root, $this );
 		}
 
-		// Check if theme is paused
+		// Check if theme is paused.
 		if ( wp_paused_themes()->get( $this->stylesheet ) && ( ! is_wp_error( $this->errors ) || ! isset( $this->errors->errors['theme_paused'] ) ) ) {
 			$this->errors = new WP_Error( 'theme_paused', __( 'This theme failed to load properly and was paused within the admin backend.' ) );
 		}
@@ -474,7 +477,7 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Cache the theme data.
 	 *
-	 * since 6.8.0
+	 * @since 6.8.0
 	 *
 	 * @param array $additional_data Additional data to cache.
 	 * @return void
@@ -499,7 +502,7 @@ final class WP_Theme implements ArrayAccess {
 	/**
 	 * Set an error for the theme.
 	 *
-	 * since 6.8.0
+	 * @since 6.8.0
 	 *
 	 * @param string $code The error code.
 	 * @param string $message The error message.
@@ -508,7 +511,6 @@ final class WP_Theme implements ArrayAccess {
 	private function set_error( $code, $message ) {
 		$this->errors = new WP_Error( $code, $message );
 		$this->cache_theme_data();
-		return;
 	}
 
 	/**
