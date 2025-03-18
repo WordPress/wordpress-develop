@@ -776,7 +776,7 @@ function wp_default_scripts( $scripts ) {
 		 *      @type string $changeit    The new role field name. Default 'new_role'.
 		 * }
 		 */
-		apply_filters( 'buld_field_relations', $bulk_field_relations )
+		apply_filters( 'bulk_field_relations', $bulk_field_relations )
 	);
 
 	$scripts->add( 'wp-sanitize', "/wp-includes/js/wp-sanitize$suffix.js", array(), false, 1 );
