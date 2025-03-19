@@ -327,6 +327,15 @@ input[type="radio"].disabled:checked:before {
 	background-size: 16px 16px;
 	cursor: pointer;
 	vertical-align: middle;
+	appearance: base-select; /*Customizable select support.*/
+}
+
+::picker(select) {
+  appearance: base-select;
+}
+
+.wp-core-ui select::picker-icon {
+  display: none;
 }
 
 .wp-core-ui select:hover {
