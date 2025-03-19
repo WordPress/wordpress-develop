@@ -43,15 +43,20 @@ function render_block_core_rss( $attributes ) {
 		}
 		$title = "<div class='wp-block-rss__item-title'>{$title}</div>";
 
-		$date = '';
-		if ( $attributes['displayDate'] ) {
-			$date = $item->get_date( 'U' );
+		$date_markup = '';
+		if ( ! empty( $attributes['displayDate'] ) ) {
+			$timestamp = $item->get_date( 'U' );
 
-			if ( $date ) {
-				$date = sprintf(
+			if ( $timestamp ) {
+				$gmt_offset = get_option( 'gmt_offset' );
+				if ( is_numeric( $gmt_offset ) ) {
+					$timestamp += (int) ( (float) $gmt_offset * HOUR_IN_SECONDS );
+				}
+
+				$date_markup = sprintf(
 					'<time datetime="%1$s" class="wp-block-rss__item-publish-date">%2$s</time> ',
-					esc_attr( date_i18n( 'c', $date ) ),
-					esc_attr( date_i18n( get_option( 'date_format' ), $date ) )
+					esc_attr( date_i18n( 'c', $timestamp ) ),
+					esc_html( date_i18n( get_option( 'date_format' ), $timestamp ) )
 				);
 			}
 		}
@@ -85,7 +90,7 @@ function render_block_core_rss( $attributes ) {
 			$excerpt = '<div class="wp-block-rss__item-excerpt">' . esc_html( $excerpt ) . '</div>';
 		}
 
-		$list_items .= "<li class='wp-block-rss__item'>{$title}{$date}{$author}{$excerpt}</li>";
+		$list_items .= "<li class='wp-block-rss__item'>{$title}{$date_markup}{$author}{$excerpt}</li>";
 	}
 
 	$classnames = array();
