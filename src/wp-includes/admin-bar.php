@@ -757,7 +757,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 			)
 		);
 	}
-	
+
 	// Restore the original site state once after processing all blogs.
 	restore_site_state( $original_state );
 }

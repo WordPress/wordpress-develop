@@ -196,7 +196,7 @@ function wpmu_delete_user( $id ) {
 				}
 			}
 		}
-		
+
 		// Restore the original site state once after processing all sites.
 		restore_site_state( $original_state );
 	}
