@@ -141,7 +141,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 			if ( ! button.model || ! button.options || ! button.options.requires ) {
 				return;
 			}
-			console.log('requires');
+
 			var requires = button.options.requires,
 				disabled = false,
 				modelsUploading = library && ! _.isEmpty( library.findWhere( { 'uploading': true } ) );
