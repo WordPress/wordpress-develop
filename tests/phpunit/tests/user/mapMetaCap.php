@@ -457,4 +457,43 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 			array( 'assign_term' ),
 		);
 	}
+
+	/**
+	 * Test that delete_private_posts capability is required for author's own private posts.
+	 *
+	 * @ticket 38997
+	 */
+	public function test_delete_private_posts_required_for_own_posts() {
+		register_post_type(
+			self::$post_type,
+			array(
+				'capability_type' => 'post',
+				'map_meta_cap'    => true,
+			)
+		);
+
+		$own_private_post_id = self::factory()->post->create(
+			array(
+				'post_type'   => self::$post_type,
+				'post_status' => 'private',
+				'post_author' => self::$user_id,
+			)
+		);
+
+		$required_caps = map_meta_cap( 'delete_post', self::$user_id, $own_private_post_id );
+		$this->assertContains( 'delete_private_posts', $required_caps, 'delete_private_posts capability should be required to delete own private posts' );
+
+		$trashed_private_post_id = self::factory()->post->create(
+			array(
+				'post_type'   => self::$post_type,
+				'post_status' => 'trash',
+				'post_author' => self::$user_id,
+			)
+		);
+
+		update_post_meta( $trashed_private_post_id, '_wp_trash_meta_status', 'private' );
+
+		$required_caps = map_meta_cap( 'delete_post', self::$user_id, $trashed_private_post_id );
+		$this->assertContains( 'delete_private_posts', $required_caps, 'delete_private_posts capability should be required to delete own trashed private posts' );
+	}
 }
