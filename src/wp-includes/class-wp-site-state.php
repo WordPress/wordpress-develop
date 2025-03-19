@@ -81,7 +81,7 @@ class WP_Site_State {
 		$blog_id      = $this->site_id;
 
 		if ( function_exists( 'wp_cache_switch_to_blog' ) ) {
-			wp_cache_switch_to_blog( $this->site_id );
+			wp_cache_switch_to_blog( $blog_id );
 		}
 
 		// Restore the switched stack and state.
@@ -99,7 +99,7 @@ class WP_Site_State {
 		 * @param string $context      Additional context. Accepts 'switch' when called from switch_to_blog()
 		 *                             or 'restore' when called from restore_current_blog().
 		 */
-		do_action( 'switch_blog', $this->site_id, $current_blog_id, 'restore_state' );
+		do_action( 'switch_blog', $blog_id, $current_blog_id, 'restore_state' );
 
 		return true;
 	}

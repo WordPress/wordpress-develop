@@ -982,7 +982,6 @@ function wp_count_sites( $network_id = null ) {
  * @return WP_Site_State A snapshot of the current site state.
  */
 function get_site_state() {
-	require_once ABSPATH . WPINC . '/class-wp-site-state.php';
 	return new WP_Site_State();
 }
 
