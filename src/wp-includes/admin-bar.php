@@ -672,6 +672,9 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	 */
 	$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
 
+	// Store the current site state before iterating through user blogs.
+	$original_state = get_site_state();
+
 	foreach ( (array) $wp_admin_bar->user->blogs as $blog ) {
 		switch_to_blog( $blog->userblog_id );
 
@@ -753,9 +756,10 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 				'href'   => home_url( '/' ),
 			)
 		);
-
-		restore_current_blog();
 	}
+	
+	// Restore the original site state once after processing all blogs.
+	restore_site_state( $original_state );
 }
 
 /**
