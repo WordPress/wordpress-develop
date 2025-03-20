@@ -1715,7 +1715,7 @@ function do_robots() {
 	do_action( 'do_robotstxt' );
 
 	$output = "User-agent: *\n";
-	$public = get_option( 'blog_public' );
+	$public = (bool) get_option( 'blog_public' );
 
 	$site_url = parse_url( site_url() );
 	$path     = ( ! empty( $site_url['path'] ) ) ? $site_url['path'] : '';
@@ -3124,13 +3124,13 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			$mime_to_ext = apply_filters(
 				'getimagesize_mimes_to_exts',
 				array(
-					'image/jpeg' => 'jpg',
-					'image/png'  => 'png',
-					'image/gif'  => 'gif',
-					'image/bmp'  => 'bmp',
-					'image/tiff' => 'tif',
-					'image/webp' => 'webp',
-					'image/avif' => 'avif',
+					'image/jpeg'          => 'jpg',
+					'image/png'           => 'png',
+					'image/gif'           => 'gif',
+					'image/bmp'           => 'bmp',
+					'image/tiff'          => 'tif',
+					'image/webp'          => 'webp',
+					'image/avif'          => 'avif',
 
 					/*
 					 * In theory there are/should be file extensions that correspond to the
@@ -3138,8 +3138,8 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					 * with any of the mime types commonly have a .heic file extension.
 					 * Seems keeping the status quo here is best for compatibility.
 					 */
-					'image/heic' => 'heic',
-					'image/heif' => 'heic',
+					'image/heic'          => 'heic',
+					'image/heif'          => 'heic',
 					'image/heic-sequence' => 'heic',
 					'image/heif-sequence' => 'heic',
 				)
@@ -3672,7 +3672,7 @@ function get_allowed_mime_types( $user = null ) {
  */
 function wp_nonce_ays( $action ) {
 	// Default title and response code.
-	$title         = __( 'Something went wrong.' );
+	$title         = __( 'An error occurred.' );
 	$response_code = 403;
 
 	if ( 'log-out' === $action ) {
@@ -6273,7 +6273,7 @@ function validate_file( $file, $allowed_files = array() ) {
  *
  * @since 2.6.0
  *
- * @param string|bool $force Optional. Whether to force SSL in admin screens. Default null.
+ * @param string|bool|null $force Optional. Whether to force SSL in admin screens. Default null.
  * @return bool True if forced, false if not forced.
  */
 function force_ssl_admin( $force = null ) {
@@ -6281,7 +6281,7 @@ function force_ssl_admin( $force = null ) {
 
 	if ( ! is_null( $force ) ) {
 		$old_forced = $forced;
-		$forced     = $force;
+		$forced     = (bool) $force;
 		return $old_forced;
 	}
 
@@ -9113,4 +9113,94 @@ function wp_is_heic_image_mime_type( $mime_type ) {
 	);
 
 	return in_array( $mime_type, $heic_mime_types, true );
+}
+
+/**
+ * Returns a cryptographically secure hash of a message using a fast generic hash function.
+ *
+ * Use the wp_verify_fast_hash() function to verify the hash.
+ *
+ * This function does not salt the value prior to being hashed, therefore input to this function must originate from
+ * a random generator with sufficiently high entropy, preferably greater than 128 bits. This function is used internally
+ * in WordPress to hash security keys and application passwords which are generated with high entropy.
+ *
+ * Important:
+ *
+ *  - This function must not be used for hashing user-generated passwords. Use wp_hash_password() for that.
+ *  - This function must not be used for hashing other low-entropy input. Use wp_hash() for that.
+ *
+ * The BLAKE2b algorithm is used by Sodium to hash the message.
+ *
+ * @since 6.8.0
+ *
+ * @throws TypeError Thrown by Sodium if the message is not a string.
+ *
+ * @param string $message The message to hash.
+ * @return string The hash of the message.
+ */
+function wp_fast_hash(
+	#[\SensitiveParameter]
+	string $message
+): string {
+	$hashed = sodium_crypto_generichash( $message, 'wp_fast_hash_6.8+', 30 );
+	return '$generic$' . sodium_bin2base64( $hashed, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING );
+}
+
+/**
+ * Checks whether a plaintext message matches the hashed value. Used to verify values hashed via wp_fast_hash().
+ *
+ * The function uses Sodium to hash the message and compare it to the hashed value. If the hash is not a generic hash,
+ * the hash is treated as a phpass portable hash in order to provide backward compatibility for application passwords
+ * which were hashed using phpass prior to WordPress 6.8.0.
+ *
+ * @since 6.8.0
+ *
+ * @throws TypeError Thrown by Sodium if the message is not a string.
+ *
+ * @param string $message The plaintext message.
+ * @param string $hash    Hash of the message to check against.
+ * @return bool Whether the message matches the hashed message.
+ */
+function wp_verify_fast_hash(
+	#[\SensitiveParameter]
+	string $message,
+	string $hash
+): bool {
+	if ( ! str_starts_with( $hash, '$generic$' ) ) {
+		// Back-compat for old phpass hashes.
+		require_once ABSPATH . WPINC . '/class-phpass.php';
+		return ( new PasswordHash( 8, true ) )->CheckPassword( $message, $hash );
+	}
+
+	return hash_equals( $hash, wp_fast_hash( $message ) );
+}
+
+/**
+ * Generates a unique ID based on the structure and values of a given array.
+ *
+ * This function serializes the array into a JSON string and generates a hash
+ * that serves as a unique identifier. Optionally, a prefix can be added to
+ * the generated ID for context or categorization.
+ *
+ * @since 6.8.0
+ *
+ * @param array  $data   The input array to generate an ID from.
+ * @param string $prefix Optional. A prefix to prepend to the generated ID. Default ''.
+ *
+ * @return string The generated unique ID for the array.
+ */
+function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
+	if ( empty( $data ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				__( 'The $data argument must not be empty.' ),
+				gettype( $data )
+			),
+			'6.8.0'
+		);
+	}
+	$serialized = wp_json_encode( $data );
+	$hash       = substr( md5( $serialized ), 0, 8 );
+	return $prefix . $hash;
 }

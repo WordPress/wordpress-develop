@@ -203,7 +203,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 19, $settings );
+		$this->assertCount( 20, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertIsArray( $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
@@ -299,6 +299,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			$settings['imageSizes']
 		);
 		$this->assertIsInt( $settings['maxUploadFileSize'] );
+		$this->assertSame( admin_url( '/' ), $settings['__experimentalDashboardLink'] );
 		$this->assertTrue( $settings['__unstableGalleryWithImageBlocks'] );
 	}
 
