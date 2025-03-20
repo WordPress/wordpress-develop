@@ -22,19 +22,8 @@ class Tests_Blocks_RenderRssBlock extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		add_filter( 'wp_feed_cache_transient_lifetime', array( $this, 'return_zero_feed_cache' ) );
+		add_filter( 'wp_feed_cache_transient_lifetime', '__return_zero' );
 		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
-	}
-
-	/**
-	 * Set feed cache to zero to prevent caching interfering with tests.
-	 *
-	 * @ticket 62400
-	 *
-	 * @return int Zero value.
-	 */
-	public function return_zero_feed_cache() {
-		return 0;
 	}
 
 	/**
@@ -57,7 +46,7 @@ class Tests_Blocks_RenderRssBlock extends WP_UnitTestCase {
 				'content-type' => 'application/rss+xml; charset=UTF-8',
 			),
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			'body'     => file_get_contents( DIR_TESTDATA . '/feed/Rss_Block_Test.xml' ),
+			'body'     => file_get_contents( DIR_TESTDATA . '/feed/feed-with-gmt-offset.xml' ),
 			'response' => array(
 				'code'    => 200,
 				'message' => 'OK',
