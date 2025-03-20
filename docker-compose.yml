@@ -123,6 +123,20 @@ services:
         condition: service_healthy
 
   ##
+  # The MailHog container.
+  ##
+  mailhog:
+    container_name: mailhog
+    image: mailhog/mailhog
+    logging:
+      driver: 'none'
+    ports:
+      - 1025:1025  # smtp server
+      - 8025:8025  # web ui
+    networks:
+      - wpdevnet
+
+  ##
   # The Memcached container.
   ##
   memcached:
