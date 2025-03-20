@@ -49,9 +49,7 @@ function render_block_core_rss( $attributes ) {
 
 			if ( $timestamp ) {
 				$gmt_offset = get_option( 'gmt_offset' );
-				if ( is_numeric( $gmt_offset ) ) {
-					$timestamp += (int) ( (float) $gmt_offset * HOUR_IN_SECONDS );
-				}
+				$timestamp += (int) ( (float) $gmt_offset * HOUR_IN_SECONDS );
 
 				$date_markup = sprintf(
 					'<time datetime="%1$s" class="wp-block-rss__item-publish-date">%2$s</time> ',
