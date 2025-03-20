@@ -403,7 +403,7 @@ mockedApiResponse.Schema = {
                                 "slug",
                                 "include_slugs",
                                 "title",
-	                            "comment_count",
+	                            "comment_count"
                             ],
                             "required": false
                         },
