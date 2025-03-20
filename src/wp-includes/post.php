@@ -7423,7 +7423,7 @@ function get_posts_by_author_sql( $post_type, $full = true, $post_author = null,
 
 	$sql = '( ' . implode( ' OR ', $post_type_clauses ) . ' )';
 
-	if ( null !== $post_author ) {
+	if ( is_numeric( $post_author ) ) {
 		$sql .= $wpdb->prepare( ' AND post_author = %d', $post_author );
 	}
 
@@ -7673,6 +7673,7 @@ function clean_post_cache( $post ) {
 	}
 
 	wp_cache_set_posts_last_changed();
+	wp_cache_set_last_changed( 'post_author:' . $post->post_author );
 }
 
 /**
