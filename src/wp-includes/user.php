@@ -2016,7 +2016,7 @@ function clean_user_cache( $user ) {
 	wp_cache_delete( $user->ID, 'users' );
 	wp_cache_delete( $user->user_login, 'userlogins' );
 	wp_cache_delete( $user->user_nicename, 'userslugs' );
-	wp_cache_delete( 'last_changed', 'post_author:' . $user->ID );
+	clean_post_author_cache( $user->ID );
 
 	if ( ! empty( $user->user_email ) ) {
 		wp_cache_delete( $user->user_email, 'useremail' );

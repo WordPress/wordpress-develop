@@ -4980,6 +4980,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	clean_post_cache( $post_id );
 
 	$post = get_post( $post_id );
+	clean_post_author_cache( $post->post_author );
 
 	if ( ! empty( $postarr['page_template'] ) ) {
 		$post->page_template = $postarr['page_template'];
@@ -7673,7 +7674,18 @@ function clean_post_cache( $post ) {
 	}
 
 	wp_cache_set_posts_last_changed();
-	wp_cache_set_last_changed( 'post_author:' . $post->post_author );
+	clean_post_author_cache( $post->post_author );
+}
+
+/**
+ * Will clean the post author in the cache.
+ *
+ * @since 6.8.0
+ *
+ * @param int $user_id User ID.
+ */
+function clean_post_author_cache( $user_id ) {
+	wp_cache_delete( 'last_changed', 'post_author:' . $user_id );
 }
 
 /**
