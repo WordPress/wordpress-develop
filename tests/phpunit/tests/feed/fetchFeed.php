@@ -1,14 +1,16 @@
 <?php
 /**
- * Tests the `fetch_feed` function.
+ * Tests for the fetch_feed() function.
  *
  * @package WordPress
  * @subpackage UnitTests
  * @since 6.7.0
  *
  * @group feed
+ *
+ * @covers ::fetch_feed
  */
-class Tests_Feed_fetchFeed extends WP_UnitTestCase {
+class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();

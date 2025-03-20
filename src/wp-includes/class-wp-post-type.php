@@ -114,6 +114,16 @@ final class WP_Post_Type {
 	public $publicly_queryable = null;
 
 	/**
+	 * Whether this post type is embeddable.
+	 *
+	 * Default is the value of $public.
+	 *
+	 * @since 6.8.0
+	 * @var bool $embeddable
+	 */
+	public $embeddable = null;
+
+	/**
 	 * Whether to generate and allow a UI for managing this post type in the admin.
 	 *
 	 * Default is the value of $public.
@@ -521,6 +531,7 @@ final class WP_Post_Type {
 			'hierarchical'                    => false,
 			'exclude_from_search'             => null,
 			'publicly_queryable'              => null,
+			'embeddable'                      => null,
 			'show_ui'                         => null,
 			'show_in_menu'                    => null,
 			'show_in_nav_menus'               => null,
@@ -563,6 +574,11 @@ final class WP_Post_Type {
 		// If not set, default to the setting for 'public'.
 		if ( null === $args['show_ui'] ) {
 			$args['show_ui'] = $args['public'];
+		}
+
+		// If not set, default to the setting for 'public'.
+		if ( null === $args['embeddable'] ) {
+			$args['embeddable'] = $args['public'];
 		}
 
 		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
@@ -973,8 +989,8 @@ final class WP_Post_Type {
 		self::$default_labels = array(
 			'name'                     => array( _x( 'Posts', 'post type general name' ), _x( 'Pages', 'post type general name' ) ),
 			'singular_name'            => array( _x( 'Post', 'post type singular name' ), _x( 'Page', 'post type singular name' ) ),
-			'add_new'                  => array( __( 'Add New' ), __( 'Add New' ) ),
-			'add_new_item'             => array( __( 'Add New Post' ), __( 'Add New Page' ) ),
+			'add_new'                  => array( __( 'Add' ), __( 'Add' ) ),
+			'add_new_item'             => array( __( 'Add Post' ), __( 'Add Page' ) ),
 			'edit_item'                => array( __( 'Edit Post' ), __( 'Edit Page' ) ),
 			'new_item'                 => array( __( 'New Post' ), __( 'New Page' ) ),
 			'view_item'                => array( __( 'View Post' ), __( 'View Page' ) ),

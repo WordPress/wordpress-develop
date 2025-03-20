@@ -49,7 +49,7 @@ jobs:
   # Runs the PHP coding standards checks.
   phpcs:
     name: PHP coding standards
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-php.yml@trunk
+    uses: ./.github/workflows/reusable-coding-standards-php.yml
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -57,14 +57,14 @@ jobs:
   # Runs the JavaScript coding standards checks.
   jshint:
     name: JavaScript coding standards
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-javascript.yml@trunk
+    uses: ./.github/workflows/reusable-coding-standards-javascript.yml
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
@@ -80,7 +80,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ phpcs, jshint, slack-notifications ]
@@ -107,6 +107,6 @@ jobs:
               workflow_id: 'failed-workflow.yml',
               ref: 'trunk',
               inputs: {
-                run_id: '${{ github.run_id }}'
+                run_id: `${context.runId}`,
               }
             });
