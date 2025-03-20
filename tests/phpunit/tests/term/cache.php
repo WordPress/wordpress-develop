@@ -506,7 +506,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 */
 	public function test_bypass_term_cache_suspension_filter() {
 		$parent_term = self::factory()->term->create( array( 'taxonomy' => 'category' ) );
-		$child_term = self::factory()->term->create(
+		$child_term  = self::factory()->term->create(
 			array(
 				'taxonomy' => 'category',
 				'parent'   => $parent_term,
@@ -514,7 +514,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		);
 
 		$initial_hierarchy = _get_term_hierarchy( 'category' );
-		$original_option = get_option( 'category_children' );
+		$original_option   = get_option( 'category_children' );
 		wp_suspend_cache_invalidation( true );
 
 		clean_term_cache( array( $parent_term, $child_term ), 'category' );
@@ -524,14 +524,14 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		clean_term_cache( array( $parent_term, $child_term ), 'category' );
 
 		delete_option( 'category_children' );
-		
+
 		$this->assertNotSame( $original_option, get_option( 'category_children' ), 'Term hierarchy should be cleared when bypass filter is active' );
-		
+
 		remove_filter( 'bypass_term_cache_suspension', '__return_true' );
-		
+
 		wp_suspend_cache_invalidation( false );
 	}
-	
+
 	/**
 	 * Test that filter parameters are correctly passed to the bypass_term_cache_suspension filter.
 	 *
@@ -539,31 +539,34 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	 */
 	public function test_bypass_term_cache_suspension_filter_args() {
 		$term_id = self::factory()->term->create( array( 'taxonomy' => 'category' ) );
-		
-		$received_ids = null;
-		$received_taxonomy = null;
+
+		$received_ids            = null;
+		$received_taxonomy       = null;
 		$received_clean_taxonomy = null;
-		
+
 		wp_suspend_cache_invalidation( true );
 		wp_suspend_cache_invalidation( true );
-		
+
 		// Add filter to capture arguments.
-		add_filter( 'bypass_term_cache_suspension', function( $bypass, $ids, $taxonomy, $clean_taxonomy ) 
-			use ( &$received_ids, &$received_taxonomy, &$received_clean_taxonomy ) {
-			$received_ids = $ids;
-			$received_taxonomy = $taxonomy;
-			$received_clean_taxonomy = $clean_taxonomy;
-			return false;
-		}, 10, 4 );
+		add_filter(
+			'bypass_term_cache_suspension',
+			function ( $bypass, $ids, $taxonomy, $clean_taxonomy ) use ( &$received_ids, &$received_taxonomy, &$received_clean_taxonomy ) {
+				$received_ids            = $ids;
+				$received_taxonomy       = $taxonomy;
+				$received_clean_taxonomy = $clean_taxonomy;
+				return false;
+			},
+			10,
+			4
+		);
 
 		clean_term_cache( $term_id, 'category', false );
 
 		$this->assertEquals( array( $term_id ), (array) $received_ids, 'IDs parameter should be properly passed to filter' );
 		$this->assertSame( 'category', $received_taxonomy, 'Taxonomy parameter should be properly passed to filter' );
 		$this->assertFalse( $received_clean_taxonomy, 'Clean taxonomy parameter should be properly passed to filter' );
-		
-		remove_filter( 'bypass_term_cache_suspension', function( $bypass, $ids, $taxonomy, $clean_taxonomy ) {}, 10 );
+
+		remove_filter( 'bypass_term_cache_suspension', function ( $bypass, $ids, $taxonomy, $clean_taxonomy ) {}, 10 );
 		wp_suspend_cache_invalidation( false );
 	}
-	
 }
