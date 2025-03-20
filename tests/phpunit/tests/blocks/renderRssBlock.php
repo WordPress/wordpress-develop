@@ -56,6 +56,7 @@ class Tests_Blocks_RenderRssBlock extends WP_UnitTestCase {
 			'headers'  => array(
 				'content-type' => 'application/rss+xml; charset=UTF-8',
 			),
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			'body'     => file_get_contents( DIR_TESTDATA . '/feed/Rss_Block_Test.xml' ),
 			'response' => array(
 				'code'    => 200,
