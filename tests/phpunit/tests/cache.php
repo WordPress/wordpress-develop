@@ -491,4 +491,58 @@ class Tests_Cache extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $found );
 	}
+
+	/**
+	 * Test that wp_flush_all_caches() flushes both object cache and persistent caches.
+	 *
+	 * @ticket 39382
+	 * @covers ::wp_flush_all_caches
+	 */
+	public function test_wp_flush_all_caches() {
+		$key = 'test-key';
+		$val = 'test-value';
+		wp_cache_set( $key, $val, 'test-group' );
+
+		$this->assertSame( $val, wp_cache_get( $key, 'test-group' ), 'Object should be in cache before flush' );
+
+		register_taxonomy( 'test_taxonomy', 'post' );
+		$parent_term = self::factory()->term->create( array( 'taxonomy' => 'test_taxonomy' ) );
+		$child_term  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'test_taxonomy',
+				'parent'   => $parent_term,
+			)
+		);
+
+		// Force the hierarchy to be cached in options table.
+		_get_term_hierarchy( 'test_taxonomy' );
+
+		// Manually set up the option to ensure it exists.
+		$children = array( $parent_term => array( $child_term ) );
+		update_option( 'test_taxonomy_children', $children );
+
+		$this->assertNotEmpty( get_option( 'test_taxonomy_children' ), 'Term hierarchy should be stored in options' );
+
+		$action_fired = false;
+		add_action(
+			'wp_flush_all_caches',
+			function () use ( &$action_fired ) {
+				$action_fired = true;
+			}
+		);
+
+		$result = wp_flush_all_caches();
+
+		$this->assertNotSame( $val, wp_cache_get( $key, 'test-group' ), 'Object should not be in cache after flush' );
+		$this->assertEmpty( get_option( 'test_taxonomy_children' ), 'Term hierarchy should be cleared from options' );
+		$this->assertTrue( $action_fired, 'The wp_flush_all_caches action should be fired' );
+
+		if ( wp_using_ext_object_cache() ) {
+			$this->assertSame( $result, wp_cache_flush() );
+		} else {
+			$this->assertTrue( $result, 'Function should return true for internal cache' );
+		}
+
+		unregister_taxonomy( 'test_taxonomy' );
+	}
 }
