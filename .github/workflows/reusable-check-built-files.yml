@@ -147,8 +147,8 @@ jobs:
       - name: Configure git user name and email
         if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
         run: |
-          git config user.name "dependabot[bot]"
-          git config user.email 49699333+dependabot[bot]@users.noreply.github.com
+          git config user.name "wordpress-develop-pr-bot[bot]"
+          git config user.email ${{ secrets.GH_APP_ID }}+wordpress-develop-pr-bot[bot]@users.noreply.github.com
 
       - name: Stage changes
         if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
