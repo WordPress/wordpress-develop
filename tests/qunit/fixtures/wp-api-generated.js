@@ -402,7 +402,8 @@ mockedApiResponse.Schema = {
                                 "relevance",
                                 "slug",
                                 "include_slugs",
-                                "title"
+                                "title",
+	                            "comment_count",
                             ],
                             "required": false
                         },
