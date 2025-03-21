@@ -1,0 +1,126 @@
+# Commits all missed changes to built files back to pull request branches.
+name: Commit Built File Changes (PRs)
+
+on:
+  workflow_run:
+    workflows: [ 'Check Built Files (PRs)' ]
+    types:
+      - completed
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_run' && format( '{0}-{1}', github.event.workflow_run.head_branch, github.event.workflow_run.head_repository.name ) || github.sha }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Checks a PR for uncommitted changes to built files.
+  #
+  # Performs the following steps:
+  # - Attempts to download the artifact containing the PR diff.
+  # - Checks for the existence of an artifact.
+  # - Unzips the artifact.
+  # - Checks out the repository.
+  # - Applies the patch file.
+  # - Displays the result of git diff.
+  # - Configures the Git author.
+  # - Stages changes.
+  # - Commits changes.
+  # - Pushes changes.
+  update-built-files:
+    name: Check and update built files
+    runs-on: ubuntu-24.04
+    if: ${{ github.repository == 'wordpress/wordpress-develop' }}
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifact
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts( {
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: process.env.RUN_ID,
+            } );
+
+            const matchArtifact = artifacts.data.artifacts.filter( ( artifact ) => {
+              return artifact.name === 'pr-built-file-changes'
+            } )[0];
+
+            if ( ! matchArtifact ) {
+              core.info( 'No artifact found!' );
+              return;
+            }
+
+            const download = await github.rest.actions.downloadArtifact( {
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            } );
+
+            const fs = require( 'fs' );
+            fs.writeFileSync( '${{ github.workspace }}/pr-built-file-changes.zip', Buffer.from( download.data ) )
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+
+      - name: Check for artifact
+        id: artifact-check
+        run: |
+          if [ -f "pr-built-file-changes.zip" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Unzip the artifact containing the PR data
+        if: ${{ steps.artifact-check.outputs.exists == 'true' }}
+        run: unzip pr-built-file-changes.zip
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        if: ${{ steps.artifact-check.outputs.exists == 'true' }}
+        with:
+          repository: ${{ github.event.workflow_run.repository.full_name }}
+          ref: ${{ github.event.workflow_run.head_branch }}
+          path: 'pr-repo'
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Apply patch
+        if: ${{ steps.artifact-check.outputs.exists == 'true' }}
+        working-directory: 'pr-repo'
+        run: git apply ${{ github.workspace }}/changes.diff
+
+      - name: Display changes to versioned files
+        if: ${{ steps.artifact-check.outputs.exists == 'true' }}
+        working-directory: 'pr-repo'
+        run: git diff
+
+      - name: Configure git user name and email
+        if: ${{ steps.artifact-check.outputs.exists == 'true' }}
+        working-directory: 'pr-repo'
+        run: |
+          git config user.name "WordPress Build Script Bot[bot]"
+          git config user.email wordpress@users.noreply.github.com
+
+      - name: Stage changes
+        if: ${{ steps.artifact-check.outputs.exists == 'true' }}
+        working-directory: 'pr-repo'
+        run: git add .
+
+      - name: Commit changes
+        if: ${{ steps.artifact-check.outputs.exists == 'true' }}
+        working-directory: 'pr-repo'
+        run: |
+          git commit -m "Automation: Updating built files with changes. [dependabot skip]"
+
+      - name: Push changes
+        if: ${{ steps.artifact-check.outputs.exists == 'true' }}
+        working-directory: 'pr-repo'
+        run: git push

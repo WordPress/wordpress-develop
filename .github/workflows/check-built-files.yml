@@ -1,12 +1,12 @@
-# Checks for uncommitted changes to built files and pushes changes back.
-name: Check built files
+# Checks for uncommitted changes to built files in pull requests.
+name: Check Built Files (PRs)
 
 on:
   # Because all commits happen through SVN and should always be manually reviewed by a committer, this workflow only
   # runs for pull requests.
   #
-  # Other workflows that run on push will detect changes to versioned files and fail.
-  pull_request_target:
+  # Other workflows that run for the push event will detect changes to versioned files and fail.
+  pull_request:
     branches:
       - trunk
       - '6.[8-9]'
@@ -31,7 +31,7 @@ on:
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
   # or the commit hash for any other events.
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.head_ref || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
 # Disable permissions for all available scopes by default.
@@ -39,13 +39,8 @@ concurrency:
 permissions: {}
 
 jobs:
-  update-built-files:
-    name: Update built files
-    permissions:
-      contents: write
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
-    # This should always reference a version of the workflow committed through SVN and never a local reference.
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-check-built-files.yml@trunk
-    secrets:
-      GH_APP_ID: ${{ secrets.GH_PR_MANAGEMENT_APP_ID }}
-      GH_APP_PRIVATE_KEY: ${{ secrets.GH_PR_MANAGEMENT_APP_PRIVATE_KEY }}
+  check-for-built-file-changes:
+    name: Check built files
+    # This prevents an unnecessary second run after changes are committed back because Dependabot always rebases and force pushes.
+    if: ${{ github.repository == 'wordpress/wordpress-develop' && ( github.actor != 'dependabot[bot]' || github.event.commits < 2 ) }}
+    uses: ./.github/workflows/reusable-check-built-files.yml

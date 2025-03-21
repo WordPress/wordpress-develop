@@ -18,6 +18,20 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public $custom_logo_id;
 	public $custom_logo_url;
 
+	/**
+	 * Blog page used by aria tests.
+	 *
+	 * @var int
+	 */
+	public static $blog_page_id;
+
+	/**
+	 * Home page used by aria tests.
+	 *
+	 * @var int
+	 */
+	public static $home_page_id;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		/*
 		 * Declare theme support for custom logo.
@@ -33,6 +47,22 @@ class Tests_General_Template extends WP_UnitTestCase {
 		 *     remove_filter( 'pre_set_theme_mod_custom_logo', '_sync_custom_logo_to_site_logo' );
 		 */
 		add_theme_support( 'custom-logo' );
+
+		self::$blog_page_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Blog',
+				'page_name'  => 'blog',
+			)
+		);
+
+		self::$home_page_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Home',
+				'page_name'  => 'home',
+			)
+		);
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -520,6 +550,139 @@ class Tests_General_Template extends WP_UnitTestCase {
 		restore_current_blog();
 
 		$this->assertSame( $expected, $result );
+	}
+
+	/**
+	 * Test the aria attribute for the custom logo on the front page set to the blog.
+	 *
+	 * @ticket 62879
+	 *
+	 * @covers ::get_custom_logo
+	 *
+	 * @dataProvider data_get_custom_logo_aria_current_attribute_blog_front_page
+	 *
+	 * @param string $url                The URL to visit.
+	 * @param bool   $attribute_expected Whether the aria-current attribute is expected.
+	 */
+	public function test_get_custom_logo_aria_current_attribute_blog_front_page( $url, $attribute_expected ) {
+		// Set the custom logo.
+		$this->set_custom_logo();
+		$this->go_to( $url );
+
+		$this->assertNotEmpty( get_custom_logo(), 'Custom logo is expected to be set' );
+
+		if ( $attribute_expected ) {
+			$this->assertStringContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		} else {
+			$this->assertStringNotContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		}
+	}
+
+	/**
+	 * Data provider for the test_get_custom_logo_aria_current_attribute_blog_front_page.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_custom_logo_aria_current_attribute_blog_front_page() {
+		return array(
+			'Front page'  => array( home_url(), true ),
+			'Blog post'   => array( home_url( '/?p=1' ), false ),
+			'Sample page' => array( home_url( '/?page_id=2' ), false ),
+		);
+	}
+
+	/**
+	 * Test the aria attribute for the custom logo on the front page set to the blog.
+	 *
+	 * @ticket 62879
+	 *
+	 * @covers ::get_custom_logo
+	 *
+	 * @dataProvider data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined
+	 * @param string $url                The URL to visit.
+	 * @param bool   $attribute_expected Whether the aria-current attribute is expected.
+	 */
+	public function test_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined( $url, $attribute_expected ) {
+		// Set up pretty permalinks.
+		update_option( 'permalink_structure', '/%postname%/' );
+
+		// Set posts to show on a static page.
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', self::$blog_page_id );
+
+		// Set the custom logo.
+		$this->set_custom_logo();
+		$this->go_to( $url );
+
+		$this->assertNotEmpty( get_custom_logo(), 'Custom logo is expected to be set' );
+
+		if ( $attribute_expected ) {
+			$this->assertStringContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		} else {
+			$this->assertStringNotContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		}
+	}
+
+	/**
+	 * Data provider for the test_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined() {
+		return array(
+			'Front page'  => array( home_url(), true ),
+			'Blog index'  => array( home_url( '/blog/' ), true ),
+			'Blog post'   => array( home_url( '/?p=1' ), false ),
+			'Sample page' => array( home_url( '/?page_id=2' ), false ),
+		);
+	}
+
+	/**
+	 * Test the aria attribute for the custom logo on the front page set to the blog.
+	 *
+	 * @ticket 62879
+	 *
+	 * @covers ::get_custom_logo
+	 *
+	 * @dataProvider data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined
+	 *
+	 * @param string $url                The URL to visit.
+	 * @param bool   $attribute_expected Whether the aria-current attribute is expected.
+	 */
+	public function test_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined( $url, $attribute_expected ) {
+		// Set up pretty permalinks.
+		update_option( 'permalink_structure', '/%postname%/' );
+
+		// Set posts to show on a static page, show static page on front.
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', self::$blog_page_id );
+		update_option( 'page_on_front', self::$home_page_id );
+
+		// Set the custom logo.
+		$this->set_custom_logo();
+		$this->go_to( $url );
+
+		$this->assertNotEmpty( get_custom_logo(), 'Custom logo is expected to be set' );
+
+		if ( $attribute_expected ) {
+			$this->assertStringContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		} else {
+			$this->assertStringNotContainsString( 'aria-current="page"', get_custom_logo(), 'Custom logo is expected to contain aria-current attribute' );
+		}
+	}
+
+	/**
+	 * Data provider for the test_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined() {
+		return array(
+			'Front page'  => array( home_url(), true ),
+			'Blog index'  => array( home_url( '/blog/' ), true ),
+			'Blog post'   => array( home_url( '/?p=1' ), false ),
+			'Sample page' => array( home_url( '/?page_id=2' ), false ),
+		);
 	}
 
 	/**
