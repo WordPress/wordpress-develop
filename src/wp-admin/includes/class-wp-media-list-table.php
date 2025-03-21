@@ -158,7 +158,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			);
 		}
 
-		$type_links['detached'] = '<option value="detached"' . ( $this->detached ? ' selected="selected"' : '' ) . '><span class="dashicons dashicons-no"></span> '. _x( 'Unattached', 'media items' ) . '</option>';
+		$type_links['detached'] = '<option value="detached"' . ( $this->detached ? ' selected="selected"' : '' ) . '><span class="dashicons dashicons-no"></span> ' . _x( 'Unattached', 'media items' ) . '</option>';
 
 		$type_links['mine'] = sprintf(
 			'<option value="mine"%s>%s%s</option>',

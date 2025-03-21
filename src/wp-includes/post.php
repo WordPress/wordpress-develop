@@ -3492,7 +3492,7 @@ function get_post_mime_types() {
 				'Audio <span class="count">(%s)</span>',
 				'Audio <span class="count">(%s)</span>'
 			),
-			'format-audio'
+			'format-audio',
 		),
 		'video'       => array(
 			_x( 'Video', 'file type group' ),
@@ -3512,7 +3512,7 @@ function get_post_mime_types() {
 				'Document <span class="count">(%s)</span>',
 				'Documents <span class="count">(%s)</span>'
 			),
-			'media-document'
+			'media-document',
 		),
 		'spreadsheet' => array(
 			__( 'Spreadsheets' ),
@@ -3522,7 +3522,7 @@ function get_post_mime_types() {
 				'Spreadsheet <span class="count">(%s)</span>',
 				'Spreadsheets <span class="count">(%s)</span>'
 			),
-			'media-spreadsheet'
+			'media-spreadsheet',
 		),
 		'archive'     => array(
 			_x( 'Archives', 'file type group' ),
@@ -3532,7 +3532,7 @@ function get_post_mime_types() {
 				'Archive <span class="count">(%s)</span>',
 				'Archives <span class="count">(%s)</span>'
 			),
-			'archive'
+			'archive',
 		),
 	);
 
