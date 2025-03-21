@@ -3468,6 +3468,7 @@ function wp_count_attachments( $mime_type = '' ) {
  *
  * @since 2.9.0
  * @since 5.3.0 Added the 'Documents', 'Spreadsheets', and 'Archives' mime type groups.
+ * @since n.e.x.t. Added dashicon for each mime type.
  *
  * @return array List of post mime types.
  */
@@ -3481,6 +3482,7 @@ function get_post_mime_types() {
 				'Image <span class="count">(%s)</span>',
 				'Images <span class="count">(%s)</span>'
 			),
+			'image',
 		),
 		'audio'       => array(
 			_x( 'Audio', 'file type group' ),
@@ -3490,6 +3492,7 @@ function get_post_mime_types() {
 				'Audio <span class="count">(%s)</span>',
 				'Audio <span class="count">(%s)</span>'
 			),
+			'audio'
 		),
 		'video'       => array(
 			_x( 'Video', 'file type group' ),
@@ -3499,6 +3502,7 @@ function get_post_mime_types() {
 				'Video <span class="count">(%s)</span>',
 				'Video <span class="count">(%s)</span>'
 			),
+			'video',
 		),
 		'document'    => array(
 			__( 'Documents' ),
@@ -3508,6 +3512,7 @@ function get_post_mime_types() {
 				'Document <span class="count">(%s)</span>',
 				'Documents <span class="count">(%s)</span>'
 			),
+			'document'
 		),
 		'spreadsheet' => array(
 			__( 'Spreadsheets' ),
@@ -3517,6 +3522,7 @@ function get_post_mime_types() {
 				'Spreadsheet <span class="count">(%s)</span>',
 				'Spreadsheets <span class="count">(%s)</span>'
 			),
+			'spreadsheet'
 		),
 		'archive'     => array(
 			_x( 'Archives', 'file type group' ),
@@ -3526,6 +3532,7 @@ function get_post_mime_types() {
 				'Archive <span class="count">(%s)</span>',
 				'Archives <span class="count">(%s)</span>'
 			),
+			'archive'
 		),
 	);
 
