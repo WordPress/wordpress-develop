@@ -128,7 +128,7 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		// Visit page 2 of the front page
 		$permalink = get_permalink( $page_on_front );
 		$this->go_to( $permalink . 'page/2/' );
-		
+
 		$this->assertTrue( is_paged() );
 		$this->assertFalse( is_home_page() );
 
