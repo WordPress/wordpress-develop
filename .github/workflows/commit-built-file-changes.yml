@@ -87,7 +87,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         if: ${{ steps.artifact-check.outputs.exists == 'true' }}
         with:
-          repository: ${{ github.event.workflow_run.repository.full_name }}
+          repository: ${{ github.event.workflow_run.head_repository.full_name }}
           ref: ${{ github.event.workflow_run.head_branch }}
           path: 'pr-repo'
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
