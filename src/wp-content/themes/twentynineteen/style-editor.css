@@ -1272,6 +1272,10 @@ figcaption,
 }
 
 /** === Table === */
+.wp-block-table table {
+	margin-bottom: 1.375rem;
+}
+
 .wp-block-table td, .wp-block-table th {
   border-color: #767676;
 }
