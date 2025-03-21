@@ -26,8 +26,9 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 					uploadedTo: null,
 					orderby: 'date',
 					order:   'DESC',
-					author:  null
-				}
+					author:  null,
+					icon: wp.media.view.settings.mimeIcons[key] || false
+				},
 			};
 		});
 
@@ -39,7 +40,8 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 				uploadedTo: null,
 				orderby: 'date',
 				order:   'DESC',
-				author:  null
+				author:  null,
+				icon: 'format-gallery'
 			},
 			priority: 10
 		};
@@ -53,7 +55,8 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 					uploadedTo: wp.media.view.settings.post.id,
 					orderby: 'menuOrder',
 					order:   'ASC',
-					author:  null
+					author:  null,
+					icon: 'upload'
 				},
 				priority: 20
 			};
@@ -67,7 +70,8 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 				type:       null,
 				orderby:    'menuOrder',
 				order:      'ASC',
-				author:     null
+				author:     null,
+				icon: 'no'
 			},
 			priority: 50
 		};
@@ -81,7 +85,8 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 					uploadedTo:	null,
 					orderby:	'date',
 					order:		'DESC',
-					author:		uid
+					author:		uid,
+					icon: 'admin-users'
 				},
 				priority: 50
 			};
@@ -98,7 +103,8 @@ All = wp.media.view.AttachmentFilters.extend(/** @lends wp.media.view.Attachment
 					type:       null,
 					orderby:    'date',
 					order:      'DESC',
-					author:     null
+					author:     null,
+					icon: 'trash'
 				},
 				priority: 50
 			};
