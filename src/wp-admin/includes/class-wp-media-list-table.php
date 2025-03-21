@@ -146,11 +146,14 @@ class WP_Media_List_Table extends WP_List_Table {
 				false
 			);
 
+			$dashicon = ! empty( $label[3] ) ? "<span class='dashicons dashicons-format-$label[3]'></span> " : '';
+
 			$type_links[ $mime_type ] = sprintf(
-				'<option value="post_mime_type:%s"%s>%s</option>',
+				'<option value="post_mime_type:%s"%s>%s%s</option>',
 				esc_attr( $mime_type ),
 				$selected,
-				$label[0]
+				$label[0],
+				$dashicon
 			);
 		}
 
