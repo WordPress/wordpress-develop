@@ -583,11 +583,6 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 	.comparing-two-revisions .revisions-meta .restore-revision {
 		margin-top: 16px;
 	}
-
-	.revisions-controls .wp-slider,
-	.revisions-tickmarks {
-		max-width: 95%;
-	}
 }
 
 @media screen and (max-width: 782px) {
