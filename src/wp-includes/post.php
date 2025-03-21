@@ -3467,8 +3467,8 @@ function wp_count_attachments( $mime_type = '' ) {
  * Gets default post mime types.
  *
  * @since 2.9.0
- * @since 5.3.0 Added the 'Documents', 'Spreadsheets', and 'Archives' mime type groups.
- * @since n.e.x.t. Added dashicon for each mime type.
+ * @since 5.3.0    Added the 'Documents', 'Spreadsheets', and 'Archives' mime type groups.
+ * @since n.e.x.t. Added dashicon strings for each mime type.
  *
  * @return array List of post mime types.
  */
