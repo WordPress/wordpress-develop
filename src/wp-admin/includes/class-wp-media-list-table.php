@@ -129,8 +129,9 @@ class WP_Media_List_Table extends WP_List_Table {
 		$filter = empty( $_GET['attachment-filter'] ) ? '' : $_GET['attachment-filter'];
 
 		$type_links['all'] = sprintf(
-			'<option value=""%s>%s</option>',
+			'<option value=""%s>%s%s</option>',
 			selected( $filter, true, false ),
+			'<span class="dashicons dashicons-format-gallery"></span> ',
 			__( 'All media items' )
 		);
 
