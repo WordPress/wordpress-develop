@@ -2379,6 +2379,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 	$css = wp_kses_no_null( $css );
 	$css = str_replace( array( "\n", "\r", "\t" ), '', $css );
+	$css = html_entity_decode( $css );
 
 	$allowed_protocols = wp_allowed_protocols();
 
