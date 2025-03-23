@@ -857,4 +857,42 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->manager->widgets->prepreview_added_widget_instance();
 		$this->manager->widgets->remove_prepreview_filters();
 	}
+
+	/**
+	 * Test that output_widget_control_templates() works without sidebars.
+	 * This test verifies that the fix for accessing panel title works correctly
+	 * when no sidebars are registered or the widgets panel doesn't exist.
+	 *
+	 * @ticket 63151
+	 *
+	 * @covers WP_Customize_Widgets::output_widget_control_templates
+	 */
+	public function test_output_widget_control_templates_without_sidebars() {
+		global $wp_registered_sidebars;
+
+		$original_sidebars      = $wp_registered_sidebars;
+		$wp_registered_sidebars = array();
+		$manager                = new WP_Customize_Manager();
+		$widgets                = new WP_Customize_Widgets( $manager );
+
+		if ( $manager->get_panel( 'widgets' ) ) {
+			$manager->remove_panel( 'widgets' );
+		}
+
+		ob_start();
+
+		$widgets->output_widget_control_templates();
+
+		$output                 = ob_get_clean();
+		$wp_registered_sidebars = $original_sidebars;
+
+		$this->assertStringNotContainsString( 'Warning', $output );
+		$this->assertStringNotContainsString( 'Notice', $output );
+		$this->assertStringNotContainsString( 'Error', $output );
+
+		// Check that the output contains expected widget controls HTML
+		$this->assertStringContainsString( 'id="widgets-left"', $output );
+		$this->assertStringContainsString( 'id="available-widgets"', $output );
+		$this->assertStringNotContainsString( 'id="accordion-panel-widgets"', $output );
+	}
 }
