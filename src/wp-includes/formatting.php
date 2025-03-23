@@ -592,7 +592,7 @@ function wpautop( $text, $br = true ) {
 	$text = preg_replace( "|\n</p>$|", '</p>', $text );
 
 	// If two closing paragraph tags are adjacent, remove the second.
-	$text = preg_replace( "|</p>\s*</p>|", '</p>', $text );
+	$text = preg_replace( '|</p>\s*</p>|', '</p>', $text );
 
 	// If a block element is followed by a closing paragraph tag, remove it.
 	$text = preg_replace( '!(</?' . $allblocks . '[^>]*>)\s*</p>!', '$1', $text );
