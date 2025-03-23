@@ -13,7 +13,7 @@
         "ghcr.io/devcontainers/features/node:1": {
             "version": "20"
         },
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
         "ghcr.io/devcontainers/features/git:1": {}
     },
     "onCreateCommand": "sudo chmod +x .devcontainer/install-tools.sh && .devcontainer/install-tools.sh",
