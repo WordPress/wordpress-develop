@@ -890,7 +890,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'Notice', $output );
 		$this->assertStringNotContainsString( 'Error', $output );
 
-		// Check that the output contains expected widget controls HTML
+		// Check that the output contains expected widget controls HTML.
 		$this->assertStringContainsString( 'id="widgets-left"', $output );
 		$this->assertStringContainsString( 'id="available-widgets"', $output );
 		$this->assertStringNotContainsString( 'id="accordion-panel-widgets"', $output );
