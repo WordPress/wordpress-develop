@@ -1,24 +1,20 @@
-name: Lint GitHub Actions workflows
+##
+# A reusable workflow that checks for uncommitted changes to built files in pull requests.
+##
+name: Check Built Files (PRs)
+
 on:
   workflow_call:
-    secrets:
-      GH_APP_ID:
-        description: 'A GitHub App ID.'
-        required: true
-      GH_APP_PRIVATE_KEY:
-        description: 'A GitHub App private key.'
-        required: true
 
 permissions: {}
 
 jobs:
   # Checks a PR for uncommitted changes to built files.
   #
-  # This job uses a GitHub App instead of $GITHUB_TOKEN because Dependabot pull requests are only granted
-  # read-only access.
+  # When changes are detected, the patch is stored as an artifact for processing by the Commit Built File Changes
+  # workflow.
   #
   # Performs the following steps:
-  # - Generates a token for authenticating with the GitHub App.
   # - Checks out the repository.
   # - Sets up Node.js.
   # - Configures caching for Composer.
@@ -31,62 +27,17 @@ jobs:
   # - Builds WordPress.
   # - Checks for changes to versioned files.
   # - Displays the result of git diff for debugging purposes.
-  # - Configures the Git author.
-  # - Stages changes.
-  # - Commits changes.
-  # - Pushes changes.
+  # - Saves the diff to a patch file.
+  # - Uploads the patch file as an artifact.
   update-built-files:
     name: Check and update built files
     runs-on: ubuntu-24.04
-    # This prevents an unnecessary second run after changes are committed back because Dependabot always rebases
-    # updates and force pushes.
-    if: ${{ github.actor != 'dependabot[bot]' || github.event.commits < 2 }}
     timeout-minutes: 10
-    permissions:
-      contents: write
     steps:
-      - name: Generate Installation Token
-        id: generate_token
-        env:
-          GH_APP_ID: ${{ secrets.GH_APP_ID }}
-          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
-        run: |
-          echo "$GH_APP_PRIVATE_KEY" > private-key.pem
-
-          # Generate JWT
-          JWT=$(python3 - <<EOF
-          import jwt, time
-          private_key = open("private-key.pem", "r").read()
-          payload = {
-              "iat": int(time.time()),
-              "exp": int(time.time()) + 600,  # 10-minute expiration
-              "iss": $GH_APP_ID
-          }
-          print(jwt.encode(payload, private_key, algorithm="RS256"))
-          EOF
-          )
-
-          # Get Installation ID
-          INSTALLATION_ID=$(curl -s -X GET -H "Authorization: Bearer $JWT" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/app/installations | jq -r '.[0].id')
-
-          # Request Installation Access Token
-          ACCESS_TOKEN=$(curl -s -X POST -H "Authorization: Bearer $JWT" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/app/installations/$INSTALLATION_ID/access_tokens" | jq -r '.token')
-
-          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_ENV"
-
-          rm -f private-key.pem
-
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-          token: ${{ env.ACCESS_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
@@ -144,21 +95,14 @@ jobs:
         if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
         run: git diff
 
-      - name: Configure git user name and email
+      - name: Save diff to a file
         if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
-        run: |
-          git config user.name "wordpress-develop-pr-bot[bot]"
-          git config user.email ${{ secrets.GH_APP_ID }}+wordpress-develop-pr-bot[bot]@users.noreply.github.com
+        run: git diff > ./changes.diff
 
-      - name: Stage changes
+      # Uploads the diff file as an artifact.
+      - name: Upload diff file as artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
-        run: git add .
-
-      - name: Commit changes
-        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
-        run: |
-          git commit -m "Automation: Updating built files with changes. [dependabot skip]"
-
-      - name: Push changes
-        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
-        run: git push
+        with:
+          name: pr-built-file-changes
+          path: changes.diff
