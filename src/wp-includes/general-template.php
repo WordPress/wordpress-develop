@@ -4713,7 +4713,18 @@ function paginate_links( $args = '' ) {
 			$link = add_query_arg( $add_args, $link );
 		}
 		$link .= $args['add_fragment'];
-		$link  = get_option( 'permalink_structure' ) ? user_trailingslashit( $link, 'paged' ) : $link;
+		if ( ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
+			/*
+			 * Maybe add a trailing slash to the link according to the site's settings.
+			 *
+			 * Only add this for links without a query string or a fragment. Links with
+			 * these components will have data changed if the trailing slash is added.
+			 *
+			 * This only affects sites with pretty permalinks, as sites without them
+			 * enabled will include a query string parameter.
+			 */
+			$link = user_trailingslashit( $link, 'paged' );
+		}
 
 		$page_links[] = sprintf(
 			'<a class="prev page-numbers" href="%s">%s</a>',
@@ -4746,7 +4757,18 @@ function paginate_links( $args = '' ) {
 					$link = add_query_arg( $add_args, $link );
 				}
 				$link .= $args['add_fragment'];
-				$link  = get_option( 'permalink_structure' ) && ! is_search() ? user_trailingslashit( $link, 'paged' ) : $link;
+				if ( ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
+					/*
+					 * Maybe add a trailing slash to the link according to the site's settings.
+					 *
+					 * Only add this for links without a query string or a fragment. Links with
+					 * these components will have data changed if the trailing slash is added.
+					 *
+					 * This only affects sites with pretty permalinks, as sites without them
+					 * enabled will include a query string parameter.
+					 */
+					$link = user_trailingslashit( $link, 'paged' );
+				}
 
 				$page_links[] = sprintf(
 					'<a class="page-numbers" href="%s">%s</a>',
@@ -4771,7 +4793,18 @@ function paginate_links( $args = '' ) {
 			$link = add_query_arg( $add_args, $link );
 		}
 		$link .= $args['add_fragment'];
-		$link  = get_option( 'permalink_structure' ) ? user_trailingslashit( $link, 'paged' ) : $link;
+		if ( ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
+			/*
+			 * Maybe add a trailing slash to the link according to the site's settings.
+			 *
+			 * Only add this for links without a query string or a fragment. Links with
+			 * these components will have data changed if the trailing slash is added.
+			 *
+			 * This only affects sites with pretty permalinks, as sites without them
+			 * enabled will include a query string parameter.
+			 */
+			$link = user_trailingslashit( $link, 'paged' );
+		}
 
 		$page_links[] = sprintf(
 			'<a class="next page-numbers" href="%s">%s</a>',
