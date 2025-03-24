@@ -1,18 +1,52 @@
 <?php
+/**
+ * Tests for the Get Canonical Url function.
+ *
+ * @package WordPress
+ * @subpackage Link
+ */
 
 /**
+ * Class for Testing the Get Canonical Url function.
+ *
  * @group link
  * @group canonical
  * @covers ::wp_get_canonical_url
  */
-class Tests_Link_wpGetCanonicalUrl extends WP_UnitTestCase {
+class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
+
+	/**
+	 * The ID of the post.
+	 *
+	 * @var int
+	 */
 	public static $post_id;
 
+	/**
+	 * The ID of the attachment.
+	 *
+	 * @var int
+	 */
+	public static $attachment_id;
+
+	/**
+	 * Sets up the test environment before any tests are run.
+	 *
+	 * @param WP_UnitTest_Factory $factory The factory object.
+	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create(
 			array(
 				'post_content' => 'Page 1 <!--nextpage--> Page 2 <!--nextpage--> Page 3',
 				'post_status'  => 'publish',
+			)
+		);
+
+		self::$attachment_id = $factory->attachment->create_object(
+			array(
+				'file'        => DIR_TESTDATA . '/images/canola.jpg',
+				'post_parent' => self::$post_id,
+				'post_status' => 'inherit',
 			)
 		);
 	}
@@ -138,6 +172,19 @@ class Tests_Link_wpGetCanonicalUrl extends WP_UnitTestCase {
 		$expected = user_trailingslashit( trailingslashit( get_permalink( self::$post_id ) ) . $wp_rewrite->comments_pagination_base . '-' . $cpage, 'commentpaged' ) . '#comments';
 
 		$this->assertSame( $expected, wp_get_canonical_url( self::$post_id ) );
+	}
+
+	/**
+	 * This test ensures that attachments with 'inherit' status properly receive a canonical URL.
+	 *
+	 * @ticket 63041
+	 */
+	public function test_attachment_canonical_url() {
+		$this->go_to( get_attachment_link( self::$attachment_id ) );
+		$canonical_url = wp_get_canonical_url( self::$attachment_id );
+
+		$this->assertNotFalse( $canonical_url, 'Attachment should have a canonical URL' );
+		$this->assertSame( get_attachment_link( self::$attachment_id ), $canonical_url, 'Canonical URL should match the attachment permalink' );
 	}
 
 	/**
