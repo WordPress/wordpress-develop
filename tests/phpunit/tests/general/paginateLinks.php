@@ -571,8 +571,8 @@ EXPECTED;
 	 */
 	public function data_search_terms() {
 		return array(
-			array( 'search+term', 'search+term/' ),
-			array( 'search+term/', 'search+term' ),
+			'search term without trailing slash' => array( 'search+term', 'search+term/' ),
+			'search term with trailing slash'    => array( 'search+term/', 'search+term' ),
 		);
 	}
 
@@ -641,8 +641,8 @@ EXPECTED;
 	 */
 	public function data_url_fragments() {
 		return array(
-			array( 'url-fragment', 'url-fragment/' ),
-			array( 'url-fragment/', 'url-fragment' ),
+			'url fragment without trailing slash' => array( 'url-fragment', 'url-fragment/' ),
+			'url fragment with trailing slash'    => array( 'url-fragment/', 'url-fragment' ),
 		);
 	}
 }
