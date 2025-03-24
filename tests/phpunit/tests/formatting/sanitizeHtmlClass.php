@@ -32,6 +32,7 @@ class Test_Sanitize_Html_Class extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_should_sanitize_class_names_when_valid
+	 * @ticket 63156
 	 */
 	public function test_should_sanitize_class_names_when_valid( $classname, $expected, $fallback = null ) {
 		if ( is_null( $fallback ) ) {
@@ -57,6 +58,7 @@ class Test_Sanitize_Html_Class extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_should_sanitize_class_with_fallback_when_empty_result
+	 * @ticket 63156
 	 */
 	public function test_should_sanitize_class_with_fallback_when_empty_result( $classname, $expected, $fallback ) {
 		$this->assertSame( $expected, sanitize_html_class( $classname, $fallback ) );
@@ -75,6 +77,7 @@ class Test_Sanitize_Html_Class extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_should_return_empty_result_when_no_fallback
+	 * @ticket 63156
 	 */
 	public function test_should_return_empty_result_when_no_fallback( $classname, $expected ) {
 		$this->assertSame( $expected, sanitize_html_class( $classname ) );
