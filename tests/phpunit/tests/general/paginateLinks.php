@@ -480,7 +480,68 @@ EXPECTED;
 	 * @param string $search_term  Search term - should only be the value passed to `s` parameter.
 	 * @param string $not_expected Search term that is unexpected - should only be the value unexpected in the `s` parameter.
 	 */
+	public function test_pagination_links_does_not_modify_search_terms_in_base_with_trailing_slash_permalinks( $search_term, $not_expected ) {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$args = array(
+			'base'      => "http://example.org/%_%/?s={$search_term}",
+			'format'    => 'page/%#%',
+			'total'     => 5,
+			'current'   => 3,
+			'prev_next' => true,
+			'add_args'  => array(
+				's' => $search_term,
+			),
+		);
+
+		$links = paginate_links( $args );
+
+		$this->assertStringNotContainsString(
+			"?s={$not_expected}\"",
+			$links,
+			'Search term should not be modified.'
+		);
+	}
+
+	/**
+	 * @ticket 61393
+	 * @ticket 63123
+	 *
+	 * @dataProvider data_search_terms
+	 *
+	 * @param string $search_term  Search term - should only be the value passed to `s` parameter.
+	 * @param string $not_expected Search term that is unexpected - should only be the value unexpected in the `s` parameter.
+	 */
 	public function test_pagination_links_does_not_modify_search_terms_without_trailing_slash_permalinks( $search_term, $not_expected ) {
+		$this->set_permalink_structure( '/%postname%' );
+
+		$args = array(
+			'base'      => "http://example.org/%_%?s={$search_term}",
+			'format'    => 'page/%#%',
+			'total'     => 5,
+			'current'   => 3,
+			'prev_next' => true,
+		);
+
+		$links = paginate_links( $args );
+
+		$this->assertStringNotContainsString(
+			"?s={$not_expected}\"",
+			$links,
+			'Search term should not be modified.'
+		);
+	}
+
+	/**
+	 * @ticket 61393
+	 * @ticket 63123
+	 *
+	 * @dataProvider data_search_terms
+	 *
+	 * @param string $search_term  Search term - should only be the value passed to `s` parameter.
+	 * @param string $not_expected Search term that is unexpected - should only be the value unexpected in the `s` parameter.
+	 */
+	public function test_pagination_links_does_not_modify_search_terms_in_base_without_trailing_slash_permalinks( $search_term, $not_expected ) {
 		$this->set_permalink_structure( '/%postname%' );
 
 		$args = array(
