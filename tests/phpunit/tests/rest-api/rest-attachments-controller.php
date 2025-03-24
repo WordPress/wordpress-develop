@@ -1102,12 +1102,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$new_attachment = get_post( $data['id'] );
 
-		$this->assertEquals( $attachment_id, (int) get_post_thumbnail_id( $new_attachment->ID ) );
-		$this->assertEquals( $attachment_id, $data['featured_media'] );
+		$this->assertSame( $attachment_id, get_post_thumbnail_id( $new_attachment->ID ) );
+		$this->assertSame( $attachment_id, $data['featured_media'] );
 
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/media/' . $new_attachment->ID );
 		$params  = $this->set_post_data(
@@ -1117,10 +1117,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 0, $data['featured_media'] );
-		$this->assertEquals( 0, (int) get_post_thumbnail_id( $new_attachment->ID ) );
+		$this->assertSame( 0, $data['featured_media'] );
+		$this->assertSame( 0, get_post_thumbnail_id( $new_attachment->ID ) );
 
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/media/' . $new_attachment->ID );
 		$params  = $this->set_post_data(
@@ -1130,10 +1130,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $attachment_id, $data['featured_media'] );
-		$this->assertEquals( $attachment_id, (int) get_post_thumbnail_id( $new_attachment->ID ) );
+		$this->assertSame( $attachment_id, $data['featured_media'] );
+		$this->assertSame( $attachment_id, get_post_thumbnail_id( $new_attachment->ID ) );
 	}
 
 	public function test_update_item() {
@@ -2442,7 +2442,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
 		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
-		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
+		$this->assertSame( (string) $attachment, $item['media_details']['parent_image']['attachment_id'] );
 		$this->assertStringContainsString( 'canola', $item['media_details']['parent_image']['file'] );
 	}
 
@@ -2485,7 +2485,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
 		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
-		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
+		$this->assertSame( (string) $attachment, $item['media_details']['parent_image']['attachment_id'] );
 		$this->assertStringContainsString( 'canola', $item['media_details']['parent_image']['file'] );
 	}
 

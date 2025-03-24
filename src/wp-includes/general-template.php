@@ -1118,7 +1118,7 @@ function get_custom_logo( $blog_id = 0 ) {
 					$image
 				);
 			} else {
-				$aria_current = is_front_page() && ! is_paged() ? ' aria-current="page"' : '';
+				$aria_current = ! is_paged() && ( is_front_page() || is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) ? ' aria-current="page"' : '';
 
 				$html = sprintf(
 					'<a href="%1$s" class="custom-logo-link" rel="home"%2$s>%3$s</a>',
@@ -4713,6 +4713,7 @@ function paginate_links( $args = '' ) {
 			$link = add_query_arg( $add_args, $link );
 		}
 		$link .= $args['add_fragment'];
+		$link  = get_option( 'permalink_structure' ) ? user_trailingslashit( $link, 'paged' ) : $link;
 
 		$page_links[] = sprintf(
 			'<a class="prev page-numbers" href="%s">%s</a>',
@@ -4745,6 +4746,7 @@ function paginate_links( $args = '' ) {
 					$link = add_query_arg( $add_args, $link );
 				}
 				$link .= $args['add_fragment'];
+				$link  = get_option( 'permalink_structure' ) ? user_trailingslashit( $link, 'paged' ) : $link;
 
 				$page_links[] = sprintf(
 					'<a class="page-numbers" href="%s">%s</a>',
@@ -4769,6 +4771,7 @@ function paginate_links( $args = '' ) {
 			$link = add_query_arg( $add_args, $link );
 		}
 		$link .= $args['add_fragment'];
+		$link  = get_option( 'permalink_structure' ) ? user_trailingslashit( $link, 'paged' ) : $link;
 
 		$page_links[] = sprintf(
 			'<a class="next page-numbers" href="%s">%s</a>',
