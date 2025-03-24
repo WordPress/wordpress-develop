@@ -26,7 +26,11 @@ class Tests_Term_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_the_term_list() correctly outputs terms using the default template.
+	 *
 	 * @ticket 30705
+	 *
+	 * @covers ::get_the_term_list
 	 */
 	public function test_get_the_term_list_default_template() {
 		$list = get_the_term_list( self::$post_id, 'category', '', ', ', '' );
@@ -42,7 +46,11 @@ class Tests_Term_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_the_term_list() correctly applies a custom template when provided.
+	 *
 	 * @ticket 30705
+	 *
+	 * @covers ::get_the_term_list
 	 */
 	public function test_get_the_term_list_custom_template() {
 		$custom_template = '<span class="term"><a href="%1$s">%2$s</a></span>';
@@ -55,7 +63,11 @@ class Tests_Term_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_the_term_list() properly escapes term names with unsafe characters.
+	 *
 	 * @ticket 30705
+	 *
+	 * @covers ::get_the_term_list
 	 */
 	public function test_get_the_term_list_escaping() {
 		$unsafe_term_id = self::factory()->term->create(
