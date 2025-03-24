@@ -39,6 +39,9 @@ AttachmentFilters = wp.media.View.extend(/** @lends wp.media.view.AttachmentFilt
 			};
 		}, this ).sortBy('priority').pluck('el').value() );
 
+		// Prepend the selectedelement.
+		this.$el.prepend( '<button><selectedcontent></selectedcontent></button>' );
+
 		this.listenTo( this.model, 'change', this.select );
 		this.select();
 	},

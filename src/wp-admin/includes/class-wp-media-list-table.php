@@ -291,6 +291,9 @@ class WP_Media_List_Table extends WP_List_Table {
 					?>
 				</label>
 				<select class="attachment-filters" name="attachment-filter" id="attachment-filter">
+					<button>
+						<selectedcontent></selectedcontent>
+					</button>
 					<?php
 					if ( ! empty( $views ) ) {
 						foreach ( $views as $class => $view ) {
