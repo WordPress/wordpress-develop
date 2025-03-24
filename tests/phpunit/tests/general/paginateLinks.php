@@ -438,4 +438,145 @@ EXPECTED;
 			'Previous link should not have trailing slash when permalink structure has no trailing slash'
 		);
 	}
+
+	/**
+	 * @ticket 61393
+	 * @ticket 63123
+	 *
+	 * @dataProvider data_search_terms
+	 *
+	 * @param string $search_term  Search term - should only be the value passed to `s` parameter.
+	 * @param string $not_expected Search term that is unexpected - should only be the value unexpected in the `s` parameter.
+	 */
+	public function test_pagination_links_does_not_modify_search_terms_with_trailing_slash_permalinks( $search_term, $not_expected ) {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$args = array(
+			'base'      => 'http://example.org/%_%',
+			'format'    => 'page/%#%',
+			'total'     => 5,
+			'current'   => 3,
+			'prev_next' => true,
+			'add_args'  => array(
+				's' => $search_term,
+			),
+		);
+
+		$links = paginate_links( $args );
+
+		$this->assertStringNotContainsString(
+			"?s={$not_expected}\"",
+			$links,
+			'Search term should not be modified.'
+		);
+	}
+
+	/**
+	 * @ticket 61393
+	 * @ticket 63123
+	 *
+	 * @dataProvider data_search_terms
+	 *
+	 * @param string $search_term  Search term - should only be the value passed to `s` parameter.
+	 * @param string $not_expected Search term that is unexpected - should only be the value unexpected in the `s` parameter.
+	 */
+	public function test_pagination_links_does_not_modify_search_terms_without_trailing_slash_permalinks( $search_term, $not_expected ) {
+		$this->set_permalink_structure( '/%postname%' );
+
+		$args = array(
+			'base'      => 'http://example.org/%_%',
+			'format'    => 'page/%#%',
+			'total'     => 5,
+			'current'   => 3,
+			'prev_next' => true,
+			'add_args'  => array(
+				's' => $search_term,
+			),
+		);
+
+		$links = paginate_links( $args );
+
+		$this->assertStringNotContainsString(
+			"?s={$not_expected}\"",
+			$links,
+			'Search term should not be modified.'
+		);
+	}
+
+	/**
+	 * Data provider for test_pagination_links_does_not_modify_search_terms_* tests.
+	 *
+	 * @return array[] Data provider
+	 */
+	public function data_search_terms() {
+		return array(
+			array( 'search+term', 'search+term/' ),
+			array( 'search+term/', 'search+term' ),
+		);
+	}
+
+	/**
+	 * @ticket 61393
+	 * @ticket 63123
+	 *
+	 * @dataProvider data_url_fragments
+	 *
+	 * @param string $url_fragment URL fragment - should only be the value following the `#`.
+	 * @param string $not_expected URL fragment that is unexpected - should only be the value unexpected following the `#`.
+	 */
+	public function test_pagination_links_does_not_modify_url_fragments_with_trailing_slash_permalinks( $url_fragment, $not_expected ) {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$args = array(
+			'base'      => "http://example.org/%_%#{$url_fragment}",
+			'format'    => 'page/%#%',
+			'total'     => 5,
+			'current'   => 3,
+			'prev_next' => true,
+		);
+
+		$links = paginate_links( $args );
+
+		$this->assertStringNotContainsString(
+			"#{$not_expected}\"",
+			$links,
+			'URL fragments should not be modified to include a trailing slash.'
+		);
+	}
+
+	/**
+	 * @ticket 61393
+	 * @ticket 63123
+	 *
+	 * @dataProvider data_url_fragments
+	 *
+	 * @param string $url_fragment URL fragment - should only be the value following the `#`.
+	 * @param string $not_expected URL fragment that is unexpected - should only be the value unexpected following the `#`.
+	 */
+	public function test_pagination_links_does_not_modify_url_fragments_without_trailing_slash_permalinks( $url_fragment, $not_expected ) {
+		$this->set_permalink_structure( '/%postname%' );
+
+		$args = array(
+			'base'      => "http://example.org/%_%#{$url_fragment}",
+			'format'    => 'page/%#%',
+			'total'     => 5,
+			'current'   => 3,
+			'prev_next' => true,
+		);
+
+		$links = paginate_links( $args );
+
+		$this->assertStringNotContainsString(
+			"#{$not_expected}\"",
+			$links,
+			'URL fragments should not be modified to include a trailing slash.'
+		);
+	}
+
+	public function data_url_fragments() {
+		return array(
+			array( 'url-fragment', 'url-fragment/' ),
+			array( 'url-fragment/', 'url-fragment' ),
+		);
+	}
 }
