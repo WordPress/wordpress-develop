@@ -32,8 +32,9 @@ permissions: {}
 jobs:
   lint:
     name: Lint GitHub Action files
+    uses: ./.github/workflows/reusable-workflow-lint.yml
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     permissions:
       security-events: write
       actions: read
       contents: read
-    uses: ./.github/workflows/reusable-workflow-lint.yml

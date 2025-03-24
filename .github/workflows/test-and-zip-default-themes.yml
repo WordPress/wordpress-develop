@@ -63,7 +63,7 @@ jobs:
     permissions:
       contents: read
     timeout-minutes: 10
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     strategy:
       fail-fast: false
       matrix:
@@ -113,7 +113,7 @@ jobs:
     permissions:
       contents: read
     timeout-minutes: 10
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     strategy:
       fail-fast: false
       matrix:
