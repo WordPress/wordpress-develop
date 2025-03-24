@@ -647,6 +647,19 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/**
+		 * Filters whether the notified of a new user registration.
+		 *
+		 * @param string $notify  Type of notification that should happen. Accepts 'admin' or an empty
+		 *                        string (admin only), 'user', or 'both' (admin and user). Default 'admin'.
+		 *                        You can set 'false' to stop notification for both.
+		 * @param int    $user_id User ID.
+		 */
+		$notify = apply_filters( 'rest_wp_user_created_notification', $notify = 'admin', $user_id );
+		if ( $notify && 'false' != $notify ) {
+			wp_new_user_notification( $user_id, null, $notify );
+		}
+
 		$user = get_user_by( 'id', $user_id );
 
 		/**
