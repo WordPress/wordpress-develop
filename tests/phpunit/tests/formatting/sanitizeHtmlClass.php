@@ -6,7 +6,7 @@
  *
  * @covers ::sanitize_html_class
  */
-class Test_Sanitize_Html_Class extends WP_UnitTestCase {
+class Test_Formatting_SanitizeHtmlClass extends WP_UnitTestCase {
 
 	/**
 	 * Data provider for sanitize_html_class.
