@@ -4709,22 +4709,28 @@ function paginate_links( $args = '' ) {
 	if ( $args['prev_next'] && $current && 1 < $current ) :
 		$link = str_replace( '%_%', 2 === $current ? '' : $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current - 1, $link );
+		/*
+		 * Maybe add a trailing slash to the link according to the site's settings.
+		 *
+		 * Only add this for links without a query string or a fragment. Links with
+		 * these components will have data changed if the trailing slash is added.
+		 *
+		 * This only affects sites with pretty permalinks, as sites without them
+		 * enabled will include a query string parameter.
+		 *
+		 * For links to the base of a domain, a trailing slash is always added to
+		 * the link as that's how browsers handle URLs.
+		 */
+		if ( in_array( wp_parse_url( $link, PHP_URL_PATH ), array( null, '/' ), true ) && ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
+			$link = trailingslashit( $link );
+		} elseif ( ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
+			$link = user_trailingslashit( $link, 'paged' );
+		}
+
 		if ( $add_args ) {
 			$link = add_query_arg( $add_args, $link );
 		}
 		$link .= $args['add_fragment'];
-		if ( ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
-			/*
-			 * Maybe add a trailing slash to the link according to the site's settings.
-			 *
-			 * Only add this for links without a query string or a fragment. Links with
-			 * these components will have data changed if the trailing slash is added.
-			 *
-			 * This only affects sites with pretty permalinks, as sites without them
-			 * enabled will include a query string parameter.
-			 */
-			$link = user_trailingslashit( $link, 'paged' );
-		}
 
 		$page_links[] = sprintf(
 			'<a class="prev page-numbers" href="%s">%s</a>',
@@ -4753,22 +4759,27 @@ function paginate_links( $args = '' ) {
 			if ( $args['show_all'] || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size ) ) :
 				$link = str_replace( '%_%', 1 === $n ? '' : $args['format'], $args['base'] );
 				$link = str_replace( '%#%', $n, $link );
+				/*
+				 * Maybe add a trailing slash to the link according to the site's settings.
+				 *
+				 * Only add this for links without a query string or a fragment. Links with
+				 * these components will have data changed if the trailing slash is added.
+				 *
+				 * This only affects sites with pretty permalinks, as sites without them
+				 * enabled will include a query string parameter.
+				 *
+				 * For links to the base of a domain, a trailing slash is always added to
+				 * the link as that's how browsers handle URLs.
+				 */
+				if ( in_array( wp_parse_url( $link, PHP_URL_PATH ), array( null, '/' ), true ) && ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
+					$link = trailingslashit( $link );
+				} elseif ( ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
+					$link = user_trailingslashit( $link, 'paged' );
+				}
 				if ( $add_args ) {
 					$link = add_query_arg( $add_args, $link );
 				}
 				$link .= $args['add_fragment'];
-				if ( ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
-					/*
-					 * Maybe add a trailing slash to the link according to the site's settings.
-					 *
-					 * Only add this for links without a query string or a fragment. Links with
-					 * these components will have data changed if the trailing slash is added.
-					 *
-					 * This only affects sites with pretty permalinks, as sites without them
-					 * enabled will include a query string parameter.
-					 */
-					$link = user_trailingslashit( $link, 'paged' );
-				}
 
 				$page_links[] = sprintf(
 					'<a class="page-numbers" href="%s">%s</a>',
@@ -4789,22 +4800,27 @@ function paginate_links( $args = '' ) {
 	if ( $args['prev_next'] && $current && $current < $total ) :
 		$link = str_replace( '%_%', $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current + 1, $link );
+		/*
+		 * Maybe add a trailing slash to the link according to the site's settings.
+		 *
+		 * Only add this for links without a query string or a fragment. Links with
+		 * these components will have data changed if the trailing slash is added.
+		 *
+		 * This only affects sites with pretty permalinks, as sites without them
+		 * enabled will include a query string parameter.
+		 *
+		 * For links to the base of a domain, a trailing slash is always added to
+		 * the link as that's how browsers handle URLs.
+		 */
+		if ( in_array( wp_parse_url( $link, PHP_URL_PATH ), array( null, '/' ), true ) && ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
+			$link = trailingslashit( $link );
+		} elseif ( ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
+			$link = user_trailingslashit( $link, 'paged' );
+		}
 		if ( $add_args ) {
 			$link = add_query_arg( $add_args, $link );
 		}
 		$link .= $args['add_fragment'];
-		if ( ! str_contains( $link, '?' ) && ( ! str_contains( $link, '#' ) ) ) {
-			/*
-			 * Maybe add a trailing slash to the link according to the site's settings.
-			 *
-			 * Only add this for links without a query string or a fragment. Links with
-			 * these components will have data changed if the trailing slash is added.
-			 *
-			 * This only affects sites with pretty permalinks, as sites without them
-			 * enabled will include a query string parameter.
-			 */
-			$link = user_trailingslashit( $link, 'paged' );
-		}
 
 		$page_links[] = sprintf(
 			'<a class="next page-numbers" href="%s">%s</a>',
