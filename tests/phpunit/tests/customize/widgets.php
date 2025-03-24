@@ -886,13 +886,13 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$output                 = ob_get_clean();
 		$wp_registered_sidebars = $original_sidebars;
 
-		$this->assertStringNotContainsString( 'Warning', $output );
-		$this->assertStringNotContainsString( 'Notice', $output );
-		$this->assertStringNotContainsString( 'Error', $output );
+		$this->assertStringNotContainsString( 'Warning', $output, 'Failed asserting that the output does not contain "Warning".' );
+		$this->assertStringNotContainsString( 'Notice', $output, 'Failed asserting that the output does not contain "Notice".' );
+		$this->assertStringNotContainsString( 'Error', $output, 'Failed asserting that the output does not contain "Error".' );
 
 		// Check that the output contains expected widget controls HTML.
-		$this->assertStringContainsString( 'id="widgets-left"', $output );
-		$this->assertStringContainsString( 'id="available-widgets"', $output );
-		$this->assertStringNotContainsString( 'id="accordion-panel-widgets"', $output );
+		$this->assertStringContainsString( 'id="widgets-left"', $output, 'Failed asserting that the output contains "id=widgets-left".' );
+		$this->assertStringContainsString( 'id="available-widgets"', $output, 'Failed asserting that the output contains "id=available-widgets".' );
+		$this->assertStringNotContainsString( 'id="accordion-panel-widgets"', $output, 'Failed asserting that the output does not contain "id=accordion-panel-widgets".' );
 	}
 }
