@@ -567,7 +567,7 @@ EXPECTED;
 	/**
 	 * Data provider for test_pagination_links_does_not_modify_search_terms_* tests.
 	 *
-	 * @return array[] Data provider
+	 * @return array[] Data provider.
 	 */
 	public function data_search_terms() {
 		return array(
@@ -634,6 +634,11 @@ EXPECTED;
 		);
 	}
 
+	/**
+	 * Data provider for test_pagination_links_does_not_modify_url_fragments_* tests.
+	 *
+	 * @return array[] Data provider.
+	 */
 	public function data_url_fragments() {
 		return array(
 			array( 'url-fragment', 'url-fragment/' ),
