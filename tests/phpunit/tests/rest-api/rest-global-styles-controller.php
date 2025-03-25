@@ -133,13 +133,13 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey(
-			'/wp/v2/global-styles/(?P<id>[\/\w-]+)',
+			'/wp/v2/global-styles/(?P<id>[\/\d+]+)',
 			$routes,
 			'Single global style based on the given ID route does not exist'
 		);
 		$this->assertCount(
 			2,
-			$routes['/wp/v2/global-styles/(?P<id>[\/\w-]+)'],
+			$routes['/wp/v2/global-styles/(?P<id>[\/\d+]+)'],
 			'Single global style based on the given ID route does not have exactly two elements'
 		);
 		$this->assertArrayHasKey(
@@ -408,7 +408,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 			// Themes deep in subdirectories.
 			'2 subdirectories deep'  => array(
 				'theme_dirname' => 'subdir/subsubdir/mytheme',
-				'expected'      => 'rest_global_styles_not_found',
+				'expected'      => 'rest_no_route',
 			),
 		);
 	}
