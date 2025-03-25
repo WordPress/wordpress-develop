@@ -75,8 +75,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						if ( current_user_can( 'edit_theme_options' ) && ( current_theme_supports( 'editor-styles' ) || wp_theme_has_theme_json() ) ) {
 							printf(
 								/* translators: %s is a direct link to the Style Book. */
-								__( 'Plus, now you can see it in Classic themes that have editor-styles or a theme.json file. Find the Style Book under <a href="%s">Appearance > Design</a> and use it to preview your theme&#8217;s evolution, as you edit CSS or make changes in the Customizer.' ),
-								add_query_arg( 'p', '/stylebook', admin_url( '/site-editor.php' ) ),
+								__( 'Plus, now you can see it in Classic themes that have editor-styles or a theme.json file. Find <a href="%s">the Style Book</a> under Appearance > Design and use it to preview your theme&#8217;s evolution, as you edit CSS or make changes in the Customizer.' ),
+								add_query_arg( 'p', '/stylebook', admin_url( '/site-editor.php' ) )
 							);
 						} else {
 							_e( 'Plus, now you can see it in Classic themes that have editor-styles or a theme.json file. Find the Style Book under Appearance > Design and use it to preview your theme&#8217;s evolution, as you edit CSS or make changes in the Customizer.' );
