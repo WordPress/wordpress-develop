@@ -69,19 +69,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php _e( 'The Style Book has a new, structured layout and clearer labels, to make it even easier to edit colors, typography—almost all your site styles—in one place.' ); ?>
 				</p>
-				<p>
-					<?php
-					if ( true ) {
-						printf(
-							/* translators: %s is a direct link to the Style Book. */
-							__( 'Plus, now you can see it in Classic themes that have editor-styles or a theme.json file. Find the Style Book under <a href="%s">Appearance > Design</a> and use it to preview your theme&#8217;s evolution, as you edit CSS or make changes in the Customizer.' ),
-							'#'
-						);
-					} else {
-						_e( 'Plus, now you can see it in Classic themes that have editor-styles or a theme.json file. Find the Style Book under Appearance > Design and use it to preview your theme&#8217;s evolution, as you edit CSS or make changes in the Customizer.' );
-					}
-					?>
-				</p>
+				<?php if ( ! wp_is_block_theme() ) : ?>
+					<p>
+						<?php
+						if ( current_user_can( 'edit_theme_options' ) && ( current_theme_supports( 'editor-styles' ) || wp_theme_has_theme_json() ) ) {
+							printf(
+								/* translators: %s is a direct link to the Style Book. */
+								__( 'Plus, now you can see it in Classic themes that have editor-styles or a theme.json file. Find the Style Book under <a href="%s">Appearance > Design</a> and use it to preview your theme&#8217;s evolution, as you edit CSS or make changes in the Customizer.' ),
+								add_query_arg( 'p', '/stylebook', admin_url( '/site-editor.php' ) ),
+							);
+						} else {
+							_e( 'Plus, now you can see it in Classic themes that have editor-styles or a theme.json file. Find the Style Book under Appearance > Design and use it to preview your theme&#8217;s evolution, as you edit CSS or make changes in the Customizer.' );
+						}
+						?>
+					</p>
+				<?php endif; ?>
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
