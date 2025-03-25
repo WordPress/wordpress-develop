@@ -36,16 +36,16 @@
 			<div class="site-header-main">
 				<div class="site-branding">
 					<?php twentysixteen_the_custom_logo(); ?>
-					<?php 
+					<?php
 					$is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
-					
+
 					if ( ! empty( get_bloginfo( 'name' ) ) ) :
-						if ( is_front_page() && is_home() ) : 
-					?>
-						<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></h1>
-					<?php else : ?>
-						<p class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></p>
-					<?php 
+						if ( is_front_page() && is_home() ) :
+							?>
+								<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></h1>
+							<?php else : ?>
+								<p class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></p>
+								<?php
 						endif;
 					endif;
 
