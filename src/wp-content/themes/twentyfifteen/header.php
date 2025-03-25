@@ -32,23 +32,26 @@
 		<header id="masthead" class="site-header">
 			<div class="site-branding">
 				<?php
-					twentyfifteen_the_custom_logo();
-					$is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
-				if ( is_front_page() && is_home() ) :
-					?>
-						<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></h1>
-					<?php else : ?>
-						<p class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></p>
-						<?php
-					endif;
+				twentyfifteen_the_custom_logo();
+				$is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
 
-					$description = get_bloginfo( 'description', 'display' );
-					if ( $description || is_customize_preview() ) :
+				if ( ! empty( get_bloginfo( 'name' ) ) ) :
+					if ( is_front_page() && is_home() ) :
 						?>
-						<p class="site-description"><?php echo $description; ?></p>
-						<?php
+						<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></h1>
+						<?php else : ?>
+							<p class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></p>
+							<?php
 					endif;
+				endif;
+
+				$description = get_bloginfo( 'description', 'display' );
+				if ( $description || is_customize_preview() ) :
 					?>
+						<p class="site-description"><?php echo $description; ?></p>
+					<?php
+				endif;
+				?>
 				<button class="secondary-toggle"><?php _e( 'Menu and widgets', 'twentyfifteen' ); ?></button>
 			</div><!-- .site-branding -->
 		</header><!-- .site-header -->

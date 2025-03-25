@@ -68,14 +68,22 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 	<div id="header">
 		<div id="masthead">
 			<div id="branding" role="banner">
-				<?php $heading_tag = ( is_home() || is_front_page() ) ? 'h1' : 'div'; ?>
+				<?php
+				$heading_tag = ( is_home() || is_front_page() ) ? 'h1' : 'div';
+				$is_front    = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
+				?>
+				
+				<?php if ( ! empty( get_bloginfo( 'name' ) ) ) : ?>
 				<<?php echo $heading_tag; ?> id="site-title">
 					<span>
-					<?php $is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) ); ?>
 						<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a>
 					</span>
 				</<?php echo $heading_tag; ?>>
+				<?php endif; ?>
+				
+				<?php if ( ! empty( get_bloginfo( 'description' ) ) ) : ?>
 				<div id="site-description"><?php bloginfo( 'description' ); ?></div>
+				<?php endif; ?>
 
 				<?php
 					// Compatibility with versions of WordPress prior to 3.4.

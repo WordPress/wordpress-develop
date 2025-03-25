@@ -38,8 +38,14 @@
 	<header id="masthead" class="site-header">
 		<hgroup>
 		<?php $is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) ); ?>
+			
+		<?php if ( ! empty( get_bloginfo( 'name' ) ) ) : ?>
 			<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></h1>
+		<?php endif; ?>
+			
+		<?php if ( ! empty( get_bloginfo( 'description' ) ) ) : ?>
 			<h2 class="site-description"><?php bloginfo( 'description' ); ?></h2>
+		<?php endif; ?>
 		</hgroup>
 
 		<nav id="site-navigation" class="main-navigation">
