@@ -91,7 +91,7 @@ jobs:
   # Runs the performance test suite.
   performance:
     name: ${{ matrix.multisite && 'Multisite' || 'Single Site' }} ${{ matrix.memcached && 'Memcached' || 'Default' }}
-    uses: ./.github/workflows/reusable-performance-test-v2.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-performance-test-v2.yml@trunk
     needs: [ determine-matrix ]
     permissions:
       contents: read
@@ -109,7 +109,7 @@ jobs:
 
   compare:
     name: ${{ matrix.label }}
-    uses: ./.github/workflows/reusable-performance-report-v2.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-performance-report-v2.yml@trunk
     needs: [ determine-matrix, performance ]
     permissions:
       contents: read
@@ -129,7 +129,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read

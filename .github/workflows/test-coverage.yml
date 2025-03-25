@@ -49,7 +49,7 @@ jobs:
   #
   test-coverage-report:
     name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -67,7 +67,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read

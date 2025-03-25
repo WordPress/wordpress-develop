@@ -43,4 +43,4 @@ jobs:
     name: Check built files
     # This prevents an unnecessary second run after changes are committed back because Dependabot always rebases and force pushes.
     if: ${{ github.repository == 'wordpress/wordpress-develop' && ( github.actor != 'dependabot[bot]' || github.event.commits < 2 ) }}
-    uses: ./.github/workflows/reusable-check-built-files.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-check-built-files.yml@trunk

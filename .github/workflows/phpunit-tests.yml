@@ -55,7 +55,7 @@ jobs:
   #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     permissions:
       contents: read
     secrets: inherit
@@ -126,7 +126,7 @@ jobs:
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     permissions:
       contents: read
     secrets: inherit
@@ -176,7 +176,7 @@ jobs:
   #
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     permissions:
       contents: read
     secrets: inherit
@@ -219,7 +219,7 @@ jobs:
   #
   specific-test-groups:
     name: ${{ matrix.phpunit-test-groups }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-phpunit-tests-v3.yml@trunk
     permissions:
       contents: read
     secrets: inherit
@@ -239,7 +239,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read

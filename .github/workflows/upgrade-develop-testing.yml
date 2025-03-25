@@ -46,14 +46,14 @@ jobs:
   # Build WordPress from the current branch ready for the upgrade tests.
   build:
     name: Build
-    uses: ./.github/workflows/reusable-build-package.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-build-package.yml@trunk
     permissions:
       contents: read
 
   # Run upgrade tests for the current branch.
   upgrade-tests-develop:
     name: Upgrade from ${{ matrix.wp }}
-    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-upgrade-testing.yml@trunk
     if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     needs: [ build ]
     strategy:
@@ -85,7 +85,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read

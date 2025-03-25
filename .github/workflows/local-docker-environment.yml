@@ -69,7 +69,7 @@ jobs:
   #
   build-test-matrix:
     name: Build Test Matrix
-    uses: ./.github/workflows/reusable-support-json-reader-v1.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-support-json-reader-v1.yml@trunk
     permissions:
       contents: read
     secrets: inherit
@@ -80,7 +80,7 @@ jobs:
   # Tests the local Docker environment.
   environment-tests-mysql:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-test-local-docker-environment-v1.yml@trunk
     permissions:
       contents: read
     needs: [ build-test-matrix ]
@@ -112,7 +112,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
