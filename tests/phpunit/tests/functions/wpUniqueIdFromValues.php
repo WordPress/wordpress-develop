@@ -21,11 +21,44 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 	 *
 	 * @since 6.8.0
 	 */
-	public function test_wp_unique_id_from_values( $expected, $data, $prefix ) {
+	public function test_wp_unique_id_from_values( $data, $prefix ) {
+		// Generate IDs
 		$output1 = wp_unique_id_from_values( $data );
 		$output2 = wp_unique_id_from_values( $data, $prefix );
-		$this->assertSame( $expected, $output1 );
-		$this->assertSame( $prefix . $expected, $output2 );
+
+		// Ensure that the same input produces the same ID.
+		$this->assertSame( $output1, wp_unique_id_from_values( $data ) );
+		$this->assertSame( $output2, wp_unique_id_from_values( $data, $prefix ) );
+
+		// Ensure that the prefixed ID is the prefix + the original ID
+		$this->assertSame( $prefix . $output1, $output2 );
+	}
+
+	/**
+	 * Test that different input data generates distinct IDs.
+	 *
+	 * @ticket 62985
+	 *
+	 * @dataProvider data_wp_unique_id_from_values
+	 *
+	 * @since 6.8.0
+	 */
+	public function test_wp_unique_id_from_values_uniqueness( $data, $prefix ) {
+		// Generate IDs
+		$output1 = wp_unique_id_from_values( $data );
+		$output2 = wp_unique_id_from_values( $data, $prefix );
+
+		// Modify the data slightly to generate a different ID.
+		$data_modified          = $data;
+		$data_modified['value'] = 'modified';
+
+		// Generate new IDs with the modified data
+		$output3 = wp_unique_id_from_values( $data_modified );
+		$output4 = wp_unique_id_from_values( $data_modified, $prefix );
+
+		// Assert that the IDs for different data are distinct
+		$this->assertNotSame( $output1, $output3 );
+		$this->assertNotSame( $output2, $output4 );
 	}
 
 	/**
@@ -36,50 +69,31 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 	public function data_wp_unique_id_from_values() {
 		return array(
 			'string'          => array(
-				'expected' => '469f5989',
-				'data'     => array(
-					'value' => 'text',
-				),
-				'prefix'   => 'my-prefix-',
+				'data'   => array( 'value' => 'text' ),
+				'prefix' => 'my-prefix-',
 			),
 			'integer'         => array(
-				'expected' => 'b2f0842e',
-				'data'     => array(
-					'value' => 123,
-				),
-				'prefix'   => 'my-prefix-',
+				'data'   => array( 'value' => 123 ),
+				'prefix' => 'my-prefix-',
 			),
 			'float'           => array(
-				'expected' => 'a756f54d',
-				'data'     => array(
-					'value' => 1.23,
-				),
-				'prefix'   => 'my-prefix-',
+				'data'   => array( 'value' => 1.23 ),
+				'prefix' => 'my-prefix-',
 			),
 			'boolean'         => array(
-				'expected' => 'bdae8be3',
-				'data'     => array(
-					'value' => true,
-				),
-				'prefix'   => 'my-prefix-',
+				'data'   => array( 'value' => true ),
+				'prefix' => 'my-prefix-',
 			),
 			'object'          => array(
-				'expected' => '477bd670',
-				'data'     => array(
-					'value' => new StdClass(),
-				),
-				'prefix'   => 'my-prefix-',
+				'data'   => array( 'value' => new StdClass() ),
+				'prefix' => 'my-prefix-',
 			),
 			'null'            => array(
-				'expected' => 'a860dd95',
-				'data'     => array(
-					'value' => null,
-				),
-				'prefix'   => 'my-prefix-',
+				'data'   => array( 'value' => null ),
+				'prefix' => 'my-prefix-',
 			),
 			'multiple values' => array(
-				'expected' => 'ef258a5d',
-				'data'     => array(
+				'data'   => array(
 					'value1' => 'text',
 					'value2' => 123,
 					'value3' => 1.23,
@@ -87,11 +101,10 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 					'value5' => new StdClass(),
 					'value6' => null,
 				),
-				'prefix'   => 'my-prefix-',
+				'prefix' => 'my-prefix-',
 			),
 			'nested arrays'   => array(
-				'expected' => '4345cae5',
-				'data'     => array(
+				'data'   => array(
 					'list1' => array(
 						'value1' => 'text',
 						'value2' => 123,
@@ -103,7 +116,7 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 						'value6' => null,
 					),
 				),
-				'prefix'   => 'my-prefix-',
+				'prefix' => 'my-prefix-',
 			),
 		);
 	}
@@ -137,7 +150,7 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for invalid data tests.
 	 *
 	 * @return array[]
 	 */
