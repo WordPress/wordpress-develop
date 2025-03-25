@@ -14,7 +14,7 @@ require_once __DIR__ . '/admin.php';
 $title = _x( 'About', 'page title' );
 
 list( $display_version ) = explode( '-', wp_get_wp_version() );
-$display_major_version = '6.8';
+$display_major_version   = '6.8';
 
 $release_notes_url = sprintf(
 	/* translators: %s: WordPress version number. */
@@ -152,16 +152,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 		</div>
 
-		<div class="about__section has-2-columns">
-			<div class="column">
-				<div class="about__image">
-					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-						<path fill="#1e1e1e" d="M32.5417 20.6666H30.4917V15.6666C30.4917 12.1666 27.5875 9.33325 24 9.33325C20.4125 9.33325 17.5083 12.1666 17.5083 15.6666V20.6666H15.4583C14.4333 20.6666 13.75 21.3333 13.75 22.3333V35.6666C13.75 36.6666 14.4333 37.3333 15.4583 37.3333H32.5417C33.5667 37.3333 34.25 36.6666 34.25 35.6666V22.3333C34.25 21.3333 33.5667 20.6666 32.5417 20.6666ZM27.7583 20.6666H20.2417V15.6666C20.2417 13.6666 21.95 11.9999 24 11.9999C26.05 11.9999 27.7583 13.6666 27.7583 15.6666V20.6666Z"/>
-					</svg>
-				</div>
-				<h3><?php _e( 'Prevent vulnerabilities before they happen' ); ?></h3>
-				<p><?php _e( 'A new warning system in the settings panel shows you an alert about potentially dangerous configurations—for example, if you have open registration combined with high-level default user roles. (That can be very dangerous.) The system is a proactive approach that helps you catch vulnerabilities before they can ever be a problem.' ); ?></p>
-			</div>
+		<div class="about__section has-1-column">
 			<div class="column">
 				<div class="about__image">
 					<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
