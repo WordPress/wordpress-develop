@@ -63,7 +63,6 @@ function twentytwenty_site_logo( $args = array(), $display = true ) {
 		$contents  = sprintf( $args['logo'], $logo, esc_html( $site_title ) );
 		$classname = $args['logo_class'];
 	} else {
-		// Skip rendering if site title is empty
 		if ( empty( $site_title ) ) {
 			return '';
 		}
