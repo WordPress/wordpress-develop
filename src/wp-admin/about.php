@@ -13,7 +13,8 @@ require_once __DIR__ . '/admin.php';
 /* translators: Page title of the About WordPress page in the admin. */
 $title = _x( 'About', 'page title' );
 
-list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
+list( $display_version ) = explode( '-', wp_get_wp_version() );
+$display_major_version = '6.8';
 
 $release_notes_url = sprintf(
 	/* translators: %s: WordPress version number. */
@@ -183,7 +184,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Version number. */
 						__( 'For a comprehensive overview of all the new features and enhancements in WordPress %s, please visit the feature-showcase website.' ),
-						$display_version
+						$display_major_version
 					);
 					?>
 				</p>
@@ -207,7 +208,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: Version number. */
 						__( 'Learn more about WordPress %s' ),
-						$display_version
+						$display_major_version
 					);
 					?>
 				</h3>
@@ -238,7 +239,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						printf(
 							/* translators: %s: WordPress version number. */
 							__( 'WordPress %s Release Notes' ),
-							$display_version
+							$display_major_version
 						);
 						?>
 					</a>
@@ -248,7 +249,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: WordPress version number. */
 						__( 'Read the WordPress %s Release Notes for information on installation, enhancements, fixed issues, release contributors, learning resources, and the list of file changes.' ),
-						$display_version
+						$display_major_version
 					);
 					?>
 				</p>
@@ -265,7 +266,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						printf(
 							/* translators: %s: WordPress version number. */
 							__( 'WordPress %s Field Guide' ),
-							$display_version
+							$display_major_version
 						);
 						?>
 					</a>
@@ -275,7 +276,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: WordPress version number. */
 						__( 'Explore the WordPress %s Field Guide. Learn about the changes in this release with detailed developer notes to help you build with WordPress.' ),
-						$display_version
+						$display_major_version
 					);
 					?>
 				</p>
