@@ -35,7 +35,7 @@ if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
 }
 
 if ( process.env.LOCAL_FTP === 'true' ) {
-	containers += 'ftp';
+	containers += ' ftp';
 }
 execSync( `docker compose ${composeFiles} up --quiet-pull -d ${containers}`, { stdio: 'inherit' } );
 
