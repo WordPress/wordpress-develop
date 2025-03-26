@@ -127,7 +127,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 				'response' => array(
 					'code' => 200,
 				),
-				'body'     => '<html><head><link rel="alternate" type="application/json+oembed" href="' . self::UNTRUSTED_PROVIDER_URL . '" /></head><body></body></html>',
+				'body'     => '<html><head><link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . self::UNTRUSTED_PROVIDER_URL . '" /></head><body></body></html>',
 			);
 		}
 
@@ -171,7 +171,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		}
 		$this->assertIsString( $url );
 		$this->assertIsArray( $args );
-		$this->oembed_result_filter_count++;
+		++$this->oembed_result_filter_count;
 		return $data;
 	}
 
@@ -342,7 +342,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 	}
 
 	/**
@@ -385,7 +385,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( home_url(), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 
 		update_option( 'show_on_front', 'posts' );
 	}
@@ -430,7 +430,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 	}
 
 	/**
@@ -606,8 +606,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertIsObject( $data );
 		$this->assertSame( 'YouTube', $data->provider_name );
 		$this->assertSame( 'https://i.ytimg.com/vi/' . self::YOUTUBE_VIDEO_ID . '/hqdefault.jpg', $data->thumbnail_url );
-		$this->assertEquals( $data->width, $request['maxwidth'] );
-		$this->assertEquals( $data->height, $request['maxheight'] );
+		$this->assertSame( (int) $data->width, $request['maxwidth'] );
+		$this->assertSame( (int) $data->height, $request['maxheight'] );
 	}
 
 	/**
@@ -716,7 +716,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 	}
 
 	/**
@@ -765,7 +765,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( home_url(), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 
 		update_option( 'show_on_front', 'posts' );
 	}

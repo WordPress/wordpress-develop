@@ -37,12 +37,12 @@ function list_core_update( $update ) {
 	global $wp_local_package, $wpdb;
 	static $first_pass = true;
 
-	$wp_version     = get_bloginfo( 'version' );
+	$wp_version     = wp_get_wp_version();
 	$version_string = sprintf( '%s&ndash;%s', $update->current, get_locale() );
 
 	if ( 'en_US' === $update->locale && 'en_US' === get_locale() ) {
 		$version_string = $update->current;
-	} elseif ( 'en_US' === $update->locale && $update->packages->partial && $wp_version == $update->partial_version ) {
+	} elseif ( 'en_US' === $update->locale && $update->packages->partial && $wp_version === $update->partial_version ) {
 		$updates = get_core_updates();
 		if ( $updates && 1 === count( $updates ) ) {
 			// If the only available update is a partial builds, it doesn't need a language-specific version string.
@@ -179,9 +179,9 @@ function list_core_update( $update ) {
 	}
 	echo '</p>';
 
-	if ( 'en_US' !== $update->locale && ( ! isset( $wp_local_package ) || $wp_local_package != $update->locale ) ) {
+	if ( 'en_US' !== $update->locale && ( ! isset( $wp_local_package ) || $wp_local_package !== $update->locale ) ) {
 		echo '<p class="hint">' . __( 'This localized version contains both the translation and various other localization fixes.' ) . '</p>';
-	} elseif ( 'en_US' === $update->locale && 'en_US' !== get_locale() && ( ! $update->packages->partial && $wp_version == $update->partial_version ) ) {
+	} elseif ( 'en_US' === $update->locale && 'en_US' !== get_locale() && ( ! $update->packages->partial && $wp_version === $update->partial_version ) ) {
 		// Partial builds don't need language-specific warnings.
 		echo '<p class="hint">' . sprintf(
 			/* translators: %s: WordPress version. */
@@ -191,7 +191,6 @@ function list_core_update( $update ) {
 	}
 
 	echo '</form>';
-
 }
 
 /**
@@ -242,13 +241,8 @@ function dismissed_updates() {
  * Display upgrade WordPress for downloading latest or upgrading automatically form.
  *
  * @since 2.7.0
- *
- * @global string $required_php_version   The required PHP version string.
- * @global string $required_mysql_version The required MySQL version string.
  */
 function core_upgrade_preamble() {
-	global $required_php_version, $required_mysql_version;
-
 	$updates = get_core_updates();
 
 	// Include an unmodified $wp_version.
@@ -261,14 +255,19 @@ function core_upgrade_preamble() {
 		_e( 'An updated version of WordPress is available.' );
 		echo '</h2>';
 
-		echo '<div class="notice notice-warning inline"><p>';
-		printf(
+		$message = sprintf(
 			/* translators: 1: Documentation on WordPress backups, 2: Documentation on updating WordPress. */
 			__( '<strong>Important:</strong> Before updating, please <a href="%1$s">back up your database and files</a>. For help with updates, visit the <a href="%2$s">Updating WordPress</a> documentation page.' ),
-			__( 'https://wordpress.org/documentation/article/wordpress-backups/' ),
+			__( 'https://developer.wordpress.org/advanced-administration/security/backup/' ),
 			__( 'https://wordpress.org/documentation/article/updating-wordpress/' )
 		);
-		echo '</p></div>';
+		wp_admin_notice(
+			$message,
+			array(
+				'type'               => 'warning',
+				'additional_classes' => array( 'inline' ),
+			)
+		);
 	} elseif ( $is_development_version ) {
 		echo '<h2 class="response">' . __( 'You are using a development version of WordPress.' ) . '</h2>';
 	} else {
@@ -308,10 +307,22 @@ function core_auto_updates_settings() {
 	if ( isset( $_GET['core-major-auto-updates-saved'] ) ) {
 		if ( 'enabled' === $_GET['core-major-auto-updates-saved'] ) {
 			$notice_text = __( 'Automatic updates for all WordPress versions have been enabled. Thank you!' );
-			echo '<div class="notice notice-success is-dismissible"><p>' . $notice_text . '</p></div>';
+			wp_admin_notice(
+				$notice_text,
+				array(
+					'type'        => 'success',
+					'dismissible' => true,
+				)
+			);
 		} elseif ( 'disabled' === $_GET['core-major-auto-updates-saved'] ) {
 			$notice_text = __( 'WordPress will only receive automatic security and maintenance releases from now on.' );
-			echo '<div class="notice notice-success is-dismissible"><p>' . $notice_text . '</p></div>';
+			wp_admin_notice(
+				$notice_text,
+				array(
+					'type'        => 'success',
+					'dismissible' => true,
+				)
+			);
 		}
 	}
 
@@ -382,7 +393,7 @@ function core_auto_updates_settings() {
 	);
 
 	if ( $upgrade_major ) {
-		$wp_version = get_bloginfo( 'version' );
+		$wp_version = wp_get_wp_version();
 		$updates    = get_core_updates();
 
 		if ( isset( $updates[0]->version ) && version_compare( $updates[0]->version, $wp_version, '>' ) ) {
@@ -449,7 +460,7 @@ function core_auto_updates_settings() {
  * @since 2.9.0
  */
 function list_plugin_updates() {
-	$wp_version     = get_bloginfo( 'version' );
+	$wp_version     = wp_get_wp_version();
 	$cur_wp_version = preg_replace( '/-.*$/', '', $wp_version );
 
 	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
@@ -571,7 +582,8 @@ function list_plugin_updates() {
 	<tr>
 		<td class="check-column">
 			<?php if ( $compatible_php ) : ?>
-				<label for="<?php echo $checkbox_id; ?>" class="label-covers-full-cell">
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
+				<label for="<?php echo $checkbox_id; ?>">
 					<span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. %s: Plugin name. */
@@ -579,7 +591,6 @@ function list_plugin_updates() {
 					?>
 					</span>
 				</label>
-				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $plugin_file ); ?>" />
 			<?php endif; ?>
 		</td>
 		<td class="plugin-title"><p>
@@ -749,7 +760,8 @@ function list_theme_updates() {
 	<tr>
 		<td class="check-column">
 			<?php if ( $compatible_wp && $compatible_php ) : ?>
-				<label for="<?php echo $checkbox_id; ?>" class="label-covers-full-cell">
+				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
+				<label for="<?php echo $checkbox_id; ?>">
 					<span class="screen-reader-text">
 					<?php
 					/* translators: Hidden accessibility text. %s: Theme name. */
@@ -757,7 +769,6 @@ function list_theme_updates() {
 					?>
 					</span>
 				</label>
-				<input type="checkbox" name="checked[]" id="<?php echo $checkbox_id; ?>" value="<?php echo esc_attr( $stylesheet ); ?>" />
 			<?php endif; ?>
 		</td>
 		<td class="plugin-title"><p>
@@ -1034,7 +1045,7 @@ if ( current_user_can( 'update_themes' ) || current_user_can( 'update_plugins' )
 		)
 	);
 
-	$help_sidebar_rollback = '<p>' . __( '<a href="https://wordpress.org/documentation/article/common-wordpress-errors/">Common Errors</a>' ) . '</p>';
+	$help_sidebar_rollback = '<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/wordpress/common-errors/">Common Errors</a>' ) . '</p>';
 }
 
 get_current_screen()->set_help_sidebar(
@@ -1061,16 +1072,22 @@ if ( 'upgrade-core' === $action ) {
 		if ( 'themes' === $upgrade_error ) {
 			$theme_updates = get_theme_updates();
 			if ( ! empty( $theme_updates ) ) {
-				echo '<div class="error"><p>';
-				_e( 'Please select one or more themes to update.' );
-				echo '</p></div>';
+				wp_admin_notice(
+					__( 'Please select one or more themes to update.' ),
+					array(
+						'additional_classes' => array( 'error' ),
+					)
+				);
 			}
 		} else {
 			$plugin_updates = get_plugin_updates();
 			if ( ! empty( $plugin_updates ) ) {
-				echo '<div class="error"><p>';
-				_e( 'Please select one or more plugins to update.' );
-				echo '</p></div>';
+				wp_admin_notice(
+					__( 'Please select one or more plugins to update.' ),
+					array(
+						'additional_classes' => array( 'error' ),
+					)
+				);
 			}
 		}
 	}
@@ -1079,17 +1096,24 @@ if ( 'upgrade-core' === $action ) {
 	$current           = get_site_transient( 'update_core' );
 
 	if ( $current && isset( $current->last_checked ) ) {
-		$last_update_check = $current->last_checked + get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+		$last_update_check = $current->last_checked + (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 	}
 
 	echo '<h2 class="wp-current-version">';
 	/* translators: Current version of WordPress. */
-	printf( __( 'Current version: %s' ), get_bloginfo( 'version' ) );
+	printf( __( 'Current version: %s' ), esc_html( wp_get_wp_version() ) );
 	echo '</h2>';
 
 	echo '<p class="update-last-checked">';
-	/* translators: 1: Date, 2: Time. */
-	printf( __( 'Last checked on %1$s at %2$s.' ), date_i18n( __( 'F j, Y' ), $last_update_check ), date_i18n( __( 'g:i a T' ), $last_update_check ) );
+
+	printf(
+		/* translators: 1: Date, 2: Time. */
+		__( 'Last checked on %1$s at %2$s.' ),
+		/* translators: Last update date format. See https://www.php.net/manual/datetime.format.php */
+		date_i18n( __( 'F j, Y' ), $last_update_check ),
+		/* translators: Last update time format. See https://www.php.net/manual/datetime.format.php */
+		date_i18n( __( 'g:i a T' ), $last_update_check )
+	);
 	echo ' <a href="' . esc_url( self_admin_url( 'update-core.php?force-check=1' ) ) . '">' . __( 'Check again.' ) . '</a>';
 	echo '</p>';
 

@@ -13,7 +13,7 @@ To get started, create a codespace for this repository by clicking this 👇
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=trunk&repo=75645659)
 
-A codespace will open in a web-based version of Visual Studio Code. The [dev container](.devcontainer/devcontainer.json) is fully configured with softwares needed for this project.
+A codespace will open in a web-based version of Visual Studio Code. The [dev container](.devcontainer/devcontainer.json) is fully configured with software needed for this project.
 
 **Note**: Dev containers is an open spec which is supported by [GitHub Codespaces](https://github.com/codespaces) and [other tools](https://containers.dev/supporting).
 
@@ -35,7 +35,7 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
-**Note:** WordPress currently only supports Node.js `14.x` and npm `6.x`.
+**Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
 
 You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
 
@@ -87,6 +87,26 @@ npm run test:php
 npm run test:e2e
 ```
 
+You can pass extra parameters into the PHP tests by adding `--` and then the [command-line options](https://docs.phpunit.de/en/10.4/textui.html#command-line-options):
+
+```
+npm run test:php -- --filter <test name>
+npm run test:php -- --group <group name or ticket number>
+```
+
+#### Generating a code coverage report
+PHP code coverage reports are [generated daily](https://github.com/WordPress/wordpress-develop/actions/workflows/test-coverage.yml) and [submitted to Codecov.io](https://app.codecov.io/gh/WordPress/wordpress-develop).
+
+After the local Docker environment has [been installed and started](#to-start-the-development-environment-for-the-first-time), the following command can be used to generate a code coverage report. 
+
+```
+npm run test:coverage
+```
+
+The command will generate three coverage reports in HTML, PHP, and text formats, saving them in the `coverage` folder.
+
+**Note:** xDebug is required to generate a code coverage report, which can slow down PHPUnit significantly. Passing selection-based options such as `--group` or `--filter` can decrease the overall time required but will result in an incomplete report.
+
 #### To restart the development environment
 
 You may want to restart the environment if you've made changes to the configuration in the `docker-compose.yml` or `.env` files. Restart the environment with:
@@ -110,6 +130,32 @@ Starting the environment again is a single command:
 ```
 npm run env:start
 ```
+
+#### Resetting the development environment
+
+The development environment can be reset. This will destroy the database and attempt to remove the pulled Docker images.
+
+```
+npm run env:reset
+```
+
+### Apple Silicon machines and old MySQL/MariaDB versions
+
+Older MySQL and MariaDB Docker images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
+
+- MySQL versions 5.7 and earlier
+- MariaDB 5.5
+
+When using these versions on an Apple Silicon machine, you must create a `docker-compose.override.yml` file with the following contents:
+
+```
+services:
+
+  mysql:
+    platform: linux/amd64
+```
+
+Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in Docker needs to be disabled for this workaround.
 
 ## Credentials
 

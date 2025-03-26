@@ -29,7 +29,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/network-admin-updates-screen/">Documentation on Upgrade Network</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-updates-screen">Documentation on Upgrade Network</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
@@ -135,6 +135,9 @@ switch ( $action ) {
 		break;
 	case 'show':
 	default:
+		/**
+		 * @global int $wp_db_version WordPress database version.
+		 */
 		if ( (int) get_site_option( 'wpmu_upgrade_site' ) !== $GLOBALS['wp_db_version'] ) :
 			?>
 		<h2><?php _e( 'Database Update Required' ); ?></h2>

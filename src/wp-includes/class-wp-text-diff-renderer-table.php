@@ -7,6 +7,11 @@
  * @since 4.7.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Table renderer to display the diff lines.
  *
@@ -29,6 +34,30 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @since 2.6.0
 	 */
 	public $_trailing_context_lines = 10000;
+
+	/**
+	 * Title of the item being compared.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title;
+
+	/**
+	 * Title for the left column.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title_left;
+
+	/**
+	 * Title for the right column.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title_right;
 
 	/**
 	 * Threshold for when a diff should be saved or omitted.
@@ -118,7 +147,6 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			/* translators: Hidden accessibility text. */
 			__( 'Added:' ) .
 		" </span>{$line}</td>";
-
 	}
 
 	/**
@@ -511,35 +539,53 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * Make private properties readable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Getting a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to get.
-	 * @return mixed Property.
+	 * @return mixed A declared property's value, else null.
 	 */
 	public function __get( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name;
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Getting a dynamic property is " .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
+		return null;
 	}
 
 	/**
 	 * Make private properties settable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Setting a dynamic property is deprecated.
 	 *
 	 * @param string $name  Property to check if set.
 	 * @param mixed  $value Property value.
-	 * @return mixed Newly-set property.
 	 */
 	public function __set( $name, $value ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name = $value;
+			$this->$name = $value;
+			return;
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Setting a dynamic property is " .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
 	}
 
 	/**
 	 * Make private properties checkable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Checking a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to check if set.
 	 * @return bool Whether the property is set.
@@ -548,18 +594,35 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Checking `isset()` on a dynamic property " .
+			'is deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
+		return false;
 	}
 
 	/**
 	 * Make private properties un-settable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Unsetting a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to unset.
 	 */
 	public function __unset( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			unset( $this->$name );
+			return;
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"A property `{$name}` is not declared. Unsetting a dynamic property is " .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
 	}
 }

@@ -558,6 +558,10 @@
 	display: block;
 }
 
+.community-events .ce-separator::before {
+	content: "\2022";
+}
+
 .event-icon {
 	height: 18px;
 	padding-right: 10px;
@@ -706,6 +710,11 @@ body #dashboard-widgets .postbox form .submit {
 	padding: 0;
 	font-size: 14px;
 	font-weight: 400;
+}
+
+#network_dashboard_right_now p input {
+	margin: 2px 1px;
+	vertical-align: middle;
 }
 
 /* Dashboard right now - Colors */

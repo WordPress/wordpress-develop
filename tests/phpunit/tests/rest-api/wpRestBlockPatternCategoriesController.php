@@ -65,7 +65,7 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Pattern_Categories_Registry', 'instance' );
 		self::$registry_instance_property->setAccessible( true );
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
-		self::$registry_instance_property->setValue( $test_registry );
+		self::$registry_instance_property->setValue( null, $test_registry );
 
 		// Register some categories in the test registry.
 		$test_registry->register(
@@ -88,7 +88,7 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		self::delete_user( self::$admin_id );
 
 		// Restore the original registry instance.
-		self::$registry_instance_property->setValue( self::$orig_registry );
+		self::$registry_instance_property->setValue( null, self::$orig_registry );
 		self::$registry_instance_property->setAccessible( false );
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
@@ -121,6 +121,35 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 			$this->assertSame( $expected_names[ $idx ], $item['name'] );
 			$this->assertSame( $expected_fields, array_keys( $item ) );
 		}
+	}
+
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_block_pattern_categories_data() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'HEAD', static::REQUEST_ROUTE );
+		$request->set_param( '_fields', 'name' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
 	}
 
 	/**

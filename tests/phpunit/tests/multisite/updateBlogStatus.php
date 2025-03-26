@@ -9,7 +9,7 @@ if ( is_multisite() ) :
 	class Tests_Multisite_UpdateBlogStatus extends WP_UnitTestCase {
 
 		/**
-		 * Updating a field returns the sme value that was passed.
+		 * Updating a field returns the same value that was passed.
 		 */
 		public function test_update_blog_status() {
 			$result = update_blog_status( 1, 'spam', 0 );
@@ -45,6 +45,9 @@ if ( is_multisite() ) :
 			$this->assertSame( 1, $test_action_counter->get_call_count() );
 		}
 
+		/**
+		 * @group external-http
+		 */
 		public function test_content_from_spam_blog_is_not_available() {
 			$spam_blog_id = self::factory()->blog->create();
 			switch_to_blog( $spam_blog_id );

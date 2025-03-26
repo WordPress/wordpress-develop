@@ -36,7 +36,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 
 		$data       = $response->get_data();
 		$post_types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
-		$this->assertSame( count( $post_types ), count( $data ) );
+		$this->assertCount( count( $post_types ), $data );
 		$this->assertSame( $post_types['post']->name, $data['post']['slug'] );
 		$this->check_post_type_obj( 'view', $post_types['post'], $data['post'], $data['post']['_links'] );
 		$this->assertSame( $post_types['page']->name, $data['page']['slug'] );
@@ -44,12 +44,30 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayNotHasKey( 'revision', $data );
 	}
 
-	public function test_get_items_invalid_permission_for_context() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_invalid_permission_for_context( $method ) {
 		wp_set_current_user( 0 );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/types' );
+		$request = new WP_REST_Request( $method, '/wp/v2/types' );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_view', $response, 401 );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
 	}
 
 	public function test_get_item() {
@@ -58,6 +76,72 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->check_post_type_object_response( 'view', $response );
 		$data = $response->get_data();
 		$this->assertSame( array( 'category', 'post_tag' ), $data['taxonomies'] );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_should_allow_adding_headers_via_filter( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/types/post' );
+
+		$hook_name = 'rest_prepare_post_type';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$header_filter = new class() {
+			public static function add_custom_header( $response ) {
+				$response->header( 'X-Test-Header', 'Test' );
+
+				return $response;
+			}
+		};
+		add_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+		remove_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'X-Test-Header', $headers, 'The "X-Test-Header" header should be present in the response.' );
+		$this->assertSame( 'Test', $headers['X-Test-Header'], 'The "X-Test-Header" header value should be equal to "Test".' );
+		if ( 'HEAD' !== $method ) {
+			return null;
+		}
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		$request = new WP_REST_Request( 'HEAD', $path );
+		$request->set_param( '_fields', 'slug' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/types/post' ),
+			'get_items request' => array( '/wp/v2/types' ),
+		);
 	}
 
 	/**
@@ -77,6 +161,27 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->check_post_type_object_response( 'view', $response, 'cpt' );
 	}
 
+	/**
+	 * @ticket 61477
+	 */
+	public function test_get_item_template_cpt() {
+		register_post_type(
+			'cpt_template',
+			array(
+				'show_in_rest'   => true,
+				'rest_base'      => 'cpt_template',
+				'rest_namespace' => 'wordpress/v1',
+				'template'       => array(
+					array( 'core/paragraph', array( 'placeholder' => 'Content' ) ),
+				),
+				'template_lock'  => 'all',
+			)
+		);
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/cpt_template' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_post_type_object_response( 'view', $response, 'cpt_template' );
+	}
+
 	public function test_get_item_page() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/page' );
 		$response = rest_get_server()->dispatch( $request );
@@ -85,8 +190,14 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( array(), $data['taxonomies'] );
 	}
 
-	public function test_get_item_invalid_type() {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/types/invalid' );
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_item_invalid_type( $method ) {
+		$request  = new WP_REST_Request( $method, '/wp/v2/types/invalid' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_type_invalid', $response, 404 );
 	}
@@ -100,9 +211,15 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->check_post_type_object_response( 'edit', $response );
 	}
 
-	public function test_get_item_invalid_permission_for_context() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_item_invalid_permission_for_context( $method ) {
 		wp_set_current_user( 0 );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/types/post' );
+		$request = new WP_REST_Request( $method, '/wp/v2/types/post' );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
@@ -165,7 +282,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 14, $properties, 'Schema should have 14 properties' );
+		$this->assertCount( 16, $properties, 'Schema should have 16 properties' );
 		$this->assertArrayHasKey( 'capabilities', $properties, '`capabilities` should be included in the schema' );
 		$this->assertArrayHasKey( 'description', $properties, '`description` should be included in the schema' );
 		$this->assertArrayHasKey( 'hierarchical', $properties, '`hierarchical` should be included in the schema' );
@@ -180,6 +297,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'rest_namespace', $properties, '`rest_namespace` should be included in the schema' );
 		$this->assertArrayHasKey( 'visibility', $properties, '`visibility` should be included in the schema' );
 		$this->assertArrayHasKey( 'icon', $properties, '`icon` should be included in the schema' );
+		$this->assertArrayHasKey( 'template', $properties, '`template` should be included in the schema' );
+		$this->assertArrayHasKey( 'template_lock', $properties, '`template_lock` should be included in the schema' );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -222,6 +341,22 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		return 123;
 	}
 
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_post_types_data() {
+		$request   = new WP_REST_Request( 'HEAD', '/wp/v2/types' );
+		$hook_name = 'rest_prepare_post_type';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
 	protected function check_post_type_obj( $context, $post_type_obj, $data, $links ) {
 		$this->assertSame( $post_type_obj->label, $data['name'] );
 		$this->assertSame( $post_type_obj->name, $data['slug'] );
@@ -230,6 +365,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( $post_type_obj->rest_base, $data['rest_base'] );
 		$this->assertSame( $post_type_obj->rest_namespace, $data['rest_namespace'] );
 		$this->assertSame( $post_type_obj->has_archive, $data['has_archive'] );
+		$this->assertSame( $post_type_obj->template ?? array(), $data['template'] );
+		$this->assertSame( ! empty( $post_type_obj->template_lock ) ? $post_type_obj->template_lock : false, $data['template_lock'] );
 
 		$links = test_rest_expand_compact_links( $links );
 		$this->assertSame( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
@@ -263,5 +400,4 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$obj  = get_post_type_object( $post_type );
 		$this->check_post_type_obj( $context, $obj, $data, $response->get_links() );
 	}
-
 }

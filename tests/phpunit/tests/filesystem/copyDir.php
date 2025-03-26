@@ -3,7 +3,8 @@
 /**
  * Tests copy_dir().
  *
- * @group file.php
+ * @group file
+ * @group filesystem
  *
  * @covers ::copy_dir
  */
@@ -79,5 +80,4 @@ class Tests_Filesystem_CopyDir extends WP_UnitTestCase {
 		$this->assertDirectoryExists( $to . 'subfolder1/', 'The destination subfolder was not created.' );
 		$this->assertFileExists( $to . 'subfolder1/file2.txt', 'The destination subfolder file was not created.' );
 	}
-
 }

@@ -63,7 +63,35 @@ class Tests_User extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		add_action( 'set_auth_cookie', array( $this, 'action_set_auth_cookie' ), 10, 6 );
+		add_action( 'set_logged_in_cookie', array( $this, 'action_set_logged_in_cookie' ), 10 );
+		add_action( 'clear_auth_cookie', array( $this, 'action_clear_auth_cookie' ) );
+
+		$_COOKIE = array();
+
 		$this->author = clone self::$_author;
+	}
+
+	final public function action_set_auth_cookie(
+		string $cookie,
+		int $expire,
+		int $expiration,
+		int $user_id,
+		string $scheme,
+		string $token
+	): void {
+		$_COOKIE[ SECURE_AUTH_COOKIE ] = $cookie;
+		$_COOKIE[ AUTH_COOKIE ]        = $cookie;
+	}
+
+	final public function action_set_logged_in_cookie( string $cookie ): void {
+		$_COOKIE[ LOGGED_IN_COOKIE ] = $cookie;
+	}
+
+	final public function action_clear_auth_cookie(): void {
+		unset( $_COOKIE[ LOGGED_IN_COOKIE ] );
+		unset( $_COOKIE[ SECURE_AUTH_COOKIE ] );
+		unset( $_COOKIE[ AUTH_COOKIE ] );
 	}
 
 	public function test_get_users_of_blog() {
@@ -140,7 +168,6 @@ class Tests_User extends WP_UnitTestCase {
 		// Correct key: deleted.
 		delete_user_meta( self::$author_id, $key, $val );
 		$this->assertSame( '', get_user_meta( self::$author_id, $key, true ) );
-
 	}
 
 	/**
@@ -1123,6 +1150,50 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertEmpty( $user->user_activation_key );
 	}
 
+	/**
+	 * @ticket 61366
+	 * @dataProvider data_remember_user
+	 */
+	public function test_changing_own_password_retains_current_session( bool $remember ) {
+		$user    = $this->author;
+		$manager = WP_Session_Tokens::get_instance( $user->ID );
+		$expiry  = $remember ? ( 2 * WEEK_IN_SECONDS ) : ( 2 * DAY_IN_SECONDS );
+		$token   = $manager->create( time() + $expiry );
+		$pass    = $user->user_pass;
+
+		wp_set_current_user( $user->ID );
+		wp_set_auth_cookie( $user->ID, $remember, '', $token );
+
+		$cookie   = $_COOKIE[ AUTH_COOKIE ];
+		$userdata = array(
+			'ID'        => $user->ID,
+			'user_pass' => 'my_new_password',
+		);
+		$updated  = wp_update_user( $userdata, $manager );
+		$parsed   = wp_parse_auth_cookie();
+
+		// Check the prerequisites:
+		$this->assertNotWPError( $updated );
+		$this->assertNotSame( $pass, get_userdata( $user->ID )->user_pass );
+
+		// Check the session token:
+		$this->assertSame( $token, $parsed['token'] );
+		$this->assertCount( 1, $manager->get_all() );
+
+		// Check that the newly set auth cookie is valid:
+		$this->assertSame( $user->ID, wp_validate_auth_cookie() );
+
+		// Check that, despite the session token reuse, the old auth cookie should now be invalid because the password changed:
+		$this->assertFalse( wp_validate_auth_cookie( $cookie ) );
+	}
+
+	public function data_remember_user() {
+		return array(
+			array( true ),
+			array( false ),
+		);
+	}
+
 	public function test_search_users_login() {
 		$users = get_users(
 			array(
@@ -1440,6 +1511,66 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that the notification email is sent in the correct locale.
+	 *
+	 * @ticket 61518
+	 */
+	public function test_wp_new_user_notification_switches_locale_to_matching_user() {
+		reset_phpmailer_instance();
+
+		$admin_user = get_user_by( 'email', get_option( 'admin_email' ) );
+
+		update_option( 'WPLANG', 'en_GB' );
+		update_user_meta( $admin_user->ID, 'locale', 'de_DE' );
+		update_user_meta( self::$contrib_id, 'locale', 'es_ES' );
+
+		$admin_email_locale = null;
+		$user_email_locale  = null;
+
+		add_filter(
+			'wp_new_user_notification_email_admin',
+			static function ( $email ) use ( &$admin_email_locale ) {
+				$admin_email_locale = get_locale();
+				return $email;
+			}
+		);
+		add_filter(
+			'wp_new_user_notification_email',
+			static function ( $email ) use ( &$user_email_locale ) {
+				$user_email_locale = get_locale();
+				return $email;
+			}
+		);
+
+		wp_new_user_notification( self::$contrib_id, null, 'both' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$was_admin_email_sent = false;
+		$was_user_email_sent  = false;
+
+		/*
+		 * Check to see if a notification email was sent to the
+		 * post author `blackburn@battlefield3.com` and and site admin `admin@example.org`.
+		 */
+		$first_recipient = $mailer->get_recipient( 'to' );
+		if ( $first_recipient ) {
+			$was_admin_email_sent = WP_TESTS_EMAIL === $first_recipient->address;
+			$was_user_email_sent  = 'blackburn@battlefield3.com' === $first_recipient->address;
+		}
+
+		$second_recipient = $mailer->get_recipient( 'to', 1 );
+		if ( $second_recipient ) {
+			$was_user_email_sent = 'blackburn@battlefield3.com' === $second_recipient->address;
+		}
+
+		$this->assertTrue( $was_admin_email_sent, 'Admin email was not sent as expected' );
+		$this->assertTrue( $was_user_email_sent, 'User email was not sent as expected' );
+		$this->assertSame( 'de_DE', $admin_email_locale, 'Admin email was not sent in the expected locale' );
+		$this->assertSame( 'es_ES', $user_email_locale, 'User email was not sent in the expected locale' );
+	}
+
+	/**
 	 * Callback that returns 0.0.
 	 *
 	 * @return float 0.0.
@@ -1492,7 +1623,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Assert recipient is correct.
 		$this->assertSame( $new_email, $recipient->address, 'Admin email change notification recipient not as expected' );
 
-		// Assert that HTML entites have been decode in body and subject.
+		// Assert that HTML entities have been decode in body and subject.
 		$this->assertStringContainsString( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
 		$this->assertStringNotContainsString( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, $email->subject, 'Email subject does contains HTML entities' );
 	}
@@ -1795,7 +1926,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Assert recipient is correct.
 		$this->assertSame( 'new-email@test.dev', $recipient->address, 'User email change confirmation recipient not as expected' );
 
-		// Assert that HTML entites have been decoded in body and subject.
+		// Assert that HTML entities have been decoded in body and subject.
 		$this->assertStringContainsString( '\'Test\' blog\'s "name" has <html entities> &', $email->subject, 'Email subject does not contain the decoded HTML entities' );
 		$this->assertStringNotContainsString( '&#039;Test&#039; blog&#039;s &quot;name&quot; has &lt;html entities&gt; &amp;', $email->subject, 'Email subject does contains HTML entities' );
 	}
@@ -1940,7 +2071,6 @@ class Tests_User extends WP_UnitTestCase {
 		// Contains location longitude.
 		$this->assertSame( 'Longitude', $actual['data'][1]['data'][3]['name'] );
 		$this->assertSame( '-84.5143900', $actual['data'][1]['data'][3]['value'] );
-
 	}
 
 	/**
@@ -2085,15 +2215,13 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the item added by the filter was retained.
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name'  => 'Test Additional Data Name',
-						'value' => 'Test Additional Data Value',
-					)
+			wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name'  => 'Test Additional Data Name',
+					'value' => 'Test Additional Data Value',
 				)
 			)
 		);
@@ -2117,28 +2245,24 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the duplicate 'name' => 'User ID' was stripped.
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name' => 'User ID',
-					)
+			wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name' => 'User ID',
 				)
 			)
 		);
 
 		// Check that the item added by the filter was retained.
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				wp_list_filter(
-					$actual['data'][0]['data'],
-					array(
-						'name'  => 'Test Additional Data Name',
-						'value' => 'Test Additional Data Value',
-					)
+			wp_list_filter(
+				$actual['data'][0]['data'],
+				array(
+					'name'  => 'Test Additional Data Name',
+					'value' => 'Test Additional Data Value',
 				)
 			)
 		);
@@ -2192,5 +2316,49 @@ class Tests_User extends WP_UnitTestCase {
 		);
 
 		return $additional_profile_data;
+	}
+
+	/**
+	 * Tests that wp_insert_user() does not unnecessarily update the 'use_ssl' meta.
+	 *
+	 * @ticket 60299
+	 *
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_should_not_unnecessary_update_use_ssl_meta() {
+		$user_id = self::$contrib_id;
+		// Keep track of database writing calls.
+		$db_update_count = 0;
+
+		// Track database updates via update_user_meta() with 'use_ssl' meta key.
+		add_action(
+			'update_user_meta',
+			function ( $meta_id, $object_id, $meta_key ) use ( &$db_update_count ) {
+				if ( 'use_ssl' !== $meta_key ) {
+					return;
+				}
+				$db_update_count++;
+			},
+			10,
+			3
+		);
+
+		$_POST = array(
+			'nickname' => 'nickname_test',
+			'email'    => 'email_test_1@example.com',
+			'use_ssl'  => 1,
+		);
+
+		$user_id = edit_user( $user_id );
+
+		$this->assertIsInt( $user_id );
+		$this->assertSame( 1, $db_update_count );
+
+		// Update the user without changing the 'use_ssl' meta.
+		$_POST['email'] = 'email_test_2@example.com';
+		$user_id        = edit_user( $user_id );
+
+		// Verify there are no updates to 'use_ssl' user meta.
+		$this->assertSame( 1, $db_update_count );
 	}
 }

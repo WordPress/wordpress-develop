@@ -18,6 +18,50 @@
 class WP_Navigation_Fallback {
 
 	/**
+	 * Updates the wp_navigation custom post type schema, in order to expose
+	 * additional fields in the embeddable links of WP_REST_Navigation_Fallback_Controller.
+	 *
+	 * The Navigation Fallback endpoint may embed the full Navigation Menu object
+	 * into the response as the `self` link. By default, the Posts Controller
+	 * will only expose a limited subset of fields but the editor requires
+	 * additional fields to be available in order to utilize the menu.
+	 *
+	 * Used with the `rest_wp_navigation_item_schema` hook.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @param array $schema The schema for the `wp_navigation` post.
+	 * @return array The modified schema.
+	 */
+	public static function update_wp_navigation_post_schema( $schema ) {
+		// Expose top level fields.
+		$schema['properties']['status']['context']  = array_merge( $schema['properties']['status']['context'], array( 'embed' ) );
+		$schema['properties']['content']['context'] = array_merge( $schema['properties']['content']['context'], array( 'embed' ) );
+
+		/*
+		 * Exposes sub properties of content field.
+		 * These sub properties aren't exposed by the posts controller by default,
+		 * for requests where context is `embed`.
+		 *
+		 * @see WP_REST_Posts_Controller::get_item_schema()
+		 */
+		$schema['properties']['content']['properties']['raw']['context']           = array_merge( $schema['properties']['content']['properties']['raw']['context'], array( 'embed' ) );
+		$schema['properties']['content']['properties']['rendered']['context']      = array_merge( $schema['properties']['content']['properties']['rendered']['context'], array( 'embed' ) );
+		$schema['properties']['content']['properties']['block_version']['context'] = array_merge( $schema['properties']['content']['properties']['block_version']['context'], array( 'embed' ) );
+
+		/*
+		 * Exposes sub properties of title field.
+		 * These sub properties aren't exposed by the posts controller by default,
+		 * for requests where context is `embed`.
+		 *
+		 * @see WP_REST_Posts_Controller::get_item_schema()
+		 */
+		$schema['properties']['title']['properties']['raw']['context'] = array_merge( $schema['properties']['title']['properties']['raw']['context'], array( 'embed' ) );
+
+		return $schema;
+	}
+
+	/**
 	 * Gets (and/or creates) an appropriate fallback Navigation Menu.
 	 *
 	 * @since 6.3.0
@@ -25,13 +69,12 @@ class WP_Navigation_Fallback {
 	 * @return WP_Post|null the fallback Navigation Post or null.
 	 */
 	public static function get_fallback() {
-
 		/**
 		 * Filters whether or not a fallback should be created.
 		 *
 		 * @since 6.3.0
 		 *
-		 * @param bool Whether to create a fallback navigation menu. Default true.
+		 * @param bool $create Whether to create a fallback navigation menu. Default true.
 		 */
 		$should_create_fallback = apply_filters( 'wp_navigation_should_create_fallback', true );
 
@@ -105,6 +148,10 @@ class WP_Navigation_Fallback {
 		// If there is a classic menu then convert it to blocks.
 		$classic_nav_menu_blocks = WP_Classic_To_Block_Menu_Converter::convert( $classic_nav_menu );
 
+		if ( is_wp_error( $classic_nav_menu_blocks ) ) {
+			return $classic_nav_menu_blocks;
+		}
+
 		if ( empty( $classic_nav_menu_blocks ) ) {
 			return new WP_Error( 'cannot_convert_classic_menu', __( 'Unable to convert Classic Menu to blocks.' ) );
 		}
@@ -165,7 +212,7 @@ class WP_Navigation_Fallback {
 	private static function get_most_recently_created_nav_menu( $classic_nav_menus ) {
 		usort(
 			$classic_nav_menus,
-			static function( $a, $b ) {
+			static function ( $a, $b ) {
 				return $b->term_id - $a->term_id;
 			}
 		);

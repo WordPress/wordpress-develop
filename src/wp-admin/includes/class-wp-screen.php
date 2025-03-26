@@ -984,7 +984,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * @global array $wp_meta_boxes
+	 * @global array $wp_meta_boxes Global meta box state.
 	 *
 	 * @return bool
 	 */
@@ -1103,7 +1103,7 @@ final class WP_Screen {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @global array $wp_meta_boxes
+	 * @global array $wp_meta_boxes Global meta box state.
 	 */
 	public function render_meta_boxes_preferences() {
 		global $wp_meta_boxes;
@@ -1279,7 +1279,7 @@ final class WP_Screen {
 			<?php if ( $per_page_label ) : ?>
 				<label for="<?php echo esc_attr( $option ); ?>"><?php echo $per_page_label; ?></label>
 				<input type="number" step="1" min="1" max="999" class="screen-per-page" name="wp_screen_options[value]"
-					id="<?php echo esc_attr( $option ); ?>" maxlength="3"
+					id="<?php echo esc_attr( $option ); ?>"
 					value="<?php echo esc_attr( $per_page ); ?>" />
 			<?php endif; ?>
 				<input type="hidden" name="wp_screen_options[option]" value="<?php echo esc_attr( $option ); ?>" />

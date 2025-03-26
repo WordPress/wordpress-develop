@@ -151,7 +151,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 				)
 			)
 		);
-
 	}
 
 	/**
@@ -259,7 +258,7 @@ EOT;
 	 *
 	 * @covers ::sanitize_url
 	 */
-	public function test_invalid_charaters() {
+	public function test_invalid_characters() {
 		$this->assertEmpty( sanitize_url( '"^<>{}`' ) );
 	}
 
@@ -276,5 +275,4 @@ EOT;
 		$this->assertSame( '//[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( '//[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 		$this->assertSame( 'http://[::FFFF::127.0.0.1]/?foo%5Bbar%5D=baz', esc_url( 'http://[::FFFF::127.0.0.1]/?foo[bar]=baz' ) );
 	}
-
 }

@@ -92,7 +92,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 		global $tabs, $tab, $paged, $type, $term;
 
-		wp_reset_vars( array( 'tab' ) );
+		$tab = ! empty( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : '';
 
 		$paged = $this->get_pagenum();
 
@@ -290,10 +290,17 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 */
 	public function no_items() {
-		if ( isset( $this->error ) ) { ?>
-			<div class="inline error"><p><?php echo $this->error->get_error_message(); ?></p>
-				<p class="hide-if-no-js"><button class="button try-again"><?php _e( 'Try Again' ); ?></button></p>
-			</div>
+		if ( isset( $this->error ) ) {
+			$error_message  = '<p>' . $this->error->get_error_message() . '</p>';
+			$error_message .= '<p class="hide-if-no-js"><button class="button try-again">' . __( 'Try Again' ) . '</button></p>';
+			wp_admin_notice(
+				$error_message,
+				array(
+					'additional_classes' => array( 'inline', 'error' ),
+					'paragraph_wrap'     => false,
+				)
+			);
+			?>
 		<?php } else { ?>
 			<div class="no-plugin-results"><?php _e( 'No plugins found. Try a different search.' ); ?></div>
 			<?php
@@ -329,7 +336,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	public function views() {
 		$views = $this->get_views();
 
-		/** This filter is documented in wp-admin/inclues/class-wp-list-table.php */
+		/** This filter is documented in wp-admin/includes/class-wp-list-table.php */
 		$views = apply_filters( "views_{$this->screen->id}", $views );
 
 		$this->screen->render_screen_reader_content( 'heading_views' );
@@ -457,6 +464,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		}
 	}
 
+	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 */
 	public function display_rows() {
 		$plugins_allowedtags = array(
 			'a'       => array(
@@ -548,102 +560,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 			$action_links = array();
 
-			if ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) {
-				$status = install_plugin_install_status( $plugin );
-
-				switch ( $status['status'] ) {
-					case 'install':
-						if ( $status['url'] ) {
-							if ( $compatible_php && $compatible_wp ) {
-								$action_links[] = sprintf(
-									'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
-									esc_attr( $plugin['slug'] ),
-									esc_url( $status['url'] ),
-									/* translators: %s: Plugin name and version. */
-									esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $name ) ),
-									esc_attr( $name ),
-									__( 'Install Now' )
-								);
-							} else {
-								$action_links[] = sprintf(
-									'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-									_x( 'Cannot Install', 'plugin' )
-								);
-							}
-						}
-						break;
-
-					case 'update_available':
-						if ( $status['url'] ) {
-							if ( $compatible_php && $compatible_wp ) {
-								$action_links[] = sprintf(
-									'<a class="update-now button aria-button-if-js" data-plugin="%s" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
-									esc_attr( $status['file'] ),
-									esc_attr( $plugin['slug'] ),
-									esc_url( $status['url'] ),
-									/* translators: %s: Plugin name and version. */
-									esc_attr( sprintf( _x( 'Update %s now', 'plugin' ), $name ) ),
-									esc_attr( $name ),
-									__( 'Update Now' )
-								);
-							} else {
-								$action_links[] = sprintf(
-									'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-									_x( 'Cannot Update', 'plugin' )
-								);
-							}
-						}
-						break;
-
-					case 'latest_installed':
-					case 'newer_installed':
-						if ( is_plugin_active( $status['file'] ) ) {
-							$action_links[] = sprintf(
-								'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-								_x( 'Active', 'plugin' )
-							);
-						} elseif ( current_user_can( 'activate_plugin', $status['file'] ) ) {
-							if ( $compatible_php && $compatible_wp ) {
-								$button_text = __( 'Activate' );
-								/* translators: %s: Plugin name. */
-								$button_label = _x( 'Activate %s', 'plugin' );
-								$activate_url = add_query_arg(
-									array(
-										'_wpnonce' => wp_create_nonce( 'activate-plugin_' . $status['file'] ),
-										'action'   => 'activate',
-										'plugin'   => $status['file'],
-									),
-									network_admin_url( 'plugins.php' )
-								);
-
-								if ( is_network_admin() ) {
-									$button_text = __( 'Network Activate' );
-									/* translators: %s: Plugin name. */
-									$button_label = _x( 'Network Activate %s', 'plugin' );
-									$activate_url = add_query_arg( array( 'networkwide' => 1 ), $activate_url );
-								}
-
-								$action_links[] = sprintf(
-									'<a href="%1$s" class="button activate-now" aria-label="%2$s">%3$s</a>',
-									esc_url( $activate_url ),
-									esc_attr( sprintf( $button_label, $plugin['name'] ) ),
-									$button_text
-								);
-							} else {
-								$action_links[] = sprintf(
-									'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-									_x( 'Cannot Activate', 'plugin' )
-								);
-							}
-						} else {
-							$action_links[] = sprintf(
-								'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-								_x( 'Installed', 'plugin' )
-							);
-						}
-						break;
-				}
-			}
+			$action_links[] = wp_get_plugin_action_button( $name, $plugin, $compatible_php, $compatible_wp );
 
 			$details_link = self_admin_url(
 				'plugin-install.php?tab=plugin-information&amp;plugin=' . $plugin['slug'] .
@@ -686,52 +603,59 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		<div class="plugin-card plugin-card-<?php echo sanitize_html_class( $plugin['slug'] ); ?>">
 			<?php
 			if ( ! $compatible_php || ! $compatible_wp ) {
-				echo '<div class="notice inline notice-error notice-alt"><p>';
+				$incompatible_notice_message = '';
 				if ( ! $compatible_php && ! $compatible_wp ) {
-					_e( 'This plugin does not work with your versions of WordPress and PHP.' );
+					$incompatible_notice_message .= __( 'This plugin does not work with your versions of WordPress and PHP.' );
 					if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
-						printf(
+						$incompatible_notice_message .= sprintf(
 							/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
 							' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
 							self_admin_url( 'update-core.php' ),
 							esc_url( wp_get_update_php_url() )
 						);
-						wp_update_php_annotation( '</p><p><em>', '</em>' );
+						$incompatible_notice_message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 					} elseif ( current_user_can( 'update_core' ) ) {
-						printf(
+						$incompatible_notice_message .= sprintf(
 							/* translators: %s: URL to WordPress Updates screen. */
 							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
 							self_admin_url( 'update-core.php' )
 						);
 					} elseif ( current_user_can( 'update_php' ) ) {
-						printf(
+						$incompatible_notice_message .= sprintf(
 							/* translators: %s: URL to Update PHP page. */
 							' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
 							esc_url( wp_get_update_php_url() )
 						);
-						wp_update_php_annotation( '</p><p><em>', '</em>' );
+						$incompatible_notice_message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 					}
 				} elseif ( ! $compatible_wp ) {
-					_e( 'This plugin does not work with your version of WordPress.' );
+					$incompatible_notice_message .= __( 'This plugin does not work with your version of WordPress.' );
 					if ( current_user_can( 'update_core' ) ) {
-						printf(
+						$incompatible_notice_message .= sprintf(
 							/* translators: %s: URL to WordPress Updates screen. */
 							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
 							self_admin_url( 'update-core.php' )
 						);
 					}
 				} elseif ( ! $compatible_php ) {
-					_e( 'This plugin does not work with your version of PHP.' );
+					$incompatible_notice_message .= __( 'This plugin does not work with your version of PHP.' );
 					if ( current_user_can( 'update_php' ) ) {
-						printf(
+						$incompatible_notice_message .= sprintf(
 							/* translators: %s: URL to Update PHP page. */
 							' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
 							esc_url( wp_get_update_php_url() )
 						);
-						wp_update_php_annotation( '</p><p><em>', '</em>' );
+						$incompatible_notice_message .= wp_update_php_annotation( '</p><p><em>', '</em>', false );
 					}
 				}
-				echo '</p></div>';
+
+				wp_admin_notice(
+					$incompatible_notice_message,
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt', 'inline' ),
+					)
+				);
 			}
 			?>
 			<div class="plugin-card-top">
@@ -755,6 +679,12 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					<p class="authors"><?php echo $author; ?></p>
 				</div>
 			</div>
+			<?php
+			$dependencies_notice = $this->get_dependencies_notice( $plugin );
+			if ( ! empty( $dependencies_notice ) ) {
+				echo $dependencies_notice;
+			}
+			?>
 			<div class="plugin-card-bottom">
 				<div class="vers column-rating">
 					<?php
@@ -813,5 +743,91 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		if ( ! empty( $group ) ) {
 			echo '</div></div>';
 		}
+	}
+
+	/**
+	 * Returns a notice containing a list of dependencies required by the plugin.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param array  $plugin_data An array of plugin data. See {@see plugins_api()}
+	 *                            for the list of possible values.
+	 * @return string A notice containing a list of dependencies required by the plugin,
+	 *                or an empty string if none is required.
+	 */
+	protected function get_dependencies_notice( $plugin_data ) {
+		if ( empty( $plugin_data['requires_plugins'] ) ) {
+			return '';
+		}
+
+		$no_name_markup  = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span></div>';
+		$has_name_markup = '<div class="plugin-dependency"><span class="plugin-dependency-name">%s</span> %s</div>';
+
+		$dependencies_list = '';
+		foreach ( $plugin_data['requires_plugins'] as $dependency ) {
+			$dependency_data = WP_Plugin_Dependencies::get_dependency_data( $dependency );
+
+			if (
+				false !== $dependency_data &&
+				! empty( $dependency_data['name'] ) &&
+				! empty( $dependency_data['slug'] ) &&
+				! empty( $dependency_data['version'] )
+			) {
+				$more_details_link  = $this->get_more_details_link( $dependency_data['name'], $dependency_data['slug'] );
+				$dependencies_list .= sprintf( $has_name_markup, esc_html( $dependency_data['name'] ), $more_details_link );
+				continue;
+			}
+
+			$result = plugins_api( 'plugin_information', array( 'slug' => $dependency ) );
+
+			if ( ! empty( $result->name ) ) {
+				$more_details_link  = $this->get_more_details_link( $result->name, $result->slug );
+				$dependencies_list .= sprintf( $has_name_markup, esc_html( $result->name ), $more_details_link );
+				continue;
+			}
+
+			$dependencies_list .= sprintf( $no_name_markup, esc_html( $dependency ) );
+		}
+
+		$dependencies_notice = sprintf(
+			'<div class="plugin-dependencies notice notice-alt notice-info inline"><p class="plugin-dependencies-explainer-text">%s</p> %s</div>',
+			'<strong>' . __( 'Additional plugins are required' ) . '</strong>',
+			$dependencies_list
+		);
+
+		return $dependencies_notice;
+	}
+
+	/**
+	 * Creates a 'More details' link for the plugin.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $name The plugin's name.
+	 * @param string $slug The plugin's slug.
+	 * @return string The 'More details' link for the plugin.
+	 */
+	protected function get_more_details_link( $name, $slug ) {
+		$url = add_query_arg(
+			array(
+				'tab'       => 'plugin-information',
+				'plugin'    => $slug,
+				'TB_iframe' => 'true',
+				'width'     => '600',
+				'height'    => '550',
+			),
+			network_admin_url( 'plugin-install.php' )
+		);
+
+		$more_details_link = sprintf(
+			'<a href="%1$s" class="more-details-link thickbox open-plugin-details-modal" aria-label="%2$s" data-title="%3$s">%4$s</a>',
+			esc_url( $url ),
+			/* translators: %s: Plugin name. */
+			sprintf( __( 'More information about %s' ), esc_html( $name ) ),
+			esc_attr( $name ),
+			__( 'More Details' )
+		);
+
+		return $more_details_link;
 	}
 }

@@ -23,7 +23,13 @@ require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
  *                           or any other object type with an associated meta table.
  * @param int    $object_id  ID of the object metadata is for.
  * @param string $meta_key   Metadata key.
- * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param mixed  $meta_value Metadata value. Arrays and objects are stored as serialized data and
+ *                           will be returned as the same type when retrieved. Other data types will
+ *                           be stored as strings in the database:
+ *                           - false is stored and retrieved as an empty string ('')
+ *                           - true is stored and retrieved as '1'
+ *                           - numbers (both integer and float) are stored and retrieved as strings
+ *                           Must be serializable if non-scalar.
  * @param bool   $unique     Optional. Whether the specified metadata key should be unique for the object.
  *                           If true, and the object already has a value for the specified metadata key,
  *                           no change will be made. Default false.
@@ -568,7 +574,13 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  *               The value of the meta field if `$single` is true.
  *               False for an invalid `$object_id` (non-numeric, zero, or negative value),
  *               or if `$meta_type` is not specified.
- *               An empty string if a valid but non-existing object ID is passed.
+ *               An empty array if a valid but non-existing object ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing object ID is passed and `$single` is true.
+ *               Note: Non-serialized values are returned as strings:
+ *               - false values are returned as empty strings ('')
+ *               - true values are returned as '1'
+ *               - numbers (both integer and float) are returned as strings
+ *               Arrays and objects retain their original type.
  */
 function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false ) {
 	$value = get_metadata_raw( $meta_type, $object_id, $meta_key, $single );
@@ -1153,10 +1165,10 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		return (bool) $check;
 	}
 
-	$cache_key      = $meta_type . '_meta';
+	$cache_group    = $meta_type . '_meta';
 	$non_cached_ids = array();
 	$cache          = array();
-	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_key );
+	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_group );
 
 	foreach ( $cache_values as $id => $cached_object ) {
 		if ( false === $cached_object ) {
@@ -1202,7 +1214,7 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		}
 		$data[ $id ] = $cache[ $id ];
 	}
-	wp_cache_add_multiple( $data, $cache_key );
+	wp_cache_add_multiple( $data, $cache_group );
 
 	return $cache;
 }
@@ -1367,6 +1379,8 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @since 4.9.8 The `$object_subtype` argument was added to the arguments array.
  * @since 5.3.0 Valid meta types expanded to include "array" and "object".
  * @since 5.5.0 The `$default` argument was added to the arguments array.
+ * @since 6.4.0 The `$revisions_enabled` argument was added to the arguments array.
+ * @since 6.7.0 The `label` argument was added to the arguments array.
  *
  * @param string       $object_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                                  or any other object type with an associated meta table.
@@ -1378,6 +1392,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *                                         the meta key will be registered on the entire object type. Default empty.
  *     @type string     $type              The type of data associated with this meta key.
  *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
+ *     @type string     $label             A human-readable label of the data attached to this meta key.
  *     @type string     $description       A description of the data attached to this meta key.
  *     @type bool       $single            Whether the meta key has one value per object, or an array of values per object.
  *     @type mixed      $default           The default value returned from get_metadata() if no value has been set yet.
@@ -1392,6 +1407,8 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *                                         support for custom fields for registered meta to be accessible via REST.
  *                                         When registering complex meta values this argument may optionally be an
  *                                         array with 'schema' or 'prepare_callback' keys instead of a boolean.
+ *     @type bool       $revisions_enabled Whether to enable revisions support for this meta_key. Can only be used when the
+ *                                         object type is 'post'.
  * }
  * @param string|array $deprecated Deprecated. Use `$args` instead.
  * @return bool True if the meta key was successfully registered in the global array, false if not.
@@ -1408,12 +1425,14 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	$defaults = array(
 		'object_subtype'    => '',
 		'type'              => 'string',
+		'label'             => '',
 		'description'       => '',
 		'default'           => '',
 		'single'            => false,
 		'sanitize_callback' => null,
 		'auth_callback'     => null,
 		'show_in_rest'      => false,
+		'revisions_enabled' => false,
 	);
 
 	// There used to be individual args for sanitize and auth callbacks.
@@ -1460,6 +1479,17 @@ function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	}
 
 	$object_subtype = ! empty( $args['object_subtype'] ) ? $args['object_subtype'] : '';
+	if ( $args['revisions_enabled'] ) {
+		if ( 'post' !== $object_type ) {
+			_doing_it_wrong( __FUNCTION__, __( 'Meta keys cannot enable revisions support unless the object type supports revisions.' ), '6.4.0' );
+
+			return false;
+		} elseif ( ! empty( $object_subtype ) && ! post_type_supports( $object_subtype, 'revisions' ) ) {
+			_doing_it_wrong( __FUNCTION__, __( 'Meta keys cannot enable revisions support unless the object subtype supports revisions.' ), '6.4.0' );
+
+			return false;
+		}
+	}
 
 	// If `auth_callback` is not provided, fall back to `is_protected_meta()`.
 	if ( empty( $args['auth_callback'] ) ) {

@@ -209,16 +209,13 @@ class WP_Duotone {
 			'rad'  => 360 / ( M_PI * 2 ),
 		);
 
-		$factor = $angle_units[ $unit ];
-		if ( ! $factor ) {
-			$factor = 1;
-		}
+		$factor = isset( $angle_units[ $unit ] ) ? $angle_units[ $unit ] : 1;
 
 		return (float) $value * $factor;
 	}
 
 	/**
-	 * Parses any valid Hex3, Hex4, Hex6 or Hex8 string and converts it to an RGBA object
+	 * Parses any valid Hex3, Hex4, Hex6 or Hex8 string and converts it to an RGBA object.
 	 *
 	 * Direct port of colord's parseHex function.
 	 *
@@ -289,7 +286,7 @@ class WP_Duotone {
 	}
 
 	/**
-	 * Parses a valid RGB[A] CSS color function/string
+	 * Parses a valid RGB[A] CSS color function/string.
 	 *
 	 * Direct port of colord's parseRgbaString function.
 	 *
@@ -673,9 +670,11 @@ class WP_Duotone {
 
 			if ( null === $color ) {
 				$error_message = sprintf(
-					/* translators: %s: duotone colors */
-					__( '"%s" in theme.json settings.color.duotone is not a hex or rgb string.' ),
-					$color_str
+					/* translators: 1: Duotone colors, 2: theme.json, 3: settings.color.duotone */
+					__( '"%1$s" in %2$s %3$s is not a hex or rgb string.' ),
+					$color_str,
+					'theme.json',
+					'settings.color.duotone'
 				);
 				_doing_it_wrong( __METHOD__, $error_message, '6.3.0' );
 			} else {
@@ -810,12 +809,13 @@ class WP_Duotone {
 	 * @internal
 	 *
 	 * @since 6.3.0
+	 * @since 6.6.0 Replaced body selector with `WP_Theme_JSON::ROOT_CSS_PROPERTIES_SELECTOR`.
 	 *
 	 * @param array $sources The duotone presets.
 	 * @return string The CSS for global styles.
 	 */
 	private static function get_global_styles_presets( $sources ) {
-		$css = 'body{';
+		$css = WP_Theme_JSON::ROOT_CSS_PROPERTIES_SELECTOR . '{';
 		foreach ( $sources as $filter_id => $filter_data ) {
 			$slug              = $filter_data['slug'];
 			$colors            = $filter_data['colors'];
@@ -900,9 +900,10 @@ class WP_Duotone {
 		$global_styles_presets = self::get_all_global_styles_presets();
 		if ( ! array_key_exists( $filter_id, $global_styles_presets ) ) {
 			$error_message = sprintf(
-				/* translators: %s: duotone filter ID */
-				__( 'The duotone id "%s" is not registered in theme.json settings' ),
-				$filter_id
+				/* translators: 1: Duotone filter ID, 2: theme.json */
+				__( 'The duotone id "%1$s" is not registered in %2$s settings' ),
+				$filter_id,
+				'theme.json'
 			);
 			_doing_it_wrong( __METHOD__, $error_message, '6.3.0' );
 			return;
@@ -971,7 +972,9 @@ class WP_Duotone {
 		 * If the experimental duotone support was set, that value is to be
 		 * treated as a selector and requires scoping.
 		 */
-		$experimental_duotone = _wp_array_get( $block_type->supports, array( 'color', '__experimentalDuotone' ), false );
+		$experimental_duotone = isset( $block_type->supports['color']['__experimentalDuotone'] )
+			? $block_type->supports['color']['__experimentalDuotone']
+			: false;
 		if ( $experimental_duotone ) {
 			$root_selector = wp_get_block_css_selector( $block_type );
 			return is_string( $experimental_duotone )
@@ -1000,7 +1003,7 @@ class WP_Duotone {
 		}
 		// Get the per block settings from the theme.json.
 		$tree              = wp_get_global_settings();
-		$presets_by_origin = _wp_array_get( $tree, array( 'color', 'duotone' ), array() );
+		$presets_by_origin = isset( $tree['color']['duotone'] ) ? $tree['color']['duotone'] : array();
 
 		self::$global_styles_presets = array();
 		foreach ( $presets_by_origin as $presets ) {
@@ -1072,7 +1075,7 @@ class WP_Duotone {
 	 * @return string Filtered block content.
 	 */
 	public static function render_duotone_support( $block_content, $block, $wp_block ) {
-		if ( empty( $block_content ) || ! $block['blockName'] ) {
+		if ( ! $block['blockName'] ) {
 			return $block_content;
 		}
 		$duotone_selector = self::get_selector( $wp_block->block_type );
@@ -1148,6 +1151,45 @@ class WP_Duotone {
 		if ( $tags->next_tag() ) {
 			$tags->add_class( $filter_id );
 		}
+		return $tags->get_updated_html();
+	}
+
+	/**
+	 * Fixes the issue with our generated class name not being added to the block's outer container
+	 * in classic themes due to gutenberg_restore_image_outer_container from layout block supports.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @param string $block_content Rendered block content.
+	 * @return string Filtered block content.
+	 */
+	public static function restore_image_outer_container( $block_content ) {
+		if ( wp_theme_has_theme_json() ) {
+			return $block_content;
+		}
+
+		$tags          = new WP_HTML_Tag_Processor( $block_content );
+		$wrapper_query = array(
+			'tag_name'   => 'div',
+			'class_name' => 'wp-block-image',
+		);
+		if ( ! $tags->next_tag( $wrapper_query ) ) {
+			return $block_content;
+		}
+
+		$tags->set_bookmark( 'wrapper-div' );
+		$tags->next_tag();
+
+		$inner_classnames = explode( ' ', $tags->get_attribute( 'class' ) );
+		foreach ( $inner_classnames as $classname ) {
+			if ( 0 === strpos( $classname, 'wp-duotone' ) ) {
+				$tags->remove_class( $classname );
+				$tags->seek( 'wrapper-div' );
+				$tags->add_class( $classname );
+				break;
+			}
+		}
+
 		return $tags->get_updated_html();
 	}
 
@@ -1262,7 +1304,9 @@ class WP_Duotone {
 	 * @return array Filtered block type settings.
 	 */
 	public static function migrate_experimental_duotone_support_flag( $settings, $metadata ) {
-		$duotone_support = _wp_array_get( $metadata, array( 'supports', 'color', '__experimentalDuotone' ), null );
+		$duotone_support = isset( $metadata['supports']['color']['__experimentalDuotone'] )
+			? $metadata['supports']['color']['__experimentalDuotone']
+			: null;
 
 		if ( ! isset( $settings['supports']['filter']['duotone'] ) && null !== $duotone_support ) {
 			_wp_array_set( $settings, array( 'supports', 'filter', 'duotone' ), (bool) $duotone_support );

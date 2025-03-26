@@ -65,7 +65,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Patterns_Registry', 'instance' );
 		self::$registry_instance_property->setAccessible( true );
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
-		self::$registry_instance_property->setValue( $test_registry );
+		self::$registry_instance_property->setValue( null, $test_registry );
 
 		// Register some patterns in the test registry.
 		$test_registry->register(
@@ -106,7 +106,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		self::delete_user( self::$admin_id );
 
 		// Restore the original registry instance.
-		self::$registry_instance_property->setValue( self::$orig_registry );
+		self::$registry_instance_property->setValue( null, self::$orig_registry );
 		self::$registry_instance_property->setAccessible( false );
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
@@ -123,6 +123,9 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		$this->assertArrayHasKey( static::REQUEST_ROUTE, $routes );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
 
@@ -189,6 +192,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	 * @since 6.2.0
 	 *
 	 * @ticket 57532
+	 * @group external-http
 	 *
 	 * @covers WP_REST_Block_Patterns_Controller::get_items
 	 */

@@ -87,5 +87,4 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 
 		remove_filter( 'map_meta_cap', array( $this, 'remove_editor_edit_page_cap' ), 10, 4 );
 	}
-
 }

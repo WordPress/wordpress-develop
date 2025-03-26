@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ *
  * @covers ::wp_timezone_string
  * @covers ::wp_timezone
  */

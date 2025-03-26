@@ -68,8 +68,7 @@ class WP_Importer {
 
 		// Get count of permalinks.
 		$meta_key = $importer_name . '_' . $blog_id . '_permalink';
-
-		$result = $wpdb->get_results(
+		$result   = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT COUNT( post_id ) AS cnt FROM $wpdb->postmeta WHERE meta_key = %s",
 				$meta_key
@@ -120,7 +119,7 @@ class WP_Importer {
 					$source_comment_id = (int) $source_comment_id;
 
 					// Check if this comment came from this blog.
-					if ( $blog_id == $comment_agent_blog_id ) {
+					if ( (int) $blog_id === (int) $comment_agent_blog_id ) {
 						$hashtable[ $source_comment_id ] = (int) $r->comment_ID;
 					}
 				}
@@ -210,7 +209,13 @@ class WP_Importer {
 	 * @param bool   $head
 	 * @return array
 	 */
-	public function get_page( $url, $username = '', $password = '', $head = false ) {
+	public function get_page(
+		$url,
+		$username = '',
+		#[\SensitiveParameter]
+		$password = '',
+		$head = false
+	) {
 		// Increase the timeout.
 		add_filter( 'http_request_timeout', array( $this, 'bump_request_timeout' ) );
 

@@ -160,7 +160,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if inline styles work with concatination
+	 * Test if inline styles work with concatenation
 	 *
 	 * @global WP_Styles $wp_styles
 	 * @ticket 24813
@@ -186,7 +186,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 		wp_print_styles();
 		$this->assertSame( $expected, $wp_styles->print_html );
-
 	}
 
 	/**
@@ -228,6 +227,10 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 			'Single quotes, one level up, prefixed with "../"' => array(
 				'css'      => 'p {background-image: url(\'../image1.jpg\');}',
 				'expected' => 'p {background-image: url(\'/wp-content/themes/test/../image1.jpg\');}',
+			),
+			'URLs with absolute path, shouldn\'t change'   => array(
+				'css'      => 'p {background:url( "/image0.svg" );}',
+				'expected' => 'p {background:url( "/image0.svg" );}',
 			),
 			'External URLs, shouldn\'t change'             => array(
 				'css'      => 'p {background-image: url(\'http://foo.com/image2.png\');}',
@@ -279,7 +282,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 		// No styles left to print.
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**
@@ -304,7 +306,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_add_inline_style( 'handle', $style );
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**
@@ -319,7 +320,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**

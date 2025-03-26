@@ -334,9 +334,6 @@ class WP_Widget_Text extends WP_Widget {
 
 		$text = preg_replace_callback( '#<(video|iframe|object|embed)\s[^>]*>#i', array( $this, 'inject_video_max_width_style' ), $text );
 
-		// Adds 'noopener' relationship, without duplicating values, to all HTML A elements that have a target.
-		$text = wp_targeted_link_rel( $text );
-
 		?>
 			<div class="textwidget"><?php echo $text; ?></div>
 		<?php
@@ -495,13 +492,21 @@ class WP_Widget_Text extends WP_Widget {
 				<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
 				<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
 			</p>
-			<div class="notice inline notice-info notice-alt">
-				<?php if ( ! isset( $instance['visual'] ) ) : ?>
-					<p><?php _e( 'This widget may contain code that may work better in the &#8220;Custom HTML&#8221; widget. How about trying that widget instead?' ); ?></p>
-				<?php else : ?>
-					<p><?php _e( 'This widget may have contained code that may work better in the &#8220;Custom HTML&#8221; widget. If you have not yet, how about trying that widget instead?' ); ?></p>
-				<?php endif; ?>
-			</div>
+			<?php
+			if ( ! isset( $instance['visual'] ) ) {
+				$widget_info_message = __( 'This widget may contain code that may work better in the &#8220;Custom HTML&#8221; widget. How about trying that widget instead?' );
+			} else {
+				$widget_info_message = __( 'This widget may have contained code that may work better in the &#8220;Custom HTML&#8221; widget. If you have not yet, how about trying that widget instead?' );
+			}
+
+			wp_admin_notice(
+				$widget_info_message,
+				array(
+					'type'               => 'info',
+					'additional_classes' => array( 'notice-alt', 'inline' ),
+				)
+			);
+			?>
 			<p>
 				<label for="<?php echo $this->get_field_id( 'text' ); ?>"><?php _e( 'Content:' ); ?></label>
 				<textarea class="widefat" rows="16" cols="20" id="<?php echo $this->get_field_id( 'text' ); ?>" name="<?php echo $this->get_field_name( 'text' ); ?>"><?php echo esc_textarea( $instance['text'] ); ?></textarea>
@@ -552,7 +557,7 @@ class WP_Widget_Text extends WP_Widget {
 				<div hidden class="wp-pointer paste-html-pointer wp-pointer-top">
 					<div class="wp-pointer-content">
 						<h3><?php _e( 'Did you just paste HTML?' ); ?></h3>
-						<p><?php _e( 'Hey there, looks like you just pasted HTML into the &#8220;Visual&#8221; tab of the Text widget. You may want to paste your code into the &#8220;Text&#8221; tab instead. Alternately, try out the new &#8220;Custom HTML&#8221; widget!' ); ?></p>
+						<p><?php _e( 'Hey there, looks like you just pasted HTML into the &#8220;Visual&#8221; tab of the Text widget. You may want to paste your code into the &#8220;Code&#8221; tab instead. Alternately, try out the new &#8220;Custom HTML&#8221; widget!' ); ?></p>
 						<div class="wp-pointer-buttons">
 							<a class="close" href="#"><?php _e( 'Dismiss' ); ?></a>
 						</div>
