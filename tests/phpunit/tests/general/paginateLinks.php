@@ -417,11 +417,13 @@ EXPECTED;
 		// For some reason current isn't picked up.
 		$links = paginate_links( array( 'current' => 2 ) );
 
-		$this->assertMatchesRegularExpression( '/\/categorized\/page\/[0-9]\/"/', $links, 'Pagination links with trailing slashes should be included.' );
-		$this->assertDoesNotMatchRegularExpression( '/\/categorized\/page\/[0-9]"/', $links, 'Pagination links without trailing slashes should not be included.' );
+		$base_url = untrailingslashit( home_url( '/category/categorized/' ) );
+		$this->assertStringContainsString( "href=\"{$base_url}/\"", $links, 'The links should link to page one with a trailing slash.' );
+		$this->assertStringNotContainsString( "href=\"{$base_url}\"", $links, 'The links should not link to page one without a trailing slash.' );
 
-		$this->assertStringContainsString( '/category/categorized/"', $links, 'The links should link to page one with a trailing slash.' );
-		$this->assertStringNotContainsString( '/category/categorized"', $links, 'No links to page on should lack a trailing slash.' );
+		$base_url_regex = preg_quote( $base_url, '/' );
+		$this->assertMatchesRegularExpression( "/href=\"{$base_url_regex}\/page\/[0-9]\/\"/", $links, 'Pagination links with trailing slashes should be included.' );
+		$this->assertDoesNotMatchRegularExpression( "/href=\"{$base_url_regex}\/page\/[0-9]\"/", $links, 'Pagination links without trailing slashes should not be included.' );
 	}
 
 	/**
@@ -438,11 +440,13 @@ EXPECTED;
 		// For some reason current isn't picked up.
 		$links = paginate_links( array( 'current' => 2 ) );
 
-		$this->assertDoesNotMatchRegularExpression( '/\/categorized\/page\/[0-9]\/"/', $links, 'Pagination links with trailing slashes should not be included.' );
-		$this->assertMatchesRegularExpression( '/\/categorized\/page\/[0-9]"/', $links, 'Pagination links without trailing slashes should be included.' );
+		$base_url = untrailingslashit( home_url( '/category/categorized/' ) );
+		$this->assertStringNotContainsString( "href=\"{$base_url}/\"", $links, 'The links should link to page one without a trailing slash.' );
+		$this->assertStringContainsString( "href=\"{$base_url}\"", $links, 'The links should not link to page one with a trailing slash.' );
 
-		$this->assertStringNotContainsString( '/category/categorized/"', $links, 'The links should link to page one should not contain a trailing slash.' );
-		$this->assertStringContainsString( '/category/categorized"', $links, 'The links to page one should not include a trailing slash.' );
+		$base_url_regex = preg_quote( $base_url, '/' );
+		$this->assertDoesNotMatchRegularExpression( "/href=\"$base_url_regex}\/page\/[0-9]\/\"/", $links, 'Pagination links with trailing slashes should not be included.' );
+		$this->assertMatchesRegularExpression( "/href=\"{$base_url_regex}\/page\/[0-9]\"/", $links, 'Pagination links without trailing slashes should be included.' );
 	}
 
 	/**
