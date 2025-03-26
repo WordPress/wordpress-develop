@@ -23,6 +23,7 @@ class Tests_File extends WP_UnitTestCase {
 		$theme_headers = array(
 			'Name'        => 'Theme Name',
 			'ThemeURI'    => 'Theme URI',
+			'SupportURI'  => 'Support URI',
 			'Description' => 'Description',
 			'Version'     => 'Version',
 			'Author'      => 'Author',
@@ -34,6 +35,7 @@ class Tests_File extends WP_UnitTestCase {
 		$expected = array(
 			'Name'        => 'WordPress Default',
 			'ThemeURI'    => 'http://wordpress.org/',
+			'SupportURI'  => 'http://wordpress.org/support/',
 			'Description' => 'The default WordPress theme based on the famous <a href="http://binarybonsai.com/kubrick/">Kubrick</a>.',
 			'Version'     => '1.6',
 			'Author'      => 'Michael Heilemann',
