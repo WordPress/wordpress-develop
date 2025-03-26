@@ -825,8 +825,13 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				$caps[] = 'do_not_allow';
 				break;
 			}
-
-			$caps = map_meta_cap( "edit_{$object_subtype}", $user_id, $object_id );
+			$post_type_object = get_post_type_object( $object_subtype );
+			// Initialize empty array if it doesn't exist.
+			if ( ! isset( $post_type_object->capabilities ) ) {
+				$post_type_object->capabilities = array();
+			}
+			$post_type_capabilities = get_post_type_capabilities( $post_type_object );
+			$caps                   = map_meta_cap( $post_type_capabilities->edit_post, $user_id, $object_id );
 			break;
 		default:
 			// Handle meta capabilities for custom post types.
@@ -913,24 +918,23 @@ function current_user_can( $capability, ...$args ) {
  * capabilities such as `edit_post` and `edit_user` are capabilities used by the `map_meta_cap()` function to
  * map to primitive capabilities that a user or role has, such as `edit_posts` and `edit_others_posts`.
  *
+ * This function replaces the current_user_can_for_blog() function.
+ *
  * Example usage:
  *
- *     current_user_can_for_blog( $blog_id, 'edit_posts' );
- *     current_user_can_for_blog( $blog_id, 'edit_post', $post->ID );
- *     current_user_can_for_blog( $blog_id, 'edit_post_meta', $post->ID, $meta_key );
+ *     current_user_can_for_site( $site_id, 'edit_posts' );
+ *     current_user_can_for_site( $site_id, 'edit_post', $post->ID );
+ *     current_user_can_for_site( $site_id, 'edit_post_meta', $post->ID, $meta_key );
  *
- * @since 3.0.0
- * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
- *              by adding it to the function signature.
- * @since 5.8.0 Wraps current_user_can() after switching to blog.
+ * @since 6.7.0
  *
- * @param int    $blog_id    Site ID.
+ * @param int    $site_id    Site ID.
  * @param string $capability Capability name.
  * @param mixed  ...$args    Optional further parameters, typically starting with an object ID.
  * @return bool Whether the user has the given capability.
  */
-function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
-	$switched = is_multisite() ? switch_to_blog( $blog_id ) : false;
+function current_user_can_for_site( $site_id, $capability, ...$args ) {
+	$switched = is_multisite() ? switch_to_blog( $site_id ) : false;
 
 	$can = current_user_can( $capability, ...$args );
 
@@ -1023,19 +1027,19 @@ function user_can( $user, $capability, ...$args ) {
  *
  * Example usage:
  *
- *     user_can_for_blog( $user->ID, $blog_id, 'edit_posts' );
- *     user_can_for_blog( $user->ID, $blog_id, 'edit_post', $post->ID );
- *     user_can_for_blog( $user->ID, $blog_id, 'edit_post_meta', $post->ID, $meta_key );
+ *     user_can_for_site( $user->ID, $site_id, 'edit_posts' );
+ *     user_can_for_site( $user->ID, $site_id, 'edit_post', $post->ID );
+ *     user_can_for_site( $user->ID, $site_id, 'edit_post_meta', $post->ID, $meta_key );
  *
  * @since 6.7.0
  *
  * @param int|WP_User $user       User ID or object.
- * @param int         $blog_id    Site ID.
+ * @param int         $site_id    Site ID.
  * @param string      $capability Capability name.
  * @param mixed       ...$args    Optional further parameters, typically starting with an object ID.
  * @return bool Whether the user has the given capability.
  */
-function user_can_for_blog( $user, $blog_id, $capability, ...$args ) {
+function user_can_for_site( $user, $site_id, $capability, ...$args ) {
 	if ( ! is_object( $user ) ) {
 		$user = get_userdata( $user );
 	}
@@ -1047,11 +1051,11 @@ function user_can_for_blog( $user, $blog_id, $capability, ...$args ) {
 	}
 
 	// Check if the blog ID is valid.
-	if ( ! is_numeric( $blog_id ) || $blog_id <= 0 ) {
+	if ( ! is_numeric( $site_id ) || $site_id <= 0 ) {
 		return false;
 	}
 
-	$switched = is_multisite() ? switch_to_blog( $blog_id ) : false;
+	$switched = is_multisite() ? switch_to_blog( $site_id ) : false;
 
 	$can = user_can( $user->ID, $capability, ...$args );
 

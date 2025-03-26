@@ -264,7 +264,7 @@ class WP_Site_Health {
 			'test'        => 'wordpress_version',
 		);
 
-		$core_current_version = get_bloginfo( 'version' );
+		$core_current_version = wp_get_wp_version();
 		$core_updates         = get_core_updates();
 
 		if ( ! is_array( $core_updates ) ) {
@@ -923,7 +923,7 @@ class WP_Site_Health {
 			),
 			'hash'      => array(
 				'function' => 'hash',
-				'required' => false,
+				'required' => true,
 			),
 			'imagick'   => array(
 				'extension' => 'imagick',
@@ -1886,7 +1886,7 @@ class WP_Site_Health {
 		);
 
 		if ( ! function_exists( 'WP_Filesystem' ) ) {
-			require_once ABSPATH . '/wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
 		ob_start();
