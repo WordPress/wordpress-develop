@@ -193,9 +193,9 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 	$plugin_data['Description'] = wp_kses( $plugin_data['Description'], $allowed_tags );
 	$plugin_data['Version']     = wp_kses( $plugin_data['Version'], $allowed_tags );
 
-	$plugin_data['PluginURI'] = esc_url( $plugin_data['PluginURI'] );
+	$plugin_data['PluginURI']  = esc_url( $plugin_data['PluginURI'] );
 	$plugin_data['SupportURI'] = esc_url( $plugin_data['SupportURI'] );
-	$plugin_data['AuthorURI'] = esc_url( $plugin_data['AuthorURI'] );
+	$plugin_data['AuthorURI']  = esc_url( $plugin_data['AuthorURI'] );
 
 	$plugin_data['Title']      = $plugin_data['Name'];
 	$plugin_data['AuthorName'] = $plugin_data['Author'];

@@ -751,7 +751,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			);
 		}
 
-		if ( $theme->get( 'SupportURI') ) {
+		if ( $theme->get( 'SupportURI' ) ) {
 			/* translators: %s: Theme name. */
 			$aria_label = sprintf( __( 'Visit support site for %s' ), $theme->display( 'Name' ) );
 
