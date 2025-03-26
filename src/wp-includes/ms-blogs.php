@@ -200,6 +200,17 @@ function get_blog_details( $fields = null, $get_all = true ) {
 				unset( $details );
 			}
 		} else {
+			if ( $get_all ) {
+				// These cache keys were not set above, but `blog-details` was.
+				if ( isset( $fields['domain'] ) && isset( $fields['path'] ) ) {
+					$key = md5( $details->domain . $details->path );
+					wp_cache_set( $key, $details, 'blog-lookup' );
+				} elseif ( isset( $fields['domain'] ) && is_subdomain_install() ) {
+					$key = md5( $details->domain );
+					wp_cache_set( $key, $details, 'blog-lookup' );
+				}
+			}
+
 			return $details;
 		}
 	}
@@ -273,6 +284,12 @@ function get_blog_details( $fields = null, $get_all = true ) {
 
 	$key = md5( $details->domain . $details->path );
 	wp_cache_set( $key, $details, 'blog-lookup' );
+
+	// Conditional on the SQL in the first if branch being set.
+	if ( isset( $fields['domain'] ) && ! isset( $fields['path'] ) && is_subdomain_install() ) {
+		$key = md5( $details->domain );
+		wp_cache_set( $key, $details, 'blog-lookup' );
+	}
 
 	return $details;
 }
