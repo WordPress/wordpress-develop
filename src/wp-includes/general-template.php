@@ -4676,7 +4676,15 @@ function paginate_links( $args = '' ) {
 	$format  = $wp_rewrite->using_index_permalinks() && ! strpos( $pagenum_link, 'index.php' ) ? 'index.php/' : '';
 	$format .= $wp_rewrite->using_permalinks() ? user_trailingslashit( $wp_rewrite->pagination_base . '/%#%', 'paged' ) : '?paged=%#%';
 
-	// Modify base and format default values if rewrite rules do not include a trailing slash.
+	/*
+	 * Modify defaults for sites without trailing slashed permalinks.
+	 *
+	 * Ensures sites not using trailing slashes get links in the form
+	 * `/page/2` rather than `/page/2/`. On these sites, linking to the
+	 * URL with a trailing slash will results in a 301 redirect from the
+	 * incorrect URL to the correctly formattted one. This presents an
+	 * unnecessary performance hit.
+	 */
 	if ( $wp_rewrite->using_permalinks() && ! $wp_rewrite->use_trailing_slashes ) {
 		$pagenum_link = str_replace( '/%_%', '%_%', $pagenum_link );
 		$format       = '/' . ltrim( $format, '/' );
