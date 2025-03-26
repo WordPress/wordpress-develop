@@ -63,7 +63,7 @@ if ( isset( $_GET['action'] ) ) {
 		/* translators: %s: Site URL. */
 		'activateblog'   => __( 'You are about to activate the site %s.' ),
 		/* translators: %s: Site URL. */
-		'deactivateblog' => __( 'You are about to deactivate the site %s.' ),
+		'deactivateblog' => __( 'You are about to deactivate the site %s and flag it for deletion.' ),
 		/* translators: %s: Site URL. */
 		'unarchiveblog'  => __( 'You are about to unarchive the site %s.' ),
 		/* translators: %s: Site URL. */
@@ -326,10 +326,10 @@ if ( isset( $_GET['updated'] ) ) {
 			$msg = __( 'Sites marked as spam.' );
 			break;
 		case 'all_delete':
-			$msg = __( 'Sites deleted.' );
+			$msg = __( 'Sites flagged for deletion.' );
 			break;
 		case 'delete':
-			$msg = __( 'Site deleted.' );
+			$msg = __( 'Site flagged for deletion.' );
 			break;
 		case 'not_deleted':
 			$msg = __( 'Sorry, you are not allowed to delete that site.' );
@@ -344,7 +344,7 @@ if ( isset( $_GET['updated'] ) ) {
 			$msg = __( 'Site activated.' );
 			break;
 		case 'deactivateblog':
-			$msg = __( 'Site deactivated.' );
+			$msg = __( 'Site deactivated and flagged for deletion.' );
 			break;
 		case 'unspamblog':
 			$msg = __( 'Site removed from spam.' );
