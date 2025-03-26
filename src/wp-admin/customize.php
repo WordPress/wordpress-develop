@@ -275,21 +275,21 @@ do_action( 'customize_controls_head' );
 			<?php if ( ! empty( $previewable_devices ) ) : ?>
 			<div class="devices-wrapper">
 				<div class="devices">
-					<?php foreach ( (array) $previewable_devices as $device => $settings ) : ?>
-						<?php
-						if ( empty( $settings['label'] ) ) {
-							continue;
-						}
-						$active = ! empty( $settings['default'] );
-						$class  = 'preview-' . $device;
-						if ( $active ) {
-							$class .= ' active';
-						}
-						?>
-						<button type="button" class="<?php echo esc_attr( $class ); ?>" aria-pressed="<?php echo esc_attr( $active ); ?>" data-device="<?php echo esc_attr( $device ); ?>">
-							<span class="screen-reader-text"><?php echo esc_html( $settings['label'] ); ?></span>
-						</button>
-					<?php endforeach; ?>
+				<?php foreach ( (array) $previewable_devices as $device => $settings ) : ?>
+					<?php
+					if ( empty( $settings['label'] ) ) {
+						continue;
+					}
+					$active = ! empty( $settings['default'] );
+					$class  = 'preview-' . $device . ' tooltip';
+					if ( $active ) {
+						$class .= ' active';
+					}
+					?>
+					<button type="button" class="<?php echo esc_attr( $class ); ?>" aria-pressed="<?php echo esc_attr( $active ); ?>" data-device="<?php echo esc_attr( $device ); ?>" aria-label="<?php echo esc_attr( $settings['label'] ); ?>">
+						<span class="screen-reader-text"><?php echo esc_html( $settings['label'] ); ?></span>
+					</button>
+				<?php endforeach; ?>
 				</div>
 			</div>
 			<?php endif; ?>

@@ -618,6 +618,40 @@ body.trashing #publish-settings {
 	border-top: 1px solid #dcdcde;
 }
 
+/* CSS Tooltips */
+#customize-controls .tooltip {
+    position: relative;
+    overflow: visible;
+}
+
+#customize-controls .tooltip:after {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    right: 50%;
+    border: 1px solid #dcdcde;
+    margin-bottom: 5px;
+    padding: 5px 8px;
+    background: rgba(40, 40, 40, 0.9);
+    color: #fff;
+    content: attr(aria-label);
+    text-align: center;
+    transform: translateX(50%);
+    white-space: pre;
+    opacity: 0;
+    border-radius: 3px;
+    z-index: 10;
+    font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.1s ease-in-out;
+}
+
+#customize-controls .tooltip:hover:after,
+#customize-controls .tooltip:focus:after {
+    display: inline-block;
+    opacity: 1;
+}
+
 .js .control-section:hover .accordion-section-title,
 .js .control-section .accordion-section-title:hover,
 .js .control-section.open .accordion-section-title,
