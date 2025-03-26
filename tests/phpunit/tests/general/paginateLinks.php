@@ -9,10 +9,25 @@ class Tests_General_PaginateLinks extends WP_UnitTestCase {
 
 	private $i18n_count = 0;
 
+	/**
+	 * Post IDs created for shared fixtures.
+	 *
+	 * @var int[]
+	 */
 	public static $post_ids = array();
 
+	/**
+	 * Category ID created for shared fixtures.
+	 *
+	 * @var int
+	 */
 	public static $category_id = 0;
 
+	/**
+	 * Set up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$category_id = $factory->term->create(
 			array(
