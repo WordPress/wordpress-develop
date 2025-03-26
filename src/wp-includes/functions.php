@@ -13,47 +13,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 require ABSPATH . WPINC . '/option.php';
 
 /**
- * Determines whether the incoming request is for a file, allowing WordPress to short-circuit unnecessary processing.
+ * Determines if the current request is for a file (e.g., images, CSS, JS) to prevent unnecessary WordPress processing.
  *
- * When a missing file (e.g., script, image, CSS) is referenced in HTML or CSS, WordPress unnecessarily runs a full cycle 
- * for each occurrence. This function checks the requested file extension and helps mitigate redundant executions.
+ * Use the 'wp_is_file_request_extensions' filter to customize the allowed file extensions.
+ * Use the 'wp_is_file_request' filter to modify the final boolean result.
  *
- * Developers can use the following filters to customize behavior:
- * - 'wp_is_file_request_mime_types': Modify the list of recognized file extensions.
- * - 'wp_is_file_request': Override the function's boolean return value.
+ * @uses wp_get_mime_types() to retrieve a list of valid mime types and file extensions.
  *
- * Plugin developers should leverage this function to prevent unnecessary plugin execution.
- *
- * @uses wp_get_mime_types() Retrieves the list of MIME types and their associated file extensions.
- * 
- * @author Robert D Payne <rpayne@rdptechsolutions.com>
- *
- * @param string $extension The file extension of the requested resource.
- * @return bool True if the request is considered a file request, false otherwise.
+ * @param string $extension Optional. The file extension being checked.
+ * @return bool True if the request is for a file, false otherwise.
  */
-function wp_is_file_request($extension = '') {
-    $is_file_request = false;
+function wp_is_file_request( $extension = '' ) {
+	$isFileRequest = false;
 
-    if (empty($extension)) {
-        $url = $_SERVER['REQUEST_URI'] ?? '';
-        $path = parse_url($url, PHP_URL_PATH) ?? '';
-        $extension = pathinfo($path, PATHINFO_EXTENSION);
-    }
+	if ( empty( $extension ) ) {
+		$url       = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+		$url_parts = parse_url( $url );
+		$path      = ! empty( $url_parts['path'] ) ? $url_parts['path'] : '';
+		$extension = pathinfo( $path, PATHINFO_EXTENSION );
+	}
 
-    if (!empty($extension)) {
-        $ext = strtolower($extension);
-        $mimes = apply_filters('wp_is_file_request_mime_types', wp_get_mime_types());
-        $ext_list = [];
+	if ( ! empty( $extension ) ) {
+		$ext    = strtolower( $extension );
+		$mimes  = apply_filters( 'wp_is_file_request_extensions', wp_get_mime_types() );
+		$extList = array();
 
-        foreach ($mimes as $key => $value) {
-            $ext_list = array_merge($ext_list, explode('|', $key));
-        }
+		foreach ( $mimes as $key => $value ) {
+			$extensions = explode( '|', $key );
+			$extList    = array_merge( $extList, $extensions );
+		}
 
-        $is_file_request = in_array($ext, $ext_list, true);
-    }
+		$isFileRequest = in_array( $ext, $extList, true );
+	}
 
-    return apply_filters('wp_is_file_request', $is_file_request);
+	return apply_filters( 'wp_is_file_request', $isFileRequest );
 }
+
 
 /**
  * Converts given MySQL date string into a different format.
