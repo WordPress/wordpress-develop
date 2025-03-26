@@ -4676,6 +4676,12 @@ function paginate_links( $args = '' ) {
 	$format  = $wp_rewrite->using_index_permalinks() && ! strpos( $pagenum_link, 'index.php' ) ? 'index.php/' : '';
 	$format .= $wp_rewrite->using_permalinks() ? user_trailingslashit( $wp_rewrite->pagination_base . '/%#%', 'paged' ) : '?paged=%#%';
 
+	// Modify base and format default values if rewrite rules do not include a trailing slash.
+	if ( $wp_rewrite->using_permalinks() && ! $wp_rewrite->use_trailing_slashes ) {
+		$pagenum_link = str_replace( '/%_%', '%_%', $pagenum_link );
+		$format       = '/' . ltrim( $format, '/' );
+	}
+
 	$defaults = array(
 		'base'               => $pagenum_link, // http://example.com/all_posts.php%_% : %_% is replaced by format (below).
 		'format'             => $format, // ?page=%#% : %#% is replaced by the page number.

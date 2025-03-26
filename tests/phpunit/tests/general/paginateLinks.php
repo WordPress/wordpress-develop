@@ -9,6 +9,25 @@ class Tests_General_PaginateLinks extends WP_UnitTestCase {
 
 	private $i18n_count = 0;
 
+	public static $post_ids = array();
+
+	public static $category_id = 0;
+
+	public static function wpSetUpBeforeClass( $factory ) {
+		self::$category_id = $factory->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Categorized',
+				array( 'slug' => 'categorized' ),
+			)
+		);
+
+		self::$post_ids = $factory->post->create_many( 10 );
+		foreach ( self::$post_ids as $post_id ) {
+			wp_set_post_categories( $post_id, array( self::$category_id ) );
+		}
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -382,5 +401,113 @@ EXPECTED;
 
 		$page_2_url = home_url() . '?foo=2';
 		$this->assertContains( "<a class=\"page-numbers\" href=\"$page_2_url\">2</a>", $links );
+	}
+
+	/**
+	 * Ensures pagination links include trailing slashes when the permalink structure includes them.
+	 *
+	 * @ticket 61393
+	 */
+	public function test_permalinks_with_trailing_slash_produce_links_with_trailing_slashes() {
+		update_option( 'posts_per_page', 2 );
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$this->go_to( '/category/categorized/page/2/' );
+
+		// For some reason current isn't picked up.
+		$links = paginate_links( array( 'current' => 2 ) );
+
+		$this->assertMatchesRegularExpression( '/\/categorized\/page\/[0-9]\/"/', $links, 'Pagination links with trailing slashes should be included.' );
+		$this->assertDoesNotMatchRegularExpression( '/\/categorized\/page\/[0-9]"/', $links, 'Pagination links without trailing slashes should not be included.' );
+
+		$this->assertStringContainsString( '/category/categorized/"', $links, 'The links should link to page one with a trailing slash.' );
+		$this->assertStringNotContainsString( '/category/categorized"', $links, 'No links to page on should lack a trailing slash.' );
+	}
+
+	/**
+	 * Ensures pagination links do not include trailing slashes when the permalink structure doesn't includes them.
+	 *
+	 * @ticket 61393
+	 */
+	public function test_permalinks_without_trailing_slash_produce_links_without_trailing_slashes() {
+		update_option( 'posts_per_page', 2 );
+		$this->set_permalink_structure( '/%postname%' );
+
+		$this->go_to( '/category/categorized/page/2' );
+
+		// For some reason current isn't picked up.
+		$links = paginate_links( array( 'current' => 2 ) );
+
+		$this->assertDoesNotMatchRegularExpression( '/\/categorized\/page\/[0-9]\/"/', $links, 'Pagination links with trailing slashes should not be included.' );
+		$this->assertMatchesRegularExpression( '/\/categorized\/page\/[0-9]"/', $links, 'Pagination links without trailing slashes should be included.' );
+
+		$this->assertStringNotContainsString( '/category/categorized/"', $links, 'The links should link to page one should not contain a trailing slash.' );
+		$this->assertStringContainsString( '/category/categorized"', $links, 'The links to page one should not include a trailing slash.' );
+	}
+
+	/**
+	 * Ensures the pagination links do not modify query strings (permalinks with trailing slash).
+	 *
+	 * @ticket 61393
+	 * @ticket 63123
+	 *
+	 * @dataProvider data_query_strings
+	 *
+	 * @param string $query_string Query string.
+	 * @param string $unexpected   Unexpected query string.
+	 */
+	public function test_permalinks_with_trailing_slash_do_not_modify_query_strings( $query_string, $unexpected ) {
+		update_option( 'posts_per_page', 2 );
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$this->go_to( "/page/2/?{$query_string}" );
+
+		// For some reason current isn't picked up.
+		$links = paginate_links( array( 'current' => 2 ) );
+
+		$this->assertStringContainsString( "/page/3/?{$query_string}\"", $links, 'The query string should appear in the links.' );
+		$this->assertStringNotContainsString( "/page/3/?{$unexpected}\"", $links, 'The query string should not be modified.' );
+	}
+
+	/**
+	 * Ensures the pagination links do not modify query strings (permalinks without trailing slash).
+	 *
+	 * @ticket 61393
+	 * @ticket 63123
+	 *
+	 * @dataProvider data_query_strings
+	 *
+	 * @param string $query_string Query string.
+	 * @param string $unexpected   Unexpected query string.
+	 */
+	public function test_permalinks_without_trailing_slash_do_not_modify_query_strings( $query_string, $unexpected ) {
+		update_option( 'posts_per_page', 2 );
+		$this->set_permalink_structure( '/%postname%' );
+
+		$this->go_to( "/page/2?{$query_string}" );
+
+		// For some reason current isn't picked up.
+		$links = paginate_links( array( 'current' => 2 ) );
+
+		$this->assertStringContainsString( "/page/3?{$query_string}\"", $links, 'The query string should appear in the links.' );
+		$this->assertStringNotContainsString( "/page/3?{$unexpected}\"", $links, 'The query string should not be modified.' );
+	}
+
+	/**
+	 * Data provider for
+	 *  - test_permalinks_without_trailing_slash_do_not_modify_query_strings
+	 *  - test_permalinks_with_trailing_slash_do_not_modify_query_strings
+	 *
+	 * @return array[] Data provider.
+	 */
+	public function data_query_strings() {
+		return array(
+			array( 'foo=bar', 'foo=bar/' ),
+			array( 'foo=bar', 'foo=bar%2F' ),
+			array( 'foo=bar%2F', 'foo=bar' ),
+
+			array( 's=post', 's=post/' ),
+			array( 's=post', 's=post%2F' ),
+		);
 	}
 }
