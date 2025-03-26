@@ -34,8 +34,8 @@ function wp_is_file_request( $extension = '' ) {
 	}
 
 	if ( ! empty( $extension ) ) {
-		$ext    = strtolower( $extension );
-		$mimes  = apply_filters( 'wp_is_file_request_extensions', wp_get_mime_types() );
+		$ext     = strtolower( $extension );
+		$mimes   = apply_filters( 'wp_is_file_request_extensions', wp_get_mime_types() );
 		$extList = array();
 
 		foreach ( $mimes as $key => $value ) {
@@ -48,7 +48,6 @@ function wp_is_file_request( $extension = '' ) {
 
 	return apply_filters( 'wp_is_file_request', $isFileRequest );
 }
-
 
 /**
  * Converts given MySQL date string into a different format.
