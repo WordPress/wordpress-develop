@@ -1,6 +1,6 @@
 # src/js/enqueues/vendor
 
-In this directory you'll find vendor JavaScript packages that cannot be installed through NPM, but are included in WordPress. Below we've documented the sources for those packages.
+In this directory you'll find vendor JavaScript packages that cannot be installed through npm, but are included in WordPress. Below we've documented the sources for those packages.
 
 ## Folder dependencies
 
@@ -11,7 +11,7 @@ In this directory you'll find vendor JavaScript packages that cannot be installe
 - mediaelement: https://github.com/mediaelement/mediaelement
 - plupload: https://github.com/moxiecode/plupload
 - swfupload: https://github.com/WordPress/secure-swfupload
-- thickbox: http://codylindley.com/thickbox/
+- thickbox: https://codylindley.com/thickbox/
 - tinymce: https://www.tiny.cloud/get-tiny/self-hosted/
   - Download "TinyMCE Dev Package". This package is needed because it includes
     the `compat3x` plugin.
@@ -62,9 +62,9 @@ In this directory you'll find vendor JavaScript packages that cannot be installe
 - farbtastic: https://github.com/mattfarina/farbtastic
 - iris: https://github.com/Automattic/Iris
 - json2: https://github.com/douglascrockford/JSON-js
-- jquery/jquery.color: https://github.com/jquery/jquery-color. Package is on NPM but not published by maintainer.
+- jquery/jquery.color: https://github.com/jquery/jquery-color. Package is on npm but not published by maintainer.
 - jquery/jquery.hotkeys: https://github.com/tzuryby/jquery.hotkeys
-- jquery/jquery.masonry: Old version for BC purposes, can't include two versions with NPM. The newer version is included through NPM and built to `wp-includes/js/masonry.min.js`
+- jquery/jquery.masonry: Old version for BC purposes, can't include two versions with npm. The newer version is included through npm and built to `wp-includes/js/masonry.min.js`
 - jquery/jquery.query: https://github.com/blairmitchelmore/jquery.plugins/blob/master/jquery.query.js
 - jquery/jquery.schedule: https://github.com/rse/jquery-schedule
 - jquery/jquery.serializeobject: https://github.com/cowboy/jquery-misc/blob/master/jquery.ba-serializeobject.js

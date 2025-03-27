@@ -11,6 +11,9 @@
 	top: 0;
 	bottom: -120px;
 	z-index: 1; /* positive z-index to avoid elastic scrolling woes in Safari */
+
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 .php-error #adminmenuback {
@@ -36,108 +39,21 @@
 	width: 36px;
 }
 
-.icon16 {
-	height: 18px;
-	width: 18px;
-	padding: 6px;
-	margin: -6px 0 0 -8px;
-	float: left;
-}
-
 /* New Menu icons */
 
-.icon16:before {
-	color: #8c8f94; /* same as new icons */
-	font: normal 20px/1 dashicons;
-	speak: never;
-	padding: 6px 0;
-	height: 34px;
-	width: 20px;
-	display: inline-block;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	transition: all .1s ease-in-out;
-}
-
-.icon16.icon-dashboard:before {
-	content: "\f226";
-}
-
-.icon16.icon-post:before {
-	content: "\f109";
-}
-
-.icon16.icon-media:before {
-	content: "\f104";
-}
-
-.icon16.icon-links:before {
-	content: "\f103";
-}
-
-.icon16.icon-page:before {
-	content: "\f105";
-}
-
-.icon16.icon-comments:before {
-	content: "\f101";
-	margin-top: 1px;
-}
-
-.icon16.icon-appearance:before {
-	content: "\f100";
-}
-
-.icon16.icon-plugins:before {
-	content: "\f106";
-}
-
-.icon16.icon-users:before {
-	content: "\f110";
-}
-
-.icon16.icon-tools:before {
-	content: "\f107";
-}
-
-.icon16.icon-settings:before {
-	content: "\f108";
-}
-
-.icon16.icon-site:before {
-	content: "\f541";
-}
-
-.icon16.icon-generic:before {
-	content: "\f111";
-}
-
 /* hide background-image for icons above */
-.icon16.icon-dashboard,
 .menu-icon-dashboard div.wp-menu-image,
-.icon16.icon-post,
 .menu-icon-post div.wp-menu-image,
-.icon16.icon-media,
 .menu-icon-media div.wp-menu-image,
-.icon16.icon-links,
 .menu-icon-links div.wp-menu-image,
-.icon16.icon-page,
 .menu-icon-page div.wp-menu-image,
-.icon16.icon-comments,
 .menu-icon-comments div.wp-menu-image,
-.icon16.icon-appearance,
 .menu-icon-appearance div.wp-menu-image,
-.icon16.icon-plugins,
 .menu-icon-plugins div.wp-menu-image,
-.icon16.icon-users,
 .menu-icon-users div.wp-menu-image,
-.icon16.icon-tools,
 .menu-icon-tools div.wp-menu-image,
-.icon16.icon-settings,
 .menu-icon-settings div.wp-menu-image,
-.icon16.icon-site,
 .menu-icon-site div.wp-menu-image,
-.icon16.icon-generic,
 .menu-icon-generic div.wp-menu-image {
 	background-image: none !important;
 }
@@ -211,7 +127,7 @@
 	left: 160px;
 	overflow: visible;
 	word-wrap: break-word;
-	padding: 7px 0 8px;
+	padding: 6px 0;
 	z-index: 9999;
 	background-color: #2c3338;
 	box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
@@ -264,9 +180,7 @@
 
 #adminmenu li.wp-has-current-submenu a.wp-has-current-submenu,
 #adminmenu li.current a.menu-top,
-#adminmenu .wp-menu-arrow,
-#adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head,
-#adminmenu .wp-menu-arrow div {
+#adminmenu .wp-has-current-submenu .wp-submenu .wp-submenu-head {
 	background: #2271b1;
 	color: #fff;
 }
@@ -292,7 +206,8 @@
 .folded #adminmenu .wp-has-current-submenu .wp-submenu {
 	min-width: 160px;
 	width: auto;
-	border-left: 5px solid transparent;
+	border: 1px solid transparent;
+	border-left-width: 5px;
 }
 
 #adminmenu .wp-submenu li.current,
@@ -355,7 +270,6 @@
 	word-wrap: break-word;
 	-ms-word-break: break-all;
 	word-break: break-word;
-	-webkit-hyphens: auto;
 	hyphens: auto;
 }
 
@@ -415,12 +329,6 @@ div.wp-menu-image:before {
 /* Sticky admin menu */
 .sticky-menu #adminmenuwrap {
 	position: fixed;
-}
-
-/* A new arrow */
-
-.wp-menu-arrow {
-	display: none !important;
 }
 
 ul#adminmenu a.wp-has-current-submenu {
@@ -502,8 +410,8 @@ ul#adminmenu > li.current > a.current:after {
 	font-weight: 400;
 	font-size: 14px;
 	padding: 5px 4px 5px 11px;
-	margin: -7px 0 4px -5px;
-	border-width: 3px 0 3px 5px;
+	margin: -8px -1px 4px -5px;
+	border-width: 3px 1px 3px 5px;
 	border-style: solid;
 	border-color: transparent;
 }
@@ -514,6 +422,7 @@ ul#adminmenu > li.current > a.current:after {
 }
 
 /* @todo: consider to use a single rule for these counters and the list table comments counters. */
+#adminmenu .menu-counter,
 #adminmenu .awaiting-mod,
 #adminmenu .update-plugins {
 	display: inline-block;
@@ -662,13 +571,15 @@ li#wp-admin-bar-menu-toggle {
 		position: absolute;
 		top: -1000em;
 		margin-right: -1px;
-		padding: 7px 0 8px;
+		padding: 6px 0;
 		z-index: 9999;
 	}
 
 	.auto-fold #adminmenu .wp-has-current-submenu .wp-submenu {
-		min-width: 150px;
+		min-width: 160px;
 		width: auto;
+		border: 1px solid transparent;
+		border-left-width: 5px;
 	}
 
 	.auto-fold #adminmenu .wp-has-current-submenu li > a {
@@ -857,8 +768,9 @@ li#wp-admin-bar-menu-toggle {
 	}
 
 	#adminmenu .wp-not-current-submenu .wp-submenu,
-	.folded #adminmenu .wp-has-current-submenu .wp-submenu {
-		border-left: none;
+	.folded #adminmenu .wp-has-current-submenu .wp-submenu,
+	.auto-fold #adminmenu .wp-has-current-submenu .wp-submenu {
+		border: none;
 	}
 
 	/* Remove submenu headers and adjust sub meu*/

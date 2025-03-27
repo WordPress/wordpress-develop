@@ -1,7 +1,9 @@
 <?php
 /**
  * @group taxonomy
- * @group category.php
+ * @group category
+ *
+ * @covers ::wp_dropdown_categories
  */
 class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 	/**

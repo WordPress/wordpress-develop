@@ -48,7 +48,7 @@ if ( isset( $_POST['action'] ) && 'deleteblog' === $_POST['action'] && isset( $_
 	check_admin_referer( 'delete-blog' );
 
 	$hash = wp_generate_password( 20, false );
-	update_option( 'delete_blog_hash', $hash );
+	update_option( 'delete_blog_hash', $hash, false );
 
 	$url_delete = esc_url( admin_url( 'ms-delete-site.php?h=' . $hash ) );
 
@@ -65,11 +65,10 @@ If you really want to delete your site, click the link below. You will not
 be asked to confirm again so only click this link if you are absolutely certain:
 ###URL_DELETE###
 
-If you delete your site, please consider opening a new site here
-some time in the future! (But remember your current site and username
-are gone forever.)
+If you delete your site, please consider opening a new site here some time in
+the future! (But remember that your current site and username are gone forever.)
 
-Thanks for using the site,
+Thank you for using the site,
 All at ###SITENAME###
 ###SITEURL###"
 	);

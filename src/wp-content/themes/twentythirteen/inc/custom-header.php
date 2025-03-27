@@ -90,7 +90,7 @@ function twentythirteen_header_style() {
 	$text_color   = get_header_textcolor();
 
 	// If no custom options for text are set, let's bail.
-	if ( empty( $header_image ) && get_theme_support( 'custom-header', 'default-text-color' ) == $text_color ) {
+	if ( empty( $header_image ) && get_theme_support( 'custom-header', 'default-text-color' ) === $text_color ) {
 		return;
 	}
 
@@ -123,8 +123,7 @@ function twentythirteen_header_style() {
 	.site-title,
 	.site-description {
 		position: absolute;
-		clip: rect(1px 1px 1px 1px); /* IE7 */
-		clip: rect(1px, 1px, 1px, 1px);
+		clip-path: inset(50%);
 	}
 		<?php
 		if ( empty( $header_image ) ) :
@@ -136,7 +135,7 @@ function twentythirteen_header_style() {
 		endif;
 
 		// If the user has set a custom color for the text, use that.
-		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) != $text_color ) :
+		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) !== $text_color ) :
 			?>
 		.site-title,
 		.site-description {
@@ -185,8 +184,7 @@ function twentythirteen_admin_header_style() {
 	#headimg h1,
 	#headimg h2 {
 		position: absolute !important;
-		clip: rect(1px 1px 1px 1px); /* IE7 */
-		clip: rect(1px, 1px, 1px, 1px);
+		clip-path: inset(50%);
 	}
 	<?php endif; ?>
 	#headimg h1 {

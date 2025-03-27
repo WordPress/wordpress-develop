@@ -36,14 +36,19 @@ class WP_REST_Term_Search_Handler extends WP_REST_Search_Handler {
 	}
 
 	/**
-	 * Searches the object type content for a given search request.
+	 * Searches terms for a given search request.
 	 *
 	 * @since 5.6.0
 	 *
 	 * @param WP_REST_Request $request Full REST request.
-	 * @return array Associative array containing an `WP_REST_Search_Handler::RESULT_IDS` containing
-	 *               an array of found IDs and `WP_REST_Search_Handler::RESULT_TOTAL` containing the
-	 *               total count for the matching search results.
+	 * @return array {
+	 *     Associative array containing found IDs and total count for the matching search results.
+	 *
+	 *     @type int[]               $ids   Found term IDs.
+	 *     @type string|int|WP_Error $total Numeric string containing the number of terms in that
+	 *                                      taxonomy, 0 if there are no results, or WP_Error if
+	 *                                      the requested taxonomy does not exist.
+	 * }
 	 */
 	public function search_items( WP_REST_Request $request ) {
 		$taxonomies = $request[ WP_REST_Search_Controller::PROP_SUBTYPE ];
@@ -65,8 +70,16 @@ class WP_REST_Term_Search_Handler extends WP_REST_Search_Handler {
 			$query_args['search'] = $request['search'];
 		}
 
+		if ( ! empty( $request['exclude'] ) ) {
+			$query_args['exclude'] = $request['exclude'];
+		}
+
+		if ( ! empty( $request['include'] ) ) {
+			$query_args['include'] = $request['include'];
+		}
+
 		/**
-		 * Filters the query arguments for a REST API search request.
+		 * Filters the query arguments for a REST API term search request.
 		 *
 		 * Enables adding extra arguments or setting defaults for a term search request.
 		 *
@@ -97,13 +110,20 @@ class WP_REST_Term_Search_Handler extends WP_REST_Search_Handler {
 	}
 
 	/**
-	 * Prepares the search result for a given ID.
+	 * Prepares the search result for a given term ID.
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param int   $id     Item ID.
-	 * @param array $fields Fields to include for the item.
-	 * @return array Associative array containing all fields for the item.
+	 * @param int   $id     Term ID.
+	 * @param array $fields Fields to include for the term.
+	 * @return array {
+	 *     Associative array containing fields for the term based on the `$fields` parameter.
+	 *
+	 *     @type int    $id    Optional. Term ID.
+	 *     @type string $title Optional. Term name.
+	 *     @type string $url   Optional. Term permalink URL.
+	 *     @type string $type  Optional. Term taxonomy name.
+	 * }
 	 */
 	public function prepare_item( $id, array $fields ) {
 		$term = get_term( $id );
@@ -132,7 +152,7 @@ class WP_REST_Term_Search_Handler extends WP_REST_Search_Handler {
 	 * @since 5.6.0
 	 *
 	 * @param int $id Item ID.
-	 * @return array Links for the given item.
+	 * @return array[] Array of link arrays for the given item.
 	 */
 	public function prepare_item_links( $id ) {
 		$term = get_term( $id );

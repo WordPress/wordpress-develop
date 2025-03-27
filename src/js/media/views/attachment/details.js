@@ -47,8 +47,6 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 
 			// Clear the selection and move focus back to the trigger.
 			event.clearSelection();
-			// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-			triggerElement.trigger( 'focus' );
 
 			// Show success visual feedback.
 			clearTimeout( successTimeout );
@@ -154,7 +152,13 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 		this.getFocusableElements();
 
 		if ( window.confirm( l10n.warnDelete ) ) {
-			this.model.destroy();
+			this.model.destroy( {
+				wait: true,
+				error: function() {
+					window.alert( l10n.errorDeleting );
+				}
+			} );
+
 			this.moveFocus();
 		}
 	},

@@ -10,8 +10,6 @@ body {
 /* Text meant only for screen readers */
 .screen-reader-text {
 	border: 0;
-	clip: rect(1px, 1px, 1px, 1px);
-	-webkit-clip-path: inset(50%);
 	clip-path: inset(50%);
 	height: 1px;
 	margin: -1px;
@@ -216,7 +214,9 @@ p.wp-embed-heading {
 
 .wp-embed-share-dialog-open:focus .dashicons,
 .wp-embed-share-dialog-close:focus .dashicons {
-	box-shadow: 0 0 0 1px #4f94d4, 0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 	border-radius: 100%;
 }
 
@@ -318,7 +318,6 @@ textarea.wp-embed-share-input {
 html[dir="rtl"] .wp-embed-featured-image.square {
 	float: right;
 	margin-right: 0;
-
 	margin-left: 20px;
 }
 
@@ -336,9 +335,6 @@ html[dir="rtl"] .wp-embed-site-icon {
 
 html[dir="rtl"] .wp-embed-meta {
 	text-align: left;
-}
-
-html[dir="rtl"] .wp-embed-footer {
 }
 
 html[dir="rtl"] .wp-embed-share {

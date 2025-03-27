@@ -55,11 +55,11 @@ jQuery( function($) {
 					$('a.tag-link-' + data.match(/tag_ID=(\d+)/)[1]).remove();
 
 				} else if ( '-1' == r ) {
-					$('#ajax-response').empty().append('<div class="error"><p>' + wp.i18n.__( 'Sorry, you are not allowed to do that.' ) + '</p></div>');
+					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + wp.i18n.__( 'Sorry, you are not allowed to do that.' ) + '</p></div>');
 					tr.children().css('backgroundColor', '');
 
 				} else {
-					$('#ajax-response').empty().append('<div class="error"><p>' + wp.i18n.__( 'Something went wrong.' ) + '</p></div>');
+					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + wp.i18n.__( 'An error occurred while processing your request. Please try again later.' ) + '</p></div>');
 					tr.children().css('backgroundColor', '');
 				}
 			});
@@ -101,9 +101,6 @@ jQuery( function($) {
 	$('#submit').on( 'click', function(){
 		var form = $(this).parents('form');
 
-		if ( ! validateForm( form ) )
-			return false;
-
 		if ( addingTerm ) {
 			// If we're adding a term, noop the button to avoid duplicate requests.
 			return false;
@@ -127,8 +124,14 @@ jQuery( function($) {
 
 			$('#ajax-response').empty();
 			res = wpAjax.parseAjaxResponse( r, 'ajax-response' );
-			if ( ! res || res.errors )
+
+			if ( res.errors && res.responses[0].errors[0].code === 'empty_term_name' ) {
+				validateForm( form );
+			}
+
+			if ( ! res || res.errors ) {
 				return;
+			}
 
 			parent = form.find( 'select#parent' ).val();
 
@@ -155,7 +158,7 @@ jQuery( function($) {
 				form.find( 'select#parent option:selected' ).after( '<option value="' + term.term_id + '">' + indent + term.name + '</option>' );
 			}
 
-			$('input[type="text"]:visible, textarea:visible', form).val('');
+			$('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):visible, textarea:visible', form).val('');
 		});
 
 		return false;

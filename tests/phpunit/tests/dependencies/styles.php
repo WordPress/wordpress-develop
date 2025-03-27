@@ -63,10 +63,10 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_enqueue_style( 'no-deps-null-version-print-media', 'example.com', array(), null, 'print' );
 
 		$ver       = get_bloginfo( 'version' );
-		$expected  = "<link rel='stylesheet' id='no-deps-no-version-css'  href='http://example.com?ver=$ver' type='text/css' media='all' />\n";
-		$expected .= "<link rel='stylesheet' id='no-deps-version-css'  href='http://example.com?ver=1.2' type='text/css' media='all' />\n";
-		$expected .= "<link rel='stylesheet' id='no-deps-null-version-css'  href='http://example.com' type='text/css' media='all' />\n";
-		$expected .= "<link rel='stylesheet' id='no-deps-null-version-print-media-css'  href='http://example.com' type='text/css' media='print' />\n";
+		$expected  = "<link rel='stylesheet' id='no-deps-no-version-css' href='http://example.com?ver=$ver' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='no-deps-version-css' href='http://example.com?ver=1.2' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='no-deps-null-version-css' href='http://example.com' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='no-deps-null-version-print-media-css' href='http://example.com' type='text/css' media='print' />\n";
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
 
@@ -86,7 +86,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_enqueue_style( 'no-deps-no-version', 'example.com' );
 
 		$ver      = get_bloginfo( 'version' );
-		$expected = "<link rel='stylesheet' id='no-deps-no-version-css'  href='http://example.com?ver=$ver' media='all' />\n";
+		$expected = "<link rel='stylesheet' id='no-deps-no-version-css' href='http://example.com?ver=$ver' media='all' />\n";
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
 	}
@@ -107,24 +107,24 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 		// Try with an HTTP reference.
 		wp_enqueue_style( 'reset-css-http', 'http://yui.yahooapis.com/2.8.1/build/reset/reset-min.css' );
-		$expected .= "<link rel='stylesheet' id='reset-css-http-css'  href='http://yui.yahooapis.com/2.8.1/build/reset/reset-min.css?ver=$ver' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='reset-css-http-css' href='http://yui.yahooapis.com/2.8.1/build/reset/reset-min.css?ver=$ver' type='text/css' media='all' />\n";
 
 		// Try with an HTTPS reference.
 		wp_enqueue_style( 'reset-css-https', 'http://yui.yahooapis.com/2.8.1/build/reset/reset-min.css' );
-		$expected .= "<link rel='stylesheet' id='reset-css-https-css'  href='http://yui.yahooapis.com/2.8.1/build/reset/reset-min.css?ver=$ver' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='reset-css-https-css' href='http://yui.yahooapis.com/2.8.1/build/reset/reset-min.css?ver=$ver' type='text/css' media='all' />\n";
 
 		// Try with an automatic protocol reference (//).
 		wp_enqueue_style( 'reset-css-doubleslash', '//yui.yahooapis.com/2.8.1/build/reset/reset-min.css' );
-		$expected .= "<link rel='stylesheet' id='reset-css-doubleslash-css'  href='//yui.yahooapis.com/2.8.1/build/reset/reset-min.css?ver=$ver' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='reset-css-doubleslash-css' href='//yui.yahooapis.com/2.8.1/build/reset/reset-min.css?ver=$ver' type='text/css' media='all' />\n";
 
 		// Try with a local resource and an automatic protocol reference (//).
 		$url = '//my_plugin/style.css';
 		wp_enqueue_style( 'plugin-style', $url );
-		$expected .= "<link rel='stylesheet' id='plugin-style-css'  href='$url?ver=$ver' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='plugin-style-css' href='$url?ver=$ver' type='text/css' media='all' />\n";
 
 		// Try with a bad protocol.
 		wp_enqueue_style( 'reset-css-ftp', 'ftp://yui.yahooapis.com/2.8.1/build/reset/reset-min.css' );
-		$expected .= "<link rel='stylesheet' id='reset-css-ftp-css'  href='{$wp_styles->base_url}ftp://yui.yahooapis.com/2.8.1/build/reset/reset-min.css?ver=$ver' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='reset-css-ftp-css' href='{$wp_styles->base_url}ftp://yui.yahooapis.com/2.8.1/build/reset/reset-min.css?ver=$ver' type='text/css' media='all' />\n";
 
 		// Go!
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
@@ -147,7 +147,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$style .= "\tbackground: red;\n";
 		$style .= '}';
 
-		$expected  = "<link rel='stylesheet' id='handle-css'  href='http://example.com?ver=1' type='text/css' media='all' />\n";
+		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
 		$expected .= "</style>\n";
@@ -160,7 +160,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if inline styles work with concatination
+	 * Test if inline styles work with concatenation
 	 *
 	 * @global WP_Styles $wp_styles
 	 * @ticket 24813
@@ -176,7 +176,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$style .= "\tbackground: red;\n";
 		$style .= '}';
 
-		$expected  = "<link rel='stylesheet' id='handle-css'  href='http://example.com?ver=1' type='text/css' media='all' />\n";
+		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
 		$expected .= "</style>\n";
@@ -186,7 +186,73 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 		wp_print_styles();
 		$this->assertSame( $expected, $wp_styles->print_html );
+	}
 
+	/**
+	 * Test normalizing relative links in CSS.
+	 *
+	 * @dataProvider data_normalize_relative_css_links
+	 *
+	 * @ticket 54243
+	 * @ticket 54922
+	 * @ticket 58069
+	 *
+	 * @covers ::_wp_normalize_relative_css_links
+	 *
+	 * @param string $css      Given CSS to test.
+	 * @param string $expected Expected result.
+	 */
+	public function test_normalize_relative_css_links( $css, $expected ) {
+		$this->assertSame(
+			$expected,
+			_wp_normalize_relative_css_links( $css, site_url( 'wp-content/themes/test/style.css' ) )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_normalize_relative_css_links() {
+		return array(
+			'Double quotes, same path'                     => array(
+				'css'      => 'p {background:url( "image0.svg" );}',
+				'expected' => 'p {background:url( "/wp-content/themes/test/image0.svg" );}',
+			),
+			'Single quotes, same path, prefixed with "./"' => array(
+				'css'      => 'p {background-image: url(\'./image2.png\');}',
+				'expected' => 'p {background-image: url(\'/wp-content/themes/test/image2.png\');}',
+			),
+			'Single quotes, one level up, prefixed with "../"' => array(
+				'css'      => 'p {background-image: url(\'../image1.jpg\');}',
+				'expected' => 'p {background-image: url(\'/wp-content/themes/test/../image1.jpg\');}',
+			),
+			'URLs with absolute path, shouldn\'t change'   => array(
+				'css'      => 'p {background:url( "/image0.svg" );}',
+				'expected' => 'p {background:url( "/image0.svg" );}',
+			),
+			'External URLs, shouldn\'t change'             => array(
+				'css'      => 'p {background-image: url(\'http://foo.com/image2.png\');}',
+				'expected' => 'p {background-image: url(\'http://foo.com/image2.png\');}',
+			),
+			'An HTML ID'                                   => array(
+				'css'      => 'clip-path: url(#image1);',
+				'expected' => 'clip-path: url(#image1);',
+			),
+			'Data URIs, shouldn\'t change'                 => array(
+				'css'      => 'img {mask-image: url(\'data:image/svg+xml;utf8,<svg></svg>\');}',
+				'expected' => 'img {mask-image: url(\'data:image/svg+xml;utf8,<svg></svg>\');}',
+			),
+			'URLs with path beginning with http'           => array(
+				'css'      => 'p {background:url( "http-is-awesome.png" );}',
+				'expected' => 'p {background:url( "/wp-content/themes/test/http-is-awesome.png" );}',
+			),
+			'URLs with path beginning with https'          => array(
+				'css'      => 'p {background:url( "https-is-more-awesome.png" );}',
+				'expected' => 'p {background:url( "/wp-content/themes/test/https-is-more-awesome.png" );}',
+			),
+		);
 	}
 
 	/**
@@ -204,7 +270,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$style2 .= "\tbackground: blue;\n";
 		$style2 .= '}';
 
-		$expected  = "<link rel='stylesheet' id='handle-css'  href='http://example.com?ver=1' type='text/css' media='all' />\n";
+		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style1\n";
 		$expected .= "$style2\n";
@@ -216,7 +282,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 		// No styles left to print.
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**
@@ -233,7 +298,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$style .= "}\n";
 		$style .= '</style>';
 
-		$expected  = "<link rel='stylesheet' id='handle-css'  href='http://example.com?ver=1' type='text/css' media='all' />\n";
+		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "$style\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -241,7 +306,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_add_inline_style( 'handle', $style );
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**
@@ -251,12 +315,11 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 */
 	public function test_unnecessary_style_tags() {
 
-		$expected = "<link rel='stylesheet' id='handle-css'  href='http://example.com?ver=1' type='text/css' media='all' />\n";
+		$expected = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
-
 	}
 
 	/**
@@ -266,7 +329,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	public function test_conditional_inline_styles_are_also_conditional() {
 		$expected = <<<CSS
 <!--[if IE]>
-<link rel='stylesheet' id='handle-css'  href='http://example.com?ver=1' type='text/css' media='all' />
+<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />
 <style id='handle-inline-css' type='text/css'>
 a { color: blue; }
 </style>
@@ -296,8 +359,8 @@ CSS;
 	public function test_wp_add_inline_style_for_handle_without_source() {
 		$style = 'a { color: blue; }';
 
-		$expected  = "<link rel='stylesheet' id='handle-one-css'  href='http://example.com?ver=1' type='text/css' media='all' />\n";
-		$expected .= "<link rel='stylesheet' id='handle-two-css'  href='http://example.com?ver=1' type='text/css' media='all' />\n";
+		$expected  = "<link rel='stylesheet' id='handle-one-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='handle-two-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-three-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
 		$expected .= "</style>\n";
@@ -351,9 +414,9 @@ CSS;
 	}
 
 	/**
-	 * Tests that visual block styles are enqueued in the editor even when there is not theme support for 'wp-block-styles'.
+	 * Tests that visual block styles are not be enqueued in the editor when there is not theme support for 'wp-block-styles'.
 	 *
-	 * Visual block styles should always be enqueued when editing to avoid the appearance of a broken editor.
+	 * @ticket 57561
 	 *
 	 * @covers ::wp_enqueue_style
 	 */
@@ -365,7 +428,7 @@ CSS;
 
 		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ) );
 		wp_enqueue_style( 'wp-edit-blocks' );
-		$this->assertTrue( wp_style_is( 'wp-block-library-theme' ) );
+		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ), "The 'wp-block-library-theme' style should not be in the queue after enqueuing 'wp-edit-blocks'" );
 	}
 
 	/**
@@ -453,5 +516,120 @@ CSS;
 			'/' . WPINC . '/css/dist/block-library/common.css',
 			$GLOBALS['wp_styles']->registered['wp-block-library']->src
 		);
+	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles() {
+		wp_register_style( 'test-handle', '/' . WPINC . '/css/classic-themes.css' );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source of style should be reset to false' );
+
+		$css = file_get_contents( ABSPATH . WPINC . '/css/classic-themes.css' );
+		$this->assertSameSets( $GLOBALS['wp_styles']->registered['test-handle']->extra['after'], array( $css ), 'Source of style should set to after property' );
+	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_dequeue_styles() {
+		$filter = new MockAction();
+		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
+		wp_register_style( 'test-handle', '/' . WPINC . '/css/classic-themes.css' );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_deregister_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertSame( 0, $filter->get_call_count() );
+	}
+
+	/**
+	 * wp_filesize should be only be called once, as on the second run of wp_maybe_inline_styles,
+	 * src will be set to false and filesize will not be requested.
+	 *
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_multiple_runs() {
+		$filter = new MockAction();
+		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
+		wp_register_style( 'test-handle', '/' . WPINC . '/css/classic-themes.css' );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+		wp_maybe_inline_styles();
+
+		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_test_wp_maybe_inline_styles_missing_file() {
+		$filter = new MockAction();
+		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
+		$url = '/' . WPINC . '/css/invalid.css';
+		wp_register_style( 'test-handle', $url );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/invalid.css' );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url, 'Source should not change' );
+		$this->assertArrayNotHasKey( 'after', $GLOBALS['wp_styles']->registered['test-handle']->extra, 'Source of style not should set to after property' );
+		$this->assertSame( 1, $filter->get_call_count(), 'wp_filesize should only be called once' );
+	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_no_src() {
+		wp_register_style( 'test-handle', false );
+		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source of style should remain false' );
+		$this->assertArrayNotHasKey( 'after', $GLOBALS['wp_styles']->registered['test-handle']->extra, 'Source of style not should set to after property' );
+	}
+
+	/**
+	 * @ticket 58394
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_no_path() {
+		$url = '/' . WPINC . '/css/classic-themes.css';
+		wp_register_style( 'test-handle', $url );
+
+		wp_enqueue_style( 'test-handle' );
+
+		wp_maybe_inline_styles();
+
+		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
 	}
 }

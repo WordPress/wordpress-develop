@@ -12,6 +12,7 @@
  *
  * @since 4.4.0
  */
+#[AllowDynamicProperties]
 final class WP_Comment {
 
 	/**
@@ -32,7 +33,7 @@ final class WP_Comment {
 	 * @since 4.4.0
 	 * @var string
 	 */
-	public $comment_post_ID = 0;
+	public $comment_post_ID = '0';
 
 	/**
 	 * Comment author name.
@@ -98,7 +99,7 @@ final class WP_Comment {
 	 * @since 4.4.0
 	 * @var string
 	 */
-	public $comment_karma = 0;
+	public $comment_karma = '0';
 
 	/**
 	 * Comment approval status.
@@ -133,7 +134,7 @@ final class WP_Comment {
 	 * @since 4.4.0
 	 * @var string
 	 */
-	public $comment_parent = 0;
+	public $comment_parent = '0';
 
 	/**
 	 * Comment author ID.
@@ -143,7 +144,7 @@ final class WP_Comment {
 	 * @since 4.4.0
 	 * @var string
 	 */
-	public $user_id = 0;
+	public $user_id = '0';
 
 	/**
 	 * Comment children.
@@ -218,7 +219,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Convert object to array.
+	 * Converts object to array.
 	 *
 	 * @since 4.4.0
 	 *
@@ -229,7 +230,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Get the children of a comment.
+	 * Gets the children of a comment.
 	 *
 	 * @since 4.4.0
 	 *
@@ -301,7 +302,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Add a child to the comment.
+	 * Adds a child to the comment.
 	 *
 	 * Used by `WP_Comment_Query` when bulk-filling descendants.
 	 *
@@ -314,7 +315,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Get a child comment by ID.
+	 * Gets a child comment by ID.
 	 *
 	 * @since 4.4.0
 	 *
@@ -330,7 +331,7 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Set the 'populated_children' flag.
+	 * Sets the 'populated_children' flag.
 	 *
 	 * This flag is important for ensuring that calling `get_children()` on a childless comment will not trigger
 	 * unneeded database queries.
@@ -344,20 +345,22 @@ final class WP_Comment {
 	}
 
 	/**
-	 * Check whether a non-public property is set.
+	 * Determines whether a non-public property is set.
 	 *
 	 * If `$name` matches a post field, the comment post will be loaded and the post's value checked.
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $name Property name.
-	 * @return bool
+	 * @param string $name Property to check if set.
+	 * @return bool Whether the property is set.
 	 */
 	public function __isset( $name ) {
 		if ( in_array( $name, $this->post_fields, true ) && 0 !== (int) $this->comment_post_ID ) {
 			$post = get_post( $this->comment_post_ID );
 			return property_exists( $post, $name );
 		}
+
+		return false;
 	}
 
 	/**
@@ -367,7 +370,7 @@ final class WP_Comment {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $name
+	 * @param string $name Property name.
 	 * @return mixed
 	 */
 	public function __get( $name ) {

@@ -33,7 +33,7 @@ class Tests_Query extends WP_UnitTestCase {
 	 * @ticket 16471
 	 */
 	public function test_default_query_var() {
-		$query = new WP_Query;
+		$query = new WP_Query();
 		$this->assertSame( '', $query->get( 'nonexistent' ) );
 		$this->assertFalse( $query->get( 'nonexistent', false ) );
 		$this->assertTrue( $query->get( 'nonexistent', true ) );
@@ -644,19 +644,19 @@ class Tests_Query extends WP_UnitTestCase {
 		register_taxonomy( 'tax1', 'post' );
 		register_taxonomy( 'tax2', 'post' );
 
-		$term1   = $this->factory->term->create(
+		$term1   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax1',
 				'name'     => 'term1',
 			)
 		);
-		$term2   = $this->factory->term->create(
+		$term2   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax2',
 				'name'     => 'term2',
 			)
 		);
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 		wp_set_object_terms( $post_id, 'term1', 'tax1' );
 		wp_set_object_terms( $post_id, 'term2', 'tax2' );
 
@@ -674,19 +674,19 @@ class Tests_Query extends WP_UnitTestCase {
 		register_taxonomy( 'tax1', 'post' );
 		register_taxonomy( 'tax2', 'post' );
 
-		$term1   = $this->factory->term->create(
+		$term1   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax1',
 				'name'     => 'term1',
 			)
 		);
-		$term2   = $this->factory->term->create(
+		$term2   = self::factory()->term->create(
 			array(
 				'taxonomy' => 'tax2',
 				'name'     => 'term2',
 			)
 		);
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 		wp_set_object_terms( $post_id, 'term1', 'tax1' );
 		wp_set_object_terms( $post_id, 'term2', 'tax2' );
 
@@ -695,5 +695,273 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->assertSame( 'tax1', get_query_var( 'taxonomy' ) );
 		$this->assertSame( 'term1', get_query_var( 'term' ) );
+	}
+
+	/**
+	 * @ticket 55100
+	 */
+	public function test_get_queried_object_should_work_for_author_name_before_get_posts() {
+		$user_id = self::factory()->user->create();
+		$user    = get_user_by( 'ID', $user_id );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+			)
+		);
+
+		$this->go_to( home_url( '?author=' . $user_id ) );
+
+		$this->assertInstanceOf( 'WP_User', get_queried_object() );
+		$this->assertSame( get_queried_object_id(), $user_id );
+
+		$this->go_to( home_url( '?author_name=' . $user->user_nicename ) );
+
+		$this->assertInstanceOf( 'WP_User', get_queried_object() );
+		$this->assertSame( get_queried_object_id(), $user_id );
+	}
+
+	/**
+	 * Tests that the `posts_clauses` filter receives an array of clauses
+	 * with the other `posts_*` filters applied, e.g. `posts_join_paged`.
+	 *
+	 * @ticket 55699
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_posts_clauses_filter_should_receive_filtered_clauses() {
+		add_filter(
+			'posts_join_paged',
+			static function () {
+				return '/* posts_join_paged */';
+			}
+		);
+
+		$filter = new MockAction();
+		add_filter( 'posts_clauses', array( $filter, 'filter' ), 10, 2 );
+		$this->go_to( '/' );
+		$filter_args   = $filter->get_args();
+		$posts_clauses = $filter_args[0][0];
+
+		$this->assertArrayHasKey( 'join', $posts_clauses );
+		$this->assertSame( '/* posts_join_paged */', $posts_clauses['join'] );
+	}
+
+	/**
+	 * Tests that the `posts_clauses_request` filter receives an array of clauses
+	 * with the other `posts_*_request` filters applied, e.g. `posts_join_request`.
+	 *
+	 * @ticket 55699
+	 * @covers WP_Query::get_posts
+	 */
+	public function test_posts_clauses_request_filter_should_receive_filtered_clauses() {
+		add_filter(
+			'posts_join_request',
+			static function () {
+				return '/* posts_join_request */';
+			}
+		);
+
+		$filter = new MockAction();
+		add_filter( 'posts_clauses_request', array( $filter, 'filter' ), 10, 2 );
+		$this->go_to( '/' );
+		$filter_args           = $filter->get_args();
+		$posts_clauses_request = $filter_args[0][0];
+
+		$this->assertArrayHasKey( 'join', $posts_clauses_request );
+		$this->assertSame( '/* posts_join_request */', $posts_clauses_request['join'] );
+	}
+
+	/**
+	 * Tests that is_post_type_archive() returns false for an undefined post type.
+	 *
+	 * @ticket 56287
+	 *
+	 * @covers ::is_post_type_archive
+	 */
+	public function test_is_post_type_archive_should_return_false_for_an_undefined_post_type() {
+		global $wp_query;
+
+		$post_type = '56287-post-type';
+
+		// Force the request to be a post type archive.
+		$wp_query->is_post_type_archive = true;
+		$wp_query->set( 'post_type', $post_type );
+
+		$this->assertFalse( is_post_type_archive( $post_type ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_singular_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'pagename' => 'non-existent-page',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+		$this->assertFalse( $q->is_single() );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'page' ) );
+
+		$this->assertTrue( $q->is_page() );
+		$this->assertFalse( $q->is_page( 'non-existent-page' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_single_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'name' => 'non-existent-post',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+		$this->assertFalse( $q->is_page() );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'post' ) );
+
+		$this->assertTrue( $q->is_single() );
+		$this->assertFalse( $q->is_single( 'non-existent-post' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_attachment_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'attachment' => 'non-existent-attachment',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'attachment' ) );
+
+		$this->assertTrue( $q->is_attachment() );
+		$this->assertFalse( $q->is_attachment( 'non-existent-attachment' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_author_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'author_name' => 'non-existent-author',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_author() );
+		$this->assertFalse( $q->is_author( 'non-existent-author' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_category_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'category_name' => 'non-existent-category',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_category() );
+		$this->assertFalse( $q->is_tax() );
+		$this->assertFalse( $q->is_category( 'non-existent-category' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_tag_404_does_not_throw_warning() {
+		$q = new WP_Query(
+			array(
+				'tag' => 'non-existent-tag',
+			)
+		);
+
+		$this->assertSame( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_tag() );
+		$this->assertFalse( $q->is_tax() );
+		$this->assertFalse( $q->is_tag( 'non-existent-tag' ) );
+	}
+
+	/**
+	 * Test if $before_loop is true before loop.
+	 *
+	 * @ticket 58211
+	 */
+	public function test_before_loop_value_set_true_before_the_loop() {
+		// Get a new query with 3 posts.
+		$query = $this->get_new_wp_query_with_posts( 3 );
+
+		$this->assertTrue( $query->before_loop );
+	}
+
+	/**
+	 * Test $before_loop value is set to false when the loop starts.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers WP_Query::the_post
+	 */
+	public function test_before_loop_value_set_to_false_in_loop_with_post() {
+		// Get a new query with 2 posts.
+		$query = $this->get_new_wp_query_with_posts( 2 );
+
+		while ( $query->have_posts() ) {
+			// $before_loop should be set false as soon as the_post is called for the first time.
+			$query->the_post();
+
+			$this->assertFalse( $query->before_loop );
+			break;
+		}
+	}
+
+	/**
+	 * Test $before_loop value is set to false when there is no post in the loop.
+	 *
+	 * @ticket 58211
+	 *
+	 * @covers WP_Query::have_posts
+	 */
+	public function test_before_loop_set_false_after_loop_with_no_post() {
+		// New query without any posts in the result.
+		$query = new WP_Query(
+			array(
+				'category_name' => 'non-existent-category',
+			)
+		);
+
+		// There will not be any posts, so the loop will never actually enter.
+		while ( $query->have_posts() ) {
+			$query->the_post();
+		}
+
+		// Still, this should be false as there are no results and entering the loop was attempted.
+		$this->assertFalse( $query->before_loop );
+	}
+
+	/**
+	 * Get a new query with a given number of posts.
+	 *
+	 * @param int $no_of_posts Number of posts to be added in the query.
+	 */
+	public function get_new_wp_query_with_posts( $no_of_posts ) {
+		$post_ids = self::factory()->post->create_many( $no_of_posts );
+		$query    = new WP_Query( array( 'post__in' => $post_ids ) );
+		return $query;
 	}
 }

@@ -7,6 +7,11 @@
  */
 class Tests_User_Session extends WP_UnitTestCase {
 
+	/**
+	 * @var WP_User_Meta_Session_Tokens
+	 */
+	private $manager;
+
 	public function set_up() {
 		parent::set_up();
 		remove_all_filters( 'session_token_manager' );

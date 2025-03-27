@@ -126,7 +126,11 @@ if ( is_multisite() ) :
 		}
 
 		/**
+		 * Tests that the `WP_Network::$id` property is an integer.
+		 *
 		 * @ticket 37050
+		 *
+		 * @covers WP_Network::__get
 		 */
 		public function test_wp_network_object_id_property_is_int() {
 			$id = self::factory()->network->create();
@@ -134,6 +138,65 @@ if ( is_multisite() ) :
 			$network = WP_Network::get_instance( $id );
 
 			$this->assertSame( (int) $id, $network->id );
+		}
+
+		/**
+		 * Tests that the `WP_Network::$id` property is stored as an integer.
+		 *
+		 * Uses reflection to access the private property.
+		 * Differs from using the public getter method, which casts to an integer.
+		 *
+		 * @ticket 62035
+		 *
+		 * @covers WP_Network::__construct
+		 */
+		public function test_wp_network_object_id_property_stored_as_int() {
+			$id = self::factory()->network->create();
+
+			$network = WP_Network::get_instance( $id );
+
+			$reflection = new ReflectionObject( $network );
+			$property   = $reflection->getProperty( 'id' );
+			$property->setAccessible( true );
+
+			$this->assertSame( (int) $id, $property->getValue( $network ) );
+		}
+
+		/**
+		 * Tests that the `WP_Network::$blog_id` property is a string.
+		 *
+		 * @ticket 62035
+		 *
+		 * @covers WP_Network::__get
+		 */
+		public function test_wp_network_object_blog_id_property_is_int() {
+			$id = self::factory()->network->create();
+
+			$network = WP_Network::get_instance( $id );
+
+			$this->assertIsString( $network->blog_id );
+		}
+
+		/**
+		 * Tests that the `WP_Network::$blog_id` property is stored as a string.
+		 *
+		 * Uses reflection to access the private property.
+		 * Differs from using the public getter method, which casts to a string.
+		 *
+		 * @ticket 62035
+		 *
+		 * @covers WP_Network::__construct
+		 */
+		public function test_wp_network_object_blog_id_property_stored_as_string() {
+			$id = self::factory()->network->create();
+
+			$network = WP_Network::get_instance( $id );
+
+			$reflection = new ReflectionObject( $network );
+			$property   = $reflection->getProperty( 'blog_id' );
+			$property->setAccessible( true );
+
+			$this->assertIsString( $property->getValue( $network ) );
 		}
 
 		/**
@@ -191,7 +254,7 @@ if ( is_multisite() ) :
 			}
 			wp_update_network_counts();
 
-			$this->assertEquals( $site_count_start + 1, $actual );
+			$this->assertSame( $site_count_start + 1, $actual );
 		}
 
 		/**
@@ -203,55 +266,6 @@ if ( is_multisite() ) :
 			$site_count = get_blog_count( self::$different_network_id );
 
 			$this->assertEquals( count( self::$different_site_ids ), $site_count );
-		}
-
-		/**
-		 * @ticket 37866
-		 */
-		public function test_get_user_count_on_different_network() {
-			wp_update_network_user_counts();
-			$current_network_user_count = get_user_count();
-
-			// Add another user to fake the network user count to be different.
-			wpmu_create_user( 'user', 'pass', 'email' );
-
-			wp_update_network_user_counts( self::$different_network_id );
-
-			$user_count = get_user_count( self::$different_network_id );
-
-			$this->assertEquals( $current_network_user_count + 1, $user_count );
-		}
-
-		/**
-		 * @ticket 22917
-		 */
-		public function test_enable_live_network_user_counts_filter() {
-			// False for large networks by default.
-			add_filter( 'enable_live_network_counts', '__return_false' );
-
-			// Refresh the cache.
-			wp_update_network_counts();
-			$start_count = get_user_count();
-
-			wpmu_create_user( 'user', 'pass', 'email' );
-
-			// No change, cache not refreshed.
-			$count = get_user_count();
-
-			$this->assertSame( $start_count, $count );
-
-			wp_update_network_counts();
-			$start_count = get_user_count();
-
-			add_filter( 'enable_live_network_counts', '__return_true' );
-
-			wpmu_create_user( 'user2', 'pass2', 'email2' );
-
-			$count = get_user_count();
-			$this->assertEquals( $start_count + 1, $count );
-
-			remove_filter( 'enable_live_network_counts', '__return_false' );
-			remove_filter( 'enable_live_network_counts', '__return_true' );
 		}
 
 		public function test_active_network_plugins() {
@@ -316,26 +330,7 @@ if ( is_multisite() ) :
 		}
 
 		public function helper_deactivate_hook() {
-			$this->plugin_hook_count++;
-		}
-
-		public function test_get_user_count() {
-			// Refresh the cache.
-			wp_update_network_counts();
-			$start_count = get_user_count();
-
-			// Only false for large networks as of 3.7.
-			add_filter( 'enable_live_network_counts', '__return_false' );
-			self::factory()->user->create( array( 'role' => 'administrator' ) );
-
-			$count = get_user_count(); // No change, cache not refreshed.
-			$this->assertSame( $start_count, $count );
-
-			wp_update_network_counts(); // Magic happens here.
-
-			$count = get_user_count();
-			$this->assertEquals( $start_count + 1, $count );
-			remove_filter( 'enable_live_network_counts', '__return_false' );
+			++$this->plugin_hook_count;
 		}
 
 		public function test_wp_schedule_update_network_counts() {
@@ -407,7 +402,7 @@ if ( is_multisite() ) :
 
 			update_network_option( null, 'user_count', 40 );
 
-			$expected = $wpdb->get_var( "SELECT COUNT(ID) as c FROM $wpdb->users WHERE spam = '0' AND deleted = '0'" );
+			$expected = (int) $wpdb->get_var( "SELECT COUNT(ID) as c FROM $wpdb->users WHERE spam = '0' AND deleted = '0'" );
 
 			wp_update_network_user_counts();
 
@@ -423,7 +418,7 @@ if ( is_multisite() ) :
 
 			update_network_option( self::$different_network_id, 'user_count', 40 );
 
-			$expected = $wpdb->get_var( "SELECT COUNT(ID) as c FROM $wpdb->users WHERE spam = '0' AND deleted = '0'" );
+			$expected = (int) $wpdb->get_var( "SELECT COUNT(ID) as c FROM $wpdb->users WHERE spam = '0' AND deleted = '0'" );
 
 			wp_update_network_user_counts( self::$different_network_id );
 
@@ -461,6 +456,54 @@ if ( is_multisite() ) :
 
 			$this->assertGreaterThan( 0, $site_count );
 			$this->assertGreaterThan( 0, $user_count );
+		}
+
+		/**
+		 * Test the default behavior of upload_size_limit_filter.
+		 * If any default option is changed, the function returns the min value between the
+		 * parameter passed and the `fileupload_maxk` site option (1500Kb by default)
+		 *
+		 * @ticket 55926
+		 */
+		public function test_upload_size_limit_filter() {
+			$return = upload_size_limit_filter( 1499 * KB_IN_BYTES );
+			$this->assertSame( 1499 * KB_IN_BYTES, $return );
+			$return = upload_size_limit_filter( 1501 * KB_IN_BYTES );
+			$this->assertSame( 1500 * KB_IN_BYTES, $return );
+		}
+
+		/**
+		 * Test if upload_size_limit_filter behaves as expected when the `fileupload_maxk` is 0 or an empty string.
+		 *
+		 * @ticket 55926
+		 * @dataProvider data_upload_size_limit_filter_empty_fileupload_maxk
+		 */
+		public function test_upload_size_limit_filter_empty_fileupload_maxk( $callable_set_fileupload_maxk ) {
+			add_filter( 'site_option_fileupload_maxk', $callable_set_fileupload_maxk );
+			$return = upload_size_limit_filter( 1500 );
+			$this->assertSame( 0, $return );
+		}
+
+		/**
+		 * @ticket 55926
+		 */
+		public function data_upload_size_limit_filter_empty_fileupload_maxk() {
+			return array(
+				array( '__return_zero' ),
+				array( '__return_empty_string' ),
+			);
+		}
+
+		/**
+		 * When upload_space_check is enabled, the space allowed is also considered by `upload_size_limit_filter`.
+		 *
+		 * @ticket 55926
+		 */
+		public function test_upload_size_limit_filter_when_upload_space_check_enabled() {
+			add_filter( 'get_space_allowed', '__return_zero' );
+			add_filter( 'site_option_upload_space_check_disabled', '__return_false' );
+			$return = upload_size_limit_filter( 100 );
+			$this->assertSame( 0, $return );
 		}
 
 		/**
@@ -610,14 +653,12 @@ if ( is_multisite() ) :
 		 * @ticket 42251
 		 */
 		public function test_get_network_not_found_cache() {
-			global $wpdb;
-
 			$new_network_id = $this->_get_next_network_id();
 			$this->assertNull( get_network( $new_network_id ) );
 
-			$num_queries = $wpdb->num_queries;
+			$num_queries = get_num_queries();
 			$this->assertNull( get_network( $new_network_id ) );
-			$this->assertSame( $num_queries, $wpdb->num_queries );
+			$this->assertSame( $num_queries, get_num_queries() );
 		}
 
 		/**
@@ -627,7 +668,7 @@ if ( is_multisite() ) :
 			$new_network_id = $this->_get_next_network_id();
 			$this->assertNull( get_network( $new_network_id ) );
 
-			$new_network = $this->factory()->network->create_and_get();
+			$new_network = self::factory()->network->create_and_get();
 
 			// Double-check we got the ID of the new network correct.
 			$this->assertSame( $new_network_id, $new_network->id );

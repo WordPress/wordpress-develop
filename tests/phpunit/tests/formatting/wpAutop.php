@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wpautop
  */
 class Tests_Formatting_wpAutop extends WP_UnitTestCase {
 
@@ -20,9 +22,9 @@ Upgrading is a couple of clicks!</p>
 <p>Then you can start enjoying the WordPress experience:</p>
 <ul>
 <li>Edit your personal information at <a href="%3$s" title="Edit settings like your password, your display name and your contact information">Users &#8250; Profile</a></li>
-<li>Start publishing at <a href="%4$s" title="Create a new post">Posts &#8250; Add New</a> and at <a href="%5$s" title="Create a new page">Pages &#8250; Add New</a></li>
-<li>Browse and install plugins at <a href="%6$s" title="Browse and install plugins at the official WordPress repository directly from your Dashboard">Plugins &#8250; Add New</a></li>
-<li>Browse and install themes at <a href="%7$s" title="Browse and install themes at the official WordPress repository directly from your Dashboard">Appearance &#8250; Add New Themes</a></li>
+<li>Start publishing at <a href="%4$s" title="Create a new post">Posts &#8250; Add</a> and at <a href="%5$s" title="Create a new page">Pages &#8250; Add</a></li>
+<li>Browse and install plugins at <a href="%6$s" title="Browse and install plugins at the official WordPress repository directly from your Dashboard">Plugins &#8250; Add</a></li>
+<li>Browse and install themes at <a href="%7$s" title="Browse and install themes at the official WordPress repository directly from your Dashboard">Appearance &#8250; Add Themes</a></li>
 <li>Modify and prettify your website&#8217;s links at <a href="%8$s" title="For example, select a link structure like: http://example.com/1999/12/post-name">Settings &#8250; Permalinks</a></li>
 <li>Import content from another system or WordPress site at <a href="%9$s" title="WordPress comes with importers for the most common publishing systems">Tools &#8250; Import</a></li>
 <li>Find answers to your questions at the <a href="%10$s" title="The official WordPress documentation, maintained by the WordPress community">WordPress Codex</a></li>
@@ -45,9 +47,9 @@ Upgrading is a couple of clicks!
 Then you can start enjoying the WordPress experience:
 <ul>
 <li>Edit your personal information at <a href="%3$s" title="Edit settings like your password, your display name and your contact information">Users &#8250; Profile</a></li>
-<li>Start publishing at <a href="%4$s" title="Create a new post">Posts &#8250; Add New</a> and at <a href="%5$s" title="Create a new page">Pages &#8250; Add New</a></li>
-<li>Browse and install plugins at <a href="%6$s" title="Browse and install plugins at the official WordPress repository directly from your Dashboard">Plugins &#8250; Add New</a></li>
-<li>Browse and install themes at <a href="%7$s" title="Browse and install themes at the official WordPress repository directly from your Dashboard">Appearance &#8250; Add New Themes</a></li>
+<li>Start publishing at <a href="%4$s" title="Create a new post">Posts &#8250; Add</a> and at <a href="%5$s" title="Create a new page">Pages &#8250; Add</a></li>
+<li>Browse and install plugins at <a href="%6$s" title="Browse and install plugins at the official WordPress repository directly from your Dashboard">Plugins &#8250; Add</a></li>
+<li>Browse and install themes at <a href="%7$s" title="Browse and install themes at the official WordPress repository directly from your Dashboard">Appearance &#8250; Add Themes</a></li>
 <li>Modify and prettify your website&#8217;s links at <a href="%8$s" title="For example, select a link structure like: http://example.com/1999/12/post-name">Settings &#8250; Permalinks</a></li>
 <li>Import content from another system or WordPress site at <a href="%9$s" title="WordPress comes with importers for the most common publishing systems">Tools &#8250; Import</a></li>
 <li>Find answers to your questions at the <a href="%10$s" title="The official WordPress documentation, maintained by the WordPress community">WordPress Codex</a></li>
@@ -100,6 +102,63 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 	public function test_skip_input_elements() {
 		$str = 'Username: <input type="text" id="username" name="username" /><br />Password: <input type="password" id="password1" name="password1" />';
 		$this->assertSame( "<p>$str</p>", trim( wpautop( $str ) ) );
+	}
+
+	/**
+	 * wpautop() Should add <p> around inline "<math>" elements.
+	 *
+	 * @ticket 13340
+	 */
+	public function test_wrap_inline_math_elements() {
+		$str = '<math><mrow><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup><mo>=</mo><msup><mi>c</mi><mn>2</mn></msup></mrow></math>';
+
+		$this->assertSame( "<p>$str</p>", trim( wpautop( $str ) ) );
+	}
+
+	/**
+	 * wpautop() Should not add <br> inside block "<math>" elements.
+	 *
+	 * @ticket 13340
+	 */
+	public function test_skip_block_math_elements() {
+		$str = '<math display="block">
+	<mtable>
+		<mtr>
+			<mtd>
+				<msup><mrow><mo>(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo>)</mo></mrow><mn>2</mn></msup>
+			</mtd>
+			<mtd>
+				<mo>=</mo>
+			</mtd>
+			<mtd>
+				<msup><mi>c</mi><mn>2</mn></msup>
+				<mo>+</mo><mn>4</mn><mo>⋅</mo>
+				<mo>(</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>a</mi><mi>b</mi><mo>)</mo>
+			</mtd>
+		</mtr>
+		<mtr>
+			<mtd>
+				<msup><mi>a</mi><mn>2</mn></msup>
+				<mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi><mo>+</mo>
+				<msup><mi>b</mi><mn>2</mn></msup>
+			</mtd>
+			<mtd>
+				<mo>=</mo>
+			</mtd>
+			<mtd>
+				<msup><mi>c</mi><mn>2</mn></msup>
+				<mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi>
+			</mtd>
+		</mtr>
+		<mtr>
+			<mtd><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup></mtd>
+			<mtd><mo>=</mo></mtd>
+			<mtd><msup><mi>c</mi><mn>2</mn></msup></mtd>
+		</mtr>
+	</mtable>
+</math>';
+
+		$this->assertSameIgnoreEOL( "<p>$str</p>", trim( wpautop( $str ) ) );
 	}
 
 	/**
@@ -306,7 +365,6 @@ Paragraph two.';
 			'map',
 			'area',
 			'address',
-			'math',
 			'style',
 			'p',
 			'h1',
@@ -509,7 +567,7 @@ line 5</p>';
 	}
 
 	/**
-	 * wpautop() should convert multiple line breaks into a paragraph regarless of <br /> format
+	 * wpautop() should convert multiple line breaks into a paragraph regardless of <br /> format
 	 *
 	 * @ticket 33377
 	 */
@@ -531,7 +589,7 @@ line 2<br/>
 	/**
 	 * @ticket 4857
 	 */
-	public function test_that_text_before_blocks_is_peed() {
+	public function test_that_text_before_blocks_is_wrapped_in_a_paragraph() {
 		$content  = 'a<div>b</div>';
 		$expected = "<p>a</p>\n<div>b</div>";
 
@@ -540,9 +598,6 @@ line 2<br/>
 
 	/**
 	 * wpautop() should not add extra </p> before <figcaption>
-	 *
-	 * @covers ::wpautop
-	 * @uses ::trim
 	 *
 	 * @ticket 39307
 	 */
@@ -565,7 +620,7 @@ line 2<br/>
 	/**
 	 * @ticket 14674
 	 */
-	public function test_the_hr_is_not_peed() {
+	public function test_the_hr_is_not_wrapped_in_a_paragraph() {
 		$content  = 'paragraph1<hr>paragraph2';
 		$expected = "<p>paragraph1</p>\n<hr>\n<p>paragraph2</p>";
 

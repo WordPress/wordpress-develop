@@ -13,6 +13,9 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 	public static $posts;
 	public static $category;
 
+	private $post_count;
+	private $excerpt_only;
+
 	/**
 	 * Setup a new user and attribute some posts.
 	 */
@@ -51,6 +54,8 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
 
+		// Assign a tagline option.
+		update_option( 'blogdescription', 'Just another WordPress site' );
 	}
 
 	/**
@@ -61,6 +66,13 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 
 		$this->post_count   = (int) get_option( 'posts_per_rss' );
 		$this->excerpt_only = get_option( 'rss_use_excerpt' );
+	}
+
+	/**
+	 * Tear down.
+	 */
+	public static function wpTearDownAfterClass() {
+		delete_option( 'blogdescription' );
 	}
 
 	/**
@@ -99,7 +111,6 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 		// Verify attributes.
 		$this->assertSame( 'http://www.w3.org/2005/Atom', $atom[0]['attributes']['xmlns'] );
 		$this->assertSame( 'http://purl.org/syndication/thread/1.0', $atom[0]['attributes']['xmlns:thr'] );
-		$this->assertSame( site_url( '/wp-atom.php' ), $atom[0]['attributes']['xml:base'] );
 
 		// Verify the <feed> element is present and contains a <title> child element.
 		$title = xml_find( $xml, 'feed', 'title' );
@@ -276,7 +287,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 					$this->assertSame( $enclosures[ $i ]['expected']['href'], $link['attributes']['href'] );
 					$this->assertEquals( $enclosures[ $i ]['expected']['length'], $link['attributes']['length'] );
 					$this->assertSame( $enclosures[ $i ]['expected']['type'], $link['attributes']['type'] );
-					$i++;
+					++$i;
 				}
 			}
 		}

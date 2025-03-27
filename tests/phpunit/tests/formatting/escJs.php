@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::esc_js
  */
 class Tests_Formatting_EscJs extends WP_UnitTestCase {
 	public function test_js_escape_simple() {
