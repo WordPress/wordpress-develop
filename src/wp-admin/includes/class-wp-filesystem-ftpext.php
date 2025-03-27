@@ -435,6 +435,23 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			return false;
 		}
 
+		// For deeper paths (2), better use ftp_rawlist() instead of ftp_nlist()
+		$path_depth = substr_count( $path, '/' );
+		if ( $path_depth > 2 ) {
+			$parent_dir = dirname( $path );
+			$filename   = basename( $path );
+			$list       = ftp_rawlist( $this->link, $parent_dir );
+
+			if ( ! empty( $list ) ) {
+				foreach ( $list as $line ) {
+					if ( strpos( $line, $filename ) !== false ) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
 		$list = ftp_nlist( $this->link, $path );
 
 		if ( empty( $list ) && $this->is_dir( $path ) ) {
