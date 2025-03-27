@@ -38,7 +38,7 @@ function wp_load_press_this() {
 	 *
 	 * @param string $filename The file name value for the plugin used for Press This.
 	 */
-	$plugin_file = apply_filters( 'press_this_plugin_file', 'press-this/press-this-plugin.php' );
+	$plugin_file = apply_filters( 'press_this_plugin_file', $plugin_slug . '/press-this-plugin.php' );
 
 	if ( ! current_user_can( 'edit_posts' ) || ! current_user_can( get_post_type_object( 'post' )->cap->create_posts ) ) {
 		wp_die(
@@ -64,7 +64,7 @@ function wp_load_press_this() {
 		} else {
 			wp_die(
 				/* translators: %s is the name of a WordPress filter. */
-				sprintf( __( 'The value passed to the %s filter must be a callable.' ), 'press_this_execution_func' ),
+				sprintf( esc_html__( 'The value passed to the %s filter must be a callable.' ), 'press_this_execution_func' ),
 				500
 			);
 		}
