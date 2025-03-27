@@ -2328,7 +2328,7 @@ HTML;
 	 * @return void
 	 */
 	public function test_wp_kses_allows_text_fragments() {
-		$html = '<a href="#:~:text=highlight">Text Fragment</a>';
+		$html         = '<a href="#:~:text=highlight">Text Fragment</a>';
 		$allowed_html = array(
 			'a' => array(
 				'href' => true,
@@ -2337,5 +2337,28 @@ HTML;
 
 		$result = wp_kses( $html, $allowed_html );
 		$this->assertSame( $html, $result );
+	}
+
+	/**
+	 * Test to ensure wp_kses() doesn't allow text fragment links when it's not part of allowed protocols.
+	 *
+	 * @ticket 60347
+	 *
+	 * @return void
+	 */
+	public function test_wp_kses_disallows_text_fragments_disabled() {
+		$protocols = wp_allowed_protocols();
+		$protocols = array_diff( $protocols, array( '#:~:' ) ); // Remove fragment directive
+
+		$html         = '<a href="#:~:text=highlight">Text Fragment</a>';
+		$allowed_html = array(
+			'a' => array(
+				'href' => true,
+			),
+		);
+
+		$result = wp_kses( $html, $allowed_html, $protocols );
+		$this->assertNotSame( $html, $result );
+		$this->assertStringNotContainsString( '#:~:', $result );
 	}
 }
