@@ -60,7 +60,7 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 		$data_modified['value'] = 'modified';
 
 		// Generate new IDs with the modified data
-		$unique_id_modified = wp_unique_id_from_values( $data_modified );
+		$unique_id_modified          = wp_unique_id_from_values( $data_modified );
 		$unique_id_prefixed_modified = wp_unique_id_from_values( $data_modified, $this->prefix );
 
 		// Assert that the IDs for different data are distinct
@@ -81,26 +81,30 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 			'boolean'         => array( array( 'value' => true ) ),
 			'object'          => array( array( 'value' => new StdClass() ) ),
 			'null'            => array( array( 'value' => null ) ),
-			'multiple values' => array( array(
-				'value1' => 'text',
-				'value2' => 123,
-				'value3' => 1.23,
-				'value4' => true,
-				'value5' => new StdClass(),
-				'value6' => null,
-			) ),
-			'nested arrays'   => array( array(
-				'list1' => array(
+			'multiple values' => array(
+				array(
 					'value1' => 'text',
 					'value2' => 123,
 					'value3' => 1.23,
-				),
-				'list2' => array(
 					'value4' => true,
 					'value5' => new StdClass(),
 					'value6' => null,
 				),
-			) ),
+			),
+			'nested arrays'   => array(
+				array(
+					'list1' => array(
+						'value1' => 'text',
+						'value2' => 123,
+						'value3' => 1.23,
+					),
+					'list2' => array(
+						'value4' => true,
+						'value5' => new StdClass(),
+						'value6' => null,
+					),
+				),
+			),
 		);
 	}
 
@@ -148,4 +152,3 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 		);
 	}
 }
-
