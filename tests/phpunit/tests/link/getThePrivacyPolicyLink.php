@@ -80,7 +80,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		$actual_link = get_the_privacy_policy_link();
 
 		$this->assertStringStartsWith( '<a', $actual_link );
-		$this->assertContains( self::$privacy_policy_url, $actual_link );
+		$this->assertStringContainsString( self::$privacy_policy_url, $actual_link );
 		$this->assertStringEndsWith( '>' . WP_TESTS_DOMAIN . ' Privacy Policy</a>', $actual_link );
 	}
 
@@ -94,7 +94,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		$actual_link = get_the_privacy_policy_link( self::$before, self::$after );
 
 		$this->assertStringStartsWith( self::$before . '<a', $actual_link );
-		$this->assertContains( self::$privacy_policy_url, $actual_link );
+		$this->assertStringContainsString( self::$privacy_policy_url, $actual_link );
 		$this->assertStringEndsWith( '</a>' . self::$after, $actual_link );
 	}
 

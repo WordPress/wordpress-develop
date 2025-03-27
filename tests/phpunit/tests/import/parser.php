@@ -6,8 +6,8 @@ require_once __DIR__ . '/base.php';
  * @group import
  */
 class Tests_Import_Parser extends WP_Import_UnitTestCase {
-	function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		if ( ! defined( 'WP_IMPORTING' ) ) {
 			define( 'WP_IMPORTING', true );
@@ -24,7 +24,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 		require_once DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php';
 	}
 
-	function test_malformed_wxr() {
+	public function test_malformed_wxr() {
 		$file = DIR_TESTDATA . '/export/malformed.xml';
 
 		// Regex based parser cannot detect malformed XML.
@@ -36,7 +36,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 		}
 	}
 
-	function test_invalid_wxr() {
+	public function test_invalid_wxr() {
 		$f1 = DIR_TESTDATA . '/export/missing-version-tag.xml';
 		$f2 = DIR_TESTDATA . '/export/invalid-version-tag.xml';
 
@@ -50,7 +50,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 		}
 	}
 
-	function test_wxr_version_1_1() {
+	public function test_wxr_version_1_1() {
 		$file = DIR_TESTDATA . '/export/valid-wxr-1.1.xml';
 
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML', 'WXR_Parser_Regex' ) as $p ) {
@@ -58,7 +58,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$parser  = new $p;
 			$result  = $parser->parse( $file );
 
-			$this->assertTrue( is_array( $result ), $message );
+			$this->assertIsArray( $result, $message );
 			$this->assertSame( 'http://localhost/', $result['base_url'], $message );
 			$this->assertEquals(
 				array(
@@ -106,9 +106,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 				$message
 			);
 
-			$this->assertSame( 2, count( $result['posts'] ), $message );
-			$this->assertSame( 19, count( $result['posts'][0] ), $message );
-			$this->assertSame( 18, count( $result['posts'][1] ), $message );
+			$this->assertCount( 2, $result['posts'], $message );
+			$this->assertCount( 19, $result['posts'][0], $message );
+			$this->assertCount( 18, $result['posts'][1], $message );
 			$this->assertEquals(
 				array(
 					array(
@@ -143,7 +143,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 		}
 	}
 
-	function test_wxr_version_1_0() {
+	public function test_wxr_version_1_0() {
 		$file = DIR_TESTDATA . '/export/valid-wxr-1.0.xml';
 
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML', 'WXR_Parser_Regex' ) as $p ) {
@@ -151,7 +151,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$parser  = new $p;
 			$result  = $parser->parse( $file );
 
-			$this->assertTrue( is_array( $result ), $message );
+			$this->assertIsArray( $result, $message );
 			$this->assertSame( 'http://localhost/', $result['base_url'], $message );
 			$this->assertSame( $result['categories'][0]['category_nicename'], 'alpha', $message );
 			$this->assertSame( $result['categories'][0]['cat_name'], 'alpha', $message );
@@ -160,9 +160,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$this->assertSame( $result['tags'][0]['tag_slug'], 'chicken', $message );
 			$this->assertSame( $result['tags'][0]['tag_name'], 'chicken', $message );
 
-			$this->assertSame( 6, count( $result['posts'] ), $message );
-			$this->assertSame( 19, count( $result['posts'][0] ), $message );
-			$this->assertSame( 18, count( $result['posts'][1] ), $message );
+			$this->assertCount( 6, $result['posts'], $message );
+			$this->assertCount( 19, $result['posts'][0], $message );
+			$this->assertCount( 18, $result['posts'][1], $message );
 
 			$this->assertEquals(
 				array(
@@ -237,7 +237,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	 *
 	 * @link https://core.trac.wordpress.org/ticket/15203
 	 */
-	function test_escaped_cdata_closing_sequence() {
+	public function test_escaped_cdata_closing_sequence() {
 		$file = DIR_TESTDATA . '/export/crazy-cdata-escaped.xml';
 
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML', 'WXR_Parser_Regex' ) as $p ) {
@@ -270,7 +270,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	 * Ensure that the regex parser can still parse invalid CDATA blocks (i.e. those
 	 * with "]]>" unescaped within a CDATA section).
 	 */
-	function test_unescaped_cdata_closing_sequence() {
+	public function test_unescaped_cdata_closing_sequence() {
 		$file = DIR_TESTDATA . '/export/crazy-cdata.xml';
 
 		$parser = new WXR_Parser_Regex;

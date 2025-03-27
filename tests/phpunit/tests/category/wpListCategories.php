@@ -14,7 +14,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( 'class="cat-item cat-item-' . $c . '"', $found );
+		$this->assertStringContainsString( 'class="cat-item cat-item-' . $c . '"', $found );
 	}
 
 	public function test_class_containing_current_cat() {
@@ -29,8 +29,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotRegExp( '/class="[^"]*cat-item-' . $c1 . '[^"]*current-cat[^"]*"/', $found );
-		$this->assertRegExp( '/class="[^"]*cat-item-' . $c2 . '[^"]*current-cat[^"]*"/', $found );
+		$this->assertDoesNotMatchRegularExpression( '/class="[^"]*cat-item-' . $c1 . '[^"]*current-cat[^"]*"/', $found );
+		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $c2 . '[^"]*current-cat[^"]*"/', $found );
 	}
 
 	public function test_class_containing_current_cat_parent() {
@@ -49,8 +49,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertRegExp( '/class="[^"]*cat-item-' . $c1 . '[^"]*current-cat-parent[^"]*"/', $found );
-		$this->assertNotRegExp( '/class="[^"]*cat-item-' . $c2 . '[^"]*current-cat-parent[^"]*"/', $found );
+		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $c1 . '[^"]*current-cat-parent[^"]*"/', $found );
+		$this->assertDoesNotMatchRegularExpression( '/class="[^"]*cat-item-' . $c2 . '[^"]*current-cat-parent[^"]*"/', $found );
 	}
 
 	/**
@@ -67,9 +67,9 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertRegExp( '/class="[^"]*cat-item-' . $cats[0] . '[^"]*current-cat[^"]*"/', $found );
-		$this->assertNotRegExp( '/class="[^"]*cat-item-' . $cats[1] . '[^"]*current[^"]*"/', $found );
-		$this->assertRegExp( '/class="[^"]*cat-item-' . $cats[2] . '[^"]*current-cat[^"]*"/', $found );
+		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $cats[0] . '[^"]*current-cat[^"]*"/', $found );
+		$this->assertDoesNotMatchRegularExpression( '/class="[^"]*cat-item-' . $cats[1] . '[^"]*current[^"]*"/', $found );
+		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $cats[2] . '[^"]*current-cat[^"]*"/', $found );
 	}
 
 	/**
@@ -96,11 +96,11 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 		);
 		remove_filter( 'list_cats', array( $this, 'list_cats_callback' ) );
 
-		$this->assertContains( "cat-item-$c2", $found );
-		$this->assertContains( 'Test Cat 2', $found );
+		$this->assertStringContainsString( "cat-item-$c2", $found );
+		$this->assertStringContainsString( 'Test Cat 2', $found );
 
-		$this->assertNotContains( "cat-item-$c1", $found );
-		$this->assertNotContains( 'Test Cat 1', $found );
+		$this->assertStringNotContainsString( "cat-item-$c1", $found );
+		$this->assertStringNotContainsString( 'Test Cat 1', $found );
 	}
 
 	public function list_cats_callback( $cat ) {
@@ -128,8 +128,8 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "cat-item-$c", $found );
-		$this->assertContains( '0', $found );
+		$this->assertStringContainsString( "cat-item-$c", $found );
+		$this->assertStringContainsString( '0', $found );
 	}
 
 	public function test_show_option_all_link_should_go_to_home_page_when_show_on_front_is_false() {
@@ -144,7 +144,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "<li class='cat-item-all'><a href='" . home_url( '/' ) . "'>All</a></li>", $found );
+		$this->assertStringContainsString( "<li class='cat-item-all'><a href='" . home_url( '/' ) . "'>All</a></li>", $found );
 	}
 
 	public function test_show_option_all_link_should_respect_page_for_posts() {
@@ -163,7 +163,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( "<li class='cat-item-all'><a href='" . get_permalink( $p ) . "'>All</a></li>", $found );
+		$this->assertStringContainsString( "<li class='cat-item-all'><a href='" . get_permalink( $p ) . "'>All</a></li>", $found );
 	}
 
 	/**
@@ -192,7 +192,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 
 		$pt_archive = get_post_type_archive_link( 'wptests_pt' );
 
-		$this->assertContains( "<li class='cat-item-all'><a href='" . $pt_archive . "'>All</a></li>", $found );
+		$this->assertStringContainsString( "<li class='cat-item-all'><a href='" . $pt_archive . "'>All</a></li>", $found );
 	}
 
 	/**
@@ -221,7 +221,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 
 		$pt_archive = get_post_type_archive_link( 'wptests_pt2' );
 
-		$this->assertContains( "<li class='cat-item-all'><a href='" . $pt_archive . "'>All</a></li>", $found );
+		$this->assertStringContainsString( "<li class='cat-item-all'><a href='" . $pt_archive . "'>All</a></li>", $found );
 	}
 
 	public function test_show_option_all_link_should_link_to_post_archive_if_available() {
@@ -247,7 +247,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 
 		$url = home_url( '/' );
 
-		$this->assertContains( "<li class='cat-item-all'><a href='" . $url . "'>All</a></li>", $found );
+		$this->assertStringContainsString( "<li class='cat-item-all'><a href='" . $url . "'>All</a></li>", $found );
 	}
 
 	public function test_show_option_all_link_should_link_to_post_archive_if_no_associated_post_types_have_archives() {
@@ -273,7 +273,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 
 		$url = home_url( '/' );
 
-		$this->assertContains( "<li class='cat-item-all'><a href='" . $url . "'>All</a></li>", $found );
+		$this->assertStringContainsString( "<li class='cat-item-all'><a href='" . $url . "'>All</a></li>", $found );
 	}
 
 	/**
@@ -286,7 +286,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( '<li class="categories">Categories', $found );
+		$this->assertStringContainsString( '<li class="categories">Categories', $found );
 	}
 
 	/**
@@ -300,7 +300,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( '<li class="categories">Categories', $found );
+		$this->assertStringNotContainsString( '<li class="categories">Categories', $found );
 	}
 
 	/**
@@ -314,7 +314,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( '<li class="categories">Categories', $found );
+		$this->assertStringContainsString( '<li class="categories">Categories', $found );
 	}
 
 	/**
@@ -331,7 +331,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( '<li class="categories">Categories', $found );
+		$this->assertStringContainsString( '<li class="categories">Categories', $found );
 	}
 
 	/**
@@ -349,7 +349,7 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( '</ul></li>', $found );
+		$this->assertStringNotContainsString( '</ul></li>', $found );
 	}
 
 	/**
@@ -379,9 +379,9 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 
 		$actual = wp_list_categories( $args );
 
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent . '">', $actual );
 
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child . '">', $actual );
 	}
 
 	/**
@@ -431,11 +431,11 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent2 . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent2 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child . '">', $actual );
 
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child2 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child2 . '">', $actual );
 	}
 
 	/**
@@ -511,17 +511,17 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( '<li class="cat-item cat-item-' . $c . '">', $actual );
+		$this->assertStringContainsString( '<li class="cat-item cat-item-' . $c . '">', $actual );
 
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent2 . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child2 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent2 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child2 . '">', $actual );
 
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent3 . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent4 . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child3 . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child4 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent3 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent4 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child3 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child4 . '">', $actual );
 	}
 
 	/**
@@ -597,17 +597,17 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertContains( '<li class="cat-item cat-item-' . $c . '">', $actual );
+		$this->assertStringContainsString( '<li class="cat-item cat-item-' . $c . '">', $actual );
 
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent2 . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child2 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent2 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child2 . '">', $actual );
 
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent3 . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $parent4 . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child3 . '">', $actual );
-		$this->assertNotContains( '<li class="cat-item cat-item-' . $child4 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent3 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $parent4 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child3 . '">', $actual );
+		$this->assertStringNotContainsString( '<li class="cat-item cat-item-' . $child4 . '">', $actual );
 	}
 
 	/**
@@ -650,9 +650,9 @@ class Tests_Category_WpListCategories extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertRegExp( '/class="[^"]*cat-item-' . $parent . '[^"]*current-cat-ancestor[^"]*"/', $actual );
-		$this->assertRegExp( '/class="[^"]*cat-item-' . $child . '[^"]*current-cat-ancestor[^"]*"/', $actual );
-		$this->assertNotRegExp( '/class="[^"]*cat-item-' . $grandchild . '[^"]*current-cat-ancestor[^"]*"/', $actual );
-		$this->assertNotRegExp( '/class="[^"]*cat-item-' . $child2 . '[^"]*current-cat-ancestor[^"]*"/', $actual );
+		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $parent . '[^"]*current-cat-ancestor[^"]*"/', $actual );
+		$this->assertMatchesRegularExpression( '/class="[^"]*cat-item-' . $child . '[^"]*current-cat-ancestor[^"]*"/', $actual );
+		$this->assertDoesNotMatchRegularExpression( '/class="[^"]*cat-item-' . $grandchild . '[^"]*current-cat-ancestor[^"]*"/', $actual );
+		$this->assertDoesNotMatchRegularExpression( '/class="[^"]*cat-item-' . $child2 . '[^"]*current-cat-ancestor[^"]*"/', $actual );
 	}
 }

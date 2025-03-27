@@ -89,9 +89,6 @@ $step = isset( $_GET['step'] ) ? (int) $_GET['step'] : -1;
  * @ignore
  * @since 2.3.0
  *
- * @global string    $wp_local_package Locale code of the package.
- * @global WP_Locale $wp_locale        WordPress date and time locale object.
- *
  * @param string|string[] $body_classes Class attribute values for the body tag.
  */
 function setup_config_display_header( $body_classes = array() ) {
@@ -195,7 +192,7 @@ switch ( $step ) {
 		);
 		?>
 </p>
-<p><?php _e( 'In all likelihood, these items were supplied to you by your Web Host. If you don&#8217;t have this information, then you will need to contact them before you can continue. If you&#8217;re all ready&hellip;' ); ?></p>
+<p><?php _e( 'In all likelihood, these items were supplied to you by your web host. If you don&#8217;t have this information, then you will need to contact them before you can continue. If you&#8217;re all ready&hellip;' ); ?></p>
 
 <p class="step"><a href="<?php echo $step_1; ?>" class="button button-large"><?php _e( 'Let&#8217;s go!' ); ?></a></p>
 		<?php
@@ -453,7 +450,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 				$wp_config_perms = fileperms( $path_to_wp_config );
 				if ( ! empty( $wp_config_perms ) && ! is_writable( $path_to_wp_config ) ) {
 					$error_message = sprintf(
-						/* translators: 1 wp-config.php, 2: Documentation URL. */
+						/* translators: 1: wp-config.php, 2: Documentation URL. */
 						__( 'You need to make the file %1$s writable before you can save your changes. See <a href="%2$s">Changing File Permissions</a> for more information.' ),
 						'<code>wp-config.php</code>',
 						__( 'https://wordpress.org/support/article/changing-file-permissions/' )

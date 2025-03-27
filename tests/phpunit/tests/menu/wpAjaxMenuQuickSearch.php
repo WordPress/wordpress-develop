@@ -6,32 +6,6 @@
 class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 
 	/**
-	 * Current screen.
-	 *
-	 * @var mixed
-	 */
-	protected $current_screen;
-
-	/**
-	 * Set up. Workaround set_current_screen( null ) not working due to $hook_suffix not being set.
-	 */
-	function setUp() {
-		parent::setUp();
-
-		global $current_screen;
-		$this->current_screen = $current_screen;
-	}
-
-	/**
-	 * Tear down. Workaround set_current_screen( null ) not working due to $hook_suffix not being set.
-	 */
-	function tearDown() {
-		global $current_screen;
-		$current_screen = $this->current_screen;
-		parent::tearDown();
-	}
-
-	/**
 	 * Test search returns results for pages.
 	 *
 	 * @ticket 27042

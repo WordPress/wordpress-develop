@@ -696,7 +696,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 0, count( $query->posts ) );
+		$this->assertCount( 0, $query->posts );
 	}
 
 	/**
@@ -1534,7 +1534,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertSame( 2, count( $query->posts ) );
+		$this->assertCount( 2, $query->posts );
 		foreach ( $query->posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
 			$this->assertSame( 'raw', $post->filter );
@@ -1550,7 +1550,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertSame( 3, count( $query->posts ) );
+		$this->assertCount( 3, $query->posts );
 		foreach ( $query->posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
 			$this->assertSame( 'raw', $post->filter );
@@ -1582,7 +1582,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 2, count( $posts ) );
+		$this->assertCount( 2, $posts );
 		$posts = wp_list_pluck( $posts, 'ID' );
 		$this->assertSameSets( array( $post_id, $post_id3 ), $posts );
 
@@ -1594,7 +1594,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 2, count( $posts ) );
+		$this->assertCount( 2, $posts );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
 			$this->assertSame( 'raw', $post->filter );
@@ -1625,7 +1625,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$posts = get_posts( $args );
-		$this->assertSame( 2, count( $posts ) );
+		$this->assertCount( 2, $posts );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
 			$this->assertSame( 'raw', $post->filter );
@@ -1659,7 +1659,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_value' => '0',
 			)
 		);
-		$this->assertSame( 1, count( $q->posts ) );
+		$this->assertCount( 1, $q->posts );
 		foreach ( $q->posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
 			$this->assertSame( 'raw', $post->filter );
@@ -1672,7 +1672,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_value' => '0',
 			)
 		);
-		$this->assertSame( 2, count( $posts ) );
+		$this->assertCount( 2, $posts );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
 			$this->assertSame( 'raw', $post->filter );
@@ -1686,7 +1686,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_value' => 0,
 			)
 		);
-		$this->assertSame( 2, count( $posts ) );
+		$this->assertCount( 2, $posts );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
 			$this->assertSame( 'raw', $post->filter );
@@ -1695,7 +1695,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( array( $post_id, $post_id5 ), $posts );
 
 		$posts = get_posts( array( 'meta_value' => 0 ) );
-		$this->assertSame( 5, count( $posts ) );
+		$this->assertCount( 5, $posts );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
 			$this->assertSame( 'raw', $post->filter );
@@ -1704,7 +1704,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( array( $post_id, $post_id3, $post_id4, $post_id5, $post_id6 ), $posts );
 
 		$posts = get_posts( array( 'meta_value' => '0' ) );
-		$this->assertSame( 5, count( $posts ) );
+		$this->assertCount( 5, $posts );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
 			$this->assertSame( 'raw', $post->filter );

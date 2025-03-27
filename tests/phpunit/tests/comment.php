@@ -8,8 +8,8 @@ class Tests_Comment extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $notify_message = '';
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		reset_phpmailer_instance();
 	}
 
@@ -179,7 +179,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	public function test_wp_update_comment_is_wp_error() {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 
-		add_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+		add_filter( 'wp_update_comment_data', array( $this, 'wp_update_comment_data_filter' ), 10, 3 );
 
 		$result = wp_update_comment(
 			array(
@@ -189,7 +189,7 @@ class Tests_Comment extends WP_UnitTestCase {
 			true
 		);
 
-		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+		remove_filter( 'wp_update_comment_data', array( $this, 'wp_update_comment_data_filter' ), 10, 3 );
 
 		$this->assertWPError( $result );
 	}
@@ -197,7 +197,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Blocks comments from being updated by returning WP_Error.
 	 */
-	public function _wp_update_comment_data_filter( $data, $comment, $commentarr ) {
+	public function wp_update_comment_data_filter( $data, $comment, $commentarr ) {
 		return new WP_Error( 'comment_wrong', 'wp_update_comment_data filter fails for this comment.', 500 );
 	}
 
@@ -515,7 +515,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_new_comment_notify_postauthor( $c2 );
 		remove_filter( 'comment_notification_text', array( $this, 'save_comment_notification_text' ) );
 
-		$this->assertContains( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+		$this->assertStringContainsString( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
 	}
 
 	/**
@@ -540,7 +540,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_new_comment_notify_moderator( $c2 );
 		remove_filter( 'comment_moderation_text', array( $this, 'save_comment_notification_text' ) );
 
-		$this->assertContains( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
+		$this->assertStringContainsString( admin_url( "comment.php?action=editcomment&c={$c1}" ), self::$notify_message );
 	}
 
 	/**
@@ -857,8 +857,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Close comments more than one day old.
 		update_option( 'close_comments_days_old', 1 );
 
-		$old_date    = strtotime( '-25 hours' );
-		$old_post_id = self::factory()->post->create( array( 'post_date' => strftime( '%Y-%m-%d %H:%M:%S', $old_date ) ) );
+		$old_date    = date_create( '-25 hours' );
+		$old_post_id = self::factory()->post->create( array( 'post_date' => date_format( $old_date, 'Y-m-d H:i:s' ) ) );
 
 		$old_post_comment_status = _close_comments_for_old_post( true, $old_post_id );
 		$this->assertFalse( $old_post_comment_status );
@@ -1265,10 +1265,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported comments.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported comment properties.
-		$this->assertSame( 8, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 8, $actual['data'][0]['data'] );
 
 		// Exported group.
 		$this->assertSame( 'comments', $actual['data'][0]['group_id'] );
@@ -1328,10 +1328,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported comments.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported comment properties.
-		$this->assertSame( 7, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 7, $actual['data'][0]['data'] );
 	}
 
 	/**
@@ -1359,6 +1359,6 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported comments.
-		$this->assertSame( 0, count( $actual['data'] ) );
+		$this->assertCount( 0, $actual['data'] );
 	}
 }

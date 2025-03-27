@@ -49,7 +49,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 				'default',
 				array(
 					'site_url',
-					function ( $site_url ) {
+					static function ( $site_url ) {
 						return $site_url . '/wp';
 					},
 				),
@@ -62,7 +62,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 				'internationalized-plugin',
 				array(
 					'plugins_url',
-					function () {
+					static function () {
 						return 'https://plugins.example.com';
 					},
 				),
@@ -75,7 +75,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 				'internationalized-plugin',
 				array(
 					'content_url',
-					function () {
+					static function () {
 						return 'https://content.example.com';
 					},
 				),
@@ -88,7 +88,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 				'internationalized-plugin',
 				array(
 					'content_url',
-					function () {
+					static function () {
 						return '/';
 					},
 				),
@@ -101,7 +101,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 				'internationalized-plugin',
 				array(
 					'plugins_url',
-					function () {
+					static function () {
 						return '/';
 					},
 				),
@@ -114,7 +114,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 				'default',
 				array(
 					'site_url',
-					function () {
+					static function () {
 						return '/wp';
 					},
 				),

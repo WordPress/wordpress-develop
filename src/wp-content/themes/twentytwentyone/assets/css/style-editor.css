@@ -449,7 +449,8 @@ figcaption,
 	padding: 0;
 }
 
-select {
+select,
+select:focus {
 	border: var(--form--border-width) solid var(--form--border-color);
 	border-radius: var(--form--border-radius);
 	color: var(--form--color-text);
@@ -1534,6 +1535,16 @@ pre.wp-block-preformatted {
 .wp-block[data-align=left] .wp-block-pullquote.is-style-solid-color,
 .wp-block[data-align=right] .wp-block-pullquote.is-style-solid-color {
 	padding: var(--global--spacing-unit);
+}
+
+.wp-block-query.has-background {
+	padding: calc(0.666 * var(--global--spacing-vertical));
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-query.has-background {
+		padding: var(--global--spacing-vertical);
+	}
 }
 
 .wp-block-quote {

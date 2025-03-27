@@ -16,18 +16,18 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 						'role'       => 'author',
 					)
 				),
-				'post_date'   => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 day' ) ),
+				'post_date'   => date_format( date_create( '+1 day' ), 'Y-m-d H:i:s' ),
 			)
 		);
 	}
 
-	function test_invalid_username_password() {
+	public function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->mw_getPost( array( self::$post_id, 'username', 'password' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
 
-	function test_incapable_user() {
+	public function test_incapable_user() {
 		$this->make_user_by_role( 'subscriber' );
 
 		$result = $this->myxmlrpcserver->mw_getPost( array( self::$post_id, 'subscriber', 'subscriber' ) );
@@ -38,13 +38,13 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 	/**
 	 * @ticket 20336
 	 */
-	function test_invalid_postid() {
+	public function test_invalid_postid() {
 		$result = $this->myxmlrpcserver->mw_getPost( array( 9999, 'author', 'author' ) );
 		$this->assertIXRError( $result );
 		$this->assertSame( 404, $result->code );
 	}
 
-	function test_valid_post() {
+	public function test_valid_post() {
 		add_theme_support( 'post-thumbnails' );
 
 		$fields = array( 'post' );
@@ -52,27 +52,27 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertInternalType( 'string', $result['userid'] );
-		$this->assertInternalType( 'int', $result['postid'] );
-		$this->assertInternalType( 'string', $result['description'] );
-		$this->assertInternalType( 'string', $result['title'] );
-		$this->assertInternalType( 'string', $result['link'] );
-		$this->assertInternalType( 'string', $result['permaLink'] );
-		$this->assertInternalType( 'array', $result['categories'] );
-		$this->assertInternalType( 'string', $result['mt_excerpt'] );
-		$this->assertInternalType( 'string', $result['mt_text_more'] );
-		$this->assertInternalType( 'string', $result['wp_more_text'] );
-		$this->assertInternalType( 'int', $result['mt_allow_comments'] );
-		$this->assertInternalType( 'int', $result['mt_allow_pings'] );
-		$this->assertInternalType( 'string', $result['mt_keywords'] );
-		$this->assertInternalType( 'string', $result['wp_slug'] );
-		$this->assertInternalType( 'string', $result['wp_password'] );
-		$this->assertInternalType( 'string', $result['wp_author_id'] );
-		$this->assertInternalType( 'string', $result['wp_author_display_name'] );
-		$this->assertInternalType( 'string', $result['post_status'] );
-		$this->assertInternalType( 'array', $result['custom_fields'] );
-		$this->assertInternalType( 'string', $result['wp_post_format'] );
-		$this->assertInternalType( 'bool', $result['sticky'] );
+		$this->assertIsString( $result['userid'] );
+		$this->assertIsInt( $result['postid'] );
+		$this->assertIsString( $result['description'] );
+		$this->assertIsString( $result['title'] );
+		$this->assertIsString( $result['link'] );
+		$this->assertIsString( $result['permaLink'] );
+		$this->assertIsArray( $result['categories'] );
+		$this->assertIsString( $result['mt_excerpt'] );
+		$this->assertIsString( $result['mt_text_more'] );
+		$this->assertIsString( $result['wp_more_text'] );
+		$this->assertIsInt( $result['mt_allow_comments'] );
+		$this->assertIsInt( $result['mt_allow_pings'] );
+		$this->assertIsString( $result['mt_keywords'] );
+		$this->assertIsString( $result['wp_slug'] );
+		$this->assertIsString( $result['wp_password'] );
+		$this->assertIsString( $result['wp_author_id'] );
+		$this->assertIsString( $result['wp_author_display_name'] );
+		$this->assertIsString( $result['post_status'] );
+		$this->assertIsArray( $result['custom_fields'] );
+		$this->assertIsString( $result['wp_post_format'] );
+		$this->assertIsBool( $result['sticky'] );
 
 		$post_data = get_post( self::$post_id );
 
@@ -89,7 +89,10 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		remove_theme_support( 'post-thumbnails' );
 	}
 
-	function test_post_thumbnail() {
+	/**
+	 * @requires function imagejpeg
+	 */
+	public function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 
 		// Create attachment.
@@ -102,13 +105,13 @@ class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->mw_getPost( array( self::$post_id, 'author', 'author' ) );
 		$this->assertNotIXRError( $result );
 
-		$this->assertInternalType( 'int', $result['wp_post_thumbnail'] );
+		$this->assertIsInt( $result['wp_post_thumbnail'] );
 		$this->assertSame( $attachment_id, $result['wp_post_thumbnail'] );
 
 		remove_theme_support( 'post-thumbnails' );
 	}
 
-	function test_date() {
+	public function test_date() {
 		$fields = array( 'post' );
 		$result = $this->myxmlrpcserver->mw_getPost( array( self::$post_id, 'author', 'author' ) );
 		$this->assertNotIXRError( $result );

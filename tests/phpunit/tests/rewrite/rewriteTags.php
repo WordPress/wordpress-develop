@@ -8,9 +8,9 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 	protected $rewritereplace;
 	protected $queryreplace;
 
-	public function setUp() {
+	public function set_up() {
 		global $wp_rewrite;
-		parent::setUp();
+		parent::set_up();
 
 		$wp_rewrite = new WP_Rewrite();
 		$wp_rewrite->init();

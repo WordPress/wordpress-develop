@@ -281,7 +281,7 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		$this->assertSameSets( $count, $count2 );
 	}
 
-	function data_count_users_strategies() {
+	public function data_count_users_strategies() {
 		return array(
 			array(
 				'time',

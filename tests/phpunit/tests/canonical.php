@@ -10,15 +10,15 @@
  */
 class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 		wp_set_current_user( self::$author_id );
 	}
 
 	/**
 	 * @dataProvider data_canonical
 	 */
-	function test_canonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
+	public function test_canonical( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 
 		if ( false !== strpos( $test_url, '%d' ) ) {
 			if ( false !== strpos( $test_url, '/?author=%d' ) ) {
@@ -32,7 +32,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	function data_canonical() {
+	public function data_canonical() {
 		/*
 		 * Data format:
 		 * [0]: Test URL.
@@ -247,7 +247,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		// Test short-circuit filter.
 		add_filter(
 			'pre_redirect_guess_404_permalink',
-			function() {
+			static function() {
 				return 'wp';
 			}
 		);

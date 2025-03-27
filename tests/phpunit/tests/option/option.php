@@ -5,11 +5,11 @@
  */
 class Tests_Option_Option extends WP_UnitTestCase {
 
-	function __return_foo() {
+	public function __return_foo() {
 		return 'foo';
 	}
 
-	function test_the_basics() {
+	public function test_the_basics() {
 		$key    = 'key1';
 		$key2   = 'key2';
 		$value  = 'value1';
@@ -34,7 +34,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertFalse( get_option( $key2 ) );
 	}
 
-	function test_default_filter() {
+	public function test_default_filter() {
 		$value = 'value';
 
 		$this->assertFalse( get_option( 'doesnotexist' ) );
@@ -71,7 +71,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertSame( 'bar', get_option( 'doesnotexist' ) );
 	}
 
-	function test_serialized_data() {
+	public function test_serialized_data() {
 		$key   = __FUNCTION__;
 		$value = array(
 			'foo' => true,
@@ -89,20 +89,129 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23289
+	 *
+	 * @dataProvider data_bad_option_names
+	 *
+	 * @param mixed $option_name Option name.
 	 */
-	function test_bad_option_names() {
-		foreach ( array( '', '0', ' ', 0, false, null ) as $empty ) {
-			$this->assertFalse( get_option( $empty ) );
-			$this->assertFalse( add_option( $empty, '' ) );
-			$this->assertFalse( update_option( $empty, '' ) );
-			$this->assertFalse( delete_option( $empty ) );
-		}
+	public function test_get_option_bad_option_name( $option_name ) {
+		$this->assertFalse( get_option( $option_name ) );
+	}
+
+	/**
+	 * @ticket 23289
+	 *
+	 * @dataProvider data_bad_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_add_option_bad_option_name( $option_name ) {
+		$this->assertFalse( add_option( $option_name, '' ) );
+	}
+
+	/**
+	 * @ticket 23289
+	 *
+	 * @dataProvider data_bad_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_update_option_bad_option_name( $option_name ) {
+		$this->assertFalse( update_option( $option_name, '' ) );
+	}
+
+	/**
+	 * @ticket 23289
+	 *
+	 * @dataProvider data_bad_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_delete_option_bad_option_name( $option_name ) {
+		$this->assertFalse( delete_option( $option_name ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_bad_option_names() {
+		return array(
+			'empty string'        => array( '' ),
+			'string 0'            => array( '0' ),
+			'string single space' => array( ' ' ),
+			'integer 0'           => array( 0 ),
+			'float 0.0'           => array( 0.0 ),
+			'boolean false'       => array( false ),
+			'null'                => array( null ),
+		);
+	}
+
+	/**
+	 * @ticket 53635
+	 *
+	 * @dataProvider data_valid_but_undesired_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_get_option_valid_but_undesired_option_names( $option_name ) {
+		$this->assertFalse( get_option( $option_name ) );
+	}
+
+	/**
+	 * @ticket 53635
+	 *
+	 * @dataProvider data_valid_but_undesired_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_add_option_valid_but_undesired_option_names( $option_name ) {
+		$this->assertTrue( add_option( $option_name, '' ) );
+	}
+
+	/**
+	 * @ticket 53635
+	 *
+	 * @dataProvider data_valid_but_undesired_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_update_option_valid_but_undesired_option_names( $option_name ) {
+		$this->assertTrue( update_option( $option_name, '' ) );
+	}
+
+	/**
+	 * @ticket 53635
+	 *
+	 * @dataProvider data_valid_but_undesired_option_names
+	 *
+	 * @param mixed $option_name Option name.
+	 */
+	public function test_delete_option_valid_but_undesired_option_names( $option_name ) {
+		$this->assertFalse( delete_option( $option_name ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_valid_but_undesired_option_names() {
+		return array(
+			'string 123'   => array( '123' ),
+			'integer 123'  => array( 123 ),
+			'integer -123' => array( -123 ),
+			'float 12.3'   => array( 12.3 ),
+			'float -1.23'  => array( -1.23 ),
+			'boolean true' => array( true ),
+		);
 	}
 
 	/**
 	 * @ticket 23289
 	 */
-	function test_special_option_name_alloption() {
+	public function test_special_option_name_alloption() {
 		$this->expectException( 'WPDieException' );
 		delete_option( 'alloptions' );
 	}
@@ -110,12 +219,12 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	/**
 	 * @ticket 23289
 	 */
-	function test_special_option_name_notoptions() {
+	public function test_special_option_name_notoptions() {
 		$this->expectException( 'WPDieException' );
 		delete_option( 'notoptions' );
 	}
 
-	function data_option_autoloading() {
+	public function data_option_autoloading() {
 		return array(
 			array( 'autoload_yes', 'yes', 'yes' ),
 			array( 'autoload_true', true, 'yes' ),
@@ -132,7 +241,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @ticket 31119
 	 * @dataProvider data_option_autoloading
 	 */
-	function test_option_autoloading( $name, $autoload_value, $expected ) {
+	public function test_option_autoloading( $name, $autoload_value, $expected ) {
 		global $wpdb;
 		$added = add_option( $name, 'Autoload test', '', $autoload_value );
 		$this->assertTrue( $added );

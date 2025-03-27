@@ -99,7 +99,7 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'U' ), 2, 'The dates should be equal' );
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertInternalType( 'int', current_time( 'timestamp' ) );
+		$this->assertIsInt( current_time( 'timestamp' ) );
 	}
 
 	/**

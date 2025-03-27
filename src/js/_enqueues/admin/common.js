@@ -854,7 +854,7 @@ $( function() {
 		// Reset any compensation for submenus near the bottom of the screen.
 		$('#adminmenu div.wp-submenu').css('margin-top', '');
 
-		if ( viewportWidth < 960 ) {
+		if ( viewportWidth <= 960 ) {
 			if ( $body.hasClass('auto-fold') ) {
 				$body.removeClass('auto-fold').removeClass('folded');
 				setUserSetting('unfold', 1);
@@ -1693,6 +1693,25 @@ $( function() {
 				} else {
 					$(this).find('a').attr( 'aria-expanded', 'false' );
 				}
+			} );
+
+			// Close sidebar when focus moves outside of toggle and sidebar.
+			$( '#wp-admin-bar-menu-toggle, #adminmenumain' ).on( 'focusout', function() {
+				var focusIsInToggle, focusIsInSidebar;
+
+				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) ) {
+					return;
+				}
+
+				// A brief delay is required to allow focus to switch to another element.
+				setTimeout( function() {
+					focusIsInToggle  = $.contains( $( '#wp-admin-bar-menu-toggle' )[0], $( ':focus' )[0] );
+					focusIsInSidebar = $.contains( $( '#adminmenumain' )[0], $( ':focus' )[0] );
+
+					if ( ! focusIsInToggle && ! focusIsInSidebar ) {
+						$( '#wp-admin-bar-menu-toggle' ).trigger( 'click.wp-responsive' );
+					}
+				}, 10 );
 			} );
 
 			// Add menu events.

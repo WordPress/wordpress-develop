@@ -5,7 +5,7 @@ require_once ABSPATH . 'wp-includes/PHPMailer/Exception.php';
 class MockPHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 	public $mock_sent = array();
 
-	function preSend() {
+	public function preSend() {
 		$this->Encoding = '8bit';
 		return parent::preSend();
 	}
@@ -13,7 +13,7 @@ class MockPHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 	/**
 	 * Override postSend() so mail isn't actually sent.
 	 */
-	function postSend() {
+	public function postSend() {
 		$this->mock_sent[] = array(
 			'to'      => $this->to,
 			'cc'      => $this->cc,

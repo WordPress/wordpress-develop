@@ -262,20 +262,22 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 * Here is where any validation should happen.
 	 *
 	 * @since Twenty Fourteen 1.0
+	 * @since Twenty Fourteen 3.3 Renamed `$instance` to `$old_instance` to match
+	 *                            parent class for PHP 8 named parameter support.
 	 *
 	 * @param array $new_instance New widget instance.
-	 * @param array $instance     Original widget instance.
+	 * @param array $old_instance Original widget instance.
 	 * @return array Updated widget instance.
 	 */
-	function update( $new_instance, $instance ) {
-		$instance['title']  = strip_tags( $new_instance['title'] );
-		$instance['number'] = empty( $new_instance['number'] ) ? 2 : absint( $new_instance['number'] );
+	public function update( $new_instance, $old_instance ) {
+		$old_instance['title']  = strip_tags( $new_instance['title'] );
+		$old_instance['number'] = empty( $new_instance['number'] ) ? 2 : absint( $new_instance['number'] );
 
 		if ( in_array( $new_instance['format'], $this->formats, true ) ) {
-			$instance['format'] = $new_instance['format'];
+			$old_instance['format'] = $new_instance['format'];
 		}
 
-		return $instance;
+		return $old_instance;
 	}
 
 	/**
@@ -285,7 +287,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @param array $instance
 	 */
-	function form( $instance ) {
+	public function form( $instance ) {
 		$title  = ! empty( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
 		$number = ! empty( $instance['number'] ) ? absint( $instance['number'] ) : 2;
 		$format = isset( $instance['format'] ) ? $instance['format'] : '';

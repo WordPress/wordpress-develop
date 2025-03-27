@@ -63,15 +63,15 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		self::delete_user( self::$admin );
 	}
 
-	public function setUp() {
-		parent::setUp();
+	public function set_up() {
+		parent::set_up();
 
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
 	}
 
-	public function tearDown() {
+	public function tear_down() {
 		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -937,7 +937,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->setup_app_password_authenticated_request();
 		add_action(
 			'application_password_did_authenticate',
-			function() {
+			static function() {
 				$GLOBALS['wp_rest_application_password_uuid'] = 'invalid_uuid';
 			}
 		);

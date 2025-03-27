@@ -37,7 +37,7 @@ if ( post_password_required() ) {
 				);
 			} else {
 				printf(
-					/* translators: %1$s: The number of comments. %2$s: The post title. */
+					/* translators: 1: The number of comments, 2: The post title. */
 					_n( '%1$s thought on &ldquo;%2$s&rdquo;', '%1$s thoughts on &ldquo;%2$s&rdquo;', get_comments_number(), 'twentytwelve' ),
 					number_format_i18n( get_comments_number() ),
 					'<span>' . get_the_title() . '</span>'
@@ -58,7 +58,7 @@ if ( post_password_required() ) {
 		</ol><!-- .commentlist -->
 
 		<?php if ( get_comment_pages_count() > 1 && get_option( 'page_comments' ) ) : // Are there comments to navigate through? ?>
-		<nav id="comment-nav-below" class="navigation" role="navigation">
+		<nav id="comment-nav-below" class="navigation">
 			<h1 class="assistive-text section-heading"><?php _e( 'Comment navigation', 'twentytwelve' ); ?></h1>
 			<div class="nav-previous"><?php previous_comments_link( __( '&larr; Older Comments', 'twentytwelve' ) ); ?></div>
 			<div class="nav-next"><?php next_comments_link( __( 'Newer Comments &rarr;', 'twentytwelve' ) ); ?></div>

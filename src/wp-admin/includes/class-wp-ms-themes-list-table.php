@@ -505,10 +505,13 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Handles the checkbox column output.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$theme` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Theme $theme The current WP_Theme object.
+	 * @param WP_Theme $item The current WP_Theme object.
 	 */
-	public function column_cb( $theme ) {
+	public function column_cb( $item ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$theme       = $item;
 		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
 		?>
 		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>" />
@@ -718,13 +721,21 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 		if ( $theme->get( 'ThemeURI' ) ) {
 			/* translators: %s: Theme name. */
-			$aria_label = sprintf( __( 'Visit %s homepage' ), $theme->display( 'Name' ) );
+			$aria_label = sprintf( __( 'Visit theme site for %s' ), $theme->display( 'Name' ) );
 
 			$theme_meta[] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				$theme->display( 'ThemeURI' ),
 				esc_attr( $aria_label ),
 				__( 'Visit Theme Site' )
+			);
+		}
+
+		if ( $theme->parent() ) {
+			$theme_meta[] = sprintf(
+				/* translators: %s: Theme name. */
+				__( 'Child theme of %s' ),
+				'<strong>' . $theme->parent()->display( 'Name' ) . '</strong>'
 			);
 		}
 
@@ -847,13 +858,12 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Handles default column output.
 	 *
 	 * @since 4.3.0
+	 * @since 5.9.0 Renamed `$theme` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
-	 * @param WP_Theme $theme       The current WP_Theme object.
+	 * @param WP_Theme $item        The current WP_Theme object.
 	 * @param string   $column_name The current column name.
 	 */
-	public function column_default( $theme, $column_name ) {
-		$stylesheet = $theme->get_stylesheet();
-
+	public function column_default( $item, $column_name ) {
 		/**
 		 * Fires inside each custom column of the Multisite themes list table.
 		 *
@@ -863,7 +873,12 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		 * @param string   $stylesheet  Directory name of the theme.
 		 * @param WP_Theme $theme       Current WP_Theme object.
 		 */
-		do_action( 'manage_themes_custom_column', $column_name, $stylesheet, $theme );
+		do_action(
+			'manage_themes_custom_column',
+			$column_name,
+			$item->get_stylesheet(), // Directory name of the theme.
+			$item // Theme object.
+		);
 	}
 
 	/**

@@ -76,7 +76,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <div id="page" class="hfeed">
-	<header id="branding" role="banner">
+	<header id="branding">
 			<hgroup>
 				<h1 id="site-title"><span><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></span></h1>
 				<h2 id="site-description"><?php bloginfo( 'description' ); ?></h2>
@@ -144,7 +144,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					<?php get_search_form(); ?>
 			<?php endif; ?>
 
-			<nav id="access" role="navigation">
+			<nav id="access">
 				<h3 class="assistive-text"><?php _e( 'Main menu', 'twentyeleven' ); ?></h3>
 				<?php
 				/*

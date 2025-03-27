@@ -7,7 +7,7 @@ if ( is_multisite() ) :
 	 * @group ms-site
 	 * @group multisite
 	 */
-	class Tests_Multisite_Get_Blog_Details extends WP_UnitTestCase {
+	class Tests_Multisite_GetBlogDetails extends WP_UnitTestCase {
 		protected static $network_ids;
 		protected static $site_ids;
 

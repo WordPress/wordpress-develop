@@ -17,7 +17,7 @@ class Tests_Load_wpConvertHrToBytes extends WP_UnitTestCase {
 	 * @param int|string $value    The value passed to wp_convert_hr_to_bytes().
 	 * @param int        $expected The expected output of wp_convert_hr_to_bytes().
 	 */
-	function test_wp_convert_hr_to_bytes( $value, $expected ) {
+	public function test_wp_convert_hr_to_bytes( $value, $expected ) {
 		$this->assertSame( $expected, wp_convert_hr_to_bytes( $value ) );
 	}
 
@@ -31,7 +31,7 @@ class Tests_Load_wpConvertHrToBytes extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	function data_wp_convert_hr_to_bytes() {
+	public function data_wp_convert_hr_to_bytes() {
 		$array = array(
 			// Integer input.
 			array( -1, -1 ), // = no memory limit.
