@@ -28,6 +28,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	private static $test_file2;
 
 	/**
+	 * @var string The path to the AVIF test image.
+	 */
+	private static $test_avif_file;
+
+	/**
 	 * @var array The recorded posts query clauses.
 	 */
 	protected $posts_clauses;
@@ -72,6 +77,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		if ( file_exists( self::$test_file2 ) ) {
 			unlink( self::$test_file2 );
 		}
+		if ( file_exists( self::$test_avif_file ) ) {
+			unlink( self::$test_avif_file );
+		}
 
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$author_id );
@@ -99,6 +107,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		self::$test_file2 = get_temp_dir() . 'codeispoetry.png';
 		if ( ! file_exists( self::$test_file2 ) ) {
 			copy( $orig_file2, self::$test_file2 );
+		}
+
+		$orig_avif_file       = DIR_TESTDATA . '/images/avif-lossy.avif';
+		self::$test_avif_file = get_temp_dir() . 'avif-lossy.avif';
+		if ( ! file_exists( self::$test_avif_file ) ) {
+			copy( $orig_avif_file, self::$test_avif_file );
 		}
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
@@ -2540,5 +2554,53 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				return array( 'WP_Image_Editor_Mock' );
 			}
 		);
+	}
+
+	/**
+	 * Test that uploading unsupported image types throws a `rest_upload_image_type_not_supported` error.
+	 *
+	 * @ticket 61167
+	 */
+	public function test_upload_unsupported_image_type() {
+
+		// Only run this test when the editor doesn't support AVIF.
+		if ( wp_image_editor_supports( array( 'AVIF' ) ) ) {
+			$this->markTestSkipped( 'The image editor suppports AVIF.' );
+		}
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+
+		wp_set_current_user( self::$author_id );
+		$request->set_header( 'Content-Type', 'image/avif' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=avif-lossy.avif' );
+		$request->set_body( file_get_contents( self::$test_avif_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_upload_image_type_not_supported', $response, 400 );
+	}
+
+	/**
+	 * Test that the `wp_prevent_unsupported_image_uploads` filter enables uploading of unsupported image types.
+	 *
+	 * @ticket 61167
+	 */
+	public function test_upload_unsupported_image_type_with_filter() {
+
+		// Only run this test when the editor doesn't support AVIF.
+		if ( wp_image_editor_supports( array( 'AVIF' ) ) ) {
+			$this->markTestSkipped( 'The image editor suppports AVIF.' );
+		}
+
+		add_filter( 'wp_prevent_unsupported_image_uploads', '__return_false' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+
+		wp_set_current_user( self::$author_id );
+		$request->set_header( 'Content-Type', 'image/avif' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=avif-lossy.avif' );
+		$request->set_body( file_get_contents( self::$test_avif_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
 	}
 }

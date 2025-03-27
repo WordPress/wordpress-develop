@@ -9195,8 +9195,9 @@ function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				__( 'The $data argument must not be empty.' ),
-				gettype( $data )
+				/* translators: %s: parameter name. */
+				__( 'The %s argument must not be empty.' ),
+				'$data'
 			),
 			'6.8.0'
 		);
