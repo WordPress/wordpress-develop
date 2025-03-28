@@ -939,6 +939,7 @@ EOF;
 	 * @ticket 56122
 	 * @ticket 58551
 	 * @ticket 60132
+	 * @ticket 63162
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1358,6 +1359,15 @@ EOF;
 				'css'      => 'opacity: 10',
 				'expected' => 'opacity: 10',
 			),
+			// Test: Presence of `;` in the value.
+			array(
+				'css'      => '--wp-var-content: \'content; with:a;\';',
+				'expected' => '--wp-var-content: \'content; with:a;\'',
+			),
+			array(
+				'css'      => 'font-family: "My;Special:font";',
+				'expected' => 'font-family: "My;Special:font"',
+			),
 		);
 	}
 
@@ -1551,6 +1561,18 @@ EOF;
 				'background: red',
 			),
 
+			// Double quotes, URL with a semicolon.
+			array(
+				'background-image: url("/dir;/valid.gif");',
+				'background-image: url("/dir;/valid.gif")',
+			),
+
+			// Single quotes, URL with a semicolon.
+			array(
+				'background-image: url(\'/dir;/valid.gif\');',
+				'background-image: url(\'/dir;/valid.gif\')',
+			),
+
 			/*
 			 * Invalid use cases.
 			 */
@@ -1612,6 +1634,12 @@ EOF;
 			// Malformed, no closing `"`.
 			array(
 				'background-image: url( "http://example.com );',
+				'',
+			),
+
+			// Bad protocol, semi-colons in URL, data is not in default allowed protocols.
+			array(
+				'background-image: url("data:image/png;base64,base64encodeddata");',
 				'',
 			),
 		);
