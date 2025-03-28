@@ -11,6 +11,16 @@ define( 'IFRAME_REQUEST', true );
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/**
+ * Loads the Press This plugin.
+ *
+ * Via admin-filters.php, the wp_load_press_this() function is hooked into this action. 
+ * Plugins can remove_action and add their own function to load their own Press This functionality.
+ *
+ * @since 6.9.0
+ */
+do_action( 'press_this_init' );
+
 function wp_load_press_this() {
 	$plugin_slug = 'press-this';
 	$plugin_file = 'press-this/press-this-plugin.php';
@@ -83,5 +93,3 @@ function wp_load_press_this() {
 		);
 	}
 }
-
-wp_load_press_this();
