@@ -80,28 +80,53 @@ function wptexturize( $text, $reset = false ) {
 			return $text;
 		}
 
-		/* translators: Opening curly double quote. */
-		$opening_quote = _x( '&#8220;', 'opening curly double quote' );
-		/* translators: Closing curly double quote. */
-		$closing_quote = _x( '&#8221;', 'closing curly double quote' );
+		$default_replacements = array(
+            'opening_quote'        => _x( '&#8220;', 'opening curly double quote' ),
+            'closing_quote'        => _x( '&#8221;', 'closing curly double quote' ),
+            'apos'                 => _x( '&#8217;', 'apostrophe' ),
+            'prime'                => _x( '&#8242;', 'prime' ),
+            'double_prime'         => _x( '&#8243;', 'double prime' ),
+            'opening_single_quote' => _x( '&#8216;', 'opening curly single quote' ),
+            'closing_single_quote' => _x( '&#8217;', 'closing curly single quote' ),
+            'en_dash'              => _x( '&#8211;', 'en dash' ),
+            'em_dash'              => _x( '&#8212;', 'em dash' )
+        );
 
-		/* translators: Apostrophe, for example in 'cause or can't. */
-		$apos = _x( '&#8217;', 'apostrophe' );
+        /**
+         * Filters which replacements to disable in wptexturize().
+         *
+         * @since x.x.x
+         * @param array $disabled_replacements Array of replacements to disable. 
+         */
+        $disabled_replacements = apply_filters( 'wptexturize_disabled_replacements', array() );
 
-		/* translators: Prime, for example in 9' (nine feet). */
-		$prime = _x( '&#8242;', 'prime' );
-		/* translators: Double prime, for example in 9" (nine inches). */
-		$double_prime = _x( '&#8243;', 'double prime' );
+        if ( in_array( 'quotes', $disabled_replacements ) ) {
+            $default_replacements['opening_quote'] = '"';
+            $default_replacements['closing_quote'] = '"';
+            $default_replacements['opening_single_quote'] = "'";
+            $default_replacements['closing_single_quote'] = "'";
+        }
 
-		/* translators: Opening curly single quote. */
-		$opening_single_quote = _x( '&#8216;', 'opening curly single quote' );
-		/* translators: Closing curly single quote. */
-		$closing_single_quote = _x( '&#8217;', 'closing curly single quote' );
+        if ( in_array( 'dashes', $disabled_replacements ) ) {
+            $default_replacements['en_dash'] = '--';
+            $default_replacements['em_dash'] = '---';
+        }
 
-		/* translators: En dash. */
-		$en_dash = _x( '&#8211;', 'en dash' );
-		/* translators: Em dash. */
-		$em_dash = _x( '&#8212;', 'em dash' );
+        if ( in_array( 'primes', $disabled_replacements ) ) {
+            $default_replacements['prime'] = "'";
+            $default_replacements['double_prime'] = '"';
+        }
+
+        // Assign filtered replacements
+        $opening_quote        = $default_replacements['opening_quote'];
+        $closing_quote        = $default_replacements['closing_quote'];
+        $apos                 = $default_replacements['apos'];
+        $prime                = $default_replacements['prime'];
+        $double_prime         = $default_replacements['double_prime'];
+        $opening_single_quote = $default_replacements['opening_single_quote'];
+        $closing_single_quote = $default_replacements['closing_single_quote'];
+        $en_dash              = $default_replacements['en_dash'];
+        $em_dash              = $default_replacements['em_dash'];
 
 		$default_no_texturize_tags       = array( 'pre', 'code', 'kbd', 'style', 'script', 'tt' );
 		$default_no_texturize_shortcodes = array( 'code' );
@@ -240,13 +265,6 @@ function wptexturize( $text, $reset = false ) {
 
 	$textarr = preg_split( $regex, $text, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
 
-	/**
-	 * Filter for disable dash to texturize.
-	 *
-	 * @param bool
-	 */
-	$dash_replace = apply_filters( 'dash_wptexturize', true );
-
 	foreach ( $textarr as &$curl ) {
 		// Only call _wptexturize_pushpop_element if $curl is a delimiter.
 		$first = $curl[0];
@@ -292,7 +310,7 @@ function wptexturize( $text, $reset = false ) {
 				$curl = wptexturize_primes( $curl, '"', $double_prime, $open_q_flag, $closing_quote );
 				$curl = str_replace( $open_q_flag, $opening_quote, $curl );
 			}
-			if ( str_contains( $curl, '-' ) && $dash_replace ) {
+			if ( str_contains( $curl, '-' ) ) {
 				$curl = preg_replace( $dynamic_characters['dash'], $dynamic_replacements['dash'], $curl );
 			}
 
