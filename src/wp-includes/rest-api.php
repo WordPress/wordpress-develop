@@ -440,6 +440,7 @@ function rest_api_loaded() {
 		wp_die( $rest_type_error );
 	}
 
+
 	/**
 	 * Whether this is a REST Request.
 	 *
