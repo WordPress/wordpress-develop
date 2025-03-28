@@ -1080,7 +1080,7 @@ function update_core( $from, $to ) {
 	 */
 	$versions_file = trailingslashit( $wp_filesystem->wp_content_dir() ) . 'upgrade/version-current.php';
 
-	if ( ! $wp_filesystem->copy( $from . $distro . 'wp-includes/version.php', $versions_file ) ) {
+	if ( ! $wp_filesystem->copy( $from . $distro . 'wp-includes/version.php', $versions_file, true ) ) {
 		$wp_filesystem->delete( $from, true );
 
 		return new WP_Error(
