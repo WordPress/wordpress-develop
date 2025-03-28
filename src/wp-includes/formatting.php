@@ -240,6 +240,13 @@ function wptexturize( $text, $reset = false ) {
 
 	$textarr = preg_split( $regex, $text, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
 
+	/**
+	 * Filter for disable dash to texturize.
+	 *
+	 * @param bool
+	 */
+	$dash_replace = apply_filters( 'dash_wptexturize', true );
+
 	foreach ( $textarr as &$curl ) {
 		// Only call _wptexturize_pushpop_element if $curl is a delimiter.
 		$first = $curl[0];
@@ -285,7 +292,7 @@ function wptexturize( $text, $reset = false ) {
 				$curl = wptexturize_primes( $curl, '"', $double_prime, $open_q_flag, $closing_quote );
 				$curl = str_replace( $open_q_flag, $opening_quote, $curl );
 			}
-			if ( str_contains( $curl, '-' ) ) {
+			if ( str_contains( $curl, '-' ) && $dash_replace ) {
 				$curl = preg_replace( $dynamic_characters['dash'], $dynamic_replacements['dash'], $curl );
 			}
 
