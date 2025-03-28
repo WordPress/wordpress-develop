@@ -420,46 +420,26 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *
 	 * @since 2.5.0
 	 * @since 6.3.0 Returns false for an empty path.
+	 * @since 6.8.0 Switching to ftp_rawlist() for better compatibility with long paths.
 	 *
 	 * @param string $path Path to file or directory.
 	 * @return bool Whether $path exists or not.
 	 */
 	public function exists( $path ) {
-		/*
-		 * Check for empty path. If ftp_nlist() receives an empty path,
-		 * it checks the current working directory and may return true.
-		 *
-		 * See https://core.trac.wordpress.org/ticket/33058.
-		 */
-		if ( '' === $path ) {
-			return false;
-		}
+		$parent_dir = dirname( $path );
+		$filename   = basename( $path );
+		$list       = ftp_rawlist( $this->link, $parent_dir );
 
-		// For deeper paths (2), better use ftp_rawlist() instead of ftp_nlist()
-		$path_depth = substr_count( $path, '/' );
-		if ( $path_depth > 2 ) {
-			$parent_dir = dirname( $path );
-			$filename   = basename( $path );
-			$list       = ftp_rawlist( $this->link, $parent_dir );
-
-			if ( ! empty( $list ) ) {
-				foreach ( $list as $line ) {
-					if ( strpos( $line, $filename ) !== false ) {
-						return true;
-					}
+		if ( ! empty( $list ) ) {
+			foreach ( $list as $ftp_listing_line ) {
+				if ( str_contains( $ftp_listing_line, $filename ) ) {
+					return true;
 				}
 			}
-			return false;
 		}
-
-		$list = ftp_nlist( $this->link, $path );
-
-		if ( empty( $list ) && $this->is_dir( $path ) ) {
-			return true; // File is an empty directory.
-		}
-
-		return ! empty( $list ); // Empty list = no file, so invert.
+		return false;
 	}
+
 
 	/**
 	 * Checks if resource is a file.
