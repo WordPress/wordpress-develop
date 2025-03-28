@@ -502,7 +502,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 					 *     @type float $threshold The threshold of the unsharp mask.
 					 * }
 					 */
-					$unsharp_mask_values = apply_filters( 'image_editor_imagick_unsharp_mask_filter', $default_configuration );
+					$unsharp_mask_values = apply_filters( 'image_editor_imagick_unsharp_mask', $default_configuration );
 
 					if ( ! is_array( $unsharp_mask_values ) ) {
 						$unsharp_mask_values = $default_configuration;
