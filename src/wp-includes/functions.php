@@ -8059,7 +8059,7 @@ function wp_cache_get_last_changed( $group ) {
 function wp_cache_set_last_changed( $group ) {
 	$previous_time = wp_cache_get( 'last_changed', $group );
 
-	$time = microtime();
+	$time = microtime( true );
 
 	wp_cache_set( 'last_changed', $time, $group );
 
