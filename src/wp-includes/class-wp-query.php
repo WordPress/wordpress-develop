@@ -5064,7 +5064,7 @@ class WP_Query {
 
 		$last_changed = wp_cache_get_last_changed( 'posts' );
 		if ( ! empty( $this->tax_query->queries ) ) {
-			$last_changed = wp_cache_get_last_changed( 'terms' ) . "+" . $last_changed;
+			$last_changed = wp_cache_get_last_changed( 'terms' ) . '+' . $last_changed;
 		}
 
 		$this->query_cache_key = "wp_query:$key:$last_changed";
