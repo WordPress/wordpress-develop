@@ -81,52 +81,51 @@ function wptexturize( $text, $reset = false ) {
 		}
 
 		$default_replacements = array(
-            'opening_quote'        => _x( '&#8220;', 'opening curly double quote' ),
-            'closing_quote'        => _x( '&#8221;', 'closing curly double quote' ),
-            'apos'                 => _x( '&#8217;', 'apostrophe' ),
-            'prime'                => _x( '&#8242;', 'prime' ),
-            'double_prime'         => _x( '&#8243;', 'double prime' ),
-            'opening_single_quote' => _x( '&#8216;', 'opening curly single quote' ),
-            'closing_single_quote' => _x( '&#8217;', 'closing curly single quote' ),
-            'en_dash'              => _x( '&#8211;', 'en dash' ),
-            'em_dash'              => _x( '&#8212;', 'em dash' )
-        );
+			'opening_quote'		 	=> _x( '&#8220;', 'opening curly double quote' ),
+			'closing_quote'			=> _x( '&#8221;', 'closing curly double quote' ),
+			'apos'					=> _x( '&#8217;', 'apostrophe' ),
+			'prime'					=> _x( '&#8242;', 'prime' ),
+			'double_prime'			=> _x( '&#8243;', 'double prime' ),
+			'opening_single_quote'	=> _x( '&#8216;', 'opening curly single quote' ),
+			'closing_single_quote'	=> _x( '&#8217;', 'closing curly single quote' ),
+			'en_dash'				=> _x( '&#8211;', 'en dash' ),
+			'em_dash'				=> _x( '&#8212;', 'em dash' ),
+		);
 
-        /**
-         * Filters which replacements to disable in wptexturize().
-         *
-         * @since x.x.x
-         * @param array $disabled_replacements Array of replacements to disable. 
-         */
-        $disabled_replacements = apply_filters( 'wptexturize_disabled_replacements', array() );
+		/**
+		 * Filters which replacements to disable in wptexturize().
+		 *
+		 * @since x.x.x
+		 * @param array $disabled_replacements Array of replacements to disable. 
+		 */
+		$disabled_replacements = apply_filters( 'wptexturize_disabled_replacements', array() );
 
-        if ( in_array( 'quotes', $disabled_replacements ) ) {
-            $default_replacements['opening_quote'] = '"';
-            $default_replacements['closing_quote'] = '"';
-            $default_replacements['opening_single_quote'] = "'";
-            $default_replacements['closing_single_quote'] = "'";
-        }
+		if ( in_array( 'quotes', $disabled_replacements ) ) {
+			$default_replacements['opening_quote'] = '"';
+			$default_replacements['closing_quote'] = '"';
+			$default_replacements['opening_single_quote'] = "'";
+			$default_replacements['closing_single_quote'] = "'";
+		}
 
-        if ( in_array( 'dashes', $disabled_replacements ) ) {
-            $default_replacements['en_dash'] = '--';
-            $default_replacements['em_dash'] = '---';
-        }
+		if ( in_array( 'dashes', $disabled_replacements ) ) {
+			$default_replacements['en_dash'] = '--';
+			$default_replacements['em_dash'] = '---';
+		}
 
-        if ( in_array( 'primes', $disabled_replacements ) ) {
-            $default_replacements['prime'] = "'";
-            $default_replacements['double_prime'] = '"';
-        }
+		if ( in_array( 'primes', $disabled_replacements ) ) {
+			$default_replacements['prime'] = "'";
+			$default_replacements['double_prime'] = '"';
+		}
 
-        // Assign filtered replacements
-        $opening_quote        = $default_replacements['opening_quote'];
-        $closing_quote        = $default_replacements['closing_quote'];
-        $apos                 = $default_replacements['apos'];
-        $prime                = $default_replacements['prime'];
-        $double_prime         = $default_replacements['double_prime'];
-        $opening_single_quote = $default_replacements['opening_single_quote'];
-        $closing_single_quote = $default_replacements['closing_single_quote'];
-        $en_dash              = $default_replacements['en_dash'];
-        $em_dash              = $default_replacements['em_dash'];
+		$opening_quote			= $default_replacements['opening_quote'];
+		$closing_quote			= $default_replacements['closing_quote'];
+		$apos					= $default_replacements['apos'];
+		$prime					= $default_replacements['prime'];
+		$double_prime			= $default_replacements['double_prime'];
+		$opening_single_quote	= $default_replacements['opening_single_quote'];
+		$closing_single_quote	= $default_replacements['closing_single_quote'];
+		$en_dash				= $default_replacements['en_dash'];
+		$em_dash				= $default_replacements['em_dash'];
 
 		$default_no_texturize_tags       = array( 'pre', 'code', 'kbd', 'style', 'script', 'tt' );
 		$default_no_texturize_shortcodes = array( 'code' );
