@@ -426,13 +426,19 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @return bool Whether $path exists or not.
 	 */
 	public function exists( $path ) {
+		// @63173 Special case for root directory.
+		if ( '/' === $path ) {
+			return true;
+		}
+
 		$parent_dir = dirname( $path );
 		$filename   = basename( $path );
-		$list       = ftp_rawlist( $this->link, $parent_dir );
+		$list       = ftp_rawlist( $this->link, '-al ' . $parent_dir );
 
 		if ( ! empty( $list ) ) {
 			foreach ( $list as $ftp_listing_line ) {
-				if ( str_contains( $ftp_listing_line, $filename ) ) {
+				$entry = $this->parselisting( $ftp_listing_line );
+				if ( ! empty( $entry ) && $entry['name'] === $filename ) {
 					return true;
 				}
 			}
