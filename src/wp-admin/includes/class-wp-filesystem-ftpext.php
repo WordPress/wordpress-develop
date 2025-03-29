@@ -426,7 +426,11 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @return bool Whether $path exists or not.
 	 */
 	public function exists( $path ) {
-		// @63173 Special case for root directory.
+		/*
+		 * Special case for root directory if the path is '/'.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/63173.
+		 */
 		if ( '/' === $path ) {
 			return true;
 		}
