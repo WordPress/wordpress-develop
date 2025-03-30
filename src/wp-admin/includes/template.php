@@ -1852,24 +1852,28 @@ function do_settings_fields( $page, $section ) {
  *
  * @since 3.0.0
  * @since 5.3.0 Added `warning` and `info` as possible values for `$type`.
+ * @since 6.9.0 Added `$aria_live` parameter to control the screen reader announcement.
  *
  * @global array[] $wp_settings_errors Storage array of errors registered during this pageload
  *
- * @param string $setting Slug title of the setting to which this error applies.
- * @param string $code    Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
- * @param string $message The formatted message text to display to the user (will be shown inside styled
+ * @param string $setting  Slug title of the setting to which this error applies.
+ * @param string $code     Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
+ * @param string $message  The formatted message text to display to the user (will be shown inside styled
  *                        `<div>` and `<p>` tags).
  * @param string $type    Optional. Message type, controls HTML class. Possible values include 'error',
  *                        'success', 'warning', 'info'. Default 'error'.
+ * @param string $aria_live Optional. The ARIA live attribute value. Possible values include 'off', 'polite',
+ *                        'assertive'. Default empty string which doesn't add the attribute.
  */
-function add_settings_error( $setting, $code, $message, $type = 'error' ) {
+function add_settings_error( $setting, $code, $message, $type = 'error', $aria_live = '' ) {
 	global $wp_settings_errors;
 
 	$wp_settings_errors[] = array(
-		'setting' => $setting,
-		'code'    => $code,
-		'message' => $message,
-		'type'    => $type,
+		'setting'   => $setting,
+		'code'      => $code,
+		'message'   => $message,
+		'type'      => $type,
+		'aria_live' => $aria_live,
 	);
 }
 
@@ -2009,7 +2013,12 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 			esc_attr( $details['type'] )
 		);
 
-		$output .= "<div id='$css_id' class='$css_class'> \n";
+		$aria_live_attr = '';
+		if ( ! empty( $details['aria_live'] ) && in_array( $details['aria_live'], array( 'off', 'polite', 'assertive' ), true ) ) {
+			$aria_live_attr = sprintf( ' aria-live="%s"', esc_attr( $details['aria_live'] ) );
+		}
+
+		$output .= "<div id='$css_id' class='$css_class'$aria_live_attr> \n";
 		$output .= "<p><strong>{$details['message']}</strong></p>";
 		$output .= "</div> \n";
 	}
