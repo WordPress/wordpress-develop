@@ -1040,8 +1040,10 @@ tr.inline-edit-row td {
 	line-height: 2.3;
 }
 
-fieldset.inline-edit-date .timestamp-wrap label {
-	margin-bottom: 0.2em;
+@media screen and (min-width: 782px) {
+	fieldset.inline-edit-date .timestamp-wrap label {
+		margin-bottom: 0.2em;
+	}
 }
 
 .inline-edit-row fieldset .inline-edit-author {
