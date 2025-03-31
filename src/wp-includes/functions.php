@@ -9168,8 +9168,8 @@ function wp_verify_fast_hash(
 ): bool {
 	if ( ! str_starts_with( $hash, '$generic$' ) ) {
 		// Back-compat for old phpass hashes.
-		require_once ABSPATH . WPINC . '/class-phpass.php';
-		return ( new PasswordHash( 8, true ) )->CheckPassword( $message, $hash );
+		return wp_check_password( $message, $hash );
+
 	}
 
 	return hash_equals( $hash, wp_fast_hash( $message ) );
