@@ -3051,7 +3051,6 @@ function _navigation_markup( $links, $css_class = 'posts-navigation', $screen_re
 	 *
 	 * @param string $template  The default template.
 	 * @param string $css_class The class passed by the calling function.
-	 * @return string Navigation template.
 	 */
 	$template = apply_filters( 'navigation_markup_template', $template, $css_class );
 
@@ -4064,7 +4063,7 @@ function wp_get_canonical_url( $post = null ) {
 		return false;
 	}
 
-	if ( 'publish' !== $post->post_status ) {
+	if ( 'publish' !== get_post_status( $post ) ) {
 		return false;
 	}
 

@@ -63,13 +63,16 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <div id="wrapper" class="hfeed">
+	<?php // Allow screen readers / text browsers to skip the navigation menu and get right to the good stuff. ?>
+	<a href="#content" class="screen-reader-text skip-link"><?php _e( 'Skip to content', 'twentyten' ); ?></a>
 	<div id="header">
 		<div id="masthead">
 			<div id="branding" role="banner">
 				<?php $heading_tag = ( is_home() || is_front_page() ) ? 'h1' : 'div'; ?>
 				<<?php echo $heading_tag; ?> id="site-title">
 					<span>
-						<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a>
+					<?php $is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) ); ?>
+						<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a>
 					</span>
 				</<?php echo $heading_tag; ?>>
 				<div id="site-description"><?php bloginfo( 'description' ); ?></div>
@@ -101,8 +104,6 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 			</div><!-- #branding -->
 
 			<div id="access" role="navigation">
-				<?php // Allow screen readers / text browsers to skip the navigation menu and get right to the good stuff. ?>
-				<div class="skip-link screen-reader-text"><a href="#content"><?php _e( 'Skip to content', 'twentyten' ); ?></a></div>
 				<?php
 				/*
 				 * Our navigation menu. If one isn't filled out, wp_nav_menu() falls back to wp_page_menu().
