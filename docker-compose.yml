@@ -32,9 +32,7 @@ services:
   # The PHP container.
   ##
   php:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: wordpressdevelop/php:${LOCAL_PHP-latest}
 
     networks:
       - wpdevnet
