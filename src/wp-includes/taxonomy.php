@@ -5174,6 +5174,13 @@ function wp_cache_get_taxonomy_last_changed( $taxonomy ) {
 function wp_cache_get_taxonomies_last_changed( array $taxonomies ) {
 	$taxonomies = array_unique( array_filter( $taxonomies ) );
 	sort( $taxonomies );
+	$cache_keys = array_map(
+		$taxonomies,
+		static function ( $taxonomy ) {
+			return $taxonomy . ':last_changed';
+		}
+	);
+	wp_cache_get_multiple( $cache_keys, 'terms' );
 	$last_changes = array_map( 'wp_cache_get_taxonomy_last_changed', $taxonomies );
 	$last_changes = array_map( 'floatval', $last_changes );
 
