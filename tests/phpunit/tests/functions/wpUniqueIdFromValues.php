@@ -29,7 +29,7 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 	 * @since 6.8.0
 	 */
 	public function test_wp_unique_id_from_values( $data ) {
-		// Generate IDs
+		// Generate IDs.
 		$unique_id_original = wp_unique_id_from_values( $data );
 		$unique_id_prefixed = wp_unique_id_from_values( $data, $this->prefix );
 
@@ -37,7 +37,7 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 		$this->assertSame( $unique_id_original, wp_unique_id_from_values( $data ) );
 		$this->assertSame( $unique_id_prefixed, wp_unique_id_from_values( $data, $this->prefix ) );
 
-		// Ensure that the prefixed ID is the prefix + the original ID
+		// Ensure that the prefixed ID is the prefix + the original ID.
 		$this->assertSame( $this->prefix . $unique_id_original, $unique_id_prefixed );
 	}
 
@@ -51,7 +51,7 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 	 * @since 6.8.0
 	 */
 	public function test_wp_unique_id_from_values_uniqueness( $data ) {
-		// Generate IDs
+		// Generate IDs.
 		$unique_id_original = wp_unique_id_from_values( $data );
 		$unique_id_prefixed = wp_unique_id_from_values( $data, $this->prefix );
 
@@ -59,11 +59,11 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 		$data_modified          = $data;
 		$data_modified['value'] = 'modified';
 
-		// Generate new IDs with the modified data
+		// Generate new IDs with the modified data.
 		$unique_id_modified          = wp_unique_id_from_values( $data_modified );
 		$unique_id_prefixed_modified = wp_unique_id_from_values( $data_modified, $this->prefix );
 
-		// Assert that the IDs for different data are distinct
+		// Assert that the IDs for different data are distinct.
 		$this->assertNotSame( $unique_id_original, $unique_id_modified );
 		$this->assertNotSame( $unique_id_prefixed, $unique_id_prefixed_modified );
 	}
