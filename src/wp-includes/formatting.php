@@ -5763,7 +5763,7 @@ function sanitize_trackback_urls( $to_ping ) {
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
-		$value = array_map( 'wp_slash', $value );
+		return array_map( 'wp_slash', $value );
 	}
 
 	if ( is_string( $value ) ) {
