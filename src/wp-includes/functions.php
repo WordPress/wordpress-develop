@@ -8059,7 +8059,7 @@ function wp_cache_get_last_changed( $group ) {
 function wp_cache_set_last_changed( $group ) {
 	$previous_time = wp_cache_get( 'last_changed', $group );
 
-	$time = microtime( true );
+	$time = microtime();
 
 	wp_cache_set( 'last_changed', $time, $group );
 
@@ -8071,7 +8071,7 @@ function wp_cache_set_last_changed( $group ) {
 	 * @since 6.3.0
 	 *
 	 * @param string    $group         The cache group name.
-	 * @param float     $time          The new last changed time.
+	 * @param string    $time          The new last changed time (msec sec).
 	 * @param int|false $previous_time The previous last changed time. False if not previously set.
 	 */
 	do_action( 'wp_cache_set_last_changed', $group, $time, $previous_time );
