@@ -5064,7 +5064,11 @@ class WP_Query {
 
 		$last_changed = wp_cache_get_last_changed( 'posts' );
 		if ( ! empty( $this->tax_query->queries ) ) {
-			$last_changed .= wp_cache_get_last_changed( 'terms' );
+			$taxonomies = array();
+			foreach ( $this->tax_query->queries as $tax_query ) {
+				$taxonomies[] = $tax_query['taxonomy'];
+			}
+			$last_changed .= wp_cache_get_taxonomies_last_changed( $taxonomies );
 		}
 
 		$this->query_cache_key = "wp_query:$key:$last_changed";

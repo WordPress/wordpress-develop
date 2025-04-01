@@ -2007,7 +2007,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	$key          = md5( $query );
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
-		$last_changed .= wp_cache_get_last_changed( 'terms' );
+		$last_changed .= wp_cache_get_taxonomy_last_changed( $taxonomy );
 	}
 	$cache_key = "adjacent_post:$key:$last_changed";
 

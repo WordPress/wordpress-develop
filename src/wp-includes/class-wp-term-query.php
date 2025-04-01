@@ -1171,8 +1171,8 @@ class WP_Term_Query {
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 
-		$key          = md5( serialize( $cache_args ) . $sql );
-		$last_changed = wp_cache_get_last_changed( 'terms' );
+		$key = md5( serialize( $cache_args ) . $sql );
+		$last_changed = wp_cache_get_taxonomies_last_changed( (array) $args['taxonomy'] );
 		return "get_terms:$key:$last_changed";
 	}
 }
