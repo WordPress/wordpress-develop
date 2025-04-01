@@ -1894,15 +1894,7 @@ final class WP_Theme implements ArrayAccess {
 			$pattern = get_file_data( $file, $default_headers );
 
 			if ( empty( $pattern['slug'] ) ) {
-				_doing_it_wrong(
-					__FUNCTION__,
-					sprintf(
-						/* translators: 1: file name. */
-						__( 'Could not register file "%s" as a block pattern ("Slug" field missing)' ),
-						$file
-					),
-					'6.0.0'
-				);
+				// Skip any file without pattern slug definition.
 				continue;
 			}
 
