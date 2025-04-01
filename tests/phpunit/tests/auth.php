@@ -1615,6 +1615,19 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 21022
+	 * @ticket 63203
+	 */
+	public function test_application_password_is_hashed_with_fast_hash() {
+		$user_id = self::factory()->user->create();
+
+		// Create a new app-only password.
+		list( $_, $item ) = WP_Application_Passwords::create_new_application_password( $user_id, array( 'name' => 'phpunit' ) );
+
+		$this->assertStringStartsWith( '$generic$', $item['password'] );
+	}
+
+	/**
 	 * @ticket 42790
 	 */
 	public function test_authenticate_application_password_respects_existing_user() {
