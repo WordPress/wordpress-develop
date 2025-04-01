@@ -8072,7 +8072,7 @@ function wp_cache_set_last_changed( $group ) {
 	 *
 	 * @param string    $group         The cache group name.
 	 * @param string    $time          The new last changed time (msec sec).
-	 * @param int|false $previous_time The previous last changed time. False if not previously set.
+	 * @param string|false $previous_time The previous last changed time. False if not previously set.
 	 */
 	do_action( 'wp_cache_set_last_changed', $group, $time, $previous_time );
 
