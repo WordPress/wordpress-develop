@@ -457,7 +457,7 @@ function wp_authenticate_application_password(
 	$hashed_passwords = WP_Application_Passwords::get_user_application_passwords( $user->ID );
 
 	foreach ( $hashed_passwords as $key => $item ) {
-		if ( ! WP_Application_Passwords::check_password( $password, $item['password'] ) ) {
+		if ( ! wp_check_password( $password, $item['password'] ) ) {
 			continue;
 		}
 
