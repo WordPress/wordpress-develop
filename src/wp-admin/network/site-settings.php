@@ -123,10 +123,10 @@ if ( ! empty( $messages ) ) {
 		$blog_prefix = $wpdb->get_blog_prefix( $id );
 		$options     = $wpdb->get_results(
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT * FROM {$blog_prefix}options
+				'SELECT * FROM %i
 				WHERE option_name NOT LIKE %s
-				AND option_name NOT LIKE %s",
+				AND option_name NOT LIKE %s',
+				"{$blog_prefix}options",
 				$wpdb->esc_like( '_' ) . '%',
 				'%' . $wpdb->esc_like( 'user_roles' )
 			)
