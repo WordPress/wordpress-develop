@@ -19,9 +19,10 @@
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialized header.
- * @param array  $args Optional. Additional arguments passed to the header template.
- *                     Default empty array.
+ * @param string|null $name The name of the specialized header.
+ *                          Default null.
+ * @param array       $args Optional. Additional arguments passed to the header template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_header( $name = null, $args = array() ) {
@@ -63,9 +64,10 @@ function get_header( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialized footer.
- * @param array  $args Optional. Additional arguments passed to the footer template.
- *                     Default empty array.
+ * @param string|null $name The name of the specialized footer.
+ *                          Default null.
+ * @param array       $args Optional. Additional arguments passed to the footer template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_footer( $name = null, $args = array() ) {
@@ -107,9 +109,10 @@ function get_footer( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialized sidebar.
- * @param array  $args Optional. Additional arguments passed to the sidebar template.
- *                     Default empty array.
+ * @param string|null $name The name of the specialized sidebar.
+ *                          Default null.
+ * @param array       $args Optional. Additional arguments passed to the sidebar template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_sidebar( $name = null, $args = array() ) {
@@ -160,6 +163,7 @@ function get_sidebar( $name = null, $args = array() ) {
  *
  * @param string      $slug The slug name for the generic template.
  * @param string|null $name Optional. The name of the specialized template.
+ *                          Default null.
  * @param array       $args Optional. Additional arguments passed to the template.
  *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
@@ -195,11 +199,11 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 * @since 5.2.0
 	 * @since 5.5.0 The `$args` parameter was added.
 	 *
-	 * @param string   $slug      The slug name for the generic template.
-	 * @param string   $name      The name of the specialized template or an empty
+	 * @param string      $slug      The slug name for the generic template.
+	 * @param string|null $name      The name of the specialized template or an empty
 	 *                            string if there is none.
-	 * @param string[] $templates Array of template files to search for, in order.
-	 * @param array    $args      Additional arguments passed to the template.
+	 * @param string[]    $templates Array of template files to search for, in order.
+	 * @param array       $args      Additional arguments passed to the template.
 	 */
 	do_action( 'get_template_part', $slug, $name, $templates, $args );
 
@@ -1916,7 +1920,7 @@ function get_the_post_type_description() {
  * @param string $format   Optional. Can be 'link', 'option', 'html', or custom. Default 'html'.
  * @param string $before   Optional. Content to prepend to the description. Default empty.
  * @param string $after    Optional. Content to append to the description. Default empty.
- * @param bool   $selected Optional. Set to true if the current page is the selected archive page.
+ * @param bool   $selected Optional. Set to true if the current page is the selected archive page. Default false.
  * @return string HTML link content for archive.
  */
 function get_archives_link( $url, $text, $format = 'html', $before = '', $after = '', $selected = false ) {
