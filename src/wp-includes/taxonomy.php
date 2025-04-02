@@ -5169,10 +5169,13 @@ function wp_cache_get_taxonomy_last_changed( $taxonomy ) {
  *
  * @since x.x.x
  *
- * @return float UNIX timestamp with microseconds representing when the group was last changed.
+ * @return string UNIX timestamp with microseconds representing when the group was last changed.
  */
 function wp_cache_get_taxonomies_last_changed( array $taxonomies ) {
 	$taxonomies = array_unique( array_filter( $taxonomies ) );
+	if ( empty( $taxonomies ) ) {
+		return wp_cache_get_last_changed( 'terms' );
+	}
 	sort( $taxonomies );
 	$cache_keys = array_map(
 		static function ( $taxonomy ) {
@@ -5184,7 +5187,7 @@ function wp_cache_get_taxonomies_last_changed( array $taxonomies ) {
 	$last_changes = array_map( 'wp_cache_get_taxonomy_last_changed', $taxonomies );
 	$last_changes = array_map( 'floatval', $last_changes );
 
-	return array_sum( $last_changes );
+	return (string) array_sum( $last_changes );
 }
 
 /**
