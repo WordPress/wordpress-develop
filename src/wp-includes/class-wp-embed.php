@@ -283,7 +283,7 @@ class WP_Embed {
 				 *
 				 * @see WP_Embed::shortcode()
 				 *
-				 * @param string $cache   The cached HTML result, stored in post meta.
+				 * @param string $cache   The cached HTML result, loaded from post meta.
 				 * @param string $url     The attempted embed URL.
 				 * @param array  $attr    An array of shortcode attributes.
 				 * @param int    $post_id Post ID.
