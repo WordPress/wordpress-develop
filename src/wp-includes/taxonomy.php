@@ -3634,10 +3634,13 @@ function clean_object_term_cache( $object_ids, $object_type ) {
 
 	$taxonomies = get_object_taxonomies( $object_type );
 
+	$cache_keys = array();
 	foreach ( $taxonomies as $taxonomy ) {
 		wp_cache_delete_multiple( $object_ids, "{$taxonomy}_relationships" );
-		wp_cache_set_taxonomy_last_changed( $taxonomy );
+		$cache_keys[] = $taxonomy . ':last_changed';
 	}
+
+	wp_cache_delete_multiple( $cache_keys, 'terms' );
 
 	wp_cache_set_terms_last_changed();
 
