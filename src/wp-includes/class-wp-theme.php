@@ -1860,6 +1860,15 @@ final class WP_Theme implements ArrayAccess {
 
 		$files = (array) self::scandir( $dirpath, 'php', -1 );
 
+		/**
+		 * Filters list of block pattern files for a theme.
+		 *
+		 * @since 6.8
+		 *
+		 * @param array $files Array of theme files found within `patterns` directory.
+		 */
+		$files = (array) apply_filters( 'get_block_patterns_files', $files );
+
 		$dirpath = trailingslashit( $dirpath );
 
 		if ( ! $files ) {
@@ -1894,7 +1903,15 @@ final class WP_Theme implements ArrayAccess {
 			$pattern = get_file_data( $file, $default_headers );
 
 			if ( empty( $pattern['slug'] ) ) {
-				// Skip any file without pattern slug definition.
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: file name. */
+						__( 'Could not register file "%s" as a block pattern ("Slug" field missing)' ),
+						$file
+					),
+					'6.0.0'
+				);
 				continue;
 			}
 
