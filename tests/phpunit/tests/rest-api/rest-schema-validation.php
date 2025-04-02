@@ -2093,4 +2093,39 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Test that an empty properties array is sanitized to an empty object.
+	 *
+	 * @ticket 63186
+	 */
+	public function test_empty_properties_array_sanitized_to_object() {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(),
+		);
+
+		$sanitized_schema = apply_filters( 'rest_pre_echo_response', $schema );
+		$this->assertIsObject( $sanitized_schema['properties'], 'Empty properties array should be converted to an object.' );
+		$this->assertEmpty( (array) $sanitized_schema['properties'] );
+	}
+
+	/**
+	 * Test that a non-empty properties array remains unchanged.
+	 *
+	 * @ticket 63186
+	 */
+	public function test_non_empty_properties_array_remains_unchanged() {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'field' => array( 'type' => 'string' ),
+			),
+		);
+
+		$sanitized_schema = apply_filters( 'rest_pre_echo_response', $schema );
+		$this->assertNotEmpty( $sanitized_schema['properties'] );
+		$this->assertIsArray( $sanitized_schema['properties'], 'Non-empty properties should remain as an array.' );
+		$this->assertArrayHasKey( 'field', $sanitized_schema['properties'] );
+	}
 }
