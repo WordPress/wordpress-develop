@@ -1902,6 +1902,10 @@ final class WP_Theme implements ArrayAccess {
 		foreach ( $files as $file ) {
 			$pattern = get_file_data( $file, $default_headers );
 
+			if ( empty( $pattern['slug'] ) && empty( $pattern['title'] ) ) {
+				continue;
+			}
+
 			if ( empty( $pattern['slug'] ) ) {
 				_doing_it_wrong(
 					__FUNCTION__,
