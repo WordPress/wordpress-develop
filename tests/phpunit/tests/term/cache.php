@@ -177,6 +177,66 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$this->assertEquals( $term_object, $term_object_2 );
 	}
 
+	public function test_get_terms_cache_invalidation_add_term_meta() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$terms = self::factory()->term->create_many(
+			5,
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		get_terms( 'wptests_tax', array( 'hide_empty' => false ) );
+		foreach ( $terms as $term_id ) {
+			add_term_meta( $term_id, 'foo', 'bar' );
+		}
+		$num_queries = get_num_queries();
+		get_terms( 'wptests_tax', array( 'hide_empty' => false ) );
+		$this->assertSame( $num_queries + 1, get_num_queries(), 'Cache should be invalidated' );
+	}
+
+	public function test_get_terms_cache_invalidation_update_term_meta() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$terms = self::factory()->term->create_many(
+			5,
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		foreach ( $terms as $term_id ) {
+			add_term_meta( $term_id, 'foo', 'bar' );
+		}
+
+		get_terms( 'wptests_tax', array( 'hide_empty' => false ) );
+		foreach ( $terms as $term_id ) {
+			update_term_meta( $term_id, 'foo', 'baz' );
+		}
+		$num_queries = get_num_queries();
+		get_terms( 'wptests_tax', array( 'hide_empty' => false ) );
+		$this->assertSame( $num_queries + 1, get_num_queries(), 'Cache should be invalidated' );
+	}
+
+	public function test_get_terms_cache_invalidation_delete_term_meta() {
+		register_taxonomy( 'wptests_tax', 'post' );
+		$terms = self::factory()->term->create_many(
+			5,
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		foreach ( $terms as $term_id ) {
+			delete_term_meta( $term_id, 'foo', 'bar' );
+		}
+
+		get_terms( 'wptests_tax', array( 'hide_empty' => false ) );
+		foreach ( $terms as $term_id ) {
+			update_term_meta( $term_id, 'foo', 'baz' );
+		}
+		$num_queries = get_num_queries();
+		get_terms( 'wptests_tax', array( 'hide_empty' => false ) );
+		$this->assertSame( $num_queries + 1, get_num_queries(), 'Cache should be invalidated' );
+	}
+
 	public function test_get_terms_cache_invalidation_different_taxonomies() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
 		register_taxonomy( 'wptests_tax_2', 'post' );
