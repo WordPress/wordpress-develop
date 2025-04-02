@@ -5122,6 +5122,8 @@ function is_term_publicly_viewable( $term ) {
  * This function ensures that the cache for the given term and its associated taxonomy is invalidated,
  * and marks them as "last changed" to reflect the updates or changes made to the meta data.
  *
+ * @since x.x.x
+ *
  * @param int $meta_id ID of the term meta to be cleared.
  * @param int $object_id ID of the term associated with the meta to be cleared.
  */
@@ -5137,6 +5139,8 @@ function wp_cache_clear_term_meta( $meta_id, $object_id ) {
  * Sets the last changed time for a specific taxonomy in the cache.
  *
  * This function updates the cached value to track when the taxonomy data was last changed.
+ *
+ * @since x.x.x
  *
  * @param string $taxonomy The taxonomy slug to update the last changed time for.
  * @return string The microtime when the taxonomy was last changed.
