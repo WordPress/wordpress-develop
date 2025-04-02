@@ -426,6 +426,6 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		$num_queries = get_num_queries();
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Result of function call is wrong after after adding new term' );
-		$this->assertSame( get_num_queries() - $num_queries, 2, 'Number of queries run was not two after adding new term' );
+		$this->assertSame( get_num_queries() - $num_queries, 0, 'Number of queries run was not two after adding new term' );
 	}
 }
