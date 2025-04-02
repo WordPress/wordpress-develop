@@ -2106,8 +2106,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		 * 2: Post data
 		 * 3: Post meta data.
 		 * 4: Post term data.
+		 * 5. Term data
 		 */
-		$this->assertSame( 4, $num_queries, 'Unexpected number of queries while querying posts.' );
+		$this->assertSame( 5, $num_queries, 'Unexpected number of queries while querying posts.' );
 		$this->assertNotEmpty( $query_posts, 'Query posts is empty.' );
 
 		$num_queries_start = get_num_queries();
