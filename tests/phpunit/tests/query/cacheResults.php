@@ -26,6 +26,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public static $t1;
 
+
+	/**
+	 * Term ID.
+	 *
+	 * @var int
+	 */
+	public static $t2;
+
 	/**
 	 * Author's user ID.
 	 *
@@ -62,7 +70,16 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			)
 		);
 
+		self::$t2 = $factory->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'slug'     => 'bar',
+				'name'     => 'Bar',
+			)
+		);
+
 		wp_set_post_terms( self::$posts[0], self::$t1, 'category' );
+		wp_set_post_terms( self::$posts[0], self::$t2, 'post_tag' );
 		add_post_meta( self::$posts[0], 'color', '#000000' );
 
 		// Make a user.
@@ -1984,6 +2001,70 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			'fields: ids'        => array( 'ids' ),
 			'fields: id=>parent' => array( 'id=>parent' ),
 		);
+	}
+
+	public function test_query_cache_empty_taxonomies() {
+		add_filter( 'split_the_query', '__return_false' );
+		$query1       = new WP_Query();
+		$query_args_1 = array(
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,
+			'no_found_rows'          => true,
+			'tax_query'              => array(
+				array(
+					'terms' => array( self::$t1 ),
+				),
+			),
+		);
+		$query1->query( $query_args_1 );
+
+		clean_term_cache( self::$t1, 'category' );
+		$num_queries = get_num_queries();
+
+		$query1->query( $query_args_1 );
+
+		$this->assertSame( $num_queries + 1, get_num_queries(), 'Query not should be cached.' );
+	}
+	public function test_query_cache_different_taxonomies() {
+		add_filter( 'split_the_query', '__return_false' );
+		$query1       = new WP_Query();
+		$query_args_1 = array(
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,
+			'no_found_rows'          => true,
+			'tax_query'              => array(
+				array(
+					'taxonomy' => 'category',
+					'terms'    => array( self::$t1 ),
+				),
+			),
+		);
+		$query1->query( $query_args_1 );
+		$query_args_2 = array(
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,
+			'no_found_rows'          => true,
+			'tax_query'              => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( self::$t2 ),
+				),
+			),
+		);
+		$query2       = new WP_Query();
+		$query2->query( $query_args_2 );
+
+		clean_term_cache( self::$t1, 'category' );
+		$num_queries = get_num_queries();
+
+		$query1->query( $query_args_1 );
+
+		$this->assertSame( $num_queries + 2, get_num_queries(), 'Query not should be cached.' );
+		$num_queries = get_num_queries();
+		$query2->query( $query_args_2 );
+		remove_filter( 'split_the_query', '__return_false' );
+
+		$this->assertSame( $num_queries, get_num_queries(), 'Query should be cached.' );
 	}
 
 	/**

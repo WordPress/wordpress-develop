@@ -177,6 +177,37 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$this->assertEquals( $term_object, $term_object_2 );
 	}
 
+	public function test_get_terms_cache_invalidation_different_taxonomies() {
+		register_taxonomy( 'wptests_tax_1', 'post' );
+		register_taxonomy( 'wptests_tax_2', 'post' );
+
+		$terms = self::factory()->term->create_many(
+			5,
+			array(
+				'taxonomy' => 'wptests_tax_1',
+			)
+		);
+
+		self::factory()->term->create_many(
+			5,
+			array(
+				'taxonomy' => 'wptests_tax_2',
+			)
+		);
+
+		get_terms( 'wptests_tax_1', array( 'hide_empty' => false ) );
+		get_terms( 'wptests_tax_2', array( 'hide_empty' => false ) );
+
+		clean_term_cache( $terms[0], 'wptests_tax_1' );
+		$num_queries = get_num_queries();
+
+		get_terms( 'wptests_tax_1', array( 'hide_empty' => false ) );
+		$this->assertSame( $num_queries + 2, get_num_queries(), 'Cache should be invalidated' );
+		$num_queries = get_num_queries();
+		get_terms( 'wptests_tax_2', array( 'hide_empty' => false ) );
+		$this->assertSame( $num_queries, get_num_queries(), 'Cache should not be invalidated' );
+	}
+
 	/**
 	 * @ticket 30749
 	 */
