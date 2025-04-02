@@ -5158,6 +5158,9 @@ function wp_cache_set_taxonomy_last_changed( $taxonomy ) {
  * @return float UNIX timestamp with microseconds representing when the taxonomy was last changed.
  */
 function wp_cache_get_taxonomy_last_changed( $taxonomy ) {
+	if ( ! $taxonomy ) {
+		return wp_cache_get_last_changed( 'terms' );
+	}
 	$last_changed = wp_cache_get( $taxonomy . ':last_changed', 'terms' );
 
 	if ( $last_changed ) {
@@ -5175,7 +5178,7 @@ function wp_cache_get_taxonomy_last_changed( $taxonomy ) {
  * @return string UNIX timestamp with microseconds representing when the group was last changed.
  */
 function wp_cache_get_taxonomies_last_changed( array $taxonomies ) {
-	$taxonomies = array_unique( array_filter( $taxonomies ) );
+	$taxonomies = array_unique( $taxonomies );
 	if ( empty( $taxonomies ) ) {
 		return wp_cache_get_last_changed( 'terms' );
 	}
@@ -5184,7 +5187,7 @@ function wp_cache_get_taxonomies_last_changed( array $taxonomies ) {
 		static function ( $taxonomy ) {
 			return $taxonomy . ':last_changed';
 		},
-		$taxonomies
+		array_filter( $taxonomies )
 	);
 	wp_cache_get_multiple( $cache_keys, 'terms' );
 	$last_changes = array_map( 'wp_cache_get_taxonomy_last_changed', $taxonomies );
