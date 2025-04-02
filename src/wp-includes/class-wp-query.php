@@ -5066,7 +5066,9 @@ class WP_Query {
 		if ( ! empty( $this->tax_query->queries ) ) {
 			$taxonomies = array();
 			foreach ( $this->tax_query->queries as $tax_query ) {
-				$taxonomies[] = $tax_query['taxonomy'];
+				if ( isset( $tax_query['taxonomy'] ) ) {
+					$taxonomies[] = $tax_query['taxonomy'];
+				}
 			}
 			$last_changed .= wp_cache_get_taxonomies_last_changed( $taxonomies );
 		}
