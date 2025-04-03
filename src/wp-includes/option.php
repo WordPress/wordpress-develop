@@ -2564,7 +2564,7 @@ function get_site_transient( $transient ) {
 	} else {
 		// Core transients that do not have a timeout. Listed here so querying timeouts can be avoided.
 		$no_timeout = array( 'update_core', 'update_plugins', 'update_themes' );
-		
+
 		if ( ! in_array( $transient, $no_timeout, true ) && ! is_valid_site_transient( $transient ) ) {
 			$value = false;
 		}

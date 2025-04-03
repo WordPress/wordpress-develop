@@ -56,7 +56,7 @@ class Tests_Option_ValidSiteTransient extends WP_UnitTestCase {
 
 		$this->assertFalse( is_valid_site_transient( $transient_name ) );
 	}
-	
+
 	/**
 	 * @ticket 37040
 	 */
