@@ -49,7 +49,7 @@ class Tests_User extends WP_UnitTestCase {
 		self::$user_ids[] = self::$admin_id;
 		self::$editor_id  = $factory->user->create(
 			array(
-				'user_email' => 'test@test.com',
+				'user_email' => 'test@example.com',
 				'role'       => 'editor',
 			)
 		);
@@ -63,7 +63,35 @@ class Tests_User extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		add_action( 'set_auth_cookie', array( $this, 'action_set_auth_cookie' ), 10, 6 );
+		add_action( 'set_logged_in_cookie', array( $this, 'action_set_logged_in_cookie' ), 10 );
+		add_action( 'clear_auth_cookie', array( $this, 'action_clear_auth_cookie' ) );
+
+		$_COOKIE = array();
+
 		$this->author = clone self::$_author;
+	}
+
+	final public function action_set_auth_cookie(
+		string $cookie,
+		int $expire,
+		int $expiration,
+		int $user_id,
+		string $scheme,
+		string $token
+	): void {
+		$_COOKIE[ SECURE_AUTH_COOKIE ] = $cookie;
+		$_COOKIE[ AUTH_COOKIE ]        = $cookie;
+	}
+
+	final public function action_set_logged_in_cookie( string $cookie ): void {
+		$_COOKIE[ LOGGED_IN_COOKIE ] = $cookie;
+	}
+
+	final public function action_clear_auth_cookie(): void {
+		unset( $_COOKIE[ LOGGED_IN_COOKIE ] );
+		unset( $_COOKIE[ SECURE_AUTH_COOKIE ] );
+		unset( $_COOKIE[ AUTH_COOKIE ] );
 	}
 
 	public function test_get_users_of_blog() {
@@ -792,7 +820,7 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function test_validate_username_string() {
 		$this->assertTrue( validate_username( 'johndoe' ) );
-		$this->assertTrue( validate_username( 'test@test.com' ) );
+		$this->assertTrue( validate_username( 'test@example.com' ) );
 	}
 
 	/**
@@ -1007,7 +1035,7 @@ class Tests_User extends WP_UnitTestCase {
 		$u        = wp_insert_user(
 			array(
 				'user_login' => 'test',
-				'user_email' => 'test@example.com',
+				'user_email' => 'urltest@example.com',
 				'user_pass'  => 'password',
 				'user_url'   => $user_url,
 			)
@@ -1055,7 +1083,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 35750
 	 */
 	public function test_wp_update_user_should_delete_userslugs_cache() {
-		$u    = self::factory()->user->create();
+		$u    = self::$sub_id;
 		$user = get_userdata( $u );
 
 		wp_update_user(
@@ -1122,6 +1150,50 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertEmpty( $user->user_activation_key );
 	}
 
+	/**
+	 * @ticket 61366
+	 * @dataProvider data_remember_user
+	 */
+	public function test_changing_own_password_retains_current_session( bool $remember ) {
+		$user    = $this->author;
+		$manager = WP_Session_Tokens::get_instance( $user->ID );
+		$expiry  = $remember ? ( 2 * WEEK_IN_SECONDS ) : ( 2 * DAY_IN_SECONDS );
+		$token   = $manager->create( time() + $expiry );
+		$pass    = $user->user_pass;
+
+		wp_set_current_user( $user->ID );
+		wp_set_auth_cookie( $user->ID, $remember, '', $token );
+
+		$cookie   = $_COOKIE[ AUTH_COOKIE ];
+		$userdata = array(
+			'ID'        => $user->ID,
+			'user_pass' => 'my_new_password',
+		);
+		$updated  = wp_update_user( $userdata, $manager );
+		$parsed   = wp_parse_auth_cookie();
+
+		// Check the prerequisites:
+		$this->assertNotWPError( $updated );
+		$this->assertNotSame( $pass, get_userdata( $user->ID )->user_pass );
+
+		// Check the session token:
+		$this->assertSame( $token, $parsed['token'] );
+		$this->assertCount( 1, $manager->get_all() );
+
+		// Check that the newly set auth cookie is valid:
+		$this->assertSame( $user->ID, wp_validate_auth_cookie() );
+
+		// Check that, despite the session token reuse, the old auth cookie should now be invalid because the password changed:
+		$this->assertFalse( wp_validate_auth_cookie( $cookie ) );
+	}
+
+	public function data_remember_user() {
+		return array(
+			array( true ),
+			array( false ),
+		);
+	}
+
 	public function test_search_users_login() {
 		$users = get_users(
 			array(
@@ -1184,7 +1256,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Alter the case of the email address (which stays the same).
 		$userdata = array(
 			'ID'         => self::$editor_id,
-			'user_email' => 'test@TEST.com',
+			'user_email' => 'test@EXAMPLE.com',
 		);
 		$update   = wp_update_user( $userdata );
 
@@ -1198,7 +1270,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Change the email address.
 		$userdata = array(
 			'ID'         => self::$editor_id,
-			'user_email' => 'test2@test.com',
+			'user_email' => 'test2@example.com',
 		);
 		$update   = wp_update_user( $userdata );
 
@@ -1207,7 +1279,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		// Verify that the email address has been updated.
 		$user = get_userdata( self::$editor_id );
-		$this->assertSame( $user->user_email, 'test2@test.com' );
+		$this->assertSame( $user->user_email, 'test2@example.com' );
 	}
 
 	/**
@@ -1867,11 +1939,7 @@ class Tests_User extends WP_UnitTestCase {
 		$_GET     = array();
 		$_REQUEST = array();
 
-		$administrator = self::factory()->user->create(
-			array(
-				'role' => 'administrator',
-			)
-		);
+		$administrator = self::$admin_id;
 
 		wp_set_current_user( $administrator );
 
@@ -1885,11 +1953,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( array( 'administrator' ), get_userdata( $administrator )->roles );
 
 		// Promote an editor to an administrator.
-		$editor = self::factory()->user->create(
-			array(
-				'role' => 'editor',
-			)
-		);
+		$editor = self::$editor_id;
 
 		$_POST['role']     = 'administrator';
 		$_POST['email']    = 'administrator@administrator.test';
@@ -1906,7 +1970,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 43547
 	 */
 	public function test_wp_user_personal_data_exporter_no_user() {
-		$actual = wp_user_personal_data_exporter( 'not-a-user-email@test.com' );
+		$actual = wp_user_personal_data_exporter( 'not-a-user-email@example.com' );
 
 		$expected = array(
 			'data' => array(),

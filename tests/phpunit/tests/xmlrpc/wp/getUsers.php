@@ -117,6 +117,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 		);
 		$results = $this->myxmlrpcserver->wp_getUsers( array( 1, 'administrator', 'administrator', $filter ) );
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		$last_email = '';
 		foreach ( $results as $user ) {

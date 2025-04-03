@@ -20,6 +20,22 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 */
 	protected $backup_registered_sidebars;
 
+	/**
+	 * ID of the administrator user.
+	 *
+	 * @var int
+	 */
+	public static $administrator_id;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
@@ -27,8 +43,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		add_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
 
-		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$administrator_id );
 
 		update_option(
 			'widget_search',

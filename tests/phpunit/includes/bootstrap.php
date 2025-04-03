@@ -214,7 +214,6 @@ tests_reset__SERVER();
 define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
 define( 'DIR_TESTDATA', __DIR__ . '/../data' );
 define( 'DIR_TESTROOT', realpath( dirname( __DIR__ ) ) );
-define( 'IMPORTER_PLUGIN_FOR_TESTS', DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php' );
 
 define( 'WP_LANG_DIR', realpath( DIR_TESTDATA . '/languages' ) );
 
@@ -245,10 +244,6 @@ $_SERVER['PHP_SELF'] = '/index.php';
 $multisite = ( '1' === getenv( 'WP_MULTISITE' ) );
 $multisite = $multisite || ( defined( 'WP_TESTS_MULTISITE' ) && WP_TESTS_MULTISITE );
 $multisite = $multisite || ( defined( 'MULTISITE' ) && MULTISITE );
-
-// Override the PHPMailer.
-require_once __DIR__ . '/mock-mailer.php';
-$phpmailer = new MockPHPMailer( true );
 
 if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
 	define( 'WP_DEFAULT_THEME', 'default' );
@@ -305,6 +300,11 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 // Load WordPress.
 require_once ABSPATH . 'wp-settings.php';
 
+// Override the PHPMailer.
+require_once __DIR__ . '/mock-mailer.php';
+
+$phpmailer = new MockPHPMailer( true );
+
 // Delete any default posts & related data.
 _delete_all_posts();
 
@@ -329,6 +329,7 @@ require __DIR__ . '/spy-rest-server.php';
 require __DIR__ . '/class-wp-rest-test-search-handler.php';
 require __DIR__ . '/class-wp-rest-test-configurable-controller.php';
 require __DIR__ . '/class-wp-fake-block-type.php';
+require __DIR__ . '/class-wp-fake-hasher.php';
 require __DIR__ . '/class-wp-sitemaps-test-provider.php';
 require __DIR__ . '/class-wp-sitemaps-empty-test-provider.php';
 require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
