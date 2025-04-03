@@ -19,7 +19,11 @@ class Tests_Option_ValidSiteTransient extends WP_UnitTestCase {
 
 		$this->assertTrue( is_valid_site_transient( $transient_name ) );
 
-		update_site_option( '_site_transient_timeout_' . $transient_name, time() - 10 );
+		// Force the transient to expire.
+		$past_time = time() - 1000;
+		update_site_option( '_site_transient_timeout_' . $transient_name, $past_time );
+
+		wp_cache_flush();
 
 		$this->assertFalse( is_valid_site_transient( $transient_name ) );
 	}
