@@ -971,7 +971,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 	 * Sets the authentication cookies based on user ID.
 	 *
 	 * The $remember parameter determines if the cookie will persist beyond the session.
-	 * When $remember is true, the cookie is kept for 14 days (two weeks). 
+	 * When $remember is true, the cookie is kept for 14 days (two weeks).
 	 * When $remember is false, the cookie is a session cookie and expires when the browser is closed.
 	 *
 	 * @since 2.5.0
