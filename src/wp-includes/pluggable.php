@@ -970,9 +970,9 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 	/**
 	 * Sets the authentication cookies based on user ID.
 	 *
-	 * The $remember parameter increases the time that the cookie will be kept. The
-	 * default the cookie is kept without remembering is two days. When $remember is
-	 * set, the cookies will be kept for 14 days or two weeks.
+	 * The $remember parameter determines if the cookie will persist beyond the session.
+	 * When $remember is true, the cookie is kept for 14 days (two weeks). 
+	 * When $remember is false, the cookie is a session cookie and expires when the browser is closed.
 	 *
 	 * @since 2.5.0
 	 * @since 4.3.0 Added the `$token` parameter.
@@ -1002,8 +1002,7 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 			 */
 			$expire = $expiration + ( 12 * HOUR_IN_SECONDS );
 		} else {
-			/** This filter is documented in wp-includes/pluggable.php */
-			$expiration = time() + apply_filters( 'auth_cookie_expiration', 2 * DAY_IN_SECONDS, $user_id, $remember );
+			$expiration = time() + ( 2 * DAY_IN_SECONDS );
 			$expire     = 0;
 		}
 
