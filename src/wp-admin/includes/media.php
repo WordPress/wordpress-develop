@@ -3046,9 +3046,8 @@ function media_upload_flash_bypass() {
 	<?php
 		printf(
 			/* translators: 1: URL to browser uploader, 2: Additional link attributes. */
-			__( 'You are using the multi-file uploader. Problems? Try the <a href="%1$s" %2$s>browser uploader</a> instead.' ),
-			$browser_uploader,
-			'target="_blank"'
+			__( 'You are using the multi-file uploader. Problems? Try the <a href="%1$s">browser uploader</a> instead.' ),
+			$browser_uploader
 		);
 	?>
 	</p>
