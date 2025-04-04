@@ -191,13 +191,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the block type is visible, WP_Error otherwise.
 	 */
 	protected function check_read_permission() {
-		if ( current_user_can( 'edit_posts' ) ) {
+		if ( rest_user_can_edit_post() ) {
 			return true;
-		}
-		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
-			if ( current_user_can( $post_type->cap->edit_posts ) ) {
-				return true;
-			}
 		}
 
 		return new WP_Error( 'rest_block_type_cannot_view', __( 'Sorry, you are not allowed to manage block types.' ), array( 'status' => rest_authorization_required_code() ) );

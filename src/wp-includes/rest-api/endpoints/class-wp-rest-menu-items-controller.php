@@ -99,14 +99,8 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 			return true;
 		}
 
-		if ( current_user_can( 'edit_posts' ) ) {
+		if ( rest_user_can_edit_post() ) {
 			return true;
-		}
-
-		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
-			if ( current_user_can( $post_type->cap->edit_posts ) ) {
-				return true;
-			}
 		}
 
 		return new WP_Error(

@@ -242,13 +242,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		if ( current_user_can( 'edit_posts' ) ) {
+		if ( rest_user_can_edit_post() ) {
 			return true;
-		}
-		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
-			if ( current_user_can( $post_type->cap->edit_posts ) ) {
-				return true;
-			}
 		}
 
 		return new WP_Error(
@@ -304,13 +299,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		if ( current_user_can( 'edit_posts' ) ) {
+		if ( rest_user_can_edit_post() ) {
 			return true;
-		}
-		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
-			if ( current_user_can( $post_type->cap->edit_posts ) ) {
-				return true;
-			}
 		}
 
 		return new WP_Error(
