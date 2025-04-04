@@ -404,6 +404,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 			'code'    => 'blogdescription',
 			'message' => 'Too short',
 			'type'    => 'error',
+			'aria_live' => '',
 		);
 
 		$wp_settings_errors = null;
