@@ -130,7 +130,7 @@ class WP_REST_Server {
 							'properties' => array(
 								'method'  => array(
 									'type'    => 'string',
-									'enum'    => array( 'POST', 'PUT', 'PATCH', 'DELETE' ),
+									'enum'    => array( 'POST', 'PUT', 'PATCH', 'DELETE', 'GET' ),
 									'default' => 'POST',
 								),
 								'path'    => array(
@@ -1146,10 +1146,13 @@ class WP_REST_Server {
 	 * @access private
 	 * @since 5.6.0
 	 *
-	 * @param WP_REST_Request $request The request object.
+	 * @param WP_REST_Request|WP_Error $request The request or error object.
 	 * @return array|WP_Error The route and request handler on success or a WP_Error instance if no handler was found.
 	 */
 	protected function match_request_to_handler( $request ) {
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
 		$method = $request->get_method();
 		$path   = $request->get_route();
 
@@ -1729,7 +1732,14 @@ class WP_REST_Server {
 				continue;
 			}
 
-			$single_request = new WP_REST_Request( isset( $args['method'] ) ? $args['method'] : 'POST', $parsed_url['path'] );
+			$method = isset( $args['method'] ) ? strtoupper( $args['method'] ) : 'POST';
+			if ( 'GET' === $method && ! rest_user_can_edit_post() ) {
+				$requests[] = new WP_Error( 'rest_cannot_view', __( 'Sorry, you are not allowed to view this endpoint.' ), array( 'status' => rest_authorization_required_code() ) );
+
+				continue;
+			}
+
+			$single_request = new WP_REST_Request( $method, $parsed_url['path'] );
 
 			if ( ! empty( $parsed_url['query'] ) ) {
 				$query_args = array();
@@ -1823,6 +1833,12 @@ class WP_REST_Server {
 		}
 
 		foreach ( $requests as $i => $single_request ) {
+			if ( is_wp_error( $single_request ) ) {
+				$result      = $this->error_to_response( $single_request );
+				$responses[] = $this->envelope_response( $result, false )->get_data();
+				continue;
+			}
+
 			$clean_request = clone $single_request;
 			$clean_request->set_url_params( array() );
 			$clean_request->set_attributes( array() );
