@@ -2,7 +2,7 @@
 /**
  * Title: Hero book
  * Slug: twentytwentyfive/hero-book
- * Categories: featured, hero
+ * Categories: banner
  * Keywords: podcast, hero, stories
  * Description: A hero section for the book with a description and pre-order link.
  *
@@ -12,8 +12,8 @@
  */
 
 ?>
-<!-- wp:group {"align":"full","layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull">
+<!-- wp:group {"align":"full","style":{"spacing":{"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull" style="margin-top:0;margin-bottom:0">
 	<!-- wp:columns {"align":"full","style":{"spacing":{"blockGap":{"left":"0"}}}} -->
 	<div class="wp-block-columns alignfull">
 		<!-- wp:column {"width":"55%"} -->

@@ -12,7 +12,7 @@
  */
 
 ?>
-<!-- wp:template-part {"slug":"header"} /-->
+<!-- wp:template-part {"slug":"header-large-title"} /-->
 
 <!-- wp:group {"tagName":"main","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"},"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"}} -->
 <main class="wp-block-group" style="margin-top:0;margin-bottom:0;padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
@@ -85,7 +85,7 @@
 						<div class="wp-block-group has-small-font-size">
 							<!-- wp:post-terms {"term":"category","style":{"typography":{"textTransform":"uppercase","letterSpacing":"1.4px"}}} /-->
 							<!-- wp:paragraph -->
-							<p><?php echo esc_html_x( '·', 'Separator between date and categories', 'twentytwentyfive' ); ?></p>
+							<p><?php echo esc_html_x( '·', 'Separator between date and categories.', 'twentytwentyfive' ); ?></p>
 							<!-- /wp:paragraph -->
 							<!-- wp:post-date {"isLink":true} /-->
 						</div>
@@ -124,4 +124,4 @@
 </main>
 <!-- /wp:group -->
 
-<!-- wp:template-part {"slug":"footer-newsletter"} /-->
+<!-- wp:template-part {"slug":"footer-columns"} /-->

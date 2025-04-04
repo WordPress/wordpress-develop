@@ -57,3 +57,7 @@ msgstr "[%s] Löschauftrag ausgeführt"
 #: wp-admin/includes/file.php:2415
 msgid "[%s] Personal Data Export"
 msgstr "[%s] Export personenbezogener Daten"
+
+#: wp-includes/class-wp-phpmailer.php:71
+msgid "You must provide at least one recipient email address."
+msgstr "Du musst mindestens eine Empfänger-E-Mail-Adresse angeben."

@@ -2,7 +2,7 @@
 /**
  * Title: Pricing, 2 columns
  * Slug: twentytwentyfive/pricing-2-col
- * Categories: call-to-action, featured
+ * Categories: call-to-action
  * Viewport width: 1400
  * Description: Pricing section with two columns, pricing plan, description, and call-to-action buttons.
  *
@@ -12,8 +12,8 @@
  */
 
 ?>
-<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"}}},"layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
+<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|60","bottom":"var:preset|spacing|60"},"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull" style="margin-top:0;margin-bottom:0;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)">
 	<!-- wp:heading {"textAlign":"center","align":"wide"} -->
 	<h2 class="wp-block-heading alignwide has-text-align-center"><?php esc_html_e( 'Pricing', 'twentytwentyfive' ); ?></h2>
 	<!-- /wp:heading -->

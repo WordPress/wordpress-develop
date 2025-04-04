@@ -705,7 +705,7 @@ function dropdown_cats($optionall = 1, $all = 'All', $orderby = 'ID', $order = '
 
 	$show_option_none = '';
 	if ( $optionnone )
-	$show_option_none = _x( 'None', 'Categories dropdown (show_option_none parameter)' );
+		$show_option_none = _x( 'None', 'Categories dropdown (show_option_none parameter)' );
 
 	$vars = compact('show_option_all', 'show_option_none', 'orderby', 'order',
 					'show_last_update', 'show_count', 'hide_empty', 'selected', 'exclude');
@@ -3673,7 +3673,7 @@ function post_permalink( $post = 0 ) {
 function wp_get_http( $url, $file_path = false, $red = 1 ) {
 	_deprecated_function( __FUNCTION__, '4.4.0', 'WP_Http' );
 
-	// Adds an additional 60 seconds to the script timeout to ensure the remote request has enough time.
+	// Add 60 seconds to the script timeout to ensure the remote request has enough time.
 	if ( function_exists( 'set_time_limit' ) ) {
 		@set_time_limit( 60 );
 	}
@@ -5190,7 +5190,7 @@ function wp_get_duotone_filter_property( $preset ) {
  * Returns the duotone filter SVG string for the preset.
  *
  * @since 5.9.1
- * @deprecated 6.3.0
+ * @deprecated 6.3.0 Use WP_Duotone::get_filter_svg_from_preset() instead.
  *
  * @access private
  *
@@ -5198,7 +5198,7 @@ function wp_get_duotone_filter_property( $preset ) {
  * @return string Duotone SVG filter.
  */
 function wp_get_duotone_filter_svg( $preset ) {
-	_deprecated_function( __FUNCTION__, '6.3.0' );
+	_deprecated_function( __FUNCTION__, '6.3.0', 'WP_Duotone::get_filter_svg_from_preset()' );
 	return WP_Duotone::get_filter_svg_from_preset( $preset );
 }
 
@@ -6169,7 +6169,6 @@ function the_block_template_skip_link() {
 	<style id="skip-link-styles">
 		.skip-link.screen-reader-text {
 			border: 0;
-			clip: rect(1px,1px,1px,1px);
 			clip-path: inset(50%);
 			height: 1px;
 			margin: -1px;
@@ -6182,7 +6181,6 @@ function the_block_template_skip_link() {
 
 		.skip-link.screen-reader-text:focus {
 			background-color: #eee;
-			clip: auto !important;
 			clip-path: none;
 			color: #444;
 			display: block;
@@ -6316,7 +6314,7 @@ function wp_interactivity_process_directives_of_interactive_blocks( array $parse
  * Gets the global styles custom CSS from theme.json.
  *
  * @since 6.2.0
- * @deprecated 6.7.0 Use {@see 'wp_get_global_stylesheet'} instead.
+ * @deprecated 6.7.0 Use {@see 'wp_get_global_stylesheet'} instead for top-level custom CSS, or {@see 'WP_Theme_JSON::get_styles_for_block'} for block-level custom CSS.
  *
  * @return string The global styles custom CSS.
  */
@@ -6423,4 +6421,43 @@ function wp_create_block_style_variation_instance_name( $block, $variation ) {
  */
 function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
 	return current_user_can_for_site( $blog_id, $capability, ...$args );
+}
+
+/**
+ * Loads classic theme styles on classic themes in the editor.
+ *
+ * This is used for backwards compatibility for Button and File blocks specifically.
+ *
+ * @since 6.1.0
+ * @since 6.2.0 Added File block styles.
+ * @deprecated 6.8.0 Styles are enqueued, not printed in the body element.
+ *
+ * @param array $editor_settings The array of editor settings.
+ * @return array A filtered array of editor settings.
+ */
+function wp_add_editor_classic_theme_styles( $editor_settings ) {
+	_deprecated_function( __FUNCTION__, '6.8.0', 'wp_enqueue_classic_theme_styles' );
+
+	if ( wp_theme_has_theme_json() ) {
+		return $editor_settings;
+	}
+
+	$suffix               = wp_scripts_get_suffix();
+	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
+
+	/*
+	 * This follows the pattern of get_block_editor_theme_styles,
+	 * but we can't use get_block_editor_theme_styles directly as it
+	 * only handles external files or theme files.
+	 */
+	$classic_theme_styles_settings = array(
+		'css'            => file_get_contents( $classic_theme_styles ),
+		'__unstableType' => 'core',
+		'isGlobalStyles' => false,
+	);
+
+	// Add these settings to the start of the array so that themes can override them.
+	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
+
+	return $editor_settings;
 }

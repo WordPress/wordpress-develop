@@ -18,8 +18,8 @@
  *
  * @since 2.7.0
  *
- * @global array $_old_files
- * @var array
+ * @global string[] $_old_files
+ * @var string[]
  * @name $_old_files
  */
 global $_old_files;
@@ -778,6 +778,56 @@ $_old_files = array(
 	'wp-includes/blocks/block/editor.min.css',
 	'wp-includes/blocks/block/editor-rtl.css',
 	'wp-includes/blocks/block/editor-rtl.min.css',
+	/*
+	 * 6.7
+	 *
+	 * WordPress 6.7 included a SimplePie upgrade that included a major
+	 * refactoring of the file structure and library. The old files are
+	 * split in to two sections to account for this: files and directories.
+	 *
+	 * See https://core.trac.wordpress.org/changeset/59141
+	 */
+	// 6.7 - files
+	'wp-includes/js/dist/interactivity-router.asset.php',
+	'wp-includes/js/dist/interactivity-router.js',
+	'wp-includes/js/dist/interactivity-router.min.js',
+	'wp-includes/js/dist/interactivity-router.min.asset.php',
+	'wp-includes/js/dist/interactivity.js',
+	'wp-includes/js/dist/interactivity.min.js',
+	'wp-includes/js/dist/vendor/react-dom.min.js.LICENSE.txt',
+	'wp-includes/js/dist/vendor/react.min.js.LICENSE.txt',
+	'wp-includes/js/dist/vendor/wp-polyfill-importmap.js',
+	'wp-includes/js/dist/vendor/wp-polyfill-importmap.min.js',
+	'wp-includes/sodium_compat/src/Core/Base64/Common.php',
+	'wp-includes/SimplePie/Author.php',
+	'wp-includes/SimplePie/Cache.php',
+	'wp-includes/SimplePie/Caption.php',
+	'wp-includes/SimplePie/Category.php',
+	'wp-includes/SimplePie/Copyright.php',
+	'wp-includes/SimplePie/Core.php',
+	'wp-includes/SimplePie/Credit.php',
+	'wp-includes/SimplePie/Enclosure.php',
+	'wp-includes/SimplePie/Exception.php',
+	'wp-includes/SimplePie/File.php',
+	'wp-includes/SimplePie/gzdecode.php',
+	'wp-includes/SimplePie/IRI.php',
+	'wp-includes/SimplePie/Item.php',
+	'wp-includes/SimplePie/Locator.php',
+	'wp-includes/SimplePie/Misc.php',
+	'wp-includes/SimplePie/Parser.php',
+	'wp-includes/SimplePie/Rating.php',
+	'wp-includes/SimplePie/Registry.php',
+	'wp-includes/SimplePie/Restriction.php',
+	'wp-includes/SimplePie/Sanitize.php',
+	'wp-includes/SimplePie/Source.php',
+	// 6.7 - directories
+	'wp-includes/SimplePie/Cache/',
+	'wp-includes/SimplePie/Content/',
+	'wp-includes/SimplePie/Decode/',
+	'wp-includes/SimplePie/HTTP/',
+	'wp-includes/SimplePie/Net/',
+	'wp-includes/SimplePie/Parse/',
+	'wp-includes/SimplePie/XML/',
 );
 
 /**
@@ -790,8 +840,8 @@ $_old_files = array(
  *
  * @since 6.2.0
  *
- * @global array $_old_requests_files
- * @var array
+ * @global string[] $_old_requests_files
+ * @var string[]
  * @name $_old_requests_files
  */
 global $_old_requests_files;
@@ -887,8 +937,8 @@ $_old_requests_files = array(
  *              upgrade. New themes are now installed again. To disable new
  *              themes from being installed on upgrade, explicitly define
  *              CORE_UPGRADE_SKIP_NEW_BUNDLED as true.
- * @global array $_new_bundled_files
- * @var array
+ * @global string[] $_new_bundled_files
+ * @var string[]
  * @name $_new_bundled_files
  */
 global $_new_bundled_files;
@@ -927,13 +977,14 @@ $_new_bundled_files = array(
  *
  * The steps for the upgrader for after the new release is downloaded and
  * unzipped is:
+ *
  *   1. Test unzipped location for select files to ensure that unzipped worked.
  *   2. Create the .maintenance file in current WordPress base.
  *   3. Copy new WordPress directory over old WordPress files.
  *   4. Upgrade WordPress to new version.
- *     4.1. Copy all files/folders other than wp-content
- *     4.2. Copy any language files to WP_LANG_DIR (which may differ from WP_CONTENT_DIR
- *     4.3. Copy any new bundled themes/plugins to their respective locations
+ *      1. Copy all files/folders other than wp-content
+ *      2. Copy any language files to `WP_LANG_DIR` (which may differ from `WP_CONTENT_DIR`
+ *      3. Copy any new bundled themes/plugins to their respective locations
  *   5. Delete new WordPress directory path.
  *   6. Delete .maintenance file.
  *   7. Remove old files.
@@ -955,13 +1006,10 @@ $_new_bundled_files = array(
  * @since 2.7.0
  *
  * @global WP_Filesystem_Base $wp_filesystem          WordPress filesystem subclass.
- * @global array              $_old_files
- * @global array              $_old_requests_files
- * @global array              $_new_bundled_files
+ * @global string[]           $_old_files
+ * @global string[]           $_old_requests_files
+ * @global string[]           $_new_bundled_files
  * @global wpdb               $wpdb                   WordPress database abstraction object.
- * @global string             $wp_version
- * @global string             $required_php_version
- * @global string             $required_mysql_version
  *
  * @param string $from New release unzipped path.
  * @param string $to   Path to old WordPress installation.
@@ -970,8 +1018,11 @@ $_new_bundled_files = array(
 function update_core( $from, $to ) {
 	global $wp_filesystem, $_old_files, $_old_requests_files, $_new_bundled_files, $wpdb;
 
+	/*
+	 * Give core update script an additional 300 seconds (5 minutes)
+	 * to finish updating large files when running on slower servers.
+	 */
 	if ( function_exists( 'set_time_limit' ) ) {
-		// Gives core update script time an additional 300 seconds(5 minutes) to finish updating large files or run on slower servers.
 		set_time_limit( 300 );
 	}
 
@@ -1022,7 +1073,7 @@ function update_core( $from, $to ) {
 	}
 
 	/*
-	 * Import $wp_version, $required_php_version, and $required_mysql_version from the new version.
+	 * Import $wp_version, $required_php_version, $required_php_extensions, and $required_mysql_version from the new version.
 	 * DO NOT globalize any variables imported from `version-current.php` in this function.
 	 *
 	 * BC Note: $wp_filesystem->wp_content_dir() returned unslashed pre-2.8.
@@ -1128,17 +1179,29 @@ function update_core( $from, $to ) {
 		);
 	}
 
-	// Add a warning when the JSON PHP extension is missing.
-	if ( ! extension_loaded( 'json' ) ) {
-		return new WP_Error(
-			'php_not_compatible_json',
-			sprintf(
-				/* translators: 1: WordPress version number, 2: The PHP extension name needed. */
-				__( 'The update cannot be installed because WordPress %1$s requires the %2$s PHP extension.' ),
-				$wp_version,
-				'JSON'
-			)
-		);
+	if ( isset( $required_php_extensions ) && is_array( $required_php_extensions ) ) {
+		$missing_extensions = new WP_Error();
+
+		foreach ( $required_php_extensions as $extension ) {
+			if ( extension_loaded( $extension ) ) {
+				continue;
+			}
+
+			$missing_extensions->add(
+				"php_not_compatible_{$extension}",
+				sprintf(
+					/* translators: 1: WordPress version number, 2: The PHP extension name needed. */
+					__( 'The update cannot be installed because WordPress %1$s requires the %2$s PHP extension.' ),
+					$wp_version,
+					$extension
+				)
+			);
+		}
+
+		// Add a warning when required PHP extensions are missing.
+		if ( ! empty( $missing_extensions->errors ) ) {
+			return $missing_extensions;
+		}
 	}
 
 	/** This filter is documented in wp-admin/includes/update-core.php */
@@ -1541,7 +1604,7 @@ function update_core( $from, $to ) {
  *
  * @since 6.2.0
  *
- * @global array              $_old_requests_files Requests files to be preloaded.
+ * @global string[]           $_old_requests_files Requests files to be preloaded.
  * @global WP_Filesystem_Base $wp_filesystem       WordPress filesystem subclass.
  * @global string             $wp_version          The WordPress version string.
  *
@@ -1653,7 +1716,7 @@ window.location = 'about.php?updated';
  *
  * @since 4.2.2
  *
- * @global array              $wp_theme_directories
+ * @global string[]           $wp_theme_directories
  * @global WP_Filesystem_Base $wp_filesystem
  */
 function _upgrade_422_remove_genericons() {
@@ -1699,7 +1762,7 @@ function _upgrade_422_remove_genericons() {
  * @since 4.2.2
  *
  * @param string $directory Directory path. Expects trailingslashed.
- * @return array
+ * @return string[]
  */
 function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	$directory = trailingslashit( $directory );

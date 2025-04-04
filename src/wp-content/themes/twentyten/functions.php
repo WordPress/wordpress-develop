@@ -766,7 +766,7 @@ add_filter( 'widget_tag_cloud_args', 'twentyten_widget_tag_cloud_args' );
  */
 function twentyten_scripts_styles() {
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyten-block-style', get_template_directory_uri() . '/blocks.css', array(), '20230627' );
+	wp_enqueue_style( 'twentyten-block-style', get_template_directory_uri() . '/blocks.css', array(), '20240703' );
 }
 add_action( 'wp_enqueue_scripts', 'twentyten_scripts_styles' );
 
@@ -777,12 +777,20 @@ add_action( 'wp_enqueue_scripts', 'twentyten_scripts_styles' );
  */
 function twentyten_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20230627' );
+	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20240703' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyten_block_editor_styles' );
 
-// Block Patterns.
-require get_template_directory() . '/block-patterns.php';
+/**
+ * Register block patterns and pattern categories.
+ *
+ * @since Twenty Ten 4.3
+ */
+function twentyten_register_block_patterns() {
+	require get_template_directory() . '/block-patterns.php';
+}
+
+add_action( 'init', 'twentyten_register_block_patterns' );
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**

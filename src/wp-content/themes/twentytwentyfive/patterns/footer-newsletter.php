@@ -38,14 +38,14 @@
 
 		<!-- wp:group {"align":"full","layout":{"type":"flex","flexWrap":"wrap","justifyContent":"space-between"}} -->
 		<div class="wp-block-group alignfull">
-			<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"twentytwentyfive/copyright"}}},"fontSize":"small"} -->
-			<p class="has-small-font-size"></p>
+			<!-- wp:paragraph {"fontSize":"small"} -->
+			<p class="has-small-font-size"><?php esc_html_e( 'Twenty Twenty-Five', 'twentytwentyfive' ); ?></p>
 			<!-- /wp:paragraph -->
 			<!-- wp:paragraph {"fontSize":"small"} -->
 			<p class="has-small-font-size">
 				<?php
 					printf(
-						/* Translators: Designed with WordPress. %s: WordPress link. */
+						/* translators: Designed with WordPress. %s: WordPress link. */
 						esc_html__( 'Designed with %s', 'twentytwentyfive' ),
 						'<a href="' . esc_url( __( 'https://wordpress.org', 'twentytwentyfive' ) ) . '" rel="nofollow">WordPress</a>'
 					);

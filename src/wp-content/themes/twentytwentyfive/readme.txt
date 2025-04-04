@@ -3,7 +3,7 @@ Contributors: wordpressdotorg
 Requires at least: 6.7
 Tested up to: 6.7
 Requires PHP: 7.2
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,10 +14,19 @@ Twenty Twenty-Five emphasizes simplicity and adaptability. It offers flexible de
 
 == Changelog ==
 
+= 1.1 =
+* Released: February 11, 2025
+
+https://wordpress.org/documentation/article/twenty-twenty-five-changelog/#Version_1.1
+
+= 1.0 =
+* Released: November 13, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-five-changelog/#Version_1.0
 
 == Copyright ==
 
-Twenty Twenty-Five WordPress Theme, (C) 2024 WordPress.org and contributors.
+Twenty Twenty-Five WordPress Theme, (C) 2024-2025 WordPress.org and contributors.
 Twenty Twenty-Five is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify
@@ -96,13 +105,13 @@ Source: https://fonts.google.com/specimen/Beiruti
 
 Northern Buttercups.
 Free public domain CC0 image.
-image-from-rawpixel-id-8802603-original.webp
+northern-buttercups-flowers.webp
 https://www.rawpixel.com/image/8802603
 
 License: CC0 https://creativecommons.org/publicdomain/zero/1.0/
 Small totara tree on ridge above Long Point, Porirua Harbour, by Leslie Adkin.
 Free public domain CC0 image.
-image-from-rawpixel-id-13029755.webp
+404-image.webp
 https://www.rawpixel.com/image/13029755
 
 Old gray paris map.
@@ -112,28 +121,23 @@ https://www.rawpixel.com/image/6033837
 
 Delphinium (Larkspur).
 Free public domain CC0 image.
-image-from-rawpixel-id-2224378.webp
+delphinium-flowers.webp
 https://www.rawpixel.com/image/2224378
 
 Campanula Alliariifolia (Cornish Bellflower).
 Free public domain CC0 image.
-image-from-rawpixel-id-2222755.webp
+campanula-alliariifolia-flower.webp
 https://www.rawpixel.com/image/2222755
 
 Centaurea Ruthenica(Star Thristle).
 Free public domain CC0 image.
-image-from-rawpixel-id-2211732.webp
+star-thristle-flower.webp
 https://www.rawpixel.com/image/2211732
-
-Woman walking into the woods.
-Free public domain CC0 image.
-avatar.webp
-https://www.rawpixel.com/image/5918459
 
 Botany flowers.
 Free public domain CC0 image.
 botany-flowers.webp
-image-from-rawpixel-id-8812207.webp
+botany-flowers-closeup.webp
 https://www.rawpixel.com/image/8812207
 
 Person typing on a typewriter.
@@ -156,11 +160,6 @@ man-in-hat.webp
 Free public domain CC0 image.
 https://www.slam.org/collection/objects/62642/
 
-Corner view showing mostly left wall, Church, Acoma Pueblo.
-Free public domain CC0 image.
-image-from-rawpixel-id-8803077-original.webp
-https://www.rawpixel.com/image/8803077
-
 African Woman by Pascal Sébah and Jean Pascal Sébah
 Free public domain CC0 image.
 agenda-img-4.webp
@@ -174,7 +173,7 @@ https://www.rawpixel.com/image/14265869
 Cliff Palace, Mesa Verde National Park, Colorado (vertical orientation)
 Free public domain CC0 image.
 poster-image-background.webp
-image-from-rawpixel-id-8802835-jpeg-scaled.webp
+ruins-image.webp
 https://www.rawpixel.com/image/8802835
 
 Flower meadow in Llano, Texas.
@@ -187,6 +186,7 @@ https://www.rawpixel.com/image/8800058
 Hibiscus flower.
 Free public domain CC0 image.
 grid-flower-1.webp
+red-hibiscus-closeup.webp
 https://www.rawpixel.com/image/8799471
 
 Phacelia tanacetifolia (Lacy Phacelia) enlarged 4 times from Urformen der Kunst (1928) by Karl Blossfeldt.
@@ -253,10 +253,10 @@ Book template by Beatriz Fialho, public domain.
 
 Flora of Akaka Falls State Park.
 Free public domain CC0 image.
-image-from-rawpixel-id-8802845.webp
+akaka-falls-state-park-flora.webp
 https://www.rawpixel.com/image/8802845
 
 Closeup of plantlife in the Malibu Canyon area of the Santa Monica Mountains.
 Free public domain CC0 image.
-image-from-rawpixel-id-8799918.webp
+malibu-plantlife.webp
 https://www.rawpixel.com/image/8799918

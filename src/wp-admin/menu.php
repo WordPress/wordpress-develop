@@ -6,6 +6,11 @@
  * @subpackage Administration
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Constructs the admin menu.
  *
@@ -65,7 +70,7 @@ $menu[4] = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
 
 $menu[10]                      = array( __( 'Media' ), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'dashicons-admin-media' );
 	$submenu['upload.php'][5]  = array( __( 'Library' ), 'upload_files', 'upload.php' );
-	$submenu['upload.php'][10] = array( __( 'Add New Media File' ), 'upload_files', 'media-new.php' );
+	$submenu['upload.php'][10] = array( __( 'Add Media File' ), 'upload_files', 'media-new.php' );
 	$i                         = 15;
 foreach ( get_taxonomies_for_attachments( 'objects' ) as $tax ) {
 	if ( ! $tax->show_ui || ! $tax->show_in_menu ) {
@@ -78,7 +83,7 @@ foreach ( get_taxonomies_for_attachments( 'objects' ) as $tax ) {
 
 $menu[15]                            = array( __( 'Links' ), 'manage_links', 'link-manager.php', '', 'menu-top menu-icon-links', 'menu-links', 'dashicons-admin-links' );
 	$submenu['link-manager.php'][5]  = array( _x( 'All Links', 'admin menu' ), 'manage_links', 'link-manager.php' );
-	$submenu['link-manager.php'][10] = array( __( 'Add New Link' ), 'manage_links', 'link-add.php' );
+	$submenu['link-manager.php'][10] = array( __( 'Add Link' ), 'manage_links', 'link-add.php' );
 	$submenu['link-manager.php'][15] = array( __( 'Link Categories' ), 'manage_categories', 'edit-tags.php?taxonomy=link_category' );
 
 // $menu[20] = Pages.
@@ -206,7 +211,13 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 if ( wp_is_block_theme() ) {
 	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
 } else {
-	$submenu['themes.php'][6] = array( _x( 'Patterns', 'patterns menu item' ), 'edit_theme_options', 'site-editor.php?path=/patterns' );
+	$supports_stylebook = ( current_theme_supports( 'editor-styles' ) || wp_theme_has_theme_json() );
+
+	if ( $supports_stylebook ) {
+		$submenu['themes.php'][6] = array( _x( 'Design', 'design menu item' ), 'edit_theme_options', 'site-editor.php' );
+	} else {
+		$submenu['themes.php'][6] = array( _x( 'Patterns', 'patterns menu item' ), 'edit_theme_options', 'site-editor.php?p=/pattern' );
+	}
 }
 
 $customize_url = add_query_arg( 'return', urlencode( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ), 'customize.php' );
@@ -297,7 +308,7 @@ $menu[65] = array( sprintf( __( 'Plugins %s' ), $count ), 'activate_plugins', 'p
 $submenu['plugins.php'][5] = array( __( 'Installed Plugins' ), 'activate_plugins', 'plugins.php' );
 
 if ( ! is_multisite() ) {
-	$submenu['plugins.php'][10] = array( __( 'Add New Plugin' ), 'install_plugins', 'plugin-install.php' );
+	$submenu['plugins.php'][10] = array( __( 'Add Plugin' ), 'install_plugins', 'plugin-install.php' );
 	if ( wp_is_block_theme() ) {
 		// Place the menu item below the Theme File Editor menu item.
 		add_action( 'admin_menu', '_add_plugin_file_editor_to_tools', 101 );
@@ -318,9 +329,9 @@ if ( current_user_can( 'list_users' ) ) {
 	$_wp_real_parent_file['profile.php'] = 'users.php'; // Back-compat for plugins adding submenus to profile.php.
 	$submenu['users.php'][5]             = array( __( 'All Users' ), 'list_users', 'users.php' );
 	if ( current_user_can( 'create_users' ) ) {
-		$submenu['users.php'][10] = array( __( 'Add New User' ), 'create_users', 'user-new.php' );
+		$submenu['users.php'][10] = array( __( 'Add User' ), 'create_users', 'user-new.php' );
 	} elseif ( is_multisite() ) {
-		$submenu['users.php'][10] = array( __( 'Add New User' ), 'promote_users', 'user-new.php' );
+		$submenu['users.php'][10] = array( __( 'Add User' ), 'promote_users', 'user-new.php' );
 	}
 
 	$submenu['users.php'][15] = array( __( 'Profile' ), 'read', 'profile.php' );
@@ -328,9 +339,9 @@ if ( current_user_can( 'list_users' ) ) {
 	$_wp_real_parent_file['users.php'] = 'profile.php';
 	$submenu['profile.php'][5]         = array( __( 'Profile' ), 'read', 'profile.php' );
 	if ( current_user_can( 'create_users' ) ) {
-		$submenu['profile.php'][10] = array( __( 'Add New User' ), 'create_users', 'user-new.php' );
+		$submenu['profile.php'][10] = array( __( 'Add User' ), 'create_users', 'user-new.php' );
 	} elseif ( is_multisite() ) {
-		$submenu['profile.php'][10] = array( __( 'Add New User' ), 'promote_users', 'user-new.php' );
+		$submenu['profile.php'][10] = array( __( 'Add User' ), 'promote_users', 'user-new.php' );
 	}
 }
 

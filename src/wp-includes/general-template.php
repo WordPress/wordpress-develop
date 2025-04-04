@@ -19,9 +19,9 @@
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialized header.
- * @param array  $args Optional. Additional arguments passed to the header template.
- *                     Default empty array.
+ * @param string|null $name The name of the specialized header. Default null.
+ * @param array       $args Optional. Additional arguments passed to the header template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_header( $name = null, $args = array() ) {
@@ -63,9 +63,9 @@ function get_header( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialized footer.
- * @param array  $args Optional. Additional arguments passed to the footer template.
- *                     Default empty array.
+ * @param string|null $name The name of the specialized footer. Default null.
+ * @param array       $args Optional. Additional arguments passed to the footer template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_footer( $name = null, $args = array() ) {
@@ -107,9 +107,9 @@ function get_footer( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialized sidebar.
- * @param array  $args Optional. Additional arguments passed to the sidebar template.
- *                     Default empty array.
+ * @param string|null $name The name of the specialized sidebar. Default null.
+ * @param array       $args Optional. Additional arguments passed to the sidebar template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_sidebar( $name = null, $args = array() ) {
@@ -159,7 +159,7 @@ function get_sidebar( $name = null, $args = array() ) {
  * @since 5.5.0 The `$args` parameter was added.
  *
  * @param string      $slug The slug name for the generic template.
- * @param string|null $name Optional. The name of the specialized template.
+ * @param string|null $name Optional. The name of the specialized template. Default null.
  * @param array       $args Optional. Additional arguments passed to the template.
  *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
@@ -175,8 +175,8 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 * @since 5.5.0 The `$args` parameter was added.
 	 *
 	 * @param string      $slug The slug name for the generic template.
-	 * @param string|null $name The name of the specialized template or null if
-	 *                          there is none.
+	 * @param string|null $name The name of the specialized template
+	 *                          or null if there is none.
 	 * @param array       $args Additional arguments passed to the template.
 	 */
 	do_action( "get_template_part_{$slug}", $slug, $name, $args );
@@ -196,8 +196,8 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 * @since 5.5.0 The `$args` parameter was added.
 	 *
 	 * @param string   $slug      The slug name for the generic template.
-	 * @param string   $name      The name of the specialized template or an empty
-	 *                            string if there is none.
+	 * @param string   $name      The name of the specialized template
+	 *                            or an empty string if there is none.
 	 * @param string[] $templates Array of template files to search for, in order.
 	 * @param array    $args      Additional arguments passed to the template.
 	 */
@@ -1118,7 +1118,7 @@ function get_custom_logo( $blog_id = 0 ) {
 					$image
 				);
 			} else {
-				$aria_current = is_front_page() && ! is_paged() ? ' aria-current="page"' : '';
+				$aria_current = ! is_paged() && ( is_front_page() || is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) ? ' aria-current="page"' : '';
 
 				$html = sprintf(
 					'<a href="%1$s" class="custom-logo-link" rel="home"%2$s>%3$s</a>',
@@ -1916,7 +1916,7 @@ function get_the_post_type_description() {
  * @param string $format   Optional. Can be 'link', 'option', 'html', or custom. Default 'html'.
  * @param string $before   Optional. Content to prepend to the description. Default empty.
  * @param string $after    Optional. Content to append to the description. Default empty.
- * @param bool   $selected Optional. Set to true if the current page is the selected archive page.
+ * @param bool   $selected Optional. Set to true if the current page is the selected archive page. Default false.
  * @return string HTML link content for archive.
  */
 function get_archives_link( $url, $text, $format = 'html', $before = '', $after = '', $selected = false ) {
@@ -2154,7 +2154,7 @@ function wp_get_archives( $args = '' ) {
 		if ( $results ) {
 			$after = $parsed_args['after'];
 			foreach ( (array) $results as $result ) {
-				if ( $result->week != $arc_w_last ) {
+				if ( $result->week !== $arc_w_last ) {
 					$arc_year       = $result->yr;
 					$arc_w_last     = $result->week;
 					$arc_week       = get_weekstartend( $result->yyyymmdd, get_option( 'start_of_week' ) );
@@ -2233,6 +2233,8 @@ function calendar_week_mod( $num ) {
  * no posts for the month, then it will not be displayed.
  *
  * @since 1.0.0
+ * @since 6.8.0 Added the `$args` parameter, with backward compatibility
+ *              for the replaced `$initial` and `$display` parameters.
  *
  * @global wpdb      $wpdb      WordPress database abstraction object.
  * @global int       $m
@@ -2241,21 +2243,96 @@ function calendar_week_mod( $num ) {
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  * @global array     $posts
  *
- * @param bool $initial Optional. Whether to use initial calendar names. Default true.
- * @param bool $display Optional. Whether to display the calendar output. Default true.
+ * @param array $args {
+ *     Optional. Arguments for the `get_calendar` function.
+ *
+ *     @type bool   $initial   Whether to use initial calendar names. Default true.
+ *     @type bool   $display   Whether to display the calendar output. Default true.
+ *     @type string $post_type Optional. Post type. Default 'post'.
+ * }
  * @return void|string Void if `$display` argument is true, calendar HTML if `$display` is false.
  */
-function get_calendar( $initial = true, $display = true ) {
+function get_calendar( $args = array() ) {
 	global $wpdb, $m, $monthnum, $year, $wp_locale, $posts;
 
-	$key   = md5( $m . $monthnum . $year );
+	$defaults = array(
+		'initial'   => true,
+		'display'   => true,
+		'post_type' => 'post',
+	);
+
+	$original_args = func_get_args();
+	$args          = array();
+
+	if ( ! empty( $original_args ) ) {
+		if ( ! is_array( $original_args[0] ) ) {
+			if ( isset( $original_args[0] ) && is_bool( $original_args[0] ) ) {
+				$defaults['initial'] = $original_args[0];
+			}
+			if ( isset( $original_args[1] ) && is_bool( $original_args[1] ) ) {
+				$defaults['display'] = $original_args[1];
+			}
+		} else {
+			$args = $original_args[0];
+		}
+	}
+
+	/**
+	 * Filter the `get_calendar` function arguments before they are used.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $args {
+	 *     Optional. Arguments for the `get_calendar` function.
+	 *
+	 *     @type bool   $initial   Whether to use initial calendar names. Default true.
+	 *     @type bool   $display   Whether to display the calendar output. Default true.
+	 *     @type string $post_type Optional. Post type. Default 'post'.
+	 * }
+	 * @return array The arguments for the `get_calendar` function.
+	 */
+	$args = apply_filters( 'get_calendar_args', wp_parse_args( $args, $defaults ) );
+
+	if ( ! post_type_exists( $args['post_type'] ) ) {
+		$args['post_type'] = 'post';
+	}
+
+	$w = 0;
+	if ( isset( $_GET['w'] ) ) {
+		$w = (int) $_GET['w'];
+	}
+
+	/*
+	 * Normalize the cache key.
+	 *
+	 * The following ensures the same cache key is used for the same parameter
+	 * and parameter equivalents. This prevents `post_type > post, initial > true`
+	 * from generating a different key from the same values in the reverse order.
+	 *
+	 * `display` is excluded from the cache key as the cache contains the same
+	 * HTML regardless of this function's need to echo or return the output.
+	 *
+	 * The global values contain data generated by the URL query string variables.
+	 */
+	$cache_args = $args;
+	unset( $cache_args['display'] );
+
+	$cache_args['globals'] = array(
+		'm'        => $m,
+		'monthnum' => $monthnum,
+		'year'     => $year,
+		'week'     => $w,
+	);
+
+	wp_recursive_ksort( $cache_args );
+	$key   = md5( serialize( $cache_args ) );
 	$cache = wp_cache_get( 'get_calendar', 'calendar' );
 
 	if ( $cache && is_array( $cache ) && isset( $cache[ $key ] ) ) {
 		/** This filter is documented in wp-includes/general-template.php */
-		$output = apply_filters( 'get_calendar', $cache[ $key ] );
+		$output = apply_filters( 'get_calendar', $cache[ $key ], $args );
 
-		if ( $display ) {
+		if ( $args['display'] ) {
 			echo $output;
 			return;
 		}
@@ -2267,9 +2344,21 @@ function get_calendar( $initial = true, $display = true ) {
 		$cache = array();
 	}
 
+	$post_type = $args['post_type'];
+
 	// Quick check. If we have no posts at all, abort!
 	if ( ! $posts ) {
-		$gotsome = $wpdb->get_var( "SELECT 1 as test FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'publish' LIMIT 1" );
+		$gotsome = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT 1 as test
+				FROM $wpdb->posts
+				WHERE post_type = %s
+				AND post_status = 'publish'
+				LIMIT 1",
+				$post_type
+			)
+		);
+
 		if ( ! $gotsome ) {
 			$cache[ $key ] = '';
 			wp_cache_set( 'get_calendar', $cache, 'calendar' );
@@ -2277,32 +2366,35 @@ function get_calendar( $initial = true, $display = true ) {
 		}
 	}
 
-	if ( isset( $_GET['w'] ) ) {
-		$w = (int) $_GET['w'];
-	}
 	// week_begins = 0 stands for Sunday.
 	$week_begins = (int) get_option( 'start_of_week' );
 
 	// Let's figure out when we are.
 	if ( ! empty( $monthnum ) && ! empty( $year ) ) {
-		$thismonth = zeroise( (int) $monthnum, 2 );
+		$thismonth = (int) $monthnum;
 		$thisyear  = (int) $year;
 	} elseif ( ! empty( $w ) ) {
 		// We need to get the month from MySQL.
 		$thisyear = (int) substr( $m, 0, 4 );
 		// It seems MySQL's weeks disagree with PHP's.
 		$d         = ( ( $w - 1 ) * 7 ) + 6;
-		$thismonth = $wpdb->get_var( "SELECT DATE_FORMAT((DATE_ADD('{$thisyear}0101', INTERVAL $d DAY) ), '%m')" );
+		$thismonth = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT DATE_FORMAT((DATE_ADD('%d0101', INTERVAL %d DAY) ), '%%m')",
+				$thisyear,
+				$d
+			)
+		);
 	} elseif ( ! empty( $m ) ) {
 		$thisyear = (int) substr( $m, 0, 4 );
 		if ( strlen( $m ) < 6 ) {
-			$thismonth = '01';
+			$thismonth = 1;
 		} else {
-			$thismonth = zeroise( (int) substr( $m, 4, 2 ), 2 );
+			$thismonth = (int) substr( $m, 4, 2 );
 		}
 	} else {
-		$thisyear  = current_time( 'Y' );
-		$thismonth = current_time( 'm' );
+		$thisyear  = (int) current_time( 'Y' );
+		$thismonth = (int) current_time( 'm' );
 	}
 
 	$unixmonth = mktime( 0, 0, 0, $thismonth, 1, $thisyear );
@@ -2310,20 +2402,32 @@ function get_calendar( $initial = true, $display = true ) {
 
 	// Get the next and previous month and year with at least one post.
 	$previous = $wpdb->get_row(
-		"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
-		FROM $wpdb->posts
-		WHERE post_date < '$thisyear-$thismonth-01'
-		AND post_type = 'post' AND post_status = 'publish'
-		ORDER BY post_date DESC
-		LIMIT 1"
+		$wpdb->prepare(
+			"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
+			FROM $wpdb->posts
+			WHERE post_date < '%d-%d-01'
+			AND post_type = %s AND post_status = 'publish'
+			ORDER BY post_date DESC
+			LIMIT 1",
+			$thisyear,
+			zeroise( $thismonth, 2 ),
+			$post_type
+		)
 	);
-	$next     = $wpdb->get_row(
-		"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
-		FROM $wpdb->posts
-		WHERE post_date > '$thisyear-$thismonth-{$last_day} 23:59:59'
-		AND post_type = 'post' AND post_status = 'publish'
-		ORDER BY post_date ASC
-		LIMIT 1"
+
+	$next = $wpdb->get_row(
+		$wpdb->prepare(
+			"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
+			FROM $wpdb->posts
+			WHERE post_date > '%d-%d-%d 23:59:59'
+			AND post_type = %s AND post_status = 'publish'
+			ORDER BY post_date ASC
+			LIMIT 1",
+			$thisyear,
+			zeroise( $thismonth, 2 ),
+			$last_day,
+			$post_type
+		)
 	);
 
 	/* translators: Calendar caption: 1: Month name, 2: 4-digit year. */
@@ -2344,9 +2448,9 @@ function get_calendar( $initial = true, $display = true ) {
 	}
 
 	foreach ( $myweek as $wd ) {
-		$day_name         = $initial ? $wp_locale->get_weekday_initial( $wd ) : $wp_locale->get_weekday_abbrev( $wd );
+		$day_name         = $args['initial'] ? $wp_locale->get_weekday_initial( $wd ) : $wp_locale->get_weekday_abbrev( $wd );
 		$wd               = esc_attr( $wd );
-		$calendar_output .= "\n\t\t<th scope=\"col\" title=\"$wd\">$day_name</th>";
+		$calendar_output .= "\n\t\t<th scope=\"col\" aria-label=\"$wd\">$day_name</th>";
 	}
 
 	$calendar_output .= '
@@ -2359,10 +2463,18 @@ function get_calendar( $initial = true, $display = true ) {
 
 	// Get days with posts.
 	$dayswithposts = $wpdb->get_results(
-		"SELECT DISTINCT DAYOFMONTH(post_date)
-		FROM $wpdb->posts WHERE post_date >= '{$thisyear}-{$thismonth}-01 00:00:00'
-		AND post_type = 'post' AND post_status = 'publish'
-		AND post_date <= '{$thisyear}-{$thismonth}-{$last_day} 23:59:59'",
+		$wpdb->prepare(
+			"SELECT DISTINCT DAYOFMONTH(post_date)
+			FROM $wpdb->posts WHERE post_date >= '%d-%d-01 00:00:00'
+			AND post_type = %s AND post_status = 'publish'
+			AND post_date <= '%d-%d-%d 23:59:59'",
+			$thisyear,
+			zeroise( $thismonth, 2 ),
+			$post_type,
+			$thisyear,
+			zeroise( $thismonth, 2 ),
+			$last_day
+		),
 		ARRAY_N
 	);
 
@@ -2373,8 +2485,8 @@ function get_calendar( $initial = true, $display = true ) {
 	}
 
 	// See how much we should pad in the beginning.
-	$pad = calendar_week_mod( gmdate( 'w', $unixmonth ) - $week_begins );
-	if ( 0 != $pad ) {
+	$pad = calendar_week_mod( (int) gmdate( 'w', $unixmonth ) - $week_begins );
+	if ( $pad > 0 ) {
 		$calendar_output .= "\n\t\t" . '<td colspan="' . esc_attr( $pad ) . '" class="pad">&nbsp;</td>';
 	}
 
@@ -2385,11 +2497,13 @@ function get_calendar( $initial = true, $display = true ) {
 		if ( isset( $newrow ) && $newrow ) {
 			$calendar_output .= "\n\t</tr>\n\t<tr>\n\t\t";
 		}
+
 		$newrow = false;
 
-		if ( current_time( 'j' ) == $day &&
-			current_time( 'm' ) == $thismonth &&
-			current_time( 'Y' ) == $thisyear ) {
+		if ( (int) current_time( 'j' ) === $day
+			&& (int) current_time( 'm' ) === $thismonth
+			&& (int) current_time( 'Y' ) === $thisyear
+		) {
 			$calendar_output .= '<td id="today">';
 		} else {
 			$calendar_output .= '<td>';
@@ -2412,13 +2526,13 @@ function get_calendar( $initial = true, $display = true ) {
 
 		$calendar_output .= '</td>';
 
-		if ( 6 == calendar_week_mod( gmdate( 'w', mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins ) ) {
+		if ( 6 === (int) calendar_week_mod( (int) gmdate( 'w', mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins ) ) {
 			$newrow = true;
 		}
 	}
 
-	$pad = 7 - calendar_week_mod( gmdate( 'w', mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins );
-	if ( 0 != $pad && 7 != $pad ) {
+	$pad = 7 - calendar_week_mod( (int) gmdate( 'w', mktime( 0, 0, 0, $thismonth, $day, $thisyear ) ) - $week_begins );
+	if ( 0 < $pad && $pad < 7 ) {
 		$calendar_output .= "\n\t\t" . '<td class="pad" colspan="' . esc_attr( $pad ) . '">&nbsp;</td>';
 	}
 
@@ -2429,9 +2543,11 @@ function get_calendar( $initial = true, $display = true ) {
 	$calendar_output .= '<nav aria-label="' . __( 'Previous and next months' ) . '" class="wp-calendar-nav">';
 
 	if ( $previous ) {
-		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-prev"><a href="' . get_month_link( $previous->year, $previous->month ) . '">&laquo; ' .
-			$wp_locale->get_month_abbrev( $wp_locale->get_month( $previous->month ) ) .
-		'</a></span>';
+		$calendar_output .= "\n\t\t" . sprintf(
+			'<span class="wp-calendar-nav-prev"><a href="%1$s">&laquo; %2$s</a></span>',
+			get_month_link( $previous->year, $previous->month ),
+			$wp_locale->get_month_abbrev( $wp_locale->get_month( $previous->month ) )
+		);
 	} else {
 		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-prev">&nbsp;</span>';
 	}
@@ -2439,9 +2555,11 @@ function get_calendar( $initial = true, $display = true ) {
 	$calendar_output .= "\n\t\t" . '<span class="pad">&nbsp;</span>';
 
 	if ( $next ) {
-		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-next"><a href="' . get_month_link( $next->year, $next->month ) . '">' .
-			$wp_locale->get_month_abbrev( $wp_locale->get_month( $next->month ) ) .
-		' &raquo;</a></span>';
+		$calendar_output .= "\n\t\t" . sprintf(
+			'<span class="wp-calendar-nav-next"><a href="%1$s">%2$s &raquo;</a></span>',
+			get_month_link( $next->year, $next->month ),
+			$wp_locale->get_month_abbrev( $wp_locale->get_month( $next->month ) )
+		);
 	} else {
 		$calendar_output .= "\n\t\t" . '<span class="wp-calendar-nav-next">&nbsp;</span>';
 	}
@@ -2452,19 +2570,29 @@ function get_calendar( $initial = true, $display = true ) {
 	$cache[ $key ] = $calendar_output;
 	wp_cache_set( 'get_calendar', $cache, 'calendar' );
 
-	if ( $display ) {
-		/**
-		 * Filters the HTML calendar output.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param string $calendar_output HTML output of the calendar.
-		 */
-		echo apply_filters( 'get_calendar', $calendar_output );
+	/**
+	 * Filters the HTML calendar output.
+	 *
+	 * @since 3.0.0
+	 * @since 6.8.0 Added the `$args` parameter.
+	 *
+	 * @param string $calendar_output HTML output of the calendar.
+	 * @param array  $args {
+	 *     Optional. Array of display arguments.
+	 *
+	 *     @type bool   $initial   Whether to use initial calendar names. Default true.
+	 *     @type bool   $display   Whether to display the calendar output. Default true.
+	 *     @type string $post_type Optional. Post type. Default 'post'.
+	 * }
+	 */
+	$calendar_output = apply_filters( 'get_calendar', $calendar_output, $args );
+
+	if ( $args['display'] ) {
+		echo $calendar_output;
 		return;
 	}
-	/** This filter is documented in wp-includes/general-template.php */
-	return apply_filters( 'get_calendar', $calendar_output );
+
+	return $calendar_output;
 }
 
 /**
@@ -2517,7 +2645,7 @@ function the_date_xml() {
 }
 
 /**
- * Displays or retrieves the date the current post was written (once per date)
+ * Displays or retrieves the date of the post (once per date).
  *
  * Will only output the date if the current post's date is different from the
  * previous one output.
@@ -2525,8 +2653,8 @@ function the_date_xml() {
  * i.e. Only one date listing will show per day worth of posts shown in the loop, even if the
  * function is called several times for each post.
  *
- * HTML output can be filtered with 'the_date'.
- * Date string output can be filtered with 'get_the_date'.
+ * HTML output can be filtered with {@see 'the_date'}.
+ * Date string output can be filtered with {@see 'get_the_date'}.
  *
  * @since 0.71
  *
@@ -2550,7 +2678,7 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
 	}
 
 	/**
-	 * Filters the date a post was published for display.
+	 * Filters the date of the post, for display.
 	 *
 	 * @since 0.71
 	 *
@@ -2569,7 +2697,7 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
 }
 
 /**
- * Retrieves the date on which the post was written.
+ * Retrieves the date of the post.
  *
  * Unlike the_date() this function will always return the date.
  * Modify output with the {@see 'get_the_date'} filter.
@@ -2592,13 +2720,13 @@ function get_the_date( $format = '', $post = null ) {
 	$the_date = get_post_time( $_format, false, $post, true );
 
 	/**
-	 * Filters the date a post was published.
+	 * Filters the date of the post.
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string|int  $the_date Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
-	 * @param string      $format   PHP date format.
-	 * @param WP_Post     $post     The post object.
+	 * @param string|int $the_date Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+	 * @param string     $format   PHP date format.
+	 * @param WP_Post    $post     The post object.
 	 */
 	return apply_filters( 'get_the_date', $the_date, $format, $post );
 }
@@ -2618,14 +2746,14 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
 	$the_modified_date = $before . get_the_modified_date( $format ) . $after;
 
 	/**
-	 * Filters the date a post was last modified for display.
+	 * Filters the date a post was last modified, for display.
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string|false $the_modified_date The last modified date or false if no post is found.
-	 * @param string       $format            PHP date format.
-	 * @param string       $before            HTML output before the date.
-	 * @param string       $after             HTML output after the date.
+	 * @param string $the_modified_date The last modified date.
+	 * @param string $format            PHP date format.
+	 * @param string $before            HTML output before the date.
+	 * @param string $after             HTML output after the date.
 	 */
 	$the_modified_date = apply_filters( 'the_modified_date', $the_modified_date, $format, $before, $after );
 
@@ -2672,7 +2800,7 @@ function get_the_modified_date( $format = '', $post = null ) {
 }
 
 /**
- * Displays the time at which the post was written.
+ * Displays the time of the post.
  *
  * @since 0.71
  *
@@ -2682,7 +2810,7 @@ function get_the_modified_date( $format = '', $post = null ) {
  */
 function the_time( $format = '' ) {
 	/**
-	 * Filters the time a post was written for display.
+	 * Filters the time of the post, for display.
 	 *
 	 * @since 0.71
 	 *
@@ -2694,7 +2822,7 @@ function the_time( $format = '' ) {
 }
 
 /**
- * Retrieves the time at which the post was written.
+ * Retrieves the time of the post.
  *
  * @since 1.5.0
  *
@@ -2717,20 +2845,20 @@ function get_the_time( $format = '', $post = null ) {
 	$the_time = get_post_time( $_format, false, $post, true );
 
 	/**
-	 * Filters the time a post was written.
+	 * Filters the time of the post.
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param string|int  $the_time Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
-	 * @param string      $format   Format to use for retrieving the time the post
-	 *                              was written. Accepts 'G', 'U', or PHP date format.
-	 * @param WP_Post     $post     Post object.
+	 * @param string|int $the_time Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+	 * @param string     $format   Format to use for retrieving the time the post
+	 *                             was written. Accepts 'G', 'U', or PHP date format.
+	 * @param WP_Post    $post     Post object.
 	 */
 	return apply_filters( 'get_the_time', $the_time, $format, $post );
 }
 
 /**
- * Retrieves the time at which the post was written.
+ * Retrieves the localized time of the post.
  *
  * @since 2.0.0
  *
@@ -2774,12 +2902,12 @@ function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = 
 	}
 
 	/**
-	 * Filters the localized time a post was written.
+	 * Filters the localized time of the post.
 	 *
 	 * @since 2.6.0
 	 *
 	 * @param string|int $time   Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
-	 * @param string     $format Format to use for retrieving the time the post was written.
+	 * @param string     $format Format to use for retrieving the date of the post.
 	 *                           Accepts 'G', 'U', or PHP date format.
 	 * @param bool       $gmt    Whether to retrieve the GMT time.
 	 */
@@ -2976,7 +3104,7 @@ function get_post_modified_time( $format = 'U', $gmt = false, $post = null, $tra
 }
 
 /**
- * Displays the weekday on which the post was written.
+ * Displays the localized weekday for the post.
  *
  * @since 0.71
  *
@@ -2994,7 +3122,7 @@ function the_weekday() {
 	$the_weekday = $wp_locale->get_weekday( get_post_time( 'w', false, $post ) );
 
 	/**
-	 * Filters the weekday on which the post was written, for display.
+	 * Filters the localized weekday of the post, for display.
 	 *
 	 * @since 0.71
 	 *
@@ -3004,7 +3132,7 @@ function the_weekday() {
 }
 
 /**
- * Displays the weekday on which the post was written.
+ * Displays the localized weekday for the post.
  *
  * Will only output the weekday if the current post's weekday is different from
  * the previous one output.
@@ -3037,7 +3165,7 @@ function the_weekday_date( $before = '', $after = '' ) {
 	}
 
 	/**
-	 * Filters the localized date on which the post was written, for display.
+	 * Filters the localized weekday of the post, for display.
 	 *
 	 * @since 0.71
 	 *
@@ -3792,7 +3920,7 @@ function user_can_richedit() {
  * Finds out which editor should be displayed by default.
  *
  * Works out which of the editors to display as the current editor for a
- * user. The 'html' setting is for the "Text" editor tab.
+ * user. The 'html' setting is for the "Code" editor tab.
  *
  * @since 2.5.0
  *
@@ -4351,7 +4479,7 @@ function get_search_query( $escaped = true ) {
  */
 function the_search_query() {
 	/**
-	 * Filters the contents of the search query variable for display.
+	 * Filters the contents of the search query variable, for display.
 	 *
 	 * @since 2.3.0
 	 *
@@ -4579,7 +4707,7 @@ function paginate_links( $args = '' ) {
 	$dots       = false;
 
 	if ( $args['prev_next'] && $current && 1 < $current ) :
-		$link = str_replace( '%_%', 2 == $current ? '' : $args['format'], $args['base'] );
+		$link = str_replace( '%_%', 2 === $current ? '' : $args['format'], $args['base'] );
 		$link = str_replace( '%#%', $current - 1, $link );
 		if ( $add_args ) {
 			$link = add_query_arg( $add_args, $link );
@@ -4601,7 +4729,7 @@ function paginate_links( $args = '' ) {
 	endif;
 
 	for ( $n = 1; $n <= $total; $n++ ) :
-		if ( $n == $current ) :
+		if ( $n === $current ) :
 			$page_links[] = sprintf(
 				'<span aria-current="%s" class="page-numbers current">%s</span>',
 				esc_attr( $args['aria_current'] ),
@@ -4611,7 +4739,7 @@ function paginate_links( $args = '' ) {
 			$dots = true;
 		else :
 			if ( $args['show_all'] || ( $n <= $end_size || ( $current && $n >= $current - $mid_size && $n <= $current + $mid_size ) || $n > $total - $end_size ) ) :
-				$link = str_replace( '%_%', 1 == $n ? '' : $args['format'], $args['base'] );
+				$link = str_replace( '%_%', 1 === $n ? '' : $args['format'], $args['base'] );
 				$link = str_replace( '%#%', $n, $link );
 				if ( $add_args ) {
 					$link = add_query_arg( $add_args, $link );
@@ -4762,7 +4890,7 @@ function register_admin_color_schemes() {
 		'modern',
 		_x( 'Modern', 'admin color scheme' ),
 		admin_url( "css/colors/modern/colors$suffix.css" ),
-		array( '#1e1e1e', '#3858e9', '#33f078' ),
+		array( '#1e1e1e', '#3858e9', '#7b90ff' ),
 		array(
 			'base'    => '#f3f1f1',
 			'focus'   => '#fff',
@@ -4984,7 +5112,7 @@ function wp_generator() {
  */
 function the_generator( $type ) {
 	/**
-	 * Filters the output of the XHTML generator tag for display.
+	 * Filters the output of the XHTML generator tag, for display.
 	 *
 	 * @since 2.5.0
 	 *
