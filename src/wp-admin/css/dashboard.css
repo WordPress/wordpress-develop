@@ -1030,6 +1030,7 @@ body #dashboard-widgets .postbox form .submit {
 #dashboard-widgets .button-link,
 .community-events-footer a {
 	text-decoration: none;
+	word-break: break-word;
 }
 
 #dashboard-widgets h2 a {
