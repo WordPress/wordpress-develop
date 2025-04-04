@@ -172,6 +172,14 @@
 	margin-left: 6px;
 }
 
+.media-item .filename.new {
+	overflow: visible;
+}
+
+.media-item .filename.new .edit-attachment {
+	padding: 0;
+}
+
 .media-item .pinkynail {
 	float: left;
 	margin: 14px;
