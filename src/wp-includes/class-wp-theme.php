@@ -1865,9 +1865,10 @@ final class WP_Theme implements ArrayAccess {
 		 *
 		 * @since 6.8
 		 *
-		 * @param array $files Array of theme files found within `patterns` directory.
+		 * @param array  $files   Array of theme files found within `patterns` directory.
+		 * @param string $dirpath Path of theme `patterns` directory being scanned.
 		 */
-		$files = (array) apply_filters( 'get_block_patterns_files', $files );
+		$files = (array) apply_filters( 'get_block_patterns_files', $files, $dirpath );
 
 		$dirpath = trailingslashit( $dirpath );
 
