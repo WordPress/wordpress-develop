@@ -5123,16 +5123,10 @@ function is_term_publicly_viewable( $term ) {
  * and marks them as "last changed" to reflect the updates or changes made to the meta data.
  *
  * @since x.x.x
- *
- * @param int $meta_id ID of the term meta to be cleared.
- * @param int $object_id ID of the term associated with the meta to be cleared.
  */
-function wp_cache_clear_term_meta( $meta_id, $object_id ) {
+function wp_cache_clear_term_meta() {
 	wp_cache_set_terms_last_changed();
-	$term = get_term( $object_id );
-	if ( $term instanceof WP_Term ) {
-		wp_cache_set_taxonomy_last_changed( $term->taxonomy );
-	}
+	wp_cache_set_last_changed( 'term_meta' );
 }
 
 /**
