@@ -1800,7 +1800,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @dataProvider data_application_passwords_can_use_capability_checks_to_determine_feature_availability
 	 */
 	public function test_application_passwords_can_use_capability_checks_to_determine_feature_availability( $role, $authenticated ) {
-		$user = self::$_user;
+		$user = self::factory()->user->create_and_get( array( 'role' => $role ) );
 
 		list( $password ) = WP_Application_Passwords::create_new_application_password( $user->ID, array( 'name' => 'phpunit' ) );
 
