@@ -9,16 +9,16 @@ class Tests_Meta extends WP_UnitTestCase {
 	/**
 	 * @var \WP_User
 	 */
-	private $author;
+	private static $author;
 
-	private $meta_id;
-	private $delete_meta_id;
+	private static $meta_id;
+	private static $delete_meta_id;
 
-	public function set_up() {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		parent::set_up();
-		$this->author         = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );
-		$this->meta_id        = add_metadata( 'user', $this->author->ID, 'meta_key', 'meta_value' );
-		$this->delete_meta_id = add_metadata( 'user', $this->author->ID, 'delete_meta_key', 'delete_meta_value' );
+		self::$author         = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );
+		self::$meta_id        = add_metadata( 'user', self::$author->ID, 'meta_key', 'meta_value' );
+		self::$delete_meta_id = add_metadata( 'user', self::$author->ID, 'delete_meta_key', 'delete_meta_value' );
 	}
 
 	public function meta_sanitize_cb( $meta_value, $meta_key, $meta_type ) {
