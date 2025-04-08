@@ -984,6 +984,9 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 	 * @param string      $token    Optional. User's session token to use for this cookie.
 	 */
 	function wp_set_auth_cookie( $user_id, $remember = false, $secure = '', $token = '' ) {
+		$expire     = 0;
+		$expiration = time() + ( 2 * DAY_IN_SECONDS );
+
 		if ( $remember ) {
 			/**
 			 * Filters the duration of the authentication cookie expiration period.
@@ -1001,9 +1004,6 @@ if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 			 * Needed for the login grace period in wp_validate_auth_cookie().
 			 */
 			$expire = $expiration + ( 12 * HOUR_IN_SECONDS );
-		} else {
-			$expiration = time() + ( 2 * DAY_IN_SECONDS );
-			$expire     = 0;
 		}
 
 		if ( '' === $secure ) {
