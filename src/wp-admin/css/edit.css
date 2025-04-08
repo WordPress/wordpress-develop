@@ -523,7 +523,7 @@ form#tags-filter {
 	top: -1px;
 }
 
-#post-body .misc-pub-uploadedby a {
+#post-body .misc-pub-uploadedby {
 	word-break: break-all;
 }
 
