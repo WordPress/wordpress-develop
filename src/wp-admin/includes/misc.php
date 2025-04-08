@@ -1025,7 +1025,7 @@ function admin_color_scheme_picker( $user_id ) {
 		<legend class="screen-reader-text"><span>
 			<?php
 			/* translators: Hidden accessibility text. */
-			_e( 'Dashboard Color Scheme' );
+			_e( 'Administration Color Scheme' );
 			?>
 		</span></legend>
 		<?php
