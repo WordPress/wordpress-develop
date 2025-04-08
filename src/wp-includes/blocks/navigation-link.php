@@ -13,7 +13,7 @@
  *
  * @param  array $context     Navigation block context.
  * @param  array $attributes  Block attributes.
- * @param  bool  $is_sub_menu Whether the link is part of a sub-menu.
+ * @param  bool  $is_sub_menu Whether the link is part of a sub-menu. Default false.
  * @return array Colors CSS classes and inline styles.
  */
 function block_core_navigation_link_build_css_colors( $context, $attributes, $is_sub_menu = false ) {
