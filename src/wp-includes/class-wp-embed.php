@@ -163,7 +163,7 @@ class WP_Embed {
 						 *
 						 * @see WP_Embed::shortcode()
 						 *
-						 * @param string $return The HTML result of the shortcode. 
+						 * @param string $return The HTML result of the shortcode.
 						 * @param string $url    The embed URL.
 						 * @param array  $attr   An array of shortcode attributes.
 						 */
