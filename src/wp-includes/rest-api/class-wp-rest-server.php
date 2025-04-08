@@ -279,7 +279,7 @@ class WP_REST_Server {
 	 * @global WP_User $current_user The currently authenticated user.
 	 *
 	 * @param string|null $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
-	 *                     Default null.
+	 *                    Default null.
 	 * @return null|false Null if not served and a HEAD request, false otherwise.
 	 */
 	public function serve_request( $path = null ) {
@@ -763,8 +763,7 @@ class WP_REST_Server {
 	 * @since 5.4.0 The `$embed` parameter can now contain a list of link relations to include.
 	 *
 	 * @param array         $data  Data from the request.
-	 * @param bool|string[] $embed Whether to embed all links or a filtered list of link relations.
-	 *                      Default true.
+	 * @param bool|string[] $embed Whether to embed all links or a filtered list of link relations. Default true.
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
