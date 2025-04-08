@@ -224,9 +224,9 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $code    WP_Error-style code.
-	 * @param string $message Human-readable message.
-	 * @param int    $status  Optional. HTTP status code to send. Default null.
+	 * @param string   $code    WP_Error-style code.
+	 * @param string   $message Human-readable message.
+	 * @param int|null $status  Optional. HTTP status code to send. Default null.
 	 * @return string JSON representation of the error
 	 */
 	protected function json_error( $code, $message, $status = null ) {
@@ -278,7 +278,7 @@ class WP_REST_Server {
 	 *
 	 * @global WP_User $current_user The currently authenticated user.
 	 *
-	 * @param string $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
+	 * @param string|null $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
 	 *                     Default null.
 	 * @return null|false Null if not served and a HEAD request, false otherwise.
 	 */
@@ -659,7 +659,7 @@ class WP_REST_Server {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param array $link
+	 * @param array $link Hints link.
 	 *
 	 * @return array|null
 	 */
@@ -764,6 +764,7 @@ class WP_REST_Server {
 	 *
 	 * @param array         $data  Data from the request.
 	 * @param bool|string[] $embed Whether to embed all links or a filtered list of link relations.
+	 *                      Default true.
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
@@ -1341,7 +1342,7 @@ class WP_REST_Server {
 	protected function get_json_last_error() {
 		$last_error_code = json_last_error();
 
-		if ( JSON_ERROR_NONE === $last_error_code || empty( $last_error_code ) ) {
+		if ( empty( $last_error_code ) || JSON_ERROR_NONE === $last_error_code ) {
 			return false;
 		}
 
