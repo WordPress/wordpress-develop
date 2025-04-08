@@ -1863,12 +1863,12 @@ final class WP_Theme implements ArrayAccess {
 		/**
 		 * Filters list of block pattern files for a theme.
 		 *
-		 * @since 6.8
+		 * @since 6.8.0
 		 *
 		 * @param array  $files   Array of theme files found within `patterns` directory.
 		 * @param string $dirpath Path of theme `patterns` directory being scanned.
 		 */
-		$files = (array) apply_filters( 'get_block_patterns_files', $files, $dirpath );
+		$files = apply_filters( 'theme_block_pattern_files', $files, $dirpath );
 
 		$dirpath = trailingslashit( $dirpath );
 
@@ -1902,10 +1902,6 @@ final class WP_Theme implements ArrayAccess {
 
 		foreach ( $files as $file ) {
 			$pattern = get_file_data( $file, $default_headers );
-
-			if ( empty( $pattern['slug'] ) && empty( $pattern['title'] ) ) {
-				continue;
-			}
 
 			if ( empty( $pattern['slug'] ) ) {
 				_doing_it_wrong(
