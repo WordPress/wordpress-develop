@@ -254,7 +254,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		if ( 'HEAD' === $method ) {
-			$this->assertNull( $response->get_data(), 'Expected null response data for HEAD request, but received non-null data.' );
+			$this->assertSame( array(), $response->get_data(), 'Expected null response data for HEAD request, but received non-null data.' );
 			return null;
 		}
 
@@ -3251,7 +3251,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		if ( 'HEAD' !== $method ) {
 			return null;
 		}
-		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**
@@ -3272,7 +3272,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertSame( 200, $response->get_status() );
 		if ( $is_head_request ) {
-			$this->assertNull( $response->get_data() );
+			$this->assertSame( array(), $response->get_data() );
 		} else {
 			$this->assertNotEmpty( $response->get_data() );
 		}
@@ -3304,6 +3304,39 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		// Assert that the SQL query only fetches the id column.
 		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the expected string.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		$user_id = self::factory()->user->create();
+		wp_set_current_user( self::$user );
+
+		$request = new WP_REST_Request( 'HEAD', sprintf( $path, $user_id ) );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/users/%d' ),
+			'get_items request' => array( '/wp/v2/users' ),
+		);
 	}
 
 	protected function check_user_data( $user, $data, $context, $links ) {
