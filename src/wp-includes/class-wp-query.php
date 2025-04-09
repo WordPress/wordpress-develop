@@ -1173,7 +1173,7 @@ class WP_Query {
 		if ( ! empty( $q['taxonomy'] ) && ! empty( $q['term'] ) ) {
 			$tax_query[] = array(
 				'taxonomy' => $q['taxonomy'],
-				'terms'    => array( $q['term'] ),
+				'terms'    => is_array( $q['term'] ) ? $q['term'] : array( $q['term'] ),
 				'field'    => 'slug',
 			);
 		}
