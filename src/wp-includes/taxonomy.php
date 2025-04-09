@@ -1764,7 +1764,7 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  *                         'attribute', or 'js'. Default 'display'.
  * @return mixed Sanitized field.
  */
-function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
+function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context = 'display' ) {
 	$int_fields = array( 'parent', 'term_id', 'count', 'term_group', 'term_taxonomy_id', 'object_id' );
 	if ( in_array( $field, $int_fields, true ) ) {
 		$value = (int) $value;
