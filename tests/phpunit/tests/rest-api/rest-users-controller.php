@@ -1390,7 +1390,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 201, $response->get_status() );
-		
+
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertNotEmpty( $mailer->mock_sent, 'No emails were sent' );
 		$this->assertSame( get_option( 'admin_email' ), $mailer->mock_sent[0]['to'][0][0] );
@@ -1401,14 +1401,17 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_create_user_notification_respects_filter() {
 		wp_set_current_user( self::$user );
-		add_filter( 'rest_wp_user_created_notification', function() {
-			return 'both';
-		});
+		add_filter(
+			'rest_wp_user_created_notification',
+			function () {
+				return 'both';
+			}
+		);
 
 		reset_phpmailer_instance();
 
 		$user_email = 'testuser2@example.com';
-		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request    = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->set_param( 'username', 'testuser2' );
 		$request->set_param( 'email', $user_email );
 		$request->set_param( 'password', 'testpassword2' );
