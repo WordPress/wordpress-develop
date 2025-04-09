@@ -257,6 +257,8 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that the category dropdown is generated correctly, including the level classes.
+	 *
 	 * @ticket 60910
 	 */
 	public function test_wp_dropdown_categories_hierarchical_should_have_level_classes() {
