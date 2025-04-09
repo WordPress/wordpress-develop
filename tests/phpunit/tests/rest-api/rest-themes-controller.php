@@ -365,7 +365,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 20, $properties );
+		$this->assertCount( 21, $properties );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
