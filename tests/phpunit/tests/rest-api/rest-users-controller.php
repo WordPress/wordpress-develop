@@ -1376,6 +1376,52 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->check_add_edit_user_response( $response );
 	}
 
+	/**
+	 * @ticket 40477
+	 */
+	public function test_create_user_sends_admin_notification() {
+		wp_set_current_user( self::$user );
+		reset_phpmailer_instance();
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->set_param( 'username', 'testuser' );
+		$request->set_param( 'email', 'testuser@example.com' );
+		$request->set_param( 'password', 'testpassword' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+		
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertNotEmpty( $mailer->mock_sent, 'No emails were sent' );
+		$this->assertSame( get_option( 'admin_email' ), $mailer->mock_sent[0]['to'][0][0] );
+	}
+
+	/**
+	 * @ticket 40477
+	 */
+	public function test_create_user_notification_respects_filter() {
+		wp_set_current_user( self::$user );
+		add_filter( 'rest_wp_user_created_notification', function() {
+			return 'both';
+		});
+
+		reset_phpmailer_instance();
+
+		$user_email = 'testuser2@example.com';
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->set_param( 'username', 'testuser2' );
+		$request->set_param( 'email', $user_email );
+		$request->set_param( 'password', 'testpassword2' );
+		rest_get_server()->dispatch( $request );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertCount( 2, $mailer->mock_sent, 'Expected 2 emails (admin + user)' );
+		$this->assertSame( get_option( 'admin_email' ), $mailer->mock_sent[0]['to'][0][0] );
+		$this->assertSame( $user_email, $mailer->mock_sent[1]['to'][0][0] );
+
+		remove_all_filters( 'rest_wp_user_created_notification' );
+	}
+
 	public function test_create_item_invalid_username() {
 		$this->allow_user_to_manage_multisite();
 
