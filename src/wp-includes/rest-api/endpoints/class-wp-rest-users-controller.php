@@ -656,6 +656,23 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/**
+		 * Filters the type of notification sent upon new user registration.
+		 *
+		 * This filter allows customization of the notification type when a new user is created via REST API.
+		 *
+		 * @param string $notify  Determines who gets notified. Accepts:
+		 *                        - 'admin' (default) or an empty string: Notify only the site administrator.
+		 *                        - 'user': Notify only the new user.
+		 *                        - 'both': Notify both admin and user.
+		 *                        - 'false': Disable notifications entirely.
+		 * @param int    $user_id User ID.
+		 */
+		$notify = apply_filters( 'rest_wp_user_created_notification', $notify = 'admin', $user_id );
+		if ( $notify && 'false' != $notify ) {
+			wp_new_user_notification( $user_id, null, $notify );
+		}
+
 		$user = get_user_by( 'id', $user_id );
 
 		/**
