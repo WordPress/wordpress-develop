@@ -276,12 +276,19 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 			'post_name__in, array dupes'      => array( 'post_name__in', array( 'elphaba', 'doctor-dillamond', 'elphaba', 'doctor-dillamond' ) ),
 
 			'category__in, string'            => array( 'category__in', '1' ),
+			'category__in, string[] ASC'      => array( 'category__in', array( '1', '2' ) ), // Fails 6.7 -- normalized to int[]
+			'category__in, string[] DESC'     => array( 'category__in', array( '2', '1' ) ), // Fails 6.7 -- normalized to int[]
 			'category__in, int[] ASC'         => array( 'category__in', array( 1, 2 ) ),
 			'category__in, int[] DESC'        => array( 'category__in', array( 2, 1 ) ),
+			'category__in, int[] duplicate'   => array( 'category__in', array( 1, 1 ) ), // Fails 6.7 -- normalized to remove dupe
 
+			'post id, string'                 => array( 'p', '1' ), // Fails 6.7 -- normalized to int
 			'post id, int'                    => array( 'p', 1 ),
+			'page_id, string'                 => array( 'page_id', '1' ), // Fails 6.7 -- normalized to int
 			'page_id, int'                    => array( 'page_id', 1 ),
+			'attachment_id, string'           => array( 'page_id', '1' ), // Fails 6.7 -- normalized to int
 			'attachment_id, int'              => array( 'page_id', 1 ),
+			'offset, string'                  => array( 'offset', '5' ), // Fails 6.7 -- normalized to int
 			'offset, int'                     => array( 'offset', 5 ),
 
 			'post__in, string[] ASC'          => array( 'post__in', array( '1', '2' ) ),
@@ -310,12 +317,19 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 
 			'tag_slug__in, string[] ASC'      => array( 'tag_slug__in', array( 'bobby', 'hans', 'herman', 'victor' ) ),
 			'tag_slug__in, string[] DESC'     => array( 'tag_slug__in', array( 'victor', 'herman', 'hans', 'bobby' ) ),
+			'tag_slug__in, duplicate'         => array( 'tag_slug__in', array( 'bobby', 'bobby' ) ), // Fails 6.7 -- normalized to remove dupe
 
+			'tag__in, string[] ASC'           => array( 'tag__in', array( '1', '2' ) ), // Fails 6.7 -- normalized to int[]
+			'tag__in, string[] DESC'          => array( 'tag__in', array( '2', '1' ) ), // Fails 6.7 -- normalized to int[]
 			'tag__in, int[] ASC'              => array( 'tag__in', array( 1, 2 ) ),
 			'tag__in, int[] DESC'             => array( 'tag__in', array( 2, 1 ) ),
+			'tag__in, int[] duplicate'        => array( 'tag__in', array( 1, 1 ) ), // Fails 6.7 -- normalized to remove dupe
 
+			'tag__not_in, string[] ASC'       => array( 'tag__not_in', array( '1', '2' ) ), // Fails 6.7 -- normalized to int[]
+			'tag__not_in, string[] DESC'      => array( 'tag__not_in', array( '2', '1' ) ), // Fails 6.7 -- normalized to int[]
 			'tag__not_in, int[] ASC'          => array( 'tag__not_in', array( 1, 2 ) ),
 			'tag__not_in, int[] DESC'         => array( 'tag__not_in', array( 2, 1 ) ),
+			'tag__not_in, int[] duplicate'    => array( 'tag__not_in', array( 1, 1 ) ), // Fails 6.7 -- normalized to remove dupe
 		);
 	}
 }
