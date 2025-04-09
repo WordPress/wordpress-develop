@@ -523,10 +523,6 @@ form#tags-filter {
 	top: -1px;
 }
 
-#post-body .misc-pub-uploadedby {
-	word-break: break-all;
-}
-
 #post-body .misc-pub-uploadedto:before {
 	content: "\f318";
 	position: relative;
