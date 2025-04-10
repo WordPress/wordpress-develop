@@ -2882,7 +2882,7 @@ class WP_Query {
 			$comments_request = "SELECT $distinct {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
 
 			$key          = md5( $comments_request );
-			$last_changed = wp_cache_get_last_changed( 'comment' ) . '+' . wp_cache_get_last_changed( 'posts' );
+			$last_changed = wp_cache_get_last_changed( 'posts' ) . '+' . wp_cache_get_last_changed( 'comment' );
 
 			$cache_key   = "comment_feed:$key:$last_changed";
 			$comment_ids = wp_cache_get( $cache_key, 'comment-queries' );
@@ -5064,7 +5064,7 @@ class WP_Query {
 
 		$last_changed = wp_cache_get_last_changed( 'posts' );
 		if ( ! empty( $this->tax_query->queries ) ) {
-			$last_changed = wp_cache_get_last_changed( 'terms' ) . '+' . $last_changed;
+			$last_changed .= '+' . wp_cache_get_last_changed( 'terms' );
 		}
 
 		$this->query_cache_key = "wp_query:$key:$last_changed";

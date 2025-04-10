@@ -1080,7 +1080,7 @@ class WP_User_Query {
 				switch_to_blog( $blog_id );
 			}
 
-			$last_changed = wp_cache_get_last_changed( 'posts' ) . '+' . $last_changed;
+			$last_changed .= '+' . wp_cache_get_last_changed( 'posts' );
 
 			if ( $switch ) {
 				restore_current_blog();
