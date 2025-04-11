@@ -2870,7 +2870,7 @@ function wp_network_admin_email_change_notification( $option_name, $new_email, $
 	$send = true;
 
 	// Don't send the notification to the default 'admin_email' value or an empty value.
-	if ( 'you@example.com' === $old_email || empty( $old_email ) ) {
+	if ( empty( $old_email ) || 'you@example.com' === $old_email ) {
 		$send = false;
 	}
 
