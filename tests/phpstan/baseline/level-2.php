@@ -656,6 +656,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/profile.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Access to an undefined property WP_Theme\\:\\:\\$version\\.$#',
+	'identifier' => 'property.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/update-core.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$download_link on array\\|object\\.$#',
 	'identifier' => 'property.nonObject',
 	'count' => 2,
@@ -986,12 +992,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Comparison operation "\\=\\=" between 0 and array\\|int results in an error\\.$#',
-	'identifier' => 'equal.invalid',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$term_id on string\\|WP_Customize_Setting\\.$#',
 	'identifier' => 'property.nonObject',
 	'count' => 1,
@@ -1110,12 +1110,6 @@ $ignoreErrors[] = [
 	'identifier' => 'parameter.defaultValue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/link-template.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#1 \\$force \\(string\\) of function force_ssl_content\\(\\) is incompatible with type bool\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$ID on array\\|object\\.$#',

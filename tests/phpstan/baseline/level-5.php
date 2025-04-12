@@ -50,6 +50,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/edit-comments.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$gmt of function current_time expects bool, int given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/edit-comments.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$screen of function do_meta_boxes expects string\\|WP_Screen, null given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 2,
@@ -138,6 +144,12 @@ $ignoreErrors[] = [
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/ajax-actions.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$gmt of function current_time expects bool, int given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/bookmark.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$allowed_html of function wp_kses expects array\\<array\\>\\|string, array\\<string, array\\<string, bool\\>\\|true\\> given\\.$#',
@@ -476,6 +488,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/image-edit.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/image-edit.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$width of function wp_imagecreatetruecolor expects int, float given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -681,6 +699,12 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$timestamp of function wp_schedule_event expects int, float given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/upgrade.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$gmt of function current_time expects bool, int given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/upgrade.php',
@@ -1184,6 +1208,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-xmlrpc-server.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$gmt of function current_time expects bool, int given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-xmlrpc-server.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$arrays of function array_intersect expects an array of values castable to string, array\\<string\\|WP_Post_Type\\> given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -1271,6 +1301,12 @@ $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$post_id of function wp_update_comment_count expects int\\|null, string given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$gmt of function current_time expects bool, int given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
 ];
 $ignoreErrors[] = [
@@ -1526,36 +1562,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/nav-menu.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$network_id of function add_network_option expects int, null given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/option.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$network_id of function delete_network_option expects int, null given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/option.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$network_id of function get_network_option expects int, null given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/option.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$network_id of function update_network_option expects int, null given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/option.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$network_id of function wp_prime_network_option_caches expects int, null given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/option.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$value of function setcookie expects string, int\\<1, max\\> given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -1641,6 +1647,12 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$arrays of function array_diff expects an array of values castable to string, array\\<stdClass\\|string\\> given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$gmt of function current_time expects bool, int given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/post.php',

@@ -8,6 +8,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-automatic-updater.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Cannot access offset \'new_version\' on bool\\.$#',
+	'identifier' => 'offsetAccess.nonOffsetAccessible',
+	'count' => 4,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-debug-data.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Method WP_Filesystem_Direct\\:\\:group\\(\\) should return string\\|false but returns int\\<min, \\-1\\>\\|int\\<1, max\\>\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
@@ -132,6 +138,12 @@ $ignoreErrors[] = [
 	'identifier' => 'return.empty',
 	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/theme.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Cannot access offset \'new_version\' on bool\\.$#',
+	'identifier' => 'offsetAccess.nonOffsetAccessible',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/update-core.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Function get_the_author_posts\\(\\) should return int but returns string\\.$#',

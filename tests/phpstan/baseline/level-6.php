@@ -3602,6 +3602,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/ms.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Function wp_ensure_editable_role\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/ms.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Function wpmu_delete_blog\\(\\) has no return type specified\\.$#',
 	'identifier' => 'missingType.return',
 	'count' => 1,
@@ -4916,6 +4922,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/block-editor.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Function wp_initialize_site_preview_hooks\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/block-editor.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Function _load_remote_block_patterns\\(\\) has no return type specified\\.$#',
 	'identifier' => 'missingType.return',
 	'count' => 1,
@@ -4950,6 +4962,12 @@ $ignoreErrors[] = [
 	'identifier' => 'missingType.return',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/block-supports/align.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_register_aria_label_support\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/block-supports/aria-label.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Function wp_register_background_support\\(\\) has no return type specified\\.$#',
@@ -5103,6 +5121,12 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	'message' => '#^Function wp_register_block_metadata_collection\\(\\) has no return type specified\\.$#',
+	'identifier' => 'missingType.return',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/blocks.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_register_block_types_from_metadata_collection\\(\\) has no return type specified\\.$#',
 	'identifier' => 'missingType.return',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/blocks.php',

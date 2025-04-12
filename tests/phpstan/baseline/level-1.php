@@ -56,12 +56,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-direct.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Variable \\$class in empty\\(\\) always exists and is not falsy\\.$#',
-	'identifier' => 'empty.variable',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-list-table.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Variable \\$children_pages in isset\\(\\) is never defined\\.$#',
 	'identifier' => 'isset.variable',
 	'count' => 1,
@@ -188,18 +182,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-date-query.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Constructor of class WP_Feed_Cache_Transient has an unused parameter \\$location\\.$#',
-	'identifier' => 'constructor.unusedParameter',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-feed-cache-transient.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Constructor of class WP_Feed_Cache_Transient has an unused parameter \\$type\\.$#',
-	'identifier' => 'constructor.unusedParameter',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-feed-cache-transient.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Variable \\$loader in isset\\(\\) always exists and is not nullable\\.$#',
 	'identifier' => 'isset.variable',
 	'count' => 1,
@@ -272,12 +254,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/media.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Variable \\$user_already_exists in isset\\(\\) always exists and is not nullable\\.$#',
-	'identifier' => 'isset.variable',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Variable \\$deprecated in empty\\(\\) always exists and is always falsy\\.$#',
 	'identifier' => 'empty.variable',
 	'count' => 1,
@@ -306,12 +282,6 @@ $ignoreErrors[] = [
 	'identifier' => 'isset.variable',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/plugin.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Variable \\$last_error_code in empty\\(\\) always exists and is not falsy\\.$#',
-	'identifier' => 'empty.variable',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/class-wp-rest-server.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Variable \\$schema in empty\\(\\) is never defined\\.$#',

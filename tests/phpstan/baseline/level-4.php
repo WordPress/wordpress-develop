@@ -332,6 +332,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-list-table.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Offset \'post_status\' on non\\-empty\\-array in isset\\(\\) always exists and is not nullable\\.$#',
+	'identifier' => 'isset.offset',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-list-table.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Property WP_List_Table\\:\\:\\$_column_headers \\(array\\) in isset\\(\\) is not nullable\\.$#',
 	'identifier' => 'isset.property',
 	'count' => 1,
@@ -424,6 +430,12 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Left side of && is always true\\.$#',
 	'identifier' => 'booleanAnd.leftAlwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-privacy-requests-table.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Offset \'filter\\-status\' on non\\-empty\\-array in isset\\(\\) always exists and is not nullable\\.$#',
+	'identifier' => 'isset.offset',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-privacy-requests-table.php',
 ];
@@ -1052,6 +1064,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/nav-menus.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Offset \'action\' on non\\-empty\\-array in isset\\(\\) always exists and is not nullable\\.$#',
+	'identifier' => 'isset.offset',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/nav-menus.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Offset \\(float\\|int\\) on array\\<mixed\\> in isset\\(\\) always exists and is not nullable\\.$#',
 	'identifier' => 'isset.offset',
 	'count' => 1,
@@ -1078,6 +1096,12 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Negated boolean expression is always true\\.$#',
 	'identifier' => 'booleanNot.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/plugins.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Offset \'checked\' on non\\-empty\\-array in isset\\(\\) always exists and is not nullable\\.$#',
+	'identifier' => 'isset.offset',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/plugins.php',
 ];
@@ -1340,7 +1364,7 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-list.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Offset \'closer\' on array\\{0\\: array\\{string, int\\<\\-1, max\\>\\}, closer\\: array\\{\'\'\\|\'/\', int\\<\\-1, max\\>\\}, 1\\: array\\{\'\'\\|\'/\', int\\<\\-1, max\\>\\}, namespace\\: array\\{string, int\\<\\-1, max\\>\\}, 2\\: array\\{string, int\\<\\-1, max\\>\\}, name\\: array\\{non\\-falsy\\-string, int\\<\\-1, max\\>\\}, 3\\: array\\{non\\-falsy\\-string, int\\<\\-1, max\\>\\}, attrs\\?\\: array\\{string, int\\<\\-1, max\\>\\}, \\.\\.\\.\\} in isset\\(\\) always exists and is not nullable\\.$#',
+	'message' => '#^Offset \'closer\' on array\\{0\\: array\\{non\\-falsy\\-string, int\\<\\-1, max\\>\\}, closer\\: array\\{\'\'\\|\'/\', int\\<\\-1, max\\>\\}, 1\\: array\\{\'\'\\|\'/\', int\\<\\-1, max\\>\\}, namespace\\: array\\{string, int\\<\\-1, max\\>\\}, 2\\: array\\{string, int\\<\\-1, max\\>\\}, name\\: array\\{non\\-falsy\\-string, int\\<\\-1, max\\>\\}, 3\\: array\\{non\\-falsy\\-string, int\\<\\-1, max\\>\\}, attrs\\?\\: array\\{string, int\\<\\-1, max\\>\\}, \\.\\.\\.\\} in isset\\(\\) always exists and is not nullable\\.$#',
 	'identifier' => 'isset.offset',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-parser.php',
@@ -1924,6 +1948,12 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^If condition is always true\\.$#',
 	'identifier' => 'if.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Post\\:\\:\\$ID \\(int\\) in isset\\(\\) is not nullable\\.$#',
+	'identifier' => 'isset.property',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-query.php',
 ];
@@ -2810,7 +2840,7 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/formatting.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Offset 0 on array\\{0\\: string, non_cdata_followed_by_cdata\\: \'\', 1\\: \'\', 2\\: \'\', cdata\\: \'\', 3\\: \'\', 4\\: \'\', non_cdata\\: string, \\.\\.\\.\\}\\|array\\{0\\: string, non_cdata_followed_by_cdata\\: string, 1\\: string, 2\\: string, cdata\\: non\\-falsy\\-string, 3\\: non\\-falsy\\-string, 4\\: non\\-falsy\\-string\\} in isset\\(\\) always exists and is not nullable\\.$#',
+	'message' => '#^Offset 0 on array\\{0\\: non\\-empty\\-string, non_cdata_followed_by_cdata\\: \'\', 1\\: \'\', 2\\: \'\', cdata\\: \'\', 3\\: \'\', 4\\: \'\', non_cdata\\: string, \\.\\.\\.\\}\\|array\\{0\\: non\\-empty\\-string, non_cdata_followed_by_cdata\\: string, 1\\: string, 2\\: string, cdata\\: non\\-falsy\\-string, 3\\: non\\-falsy\\-string, 4\\: non\\-falsy\\-string\\} in isset\\(\\) always exists and is not nullable\\.$#',
 	'identifier' => 'isset.offset',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/formatting.php',
@@ -3320,6 +3350,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/ms-blogs.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Offset \'_wp_switched_stack\' on non\\-empty\\-array in empty\\(\\) always exists and is not falsy\\.$#',
+	'identifier' => 'empty.offset',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/ms-blogs.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Strict comparison using \\!\\=\\= between null and null will always evaluate to false\\.$#',
 	'identifier' => 'notIdentical.alwaysFalse',
 	'count' => 1,
@@ -3364,12 +3400,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Call to function is_string\\(\\) with string will always evaluate to true\\.$#',
 	'identifier' => 'function.alreadyNarrowedType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
-	'identifier' => 'deadCode.unreachable',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
 ];
