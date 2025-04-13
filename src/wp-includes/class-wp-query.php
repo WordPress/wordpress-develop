@@ -1277,7 +1277,7 @@ class WP_Query {
 
 		if ( ! empty( $q['category__in'] ) ) {
 			$q['category__in'] = array_map( 'absint', array_unique( (array) $q['category__in'] ) );
-			$tax_query[] = array(
+			$tax_query[]       = array(
 				'taxonomy'         => 'category',
 				'terms'            => $q['category__in'],
 				'field'            => 'term_id',
@@ -1287,7 +1287,7 @@ class WP_Query {
 
 		if ( ! empty( $q['category__not_in'] ) ) {
 			$q['category__not_in'] = array_map( 'absint', array_unique( (array) $q['category__not_in'] ) );
-			$tax_query[] = array(
+			$tax_query[]           = array(
 				'taxonomy'         => 'category',
 				'terms'            => $q['category__not_in'],
 				'operator'         => 'NOT IN',
@@ -1297,7 +1297,7 @@ class WP_Query {
 
 		if ( ! empty( $q['category__and'] ) ) {
 			$q['category__and'] = array_map( 'absint', array_unique( (array) $q['category__and'] ) );
-			$tax_query[] = array(
+			$tax_query[]        = array(
 				'taxonomy'         => 'category',
 				'terms'            => $q['category__and'],
 				'field'            => 'term_id',
@@ -1343,7 +1343,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag__in'] ) ) {
 			$q['tag__in'] = array_map( 'absint', array_unique( (array) $q['tag__in'] ) );
-			$tax_query[] = array(
+			$tax_query[]  = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag__in'],
 			);
@@ -1351,7 +1351,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag__not_in'] ) ) {
 			$q['tag__not_in'] = array_map( 'absint', array_unique( (array) $q['tag__not_in'] ) );
-			$tax_query[] = array(
+			$tax_query[]      = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag__not_in'],
 				'operator' => 'NOT IN',
@@ -1360,7 +1360,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag__and'] ) ) {
 			$q['tag__and'] = array_map( 'absint', array_unique( (array) $q['tag__and'] ) );
-			$tax_query[] = array(
+			$tax_query[]   = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag__and'],
 				'operator' => 'AND',
@@ -1369,7 +1369,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag_slug__in'] ) ) {
 			$q['tag_slug__in'] = array_map( 'sanitize_title_for_query', array_unique( (array) $q['tag_slug__in'] ) );
-			$tax_query[] = array(
+			$tax_query[]       = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag_slug__in'],
 				'field'    => 'slug',
@@ -1378,7 +1378,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag_slug__and'] ) ) {
 			$q['tag_slug__and'] = array_map( 'sanitize_title_for_query', array_unique( (array) $q['tag_slug__and'] ) );
-			$tax_query[] = array(
+			$tax_query[]        = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag_slug__and'],
 				'field'    => 'slug',
@@ -2302,7 +2302,6 @@ class WP_Query {
 					sort( $q[ $key ] );
 				}
 			}
-
 
 			$this->parse_tax_query( $q );
 
