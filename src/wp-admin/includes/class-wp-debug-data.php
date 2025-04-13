@@ -1305,6 +1305,7 @@ class WP_Debug_Data {
 		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
 		if ( $auto_updates_enabled ) {
 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+			$transient    = get_site_transient( 'update_themes' );
 		}
 
 		// Populate a list of all themes available in the installation.
