@@ -466,8 +466,17 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 			'post_name__in, string[] ASC'       => array( 'post_name__in', array( 'elphaba', 'doctor-dillamond', 'glinda', 'the-wizard-of-oz' ) ),
 			'post_name__in, string[] duplicate' => array( 'post_name__in', array( 'elphaba', 'doctor-dillamond', 'elphaba', 'doctor-dillamond' ) ),
 
+			'cat, comma-separated string ASC'   => array( 'cat', '1,2' ),
+			'cat, comma-separated string DESC'  => array( 'cat', '2,1' ),
+
 			'category__in, int[] ASC'           => array( 'category__in', array( 1, 2 ) ),
 			'category__in, int[] DESC'          => array( 'category__in', array( 2, 1 ) ),
+
+			'category__not_in, int[] ASC'       => array( 'category__not_in', array( 1, 2 ) ),
+			'category__not_in, int[] DESC'      => array( 'category__not_in', array( 2, 1 ) ),
+
+			'category__and, int[] ASC'          => array( 'category__in', array( 1, 2 ) ),
+			'category__and, int[] DESC'         => array( 'category__in', array( 2, 1 ) ),
 
 			'post id, int'                      => array( 'p', 1 ),
 			'page_id, int'                      => array( 'page_id', 1 ),
@@ -507,6 +516,12 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 
 			'tag__not_in, int[] ASC'            => array( 'tag__not_in', array( 1, 2 ) ),
 			'tag__not_in, int[] DESC'           => array( 'tag__not_in', array( 2, 1 ) ),
+
+			'tag__and, int[] ASC'               => array( 'tag__and', array( 1, 2 ) ),
+			'tag__and, int[] DESC'              => array( 'tag__and', array( 2, 1 ) ),
+
+			'tag_slug__and, string[] ASC'       => array( 'tag_slug__and', array( 'bobby', 'hans', 'herman', 'victor' ) ),
+			'tag_slug__and, string[] DESC'      => array( 'tag_slug__and', array( 'victor', 'herman', 'hans', 'bobby' ) ),
 		);
 	}
 }
