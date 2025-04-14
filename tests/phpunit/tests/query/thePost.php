@@ -419,7 +419,7 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	 * @param mixed  $query_var_value The value to set for the query variable.
 	 */
 	public function test_pre_get_posts_includes_unmodified_query_vars( $query_var, $query_var_value ) {
-		$action_did_run = false;
+		$number_action_runs = 0;
 
 		/*
 		 * MockAction can not be used here because `$query` is an object and therefore
@@ -428,20 +428,21 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		 */
 		add_action(
 			'pre_get_posts',
-			function ( $query ) use ( $query_var, $query_var_value, &$action_did_run ) {
-				$action_did_run = true;
+			function ( $query ) use ( $query_var, $query_var_value, &$number_action_runs ) {
+				++$number_action_runs;
 				$this->assertSame( $query_var_value, $query->get( $query_var ), 'The pre_get_posts filter should return an unmodified query var.' );
 			}
 		);
 
 		new WP_Query(
 			array(
-				$query_var => $query_var_value,
+				$query_var            => $query_var_value,
+				'ignore_sticky_posts' => true, // Ensures the sticky posts WP_Query does not run.
 			)
 		);
 
 		// Ensure the action was called.
-		$this->assertTrue( $action_did_run, 'The pre_get_posts is expected to be called' );
+		$this->assertSame( 1, $number_action_runs, 'The pre_get_posts is expected to be called exactly once' );
 	}
 
 	/**
