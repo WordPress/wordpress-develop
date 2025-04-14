@@ -2285,6 +2285,7 @@ class WP_Query {
 		if ( ! $this->is_singular ) {
 			// Standardize prior to re-parsing the tax query.
 			$sortable_arrays = array(
+				'cat',
 				'category__in',
 				'category__not_in',
 				'category__and',
@@ -2298,6 +2299,17 @@ class WP_Query {
 			foreach ( $sortable_arrays as $key ) {
 				if ( isset( $q[ $key ] ) && is_array( $q[ $key ] ) ) {
 					$q[ $key ] = array_unique( $q[ $key ] );
+					sort( $q[ $key ] );
+				}
+			}
+
+			$sortable_comma_separated_integers = array(
+				'cat',
+			);
+
+			foreach ( $sortable_comma_separated_integers as $key ) {
+				if ( isset( $q[ $key ] ) && is_string( $q[ $key ] ) ) {
+					$q[ $key ] = array_unique( array_map( 'intval', explode( ',', $q[ $key ] ) ) );
 					sort( $q[ $key ] );
 				}
 			}
