@@ -1234,8 +1234,7 @@ class WP_Query {
 
 			$cat_array = preg_split( '/[,\s]+/', urldecode( $q['cat'] ) );
 			$cat_array = array_map( 'intval', $cat_array );
-			sort( $cat_array );
-			$q['cat'] = implode( ',', $cat_array );
+			$q['cat']  = implode( ',', $cat_array );
 
 			foreach ( $cat_array as $cat ) {
 				if ( $cat > 0 ) {
