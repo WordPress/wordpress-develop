@@ -442,7 +442,7 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		);
 
 		// Ensure the action was called.
-		$this->assertSame( 1, $number_action_runs, 'The pre_get_posts is expected to be called exactly once' );
+		$this->assertSame( 1, $number_action_runs, 'The pre_get_posts action is expected to be called exactly once' );
 	}
 
 	/**
