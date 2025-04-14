@@ -408,4 +408,104 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		}
 		$this->assertSame( 'ticket 56992', get_the_content(), 'Permalink should show published content to logged out users' );
 	}
+
+	/**
+	 * Test that WP_Query::get() returns the value as passed on the `pre_get_posts` hook.
+	 *
+	 * @ticket 63255
+	 * @dataProvider data_pre_get_posts_includes_unmodified_query_vars
+	 *
+	 * @param string $query_var      The query variable.
+	 * @param mixed  $query_var_value The value to set for the query variable.
+	 */
+	public function test_pre_get_posts_includes_unmodified_query_vars( $query_var, $query_var_value ) {
+		$action_did_run = false;
+
+		/*
+		 * MockAction can not be used here because `$query` is an object and therefore
+		 * is passed by reference so will be modified by the time `MockAction::get_args()`
+		 * is called.
+		 */
+		add_action(
+			'pre_get_posts',
+			function ( $query ) use ( $query_var, $query_var_value, &$action_did_run ) {
+				$action_did_run = true;
+				$this->assertSame( $query_var_value, $query->get( $query_var ), 'The pre_get_posts filter should return an unmodified query var.' );
+			}
+		);
+
+		new WP_Query(
+			array(
+				$query_var => $query_var_value,
+			)
+		);
+
+		// Ensure the action was called.
+		$this->assertTrue( $action_did_run, 'The pre_get_posts is expected to be called' );
+	}
+
+	/**
+	 * Data provider for test_pre_get_posts_includes_unmodified_query_vars.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public function data_pre_get_posts_includes_unmodified_query_vars() {
+		return array(
+			'post type, string'               => array( 'post_type', 'post' ),
+			'post type, DESC array'           => array( 'post_type', array( 'post', 'page' ) ),
+			'post type, ASC array'            => array( 'post_type', array( 'page', 'post' ) ),
+			'post type, duplicate array'      => array( 'post_type', array( 'post', 'post' ) ),
+			'post status, string'             => array( 'post_status', 'publish' ),
+			'post status, DESC array'         => array( 'post_status', array( 'publish', 'draft' ) ),
+			'post status, ASC array'          => array( 'post_status', array( 'draft', 'publish' ) ),
+			'post status, duplicate array'    => array( 'post_status', array( 'draft', 'draft' ) ),
+
+			'post_name__in, string'           => array( 'post_name__in', 'elphaba' ),
+			'post_name__in, DESC array'       => array( 'post_name__in', array( 'the-wizard-of-oz', 'glinda', 'doctor-dillamond', 'elphaba' ) ),
+			'post_name__in, ASC array'        => array( 'post_name__in', array( 'elphaba', 'doctor-dillamond', 'glinda', 'the-wizard-of-oz' ) ),
+			'post_name__in, array dupes'      => array( 'post_name__in', array( 'elphaba', 'doctor-dillamond', 'elphaba', 'doctor-dillamond' ) ),
+
+			'category__in, int[] ASC'         => array( 'category__in', array( 1, 2 ) ),
+			'category__in, int[] DESC'        => array( 'category__in', array( 2, 1 ) ),
+
+			'post id, int'                    => array( 'p', 1 ),
+			'page_id, int'                    => array( 'page_id', 1 ),
+			'attachment_id, int'              => array( 'page_id', 1 ),
+			'offset, string'                  => array( 'offset', '5' ),
+			'offset, int'                     => array( 'offset', 5 ),
+
+			'post__in, string[] ASC'          => array( 'post__in', array( '1', '2' ) ),
+			'post__in, string[] DESC'         => array( 'post__in', array( '2', '1' ) ),
+			'post__in, int[] ASC'             => array( 'post__in', array( 1, 2 ) ),
+			'post__in, int[] DESC'            => array( 'post__in', array( 2, 1 ) ),
+			'post__in, int[] duplicate'       => array( 'post__in', array( 1, 1 ) ),
+
+			'post__not_in, string[] ASC'      => array( 'post__not_in', array( '1', '2' ) ),
+			'post__not_in, string[] DESC'     => array( 'post__not_in', array( '2', '1' ) ),
+			'post__not_in, int[] ASC'         => array( 'post__not_in', array( 1, 2 ) ),
+			'post__not_in, int[] DESC'        => array( 'post__not_in', array( 2, 1 ) ),
+			'post__not_in, int[] duplicate'   => array( 'post__not_in', array( 1, 1 ) ),
+
+			'author__in, string[] ASC'        => array( 'author__in', array( '1', '2' ) ),
+			'author__in, string[] DESC'       => array( 'author__in', array( '2', '1' ) ),
+			'author__in, int[] ASC'           => array( 'author__in', array( 1, 2 ) ),
+			'author__in, int[] DESC'          => array( 'author__in', array( 2, 1 ) ),
+			'author__in, int[] duplicate'     => array( 'author__in', array( 1, 1 ) ),
+
+			'author__not_in, string[] ASC'    => array( 'author__not_in', array( '1', '2' ) ),
+			'author__not_in, string[] DESC'   => array( 'author__not_in', array( '2', '1' ) ),
+			'author__not_in, int[] ASC'       => array( 'author__not_in', array( 1, 2 ) ),
+			'author__not_in, int[] DESC'      => array( 'author__not_in', array( 2, 1 ) ),
+			'author__not_in, int[] duplicate' => array( 'author__not_in', array( 1, 1 ) ),
+
+			'tag_slug__in, string[] ASC'      => array( 'tag_slug__in', array( 'bobby', 'hans', 'herman', 'victor' ) ),
+			'tag_slug__in, string[] DESC'     => array( 'tag_slug__in', array( 'victor', 'herman', 'hans', 'bobby' ) ),
+
+			'tag__in, int[] ASC'              => array( 'tag__in', array( 1, 2 ) ),
+			'tag__in, int[] DESC'             => array( 'tag__in', array( 2, 1 ) ),
+
+			'tag__not_in, int[] ASC'          => array( 'tag__not_in', array( 1, 2 ) ),
+			'tag__not_in, int[] DESC'         => array( 'tag__not_in', array( 2, 1 ) ),
+		);
+	}
 }
