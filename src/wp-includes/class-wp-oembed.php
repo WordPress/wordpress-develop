@@ -111,6 +111,7 @@ class WP_oEmbed {
 			'#https?://((play|www)\.)?anghami\.com/.*#i'   => array( 'https://api.anghami.com/rest/v1/oembed.view', true ),
 			'#https?://bsky.app/profile/.*/post/.*#i'      => array( 'https://embed.bsky.app/oembed', true ),
 			'#https?://(www\.)?canva\.com/design/.*/view.*#i' => array( 'https://canva.com/_oembed', true ),
+			'#https?://app\.screencast\.com/.*#i'          => array( 'https://app.screencast.com/api/v1/oembed', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -192,6 +193,7 @@ class WP_oEmbed {
 		 * | Anghami      | anghami.com                               | 6.3.0   |
 		 * | Bluesky      | bsky.app                                  | 6.6.0   |
 		 * | Canva        | canva.com                                 | 6.8.0   |
+		 * | Screencast   | app.screencast.com                        | 6.x.0   |
 		 *
 		 * No longer supported providers:
 		 *
