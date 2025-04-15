@@ -88,6 +88,15 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 				),
 			)
 		);
+
+		register_block_type(
+			'tests/other-hooked-block',
+			array(
+				'block_hooks' => array(
+					'core/post-content' => 'after',
+				),
+			)
+		);
 	}
 
 	/**
