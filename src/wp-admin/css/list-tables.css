@@ -2082,6 +2082,7 @@ div.action-links,
 
 	.row-actions span a,
 	.row-actions span .button-link {
+		font-size: 13px;
 		display: inline-block;
 		padding: 4px 16px 4px 0;
 		font-size: 13px;
