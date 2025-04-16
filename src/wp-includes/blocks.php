@@ -1130,24 +1130,24 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
 	 * `$content` at first and we're allowed to insert it once -- but not again.
 	 */
 	$suppress_single_instance_blocks = static function ( $hooked_block_types, $relative_position, $anchor_block_type ) use ( &$block_allows_multiple_instances, $content, $context ) {
-		static $single_instance_blocks_present_in_content = array();
-		foreach ( $hooked_block_types as $index => $hooked_block_type ) {
-			if ( $context instanceof WP_Post ) {
-				$wrapper_block_type = 'core/post-content';
-				if ( 'wp_navigation' === $context->post_type ) {
-					$wrapper_block_type = 'core/navigation';
-				} elseif ( 'wp_block' === $context->post_type ) {
-					$wrapper_block_type = 'core/block';
-				}
-
-				if (
-					$wrapper_block_type === $anchor_block_type &&
-					in_array( $relative_position, array( 'before', 'after' ), true )
-				) {
-					$hooked_block_types = array();
-				}
+		if ( $context instanceof WP_Post ) {
+			$wrapper_block_type = 'core/post-content';
+			if ( 'wp_navigation' === $context->post_type ) {
+				$wrapper_block_type = 'core/navigation';
+			} elseif ( 'wp_block' === $context->post_type ) {
+				$wrapper_block_type = 'core/block';
 			}
 
+			if (
+				$wrapper_block_type === $anchor_block_type &&
+				in_array( $relative_position, array( 'before', 'after' ), true )
+			) {
+				return array();
+			}
+		}
+
+		static $single_instance_blocks_present_in_content = array();
+		foreach ( $hooked_block_types as $index => $hooked_block_type ) {
 			if ( ! isset( $block_allows_multiple_instances[ $hooked_block_type ] ) ) {
 				$hooked_block_type_definition =
 					WP_Block_Type_Registry::get_instance()->get_registered( $hooked_block_type );
