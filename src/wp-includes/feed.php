@@ -542,7 +542,7 @@ function atom_enclosure() {
 					if ( isset( $enclosure[ $i ] ) ) {
 						if ( is_numeric( $enclosure[ $i ] ) ) {
 							$length = trim( $enclosure[ $i ] );
-						} elseif ( in_array( $enclosure[ $i ], $mimes, true ) ) {
+						} elseif ( in_array( trim( $enclosure[ $i ] ), $mimes, true ) ) {
 							$type = trim( $enclosure[ $i ] );
 						}
 					}
