@@ -3300,7 +3300,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		global $wpdb;
 		$users_table = preg_quote( $wpdb->users, '/' );
-		$pattern     = '/SELECT SQL_CALC_FOUND_ROWS wptests_users.ID\n\s+FROM\s+' . $users_table . '/is';
+		$pattern     = '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $users_table . '\.ID\n\s+FROM\s+' . $users_table . '/is';
 
 		// Assert that the SQL query only fetches the id column.
 		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the expected string.' );
