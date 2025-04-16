@@ -1125,7 +1125,7 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
 		}
 	}
 
-	$suppress_single_instance_blocks = static function ( $hooked_block_types, $relative_position, $anchor_block_type ) use ( &$block_allows_multiple_instances, $content, $context ) {
+	$suppress_blocks_from_insertion = static function ( $hooked_block_types, $relative_position, $anchor_block_type ) use ( &$block_allows_multiple_instances, $content, $context ) {
 		static $single_instance_blocks_present_in_content = array();
 
 		/*
@@ -1179,13 +1179,13 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
 		}
 		return $hooked_block_types;
 	};
-	add_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX, 3 );
+	add_filter( 'hooked_block_types', $suppress_blocks_from_insertion, PHP_INT_MAX, 3 );
 	$content = traverse_and_serialize_blocks(
 		parse_blocks( $content ),
 		$before_block_visitor,
 		$after_block_visitor
 	);
-	remove_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX );
+	remove_filter( 'hooked_block_types', $suppress_blocks_from_insertion, PHP_INT_MAX );
 
 	return $content;
 }
