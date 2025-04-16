@@ -141,6 +141,33 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 	}
 
 	/**
+	 * @ticket 63287
+	 */
+	public function test_apply_block_hooks_to_content_from_post_object_does_not_insert_hooked_block_before_container_block() {
+		$filter = function ( $hooked_block_types, $relative_position, $anchor_block_type ) {
+			if ( 'core/post-content' === $anchor_block_type && 'before' === $relative_position ) {
+				$hooked_block_types[] = 'tests/dynamically-hooked-block-before-post-content';
+			}
+
+			return $hooked_block_types;
+		};
+
+		$expected = '<!-- wp:tests/hooked-block-first-child /-->' .
+			self::$post->post_content .
+			'<!-- wp:tests/hooked-block /-->';
+
+		add_filter( 'hooked_block_types', $filter, 10, 3 );
+		$actual = apply_block_hooks_to_content_from_post_object(
+			self::$post->post_content,
+			self::$post,
+			'insert_hooked_blocks'
+		);
+		remove_filter( 'hooked_block_types', $filter, 10 );
+
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
 	 * @ticket 62716
 	 */
 	public function test_apply_block_hooks_to_content_from_post_object_inserts_hooked_block_if_content_contains_no_blocks() {
