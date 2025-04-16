@@ -109,6 +109,7 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 
 		$registry->unregister( 'tests/hooked-block' );
 		$registry->unregister( 'tests/hooked-block-first-child' );
+		$registry->unregister( 'tests/other-hooked-block' );
 	}
 
 	/**
