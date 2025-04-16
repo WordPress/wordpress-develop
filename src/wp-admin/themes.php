@@ -432,7 +432,7 @@ foreach ( $themes as $theme ) :
 		$active_class = ' active';
 	}
 	?>
-<div class="theme<?php echo $active_class; ?>">
+<div class="theme<?php echo esc_attr( $active_class ); ?>">
 	<?php if ( ! empty( $theme['screenshot'][0] ) ) { ?>
 		<div class="theme-screenshot">
 			<img src="<?php echo esc_url( $theme['screenshot'][0] . '?ver=' . $theme['version'] ); ?>" alt="" />
