@@ -90,7 +90,7 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 		);
 
 		register_block_type(
-			'tests/other-hooked-block',
+			'tests/hooked-block-after-post-content',
 			array(
 				'block_hooks' => array(
 					'core/post-content' => 'after',
@@ -109,7 +109,7 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 
 		$registry->unregister( 'tests/hooked-block' );
 		$registry->unregister( 'tests/hooked-block-first-child' );
-		$registry->unregister( 'tests/other-hooked-block' );
+		$registry->unregister( 'tests/hooked-block-after-post-content' );
 	}
 
 	/**
