@@ -1126,6 +1126,8 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
 	}
 
 	$suppress_single_instance_blocks = static function ( $hooked_block_types, $relative_position, $anchor_block_type ) use ( &$block_allows_multiple_instances, $content, $context ) {
+		static $single_instance_blocks_present_in_content = array();
+
 		/*
 		 * If the context is a post object, we need to avoid inserting any blocks hooked into the
 		 * `before` and `after` positions of the temporary wrapper block that we create to wrap the content.
@@ -1151,7 +1153,6 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
 		 * We also need to cover the case where a hooked block with `multiple: false` is not
 		 * present in `$content` at first and we're allowed to insert it once -- but not again.
 		 */
-		static $single_instance_blocks_present_in_content = array();
 		foreach ( $hooked_block_types as $index => $hooked_block_type ) {
 			if ( ! isset( $block_allows_multiple_instances[ $hooked_block_type ] ) ) {
 				$hooked_block_type_definition =
