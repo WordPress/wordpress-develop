@@ -217,7 +217,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		$table = $this->get_mocked_class_instance();
 
 		$reflection = new ReflectionClass( $table );
-		$method = $reflection->getMethod( 'get_timestamp_as_date' );
+		$method     = $reflection->getMethod( 'get_timestamp_as_date' );
 		$method->setAccessible( true );
 
 		$original_date_format = get_option( 'date_format' );
@@ -232,11 +232,11 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 
 		// Test recent timestamp (less than 24 hours ago).
 		$recent_time = $current_time - HOUR_IN_SECONDS;
-		$result = $method->invoke( $table, $recent_time );
+		$result      = $method->invoke( $table, $recent_time );
 		$this->assertStringContainsString( 'ago', $result );
 
 		$old_time = $current_time - 2 * DAY_IN_SECONDS;
-		$result = $method->invoke( $table, $old_time );
+		$result   = $method->invoke( $table, $old_time );
 
 		$date_part = date_i18n( 'Y-m-d', $old_time );
 		$time_part = date_i18n( 'H:i:s', $old_time );
