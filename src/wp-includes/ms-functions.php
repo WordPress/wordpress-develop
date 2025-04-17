@@ -926,8 +926,8 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
 	 * @param string $user       The user's requested login name.
 	 * @param string $user_email The user's email address.
 	 * @param string $key        The user's activation key.
-	 * @param array  $meta       Signup meta data. Default empty array.
 	 * @param int    $signup_id  Signup ID.
+	 * @param array  $meta       Signup meta data. Default empty array.
 	 * @param string $hashed     The user's hashed activation key.
 	 */
 	do_action( 'after_signup_user', $user, $user_email, $key, $wpdb->insert_id, $meta, $hashed );
