@@ -857,7 +857,7 @@ function wpmu_signup_blog( $domain, $path, $title, $user, $user_email, $meta = a
 	 * @param int    $signup_id  Signup ID.
 	 * @param string $hashed     The user's hashed activation key.
 	 */
-	do_action( 'after_signup_site', $domain, $path, $title, $user, $user_email, $key, $meta, $wpdb->insert_id, $hashed );
+	do_action( 'after_signup_site', $domain, $path, $title, $user, $user_email, $key, $wpdb->insert_id, $meta, $hashed );
 }
 
 /**
@@ -930,7 +930,7 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
 	 * @param int    $signup_id  Signup ID.
 	 * @param string $hashed     The user's hashed activation key.
 	 */
-	do_action( 'after_signup_user', $user, $user_email, $key, $meta, $wpdb->insert_id, $hashed );
+	do_action( 'after_signup_user', $user, $user_email, $key, $wpdb->insert_id, $meta, $hashed );
 }
 
 /**

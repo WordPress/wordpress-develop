@@ -50,7 +50,7 @@ if ( $key ) {
 
 if ( null === $result && isset( $_COOKIE[ $activate_cookie ] ) ) {
 	$key    = $_COOKIE[ $activate_cookie ];
-	$result = wpmu_activate_signup( $key );
+	$result = wpmu_activate_signup( $key, $signup_id );
 	setcookie( $activate_cookie, ' ', time() - YEAR_IN_SECONDS, $activate_path, COOKIE_DOMAIN, is_ssl(), true );
 }
 
