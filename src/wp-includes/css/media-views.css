@@ -1810,10 +1810,6 @@
 	word-wrap: break-word;
 }
 
-.attachment-info .uploaded-by {
-    word-wrap: break-word;
-}
-
 .attachment-info .thumbnail {
 	position: relative;
 	float: left;
