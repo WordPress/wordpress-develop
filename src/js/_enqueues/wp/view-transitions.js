@@ -207,24 +207,22 @@ window.wp.viewTransitions.init = ( config ) => {
 			const transitionType = determineTransitionType( event.activation.from, event.activation.entry );
 			event.viewTransition.types.add( transitionType );
 
+			let viewTransitionEntries;
 			if ( document.body.classList.contains( 'single' ) ) {
-				setTemporaryViewTransitionNames(
-					getViewTransitionEntries(
-						transitionType,
-						document.body,
-						getArticle()
-					),
-					event.viewTransition.finished
+				viewTransitionEntries = getViewTransitionEntries(
+					transitionType,
+					document.body,
+					getArticle()
 				);
 			} else if ( document.body.classList.contains( 'home' ) || document.body.classList.contains( 'archive' ) ) {
-				setTemporaryViewTransitionNames(
-					getViewTransitionEntries(
-						transitionType,
-						document.body,
-						getArticleForUrl( event.activation.entry.url )
-					),
-					event.viewTransition.finished
+				viewTransitionEntries = getViewTransitionEntries(
+					transitionType,
+					document.body,
+					getArticleForUrl( event.activation.entry.url )
 				);
+			}
+			if ( viewTransitionEntries ) {
+				setTemporaryViewTransitionNames( viewTransitionEntries, event.viewTransition.finished );
 			}
 		}
 	} );
@@ -239,24 +237,22 @@ window.wp.viewTransitions.init = ( config ) => {
 			const transitionType = determineTransitionType( window.navigation.activation.from, window.navigation.activation.entry );
 			event.viewTransition.types.add( transitionType );
 
+			let viewTransitionEntries;
 			if ( document.body.classList.contains( 'single' ) ) {
-				setTemporaryViewTransitionNames(
-					getViewTransitionEntries(
-						transitionType,
-						document.body,
-						getArticle()
-					),
-					event.viewTransition.ready
+				viewTransitionEntries = getViewTransitionEntries(
+					transitionType,
+					document.body,
+					getArticle()
 				);
 			} else if ( document.body.classList.contains( 'home' ) || document.body.classList.contains( 'archive' ) ) {
-				setTemporaryViewTransitionNames(
-					getViewTransitionEntries(
-						transitionType,
-						document.body,
-						window.navigation.activation.from ? getArticleForUrl( window.navigation.activation.from.url ) : null
-					),
-					event.viewTransition.ready
+				viewTransitionEntries = getViewTransitionEntries(
+					transitionType,
+					document.body,
+					window.navigation.activation.from ? getArticleForUrl( window.navigation.activation.from.url ) : null
 				);
+			}
+			if ( viewTransitionEntries ) {
+				setTemporaryViewTransitionNames( viewTransitionEntries, event.viewTransition.ready );
 			}
 		}
 	} );
