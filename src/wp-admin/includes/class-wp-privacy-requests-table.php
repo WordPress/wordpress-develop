@@ -487,7 +487,15 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			return sprintf( __( '%s ago' ), human_time_diff( $timestamp ) );
 		}
 
-		return date_i18n( get_option( 'date_format' ), $timestamp );
+		$date_format = get_option( 'date_format' );
+		$time_format = get_option( 'time_format' );
+		
+		return sprintf(
+			/* translators: 1: Date, 2: Time */
+			__( '%1$s at %2$s' ),
+			date_i18n( $date_format, $timestamp ),
+			date_i18n( $time_format, $timestamp )
+		);
 	}
 
 	/**
