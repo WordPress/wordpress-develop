@@ -127,10 +127,17 @@ final class WP_Theme implements ArrayAccess {
 	private $block_theme;
 
 	/**
+	 * Whether the theme has a theme.json file.
+	 *
+	 * @since 6.9.0
+	 * @var bool
+	 */
+	private $has_theme_json;
+
+	/**
 	 * Header name from the theme's style.css after being translated.
 	 *
 	 * Cached due to sorting functions running over the translated name.
-	 *
 	 * @since 3.4.0
 	 * @var string
 	 */
@@ -1595,6 +1602,34 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		return $this->block_theme;
+	}
+
+	/**
+	 * Returns whether this theme has a theme.json file or not.
+	 *
+	 * This function checks both the child and parent theme for a theme.json file.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return bool
+	 */
+	public function has_theme_json() {
+		if ( isset( $this->has_theme_json ) ) {
+			return $this->has_theme_json;
+		}
+
+		$stylesheet_directory = $this->get_stylesheet_directory();
+		$template_directory = $this->get_template_directory();
+
+		if ( file_exists( $stylesheet_directory . '/theme.json' ) ) {
+			$this->has_theme_json = true;
+		} else if ( $stylesheet_directory !== $template_directory && file_exists( $template_directory . '/theme.json' ) ) {
+			$this->has_theme_json = true;
+		} else {
+			$this->has_theme_json = false;
+		}
+
+		return $this->has_theme_json;
 	}
 
 	/**
