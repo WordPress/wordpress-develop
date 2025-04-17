@@ -291,7 +291,12 @@ class Tests_Multisite_wpmuValidateUserSignup extends WP_UnitTestCase {
 	/**
 	 * Captures the activation key passed through the filter.
 	 *
+	 * @param string $user The user login.
+	 * @param string $user_email The user email.
 	 * @param string $key The activation key.
+	 * @param int    $signup_id The signup ID.
+	 * @param array  $meta The signup meta.
+	 * @param string $hashed The hashed activation key.
 	 * @return string The activation key.
 	 */
 	public function capture_activation_key( $user, $user_email, $key, $signup_id, $meta, $hashed ) {
