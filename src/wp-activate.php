@@ -34,6 +34,8 @@ if ( isset( $_GET['key'] ) && isset( $_POST['key'] ) && $_GET['key'] !== $_POST[
 	$key = $_POST['key'];
 }
 
+$signup_id = ! empty( $_GET['signup_id'] ) ? $_GET['signup_id'] : $_POST['signup_id'];
+
 if ( $key ) {
 	$redirect_url = remove_query_arg( 'key' );
 
@@ -42,7 +44,7 @@ if ( $key ) {
 		wp_safe_redirect( $redirect_url );
 		exit;
 	} else {
-		$result = wpmu_activate_signup( $key );
+		$result = wpmu_activate_signup( $key, $signup_id );
 	}
 }
 
@@ -132,6 +134,10 @@ $blog_details = get_site();
 			<p>
 				<label for="key"><?php _e( 'Activation Key:' ); ?></label>
 				<br /><input type="text" name="key" id="key" value="" size="50" autofocus="autofocus" />
+			</p>
+			<p>
+				<label for="key"><?php _e( 'Signup ID:' ); ?></label>
+				<br /><input type="number" name="signup_id" id="signup_id" value="" size="50" />
 			</p>
 			<p class="submit">
 				<input id="submit" type="submit" name="Submit" class="submit" value="<?php esc_attr_e( 'Activate' ); ?>" />
