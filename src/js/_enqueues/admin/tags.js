@@ -64,7 +64,7 @@ jQuery( function($) {
 				}
 			});
 
-			tr.children().css('backgroundColor', '#f33');
+			tr.children().css('backgroundColor', '#faafaa');
 		}
 
 		return false;
