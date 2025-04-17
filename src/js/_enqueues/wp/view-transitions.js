@@ -79,6 +79,25 @@ window.wp.viewTransitions.init = ( config ) => {
 	};
 
 	/**
+	 * Looks up an element from the list of view transition entries by its view transition name.
+	 *
+	 * @param {Array[]} entries View transition entries as received from `getViewTransitionEntries()`.
+	 * @param {string}  vtName  View transition name to look up element.
+	 * @return {Element|null} Element found, or null if none is found.
+	 */
+	const findElementByViewTransitionName = ( entries, vtName ) => {
+		for ( const [ element, name ] of entries ) {
+			if ( ! element ) {
+				continue;
+			}
+			if ( name === vtName ) {
+				return element;
+			}
+		}
+		return null;
+	};
+
+	/**
 	 * Appends a selector to another selector.
 	 *
 	 * This supports selectors which technically include multiple selectors (separated by comma).
@@ -198,6 +217,22 @@ window.wp.viewTransitions.init = ( config ) => {
 	};
 
 	/**
+	 * Gets the view transition name for the element that receives a slide animation based on the transition type determined, if any.
+	 *
+	 * @param {string} transitionType View transition type as received from `determineTransitionType()`.
+	 * @return {string|null} View transition name, or null if none is relevant for the transition type.
+	 */
+	const getViewTransitionNameForSlideAnimation = ( transitionType ) => {
+		if ( transitionType === 'forwards' || transitionType === 'backwards' ) {
+			return 'main';
+		}
+		if ( transitionType === 'content-forwards' || transitionType === 'content-backwards' ) {
+			return 'post-content';
+		}
+		return null;
+	};
+
+	/**
 	 * Customizes view transition behavior on the URL that is being navigated from.
 	 *
 	 * @param {PageSwapEvent} event Event fired as the previous URL is about to unload.
@@ -223,6 +258,18 @@ window.wp.viewTransitions.init = ( config ) => {
 			}
 			if ( viewTransitionEntries ) {
 				setTemporaryViewTransitionNames( viewTransitionEntries, event.viewTransition.finished );
+				const slideViewTransitionName = getViewTransitionNameForSlideAnimation( transitionType );
+				if ( slideViewTransitionName ) {
+					const slideElement = findElementByViewTransitionName( viewTransitionEntries, slideViewTransitionName );
+					if ( slideElement ) {
+						/*const vPosBefore = slideElement.getBoundingClientRect().top;
+						const vPosAfter = 373.578125; // Hard-coded based on position in Twenty Twenty-Five.
+						const correction = vPosAfter - vPosBefore;
+						slideElement.style.transform = `translateY(${ correction }px)`;*/
+						const vScrollBefore = window.scrollY;
+						console.log( 'swap', vScrollBefore );
+					}
+				}
 			}
 		}
 	} );
@@ -253,6 +300,15 @@ window.wp.viewTransitions.init = ( config ) => {
 			}
 			if ( viewTransitionEntries ) {
 				setTemporaryViewTransitionNames( viewTransitionEntries, event.viewTransition.ready );
+				const slideViewTransitionName = getViewTransitionNameForSlideAnimation( transitionType );
+				if ( slideViewTransitionName ) {
+					const slideElement = findElementByViewTransitionName( viewTransitionEntries, slideViewTransitionName );
+					if ( slideElement ) {
+						const vScrollAfter = window.scrollY;
+						console.log( 'reveal', vScrollAfter );
+						window.scrollTo( 0, 221 ); // Hard-coded as example.
+					}
+				}
 			}
 		}
 	} );
