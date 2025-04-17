@@ -489,7 +489,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 
 		$date_format = get_option( 'date_format' );
 		$time_format = get_option( 'time_format' );
-		
+
 		return sprintf(
 			/* translators: 1: Date, 2: Time */
 			__( '%1$s at %2$s' ),
