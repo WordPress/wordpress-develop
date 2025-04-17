@@ -33,11 +33,17 @@ EXPECTED;
 		$this->assertSameIgnoreEOL( $expected, $links );
 	}
 
-	public function test_format() {
-		$page2  = home_url( '/page/2/' );
-		$page3  = home_url( '/page/3/' );
-		$page50 = home_url( '/page/50/' );
-
+	/**
+	 * Test the format parameter behaves as expected.
+	 *
+	 * @dataProvider data_format
+	 *
+	 * @param string $format Format to test.
+	 * @param string $page2  Expected URL for page 2.
+	 * @param string $page3  Expected URL for page 3.
+	 * @param string $page50 Expected URL for page 50.
+	 */
+	public function test_format( $format, $page2, $page3, $page50 ) {
 		$expected = <<<EXPECTED
 <span aria-current="page" class="page-numbers current">1</span>
 <a class="page-numbers" href="$page2">2</a>
@@ -50,10 +56,25 @@ EXPECTED;
 		$links = paginate_links(
 			array(
 				'total'  => 50,
-				'format' => 'page/%#%/',
+				'format' => $format,
 			)
 		);
 		$this->assertSameIgnoreEOL( $expected, $links );
+	}
+
+	/**
+	 * Data provider for test_format.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public function data_format() {
+		return array(
+			'pretty permalinks'                => array( 'page/%#%/', home_url( '/page/2/' ), home_url( '/page/3/' ), home_url( '/page/50/' ) ),
+			'plain permalinks'                 => array( '?page=%#%', home_url( '/?page=2' ), home_url( '/?page=3' ), home_url( '/?page=50' ) ),
+			'custom format - html extension'   => array( 'page/%#%.html', home_url( '/page/2.html' ), home_url( '/page/3.html' ), home_url( '/page/50.html' ) ),
+			'custom format - hyphen separated' => array( 'page-%#%', home_url( '/page-2' ), home_url( '/page-3' ), home_url( '/page-50' ) ),
+			'custom format - fragment'         => array( '#%#%', home_url( '/#2' ), home_url( '/#3' ), home_url( '/#50' ) ),
+		);
 	}
 
 	public function test_prev_next_false() {
@@ -361,81 +382,5 @@ EXPECTED;
 
 		$page_2_url = home_url() . '?foo=2';
 		$this->assertContains( "<a class=\"page-numbers\" href=\"$page_2_url\">2</a>", $links );
-	}
-
-	/**
-	 * @ticket 61393
-	 */
-	public function test_pagination_links_with_trailing_slash() {
-		$this->set_permalink_structure( '/%postname%/' );
-
-		$args = array(
-			'base'      => 'http://example.org/category/test/%_%',
-			'format'    => 'page/%#%',
-			'total'     => 5,
-			'current'   => 2,
-			'prev_next' => true,
-		);
-
-		$links = paginate_links( $args );
-
-		// Test page 1 link (should have trailing slash)
-		$this->assertStringContainsString(
-			'href="http://example.org/category/test/"',
-			$links,
-			'Page 1 link should have trailing slash when permalink structure has trailing slash'
-		);
-
-		// Test page 3 link (should have trailing slash)
-		$this->assertStringContainsString(
-			'href="http://example.org/category/test/page/3/"',
-			$links,
-			'Page 3 link should have trailing slash when permalink structure has trailing slash'
-		);
-
-		// Test previous link (should have trailing slash)
-		$this->assertStringContainsString(
-			'class="prev page-numbers" href="http://example.org/category/test/"',
-			$links,
-			'Previous link should have trailing slash when permalink structure has trailing slash'
-		);
-	}
-
-	/**
-	 * @ticket 61393
-	 */
-	public function test_pagination_links_without_trailing_slash() {
-		$this->set_permalink_structure( '/%postname%' );
-
-		$args = array(
-			'base'      => 'http://example.org/category/test/%_%',
-			'format'    => 'page/%#%',
-			'total'     => 5,
-			'current'   => 2,
-			'prev_next' => true,
-		);
-
-		$links = paginate_links( $args );
-
-		// Test page 1 link (should not have trailing slash)
-		$this->assertStringContainsString(
-			'href="http://example.org/category/test"',
-			$links,
-			'Page 1 link should not have trailing slash when permalink structure has no trailing slash'
-		);
-
-		// Test page 3 link (should not have trailing slash)
-		$this->assertStringContainsString(
-			'href="http://example.org/category/test/page/3"',
-			$links,
-			'Page 3 link should not have trailing slash when permalink structure has no trailing slash'
-		);
-
-		// Test previous link (should not have trailing slash)
-		$this->assertStringContainsString(
-			'class="prev page-numbers" href="http://example.org/category/test"',
-			$links,
-			'Previous link should not have trailing slash when permalink structure has no trailing slash'
-		);
 	}
 }

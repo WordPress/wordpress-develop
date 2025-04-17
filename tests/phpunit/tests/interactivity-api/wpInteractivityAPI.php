@@ -1585,4 +1585,24 @@ HTML;
 			'object'            => array( new stdClass(), '' ),
 		);
 	}
+
+	/**
+	 * Ensures that directives with invalid attribute names are ignored.
+	 *
+	 * @ticket 62426
+	 */
+	public function test_invalid_directive_names_are_ignored() {
+		$html = <<<HTML
+			<div data-wp-interactive="test" data-wp-context='{ "t": true }'>
+				<br data-wp-class--allowed="context.t">
+				<br data-wp-class--dis:allowed="context.t">
+				<br data-wp-class--[disallowed]="context.t">
+			</div>
+HTML;
+
+		$processed_html = $this->interactivity->process_directives( $html );
+		$this->assertStringContainsString( 'class="allowed"', $processed_html );
+		$this->assertStringNotContainsString( 'class="dis:allowed"', $processed_html );
+		$this->assertStringNotContainsString( 'class="[disallowed]"', $processed_html );
+	}
 }

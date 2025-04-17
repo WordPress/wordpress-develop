@@ -76,6 +76,7 @@ function create_initial_post_types() {
 				'name'           => _x( 'Media', 'post type general name' ),
 				'name_admin_bar' => _x( 'Media', 'add new from admin bar' ),
 				'add_new'        => __( 'Add Media File' ),
+				'add_new_item'   => __( 'Add Media File' ),
 				'edit_item'      => __( 'Edit Media' ),
 				'view_item'      => ( '1' === get_option( 'wp_attachment_pages_enabled' ) ) ? __( 'View Attachment Page' ) : __( 'View Media File' ),
 				'attributes'     => __( 'Attachment Attributes' ),
@@ -8523,15 +8524,4 @@ function wp_create_initial_post_meta() {
 			),
 		)
 	);
-}
-
-/**
- * Sets the default editor mode based on support for block templates.
- *
- * @since 6.8.0
- */
-function wp_set_editor_default_mode() {
-	if ( wp_is_block_theme() && current_theme_supports( 'block-templates' ) ) {
-		add_post_type_support( 'page', 'editor', array( 'default-mode' => 'template-locked' ) );
-	}
 }
