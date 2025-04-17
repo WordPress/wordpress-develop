@@ -1126,10 +1126,10 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
 	}
 
 	/*
-	 * We also need to cover the case where a hooked block with `multiple: false` is not
-	 * present in `$content` at first and we're allowed to insert it once -- but not again.
+	 * We also need to cover the case where the hooked block is not present in
+	 * `$content` at first and we're allowed to insert it once -- but not again.
 	 */
-	$suppress_single_instance_blocks = static function ( $hooked_block_types ) use ( &$block_allows_multiple_instances, $content, $context ) {
+	$suppress_single_instance_blocks = static function ( $hooked_block_types ) use ( &$block_allows_multiple_instances, $content ) {
 		static $single_instance_blocks_present_in_content = array();
 		foreach ( $hooked_block_types as $index => $hooked_block_type ) {
 			if ( ! isset( $block_allows_multiple_instances[ $hooked_block_type ] ) ) {
