@@ -1125,34 +1125,12 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
 		}
 	}
 
-	$suppress_blocks_from_insertion = static function ( $hooked_block_types, $relative_position, $anchor_block_type ) use ( &$block_allows_multiple_instances, $content, $context ) {
+	/*
+	 * We also need to cover the case where a hooked block with `multiple: false` is not
+	 * present in `$content` at first and we're allowed to insert it once -- but not again.
+	 */
+	$suppress_single_instance_blocks = static function ( $hooked_block_types ) use ( &$block_allows_multiple_instances, $content, $context ) {
 		static $single_instance_blocks_present_in_content = array();
-
-		/*
-		 * If the context is a post object, we need to avoid inserting any blocks hooked into the
-		 * `before` and `after` positions of the temporary wrapper block that we create to wrap the content.
-		 * See https://core.trac.wordpress.org/ticket/63287 for more details.
-		 */
-		if ( $context instanceof WP_Post ) {
-			$wrapper_block_type = 'core/post-content';
-			if ( 'wp_navigation' === $context->post_type ) {
-				$wrapper_block_type = 'core/navigation';
-			} elseif ( 'wp_block' === $context->post_type ) {
-				$wrapper_block_type = 'core/block';
-			}
-
-			if (
-				$wrapper_block_type === $anchor_block_type &&
-				in_array( $relative_position, array( 'before', 'after' ), true )
-			) {
-				return array();
-			}
-		}
-
-		/*
-		 * We also need to cover the case where a hooked block with `multiple: false` is not
-		 * present in `$content` at first and we're allowed to insert it once -- but not again.
-		 */
 		foreach ( $hooked_block_types as $index => $hooked_block_type ) {
 			if ( ! isset( $block_allows_multiple_instances[ $hooked_block_type ] ) ) {
 				$hooked_block_type_definition =
@@ -1179,13 +1157,13 @@ function apply_block_hooks_to_content( $content, $context = null, $callback = 'i
 		}
 		return $hooked_block_types;
 	};
-	add_filter( 'hooked_block_types', $suppress_blocks_from_insertion, PHP_INT_MAX, 3 );
+	add_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX );
 	$content = traverse_and_serialize_blocks(
 		parse_blocks( $content ),
 		$before_block_visitor,
 		$after_block_visitor
 	);
-	remove_filter( 'hooked_block_types', $suppress_blocks_from_insertion, PHP_INT_MAX );
+	remove_filter( 'hooked_block_types', $suppress_single_instance_blocks, PHP_INT_MAX );
 
 	return $content;
 }
@@ -1270,8 +1248,25 @@ function apply_block_hooks_to_content_from_post_object( $content, $post = null, 
 		$content
 	);
 
+	/*
+	 * We need to avoid inserting any blocks hooked into the `before` and `after` positions
+	 * of the temporary wrapper block that we create to wrap the content.
+	 * See https://core.trac.wordpress.org/ticket/63287 for more details.
+	 */
+	$suppress_blocks_from_insertion_before_and_after_wrapper_block = static function ( $hooked_block_types, $relative_position, $anchor_block_type ) use ( $wrapper_block_type ) {
+		if (
+			$wrapper_block_type === $anchor_block_type &&
+			in_array( $relative_position, array( 'before', 'after' ), true )
+		) {
+			return array();
+		}
+		return $hooked_block_types;
+	};
+
 	// Apply Block Hooks.
+	add_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX , 3);
 	$content = apply_block_hooks_to_content( $content, $post, $callback );
+	remove_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX );
 
 	// Finally, we need to remove the temporary wrapper block.
 	$content = remove_serialized_parent_block( $content );
