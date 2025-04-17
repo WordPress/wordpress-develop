@@ -1264,7 +1264,7 @@ function apply_block_hooks_to_content_from_post_object( $content, $post = null, 
 	};
 
 	// Apply Block Hooks.
-	add_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX , 3);
+	add_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX, 3);
 	$content = apply_block_hooks_to_content( $content, $post, $callback );
 	remove_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX );
 
