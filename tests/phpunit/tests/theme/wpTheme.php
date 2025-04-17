@@ -347,6 +347,17 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_has_theme_json
+	 * @ticket 63253
+	 *
+	 * @covers WP_Theme::has_theme_json
+	 */
+	public function test_has_theme_json( $theme_dir, $expected ) {
+		$theme = new WP_Theme( $theme_dir, $this->theme_root );
+		$this->assertSame( $expected, $theme->has_theme_json() );
+	}
+
+	/**
 	 * Test get_files for an existing theme.
 	 *
 	 * @ticket 53599
@@ -376,7 +387,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for test_is_block_theme().
 	 *
 	 * @return array
 	 */
@@ -397,6 +408,36 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 			'deprecated block theme'    => array(
 				'theme_dir' => 'block-theme-deprecated-path',
 				'expected'  => true,
+			),
+		);
+	}
+
+	/**
+	 * Data provider for test_has_theme_json().
+	 *
+	 * @return array
+	 */
+	public function data_has_theme_json() {
+		return array(
+			'theme with theme.json' => array(
+				'theme_dir' => 'block-theme',
+				'expected'  => true,
+			),
+			'theme without theme.json' => array(
+				'theme_dir' => 'default',
+				'expected'  => false,
+			),
+			'child theme with theme.json' => array(
+				'theme_dir' => 'block-theme-child',
+				'expected'  => true,
+			),
+			'child theme without theme.json and parent theme with theme.json' => array(
+				'theme_dir' => 'block-theme-child-no-theme-json',
+				'expected'  => true,
+			),
+			'child theme without theme.json and parent theme without theme.json' => array(
+				'theme_dir' => 'default-child-no-theme-json',
+				'expected'  => false,
 			),
 		);
 	}
