@@ -79,25 +79,6 @@ window.wp.viewTransitions.init = ( config ) => {
 	};
 
 	/**
-	 * Looks up an element from the list of view transition entries by its view transition name.
-	 *
-	 * @param {Array[]} entries View transition entries as received from `getViewTransitionEntries()`.
-	 * @param {string}  vtName  View transition name to look up element.
-	 * @return {Element|null} Element found, or null if none is found.
-	 */
-	const findElementByViewTransitionName = ( entries, vtName ) => {
-		for ( const [ element, name ] of entries ) {
-			if ( ! element ) {
-				continue;
-			}
-			if ( name === vtName ) {
-				return element;
-			}
-		}
-		return null;
-	};
-
-	/**
 	 * Appends a selector to another selector.
 	 *
 	 * This supports selectors which technically include multiple selectors (separated by comma).
@@ -260,15 +241,10 @@ window.wp.viewTransitions.init = ( config ) => {
 				setTemporaryViewTransitionNames( viewTransitionEntries, event.viewTransition.finished );
 				const slideViewTransitionName = getViewTransitionNameForSlideAnimation( transitionType );
 				if ( slideViewTransitionName ) {
-					const slideElement = findElementByViewTransitionName( viewTransitionEntries, slideViewTransitionName );
-					if ( slideElement ) {
-						/*const vPosBefore = slideElement.getBoundingClientRect().top;
-						const vPosAfter = 373.578125; // Hard-coded based on position in Twenty Twenty-Five.
-						const correction = vPosAfter - vPosBefore;
-						slideElement.style.transform = `translateY(${ correction }px)`;*/
-						const vScrollBefore = window.scrollY;
-						console.log( 'swap', vScrollBefore );
-					}
+					// Consider a scroll offset if defined (e.g. due to fixed navigation bars being in the way).
+					const scrollYOffset = document.documentElement.style.getPropertyValue( '--wp-scroll-y-offset' );
+					const currentScrollY = window.scrollY - ( scrollYOffset ? parseInt( scrollYOffset, 10 ) : 0 );
+					sessionStorage.setItem( 'wpViewTransitionsOldScrollY', currentScrollY );
 				}
 			}
 		}
@@ -302,11 +278,16 @@ window.wp.viewTransitions.init = ( config ) => {
 				setTemporaryViewTransitionNames( viewTransitionEntries, event.viewTransition.ready );
 				const slideViewTransitionName = getViewTransitionNameForSlideAnimation( transitionType );
 				if ( slideViewTransitionName ) {
-					const slideElement = findElementByViewTransitionName( viewTransitionEntries, slideViewTransitionName );
-					if ( slideElement ) {
-						const vScrollAfter = window.scrollY;
-						console.log( 'reveal', vScrollAfter );
-						window.scrollTo( 0, 221 ); // Hard-coded as example.
+					const oldScrollY = sessionStorage.getItem( 'wpViewTransitionsOldScrollY' );
+					if ( oldScrollY !== null ) {
+						// Align vertical scroll position.
+						if ( oldScrollY ) {
+							window.scrollTo( 0, parseInt( oldScrollY, 10 ) );
+						}
+						sessionStorage.removeItem( 'wpViewTransitionsOldScrollY' );
+					} else {
+						// Skip view transition to avoid an odd diagonal slide.
+						event.viewTransition.skipTransition();
 					}
 				}
 			}
