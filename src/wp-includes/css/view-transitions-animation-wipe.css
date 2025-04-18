@@ -32,5 +32,6 @@
 	transform: none;
 	animation: wp-view-transition-new-animation 1.2s cubic-bezier(0.45, 0, 0.35, 1.0);
 	animation-fill-mode: both;
+	-webkit-mask-image: linear-gradient(270deg, #000 calc(-70% + calc(170% * var(--wp-view-transition-progress, 0))), transparent calc(170% * var(--wp-view-transition-progress, 0)));
 	mask-image: linear-gradient(270deg, #000 calc(-70% + calc(170% * var(--wp-view-transition-progress, 0))), transparent calc(170% * var(--wp-view-transition-progress, 0)));
 }
