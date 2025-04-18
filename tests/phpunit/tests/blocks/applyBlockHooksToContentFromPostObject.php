@@ -97,6 +97,8 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 				),
 			)
 		);
+
+		register_block_type( 'tests/dynamically-hooked-block-before-post-content' );
 	}
 
 	/**
@@ -110,6 +112,7 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 		$registry->unregister( 'tests/hooked-block' );
 		$registry->unregister( 'tests/hooked-block-first-child' );
 		$registry->unregister( 'tests/hooked-block-after-post-content' );
+		$registry->unregister( 'tests/dynamically-hooked-block-before-post-content' );
 	}
 
 	/**
