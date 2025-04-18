@@ -505,7 +505,7 @@ function wp_list_authors( $args = '' ) {
 
 		$author = get_userdata( $author_id );
 
-		if ( $parsed_args['exclude_admin'] && 'admin' === $author->display_name ) {
+		if ( $parsed_args['exclude_admin'] && in_array( 'administrator', (array) $author->roles ) ) {
 			continue;
 		}
 
