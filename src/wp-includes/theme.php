@@ -2949,6 +2949,7 @@ function add_theme_support( $feature, ...$args ) {
 					'.wp-post-image'                         => 'post-thumbnail',
 					'.wp-block-post-content, .entry-content' => 'post-content',
 				),
+				'default-animation'          => 'default',
 				'chronological-slide-in-out' => (bool) get_option( 'permalink_structure' ),
 			);
 			if ( true === $args ) {
@@ -4476,8 +4477,36 @@ function wp_load_view_transitions() {
 
 	$theme_support = get_theme_support( 'view-transitions' );
 
-	// No point in loading the script if no specific view transition names are configured.
-	if ( ! $theme_support['global-transition-names'] && ! $theme_support['post-transition-names'] ) {
+	switch ( $theme_support['default-animation'] ) {
+		case 'wipe':
+		case 'wipe-from-right': // Default 'wipe' direction.
+		case 'wipe-from-left':
+		case 'wipe-from-top':
+		case 'wipe-from-bottom':
+			$animation_stylesheet = file_get_contents( ABSPATH . WPINC . "/css/view-transitions-animation-wipe{$suffix}.css" );
+			if ( str_ends_with( $theme_support['default-animation'], 'left' ) ) {
+				$animation_stylesheet = str_replace( '270deg', '90deg', $animation_stylesheet );
+			} elseif ( str_ends_with( $theme_support['default-animation'], 'top' ) ) {
+				$animation_stylesheet = str_replace( '270deg', '180deg', $animation_stylesheet );
+			} elseif ( str_ends_with( $theme_support['default-animation'], 'bottom' ) ) {
+				$animation_stylesheet = str_replace( '270deg', '0deg', $animation_stylesheet );
+			}
+			wp_add_inline_style( 'wp-view-transitions', $animation_stylesheet );
+			break;
+		case 'default':
+		default:
+			// The default animation does not require any additional CSS.
+	}
+
+	/*
+	 * No point in loading the script if no specific view transition names are
+	 * configured and if chronological animations are disabled.
+	 */
+	if (
+		! $theme_support['global-transition-names'] &&
+		! $theme_support['post-transition-names'] &&
+		! $theme_support['chronological-slide-in-out']
+	) {
 		return;
 	}
 
