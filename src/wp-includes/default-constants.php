@@ -71,20 +71,6 @@ function wp_initial_constants() {
 		ini_set( 'memory_limit', WP_MEMORY_LIMIT );
 	}
 
-	/**
-	 * Define mime types that cannot be resized
-	 *
-	 * @since 6.8.0
-	 */
-	if ( ! defined( 'NON_RESIZABLE_FORMATS' ) ) {
-		define(
-			'NON_RESIZABLE_FORMATS',
-			array(
-				'image/svg+xml',
-			)
-		);
-	}
-
 	if ( ! isset( $blog_id ) ) {
 		$blog_id = 1;
 	}
