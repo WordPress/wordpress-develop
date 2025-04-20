@@ -424,6 +424,10 @@ function get_the_excerpt( $post = null ) {
 		return __( 'There is no excerpt because this is a protected post.' );
 	}
 
+	// Prevent shortcodes from being expanded in excerpts.
+	$original_shortcode_tags = $GLOBALS['shortcode_tags'];
+	remove_all_shortcodes();
+
 	/**
 	 * Filters the retrieved post excerpt.
 	 *
@@ -433,7 +437,11 @@ function get_the_excerpt( $post = null ) {
 	 * @param string  $post_excerpt The post excerpt.
 	 * @param WP_Post $post         Post object.
 	 */
-	return apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
+	$output = apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
+	// Restore the original shortcodes after generating the excerpt.
+	$GLOBALS['shortcode_tags'] = $original_shortcode_tags;
+
+	return $output;
 }
 
 /**
