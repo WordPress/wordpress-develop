@@ -1380,6 +1380,13 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	margin: 0.5em 0;
 }
 
+.plugin-title a {
+    white-space: nowrap;
+    word-break: normal;
+    display: inline-flex;
+    align-items: center;
+}
+
 .plugins .plugin-description a,
 .plugins .plugin-update a,
 .updates-table .plugin-title a {
