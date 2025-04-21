@@ -4466,6 +4466,66 @@ function wp_load_view_transitions() {
 		return;
 	}
 
+	// Instantiate animation registry.
+	$animation_registry = new WP_View_Transition_Animation_Registry();
+
+	// Register default animations.
+	$animation_registry->register_animation(
+		'default',
+		array(
+			'use_stylesheet'              => false,
+			'use_global_transition_names' => true,
+			'use_post_transition_names'   => true,
+		)
+	);
+	$animation_registry->register_animation(
+		'wipe',
+		array(
+			'aliases'                     => array(
+				'wipe-from-right',
+				'wipe-from-bottom',
+				'wipe-from-left',
+				'wipe-from-top',
+			),
+			'use_stylesheet'              => true,
+			'use_global_transition_names' => false,
+			'use_post_transition_names'   => true,
+			'get_stylesheet_callback'     => function ( string $css, string $alias, array $args ) {
+				// Set angle based on alias, if relevant.
+				if ( str_ends_with( $alias, 'left' ) ) {
+					$args['angle'] = 90;
+				} elseif ( str_ends_with( $alias, 'top' ) ) {
+					$args['angle'] = 180;
+				} elseif ( str_ends_with( $alias, 'bottom' ) ) {
+					$args['angle'] = 0;
+				} elseif ( str_ends_with( $alias, 'right' ) ) {
+					$args['angle'] = 270;
+				}
+
+				// Inject angle as CSS variable to take effect.
+				$css .= sprintf(
+					'::view-transition-new(root) { --wp-view-transition-angle: %ddeg; }',
+					$args['angle']
+				);
+
+				return $css;
+			},
+		),
+		array( 'angle' => 270 )
+	);
+
+	/**
+	 * Fires when view transitions are being loaded.
+	 *
+	 * This is only triggered if the theme supports view transitions, as otherwise the functionality is not relevant.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_View_Transition_Animation_Registry $animation_registry Registry instance to register view transition
+	 *                                                                  animations on, which can be used by the theme.
+	 */
+	do_action( 'wp_load_view_transitions', $animation_registry );
+
 	$suffix = wp_scripts_get_suffix();
 
 	$stylesheet = file_get_contents( ABSPATH . WPINC . "/css/view-transitions{$suffix}.css" );
@@ -4477,31 +4537,15 @@ function wp_load_view_transitions() {
 
 	$theme_support = get_theme_support( 'view-transitions' );
 
-	switch ( $theme_support['default-animation'] ) {
-		case 'wipe':
-		case 'wipe-from-right': // Default 'wipe' direction.
-		case 'wipe-from-left':
-		case 'wipe-from-top':
-		case 'wipe-from-bottom':
-			$animation_stylesheet = file_get_contents( ABSPATH . WPINC . "/css/view-transitions-animation-wipe{$suffix}.css" );
-			if ( str_ends_with( $theme_support['default-animation'], 'left' ) ) {
-				$animation_angle = 90;
-			} elseif ( str_ends_with( $theme_support['default-animation'], 'top' ) ) {
-				$animation_angle = 180;
-			} elseif ( str_ends_with( $theme_support['default-animation'], 'bottom' ) ) {
-				$animation_angle = 0;
-			} else {
-				$animation_angle = 270;
-			}
-			$animation_stylesheet .= sprintf(
-				'::view-transition-new(root) { --wp-view-transition-angle: %ddeg; }',
-				$animation_angle
-			);
-			wp_add_inline_style( 'wp-view-transitions', $animation_stylesheet );
-			break;
-		case 'default':
-		default:
-			// The default animation does not require any additional CSS.
+	/*
+	 * Add the animation stylesheet for the default animation, if any.
+	 */
+	$animation_stylesheet = $animation_registry->get_animation_stylesheet(
+		$theme_support['default-animation'],
+		isset( $theme_support['default-animation-args'] ) ? (array) $theme_support['default-animation-args'] : array()
+	);
+	if ( $animation_stylesheet ) {
+		wp_add_inline_style( 'wp-view-transitions', $animation_stylesheet );
 	}
 
 	/*
@@ -4514,6 +4558,20 @@ function wp_load_view_transitions() {
 		! $theme_support['chronological-slide-in-out']
 	) {
 		return;
+	}
+
+	/*
+	 * Disable relevant view transition names if required by the animation used.
+	 *
+	 * TODO: As animations become available for use for other transitions than the default transition, this will need
+	 * to be revised. The view transition names may need to be maintained for other transition animations in use, and
+	 * whether to use them will need to be provided as flags for each animation used for a different transition.
+	 */
+	if ( ! $animation_registry->use_animation_global_transition_names( $theme_support['default-animation'] ) ) {
+		$theme_support['global-transition-names'] = array();
+	}
+	if ( ! $animation_registry->use_animation_post_transition_names( $theme_support['default-animation'] ) ) {
+		$theme_support['post-transition-names'] = array();
 	}
 
 	$config      = array(
