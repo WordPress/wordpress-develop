@@ -4485,12 +4485,18 @@ function wp_load_view_transitions() {
 		case 'wipe-from-bottom':
 			$animation_stylesheet = file_get_contents( ABSPATH . WPINC . "/css/view-transitions-animation-wipe{$suffix}.css" );
 			if ( str_ends_with( $theme_support['default-animation'], 'left' ) ) {
-				$animation_stylesheet = str_replace( '270deg', '90deg', $animation_stylesheet );
+				$animation_angle = 90;
 			} elseif ( str_ends_with( $theme_support['default-animation'], 'top' ) ) {
-				$animation_stylesheet = str_replace( '270deg', '180deg', $animation_stylesheet );
+				$animation_angle = 180;
 			} elseif ( str_ends_with( $theme_support['default-animation'], 'bottom' ) ) {
-				$animation_stylesheet = str_replace( '270deg', '0deg', $animation_stylesheet );
+				$animation_angle = 0;
+			} else {
+				$animation_angle = 270;
 			}
+			$animation_stylesheet .= sprintf(
+				'::view-transition-new(root) { --wp-view-transition-angle: %ddeg; }',
+				$animation_angle
+			);
 			wp_add_inline_style( 'wp-view-transitions', $animation_stylesheet );
 			break;
 		case 'default':
