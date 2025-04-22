@@ -636,7 +636,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		if ( 'HEAD' !== $method ) {
 			return null;
 		}
-		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	/**
@@ -659,7 +659,38 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/block-types' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
-		$this->assertNull( $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'HEAD', $path );
+		$request->set_param( '_fields', 'title' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/block-types/fake/test' ),
+			'get_items request' => array( '/wp/v2/block-types' ),
+		);
 	}
 
 	/**

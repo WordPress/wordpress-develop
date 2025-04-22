@@ -40,7 +40,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 	global $wpdb;
 
 	// If manual moderation is enabled, skip all checks and return false.
-	if ( 1 == get_option( 'comment_moderation' ) ) {
+	if ( '1' === get_option( 'comment_moderation' ) ) {
 		return false;
 	}
 
@@ -126,18 +126,38 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 	 * as well as whether there are any moderation keywords (if set) present in the author
 	 * email address. If both checks pass, return true. Otherwise, return false.
 	 */
-	if ( 1 == get_option( 'comment_previously_approved' ) ) {
+	if ( '1' === get_option( 'comment_previously_approved' ) ) {
 		if ( 'trackback' !== $comment_type && 'pingback' !== $comment_type && '' !== $author && '' !== $email ) {
 			$comment_user = get_user_by( 'email', wp_unslash( $email ) );
 			if ( ! empty( $comment_user->ID ) ) {
-				$ok_to_comment = $wpdb->get_var( $wpdb->prepare( "SELECT comment_approved FROM $wpdb->comments WHERE user_id = %d AND comment_approved = '1' LIMIT 1", $comment_user->ID ) );
+				$ok_to_comment = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT comment_approved
+						FROM $wpdb->comments
+						WHERE user_id = %d
+						AND comment_approved = '1'
+						LIMIT 1",
+						$comment_user->ID
+					)
+				);
 			} else {
 				// expected_slashed ($author, $email)
-				$ok_to_comment = $wpdb->get_var( $wpdb->prepare( "SELECT comment_approved FROM $wpdb->comments WHERE comment_author = %s AND comment_author_email = %s and comment_approved = '1' LIMIT 1", $author, $email ) );
+				$ok_to_comment = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT comment_approved
+						FROM $wpdb->comments
+						WHERE comment_author = %s
+						AND comment_author_email = %s
+						AND comment_approved = '1'
+						LIMIT 1",
+						$author,
+						$email
+					)
+				);
 			}
-			if ( ( 1 == $ok_to_comment ) &&
-				( empty( $mod_keys ) || ! str_contains( $email, $mod_keys ) ) ) {
-					return true;
+
+			if ( '1' === $ok_to_comment && ( empty( $mod_keys ) || ! str_contains( $email, $mod_keys ) ) ) {
+				return true;
 			} else {
 				return false;
 			}
@@ -1267,7 +1287,7 @@ function wp_check_comment_data( $comment_data ) {
 
 	if ( ! empty( $comment_data['user_id'] ) ) {
 		$user        = get_userdata( $comment_data['user_id'] );
-		$post_author = $wpdb->get_var(
+		$post_author = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT post_author FROM $wpdb->posts WHERE ID = %d LIMIT 1",
 				$comment_data['comment_post_ID']
@@ -1275,7 +1295,7 @@ function wp_check_comment_data( $comment_data ) {
 		);
 	}
 
-	if ( isset( $user ) && ( $comment_data['user_id'] == $post_author || $user->has_cap( 'moderate_comments' ) ) ) {
+	if ( isset( $user ) && ( $comment_data['user_id'] === $post_author || $user->has_cap( 'moderate_comments' ) ) ) {
 		// The author and the admins get respect.
 		$approved = 1;
 	} else {
@@ -2071,7 +2091,7 @@ function wp_insert_comment( $commentdata ) {
 
 	$id = (int) $wpdb->insert_id;
 
-	if ( 1 == $comment_approved ) {
+	if ( 1 === (int) $comment_approved ) {
 		wp_update_comment_count( $comment_post_id );
 
 		$data = array();

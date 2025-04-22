@@ -288,7 +288,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_check_password_supports_argon2i_hash() {
 		if ( ! defined( 'PASSWORD_ARGON2I' ) ) {
-			$this->fail( 'Argon2i is not supported.' );
+			$this->markTestSkipped( 'Argon2i is not supported.' );
 		}
 
 		$password = 'password';
@@ -306,7 +306,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_check_password_supports_argon2id_hash() {
 		if ( ! defined( 'PASSWORD_ARGON2ID' ) ) {
-			$this->fail( 'Argon2id is not supported.' );
+			$this->markTestSkipped( 'Argon2id is not supported.' );
 		}
 
 		$password = 'password';
@@ -1135,6 +1135,29 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 21022
+	 * @ticket 63203
+	 */
+	public function test_plain_bcrypt_application_password_is_accepted() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		$password = 'password';
+
+		// Set an application password with plain bcrypt, which mimics a password that was hashed with
+		// a custom `wp_hash_password()` in use.
+		$uuid = self::set_application_password_with_plain_bcrypt( $password, self::$user_id );
+
+		// Authenticate.
+		$user = wp_authenticate_application_password( null, self::USER_LOGIN, $password );
+
+		// Verify that the plain bcrypt hash for the application password was valid.
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( 'WP_User', $user );
+		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	/**
 	 * @dataProvider data_usernames
 	 *
 	 * @ticket 21022
@@ -1592,6 +1615,19 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 21022
+	 * @ticket 63203
+	 *
+	 * @covers WP_Application_Passwords::create_new_application_password
+	 */
+	public function test_application_password_is_hashed_with_fast_hash() {
+		// Create a new app-only password.
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
+
+		$this->assertStringStartsWith( '$generic$', $item['password'] );
+	}
+
+	/**
 	 * @ticket 42790
 	 */
 	public function test_authenticate_application_password_respects_existing_user() {
@@ -1966,6 +2002,37 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * Test the tests
 	 *
+	 * @covers Tests_Auth::set_application_password_with_plain_bcrypt
+	 *
+	 * @ticket 21022
+	 * @ticket 63203
+	 */
+	public function test_set_application_password_with_plain_bcrypt() {
+		// Set an application password with the plain_bcrypt algorithm.
+		$uuid = self::set_application_password_with_plain_bcrypt( 'password', self::$user_id );
+
+		// Ensure the password is hashed with plain_bcrypt.
+		$hash = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid )['password'];
+		$this->assertStringStartsWith( '$2y$', $hash );
+	}
+
+	/**
+	 * Creates an application password that is hashed using bcrypt instead of the generic algorithm.
+	 *
+	 * This is ultimately used to mimic a plugged version of `wp_hash_password()` that uses bcrypt and
+	 * facilitate backwards compatibility testing.
+	 *
+	 * @param string $password The password to hash.
+	 * @param int    $user_id  The user ID to associate the password with.
+	 * @return string The UUID of the application password.
+	 */
+	private static function set_application_password_with_plain_bcrypt( string $password, int $user_id ) {
+		return self::set_application_password( password_hash( $password, PASSWORD_BCRYPT ), $user_id );
+	}
+
+	/**
+	 * Test the tests
+	 *
 	 * @covers Tests_Auth::set_application_password_with_phpass
 	 *
 	 * @ticket 21022
@@ -1979,13 +2046,33 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '$P$', $hash );
 	}
 
+	/**
+	 * Creates an application password that is hashed using a phpass portable hash instead of the generic algorithm.
+	 *
+	 * This facilitate backwards compatibility testing.
+	 *
+	 * @param string $password The password to hash.
+	 * @param int    $user_id  The user ID to associate the password with.
+	 * @return string The UUID of the application password.
+	 */
 	private static function set_application_password_with_phpass( string $password, int $user_id ) {
+		return self::set_application_password( self::$wp_hasher->HashPassword( $password ), $user_id );
+	}
+
+	/**
+	 * Creates an application password using the given password hash.
+	 *
+	 * @param string $hash    The password hash.
+	 * @param int    $user_id The user ID to associate the password with.
+	 * @return string The UUID of the application password.
+	 */
+	private static function set_application_password( string $hash, int $user_id ) {
 		$uuid = wp_generate_uuid4();
 		$item = array(
 			'uuid'      => $uuid,
 			'app_id'    => '',
 			'name'      => 'Test',
-			'password'  => self::$wp_hasher->HashPassword( $password ),
+			'password'  => $hash,
 			'created'   => time(),
 			'last_used' => null,
 			'last_ip'   => null,
