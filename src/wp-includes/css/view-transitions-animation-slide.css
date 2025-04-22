@@ -1,0 +1,35 @@
+@property --wp-view-transition-animation-slide-horizontal-offset {
+	syntax: "<number>";
+	initial-value: 1;
+	inherits: false;
+}
+
+@property --wp-view-transition-animation-slide-vertical-offset {
+	syntax: "<number>";
+	initial-value: 0;
+	inherits: false;
+}
+
+@keyframes wp-view-transition-animation-slide-old {
+	to {
+		translate: calc(100vw * var(--wp-view-transition-animation-slide-horizontal-offset) * -1) calc(100vw * var(--wp-view-transition-animation-slide-vertical-offset) * -1);
+	}
+}
+
+@keyframes wp-view-transition-animation-slide-new {
+	from {
+		translate: calc(100vw * var(--wp-view-transition-animation-slide-horizontal-offset)) calc(100vw * var(--wp-view-transition-animation-slide-vertical-offset));
+	}
+}
+
+::view-transition-group(*) {
+	animation-duration: 1s;
+}
+
+::view-transition-old(*) {
+	animation-name: wp-view-transition-animation-slide-old;
+}
+
+::view-transition-new(*) {
+	animation-name: wp-view-transition-animation-slide-new;
+}

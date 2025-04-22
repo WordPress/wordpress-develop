@@ -45,7 +45,7 @@ final class WP_View_Transition_Animation {
 	 * Whether to apply the global view transition names while using this animation.
 	 *
 	 * @since 6.9.0
-	 * @var bool
+	 * @var bool|callable
 	 */
 	private $use_global_transition_names = true;
 
@@ -53,7 +53,7 @@ final class WP_View_Transition_Animation {
 	 * Whether to apply the post specific view transition names while using this animation.
 	 *
 	 * @since 6.9.0
-	 * @var bool
+	 * @var bool|callable
 	 */
 	private $use_post_transition_names = true;
 
@@ -95,10 +95,14 @@ final class WP_View_Transition_Animation {
 	 *     @type string[]      $aliases                     Unique aliases for the animation, if any. Default empty
 	 *                                                      array.
 	 *     @type bool          $use_stylesheet              Whether the animation uses a stylesheet. Default false.
-	 *     @type bool          $use_global_transition_names Whether to apply the global view transition names while
-	 *                                                      using this animation. Default true.
-	 *     @type bool          $use_post_transition_names   Whether to apply the post specific view transition names
-	 *                                                      while using this animation. Default true.
+	 *     @type bool|callable $use_global_transition_names Whether to apply the global view transition names while
+	 *                                                      using this animation. Alternatively to a concrete value, a
+	 *                                                      callback can be specified to determine it dynamically.
+	 *                                                      Default true.
+	 *     @type bool|callable $use_post_transition_names   Whether to apply the post specific view transition names
+	 *                                                      while using this animation. Alternatively to a concrete
+	 *                                                      value, acallback can be specified to determine it
+	 *                                                      dynamically. Default true.
 	 *     @type callable|null $get_stylesheet_callback     Callback to get the stylesheet for the animation, as
 	 *                                                      inline CSS. This can be used if the animation CSS requires
 	 *                                                      further preparation other than simply loading its
@@ -182,10 +186,20 @@ final class WP_View_Transition_Animation {
 	 *
 	 * @since 6.9.0
 	 *
+	 * @param string               $alias Optional. Slug or alias to reference the animation with. May be used to alter
+	 *                                    the animation's behavior. Default is the animation's slug.
+	 * @param array<string, mixed> $args  Optional. Animation arguments. Default is the animation's default arguments.
 	 * @return bool True if the global view transition names should be applied, false otherwise.
 	 */
-	public function use_global_transition_names(): bool {
-		return $this->use_global_transition_names;
+	public function use_global_transition_names( string $alias = '', array $args = array() ): bool {
+		if ( is_bool( $this->use_global_transition_names ) ) {
+			return $this->use_global_transition_names;
+		}
+		if ( ! $alias ) {
+			$alias = $this->slug;
+		}
+		$args = wp_parse_args( $args, $this->default_args );
+		return call_user_func( $this->use_global_transition_names, $alias, $args );
 	}
 
 	/**
@@ -193,10 +207,20 @@ final class WP_View_Transition_Animation {
 	 *
 	 * @since 6.9.0
 	 *
+	 * @param string               $alias Optional. Slug or alias to reference the animation with. May be used to alter
+	 *                                    the animation's behavior. Default is the animation's slug.
+	 * @param array<string, mixed> $args  Optional. Animation arguments. Default is the animation's default arguments.
 	 * @return bool True if the post specific view transition names should be applied, false otherwise.
 	 */
-	public function use_post_transition_names(): bool {
-		return $this->use_post_transition_names;
+	public function use_post_transition_names( string $alias = '', array $args = array() ): bool {
+		if ( is_bool( $this->use_post_transition_names ) ) {
+			return $this->use_post_transition_names;
+		}
+		if ( ! $alias ) {
+			$alias = $this->slug;
+		}
+		$args = wp_parse_args( $args, $this->default_args );
+		return call_user_func( $this->use_post_transition_names, $alias, $args );
 	}
 
 	/**
@@ -226,10 +250,14 @@ final class WP_View_Transition_Animation {
 			$this->use_stylesheet = (bool) $config['use_stylesheet'];
 		}
 		if ( isset( $config['use_global_transition_names'] ) ) {
-			$this->use_global_transition_names = (bool) $config['use_global_transition_names'];
+			$this->use_global_transition_names = is_callable( $config['use_global_transition_names'] ) ?
+				$config['use_global_transition_names'] :
+				(bool) $config['use_global_transition_names'];
 		}
 		if ( isset( $config['use_post_transition_names'] ) ) {
-			$this->use_post_transition_names = (bool) $config['use_post_transition_names'];
+			$this->use_post_transition_names = is_callable( $config['use_post_transition_names'] ) ?
+				$config['use_post_transition_names'] :
+				(bool) $config['use_post_transition_names'];
 		}
 		if ( isset( $config['get_stylesheet_callback'] ) && is_callable( $config['get_stylesheet_callback'] ) ) {
 			$this->get_stylesheet_callback = $config['get_stylesheet_callback'];

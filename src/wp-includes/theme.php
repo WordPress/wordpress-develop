@@ -2949,18 +2949,37 @@ function add_theme_support( $feature, ...$args ) {
 					'.wp-post-image'                         => 'post-thumbnail',
 					'.wp-block-post-content, .entry-content' => 'post-content',
 				),
-				'default-animation'          => 'default',
-				'chronological-slide-in-out' => (bool) get_option( 'permalink_structure' ),
+				'default-animation'                 => 'fade',
+				'chronological-forwards-animation'  => false,
+				'chronological-backwards-animation' => false,
+				'pagination-forwards-animation'     => false,
+				'pagination-backwards-animation'    => false,
 			);
 			if ( true === $args ) {
 				$args = $defaults;
 			} else {
 				$args = wp_parse_args( $args, $defaults );
+
+				// Enforce correct types.
 				if ( ! is_array( $args['global-transition-names'] ) ) {
 					$args['global-transition-names'] = array();
 				}
 				if ( ! is_array( $args['post-transition-names'] ) ) {
 					$args['post-transition-names'] = array();
+				}
+
+				// If specific transition animations match the default animations, they are irrelevant.
+				if ( $args['chronological-forwards-animation'] === $args['default-animation'] ) {
+					$args['chronological-forwards-animation'] = false;
+				}
+				if ( $args['chronological-backwards-animation'] === $args['default-animation'] ) {
+					$args['chronological-backwards-animation'] = false;
+				}
+				if ( $args['pagination-forwards-animation'] === $args['default-animation'] ) {
+					$args['pagination-forwards-animation'] = false;
+				}
+				if ( $args['pagination-backwards-animation'] === $args['default-animation'] ) {
+					$args['pagination-backwards-animation'] = false;
 				}
 			}
 
@@ -4471,11 +4490,121 @@ function wp_load_view_transitions() {
 
 	// Register default animations.
 	$animation_registry->register_animation(
-		'default',
+		'fade', // This is how view transitions are animated without any extra CSS.
 		array(
 			'use_stylesheet'              => false,
 			'use_global_transition_names' => true,
 			'use_post_transition_names'   => true,
+		)
+	);
+	$animation_registry->register_animation(
+		'slide',
+		array(
+			'aliases'                     => array(
+				'slide-from-right',
+				'slide-from-bottom',
+				'slide-from-left',
+				'slide-from-top',
+			),
+			'use_stylesheet'              => true,
+			'use_global_transition_names' => function ( string $alias, array $args ) {
+				// If no specific element is targeted, the entire screen should be moved.
+				return '*' === $args['target-name'] ? false : true;
+			},
+			'use_post_transition_names'   => function ( string $alias, array $args ) {
+				// If no specific element is targeted, the entire screen should be moved.
+				return '*' === $args['target-name'] ? false : true;
+			},
+			'get_stylesheet_callback'     => function ( string $css, string $alias, array $args ) {
+				// Set offsets based on alias, if relevant.
+				if ( str_ends_with( $alias, 'left' ) ) {
+					$args['horizontal-offset'] = -1;
+					$args['vertical-offset']   = 0;
+				} elseif ( str_ends_with( $alias, 'top' ) ) {
+					$args['horizontal-offset'] = 0;
+					$args['vertical-offset']   = -1;
+				} elseif ( str_ends_with( $alias, 'bottom' ) ) {
+					$args['horizontal-offset'] = 0;
+					$args['vertical-offset']   = 1;
+				} elseif ( str_ends_with( $alias, 'right' ) ) {
+					$args['horizontal-offset'] = 1;
+					$args['vertical-offset']   = 0;
+				}
+
+				// Inject offsets as CSS variable to take effect.
+				$css .= sprintf(
+					'::view-transition-old(*), ::view-transition-new(*) { --wp-view-transition-animation-slide-horizontal-offset: %d; --wp-view-transition-animation-slide-vertical-offset: %d; }',
+					$args['horizontal-offset'],
+					$args['vertical-offset']
+				);
+
+				// If a specific element view transition name is targeted, scope the animation to only that name.
+				if ( '*' !== $args['target-name'] ) {
+					$css = str_replace( '(*)', "({$args['target-name']})", $css );
+				}
+
+				return $css;
+			},
+		),
+		array(
+			'horizontal-offset' => 1,
+			'vertical-offset'   => 0,
+			'target-name'       => '*',
+		)
+	);
+	$animation_registry->register_animation(
+		'swipe',
+		array(
+			'aliases'                     => array(
+				'swipe-from-right',
+				'swipe-from-bottom',
+				'swipe-from-left',
+				'swipe-from-top',
+			),
+			'use_stylesheet'              => true,
+			'use_global_transition_names' => function ( string $alias, array $args ) {
+				// If no specific element is targeted, the entire screen should be moved.
+				return '*' === $args['target-name'] ? false : true;
+			},
+			'use_post_transition_names'   => function ( string $alias, array $args ) {
+				// If no specific element is targeted, the entire screen should be moved.
+				return '*' === $args['target-name'] ? false : true;
+			},
+			'get_stylesheet_callback'     => function ( string $css, string $alias, array $args ) {
+				// Set offsets based on alias, if relevant.
+				if ( str_ends_with( $alias, 'left' ) ) {
+					$args['horizontal-offset'] = -1;
+					$args['vertical-offset']   = 0;
+				} elseif ( str_ends_with( $alias, 'top' ) ) {
+					$args['horizontal-offset'] = 0;
+					$args['vertical-offset']   = -1;
+				} elseif ( str_ends_with( $alias, 'bottom' ) ) {
+					$args['horizontal-offset'] = 0;
+					$args['vertical-offset']   = 1;
+				} elseif ( str_ends_with( $alias, 'right' ) ) {
+					$args['horizontal-offset'] = 1;
+					$args['vertical-offset']   = 0;
+				}
+
+				// Inject offsets as CSS variable to take effect.
+				$css .= sprintf(
+					'::view-transition-old(*), ::view-transition-new(*) { --wp-view-transition-animation-swipe-horizontal-offset: %d; --wp-view-transition-animation-swipe-vertical-offset: %d; }',
+					$args['horizontal-offset'],
+					$args['vertical-offset']
+				);
+
+				// If a specific element view transition name is targeted, scope the animation to only that name.
+				if ( '*' !== $args['target-name'] ) {
+					$css = str_replace( '(*)', "({$args['target-name']})", $css );
+				}
+
+				return $css;
+			},
+		),
+		array(
+			'horizontal-offset' => 1,
+			'vertical-offset'   => 0,
+			'target-name'       => '*',
 		)
 	);
 	$animation_registry->register_animation(
@@ -4504,7 +4633,7 @@ function wp_load_view_transitions() {
 
 				// Inject angle as CSS variable to take effect.
 				$css .= sprintf(
-					'::view-transition-new(root) { --wp-view-transition-angle: %ddeg; }',
+					'::view-transition-new(root) { --wp-view-transition-animation-wipe-angle: %ddeg; }',
 					$args['angle']
 				);
 
@@ -4540,45 +4669,67 @@ function wp_load_view_transitions() {
 	/*
 	 * Add the animation stylesheet for the default animation, if any.
 	 */
-	$animation_stylesheet = $animation_registry->get_animation_stylesheet(
-		$theme_support['default-animation'],
-		isset( $theme_support['default-animation-args'] ) ? (array) $theme_support['default-animation-args'] : array()
-	);
-	if ( $animation_stylesheet ) {
-		wp_add_inline_style( 'wp-view-transitions', $animation_stylesheet );
+	$default_animation_args       = isset( $theme_support['default-animation-args'] ) ? (array) $theme_support['default-animation-args'] : array();
+	$default_animation_stylesheet = $animation_registry->get_animation_stylesheet( $theme_support['default-animation'], $default_animation_args );
+	if ( $default_animation_stylesheet ) {
+		wp_add_inline_style( 'wp-view-transitions', $default_animation_stylesheet );
 	}
 
 	/*
-	 * No point in loading the script if no specific view transition names are
-	 * configured and if chronological animations are disabled.
+	 * No point in loading the script if no specific view transition names are configured and if no animations are
+	 * configured other than for the default transition.
 	 */
 	if (
 		! $theme_support['global-transition-names'] &&
 		! $theme_support['post-transition-names'] &&
-		! $theme_support['chronological-slide-in-out']
+		! $theme_support['chronological-forwards-animation'] &&
+		! $theme_support['chronological-backwards-animation'] &&
+		! $theme_support['pagination-forwards-animation'] &&
+		! $theme_support['pagination-backwards-animation']
 	) {
 		return;
 	}
 
-	/*
-	 * Disable relevant view transition names if required by the animation used.
-	 *
-	 * TODO: As animations become available for use for other transitions than the default transition, this will need
-	 * to be revised. The view transition names may need to be maintained for other transition animations in use, and
-	 * whether to use them will need to be provided as flags for each animation used for a different transition.
-	 */
-	if ( ! $animation_registry->use_animation_global_transition_names( $theme_support['default-animation'] ) ) {
-		$theme_support['global-transition-names'] = array();
-	}
-	if ( ! $animation_registry->use_animation_post_transition_names( $theme_support['default-animation'] ) ) {
-		$theme_support['post-transition-names'] = array();
+	$animations_js_config = array(
+		'default'                 => array(
+			'useGlobalTransitionNames' => $animation_registry->use_animation_global_transition_names( $theme_support['default-animation'], $default_animation_args ),
+			'usePostTransitionNames'   => $animation_registry->use_animation_post_transition_names( $theme_support['default-animation'], $default_animation_args ),
+			'targetName'               => isset( $default_animation_args['target-name'] ) ? $default_animation_args['target-name'] : '*', // Special argument.
+		),
+	);
+
+	$additional_transition_types = array(
+		'chronological-forwards',
+		'chronological-backwards',
+		'pagination-forwards',
+		'pagination-backwards',
+	);
+	foreach ( $additional_transition_types as $transition_type ) {
+		if ( $theme_support[ $transition_type . '-animation' ] ) {
+			$additional_animation_args       = isset( $theme_support[ $transition_type . '-animation-args' ] ) ? (array) $theme_support[ $transition_type . '-animation-args' ] : array();
+			$additional_animation_stylesheet = $animation_registry->get_animation_stylesheet( $theme_support[ $transition_type . '-animation' ], $additional_animation_args );
+			if ( $additional_animation_stylesheet ) {
+				wp_add_inline_style(
+					'wp-view-transitions',
+					wp_view_transitions_scope_animation_stylesheet_to_transition_type( $additional_animation_stylesheet, $transition_type )
+				);
+			}
+
+			$animations_js_config[ $transition_type ] = array(
+				'useGlobalTransitionNames' => $animation_registry->use_animation_global_transition_names( $theme_support[ $transition_type . '-animation' ], $additional_animation_args ),
+				'usePostTransitionNames'   => $animation_registry->use_animation_post_transition_names( $theme_support[ $transition_type . '-animation' ], $additional_animation_args ),
+				'targetName'               => isset( $additional_animation_args['target-name'] ) ? $additional_animation_args['target-name'] : '*', // Special argument.
+			);
+		} else {
+			$animations_js_config[ $transition_type ] = false;
+		}
 	}
 
 	$config      = array(
-		'postSelector'            => $theme_support['post-selector'],
-		'globalTransitionNames'   => $theme_support['global-transition-names'],
-		'postTransitionNames'     => $theme_support['post-transition-names'],
-		'chronologicalSlideInOut' => $theme_support['chronological-slide-in-out'],
+		'postSelector'          => $theme_support['post-selector'],
+		'globalTransitionNames' => $theme_support['global-transition-names'],
+		'postTransitionNames'   => $theme_support['post-transition-names'],
+		'animations'            => $animations_js_config,
 	);
 	$src_script  = file_get_contents( ABSPATH . WPINC . "/js/wp-view-transitions{$suffix}.js" );
 	$init_script = sprintf(
@@ -4595,4 +4746,60 @@ function wp_load_view_transitions() {
 	wp_add_inline_script( 'wp-view-transitions', $src_script );
 	wp_add_inline_script( 'wp-view-transitions', $init_script );
 	wp_enqueue_script( 'wp-view-transitions' );
+}
+
+/**
+ * Scopes the given view transition animation CSS to apply only to a specific transition type.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param string $css             Animation stylesheet as inline CSS.
+ * @param string $transition_type Transition type to scope the CSS to.
+ * @return string Scoped animation stylesheet.
+ */
+function wp_view_transitions_scope_animation_stylesheet_to_transition_type( string $css, string $transition_type ): string {
+	$indent = function( string $input, $indent_tabs = 1 ): string {
+		return implode(
+			"\n",
+			array_map(
+				function( string $line ) use ( $indent_tabs ): string {
+					return str_repeat( "\t", $indent_tabs ) . $line;
+				},
+				explode( "\n", $input )
+			)
+		);
+	};
+
+	// This is very fragile, but it works well enough for now. TODO: Find a better solution to scope the CSS selectors.
+	if ( preg_match_all( '/(\s*)([^{}]+)\{[^{}]*?\}/m', $css, $matches ) ) {
+		// Wrap all `::view-transition-*` selectors to scope them to the transition type.
+		$view_transition_rule_pattern = '/::view-transition-/';
+
+		foreach ( $matches[0] as $index => $match ) {
+			$rule      = $match;
+			$rule_name = $matches[2][ $index ];
+			if ( preg_match( $view_transition_rule_pattern, $rule_name ) ) {
+				$rule_whitespace    = $matches[1][ $index ];
+				$prefixed_rule_name = preg_replace( $view_transition_rule_pattern, '&\0', $rule_name );
+				$rule               = str_replace( $rule_name, $prefixed_rule_name, $rule );
+
+				if ( str_contains( $rule, "\n" ) ) { // Non-minified.
+					$rule = $rule_whitespace .
+						"html:active-view-transition-type({$transition_type}) {\n" .
+						$indent( substr( $rule, strlen( $rule_whitespace ) ), 1 ) .
+						"\n}";
+				} else { // Minified.
+					$rule = $rule_whitespace .
+					"html:active-view-transition-type({$transition_type}){" .
+					substr( $rule, strlen( $rule_whitespace ) ) .
+					'}';
+				}
+
+				// Replace the original rule with the wrapped/scoped one.
+				$css = str_replace( $match, $rule, $css );
+			}
+		}
+	}
+	return $css;
 }

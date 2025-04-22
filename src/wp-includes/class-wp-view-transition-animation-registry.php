@@ -119,15 +119,17 @@ final class WP_View_Transition_Animation_Registry {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string $alias Slug or alias for the animation.
+	 * @param string               $alias Slug or alias to reference the animation with. May be used to alter the
+	 *                                    animation's behavior.
+	 * @param array<string, mixed> $args  Optional. Animation arguments. Default is the animation's default arguments.
 	 * @return bool True if the global view transition names should be applied, false otherwise.
 	 */
-	public function use_animation_global_transition_names( string $alias ): bool {
+	public function use_animation_global_transition_names( string $alias, array $args = array() ): bool {
 		if ( ! isset( $this->alias_map[ $alias ] ) ) {
 			return true;
 		}
 
-		return $this->registered_animations[ $this->alias_map[ $alias ] ]->use_global_transition_names();
+		return $this->registered_animations[ $this->alias_map[ $alias ] ]->use_global_transition_names( $alias, $args );
 	}
 
 	/**
@@ -135,14 +137,16 @@ final class WP_View_Transition_Animation_Registry {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string $alias Slug or alias for the animation.
+	 * @param string               $alias Slug or alias to reference the animation with. May be used to alter the
+	 *                                    animation's behavior.
+	 * @param array<string, mixed> $args  Optional. Animation arguments. Default is the animation's default arguments.
 	 * @return bool True if the post specific view transition names should be applied, false otherwise.
 	 */
-	public function use_animation_post_transition_names( string $alias ): bool {
+	public function use_animation_post_transition_names( string $alias, array $args = array() ): bool {
 		if ( ! isset( $this->alias_map[ $alias ] ) ) {
 			return true;
 		}
 
-		return $this->registered_animations[ $this->alias_map[ $alias ] ]->use_post_transition_names();
+		return $this->registered_animations[ $this->alias_map[ $alias ] ]->use_post_transition_names( $alias, $args );
 	}
 }

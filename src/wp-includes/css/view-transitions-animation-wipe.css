@@ -1,21 +1,21 @@
-@property --wp-view-transition-angle {
+@property --wp-view-transition-animation-wipe-angle {
 	syntax: "<angle>";
 	initial-value: 270deg;
 	inherits: false;
 }
 
-@property --wp-view-transition-progress {
+@property --wp-view-transition-animation-wipe-progress {
 	syntax: "<number>";
 	initial-value: 0;
 	inherits: false;
 }
 
-@keyframes wp-view-transition-new-animation {
+@keyframes wp-view-transition-animation-wipe-new {
 	from {
-		--wp-view-transition-progress: 0;
+		--wp-view-transition-animation-wipe-progress: 0;
 	}
 	to {
-		--wp-view-transition-progress: 1;
+		--wp-view-transition-animation-wipe-progress: 1;
 	}
 }
 
@@ -36,8 +36,8 @@
 ::view-transition-new(root) {
 	opacity: 1;
 	transform: none;
-	animation: wp-view-transition-new-animation 1.2s cubic-bezier(0.45, 0, 0.35, 1.0);
+	animation: wp-view-transition-animation-wipe-new 1.2s cubic-bezier(0.45, 0, 0.35, 1.0);
 	animation-fill-mode: both;
-	-webkit-mask-image: linear-gradient(var(--wp-view-transition-angle), #000 calc(-70% + calc(170% * var(--wp-view-transition-progress, 0))), transparent calc(170% * var(--wp-view-transition-progress, 0)));
-	mask-image: linear-gradient(var(--wp-view-transition-angle), #000 calc(-70% + calc(170% * var(--wp-view-transition-progress, 0))), transparent calc(170% * var(--wp-view-transition-progress, 0)));
+	-webkit-mask-image: linear-gradient(var(--wp-view-transition-animation-wipe-angle), #000 calc(-70% + calc(170% * var(--wp-view-transition-animation-wipe-progress, 0))), transparent calc(170% * var(--wp-view-transition-animation-wipe-progress, 0)));
+	mask-image: linear-gradient(var(--wp-view-transition-animation-wipe-angle), #000 calc(-70% + calc(170% * var(--wp-view-transition-animation-wipe-progress, 0))), transparent calc(170% * var(--wp-view-transition-animation-wipe-progress, 0)));
 }

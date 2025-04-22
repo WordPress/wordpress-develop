@@ -2,31 +2,7 @@
 	navigation: auto;
 }
 
-html:active-view-transition-type(forwards) {
-	&::view-transition-group(main) {
-		animation-duration: 1s;
-	}
-	&::view-transition-old(main) {
-		animation-name: slide-out-to-left;
-	}
-	&::view-transition-new(main) {
-		animation-name: slide-in-from-right;
-	}
-}
-
-html:active-view-transition-type(backwards) {
-	&::view-transition-group(main) {
-		animation-duration: 1s;
-	}
-	&::view-transition-old(main) {
-		animation-name: slide-out-to-right;
-	}
-	&::view-transition-new(main) {
-		animation-name: slide-in-from-left;
-	}
-}
-
-html:active-view-transition-type(content-forwards) {
+html:active-view-transition-type(test-forwards) {
 	&::view-transition-group(post-content) {
 		animation-duration: 1s;
 	}
@@ -38,7 +14,7 @@ html:active-view-transition-type(content-forwards) {
 	}
 }
 
-html:active-view-transition-type(content-backwards) {
+html:active-view-transition-type(test-backwards) {
 	&::view-transition-group(post-content) {
 		animation-duration: 1s;
 	}

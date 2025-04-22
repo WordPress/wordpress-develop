@@ -26,30 +26,27 @@ window.wp.viewTransitions.init = ( config ) => {
 	/**
 	 * Gets all view transition entries relevant for a view transition.
 	 *
-	 * @param {string}       transitionType View transition type (e.g. 'default', 'forwards', 'backwards').
+	 * @param {string}       transitionType View transition type (e.g. 'default', 'chronological-forwards', 'chronological-backwards').
 	 * @param {Element}      bodyElement    The body element.
 	 * @param {Element|null} articleElement The post element relevant for the view transition, if any.
 	 * @return {Array[]} View transition entries with each one containing the element and its view transition name.
 	 */
 	const getViewTransitionEntries = ( transitionType, bodyElement, articleElement ) => {
-		const isMainSlide = transitionType === 'forwards' || transitionType === 'backwards';
-		let foundMainElement = false;
-		const globalEntries = Object.entries( config.globalTransitionNames || {} ).map( ( [ selector, name ] ) => {
-			const element = bodyElement.querySelector( selector );
-			if ( name === 'main' && element ) {
-				foundMainElement = true;
-			}
-			return [ element, name ];
-		} );
-		if ( ! articleElement || isMainSlide && foundMainElement ) {
-			return globalEntries;
-		}
-		return [
-			...globalEntries,
-			...Object.entries( config.postTransitionNames || {} ).map( ( [ selector, name ] ) => {
+		const globalEntries = config.animations[ transitionType ].useGlobalTransitionNames ?
+			Object.entries( config.globalTransitionNames || {} ).map( ( [ selector, name ] ) => {
+				const element = bodyElement.querySelector( selector );
+				return [ element, name ];
+			} ) : [];
+
+		const postEntries = config.animations[ transitionType ].usePostTransitionNames && articleElement ?
+			Object.entries( config.postTransitionNames || {} ).map( ( [ selector, name ] ) => {
 				const element = articleElement.querySelector( selector );
 				return [ element, name ];
-			} ),
+			} ) : [];
+
+		return [
+			...globalEntries,
+			...postEntries,
 		];
 	};
 
@@ -126,14 +123,20 @@ window.wp.viewTransitions.init = ( config ) => {
 	 *
 	 * @param {NavigationHistoryEntry} oldEntry Navigation history entry for the URL navigated from.
 	 * @param {NavigationHistoryEntry} newEntry Navigation history entry for the URL navigated to.
-	 * @return {string} View transition type (e.g. 'default', 'forwards', 'backwards').
+	 * @return {string} View transition type (e.g. 'default', 'chronological-forwards', 'chronological-backwards').
 	 */
 	const determineTransitionType = ( oldEntry, newEntry ) => {
-		if ( ! config.chronologicalSlideInOut ) {
+		if ( ! oldEntry || ! newEntry ) {
 			return 'default';
 		}
 
-		if ( ! oldEntry || ! newEntry ) {
+		// Use 'default' transition type if all other transition types are disabled.
+		if (
+			! config.animations['chronological-forwards'] &&
+			! config.animations['chronological-backwards'] &&
+			! config.animations['pagination-forwards'] &&
+			! config.animations['pagination-backwards']
+		) {
 			return 'default';
 		}
 
@@ -147,16 +150,22 @@ window.wp.viewTransitions.init = ( config ) => {
 			return 'default';
 		}
 
-		// Check if the URLs are for a paginated archive.
-		let oldPageMatches = oldPathname.match( /\/page\/(\d+)\/?$/ );
-		let newPageMatches = newPathname.match( /\/page\/(\d+)\/?$/ );
+		let oldPageMatches = false;
+		let newPageMatches = false;
 		let prefix = '';
 
+		// If enabled, check if the URLs are for a chronologically paginated archive.
+		if ( config.animations['chronological-forwards'] || config.animations['chronological-backwards'] ) {
+			oldPageMatches = oldPathname.match( /\/page\/(\d+)\/?$/ );
+			newPageMatches = newPathname.match( /\/page\/(\d+)\/?$/ );
+			prefix = 'chronological-';
+		}
+
 		// If not, check if the URLs are for a multi-page post.
-		if ( ! oldPageMatches && ! newPageMatches ) {
+		if ( ! oldPageMatches && ! newPageMatches && ( config.animations['pagination-forwards'] || config.animations['pagination-backwards'] ) ) {
 			oldPageMatches = oldPathname.match( /\/(\d+)\/?$/ );
 			newPageMatches = newPathname.match( /\/(\d+)\/?$/ );
-			prefix = 'content-';
+			prefix = 'pagination-';
 		}
 
 		// If there is a match on at least one of the URLs, compare whether their roots before the page segment match.
@@ -164,32 +173,38 @@ window.wp.viewTransitions.init = ( config ) => {
 			const oldPageBase = oldPageMatches ? oldPathname.substring( 0, oldPathname.length - oldPageMatches[ 0 ].length ) : oldPathname.replace( /\/$/, '' );
 			const newPageBase = newPageMatches ? newPathname.substring( 0, newPathname.length - newPageMatches[ 0 ].length ) : newPathname.replace( /\/$/, '' );
 			if ( oldPageBase === newPageBase ) { // They belong to the same archive or post.
+				// Return the appropriate transition type, or 'default' if no particular animation is specified.
 				if ( oldPageMatches && newPageMatches ) {
-					return Number( oldPageMatches[ 1 ] ) < Number( newPageMatches[ 1 ] ) ? `${ prefix }forwards` : `${ prefix }backwards`;
+					if ( Number( oldPageMatches[ 1 ] ) < Number( newPageMatches[ 1 ] ) ) {
+						return config.animations[ `${ prefix }forwards` ] ? `${ prefix }forwards` : 'default';
+					}
+					return config.animations[ `${ prefix }backwards` ] ? `${ prefix }backwards` : 'default';
 				}
 				if ( newPageMatches && Number( newPageMatches[ 1 ] ) > 1 ) {
-					return `${ prefix }forwards`;
+					return config.animations[ `${ prefix }forwards` ] ? `${ prefix }forwards` : 'default';
 				}
 				if ( oldPageMatches && Number( oldPageMatches[ 1 ] ) > 1 ) {
-					return `${ prefix }backwards`;
+					return config.animations[ `${ prefix }backwards` ] ? `${ prefix }backwards` : 'default';
 				}
 			}
 		}
 
-		// Check if the URLs are for content labelled by date (e.g. navigation to previous/next post).
-		const oldDateMatches = oldPathname.match( /\/(\d{4})\/(\d{2})\/(\d{2})\/[^\/]+\/?$/ );
-		const newDateMatches = newPathname.match( /\/(\d{4})\/(\d{2})\/(\d{2})\/[^\/]+\/?$/ );
-		if ( oldDateMatches && newDateMatches ) {
-			const oldPageBase = oldPathname.substring( 0, oldPathname.length - oldDateMatches[ 0 ].length );
-			const newPageBase = newPathname.substring( 0, newPathname.length - newDateMatches[ 0 ].length );
-			if ( oldPageBase === newPageBase ) { // They belong to the same hierarchy.
-				const oldDate = new Date( parseInt( oldDateMatches[ 1 ] ), parseInt( oldDateMatches[ 2 ] ) - 1, parseInt( oldDateMatches[ 3 ] ) );
-				const newDate = new Date( parseInt( newDateMatches[ 1 ] ), parseInt( newDateMatches[ 2 ] ) - 1, parseInt( newDateMatches[ 3 ] ) );
-				if ( oldDate < newDate ) {
-					return 'forwards';
-				}
-				if ( oldDate > newDate ) {
-					return 'backwards';
+		// If enabled, check if the URLs are for content labelled by date (e.g. navigation to previous/next post).
+		if ( config.animations['chronological-forwards'] || config.animations['chronological-backwards'] ) {
+			const oldDateMatches = oldPathname.match( /\/(\d{4})\/(\d{2})\/(\d{2})\/[^\/]+\/?$/ );
+			const newDateMatches = newPathname.match( /\/(\d{4})\/(\d{2})\/(\d{2})\/[^\/]+\/?$/ );
+			if ( oldDateMatches && newDateMatches ) {
+				const oldPageBase = oldPathname.substring( 0, oldPathname.length - oldDateMatches[ 0 ].length );
+				const newPageBase = newPathname.substring( 0, newPathname.length - newDateMatches[ 0 ].length );
+				if ( oldPageBase === newPageBase ) { // They belong to the same hierarchy.
+					const oldDate = new Date( parseInt( oldDateMatches[ 1 ] ), parseInt( oldDateMatches[ 2 ] ) - 1, parseInt( oldDateMatches[ 3 ] ) );
+					const newDate = new Date( parseInt( newDateMatches[ 1 ] ), parseInt( newDateMatches[ 2 ] ) - 1, parseInt( newDateMatches[ 3 ] ) );
+					if ( oldDate < newDate ) {
+						return config.animations['chronological-forwards'] ? 'chronological-forwards' : 'default';
+					}
+					if ( oldDate > newDate ) {
+						return config.animations['chronological-backwards'] ? 'chronological-backwards' : 'default';
+					}
 				}
 			}
 		}
@@ -204,11 +219,8 @@ window.wp.viewTransitions.init = ( config ) => {
 	 * @return {string|null} View transition name, or null if none is relevant for the transition type.
 	 */
 	const getViewTransitionNameForSlideAnimation = ( transitionType ) => {
-		if ( transitionType === 'forwards' || transitionType === 'backwards' ) {
-			return 'main';
-		}
-		if ( transitionType === 'content-forwards' || transitionType === 'content-backwards' ) {
-			return 'post-content';
+		if ( config.animations[ transitionType ] && config.animations[ transitionType ].targetName !== '*' ) {
+			return config.animations[ transitionType ].targetName;
 		}
 		return null;
 	};
@@ -239,6 +251,7 @@ window.wp.viewTransitions.init = ( config ) => {
 			}
 			if ( viewTransitionEntries ) {
 				setTemporaryViewTransitionNames( viewTransitionEntries, event.viewTransition.finished );
+
 				const slideViewTransitionName = getViewTransitionNameForSlideAnimation( transitionType );
 				if ( slideViewTransitionName ) {
 					// Consider a scroll offset if defined (e.g. due to fixed navigation bars being in the way).
@@ -276,6 +289,7 @@ window.wp.viewTransitions.init = ( config ) => {
 			}
 			if ( viewTransitionEntries ) {
 				setTemporaryViewTransitionNames( viewTransitionEntries, event.viewTransition.ready );
+
 				const slideViewTransitionName = getViewTransitionNameForSlideAnimation( transitionType );
 				if ( slideViewTransitionName ) {
 					const oldScrollY = sessionStorage.getItem( 'wpViewTransitionsOldScrollY' );
