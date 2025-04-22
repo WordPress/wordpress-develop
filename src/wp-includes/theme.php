@@ -4759,11 +4759,11 @@ function wp_load_view_transitions() {
  * @return string Scoped animation stylesheet.
  */
 function wp_view_transitions_scope_animation_stylesheet_to_transition_type( string $css, string $transition_type ): string {
-	$indent = function( string $input, $indent_tabs = 1 ): string {
+	$indent = function ( string $input, $indent_tabs = 1 ): string {
 		return implode(
 			"\n",
 			array_map(
-				function( string $line ) use ( $indent_tabs ): string {
+				function ( string $line ) use ( $indent_tabs ): string {
 					return str_repeat( "\t", $indent_tabs ) . $line;
 				},
 				explode( "\n", $input )
