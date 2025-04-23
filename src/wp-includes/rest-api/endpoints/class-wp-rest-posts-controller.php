@@ -305,6 +305,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Ensure our per_page parameter overrides any provided posts_per_page filter.
 		if ( isset( $registered['per_page'] ) ) {
 			$args['posts_per_page'] = $request['per_page'];
+
+			if ( ! isset( $request['sticky'] ) ) {
+				$args['ignore_sticky_posts'] = true;
+			}
 		}
 
 		if ( isset( $registered['sticky'], $request['sticky'] ) ) {
