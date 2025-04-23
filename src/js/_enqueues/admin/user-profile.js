@@ -203,6 +203,33 @@
 		} else {
 			// Password field for the login form.
 			$pass1 = $( '#user_pass' );
+
+			/**
+			 * Monitors the Caps Lock status while the user is typing in the password input field.
+			 * If Caps Lock is detected to be ON, a warning message is shown.
+			 * The warning is hidden when the input field loses focus or when Caps Lock is OFF.
+			 */
+			var $capsWarning = $( '#caps-warning' );
+
+			$pass1.on( 'keypress', function( e ) {
+				var $charPass = String.fromCharCode( e.which );
+
+				var $isShift = e.shiftKey;
+				var $isCapsLockOn = ( $charPass.toUpperCase() === $charPass && !$isShift ) || ( $charPass.toLowerCase() === $charPass && $isShift );
+
+				if ( $isCapsLockOn ) {
+					$capsWarning.show();
+				} else {
+					$capsWarning.hide();
+				}
+			});
+
+			/**
+			 * Hides the Caps Lock warning when the password input loses focus.
+			 */
+			$pass1.on( 'blur', function( e ) {
+				$capsWarning.hide();
+			});
 		}
 
 		/*
