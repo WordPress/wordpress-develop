@@ -227,7 +227,7 @@
 			/**
 			 * Hides the Caps Lock warning when the password input loses focus.
 			 */
-			$pass1.on( 'blur', function( e ) {
+			$pass1.on( 'blur', function() {
 				$capsWarning.hide();
 			});
 		}
