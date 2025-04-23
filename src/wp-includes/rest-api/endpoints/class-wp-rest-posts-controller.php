@@ -305,10 +305,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Ensure our per_page parameter overrides any provided posts_per_page filter.
 		if ( isset( $registered['per_page'] ) ) {
 			$args['posts_per_page'] = $request['per_page'];
-
-			if ( ! isset( $request['sticky'] ) ) {
-				$args['ignore_sticky_posts'] = true;
-			}
 		}
 
 		if ( isset( $registered['sticky'], $request['sticky'] ) ) {
@@ -450,6 +446,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$posts_query  = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
+
+		$limit = (int) $posts_query->query_vars['posts_per_page'];
+		if (
+			$limit > 0 &&
+			! isset( $request['sticky'] ) &&
+			! $posts_query->query_vars['ignore_sticky_posts'] &&
+			count( $query_result ) > $limit
+		) {
+			$query_result = array_slice( $query_result, 0, $limit );
+		}
 
 		// Allow access to all password protected posts if the context is edit.
 		if ( 'edit' === $request['context'] ) {
