@@ -73,7 +73,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	$original = parse_url( $requested_url );
-	if ( false === $original ) {
+	if ( false === $original || ! isset( $original['host'] ) || ! isset( $original['path'] ) ) {
 		return;
 	}
 
