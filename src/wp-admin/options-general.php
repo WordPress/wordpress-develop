@@ -105,7 +105,7 @@ $tagline_description = sprintf(
 	wp_enqueue_media();
 	wp_enqueue_script( 'site-icon' );
 
-	$classes_for_upload_button = 'upload-button button new';
+	$classes_for_upload_button = 'upload-button button';
 	$classes_for_update_button = 'button';
 	$classes_for_wrapper       = '';
 
