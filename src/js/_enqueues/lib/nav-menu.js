@@ -1343,14 +1343,60 @@
 			}
 		},
 
-		attachMenuSaveSubmitListeners : function() {
-			/*
-			 * When a navigation menu is saved, store a JSON representation of all form data
-			 * in a single input to avoid PHP `max_input_vars` limitations. See #14134.
-			 */
-			$( '#update-nav-menu' ).on( 'submit', function() {
-				var navMenuData = $( '#update-nav-menu' ).serializeArray();
-				$( '[name="nav-menu-data"]' ).val( JSON.stringify( navMenuData ) );
+		attachMenuSaveSubmitListeners: function() {
+			$('#update-nav-menu').on('submit', function(e) {
+				var navMenuData = $('#update-nav-menu').serializeArray();
+				var hasError = false;
+				var firstInvalidInput = null;
+		
+				navMenuData.forEach(function(item) {
+					// Check if the field is a menu-item-url
+					if (item.name.startsWith('menu-item-url[')) {
+						if (!item.value.trim()) {
+							hasError = true;
+		
+							// Find the corresponding input field
+							var inputSelector = '[name="' + item.name + '"]';
+							var $input = $(inputSelector);
+		
+							// Add error styles
+							$input.css('border', '2px solid #d63638');
+		
+							// Open the dropdown of the parent <li>
+							var $parentLi = $input.closest('li');
+							$parentLi.removeClass('menu-item-edit-inactive').addClass('menu-item-edit-active');
+							$parentLi.find('.menu-item-settings').show();
+		
+							// Capture the first invalid input for scrolling
+							if (!firstInvalidInput) {
+								firstInvalidInput = $input;
+							}
+						}
+					}
+				});
+		
+				if (hasError) {
+					e.preventDefault(); // Prevent form submission
+		
+					// Scroll to the first invalid input
+					if (firstInvalidInput) {
+						$('html, body').animate({
+							scrollTop: firstInvalidInput.offset().top - 100 // Adjust offset as needed
+						}, 500);
+					}
+				} else {
+					// Store the serialized data in a hidden input
+					$('[name="nav-menu-data"]').val(JSON.stringify(navMenuData));
+				}
+
+				// Attach change listener to remove error styling dynamically
+				$('#update-nav-menu').on('input', '.edit-menu-item-url', function() {
+					var $input = $(this);
+					if ($input.val().trim()) {
+						// Remove error styling if the input is valid
+						$input.css('border', '');
+					}
+				});
 			});
 		},
 
