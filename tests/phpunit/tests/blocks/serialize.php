@@ -48,16 +48,16 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 			array( '<!-- wp:attributes {"key":"€1.00 / 3 for €2.00"} /-->' ),
 
 			// Block with attribute values that have empty keys.
-			array( '<!-- wp:attributes {"key": {}, "nested": { "key2": {} } } /-->' ),
+			array( '<!-- wp:attributes {"key":{},"nested":{"key2":{}}} /-->' ),
 
 			// Block with attribute values that have array keys.
-			array( '<!-- wp:attributes {"key": [], "nested": { "key2": [] } } /-->' ),
+			array( '<!-- wp:attributes {"key":[],"nested":{"key2":[]}} /-->' ),
 
 			// Block with attribute values that have string numeric keys.
-			array( '<!-- wp:attributes {"1":  "one", "2": "two" } /-->' ),
+			array( '<!-- wp:attributes {"1":"one","2":"two"} /-->' ),
 
 			// Block with attribute values that have numeric keys.
-			array( '<!-- wp:attributes {1:  "one", 2: "two" } /-->' ),
+			array( '<!-- wp:attributes {1:"one",2:"two"} /-->' ),
 		);
 	}
 

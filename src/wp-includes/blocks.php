@@ -1600,7 +1600,7 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  * @return string Serialized attributes.
  */
 function serialize_block_attributes( $block_attributes ) {
-	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+	$encoded_attributes = wp_json_encode( (object) $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	$encoded_attributes = preg_replace( '/--/', '\\u002d\\u002d', $encoded_attributes );
 	$encoded_attributes = preg_replace( '/</', '\\u003c', $encoded_attributes );
 	$encoded_attributes = preg_replace( '/>/', '\\u003e', $encoded_attributes );
