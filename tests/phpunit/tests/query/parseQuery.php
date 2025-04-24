@@ -151,7 +151,7 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( '-1,1', $q->query_vars['cat'] );
+		$this->assertSame( '1,-1', $q->query_vars['cat'] );
 	}
 
 	/**
@@ -232,5 +232,90 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 		);
 
 		$this->assertEmpty( $q->query_vars['attachment_id'] );
+	}
+
+	/**
+	 * Test that WP_Query::get() returns the value as passed.
+	 *
+	 * @ticket 63255
+	 * @dataProvider data_query_var_getter_returns_as_passed
+	 *
+	 * @param string $query_var      The query variable.
+	 * @param mixed  $query_var_value The value to set for the query variable.
+	 */
+	public function test_query_var_getter_returns_as_passed( $query_var, $query_var_value ) {
+		$query = new WP_Query();
+		$query->parse_query(
+			array(
+				$query_var => $query_var_value,
+			)
+		);
+
+		$this->assertSame( $query_var_value, $query->get( $query_var ), 'Query variable getter should type and order in which it was passed' );
+	}
+
+	/**
+	 * Data provider for test_query_var_getter_returns_as_passed.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public function data_query_var_getter_returns_as_passed() {
+		return array(
+			'post type, string'               => array( 'post_type', 'post' ),
+			'post type, DESC array'           => array( 'post_type', array( 'post', 'page' ) ),
+			'post type, ASC array'            => array( 'post_type', array( 'page', 'post' ) ),
+			'post type, duplicate array'      => array( 'post_type', array( 'post', 'post' ) ),
+			'post status, string'             => array( 'post_status', 'publish' ),
+			'post status, DESC array'         => array( 'post_status', array( 'publish', 'draft' ) ),
+			'post status, ASC array'          => array( 'post_status', array( 'draft', 'publish' ) ),
+			'post status, duplicate array'    => array( 'post_status', array( 'draft', 'draft' ) ),
+
+			'post_name__in, string'           => array( 'post_name__in', 'elphaba' ),
+			'post_name__in, DESC array'       => array( 'post_name__in', array( 'the-wizard-of-oz', 'glinda', 'doctor-dillamond', 'elphaba' ) ),
+			'post_name__in, ASC array'        => array( 'post_name__in', array( 'elphaba', 'doctor-dillamond', 'glinda', 'the-wizard-of-oz' ) ),
+			'post_name__in, array dupes'      => array( 'post_name__in', array( 'elphaba', 'doctor-dillamond', 'elphaba', 'doctor-dillamond' ) ),
+
+			'category__in, int[] ASC'         => array( 'category__in', array( 1, 2 ) ),
+			'category__in, int[] DESC'        => array( 'category__in', array( 2, 1 ) ),
+
+			'post id, int'                    => array( 'p', 1 ),
+			'page_id, int'                    => array( 'page_id', 1 ),
+			'attachment_id, int'              => array( 'page_id', 1 ),
+			'offset, string'                  => array( 'offset', '5' ),
+			'offset, int'                     => array( 'offset', 5 ),
+
+			'post__in, string[] ASC'          => array( 'post__in', array( '1', '2' ) ),
+			'post__in, string[] DESC'         => array( 'post__in', array( '2', '1' ) ),
+			'post__in, int[] ASC'             => array( 'post__in', array( 1, 2 ) ),
+			'post__in, int[] DESC'            => array( 'post__in', array( 2, 1 ) ),
+			'post__in, int[] duplicate'       => array( 'post__in', array( 1, 1 ) ),
+
+			'post__not_in, string[] ASC'      => array( 'post__not_in', array( '1', '2' ) ),
+			'post__not_in, string[] DESC'     => array( 'post__not_in', array( '2', '1' ) ),
+			'post__not_in, int[] ASC'         => array( 'post__not_in', array( 1, 2 ) ),
+			'post__not_in, int[] DESC'        => array( 'post__not_in', array( 2, 1 ) ),
+			'post__not_in, int[] duplicate'   => array( 'post__not_in', array( 1, 1 ) ),
+
+			'author__in, string[] ASC'        => array( 'author__in', array( '1', '2' ) ),
+			'author__in, string[] DESC'       => array( 'author__in', array( '2', '1' ) ),
+			'author__in, int[] ASC'           => array( 'author__in', array( 1, 2 ) ),
+			'author__in, int[] DESC'          => array( 'author__in', array( 2, 1 ) ),
+			'author__in, int[] duplicate'     => array( 'author__in', array( 1, 1 ) ),
+
+			'author__not_in, string[] ASC'    => array( 'author__not_in', array( '1', '2' ) ),
+			'author__not_in, string[] DESC'   => array( 'author__not_in', array( '2', '1' ) ),
+			'author__not_in, int[] ASC'       => array( 'author__not_in', array( 1, 2 ) ),
+			'author__not_in, int[] DESC'      => array( 'author__not_in', array( 2, 1 ) ),
+			'author__not_in, int[] duplicate' => array( 'author__not_in', array( 1, 1 ) ),
+
+			'tag_slug__in, string[] ASC'      => array( 'tag_slug__in', array( 'bobby', 'hans', 'herman', 'victor' ) ),
+			'tag_slug__in, string[] DESC'     => array( 'tag_slug__in', array( 'victor', 'herman', 'hans', 'bobby' ) ),
+
+			'tag__in, int[] ASC'              => array( 'tag__in', array( 1, 2 ) ),
+			'tag__in, int[] DESC'             => array( 'tag__in', array( 2, 1 ) ),
+
+			'tag__not_in, int[] ASC'          => array( 'tag__not_in', array( 1, 2 ) ),
+			'tag__not_in, int[] DESC'         => array( 'tag__not_in', array( 2, 1 ) ),
+		);
 	}
 }
