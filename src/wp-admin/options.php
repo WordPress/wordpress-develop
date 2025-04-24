@@ -419,6 +419,12 @@ foreach ( (array) $options as $option ) :
 		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;
 		$class               = 'all-options';
+		if ( defined( 'WP_HOME' ) && 'home' === $option->option_name ) {
+			$class .= ' disabled';
+		}
+		if ( defined( 'WP_SITEURL' ) && 'siteurl' === $option->option_name ) {
+			$class .= ' disabled';
+		}
 	}
 
 	$name = esc_attr( $option->option_name );
