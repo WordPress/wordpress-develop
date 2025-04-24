@@ -11,8 +11,8 @@
  */
 
 ?>
-<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"}}},"layout":{"type":"constrained"}} -->
-<div class="wp-block-group alignfull" style="padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
+<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50"},"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull" style="margin-top:0;margin-bottom:0;padding-top:var(--wp--preset--spacing--50);padding-bottom:var(--wp--preset--spacing--50)">
 	<!-- wp:group {"align":"wide","layout":{"type":"default"}} -->
 	<div class="wp-block-group alignwide">
 		<!-- wp:heading -->
@@ -61,7 +61,14 @@
 			<div class="wp-block-group" style="border-top-color:var(--wp--preset--color--accent-6);border-top-width:1px;padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40)"><!-- wp:group {"layout":{"type":"constrained"}} -->
 				<div class="wp-block-group">
 					<!-- wp:heading {"level":3} -->
-					<h3 class="wp-block-heading"><?php echo esc_html_x( '“Stories, historias, iсторії, iστορίες”', 'Placeholder heading in four languages.', 'twentytwentyfive' ); ?></h3>
+					<h3 class="wp-block-heading">
+						<?php
+						echo wp_kses_post(
+							/* translators: This string contains the word "Stories" in four different languages with the first item in the locale's language. */
+							_x( '“Stories, <span lang="es">historias</span>, <span lang="uk">iсторії</span>, <span lang="el">iστορίες</span>”', 'Placeholder heading in four languages.', 'twentytwentyfive' )
+						);
+						?>
+					</h3>
 					<!-- /wp:heading -->
 
 					<!-- wp:paragraph -->
@@ -123,7 +130,14 @@
 			<div class="wp-block-group" style="border-top-color:var(--wp--preset--color--accent-6);border-top-width:1px;padding-top:var(--wp--preset--spacing--40);padding-bottom:var(--wp--preset--spacing--40)"><!-- wp:group {"layout":{"type":"constrained"}} -->
 				<div class="wp-block-group">
 					<!-- wp:heading {"level":3} -->
-					<h3 class="wp-block-heading"><?php echo esc_html_x( '“Stories, historias, iсторії, iστορίες”', 'Placeholder heading in four languages.', 'twentytwentyfive' ); ?></h3>
+					<h3 class="wp-block-heading">
+						<?php
+						echo wp_kses_post(
+							/* translators: This string contains the word "Stories" in four different languages with the first item in the locale's language. */
+							_x( '“Stories, <span lang="es">historias</span>, <span lang="uk">iсторії</span>, <span lang="el">iστορίες</span>”', 'Placeholder heading in four languages.', 'twentytwentyfive' )
+						);
+						?>
+					</h3>
 					<!-- /wp:heading -->
 
 					<!-- wp:paragraph -->

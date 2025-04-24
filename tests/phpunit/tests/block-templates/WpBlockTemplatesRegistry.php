@@ -267,4 +267,51 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 		$this->assertEquals( $template, $unregistered_template, 'Unregistered template should be the same as the registered one.' );
 		$this->assertFalse( self::$registry->is_registered( $template_name ), 'Template should not be registered after unregistering.' );
 	}
+
+	/**
+	 * Data provider for test_template_name_validation.
+	 *
+	 * @return array[] Test data.
+	 */
+	public static function data_template_name_validation() {
+		return array(
+			'valid_simple_name'      => array(
+				'my-plugin//my-template',
+				true,
+				'Valid template name with simple characters should be accepted',
+			),
+			'valid_with_underscores' => array(
+				'my-plugin//my_template',
+				true,
+				'Template name with underscores should be accepted',
+			),
+			'valid_cpt_archive'      => array(
+				'my-plugin//archive-my_post_type',
+				true,
+				'Template name for CPT archive with underscore should be accepted',
+			),
+		);
+	}
+
+	/**
+	 * Tests template name validation with various inputs.
+	 *
+	 * @ticket 62523
+	 *
+	 * @dataProvider data_template_name_validation
+	 *
+	 * @param string $template_name The template name to test.
+	 * @param bool   $expected      Expected validation result.
+	 * @param string $message       Test assertion message.
+	 */
+	public function test_template_name_validation( $template_name, $expected, $message ) {
+		$result = self::$registry->register( $template_name, array() );
+
+		if ( $expected ) {
+			self::$registry->unregister( $template_name );
+			$this->assertNotWPError( $result, $message );
+		} else {
+			$this->assertWPError( $result, $message );
+		}
+	}
 }

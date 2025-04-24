@@ -989,9 +989,8 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 
 		$comment = wp_handle_comment_submission( $data );
 
-		$this->assertNotWPError( $comment );
-		$this->assertInstanceOf( 'WP_Comment', $comment );
-		$this->assertSame( 'trash', $comment->comment_approved );
+		$this->assertInstanceOf( 'WP_Comment', $comment, 'The comment was not submitted.' );
+		$this->assertSame( 'trash', $comment->comment_approved, 'The wrong approved status was returned.' );
 	}
 
 	/**
@@ -1009,8 +1008,34 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 
 		$comment = wp_handle_comment_submission( $data );
 
-		$this->assertNotWPError( $comment );
-		$this->assertInstanceOf( 'WP_Comment', $comment );
-		$this->assertSame( 'trash', $comment->comment_approved );
+		$this->assertInstanceOf( 'WP_Comment', $comment, 'The comment was not submitted.' );
+		$this->assertSame( 'trash', $comment->comment_approved, 'The wrong approved status was returned.' );
+	}
+
+	/**
+	 * @ticket 61827
+	 */
+	public function test_disallowed_keys_filtered_html_match_does_not_call_check_comment_flood_action_twice() {
+		$data = array(
+			'comment_post_ID' => self::$post->ID,
+			'comment'         => '<a href=http://example.com/>example</a>',
+			'author'          => 'Comment Author',
+			'email'           => 'comment@example.org',
+		);
+
+		update_option( 'disallowed_keys', "href=\\\"http\nfoo" );
+
+		$pre_comment_approved = new MockAction();
+		$check_comment_flood  = new MockAction();
+		add_filter( 'pre_comment_approved', array( $pre_comment_approved, 'filter' ), 10, 2 );
+		add_action( 'check_comment_flood', array( $check_comment_flood, 'action' ), 10, 4 );
+
+		$comment = wp_handle_comment_submission( $data );
+
+		$this->assertInstanceOf( 'WP_Comment', $comment, 'The comment was not submitted.' );
+		$this->assertSame( 'trash', $comment->comment_approved, 'The wrong approved status was returned.' );
+
+		$this->assertSame( 2, $pre_comment_approved->get_call_count(), 'The `pre_comment_approved` filter was not called twice.' );
+		$this->assertSame( 1, $check_comment_flood->get_call_count(), 'The `check_comment_flood` action was not called exactly once.' );
 	}
 }

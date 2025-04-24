@@ -11,19 +11,25 @@
  * External dependencies.
  */
 const https = require( 'https' );
-const [ token, branch, hash, baseHash, timestamp, host ] =
+const [ token, branch, hash, baseHash, date, host ] =
 	process.argv.slice( 2 );
 const { median, parseFile, accumulateValues } = require( './utils' );
 
 const testSuiteMap = {
 	'Admin › Locale: en_US': 'admin',
 	'Admin › Locale: de_DE': 'admin-l10n',
-	'Front End › Theme: twentytwentyone, Locale: en_US': 'home-classic-theme',
-	'Front End › Theme: twentytwentyone, Locale: de_DE':
+	'Homepage › Theme: twentytwentyone, Locale: en_US': 'home-classic-theme',
+	'Homepage › Theme: twentytwentyone, Locale: de_DE':
 		'home-classic-theme-l10n',
-	'Front End › Theme: twentytwentythree, Locale: en_US': 'home-block-theme',
-	'Front End › Theme: twentytwentythree, Locale: de_DE':
+	'Homepage › Theme: twentytwentythree, Locale: en_US': 'home-block-theme',
+	'Homepage › Theme: twentytwentythree, Locale: de_DE':
 		'home-block-theme-l10n',
+	'Homepage › Theme: twentytwentyfour, Locale: en_US': 'home-twentytwentyfour',
+	'Homepage › Theme: twentytwentyfour, Locale: de_DE':
+		'home-twentytwentyfour-l10n',
+	'Homepage › Theme: twentytwentyfive, Locale: en_US': 'home-twentytwentyfive',
+	'Homepage › Theme: twentytwentyfive, Locale: de_DE':
+		'home-twentytwentyfive-l10n',
 };
 
 /**
@@ -81,7 +87,7 @@ const data = new TextEncoder().encode(
 		branch,
 		hash,
 		baseHash,
-		timestamp: parseInt( timestamp, 10 ),
+		timestamp: date,
 		metrics: metrics,
 		baseMetrics: baseMetrics,
 	} )
