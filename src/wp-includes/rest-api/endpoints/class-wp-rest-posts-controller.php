@@ -337,6 +337,22 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		// Automatically ignore sticky posts when specific filters are used, unless explicitly requested.
+		$specific_filters = array( 'slug', 'author', 'author_exclude', 'include', 'exclude', 'parent', 'parent_exclude' );
+		$has_specific_filter = false;
+		
+		foreach ( $specific_filters as $filter ) {
+			if ( isset( $request[ $filter ] ) && ! empty( $request[ $filter ] ) ) {
+				$has_specific_filter = true;
+				break;
+			}
+		}
+		
+		// If specific filters are used and ignore_sticky is not explicitly set to false, ignore sticky posts
+		if ( $has_specific_filter && ( ! isset( $request['ignore_sticky'] ) || true !== $request['ignore_sticky'] ) ) {
+			$args['ignore_sticky_posts'] = true;
+		}
+
 		if (
 			isset( $registered['search_semantics'], $request['search_semantics'] )
 			&& 'exact' === $request['search_semantics']
