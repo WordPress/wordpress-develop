@@ -333,14 +333,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
+	 * @ticket 63307
 	 *
 	 * @param string $method The HTTP method to use.
 	 */
 	public function test_get_items_author_query( $method ) {
 		self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$sticked_post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
 		self::factory()->post->create( array( 'post_author' => self::$author_id ) );
 
-		$total_posts = self::$total_posts + 2;
+		update_option( 'sticky_posts', array( $sticked_post ) );
+
+		$total_posts = self::$total_posts + 3;
 
 		// All posts in the database.
 		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
@@ -363,12 +367,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		if ( $request->is_method( 'get' ) ) {
-			$this->assertCount( 2, $data );
-			$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
+			$this->assertCount( 3, $data );
+			// Sticky post should be first.
+			$this->assertSameSets( array( self::$author_id, self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
 		} else {
 			$this->assertSame( array(), $data, 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
-			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 2.' );
+			$this->assertSame( 3, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 3.' );
 		}
 
 		// Limit to editor.
@@ -661,19 +666,24 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 'Search Result', $data[0]['title']['rendered'] );
 	}
 
+	/**
+	 * @ticket 63307
+	 */
 	public function test_get_items_slug_query() {
-		self::factory()->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_title'  => 'Apple',
 				'post_status' => 'publish',
 			)
 		);
-		self::factory()->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_title'  => 'Banana',
 				'post_status' => 'publish',
 			)
 		);
+
+		update_option( 'sticky_posts', array( $id2 ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'slug', 'apple' );
@@ -681,7 +691,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertSame( 'Apple', $data[0]['title']['rendered'] );
+		$this->assertSame( 'Apple', $data[0]['title']['rendered'], 'Return the post with the given slug' );
 	}
 
 	public function test_get_items_multiple_slugs_array_query() {
@@ -6014,24 +6024,28 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 	/**
 	 * Test the REST API support for `ignore_sticky_posts`.
+	 * Adding more tests for the `include` parameter with sticky posts.
 	 *
 	 * @ticket 35907
+	 * @ticket 63307
 	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 */
 	public function test_get_posts_ignore_sticky_honors_include() {
 		$id1 = self::$post_id;
 		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
-		update_option( 'sticky_posts', array( $id1 ) );
+		update_option( 'sticky_posts', array( $id1, $id3 ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'include', array( $id2 ) );
+		$request->set_param( 'include', array( $id2, $id3 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertCount( 1, $data, 'Only one post is expected to be returned.' );
-		$this->assertSame( $data[0]['id'], $id2, 'Returns the included post.' );
+		$this->assertCount( 2, $data, 'Only two posts are expected to be returned.' );
+		$this->assertSame( $data[0]['id'], $id3, 'Return the sticky post first.' );
+		$this->assertSame( $data[1]['id'], $id2, 'Return the included post second.' );
 	}
 
 	/**
