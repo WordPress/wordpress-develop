@@ -416,6 +416,11 @@ foreach ( (array) $options as $option ) :
 			$class    = 'all-options disabled';
 		}
 	} else {
+		if ( in_array( $option->option_name, [ 'siteurl', 'home' ], true ) && defined( 'WP_' . strtoupper( $option->option_name ) ) ) {
+			// If a setting is defined in wp-config.php, disable the respective field.
+			$disabled = true;
+		}
+
 		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;
 		$class               = 'all-options';
