@@ -765,12 +765,12 @@ function wp_default_scripts( $scripts ) {
 		'common',
 		'bulkActionObserverIds',
 		/**
-		 * Filters the array of field relations for the bulk actions.
+		 * Filters the array of field name attributes for bulk actions.
 		 *
 		 * @since 6.8.1
 		 *
 		 * @param array $bulk_action_observer_ids {
-		 *      An array of field IDs for the bulk actions.
+		 *      An array of field name attributes for bulk actions.
 		 *
 		 *      @type string $bulk_action The bulk action field name. Default 'action'.
 		 *      @type string $changeit    The new role field name. Default 'new_role'.
