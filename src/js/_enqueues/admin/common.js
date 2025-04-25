@@ -1321,8 +1321,8 @@ $( function() {
 
 		// Observe submissions from posts lists for 'bulk_action' or users lists for 'new_role'.
 		var bulkFieldRelations = {
-			'bulk_action' : window.bulkFieldRelations.bulk_action,
-			'changeit' : window.bulkFieldRelations.changeit
+			'bulk_action' : window.bulkActionObserverIds.bulk_action,
+			'changeit' : window.bulkActionObserverIds.changeit
 		};
 		if ( ! Object.keys( bulkFieldRelations ).includes( submitterName ) ) {
 			return;
