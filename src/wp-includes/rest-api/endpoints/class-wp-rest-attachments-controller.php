@@ -156,13 +156,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			str_starts_with( $files['file']['type'], 'image/' )
 		) {
 			// List of non-resizable image formats.
-			$non_editor_resizable_formats = array(
+			$editor_non_resizable_formats = array(
 				'image/svg+xml',
 			);
 
 			// Check if the image editor supports the type or ignore if it isn't a format resizable by an editor.
 			if (
-				! in_array( $files['file']['type'], $non_editor_resizable_formats, true ) &&
+				! in_array( $files['file']['type'], $editor_non_resizable_formats, true ) &&
 				! wp_image_editor_supports( array( 'mime_type' => $files['file']['type'] ) )
 			) {
 				return new WP_Error(
