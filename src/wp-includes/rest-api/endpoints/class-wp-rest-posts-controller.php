@@ -346,8 +346,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			unset( $args['ignore_sticky_posts'] );
 		}
 
-
-
 		if (
 			isset( $registered['search_semantics'], $request['search_semantics'] )
 			&& 'exact' === $request['search_semantics']
