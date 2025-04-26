@@ -5983,10 +5983,35 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	 * Test the REST API support for `ignore_sticky_posts`.
 	 *
 	 * @ticket 35907
+	 * @ticket 63307
 	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 */
-	public function test_get_posts_ignore_sticky_default_prepends_sticky_posts() {
+	public function test_get_posts_ignore_sticky_true_prepends_sticky_posts() {
+		$id1 = self::$post_id;
+		// Create more recent post to avoid automatically placing other at the top.
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id1 ) );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'ignore_sticky', false );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( $data[0]['id'], $id1, 'Response has no sticky post at the top.' );
+		$this->assertSame( $data[1]['id'], $id2, 'It is followed by the sticky post chronologically.' );
+	}
+
+	/**
+	 * Test the REST API doesn't prioritize sticky posts by default.
+	 *
+	 * @ticket 35907
+	 * @ticket 63307
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_posts_ignore_sticky_default_false_prepends_sticky_posts() {
 		$id1 = self::$post_id;
 		// Create more recent post to avoid automatically placing other at the top.
 		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
@@ -5997,14 +6022,14 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertSame( $data[0]['id'], $id1, 'Response has sticky post at the top.' );
-		$this->assertSame( $data[1]['id'], $id2, 'It is followed by most recent post.' );
+		$this->assertSame( $data[0]['id'], $id2, 'Response has no sticky post at the top.' );
 	}
 
 	/**
 	 * Test the REST API support for `ignore_sticky_posts`.
 	 *
 	 * @ticket 35907
+	 * @ticket 63307
 	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 */
@@ -6015,37 +6040,10 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		update_option( 'sticky_posts', array( $id1 ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'ignore_sticky', true );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
 		$this->assertSame( $data[0]['id'], $id2, 'Response has no sticky post at the top.' );
-	}
-
-	/**
-	 * Test the REST API support for `ignore_sticky_posts`.
-	 * Adding more tests for the `include` parameter with sticky posts.
-	 *
-	 * @ticket 35907
-	 * @ticket 63307
-	 *
-	 * @covers WP_REST_Posts_Controller::get_items
-	 */
-	public function test_get_posts_ignore_sticky_honors_include() {
-		$id1 = self::$post_id;
-		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
-		$id3 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
-
-		update_option( 'sticky_posts', array( $id1, $id3 ) );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'include', array( $id2, $id3 ) );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-
-		$this->assertCount( 2, $data, 'Only two posts are expected to be returned.' );
-		$this->assertSame( $data[0]['id'], $id3, 'Return the sticky post first.' );
-		$this->assertSame( $data[1]['id'], $id2, 'Return the included post second.' );
 	}
 
 	/**

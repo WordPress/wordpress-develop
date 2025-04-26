@@ -346,6 +346,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			unset( $args['ignore_sticky_posts'] );
 		}
 
+
+
 		if (
 			isset( $registered['search_semantics'], $request['search_semantics'] )
 			&& 'exact' === $request['search_semantics']
@@ -3075,7 +3077,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$query_params['ignore_sticky'] = array(
 				'description' => __( 'Whether to ignore sticky posts or not.' ),
 				'type'        => 'boolean',
-				'default'     => false,
+				'default'     => true,
 			);
 		}
 
