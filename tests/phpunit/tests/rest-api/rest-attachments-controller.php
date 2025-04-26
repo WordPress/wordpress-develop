@@ -2631,12 +2631,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 					'name'     => 'video-play.svg',
 					'size'     => filesize( self::$test_svg_file ),
 					'tmp_name' => self::$test_svg_file,
-					'type'     => 'image/svg+xml'
+					'type'     => 'image/svg+xml',
 				),
 			)
 		);
 		$rest_controller = new WP_REST_Attachments_Controller( 'attachment' );
-		$result = $rest_controller->create_item_permissions_check( $request );
+		$result          = $rest_controller->create_item_permissions_check( $request );
 
 		$this->assertTrue( $result );
 	}
