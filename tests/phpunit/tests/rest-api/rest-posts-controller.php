@@ -5994,7 +5994,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		update_option( 'sticky_posts', array( $id1 ) );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'ignore_sticky', false );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -6039,7 +6039,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		update_option( 'sticky_posts', array( $id1 ) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
