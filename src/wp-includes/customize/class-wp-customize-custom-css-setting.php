@@ -197,7 +197,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 			)
 		);
 
-		if ( $r instanceof WP_Error ) {
+		if ( is_wp_error( $r ) ) {
 			return false;
 		}
 		$post_id = $r->ID;
