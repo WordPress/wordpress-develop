@@ -643,6 +643,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'tax_query'      => array(),
 				'offset'         => 0,
 				'posts_per_page' => 2,
+				'paged'          => 1,
 			),
 			$query
 		);
@@ -676,6 +677,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'tax_query'      => array(),
 				'offset'         => 10,
 				'posts_per_page' => 5,
+				'paged'          => 3,
 			),
 			$query
 		);
@@ -709,6 +711,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'tax_query'      => array(),
 				'offset'         => 12,
 				'posts_per_page' => 5,
+				'paged'          => 3,
 			),
 			$query
 		);
