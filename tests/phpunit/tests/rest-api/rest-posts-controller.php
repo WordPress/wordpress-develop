@@ -5989,7 +5989,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		update_option( 'sticky_posts', array( $id1 ) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$rest_ids = wp_list_pluck( $data, 'id' );
@@ -5997,7 +5997,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertSame( $data[0]['id'], $id2, 'Response has no sticky post at the top.' );
 
 		$posts_query = new WP_Query( array( 'ignore_sticky_posts' => true ) );
-		$post_ids   = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$post_ids    = wp_list_pluck( $posts_query->get_posts(), 'ID' );
 		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=true.' );
 	}
 
@@ -6026,7 +6026,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertSame( $data[1]['id'], $id2, 'It is followed by most recent post.' );
 
 		$posts_query = new WP_Query();
-		$post_ids   = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$post_ids    = wp_list_pluck( $posts_query->get_posts(), 'ID' );
 		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=false.' );
 	}
 
@@ -6054,8 +6054,13 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertCount( 1, $data, 'Only one post is expected to be returned.' );
 		$this->assertSame( $data[0]['id'], $id2, 'Returns the included post.' );
 
-		$posts_query = new WP_Query( array( 'post__in' => array( $id2 ), 'ignore_sticky_posts' => true ) );
-		$post_ids   = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$posts_query = new WP_Query(
+			array(
+				'post__in'            => array( $id2 ),
+				'ignore_sticky_posts' => true,
+			)
+		);
+		$post_ids    = wp_list_pluck( $posts_query->get_posts(), 'ID' );
 		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=truehas no sticky post at the top.' );
 	}
 
