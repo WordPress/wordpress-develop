@@ -5975,6 +5975,33 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
+	 * Test the REST API doesn't prioritize sticky posts by default.
+	 *
+	 * @ticket 35907
+	 * @ticket 63307
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_posts_ignore_sticky_by_default() {
+		$id1 = self::$post_id;
+		// Create more recent post to avoid automatically placing other at the top.
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id1 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$rest_ids = wp_list_pluck( $data, 'id' );
+
+		$this->assertSame( $data[0]['id'], $id2, 'Response has no sticky post at the top.' );
+
+		$posts_query = new WP_Query( array( 'ignore_sticky_posts' => true ) );
+		$post_ids   = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=true.' );
+	}
+
+	/**
 	 * Test the REST API support for `ignore_sticky_posts`.
 	 *
 	 * @ticket 35907
@@ -5982,7 +6009,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 */
-	public function test_get_posts_ignore_sticky_true_prepends_sticky_posts() {
+	public function test_get_posts_ignore_sticky_false_prepends_sticky_posts() {
 		$id1 = self::$post_id;
 		// Create more recent post to avoid automatically placing other at the top.
 		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
@@ -5993,31 +6020,14 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$request->set_param( 'ignore_sticky', false );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$rest_ids = wp_list_pluck( $data, 'id' );
 
-		$this->assertSame( $data[0]['id'], $id1, 'Response has no sticky post at the top.' );
-		$this->assertSame( $data[1]['id'], $id2, 'It is followed by the sticky post chronologically.' );
-	}
+		$this->assertSame( $data[0]['id'], $id1, 'Response has sticky post at the top.' );
+		$this->assertSame( $data[1]['id'], $id2, 'It is followed by most recent post.' );
 
-	/**
-	 * Test the REST API doesn't prioritize sticky posts by default.
-	 *
-	 * @ticket 35907
-	 * @ticket 63307
-	 *
-	 * @covers WP_REST_Posts_Controller::get_items
-	 */
-	public function test_get_posts_ignore_sticky_default_false_prepends_sticky_posts() {
-		$id1 = self::$post_id;
-		// Create more recent post to avoid automatically placing other at the top.
-		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
-
-		update_option( 'sticky_posts', array( $id1 ) );
-
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-
-		$this->assertSame( $data[0]['id'], $id2, 'Response has no sticky post at the top.' );
+		$posts_query = new WP_Query();
+		$post_ids   = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=false.' );
 	}
 
 	/**
@@ -6028,17 +6038,25 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	 *
 	 * @covers WP_REST_Posts_Controller::get_items
 	 */
-	public function test_get_posts_ignore_sticky_ignores_post_stickiness() {
+	public function test_get_posts_ignore_sticky_honors_include() {
+
 		$id1 = self::$post_id;
 		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		update_option( 'sticky_posts', array( $id1 ) );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', array( $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$rest_ids = wp_list_pluck( $data, 'id' );
 
-		$this->assertSame( $data[0]['id'], $id2, 'Response has no sticky post at the top.' );
+		$this->assertCount( 1, $data, 'Only one post is expected to be returned.' );
+		$this->assertSame( $data[0]['id'], $id2, 'Returns the included post.' );
+
+		$posts_query = new WP_Query( array( 'post__in' => array( $id2 ), 'ignore_sticky_posts' => true ) );
+		$post_ids   = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=truehas no sticky post at the top.' );
 	}
 
 	/**
