@@ -97,8 +97,8 @@ class WP_Http_Streams {
 		$connect_host = $secure_transport ? 'ssl://' . $connect_host : 'tcp://' . $connect_host;
 
 		$is_local = ( isset( $parsed_args['local'] ) && $parsed_args['local'] )
-		|| ( isset( $_SERVER['REMOTE_ADDR'] ) && in_array( $_SERVER['REMOTE_ADDR'], [ '127.0.0.1', '::1' ], true ) )
-		|| ( isset( $_SERVER['HTTP_HOST'] ) && in_array( $_SERVER['HTTP_HOST'], [ 'localhost', '127.0.0.1' ], true ) );
+		|| ( isset( $_SERVER['REMOTE_ADDR'] ) && in_array( $_SERVER['REMOTE_ADDR'], array( '127.0.0.1', '::1' ), true ) )
+		|| ( isset( $_SERVER['HTTP_HOST'] ) && in_array( $_SERVER['HTTP_HOST'], array( 'localhost', '127.0.0.1' ), true ) );
 
 		$ssl_verify = isset( $parsed_args['sslverify'] ) && $parsed_args['sslverify'];
 
