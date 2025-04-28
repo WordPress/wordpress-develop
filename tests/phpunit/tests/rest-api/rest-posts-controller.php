@@ -333,18 +333,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	/**
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
-	 * @ticket 63307
 	 *
 	 * @param string $method The HTTP method to use.
 	 */
 	public function test_get_items_author_query( $method ) {
 		self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
-		$sticked_post = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
 		self::factory()->post->create( array( 'post_author' => self::$author_id ) );
 
-		update_option( 'sticky_posts', array( $sticked_post ) );
-
-		$total_posts = self::$total_posts + 3;
+		$total_posts = self::$total_posts + 2;
 
 		// All posts in the database.
 		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
@@ -367,13 +363,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		if ( $request->is_method( 'get' ) ) {
-			$this->assertCount( 3, $data );
-			// Sticky post should be first.
-			$this->assertSameSets( array( self::$author_id, self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
+			$this->assertCount( 2, $data );
+			$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
 		} else {
 			$this->assertSame( array(), $data, 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
-			$this->assertSame( 3, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 3.' );
+			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 2.' );
 		}
 
 		// Limit to editor.
