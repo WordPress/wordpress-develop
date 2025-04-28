@@ -144,6 +144,7 @@ jobs:
           fi
 
       - name: Docker debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           docker -v
           docker compose -v
@@ -153,6 +154,7 @@ jobs:
           npm run env:start
 
       - name: General debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           npm --version
           node --version
@@ -163,6 +165,7 @@ jobs:
         run: docker ps -a
 
       - name: WordPress Docker container debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           docker compose run --rm mysql mysql --version
           docker compose run --rm php php --version

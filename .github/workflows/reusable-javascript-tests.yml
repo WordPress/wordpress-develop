@@ -47,6 +47,7 @@ jobs:
           cache: npm
 
       - name: Log debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           npm --version
           node --version

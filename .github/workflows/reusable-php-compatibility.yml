@@ -53,6 +53,7 @@ jobs:
           tools: cs2pr
 
       - name: Log debug information
+        if: ${{ runner.debug == '1' }}
         run: |
           composer --version
 
