@@ -1167,18 +1167,13 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 */
 		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment, $size );
 
-		if ( isset( $attr['height'] ) ) {
-			if ( is_numeric( $attr['height'] ) ) {
-				$height = absint( $attr['height'] );
-			}
-			unset( $attr['height'] );
+		if ( isset( $attr['height'] ) && is_numeric( $attr['height'] ) ) {
+			$height = absint( $attr['height'] );
 		}
-		if ( isset( $attr['width'] ) ) {
-			if ( is_numeric( $attr['width'] ) ) {
-				$width = absint( $attr['width'] );
-			}
-			unset( $attr['width'] );
+		if ( isset( $attr['width'] ) && is_numeric( $attr['width'] ) ) {
+			$width = absint( $attr['width'] );
 		}
+		unset( $attr['height'], $attr['width'] );
 		$attr     = array_map( 'esc_attr', $attr );
 		$hwstring = image_hwstring( $width, $height );
 		$html     = rtrim( "<img $hwstring" );
