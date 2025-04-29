@@ -693,6 +693,10 @@ th.sorted a span {
 	margin: 0 0 9px;
 }
 
+.tablenav.bottom:has(> .tablenav-pages.no-pages) {
+	display: none;
+}
+
 .tablenav .no-pages,
 .tablenav .one-page .pagination-links {
 	display: none;
