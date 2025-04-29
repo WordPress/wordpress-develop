@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Multisite
- * @since 6.8.0
+ * @since 6.9.0
  */
 
 /**
@@ -17,7 +17,7 @@ class WP_Site_State {
 	/**
 	 * Current site ID.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 * @var int
 	 */
 	private $site_id;
@@ -25,7 +25,7 @@ class WP_Site_State {
 	/**
 	 * The switched stack.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 * @var array
 	 */
 	private $switched_stack = array();
@@ -33,7 +33,7 @@ class WP_Site_State {
 	/**
 	 * Whether or not we're currently switched.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 * @var bool
 	 */
 	private $switched = false;
@@ -43,7 +43,7 @@ class WP_Site_State {
 	 *
 	 * Stores the current site ID, the switched stack, and the switched state.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 */
 	public function __construct() {
 		global $_wp_switched_stack, $switched;
@@ -60,7 +60,7 @@ class WP_Site_State {
 	/**
 	 * Restores the stored site state.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 *
 	 * @return bool True on success, false if no state change was needed.
 	 */
@@ -99,7 +99,7 @@ class WP_Site_State {
 		 * @param string $context      Additional context. Accepts 'switch' when called from switch_to_blog()
 		 *                             or 'restore' when called from restore_current_blog().
 		 */
-		do_action( 'switch_blog', $blog_id, $current_blog_id, 'restore_state' );
+		do_action( 'switch_blog', $blog_id, $current_blog_id, 'restore' );
 
 		return true;
 	}
@@ -107,7 +107,7 @@ class WP_Site_State {
 	/**
 	 * Gets the site ID stored in this state.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 *
 	 * @return int The site ID.
 	 */
@@ -118,7 +118,7 @@ class WP_Site_State {
 	/**
 	 * Gets the switched stack stored in this state.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 *
 	 * @return array The switched stack.
 	 */
@@ -129,7 +129,7 @@ class WP_Site_State {
 	/**
 	 * Gets the switched status stored in this state.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 *
 	 * @return bool Whether the site was switched.
 	 */

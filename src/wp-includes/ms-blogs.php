@@ -977,30 +977,10 @@ function wp_count_sites( $network_id = null ) {
  * This function creates a WP_Site_State object that captures the current site
  * state, including the site ID, switched stack, and switched status.
  *
- * @since 6.8.0
+ * @since 6.9.0
  *
  * @return WP_Site_State A snapshot of the current site state.
  */
 function get_site_state() {
 	return new WP_Site_State();
-}
-
-/**
- * Restores a previously saved site state.
- *
- * This function efficiently restores a site state that was captured using
- * get_site_state(), without unnecessary intermediate restores when switching
- * between multiple sites.
- *
- * @since 6.8.0
- *
- * @param WP_Site_State $state The site state object to restore to.
- * @return bool True on success, false on failure.
- */
-function restore_site_state( $state ) {
-	if ( ! $state instanceof WP_Site_State ) {
-		return false;
-	}
-
-	return $state->restore();
 }

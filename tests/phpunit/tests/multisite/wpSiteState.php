@@ -41,7 +41,7 @@ if ( is_multisite() ) :
 			switch_to_blog( self::$site_ids[1] );
 			$this->assertEquals( self::$site_ids[1], get_current_blog_id() );
 
-			restore_site_state( $state );
+			$state->restore();
 			$this->assertEquals( $original_blog_id, get_current_blog_id() );
 
 			$this->assertFalse( ms_is_switched() );
@@ -62,7 +62,7 @@ if ( is_multisite() ) :
 				$this->assertEquals( $site_id, get_current_blog_id() );
 			}
 
-			restore_site_state( $state );
+			$state->restore();
 			$this->assertEquals( $original_blog_id, get_current_blog_id() );
 
 			$this->assertFalse( ms_is_switched() );
@@ -83,10 +83,10 @@ if ( is_multisite() ) :
 			$switched_state = get_site_state();
 			$this->assertTrue( $switched_state->is_switched() );
 
-			restore_site_state( $switched_state );
+			$switched_state->restore();
 			$this->assertEquals( self::$site_ids[0], get_current_blog_id() );
 
-			restore_site_state( $state );
+			$state->restore();
 			$this->assertFalse( ms_is_switched() );
 		}
 	}

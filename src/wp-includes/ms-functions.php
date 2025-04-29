@@ -143,7 +143,7 @@ function get_blog_post( $blog_id, $post_id ) {
 	switch_to_blog( $blog_id );
 	$post = get_post( $post_id );
 
-	restore_site_state( $original_state );
+	$original_state->restore();
 
 	return $post;
 }

@@ -779,7 +779,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		// Restore the original site state once after processing all blogs.
-		restore_site_state( $original_state );
+		$original_state->restore();
 
 		return $struct;
 	}

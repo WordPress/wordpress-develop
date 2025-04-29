@@ -198,7 +198,7 @@ function wpmu_delete_user( $id ) {
 		}
 
 		// Restore the original site state once after processing all sites.
-		restore_site_state( $original_state );
+		$original_state->restore();
 	}
 
 	$meta = $wpdb->get_col( $wpdb->prepare( "SELECT umeta_id FROM $wpdb->usermeta WHERE user_id = %d", $id ) );
