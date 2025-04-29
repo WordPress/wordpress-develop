@@ -34,7 +34,6 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 	 *
 	 * @param string $langcode  Optional. Language code to set (e.g: 'en', 'fr', etc.). Default 'en'.
 	 * @param string $lang_path Optional. Path to the language files. Default empty string.
-	 *
 	 * @return true Always returns true.
 	 */
 	public function SetLanguage( $langcode = 'en', $lang_path = '' ) {
