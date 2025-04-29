@@ -1168,11 +1168,11 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment, $size );
 
 		if ( isset( $attr['height'] ) ) {
-			$attr['height'] = absint( $attr['height'] );
+            $height = absint( $attr['height'] );
 			unset( $attr['height'] );
 		}
 		if ( isset( $attr['width'] ) ) {
-			$attr['width'] = absint( $attr['width'] );
+            $width = absint( $attr['width'] );
 			unset( $attr['width'] );
 		}
 		$attr     = array_map( 'esc_attr', $attr );
