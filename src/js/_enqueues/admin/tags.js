@@ -42,7 +42,19 @@ jQuery( function($) {
 			$.post(ajaxurl, data, function(r){
 				if ( '1' == r ) {
 					$('#ajax-response').empty();
-					tr.fadeOut('normal', function(){ tr.remove(); });
+					tr.fadeOut('normal', function() {
+						tr.remove();
+
+						if ( $('#the-list tr').length === 0 ) {
+							$('#the-list').append(
+								'<tr class="no-items"><td class="colspanchange" colspan="5">' +
+								wp.i18n.__( 'No tags found.' ) +
+								'</td></tr>'
+							);
+
+							$('.tablenav').hide();
+						}
+					});
 
 					/**
 					 * Removes the term from the parent box and the tag cloud.
