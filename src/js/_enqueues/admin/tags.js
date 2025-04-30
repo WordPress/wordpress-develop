@@ -49,18 +49,19 @@ jQuery( function($) {
 				var message;
 				if ( '1' == r ) {
 					$('#ajax-response').empty();
-					let nextFocus = tr.next( 'tr' ).find( 'a.row-title' );
-					let prevFocus = tr.prev( 'tr' ).find( 'a.row-title' );
-					// If there is neither a next row or a previous row, focus the tag input field.
-					if ( nextFocus.length < 1 && prevFocus.length < 1 ) {
-						nextFocus = $( '#tag-name' ).trigger( 'focus' );
-					} else {
-						if ( nextFocus.length < 1 ) {
-							nextFocus = prevFocus;
-						}
-					}
+					tr.fadeOut('normal', function() {
+						tr.remove();
 
-					tr.fadeOut('normal', function(){ tr.remove(); });
+						if ( $('#the-list tr').length === 0 ) {
+							$('#the-list').append(
+								'<tr class="no-items"><td class="colspanchange" colspan="5">' +
+								wp.i18n.__( 'No tags found.' ) +
+								'</td></tr>'
+							);
+
+							$('.tablenav').hide();
+						}
+					});
 
 					/**
 					 * Removes the term from the parent box and the tag cloud.
@@ -73,7 +74,7 @@ jQuery( function($) {
 					$('a.tag-link-' + data.match(/tag_ID=(\d+)/)[1]).remove();
 					nextFocus.trigger( 'focus' );
 					message = wp.i18n.__( 'The selected tag has been deleted.' );
-			
+
 				} else if ( '-1' == r ) {
 					message = wp.i18n.__( 'Sorry, you are not allowed to do that.' );
 					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + message + '</p></div>');
