@@ -168,38 +168,59 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  * Updates metadata for the specified object. If no value already exists for the specified object
  * ID and metadata key, the metadata will be added.
  *
+ * This function also provides an optional detailed response mode that returns an array
+ * containing the status and reason for the outcome.
+ *
  * @since 2.9.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string $meta_type  Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
- *                           or any other object type with an associated meta table.
- * @param int    $object_id  ID of the object metadata is for.
- * @param string $meta_key   Metadata key.
- * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
- * @param mixed  $prev_value Optional. Previous value to check before updating.
- *                           If specified, only update existing metadata entries with
- *                           this value. Otherwise, update all entries. Default empty string.
- * @return int|bool The new meta field ID if a field with the given key didn't exist
- *                  and was therefore added, true on successful update,
- *                  false on failure or if the value passed to the function
- *                  is the same as the one that is already in the database.
+ * @param string $meta_type       Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                                or any other object type with an associated meta table.
+ * @param int    $object_id       ID of the object metadata is for.
+ * @param string $meta_key        Metadata key.
+ * @param mixed  $meta_value      Metadata value. Must be serializable if non-scalar.
+ * @param mixed  $prev_value      Optional. Previous value to check before updating.
+ *                                If specified, only update existing metadata entries with
+ *                                this value. Otherwise, update all entries. Default empty string.
+ * @param bool   $return_detailed Optional. Whether to return a detailed response or a simple boolean.
+ *                                If true, returns an array with status and reason. Default false.
+ * @return int|bool|array The new meta field ID if a field with the given key didn't exist
+ *                        and was therefore added, true on successful update,
+ *                        false on failure or if the value passed to the function
+ *                        is the same as the one that is already in the database.
+ *                        If $return_detailed is true, returns an array with 'status' and 'reason'.
+ *
+ * Possible detailed responses:
+ * - ['status' => 'success', 'reason' => 'value_added']: A new metadata entry was created.
+ * - ['status' => 'success', 'reason' => 'value_updated']: An existing metadata entry was updated.
+ * - ['status' => 'no_change', 'reason' => 'same_value']: The metadata value is unchanged.
+ * - ['status' => 'failure', 'reason' => 'invalid_parameters']: Invalid parameters were provided.
+ * - ['status' => 'failure', 'reason' => 'invalid_object_id']: The provided object ID is invalid.
+ * - ['status' => 'failure', 'reason' => 'invalid_meta_table']: The metadata table for the given type does not exist.
+ * - ['status' => 'failure', 'reason' => 'add_failed']: Failed to add a new metadata entry.
  */
-function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_value = '' ) {
+function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_value = '',  $return_detailed = false ) {
 	global $wpdb;
 
 	if ( ! $meta_type || ! $meta_key || ! is_numeric( $object_id ) ) {
-		return false;
+        return $return_detailed
+            ? [ 'status' => 'failure', 'reason' => 'invalid_parameters' ]
+            : false;
 	}
 
 	$object_id = absint( $object_id );
 	if ( ! $object_id ) {
-		return false;
+        return $return_detailed
+            ? [ 'status' => 'failure', 'reason' => 'invalid_object_id' ]
+            : false;
 	}
 
 	$table = _get_meta_table( $meta_type );
 	if ( ! $table ) {
-		return false;
+        return $return_detailed
+            ? [ 'status' => 'failure', 'reason' => 'invalid_meta_table' ]
+            : false;
 	}
 
 	$meta_subtype = get_object_subtype( $meta_type, $object_id );
@@ -248,14 +269,19 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		$old_value = get_metadata_raw( $meta_type, $object_id, $meta_key );
 		if ( is_countable( $old_value ) && count( $old_value ) === 1 ) {
 			if ( $old_value[0] === $meta_value ) {
-				return false;
+                return $return_detailed
+                    ? [ 'status' => 'no_change', 'reason' => 'same_value' ]
+                    : false;
 			}
 		}
 	}
 
 	$meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT $id_column FROM $table WHERE meta_key = %s AND $column = %d", $meta_key, $object_id ) );
 	if ( empty( $meta_ids ) ) {
-		return add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
+        $result = add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
+        return $return_detailed
+            ? [ 'status' => $result ? 'success' : 'failure', 'reason' => $result ? 'value_added' : 'add_failed' ]
+            : $result;
 	}
 
 	$_meta_value = $meta_value;
@@ -357,7 +383,9 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 		}
 	}
 
-	return true;
+    return $return_detailed
+        ? [ 'status' => 'success', 'reason' => 'value_updated' ]
+        : true;
 }
 
 /**
