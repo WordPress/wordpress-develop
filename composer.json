@@ -1,5 +1,6 @@
 {
 	"name": "wordpress/wordpress",
+	"version": "6.8.2",
 	"license": "GPL-2.0-or-later",
 	"description": "WordPress is open source software you can use to create a beautiful website, blog, or app.",
 	"homepage": "https://wordpress.org",
