@@ -1,0 +1,22 @@
+// Border styles for blocks.
+
+.has-border {
+	border: var(--wp--custom--border--width, 1px) var(--wp--custom--border--style, solid) var(--wp--custom--border--color, var(--global--color-border));
+
+	&.has-border-color {
+		border-color: var(--wp--custom--border--color);
+	}
+
+	&.has-border-radius {
+		border-radius: var(--wp--custom--border--radius);
+	}
+}
+
+// Maintaining backward compatibility with legacy border classes.
+.has-border-color {
+	border-color: var(--wp--custom--border--color);
+}
+
+.has-border-radius {
+	border-radius: var(--wp--custom--border--radius);
+}
