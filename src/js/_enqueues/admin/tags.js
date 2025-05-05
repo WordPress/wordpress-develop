@@ -60,6 +60,7 @@ jQuery( function($) {
 							);
 
 							$('.tablenav').hide();
+							$('p.search-box').hide();
 						}
 
 						var itemCount = $('#the-list tr').length;
@@ -201,6 +202,11 @@ jQuery( function($) {
 			var itemCount = $('#the-list tr').length;
 			var itemText = itemCount === 1 ? wp.i18n.__('item') : wp.i18n.__('items');
 			$('.tablenav-pages .displaying-num').text( itemCount + ' ' + itemText);
+
+			if ( itemCount === 1 ) {
+				$('.tablenav').show();
+				$('p.search-box').show();
+			}
 		});
 
 		return false;
