@@ -868,7 +868,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$menus                 = new WP_Customize_Nav_Menus( $this->wp_customize );
 		$contributor_user_id   = self::factory()->user->create( array( 'role' => 'contributor' ) );
 		$author_user_id        = self::factory()->user->create( array( 'role' => 'author' ) );
-		$administrator_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$administrator_user_id = self::$administrator_id;
 
 		$contributor_post_id   = self::factory()->post->create(
 			array(
