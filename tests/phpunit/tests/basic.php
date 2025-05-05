@@ -8,8 +8,6 @@
 class Tests_Basic extends WP_UnitTestCase {
 
 	/**
-	 * Test copyright year in license.txt.
-	 *
 	 * @coversNothing
 	 */
 	public function test_license() {
@@ -25,8 +23,6 @@ class Tests_Basic extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test latest stable version is included in SECURITY.md.
-	 *
 	 * @coversNothing
 	 */
 	public function test_security_md() {
@@ -43,8 +39,6 @@ class Tests_Basic extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the version number in package.json is correct.
-	 *
 	 * @coversNothing
 	 */
 	public function test_package_json() {
@@ -63,8 +57,6 @@ class Tests_Basic extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test engines.node is included in package.json.
-	 *
 	 * @depends test_package_json
 	 *
 	 * @coversNothing
@@ -75,12 +67,6 @@ class Tests_Basic extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the version numbers in package-lock.json are correct.
-	 *
-	 * In pull requests, the package-lock.json file is updated automatically
-	 * to match the version in package.json. This test is intended to ensure
-	 * the version numbers are correct in production branches.
-	 *
 	 * @coversNothing
 	 *
 	 * @dataProvider data_package_lock_json
@@ -120,8 +106,6 @@ class Tests_Basic extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the version number in composer.json is correct.
-	 *
 	 * @coversNothing
 	 */
 	public function test_composer_json() {
