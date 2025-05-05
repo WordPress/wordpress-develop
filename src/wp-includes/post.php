@@ -338,7 +338,7 @@ function create_initial_post_types() {
 
 	$template_edit_link = 'site-editor.php?' . build_query(
 		array(
-			'p'      => '/%s/%s',
+			'p'      => str_replace( '/', '%%2F', '/%s/%s' ),
 			'canvas' => 'edit',
 		)
 	);
@@ -509,7 +509,7 @@ function create_initial_post_types() {
 
 	$navigation_post_edit_link = 'site-editor.php?' . build_query(
 		array(
-			'p'      => '/wp_navigation/%s',
+			'p'      => str_replace( '/', '%%2F', '/wp_navigation/%s' ),
 			'canvas' => 'edit',
 		)
 	);
