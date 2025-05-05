@@ -830,12 +830,8 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 	/**
 	 * @ticket 36901
 	 */
-	public function test_comments_flood_user_is_admin() {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'role' => 'administrator',
-			)
-		);
+	public function test_comments_flood_user_can_moderate_comments() {
+		$user = get_user_by( 'id', self::$editor_id );
 		wp_set_current_user( $user->ID );
 
 		$data          = array(
@@ -849,8 +845,9 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 		$data['comment'] = 'Wow! I am quick!';
 		$second_comment  = wp_handle_comment_submission( $data );
 
-		$this->assertNotWPError( $second_comment );
-		$this->assertSame( (string) self::$post->ID, $second_comment->comment_post_ID );
+		$this->assertTrue( current_user_can( 'moderate_comments' ), 'Test user should have the moderate_comments capability' );
+		$this->assertNotWPError( $second_comment, 'Second comment should not trigger comment flooding error.' );
+		$this->assertSame( (string) self::$post->ID, $second_comment->comment_post_ID, 'Second comment should be made against initial post.' );
 	}
 
 	/**
