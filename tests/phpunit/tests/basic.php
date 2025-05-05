@@ -67,6 +67,12 @@ class Tests_Basic extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test the version numbers in package-lock.json are correct.
+	 *
+	 * In pull requests, the package-lock.json file is updated automatically
+	 * to match the version in package.json. This test is intended to ensure
+	 * the version numbers are correct in production branches.
+	 *
 	 * @coversNothing
 	 *
 	 * @dataProvider data_package_lock_json
@@ -106,6 +112,8 @@ class Tests_Basic extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test the version number in composer.json is correct.
+	 *
 	 * @coversNothing
 	 */
 	public function test_composer_json() {
