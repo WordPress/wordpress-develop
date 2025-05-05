@@ -260,7 +260,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 */
 	public function test_handle_rendering_partial_with_missing_settings() {
 		$this->setup_valid_render_partials_request_environment();
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$user_id );
 		$this->wp_customize->selective_refresh->add_partial( 'bar', array( 'settings' => 'bar' ) );
 
 		$context_data      = array();
