@@ -61,6 +61,10 @@ jQuery( function($) {
 
 							$('.tablenav').hide();
 						}
+
+						var itemCount = $('#the-list tr').length;
+						var itemText = itemCount === 1 ? wp.i18n.__('item') : wp.i18n.__('items');
+						$('.tablenav-pages .displaying-num').text( itemCount + ' ' + itemText);
 					});
 
 					/**
@@ -193,6 +197,10 @@ jQuery( function($) {
 			}
 
 			$('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):visible, textarea:visible', form).val('');
+
+			var itemCount = $('#the-list tr').length;
+			var itemText = itemCount === 1 ? wp.i18n.__('item') : wp.i18n.__('items');
+			$('.tablenav-pages .displaying-num').text( itemCount + ' ' + itemText);
 		});
 
 		return false;
