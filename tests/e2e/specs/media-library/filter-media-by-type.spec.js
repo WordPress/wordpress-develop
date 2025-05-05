@@ -30,9 +30,7 @@ test.describe( 'Filter wp-media-library by type test', () => {
 		// navigate to url
 		await admin.visitAdminPage( '/upload.php?mode=grid' );
 		
-		await expect( page.locator( '.load-more-count' ) ).toHaveText(
-			'Showing 3 of 3 media items'
-		);
+		await expect(page.getByText('Showing 3 of 3 media items')).toBeVisible();
 
 		// validate media by video
 		await page
@@ -40,9 +38,7 @@ test.describe( 'Filter wp-media-library by type test', () => {
 			.selectOption( 'video' );
 
 		// validate media does not exist
-		await expect( page.locator( '.no-media' ) ).toHaveText(
-			'No media items found.'
-		);
+		await expect(page.getByText('No media items found.')).toBeVisible();
 
 		// validate media by audio
 		await page
@@ -50,20 +46,16 @@ test.describe( 'Filter wp-media-library by type test', () => {
 			.selectOption( 'audio' );
 
 		// validate media count
-		await expect( page.locator( '.load-more-count' ) ).toHaveText(
-			'Showing 1 of 1 media items'
-		);
+		await expect(page.getByText('Showing 1 of 1 media items')).toBeVisible();
 
 		// open the file
-		await page.locator( '.thumbnail' ).first().click();
+		await page.locator( '.thumbnail' ).click();
 
 		// validate file type
-		await expect( page.locator( "div[class='file-type']" ) ).toHaveText(
-			'File type: audio/mpeg'
-		);
+		await expect(page.getByText('File type: audio/mpeg')).toBeVisible();
 
 		// close the modal
-		await page.locator( '.media-modal-close' ).click();
+		await page.getByRole('button', { name: ' Close dialog' }).click();
 
 		// validate filter by image
 		await page
@@ -71,17 +63,14 @@ test.describe( 'Filter wp-media-library by type test', () => {
 			.selectOption( 'image' );
 
 		// validate media count
-		await expect( page.locator( '.load-more-count' ) ).toHaveText(
-			'Showing 2 of 2 media items'
-		);
+		await expect(page.getByText('Showing 2 of 2 media items')).toBeVisible();
 
 		// open the image
 		await page.getByLabel('test-data', { exact: true }).click();
 
 		// validate file type
-		await expect( page.locator( "div[class='file-type']" ) ).toHaveText(
-			'File type: image/jpeg'
-		);
+		await expect(page.getByText('File type: image/jpeg')).toBeVisible();
+
 	} );
 
 	test( 'Should be able to filter the media based on media type in list view', async ( {
@@ -91,9 +80,7 @@ test.describe( 'Filter wp-media-library by type test', () => {
 		// navigate to url
 		await admin.visitAdminPage( '/upload.php?mode=list' );
 		
-		await expect( page.locator( '.tablenav.top .displaying-num' ) ).toHaveText(
-			'3 items'
-		);
+		await expect(page.getByText('3 items').first()).toBeVisible();
 
 		// validate media by audio
 		await page
@@ -103,16 +90,12 @@ test.describe( 'Filter wp-media-library by type test', () => {
 		await page.getByRole( 'button', { name: 'Filter' } ).click();
 
 		// validate media count
-		await expect( page.locator( '.tablenav.top .displaying-num' ) ).toHaveText(
-			'1 item'
-		);
+		await expect(page.getByText('1 item').first()).toBeVisible();
 
-		await page.locator( '.title a' ).first().click();
+		await page.getByRole('link', { name: '“test-mp3” (Edit)'}).click();
 
 		// validate file type
-		await expect( page.locator( "div.misc-pub-section.misc-pub-filetype" ) ).toHaveText(
-			'File type: MP3 (audio/mpeg)'
-		);
+		await expect(page.getByText('File type: MP3 (audio/mpeg)')).toBeVisible();
 
 		await admin.visitAdminPage( '/upload.php?mode=list' );
 
@@ -124,16 +107,12 @@ test.describe( 'Filter wp-media-library by type test', () => {
 		await page.getByRole( 'button', { name: 'Filter' } ).click();
 
 		// validate media count
-		await expect( page.locator( '.tablenav.top .displaying-num' ) ).toHaveText(
-			'2 items'
-		);
+		await expect(page.getByText('2 items').first()).toBeVisible();
 
 		// open the image
 		await page.locator( '.title a' ).first().click();
 
 		// validate file type
-		await expect( page.locator( "div.misc-pub-section.misc-pub-filetype" ) ).toHaveText(
-			'File type: JPG'
-		);
+		await expect(page.getByText('File type: JPG').first()).toBeVisible();
 	} );
 } );
