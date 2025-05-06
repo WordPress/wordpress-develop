@@ -63,7 +63,8 @@ jQuery( function($) {
 							$('p.search-box').hide();
 						}
 
-						var itemCount = $('#the-list tr').length;
+						var currentCount = parseInt( $('.tablenav-pages .displaying-num').first().text().match(/\d+/) ) || 0;
+						var itemCount = currentCount - 1 || 0;
 						var itemText = itemCount === 1 ? wp.i18n.__('item') : wp.i18n.__('items');
 						$('.tablenav-pages .displaying-num').text( itemCount + ' ' + itemText);
 					});
@@ -199,7 +200,8 @@ jQuery( function($) {
 
 			$('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):visible, textarea:visible', form).val('');
 
-			var itemCount = $('#the-list tr').length;
+			var currentCount = parseInt( $('.tablenav-pages .displaying-num').first().text().match(/\d+/) ) || 0;
+			var itemCount = currentCount + 1 || 0;
 			var itemText = itemCount === 1 ? wp.i18n.__('item') : wp.i18n.__('items');
 			$('.tablenav-pages .displaying-num').text( itemCount + ' ' + itemText);
 
