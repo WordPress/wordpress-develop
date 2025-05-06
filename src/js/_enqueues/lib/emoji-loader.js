@@ -177,6 +177,8 @@
 	 *
 	 * @since 6.8.2
 	 *
+	 * @private
+	 *
 	 * @param {CanvasRenderingContext2D} context 2D Context.
 	 * @param {string} emoji Set of Emoji to test.
 	 *
