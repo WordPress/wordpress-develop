@@ -17,6 +17,39 @@ if ( ! defined( 'WP_ADMIN' ) ) {
 }
 
 /**
+ * Display a persistent admin notice when “Discourage search engines from indexing this site” is enabled.
+ *
+ * @since 6.9
+ */
+add_action( 'admin_notices', 'wp_core_search_engine_visibility_notice' );
+
+function wp_core_search_engine_visibility_notice() {
+	if (
+		! is_network_admin()
+		&& ! is_user_admin()
+		&& current_user_can( 'manage_options' )
+		&& ! get_option( 'blog_public' )
+	) {
+		?>
+		<div class="notice notice-error is-dismissible">
+			<p>
+				<?php
+				echo wp_kses_post(
+					sprintf(
+						/* translators: %1$s open link, %2$s close link */
+						__( 'Search engines are <strong>discouraged</strong> from indexing your site. %1$sChange this setting%2$s.', 'default' ),
+						'<a href="' . esc_url( admin_url( 'options-reading.php#blog_public' ) ) . '">',
+						'</a>'
+					)
+				);
+				?>
+			</p>
+		</div>
+		<?php
+	}
+}
+
+/**
  * In case admin-header.php is included in a function.
  *
  * @global string    $title              The title of the current screen.
