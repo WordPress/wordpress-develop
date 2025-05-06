@@ -920,4 +920,56 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'get_items request' => array( '/wp/v2/posts/%d' ),
 		);
 	}
+
+	public function test_per_page_param() {
+		wp_set_current_user( self::$editor_id );
+
+		// Create additional autosaves for testing pagination
+		$autosave_ids = array( self::$autosave_post_id );
+		for ( $i = 0; $i < 3; $i++ ) {
+			$autosave_ids[] = wp_create_post_autosave(
+				array(
+					'post_content' => "Autosave content {$i}",
+					'post_ID'      => self::$post_id,
+					'post_type'    => 'post',
+				)
+			);
+		}
+
+		// Test default per_page (should return all autosaves)
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( count( $autosave_ids ), $data );
+
+		// Test custom per_page parameter
+		$per_page = 2;
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'per_page', $per_page );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( $per_page, $data );
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_autosaves_data() {
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+
+		// Test per_page=1
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'per_page', 1 );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 1, $data );
+
+		// Test invalid per_page parameter (should use default)
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'per_page', -1 );
+		$data = $response->get_data();
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( count( $autosave_ids ), $data );
+	}
 }
