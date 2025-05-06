@@ -3662,12 +3662,12 @@ class WP_Site_Health {
 			$result['label']       = __( 'Your site is using the deprecated ms-files.php handler' );
 			$result['description'] = sprintf(
 				'<p>%s</p>',
-				__( 'Your multisite network is using the legacy ms-files.php file handler which has been deprecated since WordPress 3.5.0.' ),
+				__( 'Your multisite network is using the legacy ms-files.php file handler which has been deprecated since WordPress 3.5.0.' )
 			);
 			$result['actions']     = sprintf(
 				'<p><a href="%s" target="_blank" rel="noopener">%s</a></p>',
 				'https://halfelf.org/2012/dumping-ms-files/',
-				__( 'Learn how to migrate from ms-files.php' ),
+				__( 'Learn how to migrate from ms-files.php' )
 			);
 		}
 
