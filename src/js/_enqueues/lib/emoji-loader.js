@@ -264,20 +264,20 @@
 				return ! isIdentical;
 			case 'emoji':
 				/*
-				 * Does the browser dig Emoji 16?
+				 * Does Emoji 16.0 cause the browser to go splat?
 				 *
-				 * To test for Emoji 16.0 support, try to render a new emoji: Shovel.
+				 * To test for Emoji 16.0 support, try to render a new emoji: Splatter.
 				 *
-				 * The shovel emoji is a single code point emoji. Testing for browser support
+				 * The splatter emoji is a single code point emoji. Testing for browser support
 				 * required testing the center point of the emoji to see if it is empty.
 				 *
-				 * 0xD83E 0xDE8F (\uD83E\uDE8F) == 🪏 Shovel.
+				 * 0xD83E 0xDEDF (\uD83E\uDEDF) == 🫟 Splatter.
 				 *
 				 * When updating this test, please ensure that the emoji is either a single code point
 				 * or switch to using the emojiSetsRenderIdentically function and testing with a zero-width
 				 * joiner vs a zero-width space.
 				 */
-				var notSupported = emojiRendersEmptyCenterPoint( context, '\uD83E\uDE8F' );
+				var notSupported = emojiRendersEmptyCenterPoint( context, '\uD83E\uDEDF' );
 				return ! notSupported;
 		}
 
