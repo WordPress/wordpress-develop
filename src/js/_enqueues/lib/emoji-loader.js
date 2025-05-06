@@ -257,31 +257,21 @@
 				return ! isIdentical;
 			case 'emoji':
 				/*
-				 * Rise Like a Phoenix.
+				 * Does the browser dig Emoji 16?
 				 *
-				 * To test for Emoji 15.1 support, try to render a new emoji: Phoenix.
+				 * To test for Emoji 16.0 support, try to render a new emoji: Shovel.
 				 *
-				 * A phoenix, a mythical immortal bird with flame-like feathers found in the folklore of many global
-				 * cultures. Often used to symbolize renewal or rebirth.
+				 * The shovel emoji is a single code point emoji. Testing for browser support
+				 * required testing the center point of the emoji to see if it is empty.
 				 *
-				 * The Phoenix emoji is a ZWJ sequence combining 🐦 Bird, Zero Width Joiner and 🔥 Fire.
-				 * These display as a single emoji on supported platforms.
+				 * 0xD83E 0xDE8F (\uD83E\uDE8F) == 🪏 Shovel.
 				 *
-				 * 0xD83D 0xDC26 (\uD83D\uDC26) == 🐦 Bird
-				 * 0x200D                       == Zero-Width Joiner (ZWJ) that links the code points for the new emoji or
-				 * 0x200B                       == Zero-Width Space (ZWS) that is rendered for clients not supporting the new emoji.
-				 * 0xD83D 0xDD25 (\uD83D\uDD25) == 🔥 Fire
-				 *
-				 * When updating this test for future Emoji releases, ensure that individual emoji that make up the
-				 * sequence come from older emoji standards.
+				 * When updating this test, please ensure that the emoji is either a single code point
+				 * or switch to using the emojiSetsRenderIdentically function and testing with a zero-width
+				 * joiner vs a zero-width space.
 				 */
-				isIdentical = emojiSetsRenderIdentically(
-					context,
-					'\uD83D\uDC26\u200D\uD83D\uDD25', // as the zero-width joiner sequence
-					'\uD83D\uDC26\u200B\uD83D\uDD25' // separated by a zero-width space
-				);
-
-				return ! isIdentical;
+				var notSupported = emojiRendersEmptyCenterPoint( context, '\uD83E\uDE8F' );
+				return ! notSupported;
 		}
 
 		return false;
