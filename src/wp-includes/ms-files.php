@@ -15,6 +15,7 @@
  * - Only PHP compatibility and security-related changes should be made to this file
  * - No new features should be added
  * - Site administrators should migrate to the new upload system
+ * - See https://halfelf.org/2012/dumping-ms-files/ for migration guidance
  */
 
 define( 'MS_FILES_REQUEST', true );
