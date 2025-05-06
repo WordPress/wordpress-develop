@@ -23,6 +23,14 @@ table,
 		color: var(--table--has-background-text-color);
 	}
 
+	&.is-style-regular .has-text-color,
+	&.is-style-stripes .has-text-color,
+	&.is-style-stripes .has-text-color thead tr,
+	&.is-style-stripes .has-text-color tfoot tr,
+	&.is-style-stripes .has-text-color tbody tr {
+		color: inherit;
+	}
+
 	&.is-style-stripes {
 		border-color: var(--table--stripes-border-color);
 

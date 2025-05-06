@@ -2084,6 +2084,19 @@ table.is-style-stripes .has-background tbody tr,
 	color: var(--table--has-background-text-color);
 }
 
+table.is-style-regular .has-text-color,
+table.is-style-stripes .has-text-color,
+table.is-style-stripes .has-text-color thead tr,
+table.is-style-stripes .has-text-color tfoot tr,
+table.is-style-stripes .has-text-color tbody tr,
+.wp-block-table.is-style-regular .has-text-color,
+.wp-block-table.is-style-stripes .has-text-color,
+.wp-block-table.is-style-stripes .has-text-color thead tr,
+.wp-block-table.is-style-stripes .has-text-color tfoot tr,
+.wp-block-table.is-style-stripes .has-text-color tbody tr {
+	color: inherit;
+}
+
 table.is-style-stripes,
 .wp-block-table.is-style-stripes {
 	border-color: var(--table--stripes-border-color);
