@@ -566,7 +566,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			'enable'  => '',
 			'disable' => '',
 			'delete'  => '',
-			'default' => '', 
+			'default' => '',
 		);
 
 		$stylesheet = $theme->get_stylesheet();
@@ -961,7 +961,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						}
 					}
 
-					printf( "<td class='theme-title column-primary%s'><strong>%s%s</strong>",
+					printf(
+						"<td class='theme-title column-primary%s'><strong>%s%s</strong>",
 						$extra_classes,
 						$item->display( 'Name' ),
 						$active_theme_label
