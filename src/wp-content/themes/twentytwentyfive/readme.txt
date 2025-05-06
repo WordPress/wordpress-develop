@@ -1,9 +1,9 @@
 === Twenty Twenty-Five ===
 Contributors: wordpressdotorg
 Requires at least: 6.7
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.2
-Stable tag: 1.0
+Stable tag: 1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,10 +14,24 @@ Twenty Twenty-Five emphasizes simplicity and adaptability. It offers flexible de
 
 == Changelog ==
 
+= 1.2 =
+* Released: April 15, 2025
+
+https://wordpress.org/documentation/article/twenty-twenty-five-changelog/#Version_1.2
+
+= 1.1 =
+* Released: February 11, 2025
+
+https://wordpress.org/documentation/article/twenty-twenty-five-changelog/#Version_1.1
+
+= 1.0 =
+* Released: November 13, 2024
+
+https://wordpress.org/documentation/article/twenty-twenty-five-changelog/#Version_1.0
 
 == Copyright ==
 
-Twenty Twenty-Five WordPress Theme, (C) 2024 WordPress.org and contributors.
+Twenty Twenty-Five WordPress Theme, (C) 2024-2025 WordPress.org and contributors.
 Twenty Twenty-Five is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify

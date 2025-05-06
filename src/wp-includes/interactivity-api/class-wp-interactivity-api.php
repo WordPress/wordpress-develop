@@ -451,6 +451,26 @@ final class WP_Interactivity_API {
 
 					// Checks if there is a server directive processor registered for each directive.
 					foreach ( $p->get_attribute_names_with_prefix( 'data-wp-' ) as $attribute_name ) {
+						if ( ! preg_match(
+							/*
+							 * This must align with the client-side regex used by the interactivity API.
+							 * @see https://github.com/WordPress/gutenberg/blob/ca616014255efbb61f34c10917d52a2d86c1c660/packages/interactivity/src/vdom.ts#L20-L32
+							 */
+							'/' .
+							'^data-wp-' .
+							// Match alphanumeric characters including hyphen-separated
+							// segments. It excludes underscore intentionally to prevent confusion.
+							// E.g., "custom-directive".
+							'([a-z0-9]+(?:-[a-z0-9]+)*)' .
+							// (Optional) Match '--' followed by any alphanumeric charachters. It
+							// excludes underscore intentionally to prevent confusion, but it can
+							// contain multiple hyphens. E.g., "--custom-prefix--with-more-info".
+							'(?:--([a-z0-9_-]+))?$' .
+							'/i',
+							$attribute_name
+						) ) {
+							continue;
+						}
 						list( $directive_prefix ) = $this->extract_prefix_and_suffix( $attribute_name );
 						if ( array_key_exists( $directive_prefix, self::$directive_processors ) ) {
 							$directives_prefixes[] = $directive_prefix;
@@ -579,6 +599,36 @@ final class WP_Interactivity_API {
 		$path_segments = explode( '.', $path );
 		$current       = $store;
 		foreach ( $path_segments as $path_segment ) {
+			/*
+			 * Special case for numeric arrays and strings. Add length
+			 * property mimicking JavaScript behavior.
+			 *
+			 * @since 6.8.0
+			 */
+			if ( 'length' === $path_segment ) {
+				if ( is_array( $current ) && array_is_list( $current ) ) {
+					$current = count( $current );
+					break;
+				}
+
+				if ( is_string( $current ) ) {
+					/*
+					 * Differences in encoding between PHP strings and
+					 * JavaScript mean that it's complicated to calculate
+					 * the string length JavaScript would see from PHP.
+					 * `strlen` is a reasonable approximation.
+					 *
+					 * Users that desire a more precise length likely have
+					 * more precise needs than "bytelength" and should
+					 * implement their own length calculation in derived
+					 * state taking into account encoding and their desired
+					 * output (codepoints, graphemes, bytes, etc.).
+					 */
+					$current = strlen( $current );
+					break;
+				}
+			}
+
 			if ( ( is_array( $current ) || $current instanceof ArrayAccess ) && isset( $current[ $path_segment ] ) ) {
 				$current = $current[ $path_segment ];
 			} elseif ( is_object( $current ) && isset( $current->$path_segment ) ) {
