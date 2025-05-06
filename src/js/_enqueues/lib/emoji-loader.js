@@ -187,9 +187,16 @@
 		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 		context.fillText( emoji, 0, 0 );
 
-		// Test if the center point (16, 16) is empty.
+		// Test if the center point (16, 16) is empty (0,0,0,0).
 		var centerPoint = context.getImageData(16, 16, 1, 1);
-		return centerPoint.data[0] === 0;
+		for ( var i = 0; i < centerPoint.data.length; i++ ) {
+			if ( centerPoint.data[ i ] !== 0 ) {
+				// Stop checking the moment it's known not to be empty.
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
