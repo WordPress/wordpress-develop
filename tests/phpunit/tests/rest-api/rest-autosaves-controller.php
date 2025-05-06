@@ -161,6 +161,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			array(
 				'context',
 				'parent',
+				'per_page',
 			),
 			$keys
 		);
@@ -177,6 +178,61 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSame( self::$autosave_post_id, $data[0]['id'] );
 
 		$this->check_get_autosave_response( $data[0], $this->post_autosave );
+	}
+
+	public function test_per_page_param() {
+		wp_set_current_user( self::$editor_id );
+
+		// Create additional autosaves for testing pagination
+		$autosave_ids = array( self::$autosave_post_id );
+		for ( $i = 0; $i < 3; $i++ ) {
+			$autosave_ids[] = wp_create_post_autosave(
+				array(
+					'post_content' => "Autosave content {$i}",
+					'post_ID'      => self::$post_id,
+					'post_type'    => 'post',
+				)
+			);
+		}
+
+		// Test default per_page (should return all autosaves)
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( count( $autosave_ids ), $data );
+
+		// Test custom per_page parameter
+		$per_page = 2;
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'per_page', $per_page );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( $per_page, $data );
+
+		// Test per_page=1
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'per_page', 1 );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 1, $data );
+
+		// Test invalid per_page parameter (should use default)
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'per_page', -1 );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( count( $autosave_ids ), $data );
+
+		// Clean up additional autosaves
+		foreach ( $autosave_ids as $id ) {
+			if ( $id !== self::$autosave_post_id ) {
+				wp_delete_post_revision( $id );
+			}
+		}
 	}
 
 	public function test_get_items_no_permission() {
