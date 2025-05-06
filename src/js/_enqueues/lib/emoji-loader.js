@@ -117,6 +117,11 @@
 	/**
 	 * Checks if two sets of Emoji characters render the same visually.
 	 *
+	 * This is used to determine if the browser is rendering an emoji with multiple data points
+	 * correctly. set1 is the emoji in the correct form, using a zero-width joiner. set2 is the emoji
+	 * in the incorrect form, using a zero-width space. If the two sets render the same, then the browser
+	 * does not support the emoji correctly.
+	 *
 	 * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
 	 * scope. Everything must be passed by parameters.
 	 *
@@ -161,6 +166,26 @@
 	}
 
 	/**
+	 * Checks if the center point of a single emoji is empty.
+	 *
+	 * This is used to determine if the browser is rendering an emoji with a single data point
+	 * correctly. The center point of an incorrectly rendered emoji will be empty. A correctly
+	 * rendered emoji will have a non-zero value at the center point.
+	 *
+	 * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
+	 * scope. Everything must be passed by parameters.
+	 */
+	function emojiRendersEmptyCenterPoint( context, emoji ) {
+		// Cleanup from previous test.
+		context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
+		context.fillText( emoji, 0, 0 );
+
+		// Test if the center point (16, 16) is empty.
+		var centerPoint = context.getImageData(16, 16, 1, 1);
+		return centerPoint.data[0] === 0;
+	}
+
+	/**
 	 * Determines if the browser properly renders Emoji that Twemoji can supplement.
 	 *
 	 * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
@@ -176,7 +201,7 @@
 	 *
 	 * @return {boolean} True if the browser can render emoji, false if it cannot.
 	 */
-	function browserSupportsEmoji( context, type, emojiSetsRenderIdentically ) {
+	function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint ) {
 		var isIdentical;
 
 		switch ( type ) {
@@ -278,7 +303,7 @@
 	 *
 	 * @return {SupportTests} Support tests.
 	 */
-	function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically ) {
+	function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint ) {
 		var canvas;
 		if (
 			typeof WorkerGlobalScope !== 'undefined' &&
@@ -301,7 +326,7 @@
 
 		var supports = {};
 		tests.forEach( function ( test ) {
-			supports[ test ] = browserSupportsEmoji( context, test, emojiSetsRenderIdentically );
+			supports[ test ] = browserSupportsEmoji( context, test, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint );
 		} );
 		return supports;
 	}
@@ -354,7 +379,8 @@
 					[
 						JSON.stringify( tests ),
 						browserSupportsEmoji.toString(),
-						emojiSetsRenderIdentically.toString()
+						emojiSetsRenderIdentically.toString(),
+						emojiRendersEmptyCenterPoint.toString()
 					].join( ',' ) +
 					'));';
 				var blob = new Blob( [ workerScript ], {
@@ -371,7 +397,7 @@
 			} catch ( e ) {}
 		}
 
-		supportTests = testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically );
+		supportTests = testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint );
 		setSessionSupportTests( supportTests );
 		resolve( supportTests );
 	} )
