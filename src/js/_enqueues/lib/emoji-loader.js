@@ -188,7 +188,8 @@
 		context.fillText( emoji, 0, 0 );
 
 		// Test if the center point (16, 16) is empty.
-		return context.getImageData(16, 16, 1, 1) === 0;
+		var centerPoint = context.getImageData(16, 16, 1, 1);
+		return centerPoint.data[0] === 0;
 	}
 
 	/**
