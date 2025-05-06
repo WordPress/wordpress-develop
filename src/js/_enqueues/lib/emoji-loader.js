@@ -174,6 +174,13 @@
 	 *
 	 * This function may be serialized to run in a Worker. Therefore, it cannot refer to variables from the containing
 	 * scope. Everything must be passed by parameters.
+	 *
+	 * @since 6.8.2
+	 *
+	 * @param {CanvasRenderingContext2D} context 2D Context.
+	 * @param {string} emoji Set of Emoji to test.
+	 *
+	 * @return {boolean} True if the center point is empty.
 	 */
 	function emojiRendersEmptyCenterPoint( context, emoji ) {
 		// Cleanup from previous test.
@@ -197,6 +204,7 @@
 	 * @param {CanvasRenderingContext2D} context 2D Context.
 	 * @param {string} type Whether to test for support of "flag" or "emoji".
 	 * @param {Function} emojiSetsRenderIdentically Reference to emojiSetsRenderIdentically function, needed due to minification.
+	 * @param {Function} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
 	 *
 	 * @return {boolean} True if the browser can render emoji, false if it cannot.
 	 */
@@ -289,6 +297,7 @@
 	 * @param {string[]} tests Tests.
 	 * @param {Function} browserSupportsEmoji Reference to browserSupportsEmoji function, needed due to minification.
 	 * @param {Function} emojiSetsRenderIdentically Reference to emojiSetsRenderIdentically function, needed due to minification.
+	 * @param {Function} emojiRendersEmptyCenterPoint Reference to emojiRendersEmptyCenterPoint function, needed due to minification.
 	 *
 	 * @return {SupportTests} Support tests.
 	 */
