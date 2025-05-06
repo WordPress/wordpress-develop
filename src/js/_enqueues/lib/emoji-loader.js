@@ -223,16 +223,16 @@
 				}
 
 				/*
-				 * Test for UN flag compatibility. This is the least supported of the letter locale flags,
+				 * Test for Sark flag compatibility. This is the least supported of the letter locale flags,
 				 * so gives us an easy test for full support.
 				 *
 				 * To test for support, we try to render it, and compare the rendering to how it would look if
-				 * the browser doesn't render it correctly ([U] + [N]).
+				 * the browser doesn't render it correctly ([C] + [Q]).
 				 */
 				isIdentical = emojiSetsRenderIdentically(
 					context,
-					'\uD83C\uDDFA\uD83C\uDDF3', // as the sequence of two code points
-					'\uD83C\uDDFA\u200B\uD83C\uDDF3' // as the two code points separated by a zero-width space
+					'\uD83C\uDDE8\uD83C\uDDF6', // as the sequence of two code points
+					'\uD83C\uDDE8\u200B\uD83C\uDDF6' // as the two code points separated by a zero-width space
 				);
 
 				if ( isIdentical ) {
