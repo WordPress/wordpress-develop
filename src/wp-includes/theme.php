@@ -2158,7 +2158,13 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 }
 
 /**
- * Adds callback for custom TinyMCE editor stylesheets.
+ * Registers stylesheets for use in the visual editor.
+ *
+ * This function allows themes to add custom CSS to the visual editor, ensuring
+ * a consistent appearance between the editor and the front end of the site.
+ *
+ * It supports both the classic TinyMCE editor and the block editor (Gutenberg).
+ * For block themes, these styles are also applied to the block editor iframe.
  *
  * The parameter $stylesheet is the name of the stylesheet, relative to
  * the theme root. It also accepts an array of stylesheets.
