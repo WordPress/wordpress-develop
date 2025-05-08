@@ -941,8 +941,6 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	 * @ticket 62057
 	 */
 	public function test_per_page_param() {
-		error_log( json_encode( self::$extra_users, JSON_PRETTY_PRINT ) );
-		// Create additional autosaves for testing pagination
 		$autosave_ids = array( self::$autosave_post_id );
 		for ( $i = 0; $i < 3; $i++ ) {
 			wp_set_current_user( self::$extra_users[ $i ] );
@@ -955,8 +953,6 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			);
 		}
 
-		error_log( json_encode( $autosave_ids, JSON_PRETTY_PRINT ) );
-
 		// Test default per_page (should return all autosaves)
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
@@ -966,6 +962,15 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 		// Test custom per_page parameter
 		$per_page = 2;
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'per_page', $per_page );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( $per_page, $data );
+
+		// Test getting one record
+		$per_page = 1;
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
 		$request->set_param( 'per_page', $per_page );
 		$response = rest_get_server()->dispatch( $request );
