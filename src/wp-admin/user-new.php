@@ -607,6 +607,15 @@ if ( current_user_can( 'create_users' ) ) {
 					<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 					<span class="text"><?php _e( 'Hide' ); ?></span>
 				</button>
+				<div id="caps-warning" class="caps-warning">
+					<span class="caps-icon">
+						<svg viewBox="0 0 24 26" xmlns="http://www.w3.org/2000/svg" fill="white" stroke="white" stroke-width="0.5">
+							<path d="M12 5L19 15H16V19H8V15H5L12 5Z"/>
+							<rect x="8" y="21" width="8" height="1.5" rx="0.75"/>
+						</svg>
+					</span>
+					<span class="caps-warning-text"><?php _e( 'Caps lock is on.' ); ?></span>
+				</div>
 			</div>
 		</td>
 	</tr>

@@ -80,6 +80,28 @@
 			$pass1.removeClass( 'short bad good strong' );
 			showOrHideWeakPasswordCheckbox();
 		} );
+
+		/**
+		 * Monitors the Caps Lock status while the user is typing in the password input field.
+		 * If Caps Lock is detected to be ON, a warning message is shown.
+		 * The warning is hidden when the input field loses focus or when Caps Lock is OFF.
+		 */
+		var $capsWarning = $( '#caps-warning' );
+
+		$pass1.on( 'keypress', function( e ) {
+			if ( isCapsLockOn( e ) ) {
+				$capsWarning.show();
+			} else {
+				$capsWarning.hide();
+			}
+		});
+
+		/**
+		 * Hides the Caps Lock warning when the password input loses focus.
+		 */
+		$pass1.on( 'blur', function() {
+			$capsWarning.hide();
+		});
 	}
 
 	function resetToggle( show ) {
@@ -212,12 +234,7 @@
 			var $capsWarning = $( '#caps-warning' );
 
 			$pass1.on( 'keypress', function( e ) {
-				var $charPass = String.fromCharCode( e.which );
-
-				var $isShift = e.shiftKey;
-				var $isCapsLockOn = ( $charPass.toUpperCase() === $charPass && !$isShift ) || ( $charPass.toLowerCase() === $charPass && $isShift );
-
-				if ( $isCapsLockOn ) {
+				if ( isCapsLockOn( e ) ) {
 					$capsWarning.show();
 				} else {
 					$capsWarning.hide();
@@ -347,6 +364,21 @@
 			default:
 				$('#pass-strength-result').addClass('short').html( pwsL10n.short );
 		}
+	}
+
+	/**
+	 * Determines if the Caps Lock is on based on keypress event.
+	 */
+	function isCapsLockOn( e ) {
+		const char = String.fromCharCode( e.which || e.keyCode );
+
+		// Skip non-printable characters
+		if (!char.match(/[a-zA-Z]/)) return false;
+
+		return (
+			(char === char.toUpperCase() && !e.shiftKey) ||
+			(char === char.toLowerCase() && e.shiftKey)
+		);
 	}
 
 	function showOrHideWeakPasswordCheckbox() {

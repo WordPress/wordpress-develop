@@ -452,6 +452,7 @@ input::-ms-reveal {
 	margin-bottom: 0;
 }
 
+/* Caps lock warning */
 .login .caps-warning {
 	display: none;
 	position: absolute;
@@ -504,6 +505,7 @@ input::-ms-reveal {
 .login .caps-warning-text {
 	vertical-align: middle;
 }
+/* Caps lock warning */
 
 @media screen and (max-height: 550px) {
 	#login {
