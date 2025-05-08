@@ -180,7 +180,7 @@
 	 * @private
 	 *
 	 * @param {CanvasRenderingContext2D} context 2D Context.
-	 * @param {string} emoji Set of Emoji to test.
+	 * @param {string} emoji Emoji to test.
 	 *
 	 * @return {boolean} True if the center point is empty.
 	 */
