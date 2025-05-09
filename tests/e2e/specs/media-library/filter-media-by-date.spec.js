@@ -43,8 +43,6 @@ test.describe( 'Filter the wp-media-library by date', () => {
 		const year = date.getFullYear();
 
 		// Validate the uploaded media date as current date.
-		await expect( page.locator( '.uploaded' ) ).toHaveText(
-			'Uploaded on: ' + month + ' ' + day + ',' + ' ' + year
-		);
+		await expect(page.getByText('Uploaded on: ' + month + ' ' + day + ',' + ' ' + year)).toBeVisible();
 	} );
 } );
