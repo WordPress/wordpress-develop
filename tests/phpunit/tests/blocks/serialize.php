@@ -78,10 +78,10 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 			// Block with attribute values that should not be escaped.
 			array( '<!-- wp:attributes {"key":"€1.00 / 3 for €2.00"} /-->' ),
 
-			// Block with attribute values that have array keys.
+			// Block with empty array attribute value.
 			array( '<!-- wp:attributes {"array":[]} /-->' ),
 
-			// Block with attribute values that have empty keys.
+			// Block with empty object attribute value.
 			array( '<!-- wp:attributes {"object":{}} /-->' ),
 		);
 	}
