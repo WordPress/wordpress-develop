@@ -110,7 +110,7 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/misc.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function wp_get_nav_menu_to_edit\\(\\) should return string\\|WP_Error but returns WP_Term\\|false\\.$#',
+	'message' => '#^Function wp_get_nav_menu_to_edit\\(\\) should return string\\|WP_Error\\|null but returns WP_Term\\|false\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/nav-menu.php',

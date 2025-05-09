@@ -2510,12 +2510,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/comment-template.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Strict comparison using \\=\\=\\= between false and string will always evaluate to false\\.$#',
-	'identifier' => 'identical.alwaysFalse',
-	'count' => 3,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment-template.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Call to function is_array\\(\\) with non\\-empty\\-array\\<WP_Comment\\> will always evaluate to true\\.$#',
 	'identifier' => 'function.alreadyNarrowedType',
 	'count' => 1,
@@ -3362,6 +3356,18 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/ms-blogs.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Result of && is always false\\.$#',
+	'identifier' => 'booleanAnd.alwaysFalse',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/ms-default-constants.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Strict comparison using \\=\\=\\= between \'wp\\-content/blogs\\.dir\' and \'\' will always evaluate to false\\.$#',
+	'identifier' => 'identical.alwaysFalse',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/ms-default-constants.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Elseif condition is always false\\.$#',
 	'identifier' => 'elseif.alwaysFalse',
 	'count' => 1,
@@ -3920,6 +3926,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/rewrite.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^If condition is always true\\.$#',
+	'identifier' => 'if.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/script-loader.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Negated boolean expression is always true\\.$#',
 	'identifier' => 'booleanNot.alwaysTrue',
 	'count' => 1,
@@ -3940,7 +3952,7 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Ternary operator condition is always false\\.$#',
 	'identifier' => 'ternary.alwaysFalse',
-	'count' => 1,
+	'count' => 3,
 	'path' => __DIR__ . '/../../../src/wp-includes/script-loader.php',
 ];
 $ignoreErrors[] = [

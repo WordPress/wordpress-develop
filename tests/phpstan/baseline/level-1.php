@@ -44,12 +44,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-custom-image-header.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Variable \\$transient in isset\\(\\) is never defined\\.$#',
-	'identifier' => 'isset.variable',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-debug-data.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Constructor of class WP_Filesystem_Direct has an unused parameter \\$arg\\.$#',
 	'identifier' => 'constructor.unusedParameter',
 	'count' => 1,

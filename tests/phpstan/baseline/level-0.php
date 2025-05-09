@@ -2,22 +2,10 @@
 
 $ignoreErrors = [];
 $ignoreErrors[] = [
-	'message' => '#^Undefined variable\\: \\$transient$#',
-	'identifier' => 'variable.undefined',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-debug-data.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Method WP_Filesystem_SSH2\\:\\:touch\\(\\) should return bool but return statement is missing\\.$#',
 	'identifier' => 'return.missing',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function wp_get_nav_menu_to_edit\\(\\) should return string\\|WP_Error but return statement is missing\\.$#',
-	'identifier' => 'return.missing',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/nav-menu.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Instantiated class WP_Press_This_Plugin not found\\.$#',
@@ -30,12 +18,6 @@ $ignoreErrors[] = [
 	'identifier' => 'include.fileNotFound',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/press-this.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Array has 2 duplicate keys with value \'Code\' \\(\'Code\', \'Code\'\\)\\.$#',
-	'identifier' => 'array.duplicateKey',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-editor.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Method WP_Customize_Background_Image_Setting\\:\\:update\\(\\) should return bool but return statement is missing\\.$#',
@@ -54,12 +36,6 @@ $ignoreErrors[] = [
 	'identifier' => 'return.missing',
 	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-header-image-setting.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function _wp_filter_build_unique_id\\(\\) should return string but return statement is missing\\.$#',
-	'identifier' => 'return.missing',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/plugin.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Unsafe usage of new static\\(\\)\\.$#',

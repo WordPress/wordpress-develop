@@ -794,12 +794,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-image-editor-imagick.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#1 \\$meta_query \\(false\\) of method WP_Meta_Query\\:\\:__construct\\(\\) is incompatible with type array\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-meta-query.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Unsafe call to private method WP_Navigation_Fallback\\:\\:create_classic_menu_fallback\\(\\) through static\\:\\:\\.$#',
 	'identifier' => 'staticClassAccess.privateMethod',
 	'count' => 1,
@@ -944,48 +938,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#1 \\$blog_id \\(string\\) of method WP_User\\:\\:for_blog\\(\\) is incompatible with type int\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-user.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#1 \\$site_id \\(string\\) of method WP_User\\:\\:for_site\\(\\) is incompatible with type int\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-user.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#2 \\$site_id \\(string\\) of method WP_User\\:\\:init\\(\\) is incompatible with type int\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-user.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#3 \\$site_id \\(string\\) of method WP_User\\:\\:__construct\\(\\) is incompatible with type int\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-user.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#1 \\$zero \\(false\\) of function get_comments_number_text\\(\\) is incompatible with type string\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment-template.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#2 \\$one \\(false\\) of function get_comments_number_text\\(\\) is incompatible with type string\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment-template.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#3 \\$more \\(false\\) of function get_comments_number_text\\(\\) is incompatible with type string\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment-template.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Binary operation "\\+" between array\\|int\\<min, \\-1\\>\\|int\\<1, max\\> and 1 results in an error\\.$#',
 	'identifier' => 'binaryOp.invalid',
 	'count' => 1,
@@ -1094,24 +1046,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/link-template.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#1 \\$post \\(false\\) of function _get_page_link\\(\\) is incompatible with type int\\|WP_Post\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/link-template.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#1 \\$post \\(false\\) of function get_page_link\\(\\) is incompatible with type int\\|WP_Post\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/link-template.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Default value of the parameter \\#2 \\$post_id \\(string\\) of function post_comments_feed_link\\(\\) is incompatible with type int\\.$#',
-	'identifier' => 'parameter.defaultValue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/link-template.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$ID on array\\|object\\.$#',
 	'identifier' => 'property.nonObject',
 	'count' => 1,
@@ -1122,12 +1056,6 @@ $ignoreErrors[] = [
 	'identifier' => 'varTag.noVariable',
 	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Cannot call method has_param\\(\\) on array\\.$#',
-	'identifier' => 'method.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/class-wp-rest-server.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$plugins on array\\|object\\.$#',
@@ -1152,12 +1080,6 @@ $ignoreErrors[] = [
 	'identifier' => 'property.private',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-block-types-controller.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^PHPDoc tag @param has invalid value \\(WP_REST_Controller \\$this             The current instance of the controller\\.\\)\\: Unexpected token "\\$this", expected variable at offset 401 on line 9$#',
-	'identifier' => 'phpDoc.parseError',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-menu-items-controller.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$auto_add on WP_Term\\|false\\.$#',
