@@ -1615,7 +1615,7 @@ function serialize_block_attributes( $block_attributes, $block_name = null ) {
 					$attribute_definitions = array();
 				}
 			}
-			if ( ! empty( $attribute_definitions ) ) {
+			if ( ! empty( $attribute_definitions ) && isset( $attribute_definitions[ $attribute ]['type'] ) ) {
 				$attribute_type = $attribute_definitions[ $attribute ]['type'];
 				if ( 'object' === $attribute_type ) {
 					$block_attributes[ $attribute ] = new stdClass();
