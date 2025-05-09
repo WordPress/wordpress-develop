@@ -1601,14 +1601,22 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  * @return string Serialized attributes.
  */
 function serialize_block_attributes( $block_attributes, $block_name = null ) {
+	$attribute_definitions = null;
 	foreach ( $block_attributes as $attribute => $value ) {
 		if ( is_array( $value ) && empty( $value ) ) {
 			// An empty `array()` is encoded as `[]` in JSON. However, it's possible
 			// that the attribute type is really an object (associative array in PHP),
 			// so we need to check for that.
-			$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
-			if ( $block_type && isset( $block_type->attributes[ $attribute ] ) ) {
-				$attribute_type = $block_type->attributes[ $attribute ]['type'];
+			if ( null === $attribute_definitions ) {
+				$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
+				if ( $block_type && isset( $block_type->attributes ) ) {
+					$attribute_definitions = $block_type->attributes;
+				} else {
+					$attribute_definitions = array();
+				}
+			}
+			if ( ! empty( $attribute_definitions ) ) {
+				$attribute_type = $attribute_definitions[ $attribute ]['type'];
 				if ( 'object' === $attribute_type ) {
 					$block_attributes[ $attribute ] = new stdClass();
 				}
