@@ -1595,6 +1595,7 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  * to ensure consistent operation between PHP and JavaScript.
  *
  * @since 5.3.1
+ * @since 6.8.2 Add $block_name parameter.
  *
  * @param array       $block_attributes Attributes object.
  * @param string|null $block_name       Block name. Null if the block name is unknown. Optional.
