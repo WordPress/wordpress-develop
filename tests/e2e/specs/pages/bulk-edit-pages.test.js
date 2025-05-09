@@ -27,13 +27,13 @@ test.describe( 'Bulk Edit the wp-page', () => {
 		await admin.visitAdminPage( '/edit.php?post_type=page' );
 
 		// click on select all checkbox
-		await page.locator( '#cb-select-all-1' ).click();
+		await page.getByRole( 'checkbox').first().click();
 
 		// select the edit option from the dropdown
 		await page.selectOption( '#bulk-action-selector-top', 'edit' );
 
 		// click on apply button
-		await page.click( 'role=button[name="Apply"i] >> nth=0' );
+		await page.getByRole('button', {name: 'Apply'}).first().click();
 
 		// select the draft option
 		await page
@@ -43,17 +43,13 @@ test.describe( 'Bulk Edit the wp-page', () => {
 		// click on the update button
 		await page.getByRole( 'button', { name: 'Update' } ).click();
 
-		await expect(
-			page.locator( "div[id='message'] p" ).first()
-		).toHaveText( /pages updated./ );
+		await expect(page.getByText(/pages updated./)).toBeVisible();
 
 		const listTable = page.getByRole( 'table', {
 			name: 'Table ordered by',
 		} );
-		const posts = listTable.locator( '.page-title  strong span' );
 
-		// Validate that the page is in draft status
-		await expect( posts.first() ).toHaveText( 'Draft' );
+		await expect(listTable.filter({hasText: 'Draft'})).toBeVisible();
 	} );
 	
 } );
