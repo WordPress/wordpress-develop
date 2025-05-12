@@ -41,7 +41,7 @@ test.describe( 'Category Tests', () => {
 		await page
 			.getByRole( 'combobox', { name: 'Parent' } )
 			.selectOption( parent );
-		await page.getByRole( 'button', { name: 'Add New Category' } ).click();
+		await page.getByRole( 'button', { name: 'Add Category' } ).click();
 	}
 
 	// delete all posts and categories before each test

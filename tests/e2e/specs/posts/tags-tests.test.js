@@ -33,7 +33,7 @@ test.describe( 'Tag Tests', () => {
 	async function createTag( { page, admin, tagName = 'Test Tag' } ) {
 		await admin.visitAdminPage( pageLink );
 		await page.getByRole( 'textbox', { name: 'Name' } ).fill( tagName );
-		await page.getByRole( 'button', { name: 'Add New Tag' } ).click();
+		await page.getByRole( 'button', { name: 'Add Tag' } ).click();
 		
 	}
 
