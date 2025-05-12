@@ -36,8 +36,6 @@ test.describe( 'Bulk Delete wp pages', () => {
 
 		await page.getByRole( 'button', {name: 'Apply'}).first().click();
 
-		await expect(
-			page.locator( "div[id='message'] p" ).first()
-		).toHaveText( /moved to the Trash./ );
+		await expect(page.getByText(/moved to the Trash./)).toBeVisible();
 	} );
 } );
