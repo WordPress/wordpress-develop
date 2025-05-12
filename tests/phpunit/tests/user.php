@@ -1932,6 +1932,50 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests array is a sequential.
+	 * 
+	 * @ticket 63427
+	 *
+	 * @return bool
+	 */
+	private function test_is_sequential(array $array): bool
+    {
+        return array_keys($array) === range(0, count($array) - 1);
+    }
+
+	/**
+	 * Tests that the `roles` property is an array and remains sequential, 
+	 * even after filtering out roles.
+	 * 
+	 * Scenario: The `roles` property of `WP_User` returns an array of role strings. 
+	 * When this array is filtered using `array_filter`, it may become non-sequential, 
+	 * which causes issues when passed to `wp_localize_script`. 
+	 * Non-sequential arrays are treated as objects in JavaScript, 
+	 * which can lead to unexpected behavior.
+	 * 
+	 * @ticket 63427
+	 *
+	 * @return void
+	 */
+	public function test_user_roles_property_should_be_reindexed(){
+		$user = new WP_User( self::$author_id );
+		$this->assertTrue( $this->test_is_sequential( $user->roles ) );
+		
+		$user->remove_role('author');
+		$this->assertIsArray( $user->roles );
+		$this->assertSame( array(), $user->roles );
+
+		$user->add_role('author');
+		$this->assertSame( array( 'author' ), $user->roles );
+		$this->assertTrue($this->test_is_sequential( $user->roles ) );
+
+		$user->add_role('custom_role');
+		$user->add_role('subscriber');
+		$this->assertSame( array( 'author','subscriber' ), $user->roles );
+		$this->assertTrue( $this->test_is_sequential( $user->roles ) );
+	}
+
+	/**
 	 * @ticket 42564
 	 */
 	public function test_edit_user_role_update() {
