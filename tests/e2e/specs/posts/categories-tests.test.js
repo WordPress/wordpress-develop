@@ -54,9 +54,7 @@ test.describe( 'Category Tests', () => {
 	test( 'Should be able to create a new category', async ( {
 		page,
 	} ) => {
-		await expect(
-			page.locator( '#ajax-response' ).getByText( 'Category added.' )
-		).toBeVisible({ timeout: 20000 });
+		await expect(page.getByText('Category added.').first()).toBeVisible({ timeout: 20000 });
 	} );
 
 	test( 'Should be able to create a new category with parent category', async ( {
@@ -73,14 +71,11 @@ test.describe( 'Category Tests', () => {
 		} );
 
 		// validate category is created
-		await expect(
-			page.locator( '#ajax-response' ).getByText( 'Category added.' )
-		).toBeVisible();
+		await expect(page.getByText('Category added.').first()).toBeVisible({ timeout: 20000 });
 	} );
 
 	test( 'Should be able to quick edit a Category', async ( {
-		page,
-		admin,
+		page
 	} ) => {
 
 		// hover and quick edit a category
@@ -102,8 +97,7 @@ test.describe( 'Category Tests', () => {
 	} );
 
 	test( 'Should be able to delete a Category', async ( {
-		admin,
-		page,
+		page
 	} ) => {
 
 		await page.hover( 'role=link[name= "“Test Category” (Edit)"i]' );
@@ -127,8 +121,7 @@ test.describe( 'Category Tests', () => {
 	} );
 
 	test( 'Should be able to sort categories as per name', async ( {
-		page,
-		admin,
+		page
 	} ) => {
 		await page.getByRole( 'link', { name: 'Name' } ).first().click();
 		

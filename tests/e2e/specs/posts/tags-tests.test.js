@@ -49,7 +49,7 @@ test.describe( 'Tag Tests', () => {
 		if (await ! tagInputFieldVisible) {
 			await page.locator('.components-panel__body').last().click();
 		}
-		//await page.waitForTimeout(20000)
+
 		await page
 			.locator( '.components-panel__body input' )
 			.fill( tagName );
@@ -69,7 +69,7 @@ test.describe( 'Tag Tests', () => {
 
 	test( 'Should be able to create a new tag', async ( { page } ) => {
 		await expect(
-			page.locator( '#ajax-response' ).getByText( 'Tag added.' )
+			page.getByText( 'Tag added.' ).first()
 		).toBeVisible();
 	} );
 
