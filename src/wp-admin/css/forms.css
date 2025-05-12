@@ -737,7 +737,7 @@ p.search-box {
 .tablenav .search-plugins input[name="s"],
 .tagsdiv .newtag {
 	float: left;
-	margin: 0;
+	margin: 0 4px 0 0;
 }
 
 .js.plugins-php .search-box .wp-filter-search {
