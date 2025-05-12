@@ -1934,14 +1934,14 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Check array is a sequential.
 	 *
-	 * @param array $array array.
+	 * @param array $arr array.
 	 *
 	 * @ticket 63427
 	 *
 	 * @return bool
 	 */
-	private function is_sequential( array $array ) {
-		return array_keys( $array ) === range( 0, count( $array ) - 1 );
+	private function is_sequential( array $arr ) {
+		return array_keys( $arr ) === range( 0, count( $arr ) - 1 );
 	}
 
 	/**
