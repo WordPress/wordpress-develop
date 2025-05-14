@@ -462,7 +462,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				'<a href="%s" aria-label="%s">',
 				get_edit_post_link( $post->ID ),
 				/* translators: %s: Attachment title. */
-				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $title ) )
+				esc_attr( sprintf( __( '&#8220;%s&#8221; (edit)' ), $title ) )
 			);
 			$link_end = '</a>';
 		}
@@ -807,7 +807,7 @@ class WP_Media_List_Table extends WP_List_Table {
 					$show_confirmation,
 					/* translators: %s: Attachment title. */
 					esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
-					__( 'Delete Permanently' )
+					__( 'Delete permanently' )
 				);
 			}
 		}
@@ -865,7 +865,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		 * @since 2.8.0
 		 *
 		 * @param string[] $actions  An array of action links for each attachment.
-		 *                           Includes 'Edit', 'Delete Permanently', 'View',
+		 *                           Includes 'Edit', 'Delete permanently', 'View',
 		 *                           'Copy URL' and 'Download file'.
 		 * @param WP_Post  $post     WP_Post object for the current attachment.
 		 * @param bool     $detached Whether the list table contains media not attached

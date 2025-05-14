@@ -119,7 +119,7 @@ window.wp = window.wp || {};
 				return window.location = src;
 			}
 
-			// Store the document title prior to opening the Live Preview.
+			// Store the document title prior to opening the Live preview.
 			this.originalDocumentTitle = document.title;
 
 			this.active = true;
@@ -223,7 +223,7 @@ window.wp = window.wp || {};
 					self.active = false;
 					self.trigger( 'close' );
 
-					// Restore document title prior to opening the Live Preview.
+					// Restore document title prior to opening the Live preview.
 					if ( self.originalDocumentTitle ) {
 						document.title = self.originalDocumentTitle;
 					}

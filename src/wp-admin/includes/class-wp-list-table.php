@@ -1105,7 +1105,7 @@ class WP_List_Table {
 				'<span id="table-paging" class="paging-input">' .
 				'<span class="tablenav-paging-text">',
 				/* translators: Hidden accessibility text. */
-				__( 'Current Page' )
+				__( 'Current page' )
 			);
 		} else {
 			$html_current_page = sprintf(
@@ -1114,7 +1114,7 @@ class WP_List_Table {
 					name='paged' value='%s' size='%d' aria-describedby='table-paging' />" .
 				"<span class='tablenav-paging-text'>",
 				/* translators: Hidden accessibility text. */
-				__( 'Current Page' ),
+				__( 'Current page' ),
 				$current,
 				strlen( $total_pages )
 			);

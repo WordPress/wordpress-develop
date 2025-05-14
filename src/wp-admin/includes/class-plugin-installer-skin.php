@@ -127,7 +127,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['network_activate'] = sprintf(
 				'<a class="button button-primary" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( 'plugins.php?action=activate&amp;networkwide=1&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ),
-				_x( 'Network Activate', 'plugin' )
+				_x( 'Network activate', 'plugin' )
 			);
 			unset( $install_actions['activate_plugin'] );
 		}

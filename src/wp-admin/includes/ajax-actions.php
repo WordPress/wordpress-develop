@@ -2276,7 +2276,7 @@ function wp_ajax_find_posts() {
 				$stat = __( 'Scheduled' );
 				break;
 			case 'pending':
-				$stat = __( 'Pending Review' );
+				$stat = __( 'Pending review' );
 				break;
 			case 'draft':
 				$stat = __( 'Draft' );

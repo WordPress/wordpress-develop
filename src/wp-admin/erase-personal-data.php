@@ -1,6 +1,6 @@
 <?php
 /**
- * Privacy tools, Erase Personal Data screen.
+ * Privacy tools, Erase personal data screen.
  *
  * @package WordPress
  * @subpackage Administration
@@ -104,14 +104,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="wrap nosubsub">
-	<h1><?php esc_html_e( 'Erase Personal Data' ); ?></h1>
+	<h1><?php esc_html_e( 'Erase personal data' ); ?></h1>
 	<p><?php _e( 'This tool helps site owners comply with local laws and regulations by deleting or anonymizing known data for a given user.' ); ?></p>
 	<hr class="wp-header-end" />
 
 	<?php settings_errors(); ?>
 
 	<form action="<?php echo esc_url( admin_url( 'erase-personal-data.php' ) ); ?>" method="post" class="wp-privacy-request-form">
-		<h2><?php esc_html_e( 'Add Data Erasure Request' ); ?></h2>
+		<h2><?php esc_html_e( 'Add Data erasure Request' ); ?></h2>
 		<div class="wp-privacy-request-form-field">
 			<table class="form-table">
 				<tr>

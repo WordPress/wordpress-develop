@@ -207,7 +207,7 @@ jQuery( function( $ ) {
 	});
 
 	/*
-	 * When a user presses the "Upload Plugin" button, show the upload form in place
+	 * When a user presses the "Upload plugin" button, show the upload form in place
 	 * rather than sending them to the devoted upload plugin page.
 	 * The `?tab=upload` page still exists for no-js support and for plugins that
 	 * might access it directly. When we're in this page, let the link behave

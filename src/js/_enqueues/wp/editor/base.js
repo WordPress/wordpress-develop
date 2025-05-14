@@ -720,7 +720,7 @@ window.wp = window.wp || {};
 
 				/**
 				 * Marking the start and end element with `data-mce-object-selection` helps
-				 * discern when the selected object is a Live Preview selection.
+				 * discern when the selected object is a Live preview selection.
 				 *
 				 * This way we can adjust the selection to properly select only the content, ignoring
 				 * whitespace inserted around the selected object by the Editor.
@@ -780,7 +780,7 @@ window.wp = window.wp || {};
 
 			if (endMatch) {
 				/**
-				 * Adjust the selection index, if the selection contains a Live Preview object or not.
+				 * Adjust the selection index, if the selection contains a Live preview object or not.
 				 *
 				 * Check where the `data-mce-object-selection` attribute is set above for more context.
 				 */

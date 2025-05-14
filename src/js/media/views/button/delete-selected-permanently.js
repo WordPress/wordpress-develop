@@ -5,7 +5,7 @@ var Button = wp.media.view.Button,
 /**
  * wp.media.view.DeleteSelectedPermanentlyButton
  *
- * When MEDIA_TRASH is true, a button that handles bulk Delete Permanently logic
+ * When MEDIA_TRASH is true, a button that handles bulk Delete permanently logic
  *
  * @memberOf wp.media.view
  *

@@ -161,7 +161,7 @@ if ( isset( $_GET['action'] ) ) {
 		$file_upload = new File_Upload_Upgrader( 'pluginzip', 'package' );
 
 		// Used in the HTML title tag.
-		$title        = __( 'Upload Plugin' );
+		$title        = __( 'Upload plugin' );
 		$parent_file  = 'plugins.php';
 		$submenu_file = 'plugin-install.php';
 
