@@ -1482,7 +1482,7 @@ function wp_ajax_edit_comment() {
 		wp_die( $updated->get_error_message() );
 	}
 
-	$position = ( isset( $_POST['position'] ) && (int) $_POST['position'] ) ? (int) $_POST['position'] : '-1';
+	$position = ! empty( $_POST['position'] ) ? (int) $_POST['position'] : '-1';
 	/*
 	 * Checkbox is used to differentiate between the Edit Comments screen (1)
 	 * and the Comments section on the Edit Post screen (0).
