@@ -81,17 +81,4 @@ class Tests_Filesystem_UnzipFileZiparchive extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $filter->get_call_count() );
 	}
-
-	/**
-	 * Cleanup the unzip destination.
-	 *
-	 * @param string $unzip_destination Unzip destination.
-	 * @return void
-	 */
-	public function cleanup_unzip_destination( $unzip_destination ) {
-		if ( file_exists( $unzip_destination ) ) {
-			$this->rmdir( $unzip_destination );
-			$this->delete_folders( $unzip_destination );
-		}
-	}
 }
