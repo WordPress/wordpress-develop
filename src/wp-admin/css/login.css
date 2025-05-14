@@ -456,10 +456,10 @@ input::-ms-reveal {
 .login .caps-warning {
 	display: none;
 	position: absolute;
-	background: #FFF8E5;
+	background: #FFE9DE;
 	border: 1px solid #ddd;
 	border-radius: 3px;
-	color: #564300;
+	color: #1E1E20;
 	font-size: 13px;
 	padding: 6px 10px;
 	top: calc(100% - 10px);
@@ -488,13 +488,13 @@ input::-ms-reveal {
 	margin-left: -7px;
 	border-width: 7px;
 	border-style: solid;
-	border-color: transparent transparent #fff8e5 transparent;
+	border-color: transparent transparent #FFE9DE transparent;
 }
 
 .login .caps-icon {
 	display: inline-flex;
     justify-content: center;
-    background-color: #FFA328;
+    background-color: #E26F56;
     width: 20px;
     height: 20px;
     border-radius: 3px;

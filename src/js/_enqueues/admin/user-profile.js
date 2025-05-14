@@ -20,7 +20,9 @@
 		$form,
 		originalFormContent,
 		$passwordWrapper,
-		successTimeout;
+		successTimeout,
+		isMac = window.navigator.platform ? window.navigator.platform.indexOf( 'Mac' ) !== -1 : false, 
+		ua = navigator.userAgent.toLowerCase();
 
 	function generatePassword() {
 		if ( typeof zxcvbn !== 'function' ) {
@@ -374,6 +376,11 @@
 
 		// Skip non-printable characters
 		if (!char.match(/[a-zA-Z]/)) return false;
+
+		// Skip warning on macOS Safari or Chrome (they show native caps lock warnings)
+		if ( isMac && ( ua.indexOf( 'safari' ) !== -1 || ua.indexOf( 'chrome' ) !== -1 ) ) {
+			return false;
+		}
 
 		return (
 			(char === char.toUpperCase() && !e.shiftKey) ||
