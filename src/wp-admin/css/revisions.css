@@ -585,7 +585,7 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 
 	.revisions-controls,
 	.comparing-two-revisions .revisions-controls {
-		height: 170px;
+		height: auto; 
 	}
 
 	.revisions-tooltip {
