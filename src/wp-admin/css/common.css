@@ -420,6 +420,7 @@ code {
 
 kbd,
 code {
+	color: #44464B;
 	padding: 3px 5px 2px;
 	margin: 0 1px;
 	background: #f0f0f1;
