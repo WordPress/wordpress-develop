@@ -41,13 +41,13 @@ class Tests_Filesystem_UnzipFilePclzip extends WP_UnitTestCase {
 
 		// Prepare test environment.
 		$unzip_destination = self::$test_data_dir . 'archive/';
+		$this->cleanup_unzip_destination( $unzip_destination ); // See #65443 for details.
 		mkdir( $unzip_destination );
 
 		_unzip_file_pclzip( self::$test_data_dir . 'archive.zip', $unzip_destination );
 
 		// Cleanup test environment.
-		$this->rmdir( $unzip_destination );
-		$this->delete_folders( $unzip_destination );
+		$this->cleanup_unzip_destination( $unzip_destination );
 
 		$this->assertSame( 1, $filter->get_call_count() );
 	}
@@ -63,7 +63,7 @@ class Tests_Filesystem_UnzipFilePclzip extends WP_UnitTestCase {
 
 		// Prepare test environment.
 		$unzip_destination = self::$test_data_dir . 'archive/';
-		$this->cleanup_unzip_destination( $unzip_destination ); // See #65443 for details
+		$this->cleanup_unzip_destination( $unzip_destination ); // See #65443 for details.
 		mkdir( $unzip_destination );
 
 		_unzip_file_pclzip( self::$test_data_dir . 'archive.zip', $unzip_destination );
