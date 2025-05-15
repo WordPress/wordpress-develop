@@ -595,7 +595,7 @@
 	margin-bottom: 0;
 	padding: 12px;
 	border-top: 1px solid #f0f0f1;
-	color: #dcdcde;
+	color: #73777D;
 }
 
 /* Safari 10 + VoiceOver specific: without this, the hidden text gets read out before the link. */
@@ -927,7 +927,7 @@ body #dashboard-widgets .postbox form .submit {
 }
 
 .activity-block .subsubsub li {
-	color: #dcdcde;
+	color: #73777D;
 }
 
 /* Dashboard activity widget - Comments */
