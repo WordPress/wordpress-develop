@@ -2,7 +2,7 @@
  * @output wp-admin/js/common.js
  */
 
-/* global setUserSetting, ajaxurl, alert, confirm, pagenow */
+/* global setUserSetting, ajaxurl, alert, confirm, pagenow, showNotice */
 /* global columns, screenMeta */
 
 /**
