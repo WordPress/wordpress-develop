@@ -506,7 +506,14 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 							$current_colors = $this->image->getImageColors();
 							$max_colors     = min( $max_colors, $current_colors );
 						}
-						$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
+
+						/*
+						 * Only apply color quantization under safe conditions
+						 * such as if max_colors is set low to avoid image degradation.
+						 */
+						if ( $max_colors < 256 ) {
+							$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
+						}
 
 						/**
 						 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
