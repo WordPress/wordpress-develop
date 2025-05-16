@@ -484,44 +484,35 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
-				// Check to see if a PNG is indexed, and find the pixel depth.
-				if ( is_callable( array( $this->image, 'getImageDepth' ) ) ) {
-					$indexed_pixel_depth = $this->image->getImageDepth();
 
-					// Indexed PNG files get some additional handling.
-					if ( 0 < $indexed_pixel_depth && 8 >= $indexed_pixel_depth ) {
-						// Check for an alpha channel.
-						if (
-							is_callable( array( $this->image, 'getImageAlphaChannel' ) )
-							&& $this->image->getImageAlphaChannel()
-						) {
-							$this->image->setOption( 'png:include-chunk', 'tRNS' );
-						} else {
-							$this->image->setOption( 'png:exclude-chunk', 'all' );
-						}
+				// Check for an alpha channel.
+				if (
+					is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+					&& $this->image->getImageAlphaChannel()
+				) {
+					$this->image->setOption( 'png:include-chunk', 'tRNS' );
+				} else {
+					$this->image->setOption( 'png:exclude-chunk', 'all' );
+				}
 
-						// Reduce colors in the images to maximum needed, using the global colorspace.
-						$max_colors = pow( 2, $indexed_pixel_depth );
-						if ( is_callable( array( $this->image, 'getImageColors' ) ) ) {
-							$current_colors = $this->image->getImageColors();
-							$max_colors     = min( $max_colors, $current_colors );
-						}
+				// Reduce colors in the image only if it's an indexed PNG with <= 256 colors.
+				if (
+					is_callable( array( $this->image, 'getImageColors' ) ) &&
+					is_callable( array( $this->image, 'getImageProperty' ) )
+				) {
+					$current_colors = $this->image->getImageColors();
+					$color_type     = $this->image->getImageProperty( 'png:IHDR.color_type' );
 
-						/*
-						 * Only apply color quantization under safe conditions
-						 * such as if max_colors is set low to avoid image degradation.
-						 */
-						if ( $max_colors < 256 ) {
-							$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
-						}
-
-						/**
-						 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
-						 */
-						if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
-							$this->image->setOption( 'png:format', 'png8' );
-						}
+					if ( $current_colors <= 256 && '3' === $color_type ) {
+						$this->image->quantizeImage( $current_colors, $this->image->getColorspace(), 0, false, false );
 					}
+				}
+
+				/**
+				 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
+				 */
+				if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
+					$this->image->setOption( 'png:format', 'png8' );
 				}
 			}
 
