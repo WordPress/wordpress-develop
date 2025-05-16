@@ -488,8 +488,16 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				if ( is_callable( array( $this->image, 'getImageDepth' ) ) ) {
 					$indexed_pixel_depth = $this->image->getImageDepth();
 
+					// Reduce colors in the images to maximum needed, using the global colorspace.
+					$max_colors = pow( 2, $indexed_pixel_depth );
+					if ( is_callable( array( $this->image, 'getImageColors' ) ) ) {
+						$current_colors = $this->image->getImageColors();
+						$max_colors     = min( $max_colors, $current_colors );
+					}
+
 					// Indexed PNG files get some additional handling.
-					if ( 0 < $indexed_pixel_depth && 8 >= $indexed_pixel_depth ) {
+					// See #63448 for details.
+					if ( 0 < $indexed_pixel_depth && 8 >= $indexed_pixel_depth && 256 <= $max_colors ) {
 						// Check for an alpha channel.
 						if (
 							is_callable( array( $this->image, 'getImageAlphaChannel' ) )
@@ -500,13 +508,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 							$this->image->setOption( 'png:exclude-chunk', 'all' );
 						}
 
-						// Reduce colors in the images to maximum needed, using the global colorspace.
-						$max_colors = pow( 2, $indexed_pixel_depth );
-						if ( is_callable( array( $this->image, 'getImageColors' ) ) ) {
-							$current_colors = $this->image->getImageColors();
-							$max_colors     = min( $max_colors, $current_colors );
+						// Quantize the Indexed image to the maximum number of colors.
+						if ( is_callable( array( $this->image, 'quantizeImage' ) ) ) {
+							$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
 						}
-						$this->image->quantizeImage( $max_colors, $this->image->getColorspace(), 0, false, false );
 
 						/**
 						 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
