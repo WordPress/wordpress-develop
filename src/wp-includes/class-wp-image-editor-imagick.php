@@ -497,7 +497,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 					// Indexed PNG files get some additional handling.
 					// See #63448 for details.
-					if ( 0 < $indexed_pixel_depth && 8 >= $indexed_pixel_depth && 256 <= $max_colors ) {
+					if ( 0 < $indexed_pixel_depth && 8 >= $indexed_pixel_depth && 256 >= $max_colors ) {
 						// Check for an alpha channel.
 						if (
 							is_callable( array( $this->image, 'getImageAlphaChannel' ) )
