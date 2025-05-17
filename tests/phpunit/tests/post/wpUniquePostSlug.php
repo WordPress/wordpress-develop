@@ -380,4 +380,81 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 		$found = wp_unique_post_slug( 'embed', $p, 'publish', 'attachment', 0 );
 		$this->assertSame( 'embed-2', $found );
 	}
+
+	/**
+	 * Test that posts and pages maintain unique slugs.
+	 *
+	 * @ticket 13459
+	 *
+	 * @dataProvider data_unique_slugs
+	 *
+	 * @param array $first_item  First post/page to create.
+	 * @param array $second_item Second post/page to create.
+	 * @param string $test_case  Test case identifier.
+	 */
+	public function test_unique_slugs( $first_item, $second_item, $test_case ) {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		self::factory()->post->create(
+			array(
+				'post_type'  => $first_item['type'],
+				'post_title' => $first_item['title'],
+				'post_name'  => 'test-slug',
+			)
+		);
+
+		$first = self::factory()->post->create(
+			array(
+				'post_type'  => $second_item['type'],
+				'post_title' => $second_item['title'],
+				'post_name'  => 'test-slug',
+			)
+		);
+
+		$first_obj = get_post( $first );
+		$this->assertSame( 'test-slug-2', $first_obj->post_name, "Failed first slug check in '$test_case'" );
+
+		$second = self::factory()->post->create(
+			array(
+				'post_type'  => $second_item['type'],
+				'post_title' => $second_item['title'],
+				'post_name'  => 'test-slug',
+			)
+		);
+
+		$second_obj = get_post( $second );
+		$this->assertSame( 'test-slug-3', $second_obj->post_name, "Failed second slug check in '$test_case'" );
+	}
+
+	/**
+	 * Data provider for testing unique slug constraints.
+	 *
+	 * @return array[] Test data.
+	 */
+	public static function data_unique_slugs() {
+		return array(
+			'page_before_post' => array(
+				'first'     => array(
+					'type'  => 'page',
+					'title' => 'Test Page',
+				),
+				'second'    => array(
+					'type'  => 'post',
+					'title' => 'Test Post',
+				),
+				'test_case' => 'page_before_post',
+			),
+			'post_before_page' => array(
+				'first'     => array(
+					'type'  => 'post',
+					'title' => 'Test Post',
+				),
+				'second'    => array(
+					'type'  => 'page',
+					'title' => 'Test Page',
+				),
+				'test_case' => 'post_before_page',
+			),
+		);
+	}
 }
