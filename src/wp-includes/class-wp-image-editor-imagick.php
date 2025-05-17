@@ -485,32 +485,33 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
 
-				// Check for an alpha channel.
+				// Handle alpha chunk inclusion or exclusion.
 				if (
-					is_callable( array( $this->image, 'getImageAlphaChannel' ) )
-					&& $this->image->getImageAlphaChannel()
+					is_callable( array( $this->image, 'getImageAlphaChannel' ) ) &&
+					$this->image->getImageAlphaChannel()
 				) {
 					$this->image->setOption( 'png:include-chunk', 'tRNS' );
 				} else {
 					$this->image->setOption( 'png:exclude-chunk', 'all' );
 				}
 
-				// Reduce colors in the image only if it's an indexed PNG with <= 256 colors.
+				// Only apply quantization to actual indexed PNGs.
 				if (
 					is_callable( array( $this->image, 'getImageColors' ) ) &&
+					is_callable( array( $this->image, 'getImageDepth' ) ) &&
 					is_callable( array( $this->image, 'getImageProperty' ) )
 				) {
 					$current_colors = $this->image->getImageColors();
-					$color_type     = $this->image->getImageProperty( 'png:IHDR.color_type' );
+					$bit_depth      = $this->image->getImageDepth();
+					$max_colors     = pow( 2, $bit_depth );
+					$color_type     = $this->image->getImageProperty( 'png:IHDR.color-type-orig' );
 
-					if ( $current_colors <= 256 && '3' === $color_type ) {
+					if ( $current_colors <= $max_colors && '3' === $color_type ) {
 						$this->image->quantizeImage( $current_colors, $this->image->getColorspace(), 0, false, false );
 					}
 				}
 
-				/**
-				 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
-				 */
+				// If grayscale, ensure format is png8 to retain index palette.
 				if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() ) {
 					$this->image->setOption( 'png:format', 'png8' );
 				}
