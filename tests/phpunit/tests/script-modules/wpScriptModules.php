@@ -852,23 +852,23 @@ HTML;
 			'Entity-encoded malicious script closer' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'UTF-8' ),
 
 			// Non UTF-8
-			'Solidus'                                => array( '/', '/', 'iso-8859-1' ),
-			'Less than'                              => array( '<', '\u003C', 'iso-8859-1' ),
-			'Greater than'                           => array( '>', '\u003E', 'iso-8859-1' ),
-			'Ampersand'                              => array( '&', '&', 'iso-8859-1' ),
-			'Newline'                                => array( "\n", "\\n", 'iso-8859-1' ),
-			'Tab'                                    => array( "\t", "\\t", 'iso-8859-1' ),
-			'Form feed'                              => array( "\f", "\\f", 'iso-8859-1' ),
-			'Carriage return'                        => array( "\r", "\\r", 'iso-8859-1' ),
-			'Line separator'                         => array( "\u{2028}", "\u2028", 'iso-8859-1' ),
-			'Paragraph separator'                    => array( "\u{2029}", "\u2029", 'iso-8859-1' ),
+			'Solidus non-utf8'                       => array( '/', '/', 'iso-8859-1' ),
+			'Less than non-utf8'                     => array( '<', '\u003C', 'iso-8859-1' ),
+			'Greater than non-utf8'                  => array( '>', '\u003E', 'iso-8859-1' ),
+			'Ampersand non-utf8'                     => array( '&', '&', 'iso-8859-1' ),
+			'Newline non-utf8'                       => array( "\n", "\\n", 'iso-8859-1' ),
+			'Tab non-utf8'                           => array( "\t", "\\t", 'iso-8859-1' ),
+			'Form feed non-utf8'                     => array( "\f", "\\f", 'iso-8859-1' ),
+			'Carriage return non-utf8'               => array( "\r", "\\r", 'iso-8859-1' ),
+			'Line separator non-utf8'                => array( "\u{2028}", "\u2028", 'iso-8859-1' ),
+			'Paragraph separator non-utf8'           => array( "\u{2029}", "\u2029", 'iso-8859-1' ),
 			/*
 			 * The following is the Flag of England emoji
 			 * PHP: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}"
 			 */
-			'Flag of england'                        => array( '🏴󠁧󠁢󠁥󠁮󠁧󠁿', "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f", 'iso-8859-1' ),
-			'Malicious script closer'                => array( '</script>', '\u003C/script\u003E', 'iso-8859-1' ),
-			'Entity-encoded malicious script closer' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'iso-8859-1' ),
+			'Flag of england non-utf8'               => array( '🏴󠁧󠁢󠁥󠁮󠁧󠁿', "\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f", 'iso-8859-1' ),
+			'Malicious script closer non-utf8'       => array( '</script>', '\u003C/script\u003E', 'iso-8859-1' ),
+			'Entity-encoded malicious script closer non-utf8' => array( '&lt;/script&gt;', '&lt;/script&gt;', 'iso-8859-1' ),
 
 		);
 	}
