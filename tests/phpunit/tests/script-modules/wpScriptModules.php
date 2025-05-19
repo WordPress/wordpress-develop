@@ -58,12 +58,20 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	/**
 	 * Gets the script modules listed in the import map.
 	 *
-	 * @return array Import map entry URLs, keyed by script module identifier.
+	 * @return array<string, string> Import map entry URLs, keyed by script module identifier.
 	 */
-	public function get_import_map() {
-		$import_map_markup = get_echo( array( $this->script_modules, 'print_import_map' ) );
-		preg_match( '/<script type="importmap" id="wp-importmap">.*?(\{.*\}).*?<\/script>/s', $import_map_markup, $import_map_string );
-		return json_decode( $import_map_string[1], true )['imports'];
+	public function get_import_map(): array {
+		$p = new WP_HTML_Tag_Processor( get_echo( array( $this->script_modules, 'print_import_map' ) ) );
+		if ( $p->next_tag( array( 'tag' => 'SCRIPT' ) ) ) {
+			$this->assertSame( 'importmap', $p->get_attribute( 'type' ) );
+			$this->assertSame( 'wp-importmap', $p->get_attribute( 'id' ) );
+			$data = json_decode( $p->get_modifiable_text(), true );
+			$this->assertIsArray( $data );
+			$this->assertArrayHasKey( 'imports', $data );
+			return $data['imports'];
+		} else {
+			return array();
+		}
 	}
 
 	/**
