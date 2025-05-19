@@ -829,18 +829,20 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * @param int    $expected_color_type   The expected original color type.
 	 */
 	public function test_png_color_type_is_preserved_after_resize( $file_path, $expected_color_type ) {
+
+		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
+
 		$imagick_image_editor = new WP_Image_Editor_Imagick( $file_path );
 		$imagick_image_editor->load();
 
 		$size = $imagick_image_editor->get_size();
 		$imagick_image_editor->resize( $size['width'] * 0.5, $size['height'] * 0.5 );
+		$imagick_image_editor->save( $temp_file );
 
-		$reflection     = new ReflectionClass( $imagick_image_editor );
-		$image_property = $reflection->getProperty( 'image' );
-		$image_property->setAccessible( true );
-		$imagick_internal_image = $image_property->getValue( $imagick_image_editor );
+		$imagick           = new Imagick( $temp_file );
+		$actual_color_type = $imagick->getImageProperty( 'png:IHDR.color-type-orig' );
 
-		$actual_color_type = $imagick_internal_image->getImageProperty( 'png:IHDR.color-type-orig' );
+		wp_delete_file( $temp_file );
 
 		$this->assertSame( (string) $expected_color_type, $actual_color_type, "The PNG original color type should be preserved after resize for {$file_path}." );
 	}
