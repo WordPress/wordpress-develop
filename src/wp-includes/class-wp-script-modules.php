@@ -275,14 +275,15 @@ class WP_Script_Modules {
 	 */
 	public function print_enqueued_script_modules() {
 		foreach ( $this->get_marked_for_enqueue() as $id => $script_module ) {
-			wp_print_script_tag(
-				array(
-					'type'          => 'module',
-					'src'           => $this->get_src( $id ),
-					'id'            => $id . '-js-module',
-					'fetchpriority' => $script_module['fetchpriority'],
-				)
+			$args = array(
+				'type' => 'module',
+				'src'  => $this->get_src( $id ),
+				'id'   => $id . '-js-module',
 			);
+			if ( 'auto' !== $script_module['fetchpriority'] ) {
+				$args['fetchpriority'] = $script_module['fetchpriority'];
+			}
+			wp_print_script_tag( $args );
 		}
 	}
 
