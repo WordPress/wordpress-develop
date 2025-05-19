@@ -18,7 +18,7 @@
  *     version: string|false|null,
  *     enqueue: bool,
  *     dependencies: array<array{ id: string, import: 'dynamic'|'static' }>,
- *     fetchpriority: 'low'|'auto'|'high',
+ *     fetchpriority: 'auto'|'low'|'high',
  * }
  */
 class WP_Script_Modules {
@@ -83,7 +83,7 @@ class WP_Script_Modules {
 	 * @param array             $args     {
 	 *     Optional. An array of additional args. Default empty array.
 	 *
-	 *     @type 'low'|'auto'|'high' $fetchpriority Fetch priority. Default low. Optional.
+	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
 	 * }
 	 */
 	public function register( string $id, string $src, array $deps = array(), $version = false, array $args = array() ) {
@@ -109,7 +109,7 @@ class WP_Script_Modules {
 				}
 			}
 
-			$fetchpriority = 'low';
+			$fetchpriority = 'auto';
 			if ( isset( $args['fetchpriority'] ) ) {
 				if ( $this->is_valid_fetchpriority( $args['fetchpriority'] ) ) {
 					$fetchpriority = $args['fetchpriority'];
@@ -142,7 +142,7 @@ class WP_Script_Modules {
 	 * @return bool Whether valid fetchpriority.
 	 */
 	private function is_valid_fetchpriority( $priority ): bool {
-		return in_array( $priority, array( 'low', 'high', 'auto' ), true );
+		return in_array( $priority, array( 'auto', 'low', 'high' ), true );
 	}
 
 	/**
@@ -151,7 +151,7 @@ class WP_Script_Modules {
 	 * @since n.e.x.t
 	 *
 	 * @param string              $id       Script module identifier.
-	 * @param 'low'|'high'|'auto' $priority Fetch priority for the script module.
+	 * @param 'auto'|'low'|'high' $priority Fetch priority for the script module.
 	 */
 	public function set_fetchpriority( string $id, string $priority ) {
 		if ( ! isset( $this->registered[ $id ] ) ) {
