@@ -425,6 +425,9 @@ class WP_Scripts extends WP_Dependencies {
 		if ( $intended_strategy ) {
 			$attr['data-wp-strategy'] = $intended_strategy;
 		}
+		if ( isset( $obj->extra['fetchpriority'] ) && 'auto' !== $obj->extra['fetchpriority'] ) {
+			$attr['fetchpriority'] = $obj->extra['fetchpriority'];
+		}
 		$tag  = $translations . $ie_conditional_prefix . $before_script;
 		$tag .= wp_get_script_tag( $attr );
 		$tag .= $after_script . $ie_conditional_suffix;

@@ -1023,23 +1023,54 @@ HTML
 	/**
 	 * Tests that dependents that are async but attached to a deferred main script, print with defer as opposed to async.
 	 *
+	 * Also tests that fetchpriority attributes are added as expected.
+	 *
 	 * @ticket 12009
+	 * @ticket 61734
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers ::wp_register_script
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_defer_with_async_dependent() {
 		// case with one async dependent.
-		wp_enqueue_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'dependent-script-d4-1', '/dependent-script-d4-1.js', array( 'main-script-d4' ), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'dependent-script-d4-2', '/dependent-script-d4-2.js', array( 'dependent-script-d4-1' ), null, array( 'strategy' => 'async' ) );
-		wp_enqueue_script( 'dependent-script-d4-3', '/dependent-script-d4-3.js', array( 'dependent-script-d4-2' ), null, array( 'strategy' => 'defer' ) );
+		wp_register_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script(
+			'dependent-script-d4-1',
+			'/dependent-script-d4-1.js',
+			array( 'main-script-d4' ),
+			null,
+			array(
+				'strategy'      => 'defer',
+				'fetchpriority' => 'auto',
+			)
+		);
+		wp_enqueue_script(
+			'dependent-script-d4-2',
+			'/dependent-script-d4-2.js',
+			array( 'dependent-script-d4-1' ),
+			null,
+			array(
+				'strategy'      => 'async',
+				'fetchpriority' => 'low',
+			)
+		);
+		wp_enqueue_script(
+			'dependent-script-d4-3',
+			'/dependent-script-d4-3.js',
+			array( 'dependent-script-d4-2' ),
+			null,
+			array(
+				'strategy'      => 'defer',
+				'fetchpriority' => 'high',
+			)
+		);
 		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js' defer data-wp-strategy='defer'></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer data-wp-strategy='defer'></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer data-wp-strategy='async'></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer data-wp-strategy='async' fetchpriority='low'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer data-wp-strategy='defer' fetchpriority='high'></script>\n";
 
 		$this->assertEqualMarkup( $expected, $output, 'Scripts registered as defer but that have dependents that are async are expected to have said dependents deferred.' );
 	}
