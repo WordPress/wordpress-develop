@@ -210,9 +210,10 @@ class WP_Script_Modules {
 		foreach ( $this->get_marked_for_enqueue() as $id => $script_module ) {
 			wp_print_script_tag(
 				array(
-					'type' => 'module',
-					'src'  => $this->get_src( $id ),
-					'id'   => $id . '-js-module',
+					'type'          => 'module',
+					'src'           => $this->get_src( $id ),
+					'id'            => $id . '-js-module',
+					'fetchpriority' => 'low',
 				)
 			);
 		}
@@ -231,7 +232,7 @@ class WP_Script_Modules {
 			// Don't preload if it's marked for enqueue.
 			if ( true !== $script_module['enqueue'] ) {
 				echo sprintf(
-					'<link rel="modulepreload" href="%s" id="%s">',
+					'<link rel="modulepreload" href="%s" id="%s" fetchpriority="low">',
 					esc_url( $this->get_src( $id ) ),
 					esc_attr( $id . '-js-modulepreload' )
 				);
