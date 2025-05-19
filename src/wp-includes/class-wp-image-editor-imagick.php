@@ -487,23 +487,25 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 				// Indexed PNG files get some additional handling.
 				// See #63448 for details.
-				if ( is_callable( array( $this->image, 'getImageProperty' ) ) ) {
+				if (
+					is_callable( array( $this->image, 'getImageProperty' ) )
+					&& '3' === $this->image->getImageProperty( 'png:IHDR.color-type-orig' )
+				) {
 
-					$color_type = $this->image->getImageProperty( 'png:IHDR.color-type-orig' );
-
-					if ( '3' === $color_type ) {
-						// Check for an alpha channel.
-						if (
-							is_callable( array( $this->image, 'getImageAlphaChannel' ) )
-							&& $this->image->getImageAlphaChannel()
-						) {
-							$this->image->setOption( 'png:include-chunk', 'tRNS' );
-						} else {
-							$this->image->setOption( 'png:exclude-chunk', 'all' );
-						}
-						// Set the image format to Indexed PNG.
-						$this->image->setOption( 'png:format', 'png8' );
+					// Check for an alpha channel.
+					if (
+						is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+						&& $this->image->getImageAlphaChannel()
+					) {
+						$this->image->setOption( 'png:include-chunk', 'tRNS' );
+					} else {
+						$this->image->setOption( 'png:exclude-chunk', 'all' );
 					}
+					// Set the image format to Indexed PNG.
+					$this->image->setOption( 'png:format', 'png8' );
+
+				} else {
+					$this->image->setOption( 'png:exclude-chunk', 'all' );
 				}
 			}
 
