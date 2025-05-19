@@ -32,17 +32,23 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	/**
 	 * Gets a list of the enqueued script modules.
 	 *
+	 * @phpstan-return array<string, array{ url: string, fetchpriority: string|null }>
+	 *
 	 * @return array Enqueued script module URLs, keyed by script module identifier.
 	 */
-	public function get_enqueued_script_modules() {
+	public function get_enqueued_script_modules(): array {
 		$script_modules_markup   = get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) );
 		$p                       = new WP_HTML_Tag_Processor( $script_modules_markup );
 		$enqueued_script_modules = array();
 
 		while ( $p->next_tag( array( 'tag' => 'SCRIPT' ) ) ) {
 			if ( 'module' === $p->get_attribute( 'type' ) ) {
-				$id                             = preg_replace( '/-js-module$/', '', $p->get_attribute( 'id' ) );
-				$enqueued_script_modules[ $id ] = $p->get_attribute( 'src' );
+				$id                             = preg_replace( '/-js-module$/', '', (string) $p->get_attribute( 'id' ) );
+				$fetchpriority                  = $p->get_attribute( 'fetchpriority' );
+				$enqueued_script_modules[ $id ] = array(
+					'url'           => (string) $p->get_attribute( 'src' ),
+					'fetchpriority' => is_string( $fetchpriority ) ? $fetchpriority : 'auto',
+				);
 			}
 		}
 
@@ -63,17 +69,23 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	/**
 	 * Gets a list of preloaded script modules.
 	 *
+	 * @phpstan-return array<string, array{ url: string, fetchpriority: string|null }>
+	 *
 	 * @return array Preloaded script module URLs, keyed by script module identifier.
 	 */
-	public function get_preloaded_script_modules() {
+	public function get_preloaded_script_modules(): array {
 		$preloaded_markup         = get_echo( array( $this->script_modules, 'print_script_module_preloads' ) );
 		$p                        = new WP_HTML_Tag_Processor( $preloaded_markup );
 		$preloaded_script_modules = array();
 
 		while ( $p->next_tag( array( 'tag' => 'LINK' ) ) ) {
-			if ( 'modulepreload' === $p->get_attribute( 'rel' ) ) {
-				$id                              = preg_replace( '/-js-modulepreload$/', '', $p->get_attribute( 'id' ) );
-				$preloaded_script_modules[ $id ] = $p->get_attribute( 'href' );
+			if ( 'modulepreload' === $p->get_attribute( 'rel' ) && is_string( $p->get_attribute( 'href' ) ) ) {
+				$id                              = preg_replace( '/-js-modulepreload$/', '', (string) $p->get_attribute( 'id' ) );
+				$fetchpriority                   = $p->get_attribute( 'fetchpriority' );
+				$preloaded_script_modules[ $id ] = array(
+					'url'           => $p->get_attribute( 'href' ),
+					'fetchpriority' => is_string( $fetchpriority ) ? $fetchpriority : 'auto',
+				);
 			}
 		}
 
@@ -88,18 +100,26 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * @covers ::register()
 	 * @covers ::enqueue()
 	 * @covers ::print_enqueued_script_modules()
+	 * @covers ::set_fetchpriority()
 	 */
 	public function test_wp_enqueue_script_module() {
 		$this->script_modules->register( 'foo', '/foo.js' );
-		$this->script_modules->register( 'bar', '/bar.js' );
+		$this->script_modules->register( 'bar', '/bar.js', array(), false, array( 'fetchpriority' => 'high' ) );
+		$this->script_modules->register( 'baz', '/baz.js' );
+		$this->script_modules->set_fetchpriority( 'baz', 'auto' );
 		$this->script_modules->enqueue( 'foo' );
 		$this->script_modules->enqueue( 'bar' );
+		$this->script_modules->enqueue( 'baz' );
 
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
-		$this->assertCount( 2, $enqueued_script_modules );
-		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo'] );
-		$this->assertStringStartsWith( '/bar.js', $enqueued_script_modules['bar'] );
+		$this->assertCount( 3, $enqueued_script_modules );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo']['url'] );
+		$this->assertSame( 'low', $enqueued_script_modules['foo']['fetchpriority'] );
+		$this->assertStringStartsWith( '/bar.js', $enqueued_script_modules['bar']['url'] );
+		$this->assertSame( 'high', $enqueued_script_modules['bar']['fetchpriority'] );
+		$this->assertStringStartsWith( '/baz.js', $enqueued_script_modules['baz']['url'] );
+		$this->assertSame( 'auto', $enqueued_script_modules['baz']['fetchpriority'] );
 	}
 
 	/**
@@ -217,7 +237,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 1, $enqueued_script_modules );
-		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo'] );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo']['url'] );
+		$this->assertSame( 'low', $enqueued_script_modules['foo']['fetchpriority'] );
 		$this->assertArrayNotHasKey( 'bar', $enqueued_script_modules );
 	}
 
@@ -396,7 +417,9 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 					'id'     => 'nested-dynamic-dep',
 					'import' => 'dynamic',
 				),
-			)
+			),
+			false,
+			array( 'fetchpriority' => 'high' )
 		);
 		$this->script_modules->register( 'dynamic-dep', '/dynamic-dep.js' );
 		$this->script_modules->register( 'nested-static-dep', '/nested-static-dep.js' );
@@ -407,8 +430,10 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$preloaded_script_modules = $this->get_preloaded_script_modules();
 
 		$this->assertCount( 2, $preloaded_script_modules );
-		$this->assertStringStartsWith( '/static-dep.js', $preloaded_script_modules['static-dep'] );
-		$this->assertStringStartsWith( '/nested-static-dep.js', $preloaded_script_modules['nested-static-dep'] );
+		$this->assertStringStartsWith( '/static-dep.js', $preloaded_script_modules['static-dep']['url'] );
+		$this->assertSame( 'high', $preloaded_script_modules['static-dep']['fetchpriority'] );
+		$this->assertStringStartsWith( '/nested-static-dep.js', $preloaded_script_modules['nested-static-dep']['url'] );
+		$this->assertSame( 'low', $preloaded_script_modules['nested-static-dep']['fetchpriority'] );
 		$this->assertArrayNotHasKey( 'dynamic-dep', $preloaded_script_modules );
 		$this->assertArrayNotHasKey( 'nested-dynamic-dep', $preloaded_script_modules );
 		$this->assertArrayNotHasKey( 'no-dep', $preloaded_script_modules );
@@ -444,7 +469,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$preloaded_script_modules = $this->get_preloaded_script_modules();
 
 		$this->assertCount( 1, $preloaded_script_modules );
-		$this->assertStringStartsWith( '/static-dep.js', $preloaded_script_modules['static-dep'] );
+		$this->assertStringStartsWith( '/static-dep.js', $preloaded_script_modules['static-dep']['url'] );
+		$this->assertSame( 'low', $preloaded_script_modules['static-dep']['fetchpriority'] );
 		$this->assertArrayNotHasKey( 'dynamic-dep', $preloaded_script_modules );
 		$this->assertArrayNotHasKey( 'nested-dynamic-dep', $preloaded_script_modules );
 		$this->assertArrayNotHasKey( 'no-dep', $preloaded_script_modules );
@@ -600,19 +626,22 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			array(
 				'dep',
 			),
-			'1.0'
+			'1.0',
+			array( 'fetchpriority' => 'auto' )
 		);
-		$this->script_modules->register( 'dep', '/dep.js', array(), '2.0' );
+		$this->script_modules->register( 'dep', '/dep.js', array(), '2.0', array( 'fetchpriority' => 'high' ) );
 		$this->script_modules->enqueue( 'foo' );
 
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
-		$this->assertSame( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
+		$this->assertSame( '/foo.js?ver=1.0', $enqueued_script_modules['foo']['url'] );
+		$this->assertSame( 'auto', $enqueued_script_modules['foo']['fetchpriority'] );
 
 		$import_map = $this->get_import_map();
 		$this->assertSame( '/dep.js?ver=2.0', $import_map['dep'] );
 
 		$preloaded_script_modules = $this->get_preloaded_script_modules();
-		$this->assertSame( '/dep.js?ver=2.0', $preloaded_script_modules['dep'] );
+		$this->assertSame( '/dep.js?ver=2.0', $preloaded_script_modules['dep']['url'] );
+		$this->assertSame( 'high', $preloaded_script_modules['dep']['fetchpriority'] );
 	}
 
 	/**
@@ -648,7 +677,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 1, $enqueued_script_modules );
-		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo'] );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo']['url'] );
+		$this->assertSame( 'low', $enqueued_script_modules['foo']['fetchpriority'] );
 	}
 
 	/**
@@ -673,7 +703,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
 		$this->assertCount( 1, $enqueued_script_modules );
-		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo'] );
+		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo']['url'] );
+		$this->assertSame( 'low', $enqueued_script_modules['foo']['fetchpriority'] );
 	}
 
 	/**
@@ -695,7 +726,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$import_map              = $this->get_import_map();
 
 		$this->assertCount( 1, $enqueued_script_modules );
-		$this->assertSame( '/foo.js?ver=1.0', $enqueued_script_modules['foo'] );
+		$this->assertSame( '/foo.js?ver=1.0', $enqueued_script_modules['foo']['url'] );
+		$this->assertSame( 'low', $enqueued_script_modules['foo']['fetchpriority'] );
 		$this->assertCount( 1, $import_map );
 		$this->assertStringStartsWith( '/dep.js', $import_map['dep'] );
 	}

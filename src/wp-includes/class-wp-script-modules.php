@@ -12,6 +12,14 @@
  * Core class used to register script modules.
  *
  * @since 6.5.0
+ *
+ * @phpstan-type ScriptModule array{
+ *     src: string,
+ *     version: string|false|null,
+ *     enqueue: bool,
+ *     dependencies: array<array{ id: string, import: 'dynamic'|'static' }>,
+ *     fetchpriority: 'low'|'auto'|'high',
+ * }
  */
 class WP_Script_Modules {
 	/**
@@ -19,6 +27,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 * @var array[]
+	 * @phpstan-var array<string, ScriptModule>
 	 */
 	private $registered = array();
 
@@ -71,13 +80,18 @@ class WP_Script_Modules {
 	 *                                    It is added to the URL as a query string for cache busting purposes. If $version
 	 *                                    is set to false, the version number is the currently installed WordPress version.
 	 *                                    If $version is set to null, no version is added.
+	 * @param array             $args     {
+	 *     Optional. An array of additional args. Default empty array.
+	 *
+	 *     @type 'low'|'auto'|'high' $fetchpriority Fetch priority. Default low. Optional.
+	 * }
 	 */
-	public function register( string $id, string $src, array $deps = array(), $version = false ) {
+	public function register( string $id, string $src, array $deps = array(), $version = false, array $args = array() ) {
 		if ( ! isset( $this->registered[ $id ] ) ) {
 			$dependencies = array();
 			foreach ( $deps as $dependency ) {
 				if ( is_array( $dependency ) ) {
-					if ( ! isset( $dependency['id'] ) ) {
+					if ( ! isset( $dependency['id'] ) || ! is_string( $dependency['id'] ) ) {
 						_doing_it_wrong( __METHOD__, __( 'Missing required id key in entry among dependencies array.' ), '6.5.0' );
 						continue;
 					}
@@ -95,13 +109,66 @@ class WP_Script_Modules {
 				}
 			}
 
+			$fetchpriority = 'low';
+			if ( isset( $args['fetchpriority'] ) ) {
+				if ( $this->is_valid_fetchpriority( $args['fetchpriority'] ) ) {
+					$fetchpriority = $args['fetchpriority'];
+				} else {
+					_doing_it_wrong(
+						__METHOD__,
+						/* translators: %s: Invalid fetchpriority. */
+						sprintf( __( 'Invalid fetchpriority: %s' ), $args['fetchpriority'] ),
+						'n.e.x.t'
+					);
+				}
+			}
+
 			$this->registered[ $id ] = array(
-				'src'          => $src,
-				'version'      => $version,
-				'enqueue'      => isset( $this->enqueued_before_registered[ $id ] ),
-				'dependencies' => $dependencies,
+				'src'           => $src,
+				'version'       => $version,
+				'enqueue'       => isset( $this->enqueued_before_registered[ $id ] ),
+				'dependencies'  => $dependencies,
+				'fetchpriority' => $fetchpriority,
 			);
 		}
+	}
+
+	/**
+	 * Checks if the provided fetchpriority is valid.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param mixed $priority Fetch priority.
+	 * @return bool Whether valid fetchpriority.
+	 */
+	private function is_valid_fetchpriority( $priority ): bool {
+		return in_array( $priority, array( 'low', 'high', 'auto' ), true );
+	}
+
+	/**
+	 * Sets the fetch priority for a script module.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param string              $id       Script module identifier.
+	 * @param 'low'|'high'|'auto' $priority Fetch priority for the script module.
+	 */
+	public function set_fetchpriority( string $id, string $priority ) {
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return;
+		}
+
+		if ( ! $this->is_valid_fetchpriority( $priority ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				/* translators: %s: Invalid fetchpriority. */
+				sprintf( __( 'Invalid fetchpriority: %s' ), $priority ),
+				'n.e.x.t'
+			);
+			return;
+		}
+
+		$this->registered[ $id ]['fetchpriority'] = $priority;
 	}
 
 	/**
@@ -213,7 +280,7 @@ class WP_Script_Modules {
 					'type'          => 'module',
 					'src'           => $this->get_src( $id ),
 					'id'            => $id . '-js-module',
-					'fetchpriority' => 'low',
+					'fetchpriority' => $script_module['fetchpriority'],
 				)
 			);
 		}
@@ -232,9 +299,10 @@ class WP_Script_Modules {
 			// Don't preload if it's marked for enqueue.
 			if ( true !== $script_module['enqueue'] ) {
 				echo sprintf(
-					'<link rel="modulepreload" href="%s" id="%s" fetchpriority="low">',
+					'<link rel="modulepreload" href="%s" id="%s"%s>',
 					esc_url( $this->get_src( $id ) ),
-					esc_attr( $id . '-js-modulepreload' )
+					esc_attr( $id . '-js-modulepreload' ),
+					'auto' !== $script_module['fetchpriority'] ? sprintf( ' fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) ) : ''
 				);
 			}
 		}
@@ -279,7 +347,9 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array[] Script modules marked for enqueue, keyed by script module identifier.
+	 * @phpstan-return array<string, ScriptModule>
+	 *
+	 * @return array<string, array> Script modules marked for enqueue, keyed by script module identifier.
 	 */
 	private function get_marked_for_enqueue(): array {
 		$enqueued = array();
@@ -300,6 +370,8 @@ class WP_Script_Modules {
 	 * recursive and also retrieves dependencies of the dependencies.
 	 *
 	 * @since 6.5.0
+	 *
+	 * @phpstan-return array<string, ScriptModule>
 	 *
 	 * @param string[] $ids          The identifiers of the script modules for which to gather dependencies.
 	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
