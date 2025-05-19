@@ -203,12 +203,17 @@ class WP_Script_Modules {
 	 *                                    It is added to the URL as a query string for cache busting purposes. If $version
 	 *                                    is set to false, the version number is the currently installed WordPress version.
 	 *                                    If $version is set to null, no version is added.
+	 * @param array             $args     {
+	 *     Optional. An array of additional args. Default empty array.
+	 *
+	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+	 * }
 	 */
-	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false ) {
+	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false, $args = array() ) {
 		if ( isset( $this->registered[ $id ] ) ) {
 			$this->registered[ $id ]['enqueue'] = true;
 		} elseif ( $src ) {
-			$this->register( $id, $src, $deps, $version );
+			$this->register( $id, $src, $deps, $version, $args );
 			$this->registered[ $id ]['enqueue'] = true;
 		} else {
 			$this->enqueued_before_registered[ $id ] = true;

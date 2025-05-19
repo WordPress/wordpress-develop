@@ -60,9 +60,14 @@ function wp_script_modules(): WP_Script_Modules {
  *                                   It is added to the URL as a query string for cache busting purposes. If $version
  *                                   is set to false, the version number is the currently installed WordPress version.
  *                                   If $version is set to null, no version is added.
+ * @param array             $args    {
+ *     Optional. An array of additional args. Default empty array.
+ *
+ *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+ * }
  */
-function wp_register_script_module( string $id, string $src, array $deps = array(), $version = false ) {
-	wp_script_modules()->register( $id, $src, $deps, $version );
+function wp_register_script_module( string $id, string $src, array $deps = array(), $version = false, array $args = array() ) {
+	wp_script_modules()->register( $id, $src, $deps, $version, $args );
 }
 
 /**
@@ -97,9 +102,14 @@ function wp_register_script_module( string $id, string $src, array $deps = array
  *                                   It is added to the URL as a query string for cache busting purposes. If $version
  *                                   is set to false, the version number is the currently installed WordPress version.
  *                                   If $version is set to null, no version is added.
+ * @param array             $args    {
+ *     Optional. An array of additional args. Default empty array.
+ *
+ *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+ * }
  */
-function wp_enqueue_script_module( string $id, string $src = '', array $deps = array(), $version = false ) {
-	wp_script_modules()->enqueue( $id, $src, $deps, $version );
+function wp_enqueue_script_module( string $id, string $src = '', array $deps = array(), $version = false, array $args = array() ) {
+	wp_script_modules()->enqueue( $id, $src, $deps, $version, $args );
 }
 
 /**
