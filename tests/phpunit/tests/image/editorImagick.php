@@ -789,7 +789,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$new_filesize = filesize( $temp_file );
 
-		wp_delete_file( $temp_file );
+		unlink( $temp_file );
 
 		$this->assertLessThan( $org_filesize, $new_filesize, 'The resized image file size is not smaller than the original file size.' );
 	}
@@ -820,7 +820,8 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing.
+	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing
+	 * Used to identify indexed PNG images, see https://www.w3.org/TR/PNG-Chunks.html#C.IHDR.
 	 *
 	 * @ticket 63448
 	 * @dataProvider data_png_color_type_after_resize
@@ -842,7 +843,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$imagick           = new Imagick( $temp_file );
 		$actual_color_type = $imagick->getImageProperty( 'png:IHDR.color-type-orig' );
 
-		wp_delete_file( $temp_file );
+		unlink( $temp_file );
 
 		$this->assertSame( (string) $expected_color_type, $actual_color_type, "The PNG original color type should be preserved after resize for {$file_path}." );
 	}
