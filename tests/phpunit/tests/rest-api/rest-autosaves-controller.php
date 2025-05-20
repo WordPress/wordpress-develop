@@ -175,6 +175,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			array(
 				'context',
 				'parent',
+				'per_page',
 			),
 			$keys
 		);
