@@ -176,7 +176,10 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	$module_version      = isset( $module_asset['version'] ) ? $module_asset['version'] : $block_version;
 
 	$args = array();
-	if ( isset( $metadata['supports']['interactivity'] ) && $metadata['supports']['interactivity'] ) {
+	if (
+		( isset( $metadata['supports']['interactivity'] ) && true === $metadata['supports']['interactivity'] ) ||
+		( isset( $metadata['supports']['interactivity']['interactive'] ) && true === $metadata['supports']['interactivity']['interactive'] )
+	) {
 		// TODO: Add ability for the fetchpriority to be specified in block.json for the viewScriptModule. In wp_default_script_modules() the fetchpriority defaults to low since server-side rendering is employed for core blocks, but there are no guarantees that this is the case for non-core blocks. That said, viewScriptModule entails Interactivity API, following the pattern from core it _should_ be SSR'ed and that is why this is the default for when the block supports interactivity.
 		$args['fetchpriority'] = 'low';
 	}
