@@ -12,6 +12,9 @@ mockedApiResponse.Schema = {
     "home": "http://example.org",
     "gmt_offset": "0",
     "timezone_string": "",
+    "page_for_posts": 0,
+    "page_on_front": 0,
+    "show_on_front": "posts",
     "namespaces": [
         "oembed/1.0",
         "wp/v2",
@@ -362,6 +365,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -617,6 +628,33 @@ mockedApiResponse.Schema = {
                         "sticky": {
                             "description": "Limit result set to items that are sticky.",
                             "type": "boolean",
+                            "required": false
+                        },
+                        "ignore_sticky": {
+                            "description": "Whether to ignore sticky posts or not.",
+                            "type": "boolean",
+                            "default": true,
+                            "required": false
+                        },
+                        "format": {
+                            "description": "Limit result set to items assigned one or more given formats.",
+                            "type": "array",
+                            "uniqueItems": true,
+                            "items": {
+                                "enum": [
+                                    "standard",
+                                    "aside",
+                                    "chat",
+                                    "gallery",
+                                    "link",
+                                    "image",
+                                    "quote",
+                                    "status",
+                                    "video",
+                                    "audio"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         }
                     }
@@ -1717,6 +1755,14 @@ mockedApiResponse.Schema = {
                         "menu_order": {
                             "description": "Limit result set to posts with a specific menu_order value.",
                             "type": "integer",
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -2820,6 +2866,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -3569,6 +3623,14 @@ mockedApiResponse.Schema = {
                                 "type": "integer"
                             },
                             "default": [],
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -4380,6 +4442,14 @@ mockedApiResponse.Schema = {
                                 "type": "integer"
                             },
                             "default": [],
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -6995,6 +7065,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -7812,6 +7890,14 @@ mockedApiResponse.Schema = {
                             "default": [],
                             "required": false
                         },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
                         "offset": {
                             "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
@@ -8015,6 +8101,14 @@ mockedApiResponse.Schema = {
                                 "type": "integer"
                             },
                             "default": [],
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
                             "required": false
                         },
                         "offset": {
@@ -9508,6 +9602,22 @@ mockedApiResponse.Schema = {
                                     "wp_font_family": "wp_font_family",
                                     "wp_font_face": "wp_font_face"
                                 }
+                            },
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "email",
+                                    "name",
+                                    "id",
+                                    "username",
+                                    "slug"
+                                ],
+                                "type": "string"
                             },
                             "required": false
                         }
@@ -12334,7 +12444,16 @@ mockedApiResponse.PostsCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -12641,7 +12760,16 @@ mockedApiResponse.PagesCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -12932,7 +13060,16 @@ mockedApiResponse.MediaCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/media/10"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/media/10",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13629,7 +13766,15 @@ mockedApiResponse.CategoriesCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/categories/1"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/categories/1",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13694,7 +13839,16 @@ mockedApiResponse.TagsCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/tags/2"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/tags/2",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13748,9 +13902,9 @@ mockedApiResponse.UsersCollection = [
         "link": "http://example.org/?author=1",
         "slug": "admin",
         "avatar_urls": {
-            "24": "https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=24&d=mm&r=g",
-            "48": "https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=48&d=mm&r=g",
-            "96": "https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=96&d=mm&r=g"
+            "24": "https://secure.gravatar.com/avatar/9387ed9432ec25ef93df84b8a0b9697ddef435a945e7f244670c4f79f88363e9?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/9387ed9432ec25ef93df84b8a0b9697ddef435a945e7f244670c4f79f88363e9?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/9387ed9432ec25ef93df84b8a0b9697ddef435a945e7f244670c4f79f88363e9?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": "meta_value"
@@ -13758,7 +13912,16 @@ mockedApiResponse.UsersCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/1"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/1",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13776,9 +13939,9 @@ mockedApiResponse.UsersCollection = [
         "link": "http://example.org/?author=2",
         "slug": "restapiclientfixtureuser",
         "avatar_urls": {
-            "24": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-            "48": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-            "96": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+            "24": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": ""
@@ -13786,7 +13949,16 @@ mockedApiResponse.UsersCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13806,9 +13978,9 @@ mockedApiResponse.UserModel = {
     "link": "http://example.org/?author=2",
     "slug": "restapiclientfixtureuser",
     "avatar_urls": {
-        "24": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-        "48": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-        "96": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+        "24": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=24&d=mm&r=g",
+        "48": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=48&d=mm&r=g",
+        "96": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": ""
@@ -13823,9 +13995,9 @@ mockedApiResponse.me = {
     "link": "http://example.org/?author=2",
     "slug": "restapiclientfixtureuser",
     "avatar_urls": {
-        "24": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-        "48": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-        "96": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+        "24": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=24&d=mm&r=g",
+        "48": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=48&d=mm&r=g",
+        "96": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": ""
@@ -13849,9 +14021,9 @@ mockedApiResponse.CommentsCollection = [
         "status": "approved",
         "type": "comment",
         "author_avatar_urls": {
-            "24": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=24&d=mm&r=g",
-            "48": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=48&d=mm&r=g",
-            "96": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=96&d=mm&r=g"
+            "24": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": "meta_value"
@@ -13859,7 +14031,16 @@ mockedApiResponse.CommentsCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/comments/2"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/comments/2",
+                    "targetHints": {
+                        "allow": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    }
                 }
             ],
             "collection": [
@@ -13894,9 +14075,9 @@ mockedApiResponse.CommentModel = {
     "status": "approved",
     "type": "comment",
     "author_avatar_urls": {
-        "24": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=24&d=mm&r=g",
-        "48": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=48&d=mm&r=g",
-        "96": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=96&d=mm&r=g"
+        "24": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
+        "48": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
+        "96": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": "meta_value"

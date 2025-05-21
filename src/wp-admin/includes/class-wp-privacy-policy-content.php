@@ -120,7 +120,7 @@ final class WP_Privacy_Policy_Content {
 
 		// Cache the result for use before `admin_init` (see above).
 		if ( $cached !== $state ) {
-			update_option( '_wp_suggested_policy_text_has_changed', $state );
+			update_option( '_wp_suggested_policy_text_has_changed', $state, false );
 		}
 
 		return 'changed' === $state;
@@ -333,7 +333,7 @@ final class WP_Privacy_Policy_Content {
 			return;
 		}
 
-		$message = __( 'Need help putting together your new Privacy Policy page? Check out our guide for recommendations on what content to include, along with policies suggested by your plugins and theme.' );
+		$message = __( 'Need help putting together your new Privacy Policy page? Check out the guide for recommendations on what content to include, along with policies suggested by your plugins and theme.' );
 		$url     = esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) );
 		$label   = __( 'View Privacy Policy Guide.' );
 
@@ -378,14 +378,14 @@ final class WP_Privacy_Policy_Content {
 	public static function privacy_policy_guide() {
 
 		$content_array = self::get_suggested_policy_text();
-		$content       = '';
 		$date_format   = __( 'F j, Y' );
 
-		foreach ( $content_array as $section ) {
-			$class   = '';
-			$meta    = '';
-			$removed = '';
+		$i = 0;
 
+		foreach ( $content_array as $section ) {
+			++$i;
+
+			$removed = '';
 			if ( ! empty( $section['removed'] ) ) {
 				$badge_class = ' red';
 				$date        = date_i18n( $date_format, $section['removed'] );
@@ -409,11 +409,9 @@ final class WP_Privacy_Policy_Content {
 			}
 
 			$plugin_name = esc_html( $section['plugin_name'] );
-
-			$sanitized_policy_name = sanitize_title_with_dashes( $plugin_name );
 			?>
 			<h4 class="privacy-settings-accordion-heading">
-			<button aria-expanded="false" class="privacy-settings-accordion-trigger" aria-controls="privacy-settings-accordion-block-<?php echo $sanitized_policy_name; ?>" type="button">
+				<button aria-expanded="false" class="privacy-settings-accordion-trigger" aria-controls="privacy-settings-accordion-block-<?php echo $i; ?>" type="button">
 				<span class="title"><?php echo $plugin_name; ?></span>
 				<?php if ( ! empty( $section['removed'] ) || ! empty( $section['updated'] ) ) : ?>
 				<span class="badge <?php echo $badge_class; ?>"> <?php echo $badge_title; ?></span>
@@ -421,7 +419,7 @@ final class WP_Privacy_Policy_Content {
 				<span class="icon"></span>
 			</button>
 			</h4>
-			<div id="privacy-settings-accordion-block-<?php echo $sanitized_policy_name; ?>" class="privacy-settings-accordion-panel privacy-text-box-body" hidden="hidden">
+			<div id="privacy-settings-accordion-block-<?php echo $i; ?>" class="privacy-settings-accordion-panel privacy-text-box-body" hidden="hidden">
 				<?php
 				echo $removed;
 				echo $section['policy_text'];
