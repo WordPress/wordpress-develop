@@ -265,8 +265,6 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		$site_count = get_blog_count( self::$different_network_id );
 
-		public function test_active_network_plugins() {
-			$path = 'hello-dolly/hello.php';
 		$this->assertEquals( count( self::$different_site_ids ), $site_count );
 	}
 
