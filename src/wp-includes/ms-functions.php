@@ -2432,15 +2432,15 @@ Thanks!
  *
  * @since 2.8.5
  *
- * @param bool $force
+ * @param bool|null $force Optional. Whether to force SSL in admin screens. Default null.
  * @return bool True if forced, false if not forced.
  */
-function force_ssl_content( $force = '' ) {
+function force_ssl_content( $force = null ) {
 	static $forced_content = false;
 
-	if ( ! $force ) {
+	if ( ! is_null( $force ) ) {
 		$old_forced     = $forced_content;
-		$forced_content = $force;
+		$forced_content = (bool) $force;
 		return $old_forced;
 	}
 
@@ -2828,11 +2828,12 @@ All at ###SITENAME###
 	 * Filters the text of the email sent when a change of network admin email address is attempted.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
-	 * ###USERNAME###  The current user's username.
-	 * ###ADMIN_URL### The link to click on to confirm the email change.
-	 * ###EMAIL###     The proposed new network admin email address.
-	 * ###SITENAME###  The name of the network.
-	 * ###SITEURL###   The URL to the network.
+	 *
+	 *  - `###USERNAME###`  The current user's username.
+	 *  - `###ADMIN_URL###` The link to click on to confirm the email change.
+	 *  - `###EMAIL###`     The proposed new network admin email address.
+	 *  - `###SITENAME###`  The name of the network.
+	 *  - `###SITEURL###`   The URL to the network.
 	 *
 	 * @since 4.9.0
 	 *
@@ -2881,8 +2882,8 @@ All at ###SITENAME###
 function wp_network_admin_email_change_notification( $option_name, $new_email, $old_email, $network_id ) {
 	$send = true;
 
-	// Don't send the notification to the default 'admin_email' value.
-	if ( 'you@example.com' === $old_email ) {
+	// Don't send the notification for an empty email address or the default 'admin_email' value.
+	if ( empty( $old_email ) || 'you@example.com' === $old_email ) {
 		$send = false;
 	}
 
@@ -2939,10 +2940,10 @@ All at ###SITENAME###
 	 *     @type string $subject The subject of the email.
 	 *     @type string $message The content of the email.
 	 *         The following strings have a special meaning and will get replaced dynamically:
-	 *         - ###OLD_EMAIL### The old network admin email address.
-	 *         - ###NEW_EMAIL### The new network admin email address.
-	 *         - ###SITENAME###  The name of the network.
-	 *         - ###SITEURL###   The URL to the site.
+	 *          - `###OLD_EMAIL###` The old network admin email address.
+	 *          - `###NEW_EMAIL###` The new network admin email address.
+	 *          - `###SITENAME###`  The name of the network.
+	 *          - `###SITEURL###`   The URL to the site.
 	 *     @type string $headers Headers.
 	 * }
 	 * @param string $old_email  The old network admin email address.

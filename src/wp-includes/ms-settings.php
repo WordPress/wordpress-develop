@@ -59,7 +59,7 @@ ms_subdomain_constants();
 // have not been populated in the global scope through something like `sunrise.php`.
 if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 
-	$domain = strtolower( stripslashes( $_SERVER['HTTP_HOST'] ) );
+	$domain = strtolower( stripslashes( $_SERVER['HTTP_HOST'] ?? '' ) );
 	if ( str_ends_with( $domain, ':80' ) ) {
 		$domain               = substr( $domain, 0, -3 );
 		$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -3 );
@@ -77,7 +77,7 @@ if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 	$bootstrap_result = ms_load_current_site_and_network( $domain, $path, is_subdomain_install() );
 
 	if ( true === $bootstrap_result ) {
-		// `$current_blog` and `$current_site are now populated.
+		// `$current_blog` and `$current_site` are now populated.
 	} elseif ( false === $bootstrap_result ) {
 		ms_not_installed( $domain, $path );
 	} else {
