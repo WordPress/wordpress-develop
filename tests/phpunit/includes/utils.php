@@ -134,7 +134,7 @@ class MockAction {
 	}
 
 	/**
-	 * @since 6.6.0
+	 * @since 6.9.0
 	 */
 	public function action3( array $arg ) {
 		$current_filter = $this->current_filter();
