@@ -55,6 +55,7 @@ class WP_Script_Modules {
 	 * identifier has already been registered.
 	 *
 	 * @since 6.5.0
+	 * @since n.e.x.t Added the $args parameter.
 	 *
 	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
 	 *                                    final import map.
@@ -178,6 +179,7 @@ class WP_Script_Modules {
 	 * will be registered.
 	 *
 	 * @since 6.5.0
+	 * @since n.e.x.t Added the $args parameter.
 	 *
 	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
 	 *                                    final import map.
