@@ -31,6 +31,12 @@ jQuery( function($) {
 		if ( r ) {
 			data = t.attr('href').replace(/[^?]*\?/, '').replace(/action=delete/, 'action=delete-tag');
 
+			tr.children().css('backgroundColor', '#faafaa');
+
+			// Disable pointer events and all form controls/links in the row
+			tr.css("pointer-events", "none");
+			tr.find(':input, a, button').prop('disabled', true).attr('tabindex', -1);
+
 			/**
 			 * Makes a request to the server to delete the term that corresponds to the
 			 * delete term button.
@@ -57,14 +63,16 @@ jQuery( function($) {
 				} else if ( '-1' == r ) {
 					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + wp.i18n.__( 'Sorry, you are not allowed to do that.' ) + '</p></div>');
 					tr.children().css('backgroundColor', '');
+					tr.css("pointer-events","none");
+					tr.find(':input, a, button').prop('disabled', false).removeAttr('tabindex');
 
 				} else {
 					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + wp.i18n.__( 'An error occurred while processing your request. Please try again later.' ) + '</p></div>');
 					tr.children().css('backgroundColor', '');
+					tr.css("pointer-events","none");
+					tr.find(':input, a, button').prop('disabled', false).removeAttr('tabindex');
 				}
 			});
-
-			tr.children().css('backgroundColor', '#faafaa');
 		}
 
 		return false;
