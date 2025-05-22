@@ -33,7 +33,7 @@
 			<div class="site-branding">
 				<?php
 				twentyfifteen_the_custom_logo();
-				$is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
+				$is_front  = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
 				$site_name = get_bloginfo( 'name' );
 
 				if ( $site_name && is_front_page() && is_home() ) :
@@ -41,16 +41,16 @@
 					<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></h1>
 					<?php elseif ( $site_name ) : ?>
 						<p class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></p>
-					<?php
+						<?php
 				endif;
 
-				$description = get_bloginfo( 'description', 'display' );
-				if ( $description || is_customize_preview() ) :
-					?>
+					$description = get_bloginfo( 'description', 'display' );
+					if ( $description || is_customize_preview() ) :
+						?>
 						<p class="site-description"><?php echo $description; ?></p>
-					<?php
+						<?php
 				endif;
-				?>
+					?>
 				<button class="secondary-toggle"><?php _e( 'Menu and widgets', 'twentyfifteen' ); ?></button>
 			</div><!-- .site-branding -->
 		</header><!-- .site-header -->

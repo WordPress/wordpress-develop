@@ -69,11 +69,11 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 		<div id="masthead">
 			<div id="branding" role="banner">
 				<?php
-				$heading_tag = ( is_home() || is_front_page() ) ? 'h1' : 'div';
-				$is_front    = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
-				$site_name = get_bloginfo( 'name' );
+				$heading_tag      = ( is_home() || is_front_page() ) ? 'h1' : 'div';
+				$is_front         = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
+				$site_name        = get_bloginfo( 'name' );
 				$site_description = get_bloginfo( 'description' );
-				
+
 				if ( $site_name || $site_description ) :
 					?>
 					<?php if ( $site_name ) : ?>

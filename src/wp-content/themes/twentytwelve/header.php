@@ -37,11 +37,11 @@
 	<a class="screen-reader-text skip-link" href="#content"><?php _e( 'Skip to content', 'twentytwelve' ); ?></a>
 	<header id="masthead" class="site-header">
 		<hgroup>
-		<?php 
-		$is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
-		$site_name = get_bloginfo( 'name' );
+		<?php
+		$is_front         = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
+		$site_name        = get_bloginfo( 'name' );
 		$site_description = get_bloginfo( 'description' );
-		
+
 		if ( $site_name || $site_description ) :
 			?>
 			<?php if ( $site_name ) : ?>

@@ -16,7 +16,7 @@
 
 		<div class="site-branding-text">
 			<?php
-			$is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
+			$is_front  = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
 			$site_name = get_bloginfo( 'name' );
 
 			if ( $site_name && is_front_page() ) :
