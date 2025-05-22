@@ -902,6 +902,10 @@ function wp_restore_image( $post_id ) {
  * @return stdClass
  */
 function wp_save_image( $post_id ) {
+	require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
+
+	$wp_site_icon               = new WP_Site_Icon();
+	$_wp_site_icon_sizes        = $wp_site_icon->additional_sizes();
 	$_wp_additional_image_sizes = wp_get_additional_image_sizes();
 
 	$return  = new stdClass();
@@ -971,6 +975,18 @@ function wp_save_image( $post_id ) {
 
 	if ( ! is_array( $backup_sizes ) ) {
 		$backup_sizes = array();
+	}
+
+	// Check if the image is a site icon.
+	$site_icon_sizes = array( 'site_icon-32', 'site_icon-180', 'site_icon-192', 'site_icon-270' );
+	$is_site_icon_image = false;
+	if ( isset( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
+		foreach ( $site_icon_sizes as $site_icon_size ) {
+			if ( array_key_exists( $site_icon_size, $meta['sizes'] ) ) {
+				$is_site_icon_image = true;
+				break;
+			}
+		}
 	}
 
 	// Generate new filename.
@@ -1113,6 +1129,12 @@ function wp_save_image( $post_id ) {
 				'height' => $height,
 				'crop'   => $crop,
 			);
+		}
+
+		if ( $is_site_icon_image && ! empty( $_wp_site_icon_sizes ) ) {
+			foreach ( $_wp_site_icon_sizes as $size => $size_data ) {
+				$_sizes[ $size ] = $size_data;
+			}
 		}
 
 		$meta['sizes'] = array_merge( $meta['sizes'], $img->multi_resize( $_sizes ) );
