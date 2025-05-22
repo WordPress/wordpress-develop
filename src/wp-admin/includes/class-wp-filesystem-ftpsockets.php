@@ -323,7 +323,11 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	public function getchmod( $file ) {
 		$dir = $this->dirlist( $file );
 
-		return $dir[ $file ]['permsn'];
+		if ( ! empty( $dir[ $file ]['permsn'] ) ) {
+			return $dir[ $file ]['permsn'];
+		}
+
+		return '';
 	}
 
 	/**
