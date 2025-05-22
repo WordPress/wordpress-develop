@@ -401,4 +401,28 @@ class Tests_TermExists extends WP_UnitTestCase {
 		$this->assertNull( term_exists( '' ) );
 		$this->assertNull( term_exists( null ) );
 	}
+
+	/**
+	 * @ticket 55358
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_with_term_id_should_acknowledge_parent_id() {
+		$parent_category = self::factory()->category->create();
+		$child_category  = self::factory()->category->create(
+			array(
+				'parent' => $parent_category,
+			)
+		);
+		$orphan_category = self::factory()->category->create();
+
+		$this->assertSame(
+			array(
+				'term_id'          => (string) $child_category,
+				'term_taxonomy_id' => (string) $child_category,
+			),
+			term_exists( $child_category, 'category', $parent_category ),
+			'Child category should be found with parent ID.'
+		);
+		$this->assertNull( term_exists( $orphan_category, 'category', $parent_category ), 'Orphan category should not be found with parent ID.' );
+	}
 }
