@@ -3499,10 +3499,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		}
 	}
 
-	$html = '';
-
-	$html .= sprintf( '<audio %s controls="controls">', implode( ' ', $attr_strings ) );
-
+	$html    = sprintf( '<audio %s controls="controls">', implode( ' ', $attr_strings ) );
 	$fileurl = '';
 	$source  = '<source type="%s" src="%s" />';
 
@@ -3780,10 +3777,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		}
 	}
 
-	$html = '';
-
-	$html .= sprintf( '<video %s controls="controls">', implode( ' ', $attr_strings ) );
-
+	$html    = sprintf( '<video %s controls="controls">', implode( ' ', $attr_strings ) );
 	$fileurl = '';
 	$source  = '<source type="%s" src="%s" />';
 
