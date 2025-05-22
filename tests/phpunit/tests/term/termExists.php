@@ -407,22 +407,22 @@ class Tests_TermExists extends WP_UnitTestCase {
 	 * @covers ::term_exists()
 	 */
 	public function test_term_exists_with_term_id_should_acknowledge_parent_id() {
-		$parent_category = self::factory()->category->create();
-		$child_category  = self::factory()->category->create_and_get(
+		$parent_category_id = self::factory()->category->create();
+		$child_category     = self::factory()->category->create_and_get(
 			array(
-				'parent' => $parent_category,
+				'parent' => $parent_category_id,
 			)
 		);
-		$orphan_category = self::factory()->category->create();
+		$orphan_category_id = self::factory()->category->create();
 
 		$this->assertSame(
 			array(
 				'term_id'          => (string) $child_category->term_id,
 				'term_taxonomy_id' => (string) $child_category->term_taxonomy_id,
 			),
-			term_exists( $child_category->term_id, 'category', $parent_category ),
+			term_exists( $child_category->term_id, 'category', $parent_category_id ),
 			'Child category should be found with parent ID.'
 		);
-		$this->assertNull( term_exists( $orphan_category, 'category', $parent_category ), 'Orphan category should not be found with parent ID.' );
+		$this->assertNull( term_exists( $orphan_category_id, 'category', $parent_category_id ), 'Orphan category should not be found with parent ID.' );
 	}
 }
