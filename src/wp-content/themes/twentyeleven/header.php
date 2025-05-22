@@ -80,14 +80,18 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 			<hgroup>
 			<?php
 			$is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
-			?>
+			$site_name = get_bloginfo( 'name' );
+			$site_description = get_bloginfo( 'description' );
 			
-			<?php if ( ! empty( get_bloginfo( 'name' ) ) ) : ?>
-				<h1 id="site-title"><span><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></span></h1>
-			<?php endif; ?>
-			
-			<?php if ( ! empty( get_bloginfo( 'description' ) ) ) : ?>
-				<h2 id="site-description"><?php bloginfo( 'description' ); ?></h2>
+			if ( $site_name || $site_description ) :
+				?>
+				<?php if ( $site_name ) : ?>
+					<h1 id="site-title"><span><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></span></h1>
+				<?php endif; ?>
+
+				<?php if ( $site_description ) : ?>
+					<h2 id="site-description"><?php bloginfo( 'description' ); ?></h2>
+				<?php endif; ?>
 			<?php endif; ?>
 			</hgroup>
 

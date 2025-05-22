@@ -50,7 +50,10 @@
 
 	<header id="masthead" class="site-header">
 		<div class="header-main">
-			<?php if ( ! empty( get_bloginfo( 'name' ) ) ) : ?>
+			<?php
+			$site_name = get_bloginfo( 'name' );
+			if ( $site_name ) :
+			?>
 				<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php bloginfo( 'name' ); ?></a></h1>
 			<?php endif; ?>
 
