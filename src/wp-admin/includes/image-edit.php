@@ -1121,7 +1121,7 @@ function wp_save_image( $post_id ) {
 		 * If the current attachment is the Site Icon, include the custom site icon sizes
 		 * defined by WP_Site_Icon to ensure proper resizing and metadata generation.
 		 */
-		if ( (int) $post_id == (int) get_option( 'site_icon' ) ) {
+		if ( (int) get_option( 'site_icon' ) === (int) $post_id ) {
 			require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
 
 			$wp_site_icon        = new WP_Site_Icon();
