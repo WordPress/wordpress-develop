@@ -825,7 +825,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 63448
 	 *
-  	 * @dataProvider data_png_color_type_after_resize
+	 * @dataProvider data_png_color_type_after_resize
 	 *
 	 * @param string $file_path           Path to the image file.
 	 * @param int    $expected_color_type The expected original color type.
