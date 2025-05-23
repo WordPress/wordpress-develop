@@ -6,8 +6,8 @@
  */
 class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
-	private $png_cdn = 'https://s.w.org/images/core/emoji/15.0.3/72x72/';
-	private $svn_cdn = 'https://s.w.org/images/core/emoji/15.0.3/svg/';
+	private $png_cdn = 'https://s.w.org/images/core/emoji/16.0.1/72x72/';
+	private $svn_cdn = 'https://s.w.org/images/core/emoji/16.0.1/svg/';
 
 	/**
 	 * @ticket 36525
@@ -111,7 +111,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 				'&#x1f642;',
 			),
 			array(
-				// Bird, ZWJ, black large squre, emoji selector.
+				// Bird, ZWJ, black large square, emoji selector.
 				'🐦‍⬛',
 				'&#x1f426;&#x200d;&#x2b1b;',
 			),

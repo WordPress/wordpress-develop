@@ -13,7 +13,7 @@ To get started, create a codespace for this repository by clicking this 👇
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=trunk&repo=75645659)
 
-A codespace will open in a web-based version of Visual Studio Code. The [dev container](.devcontainer/devcontainer.json) is fully configured with softwares needed for this project.
+A codespace will open in a web-based version of Visual Studio Code. The [dev container](.devcontainer/devcontainer.json) is fully configured with software needed for this project.
 
 **Note**: Dev containers is an open spec which is supported by [GitHub Codespaces](https://github.com/codespaces) and [other tools](https://containers.dev/supporting).
 
@@ -94,6 +94,19 @@ npm run test:php -- --filter <test name>
 npm run test:php -- --group <group name or ticket number>
 ```
 
+#### Generating a code coverage report
+PHP code coverage reports are [generated daily](https://github.com/WordPress/wordpress-develop/actions/workflows/test-coverage.yml) and [submitted to Codecov.io](https://app.codecov.io/gh/WordPress/wordpress-develop).
+
+After the local Docker environment has [been installed and started](#to-start-the-development-environment-for-the-first-time), the following command can be used to generate a code coverage report. 
+
+```
+npm run test:coverage
+```
+
+The command will generate three coverage reports in HTML, PHP, and text formats, saving them in the `coverage` folder.
+
+**Note:** xDebug is required to generate a code coverage report, which can slow down PHPUnit significantly. Passing selection-based options such as `--group` or `--filter` can decrease the overall time required but will result in an incomplete report.
+
 #### To restart the development environment
 
 You may want to restart the environment if you've made changes to the configuration in the `docker-compose.yml` or `.env` files. Restart the environment with:
@@ -126,11 +139,14 @@ The development environment can be reset. This will destroy the database and att
 npm run env:reset
 ```
 
-### Apple Silicone machines and old MySQL versions
+### Apple Silicon machines and old MySQL/MariaDB versions
 
-The MySQL Docker images do not support Apple Silicone processors (M1, M2, etc.) for MySQL versions 5.7 and earlier.
+Older MySQL and MariaDB Docker images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
 
-When using MySQL <= 5.7 on an Apple Silicone machine, you must create a `docker-compose.override.yml` file with the following contents:
+- MySQL versions 5.7 and earlier
+- MariaDB 5.5
+
+When using these versions on an Apple Silicon machine, you must create a `docker-compose.override.yml` file with the following contents:
 
 ```
 services:

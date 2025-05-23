@@ -93,7 +93,7 @@ function the_media_upload_tabs() {
 		foreach ( $tabs as $callback => $text ) {
 			$class = '';
 
-			if ( $current == $callback ) {
+			if ( $current === $callback ) {
 				$class = " class='current'";
 			}
 
@@ -773,7 +773,7 @@ function media_upload_form_handler() {
 				$post['menu_order'] = $attachment['menu_order'];
 			}
 
-			if ( isset( $send_id ) && $attachment_id == $send_id ) {
+			if ( isset( $send_id ) && $attachment_id === $send_id ) {
 				if ( isset( $attachment['post_parent'] ) ) {
 					$post['post_parent'] = $attachment['post_parent'];
 				}
@@ -1172,7 +1172,7 @@ function image_align_input_fields( $post, $checked = '' ) {
 	foreach ( $alignments as $name => $label ) {
 		$name     = esc_attr( $name );
 		$output[] = "<input type='radio' name='attachments[{$post->ID}][align]' id='image-align-{$name}-{$post->ID}' value='$name'" .
-			( $checked == $name ? " checked='checked'" : '' ) .
+			( $checked === $name ? " checked='checked'" : '' ) .
 			" /><label for='image-align-{$name}-{$post->ID}' class='align image-align-{$name}-label'>$label</label>";
 	}
 
@@ -1222,7 +1222,7 @@ function image_size_input_fields( $post, $check = '' ) {
 		$css_id  = "image-size-{$size}-{$post->ID}";
 
 		// If this size is the default but that's not available, don't select it.
-		if ( $size == $check ) {
+		if ( $size === $check ) {
 			if ( $enabled ) {
 				$checked = " checked='checked'";
 			} else {
@@ -1664,7 +1664,8 @@ function get_media_item( $attachment_id, $args = null ) {
 	$meta       = wp_get_attachment_metadata( $post->ID );
 
 	if ( isset( $meta['width'], $meta['height'] ) ) {
-		$media_dims .= "<span id='media-dims-$post->ID'>{$meta['width']}&nbsp;&times;&nbsp;{$meta['height']}</span> ";
+		/* translators: 1: A number of pixels wide, 2: A number of pixels tall. */
+		$media_dims .= "<span id='media-dims-$post->ID'>" . sprintf( __( '%1$s by %2$s pixels' ), $meta['width'], $meta['height'] ) . '</span>';
 	}
 
 	/**
@@ -1761,7 +1762,7 @@ function get_media_item( $attachment_id, $args = null ) {
 	if ( 'image' === $type && $calling_post_id
 		&& current_theme_supports( 'post-thumbnails', get_post_type( $calling_post_id ) )
 		&& post_type_supports( get_post_type( $calling_post_id ), 'thumbnail' )
-		&& get_post_thumbnail_id( $calling_post_id ) != $attachment_id
+		&& get_post_thumbnail_id( $calling_post_id ) !== $attachment_id
 	) {
 
 		$calling_post             = get_post( $calling_post_id );
@@ -2193,14 +2194,19 @@ function media_upload_form( $errors = null ) {
 		$plupload_init['multi_selection'] = false;
 	}
 
-	// Check if WebP images can be edited.
-	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
-		$plupload_init['webp_upload_error'] = true;
-	}
+	/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php */
+	$prevent_unsupported_uploads = apply_filters( 'wp_prevent_unsupported_mime_type_uploads', true, null );
 
-	// Check if AVIF images can be edited.
-	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
-		$plupload_init['avif_upload_error'] = true;
+	if ( $prevent_unsupported_uploads ) {
+		// Check if WebP images can be edited.
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			$plupload_init['webp_upload_error'] = true;
+		}
+
+		// Check if AVIF images can be edited.
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
+			$plupload_init['avif_upload_error'] = true;
+		}
 	}
 
 	/**
@@ -2276,11 +2282,11 @@ function media_upload_form( $errors = null ) {
 		<label class="screen-reader-text" for="async-upload">
 			<?php
 			/* translators: Hidden accessibility text. */
-			_e( 'Upload' );
+			_ex( 'Upload', 'verb' );
 			?>
 		</label>
 		<input type="file" name="async-upload" id="async-upload" />
-		<?php submit_button( __( 'Upload' ), 'primary', 'html-upload', false ); ?>
+		<?php submit_button( _x( 'Upload', 'verb' ), 'primary', 'html-upload', false ); ?>
 		<a href="#" onclick="try{top.tb_remove();}catch(e){}; return false;"><?php _e( 'Cancel' ); ?></a>
 	</p>
 	<div class="clear"></div>
@@ -2844,38 +2850,37 @@ function media_upload_library_form( $errors ) {
 
 	<div class="alignleft actions">
 		<?php
+		$months = $wpdb->get_results(
+			"SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+			FROM $wpdb->posts
+			WHERE post_type = 'attachment'
+			ORDER BY post_date DESC"
+		);
 
-		$arc_query = "SELECT DISTINCT YEAR(post_date) AS yyear, MONTH(post_date) AS mmonth FROM $wpdb->posts WHERE post_type = 'attachment' ORDER BY post_date DESC";
+		$month_count    = count( $months );
+		$selected_month = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;
 
-		$arc_result = $wpdb->get_results( $arc_query );
-
-		$month_count    = count( $arc_result );
-		$selected_month = isset( $_GET['m'] ) ? $_GET['m'] : 0;
-
-		if ( $month_count && ! ( 1 == $month_count && 0 == $arc_result[0]->mmonth ) ) {
+		if ( $month_count && ( 1 !== $month_count || 0 !== (int) $months[0]->month ) ) {
 			?>
 			<select name='m'>
-			<option<?php selected( $selected_month, 0 ); ?> value='0'><?php _e( 'All dates' ); ?></option>
+				<option<?php selected( $selected_month, 0 ); ?> value='0'><?php _e( 'All dates' ); ?></option>
 			<?php
-
-			foreach ( $arc_result as $arc_row ) {
-				if ( 0 == $arc_row->yyear ) {
+			foreach ( $months as $arc_row ) {
+				if ( 0 === (int) $arc_row->year ) {
 					continue;
 				}
 
-				$arc_row->mmonth = zeroise( $arc_row->mmonth, 2 );
+				$month = zeroise( $arc_row->month, 2 );
+				$year  = $arc_row->year;
 
-				if ( $arc_row->yyear . $arc_row->mmonth == $selected_month ) {
-					$default = ' selected="selected"';
-				} else {
-					$default = '';
-				}
-
-				echo "<option$default value='" . esc_attr( $arc_row->yyear . $arc_row->mmonth ) . "'>";
-				echo esc_html( $wp_locale->get_month( $arc_row->mmonth ) . " $arc_row->yyear" );
-				echo "</option>\n";
+				printf(
+					"<option %s value='%s'>%s</option>\n",
+					selected( $selected_month, $year . $month, false ),
+					esc_attr( $year . $month ),
+					/* translators: 1: Month name, 2: 4-digit year. */
+					esc_html( sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $month ), $year ) )
+				);
 			}
-
 			?>
 			</select>
 		<?php } ?>
@@ -3240,8 +3245,9 @@ function edit_form_image_editor( $post ) {
 		printf(
 			/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
 			__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
-			esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
-			'target="_blank" rel="noopener"',
+			/* translators: Localized tutorial, if one exists. W3C Web Accessibility Initiative link has list of existing translations. */
+			esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
+			'target="_blank"',
 			sprintf(
 				'<span class="screen-reader-text"> %s</span>',
 				/* translators: Hidden accessibility text. */
@@ -3265,7 +3271,14 @@ function edit_form_image_editor( $post ) {
 		'textarea_name' => 'content',
 		'textarea_rows' => 5,
 		'media_buttons' => false,
-		'tinymce'       => false,
+		/**
+		 * Filters the TinyMCE argument for the media description field on the attachment details screen.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param bool $tinymce Whether to activate TinyMCE in media description field. Default false.
+		 */
+		'tinymce'       => apply_filters( 'activate_tinymce_for_media_description', false ),
 		'quicktags'     => $quicktags_settings,
 	);
 
@@ -3306,7 +3319,8 @@ function attachment_submitbox_metadata() {
 	$meta       = wp_get_attachment_metadata( $attachment_id );
 
 	if ( isset( $meta['width'], $meta['height'] ) ) {
-		$media_dims .= "<span id='media-dims-$attachment_id'>{$meta['width']}&nbsp;&times;&nbsp;{$meta['height']}</span> ";
+		/* translators: 1: A number of pixels wide, 2: A number of pixels tall. */
+		$media_dims .= "<span id='media-dims-$attachment_id'>" . sprintf( __( '%1$s by %2$s pixels' ), $meta['width'], $meta['height'] ) . '</span>';
 	}
 	/** This filter is documented in wp-admin/includes/media.php */
 	$media_dims = apply_filters( 'media_meta', $media_dims, $post );
@@ -3440,6 +3454,9 @@ function attachment_submitbox_metadata() {
 						if ( ! empty( $meta['bitrate_mode'] ) ) {
 							echo ' ' . strtoupper( esc_html( $meta['bitrate_mode'] ) );
 						}
+						break;
+					case 'length_formatted':
+						echo human_readable_duration( $meta['length_formatted'] );
 						break;
 					default:
 						echo esc_html( $meta[ $key ] );

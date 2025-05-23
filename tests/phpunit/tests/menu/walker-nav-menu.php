@@ -18,6 +18,13 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	private $orig_wp_nav_menu_max_depth;
 
 	/**
+	 * The ID of the privacy policy page.
+	 *
+	 * @var int
+	 */
+	private $privacy_policy_id;
+
+	/**
 	 * Setup.
 	 */
 	public function set_up() {
@@ -27,6 +34,19 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 
 		/** Walker_Nav_Menu class */
 		require_once ABSPATH . 'wp-includes/class-walker-nav-menu.php';
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_title'  => 'Test Privacy Policy',
+				'post_status' => 'publish',
+			)
+		);
+
+		// Set the privacy policy page.
+		update_option( 'wp_page_for_privacy_policy', $post_id );
+		$this->privacy_policy_id = (int) get_option( 'wp_page_for_privacy_policy' );
+
 		$this->walker = new Walker_Nav_Menu();
 
 		$this->orig_wp_nav_menu_max_depth = $_wp_nav_menu_max_depth;
@@ -39,38 +59,8 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 		global $_wp_nav_menu_max_depth;
 
 		$_wp_nav_menu_max_depth = $this->orig_wp_nav_menu_max_depth;
+		delete_option( 'wp_page_for_privacy_policy' );
 		parent::tear_down();
-	}
-
-	/**
-	 * Tests when an item's target is _blank, that rel="noopener" is added.
-	 *
-	 * @ticket 43290
-	 */
-	public function test_noopener_no_referrer_for_target_blank() {
-		$actual     = '';
-		$post_id    = self::factory()->post->create();
-		$post_title = get_the_title( $post_id );
-
-		$item = array(
-			'ID'        => $post_id,
-			'object_id' => $post_id,
-			'title'     => $post_title,
-			'target'    => '_blank',
-			'xfn'       => '',
-			'current'   => false,
-		);
-
-		$args = array(
-			'before'      => '',
-			'after'       => '',
-			'link_before' => '',
-			'link_after'  => '',
-		);
-
-		$this->walker->start_el( $actual, (object) $item, 0, (object) $args );
-
-		$this->assertSame( "<li id=\"menu-item-{$post_id}\" class=\"menu-item-{$post_id}\"><a target=\"_blank\" rel=\"noopener\">{$post_title}</a>", $actual );
 	}
 
 	/**
@@ -167,23 +157,12 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 * @param string $target   Optional. The target value. Default empty string.
 	 */
 	public function test_walker_nav_menu_start_el_should_add_rel_privacy_policy_to_privacy_policy_url( $expected, $xfn = '', $target = '' ) {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_title'  => 'Test Privacy Policy',
-				'post_status' => 'publish',
-			)
-		);
-
-		// Set the privacy policy page.
-		update_option( 'wp_page_for_privacy_policy', $post_id );
-		$privacy_policy_id = (int) get_option( 'wp_page_for_privacy_policy' );
 
 		$output = '';
 
 		$item = array(
-			'ID'        => $privacy_policy_id,
-			'object_id' => $privacy_policy_id,
+			'ID'        => $this->privacy_policy_id,
+			'object_id' => $this->privacy_policy_id,
 			'title'     => 'Privacy Policy',
 			'target'    => $target,
 			'xfn'       => $xfn,
@@ -218,7 +197,7 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 				'xfn'      => 'nofollow',
 			),
 			'no xfn value and a target of "_blank"' => array(
-				'expected' => 'rel="noopener privacy-policy"',
+				'expected' => 'rel="privacy-policy"',
 				'xfn'      => '',
 				'target'   => '_blank',
 			),
@@ -282,23 +261,12 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 * @covers Walker_Nav_Menu::start_el
 	 */
 	public function test_walker_nav_menu_start_el_should_not_add_rel_privacy_policy_when_no_url_is_passed() {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_title'  => 'Test Privacy Policy',
-				'post_status' => 'publish',
-			)
-		);
-
-		// Set the privacy policy page.
-		update_option( 'wp_page_for_privacy_policy', $post_id );
-		$privacy_policy_id = (int) get_option( 'wp_page_for_privacy_policy' );
 
 		$output = '';
 
 		$item = array(
-			'ID'        => $privacy_policy_id,
-			'object_id' => $privacy_policy_id,
+			'ID'        => $this->privacy_policy_id,
+			'object_id' => $this->privacy_policy_id,
 			'title'     => 'Privacy Policy',
 			'target'    => '',
 			'xfn'       => '',
@@ -327,22 +295,11 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 * @covers Walker_Nav_Menu::start_el
 	 */
 	public function test_walker_nav_menu_start_el_should_add_rel_privacy_policy_when_id_does_not_match_but_url_does() {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_title'  => 'Test Privacy Policy',
-				'post_status' => 'publish',
-			)
-		);
-
-		// Set the privacy policy page.
-		update_option( 'wp_page_for_privacy_policy', $post_id );
-		$privacy_policy_id = (int) get_option( 'wp_page_for_privacy_policy' );
 
 		$output = '';
 
 		// Ensure the ID does not match the privacy policy.
-		$not_privacy_policy_id = $privacy_policy_id - 1;
+		$not_privacy_policy_id = $this->privacy_policy_id - 1;
 
 		$item = array(
 			'ID'        => $not_privacy_policy_id,

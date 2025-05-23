@@ -73,13 +73,6 @@ p.has-drop-cap:not(:focus)::first-letter {
 	padding-top: 0.75em;
 }
 
-[class^="wp-block-"].alignleft,
-[class^="wp-block-"] .alignleft,
-[class^="wp-block-"].alignright,
-[class^="wp-block-"] .alignright {
-
-}
-
 /* Gallery */
 
 .wp-block-gallery {
@@ -242,6 +235,11 @@ pre.wp-block-code {
 	padding: 6px 10px 6px 0;
 }
 
+.wp-block-table[style*="font-size"] *,
+.wp-block-table[class*="-font-size"] * {
+	font-size: inherit;
+}
+
 /*--------------------------------------------------------------
 4.0 Blocks - Layout Elements
 --------------------------------------------------------------*/
@@ -263,6 +261,11 @@ pre.wp-block-code {
 .entry-content .wp-block-button__link:visited {
 	background-color: #e6e6e6;
 	color: #7c7c7c;
+}
+
+.is-style-outline .wp-block-button__link,
+.is-style-outline .wp-block-button__link:visited {
+	color: currentColor;
 }
 
 .wp-block-button.is-style-outline .wp-block-button__link,
@@ -335,6 +338,12 @@ pre.wp-block-code {
 
 .wp-block-media-text *:last-child {
 	margin-bottom: 0;
+}
+
+/* Navigation */
+
+.site-content .wp-block-navigation {
+	overflow: visible;
 }
 
 /*--------------------------------------------------------------

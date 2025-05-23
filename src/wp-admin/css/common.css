@@ -122,8 +122,6 @@
 .screen-reader-text span,
 .ui-helper-hidden-accessible {
 	border: 0;
-	clip: rect(1px, 1px, 1px, 1px);
-	-webkit-clip-path: inset(50%);
 	clip-path: inset(50%);
 	height: 1px;
 	margin: -1px;
@@ -917,6 +915,11 @@ a#remove-post-thumbnail:hover,
 	border: none;
 }
 
+.application-password-display .success {
+    color: #007017;
+    margin-left: 0.5rem;
+}
+
 /*------------------------------------------------------------------------------
   3.0 - Actions
 ------------------------------------------------------------------------------*/
@@ -1090,7 +1093,9 @@ th.action-links {
 
 .wp-filter .search-form {
 	float: right;
-	margin: 10px 0;
+	display: flex;
+	align-items: center;
+	column-gap: .5rem;
 }
 
 .wp-filter .search-form input[type="search"] {
@@ -1110,16 +1115,10 @@ th.action-links {
 	align-items: center;
 }
 
-.wp-filter .search-form.search-plugins {
-	/* This element is a flex item: the inherited float won't have any effect. */
-	margin-top: 0;
-}
-
 .wp-filter .search-form.search-plugins select,
 .wp-filter .search-form.search-plugins .wp-filter-search,
 .no-js .wp-filter .search-form.search-plugins .button {
 	display: inline-block;
-	margin-top: 10px;
 	vertical-align: top;
 }
 
@@ -1178,6 +1177,17 @@ th.action-links {
 	border-top: 1px solid #f0f0f1;
 	background: #f6f7f7;
 	overflow: hidden;
+}
+
+.wp-filter .favorites-form .favorites-username {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.wp-filter .favorites-form .favorites-username input {
+	margin: 0;
 }
 
 .show-filters .filter-drawer,
@@ -1288,11 +1298,13 @@ th.action-links {
 }
 
 .filtered-by .tags {
-	display: inline;
+	display: flex;
+	align-items: flex-start;
+	flex-wrap: wrap;
+	gap: 8px;
 }
 
 .filtered-by .tag {
-	margin: 0 5px;
 	padding: 4px 8px;
 	border: 1px solid #dcdcde;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
@@ -1307,7 +1319,10 @@ th.action-links {
 }
 
 .filters-applied .filtered-by {
-	display: block;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
 }
 
 .filters-applied .filter-drawer {
@@ -1330,6 +1345,12 @@ th.action-links {
 	display: block;
 	margin: 40px auto 0;
 	float: none;
+}
+
+@media only screen and (max-width: 1138px) {
+	.wp-filter .search-form {
+		margin: 11px 0;
+	}
 }
 
 @media only screen and (max-width: 1120px) {
@@ -1359,6 +1380,11 @@ th.action-links {
 		float: none; /* Remove float from media-views.css */
 		position: relative;
 		max-width: 100%;
+	}
+	.wp-filter .search-form {
+		margin: 11px 0;
+		flex-wrap: wrap;
+		row-gap: 10px;
 	}
 }
 
@@ -2026,7 +2052,7 @@ p.auto-update-status {
 ------------------------------------------------------------------------------*/
 
 html.wp-toolbar {
-	padding-top: 32px;
+	padding-top: var(--wp-admin--admin-bar--height);
 	box-sizing: border-box;
 	-ms-overflow-style: scrollbar; /* See ticket #48545 */
 }
@@ -2405,8 +2431,59 @@ h1.nav-tab-wrapper, /* Back-compat for pre-4.4 */
 
 /* Back-compat for nav-menus screen */
 .nav-menus-php .metabox-holder h3 {
+	padding: 0;
+}
+
+.accordion-container h3.accordion-section-title {
+	padding: 0 !important;
+}
+
+.accordion-section-title button.accordion-trigger,
+.nav-menus-php .metabox-holder .accordion-section-title button.accordion-trigger {
+	background: inherit;
+	color: #1d2327;
+	display: block;
+	position: relative;
+	text-align: left;
+	width: 100%;
+	outline: none;
+	border: 0;
 	padding: 10px 10px 11px 14px;
 	line-height: 1.5;
+	cursor: pointer;
+}
+
+.accordion-section-title button.accordion-trigger:focus,
+.nav-menus-php .metabox-holder .accordion-section-title button.accordion-trigger:focus {
+	box-shadow: 0 0 0 2px #2271b1;
+	outline: 2px solid transparent;
+}
+
+.accordion-section-title span.dashicons.dashicons-arrow-down,
+.nav-menus-php .metabox-holder .accordion-section-title span.dashicons.dashicons-arrow-down {
+	position: absolute;
+	right: 10px;
+	left: auto;
+	color: #787c82;
+	border-radius: 50px;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.accordion-section-title:hover span.dashicons.dashicons-arrow-down,
+.nav-menus-php .metabox-holder .accordion-section-title:hover span.dashicons.dashicons-arrow-down {
+	color: #1d2327;
+}
+
+.accordion-section-title span.dashicons.dashicons-arrow-down::before,
+.nav-menus-php .metabox-holder .accordion-section-title span.dashicons.dashicons-arrow-down::before {
+	position: relative;
+	left: -1px;
+}
+
+.accordion-section.open .accordion-section-title span.dashicons.dashicons-arrow-down,
+.nav-menus-php .metabox-holder .accordion-section.open .accordion-section-title span.dashicons.dashicons-arrow-down {
+	transform: rotate(180deg) translate(0, 50%);
 }
 
 #templateside ul li a {
@@ -3496,9 +3573,9 @@ img {
 
 /* @todo: can we use a common class for these? */
 .nav-menus-php .item-edit:before,
-.widget-top .widget-action .toggle-indicator:before,
-.control-section .accordion-section-title:after,
-.accordion-section-title:after {
+.wp-customizer .control-section .accordion-section-title:after,
+.wp-customizer .accordion-section-title:after,
+.widget-top .widget-action .toggle-indicator:before {
 	content: "\f140";
 	font: normal 20px/1 dashicons;
 	speak: never;
@@ -3516,8 +3593,7 @@ img {
 .handlediv,
 .postbox .handlediv.button-link,
 .item-edit,
-.toggle-indicator,
-.accordion-section-title:after {
+.toggle-indicator {
 	color: #787c82;
 }
 
@@ -3533,8 +3609,7 @@ img {
 .postbox .handlediv.button-link:focus,
 .item-edit:hover,
 .item-edit:focus,
-.sidebar-name:hover .toggle-indicator,
-.accordion-section-title:hover:after {
+.sidebar-name:hover .toggle-indicator {
 	color: #1d2327;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
@@ -3546,14 +3621,6 @@ img {
 	outline: 2px solid transparent;
 }
 
-.control-section .accordion-section-title:after,
-.accordion-section-title:after {
-	float: right;
-	right: 20px;
-	top: -2px;
-}
-
-.control-section.open .accordion-section-title:after,
 #customize-info.open .accordion-section-title:after,
 .nav-menus-php .menu-item-edit-active .item-edit:before,
 .widget.open .widget-top .widget-action .toggle-indicator:before,
@@ -3598,7 +3665,6 @@ img {
 
 .accordion-section-title {
 	margin: 0;
-	padding: 12px 15px 15px;
 	position: relative;
 	border-left: 1px solid #dcdcde;
 	border-right: 1px solid #dcdcde;
@@ -3835,11 +3901,15 @@ img {
 
 @media screen and (max-width: 782px) {
 	html.wp-toolbar {
-		padding-top: 46px;
+		padding-top: var(--wp-admin--admin-bar--height);
 	}
 
 	.screen-reader-shortcut:focus {
 		top: -39px;
+	}
+
+	.block-editor-page .screen-reader-shortcut:focus {
+		top: 7px;
 	}
 
 	body {
@@ -3941,6 +4011,10 @@ img {
 	.metabox-holder .postbox > h3, /* Back-compat for pre-4.4 */
 	.metabox-holder h2 {
 		padding: 12px;
+	}
+
+	.nav-menus-php .metabox-holder h3 {
+		padding: 0;
 	}
 
 	.postbox .handlediv {
@@ -4132,7 +4206,6 @@ img {
 	}
 
 	.wp-filter .search-form input[type="search"] {
-		width: 100%;
 		font-size: 1rem;
 	}
 
@@ -4185,6 +4258,10 @@ img {
 	.nav-tab-active:focus,
 	.nav-tab-active:focus:active {
 		border-bottom: 1px solid #c3c4c7;
+	}
+
+	.wp-filter .search-form.search-plugins label {
+		width: 100%;
 	}
 }
 

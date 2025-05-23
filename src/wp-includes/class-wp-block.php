@@ -56,7 +56,7 @@ class WP_Block {
 	 * @var array
 	 * @access protected
 	 */
-	protected $available_context;
+	protected $available_context = array();
 
 	/**
 	 * Block type registry.
@@ -113,7 +113,16 @@ class WP_Block {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param array                  $block             Array of parsed block properties.
+	 * @param array                  $block             {
+	 *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
+	 *
+	 *     @type string   $blockName    Name of block.
+	 *     @type array    $attrs        Attributes from block comment delimiters.
+	 *     @type array    $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                  have the same structure as this one.
+	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array    $innerContent List of string fragments and null markers where inner blocks were found.
+	 * }
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
@@ -131,6 +140,28 @@ class WP_Block {
 
 		$this->available_context = $available_context;
 
+		$this->refresh_context_dependents();
+	}
+
+	/**
+	 * Updates the context for the current block and its inner blocks.
+	 *
+	 * The method updates the context of inner blocks, if any, by passing down
+	 * any context values the block provides (`provides_context`).
+	 *
+	 * If the block has inner blocks, the method recursively processes them by creating new instances of `WP_Block`
+	 * for each inner block and updating their context based on the block's `provides_context` property.
+	 *
+	 * @since 6.8.0
+	 */
+	public function refresh_context_dependents() {
+		/*
+		 * Merging the `$context` property here is not ideal, but for now needs to happen because of backward compatibility.
+		 * Ideally, the `$context` property itself would not be filterable directly and only the `$available_context` would be filterable.
+		 * However, this needs to be separately explored whether it's possible without breakage.
+		 */
+		$this->available_context = array_merge( $this->available_context, $this->context );
+
 		if ( ! empty( $this->block_type->uses_context ) ) {
 			foreach ( $this->block_type->uses_context as $context_name ) {
 				if ( array_key_exists( $context_name, $this->available_context ) ) {
@@ -139,7 +170,23 @@ class WP_Block {
 			}
 		}
 
-		if ( ! empty( $block['innerBlocks'] ) ) {
+		$this->refresh_parsed_block_dependents();
+	}
+
+	/**
+	 * Updates the parsed block content for the current block and its inner blocks.
+	 *
+	 * This method sets the `inner_html` and `inner_content` properties of the block based on the parsed
+	 * block content provided during initialization. It ensures that the block instance reflects the
+	 * most up-to-date content for both the inner HTML and any string fragments around inner blocks.
+	 *
+	 * If the block has inner blocks, this method initializes a new `WP_Block_List` for them, ensuring the
+	 * correct content and context are updated for each nested block.
+	 *
+	 * @since 6.8.0
+	 */
+	public function refresh_parsed_block_dependents() {
+		if ( ! empty( $this->parsed_block['innerBlocks'] ) ) {
 			$child_context = $this->available_context;
 
 			if ( ! empty( $this->block_type->provides_context ) ) {
@@ -150,15 +197,15 @@ class WP_Block {
 				}
 			}
 
-			$this->inner_blocks = new WP_Block_List( $block['innerBlocks'], $child_context, $registry );
+			$this->inner_blocks = new WP_Block_List( $this->parsed_block['innerBlocks'], $child_context, $this->registry );
 		}
 
-		if ( ! empty( $block['innerHTML'] ) ) {
-			$this->inner_html = $block['innerHTML'];
+		if ( ! empty( $this->parsed_block['innerHTML'] ) ) {
+			$this->inner_html = $this->parsed_block['innerHTML'];
 		}
 
-		if ( ! empty( $block['innerContent'] ) ) {
-			$this->inner_content = $block['innerContent'];
+		if ( ! empty( $this->parsed_block['innerContent'] ) ) {
+			$this->inner_content = $this->parsed_block['innerContent'];
 		}
 	}
 
@@ -227,6 +274,8 @@ class WP_Block {
 	 * block with the values of the `text_custom_field` and `url_custom_field` post meta.
 	 *
 	 * @since 6.5.0
+	 * @since 6.6.0 Handle the `__default` attribute for pattern overrides.
+	 * @since 6.7.0 Return any updated bindings metadata in the computed attributes.
 	 *
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
@@ -250,7 +299,41 @@ class WP_Block {
 			return $computed_attributes;
 		}
 
-		foreach ( $parsed_block['attrs']['metadata']['bindings'] as $attribute_name => $block_binding ) {
+		$bindings = $parsed_block['attrs']['metadata']['bindings'];
+
+		/*
+		 * If the default binding is set for pattern overrides, replace it
+		 * with a pattern override binding for all supported attributes.
+		 */
+		if (
+			isset( $bindings['__default']['source'] ) &&
+			'core/pattern-overrides' === $bindings['__default']['source']
+		) {
+			$updated_bindings = array();
+
+			/*
+			 * Build a binding array of all supported attributes.
+			 * Note that this also omits the `__default` attribute from the
+			 * resulting array.
+			 */
+			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
+				// Retain any non-pattern override bindings that might be present.
+				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
+					? $bindings[ $attribute_name ]
+					: array( 'source' => 'core/pattern-overrides' );
+			}
+			$bindings = $updated_bindings;
+			/*
+			 * Update the bindings metadata of the computed attributes.
+			 * This ensures the block receives the expanded __default binding metadata when it renders.
+			 */
+			$computed_attributes['metadata'] = array_merge(
+				$parsed_block['attrs']['metadata'],
+				array( 'bindings' => $bindings )
+			);
+		}
+
+		foreach ( $bindings as $attribute_name => $block_binding ) {
 			// If the attribute is not in the supported list, process next attribute.
 			if ( ! in_array( $attribute_name, $supported_block_attributes[ $this->name ], true ) ) {
 				continue;
@@ -263,6 +346,15 @@ class WP_Block {
 			$block_binding_source = get_block_bindings_source( $block_binding['source'] );
 			if ( null === $block_binding_source ) {
 				continue;
+			}
+
+			// Adds the necessary context defined by the source.
+			if ( ! empty( $block_binding_source->uses_context ) ) {
+				foreach ( $block_binding_source->uses_context as $context_name ) {
+					if ( array_key_exists( $context_name, $this->available_context ) ) {
+						$this->context[ $context_name ] = $this->available_context[ $context_name ];
+					}
+				}
 			}
 
 			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
@@ -320,7 +412,7 @@ class WP_Block {
 
 				foreach ( $selectors as $selector ) {
 					// If the parent tag, or any of its children, matches the selector, replace the HTML.
-					if ( strcasecmp( $block_reader->get_tag( $selector ), $selector ) === 0 || $block_reader->next_tag(
+					if ( strcasecmp( $block_reader->get_tag(), $selector ) === 0 || $block_reader->next_tag(
 						array(
 							'tag_name' => $selector,
 						)
@@ -372,13 +464,10 @@ class WP_Block {
 				}
 				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], $source_value );
 				return $amended_content->get_updated_html();
-				break;
 
 			default:
 				return $block_content;
-				break;
 		}
-		return;
 	}
 
 
@@ -399,6 +488,29 @@ class WP_Block {
 	 */
 	public function render( $options = array() ) {
 		global $post;
+
+		/*
+		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
+		 * the rendered HTML of all its inner blocks, including any interactive block.
+		 */
+		static $root_interactive_block = null;
+		/**
+		 * Filters whether Interactivity API should process directives.
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param bool $enabled Whether the directives processing is enabled.
+		 */
+		$interactivity_process_directives_enabled = apply_filters( 'interactivity_process_directives', true );
+		if (
+			$interactivity_process_directives_enabled && null === $root_interactive_block && (
+				( isset( $this->block_type->supports['interactivity'] ) && true === $this->block_type->supports['interactivity'] ) ||
+				! empty( $this->block_type->supports['interactivity']['interactive'] )
+			)
+		) {
+			$root_interactive_block = $this;
+		}
+
 		$options = wp_parse_args(
 			$options,
 			array(
@@ -432,13 +544,24 @@ class WP_Block {
 					if ( ! is_null( $pre_render ) ) {
 						$block_content .= $pre_render;
 					} else {
-						$source_block = $inner_block->parsed_block;
+						$source_block        = $inner_block->parsed_block;
+						$inner_block_context = $inner_block->context;
 
 						/** This filter is documented in wp-includes/blocks.php */
 						$inner_block->parsed_block = apply_filters( 'render_block_data', $inner_block->parsed_block, $source_block, $parent_block );
 
 						/** This filter is documented in wp-includes/blocks.php */
 						$inner_block->context = apply_filters( 'render_block_context', $inner_block->context, $inner_block->parsed_block, $parent_block );
+
+						/*
+						 * The `refresh_context_dependents()` method already calls `refresh_parsed_block_dependents()`.
+						 * Therefore the second condition is irrelevant if the first one is satisfied.
+						 */
+						if ( $inner_block->context !== $inner_block_context ) {
+							$inner_block->refresh_context_dependents();
+						} elseif ( $inner_block->parsed_block !== $source_block ) {
+							$inner_block->refresh_parsed_block_dependents();
+						}
 
 						$block_content .= $inner_block->render();
 					}
@@ -485,6 +608,11 @@ class WP_Block {
 			}
 		}
 
+		/*
+		 * For Core blocks, these styles are only enqueued if `wp_should_load_separate_core_block_assets()` returns
+		 * true. Otherwise these `wp_enqueue_style()` calls will not have any effect, as the Core blocks are relying on
+		 * the combined 'wp-block-library' stylesheet instead, which is unconditionally enqueued.
+		 */
 		if ( ( ! empty( $this->block_type->style_handles ) ) ) {
 			foreach ( $this->block_type->style_handles as $style_handle ) {
 				wp_enqueue_style( $style_handle );
@@ -523,6 +651,12 @@ class WP_Block {
 		 * @param WP_Block $instance      The block instance.
 		 */
 		$block_content = apply_filters( "render_block_{$this->name}", $block_content, $this->parsed_block, $this );
+
+		if ( $root_interactive_block === $this ) {
+			// The root interactive block has finished rendering. Time to process directives.
+			$block_content          = wp_interactivity_process_directives( $block_content );
+			$root_interactive_block = null;
+		}
 
 		return $block_content;
 	}

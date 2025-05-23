@@ -319,7 +319,6 @@ table.fixed {
 
 .fixed .column-role,
 .fixed .column-posts {
-	-webkit-hyphens: auto;
 	hyphens: auto;
 }
 
@@ -904,7 +903,7 @@ tr:hover .row-actions,
 
 tr.inline-edit-row td {
 	padding: 0;
-	/* Prevents the focus style on .inline-edit-wrapper from being cutted-off */
+	/* Prevents the focus style on .inline-edit-wrapper from being cut-off */
 	position: relative;
 }
 
@@ -1131,7 +1130,7 @@ tr.inline-edit-row td {
 	width: 75%;
 }
 
-.inline-edit-row #post_parent,
+.inline-edit-row select[name="post_parent"],
 .inline-edit-row select[name="page_template"] {
 	max-width: 80%;
 }
@@ -2003,7 +2002,6 @@ div.action-links,
 	/* Show comment bubble as text instead */
 	.post-com-count .screen-reader-text {
 		position: static;
-		-webkit-clip-path: none;
 		clip-path: none;
 		width: auto;
 		height: auto;
