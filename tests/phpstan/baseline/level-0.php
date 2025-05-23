@@ -2,50 +2,50 @@
 
 $ignoreErrors = [];
 $ignoreErrors[] = [
+	// identifier: return.missing
 	'message' => '#^Method WP_Filesystem_SSH2\\:\\:touch\\(\\) should return bool but return statement is missing\\.$#',
-	'identifier' => 'return.missing',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
 ];
 $ignoreErrors[] = [
+	// identifier: class.notFound
 	'message' => '#^Instantiated class WP_Press_This_Plugin not found\\.$#',
-	'identifier' => 'class.notFound',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/press-this.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Path in include\\(\\) "/press\\-this/class\\-wp\\-press\\-this\\-plugin\\.php" is not a file or it does not exist\\.$#',
-	'identifier' => 'include.fileNotFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/press-this.php',
-];
-$ignoreErrors[] = [
+	// identifier: return.missing
 	'message' => '#^Method WP_Customize_Background_Image_Setting\\:\\:update\\(\\) should return bool but return statement is missing\\.$#',
-	'identifier' => 'return.missing',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-background-image-setting.php',
 ];
 $ignoreErrors[] = [
+	// identifier: return.missing
 	'message' => '#^Method WP_Customize_Filter_Setting\\:\\:update\\(\\) should return bool but return statement is missing\\.$#',
-	'identifier' => 'return.missing',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-filter-setting.php',
 ];
 $ignoreErrors[] = [
+	// identifier: return.missing
 	'message' => '#^Method WP_Customize_Header_Image_Setting\\:\\:update\\(\\) should return bool but return statement is missing\\.$#',
-	'identifier' => 'return.missing',
-	'count' => 2,
+	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-header-image-setting.php',
 ];
 $ignoreErrors[] = [
+	// identifier: class.notFound
+	'message' => '#^Class GdImage not found\\.$#',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/media.php',
+];
+$ignoreErrors[] = [
+	// identifier: new.static
 	'message' => '#^Unsafe usage of new static\\(\\)\\.$#',
-	'identifier' => 'new.static',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/style-engine/class-wp-style-engine-css-rules-store.php',
 ];
 $ignoreErrors[] = [
+	// identifier: variable.undefined
 	'message' => '#^Undefined variable\\: \\$s$#',
-	'identifier' => 'variable.undefined',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/template.php',
 ];
