@@ -209,8 +209,9 @@ class Tests_Actions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * One tag with array with 1 object to ensure it will stay an array and not become an object
+	 * One hook which is passed an array containing one object. This test ensures it will stay an array and not become an object.
 	 *
+	 * @ticket 48312
 	 * @ticket 60190
 	 *
 	 * @covers ::do_action
