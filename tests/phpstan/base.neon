@@ -5,6 +5,12 @@
 # https://phpstan.org/config-reference
 
 parameters:
+  # Cache is stored locally, so it's available for CI.
+  tmpDir: ../../.cache
+
+  # The Minimum PHP Version
+  phpVersion: 70224
+
   # What directories and files should be scanned.
   paths:
     - ../../src
