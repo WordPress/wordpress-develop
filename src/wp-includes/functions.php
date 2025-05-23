@@ -1718,9 +1718,7 @@ function do_robots() {
 
 	$admin_path = wp_make_link_relative( admin_url() );
 	$output    .= sprintf( 'Disallow: %1$s%2$s', $admin_path, PHP_EOL );
-	$output    .= sprintf( 
-		'Allow: %1$s%2$s', $admin_path . 'admin-ajax.php', PHP_EOL 
-	);
+	$output    .= sprintf( 'Allow: %1$s%2$s', $admin_path . 'admin-ajax.php', PHP_EOL );
 
 	/**
 	 * Filters the robots.txt output.
