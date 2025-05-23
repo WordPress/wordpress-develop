@@ -1717,8 +1717,8 @@ function do_robots() {
 	$public = (bool) get_option( 'blog_public' );
 
 	$admin_path = wp_make_link_relative( admin_url() );
-	$output .= sprintf( "Disallow: %s\n", $admin_path );
-	$output .= sprintf( "Allow: %s\n", $admin_path . 'admin-ajax.php' );
+	$output    .= sprintf( "Disallow: %s\n", $admin_path );
+	$output    .= sprintf( "Allow: %s\n", $admin_path . 'admin-ajax.php' );
 
 	/**
 	 * Filters the robots.txt output.
