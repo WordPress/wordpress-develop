@@ -2009,9 +2009,9 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
 		$last_changed .= wp_cache_get_last_changed( 'terms' );
 	}
-	$cache_key = "adjacent_post:$key:$last_changed";
+	$cache_key = "adjacent_post:$key";
 
-	$result = wp_cache_get( $cache_key, 'post-queries' );
+	$result = wp_cache_get_query_data( $cache_key, 'post-queries', $last_changed );
 	if ( false !== $result ) {
 		if ( $result ) {
 			$result = get_post( $result );
@@ -2024,7 +2024,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		$result = '';
 	}
 
-	wp_cache_set( $cache_key, $result, 'post-queries' );
+	wp_cache_set_query_data( $cache_key, $result, 'post-queries', $last_changed );
 
 	if ( $result ) {
 		$result = get_post( $result );

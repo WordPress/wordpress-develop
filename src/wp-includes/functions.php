@@ -8062,6 +8062,89 @@ function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
 }
 
 /**
+ * Retrieves cached query data if valid and unchanged.
+ *
+ * @param string $cache_key The cache key used for storage and retrieval.
+ * @param string $group The cache group used for organizing data.
+ * @param string $last_changed The timestamp of the last modification to the cache group.
+ * @return mixed|false The cached data if valid, or false if the cache does not exist or is outdated.
+ */
+function wp_cache_get_query_data( $cache_key, $group, $last_changed ) {
+	$cache = wp_cache_get( $cache_key, $group );
+
+	if ( false === $cache ) {
+		return false;
+	}
+
+	if ( $last_changed !== $cache['last_changed'] ) {
+		return false;
+	}
+
+	return $cache['data'];
+}
+
+/**
+ * Stores query-related data in the cache.
+ *
+ * @param string $cache_key The cache key under which to store the data.
+ * @param mixed $data The data to be cached.
+ * @param string $group The cache group to which the data belongs.
+ * @param string $last_changed The timestamp or identifier indicating the last change to the cached data.
+ */
+function wp_cache_set_query_data( $cache_key, $data, $group, $last_changed ) {
+	wp_cache_set(
+		$cache_key,
+		array(
+			'data'         => $data,
+			'last_chagned' => $last_changed,
+		),
+		$group
+	);
+}
+
+/**
+ * Retrieves multiple items from the cache and validates their freshness.
+ *
+ * @param array $cache_keys Array of cache keys to retrieve.
+ * @param string $group The group of the cache to check.
+ * @param string $last_changed The timestamp of the last cache modification for validation.
+ * @return array An associative array containing cache values. Values are `false` if they are not found or outdated.
+ */
+function wp_cache_get_multiple_query_data( $cache_keys, $group, $last_changed ) {
+	$cache = wp_cache_get_multiple( $cache_keys, $group );
+
+	foreach ( $cache as $key => $value ) {
+		if ( false === $value ) {
+			continue;
+		}
+		if ( $last_changed !== $value['last_changed'] ) {
+			$cache[ $key ] = false;
+		}
+	}
+
+	return $cache;
+}
+
+/**
+ * Stores multiple pieces of query data in the cache.
+ *
+ * @param array $cache_keys Array of cache keys to define the items to be stored.
+ * @param mixed $data Data to be stored in the cache for all keys.
+ * @param string $group Group to which the cached data belongs.
+ * @param string $last_changed Timestamp indicating the last modification time for the data.
+ */
+function wp_cache_set_multiple_query_data( $cache_keys, $data, $group, $last_changed ) {
+	$new_cache = array();
+	foreach ( $cache_keys as $key ) {
+		$new_cache[ $key ] = array(
+			'data'         => $data,
+			'last_changed' => $last_changed,
+		);
+	}
+	wp_cache_set_multiple( $new_cache, $group );
+}
+
+/**
  * Gets last changed date for the specified cache group.
  *
  * @since 4.7.0

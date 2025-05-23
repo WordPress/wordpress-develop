@@ -830,8 +830,38 @@ class WP_User_Query {
 			$cache_value   = false;
 			$cache_key     = $this->generate_cache_key( $qv, $this->request );
 			$cache_group   = 'user-queries';
+			$last_changed  = wp_cache_get_last_changed( 'users' );
+
+			if ( empty( $qv['orderby'] ) ) {
+				// Default order is by 'user_login'.
+				$ordersby = array( 'user_login' => '' );
+			} elseif ( is_array( $qv['orderby'] ) ) {
+				$ordersby = $qv['orderby'];
+			} else {
+				// 'orderby' values may be a comma- or space-separated list.
+				$ordersby = preg_split( '/[,\s]+/', $qv['orderby'] );
+			}
+
+			$blog_id = 0;
+			if ( isset( $qv['blog_id'] ) ) {
+				$blog_id = absint( $qv['blog_id'] );
+			}
+
+			if ( $qv['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
+				$switch = $blog_id && get_current_blog_id() !== $blog_id;
+				if ( $switch ) {
+					switch_to_blog( $blog_id );
+				}
+
+				$last_changed .= wp_cache_get_last_changed( 'posts' );
+
+				if ( $switch ) {
+					restore_current_blog();
+				}
+			}
+
 			if ( $qv['cache_results'] ) {
-				$cache_value = wp_cache_get( $cache_key, $cache_group );
+				$cache_value = wp_cache_get_query_data( $cache_key, $cache_group, $last_changed );
 			}
 			if ( false !== $cache_value ) {
 				$this->results     = $cache_value['user_data'];
@@ -866,7 +896,7 @@ class WP_User_Query {
 						'user_data'   => $this->results,
 						'total_users' => $this->total_users,
 					);
-					wp_cache_add( $cache_key, $cache_value, $cache_group );
+					wp_cache_set_query_data( $cache_key, $cache_value, $cache_group, $last_changed );
 				}
 			}
 		}
@@ -1056,38 +1086,9 @@ class WP_User_Query {
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 
-		$key          = md5( $sql );
-		$last_changed = wp_cache_get_last_changed( 'users' );
+		$key = md5( $sql );
 
-		if ( empty( $args['orderby'] ) ) {
-			// Default order is by 'user_login'.
-			$ordersby = array( 'user_login' => '' );
-		} elseif ( is_array( $args['orderby'] ) ) {
-			$ordersby = $args['orderby'];
-		} else {
-			// 'orderby' values may be a comma- or space-separated list.
-			$ordersby = preg_split( '/[,\s]+/', $args['orderby'] );
-		}
-
-		$blog_id = 0;
-		if ( isset( $args['blog_id'] ) ) {
-			$blog_id = absint( $args['blog_id'] );
-		}
-
-		if ( $args['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
-			$switch = $blog_id && get_current_blog_id() !== $blog_id;
-			if ( $switch ) {
-				switch_to_blog( $blog_id );
-			}
-
-			$last_changed .= wp_cache_get_last_changed( 'posts' );
-
-			if ( $switch ) {
-				restore_current_blog();
-			}
-		}
-
-		return "get_users:$key:$last_changed";
+		return "get_users:$key";
 	}
 
 	/**
