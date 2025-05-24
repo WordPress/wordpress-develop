@@ -305,7 +305,6 @@ class Box {
         $this->type = 'unknownversion';
       }
     }
-    // print_r( $this ); // Uncomment to print all boxes.
     return FOUND;
   }
 }
