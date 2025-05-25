@@ -400,7 +400,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param bool   $strip_meta  Optional. Strip all profiles, excluding color profiles, from the image. Default true.
 	 * @return void|WP_Error
 	 */
-	protected function thumbnail_image( $dst_w, $dst_h, $filter_name = 'FILTER_TRIANGLE', $strip_meta = true ) {
+	public function thumbnail_image( $dst_w, $dst_h, $filter_name = 'FILTER_TRIANGLE', $strip_meta = true ) {
 		$allowed_filters = array(
 			'FILTER_POINT',
 			'FILTER_BOX',
@@ -418,6 +418,17 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			'FILTER_BESSEL',
 			'FILTER_SINC',
 		);
+
+		/**
+		 * Filters the choice of Imagick resizing filter used.
+		 *
+		 * This filter only applies when resizing using the Imagick editor.
+		 *
+		 * @since 6.9
+		 *
+		 * @param string $filter_name Imagick resize filter constant.
+		 */
+		$filter_name = apply_filters( 'imagick_resize_filter', $filter_name );
 
 		/**
 		 * Set the filter value if '$filter_name' name is in the allowed list and the related
