@@ -6,6 +6,11 @@
  * @subpackage Media
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Retrieves additional image sizes.
  *
@@ -288,7 +293,7 @@ function image_downsize( $id, $size = 'medium' ) {
  *     If true, image will be cropped to the specified dimensions using center positions.
  *     If an array, the image will be cropped using the array to specify the crop location:
  *
- *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+ *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
  *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
  * }
  */
@@ -350,7 +355,7 @@ function remove_image_size( $name ) {
  *     If true, image will be cropped to the specified dimensions using center positions.
  *     If an array, the image will be cropped using the array to specify the crop location:
  *
- *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+ *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
  *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
  * }
  */
@@ -530,7 +535,7 @@ function wp_constrain_dimensions( $current_width, $current_height, $max_width = 
  *     If true, image will be cropped to the specified dimensions using center positions.
  *     If an array, the image will be cropped using the array to specify the crop location:
  *
- *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+ *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
  *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
  * }
  * @return array|false Returned array matches parameters for `imagecopyresampled()`. False on failure.
@@ -684,7 +689,7 @@ function image_resize_dimensions( $orig_w, $orig_h, $dest_w, $dest_h, $crop = fa
  *     If true, image will be cropped to the specified dimensions using center positions.
  *     If an array, the image will be cropped using the array to specify the crop location:
  *
- *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+ *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
  *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
  * }
  * @return array|false Metadata array on success. False if no image was created.
@@ -1137,8 +1142,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 			}
 		}
 
+		/** This filter is documented in wp-includes/media.php */
+		$add_auto_sizes = apply_filters( 'wp_img_tag_add_auto_sizes', true );
+
 		// Adds 'auto' to the sizes attribute if applicable.
 		if (
+			$add_auto_sizes &&
 			isset( $attr['loading'] ) &&
 			'lazy' === $attr['loading'] &&
 			isset( $attr['sizes'] ) &&
@@ -1985,6 +1994,17 @@ function wp_filter_content_tags( $content, $context = null ) {
  * @return string The filtered image tag markup.
  */
 function wp_img_tag_add_auto_sizes( string $image ): string {
+	/**
+	 * Filters whether auto-sizes for lazy loaded images is enabled.
+	 *
+	 * @since 6.7.1
+	 *
+	 * @param boolean $enabled Whether auto-sizes for lazy loaded images is enabled.
+	 */
+	if ( ! apply_filters( 'wp_img_tag_add_auto_sizes', true ) ) {
+		return $image;
+	}
+
 	$processor = new WP_HTML_Tag_Processor( $image );
 
 	// Bail if there is no IMG tag.
@@ -1993,8 +2013,19 @@ function wp_img_tag_add_auto_sizes( string $image ): string {
 	}
 
 	// Bail early if the image is not lazy-loaded.
-	$value = $processor->get_attribute( 'loading' );
-	if ( ! is_string( $value ) || 'lazy' !== strtolower( trim( $value, " \t\f\r\n" ) ) ) {
+	$loading = $processor->get_attribute( 'loading' );
+	if ( ! is_string( $loading ) || 'lazy' !== strtolower( trim( $loading, " \t\f\r\n" ) ) ) {
+		return $image;
+	}
+
+	/*
+	 * Bail early if the image doesn't have a width attribute.
+	 * Per WordPress Core itself, lazy-loaded images should always have a width attribute.
+	 * However, it is possible that lazy-loading could be added by a plugin, where we don't have that guarantee.
+	 * As such, it still makes sense to ensure presence of a width attribute here in order to use `sizes=auto`.
+	 */
+	$width = $processor->get_attribute( 'width' );
+	if ( ! is_string( $width ) || '' === $width ) {
 		return $image;
 	}
 
@@ -2027,6 +2058,28 @@ function wp_img_tag_add_auto_sizes( string $image ): string {
 function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ): bool {
 	list( $first_size ) = explode( ',', $sizes_attr, 2 );
 	return 'auto' === strtolower( trim( $first_size, " \t\f\r\n" ) );
+}
+
+/**
+ * Prints a CSS rule to fix potential visual issues with images using `sizes=auto`.
+ *
+ * This rule overrides the similar rule in the default user agent stylesheet, to avoid images that use e.g.
+ * `width: auto` or `width: fit-content` to appear smaller.
+ *
+ * @since 6.7.1
+ * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
+ * @see https://core.trac.wordpress.org/ticket/62413
+ */
+function wp_print_auto_sizes_contain_css_fix() {
+	/** This filter is documented in wp-includes/media.php */
+	$add_auto_sizes = apply_filters( 'wp_img_tag_add_auto_sizes', true );
+	if ( ! $add_auto_sizes ) {
+		return;
+	}
+
+	?>
+	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	<?php
 }
 
 /**
@@ -3292,6 +3345,7 @@ function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
  * WordPress mp3s in a post.
  *
  * @since 3.6.0
+ * @since 6.8.0 Added the 'muted' attribute.
  *
  * @param array  $attr {
  *     Attributes of the audio shortcode.
@@ -3299,6 +3353,7 @@ function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
  *     @type string $src      URL to the source of the audio file. Default empty.
  *     @type string $loop     The 'loop' attribute for the `<audio>` element. Default empty.
  *     @type string $autoplay The 'autoplay' attribute for the `<audio>` element. Default empty.
+ *     @type string $muted    The 'muted' attribute for the `<audio>` element. Default 'false'.
  *     @type string $preload  The 'preload' attribute for the `<audio>` element. Default 'none'.
  *     @type string $class    The 'class' attribute for the `<audio>` element. Default 'wp-audio-shortcode'.
  *     @type string $style    The 'style' attribute for the `<audio>` element. Default 'width: 100%;'.
@@ -3337,6 +3392,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		'src'      => '',
 		'loop'     => '',
 		'autoplay' => '',
+		'muted'    => 'false',
 		'preload'  => 'none',
 		'class'    => 'wp-audio-shortcode',
 		'style'    => 'width: 100%;',
@@ -3416,12 +3472,13 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		'id'       => sprintf( 'audio-%d-%d', $post_id, $instance ),
 		'loop'     => wp_validate_boolean( $atts['loop'] ),
 		'autoplay' => wp_validate_boolean( $atts['autoplay'] ),
+		'muted'    => wp_validate_boolean( $atts['muted'] ),
 		'preload'  => $atts['preload'],
 		'style'    => $atts['style'],
 	);
 
 	// These ones should just be omitted altogether if they are blank.
-	foreach ( array( 'loop', 'autoplay', 'preload' ) as $a ) {
+	foreach ( array( 'loop', 'autoplay', 'preload', 'muted' ) as $a ) {
 		if ( empty( $html_atts[ $a ] ) ) {
 			unset( $html_atts[ $a ] );
 		}
@@ -3429,8 +3486,20 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 
 	$attr_strings = array();
 
-	foreach ( $html_atts as $k => $v ) {
-		$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
+	foreach ( $html_atts as $attribute_name => $attribute_value ) {
+		if ( in_array( $attribute_name, array( 'loop', 'autoplay', 'muted' ), true ) && true === $attribute_value ) {
+			// Add boolean attributes without a value.
+			$attr_strings[] = esc_attr( $attribute_name );
+		} elseif ( 'preload' === $attribute_name && ! empty( $attribute_value ) ) {
+			// Handle the preload attribute with specific allowed values.
+			$allowed_preload_values = array( 'none', 'metadata', 'auto' );
+			if ( in_array( $attribute_value, $allowed_preload_values, true ) ) {
+				$attr_strings[] = sprintf( '%s="%s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+			}
+		} else {
+			// For other attributes, include the value.
+			$attr_strings[] = sprintf( '%s="%s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+		}
 	}
 
 	$html = '';
@@ -3702,8 +3771,20 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	}
 
 	$attr_strings = array();
-	foreach ( $html_atts as $k => $v ) {
-		$attr_strings[] = $k . '="' . esc_attr( $v ) . '"';
+	foreach ( $html_atts as $attribute_name => $attribute_value ) {
+		if ( in_array( $attribute_name, array( 'loop', 'autoplay', 'muted' ), true ) && true === $attribute_value ) {
+			// Add boolean attributes without their value for true.
+			$attr_strings[] = esc_attr( $attribute_name );
+		} elseif ( 'preload' === $attribute_name && ! empty( $attribute_value ) ) {
+			// Handle the preload attribute with specific allowed values.
+			$allowed_preload_values = array( 'none', 'metadata', 'auto' );
+			if ( in_array( $attribute_value, $allowed_preload_values, true ) ) {
+				$attr_strings[] = sprintf( '%s="%s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+			}
+		} elseif ( ! empty( $attribute_value ) ) {
+			// For non-boolean attributes, add them with their value.
+			$attr_strings[] = sprintf( '%s="%s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+		}
 	}
 
 	$html = '';
@@ -4407,7 +4488,6 @@ function wp_plupload_default_settings() {
  *     @type string $url                   Direct URL to the attachment file (from wp-content).
  *     @type int    $width                 If the attachment is an image, represents the width of the image in pixels.
  * }
- *
  */
 function wp_prepare_attachment_for_js( $attachment ) {
 	$attachment = get_post( $attachment );
@@ -5418,6 +5498,8 @@ function attachment_url_to_postid( $url ) {
 	 * {@link https://www.php.net/manual/en/language.types.boolean.php PHP documentation}.
 	 * Use the === operator for testing the post ID when developing filters using
 	 * this hook.
+	 *
+	 * @since 6.7.0
 	 *
 	 * @param int|null $post_id The result of the post ID lookup. Null to indicate
 	 *                          no lookup has been attempted. Default null.

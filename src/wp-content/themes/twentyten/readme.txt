@@ -1,9 +1,9 @@
 === Twenty Ten ===
 Contributors: wordpressdotorg
 Requires at least: 3.0
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 5.2.4
-Stable tag: 4.3
+Stable tag: 4.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, two-columns, custom-header, custom-background, threaded-comments, sticky-post, translation-ready, microformats, rtl-language-support, editor-style, custom-menu, flexible-header, featured-images, footer-widgets, featured-image-header, block-patterns
@@ -15,7 +15,7 @@ For more information about Twenty Ten theme please go to https://codex.wordpress
 
 == Installation ==
 
-1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
+1. In your admin panel, go to Appearance -> Themes and click the 'Add' button.
 2. Type in Twenty Ten in the search form and press the 'Enter' key in your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
 4. Go to https://codex.wordpress.org/Twenty_Ten for a guide to customize this theme.
@@ -23,7 +23,7 @@ For more information about Twenty Ten theme please go to https://codex.wordpress
 
 == Copyright ==
 
-Twenty Ten WordPress Theme, Copyright 2010-2024 WordPress.org, Automattic Inc., and contributors.
+Twenty Ten WordPress Theme, Copyright 2010-2025 WordPress.org, Automattic Inc., and contributors.
 Twenty Ten is Distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -43,6 +43,11 @@ Images
 “Old Barn Photo” by Bonnie Moreland. CC0. https://stocksnap.io/photo/old-barn-4HMJ2KQVX9
 
 == Changelog ==
+
+= 4.4 =
+* Released: April 15, 2025
+
+https://wordpress.org/documentation/article/twenty-ten-changelog/#Version_4.4
 
 = 4.3 =
 * Released: November 12, 2024

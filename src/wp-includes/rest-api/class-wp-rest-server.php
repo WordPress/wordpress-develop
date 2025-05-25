@@ -1339,9 +1339,7 @@ class WP_REST_Server {
 	 * @return false|string Boolean false or string error message.
 	 */
 	protected function get_json_last_error() {
-		$last_error_code = json_last_error();
-
-		if ( JSON_ERROR_NONE === $last_error_code || empty( $last_error_code ) ) {
+		if ( JSON_ERROR_NONE === json_last_error() ) {
 			return false;
 		}
 
@@ -1355,11 +1353,7 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $request {
-	 *     Request.
-	 *
-	 *     @type string $context Context.
-	 * }
+	 * @param WP_REST_Request $request Request data.
 	 * @return WP_REST_Response The API root index data.
 	 */
 	public function get_index( $request ) {
@@ -1371,6 +1365,9 @@ class WP_REST_Server {
 			'home'            => home_url(),
 			'gmt_offset'      => get_option( 'gmt_offset' ),
 			'timezone_string' => get_option( 'timezone_string' ),
+			'page_for_posts'  => (int) get_option( 'page_for_posts' ),
+			'page_on_front'   => (int) get_option( 'page_on_front' ),
+			'show_on_front'   => get_option( 'show_on_front' ),
 			'namespaces'      => array_keys( $this->namespaces ),
 			'authentication'  => array(),
 			'routes'          => $this->get_data_for_routes( $this->get_routes(), $request['context'] ),

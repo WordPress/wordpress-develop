@@ -1,9 +1,9 @@
 === Twenty Twelve ===
 Contributors: wordpressdotorg
 Requires at least: 3.5
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 5.2.4
-Stable tag: 4.4
+Stable tag: 4.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, two-columns, right-sidebar, custom-background, custom-header, custom-menu, editor-style, featured-images, flexible-header, footer-widgets, full-width-template, microformats, post-formats, rtl-language-support, sticky-post, theme-options, translation-ready, block-patterns
@@ -15,7 +15,7 @@ For more information about Twenty Twelve please go to https://codex.wordpress.or
 
 == Installation ==
 
-1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
+1. In your admin panel, go to Appearance -> Themes and click the 'Add' button.
 2. Type in Twenty Twelve in the search form and press the 'Enter' key in your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
 4. Go to https://codex.wordpress.org/Twenty_Twelve for a guide to customize this theme.
@@ -23,7 +23,7 @@ For more information about Twenty Twelve please go to https://codex.wordpress.or
 
 == Copyright ==
 
-Twenty Twelve WordPress Theme, Copyright 2012-2024 WordPress.org, Automattic Inc., and contributors.
+Twenty Twelve WordPress Theme, Copyright 2012-2025 WordPress.org, Automattic Inc., and contributors.
 Twenty Twelve is Distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -52,6 +52,11 @@ Source: https://fontsource.org/fonts/open-sans
 "Autumn City Photo" by Oleg Prokopenko. CC0. https://stocksnap.io/photo/autumn-city-PZP8EWR5MR
 
 == Changelog ==
+
+= 4.5 =
+* Released: April 15, 2025
+
+https://wordpress.org/documentation/article/twenty-twelve-changelog/#Version_4.5
 
 = 4.4 =
 * Released: November 12, 2024

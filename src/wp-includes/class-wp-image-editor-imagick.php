@@ -190,12 +190,14 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * Sets Image Compression quality on a 1-100% scale.
 	 *
 	 * @since 3.5.0
+	 * @since 6.8.0 The `$dims` parameter was added.
 	 *
-	 * @param int $quality Compression Quality. Range: [1,100]
+	 * @param int   $quality Compression Quality. Range: [1,100]
+	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
 	 * @return true|WP_Error True if set successfully; WP_Error on failure.
 	 */
-	public function set_quality( $quality = null ) {
-		$quality_result = parent::set_quality( $quality );
+	public function set_quality( $quality = null, $dims = array() ) {
+		$quality_result = parent::set_quality( $quality, $dims );
 		if ( is_wp_error( $quality_result ) ) {
 			return $quality_result;
 		} else {
@@ -346,7 +348,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *     If true, image will be cropped to the specified dimensions using center positions.
 	 *     If an array, the image will be cropped using the array to specify the crop location:
 	 *
-	 *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+	 *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
 	 *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
 	 * }
 	 * @return true|WP_Error
@@ -366,6 +368,14 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		if ( $crop ) {
 			return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
 		}
+
+		$this->set_quality(
+			null,
+			array(
+				'width'  => $dst_w,
+				'height' => $dst_h,
+			)
+		);
 
 		// Execute the resize.
 		$thumb_result = $this->thumbnail_image( $dst_w, $dst_h );
@@ -474,7 +484,29 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
-				$this->image->setOption( 'png:exclude-chunk', 'all' );
+
+				// Indexed PNG files get some additional handling.
+				// See #63448 for details.
+				if (
+					is_callable( array( $this->image, 'getImageProperty' ) )
+					&& '3' === $this->image->getImageProperty( 'png:IHDR.color-type-orig' )
+				) {
+
+					// Check for an alpha channel.
+					if (
+						is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+						&& $this->image->getImageAlphaChannel()
+					) {
+						$this->image->setOption( 'png:include-chunk', 'tRNS' );
+					} else {
+						$this->image->setOption( 'png:exclude-chunk', 'all' );
+					}
+					// Set the image format to Indexed PNG.
+					$this->image->setOption( 'png:format', 'png8' );
+
+				} else {
+					$this->image->setOption( 'png:exclude-chunk', 'all' );
+				}
 			}
 
 			/*
@@ -493,11 +525,23 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				}
 			}
 
-			// Limit the bit depth of resized images to 8 bits per channel.
+			// Limit the bit depth of resized images.
 			if ( is_callable( array( $this->image, 'getImageDepth' ) ) && is_callable( array( $this->image, 'setImageDepth' ) ) ) {
-				if ( 8 < $this->image->getImageDepth() ) {
-					$this->image->setImageDepth( 8 );
-				}
+				/**
+				 * Filters the maximum bit depth of resized images.
+				 *
+				 * This filter only applies when resizing using the Imagick editor since GD
+				 * does not support getting or setting bit depth.
+				 *
+				 * Use this to adjust the maximum bit depth of resized images.
+				 *
+				 * @since 6.8.0
+				 *
+				 * @param int $max_depth   The maximum bit depth. Default is the input depth.
+				 * @param int $image_depth The bit depth of the original image.
+				 */
+				$max_depth = apply_filters( 'image_max_bit_depth', $this->image->getImageDepth(), $this->image->getImageDepth() );
+				$this->image->setImageDepth( $max_depth );
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_resize_error', $e->getMessage() );

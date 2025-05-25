@@ -302,34 +302,36 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48566
+	 *
+	 * @dataProvider data_year_in_readme
 	 */
-	public function test_year_in_readme() {
+	public function test_year_in_readme( $theme ) {
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
-		foreach ( $this->default_themes as $theme ) {
-			$wp_theme = wp_get_theme( $theme );
+		$wp_theme = wp_get_theme( $theme );
 
-			$path_to_readme_txt = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/readme.txt';
-			$this->assertFileExists( $path_to_readme_txt );
+		$path_to_readme_txt = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/readme.txt';
+		$this->assertFileExists( $path_to_readme_txt );
 
-			$readme    = file_get_contents( $path_to_readme_txt );
-			$this_year = gmdate( 'Y' );
+		$readme    = file_get_contents( $path_to_readme_txt );
+		$this_year = gmdate( 'Y' );
 
-			preg_match( '#Copyright (\d+) WordPress.org#', $readme, $matches );
-			if ( $matches ) {
-				$readme_year = trim( $matches[1] );
+		preg_match( '#(Copyright|\(C\)) (20\d\d-)?(\d+) WordPress.org#i', $readme, $matches );
+		if ( $matches ) {
+			$readme_year = trim( $matches[3] );
 
-				$this->assertSame( $this_year, $readme_year, "Bundled themes readme.txt's year needs to be updated to $this_year." );
-			}
-
-			preg_match( '#Copyright 20\d\d-(\d+) WordPress.org#', $readme, $matches );
-			if ( $matches ) {
-				$readme_year = trim( $matches[1] );
-
-				$this->assertSame( $this_year, $readme_year, "Bundled themes readme.txt's year needs to be updated to $this_year." );
-			}
+			$this->assertSame( $this_year, $readme_year, "$theme readme.txt's year needs to be updated to $this_year." );
 		}
+	}
+
+	public function data_year_in_readme() {
+		return array_map(
+			static function ( $theme ) {
+				return array( $theme );
+			},
+			$this->default_themes
+		);
 	}
 
 	/**
@@ -961,6 +963,50 @@ class Tests_Theme extends WP_UnitTestCase {
 			wp_should_load_separate_core_block_assets(),
 			'Block themes do not load separate core block assets by default.'
 		);
+	}
+
+	/**
+	 * Tests that block themes load block assets on demand by default.
+	 *
+	 * @ticket 61965
+	 *
+	 * @covers ::_add_default_theme_supports
+	 * @covers ::wp_should_load_block_assets_on_demand
+	 */
+	public function test_block_theme_should_load_block_assets_on_demand_by_default() {
+		$this->helper_requires_block_theme();
+
+		add_filter( 'should_load_block_assets_on_demand', '__return_false' );
+
+		$this->assertFalse(
+			wp_should_load_block_assets_on_demand(),
+			'Could not disable loading block assets on demand.'
+		);
+
+		do_action( 'after_setup_theme' );
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
+		$this->assertTrue(
+			wp_should_load_block_assets_on_demand(),
+			'Block themes do not load block assets on demand by default.'
+		);
+	}
+
+	/**
+	 * Tests that block themes load block assets on demand by default even when loading separate core block assets is disabled.
+	 *
+	 * @ticket 61965
+	 *
+	 * @covers ::_add_default_theme_supports
+	 * @covers ::wp_should_load_block_assets_on_demand
+	 */
+	public function test_block_theme_should_load_block_assets_on_demand_by_default_even_with_separate_core_block_assets_disabled() {
+		$this->helper_requires_block_theme();
+
+		do_action( 'after_setup_theme' );
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
+		$this->assertTrue( wp_should_load_block_assets_on_demand() );
 	}
 
 	/**
