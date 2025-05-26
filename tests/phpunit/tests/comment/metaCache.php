@@ -197,22 +197,22 @@ class Tests_Comment_MetaCache extends WP_UnitTestCase {
 
 		$this->assertTrue( have_posts() );
 
-			while ( have_posts() ) {
-				the_post();
+		while ( have_posts() ) {
+			the_post();
 
-				// Load comments with `comments_template()`.
-				$cform = get_echo( 'comments_template' );
+			// Load comments with `comments_template()`.
+			$cform = get_echo( 'comments_template' );
 
-				// First request will hit the database.
-				$num_queries = get_num_queries();
-				get_comment_meta( $comment_ids[0], 'sauce' );
-				$this->assertSame( 1, get_num_queries() - $num_queries );
+			// First request will hit the database.
+			$num_queries = get_num_queries();
+			get_comment_meta( $comment_ids[0], 'sauce' );
+			$this->assertSame( 1, get_num_queries() - $num_queries );
 
-				// Second and third requests should be in cache.
-				get_comment_meta( $comment_ids[1], 'sauce' );
-				get_comment_meta( $comment_ids[2], 'sauce' );
-				$this->assertSame( 1, get_num_queries() - $num_queries );
-			}
+			// Second and third requests should be in cache.
+			get_comment_meta( $comment_ids[1], 'sauce' );
+			get_comment_meta( $comment_ids[2], 'sauce' );
+			$this->assertSame( 1, get_num_queries() - $num_queries );
+		}
 	}
 
 	/**
