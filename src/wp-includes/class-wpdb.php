@@ -2560,19 +2560,18 @@ class wpdb {
 	 *
 	 * @since x.y.z
 	 *
-	 * @param string          $table   Table name.
-	 * @param string[]        $columns Array of column names.
-	 * @param array[]         $rows    Array of rows of values to insert. Values should be "raw" (should not be SQL escaped).
-	 *                                 Sending a null value will cause the column to be set to NULL - the corresponding
-	 *                                 format is ignored in this case.
-	 * @param string[]|string $format  Optional. An array of formats to be mapped to each of the values in each row.
-	 *                                 If string, that format will be used for all of the values in `$data`.
-	 *                                 A format is one of '%d', '%f', '%s' (integer, float, string).
-	 *                                 If omitted, all values in `$data` will be treated as strings unless otherwise
-	 *                                 specified in wpdb::$field_types. Default null.
+	 * @param string            $table   Table name.
+	 * @param list<string>      $columns Array of column names.
+	 * @param list<list<mixed>> $rows    Array of rows of values to insert. Values should be "raw" (should not be SQL escaped).
+	 *                                   Sending a null value will cause the column to be set to NULL - the corresponding
+	 *                                   format is ignored in this case.
+	 * @param string[]          $format  Optional. An array of formats to be mapped to each of the values in each row.
+	 *                                   A format is one of '%d', '%f', '%s' (integer, float, string).
+	 *                                   If omitted, all values in `$data` will be treated as strings unless otherwise
+	 *                                   specified in wpdb::$field_types. Default empty array.
 	 * @return int|false The number of rows inserted, or false on error.
 	 */
-	public function insert_multiple( $table, array $columns, array $rows, array $format = null ) {
+	public function insert_multiple( string $table, array $columns, array $rows, array $format = array() ) {
 		$this->insert_id = 0;
 
 		$values_sql = array();
