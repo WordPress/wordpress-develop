@@ -1847,6 +1847,8 @@ EOF;
 		// Calculate a srcset array.
 		$sizes = explode( ', ', wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
 
+		$this->assertNotEmpty( $sizes );
+
 		// Test to confirm all sources in the array include the same edit hash.
 		foreach ( $sizes as $size ) {
 			$this->assertStringContainsString( $hash, $size );
@@ -3780,6 +3782,8 @@ EOF;
 
 		$query = $this->get_new_wp_query_for_published_post();
 
+		$this->assertTrue( have_posts() );
+
 		while ( have_posts() ) {
 			the_post();
 
@@ -3836,6 +3840,8 @@ EOF;
 
 		// Use the filter to alter the threshold for not lazy-loading to the first five elements.
 		$this->force_omit_loading_attr_threshold( 5 );
+
+		$this->assertTrue( have_posts() );
 
 		while ( have_posts() ) {
 			the_post();
