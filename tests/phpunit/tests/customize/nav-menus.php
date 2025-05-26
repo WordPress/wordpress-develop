@@ -769,25 +769,25 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $post_types );
 
-			foreach ( $post_types as $type ) {
-				$this->assertStringContainsString( 'available-menu-items-post_type-' . esc_attr( $type->name ), $template );
-				$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls=".*">\s*' . esc_html( $type->labels->name ) . '#', $template );
-				$this->assertStringContainsString( 'data-type="post_type"', $template );
-				$this->assertStringContainsString( 'data-object="' . esc_attr( $type->name ) . '"', $template );
-				$this->assertStringContainsString( 'data-type_label="' . esc_attr( $type->labels->singular_name ) . '"', $template );
-			}
+		foreach ( $post_types as $type ) {
+			$this->assertStringContainsString( 'available-menu-items-post_type-' . esc_attr( $type->name ), $template );
+			$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls=".*">\s*' . esc_html( $type->labels->name ) . '#', $template );
+			$this->assertStringContainsString( 'data-type="post_type"', $template );
+			$this->assertStringContainsString( 'data-object="' . esc_attr( $type->name ) . '"', $template );
+			$this->assertStringContainsString( 'data-type_label="' . esc_attr( $type->labels->singular_name ) . '"', $template );
+		}
 
 		$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => true ), 'object' );
 
 		$this->assertNotEmpty( $taxonomies );
 
-			foreach ( $taxonomies as $tax ) {
-				$this->assertStringContainsString( 'available-menu-items-taxonomy-' . esc_attr( $tax->name ), $template );
-				$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls=".*">\s*' . esc_html( $tax->labels->name ) . '#', $template );
-				$this->assertStringContainsString( 'data-type="taxonomy"', $template );
-				$this->assertStringContainsString( 'data-object="' . esc_attr( $tax->name ) . '"', $template );
-				$this->assertStringContainsString( 'data-type_label="' . esc_attr( $tax->labels->singular_name ) . '"', $template );
-			}
+		foreach ( $taxonomies as $tax ) {
+			$this->assertStringContainsString( 'available-menu-items-taxonomy-' . esc_attr( $tax->name ), $template );
+			$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls=".*">\s*' . esc_html( $tax->labels->name ) . '#', $template );
+			$this->assertStringContainsString( 'data-type="taxonomy"', $template );
+			$this->assertStringContainsString( 'data-object="' . esc_attr( $tax->name ) . '"', $template );
+			$this->assertStringContainsString( 'data-type_label="' . esc_attr( $tax->labels->singular_name ) . '"', $template );
+		}
 
 		$this->assertStringContainsString( 'available-menu-items-custom_type', $template );
 		$this->assertMatchesRegularExpression( '#<h4 class="accordion-section-title".*>\s*<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls=".*">\s*Custom#', $template );
