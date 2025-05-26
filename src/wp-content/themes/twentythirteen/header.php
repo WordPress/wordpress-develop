@@ -34,17 +34,15 @@
 		$site_name        = get_bloginfo( 'name' );
 		$site_description = get_bloginfo( 'description' );
 
-		if ( $site_name || $site_description ) :
-			?>
-			<a class="home-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>>
-				<?php if ( $site_name ) : ?>
-					<h1 class="site-title"><?php bloginfo( 'name' ); ?></h1>
-				<?php endif; ?>
-				<?php if ( $site_description ) : ?>
-					<h2 class="site-description"><?php bloginfo( 'description' ); ?></h2>
-				<?php endif; ?>
-			</a>
-		<?php endif; ?>
+		?>
+		<a class="home-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>>
+			<?php if ( $site_name ) : ?>
+				<h1 class="site-title"><?php echo $site_name; ?></h1>
+			<?php endif; ?>
+			<?php if ( $site_description ) : ?>
+				<h2 class="site-description"><?php echo $site_description; ?></h2>
+			<?php endif; ?>
+		</a>
 
 			<div id="navbar" class="navbar">
 				<nav id="site-navigation" class="navigation main-navigation">
