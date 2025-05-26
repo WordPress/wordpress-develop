@@ -711,54 +711,19 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
  */
 function wp_parse_url( $url, $component = -1 ) {
 
-	switch ( $component ) {
+	$translation = array(
+		'scheme'   => PHP_URL_SCHEME,
+		'host'     => PHP_URL_HOST,
+		'port'     => PHP_URL_PORT,
+		'user'     => PHP_URL_USER,
+		'pass'     => PHP_URL_PASS,
+		'path'     => PHP_URL_PATH,
+		'query'    => PHP_URL_QUERY,
+		'fragment' => PHP_URL_FRAGMENT,
+	);
 
-		case -1:
-		case PHP_URL_PATH:
-		case PHP_URL_QUERY:
-		case PHP_URL_SCHEME:
-		case PHP_URL_HOST:
-		case PHP_URL_PORT:
-		case PHP_URL_USER:
-		case PHP_URL_PASS:
-		case PHP_URL_FRAGMENT:
-			break;
-
-		case 'path':
-			$component = PHP_URL_PATH;
-			break;
-
-		case 'query':
-			$component = PHP_URL_QUERY;
-			break;
-
-		case 'scheme':
-			$component = PHP_URL_SCHEME;
-			break;
-
-		case 'host':
-			$component = PHP_URL_HOST;
-			break;
-
-		case 'port':
-			$component = PHP_URL_PORT;
-			break;
-
-		case 'user':
-			$component = PHP_URL_USER;
-			break;
-
-		case 'pass':
-			$component = PHP_URL_PASS;
-			break;
-
-		case 'fragment':
-			$component = PHP_URL_FRAGMENT;
-			break;
-
-		default:
-			return null;
-			break;
+	if ( isset( $translation[ $component ] ) ) {
+		$component = $translation[ $component ];
 	}
 
 	return parse_url( (string) $url, $component );
