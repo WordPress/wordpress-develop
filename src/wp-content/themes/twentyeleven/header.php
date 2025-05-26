@@ -96,8 +96,8 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 			</hgroup>
 
 			<?php
-				// Check to see if the header image has been removed.
-				$header_image = get_header_image();
+			// Check to see if the header image has been removed.
+			$header_image = get_header_image();
 			if ( $header_image ) :
 				// Compatibility with versions of WordPress prior to 3.4.
 				if ( function_exists( 'get_custom_header' ) ) {
