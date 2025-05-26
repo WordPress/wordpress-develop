@@ -757,6 +757,28 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'common', "/wp-admin/js/common$suffix.js", array( 'jquery', 'hoverIntent', 'utils', 'wp-a11y' ), false, 1 );
 	$scripts->set_translations( 'common' );
 
+	$bulk_action_observer_ids = array(
+		'bulk_action' => 'action',
+		'changeit'    => 'new_role',
+	);
+	did_action( 'init' ) && $scripts->localize(
+		'common',
+		'bulkActionObserverIds',
+		/**
+		 * Filters the array of field name attributes for bulk actions.
+		 *
+		 * @since 6.8.1
+		 *
+		 * @param array $bulk_action_observer_ids {
+		 *      An array of field name attributes for bulk actions.
+		 *
+		 *      @type string $bulk_action The bulk action field name. Default 'action'.
+		 *      @type string $changeit    The new role field name. Default 'new_role'.
+		 * }
+		 */
+		apply_filters( 'bulk_action_observer_ids', $bulk_action_observer_ids )
+	);
+
 	$scripts->add( 'wp-sanitize', "/wp-includes/js/wp-sanitize$suffix.js", array(), false, 1 );
 
 	$scripts->add( 'sack', "/wp-includes/js/tw-sack$suffix.js", array(), '1.6.1', 1 );
@@ -1475,7 +1497,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'wp-color-picker', "/wp-admin/js/color-picker$suffix.js", array( 'iris' ), false, 1 );
 		$scripts->set_translations( 'wp-color-picker' );
 
-		$scripts->add( 'dashboard', "/wp-admin/js/dashboard$suffix.js", array( 'jquery', 'admin-comments', 'postbox', 'wp-util', 'wp-a11y', 'wp-date' ), false, 1 );
+		$scripts->add( 'dashboard', "/wp-admin/js/dashboard$suffix.js", array( 'common', 'jquery', 'admin-comments', 'postbox', 'wp-util', 'wp-a11y', 'wp-date' ), false, 1 );
 		$scripts->set_translations( 'dashboard' );
 
 		$scripts->add( 'list-revisions', "/wp-includes/js/wp-list-revisions$suffix.js" );
@@ -1661,6 +1683,10 @@ function wp_default_styles( $styles ) {
 	$block_library_theme_path = WPINC . "/css/dist/block-library/theme$suffix.css";
 	$styles->add( 'wp-block-library-theme', "/$block_library_theme_path" );
 	$styles->add_data( 'wp-block-library-theme', 'path', ABSPATH . $block_library_theme_path );
+
+	$classic_theme_styles_path = WPINC . "/css/classic-themes$suffix.css";
+	$styles->add( 'classic-theme-styles', "/$classic_theme_styles_path" );
+	$styles->add_data( 'classic-theme-styles', 'path', ABSPATH . $classic_theme_styles_path );
 
 	$styles->add(
 		'wp-reset-editor-styles',
@@ -2653,12 +2679,8 @@ function wp_should_load_block_assets_on_demand() {
  * context (only enqueuing editor scripts while in context of the editor).
  *
  * @since 5.0.0
- *
- * @global WP_Screen $current_screen WordPress current screen object.
  */
 function wp_enqueue_registered_block_scripts_and_styles() {
-	global $current_screen;
-
 	if ( wp_should_load_block_assets_on_demand() ) {
 		return;
 	}
@@ -2874,7 +2896,7 @@ function wp_get_script_tag( $attributes ) {
 /**
  * Prints formatted `<script>` loader tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
@@ -2888,7 +2910,7 @@ function wp_print_script_tag( $attributes ) {
 /**
  * Constructs an inline script tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
@@ -2977,7 +2999,7 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 /**
  * Prints an inline script tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
@@ -3351,52 +3373,16 @@ function wp_enqueue_block_style( $block_name, $args ) {
 /**
  * Loads classic theme styles on classic themes in the frontend.
  *
- * This is needed for backwards compatibility for button blocks specifically.
+ * This is used for backwards compatibility for Button and File blocks specifically.
  *
  * @since 6.1.0
+ * @since 6.2.0 Added File block styles.
+ * @since 6.8.0 Moved stylesheet registration outside of this function.
  */
 function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_theme_has_theme_json() ) {
-		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css" );
-		wp_style_add_data( 'classic-theme-styles', 'path', ABSPATH . WPINC . "/css/classic-themes$suffix.css" );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
-}
-
-/**
- * Loads classic theme styles on classic themes in the editor.
- *
- * This is needed for backwards compatibility for button blocks specifically.
- *
- * @since 6.1.0
- *
- * @param array $editor_settings The array of editor settings.
- * @return array A filtered array of editor settings.
- */
-function wp_add_editor_classic_theme_styles( $editor_settings ) {
-	if ( wp_theme_has_theme_json() ) {
-		return $editor_settings;
-	}
-
-	$suffix               = wp_scripts_get_suffix();
-	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
-
-	/*
-	 * This follows the pattern of get_block_editor_theme_styles,
-	 * but we can't use get_block_editor_theme_styles directly as it
-	 * only handles external files or theme files.
-	 */
-	$classic_theme_styles_settings = array(
-		'css'            => file_get_contents( $classic_theme_styles ),
-		'__unstableType' => 'core',
-		'isGlobalStyles' => false,
-	);
-
-	// Add these settings to the start of the array so that themes can override them.
-	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
-
-	return $editor_settings;
 }
 
 /**
