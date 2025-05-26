@@ -1081,7 +1081,7 @@ class Snoopy
 		else
 			$this->results = $results;
 
-		unlink("$headerfile");
+		wp_delete_file("$headerfile");
 
 		return true;
 	}

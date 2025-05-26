@@ -385,7 +385,7 @@ class WP_Upgrader {
 
 		// Once extracted, delete the package if required.
 		if ( $delete_package ) {
-			unlink( $package );
+			wp_delete_file( $package );
 		}
 
 		if ( is_wp_error( $result ) ) {

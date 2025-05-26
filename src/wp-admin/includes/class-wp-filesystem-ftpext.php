@@ -139,13 +139,13 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		$temphandle = fopen( $tempfile, 'w+' );
 
 		if ( ! $temphandle ) {
-			unlink( $tempfile );
+			wp_delete_file( $tempfile );
 			return false;
 		}
 
 		if ( ! ftp_fget( $this->link, $temphandle, $file, FTP_BINARY ) ) {
 			fclose( $temphandle );
-			unlink( $tempfile );
+			wp_delete_file( $tempfile );
 			return false;
 		}
 
@@ -157,7 +157,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		}
 
 		fclose( $temphandle );
-		unlink( $tempfile );
+		wp_delete_file( $tempfile );
 
 		return $contents;
 	}
@@ -190,7 +190,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		$temphandle = fopen( $tempfile, 'wb+' );
 
 		if ( ! $temphandle ) {
-			unlink( $tempfile );
+			wp_delete_file( $tempfile );
 			return false;
 		}
 
@@ -203,7 +203,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 		if ( $data_length !== $bytes_written ) {
 			fclose( $temphandle );
-			unlink( $tempfile );
+			wp_delete_file( $tempfile );
 			return false;
 		}
 
@@ -212,7 +212,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		$ret = ftp_fput( $this->link, $file, $temphandle, FTP_BINARY );
 
 		fclose( $temphandle );
-		unlink( $tempfile );
+		wp_delete_file( $tempfile );
 
 		$this->chmod( $file, $mode );
 

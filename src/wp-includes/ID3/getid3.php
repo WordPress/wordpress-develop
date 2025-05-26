@@ -1849,8 +1849,8 @@ class getID3
 				}
 
 				// Clean up
-				unlink($empty);
-				unlink($temp);
+				wp_delete_file($empty);
+				wp_delete_file($temp);
 
 				// Reset abort setting
 				ignore_user_abort($old_abort);
@@ -2475,7 +2475,7 @@ abstract class getid3_handler
 			}
 
 			if (isset($dest) && file_exists($dest)) {
-				unlink($dest);
+				wp_delete_file($dest);
 			}
 
 			// do not set any is case of error

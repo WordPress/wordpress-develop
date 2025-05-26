@@ -1013,10 +1013,10 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 		if ( 'wp_handle_upload' === $action ) {
 			$move_new_file = @move_uploaded_file( $file['tmp_name'], $new_file );
 		} else {
-			// Use copy and unlink because rename breaks streams.
+			// Use copy and wp_delete_file because rename breaks streams.
 			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 			$move_new_file = @copy( $file['tmp_name'], $new_file );
-			unlink( $file['tmp_name'] );
+			wp_delete_file( $file['tmp_name'] );
 		}
 
 		if ( false === $move_new_file ) {
@@ -1179,7 +1179,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 	);
 
 	if ( is_wp_error( $response ) ) {
-		unlink( $tmpfname );
+		wp_delete_file( $tmpfname );
 		return $response;
 	}
 
@@ -1209,7 +1209,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			fclose( $tmpf );
 		}
 
-		unlink( $tmpfname );
+		wp_delete_file( $tmpfname );
 
 		return new WP_Error( 'http_404', trim( wp_remote_retrieve_response_message( $response ) ), $data );
 	}
@@ -1236,7 +1236,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			}
 
 			if ( ( $tmpfname !== $tmpfname_disposition ) && file_exists( $tmpfname_disposition ) ) {
-				unlink( $tmpfname_disposition );
+				wp_delete_file( $tmpfname_disposition );
 			}
 		}
 	}
@@ -1253,7 +1253,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 				}
 
 				if ( ( $tmpfname !== $new_image_name ) && file_exists( $new_image_name ) ) {
-					unlink( $new_image_name );
+					wp_delete_file( $new_image_name );
 				}
 			}
 		}
@@ -1265,7 +1265,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		$md5_check = verify_file_md5( $tmpfname, $content_md5 );
 
 		if ( is_wp_error( $md5_check ) ) {
-			unlink( $tmpfname );
+			wp_delete_file( $tmpfname );
 			return $md5_check;
 		}
 	}
@@ -1345,7 +1345,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			$signature_verification->add_data( $tmpfname, 'softfail-filename' );
 		} else {
 			// Hard-fail.
-			unlink( $tmpfname );
+			wp_delete_file( $tmpfname );
 		}
 
 		return $signature_verification;
@@ -2305,7 +2305,7 @@ function get_filesystem_method( $args = array(), $context = '', $allow_relaxed_f
 			}
 
 			fclose( $temp_handle );
-			@unlink( $temp_file_name );
+			wp_delete_file( $temp_file_name );
 		}
 	}
 

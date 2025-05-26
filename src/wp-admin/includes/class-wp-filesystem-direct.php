@@ -379,7 +379,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 		$file = str_replace( '\\', '/', $file ); // For Win32, occasional problems deleting files otherwise.
 
 		if ( 'f' === $type || $this->is_file( $file ) ) {
-			return @unlink( $file );
+			return wp_delete_file( $file );
 		}
 
 		if ( ! $recursive && $this->is_dir( $file ) ) {

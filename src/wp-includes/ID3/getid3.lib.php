@@ -1531,7 +1531,7 @@ class getid3_lib
 				$GetDataImageSize['height'] = $GetDataImageSize[0];
 				$GetDataImageSize['width']  = $GetDataImageSize[1];
 			}
-			unlink($tempfilename);
+			wp_delete_file($tempfilename);
 		}
 		return $GetDataImageSize;
 	}
