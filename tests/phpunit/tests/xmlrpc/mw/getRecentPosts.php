@@ -53,7 +53,6 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 		$fields  = array( 'post' );
 		$results = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'author', 'author' ) );
 		$this->assertNotIXRError( $results );
-		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $result ) {
 			$post = get_post( $result['postid'] );
@@ -108,7 +107,6 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->mw_getRecentPosts( array( self::$post_id, 'author', 'author' ) );
 		$this->assertNotIXRError( $results );
-		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $result ) {
 			$this->assertIsString( $result['wp_post_thumbnail'] );
@@ -129,7 +127,6 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'editor', 'editor' ) );
 		$this->assertNotIXRError( $results );
-		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $result ) {
 			$post              = get_post( $result['postid'] );

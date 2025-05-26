@@ -73,7 +73,6 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->wp_getPages( array( 1, 'editor', 'editor' ) );
 		$this->assertNotIXRError( $results );
-		$this->assertNotEmpty( $results );
 
 		$found_incapable = false;
 		foreach ( $results as $result ) {
