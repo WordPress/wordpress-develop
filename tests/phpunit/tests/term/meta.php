@@ -134,25 +134,25 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		$this->assertTrue( have_posts() );
 
-			while ( have_posts() ) {
-				the_post();
+		while ( have_posts() ) {
+			the_post();
 
-				// First request will hit the database.
-				$num_queries = get_num_queries();
-				$this->assertSame( 'bar', get_term_meta( $terms[0], 'foo', true ) );
-				++$num_queries;
-				$this->assertSame( $num_queries, get_num_queries() );
+			// First request will hit the database.
+			$num_queries = get_num_queries();
+			$this->assertSame( 'bar', get_term_meta( $terms[0], 'foo', true ) );
+			++$num_queries;
+			$this->assertSame( $num_queries, get_num_queries() );
 
-				// Second and third requests should be in cache.
-				$this->assertSame( 'bar', get_term_meta( $terms[1], 'foo', true ) );
-				$this->assertSame( 'bar', get_term_meta( $terms[2], 'foo', true ) );
-				$this->assertSame( $num_queries, get_num_queries() );
+			// Second and third requests should be in cache.
+			$this->assertSame( 'bar', get_term_meta( $terms[1], 'foo', true ) );
+			$this->assertSame( 'bar', get_term_meta( $terms[2], 'foo', true ) );
+			$this->assertSame( $num_queries, get_num_queries() );
 
-				// Querying a term not primed should result in a hit.
-				++$num_queries;
-				$this->assertSame( 'bar', get_term_meta( $orphan_term, 'foo', true ) );
-				$this->assertSame( $num_queries, get_num_queries() );
-			}
+			// Querying a term not primed should result in a hit.
+			++$num_queries;
+			$this->assertSame( 'bar', get_term_meta( $orphan_term, 'foo', true ) );
+			$this->assertSame( $num_queries, get_num_queries() );
+		}
 	}
 
 	public static function set_cache_results( $q ) {
@@ -203,19 +203,19 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		$this->assertTrue( $q->have_posts() );
 
-			while ( $q->have_posts() ) {
-				$q->the_post();
+		while ( $q->have_posts() ) {
+			$q->the_post();
 
-				// Requests will hit the database.
-				$num_queries = get_num_queries();
-				$this->assertSame( 'bar', get_term_meta( $terms[0], 'foo', true ) );
-				++$num_queries;
-				$this->assertSame( $num_queries, get_num_queries() );
+			// Requests will hit the database.
+			$num_queries = get_num_queries();
+			$this->assertSame( 'bar', get_term_meta( $terms[0], 'foo', true ) );
+			++$num_queries;
+			$this->assertSame( $num_queries, get_num_queries() );
 
-				$this->assertSame( 'bar', get_term_meta( $terms[1], 'foo', true ) );
-				++$num_queries;
-				$this->assertSame( $num_queries, get_num_queries() );
-			}
+			$this->assertSame( 'bar', get_term_meta( $terms[1], 'foo', true ) );
+			++$num_queries;
+			$this->assertSame( $num_queries, get_num_queries() );
+		}
 	}
 
 	public function test_adding_term_meta_should_bust_get_terms_cache() {
