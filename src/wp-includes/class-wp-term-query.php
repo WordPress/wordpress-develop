@@ -91,6 +91,7 @@ class WP_Term_Query {
 	 * @since 4.9.0 Added 'slug__in' support for 'orderby'.
 	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
+	 * @since 6.4.0 Introduced the 'cache_results' parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of term query parameters. Default empty.
@@ -147,8 +148,6 @@ class WP_Term_Query {
 	 *                                                   - 'id=>slug' Returns an associative array of term slugs,
 	 *                                                      keyed by term ID (`string[]`).
 	 *                                                   Default 'all'.
-	 *     @type bool            $count                  Whether to return a term count. If true, will take precedence
-	 *                                                   over `$fields`. Default false.
 	 *     @type string|string[] $name                   Name or array of names to return term(s) for.
 	 *                                                   Default empty.
 	 *     @type string|string[] $slug                   Slug or array of slugs to return term(s) for.
@@ -178,6 +177,7 @@ class WP_Term_Query {
 	 *                                                   Default false.
 	 *     @type string          $cache_domain           Unique cache key to be produced when this query is stored in
 	 *                                                   an object cache. Default 'core'.
+	 *     @type bool            $cache_results          Whether to cache term information. Default true.
 	 *     @type bool            $update_term_meta_cache Whether to prime meta caches for matched terms. Default true.
 	 *     @type string|string[] $meta_key               Meta key or keys to filter by.
 	 *     @type string|string[] $meta_value             Meta value or values to filter by.
@@ -206,7 +206,6 @@ class WP_Term_Query {
 			'number'                 => '',
 			'offset'                 => '',
 			'fields'                 => 'all',
-			'count'                  => false,
 			'name'                   => '',
 			'slug'                   => '',
 			'term_taxonomy_id'       => '',
@@ -220,6 +219,7 @@ class WP_Term_Query {
 			'parent'                 => '',
 			'childless'              => false,
 			'cache_domain'           => 'core',
+			'cache_results'          => true,
 			'update_term_meta_cache' => true,
 			'meta_query'             => '',
 			'meta_key'               => '',
@@ -238,7 +238,7 @@ class WP_Term_Query {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param string|array $query WP_Term_Query arguments. See WP_Term_Query::__construct()
+	 * @param string|array $query WP_Term_Query arguments. See WP_Term_Query::__construct() for accepted arguments.
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -301,7 +301,7 @@ class WP_Term_Query {
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
 	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
-	 *                                         when 'count' is passed as a query var.
+	 *                                         when 'count' is passed to `$args['fields']`.
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -343,7 +343,7 @@ class WP_Term_Query {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
-	 *                                         when 'count' is passed as a query var.
+	 *                                         when 'count' is passed to `$args['fields']`.
 	 */
 	public function get_terms() {
 		global $wpdb;
@@ -738,6 +738,8 @@ class WP_Term_Query {
 		$order    = isset( $clauses['order'] ) ? $clauses['order'] : '';
 		$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
 
+		$fields_is_filtered = implode( ', ', $selects ) !== $fields;
+
 		if ( $where ) {
 			$where = "WHERE $where";
 		}
@@ -747,13 +749,13 @@ class WP_Term_Query {
 		$this->sql_clauses['orderby'] = $orderby ? "$orderby $order" : '';
 		$this->sql_clauses['limits']  = $limits;
 
-		$this->request = "
-			{$this->sql_clauses['select']}
-			{$this->sql_clauses['from']}
-			{$where}
-			{$this->sql_clauses['orderby']}
-			{$this->sql_clauses['limits']}
-		";
+		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+		$this->request =
+			"{$this->sql_clauses['select']}
+			 {$this->sql_clauses['from']}
+			 {$where}
+			 {$this->sql_clauses['orderby']}
+			 {$this->sql_clauses['limits']}";
 
 		$this->terms = null;
 
@@ -774,41 +776,47 @@ class WP_Term_Query {
 			return $this->terms;
 		}
 
-		$cache_key = $this->generate_cache_key( $args, $this->request );
-		$cache     = wp_cache_get( $cache_key, 'term-queries' );
+		if ( $args['cache_results'] ) {
+			$cache_key = $this->generate_cache_key( $args, $this->request );
+			$cache     = wp_cache_get( $cache_key, 'term-queries' );
 
-		if ( false !== $cache ) {
-			if ( 'ids' === $_fields ) {
-				$cache = array_map( 'intval', $cache );
-			} elseif ( 'count' !== $_fields ) {
-				if ( ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) )
-					|| ( 'all' === $_fields && $args['pad_counts'] )
-				) {
-					$term_ids = wp_list_pluck( $cache, 'term_id' );
-				} else {
-					$term_ids = array_map( 'intval', $cache );
+			if ( false !== $cache ) {
+				if ( 'ids' === $_fields ) {
+					$cache = array_map( 'intval', $cache );
+				} elseif ( 'count' !== $_fields ) {
+					if ( ( 'all_with_object_id' === $_fields && ! empty( $args['object_ids'] ) )
+					|| ( 'all' === $_fields && $args['pad_counts'] || $fields_is_filtered )
+					) {
+						$term_ids = wp_list_pluck( $cache, 'term_id' );
+					} else {
+						$term_ids = array_map( 'intval', $cache );
+					}
+
+					_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
+
+					$term_objects = $this->populate_terms( $cache );
+					$cache        = $this->format_terms( $term_objects, $_fields );
 				}
 
-				_prime_term_caches( $term_ids, $args['update_term_meta_cache'] );
-
-				$term_objects = $this->populate_terms( $cache );
-				$cache        = $this->format_terms( $term_objects, $_fields );
+				$this->terms = $cache;
+				return $this->terms;
 			}
-
-			$this->terms = $cache;
-			return $this->terms;
 		}
 
 		if ( 'count' === $_fields ) {
 			$count = $wpdb->get_var( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-			wp_cache_set( $cache_key, $count, 'term-queries' );
+			if ( $args['cache_results'] ) {
+				wp_cache_set( $cache_key, $count, 'term-queries' );
+			}
 			return $count;
 		}
 
 		$terms = $wpdb->get_results( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		if ( empty( $terms ) ) {
-			wp_cache_add( $cache_key, array(), 'term-queries' );
+			if ( $args['cache_results'] ) {
+				wp_cache_add( $cache_key, array(), 'term-queries' );
+			}
 			return array();
 		}
 
@@ -884,11 +892,16 @@ class WP_Term_Query {
 				$object->count   = $term->count;
 				$term_cache[]    = $object;
 			}
+		} elseif ( $fields_is_filtered ) {
+			$term_cache = $term_objects;
 		} else {
 			$term_cache = wp_list_pluck( $term_objects, 'term_id' );
 		}
 
-		wp_cache_add( $cache_key, $term_cache, 'term-queries' );
+		if ( $args['cache_results'] ) {
+			wp_cache_add( $cache_key, $term_cache, 'term-queries' );
+		}
+
 		$this->terms = $this->format_terms( $term_objects, $_fields );
 
 		return $this->terms;
@@ -1149,17 +1162,16 @@ class WP_Term_Query {
 		// $args can be anything. Only use the args defined in defaults to compute the key.
 		$cache_args = wp_array_slice_assoc( $args, array_keys( $this->query_var_defaults ) );
 
-		unset( $cache_args['update_term_meta_cache'] );
+		unset( $cache_args['cache_results'], $cache_args['update_term_meta_cache'] );
 
 		if ( 'count' !== $args['fields'] && 'all_with_object_id' !== $args['fields'] ) {
 			$cache_args['fields'] = 'all';
 		}
-		$taxonomies = (array) $args['taxonomy'];
 
 		// Replace wpdb placeholder in the SQL statement used by the cache key.
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 
-		$key          = md5( serialize( $cache_args ) . serialize( $taxonomies ) . $sql );
+		$key          = md5( serialize( $cache_args ) . $sql );
 		$last_changed = wp_cache_get_last_changed( 'terms' );
 		return "get_terms:$key:$last_changed";
 	}

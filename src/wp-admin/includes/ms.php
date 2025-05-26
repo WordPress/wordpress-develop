@@ -305,7 +305,9 @@ function upload_space_setting( $id ) {
 	<tr>
 		<th><label for="blog-upload-space-number"><?php _e( 'Site Upload Space Quota' ); ?></label></th>
 		<td>
-			<input type="number" step="1" min="0" style="width: 100px" name="option[blog_upload_space]" id="blog-upload-space-number" aria-describedby="blog-upload-space-desc" value="<?php echo $quota; ?>" />
+			<input type="number" step="1" min="0" style="width: 100px"
+				name="option[blog_upload_space]" id="blog-upload-space-number"
+				aria-describedby="blog-upload-space-desc" value="<?php echo esc_attr( $quota ); ?>" />
 			<span id="blog-upload-space-desc"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
@@ -692,11 +694,20 @@ function site_admin_notice() {
 	}
 
 	if ( (int) get_site_option( 'wpmu_upgrade_site' ) !== $wp_db_version ) {
-		echo "<div class='update-nag notice notice-warning inline'>" . sprintf(
+		$upgrade_network_message = sprintf(
 			/* translators: %s: URL to Upgrade Network screen. */
 			__( 'Thank you for Updating! Please visit the <a href="%s">Upgrade Network</a> page to update all your sites.' ),
 			esc_url( network_admin_url( 'upgrade.php' ) )
-		) . '</div>';
+		);
+
+		wp_admin_notice(
+			$upgrade_network_message,
+			array(
+				'type'               => 'warning',
+				'additional_classes' => array( 'update-nag', 'inline' ),
+				'paragraph_wrap'     => false,
+			)
+		);
 	}
 }
 
@@ -734,7 +745,7 @@ function avoid_blog_page_permalink_collision( $data, $postarr ) {
 
 	while ( $c < 10 && get_id_from_blogname( $post_name ) ) {
 		$post_name .= mt_rand( 1, 10 );
-		$c++;
+		++$c;
 	}
 
 	if ( $post_name !== $data['post_name'] ) {
@@ -1158,6 +1169,20 @@ function get_site_screen_help_tab_args() {
  */
 function get_site_screen_help_sidebar_content() {
 	return '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/documentation/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-sites-screen">Documentation on Site Management</a>' ) . '</p>' .
 		'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>';
+}
+
+/**
+ * Stop execution if the role can not be assigned by the current user.
+ *
+ * @since 6.8.0
+ *
+ * @param string $role Role the user is attempting to assign.
+ */
+function wp_ensure_editable_role( $role ) {
+	$roles = get_editable_roles();
+	if ( ! isset( $roles[ $role ] ) ) {
+		wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
+	}
 }

@@ -50,7 +50,10 @@ class WP_Links_List_Table extends WP_List_Table {
 	public function prepare_items() {
 		global $cat_id, $s, $orderby, $order;
 
-		wp_reset_vars( array( 'action', 'cat_id', 'link_id', 'orderby', 'order', 's' ) );
+		$cat_id  = ! empty( $_REQUEST['cat_id'] ) ? absint( $_REQUEST['cat_id'] ) : 0;
+		$orderby = ! empty( $_REQUEST['orderby'] ) ? sanitize_text_field( $_REQUEST['orderby'] ) : '';
+		$order   = ! empty( $_REQUEST['order'] ) ? sanitize_text_field( $_REQUEST['order'] ) : '';
+		$s       = ! empty( $_REQUEST['s'] ) ? sanitize_text_field( $_REQUEST['s'] ) : '';
 
 		$args = array(
 			'hide_invisible' => 0,
@@ -174,7 +177,8 @@ class WP_Links_List_Table extends WP_List_Table {
 		$link = $item;
 
 		?>
-		<label class="label-covers-full-cell" for="cb-select-<?php echo $link->link_id; ?>">
+		<input type="checkbox" name="linkcheck[]" id="cb-select-<?php echo $link->link_id; ?>" value="<?php echo esc_attr( $link->link_id ); ?>" />
+		<label for="cb-select-<?php echo $link->link_id; ?>">
 			<span class="screen-reader-text">
 			<?php
 			/* translators: Hidden accessibility text. %s: Link name. */
@@ -182,7 +186,6 @@ class WP_Links_List_Table extends WP_List_Table {
 			?>
 			</span>
 		</label>
-		<input type="checkbox" name="linkcheck[]" id="cb-select-<?php echo $link->link_id; ?>" value="<?php echo esc_attr( $link->link_id ); ?>" />
 		<?php
 	}
 
@@ -290,6 +293,9 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * @param string $column_name Current column name.
 	 */
 	public function column_default( $item, $column_name ) {
+		// Restores the more descriptive, specific name for use within this method.
+		$link = $item;
+
 		/**
 		 * Fires for each registered custom link column.
 		 *
@@ -298,9 +304,14 @@ class WP_Links_List_Table extends WP_List_Table {
 		 * @param string $column_name Name of the custom column.
 		 * @param int    $link_id     Link ID.
 		 */
-		do_action( 'manage_link_custom_column', $column_name, $item->link_id );
+		do_action( 'manage_link_custom_column', $column_name, $link->link_id );
 	}
 
+	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 */
 	public function display_rows() {
 		foreach ( $this->items as $link ) {
 			$link                = sanitize_bookmark( $link );
@@ -332,7 +343,8 @@ class WP_Links_List_Table extends WP_List_Table {
 		}
 
 		// Restores the more descriptive, specific name for use within this method.
-		$link      = $item;
+		$link = $item;
+
 		$edit_link = get_edit_bookmark_link( $link );
 
 		$actions           = array();

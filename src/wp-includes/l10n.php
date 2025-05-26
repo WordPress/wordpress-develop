@@ -116,7 +116,8 @@ function get_user_locale( $user = 0 ) {
  *
  * @since 5.0.0
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string $pagenow          The filename of the current screen.
+ * @global string $wp_local_package Locale code of the package.
  *
  * @return string The determined locale.
  */
@@ -150,6 +151,15 @@ function determine_locale() {
 		( isset( $_GET['_locale'] ) && 'user' === $_GET['_locale'] && wp_is_json_request() )
 	) {
 		$determined_locale = get_user_locale();
+	} elseif (
+		( ! empty( $_REQUEST['language'] ) || isset( $GLOBALS['wp_local_package'] ) )
+		&& wp_installing()
+	) {
+		if ( ! empty( $_REQUEST['language'] ) ) {
+			$determined_locale = sanitize_locale_name( $_REQUEST['language'] );
+		} else {
+			$determined_locale = $GLOBALS['wp_local_package'];
+		}
 	}
 
 	if ( ! $determined_locale ) {
@@ -161,7 +171,7 @@ function determine_locale() {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param string $locale The locale.
+	 * @param string $determined_locale The locale.
 	 */
 	return apply_filters( 'determine_locale', $determined_locale );
 }
@@ -719,6 +729,10 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 
 	$l10n_unloaded = (array) $l10n_unloaded;
 
+	if ( ! is_string( $domain ) ) {
+		return false;
+	}
+
 	/**
 	 * Filters whether to short-circuit loading .mo file.
 	 *
@@ -780,32 +794,73 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
 	 */
 	$mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
 
-	if ( ! is_readable( $mofile ) ) {
-		return false;
-	}
-
 	if ( ! $locale ) {
 		$locale = determine_locale();
 	}
 
-	$mo = new MO();
-	if ( ! $mo->import_from_file( $mofile ) ) {
-		$wp_textdomain_registry->set( $domain, $locale, false );
+	$i18n_controller = WP_Translation_Controller::get_instance();
 
-		return false;
+	// Ensures the correct locale is set as the current one, in case it was filtered.
+	$i18n_controller->set_locale( $locale );
+
+	/**
+	 * Filters the preferred file format for translation files.
+	 *
+	 * Can be used to disable the use of PHP files for translations.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param string $preferred_format Preferred file format. Possible values: 'php', 'mo'. Default: 'php'.
+	 * @param string $domain           The text domain.
+	 */
+	$preferred_format = apply_filters( 'translation_file_format', 'php', $domain );
+	if ( ! in_array( $preferred_format, array( 'php', 'mo' ), true ) ) {
+		$preferred_format = 'php';
 	}
 
-	if ( isset( $l10n[ $domain ] ) ) {
-		$mo->merge_with( $l10n[ $domain ] );
+	$translation_files = array();
+
+	if ( 'mo' !== $preferred_format ) {
+		$translation_files[] = substr_replace( $mofile, ".l10n.$preferred_format", - strlen( '.mo' ) );
 	}
 
-	unset( $l10n_unloaded[ $domain ] );
+	$translation_files[] = $mofile;
 
-	$l10n[ $domain ] = &$mo;
+	foreach ( $translation_files as $file ) {
+		/**
+		 * Filters the file path for loading translations for the given text domain.
+		 *
+		 * Similar to the {@see 'load_textdomain_mofile'} filter with the difference that
+		 * the file path could be for an MO or PHP file.
+		 *
+		 * @since 6.5.0
+		 * @since 6.6.0 Added the `$locale` parameter.
+		 *
+		 * @param string $file   Path to the translation file to load.
+		 * @param string $domain The text domain.
+		 * @param string $locale The locale.
+		 */
+		$file = (string) apply_filters( 'load_translation_file', $file, $domain, $locale );
 
-	$wp_textdomain_registry->set( $domain, $locale, dirname( $mofile ) );
+		$success = $i18n_controller->load_file( $file, $domain, $locale );
 
-	return true;
+		if ( $success ) {
+			if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof MO ) {
+				$i18n_controller->load_file( $l10n[ $domain ]->get_filename(), $domain, $locale );
+			}
+
+			// Unset NOOP_Translations reference in get_translations_for_domain().
+			unset( $l10n[ $domain ] );
+
+			$l10n[ $domain ] = new WP_Translations( $i18n_controller, $domain );
+
+			$wp_textdomain_registry->set( $domain, $locale, dirname( $file ) );
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -857,6 +912,11 @@ function unload_textdomain( $domain, $reloadable = false ) {
 	 */
 	do_action( 'unload_textdomain', $domain, $reloadable );
 
+	// Since multiple locales are supported, reloadable text domains don't actually need to be unloaded.
+	if ( ! $reloadable ) {
+		WP_Translation_Controller::get_instance()->unload_textdomain( $domain );
+	}
+
 	if ( isset( $l10n[ $domain ] ) ) {
 		if ( $l10n[ $domain ] instanceof NOOP_Translations ) {
 			unset( $l10n[ $domain ] );
@@ -895,7 +955,7 @@ function load_default_textdomain( $locale = null ) {
 	}
 
 	// Unload previously loaded strings so we can switch translations.
-	unload_textdomain( 'default' );
+	unload_textdomain( 'default', true );
 
 	$return = load_textdomain( 'default', WP_LANG_DIR . "/$locale.mo", $locale );
 
@@ -904,7 +964,7 @@ function load_default_textdomain( $locale = null ) {
 		return $return;
 	}
 
-	if ( is_admin() || wp_installing() || ( defined( 'WP_REPAIRING' ) && WP_REPAIRING ) ) {
+	if ( is_admin() || wp_installing() || ( defined( 'WP_REPAIRING' ) && WP_REPAIRING ) || doing_action( 'wp_maybe_auto_update' ) ) {
 		load_textdomain( 'default', WP_LANG_DIR . "/admin-$locale.mo", $locale );
 	}
 
@@ -924,6 +984,10 @@ function load_default_textdomain( $locale = null ) {
  *
  * @since 1.5.0
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
+ * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
+ *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global array<string, WP_Translations|NOOP_Translations> $l10n An array of all currently loaded text domains.
  *
  * @param string       $domain          Unique identifier for retrieving translated strings
  * @param string|false $deprecated      Optional. Deprecated. Use the $plugin_rel_path parameter instead.
@@ -934,23 +998,11 @@ function load_default_textdomain( $locale = null ) {
  */
 function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path = false ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	global $wp_textdomain_registry;
+	/** @var array<string, WP_Translations|NOOP_Translations> $l10n */
+	global $wp_textdomain_registry, $l10n;
 
-	/**
-	 * Filters a plugin's locale.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param string $locale The plugin's current locale.
-	 * @param string $domain Text domain. Unique identifier for retrieving translated strings.
-	 */
-	$locale = apply_filters( 'plugin_locale', determine_locale(), $domain );
-
-	$mofile = $domain . '-' . $locale . '.mo';
-
-	// Try to load from the languages directory first.
-	if ( load_textdomain( $domain, WP_LANG_DIR . '/plugins/' . $mofile, $locale ) ) {
-		return true;
+	if ( ! is_string( $domain ) ) {
+		return false;
 	}
 
 	if ( false !== $plugin_rel_path ) {
@@ -964,7 +1016,12 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 
 	$wp_textdomain_registry->set_custom_path( $domain, $path );
 
-	return load_textdomain( $domain, $path . '/' . $mofile, $locale );
+	// If just-in-time loading was triggered before, reset the entry so it can be tried again.
+	if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof NOOP_Translations ) {
+		unset( $l10n[ $domain ] );
+	}
+
+	return true;
 }
 
 /**
@@ -972,8 +1029,10 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  *
  * @since 3.0.0
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
+ * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global array<string, WP_Translations|NOOP_Translations> $l10n An array of all currently loaded text domains.
  *
  * @param string $domain             Text domain. Unique identifier for retrieving translated strings.
  * @param string $mu_plugin_rel_path Optional. Relative to `WPMU_PLUGIN_DIR` directory in which the .mo
@@ -982,23 +1041,23 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  */
 function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	global $wp_textdomain_registry;
+	/** @var array<string, WP_Translations|NOOP_Translations> $l10n */
+	global $wp_textdomain_registry, $l10n;
 
-	/** This filter is documented in wp-includes/l10n.php */
-	$locale = apply_filters( 'plugin_locale', determine_locale(), $domain );
-
-	$mofile = $domain . '-' . $locale . '.mo';
-
-	// Try to load from the languages directory first.
-	if ( load_textdomain( $domain, WP_LANG_DIR . '/plugins/' . $mofile, $locale ) ) {
-		return true;
+	if ( ! is_string( $domain ) ) {
+		return false;
 	}
 
 	$path = WPMU_PLUGIN_DIR . '/' . ltrim( $mu_plugin_rel_path, '/' );
 
 	$wp_textdomain_registry->set_custom_path( $domain, $path );
 
-	return load_textdomain( $domain, $path . '/' . $mofile, $locale );
+	// If just-in-time loading was triggered before, reset the entry so it can be tried again.
+	if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof NOOP_Translations ) {
+		unset( $l10n[ $domain ] );
+	}
+
+	return true;
 }
 
 /**
@@ -1011,8 +1070,10 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
  *
  * @since 1.5.0
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
+ * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global array<string, WP_Translations|NOOP_Translations> $l10n An array of all currently loaded text domains.
  *
  * @param string       $domain Text domain. Unique identifier for retrieving translated strings.
  * @param string|false $path   Optional. Path to the directory containing the .mo file.
@@ -1021,23 +1082,11 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
  */
 function load_theme_textdomain( $domain, $path = false ) {
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	global $wp_textdomain_registry;
+	/** @var array<string, WP_Translations|NOOP_Translations> $l10n */
+	global $wp_textdomain_registry, $l10n;
 
-	/**
-	 * Filters a theme's locale.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param string $locale The theme's current locale.
-	 * @param string $domain Text domain. Unique identifier for retrieving translated strings.
-	 */
-	$locale = apply_filters( 'theme_locale', determine_locale(), $domain );
-
-	$mofile = $domain . '-' . $locale . '.mo';
-
-	// Try to load from the languages directory first.
-	if ( load_textdomain( $domain, WP_LANG_DIR . '/themes/' . $mofile, $locale ) ) {
-		return true;
+	if ( ! is_string( $domain ) ) {
+		return false;
 	}
 
 	if ( ! $path ) {
@@ -1046,7 +1095,12 @@ function load_theme_textdomain( $domain, $path = false ) {
 
 	$wp_textdomain_registry->set_custom_path( $domain, $path );
 
-	return load_textdomain( $domain, $path . '/' . $locale . '.mo', $locale );
+	// If just-in-time loading was triggered before, reset the entry so it can be tried again.
+	if ( isset( $l10n[ $domain ] ) && $l10n[ $domain ] instanceof NOOP_Translations ) {
+		unset( $l10n[ $domain ] );
+	}
+
+	return true;
 }
 
 /**
@@ -1121,6 +1175,7 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 	$content_url = wp_parse_url( content_url() );
 	$plugins_url = wp_parse_url( plugins_url() );
 	$site_url    = wp_parse_url( site_url() );
+	$theme_root  = get_theme_root();
 
 	// If the host is the same or it's a relative URL.
 	if (
@@ -1136,7 +1191,16 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		$relative = trim( $relative, '/' );
 		$relative = explode( '/', $relative );
 
-		$languages_path = WP_LANG_DIR . '/' . $relative[0];
+		/*
+		 * Ensure correct languages path when using a custom `WP_PLUGIN_DIR` / `WP_PLUGIN_URL` configuration,
+		 * a custom theme root, and/or using Multisite with subdirectories.
+		 * See https://core.trac.wordpress.org/ticket/60891 and https://core.trac.wordpress.org/ticket/62016.
+		 */
+
+		$theme_dir = array_slice( explode( '/', $theme_root ), -1 );
+		$dirname   = $theme_dir[0] === $relative[0] ? 'themes' : 'plugins';
+
+		$languages_path = WP_LANG_DIR . '/' . $dirname;
 
 		$relative = array_slice( $relative, 2 ); // Remove plugins/<plugin name> or themes/<theme name>.
 		$relative = implode( '/', $relative );
@@ -1302,6 +1366,20 @@ function _load_textdomain_just_in_time( $domain ) {
 	if ( ! $path ) {
 		return false;
 	}
+
+	if ( ! doing_action( 'after_setup_theme' ) && ! did_action( 'after_setup_theme' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: The text domain. 2: 'init'. */
+				__( 'Translation loading for the %1$s domain was triggered too early. This is usually an indicator for some code in the plugin or theme running too early. Translations should be loaded at the %2$s action or later.' ),
+				'<code>' . $domain . '</code>',
+				'<code>init</code>'
+			),
+			'6.7.0'
+		);
+	}
+
 	// Themes with their language directory outside of WP_LANG_DIR have a different file name.
 	$template_directory   = trailingslashit( get_template_directory() );
 	$stylesheet_directory = trailingslashit( get_stylesheet_directory() );
@@ -1382,25 +1460,34 @@ function translate_user_role( $name, $domain = 'default' ) {
 }
 
 /**
- * Gets all available languages based on the presence of *.mo files in a given directory.
+ * Gets all available languages based on the presence of *.mo and *.l10n.php files in a given directory.
  *
  * The default directory is WP_LANG_DIR.
  *
  * @since 3.0.0
  * @since 4.7.0 The results are now filterable with the {@see 'get_available_languages'} filter.
+ * @since 6.5.0 The initial file list is now cached and also takes into account *.l10n.php files.
+ *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $dir A directory to search for language files.
  *                    Default WP_LANG_DIR.
  * @return string[] An array of language codes or an empty array if no languages are present.
- *                  Language codes are formed by stripping the .mo extension from the language file names.
+ *                  Language codes are formed by stripping the file extension from the language file names.
  */
 function get_available_languages( $dir = null ) {
+	global $wp_textdomain_registry;
+
 	$languages = array();
 
-	$lang_files = glob( ( is_null( $dir ) ? WP_LANG_DIR : $dir ) . '/*.mo' );
+	$path       = is_null( $dir ) ? WP_LANG_DIR : $dir;
+	$lang_files = $wp_textdomain_registry->get_language_files_from_path( $path );
+
 	if ( $lang_files ) {
 		foreach ( $lang_files as $lang_file ) {
 			$lang_file = basename( $lang_file, '.mo' );
+			$lang_file = basename( $lang_file, '.l10n.php' );
+
 			if ( ! str_starts_with( $lang_file, 'continents-cities' ) && ! str_starts_with( $lang_file, 'ms-' ) &&
 				! str_starts_with( $lang_file, 'admin-' ) ) {
 				$languages[] = $lang_file;
@@ -1416,7 +1503,7 @@ function get_available_languages( $dir = null ) {
 	 * @param string[] $languages An array of available language codes.
 	 * @param string   $dir       The directory where the language files were found.
 	 */
-	return apply_filters( 'get_available_languages', $languages, $dir );
+	return apply_filters( 'get_available_languages', array_unique( $languages ), $dir );
 }
 
 /**
@@ -1427,25 +1514,25 @@ function get_available_languages( $dir = null ) {
  *
  * @since 3.7.0
  *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ *
  * @param string $type What to search for. Accepts 'plugins', 'themes', 'core'.
  * @return array Array of language data.
  */
 function wp_get_installed_translations( $type ) {
+	global $wp_textdomain_registry;
+
 	if ( 'themes' !== $type && 'plugins' !== $type && 'core' !== $type ) {
 		return array();
 	}
 
-	$dir = 'core' === $type ? '' : "/$type";
+	$dir = 'core' === $type ? WP_LANG_DIR : WP_LANG_DIR . "/$type";
 
-	if ( ! is_dir( WP_LANG_DIR ) ) {
+	if ( ! is_dir( $dir ) ) {
 		return array();
 	}
 
-	if ( $dir && ! is_dir( WP_LANG_DIR . $dir ) ) {
-		return array();
-	}
-
-	$files = scandir( WP_LANG_DIR . $dir );
+	$files = $wp_textdomain_registry->get_language_files_from_path( $dir );
 	if ( ! $files ) {
 		return array();
 	}
@@ -1453,16 +1540,7 @@ function wp_get_installed_translations( $type ) {
 	$language_data = array();
 
 	foreach ( $files as $file ) {
-		if ( '.' === $file[0] || is_dir( WP_LANG_DIR . "$dir/$file" ) ) {
-			continue;
-		}
-		if ( ! str_ends_with( $file, '.po' ) ) {
-			continue;
-		}
-		if ( ! preg_match( '/(?:(.+)-)?([a-z]{2,3}(?:_[A-Z]{2})?(?:_[a-z0-9]+)?).po/', $file, $match ) ) {
-			continue;
-		}
-		if ( ! in_array( substr( $file, 0, -3 ) . '.mo', $files, true ) ) {
+		if ( ! preg_match( '/(?:(.+)-)?([a-z]{2,3}(?:_[A-Z]{2})?(?:_[a-z0-9]+)?)\.(?:mo|l10n\.php)/', basename( $file ), $match ) ) {
 			continue;
 		}
 
@@ -1470,7 +1548,25 @@ function wp_get_installed_translations( $type ) {
 		if ( '' === $textdomain ) {
 			$textdomain = 'default';
 		}
-		$language_data[ $textdomain ][ $language ] = wp_get_pomo_file_data( WP_LANG_DIR . "$dir/$file" );
+
+		if ( str_ends_with( $file, '.mo' ) ) {
+			$pofile = substr_replace( $file, '.po', - strlen( '.mo' ) );
+
+			if ( ! file_exists( $pofile ) ) {
+				continue;
+			}
+
+			$language_data[ $textdomain ][ $language ] = wp_get_pomo_file_data( $pofile );
+		} else {
+			$pofile = substr_replace( $file, '.po', - strlen( '.l10n.php' ) );
+
+			// If both a PO and a PHP file exist, prefer the PO file.
+			if ( file_exists( $pofile ) ) {
+				continue;
+			}
+
+			$language_data[ $textdomain ][ $language ] = wp_get_l10n_php_file_data( $file );
+		}
 	}
 	return $language_data;
 }
@@ -1498,6 +1594,41 @@ function wp_get_pomo_file_data( $po_file ) {
 		$headers[ $header ] = preg_replace( '~(\\\n)?"$~', '', $value );
 	}
 	return $headers;
+}
+
+/**
+ * Extracts headers from a PHP translation file.
+ *
+ * @since 6.6.0
+ *
+ * @param string $php_file Path to a `.l10n.php` file.
+ * @return string[] Array of file header values keyed by header name.
+ */
+function wp_get_l10n_php_file_data( $php_file ) {
+	$data = (array) include $php_file;
+
+	unset( $data['messages'] );
+	$headers = array(
+		'POT-Creation-Date'  => 'pot-creation-date',
+		'PO-Revision-Date'   => 'po-revision-date',
+		'Project-Id-Version' => 'project-id-version',
+		'X-Generator'        => 'x-generator',
+	);
+
+	$result = array(
+		'POT-Creation-Date'  => '',
+		'PO-Revision-Date'   => '',
+		'Project-Id-Version' => '',
+		'X-Generator'        => '',
+	);
+
+	foreach ( $headers as $po_header => $php_header ) {
+		if ( isset( $data[ $php_header ] ) ) {
+			$result[ $po_header ] = $data[ $php_header ];
+		}
+	}
+
+	return $result;
 }
 
 /**
@@ -1863,4 +1994,18 @@ function wp_get_word_count_type() {
 	}
 
 	return $wp_locale->get_word_count_type();
+}
+
+/**
+ * Returns a boolean to indicate whether a translation exists for a given string with optional text domain and locale.
+ *
+ * @since 6.7.0
+ *
+ * @param string  $singular   Singular translation to check.
+ * @param string  $textdomain Optional. Text domain. Default 'default'.
+ * @param ?string $locale     Optional. Locale. Default current locale.
+ * @return bool  True if the translation exists, false otherwise.
+ */
+function has_translation( string $singular, string $textdomain = 'default', ?string $locale = null ): bool {
+	return WP_Translation_Controller::get_instance()->has_translation( $singular, $textdomain, $locale );
 }

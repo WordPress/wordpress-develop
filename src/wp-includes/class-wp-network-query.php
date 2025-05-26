@@ -145,7 +145,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param string|array $query WP_Network_Query arguments. See WP_Network_Query::__construct()
+	 * @param string|array $query WP_Network_Query arguments. See WP_Network_Query::__construct() for accepted arguments.
 	 */
 	public function parse_query( $query = '' ) {
 		if ( empty( $query ) ) {
@@ -269,7 +269,7 @@ class WP_Network_Query {
 		}
 
 		if ( $this->found_networks && $this->query_vars['number'] ) {
-			$this->max_num_pages = ceil( $this->found_networks / $this->query_vars['number'] );
+			$this->max_num_pages = (int) ceil( $this->found_networks / $this->query_vars['number'] );
 		}
 
 		// If querying for a count only, there's nothing more to do.
@@ -446,7 +446,16 @@ class WP_Network_Query {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param string[]         $clauses An associative array of network query clauses.
+		 * @param string[]         $clauses {
+		 *     Associative array of the clauses for the query.
+		 *
+		 *     @type string $fields   The SELECT clause of the query.
+		 *     @type string $join     The JOIN clause of the query.
+		 *     @type string $where    The WHERE clause of the query.
+		 *     @type string $orderby  The ORDER BY clause of the query.
+		 *     @type string $limits   The LIMIT clause of the query.
+		 *     @type string $groupby  The GROUP BY clause of the query.
+		 * }
 		 * @param WP_Network_Query $query   Current instance of WP_Network_Query (passed by reference).
 		 */
 		$clauses = apply_filters_ref_array( 'networks_clauses', array( compact( $pieces ), &$this ) );
@@ -481,14 +490,14 @@ class WP_Network_Query {
 		$this->sql_clauses['orderby'] = $orderby;
 		$this->sql_clauses['limits']  = $limits;
 
-		$this->request = "
-			{$this->sql_clauses['select']}
-			{$this->sql_clauses['from']}
-			{$where}
-			{$this->sql_clauses['groupby']}
-			{$this->sql_clauses['orderby']}
-			{$this->sql_clauses['limits']}
-		";
+		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
+		$this->request =
+			"{$this->sql_clauses['select']}
+			 {$this->sql_clauses['from']}
+			 {$where}
+			 {$this->sql_clauses['groupby']}
+			 {$this->sql_clauses['orderby']}
+			 {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
 			return (int) $wpdb->get_var( $this->request );

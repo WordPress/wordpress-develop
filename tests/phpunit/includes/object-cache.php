@@ -820,7 +820,6 @@ function wp_cache_set_option( $option, $value ) {
  * Switches blog prefix, which changes the cache that is accessed.
  *
  * @param int $blog_id Blog to switch to.
- * @return void
  */
 function wp_cache_switch_to_blog( $blog_id ) {
 	global $wp_object_cache;
@@ -832,7 +831,6 @@ function wp_cache_switch_to_blog( $blog_id ) {
  * Sets up Object Cache Global and assigns it.
  *
  * @global WP_Object_Cache $wp_object_cache WordPress Object Cache
- * @return void
  */
 function wp_cache_init() {
 	global $wp_object_cache;
@@ -843,7 +841,6 @@ function wp_cache_init() {
  * Adds a group or set of groups to the list of non-persistent groups.
  *
  * @param string|array $groups A group or an array of groups to add.
- * @return void
  */
 function wp_cache_add_global_groups( $groups ) {
 	global $wp_object_cache;
@@ -854,7 +851,6 @@ function wp_cache_add_global_groups( $groups ) {
  * Adds a group or set of groups to the list of non-Memcached groups.
  *
  * @param string|array $groups A group or an array of groups to add.
- * @return void
  */
 function wp_cache_add_non_persistent_groups( $groups ) {
 	global $wp_object_cache;
@@ -2329,7 +2325,6 @@ class WP_Object_Cache {
 	 * @link http://wordpress.org/extend/plugins/memcached/
 	 *
 	 * @param array $groups Array of groups.
-	 * @return void
 	 */
 	public function add_global_groups( $groups ) {
 		if ( ! is_array( $groups ) ) {
@@ -2349,7 +2344,6 @@ class WP_Object_Cache {
 	 * @link http://wordpress.org/extend/plugins/memcached/
 	 *
 	 * @param array $groups Array of groups.
-	 * @return void
 	 */
 	public function add_non_persistent_groups( $groups ) {
 		if ( ! is_array( $groups ) ) {
@@ -2381,7 +2375,6 @@ class WP_Object_Cache {
 	 * Switches blog prefix, which changes the cache that is accessed.
 	 *
 	 * @param int $blog_id Blog to switch to.
-	 * @return void
 	 */
 	public function switch_to_blog( $blog_id ) {
 		global $table_prefix;

@@ -69,7 +69,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			get_template_directory_uri() . '/assets/js/dark-mode-toggler.js',
 			array(),
 			'1.0.0',
-			true
+			array( 'in_footer' => true )
 		);
 
 		wp_enqueue_script(
@@ -77,7 +77,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			get_template_directory_uri() . '/assets/js/editor-dark-mode-support.js',
 			array( 'twentytwentyone-dark-mode-support-toggle' ),
 			'1.0.0',
-			true
+			array( 'in_footer' => true )
 		);
 	}
 
@@ -115,7 +115,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			get_template_directory_uri() . '/assets/js/customize.js',
 			array( 'customize-base', 'customize-controls', 'underscore', 'jquery', 'twentytwentyone-customize-helpers' ),
 			'1.0.0',
-			true
+			array( 'in_footer' => true )
 		);
 	}
 
@@ -153,7 +153,7 @@ class Twenty_Twenty_One_Dark_Mode {
 				array(
 					'section'         => 'colors',
 					'priority'        => 100,
-					'active_callback' => static function() {
+					'active_callback' => static function () {
 						return 127 >= Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) );
 					},
 				)
@@ -165,7 +165,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			array(
 				'capability'        => 'edit_theme_options',
 				'default'           => false,
-				'sanitize_callback' => static function( $value ) {
+				'sanitize_callback' => static function ( $value ) {
 					return (bool) $value;
 				},
 			)
@@ -188,7 +188,7 @@ class Twenty_Twenty_One_Dark_Mode {
 				'label'           => esc_html__( 'Dark Mode support', 'twentytwentyone' ),
 				'priority'        => 110,
 				'description'     => $description,
-				'active_callback' => static function( $value ) {
+				'active_callback' => static function ( $value ) {
 					return 127 < Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) );
 				},
 			)
@@ -200,7 +200,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			array(
 				'selector'            => '#dark-mode-toggler',
 				'container_inclusive' => true,
-				'render_callback'     => function() {
+				'render_callback'     => function () {
 					$attrs = ( $this->switch_should_render() ) ? array() : array( 'style' => 'display:none;' );
 					$this->the_html( $attrs );
 				},
@@ -384,5 +384,4 @@ class Twenty_Twenty_One_Dark_Mode {
 				. __( 'This website uses LocalStorage to save the setting when Dark Mode support is turned on or off.<br> LocalStorage is necessary for the setting to work and is only used when a user clicks on the Dark Mode button.<br> No data is saved in the database or transferred.', 'twentytwentyone' );
 		wp_add_privacy_policy_content( __( 'Twenty Twenty-One', 'twentytwentyone' ), wp_kses_post( wpautop( $content, false ) ) );
 	}
-
 }

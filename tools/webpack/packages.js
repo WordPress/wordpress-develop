@@ -1,7 +1,6 @@
 /**
  * External dependencies
  */
-const { DefinePlugin } = require( 'webpack' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
 const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const UglifyJS = require( 'uglify-js' );
@@ -17,7 +16,15 @@ const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-we
 /**
  * Internal dependencies
  */
-const { normalizeJoin, stylesTransform, baseConfig, baseDir } = require( './shared' );
+const {
+	baseDir,
+	getBaseConfig,
+	normalizeJoin,
+	stylesTransform,
+	BUNDLED_PACKAGES,
+	MODULES,
+	WORDPRESS_NAMESPACE,
+} = require( './shared' );
 const { dependencies } = require( '../../package' );
 
 const exportDefaultPackages = [
@@ -41,50 +48,66 @@ const exportDefaultPackages = [
  */
 function mapVendorCopies( vendors, buildTarget ) {
 	return Object.keys( vendors ).map( ( filename ) => ( {
-		from: normalizeJoin(baseDir, `node_modules/${ vendors[ filename ] }` ),
-		to: normalizeJoin(baseDir, `${ buildTarget }/js/dist/vendor/${ filename }` ),
+		from: normalizeJoin( baseDir, `node_modules/${ vendors[ filename ] }` ),
+		to: normalizeJoin(
+			baseDir,
+			`${ buildTarget }/js/dist/vendor/${ filename }`
+		),
 	} ) );
 }
 
-module.exports = function( env = { environment: 'production', watch: false, buildTarget: false } ) {
+module.exports = function (
+	env = { environment: 'production', watch: false, buildTarget: false }
+) {
 	const mode = env.environment;
 	const suffix = mode === 'production' ? '.min' : '';
-	let buildTarget = env.buildTarget ? env.buildTarget : ( mode === 'production' ? 'build' : 'src' );
-	buildTarget = buildTarget  + '/wp-includes';
+	let buildTarget = env.buildTarget
+		? env.buildTarget
+		: mode === 'production'
+		? 'build'
+		: 'src';
+	buildTarget = buildTarget + '/wp-includes';
 
-	const WORDPRESS_NAMESPACE = '@wordpress/';
-	const BUNDLED_PACKAGES = [ '@wordpress/icons', '@wordpress/interface' ];
 	const packages = Object.keys( dependencies )
-		.filter( ( packageName ) =>
- 			! BUNDLED_PACKAGES.includes( packageName ) &&
- 			packageName.startsWith( WORDPRESS_NAMESPACE )
- 		)
-		.map( ( packageName ) => packageName.replace( WORDPRESS_NAMESPACE, '' ) );
+		.filter(
+			( packageName ) =>
+				! BUNDLED_PACKAGES.includes( packageName ) &&
+				! MODULES.includes( packageName ) &&
+				packageName.startsWith( WORDPRESS_NAMESPACE )
+		)
+		.map( ( packageName ) =>
+			packageName.replace( WORDPRESS_NAMESPACE, '' )
+		);
 
 	const vendors = {
 		'lodash.js': 'lodash/lodash.js',
 		'wp-polyfill.js': '@wordpress/babel-preset-default/build/polyfill.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/browser.js',
-		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
+		'wp-polyfill-node-contains.js':
+			'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-url.js': 'core-js-url-browser/url.js',
-		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
+		'wp-polyfill-dom-rect.js':
+			'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 		'wp-polyfill-formdata.js': 'formdata-polyfill/FormData.js',
-		'wp-polyfill-object-fit.js': 'objectFitPolyfill/src/objectFitPolyfill.js',
+		'wp-polyfill-object-fit.js':
+			'objectFitPolyfill/src/objectFitPolyfill.js',
 		'wp-polyfill-inert.js': 'wicg-inert/dist/inert.js',
 		'moment.js': 'moment/moment.js',
+		'regenerator-runtime.js': 'regenerator-runtime/runtime.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
-		'regenerator-runtime.js': 'regenerator-runtime/runtime.js',
 	};
 
 	const minifiedVendors = {
 		'lodash.min.js': 'lodash/lodash.min.js',
-		'wp-polyfill.min.js': '@wordpress/babel-preset-default/build/polyfill.min.js',
+		'wp-polyfill.min.js':
+			'@wordpress/babel-preset-default/build/polyfill.min.js',
 		'wp-polyfill-element-closest.min.js': 'element-closest/browser.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
 		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
-		'wp-polyfill-object-fit.min.js': 'objectFitPolyfill/dist/objectFitPolyfill.min.js',
+		'wp-polyfill-object-fit.min.js':
+			'objectFitPolyfill/dist/objectFitPolyfill.min.js',
 		'wp-polyfill-inert.min.js': 'wicg-inert/dist/inert.min.js',
 		'moment.min.js': 'moment/min/moment.min.js',
 		'react.min.js': 'react/umd/react.production.min.js',
@@ -94,46 +117,66 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const minifyVendors = {
 		'regenerator-runtime.min.js': 'regenerator-runtime/runtime.js',
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
-		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
-		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
+		'wp-polyfill-node-contains.min.js':
+			'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
+		'wp-polyfill-dom-rect.min.js':
+			'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 	};
 
 	const phpFiles = {
-		'block-serialization-default-parser/class-wp-block-parser.php': 'wp-includes/class-wp-block-parser.php',
-		'block-serialization-default-parser/class-wp-block-parser-frame.php': 'wp-includes/class-wp-block-parser-frame.php',
-		'block-serialization-default-parser/class-wp-block-parser-block.php': 'wp-includes/class-wp-block-parser-block.php',
+		'block-serialization-default-parser/class-wp-block-parser.php':
+			'wp-includes/class-wp-block-parser.php',
+		'block-serialization-default-parser/class-wp-block-parser-frame.php':
+			'wp-includes/class-wp-block-parser-frame.php',
+		'block-serialization-default-parser/class-wp-block-parser-block.php':
+			'wp-includes/class-wp-block-parser-block.php',
 	};
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
 	const minifiedCopies = mapVendorCopies( minifiedVendors, buildTarget );
-	const minifyCopies = mapVendorCopies( minifyVendors, buildTarget ).map( ( copyCommand ) => {
-		return {
-			...copyCommand,
-			transform: ( content ) => {
-				return UglifyJS.minify( content.toString() ).code;
-			},
-		};
-	} );
+	const minifyCopies = mapVendorCopies( minifyVendors, buildTarget ).map(
+		( copyCommand ) => {
+			return {
+				...copyCommand,
+				transform: ( content ) => {
+					return UglifyJS.minify( content.toString() ).code;
+				},
+			};
+		}
+	);
 
-	let vendorCopies = mode === "development" ? developmentCopies : [ ...minifiedCopies, ...minifyCopies ];
+	let vendorCopies =
+		mode === 'development'
+			? developmentCopies
+			: [ ...minifiedCopies, ...minifyCopies ];
 
 	let cssCopies = packages.map( ( packageName ) => ( {
-		from: normalizeJoin(baseDir, `node_modules/@wordpress/${ packageName }/build-style/*.css` ),
-		to: normalizeJoin(baseDir, `${ buildTarget }/css/dist/${ packageName }/[name]${ suffix }.css` ),
+		from: normalizeJoin(
+			baseDir,
+			`node_modules/@wordpress/${ packageName }/build-style/*.css`
+		),
+		to: normalizeJoin(
+			baseDir,
+			`${ buildTarget }/css/dist/${ packageName }/[name]${ suffix }.css`
+		),
 		transform: stylesTransform( mode ),
 		noErrorOnMissing: true,
 	} ) );
 
 	const phpCopies = Object.keys( phpFiles ).map( ( filename ) => ( {
-		from: normalizeJoin(baseDir, `node_modules/@wordpress/${ filename }` ),
-		to: normalizeJoin(baseDir, `src/${ phpFiles[ filename ] }` ),
+		from: normalizeJoin( baseDir, `node_modules/@wordpress/${ filename }` ),
+		to: normalizeJoin( baseDir, `src/${ phpFiles[ filename ] }` ),
 	} ) );
 
+	const baseConfig = getBaseConfig( env );
 	const config = {
-		...baseConfig( env ),
+		...baseConfig,
 		entry: packages.reduce( ( memo, packageName ) => {
 			memo[ packageName ] = {
-				import: normalizeJoin(baseDir, `node_modules/@wordpress/${ packageName }` ),
+				import: normalizeJoin(
+					baseDir,
+					`node_modules/@wordpress/${ packageName }`
+				),
 				library: {
 					name: [ 'wp', camelCaseDash( packageName ) ],
 					type: 'window',
@@ -148,35 +191,27 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		output: {
 			devtoolNamespace: 'wp',
 			filename: `[name]${ suffix }.js`,
-			path: normalizeJoin(baseDir, `${ buildTarget }/js/dist` ),
+			path: normalizeJoin( baseDir, `${ buildTarget }/js/dist` ),
 		},
 		plugins: [
-			new DefinePlugin( {
-				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
-				'process.env.IS_GUTENBERG_PLUGIN': false,
-				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
-				'process.env.IS_WORDPRESS_CORE': true,
-				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
-					process.env.FORCE_REDUCED_MOTION
-				),
-			} ),
+			...baseConfig.plugins,
 			new DependencyExtractionPlugin( {
-				injectPolyfill: true,
+				injectPolyfill: false,
 				combineAssets: true,
 				combinedOutputFile: `../../assets/script-loader-packages${ suffix }.php`,
 			} ),
 			new CopyWebpackPlugin( {
-				patterns: [
-					...vendorCopies,
-					...cssCopies,
-					...phpCopies,
-				],
+				patterns: [ ...vendorCopies, ...cssCopies, ...phpCopies ],
 			} ),
 		],
 	};
 
 	if ( config.mode === 'development' ) {
-		config.plugins.push( new LiveReloadPlugin( { port: process.env.WORDPRESS_LIVE_RELOAD_PORT || 35729 } ) );
+		config.plugins.push(
+			new LiveReloadPlugin( {
+				port: process.env.WORDPRESS_LIVE_RELOAD_PORT || 35729,
+			} )
+		);
 	}
 
 	return config;

@@ -29,13 +29,7 @@ $credits = wp_credits();
 		</div>
 
 		<div class="about__header-text">
-			<?php
-			printf(
-				/* translators: %s: Version number. */
-				__( 'WordPress %s was created by a worldwide team of passionate individuals' ),
-				$display_version
-			);
-			?>
+			<?php _e( 'Created by a worldwide team of passionate individuals' ); ?>
 		</div>
 	</div>
 
@@ -139,5 +133,19 @@ __( 'Lead Developer' );
 __( 'Release Lead' );
 __( 'Release Design Lead' );
 __( 'Release Deputy' );
+__( 'Release Coordination' );
+__( 'Minor Release Lead' );
 __( 'Core Developer' );
+__( 'Core Tech Lead' );
+__( 'Core Triage Lead' );
+__( 'Editor Tech Lead' );
+__( 'Editor Triage Lead' );
+__( 'Documentation Lead' );
+__( 'Test Lead' );
+__( 'Design Lead' );
+__( 'Performance Lead' );
+__( 'Default Theme Design Lead' );
+__( 'Default Theme Development Lead' );
+__( 'Tech Lead' );
+__( 'Triage Lead' );
 __( 'External Libraries' );

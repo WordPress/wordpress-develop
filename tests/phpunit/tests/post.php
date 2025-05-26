@@ -269,6 +269,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$terms = get_terms( $tax );
 		$term  = reset( $terms );
 
+		$this->assertNotEmpty( $matches );
+		$this->assertNotEmpty( $matches[1] );
+
 		foreach ( $matches[1] as $url ) {
 			$this->assertStringContainsString( 'tag_ID=' . $term->term_id, $url );
 			$this->assertStringContainsString( 'post_type=new_post_type', $url );
@@ -329,12 +332,12 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		stick_post( $post->ID );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertTrue( is_sticky( $post->ID ) );
 
 		wp_set_current_user( self::$grammarian_id );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertFalse( current_user_can( 'publish_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
@@ -367,12 +370,12 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		stick_post( $post->ID );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertTrue( is_sticky( $post->ID ) );
 
 		wp_set_current_user( self::$grammarian_id );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertFalse( current_user_can( 'publish_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_published_posts' ) );

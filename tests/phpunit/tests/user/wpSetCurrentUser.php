@@ -58,4 +58,3 @@ class Tests_User_wpSetCurrentUser extends WP_UnitTestCase {
 		$this->assertSame( self::$user_id2, get_current_user_id() );
 	}
 }
-

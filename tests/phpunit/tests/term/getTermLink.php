@@ -259,7 +259,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
 		add_filter(
 			'term_link',
-			function( $location, $term ) {
+			function ( $location, $term ) {
 				$this->assertInstanceOf( 'WP_Term', $term );
 			},
 			10,

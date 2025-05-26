@@ -7,8 +7,9 @@
  *
  * @since 5.3.0
  *
- * @group functions.php
+ * @group functions
  * @group post
+ *
  * @covers ::do_enclose
  */
 class Tests_Functions_DoEnclose extends WP_UnitTestCase {
@@ -289,5 +290,4 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }

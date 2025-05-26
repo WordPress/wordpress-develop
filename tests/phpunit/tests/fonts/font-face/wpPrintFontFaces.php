@@ -6,17 +6,11 @@
  * @subpackage Fonts
  *
  * @since 6.4.0
- */
-require_once __DIR__ . '/base.php';
-
-/**
+ *
  * @group fonts
  * @group fontface
  *
  * @covers wp_print_font_faces
- *
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
  */
 class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 	const FONTS_THEME = 'fonts-block-theme';
@@ -61,7 +55,7 @@ class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 		);
 
 		$expected_output = <<<CSS
-<style id='wp-fonts-local' type='text/css'>
+<style class='wp-fonts-local' type='text/css'>
 @font-face{font-family:"Source Serif Pro";font-style:normal;font-weight:200 900;font-display:fallback;src:url('http://example.com/assets/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2') format('woff2');font-stretch:;}
 </style>
 
@@ -82,7 +76,7 @@ CSS;
 	}
 
 	private function get_expected_styles_output( $styles ) {
-		$style_element = "<style id='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
+		$style_element = "<style class='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
 		return sprintf( $style_element, $styles );
 	}
 }

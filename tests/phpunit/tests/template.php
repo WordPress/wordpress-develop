@@ -457,176 +457,41 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 17851
-	 * @covers ::add_settings_section
+	 * Tests that `locate_template()` uses the current theme even after switching the theme.
+	 *
+	 * @ticket 18298
+	 *
+	 * @covers ::locate_template
 	 */
-	public function test_add_settings_section() {
-		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page' );
+	public function test_locate_template_uses_current_theme() {
+		$themes = wp_get_themes();
 
-		global $wp_settings_sections;
-		$this->assertIsArray( $wp_settings_sections, 'List of sections is not initialized.' );
-		$this->assertArrayHasKey( 'test-page', $wp_settings_sections, 'List of sections for the test page has not been added to sections list.' );
-		$this->assertIsArray( $wp_settings_sections['test-page'], 'List of sections for the test page is not initialized.' );
-		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
+		// Look for parent themes with an index.php template.
+		$relevant_themes = array();
+		foreach ( $themes as $theme ) {
+			if ( $theme->get_stylesheet() !== $theme->get_template() ) {
+				continue;
+			}
+			$php_templates = $theme['Template Files'];
+			if ( ! isset( $php_templates['index.php'] ) ) {
+				continue;
+			}
+			$relevant_themes[] = $theme;
+		}
+		if ( count( $relevant_themes ) < 2 ) {
+			$this->markTestSkipped( 'Test requires at least two parent themes with an index.php template.' );
+		}
 
-		$this->assertEqualSetsWithIndex(
-			array(
-				'id'             => 'test-section',
-				'title'          => 'Section title',
-				'callback'       => '__return_false',
-				'before_section' => '',
-				'after_section'  => '',
-				'section_class'  => '',
-			),
-			$wp_settings_sections['test-page']['test-section'],
-			'Test section data does not match the expected dataset.'
-		);
-	}
+		$template_names = array( 'index.php' );
 
-	/**
-	 * @ticket 17851
-	 *
-	 * @param array  $extra_args                   Extra arguments to pass to function `add_settings_section()`.
-	 * @param array  $expected_section_data        Expected set of section data.
-	 * @param string $expected_before_section_html Expected HTML markup to be rendered before the settings section.
-	 * @param string $expected_after_section_html  Expected HTML markup to be rendered after the settings section.
-	 *
-	 * @covers ::add_settings_section
-	 * @covers ::do_settings_sections
-	 *
-	 * @dataProvider data_extra_args_for_add_settings_section
-	 */
-	public function test_add_settings_section_with_extra_args( $extra_args, $expected_section_data, $expected_before_section_html, $expected_after_section_html ) {
-		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $extra_args );
-		add_settings_field( 'test-field', 'Field title', '__return_false', 'test-page', 'test-section' );
+		$old_theme = $relevant_themes[0];
+		$new_theme = $relevant_themes[1];
 
-		global $wp_settings_sections;
-		$this->assertIsArray( $wp_settings_sections, 'List of sections is not initialized.' );
-		$this->assertArrayHasKey( 'test-page', $wp_settings_sections, 'List of sections for the test page has not been added to sections list.' );
-		$this->assertIsArray( $wp_settings_sections['test-page'], 'List of sections for the test page is not initialized.' );
-		$this->assertArrayHasKey( 'test-section', $wp_settings_sections['test-page'], 'Test section has not been added to the list of sections for the test page.' );
+		switch_theme( $old_theme->get_stylesheet() );
+		$this->assertSame( $old_theme->get_stylesheet_directory() . '/index.php', locate_template( $template_names ), 'Incorrect index template found in initial theme.' );
 
-		$this->assertEqualSetsWithIndex(
-			$expected_section_data,
-			$wp_settings_sections['test-page']['test-section'],
-			'Test section data does not match the expected dataset.'
-		);
-
-		ob_start();
-		do_settings_sections( 'test-page' );
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( $expected_before_section_html, $output, 'Test page output does not contain the custom markup to be placed before the section.' );
-		$this->assertStringContainsString( $expected_after_section_html, $output, 'Test page output does not contain the custom markup to be placed after the section.' );
-	}
-
-	/**
-	 * Data provider for `test_add_settings_section_with_extra_args()`.
-	 *
-	 * @return array
-	 */
-	public function data_extra_args_for_add_settings_section() {
-		return array(
-			'class placeholder section_class present' => array(
-				array(
-					'before_section' => '<div class="%s">',
-					'after_section'  => '</div><!-- end of the test section -->',
-					'section_class'  => 'test-section-wrap',
-				),
-				array(
-					'id'             => 'test-section',
-					'title'          => 'Section title',
-					'callback'       => '__return_false',
-					'before_section' => '<div class="%s">',
-					'after_section'  => '</div><!-- end of the test section -->',
-					'section_class'  => 'test-section-wrap',
-				),
-				'<div class="test-section-wrap">',
-				'</div><!-- end of the test section -->',
-			),
-			'missing class placeholder section_class' => array(
-				array(
-					'before_section' => '<div class="testing-section-wrapper">',
-					'after_section'  => '</div><!-- end of the test section -->',
-					'section_class'  => 'test-section-wrap',
-				),
-				array(
-					'id'             => 'test-section',
-					'title'          => 'Section title',
-					'callback'       => '__return_false',
-					'before_section' => '<div class="testing-section-wrapper">',
-					'after_section'  => '</div><!-- end of the test section -->',
-					'section_class'  => 'test-section-wrap',
-				),
-				'<div class="testing-section-wrapper">',
-				'</div><!-- end of the test section -->',
-			),
-			'empty section_class'                     => array(
-				array(
-					'before_section' => '<div class="test-section-container">',
-					'after_section'  => '</div><!-- end of the test section -->',
-					'section_class'  => '',
-				),
-				array(
-					'id'             => 'test-section',
-					'title'          => 'Section title',
-					'callback'       => '__return_false',
-					'before_section' => '<div class="test-section-container">',
-					'after_section'  => '</div><!-- end of the test section -->',
-					'section_class'  => '',
-				),
-				'<div class="test-section-container">',
-				'</div><!-- end of the test section -->',
-			),
-			'section_class missing'                   => array(
-				array(
-					'before_section' => '<div class="wp-whitelabel-section">',
-					'after_section'  => '</div><!-- end of the test section -->',
-				),
-				array(
-					'id'             => 'test-section',
-					'title'          => 'Section title',
-					'callback'       => '__return_false',
-					'before_section' => '<div class="wp-whitelabel-section">',
-					'after_section'  => '</div><!-- end of the test section -->',
-					'section_class'  => '',
-				),
-				'<div class="wp-whitelabel-section">',
-				'</div><!-- end of the test section -->',
-			),
-			'disallowed tag in before_section'        => array(
-				array(
-					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/" />',
-					'after_section'  => '</div><!-- end of the test section -->',
-				),
-				array(
-					'id'             => 'test-section',
-					'title'          => 'Section title',
-					'callback'       => '__return_false',
-					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/" />',
-					'after_section'  => '</div><!-- end of the test section -->',
-					'section_class'  => '',
-				),
-				'<div class="video-settings-section">',
-				'</div><!-- end of the test section -->',
-			),
-			'disallowed tag in after_section'         => array(
-				array(
-					'before_section' => '<div class="video-settings-section">',
-					'after_section'  => '</div><iframe src="https://www.wordpress.org/" />',
-				),
-				array(
-					'id'             => 'test-section',
-					'title'          => 'Section title',
-					'callback'       => '__return_false',
-					'before_section' => '<div class="video-settings-section">',
-					'after_section'  => '</div><iframe src="https://www.wordpress.org/" />',
-					'section_class'  => '',
-				),
-				'<div class="video-settings-section">',
-				'</div>',
-			),
-		);
+		switch_theme( $new_theme->get_stylesheet() );
+		$this->assertSame( $new_theme->get_stylesheet_directory() . '/index.php', locate_template( $template_names ), 'Incorrect index template found in theme after switch.' );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
@@ -678,5 +543,4 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->hierarchy = array_merge( $this->hierarchy, $hierarchy );
 		return $hierarchy;
 	}
-
 }

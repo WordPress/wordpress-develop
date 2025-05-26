@@ -98,7 +98,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	public function test_filter_header_image( $header_image, $expected ) {
 		add_filter(
 			'get_header_image',
-			static function() use ( $header_image ) {
+			static function () use ( $header_image ) {
 				return $header_image;
 			}
 		);
@@ -190,7 +190,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_min_priority_img_pixels',
-			static function() {
+			static function () {
 				return 2500; // 50*50=2500
 			}
 		);

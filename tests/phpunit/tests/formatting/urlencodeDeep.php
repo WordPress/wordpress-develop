@@ -44,5 +44,4 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, urlencode_deep( $actual ) );
 	}
-
 }
