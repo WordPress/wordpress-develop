@@ -74,17 +74,21 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 				$site_name        = get_bloginfo( 'name' );
 				$site_description = get_bloginfo( 'description' );
 
-				if ( $site_name ) : ?>
+				if ( $site_name ) :
+					?>
 					<<?php echo $heading_tag; ?> id="site-title">
 						<span>
 							<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php echo $site_name; ?></a>
 						</span>
 					</<?php echo $heading_tag; ?>>
-				<?php endif;
+					<?php
+				endif;
 
-				if ( $site_description ) : ?>
+				if ( $site_description ) :
+					?>
 					<div id="site-description"><?php echo $site_description; ?></div>
-				<?php endif;
+					<?php
+				endif;
 
 				// Compatibility with versions of WordPress prior to 3.4.
 				if ( function_exists( 'get_custom_header' ) ) {
