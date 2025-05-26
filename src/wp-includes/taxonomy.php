@@ -1413,11 +1413,10 @@ function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
  *
  * @since x.y.z
  *
- * @param int    $term_id    Term ID.
- * @param string $meta_key   Metadata name.
- * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
- * @return int[]|false|WP_Error Array of meta IDs on success, false on failure,
- *                              WP_Error when term_id is ambiguous between taxonomies.
+ * @param int                 $term_id     Term ID.
+ * @param array<string,mixed> $meta_fields Metadata values keyed by their meta key. Values must be serializable if non-scalar.
+ * @return array<string,int>|false|WP_Error Array of meta IDs keyed by their meta key on success, false on failure,
+ *                                          WP_Error when term_id is ambiguous between taxonomies.
  */
 function bulk_add_term_meta( $term_id, array $meta_fields ) {
 	if ( wp_term_is_shared( $term_id ) ) {
