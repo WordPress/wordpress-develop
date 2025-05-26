@@ -169,5 +169,4 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results );
 		$this->assertCount( 1, $results );
 	}
-
 }

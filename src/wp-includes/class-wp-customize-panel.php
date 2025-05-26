@@ -7,6 +7,11 @@
  * @since 4.0.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Customize Panel class.
  *
@@ -16,6 +21,7 @@
  *
  * @see WP_Customize_Manager
  */
+#[AllowDynamicProperties]
 class WP_Customize_Panel {
 
 	/**
@@ -72,7 +78,7 @@ class WP_Customize_Panel {
 	 * Theme features required to support the panel.
 	 *
 	 * @since 4.0.0
-	 * @var string|string[]
+	 * @var mixed[]
 	 */
 	public $theme_supports = '';
 
@@ -146,7 +152,7 @@ class WP_Customize_Panel {
 	 *                                            of panels and sections. Default 160.
 	 *     @type string          $capability      Capability required for the panel.
 	 *                                            Default `edit_theme_options`.
-	 *     @type string|string[] $theme_supports  Theme features required to support the panel.
+	 *     @type mixed[]         $theme_supports  Theme features required to support the panel.
 	 *     @type string          $title           Title of the panel to show in UI.
 	 *     @type string          $description     Description to show in the UI.
 	 *     @type string          $type            Type of the panel.
@@ -241,7 +247,7 @@ class WP_Customize_Panel {
 			return false;
 		}
 
-		if ( $this->theme_supports && ! current_theme_supports( ... (array) $this->theme_supports ) ) {
+		if ( $this->theme_supports && ! current_theme_supports( ...(array) $this->theme_supports ) ) {
 			return false;
 		}
 
@@ -345,11 +351,12 @@ class WP_Customize_Panel {
 	protected function render_template() {
 		?>
 		<li id="accordion-panel-{{ data.id }}" class="accordion-section control-section control-panel control-panel-{{ data.type }}">
-			<h3 class="accordion-section-title" tabindex="0">
-				{{ data.title }}
-				<span class="screen-reader-text"><?php _e( 'Press return or enter to open this panel' ); ?></span>
+			<h3 class="accordion-section-title">
+				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="{{ data.id }}-content">
+					{{ data.title }}
+				</button>
 			</h3>
-			<ul class="accordion-sub-container control-panel-content"></ul>
+			<ul class="accordion-sub-container control-panel-content" id="{{ data.id }}-content"></ul>
 		</li>
 		<?php
 	}
@@ -367,7 +374,12 @@ class WP_Customize_Panel {
 	protected function content_template() {
 		?>
 		<li class="panel-meta customize-info accordion-section <# if ( ! data.description ) { #> cannot-expand<# } #>">
-			<button class="customize-panel-back" tabindex="-1"><span class="screen-reader-text"><?php _e( 'Back' ); ?></span></button>
+			<button class="customize-panel-back" tabindex="-1"><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Back' );
+				?>
+			</span></button>
 			<div class="accordion-section-title">
 				<span class="preview-notice">
 				<?php
@@ -376,7 +388,12 @@ class WP_Customize_Panel {
 				?>
 				</span>
 				<# if ( data.description ) { #>
-					<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text"><?php _e( 'Help' ); ?></span></button>
+					<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Help' );
+						?>
+					</span></button>
 				<# } #>
 			</div>
 			<# if ( data.description ) { #>

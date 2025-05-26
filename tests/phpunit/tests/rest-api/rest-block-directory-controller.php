@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Testcase {
@@ -130,20 +128,32 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$this->assertSame( array(), $data );
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_get_item() {
-		$this->markTestSkipped( 'Controller does not have get_item route.' );
+		// Controller does not implement get_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_create_item() {
-		$this->markTestSkipped( 'Controller does not have create_item route.' );
+		// Controller does not implement create_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_update_item() {
-		$this->markTestSkipped( 'Controller does not have update_item route.' );
+		// Controller does not implement update_item().
 	}
 
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function test_delete_item() {
-		$this->markTestSkipped( 'Controller does not have delete_item route.' );
+		// Controller does not implement delete_item().
 	}
 
 	/**
@@ -213,6 +223,46 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	}
 
 	/**
+	 * @ticket 53621
+	 */
+	public function test_get_items_response_conforms_to_schema() {
+		wp_set_current_user( self::$admin_id );
+		$plugin = $this->get_mock_plugin();
+
+		// Fetch the block directory schema.
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/block-directory/search' );
+		$schema  = rest_get_server()->dispatch( $request )->get_data()['schema'];
+
+		add_filter(
+			'plugins_api',
+			static function () use ( $plugin ) {
+				return (object) array(
+					'info'    =>
+						array(
+							'page'    => 1,
+							'pages'   => 1,
+							'results' => 1,
+						),
+					'plugins' => array(
+						$plugin,
+					),
+				);
+			}
+		);
+
+		// Fetch a block plugin.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/block-directory/search' );
+		$request->set_query_params( array( 'term' => 'cache' ) );
+
+		$result = rest_get_server()->dispatch( $request );
+		$data   = $result->get_data();
+
+		$valid = rest_validate_value_from_schema( $data[0], $schema );
+
+		$this->assertNotWPError( $valid );
+	}
+
+	/**
 	 * Simulate a network failure on outbound http requests to a given hostname.
 	 *
 	 * @since 5.5.0
@@ -222,13 +272,13 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	private function prevent_requests_to_host( $blocked_host = 'api.wordpress.org' ) {
 		add_filter(
 			'pre_http_request',
-			static function ( $return, $args, $url ) use ( $blocked_host ) {
+			static function ( $response, $parsed_args, $url ) use ( $blocked_host ) {
 				if ( @parse_url( $url, PHP_URL_HOST ) === $blocked_host ) {
 					return new WP_Error( 'plugins_api_failed', "An expected error occurred connecting to $blocked_host because of a unit test", "cURL error 7: Failed to connect to $blocked_host port 80: Connection refused" );
 
 				}
 
-				return $return;
+				return $response;
 			},
 			10,
 			3
@@ -309,7 +359,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	private function mock_remote_request( array $expected ) {
 		add_filter(
 			'pre_http_request',
-			static function() use ( $expected ) {
+			static function () use ( $expected ) {
 				$default = array(
 					'headers'  => array(),
 					'response' => array(

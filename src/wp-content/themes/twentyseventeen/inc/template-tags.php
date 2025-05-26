@@ -1,6 +1,6 @@
 <?php
 /**
- * Custom template tags for this theme
+ * Custom template tags for this theme.
  *
  * Eventually, some of the functionality here could be replaced by core features.
  *
@@ -62,8 +62,7 @@ if ( ! function_exists( 'twentyseventeen_entry_footer' ) ) :
 	 */
 	function twentyseventeen_entry_footer() {
 
-		/* translators: Used between list items, there is a space after the comma. */
-		$separate_meta = __( ', ', 'twentyseventeen' );
+		$separate_meta = wp_get_list_item_separator();
 
 		// Get Categories for posts.
 		$categories_list = get_the_category_list( $separate_meta );
@@ -71,7 +70,7 @@ if ( ! function_exists( 'twentyseventeen_entry_footer' ) ) :
 		// Get Tags for posts.
 		$tags_list = get_the_tag_list( '', $separate_meta );
 
-		// We don't want to output .entry-footer if it will be empty, so make sure its not.
+		// We don't want to output .entry-footer if it will be empty, so make sure it is not.
 		if ( ( ( twentyseventeen_categorized_blog() && $categories_list ) || $tags_list ) || get_edit_post_link() ) {
 
 			echo '<footer class="entry-footer">';
@@ -82,11 +81,19 @@ if ( ! function_exists( 'twentyseventeen_entry_footer' ) ) :
 
 					// Make sure there's more than one category before displaying.
 					if ( $categories_list && twentyseventeen_categorized_blog() ) {
-						echo '<span class="cat-links">' . twentyseventeen_get_svg( array( 'icon' => 'folder-open' ) ) . '<span class="screen-reader-text">' . __( 'Categories', 'twentyseventeen' ) . '</span>' . $categories_list . '</span>';
+						echo '<span class="cat-links">' . twentyseventeen_get_svg( array( 'icon' => 'folder-open' ) ) .
+							/* translators: Hidden accessibility text. */
+							'<span class="screen-reader-text">' . __( 'Categories', 'twentyseventeen' ) . '</span>' .
+							$categories_list .
+						'</span>';
 					}
 
 					if ( $tags_list && ! is_wp_error( $tags_list ) ) {
-						echo '<span class="tags-links">' . twentyseventeen_get_svg( array( 'icon' => 'hashtag' ) ) . '<span class="screen-reader-text">' . __( 'Tags', 'twentyseventeen' ) . '</span>' . $tags_list . '</span>';
+						echo '<span class="tags-links">' . twentyseventeen_get_svg( array( 'icon' => 'hashtag' ) ) .
+							/* translators: Hidden accessibility text. */
+							'<span class="screen-reader-text">' . __( 'Tags', 'twentyseventeen' ) . '</span>' .
+							$tags_list .
+						'</span>';
 					}
 
 					echo '</span>';
@@ -105,7 +112,7 @@ if ( ! function_exists( 'twentyseventeen_edit_link' ) ) :
 	/**
 	 * Returns an accessibility-friendly link to edit a post or page.
 	 *
-	 * This also gives us a little context about what exactly we're editing
+	 * This also gives a little context about what exactly we're editing
 	 * (post or page?) so that users understand a bit more where they are in terms
 	 * of the template hierarchy and their content. Helpful when/if the single-page
 	 * layout with multiple posts/pages shown gets confusing.
@@ -113,7 +120,7 @@ if ( ! function_exists( 'twentyseventeen_edit_link' ) ) :
 	function twentyseventeen_edit_link() {
 		edit_post_link(
 			sprintf(
-				/* translators: %s: Post title. */
+				/* translators: %s: Post title. Only visible to screen readers. */
 				__( 'Edit<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 				get_the_title()
 			),
@@ -124,13 +131,16 @@ if ( ! function_exists( 'twentyseventeen_edit_link' ) ) :
 endif;
 
 /**
- * Display a front page section.
+ * Displays a front page section.
+ *
+ * @global int|string $twentyseventeencounter Front page section counter.
+ * @global WP_Post    $post                   Global post object.
  *
  * @param WP_Customize_Partial $partial Partial associated with a selective refresh request.
- * @param int                  $id Front page section to display.
+ * @param int                  $id      Front page section to display.
  */
 function twentyseventeen_front_page_section( $partial = null, $id = 0 ) {
-	if ( is_a( $partial, 'WP_Customize_Partial' ) ) {
+	if ( $partial instanceof WP_Customize_Partial ) {
 		// Find out the ID and set it up during a selective refresh.
 		global $twentyseventeencounter;
 
@@ -139,16 +149,27 @@ function twentyseventeen_front_page_section( $partial = null, $id = 0 ) {
 		$twentyseventeencounter = $id;
 	}
 
+	// Only when in Customizer, use a placeholder for an empty panel.
+	$show_panel_placeholder = false;
+
 	global $post; // Modify the global post object before setting up post data.
 	if ( get_theme_mod( 'panel_' . $id ) ) {
 		$post = get_post( get_theme_mod( 'panel_' . $id ) );
 		setup_postdata( $post );
 		set_query_var( 'panel', $id );
 
-		get_template_part( 'template-parts/page/content', 'front-page-panels' );
+		if ( $post && in_array( $post->post_status, array( 'publish', 'private' ), true ) ) {
+			get_template_part( 'template-parts/page/content', 'front-page-panels' );
+		} elseif ( is_customize_preview() ) {
+			$show_panel_placeholder = true;
+		}
 
 		wp_reset_postdata();
 	} elseif ( is_customize_preview() ) {
+		$show_panel_placeholder = true;
+	}
+
+	if ( $show_panel_placeholder ) {
 		// The output placeholder anchor.
 		printf(
 			'<article class="panel-placeholder panel twentyseventeen-panel twentyseventeen-panel%1$s" id="panel%1$s">' .
@@ -195,7 +216,7 @@ function twentyseventeen_categorized_blog() {
 
 
 /**
- * Flush out the transients used in twentyseventeen_categorized_blog.
+ * Flushes out the transients used in twentyseventeen_categorized_blog.
  */
 function twentyseventeen_category_transient_flusher() {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
@@ -209,7 +230,7 @@ add_action( 'save_post', 'twentyseventeen_category_transient_flusher' );
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
-	 * Fire the wp_body_open action.
+	 * Fires the wp_body_open action.
 	 *
 	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *
@@ -217,7 +238,7 @@ if ( ! function_exists( 'wp_body_open' ) ) :
 	 */
 	function wp_body_open() {
 		/**
-		 * Triggered after the opening <body> tag.
+		 * Fires after the opening <body> tag.
 		 *
 		 * @since Twenty Seventeen 2.2
 		 */

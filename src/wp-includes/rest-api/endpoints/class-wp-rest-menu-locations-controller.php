@@ -77,18 +77,10 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error(
-				'rest_cannot_view',
-				__( 'Sorry, you are not allowed to view menu locations.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		return true;
+		return $this->check_has_read_only_access( $request );
 	}
 
 	/**
@@ -97,7 +89,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
 		$data = array();
@@ -120,18 +112,10 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error(
-				'rest_cannot_view',
-				__( 'Sorry, you are not allowed to view menu locations.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		return true;
+		return $this->check_has_read_only_access( $request );
 	}
 
 	/**
@@ -140,7 +124,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
 		$registered_menus = get_registered_nav_menus();
@@ -158,6 +142,32 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks whether the current user has read permission for the endpoint.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the current user has permission, WP_Error object otherwise.
+	 */
+	protected function check_has_read_only_access( $request ) {
+		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-menu-items-controller.php */
+		$read_only_access = apply_filters( 'rest_menu_read_access', false, $request, $this );
+		if ( $read_only_access ) {
+			return true;
+		}
+
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			return new WP_Error(
+				'rest_cannot_view',
+				__( 'Sorry, you are not allowed to view menu locations.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Prepares a menu location object for serialization.
 	 *
 	 * @since 5.9.0
@@ -168,7 +178,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$location  = $item;
+		$location = $item;
+
 		$locations = get_nav_menu_locations();
 		$menu      = isset( $locations[ $location->name ] ) ? $locations[ $location->name ] : 0;
 
@@ -193,7 +204,9 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $data );
 
-		$response->add_links( $this->prepare_links( $location ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $location ) );
+		}
 
 		/**
 		 * Filters menu location data returned from the REST API.
@@ -205,6 +218,44 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_menu_location', $response, $location, $request );
+	}
+
+	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param stdClass $location Menu location.
+	 * @return array Links for the given menu location.
+	 */
+	protected function prepare_links( $location ) {
+		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
+
+		// Entity meta.
+		$links = array(
+			'self'       => array(
+				'href' => rest_url( trailingslashit( $base ) . $location->name ),
+			),
+			'collection' => array(
+				'href' => rest_url( $base ),
+			),
+		);
+
+		$locations = get_nav_menu_locations();
+		$menu      = isset( $locations[ $location->name ] ) ? $locations[ $location->name ] : 0;
+		if ( $menu ) {
+			$path = rest_get_route_for_term( $menu );
+			if ( $path ) {
+				$url = rest_url( $path );
+
+				$links['https://api.w.org/menu'][] = array(
+					'href'       => $url,
+					'embeddable' => true,
+				);
+			}
+		}
+
+		return $links;
 	}
 
 	/**
@@ -259,43 +310,5 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 		return array(
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 		);
-	}
-
-	/**
-	 * Prepares links for the request.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param stdClass $location Menu location.
-	 * @return array Links for the given menu location.
-	 */
-	protected function prepare_links( $location ) {
-		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
-
-		// Entity meta.
-		$links = array(
-			'self'       => array(
-				'href' => rest_url( trailingslashit( $base ) . $location->name ),
-			),
-			'collection' => array(
-				'href' => rest_url( $base ),
-			),
-		);
-
-		$locations = get_nav_menu_locations();
-		$menu      = isset( $locations[ $location->name ] ) ? $locations[ $location->name ] : 0;
-		if ( $menu ) {
-			$path = rest_get_route_for_term( $menu );
-			if ( $path ) {
-				$url = rest_url( $path );
-
-				$links['https://api.w.org/menu'][] = array(
-					'href'       => $url,
-					'embeddable' => true,
-				);
-			}
-		}
-
-		return $links;
 	}
 }

@@ -12,6 +12,7 @@
  *
  * @since 3.3.0
  */
+#[AllowDynamicProperties]
 final class WP_Internal_Pointers {
 	/**
 	 * Initializes the new feature pointers.
@@ -103,7 +104,7 @@ final class WP_Internal_Pointers {
 	}
 
 	/**
-	 * Print the pointer JavaScript data.
+	 * Prints the pointer JavaScript data.
 	 *
 	 * @since 3.3.0
 	 *

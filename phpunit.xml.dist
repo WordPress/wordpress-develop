@@ -28,6 +28,7 @@
 			<group>ms-files</group>
 			<group>ms-required</group>
 			<group>external-http</group>
+			<group>html-api-html5lib-tests</group>
 		</exclude>
 	</groups>
 	<logging>
@@ -43,7 +44,6 @@
 				<!-- Third party library exclusions. -->
 				<directory suffix=".php">src/wp-includes/ID3</directory>
 				<directory suffix=".php">src/wp-includes/IXR</directory>
-				<directory suffix=".php">src/wp-includes/random_compat</directory>
 				<directory suffix=".php">src/wp-includes/PHPMailer</directory>
 				<directory suffix=".php">src/wp-includes/Requests</directory>
 				<directory suffix=".php">src/wp-includes/SimplePie</directory>

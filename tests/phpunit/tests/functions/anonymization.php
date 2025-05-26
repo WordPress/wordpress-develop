@@ -5,21 +5,16 @@
  * @package WordPress\UnitTests
  *
  * @since 4.9.6
- */
-
-/**
- * Class Tests_Functions_Anonymization.
  *
- * @since 4.9.6
- *
- * @group functions.php
+ * @group functions
  * @group privacy
+ *
  * @covers ::wp_privacy_anonymize_data
  */
 class Tests_Functions_Anonymization extends WP_UnitTestCase {
 
 	/**
-	 * Test that wp_privacy_anonymize_ip() properly anonymizes all possible IP address formats.
+	 * Tests that wp_privacy_anonymize_ip() properly anonymizes all possible IP address formats.
 	 *
 	 * @dataProvider data_wp_privacy_anonymize_ip
 	 *
@@ -40,14 +35,14 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provide test cases for `test_wp_privacy_anonymize_ip()`.
+	 * Data provider for `test_wp_privacy_anonymize_ip()`.
 	 *
 	 * @since 4.9.6 Moved from `Test_WP_Community_Events::data_get_unsafe_client_ip_anonymization()`.
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $raw_ip          Raw IP address.
-	 *         @string string $expected_result Expected result.
+	 *         @type string $raw_ip          Raw IP address.
+	 *         @type string $expected_result Expected result.
 	 *     }
 	 * }
 	 */
@@ -175,7 +170,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that wp_privacy_anonymize_ip() properly anonymizes all possible IP address formats.
+	 * Tests that wp_privacy_anonymize_ip() properly anonymizes all possible IP address formats.
 	 *
 	 * @dataProvider data_wp_privacy_anonymize_ip_with_inet_dependency
 	 *
@@ -194,14 +189,14 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provide test cases for `test_wp_privacy_anonymize_ip()`.
+	 * Data provider for `test_wp_privacy_anonymize_ip()`.
 	 *
 	 * @since 4.9.6 Moved from `Test_WP_Community_Events::data_get_unsafe_client_ip_anonymization()`.
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $raw_ip          Raw IP address.
-	 *         @string string $expected_result Expected result.
+	 *         @type string $raw_ip          Raw IP address.
+	 *         @type string $expected_result Expected result.
 	 *     }
 	 * }
 	 */
@@ -261,28 +256,28 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test email anonymization of `wp_privacy_anonymize_data()`.
+	 * Tests email anonymization of `wp_privacy_anonymize_data()`.
 	 */
 	public function test_anonymize_email() {
 		$this->assertSame( 'deleted@site.invalid', wp_privacy_anonymize_data( 'email', 'bar@example.com' ) );
 	}
 
 	/**
-	 * Test url anonymization of `wp_privacy_anonymize_data()`.
+	 * Tests URL anonymization of `wp_privacy_anonymize_data()`.
 	 */
 	public function test_anonymize_url() {
 		$this->assertSame( 'https://site.invalid', wp_privacy_anonymize_data( 'url', 'https://example.com/author/username' ) );
 	}
 
 	/**
-	 * Test date anonymization of `wp_privacy_anonymize_data()`.
+	 * Tests date anonymization of `wp_privacy_anonymize_data()`.
 	 */
 	public function test_anonymize_date() {
 		$this->assertSame( '0000-00-00 00:00:00', wp_privacy_anonymize_data( 'date', '2003-12-25 12:34:56' ) );
 	}
 
 	/**
-	 * Test text anonymization of `wp_privacy_anonymize_data()`.
+	 * Tests text anonymization of `wp_privacy_anonymize_data()`.
 	 */
 	public function test_anonymize_text() {
 		$text = __( 'Four score and seven years ago' );
@@ -290,7 +285,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test long text anonymization of `wp_privacy_anonymize_data()`.
+	 * Tests long text anonymization of `wp_privacy_anonymize_data()`.
 	 */
 	public function test_anonymize_long_text() {
 		$text = __( 'Four score and seven years ago' );
@@ -298,7 +293,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test text anonymization when a filter is added.
+	 * Tests text anonymization when a filter is added.
 	 *
 	 * @ticket 44141
 	 */
@@ -311,7 +306,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Change the anonymized value for URLs.
+	 * Changes the anonymized value for URLs.
 	 *
 	 * @since 4.9.8
 	 *
@@ -326,5 +321,4 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 		}
 		return $anonymous;
 	}
-
 }

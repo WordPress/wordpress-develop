@@ -3,7 +3,7 @@
 /**
  * @group user
  */
-class Tests_User_WpDeleteUser extends WP_UnitTestCase {
+class Tests_User_wpDeleteUser extends WP_UnitTestCase {
 
 	/**
 	 * Test that usermeta cache is cleared after user deletion.
