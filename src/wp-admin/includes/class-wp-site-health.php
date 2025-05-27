@@ -756,10 +756,6 @@ class WP_Site_Health {
 		);
 
 		if ( ! $response ) {
-			$result['description'] .= sprintf(
-				'<p>%s</p>',
-				__( 'The call to get recommended version requires to be able to communicate with WordPress.org.' )
-			);
 
 			return $result;
 		}
