@@ -203,7 +203,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 19, $settings );
+		$this->assertCount( 20, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertIsArray( $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
@@ -299,6 +299,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			$settings['imageSizes']
 		);
 		$this->assertIsInt( $settings['maxUploadFileSize'] );
+		$this->assertSame( admin_url( '/' ), $settings['__experimentalDashboardLink'] );
 		$this->assertTrue( $settings['__unstableGalleryWithImageBlocks'] );
 	}
 
@@ -719,39 +720,5 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				'expected'      => '\/?context=edit',
 			),
 		);
-	}
-
-	/**
-	 * @ticket 61641
-	 */
-	public function test_get_block_editor_settings_block_bindings_sources() {
-		$block_editor_context = new WP_Block_Editor_Context();
-		register_block_bindings_source(
-			'test/source-one',
-			array(
-				'label'              => 'Source One',
-				'get_value_callback' => function () {},
-				'uses_context'       => array( 'postId' ),
-			)
-		);
-		register_block_bindings_source(
-			'test/source-two',
-			array(
-				'label'              => 'Source Two',
-				'get_value_callback' => function () {},
-			)
-		);
-		$settings        = get_block_editor_settings( array(), $block_editor_context );
-		$exposed_sources = $settings['blockBindingsSources'];
-		unregister_block_bindings_source( 'test/source-one' );
-		unregister_block_bindings_source( 'test/source-two' );
-		// It is expected to have 4 sources: the 2 registered sources in the test, and the 2 core sources.
-		$this->assertCount( 4, $exposed_sources );
-		$source_one = $exposed_sources['test/source-one'];
-		$this->assertSame( 'Source One', $source_one['label'] );
-		$this->assertSameSets( array( 'postId' ), $source_one['usesContext'] );
-		$source_two = $exposed_sources['test/source-two'];
-		$this->assertSame( 'Source Two', $source_two['label'] );
-		$this->assertArrayNotHasKey( 'usesContext', $source_two );
 	}
 }

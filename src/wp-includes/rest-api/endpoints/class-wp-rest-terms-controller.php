@@ -227,6 +227,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Retrieves terms associated with a taxonomy.
 	 *
 	 * @since 4.7.0
+	 * @since 6.8.0 Respect default query arguments set for the taxonomy upon registration.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -295,6 +296,30 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/*
+		 * When a taxonomy is registered with an 'args' array,
+		 * those params override the `$args` passed to this function.
+		 *
+		 * We only need to do this if no `post` argument is provided.
+		 * Otherwise, terms will be fetched using `wp_get_object_terms()`,
+		 * which respects the default query arguments set for the taxonomy.
+		 */
+		if (
+			empty( $prepared_args['post'] ) &&
+			isset( $taxonomy_obj->args ) &&
+			is_array( $taxonomy_obj->args )
+		) {
+			$prepared_args = array_merge( $prepared_args, $taxonomy_obj->args );
+		}
+
+		$is_head_request = $request->is_method( 'HEAD' );
+		if ( $is_head_request ) {
+			// Force the 'fields' argument. For HEAD requests, only term IDs are required.
+			$prepared_args['fields'] = 'ids';
+			// Disable priming term meta for HEAD requests to improve performance.
+			$prepared_args['update_term_meta_cache'] = false;
+		}
+
 		/**
 		 * Filters get_terms() arguments when querying terms via the REST API.
 		 *
@@ -337,14 +362,15 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$total_terms = 0;
 		}
 
-		$response = array();
-
-		foreach ( $query_result as $term ) {
-			$data       = $this->prepare_item_for_response( $term, $request );
-			$response[] = $this->prepare_response_for_collection( $data );
+		if ( ! $is_head_request ) {
+			$response = array();
+			foreach ( $query_result as $term ) {
+				$data       = $this->prepare_item_for_response( $term, $request );
+				$response[] = $this->prepare_response_for_collection( $data );
+			}
 		}
 
-		$response = rest_ensure_response( $response );
+		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $response );
 
 		// Store pagination values for headers.
 		$per_page = (int) $prepared_args['number'];
@@ -869,6 +895,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
+
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-terms-controller.php */
+			return apply_filters( "rest_prepare_{$this->taxonomy}", new WP_REST_Response( array() ), $item, $request );
+		}
 
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();

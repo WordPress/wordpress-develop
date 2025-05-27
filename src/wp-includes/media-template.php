@@ -161,7 +161,7 @@ function wp_print_media_templates() {
 		__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
 		/* translators: Localized tutorial, if one exists. W3C Web Accessibility Initiative link has list of existing translations. */
 		esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
-		'target="_blank" rel="noopener"',
+		'target="_blank"',
 		sprintf(
 			'<span class="screen-reader-text"> %s</span>',
 			/* translators: Hidden accessibility text. */
@@ -223,7 +223,7 @@ function wp_print_media_templates() {
 		</div>
 	</script>
 
-	<?php // Template for the inline uploader, used for example in the Media Library admin page - Add New. ?>
+	<?php // Template for the inline uploader, used for example in the Media Library admin page - Add. ?>
 	<script type="text/html" id="tmpl-uploader-inline">
 		<# var messageClass = data.message ? 'has-upload-message' : 'no-upload-message'; #>
 		<# if ( data.canClose ) { #>
@@ -356,7 +356,7 @@ function wp_print_media_templates() {
 
 	<?php // Template for the uploading status errors. ?>
 	<script type="text/html" id="tmpl-uploader-status-error">
-		<span class="upload-error-filename">{{{ data.filename }}}</span>
+		<span class="upload-error-filename word-wrap-break-word">{{{ data.filename }}}</span>
 		<span class="upload-error-message">{{ data.message }}</span>
 	</script>
 
