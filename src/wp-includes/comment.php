@@ -2793,9 +2793,9 @@ function wp_update_comment_count_now( $post_id ) {
 	return true;
 }
 
-//
-// Ping and trackback functions.
-//
+/**
+ * Ping and trackback functions.
+ */
 
 /**
  * Finds a pingback server URI based on the given URL.
