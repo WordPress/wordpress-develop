@@ -2818,10 +2818,13 @@ function discover_pingback_server_uri( $url, $deprecated = '' ) {
 	$pingback_str_dquote = 'rel="pingback"';
 	$pingback_str_squote = 'rel=\'pingback\'';
 
-	/** @todo Should use Filter Extension or custom preg_match instead. */
+	/**
+ 	 * @todo Should use Filter Extension or custom preg_match instead. 
+         */
 	$parsed_url = parse_url( $url );
 
-	if ( ! isset( $parsed_url['host'] ) ) { // Not a URL. This should never happen.
+	// Not a URL. This should never happen.
+	if ( ! isset( $parsed_url['host'] ) ) { 
 		return false;
 	}
 
