@@ -975,6 +975,7 @@ $_new_bundled_files = array(
 	'themes/twentytwentythree/' => '6.1',
 	'themes/twentytwentyfour/'  => '6.4',
 	'themes/twentytwentyfive/'  => '6.7',
+	'plugins/hello-dolly/'      => '6.9',
 );
 
 /**
