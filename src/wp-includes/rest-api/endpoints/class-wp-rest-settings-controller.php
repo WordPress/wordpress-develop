@@ -102,6 +102,11 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				$response[ $name ] = get_option( $args['option_name'], $args['schema']['default'] );
 			}
 
+			// Special handling for timezone to return a proper timezone string.
+			if ( 'timezone' === $name ) {
+				$response[ $name ] = wp_timezone_string();
+			}
+
 			/*
 			 * Because get_option() is lossy, we have to
 			 * cast values to the type they are registered with.
