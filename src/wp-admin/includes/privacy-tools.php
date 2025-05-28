@@ -275,7 +275,7 @@ function wp_privacy_generate_personal_data_export_group_html( $group_data, $grou
 		foreach ( (array) $group_item_data as $group_item_datum ) {
 			$value = $group_item_datum['value'];
 			// If it looks like a link, make it a link.
-			if ( false === strpos( $value, ' ' ) && ( str_starts_with( $value, 'http://' ) || str_starts_with( $value, 'https://' ) ) ) {
+			if ( ! str_contains( $value, ' ' ) && ( str_starts_with( $value, 'http://' ) || str_starts_with( $value, 'https://' ) ) ) {
 				$value = '<a href="' . esc_url( $value ) . '">' . esc_html( $value ) . '</a>';
 			}
 
@@ -613,7 +613,7 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 
 	/**
 	 * Filters the recipient of the personal data export email notification.
-	 * Should be used with great caution to avoid sending the data export link to wrong emails.
+	 * Should be used with great caution to avoid sending the data export link to the wrong email.
 	 *
 	 * @since 5.3.0
 	 *
@@ -678,10 +678,11 @@ All at ###SITENAME###
 	 * Filters the text of the email sent with a personal data export file.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
-	 * ###EXPIRATION###         The date when the URL will be automatically deleted.
-	 * ###LINK###               URL of the personal data export file for the user.
-	 * ###SITENAME###           The name of the site.
-	 * ###SITEURL###            The URL to the site.
+	 *
+	 *  - `###EXPIRATION###` The date when the URL will be automatically deleted.
+	 *  - `###LINK###`       URL of the personal data export file for the user.
+	 *  - `###SITENAME###`   The name of the site.
+	 *  - `###SITEURL###`    The URL to the site.
 	 *
 	 * @since 4.9.6
 	 * @since 5.3.0 Introduced the `$email_data` array.

@@ -658,7 +658,6 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			$lucifer = preg_split( '/[ ]/', $line, 9, PREG_SPLIT_NO_EMPTY );
 
 			if ( $lucifer ) {
-				// echo $line."\n";
 				$lcount = count( $lucifer );
 
 				if ( $lcount < 8 ) {
@@ -731,7 +730,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 * @return array|false {
 	 *     Array of arrays containing file information. False if unable to list directory contents.
 	 *
-	 *     @type array $0... {
+	 *     @type array ...$0 {
 	 *         Array of file information. Note that some elements may not be available on all filesystems.
 	 *
 	 *         @type string           $name        Name of the file or directory.

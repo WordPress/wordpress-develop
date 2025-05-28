@@ -64,13 +64,15 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		$image_types = imagetypes();
 		switch ( $mime_type ) {
 			case 'image/jpeg':
-				return ( $image_types & IMG_JPG ) != 0;
+				return ( $image_types & IMG_JPG ) !== 0;
 			case 'image/png':
-				return ( $image_types & IMG_PNG ) != 0;
+				return ( $image_types & IMG_PNG ) !== 0;
 			case 'image/gif':
-				return ( $image_types & IMG_GIF ) != 0;
+				return ( $image_types & IMG_GIF ) !== 0;
 			case 'image/webp':
-				return ( $image_types & IMG_WEBP ) != 0;
+				return ( $image_types & IMG_WEBP ) !== 0;
+			case 'image/avif':
+				return ( $image_types & IMG_AVIF ) !== 0 && function_exists( 'imageavif' );
 		}
 
 		return false;
@@ -101,12 +103,15 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
 		}
 
-		// WebP may not work with imagecreatefromstring().
+		// Handle WebP and AVIF mime types explicitly, falling back to imagecreatefromstring.
 		if (
-			function_exists( 'imagecreatefromwebp' ) &&
-			( 'image/webp' === wp_get_image_mime( $this->file ) )
+			function_exists( 'imagecreatefromwebp' ) && ( 'image/webp' === wp_get_image_mime( $this->file ) )
 		) {
 			$this->image = @imagecreatefromwebp( $this->file );
+		} elseif (
+			function_exists( 'imagecreatefromavif' ) && ( 'image/avif' === wp_get_image_mime( $this->file ) )
+		) {
+			$this->image = @imagecreatefromavif( $this->file );
 		} else {
 			$this->image = @imagecreatefromstring( $file_contents );
 		}
@@ -163,13 +168,20 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int|null $max_w Image width.
-	 * @param int|null $max_h Image height.
-	 * @param bool     $crop
+	 * @param int|null   $max_w Image width.
+	 * @param int|null   $max_h Image height.
+	 * @param bool|array $crop  {
+	 *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+	 *     If true, image will be cropped to the specified dimensions using center positions.
+	 *     If an array, the image will be cropped using the array to specify the crop location:
+	 *
+	 *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
+	 *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+	 * }
 	 * @return true|WP_Error
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
-		if ( ( $this->size['width'] == $max_w ) && ( $this->size['height'] == $max_h ) ) {
+		if ( ( $this->size['width'] === $max_w ) && ( $this->size['height'] === $max_h ) ) {
 			return true;
 		}
 
@@ -190,7 +202,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	/**
 	 * @param int        $max_w
 	 * @param int        $max_h
-	 * @param bool|array $crop
+	 * @param bool|array $crop  {
+	 *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+	 *     If true, image will be cropped to the specified dimensions using center positions.
+	 *     If an array, the image will be cropped using the array to specify the crop location:
+	 *
+	 *     @type string $0 The x crop position. Accepts 'left', 'center', or 'right'.
+	 *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+	 * }
 	 * @return resource|GdImage|WP_Error
 	 */
 	protected function _resize( $max_w, $max_h, $crop = false ) {
@@ -201,6 +220,14 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		}
 
 		list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
+
+		$this->set_quality(
+			null,
+			array(
+				'width'  => $dst_w,
+				'height' => $dst_h,
+			)
+		);
 
 		$resized = wp_imagecreatetruecolor( $dst_w, $dst_h );
 		imagecopyresampled( $resized, $this->image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
@@ -236,9 +263,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *     @type array ...$0 {
 	 *         Array of height, width values, and whether to crop.
 	 *
-	 *         @type int  $width  Image width. Optional if `$height` is specified.
-	 *         @type int  $height Image height. Optional if `$width` is specified.
-	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
+	 *         @type int        $width  Image width. Optional if `$height` is specified.
+	 *         @type int        $height Image height. Optional if `$width` is specified.
+	 *         @type bool|array $crop   Optional. Whether to crop the image. Default false.
 	 *     }
 	 * }
 	 * @return array An array of resized images' metadata by size.
@@ -265,9 +292,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param array $size_data {
 	 *     Array of size data.
 	 *
-	 *     @type int  $width  The maximum width in pixels.
-	 *     @type int  $height The maximum height in pixels.
-	 *     @type bool $crop   Whether to crop the image to exact dimensions.
+	 *     @type int        $width  The maximum width in pixels.
+	 *     @type int        $height The maximum height in pixels.
+	 *     @type bool|array $crop   Whether to crop the image to exact dimensions.
 	 * }
 	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
 	 *                        WP_Error object on error.
@@ -324,8 +351,10 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @return true|WP_Error
 	 */
 	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
-		// If destination width/height isn't specified,
-		// use same as width/height from source.
+		/*
+		 * If destination width/height isn't specified,
+		 * use same as width/height from source.
+		 */
 		if ( ! $dst_w ) {
 			$dst_w = $src_w;
 		}
@@ -476,6 +505,18 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$filename = $this->generate_filename( null, null, $extension );
 		}
 
+		if ( function_exists( 'imageinterlace' ) ) {
+			/**
+			 * Filters whether to output progressive images (if available).
+			 *
+			 * @since 6.5.0
+			 *
+			 * @param bool   $interlace Whether to use progressive images for output if available. Default false.
+			 * @param string $mime_type The mime type being saved.
+			 */
+			imageinterlace( $image, apply_filters( 'image_save_progressive', false, $mime_type ) );
+		}
+
 		if ( 'image/gif' === $mime_type ) {
 			if ( ! $this->make_image( $filename, 'imagegif', array( $image, $filename ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
@@ -493,8 +534,16 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			if ( ! $this->make_image( $filename, 'imagejpeg', array( $image, $filename, $this->get_quality() ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
-		} elseif ( 'image/webp' == $mime_type ) {
-			if ( ! function_exists( 'imagewebp' ) || ! $this->make_image( $filename, 'imagewebp', array( $image, $filename, $this->get_quality() ) ) ) {
+		} elseif ( 'image/webp' === $mime_type ) {
+			if ( ! function_exists( 'imagewebp' )
+				|| ! $this->make_image( $filename, 'imagewebp', array( $image, $filename, $this->get_quality() ) )
+			) {
+				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
+			}
+		} elseif ( 'image/avif' === $mime_type ) {
+			if ( ! function_exists( 'imageavif' )
+				|| ! $this->make_image( $filename, 'imageavif', array( $image, $filename, $this->get_quality() ) )
+			) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
 		} else {
@@ -524,6 +573,40 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	}
 
 	/**
+	 * Sets Image Compression quality on a 1-100% scale. Handles WebP lossless images.
+	 *
+	 * @since 6.7.0
+	 * @since 6.8.0 The `$dims` parameter was added.
+	 *
+	 * @param int   $quality Compression Quality. Range: [1,100]
+	 * @param array $dims    Optional. Image dimensions array with 'width' and 'height' keys.
+	 * @return true|WP_Error True if set successfully; WP_Error on failure.
+	 */
+	public function set_quality( $quality = null, $dims = array() ) {
+		$quality_result = parent::set_quality( $quality, $dims );
+		if ( is_wp_error( $quality_result ) ) {
+			return $quality_result;
+		} else {
+			$quality = $this->get_quality();
+		}
+
+		// Handle setting the quality for WebP lossless images, see https://php.watch/versions/8.1/gd-webp-lossless.
+		try {
+			if ( 'image/webp' === $this->mime_type && defined( 'IMG_WEBP_LOSSLESS' ) ) {
+				$webp_info = wp_get_webp_info( $this->file );
+				if ( ! empty( $webp_info['type'] ) && 'lossless' === $webp_info['type'] ) {
+					$quality = IMG_WEBP_LOSSLESS;
+					parent::set_quality( $quality, $dims );
+				}
+			}
+		} catch ( Exception $e ) {
+			return new WP_Error( 'image_quality_error', $e->getMessage() );
+		}
+		$this->quality = $quality;
+		return true;
+	}
+
+	/**
 	 * Returns stream of current image.
 	 *
 	 * @since 3.5.0
@@ -545,8 +628,17 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				if ( function_exists( 'imagewebp' ) ) {
 					header( 'Content-Type: image/webp' );
 					return imagewebp( $this->image, null, $this->get_quality() );
+				} else {
+					// Fall back to JPEG.
+					header( 'Content-Type: image/jpeg' );
+					return imagejpeg( $this->image, null, $this->get_quality() );
 				}
-				// Fall back to the default if webp isn't supported.
+			case 'image/avif':
+				if ( function_exists( 'imageavif' ) ) {
+					header( 'Content-Type: image/avif' );
+					return imageavif( $this->image, null, $this->get_quality() );
+				}
+				// Fall back to JPEG.
 			default:
 				header( 'Content-Type: image/jpeg' );
 				return imagejpeg( $this->image, null, $this->get_quality() );

@@ -56,7 +56,6 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 
 		// Assign a tagline option.
 		update_option( 'blogdescription', 'Just another WordPress site' );
-
 	}
 
 	/**
@@ -280,6 +279,8 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 		$entries = xml_find( $xml, 'feed', 'entry' );
 		$entries = array_slice( $entries, 0, 1 );
 
+		$this->assertNotEmpty( $entries );
+
 		foreach ( $entries as $key => $entry ) {
 			$links = xml_find( $entries[ $key ]['child'], 'link' );
 			$i     = 0;
@@ -288,7 +289,7 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 					$this->assertSame( $enclosures[ $i ]['expected']['href'], $link['attributes']['href'] );
 					$this->assertEquals( $enclosures[ $i ]['expected']['length'], $link['attributes']['length'] );
 					$this->assertSame( $enclosures[ $i ]['expected']['type'], $link['attributes']['type'] );
-					$i++;
+					++$i;
 				}
 			}
 		}

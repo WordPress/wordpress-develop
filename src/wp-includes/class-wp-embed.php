@@ -163,9 +163,9 @@ class WP_Embed {
 						 *
 						 * @see WP_Embed::shortcode()
 						 *
-						 * @param string|false $return The HTML result of the shortcode, or false on failure.
-						 * @param string       $url    The embed URL.
-						 * @param array        $attr   An array of shortcode attributes.
+						 * @param string $return The HTML result of the shortcode.
+						 * @param string $url    The embed URL.
+						 * @param array  $attr   An array of shortcode attributes.
 						 */
 						return apply_filters( 'embed_handler_html', $return, $url, $attr );
 					}
@@ -212,8 +212,10 @@ class WP_Embed {
 
 		$this->last_attr = $attr;
 
-		// KSES converts & into &amp; and we need to undo this.
-		// See https://core.trac.wordpress.org/ticket/11311
+		/*
+		 * KSES converts & into &amp; and we need to undo this.
+		 * See https://core.trac.wordpress.org/ticket/11311
+		 */
 		$url = str_replace( '&amp;', '&', $url );
 
 		// Look for known internal handlers.
@@ -281,10 +283,10 @@ class WP_Embed {
 				 *
 				 * @see WP_Embed::shortcode()
 				 *
-				 * @param string|false $cache   The cached HTML result, stored in post meta.
-				 * @param string       $url     The attempted embed URL.
-				 * @param array        $attr    An array of shortcode attributes.
-				 * @param int          $post_id Post ID.
+				 * @param string $cache   The cached HTML result, stored in post meta.
+				 * @param string $url     The attempted embed URL.
+				 * @param array  $attr    An array of shortcode attributes.
+				 * @param int    $post_id Post ID.
 				 */
 				return apply_filters( 'embed_oembed_html', $cache, $url, $attr, $post_id );
 			}
@@ -388,7 +390,7 @@ class WP_Embed {
 		}
 
 		foreach ( $post_metas as $post_meta_key ) {
-			if ( '_oembed_' === substr( $post_meta_key, 0, 8 ) ) {
+			if ( str_starts_with( $post_meta_key, '_oembed_' ) ) {
 				delete_post_meta( $post_id, $post_meta_key );
 			}
 		}

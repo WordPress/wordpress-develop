@@ -230,5 +230,4 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$this->assertSame( wp_unslash( self::SLASH_2 ), $user->display_name );
 		$this->assertSame( wp_unslash( self::SLASH_4 ), $user->description );
 	}
-
 }

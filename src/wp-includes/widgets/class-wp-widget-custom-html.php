@@ -69,12 +69,16 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		}
 		$this->registered = true;
 
-		// Note that the widgets component in the customizer will also do
-		// the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
+		/*
+		 * Note that the widgets component in the customizer will also do
+		 * the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
+		 */
 		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts' ) );
 
-		// Note that the widgets component in the customizer will also do
-		// the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
+		/*
+		 * Note that the widgets component in the customizer will also do
+		 * the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
+		 */
 		add_action( 'admin_footer-widgets.php', array( 'WP_Widget_Custom_HTML', 'render_control_template_scripts' ) );
 
 		// Note this action is used to ensure the help text is added to the end.
@@ -144,9 +148,6 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-text.php */
 		$content = apply_filters( 'widget_text', $instance['content'], $simulated_text_widget_instance, $this );
-
-		// Adds 'noopener' relationship, without duplicating values, to all HTML A elements that have a target.
-		$content = wp_targeted_link_rel( $content );
 
 		/**
 		 * Filters the content of the Custom HTML widget.
