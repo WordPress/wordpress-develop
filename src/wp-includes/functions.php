@@ -8076,7 +8076,7 @@ function wp_cache_get_query_data( $cache_key, $group, $last_changed ) {
 		return false;
 	}
 
-	if ( $last_changed !== $cache['last_changed'] ) {
+	if ( ! isset( $cache['last_changed'] ) || $last_changed !== $cache['last_changed'] ) {
 		return false;
 	}
 
@@ -8117,7 +8117,7 @@ function wp_cache_get_multiple_query_data( $cache_keys, $group, $last_changed ) 
 		if ( false === $value ) {
 			continue;
 		}
-		if ( $last_changed !== $value['last_changed'] ) {
+		if ( ! isset( $value['last_changed'] ) || $last_changed !== $value['last_changed'] ) {
 			$cache[ $key ] = false;
 		}
 	}
