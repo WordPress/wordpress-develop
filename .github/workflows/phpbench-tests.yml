@@ -103,4 +103,4 @@ jobs:
         run: npm run env:install
 
       - name: Run PHPBench tests
-        run: docker compose run --rm php ./vendor/bin/phpbench run tests/phpbench --report=aggregate
+        run: composer run bench
