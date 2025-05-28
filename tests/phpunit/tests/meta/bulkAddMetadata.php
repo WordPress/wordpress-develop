@@ -5,6 +5,19 @@
  */
 class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 
+	/*
+	 * It is important to test with both even and odd numbered slashes,
+	 * as KSES does a strip-then-add slashes in some of its function calls.
+	 */
+
+	const SLASH_1 = 'String with 1 slash \\';
+	const SLASH_2 = 'String with 2 slashes \\\\';
+	const SLASH_3 = 'String with 3 slashes \\\\\\';
+	const SLASH_4 = 'String with 4 slashes \\\\\\\\';
+	const SLASH_5 = 'String with 5 slashes \\\\\\\\\\';
+	const SLASH_6 = 'String with 6 slashes \\\\\\\\\\\\';
+	const SLASH_7 = 'String with 7 slashes \\\\\\\\\\\\\\';
+
 	public function test_all_meta_fields_should_be_added() {
 		global $wpdb;
 
@@ -88,4 +101,39 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 		$this->assertSame( $added_post_meta_calls + 2, did_action( 'added_post_meta' ) );
 	}
 
+	public function test_slashed_data_should_be_handled_correctly() {
+		$post_id = self::factory()->post->create();
+		$meta = array(
+			'key1' => addslashes( self::SLASH_1 ),
+			'key2' => addslashes( self::SLASH_2 ),
+			'key3' => addslashes( self::SLASH_3 ),
+			'key4' => addslashes( self::SLASH_4 ),
+			'key5' => addslashes( self::SLASH_5 ),
+			'key6' => addslashes( self::SLASH_6 ),
+			'key7' => addslashes( self::SLASH_7 ),
+		);
+		$result = bulk_add_metadata( 'post', $post_id, $meta );
+
+		$actual_vals = array(
+			'key1' => get_post_meta( $post_id, 'key1', true ),
+			'key2' => get_post_meta( $post_id, 'key2', true ),
+			'key3' => get_post_meta( $post_id, 'key3', true ),
+			'key4' => get_post_meta( $post_id, 'key4', true ),
+			'key5' => get_post_meta( $post_id, 'key5', true ),
+			'key6' => get_post_meta( $post_id, 'key6', true ),
+			'key7' => get_post_meta( $post_id, 'key7', true ),
+		);
+		$expected_vals = array(
+			'key1' => self::SLASH_1,
+			'key2' => self::SLASH_2,
+			'key3' => self::SLASH_3,
+			'key4' => self::SLASH_4,
+			'key5' => self::SLASH_5,
+			'key6' => self::SLASH_6,
+			'key7' => self::SLASH_7,
+		);
+
+		$this->assertCount( 7, $result );
+		$this->assertSame( $expected_vals, $actual_vals );
+	}
 }

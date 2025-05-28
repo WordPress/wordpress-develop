@@ -196,7 +196,7 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  * @todo:
  *
  * [X] change this function so it returns the array of mids instead of true
- * [ ] reinstate slashed data handling
+ * [X] reinstate slashed data handling
  * [X] need to account for the return value of "add_{$meta_type}_metadata" for each key
  * [X] need tests to cover when the "add_{$meta_type}_metadata" filter returns a value for a key
  * [X] confirm that the method of getting the mids via `range()` is reliable
@@ -234,6 +234,9 @@ function bulk_add_metadata( string $meta_type, $object_id, array $meta_fields ) 
 	$return       = array();
 
 	foreach ( $meta_fields as $meta_key => $meta_value ) {
+		// expected_slashed ($meta_key)
+		$meta_key   = wp_unslash( $meta_key );
+		$meta_value = wp_unslash( $meta_value );
 		$meta_value = sanitize_meta( $meta_key, $meta_value, $meta_type, $meta_subtype );
 
 		/** This filter is documented in wp-includes/meta.php */
@@ -242,9 +245,6 @@ function bulk_add_metadata( string $meta_type, $object_id, array $meta_fields ) 
 			$return[ $meta_key ] = $check;
 			continue;
 		}
-
-		// Update the values in the array with sanitized data.
-		$meta_fields[ $meta_key ] = $meta_value;
 
 		/** This action is documented in wp-includes/meta.php */
 		do_action( "add_{$meta_type}_meta", $object_id, $meta_key, $meta_value );
