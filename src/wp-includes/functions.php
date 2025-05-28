@@ -8096,7 +8096,7 @@ function wp_cache_set_query_data( $cache_key, $data, $group, $last_changed ) {
 		$cache_key,
 		array(
 			'data'         => $data,
-			'last_chagned' => $last_changed,
+			'last_changed' => $last_changed,
 		),
 		$group
 	);
