@@ -26,66 +26,57 @@ abstract class AddMetaBenchBase {
 
 	public function provideMetaData(): Generator {
 		$rows = [];
-		// 3 rows ranging from 10 to 30 bytes.
 		for ( $i = 1; $i <= 3; $i++ ) {
 			$rows[ "key_{$i}" ] = str_repeat( '1234567890', $i );
 		}
-		yield '3 small rows' => $rows;
+		yield '3 metas, 10-30 bytes' => $rows;
 
 		$rows = [];
-		// 20 rows ranging from 10 to 200 bytes.
 		for ( $i = 1; $i <= 20; $i++ ) {
 			$rows[ "key_{$i}" ] = str_repeat( '1234567890', $i );
 		}
-		yield '20 small rows' => $rows;
+		yield '20 metas, 10-200 bytes' => $rows;
 
 		$rows = [];
-		// 50 rows ranging from 5 to 250 bytes.
 		for ( $i = 1; $i <= 50; $i++ ) {
 			$rows[ "key_{$i}" ] = str_repeat( '12345', $i );
 		}
-		yield '50 small rows' => $rows;
+		yield '50 metas, 5-250 bytes' => $rows;
 
 		$rows = [];
-		// 100 rows ranging from 5 to 500 bytes.
 		for ( $i = 1; $i <= 100; $i++ ) {
 			$rows[ "key_{$i}" ] = str_repeat( '12345', $i );
 		}
-		yield '100 small rows' => $rows;
+		yield '100 metas, 5-500 bytes' => $rows;
 
 		$rows = [];
-		// 10 rows ranging from 100 bytes to 1 KB.
 		for ( $i = 1; $i <= 10; $i++ ) {
 			$rows[ "key_{$i}" ] = str_repeat( '1234567890', $i * 10 );
 		}
-		yield '10 medium rows' => $rows;
+		yield '10 metas, 0.1-1 Kb' => $rows;
 
 		$rows = [];
-		// 10 rows ranging from 1 KB to 10 KB.
 		for ( $i = 1; $i <= 10; $i++ ) {
 			$rows[ "key_{$i}" ] = str_repeat( '1234567890', $i * 100 );
 		}
-		yield '10 large rows' => $rows;
+		yield '10 metas, 1-10 Kb' => $rows;
 
 		$rows = [];
-		// 3 rows ranging from 30 KB to 90 KB.
 		for ( $i = 1; $i <= 3; $i++ ) {
 			$rows[ "key_{$i}" ] = str_repeat( '1234567890', $i * 3000 );
 		}
-		yield '3 xl rows' => $rows;
+		yield '3 metas, 30-90 Kb' => $rows;
 
 		$rows = [];
-		// 10 rows ranging from 10 KB to 100 KB.
 		for ( $i = 1; $i <= 10; $i++ ) {
 			$rows[ "key_{$i}" ] = str_repeat( '1234567890', $i * 1000 );
 		}
-		yield '10 xl rows' => $rows;
+		yield '10 metas, 10-100 Kb' => $rows;
 
 		$rows = [];
-		// 20 rows ranging from 10 KB to 200 KB.
 		for ( $i = 1; $i <= 20; $i++ ) {
 			$rows[ "key_{$i}" ] = str_repeat( '1234567890', $i * 1000 );
 		}
-		yield '20 xl rows' => $rows;
+		yield '20 metas, 10-200 Kb' => $rows;
 	}
 }
