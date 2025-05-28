@@ -4,6 +4,8 @@
  * Test the insertion of multiple rows.
  *
  * @group wpdb
+ *
+ * @covers wpdb::insert_multiple
  */
 class Tests_DB_InsertMultiple extends WP_UnitTestCase {
 

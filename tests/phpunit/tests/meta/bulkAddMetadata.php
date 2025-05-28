@@ -2,6 +2,8 @@
 
 /**
  * @group meta
+ *
+ * @covers bulk_add_metadata
  */
 class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 
