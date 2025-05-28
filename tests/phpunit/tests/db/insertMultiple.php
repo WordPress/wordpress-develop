@@ -6,22 +6,14 @@
  * @group wpdb
  */
 class Tests_DB_InsertMultiple extends WP_UnitTestCase {
-	/**
-	 * @var wpdb
-	 */
-	protected $wpdb;
-
-	public function set_up() {
-		parent::set_up();
-
-		$this->wpdb = $GLOBALS['wpdb'];
-	}
 
 	/**
 	 * @ticket 59269
 	 */
 	public function test_correct_rows_are_inserted() {
-		$table = $this->wpdb->postmeta;
+		global $wpdb;
+
+		$table = $wpdb->postmeta;
 
 		$columns = array(
 			'post_id',
@@ -41,15 +33,15 @@ class Tests_DB_InsertMultiple extends WP_UnitTestCase {
 			'%s',
 		);
 
-		$inserted = $this->wpdb->insert_multiple(
+		$inserted = $wpdb->insert_multiple(
 			$table,
 			$columns,
 			$datas,
 			$format
 		);
 
-		$rows = $this->wpdb->get_results(
-			$this->wpdb->prepare(
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
 				'SELECT post_id, meta_key, meta_value FROM %i ORDER BY post_id ASC',
 				$table
 			),
