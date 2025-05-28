@@ -219,7 +219,7 @@ function bulk_add_metadata( string $meta_type, $object_id, array $meta_fields ) 
 	$meta_subtype = get_object_subtype( $meta_type, $object_id );
 	$column       = sanitize_key( $meta_type . '_id' );
 	$data         = array();
-	$return       = [];
+	$return       = array();
 
 	foreach ( $meta_fields as $meta_key => $meta_value ) {
 		$meta_value = sanitize_meta( $meta_key, $meta_value, $meta_type, $meta_subtype );
