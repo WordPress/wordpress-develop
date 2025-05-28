@@ -536,6 +536,7 @@ class wpdb {
 	 *
 	 * @see wpdb::prepare()
 	 * @see wpdb::insert()
+	 * @see wpdb::insert_multiple()
 	 * @see wpdb::update()
 	 * @see wpdb::delete()
 	 * @see wp_set_wpdb_vars()
@@ -2579,8 +2580,8 @@ class wpdb {
 			$table,
 		);
 
-		foreach ( $rows as $data ) {
-			$data = $this->process_fields( $table, $data, $format );
+		foreach ( $rows as $row ) {
+			$data = $this->process_fields( $table, array_combine( $columns, $row ), $format );
 			if ( false === $data ) {
 				return false;
 			}

@@ -256,12 +256,7 @@ function bulk_add_metadata( string $meta_type, $object_id, array $meta_fields ) 
 			'meta_key',
 			'meta_value',
 		),
-		$data,
-		array(
-			'%d',
-			'%s',
-			'%s',
-		)
+		$data
 	);
 
 	if ( ! $inserted ) {
