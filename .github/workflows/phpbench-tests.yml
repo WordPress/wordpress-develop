@@ -102,8 +102,5 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
-      - name: Build WordPress
-        run: npm run build:dev
-
       - name: Run PHPBench tests
         run: docker compose run --rm php ./vendor/bin/phpbench run tests/phpbench --report=aggregate
