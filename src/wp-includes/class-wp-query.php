@@ -3356,7 +3356,7 @@ class WP_Query {
 					'max_num_pages' => $this->max_num_pages,
 				);
 
-				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
+                wp_cache_set_query_data( $cache_key, $cache_value, 'post-queries', $last_changed );
 			}
 
 			return $post_parents;
@@ -3454,7 +3454,7 @@ class WP_Query {
 				'max_num_pages' => $this->max_num_pages,
 			);
 
-			wp_cache_set( $cache_key, $cache_value, 'post-queries' );
+            wp_cache_set_query_data( $cache_key, $cache_value, 'post-queries', $last_changed );
 		}
 
 		if ( ! $q['suppress_filters'] ) {
