@@ -15,8 +15,9 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 			'key3' => '3',
 		);
 		$latest_mid = (int) $wpdb->get_var( "SELECT MAX( meta_id ) FROM {$wpdb->postmeta}" );
-		$filters = did_filter( 'add_post_metadata' );
-		$actions = did_action( 'added_post_meta' );
+		$add_post_metadata_calls = did_filter( 'add_post_metadata' );
+		$add_post_meta_calls = did_action( 'add_post_meta' );
+		$added_post_meta_calls = did_action( 'added_post_meta' );
 
 		$result = bulk_add_metadata( 'post', $post_id, $meta );
 
@@ -34,20 +35,22 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_vals, $actual_vals );
 		$this->assertSame( $expected_mids, $result );
-		$this->assertSame( $filters + 3, did_filter( 'add_post_metadata' ) );
-		$this->assertSame( $actions + 3, did_action( 'added_post_meta' ) );
+		$this->assertSame( $add_post_metadata_calls + 3, did_filter( 'add_post_metadata' ) );
+		$this->assertSame( $add_post_meta_calls + 3, did_action( 'add_post_meta' ) );
+		$this->assertSame( $added_post_meta_calls + 3, did_action( 'added_post_meta' ) );
 	}
 
 	public function test_correct_mids_should_be_returned_when_filter_is_in_place() {
 		global $wpdb;
 
-		add_filter( 'add_post_metadata', function( $check, $object_id, $meta_key ) {
-			if ( 'key2' === $meta_key ) {
-				return 123456;
-			}
-
-			return $check;
-		}, 10, 3 );
+		add_filter(
+			'add_post_metadata',
+			static function ( $check, $object_id, $meta_key ) {
+				return ( 'key2' === $meta_key ) ? 123456 : $check;
+			},
+			10,
+			3
+		);
 
 		$post_id = self::factory()->post->create();
 		$meta = array(
@@ -56,8 +59,9 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 			'key3' => '3',
 		);
 		$latest_mid = (int) $wpdb->get_var( "SELECT MAX( meta_id ) FROM {$wpdb->postmeta}" );
-		$filters = did_filter( 'add_post_metadata' );
-		$actions = did_action( 'added_post_meta' );
+		$add_post_metadata_calls = did_filter( 'add_post_metadata' );
+		$add_post_meta_calls = did_action( 'add_post_meta' );
+		$added_post_meta_calls = did_action( 'added_post_meta' );
 
 		$result = bulk_add_metadata( 'post', $post_id, $meta );
 
@@ -79,8 +83,9 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_vals, $actual_vals );
 		$this->assertSame( $expected_mids, $result );
-		$this->assertSame( $filters + 3, did_filter( 'add_post_metadata' ) );
-		$this->assertSame( $actions + 2, did_action( 'added_post_meta' ) );
+		$this->assertSame( $add_post_metadata_calls + 3, did_filter( 'add_post_metadata' ) );
+		$this->assertSame( $add_post_meta_calls + 2, did_action( 'add_post_meta' ) );
+		$this->assertSame( $added_post_meta_calls + 2, did_action( 'added_post_meta' ) );
 	}
 
 }
