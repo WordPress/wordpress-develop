@@ -22,15 +22,16 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 		global $wpdb;
 
 		$post_id = self::factory()->post->create();
-		$meta = array(
+		$meta    = array(
 			'key1' => '1',
 			'key2' => '2',
 			'key3' => '3',
 		);
-		$latest_mid = (int) $wpdb->get_var( "SELECT MAX( meta_id ) FROM {$wpdb->postmeta}" );
+
+		$latest_mid              = (int) $wpdb->get_var( "SELECT MAX( meta_id ) FROM {$wpdb->postmeta}" );
 		$add_post_metadata_calls = did_filter( 'add_post_metadata' );
-		$add_post_meta_calls = did_action( 'add_post_meta' );
-		$added_post_meta_calls = did_action( 'added_post_meta' );
+		$add_post_meta_calls     = did_action( 'add_post_meta' );
+		$added_post_meta_calls   = did_action( 'added_post_meta' );
 
 		$result = bulk_add_metadata( 'post', $post_id, $meta );
 
@@ -39,6 +40,7 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 			'key2' => get_post_meta( $post_id, 'key2', true ),
 			'key3' => get_post_meta( $post_id, 'key3', true ),
 		);
+
 		$expected_vals = $meta;
 		$expected_mids = array(
 			'key1' => ( $latest_mid + 1 ),
@@ -66,15 +68,16 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 		);
 
 		$post_id = self::factory()->post->create();
-		$meta = array(
+		$meta    = array(
 			'key1' => '1',
 			'key2' => '2',
 			'key3' => '3',
 		);
-		$latest_mid = (int) $wpdb->get_var( "SELECT MAX( meta_id ) FROM {$wpdb->postmeta}" );
+
+		$latest_mid              = (int) $wpdb->get_var( "SELECT MAX( meta_id ) FROM {$wpdb->postmeta}" );
 		$add_post_metadata_calls = did_filter( 'add_post_metadata' );
-		$add_post_meta_calls = did_action( 'add_post_meta' );
-		$added_post_meta_calls = did_action( 'added_post_meta' );
+		$add_post_meta_calls     = did_action( 'add_post_meta' );
+		$added_post_meta_calls   = did_action( 'added_post_meta' );
 
 		$result = bulk_add_metadata( 'post', $post_id, $meta );
 
@@ -83,11 +86,13 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 			'key2' => '',
 			'key3' => '3',
 		);
+
 		$actual_vals = array(
 			'key1' => get_post_meta( $post_id, 'key1', true ),
 			'key2' => get_post_meta( $post_id, 'key2', true ),
 			'key3' => get_post_meta( $post_id, 'key3', true ),
 		);
+
 		$expected_mids = array(
 			'key2' => 123456,
 			'key1' => ( $latest_mid + 1 ),
@@ -103,7 +108,7 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 
 	public function test_slashed_data_should_be_handled_correctly() {
 		$post_id = self::factory()->post->create();
-		$meta = array(
+		$meta    = array(
 			'key1' => addslashes( self::SLASH_1 ),
 			'key2' => addslashes( self::SLASH_2 ),
 			'key3' => addslashes( self::SLASH_3 ),
@@ -112,6 +117,7 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 			'key6' => addslashes( self::SLASH_6 ),
 			'key7' => addslashes( self::SLASH_7 ),
 		);
+
 		$result = bulk_add_metadata( 'post', $post_id, $meta );
 
 		$actual_vals = array(
@@ -123,6 +129,7 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 			'key6' => get_post_meta( $post_id, 'key6', true ),
 			'key7' => get_post_meta( $post_id, 'key7', true ),
 		);
+
 		$expected_vals = array(
 			'key1' => self::SLASH_1,
 			'key2' => self::SLASH_2,
