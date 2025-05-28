@@ -8072,11 +8072,11 @@ function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
 function wp_cache_get_query_data( $cache_key, $group, $last_changed ) {
 	$cache = wp_cache_get( $cache_key, $group );
 
-	if ( false === $cache ) {
+	if ( ! is_array( $cache ) ) {
 		return false;
 	}
 
-	if ( ! isset( $cache['last_changed'] ) || $last_changed !== $cache['last_changed'] ) {
+	if ( ! isset( $cache['last_changed'], $cache['data'] ) || $last_changed !== $cache['last_changed'] ) {
 		return false;
 	}
 
@@ -8114,12 +8114,15 @@ function wp_cache_get_multiple_query_data( $cache_keys, $group, $last_changed ) 
 	$cache = wp_cache_get_multiple( $cache_keys, $group );
 
 	foreach ( $cache as $key => $value ) {
-		if ( false === $value ) {
+		if ( ! is_array( $value ) ) {
+			$cache[ $key ] = false;
 			continue;
 		}
-		if ( ! isset( $value['last_changed'] ) || $last_changed !== $value['last_changed'] ) {
+		if ( ! isset( $value['last_changed'], $value['data'] ) || $last_changed !== $value['last_changed'] ) {
 			$cache[ $key ] = false;
+			continue;
 		}
+		$cache[ $key ] = $value['data'];
 	}
 
 	return $cache;
