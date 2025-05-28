@@ -50,11 +50,7 @@ class Tests_DB_InsertMultiple extends WP_UnitTestCase {
 
 		$rows = $this->wpdb->get_results(
 			$this->wpdb->prepare(
-				"
-					SELECT post_id, meta_key, meta_value
-					FROM %i
-					ORDER BY post_id ASC
-				",
+				'SELECT post_id, meta_key, meta_value FROM %i ORDER BY post_id ASC',
 				$table
 			),
 			ARRAY_A
