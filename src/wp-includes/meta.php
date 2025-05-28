@@ -196,9 +196,9 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  *
  * [X] change this function so it returns the array of mids instead of true
  * [ ] reinstate slashed data handling
- * [ ] need to account for the return value of "add_{$meta_type}_metadata" for each key
- * [ ] need tests to cover when the "add_{$meta_type}_metadata" filter returns a value for a key
- * [ ] confirm that the method of getting the mids via `range()` is reliable
+ * [X] need to account for the return value of "add_{$meta_type}_metadata" for each key
+ * [X] need tests to cover when the "add_{$meta_type}_metadata" filter returns a value for a key
+ * [X] confirm that the method of getting the mids via `range()` is reliable
  *
  * @since x.y.z
  *
@@ -274,20 +274,20 @@ function bulk_add_metadata( string $meta_type, $object_id, array $meta_fields ) 
 		return false;
 	}
 
-	$first_mid = (int) $wpdb->insert_id;
-	$all_mids  = range( $first_mid, $first_mid + count( $data ) - 1 );
-
-	$i = 0;
+	$first_mid     = (int) $wpdb->insert_id;
+	$inserted_mids = range( $first_mid, $first_mid + $inserted - 1 );
+	$keyed_mids    = array_combine( array_column( $data, 1 ), $inserted_mids );
+	$all_mids      = array_merge( $return, $keyed_mids );
 
 	wp_cache_delete( $object_id, $meta_type . '_meta' );
 
-	foreach ( $meta_fields as $meta_key => $meta_value ) {
+	foreach ( $data as $datum ) {
+		list( $object_id, $meta_key, $meta_value ) = $datum;
 		/** This action is documented in wp-includes/meta.php */
-		do_action( "added_{$meta_type}_meta", $all_mids[ $i ], $object_id, $meta_key, $meta_value );
-		$i++;
+		do_action( "added_{$meta_type}_meta", $all_mids[ $meta_key ], $object_id, $meta_key, $meta_value );
 	}
 
-	return true;
+	return $all_mids;
 }
 
 /**
