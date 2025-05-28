@@ -8131,16 +8131,15 @@ function wp_cache_get_multiple_query_data( $cache_keys, $group, $last_changed ) 
 /**
  * Stores multiple pieces of query data in the cache.
  *
- * @param array $cache_keys Array of cache keys to define the items to be stored.
  * @param mixed $data Data to be stored in the cache for all keys.
  * @param string $group Group to which the cached data belongs.
  * @param string $last_changed Timestamp indicating the last modification time for the data.
  */
-function wp_cache_set_multiple_query_data( $cache_keys, $data, $group, $last_changed ) {
+function wp_cache_set_multiple_query_data( $data, $group, $last_changed ) {
 	$new_cache = array();
-	foreach ( $cache_keys as $key ) {
+	foreach ( $data as $key => $value ) {
 		$new_cache[ $key ] = array(
-			'data'         => $data,
+			'data'         => $value,
 			'last_changed' => $last_changed,
 		);
 	}
