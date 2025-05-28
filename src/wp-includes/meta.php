@@ -80,7 +80,8 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param null|int|false $check      Whether to allow adding metadata for the given type. @todo improve description
+	 * @param null|int|false $check      Whether to allow adding metadata for the given type. Return false or a meta ID
+	 *                                   to short-circuit the function. Return null to continue with the default behavior.
 	 * @param int            $object_id  ID of the object metadata is for.
 	 * @param string         $meta_key   Metadata key.
 	 * @param mixed          $meta_value Metadata value. Must be serializable if non-scalar.
@@ -170,9 +171,6 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 /**
  * Adds multiple items of metadata for the specified object.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
- *
  * This function will always insert all of the provided metadata even if matching keys already exist. This behaviour
  * matches that of add_metadata() when its `$unique` parameter is set to false.
  *
@@ -191,6 +189,9 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  *             'meta_key_2' => 'value_2',
  *         )
  *     );
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @todo:
  *
