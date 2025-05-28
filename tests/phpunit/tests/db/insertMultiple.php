@@ -22,16 +22,19 @@ class Tests_DB_InsertMultiple extends WP_UnitTestCase {
 	 */
 	public function test_correct_rows_are_inserted() {
 		$table = $this->wpdb->postmeta;
+
 		$columns = array(
 			'post_id',
 			'meta_key',
 			'meta_value',
 		);
+
 		$datas = array(
 			array( 1, 'key1', 'value1' ),
 			array( 2, 'key2', 'value2' ),
 			array( 3, 'key3', 'value3' ),
 		);
+
 		$format = array(
 			'%d',
 			'%s',
@@ -46,28 +49,31 @@ class Tests_DB_InsertMultiple extends WP_UnitTestCase {
 		);
 
 		$rows = $this->wpdb->get_results(
-			"
-				SELECT post_id, meta_key, meta_value
-				FROM $table
-				ORDER BY post_id ASC
-			",
+			$this->wpdb->prepare(
+				"
+					SELECT post_id, meta_key, meta_value
+					FROM %i
+					ORDER BY post_id ASC
+				",
+				$table
+			),
 			ARRAY_A
 		);
 
 		$expected_rows = array(
 			array(
-				'post_id' => '1',
-				'meta_key' => 'key1',
+				'post_id'    => '1',
+				'meta_key'   => 'key1',
 				'meta_value' => 'value1',
 			),
 			array(
-				'post_id' => '2',
-				'meta_key' => 'key2',
+				'post_id'    => '2',
+				'meta_key'   => 'key2',
 				'meta_value' => 'value2',
 			),
 			array(
-				'post_id' => '3',
-				'meta_key' => 'key3',
+				'post_id'    => '3',
+				'meta_key'   => 'key3',
 				'meta_value' => 'value3',
 			),
 		);
