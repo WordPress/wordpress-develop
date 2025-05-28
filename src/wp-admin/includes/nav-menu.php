@@ -636,6 +636,10 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 				);
 				$most_recent = $get_posts->query( $recent_args );
 
+				$most_recent = array_merge( $important_pages, $most_recent );
+				// Now there can be more than 15 items in the tab, so we need to limit it to 15 back.
+				$most_recent = array_slice( $most_recent, 0, 15 );
+
 				$args['walker'] = $walker;
 
 				/**
