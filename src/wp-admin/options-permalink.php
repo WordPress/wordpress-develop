@@ -428,7 +428,7 @@ printf(
 			</label>
 		</th>
 		<td>
-		<?php if ( empty( $blog_prefix ) ) : ?>
+		<?php if ( '' === $blog_prefix ) : ?>
 			<input name="category_base" id="category_base" type="text"
 				value="<?php echo esc_attr( $category_base ); ?>" class="regular-text code"
 			/>
@@ -447,7 +447,7 @@ printf(
 			<label for="tag_base"><?php _e( 'Tag base' ); ?></label>
 		</th>
 		<td>
-		<?php if ( empty( $blog_prefix ) ) : ?>
+		<?php if ( '' === $blog_prefix ) : ?>
 			<input name="tag_base" id="tag_base" type="text"
 				value="<?php echo esc_attr( $tag_base ); ?>" class="regular-text code"
 			/>
