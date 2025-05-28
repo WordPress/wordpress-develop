@@ -96,6 +96,9 @@ jobs:
           docker compose run --rm php php -i
           docker compose run --rm php locale -a
 
+      - name: Install phpbench
+        run: docker compose run --rm php composer require --dev phpbench/phpbench:"^1.2" --update-with-dependencies
+
       - name: Install WordPress
         run: npm run env:install
 
@@ -103,4 +106,4 @@ jobs:
         run: npm run build:dev
 
       - name: Run PHPBench tests
-        run: composer run bench
+        run: docker compose run --rm php ./vendor/bin/phpbench run tests/phpbench --report=aggregate
