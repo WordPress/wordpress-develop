@@ -611,8 +611,12 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 	}
 
 	.revisions-tooltip {
-		bottom: 130px;
+		bottom: 155px;
 		z-index: 2;
+	}
+
+	.comparing-two-revisions .revisions-tooltip {
+		bottom: 200px;
 	}
 
 	.diff-meta {
