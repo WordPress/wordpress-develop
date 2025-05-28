@@ -15,6 +15,9 @@ require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
 /**
  * Adds metadata for the specified object.
  *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
+ *
  * @since 2.9.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -167,19 +170,27 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 /**
  * Adds multiple items of metadata for the specified object.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes
- * escaped) on input. This means if the data is coming from user-generated
- * content you will need to wp_slash() it before passing it to this function.
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
- * This function will always insert all of the provided metadata even if matching keys
- * already exist. This behaviour matches that of add_metadata() when its `$unique`
- * parameter is set to false.
+ * This function will always insert all of the provided metadata even if matching keys already exist. This behaviour
+ * matches that of add_metadata() when its `$unique` parameter is set to false.
  *
- * If the insert fails, no metadata will be inserted. It's not possible for some rows
- * to be inserted and not others.
+ * If the insert fails, no metadata will be inserted. It's not possible for some rows to be inserted and not others.
  *
- * This is more performant than calling `add_metadata()` multiple times because it
- * only queries the database once and only clears the meta cache once.
+ * This is more performant than calling `add_metadata()` multiple times because it only queries the database once and
+ * only clears the meta cache once.
+ *
+ * Examples:
+ *
+ *     bulk_add_metadata(
+ *         'post',
+ *         $post_id,
+ *         array(
+ *             'meta_key_1' => 'value_1',
+ *             'meta_key_2' => 'value_2',
+ *         )
+ *     );
  *
  * @todo:
  *
@@ -282,6 +293,9 @@ function bulk_add_metadata( string $meta_type, $object_id, array $meta_fields ) 
 /**
  * Updates metadata for the specified object. If no value already exists for the specified object
  * ID and metadata key, the metadata will be added.
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 2.9.0
  *
@@ -477,6 +491,9 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 
 /**
  * Deletes metadata for the specified object.
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 2.9.0
  *

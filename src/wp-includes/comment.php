@@ -446,6 +446,9 @@ function get_comment_count( $post_id = 0 ) {
 /**
  * Adds meta data field to a comment.
  *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
+ *
  * @since 2.9.0
  *
  * @link https://developer.wordpress.org/reference/functions/add_comment_meta/
@@ -470,7 +473,18 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
 /**
  * Adds multiple items of meta data to a comment.
  *
- * @todo docs
+ * Examples:
+ *
+ *     bulk_add_comment_meta(
+ *         $comment->comment_ID,
+ *         array(
+ *             'meta_key_1' => 'value_1',
+ *             'meta_key_2' => 'value_2',
+ *         )
+ *     );
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since x.y.z
  *
@@ -488,6 +502,9 @@ function bulk_add_comment_meta( $comment_id, array $meta_fields ) {
  * You can match based on the key, or key and value. Removing based on key and
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching key, if needed.
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 2.9.0
  *
@@ -554,6 +571,9 @@ function wp_lazyload_comment_meta( array $comment_ids ) {
  * same key and comment ID.
  *
  * If the meta field for the comment does not exist, it will be added.
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 2.9.0
  *

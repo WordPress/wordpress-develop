@@ -1382,6 +1382,9 @@ function get_terms( $args = array(), $deprecated = '' ) {
 /**
  * Adds metadata to a term.
  *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
+ *
  * @since 4.4.0
  *
  * @param int    $term_id    Term ID.
@@ -1409,7 +1412,18 @@ function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
 /**
  * Adds multiple items of meta data to a term.
  *
- * @todo docs
+ * Examples:
+ *
+ *     bulk_add_term_meta(
+ *         $term->term_id,
+ *         array(
+ *             'meta_key_1' => 'value_1',
+ *             'meta_key_2' => 'value_2',
+ *         )
+ *     );
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since x.y.z
  *
@@ -1428,6 +1442,9 @@ function bulk_add_term_meta( $term_id, array $meta_fields ) {
 
 /**
  * Removes metadata matching criteria from a term.
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 4.4.0
  *
@@ -1474,6 +1491,9 @@ function get_term_meta( $term_id, $key = '', $single = false ) {
  * Use the `$prev_value` parameter to differentiate between meta fields with the same key and term ID.
  *
  * If the meta field for the term does not exist, it will be added.
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 4.4.0
  *

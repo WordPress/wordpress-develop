@@ -1022,6 +1022,9 @@ function clean_blog_cache( $blog ) {
 /**
  * Adds metadata to a site.
  *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
+ *
  * @since 5.1.0
  *
  * @param int    $site_id    Site ID.
@@ -1044,7 +1047,18 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
 /**
  * Adds multiple items of meta data to a site.
  *
- * @todo docs
+ * Examples:
+ *
+ *     bulk_add_site_meta(
+ *         $site_id,
+ *         array(
+ *             'meta_key_1' => 'value_1',
+ *             'meta_key_2' => 'value_2',
+ *         )
+ *     );
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since x.y.z
  *
@@ -1062,6 +1076,9 @@ function bulk_add_site_meta( $site_id, array $meta_fields ) {
  * You can match based on the key, or key and value. Removing based on key and
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching key, if needed.
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 5.1.0
  *
@@ -1109,6 +1126,9 @@ function get_site_meta( $site_id, $key = '', $single = false ) {
  * same key and site ID.
  *
  * If the meta field for the site does not exist, it will be added.
+ *
+ * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 5.1.0
  *
