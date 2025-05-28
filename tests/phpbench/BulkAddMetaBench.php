@@ -8,7 +8,7 @@ require_once dirname( __DIR__, 2 ) . '/src/wp-load.php';
  * @BeforeMethods("setUp")
  * @AfterMethods("tearDown")
  */
-class InsertMultipleBench {
+class BulkAddMetaBench {
 	public $post_id;
 
 	public function setUp(): void {
@@ -42,7 +42,7 @@ class InsertMultipleBench {
 	 * @Iterations(3)
 	 * @Warmup(1)
 	 */
-	public function benchAddMultipleMeta( array $meta ): void {
+	public function benchBulkAddMeta( array $meta ): void {
 		bulk_add_post_meta( $this->post_id, $meta );
 	}
 
