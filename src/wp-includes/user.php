@@ -1203,7 +1203,6 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
  * Adds meta data to a user.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 3.0.0
  *
@@ -1227,6 +1226,9 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
 /**
  * Adds multiple items of meta data to a user.
  *
+ * This function is more performant than calling `add_user_meta()` multiple times because it queries the database
+ * only once and clears the meta cache only once.
+ *
  * Examples:
  *
  *     bulk_add_user_meta(
@@ -1238,7 +1240,6 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
  *     );
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since x.y.z
  *
@@ -1258,7 +1259,6 @@ function bulk_add_user_meta( $user_id, array $meta_fields ) {
  * allows removing all metadata matching key, if needed.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 3.0.0
  *
@@ -1312,7 +1312,6 @@ function get_user_meta( $user_id, $key = '', $single = false ) {
  * If the meta field for the user does not exist, it will be added.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 3.0.0
  *

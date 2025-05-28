@@ -16,7 +16,6 @@ require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
  * Adds metadata for the specified object.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 2.9.0
  *
@@ -171,13 +170,13 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 /**
  * Adds multiple items of metadata for the specified object.
  *
+ * This function is more performant than calling `add_metadata()` multiple times because it queries the database only
+ * once and clears the meta cache only once.
+ *
  * This function will always insert all of the provided metadata even if matching keys already exist. This behaviour
  * matches that of add_metadata() when its `$unique` parameter is set to false.
  *
- * If the insert fails, no metadata will be inserted. It's not possible for some rows to be inserted and not others.
- *
- * This is more performant than calling `add_metadata()` multiple times because it only queries the database once and
- * only clears the meta cache once.
+ * If the insert fails, no metadata will be inserted. It's not possible for a subset of the rows to be inserted.
  *
  * Examples:
  *
@@ -191,15 +190,6 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  *     );
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
- *
- * @todo:
- *
- * [X] change this function so it returns the array of mids instead of true
- * [X] reinstate slashed data handling
- * [X] need to account for the return value of "add_{$meta_type}_metadata" for each key
- * [X] need tests to cover when the "add_{$meta_type}_metadata" filter returns a value for a key
- * [X] confirm that the method of getting the mids via `range()` is reliable
  *
  * @since x.y.z
  *
@@ -296,7 +286,6 @@ function bulk_add_metadata( string $meta_type, $object_id, array $meta_fields ) 
  * ID and metadata key, the metadata will be added.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 2.9.0
  *
@@ -494,7 +483,6 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
  * Deletes metadata for the specified object.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 2.9.0
  *

@@ -1023,7 +1023,6 @@ function clean_blog_cache( $blog ) {
  * Adds metadata to a site.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 5.1.0
  *
@@ -1047,6 +1046,9 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
 /**
  * Adds multiple items of meta data to a site.
  *
+ * This function is more performant than calling `add_site_meta()` multiple times because it queries the database
+ * only once and clears the meta cache only once.
+ *
  * Examples:
  *
  *     bulk_add_site_meta(
@@ -1058,7 +1060,6 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
  *     );
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since x.y.z
  *
@@ -1078,7 +1079,6 @@ function bulk_add_site_meta( $site_id, array $meta_fields ) {
  * allows removing all metadata matching key, if needed.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 5.1.0
  *
@@ -1128,7 +1128,6 @@ function get_site_meta( $site_id, $key = '', $single = false ) {
  * If the meta field for the site does not exist, it will be added.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 5.1.0
  *

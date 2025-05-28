@@ -2609,7 +2609,6 @@ function get_posts( $args = null ) {
  * Post meta data is called "Custom Fields" on the Administration Screen.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 1.5.0
  *
@@ -2639,6 +2638,9 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
 /**
  * Adds multiple items of meta data to a post.
  *
+ * This function is more performant than calling `add_post_meta()` multiple times because it queries the database
+ * only once and clears the meta cache only once.
+ *
  * Examples:
  *
  *     bulk_add_post_meta(
@@ -2650,7 +2652,6 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
  *     );
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since x.y.z
  *
@@ -2670,7 +2671,6 @@ function bulk_add_post_meta( $post_id, array $meta_fields ) {
  * allows removing all metadata matching the key, if needed.
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 1.5.0
  *
@@ -2728,7 +2728,6 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
  * Can be used in place of add_post_meta().
  *
  * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
- * This means if data is coming from user-generated content you need to wp_slash() it before passing it to this function.
  *
  * @since 1.5.0
  *
