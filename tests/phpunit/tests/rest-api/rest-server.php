@@ -2667,14 +2667,16 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	public function test_batch_request_with_malformed_url() {
 		$request = new WP_REST_Request( 'POST', '/batch/v1' );
 		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body_params( array(
-			'requests' => array(
-				array(
-					'method' => 'POST',
-					'path'   => 'http://user@:80',
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'method' => 'POST',
+						'path'   => 'http://user@:80',
+					),
 				),
-			),
-		) );
+			)
+		);
 
 		$response = rest_get_server()->dispatch( $request );
 		$data = $response->get_data()['responses'][0]['body'] ?? null;
