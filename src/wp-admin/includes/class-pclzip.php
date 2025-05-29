@@ -2240,7 +2240,7 @@
     {
       fclose($v_zip_temp_fd);
       $this->privCloseFd();
-      wp_delete_file($v_zip_temp_name);
+      @unlink($v_zip_temp_name);
       $this->privSwapBackMagicQuotes();
 
       // ----- Return
