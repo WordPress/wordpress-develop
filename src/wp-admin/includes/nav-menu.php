@@ -736,8 +736,8 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 				<?php
 				$args['walker'] = $walker;
 
-				// Supression logic only apply for "View All" tab. See #63473.
 				// Add suppression array to arguments for WP_Query.
+				// Supression logic only apply for "View All" tab. See #63473.
 				if ( ! empty( $suppress_page_ids ) ) {
 					$args['post__not_in'] = $suppress_page_ids;
 				}
