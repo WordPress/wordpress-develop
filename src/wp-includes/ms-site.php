@@ -1059,7 +1059,7 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
  *         )
  *     );
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since x.y.z
  *
@@ -1078,7 +1078,7 @@ function bulk_add_site_meta( $site_id, array $meta_fields ) {
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching key, if needed.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 5.1.0
  *
@@ -1127,7 +1127,7 @@ function get_site_meta( $site_id, $key = '', $single = false ) {
  *
  * If the meta field for the site does not exist, it will be added.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 5.1.0
  *
