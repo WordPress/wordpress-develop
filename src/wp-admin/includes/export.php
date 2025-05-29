@@ -408,7 +408,7 @@ function export_wp( $args = array() ) {
 			$post_ids = array_map( 'absint', $post_ids );
 			$chunks   = array_chunk( $post_ids, 20 );
 		} else {
-			$chunks   = [[]];
+			$chunks = array( array() );
 		}
 
 		$authors = array();
