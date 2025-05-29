@@ -1077,11 +1077,9 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		}
 
 		$default_attr = array(
-			'src'    => $src,
-			'class'  => "attachment-$size_class size-$size_class",
-			'alt'    => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
-			'width'  => $width,
-			'height' => $height,
+			'src'   => $src,
+			'class' => "attachment-$size_class size-$size_class",
+			'alt'   => trim( strip_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
 		);
 
 		/**
@@ -1091,8 +1089,10 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 *
 		 * @param string $context The context. Default 'wp_get_attachment_image'.
 		 */
-		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
-		$attr    = wp_parse_args( $attr, $default_attr );
+		$context        = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
+		$attr           = wp_parse_args( $attr, $default_attr );
+		$attr['width']  = $width;
+		$attr['height'] = $height;
 
 		$loading_optimization_attr = wp_get_loading_optimization_attributes(
 			'img',
