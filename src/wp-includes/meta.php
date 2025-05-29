@@ -222,6 +222,7 @@ function bulk_add_metadata( string $meta_type, int $object_id, array $meta_field
 	$column       = sanitize_key( $meta_type . '_id' );
 	$data         = array();
 	$return       = array();
+	$added_keys   = array();
 
 	foreach ( $meta_fields as $meta_key => $meta_value ) {
 		// expected_slashed ($meta_key)
@@ -238,6 +239,8 @@ function bulk_add_metadata( string $meta_type, int $object_id, array $meta_field
 
 		/** This action is documented in wp-includes/meta.php */
 		do_action( "add_{$meta_type}_meta", $object_id, $meta_key, $meta_value );
+
+		$added_keys[] = $meta_key;
 
 		$data[] = array(
 			$object_id,
@@ -267,7 +270,7 @@ function bulk_add_metadata( string $meta_type, int $object_id, array $meta_field
 
 	$first_mid     = (int) $wpdb->insert_id;
 	$inserted_mids = range( $first_mid, $first_mid + $inserted - 1 );
-	$keyed_mids    = array_combine( array_column( $data, 1 ), $inserted_mids );
+	$keyed_mids    = array_combine( $added_keys, $inserted_mids );
 	$all_mids      = array_merge( $return, $keyed_mids );
 
 	wp_cache_delete( $object_id, $meta_type . '_meta' );
