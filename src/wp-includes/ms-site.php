@@ -1067,7 +1067,7 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
  * @param array<string,mixed> $meta_fields Metadata values keyed by their meta key. Values must be serializable if non-scalar.
  * @return array<string,int>|false Array of meta IDs keyed by their meta key on success, false on failure.
  */
-function bulk_add_site_meta( $site_id, array $meta_fields ) {
+function bulk_add_site_meta( int $site_id, array $meta_fields ) {
 	return bulk_add_metadata( 'site', $site_id, $meta_fields );
 }
 

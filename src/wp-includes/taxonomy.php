@@ -1433,7 +1433,7 @@ function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
  * @return array<string,int>|false|WP_Error Array of meta IDs keyed by their meta key on success, false on failure,
  *                                          WP_Error when term_id is ambiguous between taxonomies.
  */
-function bulk_add_term_meta( $term_id, array $meta_fields ) {
+function bulk_add_term_meta( int $term_id, array $meta_fields ) {
 	if ( wp_term_is_shared( $term_id ) ) {
 		return new WP_Error( 'ambiguous_term_id', __( 'Term meta cannot be added to terms that are shared between taxonomies.' ), $term_id );
 	}

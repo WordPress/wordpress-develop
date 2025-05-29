@@ -1247,7 +1247,7 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
  * @param array<string,mixed> $meta_fields Metadata values keyed by their meta key. Values must be serializable if non-scalar.
  * @return array<string,int>|false Array of meta IDs keyed by their meta key on success, false on failure.
  */
-function bulk_add_user_meta( $user_id, array $meta_fields ) {
+function bulk_add_user_meta( int $user_id, array $meta_fields ) {
 	return bulk_add_metadata( 'user', $user_id, $meta_fields );
 }
 
