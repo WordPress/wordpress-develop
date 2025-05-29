@@ -1022,7 +1022,7 @@ function clean_blog_cache( $blog ) {
 /**
  * Adds metadata to a site.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 5.1.0
  *

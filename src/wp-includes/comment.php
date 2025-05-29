@@ -446,7 +446,7 @@ function get_comment_count( $post_id = 0 ) {
 /**
  * Adds meta data field to a comment.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 2.9.0
  *
@@ -485,7 +485,7 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
  *         )
  *     );
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since x.y.z
  *
@@ -504,7 +504,7 @@ function bulk_add_comment_meta( $comment_id, array $meta_fields ) {
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching key, if needed.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 2.9.0
  *
@@ -572,7 +572,7 @@ function wp_lazyload_comment_meta( array $comment_ids ) {
  *
  * If the meta field for the comment does not exist, it will be added.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 2.9.0
  *

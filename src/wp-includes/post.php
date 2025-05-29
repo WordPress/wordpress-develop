@@ -2670,7 +2670,7 @@ function bulk_add_post_meta( $post_id, array $meta_fields ) {
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching the key, if needed.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 1.5.0
  *
@@ -2727,7 +2727,7 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
  *
  * Can be used in place of add_post_meta().
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 1.5.0
  *

@@ -15,7 +15,7 @@ require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
 /**
  * Adds metadata for the specified object.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 2.9.0
  *
@@ -189,7 +189,7 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  *         )
  *     );
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since x.y.z
  *
@@ -285,7 +285,7 @@ function bulk_add_metadata( string $meta_type, $object_id, array $meta_fields ) 
  * Updates metadata for the specified object. If no value already exists for the specified object
  * ID and metadata key, the metadata will be added.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 2.9.0
  *
@@ -482,7 +482,7 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 /**
  * Deletes metadata for the specified object.
  *
- * For historial reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 2.9.0
  *
