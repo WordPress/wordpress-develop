@@ -201,10 +201,10 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  * @param array<string,mixed> $meta_fields Metadata values keyed by their meta key. Values must be serializable if non-scalar.
  * @return array<string,int>|false Array of meta IDs keyed by their meta key on success, false on failure.
  */
-function bulk_add_metadata( string $meta_type, $object_id, array $meta_fields ) {
+function bulk_add_metadata( string $meta_type, int $object_id, array $meta_fields ) {
 	global $wpdb;
 
-	if ( ! $meta_type || ! $meta_fields || ! is_numeric( $object_id ) ) {
+	if ( ! $meta_type || ! $meta_fields ) {
 		return false;
 	}
 
