@@ -145,7 +145,7 @@ if ( is_wp_error( $id ) ) {
 		esc_js( $_FILES['async-upload']['name'] )
 	);
 
-	echo "<script>_.delay(function() {wp.a11y.speak('{$speak_message}');}, 1500);jQuery( 'button#{$button_unique_id}' ).on( 'click', function() {jQuery(this).parents('div.media-item').slideUp(200, function(){jQuery(this).remove();wp.a11y.speak( wp.i18n.__( 'Error dismissed.' ) );jQuery( '#plupload-browse-button' ).trigger( 'focus' );})});</script>\n";
+	echo "<script>_.delay(function() {wp.a11y.speak('" . esc_js( $speak_message ) . "');}, 1500);jQuery( 'button#{$button_unique_id}' ).on( 'click', function() {jQuery(this).parents('div.media-item').slideUp(200, function(){jQuery(this).remove();wp.a11y.speak( wp.i18n.__( 'Error dismissed.' ) );jQuery( '#plupload-browse-button' ).trigger( 'focus' );})});</script>\n";
 	exit;
 }
 
