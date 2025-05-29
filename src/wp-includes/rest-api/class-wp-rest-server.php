@@ -1747,6 +1747,12 @@ class WP_REST_Server {
 		$has_error  = false;
 
 		foreach ( $requests as $single_request ) {
+			if ( is_wp_error( $single_request ) ) {
+				$has_error    = true;
+				$validation[] = $single_request;
+				continue;
+			}
+
 			$match     = $this->match_request_to_handler( $single_request );
 			$matches[] = $match;
 			$error     = null;
@@ -1817,41 +1823,45 @@ class WP_REST_Server {
 		}
 
 		foreach ( $requests as $i => $single_request ) {
-			$clean_request = clone $single_request;
-			$clean_request->set_url_params( array() );
-			$clean_request->set_attributes( array() );
-			$clean_request->set_default_params( array() );
+			if ( is_wp_error( $single_request ) ) {
+				$result = $this->error_to_response( $single_request );
+			} else {
+				$clean_request = clone $single_request;
+				$clean_request->set_url_params( array() );
+				$clean_request->set_attributes( array() );
+				$clean_request->set_default_params( array() );
 
-			/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
-			$result = apply_filters( 'rest_pre_dispatch', null, $this, $clean_request );
+				/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+				$result = apply_filters( 'rest_pre_dispatch', null, $this, $clean_request );
 
-			if ( empty( $result ) ) {
-				$match = $matches[ $i ];
-				$error = null;
+				if ( empty( $result ) ) {
+					$match = $matches[ $i ];
+					$error = null;
 
-				if ( is_wp_error( $validation[ $i ] ) ) {
-					$error = $validation[ $i ];
-				}
-
-				if ( is_wp_error( $match ) ) {
-					$result = $this->error_to_response( $match );
-				} else {
-					list( $route, $handler ) = $match;
-
-					if ( ! $error && ! is_callable( $handler['callback'] ) ) {
-						$error = new WP_Error(
-							'rest_invalid_handler',
-							__( 'The handler for the route is invalid' ),
-							array( 'status' => 500 )
-						);
+					if ( is_wp_error( $validation[ $i ] ) ) {
+						$error = $validation[ $i ];
 					}
 
-					$result = $this->respond_to_request( $single_request, $route, $handler, $error );
-				}
-			}
+					if ( is_wp_error( $match ) ) {
+						$result = $this->error_to_response( $match );
+					} else {
+						list( $route, $handler ) = $match;
 
-			/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
-			$result = apply_filters( 'rest_post_dispatch', rest_ensure_response( $result ), $this, $single_request );
+						if ( ! $error && ! is_callable( $handler['callback'] ) ) {
+							$error = new WP_Error(
+								'rest_invalid_handler',
+								__( 'The handler for the route is invalid' ),
+								array( 'status' => 500 )
+							);
+						}
+
+						$result = $this->respond_to_request( $single_request, $route, $handler, $error );
+					}
+				}
+
+				/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+				$result = apply_filters( 'rest_post_dispatch', rest_ensure_response( $result ), $this, $single_request );
+			}
 
 			$responses[] = $this->envelope_response( $result, false )->get_data();
 		}
