@@ -521,7 +521,7 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
-		return trim( implode( "\n", $data ), "\n" );
+		return trim( implode( "\n", str_replace( '<', '&lt;', $data ) ), "\n" );
 	}
 
 	/**
