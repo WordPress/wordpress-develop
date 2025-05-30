@@ -354,6 +354,21 @@ window.setPostThumbnailL10n = window.setPostThumbnailL10n || {
 window.setPostThumbnailL10n = deprecateL10nObject( 'setPostThumbnailL10n', window.setPostThumbnailL10n, '5.5.0' );
 
 /**
+ * Removed in 6.5.0, needed for back-compatibility.
+ *
+ * @since 4.5.0
+ * @deprecated 6.5.0
+ */
+window.uiAutocompleteL10n = window.uiAutocompleteL10n || {
+	noResults: '',
+	oneResult: '',
+	manyResults: '',
+	itemSelected: ''
+};
+
+window.uiAutocompleteL10n = deprecateL10nObject( 'uiAutocompleteL10n', window.uiAutocompleteL10n, '6.5.0' );
+
+/**
  * Removed in 3.3.0, needed for back-compatibility.
  *
  * @since 2.7.0
@@ -404,12 +419,18 @@ window.columns = {
 	 */
 	saveManageColumnsState : function() {
 		var hidden = this.hidden();
-		$.post(ajaxurl, {
-			action: 'hidden-columns',
-			hidden: hidden,
-			screenoptionnonce: $('#screenoptionnonce').val(),
-			page: pagenow
-		});
+		$.post(
+			ajaxurl,
+			{
+				action: 'hidden-columns',
+				hidden: hidden,
+				screenoptionnonce: $('#screenoptionnonce').val(),
+				page: pagenow
+			},
+			function() {
+				wp.a11y.speak( __( 'Screen Options updated.' ) );
+			}
+		);
 	},
 
 	/**
@@ -888,27 +909,6 @@ $( function() {
 	});
 
 	/**
-	 * Handles the `aria-haspopup` attribute on the current menu item when it has a submenu.
-	 *
-	 * @since 4.4.0
-	 *
-	 * @return {void}
-	 */
-	function currentMenuItemHasPopup() {
-		var $current = $( 'a.wp-has-current-submenu' );
-
-		if ( 'folded' === menuState ) {
-			// When folded or auto-folded and not responsive view, the current menu item does have a fly-out sub-menu.
-			$current.attr( 'aria-haspopup', 'true' );
-		} else {
-			// When expanded or in responsive view, reset aria-haspopup.
-			$current.attr( 'aria-haspopup', 'false' );
-		}
-	}
-
-	$document.on( 'wp-menu-state-set wp-collapse-menu wp-responsive-activate wp-responsive-deactivate', currentMenuItemHasPopup );
-
-	/**
 	 * Ensures an admin submenu is within the visual viewport.
 	 *
 	 * @since 4.1.0
@@ -1120,7 +1120,7 @@ $( function() {
 		});
 	}
 
-	$document.on( 'wp-updates-notice-added wp-plugin-install-error wp-plugin-update-error wp-plugin-delete-error wp-theme-install-error wp-theme-delete-error', makeNoticesDismissible );
+	$document.on( 'wp-updates-notice-added wp-plugin-install-error wp-plugin-update-error wp-plugin-delete-error wp-theme-install-error wp-theme-delete-error wp-notice-added', makeNoticesDismissible );
 
 	// Init screen meta.
 	screenMeta.init();
@@ -1154,7 +1154,7 @@ $( function() {
 		lastClicked = this;
 
 		// Toggle the "Select all" checkboxes depending if the other ones are all checked or not.
-		var unchecked = $(this).closest('tbody').find(':checkbox').filter(':visible:enabled').not(':checked');
+		var unchecked = $(this).closest('tbody').find('tr').find(':checkbox').filter(':visible:enabled').not(':checked');
 
 		/**
 		 * Determines if all checkboxes are checked.
@@ -1282,6 +1282,85 @@ $( function() {
 	// Marry the secondary "Change role to" controls to the primary controls:
 	marryControls( $('#new_role'), $('#changeit'), $('#new_role2'), $('#changeit2') );
 
+	var addAdminNotice = function( data ) {
+		var $notice = $( data.selector ),
+			$headerEnd = $( '.wp-header-end' ),
+			type,
+			dismissible,
+			$adminNotice;
+
+		delete data.selector;
+
+		dismissible = ( data.dismissible && data.dismissible === true ) ? ' is-dismissible' : '';
+		type        = ( data.type ) ? data.type : 'info';
+
+		$adminNotice = '<div id="' + data.id + '" class="notice notice-' + data.type + dismissible + '"><p>' + data.message + '</p></div>';
+
+		// Check if this admin notice already exists.
+		if ( ! $notice.length ) {
+			$notice = $( '#' + data.id );
+		}
+
+		if ( $notice.length ) {
+			$notice.replaceWith( $adminNotice );
+		} else if ( $headerEnd.length ) {
+			$headerEnd.after( $adminNotice );
+		} else {
+			if ( 'customize' === pagenow ) {
+				$( '.customize-themes-notifications' ).append( $adminNotice );
+			} else {
+				$( '.wrap' ).find( '> h1' ).after( $adminNotice );
+			}
+		}
+
+		$document.trigger( 'wp-notice-added' );
+	};
+
+	$( '.bulkactions' ).parents( 'form' ).on( 'submit', function( event ) {
+		var form = this,
+			submitterName = event.originalEvent && event.originalEvent.submitter ? event.originalEvent.submitter.name : false,
+			currentPageSelector = form.querySelector( '#current-page-selector' );
+
+		if ( currentPageSelector && currentPageSelector.defaultValue !== currentPageSelector.value ) {
+			return; // Pagination form submission.
+		}
+
+		// Observe submissions from posts lists for 'bulk_action' or users lists for 'new_role'.
+		var bulkFieldRelations = {
+			'bulk_action' : window.bulkActionObserverIds.bulk_action,
+			'changeit' : window.bulkActionObserverIds.changeit
+		};
+		if ( ! Object.keys( bulkFieldRelations ).includes( submitterName ) ) {
+			return;
+		}
+
+		var values = new FormData(form);
+		var value = values.get( bulkFieldRelations[ submitterName ] ) || '-1';
+
+		// Check that the action is not the default one.
+		if ( value !== '-1' ) {
+			// Check that at least one item is selected.
+			var itemsSelected = form.querySelectorAll( '.wp-list-table tbody .check-column input[type="checkbox"]:checked' );
+
+			if ( itemsSelected.length > 0 ) {
+				return;
+			}
+		}
+		event.preventDefault();
+		event.stopPropagation();
+		$( 'html, body' ).animate( { scrollTop: 0 } );
+
+		var errorMessage = __( 'Please select at least one item to perform this action on.' );
+		addAdminNotice( {
+			id: 'no-items-selected',
+			type: 'error',
+			message: errorMessage,
+			dismissible: true,
+		} );
+
+		wp.a11y.speak( errorMessage );
+	});
+
 	/**
 	 * Shows row actions on focus of its parent container element or any other elements contained within.
 	 *
@@ -1407,8 +1486,8 @@ $( function() {
 	 * @return {void}
  	 */
 	$('#contextual-help-link, #show-settings-link').on( 'focus.scroll-into-view', function(e){
-		if ( e.target.scrollIntoView )
-			e.target.scrollIntoView(false);
+		if ( e.target.scrollIntoViewIfNeeded )
+			e.target.scrollIntoViewIfNeeded(false);
 	});
 
 	/**
@@ -1680,8 +1759,10 @@ $( function() {
 			// Modify functionality based on custom activate/deactivate event.
 			$document.on( 'wp-responsive-activate.wp-responsive', function() {
 				self.activate();
+				self.toggleAriaHasPopup( 'add' );
 			}).on( 'wp-responsive-deactivate.wp-responsive', function() {
 				self.deactivate();
+				self.toggleAriaHasPopup( 'remove' );
 			});
 
 			$( '#wp-admin-bar-menu-toggle a' ).attr( 'aria-expanded', 'false' );
@@ -1702,13 +1783,55 @@ $( function() {
 				}
 			} );
 
+			// Close sidebar when target moves outside of toggle and sidebar.
+			$( document ).on( 'click', function( event ) {
+				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) || ! document.hasFocus() ) {
+					return;
+				}
+
+				var focusIsInToggle  = $.contains( $( '#wp-admin-bar-menu-toggle' )[0], event.target );
+				var focusIsInSidebar = $.contains( $( '#adminmenuwrap' )[0], event.target );
+
+				if ( ! focusIsInToggle && ! focusIsInSidebar ) {
+					$( '#wp-admin-bar-menu-toggle' ).trigger( 'click.wp-responsive' );
+				}
+			} );
+
+			// Close sidebar when a keypress completes outside of toggle and sidebar.
+			$( document ).on( 'keyup', function( event ) {
+				var toggleButton   = $( '#wp-admin-bar-menu-toggle' )[0];
+				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) ) {
+				    return;
+				}
+				if ( 27 === event.keyCode ) {
+					$( toggleButton ).trigger( 'click.wp-responsive' );
+					$( toggleButton ).find( 'a' ).trigger( 'focus' );
+				} else {
+					if ( 9 === event.keyCode ) {
+						var sidebar        = $( '#adminmenuwrap' )[0];
+						var focusedElement = event.relatedTarget || document.activeElement;
+						// A brief delay is required to allow focus to switch to another element.
+						setTimeout( function() {
+							var focusIsInToggle  = $.contains( toggleButton, focusedElement );
+							var focusIsInSidebar = $.contains( sidebar, focusedElement );
+
+							if ( ! focusIsInToggle && ! focusIsInSidebar ) {
+								$( toggleButton ).trigger( 'click.wp-responsive' );
+							}
+						}, 10 );
+					}
+				}
+			});
+
 			// Add menu events.
 			$adminmenu.on( 'click.wp-responsive', 'li.wp-has-submenu > a', function( event ) {
 				if ( ! $adminmenu.data('wp-responsive') ) {
 					return;
 				}
-
+				let state = ( 'false' === $( this ).attr( 'aria-expanded' ) ) ? 'true' : 'false';
 				$( this ).parent( 'li' ).toggleClass( 'selected' );
+				$( this ).attr( 'aria-expanded', state );
+				$( this ).trigger( 'focus' );
 				event.preventDefault();
 			});
 
@@ -1779,6 +1902,34 @@ $( function() {
 			$adminmenu.removeData('wp-responsive');
 
 			this.maybeDisableSortables();
+		},
+
+		/**
+		 * Toggles the aria-haspopup attribute for the responsive admin menu.
+		 *
+		 * The aria-haspopup attribute is only necessary for the responsive menu.
+		 * See ticket https://core.trac.wordpress.org/ticket/43095
+		 *
+		 * @since 6.6.0
+		 *
+		 * @param {string} action Whether to add or remove the aria-haspopup attribute.
+		 *
+		 * @return {void}
+		 */
+		toggleAriaHasPopup: function( action ) {
+			var elements = $adminmenu.find( '[data-ariahaspopup]' );
+
+			if ( action === 'add' ) {
+				elements.each( function() {
+					$( this ).attr( 'aria-haspopup', 'menu' ).attr( 'aria-expanded', 'false' );
+				} );
+
+				return;
+			}
+
+			elements.each( function() {
+				$( this ).removeAttr( 'aria-haspopup' ).removeAttr( 'aria-expanded' );
+			} );
 		},
 
 		/**
@@ -1978,7 +2129,6 @@ $( function() {
 	window.wpResponsive.init();
 	setPinMenu();
 	setMenuState();
-	currentMenuItemHasPopup();
 	makeNoticesDismissible();
 	aria_button_if_js();
 
@@ -2084,3 +2234,123 @@ $( function( $ ) {
 })();
 
 }( jQuery, window ));
+
+/**
+ * Freeze animated plugin icons when reduced motion is enabled.
+ *
+ * When the user has enabled the 'prefers-reduced-motion' setting, this module
+ * stops animations for all GIFs on the page with the class 'plugin-icon' or
+ * plugin icon images in the update plugins table.
+ *
+ * @since 6.4.0
+ */
+(function() {
+	// Private variables and methods.
+	var priv = {},
+		pub = {},
+		mediaQuery;
+
+	// Initialize pauseAll to false; it will be set to true if reduced motion is preferred.
+	priv.pauseAll = false;
+	if ( window.matchMedia ) {
+		mediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+		if ( ! mediaQuery || mediaQuery.matches ) {
+			priv.pauseAll = true;
+		}
+	}
+
+	// Method to replace animated GIFs with a static frame.
+	priv.freezeAnimatedPluginIcons = function( img ) {
+		var coverImage = function() {
+			var width = img.width;
+			var height = img.height;
+			var canvas = document.createElement( 'canvas' );
+
+			// Set canvas dimensions.
+			canvas.width = width;
+			canvas.height = height;
+
+			// Copy classes from the image to the canvas.
+			canvas.className = img.className;
+
+			// Check if the image is inside a specific table.
+			var isInsideUpdateTable = img.closest( '#update-plugins-table' );
+
+			if ( isInsideUpdateTable ) {
+				// Transfer computed styles from image to canvas.
+				var computedStyles = window.getComputedStyle( img ),
+					i, max;
+				for ( i = 0, max = computedStyles.length; i < max; i++ ) {
+					var propName = computedStyles[ i ];
+					var propValue = computedStyles.getPropertyValue( propName );
+					canvas.style[ propName ] = propValue;
+				}
+			}
+
+			// Draw the image onto the canvas.
+			canvas.getContext( '2d' ).drawImage( img, 0, 0, width, height );
+
+			// Set accessibility attributes on canvas.
+			canvas.setAttribute( 'aria-hidden', 'true' );
+			canvas.setAttribute( 'role', 'presentation' );
+
+			// Insert canvas before the image and set the image to be near-invisible.
+			var parent = img.parentNode;
+			parent.insertBefore( canvas, img );
+			img.style.opacity = 0.01;
+			img.style.width = '0px';
+			img.style.height = '0px';
+		};
+
+		// If the image is already loaded, apply the coverImage function.
+		if ( img.complete ) {
+			coverImage();
+		} else {
+			// Otherwise, wait for the image to load.
+			img.addEventListener( 'load', coverImage, true );
+		}
+	};
+
+	// Public method to freeze all relevant GIFs on the page.
+	pub.freezeAll = function() {
+		var images = document.querySelectorAll( '.plugin-icon, #update-plugins-table img' );
+		for ( var x = 0; x < images.length; x++ ) {
+			if ( /\.gif(?:\?|$)/i.test( images[ x ].src ) ) {
+				priv.freezeAnimatedPluginIcons( images[ x ] );
+			}
+		}
+	};
+
+	// Only run the freezeAll method if the user prefers reduced motion.
+	if ( true === priv.pauseAll ) {
+		pub.freezeAll();
+	}
+
+	// Listen for jQuery AJAX events.
+	( function( $ ) {
+		if ( window.pagenow === 'plugin-install' ) {
+			// Only listen for ajaxComplete if this is the plugin-install.php page.
+			$( document ).ajaxComplete( function( event, xhr, settings ) {
+
+				// Check if this is the 'search-install-plugins' request.
+				if ( settings.data && typeof settings.data === 'string' && settings.data.includes( 'action=search-install-plugins' ) ) {
+					// Recheck if the user prefers reduced motion.
+					if ( window.matchMedia ) {
+						var mediaQuery = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+						if ( mediaQuery.matches ) {
+							pub.freezeAll();
+						}
+					} else {
+						// Fallback for browsers that don't support matchMedia.
+						if ( true === priv.pauseAll ) {
+							pub.freezeAll();
+						}
+					}
+				}
+			} );
+		}
+	} )( jQuery );
+
+	// Expose public methods.
+	return pub;
+})();

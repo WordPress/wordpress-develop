@@ -77,18 +77,10 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error(
-				'rest_cannot_view',
-				__( 'Sorry, you are not allowed to view menu locations.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		return true;
+		return $this->check_has_read_only_access( $request );
 	}
 
 	/**
@@ -97,7 +89,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
 		$data = array();
@@ -120,18 +112,10 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error(
-				'rest_cannot_view',
-				__( 'Sorry, you are not allowed to view menu locations.' ),
-				array( 'status' => rest_authorization_required_code() )
-			);
-		}
-
-		return true;
+		return $this->check_has_read_only_access( $request );
 	}
 
 	/**
@@ -140,7 +124,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 * @since 5.9.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
 		$registered_menus = get_registered_nav_menus();
@@ -158,6 +142,32 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks whether the current user has read permission for the endpoint.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the current user has permission, WP_Error object otherwise.
+	 */
+	protected function check_has_read_only_access( $request ) {
+		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-menu-items-controller.php */
+		$read_only_access = apply_filters( 'rest_menu_read_access', false, $request, $this );
+		if ( $read_only_access ) {
+			return true;
+		}
+
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			return new WP_Error(
+				'rest_cannot_view',
+				__( 'Sorry, you are not allowed to view menu locations.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Prepares a menu location object for serialization.
 	 *
 	 * @since 5.9.0
@@ -168,7 +178,8 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$location  = $item;
+		$location = $item;
+
 		$locations = get_nav_menu_locations();
 		$menu      = isset( $locations[ $location->name ] ) ? $locations[ $location->name ] : 0;
 

@@ -187,7 +187,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 						'settings'        => 'accent_hue',
 						'description'     => __( 'Apply a custom color for links, buttons, featured images.', 'twentytwenty' ),
 						'mode'            => 'hue',
-						'active_callback' => static function() use ( $wp_customize ) {
+						'active_callback' => static function () use ( $wp_customize ) {
 							return ( 'custom' === $wp_customize->get_setting( 'accent_hue_active' )->value() );
 						},
 					)
@@ -463,7 +463,6 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		public static function sanitize_checkbox( $checked ) {
 			return ( ( isset( $checked ) && true === $checked ) ? true : false );
 		}
-
 	}
 
 	// Setup the Theme Customizer settings and controls.

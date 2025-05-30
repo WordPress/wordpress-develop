@@ -7,6 +7,11 @@
  * @since 3.4.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Customize Setting class.
  *
@@ -836,7 +841,7 @@ class WP_Customize_Setting {
 			return false;
 		}
 
-		if ( $this->theme_supports && ! current_theme_supports( ... (array) $this->theme_supports ) ) {
+		if ( $this->theme_supports && ! current_theme_supports( ...(array) $this->theme_supports ) ) {
 			return false;
 		}
 

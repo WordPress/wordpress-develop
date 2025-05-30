@@ -101,7 +101,7 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 
 	public function mocked_rss_response() {
 		$single_value_headers = array(
-			'content-type' => 'application/rss+xml; charset=UTF-8',
+			'Content-Type' => 'application/rss+xml; charset=UTF-8',
 			'link'         => '<https://wordpress.org/news/wp-json/>; rel="https://api.w.org/"',
 		);
 

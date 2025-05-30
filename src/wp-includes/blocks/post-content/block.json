@@ -1,16 +1,47 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/post-content",
-	"title": "Post Content",
+	"title": "Content",
 	"category": "theme",
 	"description": "Displays the contents of a post or page.",
 	"textdomain": "default",
 	"usesContext": [ "postId", "postType", "queryId" ],
+	"example": {
+		"viewportWidth": 350
+	},
 	"supports": {
 		"align": [ "wide", "full" ],
 		"html": false,
-		"__experimentalLayout": true,
+		"layout": true,
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true
+			}
+		},
+		"dimensions": {
+			"minHeight": true
+		},
+		"spacing": {
+			"blockGap": true,
+			"padding": true,
+			"margin": true,
+			"__experimentalDefaultControls": {
+				"margin": false,
+				"padding": false
+			}
+		},
+		"color": {
+			"gradients": true,
+			"heading": true,
+			"link": true,
+			"__experimentalDefaultControls": {
+				"background": false,
+				"text": false
+			}
+		},
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,
@@ -23,7 +54,20 @@
 			"__experimentalDefaultControls": {
 				"fontSize": true
 			}
+		},
+		"__experimentalBorder": {
+			"radius": true,
+			"color": true,
+			"width": true,
+			"style": true,
+			"__experimentalDefaultControls": {
+				"radius": true,
+				"color": true,
+				"width": true,
+				"style": true
+			}
 		}
 	},
+	"style": "wp-block-post-content",
 	"editorStyle": "wp-block-post-content-editor"
 }

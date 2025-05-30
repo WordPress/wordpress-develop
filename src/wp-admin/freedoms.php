@@ -34,14 +34,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__header-text">
 			<?php _e( 'WordPress is free and open source software' ); ?>
 		</div>
-
-		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
-			<a href="about.php" class="nav-tab"><?php _e( 'What&#8217;s New' ); ?></a>
-			<a href="credits.php" class="nav-tab"><?php _e( 'Credits' ); ?></a>
-			<a href="freedoms.php" class="nav-tab nav-tab-active" aria-current="page"><?php _e( 'Freedoms' ); ?></a>
-			<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
-		</nav>
 	</div>
+
+	<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
+		<a href="about.php" class="nav-tab"><?php _e( 'What&#8217;s New' ); ?></a>
+		<a href="credits.php" class="nav-tab"><?php _e( 'Credits' ); ?></a>
+		<a href="freedoms.php" class="nav-tab nav-tab-active" aria-current="page"><?php _e( 'Freedoms' ); ?></a>
+		<a href="privacy.php" class="nav-tab"><?php _e( 'Privacy' ); ?></a>
+		<a href="contribute.php" class="nav-tab"><?php _e( 'Get Involved' ); ?></a>
+	</nav>
 
 	<div class="about__section is-feature">
 		<p class="about-description">
@@ -57,22 +58,22 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 	<div class="about__section has-2-columns">
 		<div class="column aligncenter">
-			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-1.svg?ver=6.1' ) ); ?>" alt="" />
+			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-1.svg?ver=6.5' ) ); ?>" alt="" />
 			<h2 class="is-smaller-heading"><?php _e( 'The 1st Freedom' ); ?></h2>
 			<p><?php _e( 'To run the program for any purpose.' ); ?></p>
 		</div>
 		<div class="column aligncenter">
-			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-2.svg?ver=6.1' ) ); ?>" alt="" />
+			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-2.svg?ver=6.5' ) ); ?>" alt="" />
 			<h2 class="is-smaller-heading"><?php _e( 'The 2nd Freedom' ); ?></h2>
 			<p><?php _e( 'To study how the program works and change it to make it do what you wish.' ); ?></p>
 		</div>
 		<div class="column aligncenter">
-			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-3.svg?ver=6.1' ) ); ?>" alt="" />
+			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-3.svg?ver=6.5' ) ); ?>" alt="" />
 			<h2 class="is-smaller-heading"><?php _e( 'The 3rd Freedom' ); ?></h2>
 			<p><?php _e( 'To redistribute.' ); ?></p>
 		</div>
 		<div class="column aligncenter">
-			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-4.svg?ver=6.1' ) ); ?>" alt="" />
+			<img class="freedom-image" src="<?php echo esc_url( admin_url( 'images/freedom-4.svg?ver=6.5' ) ); ?>" alt="" />
 			<h2 class="is-smaller-heading"><?php _e( 'The 4th Freedom' ); ?></h2>
 			<p><?php _e( 'To distribute copies of your modified versions to others.' ); ?></p>
 		</div>
@@ -84,7 +85,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<?php
 			printf(
 				/* translators: %s: https://wordpressfoundation.org/trademark-policy/ */
-				__( 'WordPress grows when people like you tell their friends about it, and the thousands of businesses and services that are built on and around WordPress share that fact with their users. We are flattered every time someone spreads the good word, just make sure to <a href="%s">check out our trademark guidelines</a> first.' ),
+				__( 'WordPress grows when people like you tell their friends about it, and the thousands of businesses and services that are built on and around WordPress share that fact with their users. The WordPress community is flattered every time someone spreads the good word, just make sure to <a href="%s">check out the WordPress Foundation trademark guidelines</a> first.' ),
 				'https://wordpressfoundation.org/trademark-policy/'
 			);
 			?>

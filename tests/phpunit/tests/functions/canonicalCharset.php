@@ -5,49 +5,59 @@
  *
  * @since 4.8.0
  *
- * @group functions.php
+ * @group functions
+ *
  * @covers ::_canonical_charset
  */
 class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
-
-	public function test_utf_8_lower() {
-		$this->assertSame( 'UTF-8', _canonical_charset( 'utf-8' ) );
+	/**
+	 * Ensures that charset variants for common encodings normalize to the expected form.
+	 *
+	 * @ticket 61182
+	 *
+	 * @dataProvider data_charset_normalizations
+	 *
+	 * @param string $given_charset      Potential charset provided by user.
+	 * @param string $normalized_charset Expected normalized form of charset.
+	 */
+	public function test_properly_normalizes_charset_variants( $given_charset, $normalized_charset ) {
+		$this->assertSame(
+			$normalized_charset,
+			_canonical_charset( $given_charset ),
+			'Did not properly transform the provided charset into its normalized form.'
+		);
 	}
 
-	public function test_utf_8_upper() {
-		$this->assertSame( 'UTF-8', _canonical_charset( 'UTF-8' ) );
-	}
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_charset_normalizations() {
+		return array(
+			// UTF-8 family.
+			array( 'UTF-8', 'UTF-8' ),
+			array( 'Utf-8', 'UTF-8' ),
+			array( 'Utf-8', 'UTF-8' ),
+			array( 'UTF8', 'UTF-8' ),
 
-	public function test_utf_8_mixxed() {
-		$this->assertSame( 'UTF-8', _canonical_charset( 'Utf-8' ) );
-	}
+			// Almost UTF-8.
+			array( 'UTF-8*', 'UTF-8*' ),
+			array( 'UTF.8', 'UTF.8' ),
+			array( 'UTF88', 'UTF88' ),
+			array( 'UTF-7', 'UTF-7' ),
+			array( 'X-UTF-8', 'X-UTF-8' ),
 
-	public function test_utf_8() {
-		$this->assertSame( 'UTF-8', _canonical_charset( 'UTF8' ) );
-	}
+			// ISO-8859-1 family.
+			array( 'iso-8859-1', 'ISO-8859-1' ),
+			array( 'ISO-8859-1', 'ISO-8859-1' ),
+			array( 'Iso-8859-1', 'ISO-8859-1' ),
+			array( 'ISO8859-1', 'ISO-8859-1' ),
 
-	public function test_iso_lower() {
-		$this->assertSame( 'ISO-8859-1', _canonical_charset( 'iso-8859-1' ) );
-	}
-
-	public function test_iso_upper() {
-		$this->assertSame( 'ISO-8859-1', _canonical_charset( 'ISO-8859-1' ) );
-	}
-
-	public function test_iso_mixxed() {
-		$this->assertSame( 'ISO-8859-1', _canonical_charset( 'Iso8859-1' ) );
-	}
-
-	public function test_iso() {
-		$this->assertSame( 'ISO-8859-1', _canonical_charset( 'ISO8859-1' ) );
-	}
-
-	public function test_random() {
-		$this->assertSame( 'random', _canonical_charset( 'random' ) );
-	}
-
-	public function test_empty() {
-		$this->assertSame( '', _canonical_charset( '' ) );
+			// Other charset slugs should not be adjusted.
+			array( 'random', 'random' ),
+			array( '', '' ),
+		);
 	}
 
 	/**
@@ -88,5 +98,4 @@ class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
 
 		update_option( 'blog_charset', $orig_blog_charset );
 	}
-
 }

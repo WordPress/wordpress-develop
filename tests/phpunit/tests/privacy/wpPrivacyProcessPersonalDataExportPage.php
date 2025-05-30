@@ -5,15 +5,9 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 5.2.0
- */
-
-/**
- * Tests_Privacy_wpPrivacyProcessPersonalDataExportPage class.
  *
  * @group privacy
  * @covers ::wp_privacy_process_personal_data_export_page
- *
- * @since 5.2.0
  */
 class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCase {
 	/**
@@ -632,12 +626,12 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $expected_status The expected post status after calling the function.
-	 *         @string string $response_page   The exporter page to pass. Options are 'first' and 'last'. Default 'first'.
-	 *         @string string $exporter_index  The exporter index to pass. Options are 'first' and 'last'. Default 'first'.
-	 *         @string string $page_index      The page index to pass. Options are 'first' and 'last'. Default 'first'.
-	 *         @bool   bool   $send_as_email   If the response should be sent as an email.
-	 *         @string string $exporter_key    The slug (key) of the exporter to pass.
+	 *         @type string $expected_status The expected post status after calling the function.
+	 *         @type string $response_page   The exporter page to pass. Options are 'first' and 'last'. Default 'first'.
+	 *         @type string $exporter_index  The exporter index to pass. Options are 'first' and 'last'. Default 'first'.
+	 *         @type string $page_index      The page index to pass. Options are 'first' and 'last'. Default 'first'.
+	 *         @type bool   $send_as_email   If the response should be sent as an email.
+	 *         @type string $exporter_key    The slug (key) of the exporter to pass.
 	 *     }
 	 * }
 	 */

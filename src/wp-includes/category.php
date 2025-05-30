@@ -85,8 +85,9 @@ function get_categories( $args = '' ) {
  *                             correspond to a WP_Term object, an associative array, or a numeric array,
  *                             respectively. Default OBJECT.
  * @param string     $filter   Optional. How to sanitize category fields. Default 'raw'.
- * @return object|array|WP_Error|null Category data in type defined by $output parameter.
- *                                    WP_Error if $category is empty, null if it does not exist.
+ * @return WP_Term|array|WP_Error|null Category data in type defined by $output parameter.
+ *                                     Returns a WP_Term object with backwards compatible property aliases filled in.
+ *                                     WP_Error if $category is empty, null if it does not exist.
  */
 function get_category( $category, $output = OBJECT, $filter = 'raw' ) {
 	$category = get_term( $category, 'category', $output, $filter );
@@ -149,7 +150,8 @@ function get_category_by_path( $category_path, $full_match = true, $output = OBJ
 	foreach ( $categories as $category ) {
 		$path        = '/' . $leaf_path;
 		$curcategory = $category;
-		while ( ( 0 != $curcategory->parent ) && ( $curcategory->parent != $curcategory->term_id ) ) {
+
+		while ( ( 0 !== $curcategory->parent ) && ( $curcategory->parent !== $curcategory->term_id ) ) {
 			$curcategory = get_term( $curcategory->parent, 'category' );
 
 			if ( is_wp_error( $curcategory ) ) {
@@ -159,7 +161,7 @@ function get_category_by_path( $category_path, $full_match = true, $output = OBJ
 			$path = '/' . $curcategory->slug . $path;
 		}
 
-		if ( $path == $full_path ) {
+		if ( $path === $full_path ) {
 			$category = get_term( $category->term_id, 'category', $output );
 			_make_cat_compat( $category );
 
@@ -306,7 +308,7 @@ function get_tags( $args = '' ) {
 		 *
 		 * @param WP_Term[]|int|WP_Error $tags Array of 'post_tag' term objects, a count thereof,
 		 *                                     or WP_Error if any of the taxonomies do not exist.
-		 * @param array                  $args An array of arguments. @see get_terms()
+		 * @param array                  $args An array of arguments. See {@see get_terms()}.
 		 */
 		$tags = apply_filters( 'get_tags', $tags, $args );
 	}

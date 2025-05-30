@@ -118,7 +118,7 @@ function _delete_all_data() {
 		$wpdb->term_relationships,
 		$wpdb->termmeta,
 	) as $table ) {
-		//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DELETE FROM {$table}" );
 	}
 
@@ -126,7 +126,7 @@ function _delete_all_data() {
 		$wpdb->terms,
 		$wpdb->term_taxonomy,
 	) as $table ) {
-		//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DELETE FROM {$table} WHERE term_id != 1" );
 	}
 
@@ -339,10 +339,26 @@ tests_add_filter( 'send_auth_cookies', '__return_false' );
  * @since 5.0.0
  */
 function _unhook_block_registration() {
+	// Block types.
 	require __DIR__ . '/unregister-blocks-hooks.php';
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
 	remove_action( 'init', 'register_block_core_legacy_widget' );
 	remove_action( 'init', 'register_block_core_widget_group' );
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
+
+	// Block binding sources.
+	remove_action( 'init', '_register_block_bindings_pattern_overrides_source' );
+	remove_action( 'init', '_register_block_bindings_post_meta_source' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
+
+/**
+ * After the init action has been run once, trying to re-register font collections can cause
+ * errors. To avoid this, unhook the font registration functions.
+ *
+ * @since 6.5.0
+ */
+function _unhook_font_registration() {
+	remove_action( 'init', '_wp_register_default_font_collections' );
+}
+tests_add_filter( 'init', '_unhook_font_registration', 1000 );

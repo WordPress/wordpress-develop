@@ -186,7 +186,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 			?>
 		.site-title,
 		.site-description {
-			clip: rect(1px, 1px, 1px, 1px);
+			clip-path: inset(50%);
 			position: absolute;
 		}
 	<?php endif; ?>
@@ -272,23 +272,19 @@ function twentyfifteen_sidebar_text_color_css() {
 
 		.site-title a:hover,
 		.site-title a:focus {
-			color: %1$s; /* Fallback for IE7 and IE8 */
 			color: %2$s;
 		}
 
 		.secondary-toggle {
-			border-color: %1$s; /* Fallback for IE7 and IE8 */
 			border-color: %3$s;
 		}
 
 		.secondary-toggle:hover,
 		.secondary-toggle:focus {
-			border-color: %1$s; /* Fallback for IE7 and IE8 */
 			border-color: %4$s;
 		}
 
 		.site-title a {
-			outline-color: %1$s; /* Fallback for IE7 and IE8 */
 			outline-color: %4$s;
 		}
 

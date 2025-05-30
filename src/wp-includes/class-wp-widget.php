@@ -137,8 +137,8 @@ class WP_Widget {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param array $instance Current settings.
-	 * @return string Default return is 'noform'.
+	 * @param array $instance The settings for the particular instance of the widget.
+	 * @return string|void Default return is 'noform'.
 	 */
 	public function form( $instance ) {
 		echo '<p class="no-options-widget">' . __( 'There are no options for this widget.' ) . '</p>';
@@ -152,7 +152,7 @@ class WP_Widget {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param string $id_base         Optional. Base ID for the widget, lowercase and unique. If left empty,
+	 * @param string $id_base         Base ID for the widget, lowercase and unique. If left empty,
 	 *                                a portion of the widget's PHP class name will be used. Has to be unique.
 	 * @param string $name            Name for the widget displayed on the configuration page.
 	 * @param array  $widget_options  Optional. Widget options. See wp_register_sidebar_widget() for
@@ -188,7 +188,7 @@ class WP_Widget {
 	 *
 	 * @see WP_Widget::__construct()
 	 *
-	 * @param string $id_base         Optional. Base ID for the widget, lowercase and unique. If left empty,
+	 * @param string $id_base         Base ID for the widget, lowercase and unique. If left empty,
 	 *                                a portion of the widget's PHP class name will be used. Has to be unique.
 	 * @param string $name            Name for the widget displayed on the configuration page.
 	 * @param array  $widget_options  Optional. Widget options. See wp_register_sidebar_widget() for
@@ -429,14 +429,14 @@ class WP_Widget {
 			if ( isset( $wp_registered_widgets[ $del_id ]['params'][0]['number'] ) ) {
 				$number = $wp_registered_widgets[ $del_id ]['params'][0]['number'];
 
-				if ( $this->id_base . '-' . $number == $del_id ) {
+				if ( $this->id_base . '-' . $number === $del_id ) {
 					unset( $all_instances[ $number ] );
 				}
 			}
 		} else {
 			if ( isset( $_POST[ 'widget-' . $this->id_base ] ) && is_array( $_POST[ 'widget-' . $this->id_base ] ) ) {
 				$settings = $_POST[ 'widget-' . $this->id_base ];
-			} elseif ( isset( $_POST['id_base'] ) && $_POST['id_base'] == $this->id_base ) {
+			} elseif ( isset( $_POST['id_base'] ) && $_POST['id_base'] === $this->id_base ) {
 				$num      = $_POST['multi_number'] ? (int) $_POST['multi_number'] : (int) $_POST['widget_number'];
 				$settings = array( $num => array() );
 			} else {
@@ -508,7 +508,7 @@ class WP_Widget {
 		$widget_args   = wp_parse_args( $widget_args, array( 'number' => -1 ) );
 		$all_instances = $this->get_settings();
 
-		if ( -1 == $widget_args['number'] ) {
+		if ( -1 === $widget_args['number'] ) {
 			// We echo out a form where 'number' can be set later.
 			$this->_set( '__i__' );
 			$instance = array();

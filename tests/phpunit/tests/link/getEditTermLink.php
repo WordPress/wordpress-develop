@@ -187,7 +187,7 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 
 		add_filter(
 			'get_edit_term_link',
-			function( $location, $term ) {
+			function ( $location, $term ) {
 				$this->assertIsInt( $term );
 			},
 			10,
@@ -235,5 +235,18 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 				'expected' => 'term.php?taxonomy=wptests_tax&tag_ID=%ID%&post_type=post',
 			),
 		);
+	}
+
+	/**
+	 * Checks that `get_edit_term_link()` produces the correct URL when called without taxonomy.
+	 *
+	 * @ticket 61726
+	 */
+	public function test_get_edit_term_link_without_taxonomy() {
+		$term = $this->get_term( 'wptests_tax', true );
+
+		$actual   = get_edit_term_link( $term );
+		$expected = sprintf( admin_url( 'term.php?taxonomy=wptests_tax&tag_ID=%d&post_type=post' ), $term );
+		$this->assertSame( $expected, $actual );
 	}
 }

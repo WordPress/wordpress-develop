@@ -155,7 +155,7 @@ if ( $action ) {
 					// If the user doesn't already belong to the blog, bail.
 					if ( ! is_user_member_of_blog( $user_id ) ) {
 						wp_die(
-							'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
+							'<h1>' . __( 'An error occurred.' ) . '</h1>' .
 							'<p>' . __( 'One of the selected users is not a member of this site.' ) . '</p>',
 							403
 						);
@@ -213,7 +213,8 @@ if ( ! wp_is_large_network( 'users' ) && apply_filters( 'show_network_site_users
 	wp_enqueue_script( 'user-suggest' );
 }
 
-require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
+require_once ABSPATH . 'wp-admin/admin-header.php';
+?>
 
 <script type="text/javascript">
 var current_site_id = <?php echo absint( $id ); ?>;
@@ -233,41 +234,57 @@ network_edit_site_nav(
 );
 
 if ( isset( $_GET['update'] ) ) :
+	$message = '';
+	$type    = 'error';
+
 	switch ( $_GET['update'] ) {
 		case 'adduser':
-			echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'User added.' ) . '</p></div>';
+			$type    = 'success';
+			$message = __( 'User added.' );
 			break;
 		case 'err_add_member':
-			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'User is already a member of this site.' ) . '</p></div>';
+			$message = __( 'User is already a member of this site.' );
 			break;
 		case 'err_add_fail':
-			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'User could not be added to this site.' ) . '</p></div>';
+			$message = __( 'User could not be added to this site.' );
 			break;
 		case 'err_add_notfound':
-			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Enter the username of an existing user.' ) . '</p></div>';
+			$message = __( 'Enter the username of an existing user.' );
 			break;
 		case 'promote':
-			echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Changed roles.' ) . '</p></div>';
+			$type    = 'success';
+			$message = __( 'Changed roles.' );
 			break;
 		case 'err_promote':
-			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Select a user to change role.' ) . '</p></div>';
+			$message = __( 'Select a user to change role.' );
 			break;
 		case 'remove':
-			echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'User removed from this site.' ) . '</p></div>';
+			$type    = 'success';
+			$message = __( 'User removed from this site.' );
 			break;
 		case 'err_remove':
-			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Select a user to remove.' ) . '</p></div>';
+			$message = __( 'Select a user to remove.' );
 			break;
 		case 'newuser':
-			echo '<div id="message" class="updated notice is-dismissible"><p>' . __( 'User created.' ) . '</p></div>';
+			$type    = 'success';
+			$message = __( 'User created.' );
 			break;
 		case 'err_new':
-			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Enter the username and email.' ) . '</p></div>';
+			$message = __( 'Enter the username and email.' );
 			break;
 		case 'err_new_dup':
-			echo '<div id="message" class="error notice is-dismissible"><p>' . __( 'Duplicated username or email address.' ) . '</p></div>';
+			$message = __( 'Duplicated username or email address.' );
 			break;
 	}
+
+	wp_admin_notice(
+		$message,
+		array(
+			'type'        => $type,
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
 endif;
 ?>
 
@@ -324,6 +341,9 @@ if ( current_user_can( 'promote_users' ) && apply_filters( 'show_network_site_us
 /**
  * Filters whether to show the Add New User form on the Multisite Users screen.
  *
+ * Note: While WordPress is moving towards simplifying labels by removing "New" from "Add New X" labels,
+ * we keep "Add New User" here to maintain a clear distinction from the "Add Existing User" section above.
+ *
  * @since 3.1.0
  *
  * @param bool $bool Whether to show the Add New User form. Default true.
@@ -357,7 +377,7 @@ if ( current_user_can( 'create_users' ) && apply_filters( 'show_network_site_use
 		</tr>
 	</table>
 	<?php wp_nonce_field( 'add-user', '_wpnonce_add-new-user' ); ?>
-	<?php submit_button( __( 'Add New User' ), 'primary', 'add-user', true, array( 'id' => 'submit-add-user' ) ); ?>
+	<?php submit_button( __( 'Add User' ), 'primary', 'add-user', true, array( 'id' => 'submit-add-user' ) ); ?>
 </form>
 <?php endif; ?>
 </div>
