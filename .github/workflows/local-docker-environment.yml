@@ -73,7 +73,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     with:
       wp-version: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
 
@@ -83,7 +83,6 @@ jobs:
     uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     needs: [ build-test-matrix ]
     strategy:
       fail-fast: false
