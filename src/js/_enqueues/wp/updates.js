@@ -1488,19 +1488,27 @@
 	 * @param {string}  response.errorMessage The error that occurred.
 	 */
 	wp.updates.deletePluginError = function( response ) {
-		var $plugin, $pluginUpdateRow,
+		var $plugin, $pluginUpdateRow, $pluginDataSlug,
 			pluginUpdateRow  = wp.template( 'item-update-row' ),
 			noticeContent    = wp.updates.adminNotice( {
 				className: 'update-message notice-error notice-alt',
 				message:   response.errorMessage
 			} );
-
+		
 		if ( response.plugin ) {
 			$plugin          = $( 'tr.inactive[data-plugin="' + response.plugin + '"]' );
-			$pluginUpdateRow = $plugin.siblings( '[data-plugin="' + response.plugin + '"]' );
+			$pluginUpdateRow = $plugin.siblings('[data-plugin="' + response.plugin + '"]');
+			$pluginDataSlug  = response.plugin;
+
 		} else {
 			$plugin          = $( 'tr.inactive[data-slug="' + response.slug + '"]' );
 			$pluginUpdateRow = $plugin.siblings( '[data-slug="' + response.slug + '"]' );
+			$pluginDataSlug  = response.slug;
+		}
+
+		if ( $pluginDataSlug ) {
+			$link = $('[data-slug="' + $pluginDataSlug + '"]').find('.row-actions a.delete');
+			$link.text( $link.data( 'originaltext' ) );
 		}
 
 		if ( ! wp.updates.isValidResponse( response, 'delete' ) ) {
