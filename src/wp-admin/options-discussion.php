@@ -162,20 +162,20 @@ $thread_comments_depth .= '</select>';
 </fieldset></td>
 </tr>
 <tr>
-<th scope="row"><?php _e( 'Email me whenever' ); ?></th>
+<th scope="row"><?php _e( 'Comment notifications' ); ?></th>
 <td><fieldset><legend class="screen-reader-text"><span>
 	<?php
 	/* translators: Hidden accessibility text. */
-	_e( 'Email me whenever' );
+	_e( 'Comment notifications' );
 	?>
 </span></legend>
 <label for="comments_notify">
 <input name="comments_notify" type="checkbox" id="comments_notify" value="1" <?php checked( '1', get_option( 'comments_notify' ) ); ?> />
-<?php _e( 'Anyone posts a comment' ); ?> </label>
+<?php _e( 'Notify the post author whenever anyone posts a comment' ); ?> </label>
 <br />
 <label for="moderation_notify">
 <input name="moderation_notify" type="checkbox" id="moderation_notify" value="1" <?php checked( '1', get_option( 'moderation_notify' ) ); ?> />
-<?php _e( 'A comment is held for moderation' ); ?> </label>
+<?php _e( 'Notify administrators whenever a comment is held for moderation' ); ?> </label>
 </fieldset></td>
 </tr>
 <tr>
