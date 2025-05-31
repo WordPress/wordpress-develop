@@ -626,6 +626,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-item-setting.php',
 ];
 $ignoreErrors[] = [
+	// identifier: return.type
+	'message' => '#^Method WP_Customize_Nav_Menu_Setting\\:\\:filter_wp_get_nav_menu_object\\(\\) should return object\\|null but returns false\\.$#',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-setting.php',
+];
+$ignoreErrors[] = [
 	// identifier: property.phpDocType
 	'message' => '#^PHPDoc type array of property WP_Customize_Nav_Menu_Setting\\:\\:\\$default is not covariant with PHPDoc type string of overridden property WP_Customize_Setting\\:\\:\\$default\\.$#',
 	'count' => 1,

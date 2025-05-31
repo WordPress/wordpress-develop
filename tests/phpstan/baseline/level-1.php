@@ -27,12 +27,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: isset.variable
-	'message' => '#^Variable \\$results in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/ajax-actions.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
 	'message' => '#^Variable \\$_POST in isset\\(\\) always exists and is not nullable\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-custom-image-header.php',
@@ -50,22 +44,10 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-direct.php',
 ];
 $ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$children_pages in isset\\(\\) is never defined\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-posts-list-table.php',
-];
-$ignoreErrors[] = [
 	// identifier: empty.variable
 	'message' => '#^Variable \\$class in empty\\(\\) always exists and is always falsy\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-posts-list-table.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$theme in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-theme-install-list-table.php',
 ];
 $ignoreErrors[] = [
 	// identifier: empty.variable
@@ -78,24 +60,6 @@ $ignoreErrors[] = [
 	'message' => '#^Variable \\$_POST in isset\\(\\) always exists and is not nullable\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/media.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$callback in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/plugin.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$load in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/load-scripts.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$load in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/load-styles.php',
 ];
 $ignoreErrors[] = [
 	// identifier: empty.variable
@@ -123,27 +87,9 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: isset.variable
-	'message' => '#^Variable \\$block in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-list.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
 	'message' => '#^Variable \\$namespace in isset\\(\\) always exists and is not nullable\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-parser.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$category_name in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-pattern-categories-registry.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$pattern_name in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-patterns-registry.php',
 ];
 $ignoreErrors[] = [
 	// identifier: empty.variable
@@ -153,27 +99,9 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: empty.variable
-	'message' => '#^Variable \\$q_values in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment-query.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
 	'message' => '#^Variable \\$status_clauses in empty\\(\\) always exists and is not falsy\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment-query.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$root in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-setting.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$value in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-date-query.php',
 ];
 $ignoreErrors[] = [
 	// identifier: constructor.unusedParameter
@@ -213,51 +141,15 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: empty.variable
-	'message' => '#^Variable \\$inner in empty\\(\\) always exists and is always falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
 	'message' => '#^Variable \\$modes_str in empty\\(\\) always exists and is not falsy\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wpdb.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$posts in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
 ];
 $ignoreErrors[] = [
 	// identifier: isset.variable
 	'message' => '#^Variable \\$newrow in isset\\(\\) always exists and is not nullable\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/general-template.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$character_reference in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/html-api/class-wp-html-decoder.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$replacement in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/html-api/class-wp-html-tag-processor.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$attachment in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/media.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$file_info in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/media.php',
 ];
 $ignoreErrors[] = [
 	// identifier: isset.variable
@@ -273,45 +165,9 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: empty.variable
-	'message' => '#^Variable \\$tempheaders in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$wp_actions in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/plugin.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$wp_current_filter in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/plugin.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$wp_filters in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/plugin.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
 	'message' => '#^Variable \\$schema in empty\\(\\) is never defined\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$prepared_term in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-menus-controller.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$prepared_term in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-terms-controller.php',
 ];
 $ignoreErrors[] = [
 	// identifier: isset.variable
@@ -326,12 +182,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
 ];
 $ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$the_parent in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
-];
-$ignoreErrors[] = [
 	// identifier: isset.variable
 	'message' => '#^Variable \\$s in isset\\(\\) is never defined\\.$#',
 	'count' => 1,
@@ -342,30 +192,6 @@ $ignoreErrors[] = [
 	'message' => '#^Variable \\$old_user_data in empty\\(\\) always exists and is not falsy\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$control_callback in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$form_callback in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$output_callback in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$update_callback in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/widgets.php',
 ];
 
 return ['parameters' => ['ignoreErrors' => $ignoreErrors]];

@@ -15,6 +15,12 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: return.missing
+	'message' => '#^Method WP_Theme_JSON\\:\\:should_override_preset\\(\\) should return bool but return statement is missing\\.$#',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-theme-json.php',
+];
+$ignoreErrors[] = [
+	// identifier: return.missing
 	'message' => '#^Method WP_Customize_Background_Image_Setting\\:\\:update\\(\\) should return bool but return statement is missing\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-background-image-setting.php',
@@ -36,6 +42,12 @@ $ignoreErrors[] = [
 	'message' => '#^Class GdImage not found\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/media.php',
+];
+$ignoreErrors[] = [
+	// identifier: function.nameCase
+	'message' => '#^Call to function get_current_user_id\\(\\) with incorrect case\\: get_current_user_ID$#',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/script-loader.php',
 ];
 $ignoreErrors[] = [
 	// identifier: new.static

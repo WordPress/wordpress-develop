@@ -123,12 +123,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: missingType.property
-	'message' => '#^Property WP_Media_List_Table\\:\\:\\$detached has no type specified\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-media-list-table.php',
-];
-$ignoreErrors[] = [
-	// identifier: missingType.property
 	'message' => '#^Property WP_Media_List_Table\\:\\:\\$is_trash has no type specified\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-media-list-table.php',
@@ -262,18 +256,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	// identifier: missingType.property
 	'message' => '#^Property WP_Site_Health\\:\\:\\$schedules has no type specified\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-site-health.php',
-];
-$ignoreErrors[] = [
-	// identifier: missingType.property
-	'message' => '#^Property WP_Site_Health\\:\\:\\$timeout_late_cron has no type specified\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-site-health.php',
-];
-$ignoreErrors[] = [
-	// identifier: missingType.property
-	'message' => '#^Property WP_Site_Health\\:\\:\\$timeout_missed_cron has no type specified\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-site-health.php',
 ];
