@@ -27,12 +27,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: return.type
-	'message' => '#^Method WP_Filesystem_FTPext\\:\\:parselisting\\(\\) should return array but returns string\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ftpext.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.type
 	'message' => '#^Method WP_Filesystem_SSH2\\:\\:group\\(\\) should return string\\|false but returns int\\<min, \\-1\\>\\|int\\<1, max\\>\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
