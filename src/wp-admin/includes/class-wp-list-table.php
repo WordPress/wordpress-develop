@@ -75,7 +75,7 @@ class WP_List_Table {
 	 * Stores the value returned by ->get_column_info().
 	 *
 	 * @since 4.1.0
-	 * @var array
+	 * @var ?array
 	 */
 	protected $_column_headers;
 
