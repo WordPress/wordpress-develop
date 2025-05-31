@@ -10,6 +10,12 @@ parameters:
 
   # The Minimum PHP Version
   phpVersion: 70224
+  # If it's not enforced by PHP we can't assume users are passing valid values.
+  treatPhpDocTypesAsCertain: false
+
+  # These config options are explained in https://phpstan.org/config-reference
+  checkFunctionNameCase: true
+  inferPrivatePropertyTypeFromConstructor: true
 
   # Constants that are expected to be defined by users.
   dynamicConstantNames:
