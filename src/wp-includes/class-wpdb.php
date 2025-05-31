@@ -962,10 +962,6 @@ class wpdb {
 
 			$modes_str = $modes_array[0];
 
-			if ( empty( $modes_str ) ) {
-				return;
-			}
-
 			$modes = explode( ',', $modes_str );
 		}
 
