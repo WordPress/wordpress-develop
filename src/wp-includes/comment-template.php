@@ -2732,7 +2732,7 @@ function comment_form( $args = array(), $post = null ) {
 				esc_url( $args['action'] ),
 				esc_attr( $args['id_form'] ),
 				esc_attr( $args['class_form'] ),
-				( $html5 && ! empty( $args['novalidate_form'] ) ? ' novalidate' : '' )
+				( $args['novalidate_form'] ? ' novalidate' : '' )
 			);
 
 			/**
