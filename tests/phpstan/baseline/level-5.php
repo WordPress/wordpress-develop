@@ -987,12 +987,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: argument.type
-	'message' => '#^Parameter \\#1 \\$new_error_level of function error_reporting expects int, false given\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wpdb.php',
-];
-$ignoreErrors[] = [
-	// identifier: argument.type
 	'message' => '#^Parameter \\#1 \\$comment_id of function get_page_of_comment expects int, string given\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/comment-template.php',
