@@ -2468,7 +2468,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
  *                                        Default 'Your email address will not be published.'.
  *     @type string $comment_notes_after  HTML element for a message displayed after the textarea field.
  *     @type string $action               The comment form element action attribute. Default '/wp-comments-post.php'.
- *     @type bool   $novalidate_form      Whether the novalidate attribute is added to the comment from. Default false.
+ *     @type bool   $novalidate_form      Whether the novalidate attribute is added to the comment form. Default false.
  *     @type string $id_form              The comment form element id attribute. Default 'commentform'.
  *     @type string $id_submit            The comment submit element id attribute. Default 'submit'.
  *     @type string $class_container      The comment form container class attribute. Default 'comment-respond'.
