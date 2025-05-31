@@ -11,6 +11,17 @@ parameters:
   # The Minimum PHP Version
   phpVersion: 70224
 
+  # Constants that are expected to be defined by users.
+  dynamicConstantNames:
+    - WP_DEBUG
+    - WP_DEBUG_LOG
+    - WP_DEBUG_DISPLAY
+    - SCRIPT_DEBUG
+    - WP_CACHE
+    - MEDIA_TRASH
+    - FORCE_SSL_LOGIN
+    - WP_POST_REVISIONS
+
   # What directories and files should be scanned.
   paths:
     - ../../src
