@@ -55,7 +55,7 @@ function get_category_to_edit( $id ) {
 function wp_create_category( $cat_name, $category_parent = 0 ) {
 	$id = category_exists( $cat_name, $category_parent );
 	if ( $id ) {
-		return $id;
+		return (int) $id;
 	}
 
 	return wp_insert_category(
