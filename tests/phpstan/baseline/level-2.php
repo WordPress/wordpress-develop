@@ -926,24 +926,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/capabilities.php',
 ];
 $ignoreErrors[] = [
-	// identifier: parameter.defaultValue
-	'message' => '#^Default value of the parameter \\#1 \\$post_id \\(false\\) of function get_the_category\\(\\) is incompatible with type int\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/category-template.php',
-];
-$ignoreErrors[] = [
-	// identifier: parameter.defaultValue
-	'message' => '#^Default value of the parameter \\#3 \\$post_id \\(false\\) of function get_the_category_list\\(\\) is incompatible with type int\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/category-template.php',
-];
-$ignoreErrors[] = [
-	// identifier: parameter.defaultValue
-	'message' => '#^Default value of the parameter \\#3 \\$post_id \\(false\\) of function the_category\\(\\) is incompatible with type int\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/category-template.php',
-];
-$ignoreErrors[] = [
 	// identifier: return.missing
 	'message' => '#^Function get_category_by_path\\(\\) should return array\\|WP_Error\\|WP_Term\\|null but return statement is missing\\.$#',
 	'count' => 1,
