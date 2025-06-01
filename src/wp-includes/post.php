@@ -4851,7 +4851,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		/**
 		 * Fires immediately before a new post is inserted in the database.
 		 *
-		 * @since 6.8
+		 * @since 6.9.0
 		 *
 		 * @param array $data Array of unslashed post data.
 		 */
