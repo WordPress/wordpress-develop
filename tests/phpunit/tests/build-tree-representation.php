@@ -47,7 +47,7 @@ class Tests_Build_Tree_Representation extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_assert_equal_markup_passes_for_equivalent_html() {
+	public function data_build_tree_representation_returns_equivalent_trees_for_equivalent_html() {
 		return array(
 			'Different attribute order'        => array(
 				'<img src="wp.png" alt="The WordPress logo">',
@@ -73,13 +73,16 @@ class Tests_Build_Tree_Representation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_assert_equal_markup_passes_for_equivalent_html
+	 * @dataProvider data_build_tree_representation_returns_equivalent_trees_for_equivalent_html
 	 */
-	public function test_assert_equal_markup_passes_for_equivalent_html( $expected, $actual ) {
-		$this->assertEqualMarkup( $expected, $actual );
+	public function test_build_tree_representation_returns_equivalent_trees_for_equivalent_html( $expected, $actual ) {
+		$tree_expected = build_tree_representation( $expected, '<body>' );
+		$tree_actual   = build_tree_representation( $actual, '<body>' );
+
+		$this->assertSame( $tree_expected, $tree_actual );
 	}
 
-	public function data_assert_equal_markup_fails_for_non_equivalent_html() {
+	public function data_build_tree_representation_returns_different_trees_for_non_equivalent_html() {
 		return array(
 			'Different attributes'             => array(
 				'<img src="wp.png" alt="The WordPress logo">',
@@ -105,10 +108,12 @@ class Tests_Build_Tree_Representation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_assert_equal_markup_fails_for_non_equivalent_html
+	 * @dataProvider data_build_tree_representation_returns_different_trees_for_non_equivalent_html
 	 */
-	public function test_assert_equal_markup_fails_for_non_equivalent_html( $expected, $actual ) {
-		$this->expectException( 'PHPUnit\Framework\ExpectationFailedException' );
-		$this->assertEqualMarkup( $expected, $actual );
+	public function test_build_tree_representation_returns_different_trees_for_non_equivalent_html( $expected, $actual ) {
+		$tree_expected = build_tree_representation( $expected, '<body>' );
+		$tree_actual   = build_tree_representation( $actual, '<body>' );
+
+		$this->assertNotSame( $tree_expected, $tree_actual );
 	}
 }
