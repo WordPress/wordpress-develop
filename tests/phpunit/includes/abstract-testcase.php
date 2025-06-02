@@ -1199,7 +1199,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *                                      Set to null to parse a full HTML document.
 	 * @param string|null $message          Optional. The assertion error message.
 	 */
-	// phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid, Universal.CodeAnalysis.ConstructorDestructorReturn.ReturnTypeFound
 	public function assertEqualMarkup( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
 		$tree_expected = build_tree_representation( $expected, $fragment_context );
 		$tree_actual   = build_tree_representation( $actual, $fragment_context );
