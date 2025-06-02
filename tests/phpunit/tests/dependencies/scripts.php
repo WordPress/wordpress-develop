@@ -3015,6 +3015,53 @@ HTML
 	}
 
 	/**
+	 * Assert markup is equal after normalizing script tags.
+	 *
+	 * @param string $expected Expected markup.
+	 * @param string $actual   Actual markup.
+	 * @param string $message  Message.
+	 */
+	protected function assertEqualMarkup( $expected, $actual, $message = '' ) {
+		$expected_dom = $this->parse_markup_fragment( $expected );
+		$actual_dom   = $this->parse_markup_fragment( $actual );
+		foreach ( array( $expected_dom, $actual_dom ) as $dom ) {
+			$xpath = new DOMXPath( $dom );
+			/** @var DOMElement $script */
+
+			// Normalize type attribute. When missing, it defaults to text/javascript.
+			foreach ( $xpath->query( '//script[ not( @type ) ]' ) as $script ) {
+				$script->setAttribute( 'type', 'text/javascript' );
+			}
+
+			// Normalize script contents to remove CDATA wrapper.
+			foreach ( $xpath->query( '//script[ contains( text(), "<![CDATA[" ) ]' ) as $script ) {
+				$script->textContent = str_replace(
+					array(
+						"/* <![CDATA[ */\n",
+						"\n/* ]]> */",
+					),
+					'',
+					$script->textContent
+				);
+			}
+
+			// Normalize XHTML-compatible boolean attributes to HTML5 ones.
+			foreach ( array( 'async', 'defer' ) as $attribute ) {
+				foreach ( iterator_to_array( $xpath->query( "//script[ @{$attribute} = '{$attribute}' ]" ) ) as $script ) {
+					$script->removeAttribute( $attribute );
+					$script->setAttributeNode( $dom->createAttribute( $attribute ) );
+				}
+			}
+		}
+
+		$this->assertEquals(
+			$expected_dom->getElementsByTagName( 'body' )->item( 0 ),
+			$actual_dom->getElementsByTagName( 'body' )->item( 0 ),
+			$message
+		);
+	}
+
+	/**
 	 * Adds html5 script theme support.
 	 */
 	protected function add_html5_script_theme_support() {
