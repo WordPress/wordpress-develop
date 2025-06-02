@@ -1,15 +1,13 @@
 <?php declare( strict_types = 1 );
 
 /**
- * Tests for the assertEqualMarkup() assertion.
+ * Tests for build_tree_representation().
  *
  * @package WordPress
  *
  * @group testsuite
  */
 class Tests_Assert_Equal_Markup extends WP_UnitTestCase {
-	use AssertEqualMarkup; // This gives us access to the private `build_tree_representation()` method.
-
 	public function data_build_tree_representation() {
 		return array(
 			'Block delimiter' => array(
@@ -45,7 +43,7 @@ class Tests_Assert_Equal_Markup extends WP_UnitTestCase {
 	 * @dataProvider data_build_tree_representation
 	 */
 	public function test_build_tree_representation( $markup, $expected ) {
-		$actual = self::build_tree_representation( $markup, '<body>' );
+		$actual = build_tree_representation( $markup, '<body>' );
 		$this->assertSame( $expected, $actual );
 	}
 

@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/trait-assert-equal-markup.php';
+require_once __DIR__ . '/build-tree-representation.php';
 require_once __DIR__ . '/factory.php';
 require_once __DIR__ . '/trac.php';
 
@@ -14,8 +14,6 @@ require_once __DIR__ . '/trac.php';
  * All WordPress unit tests should inherit from this class.
  */
 abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
-	use AssertEqualMarkup;
-
 	protected static $forced_tickets   = array();
 	protected $expected_deprecated     = array();
 	protected $caught_deprecated       = array();
@@ -1203,8 +1201,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	// phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid, Universal.CodeAnalysis.ConstructorDestructorReturn.ReturnTypeFound
 	public function assertEqualMarkup( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
-		$tree_expected = self::build_tree_representation( $expected, $fragment_context );
-		$tree_actual   = self::build_tree_representation( $actual, $fragment_context );
+		$tree_expected = build_tree_representation( $expected, $fragment_context );
+		$tree_actual   = build_tree_representation( $actual, $fragment_context );
 
 		$this->assertSame( $tree_expected, $tree_actual, $message );
 	}
