@@ -38,8 +38,6 @@ trait AssertEqualMarkup {
 	 * @return string|null Tree structure of parsed HTML, if supported, else null.
 	 */
 	private static function build_tree_representation( string $html, ?string $fragment_context ) {
-		require_lib( 'html-api' );
-
 		$processor = $fragment_context
 			? WP_HTML_Processor::create_fragment( $html, $fragment_context )
 			: WP_HTML_Processor::create_full_parser( $html );
