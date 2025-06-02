@@ -9,33 +9,34 @@
  */
 class Tests_Build_Tree_Representation extends WP_UnitTestCase {
 	public function data_build_tree_representation() {
-		return array(
-			'Block delimiter' => array(
-				<<<END
-				<!-- wp:separator {"className":"is-style-default has-custom-classname","style":{"spacing":{"margin":{"top":"50px","bottom":"50px"}}},"backgroundColor":"accent-1"} -->
-				  <hr class="wp-block-separator is-style-default has-custom-classname" style="margin-top: 50px; margin-bottom: 50px" />
-				<!-- /wp:separator -->
-				END,
-				<<<END
-				BLOCK["core/separator"]
-				  {
-				    "backgroundColor": "accent-1",
-				    "className": "has-custom-classname is-style-default",
-				    "style": {
-				      "spacing": {
-				        "margin": {
-				          "top": "50px",
-				          "bottom": "50px"
-				        }
-				      }
-				    }
-				  }
-				  <hr>
-				    class="has-custom-classname is-style-default wp-block-separator"
-				    style="margin-top:50px;margin-bottom:50px;"
+		$block_markup = <<<END
+			<!-- wp:separator {"className":"is-style-default has-custom-classname","style":{"spacing":{"margin":{"top":"50px","bottom":"50px"}}},"backgroundColor":"accent-1"} -->
+			  <hr class="wp-block-separator is-style-default has-custom-classname" style="margin-top: 50px; margin-bottom: 50px" />
+			<!-- /wp:separator -->
+END;
 
-				END,
-			),
+		$tree_structure = <<<END
+BLOCK["core/separator"]
+  {
+    "backgroundColor": "accent-1",
+    "className": "has-custom-classname is-style-default",
+    "style": {
+      "spacing": {
+        "margin": {
+          "top": "50px",
+          "bottom": "50px"
+        }
+      }
+    }
+  }
+  <hr>
+    class="has-custom-classname is-style-default wp-block-separator"
+    style="margin-top:50px;margin-bottom:50px;"
+
+END;
+
+		return array(
+			'Block delimiter' => array( $block_markup, $tree_structure ),
 		);
 	}
 
