@@ -261,4 +261,3 @@ function build_tree_representation( string $html, ?string $fragment_context ) {
 
 	return $output;
 }
-
