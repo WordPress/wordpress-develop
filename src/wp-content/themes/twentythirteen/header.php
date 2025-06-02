@@ -31,8 +31,8 @@
 		<header id="masthead" class="site-header">
 			<?php
 			$is_front         = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
-			$site_name        = get_bloginfo( 'name' );
-			$site_description = get_bloginfo( 'description' );
+			$site_name        = get_bloginfo( 'name', 'display' );
+			$site_description = get_bloginfo( 'description', 'display' );
 
 			?>
 			<a class="home-link" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>>
