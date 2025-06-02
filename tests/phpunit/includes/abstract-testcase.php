@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/assert-equal-markup.php';
 require_once __DIR__ . '/factory.php';
 require_once __DIR__ . '/trac.php';
 
@@ -13,6 +14,7 @@ require_once __DIR__ . '/trac.php';
  * All WordPress unit tests should inherit from this class.
  */
 abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
+	use AssertEqualMarkup;
 
 	protected static $forced_tickets   = array();
 	protected $expected_deprecated     = array();
