@@ -217,7 +217,7 @@ JS;
 		wp_enqueue_script( 'main-script-a1', '/main-script-a1.js', array(), null, array( 'strategy' => 'async' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-a1.js' id='main-script-a1-js' async data-wp-strategy='async'></script>\n";
-		$this->assertEqualMarkup( $expected, $output, 'Scripts enqueued with an async loading strategy are failing to have the async attribute applied to the script handle when being printed.' );
+		$this->assertEqualMarkup( $expected, $output, '<body>', 'Scripts enqueued with an async loading strategy are failing to have the async attribute applied to the script handle when being printed.' );
 	}
 
 	/**
@@ -240,7 +240,7 @@ JS;
 		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script id='dependency-script-a2-js' src='/dependency-script-a2.js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/main-script-a2.js' id='main-script-a2-js' {$strategy} data-wp-strategy='{$strategy}'></script>";
-		$this->assertEqualMarkup( $expected, $output, 'Dependents of a blocking dependency are free to have any strategy.' );
+		$this->assertEqualMarkup( $expected, $output, '<body>', 'Dependents of a blocking dependency are free to have any strategy.' );
 	}
 
 	/**
@@ -264,7 +264,7 @@ JS;
 			<script type='text/javascript' src='/main-script-a3.js' id='main-script-a3-js' data-wp-strategy='{$strategy}'></script>
 			<script id="dependent-script-a3-js" src="/dependent-script-a3.js" type="text/javascript"></script>
 JS;
-		$this->assertEqualMarkup( $expected, $output, 'Blocking dependents must force delayed dependencies to become blocking.' );
+		$this->assertEqualMarkup( $expected, $output, '<body>', 'Blocking dependents must force delayed dependencies to become blocking.' );
 	}
 
 	/**
@@ -960,7 +960,7 @@ HTML
 	public function test_various_strategy_dependency_chains( $set_up, $expected_markup ) {
 		$set_up();
 		$actual_markup = get_echo( 'wp_print_scripts' );
-		$this->assertEqualMarkup( trim( $expected_markup ), trim( $actual_markup ), "Actual markup:\n{$actual_markup}" );
+		$this->assertEqualMarkup( trim( $expected_markup ), trim( $actual_markup ), '<body>', "Actual markup:\n{$actual_markup}" );
 	}
 
 	/**
@@ -1041,7 +1041,7 @@ HTML
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer data-wp-strategy='async'></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer data-wp-strategy='defer'></script>\n";
 
-		$this->assertEqualMarkup( $expected, $output, 'Scripts registered as defer but that have dependents that are async are expected to have said dependents deferred.' );
+		$this->assertEqualMarkup( $expected, $output, '<body>', 'Scripts registered as defer but that have dependents that are async are expected to have said dependents deferred.' );
 	}
 
 	/**
@@ -1113,7 +1113,7 @@ HTML
 		$expected_header .= "<script type='text/javascript' src='/enqueue-header-old.js' id='enqueue-header-old-js'></script>\n";
 		$expected_header .= "<script type='text/javascript' src='/enqueue-header-new.js' id='enqueue-header-new-js'></script>\n";
 
-		$this->assertEqualMarkup( $expected_header, $actual_header, 'Scripts registered/enqueued using the older $in_footer parameter or the newer $args parameter should have the same outcome.' );
+		$this->assertEqualMarkup( $expected_header, $actual_header, '<body>', 'Scripts registered/enqueued using the older $in_footer parameter or the newer $args parameter should have the same outcome.' );
 		$this->assertEmpty( $actual_footer, 'Expected footer to be empty since all scripts were for head.' );
 	}
 
@@ -1141,7 +1141,7 @@ HTML
 		$expected_footer .= "<script type='text/javascript' src='/enqueue-footer-new.js' id='enqueue-footer-new-js'></script>\n";
 
 		$this->assertEmpty( $actual_header, 'Expected header to be empty since all scripts targeted footer.' );
-		$this->assertEqualMarkup( $expected_footer, $actual_footer, 'Scripts registered/enqueued using the older $in_footer parameter or the newer $args parameter should have the same outcome.' );
+		$this->assertEqualMarkup( $expected_footer, $actual_footer, '<body>', 'Scripts registered/enqueued using the older $in_footer parameter or the newer $args parameter should have the same outcome.' );
 	}
 
 	/**
@@ -1344,7 +1344,7 @@ HTML
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep,two-concat-dep,three-concat-dep&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-defer-script-js' defer data-wp-strategy='defer'></script>\n";
 
-		$this->assertEqualMarkup( $expected, $print_scripts, 'Scripts are being incorrectly concatenated when a main script is registered with a "defer" loading strategy. Deferred scripts should not be part of the script concat loading query.' );
+		$this->assertEqualMarkup( $expected, $print_scripts, '<body>', 'Scripts are being incorrectly concatenated when a main script is registered with a "defer" loading strategy. Deferred scripts should not be part of the script concat loading query.' );
 	}
 
 	/**
@@ -1379,7 +1379,7 @@ HTML
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-1,two-concat-dep-1,three-concat-dep-1&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-async-script-1-js' async data-wp-strategy='async'></script>\n";
 
-		$this->assertEqualMarkup( $expected, $print_scripts, 'Scripts are being incorrectly concatenated when a main script is registered with an "async" loading strategy. Async scripts should not be part of the script concat loading query.' );
+		$this->assertEqualMarkup( $expected, $print_scripts, '<body>', 'Scripts are being incorrectly concatenated when a main script is registered with an "async" loading strategy. Async scripts should not be part of the script concat loading query.' );
 	}
 
 	/**
@@ -1418,7 +1418,7 @@ HTML
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-2,two-concat-dep-2,three-concat-dep-2,four-concat-dep-2,five-concat-dep-2,six-concat-dep-2&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' src='/main-script.js' id='deferred-script-2-js' defer data-wp-strategy='defer'></script>\n";
 
-		$this->assertEqualMarkup( $expected, $print_scripts, 'Scripts are being incorrectly concatenated when a main script is registered as deferred after other blocking scripts are registered. Deferred scripts should not be part of the script concat loader query string. ' );
+		$this->assertEqualMarkup( $expected, $print_scripts, '<body>', 'Scripts are being incorrectly concatenated when a main script is registered as deferred after other blocking scripts are registered. Deferred scripts should not be part of the script concat loader query string. ' );
 	}
 
 	/**
@@ -1690,8 +1690,8 @@ HTML
 		$expected_header .= "<script type='text/javascript' src='/child-head.js' id='child-head-js'></script>\n";
 		$expected_footer  = "<script type='text/javascript' src='/parent.js' id='parent-js'></script>\n";
 
-		$this->assertEqualMarkup( $expected_header, $header, 'Expected same header markup.' );
-		$this->assertEqualMarkup( $expected_footer, $footer, 'Expected same footer markup.' );
+		$this->assertEqualMarkup( $expected_header, $header, '<body>', 'Expected same header markup.' );
+		$this->assertEqualMarkup( $expected_footer, $footer, '<body>', 'Expected same footer markup.' );
 	}
 
 	/**
@@ -1711,8 +1711,8 @@ HTML
 		$expected_footer  = "<script type='text/javascript' src='/child-footer.js' id='child-footer-js'></script>\n";
 		$expected_footer .= "<script type='text/javascript' src='/parent.js' id='parent-js'></script>\n";
 
-		$this->assertEqualMarkup( $expected_header, $header, 'Expected same header markup.' );
-		$this->assertEqualMarkup( $expected_footer, $footer, 'Expected same footer markup.' );
+		$this->assertEqualMarkup( $expected_header, $header, '<body>', 'Expected same header markup.' );
+		$this->assertEqualMarkup( $expected_footer, $footer, '<body>', 'Expected same footer markup.' );
 	}
 
 	/**
@@ -1742,8 +1742,8 @@ HTML
 		$expected_footer .= "<script type='text/javascript' src='/child2-footer.js' id='child2-footer-js'></script>\n";
 		$expected_footer .= "<script type='text/javascript' src='/parent-footer.js' id='parent-footer-js'></script>\n";
 
-		$this->assertEqualMarkup( $expected_header, $header, 'Expected same header markup.' );
-		$this->assertEqualMarkup( $expected_footer, $footer, 'Expected same footer markup.' );
+		$this->assertEqualMarkup( $expected_header, $header, '<body>', 'Expected same header markup.' );
+		$this->assertEqualMarkup( $expected_footer, $footer, '<body>', 'Expected same footer markup.' );
 	}
 
 	/**
@@ -3017,11 +3017,16 @@ HTML
 	/**
 	 * Assert markup is equal after normalizing script tags.
 	 *
-	 * @param string $expected Expected markup.
-	 * @param string $actual   Actual markup.
-	 * @param string $message  Message.
+	 * This overrides WP_UnitTestCase_Base::assertEqualMarkup().
+	 *
+	 * @todo Make tests work with WP_UnitTestCase_Base::assertEqualMarkup() and remove the override.
+	 *
+	 * @param string      $expected         Expected markup.
+	 * @param string      $actual           Actual markup.
+	 * @param string|null $fragment_context Context of the markup fragment.
+	 * @param string      $message          Message.
 	 */
-	protected function assertEqualMarkup( $expected, $actual, $message = '' ) {
+	public function assertEqualMarkup( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
 		$expected_dom = $this->parse_markup_fragment( $expected );
 		$actual_dom   = $this->parse_markup_fragment( $actual );
 		foreach ( array( $expected_dom, $actual_dom ) as $dom ) {
@@ -3100,8 +3105,8 @@ HTML
 		wp_scripts()->do_footer_items();
 		$footer = ob_get_clean();
 
-		$this->assertEqualMarkup( $expected_header, $header, 'Expected header script markup to match.' );
-		$this->assertEqualMarkup( $expected_footer, $footer, 'Expected footer script markup to match.' );
+		$this->assertEqualMarkup( $expected_header, $header, '<body>', 'Expected header script markup to match.' );
+		$this->assertEqualMarkup( $expected_footer, $footer, '<body>', 'Expected footer script markup to match.' );
 		$this->assertEqualSets( $expected_in_footer, wp_scripts()->in_footer, 'Expected to have the same handles for in_footer.' );
 		$this->assertEquals( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
 	}
