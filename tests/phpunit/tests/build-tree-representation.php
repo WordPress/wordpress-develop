@@ -7,7 +7,7 @@
  *
  * @group testsuite
  */
-class Tests_Assert_Equal_Markup extends WP_UnitTestCase {
+class Tests_Build_Tree_Representation extends WP_UnitTestCase {
 	public function data_build_tree_representation() {
 		return array(
 			'Block delimiter' => array(
