@@ -1,4 +1,4 @@
-<?php declare( strict_types = 1 );
+<?php
 
 /**
  * Tests for build_tree_representation().

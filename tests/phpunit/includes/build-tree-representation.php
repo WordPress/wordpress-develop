@@ -1,4 +1,4 @@
-<?php declare( strict_types = 1 );
+<?php
 
 /* phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped */
 
