@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/assert-equal-markup.php';
+require_once __DIR__ . '/trait-assert-equal-markup.php';
 require_once __DIR__ . '/factory.php';
 require_once __DIR__ . '/trac.php';
 
