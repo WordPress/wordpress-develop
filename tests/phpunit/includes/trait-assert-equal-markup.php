@@ -12,6 +12,8 @@ trait AssertEqualMarkup {
 	 * - HTML Entities are correctly decoded.
 	 * - Class attributes are normalized.
 	 *
+	 * @since 6.9.0
+	 *
 	 * @param string      $expected         The expected HTML.
 	 * @param string      $actual           The actual HTML.
 	 * @param string|null $fragment_context Optional. The fragment context, for example "<td>" expected HTML
