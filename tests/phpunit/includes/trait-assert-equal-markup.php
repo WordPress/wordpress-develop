@@ -4,33 +4,6 @@
 
 trait AssertEqualMarkup {
 	/**
-	 * Asserts that HTML markup produces a semantically equivalent tree.
-	 *
-	 * - Tag names are normalized.
-	 * - Attribute names are normalized.
-	 * - Attributes are sorted and deduplicated.
-	 * - HTML Entities are correctly decoded.
-	 * - Class attributes are normalized.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param string      $expected         The expected HTML.
-	 * @param string      $actual           The actual HTML.
-	 * @param string|null $fragment_context Optional. The fragment context, for example "<td>" expected HTML
-	 *                                      must occur within "<table><tr>" fragment context. Default "<body>".
-	 *                                      Only `<body>` or `null` are supported at this time.
-	 *                                      Set to null to parse a full HTML document.
-	 * @param string|null $message          Optional. The assertion error message.
-	 */
-	// phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid, Universal.CodeAnalysis.ConstructorDestructorReturn.ReturnTypeFound
-	public function assertEqualMarkup( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
-		$tree_expected = self::build_tree_representation( $expected, $fragment_context );
-		$tree_actual   = self::build_tree_representation( $actual, $fragment_context );
-
-		$this->assertSame( $tree_expected, $tree_actual, $message );
-	}
-
-	/**
 	 * Generates the tree-like structure represented in the Html5lib tests.
 	 *
 	 * @see https://github.com/html5lib/html5lib-tests/blob/a9f44960a9fedf265093d22b2aa3c7ca123727b9/tree-construction/README.md
