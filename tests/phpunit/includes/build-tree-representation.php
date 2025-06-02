@@ -139,8 +139,10 @@ function build_tree_representation( string $html, ?string $fragment_context ) {
 									continue;
 								}
 								list( $style_key, $style_val ) = explode( ':', $style );
+
 								$style_key = trim( $style_key );
 								$style_val = trim( $style_val );
+
 								$normalized_style .= "{$style_key}:{$style_val};";
 							}
 							$val = $normalized_style;

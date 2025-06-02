@@ -49,11 +49,11 @@ class Tests_Assert_Equal_Markup extends WP_UnitTestCase {
 
 	public function data_assert_equal_markup_passes_for_equivalent_html() {
 		return array(
-			'Different attribute order' => array(
+			'Different attribute order'        => array(
 				'<img src="wp.png" alt="The WordPress logo">',
 				'<img alt="The WordPress logo" src="wp.png">',
 			),
-			'Different class name order' => array(
+			'Different class name order'       => array(
 				'<hr class="wp-block-separator is-style-default">',
 				'<hr class="is-style-default wp-block-separator">',
 			),
@@ -61,7 +61,7 @@ class Tests_Assert_Equal_Markup extends WP_UnitTestCase {
 				'<hr style="margin-top: 50px; margin-bottom: 50px;">',
 				'<hr style="margin-top:50px;margin-bottom: 50px">',
 			),
-			'Different block attribute order' => array(
+			'Different block attribute order'  => array(
 				'<!-- wp:separator {"className":"is-style-default","backgroundColor":"accent-1"} -->',
 				'<!-- wp:separator {"backgroundColor":"accent-1","className":"is-style-default"} -->',
 			),
@@ -81,19 +81,19 @@ class Tests_Assert_Equal_Markup extends WP_UnitTestCase {
 
 	public function data_assert_equal_markup_fails_for_non_equivalent_html() {
 		return array(
-			'Different attributes' => array(
+			'Different attributes'             => array(
 				'<img src="wp.png" alt="The WordPress logo">',
 				'<img alt="The WordPress logo" src="wp.png" title="WordPress">',
 			),
-			'Different class names' => array(
+			'Different class names'            => array(
 				'<hr class="wp-block-separator is-style-default">',
 				'<hr class="is-style-default wp-block-hairline">',
 			),
-			'Different styles' => array(
+			'Different styles'                 => array(
 				'<hr style="margin-top: 50px; margin-bottom: 50px;">',
 				'<hr style="margin-top: 50px; margin-bottom: 100px">',
 			),
-			'Different comments' => array(
+			'Different comments'               => array(
 				'<!-- abc -->',
 				'<!-- xyz -->',
 			),
