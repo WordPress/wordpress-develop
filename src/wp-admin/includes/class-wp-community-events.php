@@ -381,10 +381,10 @@ class WP_Community_Events {
 	 * @return array The response with dates and times formatted.
 	 */
 	protected function format_event_data_time( $response_body ) {
-		_deprecated_function(
+		_doing_it_wrong(
 			__METHOD__,
-			'5.5.2',
-			'This is no longer used by core, and only kept for backward compatibility.'
+			__( 'This is no longer used by core, and only kept for backward compatibility.' ),
+			'5.5.2'
 		);
 
 		if ( isset( $response_body['events'] ) ) {
