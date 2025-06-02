@@ -6868,7 +6868,7 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
  *
  * @param int   $attachment_id Attachment post ID.
  * @param array $data          Attachment meta data.
- * @return int|false False if $post is invalid.
+ * @return bool Whether the metadata was successfully updated. False if $post is invalid.
  */
 function wp_update_attachment_metadata( $attachment_id, $data ) {
 	$attachment_id = (int) $attachment_id;
