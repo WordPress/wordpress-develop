@@ -1867,7 +1867,7 @@ class WP_Debug_Data {
 	 */
 	public static function get_sizes() {
 		_deprecated_function( __METHOD__, '5.6.0', 'WP_REST_Site_Health_Controller::get_directory_sizes()' );
-		
+
 		$size_db    = self::get_database_size();
 		$upload_dir = wp_get_upload_dir();
 
