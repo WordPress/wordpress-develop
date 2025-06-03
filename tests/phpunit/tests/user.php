@@ -2419,7 +2419,7 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function test_edit_user_rejects_email_that_matches_another_user_username() {
 		$email_username = 'user' . time() . '@example.com';
-		$user_id1 = wp_insert_user(
+		$user_id1       = wp_insert_user(
 			array(
 				'user_login'    => $email_username,
 				'user_email'    => 'test' . time() . '@example.com',
@@ -2439,7 +2439,7 @@ class Tests_User extends WP_UnitTestCase {
 		);
 		$this->assertNotWPError( $user_id2, 'The second test user could not be created.' );
 
-		$_POST = array(
+		$_POST       = array(
 			'email' => $email_username,
 		);
 		$edited_user = edit_user( $user_id2 );
@@ -2455,7 +2455,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 57394
 	 */
 	public function test_register_new_user_rejects_username_that_matches_existing_email() {
-		$email = 'testemail' . time() . '@example.com';
+		$email   = 'testemail' . time() . '@example.com';
 		$user_id = wp_insert_user(
 			array(
 				'user_login'    => 'regularuser',
@@ -2490,7 +2490,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertNotWPError( $user_id );
 
 		$new_email = 'newunique' . time() . '@example.com';
-		$result = wp_update_user(
+		$result    = wp_update_user(
 			array(
 				'ID'         => $user_id,
 				'user_email' => $new_email,
@@ -2507,7 +2507,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 57394
 	 */
 	public function test_wp_update_user_allows_updating_user_with_matching_username_and_email() {
-		$email = 'user' . time() . '@example.com';
+		$email   = 'user' . time() . '@example.com';
 		$user_id = wp_insert_user(
 			array(
 				'user_login'    => $email,
@@ -2521,8 +2521,8 @@ class Tests_User extends WP_UnitTestCase {
 
 		$result = wp_update_user(
 			array(
-				'ID'            => $user_id,
-				'display_name'  => 'New Display Name',
+				'ID'           => $user_id,
+				'display_name' => 'New Display Name',
 			)
 		);
 
