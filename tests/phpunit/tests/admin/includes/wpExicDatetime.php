@@ -1,15 +1,27 @@
 <?php
 
 /**
- * @group admin
+ * Class Tests_Admin_wpExifDatetime
+ *
+ * Contains unit tests for validating the functionality of the wp_exif_datetime function,
+ * which is responsible for formatting datetime strings to the EXIF-compliant format.
+ *
+ * @group datetime
  * @group image
+ *
+ * @covers ::wp_exif_datetime
  */
 class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 
 	/**
-	 * Test conversion of various date formats to EXIF format
+	 * @ticket 56887
 	 *
-	 * @dataProvider provideValidDates
+	 * Test valid date inputs and their expected formatted outputs.
+	 *
+	 * @param string $input_date The input date string to be formatted.
+	 * @param string $expected The expected formatted date string.
+	 *
+	 * @return void
 	 */
 	public function test_valid_dates( $input_date, $expected ) {
 		$datetime = wp_exif_datetime( $input_date );
@@ -17,9 +29,13 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test handling of invalid dates
+	 * @ticket 56887
 	 *
-	 * @dataProvider provideInvalidDates
+	 * Test handling of invalid date inputs.
+	 *
+	 * @param string $input_date The date string to be tested for validation.
+	 *
+	 * @return void
 	 */
 	public function test_invalid_dates( $input_date ) {
 		$this->assertFalse( wp_exif_datetime( $input_date ) );
@@ -90,7 +106,11 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test timezone handling
+	 * @ticket 56887
+	 *
+	 * Test consistent handling of datetime values across different timezones.
+	 *
+	 * @return void
 	 */
 	public function test_timezone_handling() {
 		$original_timezone = date_default_timezone_get();
@@ -110,7 +130,11 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test handling of edge cases
+	 * @ticket 56887
+	 *
+	 * Test handling of edge case date and time formats.
+	 *
+	 * @return void
 	 */
 	public function test_edge_cases() {
 
@@ -124,7 +148,11 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test input with different separators
+	 * @ticket 56887
+	 *
+	 * Tests the functionality of parsing dates with different separators and ensures the output format is consistent.
+	 *
+	 * @return void
 	 */
 	public function test_different_separators() {
 

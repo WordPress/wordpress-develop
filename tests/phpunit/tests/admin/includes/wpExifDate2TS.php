@@ -1,20 +1,37 @@
 <?php
 
+/**
+ * Class to test the wp_exif_date2ts function for handling EXIF date formats.
+ *
+ * @group datetime
+ * @group image
+ *
+ * @covers ::wp_exif_datetime
+ */
 class Test_WP_Exif_Date2TS extends WP_UnitTestCase {
 
 	/**
-	 * Test conversion of valid EXIF date formats to timestamp
+	 * @ticket 56887
 	 *
-	 * @dataProvider provideValidExifDates
+	 * Tests if the provided EXIF date is correctly converted to a timestamp.
+	 *
+	 * @param string $date The EXIF date to be tested.
+	 * @param int|bool $expected The expected timestamp or false if conversion should fail.
+	 *
+	 * @return void
 	 */
 	public function test_valid_exif_dates( $date, $expected ) {
 		$this->assertEquals( $expected, wp_exif_date2ts( $date ) );
 	}
 
 	/**
-	 * Test handling of invalid EXIF dates
+	 * @ticket 56887
 	 *
-	 * @dataProvider provideInvalidExifDates
+	 * Test conversion of invalid EXIF date formats to false
+	 *
+	 * @param string $date The EXIF date string to be tested.
+	 *
+	 * @return void
 	 */
 	public function test_invalid_exif_dates( $date ) {
 		$this->assertFalse( wp_exif_date2ts( $date ) );
@@ -25,15 +42,15 @@ class Test_WP_Exif_Date2TS extends WP_UnitTestCase {
 	 */
 	public function provideValidExifDates() {
 		return [
-			'standard format'         => [
+			'standard format' => [
 				'2024:03:15 14:30:45',
 				strtotime( '2024:03:15 14:30:45' )
 			],
-			'slash format'            => [
+			'slash format'    => [
 				'2024/03/15 14:30:45',
 				strtotime( '2024:03:15 14:30:45' )
 			],
-			'invalid format'          => [
+			'invalid format'  => [
 				'2024-03-15',
 				strtotime( '2024:03:15 00:00:00' )
 			],
@@ -56,7 +73,14 @@ class Test_WP_Exif_Date2TS extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test timezone handling
+	 * @ticket 56887
+	 *
+	 * Tests the handling of timezones during EXIF date conversion to ensure consistent timestamps.
+	 *
+	 * Verifies that timestamps generated from the same EXIF date are consistent
+	 * across different timezone settings.
+	 *
+	 * @return void
 	 */
 	public function test_timezone_handling() {
 		$original_timezone = date_default_timezone_get();
