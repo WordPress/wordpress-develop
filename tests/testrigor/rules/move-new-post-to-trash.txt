@@ -1,0 +1,3 @@
+hover over saved value "testTitle"
+click "Trash"
+validate that page contains "1 post moved to the Trash."

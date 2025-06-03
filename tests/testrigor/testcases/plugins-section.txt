@@ -1,0 +1,47 @@
+login
+
+validate that page contains "Dashboard"
+
+click "Plugins"
+
+click "Add Plugin"
+
+search for "gutenberg"
+
+click exactly "Gutenberg"
+
+validate that page contains "Description" on the left of "FAQ"
+
+click button "Install Now" roughly below exactly "Gutenberg"
+
+wait up to 30 sec until page doesn't contain "Installing..."
+
+click "Activate" roughly below exactly "Gutenberg"
+
+validate that page doesn't contain exactly "Activate"
+
+click button "Close"
+
+click "Installed Plugins"
+
+validate that page contains "Deactivate"
+
+validate that page doesn't contain exactly "Activate"
+
+click "select all"
+
+click "Bulk actions"
+
+click "Deactivate"
+
+click "Apply"
+
+click "select all"
+
+click "Bulk actions"
+
+click "Delete"
+
+click "Apply"
+
+validate that page contains "No plugins"

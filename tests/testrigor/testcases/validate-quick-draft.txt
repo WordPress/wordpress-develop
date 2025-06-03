@@ -1,0 +1,15 @@
+login
+validate that page contains "Quick Draft"
+enter "Test Draft Title" into "Title" roughly below "Quick Draft"
+enter "Test Draft Content" into "Content" roughly below "Quick Draft"
+click "Save Draft"
+validate that page contains "Test Draft Title" below "Your Recent Drafts"
+validate that field roughly below exactly "Title" is empty
+validate that field roughly below exactly "Content" is empty
+click "Save Draft"
+validate that page contains "(no title)" below "Your Recent Drafts"
+click "Posts"
+click "Select all"
+select "Move to trash" from "Bulk actions"
+click "Apply"
+validate that page contains "No posts found."

@@ -1,0 +1,3 @@
+click "WordPress Develop"
+click "Sample Page"
+validate that page contains "Sample page"

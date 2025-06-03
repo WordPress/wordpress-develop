@@ -1,0 +1,4 @@
+if page contains "Welcome to the editor" then
+  click "Next" up to 4 times until page contains "Get started"
+  click "Get started" if exists
+end

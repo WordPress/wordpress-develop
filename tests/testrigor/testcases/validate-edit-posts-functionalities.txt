@@ -1,0 +1,28 @@
+login
+click "Posts"
+delete all posts if table "Table ordered by" doesn't contain "No posts found."
+// displays a message in the posts table when no posts are present
+validate that table "Table ordered by" contains "No posts found."
+//shows a single post after one is published with the correct title'
+create new post
+click "View Posts"
+validate that table "Table ordered by" at 1st row contains saved value "testTitle"
+//allows the existing post to be edited using the Quick Edit button
+hover over saved value "testTitle"
+click "Quick Edit"
+enter "Edited" into saved value "testTitle"
+click "Update"
+validate that table "Table ordered by" at 1st row contains "Edited"
+//allows an existing post to be edited using the Edit button
+hover over saved value "testTitle"
+click "Edit"
+enter "Edited body" into "Test body"
+click button "Save"
+validate that page contains "Post updated." at the bottom of the screen
+//allows an existing post to be deleted using the Trash button
+click "View Posts"
+validate that table "Table ordered by" at 1st row contains "Edited"
+hover over "Edited"
+click "Trash"
+validate that page contains "1 post moved to the Trash."
+validate that table "Table ordered by" contains "No posts found."

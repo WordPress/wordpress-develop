@@ -1,0 +1,11 @@
+click button "Add post"
+dismiss welcome banner
+validate that page contains "No title" at the top of the screen
+generate unique name and save as "testTitle"
+enter stored value "testTitle" into "Add title"
+enter enter 
+enter "Test body"
+click "Post" on the left of "Block"
+click "Categories" if page doesn't contain "category"
+click stored value "category" below "Categories" in the right third of the screen
+click "Publish" until page contains "is now live"

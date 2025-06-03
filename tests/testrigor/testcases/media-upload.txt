@@ -1,0 +1,21 @@
+login
+click "Media"
+click "Add media file"
+click "Browser uploader" if exists
+enter stored value "unvalid media" into input type file
+validate that page contains "sample.svg"
+click "Upload"
+validate that page contains "Sorry, you are not allowed to upload this file type."
+go back
+enter saved value "valid media" into input type file
+click "Upload"
+click "List"
+validate that page contains "Showing 1 of 1 media items"
+click "Library"
+click "List View"
+validate that table "Table ordered by" contains "valid image"
+validate that table "Table ordered by" doesn't contain "sample.svg"
+click "Select all"
+Select "Delete permanently" from "Bulk actions"
+click "Apply"
+validate that page contains "No media files found."

@@ -1,0 +1,12 @@
+log in
+check that page contains "Dashboard"
+scroll down
+check that page contains "At a Glance"
+check that page contains "Activity"
+check that page contains "Save Draft"
+enter "Test Draft Post" into "Title"
+enter "This is a test draft post created for QA testing purposes." into "Content"
+click "Save Draft"
+check that page contains "Site Health Status"
+check that page contains "Site Health screen"
+check that page contains "WordPress Events and News"

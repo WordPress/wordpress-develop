@@ -1,0 +1,9 @@
+storedValues:
+- key: unvalid media
+  value: sample.svg
+  path: /26uwzet8s56maXLPS/2025-06-25_19-46-30_sample.svg
+  type: FILE
+- key: valid media
+  value: valid image.png
+  path: /26uwzet8s56maXLPS/2025-06-24_18-42-00_valid image.png
+  type: FILE

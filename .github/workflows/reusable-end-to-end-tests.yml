@@ -33,6 +33,10 @@ on:
         required: false
         type: 'boolean'
         default: true
+    secrets:
+      CI_TOKEN:
+        description: 'The TestRigor CI token.'
+        required: true
 
 env:
   LOCAL_DIR: build
@@ -125,6 +129,14 @@ jobs:
         env:
           LOCAL_SCRIPT_DEBUG: ${{ inputs.LOCAL_SCRIPT_DEBUG }}
         run: npm run env:install
+
+      - name: Install and run testRigor E2E tests
+        env:
+          CI_TOKEN: ${{ secrets.CI_TOKEN }}
+          SUITE_ID: ${{ vars.SUITE_ID }}
+        run: |
+          npm install -g testrigor-cli
+          testrigor test-suite run "$SUITE_ID" --token "$CI_TOKEN" --localhost --url "http://127.0.0.1:8889/wp-admin" --test-cases-path "tests/testrigor/testcases" --branch "${{ github.ref_name }}" --commit "${{ github.sha }}"
 
       - name: Install Gutenberg
         if: ${{ inputs.install-gutenberg }}

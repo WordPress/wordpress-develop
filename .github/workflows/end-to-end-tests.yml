@@ -58,13 +58,14 @@ jobs:
     uses: ./.github/workflows/reusable-end-to-end-tests.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     strategy:
       fail-fast: false
       matrix:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
+    secrets:
+      CI_TOKEN: ${{ secrets.CI_TOKEN }}
 
   slack-notifications:
     name: Slack Notifications

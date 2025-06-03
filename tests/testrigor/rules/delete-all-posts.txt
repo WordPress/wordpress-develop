@@ -1,0 +1,5 @@
+click checkbox "Select All"
+click "Bulk Actions"
+select "Move to Trash"
+click button "Apply"
+validate that page contains "moved to the Trash."

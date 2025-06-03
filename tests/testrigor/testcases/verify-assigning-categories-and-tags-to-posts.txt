@@ -1,0 +1,15 @@
+login
+click "Posts"
+click "Categories"
+generate from template "$$$$$$$$", then enter into "Name" and save as "testCategory"
+enter saved value "testCategory" into "Slug"
+click button "Add Category" at the bottom of the screen
+create new post with category saved value "testCategory"
+click "View Posts"
+validate that table "Table ordered by" at column "Categories" contains saved value "testCategory"
+delete all posts
+click "Categories"
+click "Select all"
+Select "Delete" from "Bulk actions"
+click "Apply"
+validate that page doesn't contain saved value "testCategory"

@@ -1,0 +1,22 @@
+login
+click "Posts"
+delete all posts if table "Table ordered by" doesn't contain "No posts found."
+// create new post, delete, then empty trash
+create new post
+click "View Posts"
+validate that table "Table ordered by" contains saved value "testTitle"
+move new post to trash
+click "Trash" roughly on the right of "All"
+click button "Empty Trash"
+validate that page contains "No posts found in Trash."
+//Restore trash post
+create new post
+click "View Posts"
+move new post to trash
+click "Trash" roughly on the right of "All"
+hover over saved value "testTitle"
+click "Restore"
+validate that page contains "1 post restored from the Trash."
+click "All" roughly on the left of "Draft"
+validate that table "Table ordered by" contains saved value "testTitle" roughly on the left of "Draft"
+delete all posts

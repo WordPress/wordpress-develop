@@ -1,0 +1,8 @@
+click button "Add post"
+dismiss welcome banner
+validate that page contains "No title" at the top of the screen
+generate unique name and save as "testTitle"
+enter stored value "testTitle" into "Add title"
+enter enter
+enter "Test body"
+click "Publish" until page contains "is now live"
