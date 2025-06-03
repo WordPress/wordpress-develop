@@ -202,11 +202,10 @@ function build_tree_representation( string $html, ?string $fragment_context ) {
 					} else {
 						$output .= str_repeat( $tree_indent, $indent_level ) . $comment . "\n";
 					}
-				} elseif ( 'block-opener' === $delimiter_type ) {
+				} elseif ( 'block-opener' === $delimiter_type || 'void-block' === $delimiter_type ) {
 					$output .= str_repeat( $tree_indent, $indent_level ) . "BLOCK[\"{$block_name}\"]\n";
 
-					if ( ! str_ends_with( $processor->get_full_comment_text(), '/' ) ) {
-						// If the block is not self-closing, we add its name to the block context stack and increase indentation.
+					if ( 'block-opener' === $delimiter_type ) {
 						$block_context[] = $block_name;
 						++$indent_level;
 					}
