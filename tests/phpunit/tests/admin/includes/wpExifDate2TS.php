@@ -33,20 +33,20 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 		return array(
 			'standard timestamp'        => array(
 				1710500000, // March 15, 2024 14:30:00
-				'2024:03:15 14:30:00'
+				'2024:03:15 14:30:00',
 			),
 			'mysql format'              => array(
 				'2024-03-15 14:30:00',
-				'2024:03:15 14:30:00'
+				'2024:03:15 14:30:00',
 			),
 			'mysql format with seconds' => array(
 				'2024-03-15 14:30:45',
-				'2024:03:15 14:30:45'
+				'2024:03:15 14:30:45',
 			),
 			'date only'                 => array(
 				'2024-03-15',
-				'2024:03:15 00:00:00'
-			)
+				'2024:03:15 00:00:00',
+			),
 		);
 	}
 
@@ -66,7 +66,7 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 			'object'              => array( new stdClass() ),
 			'invalid month'       => array( '2024-13-15' ),
 			'invalid day'         => array( '2024-03-32' ),
-			'invalid hour'        => array( '2024-03-15 25:00:00' )
+			'invalid hour'        => array( '2024-03-15 25:00:00' ),
 		);
 	}
 
@@ -90,9 +90,11 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 	 */
 	public function test_memory_error_returns_false() {
 		// Create a mock function that exhausts memory
-		add_filter( 'wp_timezone_string', function () {
-			throw new \Exception( 'Memory exhausted' );
-		} );
+		add_filter( 'wp_timezone_string',
+			function () {
+				throw new \Exception( 'Memory exhausted' );
+			}
+		);
 
 		$result = wp_exif_datetime( '2024-03-15 14:30:00' );
 		$this->assertFalse( $result );
