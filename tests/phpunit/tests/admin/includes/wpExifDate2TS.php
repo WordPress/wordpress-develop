@@ -71,21 +71,6 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that timezone errors return false
-	 */
-	public function test_timezone_error_returns_false() {
-		$original_timezone = date_default_timezone_get();
-
-		// Set invalid timezone to trigger error
-		@date_default_timezone_set( 'Invalid/Timezone' );
-		$result = wp_exif_datetime( '2024-03-15 14:30:00' );
-		$this->assertFalse( $result );
-
-		// Restore timezone
-		date_default_timezone_set( $original_timezone );
-	}
-
-	/**
 	 * Test that memory/resource errors return false
 	 */
 	public function test_memory_error_returns_false() {

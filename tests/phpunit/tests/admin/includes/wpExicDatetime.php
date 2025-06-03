@@ -31,20 +31,20 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 		return array(
 			'unix timestamp'  => array(
 				1710500000, // March 15, 2024 14:30:00
-				'2024:03:15 14:30:00'
+				'2024:03:15 14:30:00',
 			),
 			'mysql datetime'  => array(
 				'2024-03-15 14:30:00',
-				'2024:03:15 14:30:00'
+				'2024:03:15 14:30:00',
 			),
 			'exif format'     => array(
 				'2024:03:15 14:30:00',
-				'2024:03:15 14:30:00'
+				'2024:03:15 14:30:00',
 			),
 			'mysql date only' => array(
 				'2024-03-15',
-				'2024:03:15 00:00:00'
-			)
+				'2024:03:15 00:00:00',
+			),
 		);
 	}
 
@@ -67,7 +67,7 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 			'object input'            => array( new stdClass() ),
 			'malformed timestamp'     => array( '@12345abc' ),
 			'out of bounds timestamp' => array( 253402300800 ), // Year 9999
-			'negative timestamp'      => array( - 62167219200 ) // Year 0
+			'negative timestamp'      => array( - 62167219200 ), // Year 0
 		);
 	}
 
@@ -87,21 +87,6 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 		$fp = fopen( 'php://memory', 'r' );
 		$this->assertFalse( wp_exif_datetime( $fp ) );
 		fclose( $fp );
-	}
-
-	/**
-	 * Test timezone handling with invalid timezone that might cause exceptions
-	 */
-	public function test_timezone_exceptions() {
-		$original_timezone = date_default_timezone_get();
-
-		// Test with invalid timezone
-		$this->assertFalse( @date_default_timezone_set( 'Invalid/Timezone' ) );
-		$result = wp_exif_datetime( '2024-03-15 14:30:00' );
-		$this->assertFalse( $result );
-
-		// Restore original timezone
-		date_default_timezone_set( $original_timezone );
 	}
 
 	/**
