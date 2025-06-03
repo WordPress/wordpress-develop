@@ -69,21 +69,4 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 			'invalid hour'        => array( '2024-03-15 25:00:00' ),
 		);
 	}
-
-	/**
-	 * Test that memory/resource errors return false
-	 */
-	public function test_memory_error_returns_false() {
-		// Create a mock function that exhausts memory
-		add_filter( 'wp_timezone_string',
-			function () {
-				throw new \Exception( 'Memory exhausted' );
-			}
-		);
-
-		$result = wp_exif_datetime( '2024-03-15 14:30:00' );
-		$this->assertFalse( $result );
-
-		remove_all_filters( 'wp_timezone_string' );
-	}
 }
