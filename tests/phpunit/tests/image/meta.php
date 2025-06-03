@@ -217,10 +217,10 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => 'IPTC Headline',
 					'orientation'       => '0',
 					'keywords'          => array(),
-					'created' => '2004-07-22T17:14:35+00:00',
+					'created'           => '2004-07-22T17:14:35+00:00',
 				),
 			),
-			'Exif from a DMC-LX2 camera with keywords' => array(
+			'Exif from a DMC-LX2 camera with keywords'         => array(
 				'file'     => 'testimagemeta://wp_read_image_metadata/image3.jpg',
 				'metadata' => array(
 					'aperture'          => '8',
@@ -235,7 +235,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'title'             => 'Photoshop Document Ttitle',
 					'orientation'       => '1',
 					'keywords'          => array( 'beach', 'baywatch', 'LA', 'sunset' ),
-					'created' => '2011-05-25T09:22:07+00:00',
+					'created'           => '2011-05-25T09:22:07+00:00',
 				),
 			),
 		);
