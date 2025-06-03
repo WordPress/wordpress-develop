@@ -4,7 +4,7 @@
  * @group admin
  * @group image
  */
-class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
+class Tests_Admin_wpExifDate2ts extends WP_UnitTestCase {
 
 	/**
 	 * Test conversion of various date formats to EXIF format
