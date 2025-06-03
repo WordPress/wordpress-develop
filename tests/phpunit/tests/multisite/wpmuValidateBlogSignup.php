@@ -51,9 +51,26 @@ class Tests_Multisite_wpmuValidateBlogSignup extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test validate_blogname.
+	 *
+	 * @ticket 53355
+	 *
 	 * @dataProvider data_validate_blogname
 	 */
 	public function test_validate_blogname( $blog_name, $error_message ) {
+
+		$result = wpmu_validate_new_blogname( $blog_name, 'Foo Site Title', get_userdata( self::$super_admin_id ) );
+		$this->assertContains( 'blogname', $result->get_error_codes(), $error_message );
+	}
+
+	/**
+	 * Test validate_blogname during signup.
+	 *
+	 * @ticket 53355
+	 *
+	 * @dataProvider data_validate_blogname
+	 */
+	public function test_validate_blogname_during_signup( $blog_name, $error_message ) {
 		$result = wpmu_validate_blog_signup( $blog_name, 'Foo Site Title', get_userdata( self::$super_admin_id ) );
 		$this->assertContains( 'blogname', $result['errors']->get_error_codes(), $error_message );
 	}
