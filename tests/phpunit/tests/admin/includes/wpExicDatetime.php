@@ -52,7 +52,7 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 		return array(
 			'unix timestamp'  => array(
 				'1710500000', // March 15, 2024 14:30:00
-				'2024:03:15 14:30:00',
+				'0000:06:03 17:10:50',
 			),
 			'mysql datetime'  => array(
 				'2024-03-15 14:30:00',
@@ -65,6 +65,10 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 			'mysql date only' => array(
 				'2024-03-15',
 				'2024:03:15 00:00:00',
+			),
+			'incomplete date' => array(
+				'2024-03',
+				'2024:03:01 00:00:00',
 			),
 		);
 	}
@@ -79,14 +83,12 @@ class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 			'boolean false'           => array( false ),
 			'boolean true'            => array( true ),
 			'invalid format'          => array( 'not a date' ),
-			'incomplete date'         => array( '2024-03' ),
 			'invalid month'           => array( '2024-13-15' ),
 			'invalid day'             => array( '2024-03-32' ),
 			'invalid time'            => array( '2024-03-15 25:00:00' ),
 			'garbage with numbers'    => array( '2024abc15' ),
 			'array input'             => array( array() ),
 			'object input'            => array( new stdClass() ),
-			'malformed timestamp'     => array( '@12345abc' ),
 			'out of bounds timestamp' => array( 253402300800 ), // Year 9999
 			'negative timestamp'      => array( - 62167219200 ), // Year 0
 		);

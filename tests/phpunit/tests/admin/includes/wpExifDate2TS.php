@@ -13,7 +13,7 @@ class Tests_Admin_wpExifDate2ts extends WP_UnitTestCase {
 	 */
 	public function test_valid_dates( $input_date, $expected ) {
 		$result = wp_exif_datetime( $input_date );
-		$this->assertSame( $expected, $result );
+		$this->assertSame( $expected, $result->format( 'Y:m:d H:i:s' ) );
 	}
 
 	/**
@@ -32,7 +32,7 @@ class Tests_Admin_wpExifDate2ts extends WP_UnitTestCase {
 	public function provideValidDates() {
 		return array(
 			'standard timestamp'        => array(
-				1710500000, // March 15, 2024 14:30:00
+				'1710500000', // March 15, 2024 14:30:00
 				'2024:03:15 14:30:00',
 			),
 			'mysql format'              => array(
