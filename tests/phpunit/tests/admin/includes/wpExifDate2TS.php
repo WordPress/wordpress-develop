@@ -43,7 +43,7 @@ class Tests_Admin_wpExifDate2ts extends WP_UnitTestCase {
 				'2024-03-15',
 				'2024:03:15 00:00:00',
 			),
-			'incomplete date'     => array(
+			'incomplete date'          => array(
 				'2024-03',
 				'2024:03:01 00:00:00',
 			),
