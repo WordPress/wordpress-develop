@@ -2353,4 +2353,183 @@ class Tests_User extends WP_UnitTestCase {
 		// Verify there are no updates to 'use_ssl' user meta.
 		$this->assertSame( 1, $db_update_count );
 	}
+
+	/**
+	 * Tests that wp_insert_user() rejects a 'user_login' that matches an existing user email.
+	 *
+	 * @ticket 57394
+	 */
+	public function test_wp_insert_user_rejects_user_login_that_matches_existing_user_email() {
+		$existing_email = get_option( 'admin_email' );
+		$user_id        = wp_insert_user(
+			array(
+				'user_login'    => $existing_email,
+				'user_email'    => 'test_user@example.com',
+				'user_pass'     => 'test_password',
+				'user_nicename' => 'test_nicename',
+			)
+		);
+
+		$this->assertWPError( $user_id );
+		$this->assertSame( 'existing_user_email_as_login', $user_id->get_error_code() );
+	}
+
+	/**
+	 * Tests that wp_update_user() rejects an email that matches another user's username.
+	 *
+	 * @ticket 57394
+	 */
+	public function test_wp_update_user_rejects_email_that_matches_another_user_username() {
+		$username = 'testuser' . time();
+		$user_id1 = wp_insert_user(
+			array(
+				'user_login'    => $username,
+				'user_email'    => $username . '@example.com',
+				'user_pass'     => 'password',
+				'user_nicename' => 'test-user',
+			)
+		);
+		$this->assertNotWPError( $user_id1, 'The first test user could not be created.' );
+
+		$user_id2 = wp_insert_user(
+			array(
+				'user_login'    => 'another_user',
+				'user_email'    => 'another@example.com',
+				'user_pass'     => 'password',
+				'user_nicename' => 'another-user',
+			)
+		);
+		$this->assertNotWPError( $user_id2, 'The second test user could not be created.' );
+
+		$updated_user = wp_update_user(
+			array(
+				'ID'         => $user_id2,
+				'user_email' => $username,
+			)
+		);
+
+		$this->assertWPError( $updated_user );
+		$this->assertSame( 'email_as_username', $updated_user->get_error_code() );
+	}
+
+	/**
+	 * Tests that edit_user() rejects an email that matches another user's username.
+	 *
+	 * @ticket 57394
+	 */
+	public function test_edit_user_rejects_email_that_matches_another_user_username() {
+		$email_username = 'user' . time() . '@example.com';
+		$user_id1 = wp_insert_user(
+			array(
+				'user_login'    => $email_username,
+				'user_email'    => 'test' . time() . '@example.com',
+				'user_pass'     => 'password',
+				'user_nicename' => 'test-user',
+			)
+		);
+		$this->assertNotWPError( $user_id1, 'The first test user could not be created.' );
+
+		$user_id2 = wp_insert_user(
+			array(
+				'user_login'    => 'another_user',
+				'user_email'    => 'another@example.com',
+				'user_pass'     => 'password',
+				'user_nicename' => 'another-user',
+			)
+		);
+		$this->assertNotWPError( $user_id2, 'The second test user could not be created.' );
+
+		$_POST = array(
+			'email' => $email_username,
+		);
+		$edited_user = edit_user( $user_id2 );
+
+		$this->assertInstanceOf( 'WP_Error', $edited_user );
+		$this->assertTrue( $edited_user->has_errors() );
+		$this->assertTrue( $edited_user->get_error_message( 'email_as_username' ) !== '' );
+	}
+
+	/**
+	 * Tests that register_new_user() rejects a username that matches an existing user email.
+	 *
+	 * @ticket 57394
+	 */
+	public function test_register_new_user_rejects_username_that_matches_existing_email() {
+		$email = 'testemail' . time() . '@example.com';
+		$user_id = wp_insert_user(
+			array(
+				'user_login'    => 'regularuser',
+				'user_email'    => $email,
+				'user_pass'     => 'password',
+				'user_nicename' => 'regular-user',
+			)
+		);
+		$this->assertNotWPError( $user_id, 'The test user could not be created.' );
+
+		$result = register_new_user( $email, 'another@example.com' );
+
+		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertTrue( $result->get_error_message( 'username_exists_as_email' ) !== '' );
+	}
+
+	/**
+	 * Tests that wp_update_user() allows a user to update their email to a unique address.
+	 *
+	 * @ticket 57394
+	 */
+	public function test_wp_update_user_allows_updating_to_unique_email() {
+		$user_id = wp_insert_user(
+			array(
+				'user_login'    => 'testuser',
+				'user_email'    => 'test' . time() . '@example.com',
+				'user_pass'     => 'password',
+				'user_nicename' => 'test-user',
+			)
+		);
+
+		$this->assertNotWPError( $user_id );
+
+		$new_email = 'newunique' . time() . '@example.com';
+		$result = wp_update_user(
+			array(
+				'ID'         => $user_id,
+				'user_email' => $new_email,
+			)
+		);
+
+		$this->assertNotWPError( $result );
+		$this->assertSame( $new_email, get_userdata( $user_id )->user_email );
+	}
+
+	/**
+	 * Tests that wp_update_user() allows updating a user who already has their username and email matching.
+	 *
+	 * @ticket 57394
+	 */
+	public function test_wp_update_user_allows_updating_user_with_matching_username_and_email() {
+		$email = 'user' . time() . '@example.com';
+		$user_id = wp_insert_user(
+			array(
+				'user_login'    => $email,
+				'user_email'    => $email,
+				'user_pass'     => 'password',
+				'user_nicename' => 'test-user',
+			)
+		);
+
+		$this->assertNotWPError( $user_id );
+
+		$result = wp_update_user(
+			array(
+				'ID'            => $user_id,
+				'display_name'  => 'New Display Name',
+			)
+		);
+
+		$this->assertNotWPError( $result );
+		$updated_user = get_userdata( $user_id );
+		$this->assertSame( $email, $updated_user->user_login );
+		$this->assertSame( $email, $updated_user->user_email );
+		$this->assertSame( 'New Display Name', $updated_user->display_name );
+	}
 }
