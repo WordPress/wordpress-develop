@@ -192,51 +192,53 @@ function build_tree_representation( string $html, ?string $fragment_context ) {
 				$parser->offset   = 0;
 				list( $delimiter_type, $block_name, $block_attrs, $start_offset, $token_length ) = $parser->next_token();
 
-				if ( 'block-closer' === $delimiter_type ) {
-					// Let's see if it's a closer for the currently open block.
-					if ( ! empty( $block_context ) && end( $block_context ) === $block_name ) {
-						// If it's a closer, we don't add it to the output.
-						// Instead, we decrease indentation and remove the block from block context stack.
-						--$indent_level;
-						array_pop( $block_context );
-					} else {
-						$output .= str_repeat( $tree_indent, $indent_level ) . $comment . "\n";
-					}
-				} elseif ( 'block-opener' === $delimiter_type || 'void-block' === $delimiter_type ) {
-					$output .= str_repeat( $tree_indent, $indent_level ) . "BLOCK[\"{$block_name}\"]\n";
+				switch ( $delimiter_type ) {
+					case 'block-opener':
+					case 'void-block':
+						$output .= str_repeat( $tree_indent, $indent_level ) . "BLOCK[\"{$block_name}\"]\n";
 
-					if ( 'block-opener' === $delimiter_type ) {
-						$block_context[] = $block_name;
-						++$indent_level;
-					}
+						if ( 'block-opener' === $delimiter_type ) {
+							$block_context[] = $block_name;
+							++$indent_level;
+						}
 
-					// If they're no attributes, we're done here.
-					if ( empty( $block_attrs ) ) {
+						// If they're no attributes, we're done here.
+						if ( empty( $block_attrs ) ) {
+							break;
+						}
+
+						// Normalize attribute order.
+						ksort( $block_attrs, SORT_STRING );
+
+						if ( isset( $block_attrs['className'] ) ) {
+							// Normalize class name order, as we need to be tolerant of different orders.
+							// (Style attributes don't need this treatment, as they are parsed into a nested array.)
+							$block_class_names = explode( ' ', $block_attrs['className'] );
+							sort( $block_class_names, SORT_STRING );
+							$block_attrs['className'] = implode( ' ', $block_class_names );
+						}
+
+						$block_attrs = json_encode( $block_attrs, JSON_PRETTY_PRINT );
+						// Fix indentation by "halving" it (2 spaces instead of 4).
+						// Additionally, we need to indent each line by the current indentation level.
+						$block_attrs = preg_replace( '/^( +)\1/m', str_repeat( $tree_indent, $indent_level ) . '$1', $block_attrs );
+						// Finally, indent the first line, and the last line (with the closing curly brace).
+						$output .= str_repeat( $tree_indent, $indent_level ) . substr( $block_attrs, 0, -1 ) . str_repeat( $tree_indent, $indent_level ) . "}\n";
 						break;
-					}
-
-					// Normalize attribute order.
-					ksort( $block_attrs, SORT_STRING );
-
-					if ( isset( $block_attrs['className'] ) ) {
-						// Normalize class name order, as we need to be tolerant of different orders.
-						// (Style attributes don't need this treatment, as they are parsed into a nested array.)
-						$block_class_names = explode( ' ', $block_attrs['className'] );
-						sort( $block_class_names, SORT_STRING );
-						$block_attrs['className'] = implode( ' ', $block_class_names );
-					}
-
-					$block_attrs = json_encode( $block_attrs, JSON_PRETTY_PRINT );
-					// Fix indentation by "halving" it (2 spaces instead of 4).
-					// Additionally, we need to indent each line by the current indentation level.
-					$block_attrs = preg_replace( '/^( +)\1/m', str_repeat( $tree_indent, $indent_level ) . '$1', $block_attrs );
-					// Finally, indent the first line, and the last line (with the closing curly brace).
-					$output .= str_repeat( $tree_indent, $indent_level ) . substr( $block_attrs, 0, -1 ) . str_repeat( $tree_indent, $indent_level ) . "}\n";
-				} else {
-					$output .= str_repeat( $tree_indent, $indent_level ) . $comment . "\n";
+					case 'block-closer':
+						// Is this a closer for the currently open block?
+						if ( ! empty( $block_context ) && end( $block_context ) === $block_name ) {
+							// If it's a closer, we don't add it to the output.
+							// Instead, we decrease indentation and remove the block from block context stack.
+							--$indent_level;
+							array_pop( $block_context );
+						}
+						break;
+					default: // Not a block delimiter.
+						$output .= str_repeat( $tree_indent, $indent_level ) . $comment . "\n";
+						break;
 				}
 				break;
-
 			default:
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
 				$serialized_token_type = var_export( $processor->get_token_type(), true );
