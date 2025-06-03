@@ -1509,6 +1509,13 @@
 		if ( $pluginDataSlug ) {
 			$link = $('[data-slug="' + $pluginDataSlug + '"]').find('.row-actions a.delete');
 			$link.text( $link.data( 'originaltext' ) );
+		} else {
+			// As a fallback, find the elements with text as "deleting..." and reset it to the original text
+			$('[data-slug]').find('.row-actions a.delete').each(function() {
+				if ( $(this).text() === __( 'Deleting...' ) ) {
+					$(this).text( $(this).data( 'originaltext' ) );
+				}
+			});
 		}
 
 		if ( ! wp.updates.isValidResponse( response, 'delete' ) ) {
