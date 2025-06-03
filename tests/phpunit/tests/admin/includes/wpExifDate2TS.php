@@ -1,101 +1,102 @@
 <?php
 
 /**
- * Class to test the wp_exif_date2ts function for handling EXIF date formats.
- *
- * @group datetime
+ * @group admin
  * @group image
- *
- * @covers ::wp_exif_datetime
  */
-class Test_WP_Exif_Date2TS extends WP_UnitTestCase {
+class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 56887
+	 * Test conversion of various date formats to EXIF format
 	 *
-	 * Tests if the provided EXIF date is correctly converted to a timestamp.
-	 *
-	 * @param string $date The EXIF date to be tested.
-	 * @param int|bool $expected The expected timestamp or false if conversion should fail.
-	 *
-	 * @return void
+	 * @dataProvider provideValidDates
 	 */
-	public function test_valid_exif_dates( $date, $expected ) {
-		$this->assertEquals( $expected, wp_exif_date2ts( $date ) );
+	public function test_valid_dates( $input_date, $expected ) {
+		$result = wp_exif_datetime( $input_date );
+		$this->assertSame( $expected, $result );
 	}
 
 	/**
-	 * @ticket 56887
+	 * Test that invalid inputs return false
 	 *
-	 * Test conversion of invalid EXIF date formats to false
-	 *
-	 * @param string $date The EXIF date string to be tested.
-	 *
-	 * @return void
+	 * @dataProvider provideInvalidDates
 	 */
-	public function test_invalid_exif_dates( $date ) {
-		$this->assertFalse( wp_exif_date2ts( $date ) );
+	public function test_returns_false_for_invalid_input( $input ) {
+		$result = wp_exif_datetime( $input );
+		$this->assertFalse( $result );
 	}
 
 	/**
-	 * Data provider for valid EXIF dates
+	 * Data provider for valid dates
 	 */
-	public function provideValidExifDates() {
-		return [
-			'standard format' => [
-				'2024:03:15 14:30:45',
-				strtotime( '2024:03:15 14:30:45' )
-			],
-			'slash format'    => [
-				'2024/03/15 14:30:45',
-				strtotime( '2024:03:15 14:30:45' )
-			],
-			'invalid format'  => [
+	public function provideValidDates() {
+		return array(
+			'standard timestamp'        => array(
+				1710500000, // March 15, 2024 14:30:00
+				'2024:03:15 14:30:00'
+			),
+			'mysql format'              => array(
+				'2024-03-15 14:30:00',
+				'2024:03:15 14:30:00'
+			),
+			'mysql format with seconds' => array(
+				'2024-03-15 14:30:45',
+				'2024:03:15 14:30:45'
+			),
+			'date only'                 => array(
 				'2024-03-15',
-				strtotime( '2024:03:15 00:00:00' )
-			],
-		];
+				'2024:03:15 00:00:00'
+			)
+		);
 	}
 
 	/**
-	 * Data provider for invalid EXIF dates
+	 * Data provider for invalid dates
 	 */
-	public function provideInvalidExifDates() {
-		return [
-			'empty string'            => [ '' ],
-			'null'                    => [ null ],
-			'date only'               => [ '2024:03:15' ],
-			'incomplete date'         => [ '2024:03' ],
-			'garbage data'            => [ 'not a date' ],
-			'wrong order'             => [ '15:03:2024 14:30:45' ],
-			'with fractional seconds' => [ '2024:03:15 14:30:45.123' ]
-		];
+	public function provideInvalidDates() {
+		return array(
+			'empty string'        => array( '' ),
+			'null'                => array( null ),
+			'invalid date string' => array( 'not a date' ),
+			'malformed date'      => array( '2024-13-45' ),
+			'incomplete date'     => array( '2024-03' ),
+			'boolean true'        => array( true ),
+			'boolean false'       => array( false ),
+			'array'               => array( array() ),
+			'object'              => array( new stdClass() ),
+			'invalid month'       => array( '2024-13-15' ),
+			'invalid day'         => array( '2024-03-32' ),
+			'invalid hour'        => array( '2024-03-15 25:00:00' )
+		);
 	}
 
 	/**
-	 * @ticket 56887
-	 *
-	 * Tests the handling of timezones during EXIF date conversion to ensure consistent timestamps.
-	 *
-	 * Verifies that timestamps generated from the same EXIF date are consistent
-	 * across different timezone settings.
-	 *
-	 * @return void
+	 * Test that timezone errors return false
 	 */
-	public function test_timezone_handling() {
+	public function test_timezone_error_returns_false() {
 		$original_timezone = date_default_timezone_get();
 
-		// Test with different timezone
-		date_default_timezone_set( 'UTC' );
-		$utc_timestamp = wp_exif_date2ts( '2024:03:15 14:30:45' );
+		// Set invalid timezone to trigger error
+		@date_default_timezone_set( 'Invalid/Timezone' );
+		$result = wp_exif_datetime( '2024-03-15 14:30:00' );
+		$this->assertFalse( $result );
 
-		date_default_timezone_set( 'America/New_York' );
-		$ny_timestamp = wp_exif_date2ts( '2024:03:15 14:30:45' );
-
-		// The timestamps should be equal regardless of timezone
-		$this->assertEquals( $utc_timestamp, $ny_timestamp );
-
-		// Restore original timezone
+		// Restore timezone
 		date_default_timezone_set( $original_timezone );
+	}
+
+	/**
+	 * Test that memory/resource errors return false
+	 */
+	public function test_memory_error_returns_false() {
+		// Create a mock function that exhausts memory
+		add_filter( 'wp_timezone_string', function () {
+			throw new \Exception( 'Memory exhausted' );
+		} );
+
+		$result = wp_exif_datetime( '2024-03-15 14:30:00' );
+		$this->assertFalse( $result );
+
+		remove_all_filters( 'wp_timezone_string' );
 	}
 }

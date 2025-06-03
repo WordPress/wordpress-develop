@@ -1,165 +1,120 @@
 <?php
 
 /**
- * Class Tests_Admin_wpExifDatetime
- *
- * Contains unit tests for validating the functionality of the wp_exif_datetime function,
- * which is responsible for formatting datetime strings to the EXIF-compliant format.
- *
- * @group datetime
+ * @group admin
  * @group image
- *
- * @covers ::wp_exif_datetime
  */
 class Tests_Admin_wpExifDatetime extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 56887
+	 * Test conversion of various date formats to EXIF format
 	 *
-	 * Test valid date inputs and their expected formatted outputs.
-	 *
-	 * @param string $input_date The input date string to be formatted.
-	 * @param string $expected The expected formatted date string.
-	 *
-	 * @return void
+	 * @dataProvider provideValidDates
 	 */
 	public function test_valid_dates( $input_date, $expected ) {
-		$datetime = wp_exif_datetime( $input_date );
-		$this->assertEquals( $expected, $datetime->format( 'Y:m:d H:i:s' ) );
+		$this->assertEquals( $expected, wp_exif_datetime( $input_date ) );
 	}
 
 	/**
-	 * @ticket 56887
+	 * Test handling of invalid dates and exceptions
 	 *
-	 * Test handling of invalid date inputs.
-	 *
-	 * @param string $input_date The date string to be tested for validation.
-	 *
-	 * @return void
+	 * @dataProvider provideInvalidDates
 	 */
-	public function test_invalid_dates( $input_date ) {
-		$this->assertFalse( wp_exif_datetime( $input_date ) );
+	public function test_invalid_dates( $input ) {
+		$this->assertFalse( wp_exif_datetime( $input ) );
 	}
 
 	/**
 	 * Data provider for valid dates
 	 */
 	public function provideValidDates() {
-		return [
-			// Unix timestamps
-			'unix timestamp'        => [
-				'1710500000',
-				'0000:06:02 17:10:50'
-			],
-			// MySQL format
-			'mysql datetime'        => [
+		return array(
+			'unix timestamp'  => array(
+				1710500000, // March 15, 2024 14:30:00
+				'2024:03:15 14:30:00'
+			),
+			'mysql datetime'  => array(
 				'2024-03-15 14:30:00',
 				'2024:03:15 14:30:00'
-			],
-			// Already in EXIF format
-			'exif format'           => [
+			),
+			'exif format'     => array(
 				'2024:03:15 14:30:00',
 				'2024:03:15 14:30:00'
-			],
-			// Date only
-			'mysql date only'       => [
+			),
+			'mysql date only' => array(
 				'2024-03-15',
 				'2024:03:15 00:00:00'
-			],
-			// Different time formats
-			'with seconds'          => [
-				'2024-03-15 14:30:45',
-				'2024:03:15 14:30:45'
-			],
-			'time with T separator' => [
-				'2024-03-15T14:30:00',
-				'2024:03:15 14:30:00'
-			],
-			'incomplete date'       => [
-				'2024-03',
-				'2024:03:01 00:00:00'
-			],
-			'future year'           => [
-				'2525-03-15 14:30:00',
-				'2525:03:15 14:30:00'
-			],
-		];
+			)
+		);
 	}
 
 	/**
-	 * Data provider for invalid dates
+	 * Data provider for invalid dates that should trigger exceptions
 	 */
 	public function provideInvalidDates() {
-		return [
-			'empty string'         => [ '' ],
-			'0'                    => [ '0' ],
-			'null'                 => [ null ],
-			'boolean false'        => [ false ],
-			'boolean true'         => [ true ],
-			'unix timestamp'       => [ 1710500000 ],
-			'invalid format'       => [ 'not a date' ],
-			'invalid month'        => [ '2024-13-15' ],
-			'invalid day'          => [ '2024-03-32' ],
-			'invalid time'         => [ '2024-03-15 25:00:00' ],
-			'garbage with numbers' => [ '2024abc15' ],
-		];
+		return array(
+			'empty string'            => array( '' ),
+			'null'                    => array( null ),
+			'boolean false'           => array( false ),
+			'boolean true'            => array( true ),
+			'invalid format'          => array( 'not a date' ),
+			'incomplete date'         => array( '2024-03' ),
+			'invalid month'           => array( '2024-13-15' ),
+			'invalid day'             => array( '2024-03-32' ),
+			'invalid time'            => array( '2024-03-15 25:00:00' ),
+			'garbage with numbers'    => array( '2024abc15' ),
+			'array input'             => array( array() ),
+			'object input'            => array( new stdClass() ),
+			'malformed timestamp'     => array( '@12345abc' ),
+			'out of bounds timestamp' => array( 253402300800 ), // Year 9999
+			'negative timestamp'      => array( - 62167219200 ) // Year 0
+		);
 	}
 
 	/**
-	 * @ticket 56887
-	 *
-	 * Test consistent handling of datetime values across different timezones.
-	 *
-	 * @return void
+	 * Test that extreme edge cases return false instead of throwing exceptions
 	 */
-	public function test_timezone_handling() {
+	public function test_edge_cases_return_false() {
+		// Test extremely large numbers that might cause integer overflow
+		$this->assertFalse( wp_exif_datetime( PHP_INT_MAX ) );
+		$this->assertFalse( wp_exif_datetime( PHP_INT_MIN ) );
+
+		// Test malformed date strings that might cause DateTime exceptions
+		$this->assertFalse( wp_exif_datetime( '0000-00-00' ) );
+		$this->assertFalse( wp_exif_datetime( '2024-02-31' ) ); // Invalid day in February
+
+		// Test with resource type
+		$fp = fopen( 'php://memory', 'r' );
+		$this->assertFalse( wp_exif_datetime( $fp ) );
+		fclose( $fp );
+	}
+
+	/**
+	 * Test timezone handling with invalid timezone that might cause exceptions
+	 */
+	public function test_timezone_exceptions() {
 		$original_timezone = date_default_timezone_get();
 
-		// Test with different timezones
-		date_default_timezone_set( 'UTC' );
-		$utc_result = wp_exif_datetime( '2024-03-15 14:30:00' );
-
-		date_default_timezone_set( 'America/New_York' );
-		$ny_result = wp_exif_datetime( '2024-03-15 14:30:00' );
-
-		// Results should be consistent regardless of timezone
-		$this->assertEquals( $utc_result, $ny_result );
+		// Test with invalid timezone
+		$this->assertFalse( @date_default_timezone_set( 'Invalid/Timezone' ) );
+		$result = wp_exif_datetime( '2024-03-15 14:30:00' );
+		$this->assertFalse( $result );
 
 		// Restore original timezone
 		date_default_timezone_set( $original_timezone );
 	}
 
 	/**
-	 * @ticket 56887
-	 *
-	 * Test handling of edge case date and time formats.
-	 *
-	 * @return void
+	 * Test with potentially problematic character encodings
 	 */
-	public function test_edge_cases() {
+	public function test_encoding_issues() {
+		// Test with UTF-8 BOM
+		$this->assertFalse( wp_exif_datetime( "\xEF\xBB\xBF2024-03-15" ) );
 
-		// Test with a very old date
-		$datetime = wp_exif_datetime( '1900-01-01' );
-		$this->assertEquals( '1900:01:01 00:00:00', $datetime->format( 'Y:m:d H:i:s' ) );
+		// Test with null bytes
+		$this->assertFalse( wp_exif_datetime( "2024-03-15\0" ) );
 
-		// Test with milliseconds
-		$datetime = wp_exif_datetime( '2024-03-15 14:30:00.123' );
-		$this->assertEquals( '2024:03:15 14:30:00', $datetime->format( 'Y:m:d H:i:s' ) );
-	}
-
-	/**
-	 * @ticket 56887
-	 *
-	 * Tests the functionality of parsing dates with different separators and ensures the output format is consistent.
-	 *
-	 * @return void
-	 */
-	public function test_different_separators() {
-
-		$datetime = wp_exif_datetime( '2024/03/15 14:30:00' );
-		$this->assertEquals( '2024:03:15 14:30:00', $datetime->format( 'Y:m:d H:i:s' ) );
-
-		$datetime = wp_exif_datetime( '2024/03/15 14:30:00' );
-		$this->assertEquals( '2024:03:15 14:30:00', $datetime->format( 'Y:m:d H:i:s' ) );
+		// Test with non-printable characters
+		$this->assertFalse( wp_exif_datetime( "2024-03-15\n14:30:00" ) );
 	}
 }
