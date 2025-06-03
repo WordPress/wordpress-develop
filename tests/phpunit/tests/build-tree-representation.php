@@ -70,6 +70,10 @@ END;
 				'<!-- wp:separator {"className":"is-style-default has-custom-classname"} -->',
 				'<!-- wp:separator {"className":"has-custom-classname is-style-default"} -->',
 			),
+			'Different whitespace in block class name' => array(
+				'<!-- wp:separator {"className":"wp-block-separator is-style-default"} -->',
+				'<!-- wp:separator {"className":"wp-block-separator   is-style-default "} -->',
+			),
 		);
 	}
 
