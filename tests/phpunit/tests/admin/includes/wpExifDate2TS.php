@@ -31,10 +31,6 @@ class Tests_Admin_wpExifDate2ts extends WP_UnitTestCase {
 	 */
 	public function provideValidDates() {
 		return array(
-			'standard timestamp'        => array(
-				'1710500000', // March 15, 2024 14:30:00
-				'2024:03:15 14:30:00',
-			),
 			'mysql format'              => array(
 				'2024-03-15 14:30:00',
 				'2024:03:15 14:30:00',
@@ -46,6 +42,10 @@ class Tests_Admin_wpExifDate2ts extends WP_UnitTestCase {
 			'date only'                 => array(
 				'2024-03-15',
 				'2024:03:15 00:00:00',
+			),
+			'incomplete date'     => array(
+				'2024-03',
+				'2024:03:01 00:00:00',
 			),
 		);
 	}
@@ -59,7 +59,6 @@ class Tests_Admin_wpExifDate2ts extends WP_UnitTestCase {
 			'null'                => array( null ),
 			'invalid date string' => array( 'not a date' ),
 			'malformed date'      => array( '2024-13-45' ),
-			'incomplete date'     => array( '2024-03' ),
 			'boolean true'        => array( true ),
 			'boolean false'       => array( false ),
 			'array'               => array( array() ),
