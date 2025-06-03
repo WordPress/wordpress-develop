@@ -792,18 +792,46 @@ function wp_exif_frac2dec( $str ) {
 }
 
 /**
- * Converts the exif date format to a unix timestamp.
+ * Convert the exif date format to DateTime object
+ *
+ * @since 6.9.0
+ *
+ * @param string $str
+ * @param string $timezone Timezone or offset string.
+ * @return DateTimeImmutable|false Return false if not valid date
+ */
+function wp_exif_datetime( $str, $timezone = null ) {
+	if( ! is_string( $str ) || empty( $str ) ) {
+
+		return false;
+	}
+	$timezone = ( $timezone ) ? new DateTimeZone( $timezone ) : wp_timezone();
+	try {
+		$datetime = new DateTimeImmutable( $str, $timezone );
+	} catch ( Exception $e ) {
+
+		return false;
+	}
+
+	return $datetime;
+}
+
+/**
+ * Converts the exif date format to an unix timestamp.
  *
  * @since 2.5.0
+ * @since 6.9.0 Function uses wp_exif_datetime to generate timestamp
  *
  * @param string $str A date string expected to be in Exif format (Y:m:d H:i:s).
  * @return int|false The unix timestamp, or false on failure.
  */
 function wp_exif_date2ts( $str ) {
-	list( $date, $time ) = explode( ' ', trim( $str ) );
-	list( $y, $m, $d )   = explode( ':', $date );
+	$datetime = wp_exif_datetime( $str );
 
-	return strtotime( "{$y}-{$m}-{$d} {$time}" );
+	if ( $datetime instanceof DateTimeImmutable ) {
+		return $datetime->getTimestamp();
+	}
+	return false;
 }
 
 /**
@@ -907,7 +935,11 @@ function wp_read_image_metadata( $file ) {
 			}
 
 			if ( ! empty( $iptc['2#055'][0] ) && ! empty( $iptc['2#060'][0] ) ) { // Created date and time.
-				$meta['created_timestamp'] = strtotime( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0] );
+				$datetime = new DateTimeImmutable( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0] );
+				// Store as a RFC3339 formatted timestring as this includes both date, time, and timezone.
+				$meta['created'] = $datetime->format( DATE_RFC3339 );
+				// Retain the original created timestamp for backcompat.
+				$meta['created_timestamp'] = $datetime->getTimestamp();
 			}
 
 			if ( ! empty( $iptc['2#116'][0] ) ) { // Copyright.
@@ -1015,7 +1047,17 @@ function wp_read_image_metadata( $file ) {
 			$meta['camera'] = trim( $exif['Model'] );
 		}
 		if ( empty( $meta['created_timestamp'] ) && ! empty( $exif['DateTimeDigitized'] ) ) {
-			$meta['created_timestamp'] = wp_exif_date2ts( $exif['DateTimeDigitized'] );
+			$timezone = null;
+			if ( ! empty( $exif['UndefinedTag:0x9012'] ) ) {
+				$timezone = $exif['UndefinedTag:0x9012'];
+			}
+
+			$datetime = wp_exif_datetime( $exif['DateTimeDigitized'], $timezone );
+
+			// Store as a RFC3339 formatted timestring as this includes both date, time, and timezone.
+			$meta['created'] = $datetime->format( DATE_RFC3339 );
+			// Retain the original created timestamp for backcompat.
+			$meta['created_timestamp'] = $datetime->getTimestamp();
 		}
 		if ( ! empty( $exif['FocalLength'] ) ) {
 			$meta['focal_length'] = (string) $exif['FocalLength'];
