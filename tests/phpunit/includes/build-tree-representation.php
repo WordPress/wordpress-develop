@@ -211,9 +211,10 @@ function build_tree_representation( string $html, ?string $fragment_context ) {
 						ksort( $block_attrs, SORT_STRING );
 
 						if ( isset( $block_attrs['className'] ) ) {
-							// Normalize class name order, as we need to be tolerant of different orders.
+							// Normalize class name order (and de-duplicate), as we need to be tolerant of different orders.
 							// (Style attributes don't need this treatment, as they are parsed into a nested array.)
 							$block_class_names = preg_split( '/[ \t\f\r\n]+/', trim( $block_attrs['className'], " \f\t\r\n" ) );
+							$block_class_names = array_unique( $block_class_names, SORT_STRING );
 							sort( $block_class_names, SORT_STRING );
 							$block_attrs['className'] = implode( ' ', $block_class_names );
 						}

@@ -74,6 +74,10 @@ END;
 				'<!-- wp:separator {"className":"wp-block-separator is-style-default"} -->',
 				'<!-- wp:separator {"className":"wp-block-separator   is-style-default "} -->',
 			),
+			'Duplicated block class names' => array(
+				'<!-- wp:separator {"className":"wp-block-separator is-style-default"} -->',
+				'<!-- wp:separator {"className":"wp-block-separator is-style-default wp-block-separator"} -->',
+			),
 		);
 	}
 
