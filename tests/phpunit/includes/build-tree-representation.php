@@ -183,16 +183,18 @@ function build_tree_representation( string $html, ?string $fragment_context ) {
 				break;
 
 			case '#comment':
-				// Comments must be "<" then "!-- " then the data then " -->".
+				// Comments must be "<" then "!--" then the data then "-->".
 				$comment = "<!--{$processor->get_full_comment_text()}-->";
 
 				// Maybe the comment is a block delimiter.
-				$parsed_comment = parse_blocks( $comment )[0];
+				$parser           = new WP_Block_Parser();
+				$parser->document = $comment;
+				$parser->offset   = 0;
+				list( $delimiter_type, $block_name, $block_attrs, $start_offset, $token_length ) = $parser->next_token();
 
-				if ( ! isset( $parsed_comment['blockName'] ) ) {
-					// Doesn't look like an *opening* block delimiter.
+				if ( 'block-closer' === $delimiter_type ) {
 					// Let's see if it's a closer for the currently open block.
-					if ( ! empty( $block_context ) && '/' . end( $block_context ) === trim( $processor->get_full_comment_text() ) ) {
+					if ( ! empty( $block_context ) && end( $block_context ) === $block_name ) {
 						// If it's a closer, we don't add it to the output.
 						// Instead, we decrease indentation and remove the block from block context stack.
 						--$indent_level;
@@ -200,23 +202,21 @@ function build_tree_representation( string $html, ?string $fragment_context ) {
 					} else {
 						$output .= str_repeat( $tree_indent, $indent_level ) . $comment . "\n";
 					}
-				} else {
-					// Looks like an opening block delimiter.
-					$output .= str_repeat( $tree_indent, $indent_level ) . "BLOCK[\"{$parsed_comment['blockName']}\"]\n";
+				} elseif ( 'block-opener' === $delimiter_type ) {
+					$output .= str_repeat( $tree_indent, $indent_level ) . "BLOCK[\"{$block_name}\"]\n";
 
 					if ( ! str_ends_with( $processor->get_full_comment_text(), '/' ) ) {
-						// If the block is not self-closing, we add it name (as it appears in markup) to the block context stack and increase indentation.
-						$block_context[] = 'wp:' . strip_core_block_namespace( $parsed_comment['blockName'] );
+						// If the block is not self-closing, we add its name to the block context stack and increase indentation.
+						$block_context[] = $block_name;
 						++$indent_level;
 					}
 
 					// If they're no attributes, we're done here.
-					if ( empty( $parsed_comment['attrs'] ) ) {
+					if ( empty( $block_attrs ) ) {
 						break;
 					}
 
 					// Normalize attribute order.
-					$block_attrs = $parsed_comment['attrs'];
 					ksort( $block_attrs, SORT_STRING );
 
 					if ( isset( $block_attrs['className'] ) ) {
@@ -233,6 +233,8 @@ function build_tree_representation( string $html, ?string $fragment_context ) {
 					$block_attrs = preg_replace( '/^( +)\1/m', str_repeat( $tree_indent, $indent_level ) . '$1', $block_attrs );
 					// Finally, indent the first line, and the last line (with the closing curly brace).
 					$output .= str_repeat( $tree_indent, $indent_level ) . substr( $block_attrs, 0, -1 ) . str_repeat( $tree_indent, $indent_level ) . "}\n";
+				} else {
+					$output .= str_repeat( $tree_indent, $indent_level ) . $comment . "\n";
 				}
 				break;
 
