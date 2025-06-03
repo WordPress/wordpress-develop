@@ -966,10 +966,11 @@ function wpmu_signup_blog_notification(
 	}
 
 	// Send email with activation link.
+	$scheme = is_ssl() ? 'https://' : 'http://';
+
 	if ( ! is_subdomain_install() || get_current_network_id() !== 1 ) {
 		$activate_url = network_site_url( "wp-activate.php?key=$key" );
 	} else {
-		$scheme = is_ssl() ? 'https://' : 'http://';
 		$activate_url = $scheme . $domain . $path . "wp-activate.php?key=$key";
 	}
 
@@ -1017,7 +1018,7 @@ function wpmu_signup_blog_notification(
 			$meta
 		),
 		$activate_url,
-		esc_url( ( is_ssl() ? 'https://' : 'http://' ) . $domain . $path ),
+		esc_url( $scheme . $domain . $path ),
 		$key
 	);
 
@@ -1049,7 +1050,7 @@ function wpmu_signup_blog_notification(
 			$meta
 		),
 		$from_name,
-		esc_url( ( is_ssl() ? 'https://' : 'http://' ) . $domain . $path )
+		esc_url( $scheme . $domain . $path )
 	);
 
 	wp_mail( $user_email, wp_specialchars_decode( $subject ), $message, $message_headers );
