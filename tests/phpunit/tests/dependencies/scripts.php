@@ -3017,6 +3017,8 @@ HTML
 	/**
 	 * Assert markup is equal after normalizing script tags.
 	 *
+	 * @todo Retire in favor of WP_UnitTestCase::assertEqualMarkup().
+	 *
 	 * @param string $expected Expected markup.
 	 * @param string $actual   Actual markup.
 	 * @param string $message  Message.
