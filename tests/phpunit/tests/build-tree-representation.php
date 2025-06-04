@@ -50,11 +50,11 @@ END;
 
 	public function data_build_tree_representation_returns_equivalent_trees_for_equivalent_html() {
 		return array(
-			'Different attribute order'        => array(
+			'Different attribute order'                => array(
 				'<img src="wp.png" alt="The WordPress logo">',
 				'<img alt="The WordPress logo" src="wp.png">',
 			),
-			'Different class name order'       => array(
+			'Different class name order'               => array(
 				'<hr class="wp-block-separator is-style-default">',
 				'<hr class="is-style-default wp-block-separator">',
 			),
@@ -62,11 +62,11 @@ END;
 				'<hr style="margin-top: 50px; margin-bottom: 50px;">',
 				'<hr style="margin-top:50px;margin-bottom: 50px">',
 			),
-			'Different block attribute order'  => array(
+			'Different block attribute order'          => array(
 				'<!-- wp:separator {"className":"is-style-default","backgroundColor":"accent-1"} -->',
 				'<!-- wp:separator {"backgroundColor":"accent-1","className":"is-style-default"} -->',
 			),
-			'Different block class name order' => array(
+			'Different block class name order'         => array(
 				'<!-- wp:separator {"className":"is-style-default has-custom-classname"} -->',
 				'<!-- wp:separator {"className":"has-custom-classname is-style-default"} -->',
 			),
@@ -74,7 +74,7 @@ END;
 				'<!-- wp:separator {"className":"wp-block-separator is-style-default"} -->',
 				'<!-- wp:separator {"className":"wp-block-separator   is-style-default "} -->',
 			),
-			'Duplicated block class names' => array(
+			'Duplicated block class names'             => array(
 				'<!-- wp:separator {"className":"wp-block-separator is-style-default"} -->',
 				'<!-- wp:separator {"className":"wp-block-separator is-style-default wp-block-separator"} -->',
 			),
