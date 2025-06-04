@@ -5,6 +5,36 @@
 /**
  * Generates the tree-like structure represented in the Html5lib tests.
  *
+ * That format is extended with a special representation of block delimiters and their attributes.
+ * Furthermore, it the order of attributes and class names is normalized both for HTML tags and block delimiters,
+ * as is the whitespace in HTML tags' style attribute.
+ *
+ * For example, consider the following block markup:
+ *
+ *     <!-- wp:separator {"className":"is-style-default has-custom-classname","style":{"spacing":{"margin":{"top":"50px","bottom":"50px"}}},"backgroundColor":"accent-1"} -->
+ *         <hr class="wp-block-separator is-style-default has-custom-classname" style="margin-top: 50px; margin-bottom: 50px" />
+ *     <!-- /wp:separator -->
+ *
+ * This will be represented as:
+ *
+ *     BLOCK["core/separator"]
+ *       {
+ *         "backgroundColor": "accent-1",
+ *         "className": "has-custom-classname is-style-default",
+ *         "style": {
+ *           "spacing": {
+ *             "margin": {
+ *               "top": "50px",
+ *               "bottom": "50px"
+ *             }
+ *           }
+ *         }
+ *       }
+ *       <hr>
+ *         class="has-custom-classname is-style-default wp-block-separator"
+ *         style="margin-top:50px;margin-bottom:50px;"
+ *
+ *
  * @see https://github.com/WordPress/wordpress-develop/blob/trunk/tests/phpunit/data/html5lib-tests/tree-construction/README.md
  *
  * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
