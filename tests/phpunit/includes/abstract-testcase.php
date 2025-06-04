@@ -1181,13 +1181,13 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
-	 * Asserts that HTML markup produces a semantically equivalent tree.
+	 * Check HTML markup (including blocks) for semantic equivalence.
 	 *
-	 * - Tag names are normalized.
-	 * - Attribute names are normalized.
-	 * - Attributes are sorted and deduplicated.
-	 * - HTML Entities are correctly decoded.
-	 * - Class attributes are normalized.
+	 * Given two markup strings, assert that they translate to the same semantic HTML tree,
+	 * normalizing tag names, attribute names, and attribute order. Furthermore, attributes
+	 * and class names are sorted and deduplicated, and whitespace in style attributes
+	 * is normalized. Finally, block delimiter comments are recognized and normalized,
+	 * applying the same principles.
 	 *
 	 * @since 6.9.0
 	 *
