@@ -1200,8 +1200,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string|null $message          Optional. The assertion error message.
 	 */
 	public function assertEqualMarkup( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
-		$tree_expected = build_equivalent_html_semantic_tree( $expected, $fragment_context );
-		$tree_actual   = build_equivalent_html_semantic_tree( $actual, $fragment_context );
+		try {
+			$tree_expected = build_equivalent_html_semantic_tree( $expected, $fragment_context );
+			$tree_actual   = build_equivalent_html_semantic_tree( $actual, $fragment_context );
+		} catch ( Exception $e ) {
+			// For PHP 8.4+, we can retry, using the built-in DOM\HTMLDocument parser.
+			if ( class_exists( 'DOM\HtmlDocument' ) ) {
+				$dom_expected  = DOM\HtmlDocument::createFromString( $expected, LIBXML_NOERROR );
+				$tree_expected = build_equivalent_html_semantic_tree( $dom_expected->saveHtml(), $fragment_context );
+				$dom_actual    = DOM\HtmlDocument::createFromString( $actual, LIBXML_NOERROR );
+				$tree_actual   = build_equivalent_html_semantic_tree( $dom_actual->saveHtml(), $fragment_context );
+			} else {
+				throw $e;
+			}
+		}
 
 		$this->assertSame( $tree_expected, $tree_actual, $message );
 	}
