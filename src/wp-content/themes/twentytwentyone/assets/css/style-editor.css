@@ -969,6 +969,11 @@ a:hover {
 	width: 100%;
 }
 
+.wp-block-list-item[data-block] {
+	margin-top: revert;
+	margin-bottom: revert;
+}
+
 .wp-block-heading h1,
 h1,
 .h1,
