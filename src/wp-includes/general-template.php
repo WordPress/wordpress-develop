@@ -3348,7 +3348,7 @@ function feed_links_extra( $args = array() ) {
 		 */
 		$show_post_comments_feed = apply_filters( 'feed_links_extra_show_post_comments_feed', $show_comments_feed );
 
-		if ( $show_post_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
+		if ( $show_post_comments_feed && $post && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
 			$title = sprintf(
 				$args['singletitle'],
 				get_bloginfo( 'name' ),
