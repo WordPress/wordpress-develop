@@ -2710,7 +2710,7 @@ class WP_Site_Health {
 			'description' => __( 'A scan for changes to the core WordPress files was performed. No changes are detected.' ),
 			'actions'     => '',
 			'test'        => 'core_integrity',
-                );
+		);
 
 		$wp_version = get_bloginfo( 'version' );
 		$wp_locale  = get_locale();
@@ -2722,7 +2722,7 @@ class WP_Site_Health {
 			$checksums = get_core_checksums( $wp_version, $wp_locale );
 			if ( false === $checksums && false !== strpos( $wp_version, '-' ) ) {
 				$checksums = get_core_checksums( (float) $wp_version - 0.1, $wp_locale );
-                	}
+			}
 
 			set_transient( 'health-check-code-integrity-checksums', $checksums, HOUR_IN_SECONDS );
 		}
@@ -2751,15 +2751,14 @@ class WP_Site_Health {
 				$changed_files = true;
 				break;
 			}
-
 		}
 
 		if ( true === $changed_files ) {
 
-			$result['status'] = 'recommended';
-			$result['label']  = __( 'Some core files may have been modified' );
+			$result['status']      = 'recommended';
+			$result['label']       = __( 'Some core files may have been modified' );
 			$result['description'] = __( 'Some WordPress core files may have been changed. One reason this check can fail is that you need to install a version that makes use of the right translation files. If you have the ability to do so, a simple fix is to reinstall WordPress. Reinstall of the core system should not affect any plugins, themes, or content that you have posted.' );
-			$result['actions'] = sprintf(
+			$result['actions']     = sprintf(
 				'<a href="%s">%s</a>',
 				esc_url( admin_url( 'update-core.php?force_check=1' ) ),
 				__( 'Reinstall WordPress manually' )
@@ -2914,19 +2913,19 @@ class WP_Site_Health {
 		}
 
 		/*
- 		 * Check integrity only for non-development environments and releases.
- 		 * WordPress Nightly Builds, Alphas, and Betas contain a version suffix starting with "-", such as 6.4-alpha-56267-src.
- 		 */
-		if ( !wp_is_development_mode(false) && !strpos(get_bloginfo('version'), '-') ) {
-			$tests['direct']['core_integrity']  = array(
+		 * Check integrity only for non-development environments and releases.
+		 * WordPress Nightly Builds, Alphas, and Betas contain a version suffix starting with "-", such as 6.4-alpha-56267-src.
+		 */
+		if ( ! wp_is_development_mode( false ) && ! strpos( get_bloginfo( 'version' ), '-' ) ) {
+			$tests['direct']['core_integrity'] = array(
 				'label' => __( 'WordPress Core Files Integrity Check' ),
-				'test'  => 'core_integrity'
+				'test'  => 'core_integrity',
 			);
 		}
 
 		/**
 		 * Filters which site status tests are run on a site.
-		 * 
+		 *
 		 * The site health is determined by a set of tests based on best practices from
 		 * both the WordPress Hosting Team and web standards in general.
 		 *

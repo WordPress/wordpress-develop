@@ -5538,7 +5538,7 @@ function wp_ajax_health_check_core_integrity() {
 	}
 
 	if ( ! class_exists( 'WP_Site_Health' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/class-wp-site-health.php' );
+			require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
 	}
 
 	$site_health = new WP_Site_Health();
