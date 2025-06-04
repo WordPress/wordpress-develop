@@ -243,10 +243,12 @@ function build_tree_representation( string $html, ?string $fragment_context ) {
 						if ( isset( $block_attrs['className'] ) ) {
 							// Normalize class name order (and de-duplicate), as we need to be tolerant of different orders.
 							// (Style attributes don't need this treatment, as they are parsed into a nested array.)
-							$block_class_names = preg_split( '/[ \t\f\r\n]+/', trim( $block_attrs['className'], " \f\t\r\n" ) );
-							$block_class_names = array_unique( $block_class_names, SORT_STRING );
-							sort( $block_class_names, SORT_STRING );
-							$block_attrs['className'] = implode( ' ', $block_class_names );
+							$block_class_processor = new WP_HTML_Tag_Processor( '<div>' );
+							$block_class_processor->next_token();
+							$block_class_processor->set_attribute( 'class', $block_attrs['className'] );
+							$class_names = iterator_to_array( $block_class_processor->class_list() );
+							sort( $class_names, SORT_STRING );
+							$block_attrs['className'] = implode( ' ', $class_names );
 						}
 
 						$block_attrs = json_encode( $block_attrs, JSON_PRETTY_PRINT );
