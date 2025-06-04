@@ -1021,7 +1021,9 @@ class WP_Upgrader {
 			}
 		}
 
-		$file = $wp_filesystem->abspath() . '.maintenance';
+		// Check if a custom maintenance file location is defined.
+		$file = defined( 'WP_MAINTENANCE_FILE' ) ? WP_MAINTENANCE_FILE : $wp_filesystem->abspath() . '.maintenance';
+
 		if ( $enable ) {
 			if ( ! wp_doing_cron() ) {
 				$this->skin->feedback( 'maintenance_start' );
