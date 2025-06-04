@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Tests for build_tree_representation().
+ * Tests for build_equivalent_html_semantic_tree().
  *
  * @package WordPress
  *
  * @group testsuite
  */
-class Tests_Build_Tree_Representation extends WP_UnitTestCase {
-	public function data_build_tree_representation() {
+class Tests_Build_Equivalent_HTML_Semantic_Tree extends WP_UnitTestCase {
+	public function data_build_equivalent_html_semantic_tree() {
 		$block_markup = <<<END
 			<!-- wp:separator {"className":"is-style-default has-custom-classname","style":{"spacing":{"margin":{"top":"50px","bottom":"50px"}}},"backgroundColor":"accent-1"} -->
 			  <hr class="wp-block-separator is-style-default has-custom-classname" style="margin-top: 50px; margin-bottom: 50px" />
@@ -41,14 +41,14 @@ END;
 	}
 
 	/**
-	 * @dataProvider data_build_tree_representation
+	 * @dataProvider data_build_equivalent_html_semantic_tree
 	 */
-	public function test_build_tree_representation( $markup, $expected ) {
-		$actual = build_tree_representation( $markup, '<body>' );
+	public function test_build_equivalent_html_semantic_tree( $markup, $expected ) {
+		$actual = build_equivalent_html_semantic_tree( $markup, '<body>' );
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_build_tree_representation_returns_equivalent_trees_for_equivalent_html() {
+	public function data_build_equivalent_html_semantic_tree_with_equivalent_html() {
 		return array(
 			'Different attribute order'                => array(
 				'<img src="wp.png" alt="The WordPress logo">',
@@ -82,16 +82,16 @@ END;
 	}
 
 	/**
-	 * @dataProvider data_build_tree_representation_returns_equivalent_trees_for_equivalent_html
+	 * @dataProvider data_build_equivalent_html_semantic_tree_with_equivalent_html
 	 */
-	public function test_build_tree_representation_returns_equivalent_trees_for_equivalent_html( $expected, $actual ) {
-		$tree_expected = build_tree_representation( $expected, '<body>' );
-		$tree_actual   = build_tree_representation( $actual, '<body>' );
+	public function test_build_equivalent_html_semantic_tree_with_equivalent_html( $expected, $actual ) {
+		$tree_expected = build_equivalent_html_semantic_tree( $expected, '<body>' );
+		$tree_actual   = build_equivalent_html_semantic_tree( $actual, '<body>' );
 
 		$this->assertSame( $tree_expected, $tree_actual );
 	}
 
-	public function data_build_tree_representation_returns_different_trees_for_non_equivalent_html() {
+	public function data_build_equivalent_html_semantic_tree_with_non_equivalent_html() {
 		return array(
 			'Different attributes'             => array(
 				'<img src="wp.png" alt="The WordPress logo">',
@@ -117,11 +117,11 @@ END;
 	}
 
 	/**
-	 * @dataProvider data_build_tree_representation_returns_different_trees_for_non_equivalent_html
+	 * @dataProvider data_build_equivalent_html_semantic_tree_with_non_equivalent_html
 	 */
-	public function test_build_tree_representation_returns_different_trees_for_non_equivalent_html( $expected, $actual ) {
-		$tree_expected = build_tree_representation( $expected, '<body>' );
-		$tree_actual   = build_tree_representation( $actual, '<body>' );
+	public function test_build_equivalent_html_semantic_tree_with_non_equivalent_html( $expected, $actual ) {
+		$tree_expected = build_equivalent_html_semantic_tree( $expected, '<body>' );
+		$tree_actual   = build_equivalent_html_semantic_tree( $actual, '<body>' );
 
 		$this->assertNotSame( $tree_expected, $tree_actual );
 	}

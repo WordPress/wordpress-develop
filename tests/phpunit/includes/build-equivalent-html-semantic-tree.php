@@ -41,7 +41,7 @@
  * @param string      $html             Given test HTML.
  * @return string|null Tree structure of parsed HTML, if supported, else null.
  */
-function build_tree_representation( string $html, ?string $fragment_context ) {
+function build_equivalent_html_semantic_tree( string $html, ?string $fragment_context ) {
 	$processor = $fragment_context
 		? WP_HTML_Processor::create_fragment( $html, $fragment_context )
 		: WP_HTML_Processor::create_full_parser( $html );

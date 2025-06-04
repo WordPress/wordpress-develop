@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/build-tree-representation.php';
+require_once __DIR__ . '/build-equivalent-html-semantic-tree.php';
 require_once __DIR__ . '/factory.php';
 require_once __DIR__ . '/trac.php';
 
@@ -1200,8 +1200,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string|null $message          Optional. The assertion error message.
 	 */
 	public function assertEqualMarkup( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
-		$tree_expected = build_tree_representation( $expected, $fragment_context );
-		$tree_actual   = build_tree_representation( $actual, $fragment_context );
+		$tree_expected = build_equivalent_html_semantic_tree( $expected, $fragment_context );
+		$tree_actual   = build_equivalent_html_semantic_tree( $actual, $fragment_context );
 
 		$this->assertSame( $tree_expected, $tree_actual, $message );
 	}
