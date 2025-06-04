@@ -420,14 +420,14 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			if ( $redirect_url ) {
 				if ( $page > 1 ) {
 					$redirect_url = trailingslashit( $redirect_url );
-	
+
 					if ( is_front_page() ) {
 						$redirect_url .= user_trailingslashit( "$wp_rewrite->pagination_base/$page", 'paged' );
 					} else {
 						$redirect_url .= user_trailingslashit( $page, 'single_paged' );
 					}
 				}
-	
+
 				$redirect['query'] = remove_query_arg( 'page', $redirect['query'] );
 			}
 		}
