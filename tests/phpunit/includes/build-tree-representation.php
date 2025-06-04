@@ -5,7 +5,7 @@
 /**
  * Generates the tree-like structure represented in the Html5lib tests.
  *
- * @see https://github.com/html5lib/html5lib-tests/blob/a9f44960a9fedf265093d22b2aa3c7ca123727b9/tree-construction/README.md
+ * @see https://github.com/WordPress/wordpress-develop/blob/trunk/tests/phpunit/data/html5lib-tests/tree-construction/README.md
  *
  * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
  * @param string      $html             Given test HTML.
