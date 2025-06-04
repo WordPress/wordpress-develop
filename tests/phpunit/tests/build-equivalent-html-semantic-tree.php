@@ -41,6 +41,8 @@ END;
 	}
 
 	/**
+	 * @covers ::build_equivalent_html_semantic_tree
+	 *
 	 * @dataProvider data_build_equivalent_html_semantic_tree
 	 */
 	public function test_build_equivalent_html_semantic_tree( $markup, $expected ) {
@@ -82,6 +84,8 @@ END;
 	}
 
 	/**
+	 * @covers ::build_equivalent_html_semantic_tree
+	 *
 	 * @dataProvider data_build_equivalent_html_semantic_tree_with_equivalent_html
 	 */
 	public function test_build_equivalent_html_semantic_tree_with_equivalent_html( $expected, $actual ) {
@@ -117,6 +121,8 @@ END;
 	}
 
 	/**
+	 * @covers ::build_equivalent_html_semantic_tree
+	 *
 	 * @dataProvider data_build_equivalent_html_semantic_tree_with_non_equivalent_html
 	 */
 	public function test_build_equivalent_html_semantic_tree_with_non_equivalent_html( $expected, $actual ) {
