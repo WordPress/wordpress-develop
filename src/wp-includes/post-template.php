@@ -1358,7 +1358,7 @@ function wp_list_pages( $args = '' ) {
 			$current_page = get_queried_object_id();
 		} elseif ( is_singular() ) {
 			$queried_object = get_queried_object();
-			if ( is_post_type_hierarchical( $queried_object->post_type ) ) {
+			if ( $queried_object && is_post_type_hierarchical( $queried_object->post_type ) ) {
 				$current_page = $queried_object->ID;
 			}
 		}
