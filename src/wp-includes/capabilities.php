@@ -1141,7 +1141,7 @@ function get_super_admins() {
 	if ( isset( $super_admins ) ) {
 		return $super_admins;
 	} else {
-		return get_site_option( 'site_admins', array( 'admin' ) );
+		return get_site_option( 'site_admins', array() );
 	}
 }
 
@@ -1203,7 +1203,7 @@ function grant_super_admin( $user_id ) {
 	do_action( 'grant_super_admin', $user_id );
 
 	// Directly fetch site_admins instead of using get_super_admins().
-	$super_admins = get_site_option( 'site_admins', array( 'admin' ) );
+	$super_admins = get_site_option( 'site_admins', array() );
 
 	$user = get_userdata( $user_id );
 	if ( $user && ! in_array( $user->user_login, $super_admins, true ) ) {
@@ -1250,7 +1250,7 @@ function revoke_super_admin( $user_id ) {
 	do_action( 'revoke_super_admin', $user_id );
 
 	// Directly fetch site_admins instead of using get_super_admins().
-	$super_admins = get_site_option( 'site_admins', array( 'admin' ) );
+	$super_admins = get_site_option( 'site_admins', array() );
 
 	$user = get_userdata( $user_id );
 	if ( $user && 0 !== strcasecmp( $user->user_email, get_site_option( 'admin_email' ) ) ) {
