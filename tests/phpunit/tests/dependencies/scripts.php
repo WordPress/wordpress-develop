@@ -1531,6 +1531,8 @@ HTML
 	public function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
 		global $wp_version;
 
+		$this->add_html5_script_theme_support();
+
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
 
@@ -1538,7 +1540,6 @@ HTML
 
 		$expected = "<script src='http://example.com?ver={$wp_version}' id='empty-deps-no-version-js'></script>\n";
 
-		$this->markTestSkipped( 'This test has a bug. The output does contain the type.' );
 		$this->_assertEqualMarkup( $expected, get_echo( 'wp_print_scripts' ) );
 	}
 
