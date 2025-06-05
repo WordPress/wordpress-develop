@@ -32,7 +32,7 @@
 					<div class="wp-block-buttons">
 						<!-- wp:button -->
 						<div class="wp-block-button">
-							<a class="wp-block-button__link wp-element-button"><?php echo esc_html_x( 'About us', 'Call to Action button text', 'twentytwentyfour' ); ?></a>
+							<a class="wp-block-button__link wp-element-button"><?php echo esc_html_x( 'About us', 'Call to action button text', 'twentytwentyfour' ); ?></a>
 						</div>
 						<!-- /wp:button -->
 					</div>

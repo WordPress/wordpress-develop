@@ -119,7 +119,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 	register_block_pattern(
 		'twentysixteen/call-to-action',
 		array(
-			'title'      => __( 'Call to Action', 'twentysixteen' ),
+			'title'      => __( 'Call to action', 'twentysixteen' ),
 			'categories' => array( 'twentysixteen' ),
 			'content'    => '<!-- wp:spacer -->
             <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>

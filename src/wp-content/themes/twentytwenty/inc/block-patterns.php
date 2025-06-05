@@ -26,11 +26,11 @@ if ( function_exists( 'register_block_pattern_category' ) ) {
  */
 if ( function_exists( 'register_block_pattern' ) ) {
 
-	// Call to Action.
+	// Call to action.
 	register_block_pattern(
 		'twentytwenty/call-to-action',
 		array(
-			'title'         => esc_html__( 'Call to Action', 'twentytwenty' ),
+			'title'         => esc_html__( 'Call to action', 'twentytwenty' ),
 			'categories'    => array( 'twentytwenty' ),
 			'viewportWidth' => 1400,
 			'content'       => implode(
@@ -54,11 +54,11 @@ if ( function_exists( 'register_block_pattern' ) ) {
 		)
 	);
 
-	// Double Call to Action.
+	// Double call to action.
 	register_block_pattern(
 		'twentytwenty/double-call-to-action',
 		array(
-			'title'         => esc_html__( 'Double Call to Action', 'twentytwenty' ),
+			'title'         => esc_html__( 'Double Call to action', 'twentytwenty' ),
 			'categories'    => array( 'twentytwenty' ),
 			'viewportWidth' => 1400,
 			'content'       => implode(
