@@ -1133,16 +1133,13 @@ function remove_role( $role ) {
  *
  * @global array $super_admins
  *
+ * @param int|null $network_id Optional. ID of the network. Default is the current network ID.
  * @return string[] List of super admin logins.
  */
-function get_super_admins() {
+function get_super_admins($network_id = null) {
 	global $super_admins;
 
-	if ( isset( $super_admins ) ) {
-		return $super_admins;
-	} else {
-		return get_site_option( 'site_admins', array( 'admin' ) );
-	}
+	return $super_admins ?? get_network_option($network_id ?? get_current_network_id(), 'site_admins', array('admin'));
 }
 
 /**
@@ -1151,9 +1148,10 @@ function get_super_admins() {
  * @since 3.0.0
  *
  * @param int|false $user_id Optional. The ID of a user. Defaults to false, to check the current user.
+ * @param int|null  $network_id Optional. ID of the network. Default is the current network ID.
  * @return bool Whether the user is a site admin.
  */
-function is_super_admin( $user_id = false ) {
+function is_super_admin( $user_id = false, $network_id = null ) {
 	if ( ! $user_id ) {
 		$user = wp_get_current_user();
 	} else {
@@ -1165,7 +1163,7 @@ function is_super_admin( $user_id = false ) {
 	}
 
 	if ( is_multisite() ) {
-		$super_admins = get_super_admins();
+		$super_admins = get_super_admins($network_id);
 		if ( is_array( $super_admins ) && in_array( $user->user_login, $super_admins, true ) ) {
 			return true;
 		}
@@ -1184,12 +1182,33 @@ function is_super_admin( $user_id = false ) {
  * @global array $super_admins
  *
  * @param int $user_id ID of the user to be granted Super Admin privileges.
+ * @param int $network_id Optional. ID of the network. Default is the current network ID.
  * @return bool True on success, false on failure. This can fail when the user is
  *              already a super admin or when the `$super_admins` global is defined.
  */
-function grant_super_admin( $user_id ) {
+function grant_super_admin( $user_id, $network_id = null ) {
 	// If global super_admins override is defined, there is nothing to do here.
 	if ( isset( $GLOBALS['super_admins'] ) || ! is_multisite() ) {
+		return false;
+	}
+
+	if (null === $network_id ) {
+		$network_id = get_current_network_id();
+	}
+
+	if(! get_network($network_id)) {
+		return false;
+	}
+
+	/**
+	 * Filters the user ID of the user to be granted Super Admin privileges.
+	 * Allows filters to prevent granting access.
+	 *
+	 * @param int $user_id ID of the user to be granted Super Admin privileges.
+	 * @param int $network_id ID of the network.
+	 */
+	$user_id = apply_filters( 'pre_grant_super_admin', $user_id, $network_id );
+	if (! $user_id) {
 		return false;
 	}
 
@@ -1199,28 +1218,35 @@ function grant_super_admin( $user_id ) {
 	 * @since 3.0.0
 	 *
 	 * @param int $user_id ID of the user that is about to be granted Super Admin privileges.
+	 * @param int $network_id ID of the network.
 	 */
-	do_action( 'grant_super_admin', $user_id );
+	do_action( 'grant_super_admin', $user_id, $network_id );
 
 	// Directly fetch site_admins instead of using get_super_admins().
-	$super_admins = get_site_option( 'site_admins', array( 'admin' ) );
+	$super_admins = get_network_option( $network_id, 'site_admins', array( 'admin' ) );
 
 	$user = get_userdata( $user_id );
-	if ( $user && ! in_array( $user->user_login, $super_admins, true ) ) {
-		$super_admins[] = $user->user_login;
-		update_site_option( 'site_admins', $super_admins );
-
-		/**
-		 * Fires after the user is granted Super Admin privileges.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param int $user_id ID of the user that was granted Super Admin privileges.
-		 */
-		do_action( 'granted_super_admin', $user_id );
-		return true;
+	if ( ! $user || in_array( $user->user_login, $super_admins, true ) ) {
+		return false;
 	}
-	return false;
+
+	$super_admins[] = $user->user_login;
+	if ( ! update_network_option( $network_id, 'site_admins', $super_admins ) ) {
+		return false;
+	}
+
+	/**
+	 * Fires after the user is granted Super Admin privileges.
+	 *
+	 * @param int $user_id ID of the user that was granted Super Admin privileges.
+	 * @param int $network_id ID of the network.
+	 *
+	 * @since 3.0.0
+	 *
+	 */
+	do_action( 'granted_super_admin', $user_id, $network_id );
+
+	return true;
 }
 
 /**
@@ -1231,46 +1257,73 @@ function grant_super_admin( $user_id ) {
  * @global array $super_admins
  *
  * @param int $user_id ID of the user Super Admin privileges to be revoked from.
+ * @param int $network_id Optional. ID of the network. Default is the current network ID.
  * @return bool True on success, false on failure. This can fail when the user's email
  *              is the network admin email or when the `$super_admins` global is defined.
  */
-function revoke_super_admin( $user_id ) {
+function revoke_super_admin( $user_id, $network_id = null ) {
 	// If global super_admins override is defined, there is nothing to do here.
 	if ( isset( $GLOBALS['super_admins'] ) || ! is_multisite() ) {
+		return false;
+	}
+
+	if( null === $network_id ) {
+		$network_id = get_current_network_id();
+	}
+
+	/**
+	 * Filters the user ID of the user to be revoked Super Admin privileges.
+	 * Allows filters to prevent revoking access.
+	 *
+	 * @param int $user_id ID of the user to be revoked Super Admin privileges.
+	 * @param int $network_id ID of the network.
+	 */
+	$user_id = apply_filters( 'pre_revoke_super_admin', $user_id, $network_id );
+	if ( ! $user_id ) {
 		return false;
 	}
 
 	/**
 	 * Fires before the user's Super Admin privileges are revoked.
 	 *
+	 * @param int $user_id ID of the user Super Admin privileges are being revoked from.
+	 * @param int $network_id ID of the network.
+	 *
 	 * @since 3.0.0
 	 *
-	 * @param int $user_id ID of the user Super Admin privileges are being revoked from.
 	 */
-	do_action( 'revoke_super_admin', $user_id );
+	do_action( 'revoke_super_admin', $user_id, $network_id );
 
 	// Directly fetch site_admins instead of using get_super_admins().
-	$super_admins = get_site_option( 'site_admins', array( 'admin' ) );
+	$super_admins = get_network_option( $network_id, 'site_admins', array( 'admin' ) );
 
 	$user = get_userdata( $user_id );
-	if ( $user && 0 !== strcasecmp( $user->user_email, get_site_option( 'admin_email' ) ) ) {
-		$key = array_search( $user->user_login, $super_admins, true );
-		if ( false !== $key ) {
-			unset( $super_admins[ $key ] );
-			update_site_option( 'site_admins', $super_admins );
-
-			/**
-			 * Fires after the user's Super Admin privileges are revoked.
-			 *
-			 * @since 3.0.0
-			 *
-			 * @param int $user_id ID of the user Super Admin privileges were revoked from.
-			 */
-			do_action( 'revoked_super_admin', $user_id );
-			return true;
-		}
+	if ( ! $user || 0 === strcasecmp( $user->user_email, get_site_option( 'admin_email' ) ) ) {
+		return false;
 	}
-	return false;
+
+	$key = array_search( $user->user_login, $super_admins, true );
+	if ( false === $key ) {
+		return false;
+	}
+
+	unset( $super_admins[ $key ] );
+	if ( ! update_network_option( $network_id, 'site_admins', $super_admins ) ) {
+		return false;
+	}
+
+	/**
+	 * Fires after the user's Super Admin privileges are revoked.
+	 *
+	 * @param int $user_id ID of the user Super Admin privileges were revoked from.
+	 * @param int $network_id ID of the network.
+	 *
+	 * @since 3.0.0
+	 *
+	 */
+	do_action( 'revoked_super_admin', $user_id, $network_id );
+
+	return true;
 }
 
 /**
