@@ -1199,7 +1199,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *                                      Set to null to parse a full HTML document.
 	 * @param string|null $message          Optional. The assertion error message.
 	 */
-	public function assertEqualBlockMarkup( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
+	public function assertEqualMarkup( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
 		try {
 			$tree_expected = build_equivalent_html_semantic_tree( $expected, $fragment_context );
 			$tree_actual   = build_equivalent_html_semantic_tree( $actual, $fragment_context );
