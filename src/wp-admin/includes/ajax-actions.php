@@ -192,7 +192,7 @@ function wp_ajax_wp_compression_test() {
 		if ( is_multisite() ) {
 			update_site_option( 'can_compress_scripts', 0 );
 		} else {
-			update_option( 'can_compress_scripts', 0, 'on' );
+			update_option( 'can_compress_scripts', 0, true );
 		}
 		wp_die( 0 );
 	}
@@ -231,7 +231,7 @@ function wp_ajax_wp_compression_test() {
 			if ( is_multisite() ) {
 				update_site_option( 'can_compress_scripts', 0 );
 			} else {
-				update_option( 'can_compress_scripts', 0, 'on' );
+				update_option( 'can_compress_scripts', 0, true );
 			}
 		} elseif ( 'yes' === $_GET['test'] ) {
 			check_ajax_referer( 'update_can_compress_scripts' );
@@ -239,7 +239,7 @@ function wp_ajax_wp_compression_test() {
 			if ( is_multisite() ) {
 				update_site_option( 'can_compress_scripts', 1 );
 			} else {
-				update_option( 'can_compress_scripts', 1, 'on' );
+				update_option( 'can_compress_scripts', 1, true );
 			}
 		}
 	}
@@ -3556,8 +3556,9 @@ function wp_ajax_get_revision_diffs() {
 
 	$return = array();
 
+	// Increase the script timeout limit to allow ample time for diff UI setup.
 	if ( function_exists( 'set_time_limit' ) ) {
-		set_time_limit( 0 );
+		set_time_limit( 5 * MINUTE_IN_SECONDS );
 	}
 
 	foreach ( $_REQUEST['compare'] as $compare_key ) {
@@ -5353,7 +5354,7 @@ function wp_ajax_health_check_dotorg_communication() {
 	_doing_it_wrong(
 		'wp_ajax_health_check_dotorg_communication',
 		sprintf(
-		// translators: 1: The Site Health action that is no longer used by core. 2: The new function that replaces it.
+			/* translators: 1: The Site Health action that is no longer used by core. 2: The new function that replaces it. */
 			__( 'The Site Health check for %1$s has been replaced with %2$s.' ),
 			'wp_ajax_health_check_dotorg_communication',
 			'WP_REST_Site_Health_Controller::test_dotorg_communication'
@@ -5386,7 +5387,7 @@ function wp_ajax_health_check_background_updates() {
 	_doing_it_wrong(
 		'wp_ajax_health_check_background_updates',
 		sprintf(
-		// translators: 1: The Site Health action that is no longer used by core. 2: The new function that replaces it.
+			/* translators: 1: The Site Health action that is no longer used by core. 2: The new function that replaces it. */
 			__( 'The Site Health check for %1$s has been replaced with %2$s.' ),
 			'wp_ajax_health_check_background_updates',
 			'WP_REST_Site_Health_Controller::test_background_updates'
@@ -5419,7 +5420,7 @@ function wp_ajax_health_check_loopback_requests() {
 	_doing_it_wrong(
 		'wp_ajax_health_check_loopback_requests',
 		sprintf(
-		// translators: 1: The Site Health action that is no longer used by core. 2: The new function that replaces it.
+			/* translators: 1: The Site Health action that is no longer used by core. 2: The new function that replaces it. */
 			__( 'The Site Health check for %1$s has been replaced with %2$s.' ),
 			'wp_ajax_health_check_loopback_requests',
 			'WP_REST_Site_Health_Controller::test_loopback_requests'
@@ -5469,7 +5470,7 @@ function wp_ajax_health_check_get_sizes() {
 	_doing_it_wrong(
 		'wp_ajax_health_check_get_sizes',
 		sprintf(
-		// translators: 1: The Site Health action that is no longer used by core. 2: The new function that replaces it.
+			/* translators: 1: The Site Health action that is no longer used by core. 2: The new function that replaces it. */
 			__( 'The Site Health check for %1$s has been replaced with %2$s.' ),
 			'wp_ajax_health_check_get_sizes',
 			'WP_REST_Site_Health_Controller::get_directory_sizes'
