@@ -557,9 +557,10 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
 	 * @param string $source The path to the downloaded package source.
+	 * @param string $environment The environment in which the check is running (default, in-theme-installer, etc).
 	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
 	 */
-	public function check_package( $source ) {
+	public function check_package( $source, $environment = 'default' ) {
 		global $wp_filesystem;
 
 		$wp_version           = wp_get_wp_version();
@@ -575,6 +576,27 @@ class Theme_Upgrader extends WP_Upgrader {
 			return $source;
 		}
 
+		if ( 'default' === $environment ) {
+			$plugin_upgrader = new Plugin_Upgrader();
+			$plugin_upgrader->init(); // Initialize strings from parent WP_Upgrader
+			$plugin_check = $plugin_upgrader->check_package( $source, 'in-plugin-installer' );
+
+			if ( ! is_a( $plugin_check, 'WP_Error' ) ) {
+				return new WP_Error(
+					'incompatible_archive_theme_is_plugin',
+					$plugin_upgrader->strings['incompatible_archive'] . ' ' . wp_kses(
+						sprintf(
+							__( 'This appears to be a plugin package. <a href="%s">Go to the Plugin Installer</a> to install plugins.' ),
+							admin_url( 'plugin-install.php' )
+						),
+						array(
+							'a' => array( 'href' => true ),
+						)
+					)
+				);
+			}
+		}
+		
 		// A proper archive should have a style.css file in the single subdirectory.
 		if ( ! file_exists( $working_directory . 'style.css' ) ) {
 			return new WP_Error(
