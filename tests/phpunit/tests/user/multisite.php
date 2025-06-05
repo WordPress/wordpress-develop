@@ -449,9 +449,9 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 	}
 
 	/**
- 	 * @ticket 39170
- 	 */
- 	public function test_revoke_super_admin_with_network_email() {
+	 * @ticket 39170
+	 */
+	public function test_revoke_super_admin_with_network_email() {
 		if ( isset( $GLOBALS['super_admins'] ) ) {
 			$old_global = $GLOBALS['super_admins'];
 			unset( $GLOBALS['super_admins'] );
@@ -460,9 +460,11 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 		$old_network_email = get_site_option( 'admin_email' );
 
 		$email_address = 'superadmin333@example.org';
-		$user_id = self::factory()->user->create( array(
-			'user_email' => $email_address,
-		) );
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => $email_address,
+			)
+		);
 		grant_super_admin( $user_id );
 		update_site_option( 'admin_email', $email_address );
 
