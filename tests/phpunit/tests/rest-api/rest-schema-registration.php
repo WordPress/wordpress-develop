@@ -85,7 +85,7 @@ class WP_Test_REST_Schema_Registration extends WP_UnitTestCase {
 			'title'      => 'The string',
 			'properties' => array(
 				'prop' => array(
-					'type' => 'string',
+					'type'   => 'string',
 					'format' => $format,
 				),
 			),
