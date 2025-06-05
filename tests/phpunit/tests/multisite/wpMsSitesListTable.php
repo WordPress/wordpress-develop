@@ -117,7 +117,7 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 			self::$site_ids['make.wordpress.org/foo/'],
 			self::$site_ids['www.w.org/foo/'],
 			self::$site_ids['www.w.org/foo/bar/'],
-			self::$site_ids['foo.example.com'],
+			self::$site_ids['foo.example.com/'],
 		);
 
 		$this->assertSameSets( $expected, $items );
@@ -235,7 +235,7 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 			self::$site_ids['make.wordpress.org/foo/'],
 			self::$site_ids['www.w.org/foo/'],
 			self::$site_ids['www.w.org/foo/bar/'],
-			self::$site_ids['foo.example.com'],
+			self::$site_ids['foo.example.com/'],
 		);
 
 		$this->assertSameSets( $expected, $items );
