@@ -25,6 +25,8 @@ class WP_Fatal_Error_Handler {
 	 * This method is registered via `register_shutdown_function()`.
 	 *
 	 * @since 5.2.0
+	 *
+	 * @global WP_Locale $wp_locale WordPress date and time locale object.
 	 */
 	public function handle() {
 		if ( defined( 'WP_SANDBOX_SCRAPING' ) && WP_SANDBOX_SCRAPING ) {
@@ -188,7 +190,11 @@ class WP_Fatal_Error_Handler {
 			if ( is_multisite() ) {
 				$message = __( 'There has been a critical error on this website. Please reach out to your site administrator, and inform them of this error for further assistance.' );
 			} else {
-				$message = __( 'There has been a critical error on this website. Please check your site admin email inbox for instructions.' );
+				$message = sprintf(
+					/* translators: %s: Support forums URL. */
+					__( 'There has been a critical error on this website. Please check your site admin email inbox for instructions. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+					__( 'https://wordpress.org/support/forums/' )
+				);
 			}
 		} else {
 			$message = __( 'There has been a critical error on this website.' );

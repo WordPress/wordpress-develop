@@ -39,7 +39,7 @@ class WP_Theme_JSON_Data {
 	 * @param array  $data   Array following the theme.json specification.
 	 * @param string $origin The origin of the data: default, theme, user.
 	 */
-	public function __construct( $data = array(), $origin = 'theme' ) {
+	public function __construct( $data = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA ), $origin = 'theme' ) {
 		$this->origin     = $origin;
 		$this->theme_json = new WP_Theme_JSON( $data, $this->origin );
 	}
@@ -70,4 +70,14 @@ class WP_Theme_JSON_Data {
 		return $this->theme_json->get_raw_data();
 	}
 
+	/**
+	 * Returns theme JSON object.
+	 *
+	 * @since 6.6.0
+	 *
+	 * @return WP_Theme_JSON The theme JSON structure stored in this data object.
+	 */
+	public function get_theme_json() {
+		return $this->theme_json;
+	}
 }

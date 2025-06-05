@@ -247,7 +247,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$post   = array(
 			'post_title' => 'Test',
 			'terms'      => array(
-				'foobar_nonexistant' => array( 1 ),
+				'foobar_nonexistent' => array( 1 ),
 			),
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
@@ -257,7 +257,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$post2   = array(
 			'post_title'  => 'Test',
 			'terms_names' => array(
-				'foobar_nonexistant' => array( 1 ),
+				'foobar_nonexistent' => array( 1 ),
 			),
 		);
 		$result2 = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post2 ) );
@@ -445,5 +445,4 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result );
 		$this->assertSame( $date_string, $fetched_post->post_date_gmt );
 	}
-
 }

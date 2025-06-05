@@ -54,7 +54,6 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
-
 	}
 
 	/**
@@ -238,6 +237,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 
 			$default_schema = array(
 				'type'        => empty( $args['type'] ) ? null : $args['type'],
+				'title'       => empty( $args['label'] ) ? '' : $args['label'],
 				'description' => empty( $args['description'] ) ? '' : $args['description'],
 				'default'     => isset( $args['default'] ) ? $args['default'] : null,
 			);

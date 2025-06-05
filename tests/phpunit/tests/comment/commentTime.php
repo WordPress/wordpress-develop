@@ -126,5 +126,4 @@ class Tests_Comment_CommentTime extends WP_UnitTestCase {
 
 		$this->assertSame( '', $actual );
 	}
-
 }

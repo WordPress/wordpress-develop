@@ -357,7 +357,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$val2 = 'val2';
 
 		if ( ! is_multisite() ) {
-			// Single site ingnores switch_to_blog().
+			// Single site ignores switch_to_blog().
 			$this->assertTrue( $this->cache->set( $key, $val ) );
 			$this->assertSame( $val, $this->cache->get( $key ) );
 			$this->cache->switch_to_blog( 999 );

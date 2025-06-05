@@ -9,7 +9,6 @@
  * @since Twenty Twenty-Two 1.0
  */
 
-
 if ( ! function_exists( 'twentytwentytwo_support' ) ) :
 
 	/**
@@ -26,7 +25,6 @@ if ( ! function_exists( 'twentytwentytwo_support' ) ) :
 
 		// Enqueue editor styles.
 		add_editor_style( 'style.css' );
-
 	}
 
 endif;
@@ -56,12 +54,11 @@ if ( ! function_exists( 'twentytwentytwo_styles' ) ) :
 
 		// Enqueue theme stylesheet.
 		wp_enqueue_style( 'twentytwentytwo-style' );
-
 	}
 
 endif;
 
 add_action( 'wp_enqueue_scripts', 'twentytwentytwo_styles' );
 
-// Add block patterns
+// Add block patterns.
 require get_template_directory() . '/inc/block-patterns.php';

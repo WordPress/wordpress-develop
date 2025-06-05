@@ -28,6 +28,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	private static $test_file2;
 
 	/**
+	 * @var string The path to the AVIF test image.
+	 */
+	private static $test_avif_file;
+
+	/**
+	 * @var string The path to the SVG test image.
+	 */
+	private static $test_svg_file;
+
+	/**
 	 * @var array The recorded posts query clauses.
 	 */
 	protected $posts_clauses;
@@ -72,6 +82,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		if ( file_exists( self::$test_file2 ) ) {
 			unlink( self::$test_file2 );
 		}
+		if ( file_exists( self::$test_avif_file ) ) {
+			unlink( self::$test_avif_file );
+		}
 
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$author_id );
@@ -99,6 +112,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		self::$test_file2 = get_temp_dir() . 'codeispoetry.png';
 		if ( ! file_exists( self::$test_file2 ) ) {
 			copy( $orig_file2, self::$test_file2 );
+		}
+
+		$orig_avif_file       = DIR_TESTDATA . '/images/avif-lossy.avif';
+		self::$test_avif_file = get_temp_dir() . 'avif-lossy.avif';
+		if ( ! file_exists( self::$test_avif_file ) ) {
+			copy( $orig_avif_file, self::$test_avif_file );
+		}
+
+		$test_svg_file       = DIR_TESTDATA . '/uploads/video-play.svg';
+		self::$test_svg_file = get_temp_dir() . 'video-play.svg';
+		if ( ! file_exists( self::$test_svg_file ) ) {
+			copy( $test_svg_file, self::$test_svg_file );
 		}
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
@@ -229,6 +254,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'per_page',
 				'search',
 				'search_columns',
+				'search_semantics',
 				'slug',
 				'status',
 			),
@@ -239,10 +265,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'video',
 			'image',
 			'audio',
+			'text',
 		);
-		if ( ! is_multisite() ) {
-			$media_types[] = 'text';
-		}
 		$this->assertSameSets( $media_types, $data['endpoints'][0]['args']['media_type']['enum'] );
 	}
 
@@ -259,8 +283,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		sort( $keys );
-		$this->assertSame( array( 'context', 'id' ), $keys );
+		$this->assertEqualSets( array( 'context', 'id' ), $keys );
 	}
 
 	/**
@@ -1045,6 +1068,99 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertStringNotContainsString( ABSPATH, get_post_meta( $attachment['id'], '_wp_attached_file', true ) );
 	}
 
+	/**
+	 * @ticket 57897
+	 *
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_with_terms() {
+		wp_set_current_user( self::$author_id );
+		register_taxonomy_for_object_type( 'category', 'attachment' );
+		$category = wp_insert_term( 'Media Category', 'category' );
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_param( 'categories', array( $category['term_id'] ) );
+		$response   = rest_get_server()->dispatch( $request );
+		$attachment = $response->get_data();
+
+		$term = wp_get_post_terms( $attachment['id'], 'category' );
+		$this->assertSame( $category['term_id'], $term[0]->term_id );
+	}
+
+	/**
+	 * @ticket 41692
+	 */
+	public function test_create_update_post_with_featured_media() {
+		// Add support for thumbnails on all attachment types to avoid incorrect-usage notice.
+		add_post_type_support( 'attachment', 'thumbnail' );
+
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_file ),
+					'name'     => 'canola.jpg',
+					'size'     => filesize( self::$test_file ),
+					'tmp_name' => self::$test_file,
+				),
+			)
+		);
+		$request->set_header( 'Content-MD5', md5_file( self::$test_file ) );
+
+		$file          = DIR_TESTDATA . '/images/canola.jpg';
+		$attachment_id = self::factory()->attachment->create_object(
+			$file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'menu_order'     => rand( 1, 100 ),
+			)
+		);
+
+		$request->set_param( 'featured_media', $attachment_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$new_attachment = get_post( $data['id'] );
+
+		$this->assertSame( $attachment_id, get_post_thumbnail_id( $new_attachment->ID ) );
+		$this->assertSame( $attachment_id, $data['featured_media'] );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/media/' . $new_attachment->ID );
+		$params  = $this->set_post_data(
+			array(
+				'featured_media' => 0,
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 0, $data['featured_media'] );
+		$this->assertSame( 0, get_post_thumbnail_id( $new_attachment->ID ) );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/media/' . $new_attachment->ID );
+		$params  = $this->set_post_data(
+			array(
+				'featured_media' => $attachment_id,
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( $attachment_id, $data['featured_media'] );
+		$this->assertSame( $attachment_id, get_post_thumbnail_id( $new_attachment->ID ) );
+	}
+
 	public function test_update_item() {
 		wp_set_current_user( self::$editor_id );
 		$attachment_id = self::factory()->attachment->create_object(
@@ -1352,12 +1468,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 						'rendered' => '<a href="#">link</a>',
 					),
 					'description' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
+						'raw'      => '<a href="#" target="_blank">link</a>',
+						'rendered' => '<p><a href="#" target="_blank">link</a></p>',
 					),
 					'caption'     => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
+						'raw'      => '<a href="#" target="_blank">link</a>',
+						'rendered' => '<p><a href="#" target="_blank">link</a></p>',
 					),
 				),
 			),
@@ -1554,7 +1670,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 27, $properties );
+		$this->assertCount( 29, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -1588,6 +1704,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'rendered', $properties['title']['properties'] );
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'missing_image_sizes', $properties );
+		$this->assertArrayHasKey( 'featured_media', $properties );
+		$this->assertArrayHasKey( 'class_list', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -1787,7 +1905,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		}
 
 		$this->assertSame( wp_get_attachment_url( $attachment->ID ), $data['source_url'] );
-
 	}
 
 	/**
@@ -1924,6 +2041,60 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that the naming behavior of REST media uploads matches core media uploads.
+	 *
+	 * In particular, filenames with spaces should maintain the spaces rather than
+	 * replacing them with hyphens.
+	 *
+	 * @ticket 57957
+	 *
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @dataProvider rest_upload_filename_spaces
+	 */
+	public function test_rest_upload_filename_spaces( $filename, $expected ) {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_file2 ),
+					'name'     => $filename,
+					'size'     => filesize( self::$test_file2 ),
+					'tmp_name' => self::$test_file2,
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 201, $response->get_status(), 'The file was not uploaded.' );
+		$this->assertSame( $expected, $data['title']['raw'], 'An incorrect filename was returned.' );
+	}
+
+	/**
+	 * Data provider for text_rest_upload_filename_spaces.
+	 *
+	 * @return array
+	 */
+	public function rest_upload_filename_spaces() {
+		return array(
+			'filename with spaces'  => array(
+				'Filename With Spaces.jpg',
+				'Filename With Spaces',
+			),
+			'filename.with.periods' => array(
+				'Filename.With.Periods.jpg',
+				'Filename.With.Periods',
+			),
+			'filename-with-dashes'  => array(
+				'Filename-With-Dashes.jpg',
+				'Filename-With-Dashes',
+			),
+		);
+	}
+
+	/**
 	 * Ensure the `rest_after_insert_attachment` and `rest_insert_attachment` hooks only fire
 	 * once when attachments are updated.
 	 *
@@ -1983,12 +2154,104 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 'Chocolate-dipped, no filling', get_post_meta( $response->get_data()['id'], 'best_cannoli', true ) );
 	}
 
+	/**
+	 * @ticket 61189
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_year_month_based_folders() {
+		update_option( 'uploads_use_yearmonth_folders', 1 );
+
+		wp_set_current_user( self::$editor_id );
+
+		$published_post = self::factory()->post->create(
+			array(
+				'post_status'   => 'publish',
+				'post_date'     => '2017-02-14 00:00:00',
+				'post_date_gmt' => '2017-02-14 00:00:00',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'title', 'My title is very cool' );
+		$request->set_param( 'caption', 'This is a better caption.' );
+		$request->set_param( 'description', 'Without a description, my attachment is descriptionless.' );
+		$request->set_param( 'alt_text', 'Alt text is stored outside post schema.' );
+		$request->set_param( 'post', $published_post );
+
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		update_option( 'uploads_use_yearmonth_folders', 0 );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$attachment = get_post( $data['id'] );
+
+		$this->assertSame( $attachment->post_parent, $data['post'] );
+		$this->assertSame( $attachment->post_parent, $published_post );
+		$this->assertSame( wp_get_attachment_url( $attachment->ID ), $data['source_url'] );
+		$this->assertStringContainsString( '2017/02', $data['source_url'] );
+	}
+
+
+	/**
+	 * @ticket 61189
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_year_month_based_folders_page_post_type() {
+		update_option( 'uploads_use_yearmonth_folders', 1 );
+
+		wp_set_current_user( self::$editor_id );
+
+		$published_post = self::factory()->post->create(
+			array(
+				'post_type'     => 'page',
+				'post_status'   => 'publish',
+				'post_date'     => '2017-02-14 00:00:00',
+				'post_date_gmt' => '2017-02-14 00:00:00',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
+		$request->set_param( 'title', 'My title is very cool' );
+		$request->set_param( 'caption', 'This is a better caption.' );
+		$request->set_param( 'description', 'Without a description, my attachment is descriptionless.' );
+		$request->set_param( 'alt_text', 'Alt text is stored outside post schema.' );
+		$request->set_param( 'post', $published_post );
+
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		update_option( 'uploads_use_yearmonth_folders', 0 );
+
+		$time   = current_time( 'mysql' );
+		$y      = substr( $time, 0, 4 );
+		$m      = substr( $time, 5, 2 );
+		$subdir = "/$y/$m";
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$attachment = get_post( $data['id'] );
+
+		$this->assertSame( $attachment->post_parent, $data['post'] );
+		$this->assertSame( $attachment->post_parent, $published_post );
+		$this->assertSame( wp_get_attachment_url( $attachment->ID ), $data['source_url'] );
+		$this->assertStringNotContainsString( '2017/02', $data['source_url'] );
+		$this->assertStringContainsString( $subdir, $data['source_url'] );
+	}
+
 	public function filter_rest_insert_attachment( $attachment ) {
-		self::$rest_insert_attachment_count++;
+		++self::$rest_insert_attachment_count;
 	}
 
 	public function filter_rest_after_insert_attachment( $attachment ) {
-		self::$rest_after_insert_attachment_count++;
+		++self::$rest_after_insert_attachment_count;
 	}
 
 	/**
@@ -2139,7 +2402,44 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['crop'] );
 		$this->assertSame(
-			array( 320.0, 48.0, 64.0, 24.0 ),
+			array( 320, 48, 64, 24 ),
+			WP_Image_Editor_Mock::$spy['crop'][0]
+		);
+	}
+
+	/**
+	 * @ticket 61514
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_crop_one_axis() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor();
+		WP_Image_Editor_Mock::$size_return = array(
+			'width'  => 640,
+			'height' => 480,
+		);
+
+		WP_Image_Editor_Mock::$edit_return['crop'] = new WP_Error();
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params(
+			array(
+				'x'      => 50,
+				'y'      => 0,
+				'width'  => 10,
+				'height' => 100,
+				'src'    => wp_get_attachment_image_url( $attachment, 'full' ),
+
+			)
+		);
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_crop_failed', $response, 500 );
+
+		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['crop'] );
+		$this->assertSame(
+			array( 320, 0, 64, 480 ),
 			WP_Image_Editor_Mock::$spy['crop'][0]
 		);
 	}
@@ -2167,7 +2467,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
 		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
-		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
+		$this->assertSame( (string) $attachment, $item['media_details']['parent_image']['attachment_id'] );
 		$this->assertStringContainsString( 'canola', $item['media_details']['parent_image']['file'] );
 	}
 
@@ -2210,7 +2510,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
 		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
-		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
+		$this->assertSame( (string) $attachment, $item['media_details']['parent_image']['attachment_id'] );
 		$this->assertStringContainsString( 'canola', $item['media_details']['parent_image']['file'] );
 	}
 
@@ -2265,5 +2565,79 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				return array( 'WP_Image_Editor_Mock' );
 			}
 		);
+	}
+
+	/**
+	 * Test that uploading unsupported image types throws a `rest_upload_image_type_not_supported` error.
+	 *
+	 * @ticket 61167
+	 */
+	public function test_upload_unsupported_image_type() {
+
+		// Only run this test when the editor doesn't support AVIF.
+		if ( wp_image_editor_supports( array( 'AVIF' ) ) ) {
+			$this->markTestSkipped( 'The image editor suppports AVIF.' );
+		}
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+
+		wp_set_current_user( self::$author_id );
+		$request->set_header( 'Content-Type', 'image/avif' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=avif-lossy.avif' );
+		$request->set_body( file_get_contents( self::$test_avif_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_upload_image_type_not_supported', $response, 400 );
+	}
+
+	/**
+	 * Test that the `wp_prevent_unsupported_image_uploads` filter enables uploading of unsupported image types.
+	 *
+	 * @ticket 61167
+	 */
+	public function test_upload_unsupported_image_type_with_filter() {
+
+		// Only run this test when the editor doesn't support AVIF.
+		if ( wp_image_editor_supports( array( 'AVIF' ) ) ) {
+			$this->markTestSkipped( 'The image editor suppports AVIF.' );
+		}
+
+		add_filter( 'wp_prevent_unsupported_image_uploads', '__return_false' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+
+		wp_set_current_user( self::$author_id );
+		$request->set_header( 'Content-Type', 'image/avif' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=avif-lossy.avif' );
+		$request->set_body( file_get_contents( self::$test_avif_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+	}
+
+	/**
+	 * Test that uploading an SVG image doesn't throw a `rest_upload_image_type_not_supported` error.
+	 *
+	 * @ticket 63302
+	 */
+	public function test_upload_svg_image() {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/svg+xml' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_svg_file ),
+					'name'     => 'video-play.svg',
+					'size'     => filesize( self::$test_svg_file ),
+					'tmp_name' => self::$test_svg_file,
+					'type'     => 'image/svg+xml',
+				),
+			)
+		);
+		$rest_controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result          = $rest_controller->create_item_permissions_check( $request );
+
+		$this->assertTrue( $result );
 	}
 }

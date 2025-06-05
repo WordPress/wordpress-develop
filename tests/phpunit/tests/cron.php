@@ -53,7 +53,6 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// It's a non-recurring event.
 		$this->assertFalse( wp_get_schedule( $hook ) );
-
 	}
 
 	/**
@@ -489,7 +488,10 @@ class Tests_Cron extends WP_UnitTestCase {
 		add_filter( 'pre_reschedule_event', '__return_true' );
 
 		// Reschedule event with preflight filter in place.
-		wp_reschedule_event( $ts1, 'daily', $hook );
+		$rescheduled = wp_reschedule_event( $ts1, 'daily', $hook );
+
+		// Check return value.
+		$this->assertTrue( $rescheduled );
 
 		// Check cron option is unchanged.
 		$this->assertSame( $expected, _get_cron_array() );
@@ -596,7 +598,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * When no timestamp is specified, the next event should be returned.
 	 * When a timestamp is specified, a particular event should be returned.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -641,7 +643,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * When no timestamp is specified, the next event should be returned.
 	 * When a timestamp is specified, a particular event should be returned.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -687,7 +689,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * Ensure wp_get_scheduled_event() returns false when expected.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -708,7 +710,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertFalse( wp_get_scheduled_event( $hook, $args, strtotime( '+30 minutes' ) ) );
 		// - Invalid timestamp.
 		$this->assertFalse( wp_get_scheduled_event( $hook, $args, 'Words Fail!' ) );
-
 	}
 
 	/**
@@ -767,7 +768,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		$subsequent = wp_schedule_single_event( $ts3, $hook, $args, true );
 		$this->assertWPError( $subsequent );
 		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
-
 	}
 
 	/**
@@ -913,12 +913,12 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_reschedule_event
 	 */
 	public function test_schedule_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
-		$return_error = function( $pre, $event, $wp_error ) {
+		$return_error = function ( $pre, $event, $wp_error ) {
 			$this->assertFalse( $wp_error );
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -945,12 +945,12 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_reschedule_event
 	 */
 	public function test_schedule_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
-		$return_error = function( $pre, $event, $wp_error ) {
+		$return_error = function ( $pre, $event, $wp_error ) {
 			$this->assertTrue( $wp_error );
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -1026,13 +1026,60 @@ class Tests_Cron extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 57271
+	 *
+	 * @dataProvider data_wp_reschedule_event_works_with_args
+	 *
+	 * @covers ::wp_reschedule_event
+	 */
+	public function test_wp_reschedule_event_works_with_args( array $args ) {
+		$time = time();
+
+		// Schedule events with the `$wp_error` parameter:
+		$event             = wp_schedule_event( $time, 'daily', 'hook', $args, true );
+		$rescheduled_event = wp_reschedule_event( $time, 'daily', 'hook', $args, true );
+		$unscheduled_event = wp_unschedule_event( $time, 'hook', $args, true );
+		$next_timestamp    = wp_next_scheduled( 'hook', $args );
+
+		// Ensure the events were added and updated correctly:
+		$this->assertNotWPError( $event );
+		$this->assertNotWPError( $rescheduled_event );
+		$this->assertNotWPError( $unscheduled_event );
+		$this->assertSame( $time + DAY_IN_SECONDS, $next_timestamp );
+	}
+
+	/**
+	 * Data provider for test_wp_reschedule_event_works_with_args().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_reschedule_event_works_with_args() {
+		return array(
+			'indexed'     => array(
+				array(
+					1,
+					2,
+					3,
+				),
+			),
+			'associative' => array(
+				array(
+					'one'   => 1,
+					'two'   => 2,
+					'three' => 3,
+				),
+			),
+		);
+	}
+
+	/**
 	 * @ticket 49961
 	 * @expectedDeprecated wp_clear_scheduled_hook
 	 *
 	 * @covers ::wp_clear_scheduled_hook
 	 */
 	public function test_deprecated_argument_usage_of_wp_clear_scheduled_hook() {
-		$return_pre = function( $pre, $hook, $args, $wp_error ) {
+		$return_pre = function ( $pre, $hook, $args, $wp_error ) {
 			$this->assertSame( array( 1, 2, 3 ), $args );
 			$this->assertFalse( $wp_error );
 
@@ -1075,7 +1122,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_clear_scheduled_hook
 	 */
 	public function test_clear_scheduled_hook_returns_custom_pre_filter_error_when_wp_error_is_set_to_true() {
-		$return_error = function( $pre, $timestamp, $hook, $args, $wp_error ) {
+		$return_error = function ( $pre, $timestamp, $hook, $args, $wp_error ) {
 			$this->assertTrue( $wp_error );
 
 			return new WP_Error( 'error_code', 'error message' );
@@ -1110,12 +1157,12 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_unschedule_hook
 	 */
 	public function test_unschedule_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
-		$return_error = function( $pre, $hook, $wp_error ) {
+		$return_error = function ( $pre, $hook, $wp_error ) {
 			$this->assertFalse( $wp_error );
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -1135,12 +1182,12 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @covers ::wp_unschedule_hook
 	 */
 	public function test_unschedule_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
-		$return_error = function( $pre, $hook, $wp_error ) {
+		$return_error = function ( $pre, $hook, $wp_error ) {
 			$this->assertTrue( $wp_error );
 
 			return new WP_Error(
 				'my_error',
-				'An error ocurred'
+				'An error occurred'
 			);
 		};
 
@@ -1197,7 +1244,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			static function() {
+			static function () {
 				return get_option( 'cron' );
 			}
 		);
@@ -1219,7 +1266,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			static function() {
+			static function () {
 				return get_option( 'cron' );
 			}
 		);
@@ -1244,7 +1291,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			static function() {
+			static function () {
 				return get_option( 'cron' );
 			}
 		);
@@ -1270,7 +1317,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Force update_option() to fail by setting the new value to match the existing:
 		add_filter(
 			'pre_update_option_cron',
-			static function() {
+			static function () {
 				return get_option( 'cron' );
 			}
 		);
@@ -1283,5 +1330,4 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertWPError( $unscheduled );
 		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
 	}
-
 }

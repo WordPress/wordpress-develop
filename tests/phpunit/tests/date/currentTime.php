@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ *
  * @covers ::current_time
  */
 class Tests_Date_CurrentTime extends WP_UnitTestCase {
@@ -90,9 +91,14 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40653
+	 * @ticket 57998
+	 *
+	 * @dataProvider data_timezones
+	 *
+	 * @param string $timezone The timezone to test.
 	 */
-	public function test_should_return_wp_timestamp() {
-		update_option( 'timezone_string', 'Europe/Helsinki' );
+	public function test_should_return_wp_timestamp( $timezone ) {
+		update_option( 'timezone_string', $timezone );
 
 		$timestamp = time();
 		$datetime  = new DateTime( '@' . $timestamp );
@@ -100,24 +106,29 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 		$wp_timestamp = $timestamp + $datetime->getOffset();
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.RequestedUTC
-		$this->assertEqualsWithDelta( $timestamp, current_time( 'timestamp', true ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( $timestamp, current_time( 'timestamp', true ), 2, 'When passing "timestamp", the date should be equal to time()' );
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.RequestedUTC
-		$this->assertEqualsWithDelta( $timestamp, current_time( 'U', true ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( $timestamp, current_time( 'U', true ), 2, 'When passing "U", the date should be equal to time()' );
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'timestamp' ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'timestamp' ), 2, 'When passing "timestamp", the date should be equal to calculated timestamp' );
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'U' ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'U' ), 2, 'When passing "U", the date should be equal to calculated timestamp' );
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertIsInt( current_time( 'timestamp' ) );
+		$this->assertIsInt( current_time( 'timestamp' ), 'The returned timestamp should be an integer' );
 	}
 
 	/**
 	 * @ticket 40653
+	 * @ticket 57998
+	 *
+	 * @dataProvider data_timezones
+	 *
+	 * @param string $timezone The timezone to test.
 	 */
-	public function test_should_return_correct_local_time() {
-		update_option( 'timezone_string', 'Europe/Helsinki' );
+	public function test_should_return_correct_local_time( $timezone ) {
+		update_option( 'timezone_string', $timezone );
 
 		$timestamp      = time();
 		$datetime_local = new DateTime( '@' . $timestamp );
@@ -126,7 +137,20 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 		$datetime_utc->setTimezone( new DateTimeZone( 'UTC' ) );
 
 		$this->assertEqualsWithDelta( strtotime( $datetime_local->format( DATE_W3C ) ), strtotime( current_time( DATE_W3C ) ), 2, 'The dates should be equal' );
-		$this->assertEqualsWithDelta( strtotime( $datetime_utc->format( DATE_W3C ) ), strtotime( current_time( DATE_W3C, true ) ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( $datetime_utc->format( DATE_W3C ) ), strtotime( current_time( DATE_W3C, true ) ), 2, 'When passing "timestamp", the dates should be equal' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_timezones() {
+		return array(
+			array( 'Europe/Helsinki' ),
+			array( 'Indian/Antananarivo' ),
+			array( 'Australia/Adelaide' ),
+		);
 	}
 
 	/**
@@ -156,5 +180,89 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 		$this->assertSame( $datetime->format( $format ), $current_time_custom_timezone, 'The dates should be equal [2]' );
 		$this->assertSame( gmdate( $format ), $current_time_gmt, 'The dates should be equal [3]' );
 		$this->assertSame( $datetime->format( $format ), $current_time, 'The dates should be equal [4]' );
+	}
+
+	/**
+	 * Ensures an empty offset does not cause a type error.
+	 *
+	 * @ticket 57998
+	 */
+	public function test_empty_offset_does_not_cause_a_type_error() {
+		// Ensure `wp_timezone_override_offset()` doesn't override offset.
+		update_option( 'timezone_string', '' );
+		update_option( 'gmt_offset', '' );
+
+		$expected = time();
+
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
+		$this->assertEqualsWithDelta( $expected, current_time( 'timestamp' ), 2, 'The timestamps should be equal' );
+	}
+
+	/**
+	 * Ensures the offset applied in current_time() is correct.
+	 *
+	 * @ticket 57998
+	 *
+	 * @dataProvider data_partial_hour_timezones_with_timestamp
+	 *
+	 * @param float $partial_hour Partial hour GMT offset to test.
+	 */
+	public function test_partial_hour_timezones_with_timestamp( $partial_hour ) {
+		// Ensure `wp_timezone_override_offset()` doesn't override offset.
+		update_option( 'timezone_string', '' );
+		update_option( 'gmt_offset', $partial_hour );
+
+		$expected = time() + (int) ( $partial_hour * HOUR_IN_SECONDS );
+
+		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
+		$this->assertEqualsWithDelta( $expected, current_time( 'timestamp' ), 2, 'The timestamps should be equal' );
+	}
+
+	/**
+	 * Tests the tests.
+	 *
+	 * Ensures the offsets match the stated timezones in the data provider.
+	 *
+	 * @ticket 57998
+	 *
+	 * @dataProvider data_partial_hour_timezones_with_timestamp
+	 *
+	 * @param float $partial_hour     Partial hour GMT offset to test.
+	 * @param string $timezone_string Timezone string to test.
+	 */
+	public function test_partial_hour_timezones_match_datetime_offset( $partial_hour, $timezone_string ) {
+		$timezone   = new DateTimeZone( $timezone_string );
+		$datetime   = new DateTime( 'now', $timezone );
+		$dst_offset = (int) $datetime->format( 'I' );
+
+		// Timezone offset in hours.
+		$offset = $timezone->getOffset( $datetime ) / HOUR_IN_SECONDS;
+
+		/*
+		 * Adjust for daylight saving time.
+		 *
+		 * DST adds an hour to the offset, the partial hour offset
+		 * is set the the standard time offset so this removes the
+		 * DST offset to avoid false negatives.
+		 */
+		$offset -= $dst_offset;
+
+		$this->assertSame( $partial_hour, $offset, 'The offset should match to timezone.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_partial_hour_timezones_with_timestamp() {
+		return array(
+			'+12:45' => array( 12.75, 'Pacific/Chatham' ), // New Zealand, Chatham Islands.
+			'+9:30'  => array( 9.5, 'Australia/Darwin' ), // Australian Northern Territory.
+			'+05:30' => array( 5.5, 'Asia/Kolkata' ), // India and Sri Lanka.
+			'+05:45' => array( 5.75, 'Asia/Kathmandu' ), // Nepal.
+			'-03:30' => array( -3.50, 'Canada/Newfoundland' ), // Canada, Newfoundland.
+			'-09:30' => array( -9.50, 'Pacific/Marquesas' ), // French Polynesia, Marquesas Islands.
+		);
 	}
 }
