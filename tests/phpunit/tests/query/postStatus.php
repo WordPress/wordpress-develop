@@ -240,7 +240,11 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		foreach ( get_post_stati( array( 'public' => true ) ) as $status ) {
+		$stati = get_post_stati( array( 'public' => true ) );
+
+		$this->assertNotEmpty( $stati );
+
+		foreach ( $stati as $status ) {
 			$this->assertStringContainsString( "post_status = '$status'", $q->request );
 		}
 	}

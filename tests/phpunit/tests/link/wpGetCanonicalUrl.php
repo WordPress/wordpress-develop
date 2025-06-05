@@ -2,18 +2,12 @@
 /**
  * Tests for the wp_get_canonical_url() function.
  *
- * @package WordPress
- * @subpackage Link
- */
-
-/**
- * Class for Testing the wp_get_canonical_url() function.
- *
  * @group link
  * @group canonical
  * @covers ::wp_get_canonical_url
  */
 class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
+
 	/**
 	 * The ID of the post.
 	 *
@@ -51,14 +45,14 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test for a non existing post.
+	 * Tests that false is returned for a non-existing post.
 	 */
 	public function test_non_existing_post() {
 		$this->assertFalse( wp_get_canonical_url( -1 ) );
 	}
 
 	/**
-	 * Test for a post that is not published.
+	 * Tests that false is returned for a post that is not published.
 	 */
 	public function test_post_status() {
 		$post_id = self::factory()->post->create(
@@ -71,14 +65,14 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test for a page that is not the queried object.
+	 * Tests canonical URL for a page that is not the queried object.
 	 */
 	public function test_non_current_page() {
 		$this->assertSame( get_permalink( self::$post_id ), wp_get_canonical_url( self::$post_id ) );
 	}
 
 	/**
-	 * Test non permalink structure page usage.
+	 * Tests non-permalink structure page usage.
 	 */
 	public function test_paged_with_plain_permalink_structure() {
 		$link = add_query_arg(
@@ -102,7 +96,7 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test permalink structure page usage.
+	 * Tests permalink structure page usage.
 	 */
 	public function test_paged_with_custom_permalink_structure() {
 		$this->set_permalink_structure( '/%postname%/' );
@@ -124,7 +118,7 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 *  Test non permalink structure comment page usage.
+	 * Tests non-permalink structure comment page usage.
 	 */
 	public function test_comments_paged_with_plain_permalink_structure() {
 		$cpage = 2;
@@ -150,7 +144,7 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test permalink structure comment page usage.
+	 * Tests permalink structure comment page usage.
 	 */
 	public function test_comments_paged_with_pretty_permalink_structure() {
 		global $wp_rewrite;
@@ -174,7 +168,7 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 * This test ensures that attachments with 'inherit' status properly receive a canonical URL.
+	 * Tests that attachments with 'inherit' status properly receive a canonical URL.
 	 *
 	 * @ticket 63041
 	 */
@@ -187,7 +181,7 @@ class Tests_Link_WpGetCanonicalUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test calling of filter.
+	 * Tests calling of filter.
 	 */
 	public function test_get_canonical_url_filter() {
 		add_filter( 'get_canonical_url', array( $this, 'canonical_url_filter' ) );
