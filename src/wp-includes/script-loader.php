@@ -396,11 +396,11 @@ function wp_default_packages_inline_scripts( $scripts ) {
 			"\n",
 			array(
 				'( function() {',
-				'	var userId = ' . get_current_user_id() . ';',
+				'	var userId = ' . get_current_user_ID() . ';',
 				'	var storageKey = "WP_DATA_USER_" + userId;',
 				'	wp.data',
 				'		.use( wp.data.plugins.persistence, { storageKey: storageKey } );',
-				'} )();',
+				'	wp.data.plugins.persistence.__unstableMigrate( { storageKey: storageKey } );',
 			)
 		)
 	);
@@ -2786,7 +2786,7 @@ function enqueue_editor_block_styles_assets() {
 				$block_style['isDefault'] = $style_properties['is_default'];
 			}
 			$register_script_lines[] = sprintf(
-				'   wp.blocks.registerBlockStyle( \'%s\', %s );',
+				'	wp.blocks.registerBlockStyle( \'%s\', %s );',
 				$block_name,
 				wp_json_encode( $block_style )
 			);
