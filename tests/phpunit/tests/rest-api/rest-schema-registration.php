@@ -248,34 +248,33 @@ class WP_Test_REST_Schema_Registration extends WP_UnitTestCase {
 	/**
 	 * Tests type agnostic property definition.
 	 *
-	 * @testWith [ "anyOf" ]
-	 *           [ "oneOf" ]
+	 * @testWith [ "anyOf", "array", [ { "type": "string" }, { "type": "number" } ] ]
+	 *           [ "oneOf", "array", [ { "type": "string" }, { "type": "number" } ] ]
+	 *           [ "enum", "string", [ "a", "b", "c" ] ]
 	 *
 	 * @param string $rule The rule to test.
 	 * @return void
 	 */
-	public function test_type_agnostic_property_definition( $rule ) {
+	public function test_type_agnostic_property_definition( $rule, $type, $rules ) {
 		global $wp_rest_server;
-
-		$rules = array(
-			array(
-				'type' => 'string',
-			),
-			array(
-				'type' => 'number',
-			),
-		);
 
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'Something',
 			'properties' => array(
 				'prop' => array(
-					'type' => 'array',
-					$rule  => $rules,
+					'type' => $type,
 				),
 			),
 		);
+
+		if ( 'array' === $type ) {
+			$schema['properties']['prop']['items'] = array(
+				$rule => $rules,
+			);
+		} else {
+			$schema['properties']['prop'][ $rule ] = $rules;
+		}
 
 		$this->register_route( $schema, WP_REST_Server::CREATABLE );
 
@@ -283,8 +282,14 @@ class WP_Test_REST_Schema_Registration extends WP_UnitTestCase {
 		$response = $wp_rest_server->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( $rules, $response->get_data()['endpoints'][0]['args']['prop'][ $rule ] );
-		$this->assertSame( $rules, $response->get_data()['schema']['properties']['prop'][ $rule ] );
+
+		if ( 'array' === $type ) {
+			$this->assertSame( $rules, $response->get_data()['endpoints'][0]['args']['prop']['items'][ $rule ] );
+			$this->assertSame( $rules, $response->get_data()['schema']['properties']['prop']['items'][ $rule ] );
+		} else {
+			$this->assertSame( $rules, $response->get_data()['endpoints'][0]['args']['prop'][ $rule ] );
+			$this->assertSame( $rules, $response->get_data()['schema']['properties']['prop'][ $rule ] );
+		}
 	}
 
 	/**
