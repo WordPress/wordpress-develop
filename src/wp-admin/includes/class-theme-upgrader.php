@@ -578,7 +578,7 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		if ( 'default' === $environment ) {
 			$plugin_upgrader = new Plugin_Upgrader();
-			$plugin_upgrader->init(); // Initialize strings from parent WP_Upgrader
+			$plugin_upgrader->init(); // Initialize strings from parent WP_Upgrader.
 			$plugin_check = $plugin_upgrader->check_package( $source, 'in-plugin-installer' );
 
 			if ( ! is_a( $plugin_check, 'WP_Error' ) ) {
@@ -586,6 +586,7 @@ class Theme_Upgrader extends WP_Upgrader {
 					'incompatible_archive_theme_is_plugin',
 					$plugin_upgrader->strings['incompatible_archive'] . ' ' . wp_kses(
 						sprintf(
+							/* translators: %s: URL to the plugin installer page. */
 							__( 'This appears to be a plugin package. <a href="%s">Go to the Plugin Installer</a> to install plugins.' ),
 							admin_url( 'plugin-install.php' )
 						),
@@ -596,7 +597,7 @@ class Theme_Upgrader extends WP_Upgrader {
 				);
 			}
 		}
-		
+
 		// A proper archive should have a style.css file in the single subdirectory.
 		if ( ! file_exists( $working_directory . 'style.css' ) ) {
 			return new WP_Error(
