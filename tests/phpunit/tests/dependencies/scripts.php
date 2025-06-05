@@ -187,9 +187,9 @@ JS;
 				'id' => 'ds-i1-1-js-before',
 			)
 		);
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-i1-1.js' id='ds-i1-1-js' $strategy data-wp-strategy='{$strategy}'></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-i1-2.js' id='ds-i1-2-js' $strategy data-wp-strategy='{$strategy}'></script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.org/ds-i1-3.js' id='ds-i1-3-js' $strategy data-wp-strategy='{$strategy}'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i1-1.js' id='ds-i1-1-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i1-2.js' id='ds-i1-2-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ds-i1-3.js' id='ds-i1-3-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>\n";
 		$expected .= wp_get_inline_script_tag(
 			'console.log("before last");',
 			array(
@@ -197,7 +197,7 @@ JS;
 				'type' => 'text/javascript',
 			)
 		);
-		$expected .= "<script type='text/javascript' src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' {$strategy} data-wp-strategy='{$strategy}'></script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>\n";
 
 		$this->_assertEqualMarkup( $expected, $output, 'Inline scripts in the "before" position, that are attached to a deferred main script, are failing to print/execute.' );
 	}
@@ -216,7 +216,7 @@ JS;
 		// No dependents, No dependencies then async.
 		wp_enqueue_script( 'main-script-a1', '/main-script-a1.js', array(), null, array( 'strategy' => 'async' ) );
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = "<script type='text/javascript' src='/main-script-a1.js' id='main-script-a1-js' async data-wp-strategy='async'></script>\n";
+		$expected = "<script type='text/javascript' src='/main-script-a1.js' id='main-script-a1-js' async='async' data-wp-strategy='async'></script>\n";
 		$this->_assertEqualMarkup( $expected, $output, 'Scripts enqueued with an async loading strategy are failing to have the async attribute applied to the script handle when being printed.' );
 	}
 
@@ -238,8 +238,8 @@ JS;
 		wp_enqueue_script( 'dependency-script-a2', '/dependency-script-a2.js', array(), null );
 		wp_enqueue_script( 'main-script-a2', '/main-script-a2.js', array( 'dependency-script-a2' ), null, compact( 'strategy' ) );
 		$output    = get_echo( 'wp_print_scripts' );
-		$expected  = "<script id='dependency-script-a2-js' src='/dependency-script-a2.js'></script>\n";
-		$expected .= "<script type='text/javascript' src='/main-script-a2.js' id='main-script-a2-js' {$strategy} data-wp-strategy='{$strategy}'></script>";
+		$expected  = "<script id='dependency-script-a2-js' src='/dependency-script-a2.js' type='text/javascript'></script>\n";
+		$expected .= "<script type='text/javascript' src='/main-script-a2.js' id='main-script-a2-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>";
 		$this->_assertEqualMarkup( $expected, $output, 'Dependents of a blocking dependency are free to have any strategy.' );
 	}
 
