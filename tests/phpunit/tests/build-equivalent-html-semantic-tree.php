@@ -80,10 +80,10 @@ END;
 				'<!-- wp:separator {"className":"wp-block-separator is-style-default"} -->',
 				'<!-- wp:separator {"className":"wp-block-separator is-style-default wp-block-separator"} -->',
 			),
-			'Different Capitalization of tag'             => array(
+			'Different Capitalization of tag'          => array(
 				'<IMG src="wp.png" alt="The WordPress logo">',
-				'<img src="wp.png" alt="The WordPress logo">',		
-			),	
+				'<img src="wp.png" alt="The WordPress logo">',
+			),
 		);
 	}
 
