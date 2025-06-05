@@ -8065,7 +8065,7 @@ function set_post_thumbnail( $post, $thumbnail_id ) {
 					wp_update_post(
 						array(
 							'ID'          => $thumbnail_id,
-							'post_parent' => $post->ID
+							'post_parent' => $post->ID,
 						)
 					);
 				}
