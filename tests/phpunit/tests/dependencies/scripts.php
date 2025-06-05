@@ -511,18 +511,26 @@ JS;
 				},
 				'expected_markup' => <<<HTML
 <script id="blocking-not-async-without-dependency-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-not-async-without-dependency: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-not-async-without-dependency:%20script' id='blocking-not-async-without-dependency-js'></script>
 <script id="blocking-not-async-without-dependency-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-not-async-without-dependency: after inline" )
+/* ]]> */
 </script>
 <script id="async-with-blocking-dependency-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-with-blocking-dependency: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=async-with-blocking-dependency:%20script' id='async-with-blocking-dependency-js' data-wp-strategy='async'></script>
 <script id="async-with-blocking-dependency-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-with-blocking-dependency: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -548,25 +556,37 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="async-no-dependency-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-no-dependency: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=async-no-dependency:%20script' id='async-no-dependency-js' data-wp-strategy='async'></script>
 <script id="async-no-dependency-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-no-dependency: after inline" )
+/* ]]> */
 </script>
 <script id="async-one-async-dependency-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-one-async-dependency: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=async-one-async-dependency:%20script' id='async-one-async-dependency-js' data-wp-strategy='async'></script>
 <script id="async-one-async-dependency-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-one-async-dependency: after inline" )
+/* ]]> */
 </script>
 <script id="async-two-async-dependencies-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-two-async-dependencies: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=async-two-async-dependencies:%20script' id='async-two-async-dependencies-js' data-wp-strategy='async'></script>
 <script id="async-two-async-dependencies-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-two-async-dependencies: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -584,18 +604,26 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="async-with-blocking-dependent-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-with-blocking-dependent: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=async-with-blocking-dependent:%20script' id='async-with-blocking-dependent-js' data-wp-strategy='async'></script>
 <script id="async-with-blocking-dependent-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-with-blocking-dependent: after inline" )
+/* ]]> */
 </script>
 <script id="blocking-dependent-of-async-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependent-of-async: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-dependent-of-async:%20script' id='blocking-dependent-of-async-js'></script>
 <script id="blocking-dependent-of-async-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependent-of-async: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -613,18 +641,26 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="async-with-defer-dependent-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-with-defer-dependent: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=async-with-defer-dependent:%20script' id='async-with-defer-dependent-js' data-wp-strategy='async'></script>
 <script id="async-with-defer-dependent-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-with-defer-dependent: after inline" )
+/* ]]> */
 </script>
 <script id="defer-dependent-of-async-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-async: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-async:%20script' id='defer-dependent-of-async-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-async-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-async: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -645,17 +681,25 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="blocking-bundle-of-none-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-of-none: before inline" )
+/* ]]> */
 </script>
 <script id="blocking-bundle-of-none-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-of-none: after inline" )
+/* ]]> */
 </script>
 <script id="defer-dependent-of-blocking-bundle-of-none-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-none: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-bundle-of-none:%20script' id='defer-dependent-of-blocking-bundle-of-none-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-blocking-bundle-of-none-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-none: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -679,25 +723,37 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="blocking-bundle-member-one-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-member-one: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-bundle-member-one:%20script' id='blocking-bundle-member-one-js'></script>
 <script id="blocking-bundle-member-one-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-member-one: after inline" )
+/* ]]> */
 </script>
 <script id="blocking-bundle-member-two-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-member-two: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-bundle-member-two:%20script' id='blocking-bundle-member-two-js'></script>
 <script id="blocking-bundle-member-two-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-member-two: after inline" )
+/* ]]> */
 </script>
 <script id="defer-dependent-of-blocking-bundle-of-two-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-two: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-bundle-of-two:%20script' id='defer-dependent-of-blocking-bundle-of-two-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-blocking-bundle-of-two-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-two: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -720,17 +776,25 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="defer-bundle-of-none-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-bundle-of-none: before inline" )
+/* ]]> */
 </script>
 <script id="defer-bundle-of-none-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-bundle-of-none: after inline" )
+/* ]]> */
 </script>
 <script id="defer-dependent-of-defer-bundle-of-none-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-defer-bundle-of-none: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-defer-bundle-of-none:%20script' id='defer-dependent-of-defer-bundle-of-none-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-defer-bundle-of-none-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-defer-bundle-of-none: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -751,25 +815,37 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="blocking-dependency-with-defer-following-dependency-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependency-with-defer-following-dependency: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-dependency-with-defer-following-dependency:%20script' id='blocking-dependency-with-defer-following-dependency-js'></script>
 <script id="blocking-dependency-with-defer-following-dependency-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependency-with-defer-following-dependency: after inline" )
+/* ]]> */
 </script>
 <script id="defer-dependency-with-blocking-preceding-dependency-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependency-with-blocking-preceding-dependency: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependency-with-blocking-preceding-dependency:%20script' id='defer-dependency-with-blocking-preceding-dependency-js' data-wp-strategy='defer'></script>
 <script id="defer-dependency-with-blocking-preceding-dependency-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependency-with-blocking-preceding-dependency: after inline" )
+/* ]]> */
 </script>
 <script id="defer-dependent-of-blocking-and-defer-dependencies-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-and-defer-dependencies: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-and-defer-dependencies:%20script' id='defer-dependent-of-blocking-and-defer-dependencies-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-blocking-and-defer-dependencies-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-and-defer-dependencies: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -790,25 +866,37 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="defer-dependency-with-blocking-following-dependency-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependency-with-blocking-following-dependency: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependency-with-blocking-following-dependency:%20script' id='defer-dependency-with-blocking-following-dependency-js' data-wp-strategy='defer'></script>
 <script id="defer-dependency-with-blocking-following-dependency-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependency-with-blocking-following-dependency: after inline" )
+/* ]]> */
 </script>
 <script id="blocking-dependency-with-defer-preceding-dependency-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependency-with-defer-preceding-dependency: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=blocking-dependency-with-defer-preceding-dependency:%20script' id='blocking-dependency-with-defer-preceding-dependency-js'></script>
 <script id="blocking-dependency-with-defer-preceding-dependency-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependency-with-defer-preceding-dependency: after inline" )
+/* ]]> */
 </script>
 <script id="defer-dependent-of-defer-and-blocking-dependencies-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-defer-and-blocking-dependencies: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-defer-and-blocking-dependencies:%20script' id='defer-dependent-of-defer-and-blocking-dependencies-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-defer-and-blocking-dependencies-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-defer-and-blocking-dependencies: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -826,18 +914,26 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="defer-with-async-dependent-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-with-async-dependent: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-with-async-dependent:%20script' id='defer-with-async-dependent-js' data-wp-strategy='defer'></script>
 <script id="defer-with-async-dependent-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-with-async-dependent: after inline" )
+/* ]]> */
 </script>
 <script id="async-dependent-of-defer-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-dependent-of-defer: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=async-dependent-of-defer:%20script' id='async-dependent-of-defer-js' data-wp-strategy='async'></script>
 <script id="async-dependent-of-defer-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "async-dependent-of-defer: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -851,7 +947,9 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="defer-with-before-inline-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-with-before-inline: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-with-before-inline:%20script' id='defer-with-before-inline-js' defer data-wp-strategy='defer'></script>
 HTML
@@ -867,7 +965,9 @@ HTML
 				'expected_markup' => <<<HTML
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-with-after-inline:%20script' id='defer-with-after-inline-js' data-wp-strategy='defer'></script>
 <script id="defer-with-after-inline-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-with-after-inline: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
@@ -912,11 +1012,15 @@ HTML
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=inner-bundle-member-two:%20script' id='inner-bundle-member-two-js' data-wp-strategy='defer'></script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=outer-bundle-leaf-member:%20script' id='outer-bundle-leaf-member-js'></script>
 <script id="defer-dependent-of-nested-aliases-js-before" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-nested-aliases: before inline" )
+/* ]]> */
 </script>
 <script type='text/javascript' src='https://example.com/external.js?script_event_log=defer-dependent-of-nested-aliases:%20script' id='defer-dependent-of-nested-aliases-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-nested-aliases-js-after" type="text/javascript">
+/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-nested-aliases: after inline" )
+/* ]]> */
 </script>
 HTML
 				,
