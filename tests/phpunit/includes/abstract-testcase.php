@@ -1195,8 +1195,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string      $actual           The actual HTML.
 	 * @param string|null $fragment_context Optional. The fragment context, for example "<td>" expected HTML
 	 *                                      must occur within "<table><tr>" fragment context. Default "<body>".
-	 *                                      Only `<body>` or `null` are supported at this time.
-	 *                                      Set to null to parse a full HTML document.
+	 *                                      Only "<body>" or `null` are supported at this time.
+	 *                                      Set to `null` to parse a full HTML document.
 	 * @param string|null $message          Optional. The assertion error message.
 	 */
 	public function assertEqualMarkup( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
