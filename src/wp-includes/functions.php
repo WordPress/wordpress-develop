@@ -8064,6 +8064,8 @@ function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
 /**
  * Retrieves cached query data if valid and unchanged.
  *
+ * @since 6.9.0
+ *
  * @param string $cache_key The cache key used for storage and retrieval.
  * @param string $group The cache group used for organizing data.
  * @param string $last_changed The timestamp of the last modification to the cache group.
@@ -8086,24 +8088,31 @@ function wp_cache_get_query_data( $cache_key, $group, $last_changed ) {
 /**
  * Stores query-related data in the cache.
  *
+ * @since 6.9.0
+ *
  * @param string $cache_key The cache key under which to store the data.
  * @param mixed $data The data to be cached.
  * @param string $group The cache group to which the data belongs.
  * @param string $last_changed The timestamp or identifier indicating the last change to the cached data.
+ * @param int $expire Optional. When to expire the cache contents, in seconds.
+ *                            Default 0 (no expiration).
  */
-function wp_cache_set_query_data( $cache_key, $data, $group, $last_changed ) {
+function wp_cache_set_query_data( $cache_key, $data, $group, $last_changed, $expire = 0 ) {
 	wp_cache_set(
 		$cache_key,
 		array(
 			'data'         => $data,
 			'last_changed' => $last_changed,
 		),
-		$group
+		$group,
+		$expire
 	);
 }
 
 /**
  * Retrieves multiple items from the cache and validates their freshness.
+ *
+ * @since 6.9.0
  *
  * @param array $cache_keys Array of cache keys to retrieve.
  * @param string $group The group of the cache to check.
@@ -8131,11 +8140,15 @@ function wp_cache_get_multiple_query_data( $cache_keys, $group, $last_changed ) 
 /**
  * Stores multiple pieces of query data in the cache.
  *
+ * @since 6.9.0
+ *
  * @param mixed $data Data to be stored in the cache for all keys.
  * @param string $group Group to which the cached data belongs.
  * @param string $last_changed Timestamp indicating the last modification time for the data.
+ * @param int $expire Optional. When to expire the cache contents, in seconds.
+ *                        Default 0 (no expiration).
  */
-function wp_cache_set_multiple_query_data( $data, $group, $last_changed ) {
+function wp_cache_set_multiple_query_data( $data, $group, $last_changed, $expire = 0 ) {
 	$new_cache = array();
 	foreach ( $data as $key => $value ) {
 		$new_cache[ $key ] = array(
@@ -8143,7 +8156,7 @@ function wp_cache_set_multiple_query_data( $data, $group, $last_changed ) {
 			'last_changed' => $last_changed,
 		);
 	}
-	wp_cache_set_multiple( $new_cache, $group );
+	wp_cache_set_multiple( $new_cache, $group, $expire );
 }
 
 /**
