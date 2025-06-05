@@ -135,7 +135,7 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 		unset( $_REQUEST['s'] );
 
 		$expected = array(
-			self::$site_ids['foo.example.com'],
+			self::$site_ids['foo.example.com/'],
 			self::$site_ids['make.wordpress.org/foo/'],
 			self::$site_ids['wordpress.org/afoo/'],
 			self::$site_ids['wordpress.org/foo/'],
