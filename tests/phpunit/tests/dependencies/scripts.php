@@ -41,7 +41,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 		$GLOBALS['wp_styles']                   = new WP_Styles();
 
 		$this->wp_scripts_print_translations_output  = <<<JS
-<script type="text/javascript" id="__HANDLE__-js-translations">
+<script type='text/javascript' id='__HANDLE__-js-translations'>
 /* <![CDATA[ */
 ( function( domain, translations ) {
 	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
