@@ -339,7 +339,7 @@ function upload_space_setting( $id ) {
 				/* translators: Hidden accessibility text. */
 				_e( 'Size in megabytes' );
 				?>
-			</span><?php printf( '(Leave blank for network default: %s MB)', get_site_option( 'blog_upload_space' ) ); ?></span>
+			</span><?php printf( '(Leave blank for network default: %s MB)', get_space_allowed() ); ?></span>
 			<p class="description blog-upload-space-count">
 			<?php echo get_space_usage(); ?>
 			</p>
