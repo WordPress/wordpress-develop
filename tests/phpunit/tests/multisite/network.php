@@ -202,12 +202,12 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	/**
 	 * @ticket 22917
 	 */
-	public function test_get_blog_count_no_filter_applied() {
+	public function test_get_site_count_no_filter_applied() {
 		wp_update_network_counts();
-		$site_count_start = get_blog_count();
+		$site_count_start = get_site_count();
 
 		$site_ids = self::factory()->blog->create_many( 1 );
-		$actual   = (int) get_blog_count(); // Count only updated when cron runs, so should be unchanged.
+		$actual   = get_site_count(); // Count only updated when cron runs, so should be unchanged.
 
 		foreach ( $site_ids as $site_id ) {
 			wp_delete_site( $site_id );
@@ -220,13 +220,13 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	/**
 	 * @ticket 22917
 	 */
-	public function test_get_blog_count_enable_live_network_counts_false() {
+	public function test_get_site_count_enable_live_network_counts_false() {
 		wp_update_network_counts();
-		$site_count_start = get_blog_count();
+		$site_count_start = get_site_count();
 
 		add_filter( 'enable_live_network_counts', '__return_false' );
 		$site_ids = self::factory()->blog->create_many( 1 );
-		$actual   = (int) get_blog_count(); // Count only updated when cron runs, so should be unchanged.
+		$actual   = get_site_count(); // Count only updated when cron runs, so should be unchanged.
 		remove_filter( 'enable_live_network_counts', '__return_false' );
 
 		foreach ( $site_ids as $site_id ) {
@@ -240,13 +240,13 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	/**
 	 * @ticket 22917
 	 */
-	public function test_get_blog_count_enabled_live_network_counts_true() {
+	public function test_get_site_count_enabled_live_network_counts_true() {
 		wp_update_network_counts();
-		$site_count_start = get_blog_count();
+		$site_count_start = get_site_count();
 
 		add_filter( 'enable_live_network_counts', '__return_true' );
 		$site_ids = self::factory()->blog->create_many( 1 );
-		$actual   = get_blog_count();
+		$actual   = get_site_count();
 		remove_filter( 'enable_live_network_counts', '__return_true' );
 
 		foreach ( $site_ids as $site_id ) {
@@ -260,10 +260,10 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	/**
 	 * @ticket 37865
 	 */
-	public function test_get_blog_count_on_different_network() {
+	public function test_get_site_count_on_different_network() {
 		wp_update_network_site_counts( self::$different_network_id );
 
-		$site_count = get_blog_count( self::$different_network_id );
+		$site_count = get_site_count( self::$different_network_id );
 
 		$this->assertEquals( count( self::$different_site_ids ), $site_count );
 	}
@@ -378,7 +378,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		wp_update_network_site_counts();
 
-		$result = get_blog_count();
+		$result = get_site_count();
 		$this->assertSame( $expected, $result );
 	}
 
@@ -390,7 +390,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		wp_update_network_site_counts( self::$different_network_id );
 
-		$result = get_blog_count( self::$different_network_id );
+		$result = get_site_count( self::$different_network_id );
 		$this->assertSame( 3, $result );
 	}
 
@@ -435,8 +435,8 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		wp_update_network_counts();
 
-		$site_count = (int) get_blog_count();
-		$user_count = (int) get_user_count();
+		$site_count = get_site_count();
+		$user_count = get_user_count();
 
 		$this->assertGreaterThan( 0, $site_count );
 		$this->assertGreaterThan( 0, $user_count );
@@ -451,8 +451,8 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		wp_update_network_counts( self::$different_network_id );
 
-		$site_count = (int) get_blog_count( self::$different_network_id );
-		$user_count = (int) get_user_count( self::$different_network_id );
+		$site_count = get_site_count( self::$different_network_id );
+		$user_count = get_user_count( self::$different_network_id );
 
 		$this->assertGreaterThan( 0, $site_count );
 		$this->assertGreaterThan( 0, $user_count );
@@ -627,13 +627,13 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	public function test_wpmu_create_blog_updates_correct_network_site_count() {
 		global $wpdb;
 
-		$original_count = get_blog_count( self::$different_network_id );
+		$original_count = get_site_count( self::$different_network_id );
 
 		$suppress = $wpdb->suppress_errors();
 		$site_id  = wpmu_create_blog( 'example.org', '/', '', 1, array(), self::$different_network_id );
 		$wpdb->suppress_errors( $suppress );
 
-		$result = get_blog_count( self::$different_network_id );
+		$result = get_site_count( self::$different_network_id );
 
 		wpmu_delete_blog( $site_id, true );
 

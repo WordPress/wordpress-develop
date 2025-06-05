@@ -455,7 +455,7 @@ function wp_network_dashboard_right_now() {
 	}
 
 	$c_users = get_user_count();
-	$c_blogs = get_blog_count();
+	$c_blogs = get_site_count();
 
 	/* translators: %s: Number of users on the network. */
 	$user_text = sprintf( _n( '%s user', '%s users', $c_users ), number_format_i18n( $c_users ) );

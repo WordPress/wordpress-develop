@@ -749,3 +749,24 @@ function global_terms( $term_id, $deprecated = '' ) {
 
 	return $term_id;
 }
+
+/**
+ * The number of active sites on your installation.
+ *
+ * The count is cached and updated twice daily. This is not a live count.
+ *
+ * @since MU 1.0
+ *
+ * @deprecated 6.9.0 Use get_site_count()
+ * @see get_site_count()
+ *
+ * @since 3.7.0 The $network_id parameter has been deprecated.
+ * @since 4.9.0 The $network_id parameter is now being used.
+ *
+ * @param int|null $network_id ID of the network. Default is the current network.
+ * @return int Number of active sites on the network.
+ */
+function get_blog_count( $network_id = null ) {
+    _deprecated_function( __FUNCTION__, '6.9', 'get_site_count()' );
+    return get_site_count( $network_id  );
+}

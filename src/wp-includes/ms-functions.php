@@ -21,7 +21,7 @@
  */
 function get_sitestats() {
 	$stats = array(
-		'blogs' => get_blog_count(),
+		'blogs' => get_site_count(),
 		'users' => get_user_count(),
 	);
 
@@ -114,15 +114,13 @@ function get_active_blog_for_user( $user_id ) {
  *
  * The count is cached and updated twice daily. This is not a live count.
  *
- * @since MU (3.0.0)
- * @since 3.7.0 The `$network_id` parameter has been deprecated.
- * @since 4.8.0 The `$network_id` parameter is now being used.
+ * @since 6.9.0
  *
  * @param int|null $network_id ID of the network. Default is the current network.
  * @return int Number of active sites on the network.
  */
-function get_blog_count( $network_id = null ) {
-	return get_network_option( $network_id, 'blog_count' );
+function get_site_count( $network_id = null ) {
+	return (int) get_network_option( $network_id, 'blog_count' );
 }
 
 /**
@@ -2729,7 +2727,7 @@ function wp_is_large_network( $using = 'sites', $network_id = null ) {
 		return apply_filters( 'wp_is_large_network', $is_large_network, 'users', $count, $network_id );
 	}
 
-	$count = get_blog_count( $network_id );
+	$count = get_site_count( $network_id );
 
 	/** This filter is documented in wp-includes/ms-functions.php */
 	return apply_filters( 'wp_is_large_network', $count > 10000, 'sites', $count, $network_id );
