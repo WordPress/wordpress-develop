@@ -209,7 +209,6 @@ function get_blog_details( $fields = null, $get_all = true ) {
 		$details = wp_cache_get( $blog_id . 'short', 'blog-details' );
 	} else {
 		$details = wp_cache_get( $blog_id, 'blog-details' );
-		// If short was requested and full cache is set, we can return.
 		if ( $details ) {
 			if ( ! is_object( $details ) ) {
 				if ( -1 === $details ) {
@@ -220,7 +219,9 @@ function get_blog_details( $fields = null, $get_all = true ) {
 					unset( $details );
 				}
 			} else {
-				return $details;
+				// Full cache is set but short was requested. Discard so a clean
+				// short result is built from WP_Site::get_instance() below.
+				unset( $details );
 			}
 		}
 	}
