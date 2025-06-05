@@ -460,6 +460,7 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 		$old_network_email = get_site_option( 'admin_email' );
 
 		$email_address = 'superadmin333@example.org';
+		
 		$user_id = self::factory()->user->create(
 			array(
 				'user_email' => $email_address,
