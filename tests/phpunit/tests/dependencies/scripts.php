@@ -3103,40 +3103,6 @@ HTML;
 	}
 
 	/**
-	 * Parse an HTML markup fragment.
-	 *
-	 * @param string $markup Markup.
-	 * @return DOMDocument Document containing the normalized markup fragment.
-	 */
-	protected function parse_markup_fragment( $markup ) {
-		$dom = new DOMDocument();
-		$dom->loadHTML(
-			"<!DOCTYPE html><html><head><meta charset=utf8></head><body>{$markup}</body></html>"
-		);
-
-		/** @var DOMElement $body */
-		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
-
-		// Trim whitespace nodes added before/after which can be added when parsing.
-		foreach ( array( $body->firstChild, $body->lastChild ) as $node ) {
-			if ( $node instanceof DOMText && '' === trim( $node->data ) ) {
-				$body->removeChild( $node );
-			}
-		}
-
-		// Normalize other whitespace nodes.
-		$xpath = new DOMXPath( $dom );
-		foreach ( $xpath->query( '//text()' ) as $node ) {
-			/** @var DOMText $node */
-			if ( preg_match( '/^\s+$/', $node->nodeValue ) ) {
-				$node->nodeValue = ' ';
-			}
-		}
-
-		return $dom;
-	}
-
-	/**
 	 * Adds html5 script theme support.
 	 */
 	protected function add_html5_script_theme_support() {
