@@ -350,13 +350,6 @@ function get_blog_permalink( $blog_id, $post_id ) {
 function get_blog_id_from_url( $domain, $path = '/' ) {
 	$domain = strtolower( $domain );
 	$path   = strtolower( $path );
-	$id     = wp_cache_get( md5( $domain . $path ), 'blog-id-cache' );
-
-	if ( -1 === $id ) { // Blog does not exist.
-		return 0;
-	} elseif ( $id ) {
-		return (int) $id;
-	}
 
 	$args   = array(
 		'domain'                 => $domain,
@@ -369,11 +362,8 @@ function get_blog_id_from_url( $domain, $path = '/' ) {
 	$id     = array_shift( $result );
 
 	if ( ! $id ) {
-		wp_cache_set( md5( $domain . $path ), -1, 'blog-id-cache' );
 		return 0;
 	}
-
-	wp_cache_set( md5( $domain . $path ), $id, 'blog-id-cache' );
 
 	return $id;
 }
