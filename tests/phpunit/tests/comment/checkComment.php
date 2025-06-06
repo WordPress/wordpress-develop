@@ -209,7 +209,7 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	/**
 	 * @ticket 10931
 	 */
-	public function test_should_return_false_when_non_logged_in_user_uses_registered_email() {
+	public function test_wp_check_comment_data_should_return_false_when_non_logged_in_user_uses_registered_email() {
 		$user_id = self::factory()->user->create(
 			array(
 				'role'       => 'subscriber',
