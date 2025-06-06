@@ -6,7 +6,7 @@ if ( class_exists( 'SimplePie', false ) ) {
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit();
+	die( '-1' );
 }
 
 // Load and register the SimplePie native autoloaders.

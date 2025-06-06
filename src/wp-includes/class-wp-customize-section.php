@@ -9,7 +9,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit();
+	die( '-1' );
 }
 
 /**

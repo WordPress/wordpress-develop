@@ -15,11 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
-// Don't load directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit();
-}
-
 /**
  * Objects representing the current network and current site.
  *

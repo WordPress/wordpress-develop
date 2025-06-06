@@ -10,11 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
-// Don't load directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit();
-}
-
 require ABSPATH . WPINC . '/option.php';
 
 /**

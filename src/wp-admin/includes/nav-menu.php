@@ -9,7 +9,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit();
+	die( '-1' );
 }
 
 /** Walker_Nav_Menu_Edit class */

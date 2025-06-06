@@ -4,7 +4,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit();
+	die( '-1' );
 }
 
 // Requires files for dynamic blocks necessary for core blocks registration.

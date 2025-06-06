@@ -12,7 +12,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit();
+	die( '-1' );
 }
 
 require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';

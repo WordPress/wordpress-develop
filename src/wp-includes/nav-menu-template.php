@@ -12,11 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
-// Don't load directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit();
-}
-
 /** Walker_Nav_Menu class */
 require_once ABSPATH . WPINC . '/class-walker-nav-menu.php';
 

@@ -11,7 +11,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit();
+	die( '-1' );
 }
 
 include_once ABSPATH . WPINC . '/class-requests.php';

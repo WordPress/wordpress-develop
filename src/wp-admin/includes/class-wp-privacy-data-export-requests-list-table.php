@@ -9,7 +9,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	exit();
+	die( '-1' );
 }
 
 if ( ! class_exists( 'WP_Privacy_Requests_Table' ) ) {

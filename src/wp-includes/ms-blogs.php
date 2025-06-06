@@ -13,11 +13,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
-// Don't load directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit();
-}
-
 require_once ABSPATH . WPINC . '/ms-site.php';
 require_once ABSPATH . WPINC . '/ms-network.php';
 
