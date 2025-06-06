@@ -3,6 +3,16 @@
  * @group admin
  */
 class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
+	/**
+	 * Editor user ID.
+	 *
+	 * @var int $editor_id
+	 */
+	public static $editor_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+	}
 
 	/**
 	 * @ticket 51137
@@ -64,7 +74,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		wp_set_object_terms( $post->ID, $term['term_id'], 'wptests_tax_1' );
 
 		// Test that get_inline_data() has `post_category` div containing the assigned term.
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 		get_inline_data( $post );
 		$this->expectOutputRegex( '/<div class="post_category" id="wptests_tax_1_' . $post->ID . '">' . $term['term_id'] . '<\/div>/' );
 	}
@@ -90,7 +100,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		wp_set_object_terms( $post->ID, $term['term_id'], 'wptests_tax_1' );
 
 		// Test that get_inline_data() has `tags_input` div containing the assigned term.
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		wp_set_current_user( self::$editor_id );
 		get_inline_data( $post );
 		$this->expectOutputRegex( '/<div class="tags_input" id="wptests_tax_1_' . $post->ID . '">Test<\/div>/' );
 	}
@@ -231,6 +241,30 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 			$wp_settings_sections['test-page']['test-section'],
 			'Test section data does not match the expected dataset.'
 		);
+
+		ob_start();
+		do_settings_sections( 'test-page' );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( $expected_before_section_html, $output, 'Test page output does not contain the custom markup to be placed before the section.' );
+		$this->assertStringContainsString( $expected_after_section_html, $output, 'Test page output does not contain the custom markup to be placed after the section.' );
+	}
+
+	/**
+	 * @ticket 62746
+	 *
+	 * @param array  $extra_args                   Extra arguments to pass to function `add_settings_section()`.
+	 * @param array  $expected_section_data        Expected set of section data.
+	 * @param string $expected_before_section_html Expected HTML markup to be rendered before the settings section.
+	 * @param string $expected_after_section_html  Expected HTML markup to be rendered after the settings section.
+	 *
+	 * @covers ::add_settings_section
+	 * @covers ::do_settings_sections
+	 *
+	 * @dataProvider data_extra_args_for_add_settings_section
+	 */
+	public function test_add_settings_section_without_any_fields( $extra_args, $expected_section_data, $expected_before_section_html, $expected_after_section_html ) {
+		add_settings_section( 'test-section', 'Section title', '__return_false', 'test-page', $extra_args );
 
 		ob_start();
 		do_settings_sections( 'test-page' );

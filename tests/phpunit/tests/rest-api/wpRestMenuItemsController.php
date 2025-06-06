@@ -184,6 +184,30 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 	}
 
 	/**
+	 * @ticket 54304
+	 * @covers ::get_items
+	 */
+	public function test_get_items_filter() {
+		add_filter( 'rest_menu_read_access', '__return_true' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/menu-items' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->check_get_menu_items_response( $response );
+	}
+
+	/**
+	 * @ticket 54304
+	 * @covers ::get_item
+	 */
+	public function test_get_item_filter() {
+		add_filter( 'rest_menu_read_access', '__return_true' );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/menu-items/%d', $this->menu_item_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->check_get_menu_item_response( $response, 'view' );
+	}
+
+	/**
 	 * @ticket 40878
 	 * @covers ::get_item
 	 */

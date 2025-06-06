@@ -1541,4 +1541,68 @@ HTML;
 		$element = $this->interactivity->get_element();
 		$this->assertNull( $element );
 	}
+
+	/**
+	 * Verify behavior of .length directive access.
+	 *
+	 * @ticket 62582
+	 *
+	 * @covers ::process_directives
+	 *
+	 * @dataProvider data_length_directives
+	 *
+	 * @param mixed $value     The property value.
+	 * @param string $expected The expected property length as a string,
+	 *                         or "" if no length is expected.
+	 */
+	public function test_process_directives_string_array_length( $value, string $expected ) {
+		$this->interactivity->state(
+			'myPlugin',
+			array( 'prop' => $value )
+		);
+		$html           = '<div data-wp-text="myPlugin::state.prop.length"></div>';
+		$processed_html = $this->interactivity->process_directives( $html );
+		$processor      = new WP_HTML_Tag_Processor( $processed_html );
+		$processor->next_tag( 'DIV' );
+		$processor->next_token();
+		$this->assertSame( $expected, $processor->get_modifiable_text() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_length_directives(): array {
+		return array(
+			'numeric array'     => array( array( 'a', 'b', 'c' ), '3' ),
+			'empty array'       => array( array(), '0' ),
+			'string'            => array( 'abc', '3' ),
+			'empty string'      => array( '', '0' ),
+
+			// Failure cases resulting in empty string.
+			'non-numeric array' => array( array( 'a' => 'a' ), '' ),
+			'object'            => array( new stdClass(), '' ),
+		);
+	}
+
+	/**
+	 * Ensures that directives with invalid attribute names are ignored.
+	 *
+	 * @ticket 62426
+	 */
+	public function test_invalid_directive_names_are_ignored() {
+		$html = <<<HTML
+			<div data-wp-interactive="test" data-wp-context='{ "t": true }'>
+				<br data-wp-class--allowed="context.t">
+				<br data-wp-class--dis:allowed="context.t">
+				<br data-wp-class--[disallowed]="context.t">
+			</div>
+HTML;
+
+		$processed_html = $this->interactivity->process_directives( $html );
+		$this->assertStringContainsString( 'class="allowed"', $processed_html );
+		$this->assertStringNotContainsString( 'class="dis:allowed"', $processed_html );
+		$this->assertStringNotContainsString( 'class="[disallowed]"', $processed_html );
+	}
 }
