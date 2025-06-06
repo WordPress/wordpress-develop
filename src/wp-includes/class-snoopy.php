@@ -1239,7 +1239,7 @@ class Snoopy
 						if (!is_readable($file_name)) continue;
 
 						$fp = fopen($file_name, "r");
-						$file_content = fread($fp, wp_filesize($file_name));
+						$file_content = fread($fp, filesize($file_name));
 						fclose($fp);
 						$base_name = basename($file_name);
 
