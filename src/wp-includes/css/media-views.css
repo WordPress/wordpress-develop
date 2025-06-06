@@ -157,10 +157,6 @@
 	color: #646970;
 }
 
-.media-frame :-ms-input-placeholder {
-	color: #646970;
-}
-
 /*
  * In some cases there's the need of higher specificity,
  * for example higher than `.media-embed .setting`.

@@ -229,10 +229,6 @@ textarea[readonly] {
 	color: #646970;
 }
 
-:-ms-input-placeholder {
-	color: #646970;
-}
-
 .form-invalid .form-required,
 .form-invalid .form-required:focus,
 .form-invalid.form-required input,

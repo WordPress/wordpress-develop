@@ -109,10 +109,6 @@
 	color: #646970;
 }
 
-.wp-color-picker:-ms-input-placeholder {
-	color: #646970;
-}
-
 .wp-picker-container input[type="text"].iris-error {
 	background-color: #fcf0f1;
 	border-color: #d63638;
