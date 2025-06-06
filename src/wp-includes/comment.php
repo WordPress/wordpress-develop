@@ -2824,7 +2824,9 @@ function discover_pingback_server_uri( $url, $deprecated = '' ) {
 	$parsed_url = parse_url( $url );
 
 	// Not a URL. This should never happen.
+	
 	if ( ! isset( $parsed_url['host'] ) ) {
+	
 		return false;
 	}
 
