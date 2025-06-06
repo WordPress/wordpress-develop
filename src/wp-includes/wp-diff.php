@@ -13,6 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 if ( ! class_exists( 'Text_Diff', false ) ) {
 	/** Text_Diff class */
 	require ABSPATH . WPINC . '/Text/Diff.php';

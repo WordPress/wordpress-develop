@@ -16,6 +16,11 @@
  * @package WordPress
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 /** WordPress Dependency Class */
 require ABSPATH . WPINC . '/class-wp-dependency.php';
 

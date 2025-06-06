@@ -7,6 +7,11 @@
  * @since 3.0.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 /** Walker_Nav_Menu_Edit class */
 require_once ABSPATH . 'wp-admin/includes/class-walker-nav-menu-edit.php';
 

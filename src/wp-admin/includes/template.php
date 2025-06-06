@@ -8,6 +8,11 @@
  * @subpackage Administration
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 /** Walker_Category_Checklist class */
 require_once ABSPATH . 'wp-admin/includes/class-walker-category-checklist.php';
 

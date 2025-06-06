@@ -8,6 +8,11 @@
  * @package WordPress
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 /**
  * Stores the location of the WordPress directory of functions, classes, and core content.
  *

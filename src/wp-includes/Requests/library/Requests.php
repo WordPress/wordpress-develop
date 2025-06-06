@@ -9,4 +9,9 @@
  * @since 6.2.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 include_once ABSPATH . WPINC . '/class-requests.php';

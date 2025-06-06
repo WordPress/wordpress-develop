@@ -7,6 +7,11 @@
  * @since 4.9.6
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 if ( ! class_exists( 'WP_Privacy_Requests_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-requests-table.php';
 }

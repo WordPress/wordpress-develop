@@ -12,6 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
 	require ABSPATH . WPINC . '/Requests/src/Autoload.php';
 

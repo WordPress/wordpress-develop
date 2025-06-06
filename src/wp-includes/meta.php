@@ -10,6 +10,11 @@
  * @subpackage Meta
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
 
 /**

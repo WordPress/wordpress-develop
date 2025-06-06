@@ -7,6 +7,11 @@
  * @since 3.4.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 /**
  * Customize Section class.
  *

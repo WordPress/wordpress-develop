@@ -36,6 +36,7 @@ function main() {
 		`<?php
 
 ${ toolWarningMessage }
+
 // Returns folder names for static blocks necessary for core blocks registration.
 return array(
 ${ staticBlockFolderNames }
@@ -58,6 +59,12 @@ ${ staticBlockFolderNames }
 		`<?php
 
 ${ toolWarningMessage }
+
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 // Requires files for dynamic blocks necessary for core blocks registration.
 ${ dynamicBlockFileRequires }
 `,

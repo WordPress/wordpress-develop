@@ -4,6 +4,11 @@ if ( class_exists( 'SimplePie', false ) ) {
 	return;
 }
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
 // Load and register the SimplePie native autoloaders.
 require ABSPATH . WPINC . '/SimplePie/autoloader.php';
 
