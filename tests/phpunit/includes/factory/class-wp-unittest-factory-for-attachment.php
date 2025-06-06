@@ -70,7 +70,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 		if ( file_exists( $file_path ) ) {
 			unlink( $file_path );
 		}
-		
+
 		$upload = wp_upload_bits( $file_basename, null, $contents );
 
 		$type = '';
