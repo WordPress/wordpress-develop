@@ -591,11 +591,17 @@
 }
 
 .community-events-footer {
+	float: none;
 	margin-top: 0;
 	margin-bottom: 0;
 	padding: 12px;
 	border-top: 1px solid #f0f0f1;
 	color: #dcdcde;
+}
+
+.community-events-footer .dashicons {
+	position: relative;
+	top: 4px;
 }
 
 /* Safari 10 + VoiceOver specific: without this, the hidden text gets read out before the link. */
