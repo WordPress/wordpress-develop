@@ -66,7 +66,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 		$file_basename = wp_basename( $file );
 		$file_path     = $upload_dir['path'] . '/' . $file_basename;
 
-		// Remove existing file if it exists
+		// Remove existing file if it exists.
 		if ( file_exists( $file_path ) ) {
 			unlink( $file_path );
 		}
