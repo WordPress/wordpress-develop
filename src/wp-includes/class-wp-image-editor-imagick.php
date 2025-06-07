@@ -444,6 +444,39 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		try {
+			$is_png                                      = false;
+			$is_indexed_png                              = false;
+			$is_indexed_png_with_alpha_channel           = false;
+			$is_indexed_png_with_true_alpha_transparency = false;
+
+			if ( 'image/png' === $this->mime_type ) {
+				$is_png = true;
+
+				if (
+					is_callable( array( $this->image, 'getImageProperty' ) )
+					&& '3' === $this->image->getImageProperty( 'png:IHDR.color-type-orig' )
+				) {
+					$is_indexed_png = true;
+
+					if (
+						is_callable( array( $this->image, 'getImageAlphaChannel' ) )
+						&& $this->image->getImageAlphaChannel()
+					) {
+						$is_indexed_png_with_alpha_channel = true;
+
+						if (
+							is_callable( array( $this->image, 'getImageChannelDepth' ) )
+							&& defined( 'Imagick::CHANNEL_ALPHA' )
+						) {
+							$alpha_channel_depth = $this->image->getImageChannelDepth( Imagick::CHANNEL_ALPHA );
+							if ( $alpha_channel_depth > 1 ) {
+								$is_indexed_png_with_true_alpha_transparency = true;
+							}
+						}
+					}
+				}
+			}
+
 			/*
 			 * To be more efficient, resample large images to 5x the destination size before resizing
 			 * whenever the output size is less that 1/3 of the original image size (1/3^2 ~= .111),
@@ -480,29 +513,33 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'jpeg:fancy-upsampling', 'off' );
 			}
 
-			if ( 'image/png' === $this->mime_type ) {
+			if ( $is_png ) {
 				$this->image->setOption( 'png:compression-filter', '5' );
 				$this->image->setOption( 'png:compression-level', '9' );
 				$this->image->setOption( 'png:compression-strategy', '1' );
 
 				// Indexed PNG files get some additional handling.
 				// See #63448 for details.
-				if (
-					is_callable( array( $this->image, 'getImageProperty' ) )
-					&& '3' === $this->image->getImageProperty( 'png:IHDR.color-type-orig' )
-				) {
+				if ( $is_indexed_png ) {
 
 					// Check for an alpha channel.
-					if (
-						is_callable( array( $this->image, 'getImageAlphaChannel' ) )
-						&& $this->image->getImageAlphaChannel()
-					) {
+					if ( $is_indexed_png_with_alpha_channel ) {
 						$this->image->setOption( 'png:include-chunk', 'tRNS' );
 					} else {
 						$this->image->setOption( 'png:exclude-chunk', 'all' );
 					}
-					// Set the image format to Indexed PNG.
-					$this->image->setOption( 'png:format', 'png8' );
+
+					$this->image->quantizeImage( 256, $this->image->getColorspace(), 0, false, false );
+
+					/*
+					 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
+					 * We need to avoid forcing indexed format for images with true alpha transparency,
+					 * because ImageMagick does not support saving an image with true alpha transparency as an indexed PNG.
+					 */
+					if ( Imagick::COLORSPACE_GRAY === $this->image->getImageColorspace() && ! $is_indexed_png_with_true_alpha_transparency ) {
+						// Set the image format to Indexed PNG.
+						$this->image->setOption( 'png:format', 'png8' );
+					}
 
 				} else {
 					$this->image->setOption( 'png:exclude-chunk', 'all' );
