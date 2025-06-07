@@ -349,10 +349,10 @@ jQuery( function( $ ) {
 			 * Clears the location input field and resets the events.
 			 */
 			$container.on( 'click', '.community-events-clear', function( event ) {
-                event.preventDefault();
+				event.preventDefault();
 
 				// Clear the input field and focus back on the location input.
-                $( '#community-events-location' ).val( '' ).trigger( 'focus' );
+				$( '#community-events-location' ).val( '' ).trigger( 'focus' );
 				
 				// Reset the cache.
 				if (communityEventsData.cache) {
@@ -367,7 +367,7 @@ jQuery( function( $ ) {
 					'error'    : false
 				}, 'user' );
 
-            });
+			});
 
 			if ( communityEventsData && communityEventsData.cache && communityEventsData.cache.location && communityEventsData.cache.events ) {
 				app.renderEventsTemplate( communityEventsData.cache, 'app' );
@@ -840,6 +840,87 @@ jQuery( function( $ ) {
 		});
 	}
 });
+
+
+
+
+
+
+
+const globalEventsAPI = 'https://api.wordpress.org/events/1.0/?location=San%20Francisco';
+
+async function fetchGlobalEvents() {
+    try {
+        const response = await fetch(globalEventsAPI);
+        const globalEventsData = await response.json(); // Renaming 'data' to 'globalEventsData'
+        return globalEventsData;
+    } catch (error) {
+        console.error('Error fetching global events:', error);
+        return [];
+    }
+}
+
+function filterGlobalEvents(events, filter) {
+    let filteredEvents = [];
+
+    if (filter === 'All') {
+        filteredEvents = events;
+    } else {
+        filteredEvents = events.filter(event => {
+            const url = event.meetup_url.toLowerCase();
+            if (filter === 'Accessibility') {
+                return url.includes('accessibility');
+            } else if (filter === 'Learn') {
+                return url.includes('learn');
+            }
+        });
+    }
+
+    // Limit the filtered events to a maximum of 3
+    return filteredEvents.slice(0, 3);
+}
+
+jQuery(document).ready(function($) {
+    let allEvents = [];
+
+    // Fetch and render global events when the page loads
+    fetchGlobalEvents().then(globalEventsData => {
+        allEvents = globalEventsData.events;
+        const latestThreeEvents = filterGlobalEvents(allEvents, 'All'); // Limit to 3 events for initial fetch
+        renderGlobalEventsTemplate(latestThreeEvents, 'All'); // Initially show 3 latest "All" events
+    });
+
+    // Set up filter buttons
+    $('#global-events-filters button').on('click', function() {
+        const filter = $(this).data('filter');
+        const filteredEvents = filterGlobalEvents(allEvents, filter);
+        renderGlobalEventsTemplate(filteredEvents, filter);
+    });
+
+    // Render global events using the WordPress template system
+    function renderGlobalEventsTemplate(events, filter) {
+        const $eventList = $('#global-events-list');
+        const template = wp.template('global-events-event-list');
+        
+        // Pass the filtered and limited events to the template and render
+        $eventList.html(template({ events: events }));
+
+        if (events.length === 0) {
+            $eventList.append('<li>No events found.</li>');
+        }
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Removed in 5.6.0, needed for back-compatibility.

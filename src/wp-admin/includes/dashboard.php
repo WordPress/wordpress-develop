@@ -1413,6 +1413,19 @@ function wp_print_community_events_markup() {
 		<ul class="community-events-results activity-block last"></ul>
 	</div>
 
+	<div id="global-events-section">
+		<h2>Global Events</h2>
+		Filter by group:
+		<div id="global-events-filters">
+			<button data-filter="All">All</button>
+			<button data-filter="Accessibility">Accessibility</button>
+			<button data-filter="Learn">Learn</button>
+		</div>
+		<ul id="global-events-list" class="community-events-results activity-block last">
+			<!-- Global events will be dynamically inserted here -->
+		</ul>
+	</div>
+
 	<?php
 }
 
@@ -1518,6 +1531,32 @@ function wp_print_community_events_templates() {
 			<# } #>
 		</li>
 	</script>
+
+	<script id="tmpl-global-events-event-list" type="text/template">
+		<# _.each( data.events, function( event ) { #>
+			<li class="event event-global wp-clearfix">
+				<div class="event-info">
+					<div class="dashicons event-icon" aria-hidden="true"></div>
+					<div class="event-info-inner">
+						<a class="event-title" href="{{ event.meetup_url }}" target="_blank">{{ event.title }}</a>
+						<span class="event-city">San Francisco, CA</span> <!-- Static location -->
+					</div>
+				</div>
+
+				<div class="event-date-time">
+					<span class="event-date">{{ event.user_formatted_date }}</span>
+					<span class="event-time">{{ event.user_formatted_time }} {{ event.timeZoneAbbreviation }}</span>
+				</div>
+			</li>
+		<# } ) #>
+
+		<# if ( data.events.length <= 0 ) { #>
+			<li class="event-none">
+				<p><?php _e( 'No global events found at the moment.' ); ?></p>
+			</li>
+		<# } #>
+	</script>
+
 	<?php
 }
 
