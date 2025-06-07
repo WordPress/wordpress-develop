@@ -540,7 +540,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 						// Set the image format to Indexed PNG.
 						$this->image->setOption( 'png:format', 'png8' );
 					}
-
 				} else {
 					$this->image->setOption( 'png:exclude-chunk', 'all' );
 				}
