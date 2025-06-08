@@ -3,7 +3,6 @@ const dotenvExpand = require( 'dotenv-expand' );
 const wait_on = require( 'wait-on' );
 const { execSync } = require( 'child_process' );
 const { renameSync, readFileSync, writeFileSync } = require( 'fs' );
-const { utils } = require( './utils.js' );
 const local_env_utils = require( './utils' );
 
 dotenvExpand.expand( dotenv.config() );
