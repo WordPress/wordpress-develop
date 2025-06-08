@@ -1301,6 +1301,7 @@ function wp_dashboard_events_news() {
 	?>
 
 	<div class="wordpress-news hide-if-no-js">
+		<h3><?php _e( 'News' ); ?></h3>
 		<?php wp_dashboard_primary(); ?>
 	</div>
 
@@ -1413,13 +1414,13 @@ function wp_print_community_events_markup() {
 		<ul class="community-events-results activity-block last"></ul>
 	</div>
 
-	<div id="global-events-section">
-		<h2>Global Events</h2>
+	<div id="global-events-section" class="community-events">
+		<h3><?php _e( 'Global Events' ); ?></h3>
 		Filter by group:
-		<div id="global-events-filters">
-			<button data-filter="All">All</button>
-			<button data-filter="Accessibility">Accessibility</button>
-			<button data-filter="Learn">Learn</button>
+		<div id="global-events-filters"style="display: inline;">
+			<button class="button button-primary" data-filter="All">All</button>
+			<button class="button" data-filter="Accessibility">Accessibility</button>
+			<button class="button" data-filter="Learn">Learn</button>
 		</div>
 		<ul id="global-events-list" class="community-events-results activity-block last">
 			<!-- Global events will be dynamically inserted here -->
