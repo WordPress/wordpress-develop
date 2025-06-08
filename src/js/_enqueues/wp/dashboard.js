@@ -979,16 +979,28 @@ window.wp.globalEvents = /** @lends wp.globalEvents */ {
         
         // Format events to match community events structure
         const formattedEvents = events.map(event => {
+            // Determine the correct type based on meetup name
+            let eventType = 'global';
+            const meetupName = event.meetup || '';
+            
+            if (meetupName === wp.globalEvents.ACCESSIBILITY_MEETUP_NAME) {
+                eventType = 'Accessibility Meetup';
+            } else if (meetupName === wp.globalEvents.LEARN_MEETUP_NAME) {
+                eventType = 'Learn WordPress';
+            }
+            
             // Create a clone with all the expected properties
             return {
                 ...event,
-                // Match the structure expected by the community events template
-                type: 'global', // Custom type for global events
+                // Use the determined type
+                type: eventType,
                 title: event.title || '',
                 url: event.meetup_url || '#',
                 // Format location properly
                 location: {
-                    location: event.location || wp.globalEvents.DEFAULT_LOCATION
+                    location: typeof event.location === 'object' ? 
+                        (event.location.location || event.location.description || wp.globalEvents.DEFAULT_LOCATION) :
+                        (event.location || wp.globalEvents.DEFAULT_LOCATION)
                 },
                 // Make sure these exist for the template
                 user_formatted_date: event.user_formatted_date || '',
