@@ -873,4 +873,42 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that alpha transparency is preserved after resizing.
+	 *
+	 * @ticket 63448
+	 * @dataProvider data_alpha_transparency_is_preserved_after_resize
+	 *
+	 * @param string $file_path Path to the image file.
+	 */
+	public function test_alpha_transparency_is_preserved_after_resize( $file_path ) {
+
+		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file_path );
+		$imagick_image_editor->load();
+
+		$size = $imagick_image_editor->get_size();
+		$imagick_image_editor->resize( $size['width'] * 0.5, $size['height'] * 0.5 );
+		$imagick_image_editor->save( $temp_file );
+
+		$imagick             = new Imagick( $temp_file );
+		$alpha_channel_depth = $imagick->getImageChannelDepth( Imagick::CHANNEL_ALPHA );
+
+		unlink( $temp_file );
+
+		$this->assertGreaterThan( 1, $alpha_channel_depth, "Alpha transparency should be preserved after resize for {$file_path}." );
+	}
+
+	public static function data_alpha_transparency_is_preserved_after_resize() {
+		return array(
+			'oval-or8'                   => array(
+				DIR_TESTDATA . '/images/png-tests/oval-or8.png',
+			),
+			'oval-or8-grayscale-indexed' => array(
+				DIR_TESTDATA . '/images/png-tests/oval-or8-grayscale-indexed.png',
+			),
+		);
+	}
 }
