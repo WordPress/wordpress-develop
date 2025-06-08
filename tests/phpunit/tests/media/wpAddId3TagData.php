@@ -252,9 +252,9 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 	 * Test wp_add_id3_tag_data() with very long values.
 	 */
 	public function test_wp_add_id3_tag_data_long_values() {
-		$metadata = array();
+		$metadata   = array();
 		$long_title = str_repeat( 'a', 1000 );
-		$data     = array(
+		$data       = array(
 			'id3v2' => array(
 				'comments' => array(
 					'title'  => array( $long_title ),
@@ -284,7 +284,7 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 			),
 			'id3v1' => array(
 				'comments' => array(
-					'title'  => array( 'Title with ISO-8859-1: é, ñ' ),
+					'title' => array( 'Title with ISO-8859-1: é, ñ' ),
 				),
 				'encoding' => 'ISO-8859-1',
 			),
