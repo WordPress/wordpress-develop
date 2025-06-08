@@ -9,7 +9,7 @@
 
 #wpcontent {
 	height: 100%;
-	padding-left: 20px;
+	padding: 0 20px 0 20px;
 }
 
 #wpcontent,
@@ -579,7 +579,7 @@ code {
 }
 
 .wrap {
-	margin: 10px 20px 0 2px;
+	margin-top: 10px;
 }
 
 .wrap > h2:first-child, /* Back-compat for pre-4.4 */
@@ -1790,13 +1790,13 @@ p.auto-update-status {
 
 #screen-meta-links {
 	float: right;
-	margin: 0 20px 0 0;
+	margin: 0;
 }
 
 /* screen options and help tabs revert */
 #screen-meta {
 	display: none;
-	margin: 0 20px -1px 0;
+	margin: 0 0 -1px 0;
 	position: relative;
 	background-color: #fff;
 	border: 1px solid #c3c4c7;
@@ -3928,7 +3928,7 @@ img {
 	#wpcontent {
 		position: relative;
 		margin-left: 0;
-		padding-left: 10px;
+		padding: 0 10px 0 10px;
 	}
 
 	#wpbody-content {
@@ -3937,8 +3937,7 @@ img {
 
 	.wrap {
 		clear: both;
-		margin-right: 12px;
-		margin-left: 0;
+		margin: 0;
 	}
 
 	/* categories */
@@ -4198,11 +4197,6 @@ img {
 		clear: both;
 		max-width: 100%;
 		float: none;
-	}
-
-	#screen-meta,
-	#screen-meta-links {
-		margin-right: 10px;
 	}
 
 	#screen-meta-links {
