@@ -3534,20 +3534,7 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 		if ( ! empty( $data[ $version ]['comments'] ) ) {
 			foreach ( $data[ $version ]['comments'] as $key => $list ) {
 				if ( 'length' !== $key && ! empty( $list ) ) {
-					$value = reset( $list );
-					// Ensure we have a string value before passing to wp_kses_post
-					if ( is_array( $value ) ) {
-						foreach ( $value as &$v ) {
-							if ( is_array( $v ) ) {
-								$v = json_encode( $v );
-							}
-						}
-						$value = implode( ' ', $value );
-					} elseif ( ! is_string( $value ) ) {
-						$value = (string) $value;
-					}
-
-					$metadata[ $key ] = wp_kses_post( $value );
+					$metadata[ $key ] = is_array( $list ) ? wp_kses_post_deep( reset( $list ) ) : wp_kses_post( $list );
 					// Fix bug in byte stream analysis.
 					if ( 'terms_of_use' === $key && str_starts_with( $metadata[ $key ], 'yright notice.' ) ) {
 						$metadata[ $key ] = 'Cop' . $metadata[ $key ];
