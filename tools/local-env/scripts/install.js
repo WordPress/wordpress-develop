@@ -63,5 +63,5 @@ wait_on( {
 function wp_cli( cmd ) {
 	const composeFiles = local_env_utils.get_compose_files();
 
-	execSync( `docker compose ${composeFiles} run --quiet-pull --rm cli ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
+	execSync( `docker compose ${composeFiles} exec cli wp --allow-root ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
 }

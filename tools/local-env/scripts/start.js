@@ -30,7 +30,7 @@ try {
 }
 
 // Start the local-env containers.
-const containers = [ 'wordpress-develop' ];
+const containers = [ 'wordpress-develop', 'cli' ];
 if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
 	containers.push( 'memcached' );
 }
