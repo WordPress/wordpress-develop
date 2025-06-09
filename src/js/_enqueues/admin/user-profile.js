@@ -85,14 +85,16 @@
 
 		/**
 		 * Monitors the Caps Lock status while the user is typing in the password input field.
-		 * If Caps Lock is detected to be ON, a warning message is shown.
-		 * The warning is hidden when the input field loses focus or when Caps Lock is OFF.
+		 *
+		 * Shows a warning if Caps Lock is detected. Also uses wp.a11y.speak()
+		 * for screen readers. Hides the warning on blur or when Caps Lock is not on.
 		 */
 		var $capsWarning = $( '#caps-warning' );
 
-		$pass1.on( 'keypress', function( e ) {
-			if ( isCapsLockOn( e ) ) {
+		$pass1.on( 'keydown', function( e ) {
+			if ( isCapsLockOn( e.originalEvent || e ) ) {
 				$capsWarning.show();
+				wp.a11y.speak( __( 'Caps lock is on.' ) );
 			} else {
 				$capsWarning.hide();
 			}
@@ -230,14 +232,16 @@
 
 			/**
 			 * Monitors the Caps Lock status while the user is typing in the password input field.
-			 * If Caps Lock is detected to be ON, a warning message is shown.
-			 * The warning is hidden when the input field loses focus or when Caps Lock is OFF.
+			 *
+			 * Shows a warning if Caps Lock is detected. Also uses wp.a11y.speak()
+			 * for screen readers. Hides the warning on blur or when Caps Lock is not on.
 			 */
 			var $capsWarning = $( '#caps-warning' );
 
-			$pass1.on( 'keypress', function( e ) {
-				if ( isCapsLockOn( e ) ) {
+			$pass1.on( 'keydown', function( e ) {
+				if ( isCapsLockOn( e.originalEvent || e ) ) {
 					$capsWarning.show();
+					wp.a11y.speak( __( 'Caps lock is on.' ) );
 				} else {
 					$capsWarning.hide();
 				}
@@ -369,23 +373,28 @@
 	}
 
 	/**
-	 * Determines if the Caps Lock is on based on keypress event.
+	 * Determines if Caps Lock is currently enabled.
+	 *
+	 * Uses `KeyboardEvent.getModifierState()` when available, with a fallback
+	 * for older browsers. On macOS Safari and Chrome, the native warning is preferred,
+	 * so this function returns false to suppress custom warnings.
+	 *
+	 * @param {KeyboardEvent} e The keydown event object.
+	 *
+	 * @return {boolean} True if Caps Lock is on, false otherwise. 
 	 */
 	function isCapsLockOn( e ) {
-		const char = String.fromCharCode( e.which || e.keyCode );
-
-		// Skip non-printable characters
-		if (!char.match(/[a-zA-Z]/)) return false;
-
-		// Skip warning on macOS Safari or Chrome (they show native caps lock warnings)
-		if ( isMac && ( ua.indexOf( 'safari' ) !== -1 || ua.indexOf( 'chrome' ) !== -1 ) ) {
+		// Skip warning on macOS Safari or Chrome (they show native indicators).
+		if (
+			isMac &&
+			( ua.indexOf( 'safari' ) !== -1 || ua.indexOf( 'chrome' ) !== -1 )
+		) {
 			return false;
 		}
 
-		return (
-			(char === char.toUpperCase() && !e.shiftKey) ||
-			(char === char.toLowerCase() && e.shiftKey)
-		);
+		if ( typeof e.getModifierState === 'function' ) {
+			return e.getModifierState( 'CapsLock' );
+		}
 	}
 
 	function showOrHideWeakPasswordCheckbox() {

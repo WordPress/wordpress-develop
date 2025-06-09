@@ -723,7 +723,7 @@ fieldset label,
 .wp-pwd .caps-warning {
 	display: none;
 	position: absolute;
-	background: #FFE9DE;
+	background: #FFFDD6;
 	border: 1px solid #ddd;
 	border-radius: 3px;
 	color: #1E1E20;
@@ -755,13 +755,13 @@ fieldset label,
 	margin-left: -7px;
 	border-width: 7px;
 	border-style: solid;
-	border-color: transparent transparent #FFE9DE transparent;
+	border-color: transparent transparent #FFFDD6 transparent;
 }
 
 .wp-pwd .caps-icon {
 	display: inline-flex;
     justify-content: center;
-    background-color: #E26F56;
+    background-color: #FFF972;
     width: 20px;
     height: 20px;
     border-radius: 3px;

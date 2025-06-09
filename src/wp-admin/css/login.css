@@ -452,61 +452,6 @@ input::-ms-reveal {
 	margin-bottom: 0;
 }
 
-/* Caps lock warning */
-.login .caps-warning {
-	display: none;
-	position: absolute;
-	background: #FFE9DE;
-	border: 1px solid #ddd;
-	border-radius: 3px;
-	color: #1E1E20;
-	font-size: 13px;
-	padding: 6px 10px;
-	top: calc(100% - 10px);
-	left: 24px;
-	white-space: nowrap;
-	z-index: 10;
-	box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.login .caps-warning::before {
-	content: '';
-	position: absolute;
-	bottom: 100%;
-	left: 15px;
-	margin-left: -8px;
-	border-width: 8px;
-	border-style: solid;
-	border-color: transparent transparent #ddd transparent;
-}
-
-.login .caps-warning::after {
-	content: '';
-	position: absolute;
-	bottom: 100%;
-	left: 15px;
-	margin-left: -7px;
-	border-width: 7px;
-	border-style: solid;
-	border-color: transparent transparent #FFE9DE transparent;
-}
-
-.login .caps-icon {
-	display: inline-flex;
-    justify-content: center;
-    background-color: #E26F56;
-    width: 20px;
-    height: 20px;
-    border-radius: 3px;
-    margin-right: 5px;
-    vertical-align: middle;
-}
-
-.login .caps-warning-text {
-	vertical-align: middle;
-}
-/* Caps lock warning */
-
 @media screen and (max-height: 550px) {
 	#login {
 		padding: 20px 0;
