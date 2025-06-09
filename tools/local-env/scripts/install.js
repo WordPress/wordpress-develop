@@ -36,11 +36,23 @@ const testConfig = readFileSync( 'wp-tests-config-sample.php', 'utf8' )
 writeFileSync( 'wp-tests-config.php', testConfig );
 
 // Once the site is available, install WordPress!
-wait_on( { resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`] } )
+wait_on( {
+	resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`],
+	timeout: 3000,
+} )
+	.catch( err => {
+		console.error( `Error: It appears the development environment has not been started. Message: ${ err.message }` );
+		console.error( `Did you forget to do 'npm run env:start'?` );
+		process.exit( 1 );
+	} )
 	.then( () => {
 		wp_cli( 'db reset --yes' );
 		const installCommand = process.env.LOCAL_MULTISITE === 'true'  ? 'multisite-install' : 'install';
 		wp_cli( `core ${ installCommand } --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@example.com --skip-email --url=http://localhost:${process.env.LOCAL_PORT}` );
+	} )
+	.catch( err => {
+		console.error( `Error: Unable to reset DB and install WordPress. Message: ${ err.message }` );
+		process.exit( 1 );
 	} );
 
 /**
