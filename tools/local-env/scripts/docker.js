@@ -14,6 +14,12 @@ if ( process.argv.includes( '--coverage-html' ) ) {
 	process.env.LOCAL_PHP_XDEBUG_MODE = 'coverage';
 }
 
+// Add --no-TTY (-T) arg after exec and run commands when STDIN is not a TTY.
+const dockerCommand = process.argv.slice( 2 );
+if ( [ 'exec', 'run' ].includes( dockerCommand[0] ) && ! process.stdin.isTTY ) {
+	dockerCommand.splice( 1, 0, '--no-TTY' );
+}
+
 // Execute any Docker compose command passed to this script.
 const returns = spawnSync(
 	'docker',
@@ -22,7 +28,7 @@ const returns = spawnSync(
 		...composeFiles
 			.map( ( composeFile ) => [ '-f', composeFile ] )
 			.flat(),
-		...process.argv.slice( 2 ),
+		...dockerCommand,
 	],
 	{ stdio: 'inherit' }
 );
