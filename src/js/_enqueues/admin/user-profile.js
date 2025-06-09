@@ -83,29 +83,7 @@
 			showOrHideWeakPasswordCheckbox();
 		} );
 
-		/**
-		 * Monitors the Caps Lock status while the user is typing in the password input field.
-		 *
-		 * Shows a warning if Caps Lock is detected. Also uses wp.a11y.speak()
-		 * for screen readers. Hides the warning on blur or when Caps Lock is not on.
-		 */
-		var $capsWarning = $( '#caps-warning' );
-
-		$pass1.on( 'keydown', function( e ) {
-			if ( isCapsLockOn( e.originalEvent || e ) ) {
-				$capsWarning.show();
-				wp.a11y.speak( __( 'Caps lock is on.' ) );
-			} else {
-				$capsWarning.hide();
-			}
-		});
-
-		/**
-		 * Hides the Caps Lock warning when the password input loses focus.
-		 */
-		$pass1.on( 'blur', function() {
-			$capsWarning.hide();
-		});
+		bindCapsLockWarning( $pass1 );
 	}
 
 	function resetToggle( show ) {
@@ -230,29 +208,7 @@
 			// Password field for the login form.
 			$pass1 = $( '#user_pass' );
 
-			/**
-			 * Monitors the Caps Lock status while the user is typing in the password input field.
-			 *
-			 * Shows a warning if Caps Lock is detected. Also uses wp.a11y.speak()
-			 * for screen readers. Hides the warning on blur or when Caps Lock is not on.
-			 */
-			var $capsWarning = $( '#caps-warning' );
-
-			$pass1.on( 'keydown', function( e ) {
-				if ( isCapsLockOn( e.originalEvent || e ) ) {
-					$capsWarning.show();
-					wp.a11y.speak( __( 'Caps lock is on.' ) );
-				} else {
-					$capsWarning.hide();
-				}
-			});
-
-			/**
-			 * Hides the Caps Lock warning when the password input loses focus.
-			 */
-			$pass1.on( 'blur', function() {
-				$capsWarning.hide();
-			});
+			bindCapsLockWarning( $pass1 );
 		}
 
 		/*
@@ -370,6 +326,28 @@
 			default:
 				$('#pass-strength-result').addClass('short').html( pwsL10n.short );
 		}
+	}
+
+	/**
+	 * Binds Caps Lock detection to a given password input field.
+	 *
+	 * @param {jQuery} $input The password input field.
+	 */
+	function bindCapsLockWarning( $input ) {
+		var $capsWarning = $( '#caps-warning' );
+
+		$input.on( 'keydown', function( e ) {
+			if ( isCapsLockOn( e.originalEvent || e ) ) {
+				$capsWarning.show();
+				wp.a11y.speak( __( 'Caps lock is on.' ) );
+			} else {
+				$capsWarning.hide();
+			}
+		} );
+
+		$input.on( 'blur', function() {
+			$capsWarning.hide();
+		} );
 	}
 
 	/**
