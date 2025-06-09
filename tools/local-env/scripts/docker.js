@@ -14,20 +14,17 @@ if ( process.argv.includes( '--coverage-html' ) ) {
 	process.env.LOCAL_PHP_XDEBUG_MODE = 'coverage';
 }
 
-// This try-catch prevents the superfluous Node.js debugging information from being shown if the command fails.
-try {
-	// Execute any Docker compose command passed to this script.
-	spawnSync(
-		'docker',
-		[
-			'compose',
-			...composeFiles
-				.map( ( composeFile ) => [ '-f', composeFile ] )
-				.flat(),
-			...process.argv.slice( 2 ),
-		],
-		{ stdio: 'inherit' }
-	);
-} catch ( error ) {
-	process.exit( 1 );
-}
+// Execute any Docker compose command passed to this script.
+const returns = spawnSync(
+	'docker',
+	[
+		'compose',
+		...composeFiles
+			.map( ( composeFile ) => [ '-f', composeFile ] )
+			.flat(),
+		...process.argv.slice( 2 ),
+	],
+	{ stdio: 'inherit' }
+);
+
+process.exit( returns.status );
