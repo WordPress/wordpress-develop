@@ -111,7 +111,7 @@ function get_footer( $name = null, $args = array() ) {
 	 * @param string|null $name Name of the specific footer file to use. Null for the default footer.
 	 * @param array       $args Additional arguments passed to the footer template.
 	 */
-	do_action( 'get_footer_after', $name, $args );
+	do_action( 'after_get_footer', $name, $args );
 }
 
 /**
