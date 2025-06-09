@@ -2,7 +2,7 @@
 
 const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
-const { execSync } = require( 'child_process' );
+const { execSync, spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
 const { constants, copyFile } = require( 'node:fs' );
 
@@ -34,7 +34,19 @@ const containers = [ 'wordpress-develop', 'cli' ];
 if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
 	containers.push( 'memcached' );
 }
-execSync( `docker compose ${composeFiles} up --quiet-pull -d ${containers.join( ' ' )}`, { stdio: 'inherit' } );
+
+spawnSync(
+	'docker',
+	[
+		'compose',
+		...composeFiles.map( ( composeFile ) => [ '-f', composeFile ] ).flat(),
+		'up',
+		'--quiet-pull',
+		'-d',
+		...containers,
+	],
+	{ stdio: 'inherit' }
+);
 
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.
 if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
@@ -42,7 +54,14 @@ if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
 	const vboxmanage = process.env.VBOX_MSI_INSTALL_PATH ? `${ process.env.VBOX_MSI_INSTALL_PATH }/VBoxManage` : 'VBoxManage';
 
 	// Check if the port forwarding is already configured for this port.
-	const vminfoBuffer = execSync( `"${ vboxmanage }" showvminfo "${ process.env.DOCKER_MACHINE_NAME }" --machinereadable` );
+	const vminfoBuffer = spawnSync(
+		vboxmanage,
+		[
+			'showvminfo',
+			process.env.DOCKER_MACHINE_NAME,
+			'--machinereadable'
+		]
+	).stdout;
 	const vminfo = vminfoBuffer.toString().split( /[\r\n]+/ );
 
 	vminfo.forEach( ( info ) => {
@@ -56,10 +75,29 @@ if ( process.env.DOCKER_TOOLBOX_INSTALL_PATH ) {
 
 		// Delete rules that are using the port we need.
 		if ( rule[ 3 ] === process.env.LOCAL_PORT || rule[ 5 ] === process.env.LOCAL_PORT ) {
-			execSync( `"${ vboxmanage }" controlvm "${ process.env.DOCKER_MACHINE_NAME }" natpf1 delete ${ rule[ 0 ] }`, { stdio: 'inherit' } );
+			spawnSync(
+				vboxmanage,
+				[
+					'controlvm',
+					process.env.DOCKER_MACHINE_NAME,
+					'natpf1',
+					'delete',
+					rule[ 0 ]
+				],
+				{ stdio: 'inherit' }
+			);
 		}
 	} );
 
 	// Add our port forwarding rule.
-	execSync( `"${ vboxmanage }" controlvm "${ process.env.DOCKER_MACHINE_NAME }" natpf1 "tcp-port${ process.env.LOCAL_PORT },tcp,127.0.0.1,${ process.env.LOCAL_PORT },,${ process.env.LOCAL_PORT }"`, { stdio: 'inherit' } );
+	spawnSync(
+		vboxmanage,
+		[
+			'controlvm',
+			process.env.DOCKER_MACHINE_NAME,
+			'natpf1',
+			`tcp-port${ process.env.LOCAL_PORT },tcp,127.0.0.1,${ process.env.LOCAL_PORT },,${ process.env.LOCAL_PORT }`
+		],
+		{ stdio: 'inherit' }
+	);
 }
