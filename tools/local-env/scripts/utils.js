@@ -1,3 +1,5 @@
+/* jshint node:true */
+
 const { existsSync } = require( 'node:fs' );
 
 const local_env_utils = {

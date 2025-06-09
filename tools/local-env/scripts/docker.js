@@ -1,3 +1,5 @@
+/* jshint node:true */
+
 const dotenv       = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync } = require( 'child_process' );
