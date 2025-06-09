@@ -1,6 +1,6 @@
 /* jshint node:true */
 
-const dotenv       = require( 'dotenv' );
+const dotenv = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
@@ -9,7 +9,7 @@ dotenvExpand.expand( dotenv.config() );
 
 const composeFiles = local_env_utils.get_compose_files();
 
-if (process.argv.includes('--coverage-html')) {
+if ( process.argv.includes( '--coverage-html' ) ) {
 	process.env.LOCAL_PHP_XDEBUG = 'true';
 	process.env.LOCAL_PHP_XDEBUG_MODE = 'coverage';
 }
@@ -21,8 +21,10 @@ try {
 		'docker',
 		[
 			'compose',
-			...composeFiles.map( ( composeFile ) => [ '-f', composeFile ] ).flat(),
-			...process.argv.slice( 2 )
+			...composeFiles
+				.map( ( composeFile ) => [ '-f', composeFile ] )
+				.flat(),
+			...process.argv.slice( 2 ),
 		],
 		{ stdio: 'inherit' }
 	);
