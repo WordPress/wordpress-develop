@@ -446,10 +446,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							$phpmailer->addAddress( $address, $recipient_name );
 							break;
 						case 'cc':
-							$phpmailer->addCc( $address, $recipient_name );
+							$phpmailer->addCC( $address, $recipient_name );
 							break;
 						case 'bcc':
-							$phpmailer->addBcc( $address, $recipient_name );
+							$phpmailer->addBCC( $address, $recipient_name );
 							break;
 						case 'reply_to':
 							$phpmailer->addReplyTo( $address, $recipient_name );
@@ -3048,6 +3048,8 @@ if ( ! function_exists( 'get_avatar' ) ) :
 	 *                              - 'monsterid' (a monster)
 	 *                              - 'wavatar' (a cartoon face)
 	 *                              - 'identicon' (the "quilt", a geometric pattern)
+	 *                              - 'initials' (initials based avatar with background color)
+	 *                              - 'color' (generated background color)
 	 *                              - 'mystery', 'mm', or 'mysteryman' (The Oyster Man)
 	 *                              - 'blank' (transparent GIF)
 	 *                              - 'gravatar_default' (the Gravatar logo)
