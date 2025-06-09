@@ -1075,6 +1075,10 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	 * @group ms-required
 	 */
 	public function test_create_item_for_user_without_role_on_main_site() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Test only runs in multisite' );
+		}
+
 		wp_set_current_user( self::$admin );
 
 		$blog_id = self::factory()->blog->create();
