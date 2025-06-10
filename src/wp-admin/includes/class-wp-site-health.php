@@ -923,7 +923,7 @@ class WP_Site_Health {
 			),
 			'hash'      => array(
 				'function' => 'hash',
-				'required' => false,
+				'required' => true,
 			),
 			'imagick'   => array(
 				'extension' => 'imagick',
@@ -1886,7 +1886,7 @@ class WP_Site_Health {
 		);
 
 		if ( ! function_exists( 'WP_Filesystem' ) ) {
-			require_once ABSPATH . '/wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
 		ob_start();

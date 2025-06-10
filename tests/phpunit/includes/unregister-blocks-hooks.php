@@ -56,6 +56,7 @@ remove_action( 'init', 'register_block_core_query_pagination_next' );
 remove_action( 'init', 'register_block_core_query_pagination_numbers' );
 remove_action( 'init', 'register_block_core_query_pagination_previous' );
 remove_action( 'init', 'register_block_core_query_title' );
+remove_action( 'init', 'register_block_core_query_total' );
 remove_action( 'init', 'register_block_core_read_more' );
 remove_action( 'init', 'register_block_core_rss' );
 remove_action( 'init', 'register_block_core_search' );

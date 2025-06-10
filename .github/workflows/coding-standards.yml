@@ -52,7 +52,7 @@ jobs:
     uses: ./.github/workflows/reusable-coding-standards-php.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
 
   # Runs the JavaScript coding standards checks.
   jshint:
@@ -60,7 +60,7 @@ jobs:
     uses: ./.github/workflows/reusable-coding-standards-javascript.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
 
   slack-notifications:
     name: Slack Notifications
