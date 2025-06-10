@@ -331,15 +331,16 @@ function wp_oembed_register_route() {
  * Adds oEmbed discovery links in the head element of the website.
  *
  * @since 4.4.0
+ * @since 6.8.0 Output was adjusted to only embed if the post supports it.
  */
 function wp_oembed_add_discovery_links() {
 	$output = '';
 
-	if ( is_singular() ) {
-		$output .= '<link rel="alternate" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
+	if ( is_singular() && is_post_embeddable() ) {
+		$output .= '<link rel="alternate" title="' . _x( 'oEmbed (JSON)', 'oEmbed resource link name' ) . '" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
 
 		if ( class_exists( 'SimpleXMLElement' ) ) {
-			$output .= '<link rel="alternate" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
+			$output .= '<link rel="alternate" title="' . _x( 'oEmbed (XML)', 'oEmbed resource link name' ) . '" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
 		}
 	}
 
@@ -538,11 +539,12 @@ function get_post_embed_html( $width, $height, $post = null ) {
  * Retrieves the oEmbed response data for a given post.
  *
  * @since 4.4.0
+ * @since 6.8.0 Output was adjusted to only embed if the post type supports it.
  *
  * @param WP_Post|int $post  Post ID or post object.
  * @param int         $width The requested width.
- * @return array|false Response data on success, false if post doesn't exist
- *                     or is not publicly viewable.
+ * @return array|false Response data on success, false if post doesn't exist,
+ *                     is not publicly viewable or post type is not embeddable.
  */
 function get_oembed_response_data( $post, $width ) {
 	$post  = get_post( $post );
@@ -553,6 +555,10 @@ function get_oembed_response_data( $post, $width ) {
 	}
 
 	if ( ! is_post_publicly_viewable( $post ) ) {
+		return false;
+	}
+
+	if ( ! is_post_embeddable( $post ) ) {
 		return false;
 	}
 
@@ -721,7 +727,7 @@ function get_oembed_response_data_rich( $data, $post, $width, $height ) {
 	}
 
 	if ( $thumbnail_id ) {
-		list( $thumbnail_url, $thumbnail_width, $thumbnail_height ) = wp_get_attachment_image_src( $thumbnail_id, array( $width, 99999 ) );
+		list( $thumbnail_url, $thumbnail_width, $thumbnail_height ) = wp_get_attachment_image_src( $thumbnail_id, array( $width, 0 ) );
 		$data['thumbnail_url']                                      = $thumbnail_url;
 		$data['thumbnail_width']                                    = $thumbnail_width;
 		$data['thumbnail_height']                                   = $thumbnail_height;
@@ -966,7 +972,7 @@ function wp_filter_oembed_result( $result, $data, $url ) {
 
 	if ( ! empty( $content[1] ) ) {
 		// We have a blockquote to fall back on. Hide the iframe by default.
-		$html = str_replace( '<iframe', '<iframe style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"', $html );
+		$html = str_replace( '<iframe', '<iframe style="position: absolute; visibility: hidden;"', $html );
 		$html = str_replace( '<blockquote', '<blockquote class="wp-embedded-content"', $html );
 	}
 
@@ -1099,7 +1105,13 @@ function print_embed_scripts() {
  * @return string The filtered content.
  */
 function _oembed_filter_feed_content( $content ) {
-	return str_replace( '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted" style="position: absolute; clip: rect(1px, 1px, 1px, 1px);"', '<iframe class="wp-embedded-content" sandbox="allow-scripts" security="restricted"', $content );
+	$p = new WP_HTML_Tag_Processor( $content );
+	while ( $p->next_tag( array( 'tag_name' => 'iframe' ) ) ) {
+		if ( $p->has_class( 'wp-embedded-content' ) ) {
+			$p->remove_attribute( 'style' );
+		}
+	}
+	return $p->get_updated_html();
 }
 
 /**

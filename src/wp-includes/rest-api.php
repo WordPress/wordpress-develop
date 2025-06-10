@@ -38,26 +38,55 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 		 * and namespace indexes. If you really need to register a
 		 * non-namespaced route, call `WP_REST_Server::register_route` directly.
 		 */
-		_doing_it_wrong( 'register_rest_route', __( 'Routes must be namespaced with plugin or theme name and version.' ), '4.4.0' );
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: string value of the namespace, 2: string value of the route. */
+				__( 'Routes must be namespaced with plugin or theme name and version. Instead there seems to be an empty namespace \'%1$s\' for route \'%2$s\'.' ),
+				'<code>' . $route_namespace . '</code>',
+				'<code>' . $route . '</code>'
+			),
+			'4.4.0'
+		);
 		return false;
 	} elseif ( empty( $route ) ) {
-		_doing_it_wrong( 'register_rest_route', __( 'Route must be specified.' ), '4.4.0' );
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: string value of the namespace, 2: string value of the route. */
+				__( 'Route must be specified. Instead within the namespace \'%1$s\', there seems to be an empty route \'%2$s\'.' ),
+				'<code>' . $route_namespace . '</code>',
+				'<code>' . $route . '</code>'
+			),
+			'4.4.0'
+		);
 		return false;
 	}
 
 	$clean_namespace = trim( $route_namespace, '/' );
 
 	if ( $clean_namespace !== $route_namespace ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Namespace must not start or end with a slash.' ), '5.4.2' );
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: string value of the namespace, 2: string value of the route. */
+				__( 'Namespace must not start or end with a slash. Instead namespace \'%1$s\' for route \'%2$s\' seems to contain a slash.' ),
+				'<code>' . $route_namespace . '</code>',
+				'<code>' . $route . '</code>'
+			),
+			'5.4.2'
+		);
 	}
 
 	if ( ! did_action( 'rest_api_init' ) ) {
 		_doing_it_wrong(
-			'register_rest_route',
+			__FUNCTION__,
 			sprintf(
-				/* translators: %s: rest_api_init */
-				__( 'REST API routes must be registered on the %s action.' ),
-				'<code>rest_api_init</code>'
+				/* translators: 1: rest_api_init, 2: string value of the route, 3: string value of the namespace. */
+				__( 'REST API routes must be registered on the %1$s action. Instead route \'%2$s\' with namespace \'%3$s\' was not registered on this action.' ),
+				'<code>rest_api_init</code>',
+				'<code>' . $route . '</code>',
+				'<code>' . $route_namespace . '</code>'
 			),
 			'5.1.0'
 		);
@@ -323,14 +352,6 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Block_Types_Controller();
 	$controller->register_routes();
 
-	// Global Styles revisions.
-	$controller = new WP_REST_Global_Styles_Revisions_Controller();
-	$controller->register_routes();
-
-	// Global Styles.
-	$controller = new WP_REST_Global_Styles_Controller();
-	$controller->register_routes();
-
 	// Settings.
 	$controller = new WP_REST_Settings_Controller();
 	$controller->register_routes();
@@ -407,6 +428,16 @@ function create_initial_rest_routes() {
 function rest_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
 		return;
+	}
+
+	// Return an error message if query_var is not a string.
+	if ( ! is_string( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+		$rest_type_error = new WP_Error(
+			'rest_path_invalid_type',
+			__( 'The REST route parameter must be a string.' ),
+			array( 'status' => 400 )
+		);
+		wp_die( $rest_type_error );
 	}
 
 	/**
@@ -797,9 +828,6 @@ function rest_handle_options_request( $response, $handler, $request ) {
 		}
 
 		foreach ( $endpoints as $endpoint ) {
-			// Remove the redundant preg_match() argument.
-			unset( $args[0] );
-
 			$request->set_url_params( $args );
 			$request->set_attributes( $endpoint );
 		}
@@ -1015,7 +1043,11 @@ function rest_output_link_wp_head() {
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
-		printf( '<link rel="alternate" type="application/json" href="%s" />', esc_url( rest_url( $resource ) ) );
+		printf(
+			'<link rel="alternate" title="%1$s" type="application/json" href="%2$s" />',
+			_x( 'JSON', 'REST API resource link name' ),
+			esc_url( rest_url( $resource ) )
+		);
 	}
 }
 
@@ -1040,7 +1072,14 @@ function rest_output_link_header() {
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
-		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', sanitize_url( rest_url( $resource ) ) ), false );
+		header(
+			sprintf(
+				'Link: <%1$s>; rel="alternate"; title="%2$s"; type="application/json"',
+				sanitize_url( rest_url( $resource ) ),
+				_x( 'JSON', 'REST API resource link name' )
+			),
+			false
+		);
 	}
 }
 
@@ -1272,12 +1311,15 @@ function rest_get_avatar_sizes() {
 /**
  * Parses an RFC3339 time into a Unix timestamp.
  *
+ * Explicitly check for `false` to detect failure, as zero is a valid return
+ * value on success.
+ *
  * @since 4.4.0
  *
  * @param string $date      RFC3339 timestamp.
  * @param bool   $force_utc Optional. Whether to force UTC timezone instead of using
  *                          the timestamp's timezone. Default false.
- * @return int Unix timestamp.
+ * @return int|false Unix timestamp on success, false on failure.
  */
 function rest_parse_date( $date, $force_utc = false ) {
 	if ( $force_utc ) {
@@ -1299,7 +1341,7 @@ function rest_parse_date( $date, $force_utc = false ) {
  * @since 5.4.0
  *
  * @param string $color 3 or 6 digit hex color (with #).
- * @return string|false
+ * @return string|false Color value on success, false on failure.
  */
 function rest_parse_hex_color( $color ) {
 	$regex = '|^#([A-Fa-f0-9]{3}){1,2}$|';
@@ -1337,7 +1379,7 @@ function rest_get_date_with_gmt( $date, $is_utc = false ) {
 
 	$date = rest_parse_date( $date );
 
-	if ( empty( $date ) ) {
+	if ( false === $date ) {
 		return null;
 	}
 
@@ -2227,7 +2269,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 				break;
 
 			case 'date-time':
-				if ( ! rest_parse_date( $value ) ) {
+				if ( false === rest_parse_date( $value ) ) {
 					return new WP_Error( 'rest_invalid_date', __( 'Invalid date.' ) );
 				}
 				break;
@@ -2903,6 +2945,7 @@ function rest_preload_api_request( $memo, $path ) {
 		}
 	}
 
+	// Remove trailing slashes at the end of the REST API path (query part).
 	$path = untrailingslashit( $path );
 	if ( empty( $path ) ) {
 		$path = '/';
@@ -2911,6 +2954,14 @@ function rest_preload_api_request( $memo, $path ) {
 	$path_parts = parse_url( $path );
 	if ( false === $path_parts ) {
 		return $memo;
+	}
+
+	if ( isset( $path_parts['path'] ) && '/' !== $path_parts['path'] ) {
+		// Remove trailing slashes from the "path" part of the REST API path.
+		$path_parts['path'] = untrailingslashit( $path_parts['path'] );
+		$path               = str_contains( $path, '?' ) ?
+			$path_parts['path'] . '?' . ( $path_parts['query'] ?? '' ) :
+			$path_parts['path'];
 	}
 
 	$request = new WP_REST_Request( $method, $path_parts['path'] );

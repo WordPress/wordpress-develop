@@ -685,34 +685,25 @@ h1 {
   font-size: 2.25em;
 }
 
-h1:before {
-  background: #767676;
-  content: "\020";
-  display: block;
-  height: 2px;
-  margin: 1rem 0;
-  width: 1em;
-}
-
-h1.has-text-align-center:before {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-h1.has-text-align-right:before {
-  margin-left: auto;
-}
-
 @media only screen and (min-width: 768px) {
   h1 {
     font-size: 2.8125em;
   }
 }
 
+.wp-block-post-title,
 h2 {
   font-size: 1.6875em;
 }
 
+@media only screen and (min-width: 768px) {
+  .wp-block-post-title,
+  h2 {
+    font-size: 2.25em;
+  }
+}
+
+h1:before,
 h2:before {
   background: #767676;
   content: "\020";
@@ -722,19 +713,15 @@ h2:before {
   width: 1em;
 }
 
+h1.has-text-align-center:before,
 h2.has-text-align-center:before {
   margin-left: auto;
   margin-right: auto;
 }
 
+h1.has-text-align-right:before,
 h2.has-text-align-right:before {
   margin-left: auto;
-}
-
-@media only screen and (min-width: 768px) {
-  h2 {
-    font-size: 2.25em;
-  }
 }
 
 h3 {
@@ -1003,6 +990,11 @@ figcaption,
   line-height: 1.6;
 }
 
+/** === Audio === */
+.wp-block-audio audio {
+  display: block;
+}
+
 /** === Button === */
 .wp-block-buttons {
   line-height: 1.2;
@@ -1012,6 +1004,7 @@ figcaption,
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   font-size: 0.88889em;
   font-weight: bold;
+  padding: 16.72px 22px;
 }
 
 .wp-block-button .wp-block-button__link:not(.has-text-color) {
@@ -1037,6 +1030,16 @@ figcaption,
 
 .wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color), .wp-block-button.is-style-outline:hover .wp-block-button__link:not(.has-text-color), .wp-block-button.is-style-outline:focus .wp-block-button__link:not(.has-text-color), .wp-block-button.is-style-outline:active .wp-block-button__link:not(.has-text-color) {
   color: #0073aa;
+}
+
+.wp-block-buttons[style*="font-weight"] .wp-block-button__link,
+.wp-block-button[style*="font-weight"] .wp-block-button__link {
+  font-weight: inherit;
+}
+
+.wp-block-buttons[style*="text-decoration"] .wp-block-button__link,
+.wp-block-button[style*="text-decoration"] .wp-block-button__link {
+  text-decoration: inherit;
 }
 
 .wp-block-search .wp-block-search__button {
@@ -1378,6 +1381,11 @@ ul.wp-block-archives li ul,
   margin-bottom: -0.75rem;
 }
 
+.wp-block[data-align="center"] > .wp-block-archives,
+.wp-block[data-align="center"] > .wp-block-categories {
+  text-align: center;
+}
+
 /** === Latest Posts === */
 .wp-block-latest-posts .wp-block-latest-posts__post-date {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
@@ -1458,12 +1466,8 @@ ul.wp-block-archives li ul,
   padding: 0.5rem;
   text-align: left;
   text-align: center;
-  -webkit-margin-start: 0px;
-  margin-inline-start: 0px;
-}
-
-.wp-block-freeform {
-  /* Add style for galleries in classic-editor block */
+  -webkit-margin-start: 0;
+  margin-inline-start: 0;
 }
 
 .wp-block-freeform blockquote {

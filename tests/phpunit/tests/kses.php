@@ -489,6 +489,8 @@ EOF;
 
 		$tags = wp_kses_allowed_html( 'post' );
 
+		$this->assertNotEmpty( $tags );
+
 		foreach ( $tags as $tag ) {
 			$this->assertTrue( $tag['class'] );
 			$this->assertTrue( $tag['dir'] );
@@ -1353,6 +1355,11 @@ EOF;
 				'css'      => 'background-repeat: no-repeat',
 				'expected' => 'background-repeat: no-repeat',
 			),
+			// `opacity` introduced in 6.7.
+			array(
+				'css'      => 'opacity: 10',
+				'expected' => 'opacity: 10',
+			),
 		);
 	}
 
@@ -1362,8 +1369,20 @@ EOF;
 	 * @ticket 33121
 	 */
 	public function test_wp_kses_attr_data_attribute_is_allowed() {
-		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data--invalid="gone"  data-also-invalid-="gone" data-two-hyphens="remains">Pens and pencils</div>';
+		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data-two-hyphens="remains">Pens and pencils</div>';
 		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
+
+		$this->assertSame( $expected, wp_kses_post( $test ) );
+	}
+
+	/**
+	 * Data attributes with leading, trailing, and double "-" are globally accepted.
+	 *
+	 * @ticket 61052
+	 */
+	public function test_wp_kses_attr_data_attribute_hypens_allowed() {
+		$test     = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
+		$expected = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
 
 		$this->assertSame( $expected, wp_kses_post( $test ) );
 	}
@@ -1920,6 +1939,38 @@ HTML;
 	}
 
 	/**
+	 * Ensures that `wp_kses()` preserves various kinds of HTML comments, both valid and invalid.
+	 *
+	 * @ticket 61009
+	 *
+	 * @dataProvider data_html_containing_various_kinds_of_html_comments
+	 *
+	 * @param string $html_comment    HTML containing a comment; must not be a valid comment
+	 *                                but must be syntax which a browser interprets as a comment.
+	 * @param string $expected_output How `wp_kses()` ought to transform the comment.
+	 */
+	public function test_wp_kses_preserves_html_comments( $html_comment, $expected_output ) {
+		$this->assertSame(
+			$expected_output,
+			wp_kses( $html_comment, array() ),
+			'Failed to properly preserve HTML comment.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_html_containing_various_kinds_of_html_comments() {
+		return array(
+			'Normative HTML comment'            => array( 'before<!-- this is a comment -->after', 'before<!-- this is a comment -->after' ),
+			'Closing tag with invalid tag name' => array( 'before<//not a tag>after', 'before<//not a tag>after' ),
+			'Incorrectly opened comment (Markup declaration)' => array( 'before<!also not a tag>after', 'before<!also not a tag>after' ),
+		);
+	}
+
+	/**
 	 * Test that attributes with a list of allowed values are filtered correctly.
 	 *
 	 * @ticket 54261
@@ -2194,5 +2245,77 @@ HTML;
 		);
 
 		return $this->text_array_to_dataprovider( $required_kses_globals );
+	}
+
+	/**
+	 * Tests that the target attribute is preserved in various contexts.
+	 *
+	 * @dataProvider data_target_attribute_preserved_in_descriptions
+	 *
+	 * @ticket 12056
+	 *
+	 * @param string $context  The context to test ('user_description' or 'pre_term_description').
+	 * @param string $input    The input HTML string.
+	 * @param string $expected The expected output HTML string.
+	 */
+	public function test_target_attribute_preserved_in_context( $context, $input, $expected ) {
+		$allowed = wp_kses_allowed_html( $context );
+		$this->assertTrue( isset( $allowed['a']['target'] ), "Target attribute not allowed in {$context}" );
+		$this->assertEquals( $expected, wp_kses( $input, $context ) );
+	}
+
+	/**
+	 * Data provider for test_target_attribute_preserved_in_context.
+	 *
+	 * @return array
+	 */
+	public function data_target_attribute_preserved_in_descriptions() {
+		return array(
+			array(
+				'user_description',
+				'<a href="https://example.com" target="_blank">Example</a>',
+				'<a href="https://example.com" target="_blank">Example</a>',
+			),
+			array(
+				'pre_term_description',
+				'<a href="https://example.com" target="_blank">Example</a>',
+				'<a href="https://example.com" target="_blank">Example</a>',
+			),
+		);
+	}
+
+	/**
+	 * Tests that specific attributes are preserved in various contexts.
+	 *
+	 * @dataProvider data_allowed_attributes_in_descriptions
+	 *
+	 * @ticket 12056
+	 *
+	 * @param string $context    The context to test ('user_description' or 'pre_term_description').
+	 * @param array  $attributes List of attributes to check for.
+	 */
+	public function test_specific_attributes_preserved_in_context( $context, $attributes ) {
+		$allowed = wp_kses_allowed_html( $context );
+		foreach ( $attributes as $attribute ) {
+			$this->assertTrue( isset( $allowed['a'][ $attribute ] ), "{$attribute} attribute not allowed in {$context}" );
+		}
+	}
+
+	/**
+	 * Data provider for test_specific_attributes_preserved_in_context.
+	 *
+	 * @return array
+	 */
+	public function data_allowed_attributes_in_descriptions() {
+		return array(
+			array(
+				'user_description',
+				array( 'target', 'href', 'rel' ),
+			),
+			array(
+				'pre_term_description',
+				array( 'target', 'href', 'rel' ),
+			),
+		);
 	}
 }

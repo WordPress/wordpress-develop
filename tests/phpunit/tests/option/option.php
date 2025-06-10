@@ -112,8 +112,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		wp_cache_set( 'notoptions', $notoptions, 'options' );
 
 		$before = get_num_queries();
-		$value  = get_option( 'invalid' );
-		$after  = get_num_queries();
+		get_option( 'invalid' );
+		$after = get_num_queries();
 
 		$this->assertSame( 0, $after - $before );
 	}
@@ -127,33 +127,14 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		get_option( 'invalid' );
 
 		$before = get_num_queries();
-		$value  = get_option( 'invalid' );
-		$after  = get_num_queries();
+		get_option( 'invalid' );
+		$after = get_num_queries();
 
 		$notoptions = wp_cache_get( 'notoptions', 'options' );
 
 		$this->assertSame( 0, $after - $before, 'The notoptions cache was not hit on the second call to `get_option()`.' );
 		$this->assertIsArray( $notoptions, 'The notoptions cache should be set.' );
 		$this->assertArrayHasKey( 'invalid', $notoptions, 'The "invalid" option should be in the notoptions cache.' );
-	}
-
-	/**
-	 * @ticket 58277
-	 *
-	 * @covers ::get_option
-	 */
-	public function test_get_option_notoptions_do_not_load_cache() {
-		add_option( 'foo', 'bar', '', 'no' );
-		wp_cache_delete( 'notoptions', 'options' );
-
-		$before = get_num_queries();
-		$value  = get_option( 'foo' );
-		$after  = get_num_queries();
-
-		$notoptions = wp_cache_get( 'notoptions', 'options' );
-
-		$this->assertSame( 0, $after - $before, 'The options cache was not hit on the second call to `get_option()`.' );
-		$this->assertFalse( $notoptions, 'The notoptions cache should not be set.' );
 	}
 
 	/**
@@ -360,11 +341,13 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	public function data_option_autoloading() {
 		return array(
 			// Supported values.
-			array( 'autoload_yes', 'yes', 'on' ),
 			array( 'autoload_true', true, 'on' ),
-			array( 'autoload_no', 'no', 'off' ),
 			array( 'autoload_false', false, 'off' ),
 			array( 'autoload_null', null, 'auto' ),
+
+			// Values supported for backward compatibility.
+			array( 'autoload_yes', 'yes', 'on' ),
+			array( 'autoload_no', 'no', 'off' ),
 
 			// Technically unsupported values.
 			array( 'autoload_string', 'foo', 'auto' ),
@@ -457,8 +440,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @covers ::update_option
 	 */
 	public function test_update_option_with_autoload_change_no_to_yes() {
-		add_option( 'foo', 'value1', '', 'no' );
-		update_option( 'foo', 'value2', 'yes' );
+		add_option( 'foo', 'value1', '', false );
+		update_option( 'foo', 'value2', true );
 		delete_option( 'foo' );
 		$this->assertFalse( get_option( 'foo' ) );
 	}
@@ -473,9 +456,161 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 * @covers ::update_option
 	 */
 	public function test_update_option_with_autoload_change_yes_to_no() {
-		add_option( 'foo', 'value1', '', 'yes' );
-		update_option( 'foo', 'value2', 'no' );
+		add_option( 'foo', 'value1', '', true );
+		update_option( 'foo', 'value2', false );
 		delete_option( 'foo' );
 		$this->assertFalse( get_option( 'foo' ) );
+	}
+
+	/**
+	 * Tests that calling delete_option() updates notoptions when option deleted.
+	 *
+	 * @ticket 61484
+	 *
+	 * @covers ::delete_option
+	 */
+	public function test_check_delete_option_updates_notoptions() {
+		add_option( 'foo', 'value1' );
+
+		delete_option( 'foo' );
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		$this->assertIsArray( $notoptions, 'The notoptions cache is expected to be an array.' );
+		$this->assertTrue( $notoptions['foo'], 'The deleted options is expected to be in notoptions.' );
+
+		$before = get_num_queries();
+		get_option( 'foo' );
+		$queries = get_num_queries() - $before;
+
+		$this->assertSame( 0, $queries, 'get_option should not make any database queries.' );
+	}
+
+	/**
+	 * Tests that calling update_option() clears the notoptions cache.
+	 *
+	 * @ticket 61484
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_update_option_clears_the_notoptions_cache() {
+		$option_name = 'ticket_61484_option_to_be_created';
+		$notoptions  = wp_cache_get( 'notoptions', 'options' );
+		if ( ! is_array( $notoptions ) ) {
+			$notoptions = array();
+		}
+		$notoptions[ $option_name ] = true;
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
+		$this->assertArrayHasKey( $option_name, wp_cache_get( 'notoptions', 'options' ), 'The "foobar" option should be in the notoptions cache.' );
+
+		update_option( $option_name, 'baz' );
+
+		$updated_notoptions = wp_cache_get( 'notoptions', 'options' );
+		$this->assertArrayNotHasKey( $option_name, $updated_notoptions, 'The "foobar" option should not be in the notoptions cache after updating it.' );
+	}
+
+	/**
+	 * Tests that calling add_option() clears the notoptions cache.
+	 *
+	 * @ticket 61484
+	 *
+	 * @covers ::add_option
+	 */
+	public function test_add_option_clears_the_notoptions_cache() {
+		$option_name = 'ticket_61484_option_to_be_created';
+		$notoptions  = wp_cache_get( 'notoptions', 'options' );
+		if ( ! is_array( $notoptions ) ) {
+			$notoptions = array();
+		}
+		$notoptions[ $option_name ] = true;
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
+		$this->assertArrayHasKey( $option_name, wp_cache_get( 'notoptions', 'options' ), 'The "foobar" option should be in the notoptions cache.' );
+
+		add_option( $option_name, 'baz' );
+
+		$updated_notoptions = wp_cache_get( 'notoptions', 'options' );
+		$this->assertArrayNotHasKey( $option_name, $updated_notoptions, 'The "foobar" option should not be in the notoptions cache after adding it.' );
+	}
+
+	/**
+	 * Test that get_option() does not hit the external cache multiple times for the same option.
+	 *
+	 * @ticket 62692
+	 *
+	 * @covers ::get_option
+	 *
+	 * @dataProvider data_get_option_does_not_hit_the_external_cache_multiple_times_for_the_same_option
+	 *
+	 * @param int    $expected_connections Expected number of connections to the memcached server.
+	 * @param bool   $option_exists        Whether the option should be set. Default true.
+	 * @param string $autoload             Whether the option should be auto loaded. Default true.
+	 */
+	public function test_get_option_does_not_hit_the_external_cache_multiple_times_for_the_same_option( $expected_connections, $option_exists = true, $autoload = true ) {
+		if ( ! wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires an external object cache.' );
+		}
+
+		if ( false === $this->helper_object_cache_stats_cmd_get() ) {
+			$this->markTestSkipped( 'This test requires access to the number of get requests to the external object cache.' );
+		}
+
+		if ( $option_exists ) {
+			add_option( 'ticket-62692', 'value', '', $autoload );
+		}
+
+		wp_cache_delete_multiple( array( 'ticket-62692', 'notoptions', 'alloptions' ), 'options' );
+
+		$connections_start = $this->helper_object_cache_stats_cmd_get();
+
+		$call_getter = 10;
+		while ( $call_getter-- ) {
+			get_option( 'ticket-62692' );
+		}
+
+		$connections_end = $this->helper_object_cache_stats_cmd_get();
+
+		$this->assertSame( $expected_connections, $connections_end - $connections_start );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_option_does_not_hit_the_external_cache_multiple_times_for_the_same_option() {
+		return array(
+			'exists, autoload'       => array( 1, true, true ),
+			'exists, not autoloaded' => array( 3, true, false ),
+			'does not exist'         => array( 3, false ),
+		);
+	}
+
+	/**
+	 * Helper function to get the number of get commands from the external object cache.
+	 *
+	 * @return int|false Number of get command calls, false if unavailable.
+	 */
+	public function helper_object_cache_stats_cmd_get() {
+		if ( ! wp_using_ext_object_cache() || ! function_exists( 'wp_cache_get_stats' ) ) {
+			return false;
+		}
+
+		$stats = wp_cache_get_stats();
+
+		// Check the shape of the stats.
+		if ( ! is_array( $stats ) ) {
+			return false;
+		}
+
+		// Get the first server's stats.
+		$stats = array_shift( $stats );
+
+		if ( ! is_array( $stats ) ) {
+			return false;
+		}
+
+		if ( ! array_key_exists( 'cmd_get', $stats ) ) {
+			return false;
+		}
+
+		return $stats['cmd_get'];
 	}
 }

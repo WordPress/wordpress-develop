@@ -127,7 +127,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 				'response' => array(
 					'code' => 200,
 				),
-				'body'     => '<html><head><link rel="alternate" type="application/json+oembed" href="' . self::UNTRUSTED_PROVIDER_URL . '" /></head><body></body></html>',
+				'body'     => '<html><head><link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="' . self::UNTRUSTED_PROVIDER_URL . '" /></head><body></body></html>',
 			);
 		}
 
@@ -304,11 +304,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_request_json() {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'display_name' => 'John Doe',
-			)
-		);
+		$user = get_user_by( 'id', self::$subscriber );
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $user->ID,
@@ -342,7 +338,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 	}
 
 	/**
@@ -385,17 +381,13 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( home_url(), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 
 		update_option( 'show_on_front', 'posts' );
 	}
 
 	public function test_request_xml() {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'display_name' => 'John Doe',
-			)
-		);
+		$user = get_user_by( 'id', self::$subscriber );
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $user->ID,
@@ -430,7 +422,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 	}
 
 	/**
@@ -461,11 +453,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	public function test_rest_pre_serve_request() {
-		$user = self::factory()->user->create_and_get(
-			array(
-				'display_name' => 'John Doe',
-			)
-		);
+		$user = get_user_by( 'id', self::$subscriber );
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $user->ID,
@@ -677,11 +665,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	public function test_proxy_with_internal_url() {
 		wp_set_current_user( self::$editor );
 
-		$user = self::factory()->user->create_and_get(
-			array(
-				'display_name' => 'John Doe',
-			)
-		);
+		$user = get_user_by( 'id', self::$subscriber );
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_author' => $user->ID,
@@ -716,7 +700,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 	}
 
 	/**
@@ -765,7 +749,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertSame( home_url(), $data['author_url'] );
 		$this->assertSame( $post->post_title, $data['title'] );
 		$this->assertSame( 'rich', $data['type'] );
-		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
+		$this->assertLessThanOrEqual( $request['maxwidth'], $data['width'] );
 
 		update_option( 'show_on_front', 'posts' );
 	}

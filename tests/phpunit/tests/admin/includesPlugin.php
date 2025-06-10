@@ -4,7 +4,16 @@
  * @group admin
  */
 class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
+
+	/**
+	 * Admin user ID.
+	 *
+	 * @var int $admin_id
+	 */
+	public static $admin_id;
+
 	public static function wpSetUpBeforeClass( $factory ) {
+		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::_back_up_mu_plugins();
 	}
 
@@ -37,7 +46,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 	public function test_menu_page_url() {
 		$current_user = get_current_user_id();
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$admin_id );
 		update_option( 'siteurl', 'http://example.com' );
 
 		// Add some pages.
@@ -81,7 +90,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		global $submenu;
 		global $menu;
 		$current_user = get_current_user_id();
-		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$admin_user   = self::$admin_id;
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
 
@@ -96,7 +105,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		wp_set_current_user( $current_user );
 
 		// Clean up the temporary user.
-		wp_delete_user( $admin_user );
+		self::delete_user( $admin_user );
 
 		// Verify the menu was inserted at the expected position.
 		$this->assertSame( 'custom-position', $submenu[ $parent ][ $expected_position ][2] );
@@ -134,7 +143,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$menu    = array();
 
 		$current_user = get_current_user_id();
-		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$admin_user   = self::$admin_id;
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
 
@@ -204,7 +213,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		}
 
 		// Clean up the temporary user.
-		wp_delete_user( $admin_user );
+		self::delete_user( $admin_user );
 
 		foreach ( $actual_positions as $test => $actual_position ) {
 			// Verify the menu was inserted at the expected position.
@@ -283,7 +292,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$submenu      = array();
 		$menu         = array();
 		$current_user = get_current_user_id();
-		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$admin_user   = self::$admin_id;
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
 
@@ -295,7 +304,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		// Clean up the temporary user.
 		wp_set_current_user( $current_user );
-		wp_delete_user( $admin_user );
+		self::delete_user( $admin_user );
 
 		// Verify the menu was inserted at the expected position.
 		$this->assertSame( 'main_slug', $submenu['main_slug'][0][2] );
@@ -316,7 +325,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$submenu      = array();
 		$menu         = array();
 		$current_user = get_current_user_id();
-		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$admin_user   = self::$admin_id;
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
 
@@ -326,7 +335,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		// Clean up the temporary user.
 		wp_set_current_user( $current_user );
-		wp_delete_user( $admin_user );
+		self::delete_user( $admin_user );
 
 		// Verify the menu was inserted at the expected position.
 		$this->assertSame( 'submenu_page_1', $submenu['main_slug'][1][2] );
@@ -344,7 +353,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$submenu      = array();
 		$menu         = array();
 		$current_user = get_current_user_id();
-		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$admin_user   = self::$admin_id;
 		wp_set_current_user( $admin_user );
 		set_current_screen( 'dashboard' );
 
@@ -355,7 +364,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		// Clean up the temporary user.
 		wp_set_current_user( $current_user );
-		wp_delete_user( $admin_user );
+		self::delete_user( $admin_user );
 
 		// Verify the menus were inserted.
 		$this->assertSame( 'main_slug_1', $menu[1][2] );

@@ -263,8 +263,8 @@ class WP_Site_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return array|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
-	 *                   or the number of sites when 'count' is passed as a query var.
+	 * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+	 *                             or the number of sites when 'count' is passed as a query var.
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -279,8 +279,8 @@ class WP_Site_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return array|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
-	 *                   or the number of sites when 'count' is passed as a query var.
+	 * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+	 *                             or the number of sites when 'count' is passed as a query var.
 	 */
 	public function get_sites() {
 		global $wpdb;
@@ -333,10 +333,10 @@ class WP_Site_Query {
 		 * @since 5.6.0 The returned array of site data is assigned to the `sites` property
 		 *              of the current WP_Site_Query instance.
 		 *
-		 * @param array|int|null $site_data Return an array of site data to short-circuit WP's site query,
-		 *                                  the site count as an integer if `$this->query_vars['count']` is set,
-		 *                                  or null to run the normal queries.
-		 * @param WP_Site_Query  $query     The WP_Site_Query instance, passed by reference.
+		 * @param WP_Site[]|int[]|int|null $site_data Return an array of site data to short-circuit WP's site query,
+		 *                                            the site count as an integer if `$this->query_vars['count']` is set,
+		 *                                            or null to run the normal queries.
+		 * @param WP_Site_Query            $query     The WP_Site_Query instance, passed by reference.
 		 */
 		$site_data = apply_filters_ref_array( 'sites_pre_query', array( $site_data, &$this ) );
 
@@ -660,7 +660,16 @@ class WP_Site_Query {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param string[]      $clauses An associative array of site query clauses.
+		 * @param string[]      $clauses {
+		 *     Associative array of the clauses for the query.
+		 *
+		 *     @type string $fields   The SELECT clause of the query.
+		 *     @type string $join     The JOIN clause of the query.
+		 *     @type string $where    The WHERE clause of the query.
+		 *     @type string $orderby  The ORDER BY clause of the query.
+		 *     @type string $limits   The LIMIT clause of the query.
+		 *     @type string $groupby  The GROUP BY clause of the query.
+		 * }
 		 * @param WP_Site_Query $query   Current instance of WP_Site_Query (passed by reference).
 		 */
 		$clauses = apply_filters_ref_array( 'sites_clauses', array( compact( $pieces ), &$this ) );

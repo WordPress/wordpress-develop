@@ -20,34 +20,33 @@
  *
  * The second filter, {@see 'plugins_api'}, allows a plugin to override the WordPress.org
  * Plugin Installation API entirely. If `$action` is 'query_plugins' or 'plugin_information',
- * an object MUST be passed. If `$action` is 'hot_tags' or 'hot_categories', an array MUST
- * be passed.
+ * an object MUST be passed. If `$action` is 'hot_tags', an array MUST be passed.
  *
  * Finally, the third filter, {@see 'plugins_api_result'}, makes it possible to filter the
  * response object or array, depending on the `$action` type.
  *
  * Supported arguments per action:
  *
- * | Argument Name        | query_plugins | plugin_information | hot_tags | hot_categories |
- * | -------------------- | :-----------: | :----------------: | :------: | :------------: |
- * | `$slug`              | No            |  Yes               | No       | No             |
- * | `$per_page`          | Yes           |  No                | No       | No             |
- * | `$page`              | Yes           |  No                | No       | No             |
- * | `$number`            | No            |  No                | Yes      | Yes            |
- * | `$search`            | Yes           |  No                | No       | No             |
- * | `$tag`               | Yes           |  No                | No       | No             |
- * | `$author`            | Yes           |  No                | No       | No             |
- * | `$user`              | Yes           |  No                | No       | No             |
- * | `$browse`            | Yes           |  No                | No       | No             |
- * | `$locale`            | Yes           |  Yes               | No       | No             |
- * | `$installed_plugins` | Yes           |  No                | No       | No             |
- * | `$is_ssl`            | Yes           |  Yes               | No       | No             |
- * | `$fields`            | Yes           |  Yes               | No       | No             |
+ * | Argument Name        | query_plugins | plugin_information | hot_tags |
+ * | -------------------- | :-----------: | :----------------: | :------: |
+ * | `$slug`              | No            |  Yes               | No       |
+ * | `$per_page`          | Yes           |  No                | No       |
+ * | `$page`              | Yes           |  No                | No       |
+ * | `$number`            | No            |  No                | Yes      |
+ * | `$search`            | Yes           |  No                | No       |
+ * | `$tag`               | Yes           |  No                | No       |
+ * | `$author`            | Yes           |  No                | No       |
+ * | `$user`              | Yes           |  No                | No       |
+ * | `$browse`            | Yes           |  No                | No       |
+ * | `$locale`            | Yes           |  Yes               | No       |
+ * | `$installed_plugins` | Yes           |  No                | No       |
+ * | `$is_ssl`            | Yes           |  Yes               | No       |
+ * | `$fields`            | Yes           |  Yes               | No       |
  *
  * @since 2.7.0
  *
  * @param string       $action API action to perform: 'query_plugins', 'plugin_information',
- *                             'hot_tags' or 'hot_categories'.
+ *                             or 'hot_tags'.
  * @param array|object $args   {
  *     Optional. Array or object of arguments to serialize for the Plugin Info API.
  *
@@ -91,7 +90,6 @@
  *         @type bool $banners           Whether to return the banner images links. Default false.
  *         @type bool $icons             Whether to return the icon links. Default false.
  *         @type bool $active_installs   Whether to return the number of active installations. Default false.
- *         @type bool $group             Whether to return the assigned group. Default false.
  *         @type bool $contributors      Whether to return the list of contributors. Default false.
  *     }
  * }
@@ -100,9 +98,6 @@
  *         for more information on the make-up of possible return values depending on the value of `$action`.
  */
 function plugins_api( $action, $args = array() ) {
-	// Include an unmodified $wp_version.
-	require ABSPATH . WPINC . '/version.php';
-
 	if ( is_array( $args ) ) {
 		$args = (object) $args;
 	}
@@ -118,7 +113,7 @@ function plugins_api( $action, $args = array() ) {
 	}
 
 	if ( ! isset( $args->wp_version ) ) {
-		$args->wp_version = substr( $wp_version, 0, 3 ); // x.y
+		$args->wp_version = substr( wp_get_wp_version(), 0, 3 ); // x.y
 	}
 
 	/**
@@ -139,7 +134,7 @@ function plugins_api( $action, $args = array() ) {
 	 * Returning a non-false value will effectively short-circuit the WordPress.org API request.
 	 *
 	 * If `$action` is 'query_plugins' or 'plugin_information', an object MUST be passed.
-	 * If `$action` is 'hot_tags' or 'hot_categories', an array should be passed.
+	 * If `$action` is 'hot_tags', an array should be passed.
 	 *
 	 * @since 2.7.0
 	 *
@@ -168,13 +163,14 @@ function plugins_api( $action, $args = array() ) {
 
 		$http_args = array(
 			'timeout'    => 15,
-			'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
+			'user-agent' => 'WordPress/' . wp_get_wp_version() . '; ' . home_url( '/' ),
 		);
 		$request   = wp_remote_get( $url, $http_args );
 
 		if ( $ssl && is_wp_error( $request ) ) {
 			if ( ! wp_is_json_request() ) {
-				trigger_error(
+				wp_trigger_error(
+					__FUNCTION__,
 					sprintf(
 						/* translators: %s: Support forums URL. */
 						__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
@@ -320,6 +316,8 @@ function install_search_form( $deprecated = true ) {
 	?>
 	<form class="search-form search-plugins" method="get">
 		<input type="hidden" name="tab" value="search" />
+		<label for="search-plugins"><?php _e( 'Search Plugins' ); ?></label>
+		<input type="search" name="s" id="search-plugins" value="<?php echo esc_attr( $term ); ?>" class="wp-filter-search" />
 		<label class="screen-reader-text" for="typeselector">
 			<?php
 			/* translators: Hidden accessibility text. */
@@ -331,13 +329,6 @@ function install_search_form( $deprecated = true ) {
 			<option value="author"<?php selected( 'author', $type ); ?>><?php _e( 'Author' ); ?></option>
 			<option value="tag"<?php selected( 'tag', $type ); ?>><?php _ex( 'Tag', 'Plugin Installer' ); ?></option>
 		</select>
-		<label class="screen-reader-text" for="search-plugins">
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Search Plugins' );
-			?>
-		</label>
-		<input type="search" name="s" id="search-plugins" value="<?php echo esc_attr( $term ); ?>" class="wp-filter-search" placeholder="<?php esc_attr_e( 'Search plugins...' ); ?>" />
 		<?php submit_button( __( 'Search Plugins' ), 'hide-if-js', false, false, array( 'id' => 'search-submit' ) ); ?>
 	</form>
 	<?php
@@ -917,7 +908,7 @@ function install_plugin_information() {
  * }
  * @param bool         $compatible_php   The result of a PHP compatibility check.
  * @param bool         $compatible_wp    The result of a WP compatibility check.
- * @return string The markup for the dependency row button.
+ * @return string The markup for the dependency row button. An empty string if the user does not have capabilities.
  */
 function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible_wp ) {
 	$button           = '';
@@ -947,23 +938,13 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 	$all_plugin_dependencies_installed = $installed_plugin_dependencies_count === $plugin_dependencies_count;
 	$all_plugin_dependencies_active    = $active_plugin_dependencies_count === $plugin_dependencies_count;
 
-	sprintf(
-		'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
-		esc_attr( $data->slug ),
-		esc_url( $status['url'] ),
-		/* translators: %s: Plugin name and version. */
-		esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $name ) ),
-		esc_attr( $name ),
-		_x( 'Install Now', 'plugin' )
-	);
-
 	if ( current_user_can( 'install_plugins' ) || current_user_can( 'update_plugins' ) ) {
 		switch ( $status['status'] ) {
 			case 'install':
 				if ( $status['url'] ) {
 					if ( $compatible_php && $compatible_wp && $all_plugin_dependencies_installed && ! empty( $data->download_link ) ) {
 						$button = sprintf(
-							'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
+							'<a class="install-now button" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
 							esc_attr( $data->slug ),
 							esc_url( $status['url'] ),
 							/* translators: %s: Plugin name and version. */
@@ -984,7 +965,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				if ( $status['url'] ) {
 					if ( $compatible_php && $compatible_wp ) {
 						$button = sprintf(
-							'<a class="update-now button aria-button-if-js" data-plugin="%s" data-slug="%s" href="%s" aria-label="%s" data-name="%s">%s</a>',
+							'<a class="update-now button aria-button-if-js" data-plugin="%s" data-slug="%s" href="%s" aria-label="%s" data-name="%s" role="button">%s</a>',
 							esc_attr( $status['file'] ),
 							esc_attr( $data->slug ),
 							esc_url( $status['url'] ),
@@ -1031,7 +1012,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 						}
 
 						$button = sprintf(
-							'<a href="%1$s" data-name="%2$s" data-slug="%3$s" data-plugin="%4$s" class="button button-primary activate-now" aria-label="%5$s">%6$s</a>',
+							'<a href="%1$s" data-name="%2$s" data-slug="%3$s" data-plugin="%4$s" class="button button-primary activate-now" aria-label="%5$s" role="button">%6$s</a>',
 							esc_url( $activate_url ),
 							esc_attr( $name ),
 							esc_attr( $data->slug ),
@@ -1053,7 +1034,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				}
 				break;
 		}
-
-		return $button;
 	}
+
+	return $button;
 }

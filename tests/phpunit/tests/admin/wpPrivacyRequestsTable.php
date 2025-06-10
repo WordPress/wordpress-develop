@@ -196,7 +196,7 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 42066
 	 *
-	 * @covers WP_Privacy_Requests_List_Table::get_views
+	 * @covers WP_Privacy_Requests_Table::get_views
 	 */
 	public function test_get_views_should_return_views_by_default() {
 		$expected = array(

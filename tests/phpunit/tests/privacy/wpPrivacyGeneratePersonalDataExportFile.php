@@ -289,7 +289,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->expectOutputString( '' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 
-		$this->assertTrue( file_exists( self::$exports_dir . 'index.php' ) );
+		$this->assertFileExists( self::$exports_dir . 'index.php' );
 	}
 
 	/**
@@ -300,7 +300,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	public function test_can_succeed() {
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 
-		$this->assertTrue( file_exists( $this->export_file_name ) );
+		$this->assertFileExists( $this->export_file_name );
 	}
 
 	/**
@@ -408,7 +408,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->expectOutputString( '' );
 
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
-		$this->assertTrue( file_exists( $this->export_file_name ) );
+		$this->assertFileExists( $this->export_file_name );
 
 		// Create a temporary export directory for the test's export files.
 		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );

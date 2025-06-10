@@ -228,6 +228,10 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 				'css'      => 'p {background-image: url(\'../image1.jpg\');}',
 				'expected' => 'p {background-image: url(\'/wp-content/themes/test/../image1.jpg\');}',
 			),
+			'URLs with absolute path, shouldn\'t change'   => array(
+				'css'      => 'p {background:url( "/image0.svg" );}',
+				'expected' => 'p {background:url( "/image0.svg" );}',
+			),
 			'External URLs, shouldn\'t change'             => array(
 				'css'      => 'p {background-image: url(\'http://foo.com/image2.png\');}',
 				'expected' => 'p {background-image: url(\'http://foo.com/image2.png\');}',
