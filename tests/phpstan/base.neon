@@ -48,6 +48,7 @@ parameters:
       - ../../src/wp-includes/deprecated.php
       - ../../src/wp-includes/ms-deprecated.php
       - ../../src/wp-includes/pluggable-deprecated.php
+      - ../../src/wp-includes/js/tinymce/wp-tinymce.php
       # These files are not part of the WordPress Core codebase.
       - ../../src/wp-content
       # JavaScript/CSS/Asset files.
