@@ -2824,8 +2824,8 @@ function wp_update_comment_count_now( $post_id ) {
 		}
 
 		$bad_parent_query = null;
-		$bad_parents = array_unique( $bad_parents ) 
-		if (  ! empty( $_bad_parents ) ) {
+		$bad_parents = array_unique( $bad_parents );
+		if ( ! empty( $_bad_parents ) ) {
 			$bad_parents = implode( ',', array_map( 'intval', $bad_parents ) );
 			$bad_parent_query = " AND comment_parent NOT IN ( $bad_parents )";
 		}
@@ -2885,14 +2885,13 @@ function discover_pingback_server_uri( $url, $deprecated = '' ) {
 	$pingback_str_squote = 'rel=\'pingback\'';
 
 	/**
- 	 * @todo Should use Filter Extension or custom preg_match instead.
-         */
+	* @todo Should use Filter Extension or custom preg_match instead.
+	*/
 	$parsed_url = parse_url( $url );
 
 	// Not a URL. This should never happen.
-	
 	if ( ! isset( $parsed_url['host'] ) ) {
-	
+
 		return false;
 	}
 
