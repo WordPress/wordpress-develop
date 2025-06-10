@@ -3,10 +3,11 @@
 /* phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped */
 
 /**
- * Generates the tree-like structure represented in the Html5lib tests.
+ * Generates representation the semantic HTML tree structure. 
  *
- * That format is extended with a special representation of block delimiters and their attributes.
- * Furthermore, it the order of attributes and class names is normalized both for HTML tags and block delimiters,
+ * This is inspired by the representation used by the HTML5lib tests. It's been extended here for 
+ * blocks to render the semantic structure of blocks and their attributes.
+ * The order of attributes and class names is normalized both for HTML tags and blocks,
  * as is the whitespace in HTML tags' style attribute.
  *
  * For example, consider the following block markup:
