@@ -533,6 +533,15 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 					/*
 					 * If the colorspace is 'gray', use the png8 format to ensure it stays indexed.
+					 * ImageMagick tends to save grayscale images as grayscale PNGs rather than indexed PNGs,
+					 * even though grayscale PNGs usually have considerably larger file sizes.
+					 * But we can force ImageMagick to save the image as an indexed PNG instead,
+					 * by telling it to use png8 format.
+					 *
+					 * Note that we need to first call quantizeImage() before checking getImageColorspace(),
+					 * because only after calling quantizeImage() will the colorspace be COLORSPACE_GRAY for grayscale images
+					 * (and we have not found any other way to identify grayscale images).
+					 *
 					 * We need to avoid forcing indexed format for images with true alpha transparency,
 					 * because ImageMagick does not support saving an image with true alpha transparency as an indexed PNG.
 					 */
