@@ -434,7 +434,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$admin_id );
 
-		$post_id = self::factory()->post->create(
+		$post_id   = self::factory()->post->create(
 			array(
 				'post_type'   => 'page',
 				'post_status' => 'draft',
