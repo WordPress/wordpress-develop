@@ -121,17 +121,17 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 					}
 
 					/*
-						* Sorts attributes to match html5lib sort order.
-						*
-						*  - First comes normal HTML attributes.
-						*  - Then come adjusted foreign attributes; these have spaces in their names.
-						*  - Finally come non-adjusted foreign attributes; these have a colon in their names.
-						*
-						* Example:
-						*
-						*       From: <math xlink:author definitionurl xlink:title xlink:show>
-						*     Sorted: 'definitionURL', 'xlink show', 'xlink title', 'xlink:author'
-						*/
+					 * Sorts attributes to match html5lib sort order.
+					 *
+					 *  - First comes normal HTML attributes.
+					 *  - Then come adjusted foreign attributes; these have spaces in their names.
+					 *  - Finally come non-adjusted foreign attributes; these have a colon in their names.
+					 *
+					 * Example:
+					 *
+					 *       From: <math xlink:author definitionurl xlink:title xlink:show>
+					 *     Sorted: 'definitionURL', 'xlink show', 'xlink title', 'xlink:author'
+					 */
 					uasort(
 						$sorted_attributes,
 						static function ( $a, $b ) {
@@ -158,9 +158,9 @@ function build_visual_html_tree( string $html, ?string $fragment_context ): stri
 					foreach ( $sorted_attributes as $attribute_name => $display_name ) {
 						$val = $processor->get_attribute( $attribute_name );
 						/*
-							* Attributes with no value are `true` with the HTML API,
-							* we use the empty string value in the tree structure.
-							*/
+						 * Attributes with no value are `true` with the HTML API,
+						 * we use the empty string value in the tree structure.
+						 */
 						if ( true === $val ) {
 							$val = '';
 						} elseif ( 'class' === $attribute_name ) {
