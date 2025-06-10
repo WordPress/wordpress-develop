@@ -140,12 +140,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-language-pack-upgrader.php',
 ];
 $ignoreErrors[] = [
-	// identifier: method.nameCase
-	'message' => '#^Call to method WP_Theme\\:\\:get\\(\\) with incorrect case\\: Get$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-language-pack-upgrader.php',
-];
-$ignoreErrors[] = [
 	// identifier: property.notFound
 	'message' => '#^Access to an undefined property WP_Upgrader\\:\\:\\$new_plugin_data\\.$#',
 	'count' => 1,
@@ -362,12 +356,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-walker-nav-menu-edit.php',
 ];
 $ignoreErrors[] = [
-	// identifier: method.nameCase
-	'message' => '#^Call to method WP_Theme\\:\\:get\\(\\) with incorrect case\\: Get$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-automatic-updater.php',
-];
-$ignoreErrors[] = [
 	// identifier: property.nonObject
 	'message' => '#^Cannot access property \\$current on array\\|object\\.$#',
 	'count' => 3,
@@ -432,12 +420,6 @@ $ignoreErrors[] = [
 	'message' => '#^Default value of the parameter \\#1 \\$opt \\(string\\) of method WP_Filesystem_FTPext\\:\\:__construct\\(\\) is incompatible with type array\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ftpext.php',
-];
-$ignoreErrors[] = [
-	// identifier: method.nameCase
-	'message' => '#^Call to method ftp_base\\:\\:SetTimeout\\(\\) with incorrect case\\: setTimeout$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ftpsockets.php',
 ];
 $ignoreErrors[] = [
 	// identifier: parameter.defaultValue
@@ -768,18 +750,6 @@ $ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$posts on class\\-string\\|object\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/post.php',
-];
-$ignoreErrors[] = [
-	// identifier: parameter.defaultValue
-	'message' => '#^Default value of the parameter \\#1 \\$post_id \\(string\\) of function redirect_post\\(\\) is incompatible with type int\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/post.php',
-];
-$ignoreErrors[] = [
-	// identifier: parameter.defaultValue
-	'message' => '#^Default value of the parameter \\#2 \\$post_id \\(string\\) of function wp_create_categories\\(\\) is incompatible with type int\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/taxonomy.php',
 ];
 $ignoreErrors[] = [
 	// identifier: property.notFound
@@ -1512,18 +1482,6 @@ $ignoreErrors[] = [
 	'message' => '#^Access to an undefined property object\\:\\:\\$xfn\\.$#',
 	'count' => 3,
 	'path' => __DIR__ . '/../../../src/wp-includes/nav-menu.php',
-];
-$ignoreErrors[] = [
-	// identifier: method.nameCase
-	'message' => '#^Call to method PHPMailer\\\\PHPMailer\\\\PHPMailer\\:\\:addBCC\\(\\) with incorrect case\\: addBcc$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
-];
-$ignoreErrors[] = [
-	// identifier: method.nameCase
-	'message' => '#^Call to method PHPMailer\\\\PHPMailer\\\\PHPMailer\\:\\:addCC\\(\\) with incorrect case\\: addCc$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
 ];
 $ignoreErrors[] = [
 	// identifier: property.notFound

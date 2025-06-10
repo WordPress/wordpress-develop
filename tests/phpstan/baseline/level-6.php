@@ -638,12 +638,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/functions.php',
 ];
 $ignoreErrors[] = [
-	// identifier: missingType.parameter
-	'message' => '#^Function get_file\\(\\) has parameter \\$path with no type specified\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/js/tinymce/wp-tinymce.php',
-];
-$ignoreErrors[] = [
 	// identifier: missingType.generics
 	'message' => '#^Class WP_REST_Request implements generic interface ArrayAccess but does not specify its types\\: TKey, TValue$#',
 	'count' => 1,

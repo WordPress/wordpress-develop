@@ -80,12 +80,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
 ];
 $ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$object_subtype in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/capabilities.php',
-];
-$ignoreErrors[] = [
 	// identifier: isset.variable
 	'message' => '#^Variable \\$namespace in isset\\(\\) always exists and is not nullable\\.$#',
 	'count' => 1,
@@ -96,12 +90,6 @@ $ignoreErrors[] = [
 	'message' => '#^Variable \\$block_type in empty\\(\\) always exists and is not falsy\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-supports.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$status_clauses in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-comment-query.php',
 ];
 $ignoreErrors[] = [
 	// identifier: constructor.unusedParameter
@@ -173,12 +161,6 @@ $ignoreErrors[] = [
 	// identifier: isset.variable
 	'message' => '#^Variable \\$default in isset\\(\\) always exists and is not nullable\\.$#',
 	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
-];
-$ignoreErrors[] = [
-	// identifier: empty.variable
-	'message' => '#^Variable \\$object_terms in empty\\(\\) always exists and is not falsy\\.$#',
-	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
 ];
 $ignoreErrors[] = [

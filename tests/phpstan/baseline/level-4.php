@@ -104,12 +104,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-internal-pointers.php',
 ];
 $ignoreErrors[] = [
-	// identifier: isset.property
-	'message' => '#^Property WP_List_Table\\:\\:\\$_column_headers \\(array\\) in isset\\(\\) is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-list-table.php',
-];
-$ignoreErrors[] = [
 	// identifier: booleanNot.alwaysFalse
 	'message' => '#^Negated boolean expression is always false\\.$#',
 	'count' => 1,

@@ -8,6 +8,18 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
 ];
 $ignoreErrors[] = [
+	// identifier: function.notFound
+	'message' => '#^Function get_file not found\\.$#',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/load-scripts.php',
+];
+$ignoreErrors[] = [
+	// identifier: function.notFound
+	'message' => '#^Function get_file not found\\.$#',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/load-styles.php',
+];
+$ignoreErrors[] = [
 	// identifier: class.notFound
 	'message' => '#^Instantiated class WP_Press_This_Plugin not found\\.$#',
 	'count' => 1,
@@ -42,12 +54,6 @@ $ignoreErrors[] = [
 	'message' => '#^Class GdImage not found\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/media.php',
-];
-$ignoreErrors[] = [
-	// identifier: function.nameCase
-	'message' => '#^Call to function get_current_user_id\\(\\) with incorrect case\\: get_current_user_ID$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/script-loader.php',
 ];
 $ignoreErrors[] = [
 	// identifier: new.static

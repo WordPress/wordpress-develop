@@ -37,9 +37,7 @@ parameters:
     - '#Default value of the parameter .* is incompatible with type callable.*#'
 
     # Level 6:
-    # WPCS syntax for iterable types is not supported:
-    -
+    - # WPCS syntax for iterable types is not supported:
       identifier: missingType.iterableValue
-    # Too noisy until we allow `void` return types:
-    -
+    - # Too noisy until we allow `void` return types:
       identifier: missingType.return

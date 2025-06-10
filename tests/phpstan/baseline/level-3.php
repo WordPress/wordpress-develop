@@ -146,12 +146,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
 ];
 $ignoreErrors[] = [
-	// identifier: return.empty
-	'message' => '#^Function get_the_block_template_html\\(\\) should return string but empty return statement found\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/block-template.php',
-];
-$ignoreErrors[] = [
 	// identifier: offsetAccess.notFound
 	'message' => '#^Offset \'host\' does not exist on array\\{path\\: array\\<int, string\\>\\|string\\|null\\}\\.$#',
 	'count' => 1,
@@ -180,12 +174,6 @@ $ignoreErrors[] = [
 	'message' => '#^Offset \'scheme\' does not exist on array\\{path\\: array\\<int, string\\>\\|string\\|null, host\\?\\: string\\}\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.type
-	'message' => '#^Function default_topic_count_scale\\(\\) should return int but returns float\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/category-template.php',
 ];
 $ignoreErrors[] = [
 	// identifier: return.empty
@@ -222,24 +210,6 @@ $ignoreErrors[] = [
 	'message' => '#^Property Walker_Nav_Menu\\:\\:\\$tree_type \\(string\\) does not accept default value of type array\\<int, string\\>\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-walker-nav-menu.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.type
-	'message' => '#^Method WP_Block_Pattern_Categories_Registry\\:\\:get_registered\\(\\) should return array but returns null\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-pattern-categories-registry.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.type
-	'message' => '#^Method WP_Block_Patterns_Registry\\:\\:get_registered\\(\\) should return array but returns null\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-patterns-registry.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.type
-	'message' => '#^Method WP_Block_Styles_Registry\\:\\:get_registered\\(\\) should return array but returns null\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-styles-registry.php',
 ];
 $ignoreErrors[] = [
 	// identifier: return.type
