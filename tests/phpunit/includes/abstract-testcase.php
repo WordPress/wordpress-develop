@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/build-equivalent-html-semantic-tree.php';
+require_once __DIR__ . '/build-visual-html-tree.php';
 require_once __DIR__ . '/factory.php';
 require_once __DIR__ . '/trac.php';
 
@@ -1201,15 +1201,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 */
 	public function assertEqualMarkup( string $expected, string $actual, ?string $fragment_context = '<body>', $message = 'HTML markup was not equivalent.' ): void {
 		try {
-			$tree_expected = build_equivalent_html_semantic_tree( $expected, $fragment_context );
-			$tree_actual   = build_equivalent_html_semantic_tree( $actual, $fragment_context );
+			$tree_expected = build_visual_html_tree( $expected, $fragment_context );
+			$tree_actual   = build_visual_html_tree( $actual, $fragment_context );
 		} catch ( Exception $e ) {
 			// For PHP 8.4+, we can retry, using the built-in DOM\HTMLDocument parser.
 			if ( class_exists( 'DOM\HtmlDocument' ) ) {
 				$dom_expected  = DOM\HtmlDocument::createFromString( $expected, LIBXML_NOERROR );
-				$tree_expected = build_equivalent_html_semantic_tree( $dom_expected->saveHtml(), $fragment_context );
+				$tree_expected = build_visual_html_tree( $dom_expected->saveHtml(), $fragment_context );
 				$dom_actual    = DOM\HtmlDocument::createFromString( $actual, LIBXML_NOERROR );
-				$tree_actual   = build_equivalent_html_semantic_tree( $dom_actual->saveHtml(), $fragment_context );
+				$tree_actual   = build_visual_html_tree( $dom_actual->saveHtml(), $fragment_context );
 			} else {
 				throw $e;
 			}

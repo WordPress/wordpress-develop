@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests for build_equivalent_html_semantic_tree().
+ * Tests for build_visual_html_tree().
  *
  * @package WordPress
  *
@@ -41,12 +41,12 @@ END;
 	}
 
 	/**
-	 * @covers ::build_equivalent_html_semantic_tree
+	 * @covers ::build_visual_html_tree
 	 *
 	 * @dataProvider data_build_equivalent_html_semantic_tree
 	 */
 	public function test_build_equivalent_html_semantic_tree( $markup, $expected ) {
-		$actual = build_equivalent_html_semantic_tree( $markup, '<body>' );
+		$actual = build_visual_html_tree( $markup, '<body>' );
 		$this->assertSame( $expected, $actual );
 	}
 
@@ -88,13 +88,13 @@ END;
 	}
 
 	/**
-	 * @covers ::build_equivalent_html_semantic_tree
+	 * @covers ::build_visual_html_tree
 	 *
 	 * @dataProvider data_build_equivalent_html_semantic_tree_with_equivalent_html
 	 */
 	public function test_build_equivalent_html_semantic_tree_with_equivalent_html( $expected, $actual ) {
-		$tree_expected = build_equivalent_html_semantic_tree( $expected, '<body>' );
-		$tree_actual   = build_equivalent_html_semantic_tree( $actual, '<body>' );
+		$tree_expected = build_visual_html_tree( $expected, '<body>' );
+		$tree_actual   = build_visual_html_tree( $actual, '<body>' );
 
 		$this->assertSame( $tree_expected, $tree_actual );
 	}
@@ -125,13 +125,13 @@ END;
 	}
 
 	/**
-	 * @covers ::build_equivalent_html_semantic_tree
+	 * @covers ::build_visual_html_tree
 	 *
 	 * @dataProvider data_build_equivalent_html_semantic_tree_with_non_equivalent_html
 	 */
 	public function test_build_equivalent_html_semantic_tree_with_non_equivalent_html( $expected, $actual ) {
-		$tree_expected = build_equivalent_html_semantic_tree( $expected, '<body>' );
-		$tree_actual   = build_equivalent_html_semantic_tree( $actual, '<body>' );
+		$tree_expected = build_visual_html_tree( $expected, '<body>' );
+		$tree_actual   = build_visual_html_tree( $actual, '<body>' );
 
 		$this->assertNotSame( $tree_expected, $tree_actual );
 	}

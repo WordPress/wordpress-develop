@@ -46,7 +46,7 @@
  * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
  * @return string Tree structure of parsed HTML, if supported.
  */
-function build_equivalent_html_semantic_tree( string $html, ?string $fragment_context ): string {
+function build_visual_html_tree( string $html, ?string $fragment_context ): string {
 	$processor = $fragment_context
 		? WP_HTML_Processor::create_fragment( $html, $fragment_context )
 		: WP_HTML_Processor::create_full_parser( $html );
