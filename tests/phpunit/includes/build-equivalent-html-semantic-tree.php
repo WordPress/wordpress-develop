@@ -37,8 +37,8 @@
  *
  * @see https://github.com/WordPress/wordpress-develop/blob/trunk/tests/phpunit/data/html5lib-tests/tree-construction/README.md
  *
- * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
  * @param string      $html             Given test HTML.
+ * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
  * @return string|null Tree structure of parsed HTML, if supported, else null.
  */
 function build_equivalent_html_semantic_tree( string $html, ?string $fragment_context ) {
