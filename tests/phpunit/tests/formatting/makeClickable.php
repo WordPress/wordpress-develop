@@ -245,6 +245,16 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 							   Richard Hamming wrote about people getting more done with their doors closed, but',
 			),
 
+			// @ticket #62037
+			'URL with brackets in path before the extension' => array(
+				'text'     => 'http://example-image(2).jpg',
+				'expected' => '<a href="http://example-image(2).jpg" rel="nofollow">http://example-image(2).jpg</a>',
+			),
+			'URL with brackets within path and with a extension' => array(
+				'text'     => 'http://example-(2)-image.jpg',
+				'expected' => '<a href="http://example-(2)-image.jpg" rel="nofollow">http://example-(2)-image.jpg</a>',
+			),
+
 			// @ticket 11211
 			// Test with real comments which were incorrectly linked.
 			'real world: example.com text (.org URL)'    => array(

@@ -57,7 +57,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 				'role'       => 'administrator',
 				'user_login' => 'test_wp_plugins_list_table',
 				'user_pass'  => 'password',
-				'user_email' => 'testadmin@test.com',
+				'user_email' => 'testadmin@example.com',
 			)
 		);
 		self::$original_s = $s;

@@ -7,10 +7,8 @@
  * @since 6.4.0
  *
  * @group blocks
- *
- * @coversDefaultClass WP_Block_Patterns_Registry
  */
-class Tests_Blocks_wpBlockPattersRegistry extends WP_UnitTestCase {
+class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Fake block patterns registry.

@@ -7,6 +7,8 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 	public function test_instances() {
 		global $wp_post_types;
 
+		$this->assertNotEmpty( $wp_post_types );
+
 		foreach ( $wp_post_types as $post_type ) {
 			$this->assertInstanceOf( 'WP_Post_Type', $post_type );
 		}
@@ -24,8 +26,9 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 
 		$this->assertSameSets(
 			array(
-				'title'  => true,
-				'editor' => true,
+				'title'    => true,
+				'editor'   => true,
+				'autosave' => true,
 			),
 			$post_type_supports
 		);
@@ -56,6 +59,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 				'editor'    => true,
 				'comments'  => true,
 				'revisions' => true,
+				'autosave'  => true,
 			),
 			$post_type_supports
 		);
@@ -367,6 +371,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 56922
+	 * @ticket 41172
 	 *
 	 * @covers WP_Post_Type::get_autosave_rest_controller
 	 *
@@ -409,13 +414,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		return array(
 			'disable show_in_rest'               => array(
 				false,
-				'attachment',
-				false,
-				null,
-			),
-			'invalid post type'                  => array(
-				true,
-				'attachment',
+				'test_post_type',
 				false,
 				null,
 			),

@@ -142,6 +142,15 @@
 	wp.updates.searchTerm = '';
 
 	/**
+	 * Minimum number of characters before an ajax search is fired.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @type {number}
+	 */
+	wp.updates.searchMinCharacters = 2;
+
+	/**
 	 * Whether filesystem credentials need to be requested from the user.
 	 *
 	 * @since 4.2.0
@@ -875,7 +884,7 @@
 
 		$card
 			.addClass( 'plugin-card-update-failed' )
-			.append( '<div class="notice notice-error notice-alt is-dismissible"><p>' + errorMessage + '</p></div>' );
+			.append( '<div class="notice notice-error notice-alt is-dismissible" role="alert"><p>' + errorMessage + '</p></div>' );
 
 		$card.on( 'click', '.notice.is-dismissible .notice-dismiss', function() {
 
@@ -2260,7 +2269,7 @@
 
 		// Remove any existing error.
 		$filesystemForm.find( '.notice' ).remove();
-		$filesystemForm.find( '#request-filesystem-credentials-title' ).after( '<div class="notice notice-alt notice-error"><p>' + message + '</p></div>' );
+		$filesystemForm.find( '#request-filesystem-credentials-title' ).after( '<div class="notice notice-alt notice-error" role="alert"><p>' + message + '</p></div>' );
 	};
 
 	/**
@@ -2324,7 +2333,7 @@
 	 *                                                'update' or 'install'.
 	 */
 	wp.updates.isValidResponse = function( response, action ) {
-		var error = __( 'Something went wrong.' ),
+		var error = __( 'An error occurred during the update process. Please try again.' ),
 			errorMessage;
 
 		// Make sure the response is a valid data object and not a Promise object.
@@ -2637,41 +2646,16 @@
 		} );
 
 		/**
-		 * Click handler for plugin activations in plugin activation view.
+		 * Click handler for plugin activations in plugin activation modal view.
 		 *
 		 * @since 6.5.0
+		 * @since 6.5.4 Redirect the parent window to the activation URL.
 		 *
 		 * @param {Event} event Event interface.
 		 */
-		$pluginFilter.on( 'click', '.activate-now', function( event ) {
-			var $activateButton = $( event.target );
-
+		$document.on( 'click', '#plugin-information-footer .activate-now', function( event ) {
 			event.preventDefault();
-
-			if ( $activateButton.hasClass( 'activating-message' ) || $activateButton.hasClass( 'button-disabled' ) ) {
-				return;
-			}
-
-			$activateButton
-				.removeClass( 'activate-now button-primary' )
-				.addClass( 'activating-message' )
-				.attr(
-					'aria-label',
-					sprintf(
-						/* translators: %s: Plugin name. */
-						_x( 'Activating %s', 'plugin' ),
-						$activateButton.data( 'name' )
-					)
-				)
-				.text( __( 'Activating...' ) );
-
-			wp.updates.activatePlugin(
-				{
-					name: $activateButton.data( 'name' ),
-					slug: $activateButton.data( 'slug' ),
-					plugin: $activateButton.data( 'plugin' )
-				}
-			);
+			window.parent.location.href = $( event.target ).attr( 'href' );
 		});
 
 		/**
@@ -2848,14 +2832,7 @@
 
 			// Bail if there were no items selected.
 			if ( ! itemsSelected.length ) {
-				event.preventDefault();
-				$( 'html, body' ).animate( { scrollTop: 0 } );
-
-				return wp.updates.addAdminNotice( {
-					id:        'no-items-selected',
-					className: 'notice-error is-dismissible',
-					message:   __( 'Please select at least one item to perform this action on.' )
-				} );
+				bulkAction = false;
 			}
 
 			// Determine the type of request we're dealing with.
@@ -2938,13 +2915,41 @@
 
 				wp.updates.adminNotice = wp.template( 'wp-bulk-updates-admin-notice' );
 
+				var successMessage = null;
+
+				if ( success ) {
+					if ( 'plugin' === response.update ) {
+						successMessage = sprintf(
+							/* translators: %s: Number of plugins. */
+							_n( '%s plugin successfully updated.', '%s plugins successfully updated.', success ),
+							success
+						);
+					} else {
+						successMessage = sprintf(
+							/* translators: %s: Number of themes. */
+							_n( '%s theme successfully updated.', '%s themes successfully updated.', success ),
+							success
+						);
+					}
+				}
+
+				var errorMessage = null;
+
+				if ( error ) {
+					errorMessage = sprintf(
+						/* translators: %s: Number of failed updates. */
+						_n( '%s update failed.', '%s updates failed.', error ),
+						error
+					);
+				}
+
 				wp.updates.addAdminNotice( {
 					id:            'bulk-action-notice',
 					className:     'bulk-action-notice',
-					successes:     success,
-					errors:        error,
-					errorMessages: errorMessages,
-					type:          response.update
+					successMessage: successMessage,
+					errorMessage:   errorMessage,
+					errorMessages:  errorMessages,
+					type:           response.update
 				} );
 
 				$bulkActionNotice = $( '#bulk-action-notice' ).on( 'click', 'button', function() {
@@ -2974,6 +2979,15 @@
 			$pluginInstallSearch.attr( 'aria-describedby', 'live-search-desc' );
 		}
 
+		// Track the previous search string length.
+		var previousSearchStringLength = 0;
+		wp.updates.shouldSearch = function( searchStringLength ) {
+			var shouldSearch = searchStringLength >= wp.updates.searchMinCharacters ||
+				previousSearchStringLength > wp.updates.searchMinCharacters;
+			previousSearchStringLength = searchStringLength;
+			return shouldSearch;
+		};
+
 		/**
 		 * Handles changes to the plugin search box on the new-plugin page,
 		 * searching the repository dynamically.
@@ -2981,7 +2995,8 @@
 		 * @since 4.6.0
 		 */
 		$pluginInstallSearch.on( 'keyup input', _.debounce( function( event, eventtype ) {
-			var $searchTab = $( '.plugin-install-search' ), data, searchLocation;
+			var $searchTab = $( '.plugin-install-search' ), data, searchLocation,
+				searchStringLength = $pluginInstallSearch.val().length;
 
 			data = {
 				_ajax_nonce: wp.updates.ajaxNonce,
@@ -2991,6 +3006,14 @@
 				pagenow:     pagenow
 			};
 			searchLocation = location.href.split( '?' )[ 0 ] + '?' + $.param( _.omit( data, [ '_ajax_nonce', 'pagenow' ] ) );
+
+			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
+			if ( wp.updates.shouldSearch( searchStringLength ) ) {
+				$pluginInstallSearch.attr( 'autocomplete', 'off' );
+			} else {
+				$pluginInstallSearch.attr( 'autocomplete', 'on' );
+				return;
+			}
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
@@ -3051,6 +3074,7 @@
 
 		if ( $pluginSearch.length ) {
 			$pluginSearch.attr( 'aria-describedby', 'live-search-desc' );
+
 		}
 
 		/**
@@ -3066,7 +3090,16 @@
 				pagenow:       pagenow,
 				plugin_status: 'all'
 			},
-			queryArgs;
+			queryArgs,
+			searchStringLength = $pluginSearch.val().length;
+
+			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
+			if ( wp.updates.shouldSearch( searchStringLength ) ) {
+				$pluginSearch.attr( 'autocomplete', 'off' );
+			} else {
+				$pluginSearch.attr( 'autocomplete', 'on' );
+				return;
+			}
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {

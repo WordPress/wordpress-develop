@@ -556,7 +556,7 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 }
 
 /**
- * Flushes rewrite rules if siteurl, home or page_on_front changed.
+ * Flushes rewrite rules if `siteurl`, `home` or `page_on_front` changed.
  *
  * @since 2.1.0
  *
@@ -575,13 +575,12 @@ function update_home_siteurl( $old_value, $value ) {
 	}
 }
 
-
 /**
- * Resets global variables based on $_GET and $_POST.
+ * Resets global variables based on `$_GET` and `$_POST`.
  *
  * This function resets global variables based on the names passed
- * in the $vars array to the value of $_POST[$var] or $_GET[$var] or ''
- * if neither is defined.
+ * in the `$vars` array to the value of `$_POST[$var]` or `$_GET[$var]` or an
+ * empty string if neither is defined.
  *
  * @since 2.0.0
  *
@@ -626,7 +625,7 @@ function show_message( $message ) {
  * @since 2.8.0
  *
  * @param string $content
- * @return array
+ * @return string[] Array of function names.
  */
 function wp_doc_link_parse( $content ) {
 	if ( ! is_string( $content ) || empty( $content ) ) {
@@ -755,7 +754,7 @@ function set_screen_options() {
 				/**
 				 * Filters a screen option value before it is set.
 				 *
-				 * The filter can also be used to modify non-standard [items]_per_page
+				 * The filter can also be used to modify non-standard `[items]_per_page`
 				 * settings. See the parent function for a full list of standard options.
 				 *
 				 * Returning false from the filter will skip saving the current option.
@@ -989,7 +988,7 @@ function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingCo
 }
 
 /**
- * Displays the default admin color scheme picker (Used in user-edit.php).
+ * Displays the default administration color scheme picker (Used in user-edit.php).
  *
  * @since 3.0.0
  *
@@ -1026,7 +1025,7 @@ function admin_color_scheme_picker( $user_id ) {
 		<legend class="screen-reader-text"><span>
 			<?php
 			/* translators: Hidden accessibility text. */
-			_e( 'Admin Color Scheme' );
+			_e( 'Administration Color Scheme' );
 			?>
 		</span></legend>
 		<?php
@@ -1305,7 +1304,7 @@ function wp_refresh_metabox_loader_nonces( $response, $data ) {
 }
 
 /**
- * Adds the latest Heartbeat and REST-API nonce to the Heartbeat response.
+ * Adds the latest Heartbeat and REST API nonce to the Heartbeat response.
  *
  * @since 5.0.0
  *
@@ -1399,11 +1398,11 @@ function wp_admin_canonical_url() {
 	$filtered_url = remove_query_arg( $removable_query_args, $current_url );
 
 	/**
-	 * Filters the admin canonical url value.
+	 * Filters the admin canonical URL value.
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $filtered_url The admin canonical url value.
+	 * @param string $filtered_url The admin canonical URL value.
 	 */
 	$filtered_url = apply_filters( 'wp_admin_canonical_url', $filtered_url );
 	?>
@@ -1414,29 +1413,6 @@ function wp_admin_canonical_url() {
 		}
 	</script>
 	<?php
-}
-
-/**
- * Sends a referrer policy header so referrers are not sent externally from administration screens.
- *
- * @since 4.9.0
- */
-function wp_admin_headers() {
-	$policy = 'strict-origin-when-cross-origin';
-
-	/**
-	 * Filters the admin referrer policy header value.
-	 *
-	 * @since 4.9.0
-	 * @since 4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
-	 *
-	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
-	 *
-	 * @param string $policy The admin referrer policy header value. Default 'strict-origin-when-cross-origin'.
-	 */
-	$policy = apply_filters( 'admin_referrer_policy', $policy );
-
-	header( sprintf( 'Referrer-Policy: %s', $policy ) );
 }
 
 /**
@@ -1478,15 +1454,15 @@ function update_option_new_admin_email( $old_value, $value ) {
 		'hash'     => $hash,
 		'newemail' => $value,
 	);
-	update_option( 'adminhash', $new_admin_email );
+	update_option( 'adminhash', $new_admin_email, false );
 
 	$switched_locale = switch_to_user_locale( get_current_user_id() );
 
 	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
-		'Howdy ###USERNAME###,
+		'Howdy,
 
-Someone with administrator capabilities recently requested to have the
+A site administrator (###USERNAME###) recently requested to have the
 administration email address changed on this site:
 ###SITEURL###
 
@@ -1507,11 +1483,12 @@ All at ###SITENAME###
 	 * Filters the text of the email sent when a change of site admin email address is attempted.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
-	 *  - ###USERNAME###  The current user's username.
-	 *  - ###ADMIN_URL### The link to click on to confirm the email change.
-	 *  - ###EMAIL###     The proposed new site admin email address.
-	 *  - ###SITENAME###  The name of the site.
-	 *  - ###SITEURL###   The URL to the site.
+	 *
+	 *  - `###USERNAME###`  The current user's username.
+	 *  - `###ADMIN_URL###` The link to click on to confirm the email change.
+	 *  - `###EMAIL###`     The proposed new site admin email address.
+	 *  - `###SITENAME###`  The name of the site.
+	 *  - `###SITEURL###`   The URL to the site.
 	 *
 	 * @since MU (3.0.0)
 	 * @since 4.9.0 This filter is no longer Multisite specific.
