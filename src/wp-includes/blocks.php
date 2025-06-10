@@ -2396,7 +2396,7 @@ function parse_blocks( $content ) {
 	/**
 	* Filter the collection of parsed blocks.
 	*
-	* @since 6.?.?
+	* @since 6.9.0
 	*
 	* @param array[] $blocks Array of parsed block objects.
 	* @param string  $content The content that is being parsed.
