@@ -563,15 +563,35 @@ ul#adminmenu > li.current > a.current:after {
 	background-color: variables.$highlight-color;
 }
 
-.details.attachment {
+.wp-core-ui .details.attachment {
 	box-shadow:
 		inset 0 0 0 3px #fff,
 		inset 0 0 0 7px variables.$highlight-color;
 }
 
-.attachment.details .check {
+.wp-core-ui .attachment.details .check {
 	background-color: variables.$highlight-color;
 	box-shadow: 0 0 0 1px #fff, 0 0 0 2px variables.$highlight-color;
+}
+
+.wp-core-ui .attachment:focus,
+.wp-core-ui .selected.attachment:focus,
+.wp-core-ui .attachment.details:focus {
+	box-shadow:
+		inset 0 0 2px 3px #fff,
+		inset 0 0 0 7px variables.$highlight-color;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
+	outline-offset: -6px;
+}
+
+.wp-core-ui .attachment.details .check,
+.wp-core-ui .attachment.selected .check:focus,
+.wp-core-ui .media-frame.mode-grid .attachment.selected .check {
+	background-color: variables.$highlight-color;
+	box-shadow:
+		0 0 0 1px #fff,
+		0 0 0 2px variables.$highlight-color;
 }
 
 .media-selection .attachment.selection.details .thumbnail {
