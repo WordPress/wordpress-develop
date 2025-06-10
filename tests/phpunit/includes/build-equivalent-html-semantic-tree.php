@@ -3,9 +3,9 @@
 /* phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped */
 
 /**
- * Generates representation the semantic HTML tree structure. 
+ * Generates representation of the semantic HTML tree structure.
  *
- * This is inspired by the representation used by the HTML5lib tests. It's been extended here for 
+ * This is inspired by the representation used by the HTML5lib tests. It's been extended here for
  * blocks to render the semantic structure of blocks and their attributes.
  * The order of attributes and class names is normalized both for HTML tags and blocks,
  * as is the whitespace in HTML tags' style attribute.
@@ -38,11 +38,15 @@
  *
  * @see https://github.com/WordPress/wordpress-develop/blob/trunk/tests/phpunit/data/html5lib-tests/tree-construction/README.md
  *
+ * @since 6.9.0
+ *
+ * @throws WP_HTML_Unsupported_Exception|Error If the markup could not be parsed.
+ *
  * @param string      $html             Given test HTML.
  * @param string|null $fragment_context Context element in which to parse HTML, such as BODY or SVG.
- * @return string|null Tree structure of parsed HTML, if supported, else null.
+ * @return string Tree structure of parsed HTML, if supported.
  */
-function build_equivalent_html_semantic_tree( string $html, ?string $fragment_context ) {
+function build_equivalent_html_semantic_tree( string $html, ?string $fragment_context ): string {
 	$processor = $fragment_context
 		? WP_HTML_Processor::create_fragment( $html, $fragment_context )
 		: WP_HTML_Processor::create_full_parser( $html );
