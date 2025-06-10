@@ -90,6 +90,7 @@ class WP_oEmbed {
 			'#https?://(www\.)?reddit\.com/r/[^/]+/comments/.*#i' => array( 'https://www.reddit.com/oembed', true ),
 			'#https?://(www\.)?speakerdeck\.com/.*#i'      => array( 'https://speakerdeck.com/oembed.{format}', true ),
 			'#https?://(www\.)?screencast\.com/.*#i'       => array( 'https://api.screencast.com/external/oembed', true ),
+			'#https?://app\.screencast\.com/.*#i'          => array( 'https://app.screencast.com/api/v1/oembed', true ),
 			'#https?://([a-z0-9-]+\.)?amazon\.(com|com\.mx|com\.br|ca)/.*#i' => array( 'https://read.amazon.com/kp/api/oembed', true ),
 			'#https?://([a-z0-9-]+\.)?amazon\.(co\.uk|de|fr|it|es|in|nl|ru)/.*#i' => array( 'https://read.amazon.co.uk/kp/api/oembed', true ),
 			'#https?://([a-z0-9-]+\.)?amazon\.(co\.jp|com\.au)/.*#i' => array( 'https://read.amazon.com.au/kp/api/oembed', true ),
@@ -111,7 +112,6 @@ class WP_oEmbed {
 			'#https?://((play|www)\.)?anghami\.com/.*#i'   => array( 'https://api.anghami.com/rest/v1/oembed.view', true ),
 			'#https?://bsky.app/profile/.*/post/.*#i'      => array( 'https://embed.bsky.app/oembed', true ),
 			'#https?://(www\.)?canva\.com/design/.*/view.*#i' => array( 'https://canva.com/_oembed', true ),
-			'#https?://app\.screencast\.com/.*#i'          => array( 'https://app.screencast.com/api/v1/oembed', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
