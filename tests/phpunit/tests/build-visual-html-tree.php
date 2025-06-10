@@ -41,6 +41,8 @@ END;
 	}
 
 	/**
+	 * @ticket 63527
+	 *
 	 * @covers ::build_visual_html_tree
 	 *
 	 * @dataProvider data_build_equivalent_html_semantic_tree
@@ -88,6 +90,8 @@ END;
 	}
 
 	/**
+	 * @ticket 63527
+	 *
 	 * @covers ::build_visual_html_tree
 	 *
 	 * @dataProvider data_build_equivalent_html_semantic_tree_with_equivalent_html
@@ -125,6 +129,8 @@ END;
 	}
 
 	/**
+	 * @ticket 63527
+	 *
 	 * @covers ::build_visual_html_tree
 	 *
 	 * @dataProvider data_build_equivalent_html_semantic_tree_with_non_equivalent_html
