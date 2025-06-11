@@ -1511,6 +1511,8 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
 	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context, $callback ) {
 		_inject_theme_attribute_in_template_part_block( $block );
 
+		apply_block_bindings_to_block( $block, $parent_block, $context );
+
 		$markup = '';
 
 		if ( $parent_block && ! $prev ) {
@@ -1580,6 +1582,118 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
 
 		return $markup;
 	};
+}
+
+function apply_block_bindings_to_block( &$parsed_block, $parent_block, $context ) {
+		//$parsed_block               = $this->parsed_block;
+		$computed_attributes        = array();
+		$supported_block_attributes = array(
+			'core/paragraph' => array( 'content' ),
+			'core/heading'   => array( 'content' ),
+			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
+			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
+		);
+
+		// If the block doesn't have the bindings property, isn't one of the supported
+		// block types, or the bindings property is not an array, return the block content.
+		if (
+			! isset( $supported_block_attributes[ $parsed_block['blockName'] ] ) ||
+			empty( $parsed_block['attrs']['metadata']['bindings'] ) ||
+			! is_array( $parsed_block['attrs']['metadata']['bindings'] )
+		) {
+			return $computed_attributes;
+		}
+
+		$bindings = $parsed_block['attrs']['metadata']['bindings'];
+
+		/*
+		 * If the default binding is set for pattern overrides, replace it
+		 * with a pattern override binding for all supported attributes.
+		 */
+		if (
+			isset( $bindings['__default']['source'] ) &&
+			'core/pattern-overrides' === $bindings['__default']['source']
+		) {
+			$updated_bindings = array();
+
+			/*
+			 * Build a binding array of all supported attributes.
+			 * Note that this also omits the `__default` attribute from the
+			 * resulting array.
+			 */
+			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
+				// Retain any non-pattern override bindings that might be present.
+				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
+					? $bindings[ $attribute_name ]
+					: array( 'source' => 'core/pattern-overrides' );
+			}
+			$bindings = $updated_bindings;
+			/*
+			 * Update the bindings metadata of the computed attributes.
+			 * This ensures the block receives the expanded __default binding metadata when it renders.
+			 */
+			$computed_attributes['metadata'] = array_merge(
+				$parsed_block['attrs']['metadata'],
+				array( 'bindings' => $bindings )
+			);
+		}
+
+		foreach ( $bindings as $attribute_name => $block_binding ) {
+			// If the attribute is not in the supported list, process next attribute.
+			if ( ! in_array( $attribute_name, $supported_block_attributes[ $parsed_block['blockName'] ], true ) ) {
+				continue;
+			}
+			// If no source is provided, or that source is not registered, process next attribute.
+			if ( ! isset( $block_binding['source'] ) || ! is_string( $block_binding['source'] ) ) {
+				continue;
+			}
+
+			$block_binding_source = get_block_bindings_source( $block_binding['source'] );
+			if ( null === $block_binding_source ) {
+				continue;
+			}
+
+			$block_context = array();
+
+			if ( $context instanceof WP_Post ) {
+				$block_context['postId'] = $post->ID;
+
+				/*
+				 * The `postType` context is largely unnecessary server-side, since the ID
+				 * is usually sufficient on its own. That being said, since a block's
+				 * manifest is expected to be shared between the server and the client,
+				 * it should be included to consistently fulfill the expectation.
+				 */
+				$block_context['postType'] = $post->post_type;
+			}
+
+			/** This filter is documented in wp-includes/blocks.php */
+			$block_context = apply_filters( 'render_block_context', $block_context, $parsed_block, $parent_block );
+
+			// FIXME: Adds the necessary context defined by the source.
+			// if ( ! empty( $block_binding_source->uses_context ) ) {
+			// 	foreach ( $block_binding_source->uses_context as $context_name ) {
+			// 		if ( array_key_exists( $context_name, $this->available_context ) ) {
+			// 			$this->context[ $context_name ] = $this->available_context[ $context_name ];
+			// 		}
+			// 	}
+			// }
+
+			$block_instance = new WP_Block( $parsed_block, $block_context );
+
+			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
+			$source_value = $block_binding_source->get_value( $source_args, $block_instance, $attribute_name );
+
+			// If the value is not null, process the HTML based on the block and the attribute.
+			if ( ! is_null( $source_value ) ) {
+				$computed_attributes[ $attribute_name ] = $source_value;
+			}
+		}
+
+		$parsed_block['attrs'] = array_merge(
+			$parsed_block['attrs'],
+			$computed_attributes
+		);
 }
 
 /**
