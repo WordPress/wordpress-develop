@@ -744,11 +744,9 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			)
 		);
 
-		// Need set up rest requests with some data like `<!-- <script>`...
-		wp_scripts()->registered['wp-api-fetch']->extra['after'] = array();
+		// Prevent a bunch of noisy or unstable data from being included in the test output.
 		wp_scripts()->registered['wp-api-fetch']->ver            = 'test';
-		$src = includes_url( '/test-src/api-fetch.js' );
-		wp_scripts()->registered['wp-api-fetch']->src = $src;
+		wp_scripts()->registered['wp-api-fetch']->extra['after'] = array();
 
 		block_editor_rest_api_preload(
 			array( '/test/v0/test-62797' ),
@@ -759,7 +757,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		wp_scripts()->do_item( 'wp-api-fetch' );
 		$output   = ob_get_clean();
 		$expected = <<<HTML
-<script src="{$src}?ver=test" id="wp-api-fetch-js"></script>
+<script src="http://example.org/wp-includes/js/dist/api-fetch.min.js?ver=test" id="wp-api-fetch-js"></script>
 <script id="wp-api-fetch-js-after">
 wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( {"/test/v0/test-62797":{"body":["\\u003C!-- unclosed comment and a script tag \\u003Cscript\\u003E\\u003C/script\\u003E"],"headers":{"Allow":"GET"}}} ) );
 </script>
