@@ -2066,12 +2066,13 @@ function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ): bool {
  * This rule overrides the similar rule in the default user agent stylesheet, to avoid images that use e.g.
  * `width: auto` or `width: fit-content` to appear smaller.
  *
- * @since 6.9.0
+ * @since 6.7.1
+ * @since 6.9.0 The style is now enqueued as opposed to being printed.
  *
- * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
- * @see https://core.trac.wordpress.org/ticket/62413
+ * @link https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
+ * @link https://core.trac.wordpress.org/ticket/62413
  */
-function wp_enqueue_img_auto_sizes_contain_css_fix(): void {
+function wp_print_auto_sizes_contain_css_fix() {
 	/** This filter is documented in wp-includes/media.php */
 	$add_auto_sizes = apply_filters( 'wp_img_tag_add_auto_sizes', true );
 	if ( ! $add_auto_sizes ) {
