@@ -9,7 +9,6 @@
  * @group blocks
  */
 class Tests_Blocks_Editor extends WP_UnitTestCase {
-
 	/**
 	 * Sets up each test method.
 	 */
@@ -720,5 +719,49 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 				'expected'      => '\/?context=edit',
 			),
 		);
+	}
+
+	/**
+	 * @ticket 62797
+	 *
+	 * @covers ::block_editor_rest_api_preload
+	 */
+	public function test_preload_closes_script_tag() {
+		add_theme_support( 'html5', array( 'script' ) );
+
+		register_rest_route(
+			'test/v0',
+			'test-62797',
+			array(
+				'methods'             => 'GET',
+				'callback'            => function ( WP_REST_Request $request ) {
+					return '<!-- unclosed comment and a script tag <script></script>';
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		// Need set up rest requests with some data like `<!-- <script>`...
+		wp_scripts()->registered['wp-api-fetch']->extra['after'] = array();
+		wp_scripts()->registered['wp-api-fetch']->ver            = 'test';
+		$src = includes_url( '/test-src/api-fetch.js' );
+		wp_scripts()->registered['wp-api-fetch']->src = $src;
+
+		block_editor_rest_api_preload(
+			array( '/test/v0/test-62797' ),
+			new WP_Block_Editor_Context()
+		);
+
+		ob_start();
+		wp_scripts()->do_item( 'wp-api-fetch' );
+		$output   = ob_get_clean();
+		$expected = <<<HTML
+<script src="{$src}?ver=test" id="wp-api-fetch-js"></script>
+<script id="wp-api-fetch-js-after">
+wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( {"/test/v0/test-62797":{"body":["\\u003C!-- unclosed comment and a script tag \\u003Cscript\\u003E\\u003C/script\\u003E"],"headers":{"Allow":"GET"}}} ) );
+</script>
+
+HTML;
+		$this->assertEqualHTML( $expected, $output );
 	}
 }
