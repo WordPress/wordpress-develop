@@ -3271,8 +3271,12 @@ body.page .main-navigation {
   white-space: inherit;
 }
 
+.main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu .expanded-true:not(:has(.sub-menu.expanded-true)) {
+  overflow-y: scroll;
+}
+
 .main-navigation .main-menu .menu-item-has-children.off-canvas .sub-menu.expanded-true {
-  display: table;
+  display: block;
   margin-top: 0;
   opacity: 1;
   padding-right: 0;
@@ -3282,6 +3286,7 @@ body.page .main-navigation {
   left: 0;
   bottom: 0;
   position: fixed;
+  overflow: scroll;
   z-index: 100000;
   /* Make sure appears above mobile admin bar */
   width: 100vw;
