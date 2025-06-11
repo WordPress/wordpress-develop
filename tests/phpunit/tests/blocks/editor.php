@@ -636,7 +636,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 54558
-	 * @dataProvider data_block_editor_rest_api_preload_does_not_add_redundant_leading_slash
+	 * @dataProvider data_block_editor_rest_api_preload_adds_missing_leading_slash
 	 *
 	 * @covers ::block_editor_rest_api_preload
 	 *
@@ -692,7 +692,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_block_editor_rest_api_preload_does_not_add_redundant_leading_slash() {
+	public function data_block_editor_rest_api_preload_adds_missing_leading_slash() {
 		return array(
 			'a string without a slash'               => array(
 				'preload_paths' => array( 'wp/v2/blocks' ),
