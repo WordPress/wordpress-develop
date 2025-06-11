@@ -27,6 +27,9 @@ parameters:
     - MEDIA_TRASH
     - FORCE_SSL_LOGIN
     - WP_POST_REVISIONS
+    - SHORTINIT
+    - SITECOOKIEPATH
+    - COOKIEPATH
 
   # What directories and files should be scanned.
   paths:
