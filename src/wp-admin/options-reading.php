@@ -204,7 +204,7 @@ else :
 </fieldset></td>
 </tr>
 
-<tr class="option-site-visibility">
+<tr class="option-site-visibility" id="site-visibility">
 <th scope="row"><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?> </th>
 <td><fieldset>
 	<legend class="screen-reader-text"><span>
