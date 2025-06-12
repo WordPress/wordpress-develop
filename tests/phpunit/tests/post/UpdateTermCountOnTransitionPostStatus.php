@@ -30,16 +30,6 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	protected static $taxonomy = 'category';
 
 	/**
-	 * Set up.
-	 */
-	public function set_up() {
-		parent::set_up();
-
-		register_post_type( self::$post_type, array( 'public' => true ) );
-		register_taxonomy( self::$taxonomy, self::$post_type, array( 'public' => true ) );
-	}
-
-	/**
 	 * Create shared fixtures.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
