@@ -62,21 +62,29 @@ jQuery( function($) {
 
 				} else if ( '-1' == r ) {
 					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + wp.i18n.__( 'Sorry, you are not allowed to do that.' ) + '</p></div>');
-					tr.children().css('backgroundColor', '');
-					tr.css('pointer-events','');
-					tr.find(':input, a').prop('disabled', false).removeAttr('tabindex');
+					resetRowAfterFailure( tr );
 
 				} else {
 					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + wp.i18n.__( 'An error occurred while processing your request. Please try again later.' ) + '</p></div>');
-					tr.children().css('backgroundColor', '');
-					tr.css('pointer-events','');
-					tr.find(':input, a').prop('disabled', false).removeAttr('tabindex');
+					resetRowAfterFailure( tr );
 				}
 			});
 		}
 
 		return false;
 	});
+
+	/**
+	 * Restores the original UI state of a table row after an AJAX failure.
+	 *
+	 * @param {jQuery} tr The table row to reset.
+	 * @return {void}
+	 */
+	function resetRowAfterFailure( tr ) {
+		tr.children().css( 'backgroundColor', '' );
+		tr.css( 'pointer-events', '' );
+		tr.find( ':input, a' ).prop( 'disabled', false ).removeAttr( 'tabindex' );
+	}
 
 	/**
 	 * Adds a deletion confirmation when removing a tag.
