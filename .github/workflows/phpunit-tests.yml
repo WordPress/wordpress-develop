@@ -187,7 +187,7 @@ jobs:
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql', 'mariadb' ]
-        db-version: [ '9.1', '11.6' ]
+        db-version: [ '9.3', '11.7' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
@@ -195,14 +195,14 @@ jobs:
         exclude:
           # MySQL 9.0+ will not work on PHP <= 7.3 because mysql_native_password was removed. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.1'
+            db-version: '9.3'
           - php: '7.3'
-            db-version: '9.1'
+            db-version: '9.3'
           # Exclude version combinations that don't exist.
           - db-type: 'mariadb'
-            db-version: '9.1'
+            db-version: '9.3'
           - db-type: 'mysql'
-            db-version: '11.6'
+            db-version: '11.7'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}

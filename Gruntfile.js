@@ -838,7 +838,6 @@ module.exports = function(grunt) {
 					'!**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
-					'!wp-includes/js/swfobject.js',
 				]
 			},
 			'jquery-ui': {
