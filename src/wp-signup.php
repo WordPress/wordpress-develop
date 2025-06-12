@@ -26,7 +26,7 @@ if ( is_array( get_site_option( 'illegal_names' ) ) && isset( $_GET['new'] ) && 
  *
  * @since MU (3.0.0)
  */
-function do_signup_header() {
+function do_signup_header(): void {
 	/**
 	 * Fires within the head section of the site sign-up screen.
 	 *
@@ -61,7 +61,7 @@ do_action( 'before_signup_header' );
  *
  * @since MU (3.0.0)
  */
-function wpmu_signup_stylesheet() {
+function wpmu_signup_stylesheet(): void {
 	?>
 	<style type="text/css">
 		.mu_register { width: 90%; margin: 0 auto; }
@@ -114,7 +114,7 @@ do_action( 'before_signup_form' );
  * @param string          $blog_title The new site title.
  * @param WP_Error|string $errors     A WP_Error object containing existing errors. Defaults to empty string.
  */
-function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
+function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ): void {
 	if ( ! is_wp_error( $errors ) ) {
 		$errors = new WP_Error();
 	}
@@ -269,7 +269,7 @@ function validate_blog_form() {
  * @param string          $user_email The entered email address.
  * @param WP_Error|string $errors     A WP_Error object containing existing errors. Defaults to empty string.
  */
-function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
+function show_user_form( $user_name = '', $user_email = '', $errors = '' ): void {
 	if ( ! is_wp_error( $errors ) ) {
 		$errors = new WP_Error();
 	}
@@ -336,7 +336,7 @@ function validate_user_form() {
  * @param string          $blog_title The new site title.
  * @param WP_Error|string $errors     A WP_Error object containing existing errors. Defaults to empty string.
  */
-function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
+function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ): void {
 	$current_user = wp_get_current_user();
 
 	if ( ! is_wp_error( $errors ) ) {
@@ -527,7 +527,7 @@ function validate_another_blog_signup() {
  * @param array  $meta       Any additional meta from the {@see 'add_signup_meta'} filter in validate_blog_signup().
  * @param int    $blog_id    The site ID.
  */
-function confirm_another_blog_signup( $domain, $path, $blog_title, $user_name, $user_email = '', $meta = array(), $blog_id = 0 ) {
+function confirm_another_blog_signup( $domain, $path, $blog_title, $user_name, $user_email = '', $meta = array(), $blog_id = 0 ): void {
 
 	if ( $blog_id ) {
 		switch_to_blog( $blog_id );
@@ -588,7 +588,7 @@ function confirm_another_blog_signup( $domain, $path, $blog_title, $user_name, $
  * @param string          $user_email The user's email.
  * @param WP_Error|string $errors     A WP_Error object containing existing errors. Defaults to empty string.
  */
-function signup_user( $user_name = '', $user_email = '', $errors = '' ) {
+function signup_user( $user_name = '', $user_email = '', $errors = '' ): void {
 	global $active_signup;
 
 	if ( ! is_wp_error( $errors ) ) {
@@ -700,7 +700,7 @@ function validate_user_signup() {
  * @param string $user_name  The username.
  * @param string $user_email The user's email address.
  */
-function confirm_user_signup( $user_name, $user_email ) {
+function confirm_user_signup( $user_name, $user_email ): void {
 	?>
 	<h2>
 	<?php
@@ -732,7 +732,7 @@ function confirm_user_signup( $user_name, $user_email ) {
  * @param string          $blog_title The site title.
  * @param WP_Error|string $errors     A WP_Error object containing existing errors. Defaults to empty string.
  */
-function signup_blog( $user_name = '', $user_email = '', $blogname = '', $blog_title = '', $errors = '' ) {
+function signup_blog( $user_name = '', $user_email = '', $blogname = '', $blog_title = '', $errors = '' ): void {
 	if ( ! is_wp_error( $errors ) ) {
 		$errors = new WP_Error();
 	}
@@ -857,7 +857,7 @@ function validate_blog_signup() {
  * @param string $user_email The user's email address.
  * @param array  $meta       Any additional meta from the {@see 'add_signup_meta'} filter in validate_blog_signup().
  */
-function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $user_email = '', $meta = array() ) {
+function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $user_email = '', $meta = array() ): void {
 	?>
 	<h2>
 	<?php
