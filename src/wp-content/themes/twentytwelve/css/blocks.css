@@ -263,6 +263,11 @@ pre.wp-block-code {
 	color: #7c7c7c;
 }
 
+.is-style-outline .wp-block-button__link,
+.is-style-outline .wp-block-button__link:visited {
+	color: currentColor;
+}
+
 .wp-block-button.is-style-outline .wp-block-button__link,
 .wp-block-button.is-style-outline .wp-block-button__link:visited {
 	background-color: inherit;
@@ -333,6 +338,12 @@ pre.wp-block-code {
 
 .wp-block-media-text *:last-child {
 	margin-bottom: 0;
+}
+
+/* Navigation */
+
+.site-content .wp-block-navigation {
+	overflow: visible;
 }
 
 /*--------------------------------------------------------------

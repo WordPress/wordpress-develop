@@ -322,14 +322,22 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			 * They're added separately because padding might only be set on one side.
 			 */
 			if ( isset( $block_spacing_values['declarations']['padding-right'] ) ) {
-				$padding_right   = $block_spacing_values['declarations']['padding-right'];
+				$padding_right = $block_spacing_values['declarations']['padding-right'];
+				// Add unit if 0.
+				if ( '0' === $padding_right ) {
+					$padding_right = '0px';
+				}
 				$layout_styles[] = array(
 					'selector'     => "$selector > .alignfull",
 					'declarations' => array( 'margin-right' => "calc($padding_right * -1)" ),
 				);
 			}
 			if ( isset( $block_spacing_values['declarations']['padding-left'] ) ) {
-				$padding_left    = $block_spacing_values['declarations']['padding-left'];
+				$padding_left = $block_spacing_values['declarations']['padding-left'];
+				// Add unit if 0.
+				if ( '0' === $padding_left ) {
+					$padding_left = '0px';
+				}
 				$layout_styles[] = array(
 					'selector'     => "$selector > .alignfull",
 					'declarations' => array( 'margin-left' => "calc($padding_left * -1)" ),
@@ -572,7 +580,33 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 
 	// Child layout specific logic.
 	if ( $child_layout ) {
-		$container_content_class   = wp_unique_prefixed_id( 'wp-container-content-' );
+		/*
+		 * Generates a unique class for child block layout styles.
+		 *
+		 * To ensure consistent class generation across different page renders,
+		 * only properties that affect layout styling are used. These properties
+		 * come from `$block['attrs']['style']['layout']` and `$block['parentLayout']`.
+		 *
+		 * As long as these properties coincide, the generated class will be the same.
+		 */
+		$container_content_class = wp_unique_id_from_values(
+			array(
+				'layout'       => array_intersect_key(
+					$block['attrs']['style']['layout'] ?? array(),
+					array_flip(
+						array( 'selfStretch', 'flexSize', 'columnStart', 'columnSpan', 'rowStart', 'rowSpan' )
+					)
+				),
+				'parentLayout' => array_intersect_key(
+					$block['parentLayout'] ?? array(),
+					array_flip(
+						array( 'minimumColumnWidth', 'columnCount' )
+					)
+				),
+			),
+			'wp-container-content-'
+		);
+
 		$child_layout_declarations = array();
 		$child_layout_styles       = array();
 
@@ -698,16 +732,6 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 	$class_names        = array();
 	$layout_definitions = wp_get_layout_definitions();
 
-	/*
-	 * Uses an incremental ID that is independent per prefix to make sure that
-	 * rendering different numbers of blocks doesn't affect the IDs of other
-	 * blocks. Makes the CSS class names stable across paginations
-	 * for features like the enhanced pagination of the Query block.
-	 */
-	$container_class = wp_unique_prefixed_id(
-		'wp-container-' . sanitize_title( $block['blockName'] ) . '-is-layout-'
-	);
-
 	// Set the correct layout type for blocks using legacy content width.
 	if ( isset( $used_layout['inherit'] ) && $used_layout['inherit'] || isset( $used_layout['contentSize'] ) && $used_layout['contentSize'] ) {
 		$used_layout['type'] = 'constrained';
@@ -797,6 +821,25 @@ function wp_render_layout_support_flag( $block_content, $block ) {
 			? $global_settings['spacing']['blockGap']
 			: null;
 		$has_block_gap_support = isset( $block_gap );
+
+		/*
+		 * Generates a unique ID based on all the data required to obtain the
+		 * corresponding layout style. Keeps the CSS class names the same
+		 * even for different blocks on different places, as long as they have
+		 * the same layout definition. Makes the CSS class names stable across
+		 * paginations for features like the enhanced pagination of the Query block.
+		 */
+		$container_class = wp_unique_id_from_values(
+			array(
+				$used_layout,
+				$has_block_gap_support,
+				$gap_value,
+				$should_skip_gap_serialization,
+				$fallback_gap_value,
+				$block_spacing,
+			),
+			'wp-container-' . sanitize_title( $block['blockName'] ) . '-is-layout-'
+		);
 
 		$style = wp_get_layout_style(
 			".$container_class",
@@ -951,6 +994,7 @@ add_filter( 'render_block', 'wp_render_layout_support_flag', 10, 2 );
  * to avoid breaking styles relying on that div.
  *
  * @since 5.8.0
+ * @since 6.6.1 Removed inner container from Grid variations.
  * @access private
  *
  * @param string $block_content Rendered block content.
@@ -967,7 +1011,7 @@ function wp_restore_group_inner_container( $block_content, $block ) {
 	if (
 		wp_theme_has_theme_json() ||
 		1 === preg_match( $group_with_inner_container_regex, $block_content ) ||
-		( isset( $block['attrs']['layout']['type'] ) && 'flex' === $block['attrs']['layout']['type'] )
+		( isset( $block['attrs']['layout']['type'] ) && ( 'flex' === $block['attrs']['layout']['type'] || 'grid' === $block['attrs']['layout']['type'] ) )
 	) {
 		return $block_content;
 	}

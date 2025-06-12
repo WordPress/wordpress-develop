@@ -27,6 +27,10 @@ Description: Used to style blocks in the editor.
 	line-height: 1.75;
 }
 
+.rtl .editor-styles-wrapper {
+	font-family: Arial, Tahoma, sans-serif;
+}
+
 .edit-post-visual-editor .editor-block-list__block {
 	color: #1a1a1a;
 }
@@ -262,16 +266,12 @@ Description: Used to style blocks in the editor.
 
 /* Captions */
 
-[class^="wp-block-"] figcaption {
+figure[class*="wp-block-"] > figcaption {
 	color: #686868;
 	font-style: italic;
 	line-height: 1.6153846154;
 	padding-top: 0.5384615385em;
-	text-align: left;
-}
-
-.rtl [class^="wp-block-"] figcaption {
-	text-align: right;
+	text-align: start;
 }
 
 /*--------------------------------------------------------------
@@ -303,6 +303,10 @@ Description: Used to style blocks in the editor.
 	margin: 0 0 1.4736842105em;
 	overflow: hidden;
 	padding: 0 0 0 1.263157895em;
+}
+
+.editor-styles-wrapper .wp-block-quote {
+	border-color: currentColor;
 }
 
 .wp-block-quote:not(.is-large):not(.is-style-large).alignleft,
@@ -412,7 +416,9 @@ Description: Used to style blocks in the editor.
 
 .editor-styles-wrapper .wp-block-code {
 	border: 0;
-	padding: 0.125em 0.25em;
+	font-family: Inconsolata, monospace;
+	line-height: 1.75;
+	padding: 0;
 	background-color: #d1d1d1;
 }
 
@@ -499,10 +505,15 @@ Description: Used to style blocks in the editor.
 
 /* Pullquote */
 
-.editor-block-list__block .wp-block-pullquote blockquote {
+.editor-styles-wrapper .wp-block-pullquote blockquote {
 	border: 0;
 	margin: 0;
 	padding: 0;
+}
+
+.editor-styles-wrapper .wp-block-pullquote:where([style*="border-width"]) blockquote {
+	padding-left: 1rem;
+	padding-right: 1rem;
 }
 
 .wp-block-pullquote blockquote > .editor-rich-text p {
@@ -527,6 +538,21 @@ Description: Used to style blocks in the editor.
 	color: inherit;
 }
 
+.wp-block-pullquote[class*="-font-size"] blockquote,
+.wp-block-pullquote[class*="-font-size"] blockquote p,
+.wp-block-pullquote[class*="-font-size"] cite,
+.wp-block-pullquote[style*="font-size"] blockquote,
+.wp-block-pullquote[style*="font-size"] blockquote p,
+.wp-block-pullquote[style*="font-size"] cite {
+	font-size: inherit;
+}
+	
+.wp-block-pullquote[style*="line-height"] blockquote,
+.wp-block-pullquote[style*="line-height"] blockquote p,
+.wp-block-pullquote[style*="line-height"] cite {
+	line-height: inherit;
+}
+
 .wp-block-pullquote .wp-block-pullquote__citation:before {
 	content: "\2014\00a0";
 }
@@ -543,30 +569,23 @@ Description: Used to style blocks in the editor.
 	text-align: right;
 }
 
-/* Verse */
-
-.editor-styles-wrapper .wp-block-verse {
-	font-family: inherit;
-}
-
 /*--------------------------------------------------------------
 5.0 Blocks - Layout Elements
 --------------------------------------------------------------*/
 
 /* Buttons */
 
-.wp-block-button .wp-block-button__link {
-	font-family: Montserrat, "Helvetica Neue", sans-serif;
+.wp-block-buttons {
 	font-weight: 700;
 	letter-spacing: 0.046875em;
 	line-height: 1;
-	padding: 0.84375em 1.3125em 0.78125em;
 	text-transform: uppercase;
 }
 
-.wp-block-buttons[style*="text-transform"] .wp-block-button__link,
-.wp-block-button[style*="text-transform"] .wp-block-button__link {
-	text-transform: inherit;
+.wp-block-button .wp-block-button__link {
+	box-shadow: none;
+	font-family: Montserrat, "Helvetica Neue", sans-serif;
+	padding: 0.84375em 1.3125em 0.78125em;
 }
 
 .wp-block-button__link {
@@ -598,7 +617,7 @@ Description: Used to style blocks in the editor.
 
 /* Latest Comments */
 
-.editor-block-list__block .wp-block-latest-comments__comment-meta a {
+.editor-styles-wrapper .wp-block-latest-comments__comment-meta a {
 	box-shadow: none;
 	font-weight: 700;
 	text-decoration: none;
@@ -612,7 +631,7 @@ Description: Used to style blocks in the editor.
 	line-height: 1.6153846154;
 }
 
-.wp-block-latest-comments .wp-block-latest-comments__comment {
+.wp-block-latest-comments .wp-block-latest-comments__comment:not(:first-child) {
 	border-top: 1px solid #d1d1d1;
 	margin-bottom: 0;
 	padding: 1.75em 0;

@@ -31,7 +31,7 @@ class WP_HTML_Decoder {
 	 *                                 Default 'case-sensitive'.
 	 * @return bool Whether the attribute value starts with the given string.
 	 */
-	public static function attribute_starts_with( $haystack, $search_text, $case_sensitivity = 'case-sensitive' ) {
+	public static function attribute_starts_with( $haystack, $search_text, $case_sensitivity = 'case-sensitive' ): bool {
 		$search_length = strlen( $search_text );
 		$loose_case    = 'ascii-case-insensitive' === $case_sensitivity;
 		$haystack_end  = strlen( $haystack );
@@ -90,7 +90,7 @@ class WP_HTML_Decoder {
 	 * @param string $text Text containing raw and non-decoded text node to decode.
 	 * @return string Decoded UTF-8 value of given text node.
 	 */
-	public static function decode_text_node( $text ) {
+	public static function decode_text_node( $text ): string {
 		return static::decode( 'data', $text );
 	}
 
@@ -110,7 +110,7 @@ class WP_HTML_Decoder {
 	 * @param string $text Text containing raw and non-decoded attribute value to decode.
 	 * @return string Decoded UTF-8 value of given attribute value.
 	 */
-	public static function decode_attribute( $text ) {
+	public static function decode_attribute( $text ): string {
 		return static::decode( 'attribute', $text );
 	}
 
@@ -133,7 +133,7 @@ class WP_HTML_Decoder {
 	 * @param string $text    Text document containing span of text to decode.
 	 * @return string Decoded UTF-8 string.
 	 */
-	public static function decode( $context, $text ) {
+	public static function decode( $context, $text ): string {
 		$decoded = '';
 		$end     = strlen( $text );
 		$at      = 0;
@@ -141,7 +141,7 @@ class WP_HTML_Decoder {
 
 		while ( $at < $end ) {
 			$next_character_reference_at = strpos( $text, '&', $at );
-			if ( false === $next_character_reference_at || $next_character_reference_at >= $end ) {
+			if ( false === $next_character_reference_at ) {
 				break;
 			}
 
@@ -195,6 +195,8 @@ class WP_HTML_Decoder {
 	 *     7    === $token_length; // `&notin;`
 	 *
 	 * @since 6.6.0
+	 *
+	 * @global WP_Token_Map $html5_named_character_references Mappings for HTML5 named character references.
 	 *
 	 * @param string $context            `attribute` for decoding attribute values, `data` otherwise.
 	 * @param string $text               Text document containing span of text to decode.
@@ -421,7 +423,7 @@ class WP_HTML_Decoder {
 	 * @param int $code_point Which code point to convert.
 	 * @return string Converted code point, or `�` if invalid.
 	 */
-	public static function code_point_to_utf8_bytes( $code_point ) {
+	public static function code_point_to_utf8_bytes( $code_point ): string {
 		// Pre-check to ensure a valid code point.
 		if (
 			$code_point <= 0 ||
@@ -436,26 +438,26 @@ class WP_HTML_Decoder {
 		}
 
 		if ( $code_point <= 0x7FF ) {
-			$byte1 = ( $code_point >> 6 ) | 0xC0;
-			$byte2 = $code_point & 0x3F | 0x80;
+			$byte1 = chr( ( $code_point >> 6 ) | 0xC0 );
+			$byte2 = chr( $code_point & 0x3F | 0x80 );
 
-			return pack( 'CC', $byte1, $byte2 );
+			return "{$byte1}{$byte2}";
 		}
 
 		if ( $code_point <= 0xFFFF ) {
-			$byte1 = ( $code_point >> 12 ) | 0xE0;
-			$byte2 = ( $code_point >> 6 ) & 0x3F | 0x80;
-			$byte3 = $code_point & 0x3F | 0x80;
+			$byte1 = chr( ( $code_point >> 12 ) | 0xE0 );
+			$byte2 = chr( ( $code_point >> 6 ) & 0x3F | 0x80 );
+			$byte3 = chr( $code_point & 0x3F | 0x80 );
 
-			return pack( 'CCC', $byte1, $byte2, $byte3 );
+			return "{$byte1}{$byte2}{$byte3}";
 		}
 
 		// Any values above U+10FFFF are eliminated above in the pre-check.
-		$byte1 = ( $code_point >> 18 ) | 0xF0;
-		$byte2 = ( $code_point >> 12 ) & 0x3F | 0x80;
-		$byte3 = ( $code_point >> 6 ) & 0x3F | 0x80;
-		$byte4 = $code_point & 0x3F | 0x80;
+		$byte1 = chr( ( $code_point >> 18 ) | 0xF0 );
+		$byte2 = chr( ( $code_point >> 12 ) & 0x3F | 0x80 );
+		$byte3 = chr( ( $code_point >> 6 ) & 0x3F | 0x80 );
+		$byte4 = chr( $code_point & 0x3F | 0x80 );
 
-		return pack( 'CCCC', $byte1, $byte2, $byte3, $byte4 );
+		return "{$byte1}{$byte2}{$byte3}{$byte4}";
 	}
 }
