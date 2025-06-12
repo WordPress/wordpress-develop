@@ -2648,7 +2648,7 @@ function comment_form( $args = array(), $post = null ) {
 		),
 		'comment_notes_after'  => '',
 		'action'               => site_url( '/wp-comments-post.php' ),
-		'novalidate'      => false,
+		'novalidate'           => false,
 		'id_form'              => 'commentform',
 		'id_submit'            => 'submit',
 		'class_container'      => 'comment-respond',
