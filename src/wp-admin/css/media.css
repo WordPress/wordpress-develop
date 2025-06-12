@@ -976,7 +976,7 @@ border color while dragging a file over the uploader drop area */
 	width: auto;
 	min-height: 30px;
 	font-size: 13px;
-	line-height: 2;
+	line-height: 2.15384615;
 	padding: 0 10px;
 }
 
