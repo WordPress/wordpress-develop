@@ -553,7 +553,7 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 				}
 				return $blocks;
 			},
-			10,
+			10
 		);
 
 		// We check the cache before rendering the blocks.
