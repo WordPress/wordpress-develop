@@ -974,7 +974,7 @@ border color while dragging a file over the uploader drop area */
 .image-editor .imgedit-menu .button {
 	display: inline-block;
 	width: auto;
-	min-height: 28px;
+	min-height: 30px;
 	font-size: 13px;
 	line-height: 2;
 	padding: 0 10px;
