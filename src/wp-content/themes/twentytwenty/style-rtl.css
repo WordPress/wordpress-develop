@@ -3577,6 +3577,7 @@ figure.wp-block-table.is-style-stripes {
 	line-height: 1.4;
 }
 
+.entry-content p img,
 .entry-content li img {
 	display: inline-block;
 }
