@@ -209,7 +209,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		$this->assertNull( $p->get_attribute( 'novalidate' ), 'Expected FORM to not have novalidate attribute by default.' );
 
 		// Opt in to the novalidate attribute by passing an arg to comment_form().
-		$form = get_echo( 'comment_form', array( array( 'novalidate_form' => true ), $post_id ) );
+		$form = get_echo( 'comment_form', array( array( 'novalidate' => true ), $post_id ) );
 		$p    = new WP_HTML_Tag_Processor( $form );
 		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'FORM' ) ), 'Expected FORM tag.' );
 		$this->assertTrue( $p->get_attribute( 'novalidate' ), 'Expected FORM to have the novalidate attribute.' );
@@ -218,7 +218,7 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 		add_filter(
 			'comment_form_defaults',
 			static function ( array $defaults ): array {
-				$defaults['novalidate_form'] = true;
+				$defaults['novalidate'] = true;
 				return $defaults;
 			}
 		);
