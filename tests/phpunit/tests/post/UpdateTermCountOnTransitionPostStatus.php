@@ -132,6 +132,38 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	}
 
 	/**
+	 * Test that the term count is not recalculated when neither the terms nor the post status change.
+	 *
+	 * @ticket 42522
+	 */
+	public function test_term_count_is_not_recalculated_when_status_does_not_change() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => self::$post_type,
+				'post_status' => 'publish',
+			)
+		);
+
+		wp_set_object_terms(
+			$post_id,
+			self::$term_id,
+			self::$taxonomy
+		);
+		$edited_term_taxonomy_count = did_action( 'edited_term_taxonomy' );
+
+		// Change something about the post but not its status.
+		wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_content' => get_post( $post_id )->post_content . ' - updated',
+			)
+		);
+
+		$this->assertSame( 0, did_action( 'edited_term_taxonomy' ) - $edited_term_taxonomy_count, 'Term taxonomy count should not be recalculated when post status does not change.' );
+		$this->assertTermCount( 2, self::$term_id );
+	}
+
+	/**
 	 * Assert that the term count is correct.
 	 *
 	 * @param int $expected_count Expected term count.
