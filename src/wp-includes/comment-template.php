@@ -2446,7 +2446,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
  * @since 4.6.0 Introduced the 'action' argument.
  * @since 4.9.6 Introduced the 'cookies' default comment field.
  * @since 5.5.0 Introduced the 'class_container' argument.
- * @since n.e.x.t Introduced the 'novalidate' argument.
+ * @since 6.8.2 Introduced the 'novalidate' argument.
  *
  * @param array       $args {
  *     Optional. Default arguments and form fields to override.
