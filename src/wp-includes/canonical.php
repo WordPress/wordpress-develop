@@ -716,16 +716,20 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	$original_host_low = strtolower( $original['host'] );
 	$redirect_host_low = strtolower( $redirect['host'] );
+	$original_port = isset( $original['port'] ) ? strtolower( $original['port'] ) : '80';
+	$redirect_port = isset( $redirect['port'] ) ? strtolower( $redirect['port'] ) : '80';
 
 	/*
 	 * Ignore differences in host capitalization, as this can lead to infinite redirects.
 	 * Only redirect no-www <=> yes-www.
 	 */
 	if ( $original_host_low === $redirect_host_low
-		|| ( 'www.' . $original_host_low !== $redirect_host_low
-			&& 'www.' . $redirect_host_low !== $original_host_low )
+	     || ( 'www.' . $original_host_low !== $redirect_host_low
+	          && 'www.' . $redirect_host_low !== $original_host_low )
 	) {
-		$redirect['host'] = $original['host'];
+		if ( strtolower( $original_port ) === strtolower( $redirect_port ) ) {
+			$redirect['host'] = $original['host'];
+		}
 	}
 
 	$compare_original = array( $original['host'], $original['path'] );
