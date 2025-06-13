@@ -8171,6 +8171,11 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
  */
 function _update_term_count_on_transition_post_status( $new_status, $old_status, $post ) {
 
+	// Do not calculate if both statuses are same.
+	if ( $new_status === $old_status ) {
+		return;
+	}
+
 	// Re calculate the term count only when either of status is `publish`.
 	if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
 		return;
