@@ -8170,6 +8170,12 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
  * @param WP_Post $post       Post object.
  */
 function _update_term_count_on_transition_post_status( $new_status, $old_status, $post ) {
+
+	// Re calculate the term count only when either of status is `publish`.
+	if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+		return;
+	}
+
 	// Update counts for the post's terms.
 	foreach ( (array) get_object_taxonomies( $post->post_type ) as $taxonomy ) {
 		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'tt_ids' ) );
