@@ -2096,7 +2096,6 @@ function wp_mkdir_p( $target ) {
 	 */
 	do_action( 'before_directory_creation', $target, $dir_perms );
 
-
 	if ( @mkdir( $target, $dir_perms, true ) ) {
 
 		/*
