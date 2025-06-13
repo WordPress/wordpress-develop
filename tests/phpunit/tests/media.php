@@ -75,6 +75,7 @@ CAP;
 		global $wp_styles;
 		self::$original_wp_styles = $wp_styles;
 		$wp_styles                = null;
+		parent::set_up();
 	}
 
 	public static function wpTearDownAfterClass() {
