@@ -28,9 +28,15 @@ try {
 }
 
 // Start the local-env containers.
-const containers = ( process.env.LOCAL_PHP_MEMCACHED === 'true' )
-	? 'wordpress-develop memcached'
-	: 'wordpress-develop';
+let containers = 'wordpress-develop';
+
+if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
+	containers += ' memcached';
+}
+
+if ( process.env.LOCAL_FTP === 'true' ) {
+	containers += ' ftp';
+}
 execSync( `docker compose ${composeFiles} up --quiet-pull -d ${containers}`, { stdio: 'inherit' } );
 
 // If Docker Toolbox is being used, we need to manually forward LOCAL_PORT to the Docker VM.

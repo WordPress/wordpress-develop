@@ -139,6 +139,27 @@ services:
       php:
         condition: service_started
 
+  ##
+  # The FTP container.
+  ##
+  ftp:
+    image: 'garethflowers/ftp-server:latest'
+
+    networks:
+      - wpdevnet
+
+    ports:
+      - '20-21:20-21/tcp'
+      - '40000-40009:40000-40009/tcp'
+
+    volumes:
+      - ./src/:/home/admin/
+
+    environment:
+      FTP_USER: admin
+      FTP_PASS: password
+      PUBLIC_IP: ${SERVICE_NAME:-ftp}
+
 volumes:
   # So that sites aren't wiped every time containers are restarted, MySQL uses a persistent volume.
   mysql: {}
