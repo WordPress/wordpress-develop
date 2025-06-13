@@ -106,6 +106,7 @@ services:
       PHP_FPM_UID: ${PHP_FPM_UID-1000}
       PHP_FPM_GID: ${PHP_FPM_GID-1000}
       HOST_PATH: ${PWD-}/${LOCAL_DIR-src}
+      WP_CONFIG_PATH: /var/www/wp-config.php
 
     volumes:
       - ./:/var/www
