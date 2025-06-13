@@ -612,6 +612,50 @@ function list_plugin_updates() {
 
 			echo $upgrade_notice;
 			?>
+		</p>
+
+		<?php
+		ob_start();
+
+		/**
+		 * Fires at the end of the update message container in each
+		 * row of the plugins list table.
+		 *
+		 * The dynamic portion of the hook name, `$plugin_file`, refers to the path
+		 * of the plugin's primary file relative to the plugins directory.
+		 *
+		 * @since 2.8.0
+		 *
+		 * @param array  $plugin_data An array of plugin metadata. See get_plugin_data()
+		 *                            and the {@see 'plugin_row_meta'} filter for the list
+		 *                            of possible values.
+		 * @param object $response {
+		 *     An object of metadata about the available plugin update.
+		 *
+		 *     @type string   $id           Plugin ID, e.g. `w.org/plugins/[plugin-name]`.
+		 *     @type string   $slug         Plugin slug.
+		 *     @type string   $plugin       Plugin basename.
+		 *     @type string   $new_version  New plugin version.
+		 *     @type string   $url          Plugin URL.
+		 *     @type string   $package      Plugin update package URL.
+		 *     @type string[] $icons        An array of plugin icon URLs.
+		 *     @type string[] $banners      An array of plugin banner URLs.
+		 *     @type string[] $banners_rtl  An array of plugin RTL banner URLs.
+		 *     @type string   $requires     The version of WordPress which the plugin requires.
+		 *     @type string   $tested       The version of WordPress the plugin is tested against.
+		 *     @type string   $requires_php The version of PHP which the plugin requires.
+		 * }
+		 */
+		do_action( "in_plugin_update_message-{$plugin_file}", (array) $plugin_data, $plugin_data->update ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+
+		$custom_message = ob_get_clean();
+
+		if ( ! empty( trim( $custom_message ) ) ) {
+			echo '<div class="update-message notice inline notice-warning notice-alt">';
+			echo '<p>' . $custom_message . '</p>';
+			echo '</div>';
+		}
+		?>
 		</p></td>
 	</tr>
 			<?php

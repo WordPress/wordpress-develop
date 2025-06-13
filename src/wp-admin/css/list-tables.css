@@ -1329,6 +1329,26 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	color: #c3c4c7;
 }
 
+.plugins .plugin-title .update-message .dashicons {
+	float: none;
+	padding: 0;
+	width: auto;
+	height: auto;
+	font-size: 16px;
+	background-color: transparent;
+	box-shadow: none;
+	color: inherit;
+	display: inline;
+	vertical-align: middle;
+}
+.plugins .plugin-title .update-message .dashicons:before {
+	padding: 0;
+	background-color: transparent;
+	box-shadow: none;
+	font-size: 16px;
+	color: inherit;
+}
+
 #update-themes-table .plugin-title img,
 #update-themes-table .plugin-title .dashicons {
 	width: 85px;
