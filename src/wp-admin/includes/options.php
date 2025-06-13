@@ -3,7 +3,7 @@
  * WordPress Options Administration API.
  *
  * @package WordPress
- * @subpackage Administration
+ * @subpackage Administratio
  * @since 4.4.0
  */
 
