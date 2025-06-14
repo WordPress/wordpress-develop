@@ -72,10 +72,10 @@ class WP_List_Table {
 	protected $modes = array();
 
 	/**
-	 * Stores the value returned by ->get_column_info().
+	 * Stores the value returned by ::get_column_info().
 	 *
 	 * @since 4.1.0
-	 * @var array
+	 * @var array|null
 	 */
 	protected $_column_headers;
 
@@ -1540,7 +1540,6 @@ class WP_List_Table {
 	 * should be provided via get_sortable_columns().
 	 *
 	 * @since 6.3.0
-	 * @access public
 	 */
 	public function print_table_description() {
 		list( $columns, $hidden, $sortable ) = $this->get_column_info();

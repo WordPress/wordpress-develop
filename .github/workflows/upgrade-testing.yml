@@ -65,7 +65,7 @@ jobs:
         os: [ 'ubuntu-24.04' ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4', '9.1' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.3' ]
         wp: [ '6.6', '6.7' ]
         multisite: [ false, true ]
 
@@ -77,9 +77,9 @@ jobs:
             db-version: '8.4'
           # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.1'
+            db-version: '9.3'
           - php: '7.3'
-            db-version: '9.1'
+            db-version: '9.3'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -243,7 +243,7 @@ jobs:
         os: [ 'ubuntu-24.04' ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4', '9.1' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.3' ]
         wp: [ '4.1' ]
         multisite: [ false, true ]
 
@@ -255,9 +255,9 @@ jobs:
             db-version: '8.4'
           # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.1'
+            db-version: '9.3'
           - php: '7.3'
-            db-version: '9.1'
+            db-version: '9.3'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}

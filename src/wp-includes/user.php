@@ -637,7 +637,7 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
 	 * @since 4.1.0 Added `$post_type` argument.
 	 * @since 4.3.1 Added `$public_only` argument.
 	 *
-	 * @param int          $count       The user's post count.
+	 * @param string       $count       The user's post count as a numeric string.
 	 * @param int          $userid      User ID.
 	 * @param string|array $post_type   Single post type or array of post types to count the number of posts for.
 	 * @param bool         $public_only Whether to limit counted posts to public posts.
@@ -1202,6 +1202,8 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 /**
  * Adds meta data to a user.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 3.0.0
  *
  * @param int    $user_id    User ID.
@@ -1227,6 +1229,8 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
  * You can match based on the key, or key and value. Removing based on key and
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching key, if needed.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 3.0.0
  *
@@ -1278,6 +1282,8 @@ function get_user_meta( $user_id, $key = '', $single = false ) {
  * same key and user ID.
  *
  * If the meta field for the user does not exist, it will be added.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 3.0.0
  *
@@ -2280,7 +2286,10 @@ function wp_insert_user( $userdata ) {
 	 */
 	$user_nicename = apply_filters( 'pre_user_nicename', $user_nicename );
 
-	if ( mb_strlen( $user_nicename ) > 50 ) {
+	// Check if the sanitized nicename is empty.
+	if ( empty( $user_nicename ) ) {
+		return new WP_Error( 'empty_user_nicename', __( 'Cannot create a user with an empty nicename.' ) );
+	} elseif ( mb_strlen( $user_nicename ) > 50 ) {
 		return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
 	}
 
@@ -3172,7 +3181,7 @@ function retrieve_password( $user_login = '' ) {
 	$user_data = false;
 
 	// Use the passed $user_login if available, otherwise use $_POST['user_login'].
-	if ( ! $user_login && ! empty( $_POST['user_login'] ) ) {
+	if ( ! $user_login && ! empty( $_POST['user_login'] ) && is_string( $_POST['user_login'] ) ) {
 		$user_login = $_POST['user_login'];
 	}
 
