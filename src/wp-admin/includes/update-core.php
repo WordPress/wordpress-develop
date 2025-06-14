@@ -1222,7 +1222,8 @@ function update_core( $from, $to ) {
 
 	if ( $may_have_shared_terms ) {
 		// This is the last version that contained support for handling and splitting shared terms.
-		$interim_version = '6.7';
+		$interim_version = '6.8';
+
 		return new WP_Error(
 			'may_have_shared_terms',
 			sprintf(

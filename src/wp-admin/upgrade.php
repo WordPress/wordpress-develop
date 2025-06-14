@@ -151,7 +151,7 @@ elseif ( count( $missing_extensions ) > 0 ) :
 	echo '<p>' . implode( '</p><p>', $missing_extensions ) . '</p>';
 elseif ( $may_have_shared_terms ) :
 	// This is the last version that contained support for handling and splitting shared terms.
-	$interim_version = '6.7';
+	$interim_version = '6.8';
 	$interim_version_url = sprintf(
 		/* translators: %s: WordPress version. */
 		esc_url( __( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ) ),
@@ -161,7 +161,7 @@ elseif ( $may_have_shared_terms ) :
 	echo '<p>';
 	printf(
 		/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: URL to WordPress release notes, 4: WordPress version number */
-		__( 'You cannot upgrade to <a href="%1$s">WordPress %2$s</a> because your database may still contain terms that are shared between categories and tags. Please upgrade to <a href="%3$s">WordPress %4$s</a> first.' ),
+		__( 'You cannot update to <a href="%1$s">WordPress %2$s</a> because your database may still contain terms that are shared between categories and tags. Please update to <a href="%3$s">WordPress %4$s</a> first.' ),
 		$version_url,
 		$wp_version,
 		$interim_version_url,
