@@ -21,19 +21,19 @@
 		 * @return  Stripped text.
 		 */
 		stripTags: function( text ) {
-			text = text || '';
+			var _text = text || '';
 
-			// Do the replacement.
-			var _text = text
+			 // Do the search-replace until there is nothing to be replaced.
+			 do {
+                // Keep pre-replace text for comparison.
+				text = _text;
+
+				// Do the replacement.
+				_text = text
 					.replace( /<!--[\s\S]*?(-->|$)/g, '' )
 					.replace( /<(script|style)[^>]*>[\s\S]*?(<\/\1>|$)/ig, '' )
 					.replace( /<\/?[a-z][\s\S]*?(>|$)/ig, '' );
-
-			// If the initial text is not equal to the modified text,
-			// do the search-replace again, until there is nothing to be replaced.
-			if ( _text !== text ) {
-				return wp.sanitize.stripTags( _text );
-			}
+			} while ( _text !== text );
 
 			// Return the text with stripped tags.
 			return _text;
