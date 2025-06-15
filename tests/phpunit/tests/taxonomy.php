@@ -1131,9 +1131,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @ticket 46350
 	 */
 	public function test_taxonomy_query_with_zero_term() {
-		wp_cache_flush();
-		wp_cache_delete( 'all_taxonomies', 'terms' );
-
 		register_taxonomy( 'test_tax', 'post' );
 
 		$term_id = self::factory()->term->create(
