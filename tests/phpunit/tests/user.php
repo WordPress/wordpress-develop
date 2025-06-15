@@ -1945,19 +1945,13 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the `roles` property is an array and remains sequential, even after filtering out roles.
-	 *
-	 * Scenario: The `roles` property of `WP_User` returns an array of role strings.
-	 * When this array is filtered using `array_filter`, it may become non-sequential,
-	 * which causes issues when passed to `wp_localize_script`.
-	 * Non-sequential arrays are treated as objects in JavaScript,
-	 * which can lead to unexpected behavior.
+	 * Tests that the `roles` property is an sequential array.
 	 *
 	 * @ticket 63427
 	 *
 	 * @return void
 	 */
-	public function test_user_roles_property_should_be_reindexed() {
+	public function test_user_roles_property_is_sequential_array() {
 		$user = new WP_User( self::$author_id );
 		$this->assertTrue( $this->is_sequential( $user->roles ) );
 
