@@ -605,7 +605,13 @@ class WP_Tax_Query {
 		$resulting_field = sanitize_key( $resulting_field );
 
 		// Empty terms always results in a null transformation but terms like 0 are not empty. See #46350.
-		$terms = array_filter( $query['terms'], 'strlen' );
+		$terms = array_filter(
+			$query['terms'],
+			function ( $value ) {
+				return $value !== 0 || is_string( $value );
+			}
+		);
+
 		if ( empty( $terms ) ) {
 			$query['terms'] = array();
 			$query['field'] = $resulting_field;
