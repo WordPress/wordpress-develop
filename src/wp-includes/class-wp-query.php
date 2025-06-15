@@ -1183,7 +1183,8 @@ class WP_Query {
 				continue; // Handled further down in the $q['tag'] block.
 			}
 
-			if ( $t->query_var && ! empty( $q[ $t->query_var ] ) ) {
+			// Values like 0 are not empty strings. See #46350.
+			if ( $t->query_var && isset( $q[ $t->query_var ] ) && '' !== $q[ $t->query_var ] ) {
 				$tax_query_defaults = array(
 					'taxonomy' => $taxonomy,
 					'field'    => 'slug',
