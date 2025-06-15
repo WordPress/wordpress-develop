@@ -354,7 +354,6 @@ class WP_Font_Face {
 	 * @param string $item Font-family name.
 	 * @return string Quoted font-family if needed.
 	 */
-	
 	private function maybe_add_quotes( $item ) {
 		$regex = '/^(?!generic\([a-zA-Z\-]+\)$)(?!^[a-zA-Z\-]+$).+/';
 		$item  = trim( $item );
@@ -364,7 +363,6 @@ class WP_Font_Face {
 		}
 		return $item;
 	}
-
 
 	/**
 	 * Builds the font-family's CSS.
