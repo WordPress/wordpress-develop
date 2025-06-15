@@ -608,7 +608,7 @@ class WP_Tax_Query {
 		$terms = array_filter(
 			$query['terms'],
 			function ( $value ) {
-				return $value !== 0 || is_string( $value );
+				return 0 !== $value || is_string( $value );
 			}
 		);
 
