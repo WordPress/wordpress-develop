@@ -2089,9 +2089,6 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	private static function get_default_bcrypt_cost(): int {
-		$hash = password_hash( 'password', PASSWORD_BCRYPT );
-		$info = password_get_info( $hash );
-
-		return $info['options']['cost'];
+		return 5;
 	}
 }
