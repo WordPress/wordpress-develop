@@ -1641,7 +1641,7 @@ function delete_expired_transients( $force_db = false ) {
 	if ( ! $force_db && wp_using_ext_object_cache() ) {
 		return;
 	}
-	$version_comment = $wpdb->get_var("SELECT @@global.version_comment");
+	$version_comment = $wpdb->get_var('SELECT @@global.version_comment;');
 	if ( strpos($version_comment, 'OceanBase') !== false ){
 		//OceanBase connection identified
 		$wpdb->query(
