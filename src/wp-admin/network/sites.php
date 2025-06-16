@@ -33,8 +33,8 @@ get_current_screen()->add_help_tab(
 			'<p>' . __( 'Hovering over each site reveals seven options (three for the primary site):' ) . '</p>' .
 			'<ul><li>' . __( 'An Edit link to a separate Edit Site screen.' ) . '</li>' .
 			'<li>' . __( 'Dashboard leads to the Dashboard for that site.' ) . '</li>' .
-			'<li>' . __( 'Deactivate, Archive, and Spam which lead to confirmation screens. These actions can be reversed later.' ) . '</li>' .
-			'<li>' . __( 'Delete which is a permanent action after the confirmation screen.' ) . '</li>' .
+			'<li>' . __( 'Flag for Deletion, Archive, and Spam which lead to confirmation screens. These actions can be reversed later.' ) . '</li>' .
+			'<li>' . __( 'Delete Permanently which is a permanent action after the confirmation screen.' ) . '</li>' .
 			'<li>' . __( 'Visit to go to the front-end of the live site.' ) . '</li></ul>',
 	)
 );
@@ -61,9 +61,9 @@ if ( isset( $_GET['action'] ) ) {
 	// A list of valid actions and their associated messaging for confirmation output.
 	$manage_actions = array(
 		/* translators: %s: Site URL. */
-		'activateblog'   => __( 'You are about to activate the site %s.' ),
+		'activateblog'   => __( 'You are about remove the deletion flag from the site %s.' ),
 		/* translators: %s: Site URL. */
-		'deactivateblog' => __( 'You are about to deactivate the site %s and flag it for deletion.' ),
+		'deactivateblog' => __( 'You are about flag the site %s for deletion.' ),
 		/* translators: %s: Site URL. */
 		'unarchiveblog'  => __( 'You are about to unarchive the site %s.' ),
 		/* translators: %s: Site URL. */
@@ -271,22 +271,22 @@ if ( isset( $_GET['action'] ) ) {
 			update_blog_status( $id, 'deleted', '0' );
 
 			/**
-			 * Fires after a network site is activated.
+			 * Fires after a network site has its deletion flag removed.
 			 *
 			 * @since MU (3.0.0)
 			 *
-			 * @param int $id The ID of the activated site.
+			 * @param int $id The ID of the reactivated site.
 			 */
 			do_action( 'activate_blog', $id );
 			break;
 
 		case 'deactivateblog':
 			/**
-			 * Fires before a network site is deactivated.
+			 * Fires before a network site is flagged for deletion.
 			 *
 			 * @since MU (3.0.0)
 			 *
-			 * @param int $id The ID of the site being deactivated.
+			 * @param int $id The ID of the site being flagged for deletion.
 			 */
 			do_action( 'deactivate_blog', $id );
 
@@ -326,10 +326,10 @@ if ( isset( $_GET['updated'] ) ) {
 			$msg = __( 'Sites marked as spam.' );
 			break;
 		case 'all_delete':
-			$msg = __( 'Sites flagged for deletion.' );
+			$msg = __( 'Sites permanently deleted.' );
 			break;
 		case 'delete':
-			$msg = __( 'Site flagged for deletion.' );
+			$msg = __( 'Site permanently deleted.' );
 			break;
 		case 'not_deleted':
 			$msg = __( 'Sorry, you are not allowed to delete that site.' );
@@ -341,10 +341,10 @@ if ( isset( $_GET['updated'] ) ) {
 			$msg = __( 'Site unarchived.' );
 			break;
 		case 'activateblog':
-			$msg = __( 'Site activated.' );
+			$msg = __( 'Site deletion flag removed.' );
 			break;
 		case 'deactivateblog':
-			$msg = __( 'Site deactivated and flagged for deletion.' );
+			$msg = __( 'Site flagged for deletion.' );
 			break;
 		case 'unspamblog':
 			$msg = __( 'Site removed from spam.' );

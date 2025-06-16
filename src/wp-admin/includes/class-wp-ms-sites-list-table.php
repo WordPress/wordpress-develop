@@ -758,7 +758,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 							'activateblog_' . $blog['blog_id']
 						)
 					),
-					_x( 'Activate', 'site' )
+					_x( 'Remove Deletion Flag', 'site' )
 				);
 			} else {
 				$actions['deactivate'] = sprintf(
@@ -769,7 +769,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 							'deactivateblog_' . $blog['blog_id']
 						)
 					),
-					__( 'Deactivate' )
+					__( 'Flag for Deletion' )
 				);
 			}
 
@@ -830,7 +830,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 							'deleteblog_' . $blog['blog_id']
 						)
 					),
-					__( 'Delete' )
+					__( 'Delete Permanently' )
 				);
 			}
 		}
@@ -844,9 +844,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		/**
 		 * Filters the action links displayed for each site in the Sites list table.
 		 *
-		 * The 'Edit', 'Dashboard', 'Delete', and 'Visit' links are displayed by
+		 * The 'Edit', 'Dashboard', 'Delete Permanently', and 'Visit' links are displayed by
 		 * default for each site. The site's status determines whether to show the
-		 * 'Activate' or 'Deactivate' link, 'Unarchive' or 'Archive' links, and
+		 * 'Remove Deletion Flag' or 'Flag for Deletion' link, 'Unarchive' or 'Archive' links, and
 		 * 'Not Spam' or 'Spam' link for each site.
 		 *
 		 * @since 3.1.0
