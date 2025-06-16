@@ -1656,7 +1656,7 @@ function apply_block_bindings_to_block( &$parsed_block, $parent_block, $context 
 			$block_context = array();
 
 			if ( $context instanceof WP_Post ) {
-				$block_context['postId'] = $post->ID;
+				$block_context['postId'] = $context->ID;
 
 				/*
 				 * The `postType` context is largely unnecessary server-side, since the ID
@@ -1664,7 +1664,7 @@ function apply_block_bindings_to_block( &$parsed_block, $parent_block, $context 
 				 * manifest is expected to be shared between the server and the client,
 				 * it should be included to consistently fulfill the expectation.
 				 */
-				$block_context['postType'] = $post->post_type;
+				$block_context['postType'] = $context->post_type;
 			}
 
 			/** This filter is documented in wp-includes/blocks.php */
