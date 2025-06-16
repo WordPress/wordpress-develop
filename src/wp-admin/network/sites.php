@@ -106,6 +106,7 @@ if ( isset( $_GET['action'] ) ) {
 
 		$site_details = get_site( $id );
 		$site_address = untrailingslashit( $site_details->domain . $site_details->path );
+		$submit       = __( 'Confirm' );
 
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
@@ -124,8 +125,18 @@ if ( isset( $_GET['action'] ) ) {
 							<p><?php _e( 'Deleting a site is a permanent action that cannot be undone. This will delete the entire site and its uploads directory.' ); ?>
 						</div>
 						<?php
-					} else {
-						$submit = __( 'Confirm' );
+					} elseif ( 'archiveblog' === $site_action ) {
+						?>
+						<div class="notice notice-warning inline">
+							<p><?php _e( 'Archiving a site makes the site unavailable to its users and visitors. This is a reversible action.' ); ?>
+						</div>
+						<?php
+					} elseif ( 'deactivateblog' === $site_action ) {
+						?>
+						<div class="notice notice-warning inline">
+							<p><?php _e( 'Flagging a site for deletion makes the site unavailable to its users and visitors. This is a reversible action. A super admin can permanently delete the site at a later date.' ); ?>
+						</div>
+						<?php
 					}
 					?>
 					<p><?php printf( $manage_actions[ $site_action ], "<strong>{$site_address}</strong>" ); ?></p>
@@ -205,6 +216,9 @@ if ( isset( $_GET['action'] ) ) {
 										<input type="hidden" name="action" value="delete_sites" />
 										<input type="hidden" name="_wp_http_referer" value="<?php echo esc_attr( wp_get_referer() ); ?>" />
 										<?php wp_nonce_field( 'ms-delete-sites', '_wpnonce', false ); ?>
+										<div class="notice notice-warning inline">
+											<p><?php _e( 'Deleting a site is a permanent action that cannot be undone. This will delete the entire site and its uploads directory.' ); ?>
+										</div>
 										<p><?php _e( 'You are about to delete the following sites:' ); ?></p>
 										<ul class="ul-disc">
 											<?php
@@ -220,7 +234,7 @@ if ( isset( $_GET['action'] ) ) {
 												</li>
 											<?php endforeach; ?>
 										</ul>
-										<?php submit_button( __( 'Confirm' ), 'primary' ); ?>
+										<?php submit_button( __( 'Delete these sites permanently' ), 'primary' ); ?>
 									</form>
 								</div>
 								<?php
