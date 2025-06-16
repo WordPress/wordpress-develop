@@ -571,11 +571,11 @@ class WP_Block {
 			}
 		}
 
-		if ( ! empty( $computed_attributes ) && ! empty( $block_content ) ) {
-			foreach ( $computed_attributes as $attribute_name => $source_value ) {
-				$block_content = $this->replace_html( $block_content, $attribute_name, $source_value );
-			}
-		}
+		// if ( ! empty( $computed_attributes ) && ! empty( $block_content ) ) {
+		// 	foreach ( $computed_attributes as $attribute_name => $source_value ) {
+		// 		$block_content = $this->replace_html( $block_content, $attribute_name, $source_value );
+		// 	}
+		// }
 
 		if ( $is_dynamic ) {
 			$global_post = $post;
