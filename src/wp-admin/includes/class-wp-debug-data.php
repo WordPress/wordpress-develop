@@ -682,6 +682,25 @@ class WP_Debug_Data {
 			);
 		}
 
+		// Get the image format transforms.
+		$mappings           = wp_get_image_editor_output_format( '', '' );
+		$formatted_mappings = array();
+
+		if ( ! empty( $mappings ) ) {
+			foreach ( $mappings as $format => $mime_type ) {
+				$formatted_mappings[] = sprintf( '%s &rarr; %s', $format, $mime_type );
+			}
+			$mappings_display = implode( ', ', $formatted_mappings );
+		} else {
+			$mappings_display = __( 'No format transforms defined' );
+		}
+
+		$fields['image_format_transforms'] = array(
+			'label' => __( 'Image format transforms' ),
+			'value' => $mappings_display,
+			'debug' => ( empty( $mappings ) ) ? 'No format transforms defined' : $mappings_display,
+		);
+
 		// Get GD information, if available.
 		if ( function_exists( 'gd_info' ) ) {
 			$gd = gd_info();
@@ -1300,6 +1319,7 @@ class WP_Debug_Data {
 		$active_theme  = wp_get_theme();
 		$parent_theme  = $active_theme->parent();
 		$theme_updates = get_theme_updates();
+		$transient     = get_site_transient( 'update_themes' );
 
 		$auto_updates         = array();
 		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
@@ -1859,10 +1879,14 @@ class WP_Debug_Data {
 	 * Intended to supplement the array returned by `WP_Debug_Data::debug_data()`.
 	 *
 	 * @since 5.2.0
+	 * @deprecated 5.6.0 Use WP_REST_Site_Health_Controller::get_directory_sizes()
+	 * @see WP_REST_Site_Health_Controller::get_directory_sizes()
 	 *
 	 * @return array The sizes of the directories, also the database size and total installation size.
 	 */
 	public static function get_sizes() {
+		_deprecated_function( __METHOD__, '5.6.0', 'WP_REST_Site_Health_Controller::get_directory_sizes()' );
+
 		$size_db    = self::get_database_size();
 		$upload_dir = wp_get_upload_dir();
 

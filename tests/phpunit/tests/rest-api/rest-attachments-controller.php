@@ -33,6 +33,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	private static $test_avif_file;
 
 	/**
+	 * @var string The path to the SVG test image.
+	 */
+	private static $test_svg_file;
+
+	/**
 	 * @var array The recorded posts query clauses.
 	 */
 	protected $posts_clauses;
@@ -113,6 +118,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		self::$test_avif_file = get_temp_dir() . 'avif-lossy.avif';
 		if ( ! file_exists( self::$test_avif_file ) ) {
 			copy( $orig_avif_file, self::$test_avif_file );
+		}
+
+		$test_svg_file       = DIR_TESTDATA . '/uploads/video-play.svg';
+		self::$test_svg_file = get_temp_dir() . 'video-play.svg';
+		if ( ! file_exists( self::$test_svg_file ) ) {
+			copy( $test_svg_file, self::$test_svg_file );
 		}
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
@@ -2602,5 +2613,31 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 201, $response->get_status() );
+	}
+
+	/**
+	 * Test that uploading an SVG image doesn't throw a `rest_upload_image_type_not_supported` error.
+	 *
+	 * @ticket 63302
+	 */
+	public function test_upload_svg_image() {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/svg+xml' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_svg_file ),
+					'name'     => 'video-play.svg',
+					'size'     => filesize( self::$test_svg_file ),
+					'tmp_name' => self::$test_svg_file,
+					'type'     => 'image/svg+xml',
+				),
+			)
+		);
+		$rest_controller = new WP_REST_Attachments_Controller( 'attachment' );
+		$result          = $rest_controller->create_item_permissions_check( $request );
+
+		$this->assertTrue( $result );
 	}
 }
