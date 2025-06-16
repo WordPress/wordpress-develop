@@ -54,5 +54,9 @@ class Tests_Admin_IncludesDashboard extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'name="post_format"', $output );
 		$this->assertStringContainsString( 'value="quote"', $output );
+
+		// Clean up or there will be a collision with other tests.
+		delete_option( 'default_post_format' );
+		remove_theme_support( 'post-formats' );
 	}
 }
