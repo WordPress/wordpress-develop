@@ -29,7 +29,7 @@ class WP_Font_Utils {
 	 * @param string $item A font family name.
 	 * @return string The font family name with surrounding quotes, if necessary.
 	 */
-	private static function maybe_add_quotes( $item ) {
+	public static function maybe_add_quotes( $item ) {
 		// Matches strings that are not exclusively alphabetic characters or hyphens, and do not exactly follow the pattern generic(alphabetic characters or hyphens).
 		$regex = '/^(?!generic\([a-zA-Z\-]+\)$)(?!^[a-zA-Z\-]+$).+/';
 		$item  = trim( $item );

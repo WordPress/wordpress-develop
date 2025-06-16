@@ -346,24 +346,7 @@ class WP_Font_Face {
 
 		return $font_face;
 	}
-	/**
-	 * Wraps font-family in quotes if needed.
-	 *
-	 * @since 6.x.x
-	 *
-	 * @param string $item Font-family name.
-	 * @return string Quoted font-family if needed.
-	 */
-	private function maybe_add_quotes( $item ) {
-		$regex = '/^(?!generic\([a-zA-Z\-]+\)$)(?!^[a-zA-Z\-]+$).+/';
-		$item  = trim( $item );
-		if ( preg_match( $regex, $item ) ) {
-			$item = trim( $item, "\"'" );
-			return '"' . $item . '"';
-		}
-		return $item;
-	}
-
+	
 	/**
 	 * Builds the font-family's CSS.
 	 *
@@ -379,7 +362,7 @@ class WP_Font_Face {
 		 * Wrap font-family in quotes if it contains spaces
 		 * and is not already wrapped in quotes.
 		 */
-		$font_face['font-family'] = self::maybe_add_quotes( $font_face['font-family'] );
+		$font_face['font-family'] = WP_Font_Utils::maybe_add_quotes( $font_face['font-family'] );
 
 		foreach ( $font_face as $key => $value ) {
 			// Compile the "src" parameter.
