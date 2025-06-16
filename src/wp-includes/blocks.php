@@ -1694,6 +1694,12 @@ function apply_block_bindings_to_block( &$parsed_block, $parent_block, $context 
 			$parsed_block['attrs'],
 			$computed_attributes
 		);
+
+		// TODO: Should use WP_Block::replace_html() here.
+		if ( isset( $parsed_block['attrs']['content'] ) && is_string( $parsed_block['attrs']['content'] ) ) {
+			$parsed_block['innerHTML'] = '<p>' . $parsed_block['attrs']['content'] . '</p>';
+			$parsed_block['innerContent'] = array( $parsed_block['innerHTML'] );
+		}
 }
 
 /**
