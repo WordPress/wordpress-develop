@@ -61,9 +61,9 @@ if ( isset( $_GET['action'] ) ) {
 	// A list of valid actions and their associated messaging for confirmation output.
 	$manage_actions = array(
 		/* translators: %s: Site URL. */
-		'activateblog'   => __( 'You are about remove the deletion flag from the site %s.' ),
+		'activateblog'   => __( 'You are about to remove the deletion flag from the site %s.' ),
 		/* translators: %s: Site URL. */
-		'deactivateblog' => __( 'You are about flag the site %s for deletion.' ),
+		'deactivateblog' => __( 'You are about to flag the site %s for deletion.' ),
 		/* translators: %s: Site URL. */
 		'unarchiveblog'  => __( 'You are about to unarchive the site %s.' ),
 		/* translators: %s: Site URL. */
