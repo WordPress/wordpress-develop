@@ -230,7 +230,7 @@ final class WP_Speculation_Rules implements JsonSerializable {
 	 *
 	 * @since 6.8.0
 	 *
-	 * @return array<string, mixed[]> Speculation rules data.
+	 * @return array<string, array<int ,mixed>> Speculation rules data.
 	 */
 	#[ReturnTypeWillChange]
 	public function jsonSerialize() {
