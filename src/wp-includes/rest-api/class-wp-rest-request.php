@@ -851,6 +851,7 @@ class WP_REST_Request implements ArrayAccess {
 
 				if ( is_wp_error( $sanitized_value ) ) {
 					$invalid_params[ $key ]  = implode( ' ', $sanitized_value->get_error_messages() );
+					$error_code              = $sanitized_value->get_error_data()['status'];
 					$invalid_details[ $key ] = rest_convert_error_to_response( $sanitized_value )->get_data();
 				} else {
 					$this->params[ $type ][ $key ] = $sanitized_value;
@@ -864,7 +865,7 @@ class WP_REST_Request implements ArrayAccess {
 				/* translators: %s: List of invalid parameters. */
 				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
 				array(
-					'status'  => 400,
+					'status'  => isset( $error_code ) ? $error_code : 400,
 					'params'  => $invalid_params,
 					'details' => $invalid_details,
 				)

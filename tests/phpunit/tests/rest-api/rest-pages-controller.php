@@ -317,7 +317,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'status', 'draft' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 401 );
 
 		// But they are accessible to authorized users.
 		wp_set_current_user( self::$editor_id );
