@@ -381,7 +381,7 @@ class WP_Block {
 	 */
 	private function replace_html( string $block_content, string $attribute_name, $source_value ) {
 		$block_name = $this->name;
-		$block_type = $this->block_type;
+		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
 		if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
 			return $block_content;
 		}
