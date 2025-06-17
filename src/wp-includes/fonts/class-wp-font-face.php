@@ -346,7 +346,7 @@ class WP_Font_Face {
 
 		return $font_face;
 	}
-	
+
 	/**
 	 * Builds the font-family's CSS.
 	 *
@@ -362,7 +362,7 @@ class WP_Font_Face {
 		 * Wrap font-family in quotes if it contains spaces
 		 * and is not already wrapped in quotes.
 		 */
-		$font_face['font-family'] = WP_Font_Utils::maybe_add_quotes( $font_face['font-family'] );
+		$font_face['font-family'] = WP_Font_Utils::normalize_css_font_family_name( $font_face['font-family'] );
 
 		foreach ( $font_face as $key => $value ) {
 			// Compile the "src" parameter.
