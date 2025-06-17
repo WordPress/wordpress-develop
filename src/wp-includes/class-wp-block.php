@@ -373,14 +373,15 @@ class WP_Block {
 	 * Depending on the block attribute name, replace its value in the HTML based on the value provided.
 	 *
 	 * @since 6.5.0
+	 * @since 6.9.0 Make static, introduce block_name parameter.
 	 *
+	 * @param string $block_name     Block type name.
 	 * @param string $block_content  Block content.
 	 * @param string $attribute_name The attribute name to replace.
 	 * @param mixed  $source_value   The value used to replace in the HTML.
 	 * @return string The modified block content.
 	 */
-	private function replace_html( string $block_content, string $attribute_name, $source_value ) {
-		$block_name = $this->name;
+	public static function replace_html( string $block_name, string $block_content, string $attribute_name, $source_value ) {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
 		if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
 			return $block_content;

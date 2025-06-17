@@ -1695,10 +1695,19 @@ function apply_block_bindings_to_block( &$parsed_block, $parent_block, $context 
 			$computed_attributes
 		);
 
-		// TODO: Should use WP_Block::replace_html() here.
-		if ( isset( $parsed_block['attrs']['content'] ) && is_string( $parsed_block['attrs']['content'] ) ) {
-			$parsed_block['innerHTML'] = '<p>' . $parsed_block['attrs']['content'] . '</p>';
-			$parsed_block['innerContent'] = array( $parsed_block['innerHTML'] );
+		// Ideally, we'd apply WP_Block::replace_html() to the entire block content (i.e. $parsed_block['innerHTML']),
+		// but that is overridden by the block's render stage (where it's concatenated from the items in the
+		// innerContent and innerBlocks arrays). So instead, we apply it here to each item in the innerContent array.
+		if ( ! empty( $computed_attributes ) ) {
+			foreach ( $parsed_block['innerContent'] as $index => $content ) {
+				if ( empty( $content ) ) {
+					continue;
+				}
+				foreach ( $computed_attributes as $attribute_name => $source_value ) {
+					$content = WP_Block::replace_html( $parsed_block['blockName'], $content, $attribute_name, $source_value );
+				}
+				$parsed_block['innerContent'][ $index ] = $content;
+			}
 		}
 }
 
