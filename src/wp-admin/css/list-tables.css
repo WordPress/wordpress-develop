@@ -2075,7 +2075,7 @@ div.action-links,
 		gap: 8px;
 	}
 
-	.row-actions span {
+	.comment .row-actions span {
 		font-size: 0;
 	}
 
