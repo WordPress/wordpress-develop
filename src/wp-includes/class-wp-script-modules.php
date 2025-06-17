@@ -215,7 +215,7 @@ class WP_Script_Modules {
 		foreach ( $this->get_marked_for_enqueue() as $id => $script_module ) {
 
 			// If the script module is marked for printing in the footer, skip it.
-			if( isset( $script_module[ 'in_footer' ] ) && true === $script_module[ 'in_footer']){
+			if ( isset( $script_module['in_footer'] ) && true === $script_module['in_footer'] ) {
 				continue;
 			}
 
