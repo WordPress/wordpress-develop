@@ -3134,16 +3134,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			$result = rest_validate_request_arg( $status, $request, $parameter );
 			if ( is_wp_error( $result ) ) {
-					return $result;
-			}
-		}
-		foreach ( $statuses as $status ) {
-			if ( $status === $default_status ) {
-					continue;
+				return $result;
 			}
 
 			$post_type_obj = get_post_type_object( $this->post_type );
-
 			if ( ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
 				return new WP_Error(
 					'rest_forbidden_status',
