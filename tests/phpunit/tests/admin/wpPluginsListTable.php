@@ -383,4 +383,114 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 		$totals = $totals_backup;
 		$status = $status_backup;
 	}
+
+	/**
+	 * Tests that custom statuses don't have repeated labels from previous statuses.
+	 *
+	 * @ticket 60495
+	 *
+	 * @covers WP_Plugins_List_Table::get_views
+	 */
+	public function test_plugins_list_no_repeated_labels() {
+		global $plugins, $totals, $status;
+
+		$plugins_backup = isset( $plugins ) ? $plugins : null;
+		$totals_backup = isset( $totals ) ? $totals : null;
+		$status_backup = isset( $status ) ? $status : null;
+
+		// Create mock plugins list with multiple statuses.
+		$plugins = array(
+			'all'     => $this->fake_plugin,
+			'active'  => $this->fake_plugin,
+			'inactive' => array(),
+		);
+
+		// Add our custom status through the filter.
+		add_filter(
+			'plugins_list',
+			function( $plugins_list ) {
+				$plugins_list['my_plugins'] = $this->fake_plugin;
+				return $plugins_list;
+			}
+		);
+
+		add_filter(
+			'plugins_list_status_text',
+			function( $text, $count, $type ) {
+				if ( 'my_plugins' === $type ) {
+					return 'My Custom Plugins';
+				}
+				return $text;
+			},
+			10,
+			3
+		);
+
+		// Apply filters and recalculate totals.
+		$plugins = apply_filters( 'plugins_list', $plugins );
+		$totals = array();
+		foreach ( $plugins as $type => $list ) {
+			$totals[$type] = count( $list );
+		}
+
+		// Test first with standard status.
+		$status = 'active';
+		$views = $this->table->get_views();
+
+		// Then with custom status to verify it doesn't repeat labels.
+		$status = 'my_plugins';
+		$views = $this->table->get_views();
+
+		$this->assertArrayHasKey('all', $views, "'all' view should exist");
+		$this->assertStringContainsString(
+			'All <span class="count">',
+			strip_tags( $views['all'], '<span>' ),
+			'All tab should have correct label'
+		);
+
+		$this->assertArrayHasKey('active', $views, "'active' view should exist");
+		$this->assertStringContainsString(
+			'Active <span class="count">',
+			strip_tags( $views['active'], '<span>' ),
+			'Active tab should have correct label'
+		);
+
+		$this->assertArrayHasKey('my_plugins', $views, "'my_plugins' view should exist");
+		$this->assertStringContainsString(
+			'My Custom Plugins <span class="count">',
+			strip_tags( $views['my_plugins'], '<span>' ),
+			'Custom tab should have its own label set by the filter'
+		);
+
+		$this->assertStringNotContainsString(
+			'Active',
+			strip_tags( $views['my_plugins'], '<span>' ),
+			'Custom tab should not contain Active label'
+		);
+
+		// Test that label doesn't match any other existing tab's label.
+		$custom_label = strip_tags( $views['my_plugins'], '<span>' );
+		
+		// Create an array of statuses to check, only including those that exist in views.
+		$statuses_to_check = array();
+		foreach ( array( 'all', 'active', 'inactive' ) as $check_status ) {
+			if ( isset( $views[$check_status] ) ) {
+				$statuses_to_check[] = $check_status;
+			}
+		}
+		
+		foreach ( $statuses_to_check as $other_status ) {
+			$this->assertNotSame(
+				strip_tags( $views[$other_status], '<span>' ),
+				$custom_label,
+				"Custom status label should not be identical to {$other_status} status label"
+			);
+		}
+
+		remove_all_filters( 'plugins_list' );
+		remove_all_filters( 'plugins_list_status_text' );
+		$plugins = $plugins_backup;
+		$totals = $totals_backup;
+		$status = $status_backup;
+	}
 }

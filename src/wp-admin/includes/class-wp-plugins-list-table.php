@@ -46,10 +46,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			)
 		);
 
-		$allowed_statuses = array( 'active', 'inactive', 'recently_activated', 'upgrade', 'mustuse', 'dropins', 'search', 'paused', 'auto-update-enabled', 'auto-update-disabled' );
-
 		$status = 'all';
-		if ( isset( $_REQUEST['plugin_status'] ) && in_array( $_REQUEST['plugin_status'], $allowed_statuses, true ) ) {
+		if ( isset( $_REQUEST['plugin_status'] ) ) {
 			$status = $_REQUEST['plugin_status'];
 		}
 
@@ -588,15 +586,15 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					/**
 					 * Filter the status text of default switch case in the Plugins list table.
 					 *
-					 * @since 6.8.0
+					 * @since 6.9.0
 					 *
 					 * @param string $text   Plugins list status text. Default empty string.
 					 * @param int    $count  Count the Number of plugins.
-					 * @param string $status Status slug of plugins list.
+					 * @param string $type   The status slug being filtered.
 					 */
-					$text = apply_filters( 'plugins_list_status_text', '', $count, $status );
+					$text = apply_filters( 'plugins_list_status_text', '', $count, $type );
 					if ( empty( $text ) ) {
-						$text = $status;
+						$text = $type;
 					}
 					$text .= ' ' . sprintf(
 						'<span class="count">(%s)</span>',
