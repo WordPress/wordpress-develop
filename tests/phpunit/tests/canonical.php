@@ -550,7 +550,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		update_option( 'siteurl', 'http://example.com' );
 
 		// Simulate a request to a non-canonical domain
-		$_SERVER['HTTP_HOST'] = 'localhost:10020';
+		$_SERVER['HTTP_HOST']   = 'localhost:10020';
 		$_SERVER['REQUEST_URI'] = '/';
 
 		$redirect = redirect_canonical( 'http://localhost:10018/', false );
@@ -563,7 +563,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		update_option( 'siteurl', 'https://example.com' );
 
 		// Simulate a request to a non-canonical domain
-		$_SERVER['HTTP_HOST'] = 'localhost:10020';
+		$_SERVER['HTTP_HOST']   = 'localhost:10020';
 		$_SERVER['REQUEST_URI'] = '/';
 
 		$redirect = redirect_canonical( 'http://localhost:10018/', false );
