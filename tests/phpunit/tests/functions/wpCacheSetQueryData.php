@@ -25,6 +25,7 @@ class Tests_Functions_wpCacheSetQueryData extends WP_UnitTestCase {
 
 		$cached_data = wp_cache_get( $cache_key, 'query_data' );
 
-		$this->assertSame( $data, $cached_data['data'] );
+		$this->assertSame( $data, $cached_data['data'], 'The data key should contain the cached data.' );
+		$this->assertSame( $last_changed, $cached_data['last_changed'], 'The last changed key should contain the last change time stamp' );
 	}
 }
