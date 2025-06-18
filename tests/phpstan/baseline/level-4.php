@@ -8,40 +8,10 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/about.php',
 ];
 $ignoreErrors[] = [
-	// identifier: elseif.alwaysFalse
-	'message' => '#^Elseif condition is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/admin.php',
-];
-$ignoreErrors[] = [
-	// identifier: if.alwaysFalse
-	'message' => '#^If condition is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/admin.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanNot.alwaysTrue
-	'message' => '#^Negated boolean expression is always true\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/admin.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanAnd.alwaysTrue
-	'message' => '#^Result of && is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/admin.php',
-];
-$ignoreErrors[] = [
 	// identifier: deadCode.unreachable
 	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/credits.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/edit-form-comment.php',
 ];
 $ignoreErrors[] = [
 	// identifier: booleanNot.alwaysTrue
@@ -66,12 +36,6 @@ $ignoreErrors[] = [
 	'message' => '#^Property WP_Post\\:\\:\\$post_status \\(string\\) in isset\\(\\) is not nullable\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-walker-nav-menu-edit.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
-	'count' => 3,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-comments-list-table.php',
 ];
 $ignoreErrors[] = [
 	// identifier: function.impossibleType
@@ -104,27 +68,9 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-internal-pointers.php',
 ];
 $ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-media-list-table.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-posts-list-table.php',
-];
-$ignoreErrors[] = [
 	// identifier: isset.property
 	'message' => '#^Property WP_Screen\\:\\:\\$post_type \\(string\\) in isset\\(\\) is not nullable\\.$#',
 	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-screen.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanAnd.rightAlwaysFalse
-	'message' => '#^Right side of && is always false\\.$#',
-	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-screen.php',
 ];
 $ignoreErrors[] = [
@@ -138,12 +84,6 @@ $ignoreErrors[] = [
 	'message' => '#^Negated boolean expression is always true\\.$#',
 	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-upgrader.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/dashboard.php',
 ];
 $ignoreErrors[] = [
 	// identifier: deadCode.unreachable
@@ -176,28 +116,10 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/image.php',
 ];
 $ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/media.php',
-];
-$ignoreErrors[] = [
 	// identifier: empty.offset
 	'message' => '#^Offset \'created_timestamp\' on array\\{\\}\\|array\\{lossless\\?\\: mixed, bitrate\\?\\: int, bitrate_mode\\?\\: mixed, filesize\\?\\: int, mime_type\\?\\: mixed, length\\?\\: int, length_formatted\\?\\: mixed, width\\?\\: int, \\.\\.\\.\\} in empty\\(\\) does not exist\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/media.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanAnd.leftAlwaysTrue
-	'message' => '#^Left side of && is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/meta-boxes.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/meta-boxes.php',
 ];
 $ignoreErrors[] = [
 	// identifier: return.unusedType
@@ -246,12 +168,6 @@ $ignoreErrors[] = [
 	'message' => '#^Negated boolean expression is always false\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/theme.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanOr.alwaysTrue
-	'message' => '#^Result of \\|\\| is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/update-core.php',
 ];
 $ignoreErrors[] = [
 	// identifier: if.alwaysFalse
@@ -412,12 +328,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	// identifier: if.alwaysTrue
 	'message' => '#^If condition is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-manager.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-manager.php',
 ];
@@ -614,12 +524,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-recovery-mode-cookie-service.php',
 ];
 $ignoreErrors[] = [
-	// identifier: notIdentical.alwaysFalse
-	'message' => '#^Strict comparison using \\!\\=\\= between \'\' and \'\' will always evaluate to false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-recovery-mode-cookie-service.php',
-];
-$ignoreErrors[] = [
 	// identifier: isset.property
 	'message' => '#^Property WP_Rewrite\\:\\:\\$author_structure \\(string\\) in isset\\(\\) is not nullable\\.$#',
 	'count' => 1,
@@ -782,12 +686,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wpdb.php',
 ];
 $ignoreErrors[] = [
-	// identifier: booleanAnd.rightAlwaysTrue
-	'message' => '#^Right side of && is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wpdb.php',
-];
-$ignoreErrors[] = [
 	// identifier: if.alwaysTrue
 	'message' => '#^If condition is always true\\.$#',
 	'count' => 1,
@@ -796,24 +694,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	// identifier: if.alwaysTrue
 	'message' => '#^If condition is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanAnd.rightAlwaysTrue
-	'message' => '#^Right side of && is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
-];
-$ignoreErrors[] = [
-	// identifier: ternary.alwaysTrue
-	'message' => '#^Ternary operator condition is always true\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
 ];
@@ -1022,22 +902,10 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/interactivity-api/class-wp-interactivity-api.php',
 ];
 $ignoreErrors[] = [
-	// identifier: booleanNot.alwaysTrue
-	'message' => '#^Negated boolean expression is always true\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/kses.php',
-];
-$ignoreErrors[] = [
 	// identifier: booleanAnd.rightAlwaysTrue
 	'message' => '#^Right side of && is always true\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/l10n.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/link-template.php',
 ];
 $ignoreErrors[] = [
 	// identifier: isset.property
@@ -1060,7 +928,7 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	// identifier: booleanAnd.rightAlwaysTrue
 	'message' => '#^Right side of && is always true\\.$#',
-	'count' => 5,
+	'count' => 4,
 	'path' => __DIR__ . '/../../../src/wp-includes/load.php',
 ];
 $ignoreErrors[] = [
@@ -1074,18 +942,6 @@ $ignoreErrors[] = [
 	'message' => '#^Offset 2 on array\\{string, non\\-empty\\-string, non\\-empty\\-string\\} in isset\\(\\) always exists and is not nullable\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/media.php',
-];
-$ignoreErrors[] = [
-	// identifier: elseif.alwaysFalse
-	'message' => '#^Elseif condition is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/ms-files.php',
-];
-$ignoreErrors[] = [
-	// identifier: if.alwaysFalse
-	'message' => '#^If condition is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/ms-files.php',
 ];
 $ignoreErrors[] = [
 	// identifier: booleanNot.alwaysFalse
@@ -1124,39 +980,15 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
 ];
 $ignoreErrors[] = [
-	// identifier: if.alwaysTrue
-	'message' => '#^If condition is always true\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
-];
-$ignoreErrors[] = [
-	// identifier: notIdentical.alwaysFalse
-	'message' => '#^Strict comparison using \\!\\=\\= between \'\' and \'\' will always evaluate to false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
-];
-$ignoreErrors[] = [
 	// identifier: identical.alwaysFalse
 	'message' => '#^Strict comparison using \\=\\=\\= between 3000000000 and 2147483647 will always evaluate to false\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
 ];
 $ignoreErrors[] = [
-	// identifier: booleanNot.alwaysFalse
-	'message' => '#^Negated boolean expression is always false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
-];
-$ignoreErrors[] = [
 	// identifier: isset.property
 	'message' => '#^Property WP_Post\\:\\:\\$filter \\(string\\) in isset\\(\\) is not nullable\\.$#',
 	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanAnd.rightAlwaysTrue
-	'message' => '#^Right side of && is always true\\.$#',
-	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
 ];
 $ignoreErrors[] = [
@@ -1176,12 +1008,6 @@ $ignoreErrors[] = [
 	'message' => '#^Result of && is always false\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php',
-];
-$ignoreErrors[] = [
-	// identifier: greater.alwaysTrue
-	'message' => '#^Comparison operation "\\>" between 1 and 0 is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php',
 ];
 $ignoreErrors[] = [
 	// identifier: if.alwaysFalse
@@ -1206,18 +1032,6 @@ $ignoreErrors[] = [
 	'message' => '#^Property WP_Post_Type\\:\\:\\$template \\(array\\<array\\>\\) on left side of \\?\\? is not nullable\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-post-types-controller.php',
-];
-$ignoreErrors[] = [
-	// identifier: greater.alwaysTrue
-	'message' => '#^Comparison operation "\\>" between 1 and 0 is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php',
-];
-$ignoreErrors[] = [
-	// identifier: booleanAnd.leftAlwaysTrue
-	'message' => '#^Left side of && is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php',
 ];
 $ignoreErrors[] = [
 	// identifier: property.onlyWritten
@@ -1290,24 +1104,6 @@ $ignoreErrors[] = [
 	'message' => '#^If condition is always false\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-login.php',
-];
-$ignoreErrors[] = [
-	// identifier: notIdentical.alwaysFalse
-	'message' => '#^Strict comparison using \\!\\=\\= between \'\' and \'\' will always evaluate to false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-login.php',
-];
-$ignoreErrors[] = [
-	// identifier: if.alwaysTrue
-	'message' => '#^If condition is always true\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-settings.php',
-];
-$ignoreErrors[] = [
-	// identifier: deadCode.unreachable
-	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-settings.php',
 ];
 $ignoreErrors[] = [
 	// identifier: return.unusedType

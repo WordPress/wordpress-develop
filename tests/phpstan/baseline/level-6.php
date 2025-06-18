@@ -608,12 +608,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-user-query.php',
 ];
 $ignoreErrors[] = [
-	// identifier: missingType.parameter
-	'message' => '#^Function _\\(\\) has parameter \\$message with no type specified\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/compat.php',
-];
-$ignoreErrors[] = [
 	// identifier: missingType.property
 	'message' => '#^Property WP_Customize_Upload_Control\\:\\:\\$context has no type specified\\.$#',
 	'count' => 1,

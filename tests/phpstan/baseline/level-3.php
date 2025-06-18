@@ -134,12 +134,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/update-core.php',
 ];
 $ignoreErrors[] = [
-	// identifier: return.type
-	'message' => '#^Function get_the_author_posts\\(\\) should return int but returns string\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/author-template.php',
-];
-$ignoreErrors[] = [
 	// identifier: assign.propertyType
 	'message' => '#^Property WP_Block_Template\\:\\:\\$author \\(int\\|null\\) does not accept string\\.$#',
 	'count' => 1,
@@ -381,18 +375,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: return.type
-	'message' => '#^Method WP_Tax_Query\\:\\:get_sql_for_clause\\(\\) should return array but returns string\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-tax-query.php',
-];
-$ignoreErrors[] = [
-	// identifier: property.defaultValue
-	'message' => '#^Static property WP_Tax_Query\\:\\:\\$no_results \\(string\\) does not accept default value of type array\\<string, array\\<int, string\\>\\>\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-tax-query.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.type
 	'message' => '#^Method WP_Term_Query\\:\\:get_terms\\(\\) should return array\\<int\\|string\\|WP_Term\\>\\|string but returns int\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-term-query.php',
@@ -626,12 +608,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/embed.php',
 ];
 $ignoreErrors[] = [
-	// identifier: return.type
-	'message' => '#^Function wp_filter_oembed_result\\(\\) should return string but returns false\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/embed.php',
-];
-$ignoreErrors[] = [
 	// identifier: offsetAccess.notFound
 	'message' => '#^Offset \'basedir\' does not exist on string\\.$#',
 	'count' => 2,
@@ -748,12 +724,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	// identifier: return.type
 	'message' => '#^Function wp_untrash_post\\(\\) should return WP_Post\\|false\\|null but returns array\\{\\}\\|null\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.type
-	'message' => '#^Function wp_update_attachment_metadata\\(\\) should return int\\|false but returns bool\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
 ];
