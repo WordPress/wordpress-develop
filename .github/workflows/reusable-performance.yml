@@ -15,7 +15,7 @@ on:
         description: 'The version being used for baseline measurements.'
         required: false
         type: 'string'
-        default: '6.7.0'
+        default: '6.8.0'
       php-version:
         description: 'The PHP version to use.'
         required: false

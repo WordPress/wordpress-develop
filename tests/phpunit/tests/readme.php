@@ -67,6 +67,10 @@ class Tests_Readme extends WP_UnitTestCase {
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
+		$this->markTestSkipped(
+			'Temporarily disabled. MariaDB has changed the layout and verbiage of their release documentation pages.'
+		);
+
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
 		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );

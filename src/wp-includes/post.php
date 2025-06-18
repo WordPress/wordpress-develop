@@ -2608,6 +2608,8 @@ function get_posts( $args = null ) {
  *
  * Post meta data is called "Custom Fields" on the Administration Screen.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 1.5.0
  *
  * @param int    $post_id    Post ID.
@@ -2639,6 +2641,8 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
  * You can match based on the key, or key and value. Removing based on key and
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching the key, if needed.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 1.5.0
  *
@@ -2694,6 +2698,8 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
  * If the meta field for the post does not exist, it will be added and its ID returned.
  *
  * Can be used in place of add_post_meta().
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 1.5.0
  *
@@ -4868,6 +4874,15 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 			}
 		}
 
+		/**
+		 * Fires immediately before a new post is inserted in the database.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param array $data Array of unslashed post data.
+		 */
+		do_action( 'pre_post_insert', $data );
+
 		if ( false === $wpdb->insert( $wpdb->posts, $data ) ) {
 			if ( $wp_error ) {
 				if ( 'attachment' === $post_type ) {
@@ -6862,7 +6877,9 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
  *
  * @param int   $attachment_id Attachment post ID.
  * @param array $data          Attachment meta data.
- * @return int|false False if $post is invalid.
+ * @return int|bool Whether the metadata was successfully updated.
+ *                  True on success, the Meta ID if the key didn't exist.
+ *                  False if $post is invalid, on failure, or if $data is the same as the existing metadata.
  */
 function wp_update_attachment_metadata( $attachment_id, $data ) {
 	$attachment_id = (int) $attachment_id;
