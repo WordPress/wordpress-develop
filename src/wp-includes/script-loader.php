@@ -2533,10 +2533,13 @@ function wp_enqueue_global_styles() {
 
 	$stylesheet = wp_get_global_stylesheet();
 
-	if ( $is_block_theme ) {
+	if ( $is_block_theme && ! is_customize_preview() ) {
 		/*
 		 * Dequeue the Customizer's custom CSS
 		 * and add it before the global styles custom CSS.
+		 * This is not done in the Customizer preview to
+		 * facilitate live previewing changes via
+		 * wp-includes/js/customize-preview.js.
 		 */
 		remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
 		// Get the custom CSS from the Customizer and add it to the global stylesheet.
