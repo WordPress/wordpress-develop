@@ -570,4 +570,43 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		$this->assertSame( 'https://example.com/', $redirect );
 	}
+
+	public function test_different_host_casing_do_not_redirect() {
+		update_option( 'home', 'http://example.com' );
+		update_option( 'siteurl', 'http://example.com' );
+
+		// Simulate a request to a non-canonical domain
+		$_SERVER['HTTP_HOST']   = 'Example.com';
+		$_SERVER['REQUEST_URI'] = '/';
+
+		$redirect = redirect_canonical( 'http://Example.com/', false );
+
+		$this->assertNull( $redirect );
+	}
+
+	public function test_redirect_www_to_non_www() {
+		update_option( 'home', 'http://example.com' );
+		update_option( 'siteurl', 'http://example.com' );
+
+		// Simulate a request to a non-canonical domain
+		$_SERVER['HTTP_HOST']   = 'www.example.com';
+		$_SERVER['REQUEST_URI'] = '/';
+
+		$redirect = redirect_canonical( 'http://www.example.com/', false );
+
+		$this->assertSame( 'http://example.com/', $redirect );
+	}
+
+	public function test_redirect_non_www_to_www() {
+		update_option( 'home', 'http://www.example.com' );
+		update_option( 'siteurl', 'http://www.example.com' );
+
+		// Simulate a request to a non-canonical domain
+		$_SERVER['HTTP_HOST']   = 'example.com';
+		$_SERVER['REQUEST_URI'] = '/';
+
+		$redirect = redirect_canonical( 'http://example.com/', false );
+
+		$this->assertSame( 'http://www.example.com/', $redirect );
+	}
 }
