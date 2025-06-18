@@ -584,6 +584,19 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertNull( $redirect );
 	}
 
+	public function test_different_host_casing_with_port_redirect_without_host_change() {
+		update_option( 'home', 'http://example.com:8080' );
+		update_option( 'siteurl', 'http://example.com:8080' );
+
+		// Simulate a request to a non-canonical domain
+		$_SERVER['HTTP_HOST']   = 'Example.com:10200';
+		$_SERVER['REQUEST_URI'] = '/';
+
+		$redirect = redirect_canonical( 'http://Example.com:10200/', false );
+
+		$this->assertSame( 'http://Example.com:8080/', $redirect );
+	}
+
 	public function test_redirect_www_to_non_www() {
 		update_option( 'home', 'http://example.com' );
 		update_option( 'siteurl', 'http://example.com' );
@@ -608,5 +621,18 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$redirect = redirect_canonical( 'http://example.com/', false );
 
 		$this->assertSame( 'http://www.example.com/', $redirect );
+	}
+
+	public function test_redirect_port_for_same_host() {
+		update_option( 'home', 'http://example.com:8080' );
+		update_option( 'siteurl', 'http://example.com:8080' );
+
+		// Simulate a request to a non-canonical domain
+		$_SERVER['HTTP_HOST']   = 'example.com:10200';
+		$_SERVER['REQUEST_URI'] = '/';
+
+		$redirect = redirect_canonical( 'http://example.com:10200/', false );
+
+		$this->assertSame( 'http://example.com:8080/', $redirect );
 	}
 }
