@@ -67,25 +67,48 @@ class Tests_Readme extends WP_UnitTestCase {
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
-		$this->markTestSkipped(
-			'Temporarily disabled. MariaDB has changed the layout and verbiage of their release documentation pages.'
-		);
-
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
 		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );
-		$matches[1] = str_replace( '.', '', $matches[1] );
+		$maria_db_readme_version = $matches[1];
+		list( $major, $minor )   = explode( '.', $maria_db_readme_version );
 
-		$response_body = $this->get_response_body( "https://mariadb.com/kb/en/release-notes-mariadb-{$matches[1]}-series/" );
+		$wikidata_id     = 'Q787177'; // Wikidata ID for MariaDB (see https://www.wikidata.org/wiki/Q787177).
+		$wiki_data_query = "SELECT ?packageLabel ?version (SUBSTR(STR(?releaseDate), 1, 10) AS ?formattedDate) WHERE {
+			wd:{$wikidata_id} p:P348 [
+				ps:P348 ?version;
+				pq:P548 wd:Q2804309;
+				pq:P577 ?releaseDate
+			].
+			FILTER(REGEX(STR(?version), \"^{$major}\\\\.{$minor}\\\\.\\\\d+$\"))
+			BIND(xsd:integer(STRAFTER(?version, \"{$major}.{$minor}.\")) AS ?patch)
+			wd:{$wikidata_id} rdfs:label ?packageLabel .
+		}
+		ORDER BY ASC(?patch)
+		LIMIT 1";
 
-		// Retrieve the date of the first stable release for the recommended branch.
-		preg_match( '#.*Stable.*?(\d{2} [A-Za-z]{3} \d{4})#s', $response_body, $mariadb_matches );
+		$query_url = add_query_arg(
+			array(
+				'format' => 'json',
+				'query'  => rawurlencode( $wiki_data_query ),
+			),
+			'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+		);
+
+		$response_body = $this->get_response_body( $query_url );
+		$response_body = json_decode( $response_body, true );
+
+		$maria_db_api_version = $response_body['results']['bindings'][0]['version']['value'];
+		$release_date         = $response_body['results']['bindings'][0]['formattedDate']['value'];
+		$package_label        = $response_body['results']['bindings'][0]['packageLabel']['value'];
 
 		// Per https://mariadb.org/about/#maintenance-policy, MariaDB releases are supported for 5 years.
-		$mariadb_eol  = gmdate( 'Y-m-d', strtotime( $mariadb_matches[1] . ' +5 years' ) );
+		$mariadb_eol  = gmdate( 'Y-m-d', strtotime( $release_date . ' +5 years' ) );
 		$current_date = gmdate( 'Y-m-d' );
 
 		$this->assertLessThan( $mariadb_eol, $current_date, "readme.html's Recommended MariaDB version is too old. Remember to update the WordPress.org Requirements page, too." );
+		$this->assertStringStartsWith( "{$maria_db_readme_version}.", $maria_db_api_version, 'WikiData query did not return the expected MariaDB version.' );
+		$this->assertSame( 'MariaDB', $package_label, 'WikiData query did not return the expected package label.' );
 	}
 
 	/**
