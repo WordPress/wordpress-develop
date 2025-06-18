@@ -73,7 +73,16 @@ class Tests_Readme extends WP_UnitTestCase {
 		$maria_db_readme_version = $matches[1];
 		list( $major, $minor )   = explode( '.', $maria_db_readme_version );
 
-		$wikidata_id     = 'Q787177'; // Wikidata ID for MariaDB (see https://www.wikidata.org/wiki/Q787177).
+		$wikidata_id = 'Q787177'; // Wikidata ID for MariaDB (see https://www.wikidata.org/wiki/Q787177).
+		/*
+		 * \"^{$major}\\\\.{$minor}\\\\.\\\\d+$\")) is a necessary mess.
+		 *
+		 * The full line as parsed to the SPARQL query is:
+		 * FILTER(REGEX(STR(?version), "^<major>\\.<minor>\\.\\d+$"))
+		 *
+		 * As the string is using PHP double-quoted strings, the backslashes need to be double escaped so
+		 * `\\` becomes `\\\\` in the string here.
+		 */
 		$wiki_data_query = "SELECT ?packageLabel ?version (SUBSTR(STR(?releaseDate), 1, 10) AS ?formattedDate) WHERE {
 			wd:{$wikidata_id} p:P348 [
 				ps:P348 ?version;
