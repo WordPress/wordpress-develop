@@ -71,7 +71,7 @@ class Tests_Readme extends WP_UnitTestCase {
 
 		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );
 
-		$response_body = $this->get_response_body( "https://downloads.mariadb.org/rest-api/mariadb/" );
+		$response_body = $this->get_response_body( 'https://downloads.mariadb.org/rest-api/mariadb/' );
 		$releases      = json_decode( $response_body, true );
 
 		foreach ( $releases['major_releases'] as $release ) {
