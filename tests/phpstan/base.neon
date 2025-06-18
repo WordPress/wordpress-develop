@@ -19,17 +19,41 @@ parameters:
 
   # Constants that are expected to be defined by users.
   dynamicConstantNames:
-    - WP_DEBUG
-    - WP_DEBUG_LOG
-    - WP_DEBUG_DISPLAY
-    - SCRIPT_DEBUG
-    - WP_CACHE
-    - MEDIA_TRASH
+    - ALLOW_SUBDIRECTORY_INSTALL
+    - AUTH_SALT
+    - AUTOMATIC_UPDATER_DISABLED
+    - COOKIEPATH
+    - CUSTOM_TAGS
+    - DISALLOW_FILE_EDIT
+    - DISALLOW_UNFILTERED_HTML
+    - EMPTY_TRASH_DAYS
+    - ENFORCE_GZIP
     - FORCE_SSL_LOGIN
-    - WP_POST_REVISIONS
+    - MEDIA_TRASH
+    - MULTISITE
+    - NOBLOGREDIRECT
+    - SAVEQUERIES
+    - SCRIPT_DEBUG
+    - SECRET_KEY
+    - SECRET_SALT
     - SHORTINIT
     - SITECOOKIEPATH
-    - COOKIEPATH
+    - UPLOADBLOGSDIR
+    - WP_ALLOW_MULTISITE
+    - WP_CACHE
+    - WP_DEBUG
+    - WP_DEBUG_DISPLAY
+    - WP_DEBUG_LOG
+    - WP_LANG_DIR
+    - WP_NETWORK_ADMIN
+    - WP_POST_REVISIONS
+    - WP_SITEURL
+    - WP_USE_THEMES
+    - WP_USER_ADMIN
+    - WPLANG
+    - WPMU_ACCEL_REDIRECT
+    - WPMU_PLUGIN_DIR
+    - WPMU_SENDFILE
 
   # What directories and files should be scanned.
   paths:
@@ -58,11 +82,14 @@ parameters:
       - ../../src/js
       - ../../src/wp-admin/css
       - ../../src/wp-admin/images
-      - ../../src/wp-admin/js
+      # These are built from js/_enqueues.
+      - ../../src/wp-admin/js (?)
+      - ../../src/wp-includes/js (?)
     analyse:
       # These files are sourced by wordpress/gutenberg in `tools/release/sync-stable-blocks.js`.
       - ../../src/wp-includes/blocks
       # Third-party libraries.
+      - ../../src/js/_enqueues/vendor
       - ../../src/wp-admin/includes/class-ftp-pure.php
       - ../../src/wp-admin/includes/class-ftp-sockets.php
       - ../../src/wp-admin/includes/class-ftp.php
