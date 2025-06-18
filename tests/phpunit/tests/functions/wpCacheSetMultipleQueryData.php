@@ -1,10 +1,19 @@
 <?php
 
 /**
+ * Tests for the behavior of `wp_cache_get_multiple_query_data()`
+ *
  * @group functions
+ * @group cache
+ *
  * @covers ::wp_cache_set_query_data
  */
 class Tests_Functions_wpCacheSetMultipleQueryData extends WP_UnitTestCase {
+	/**
+	 * Test that wp_cache_set_multiple_query_data sets multiple query data correctly.
+	 *
+	 * @ticket 59592
+	 */
 	public function test_wp_cache_set_multiple_query_data() {
 		$cache_group  = 'query_data';
 		$last_changed = wp_cache_get_last_changed( 'query_data' );

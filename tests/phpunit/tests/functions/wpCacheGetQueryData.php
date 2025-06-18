@@ -1,8 +1,10 @@
 <?php
 
-
 /**
+ * Tests for the behavior of `wp_cache_get_multiple_query_data()`
+ *
  * @group functions
+ * @group cache
  *
  * @covers ::wp_cache_get_query_data
  */
