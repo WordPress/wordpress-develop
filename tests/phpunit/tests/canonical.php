@@ -545,94 +545,105 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			),
 		);
 	}
-	public function test_redirect_non_standard_localhost_port_to_canonical_domain() {
-		update_option( 'home', 'http://example.com' );
-		update_option( 'siteurl', 'http://example.com' );
 
-		// Simulate a request to a non-canonical domain
-		$_SERVER['HTTP_HOST']   = 'localhost:10020';
+	/**
+	 * Test domain and port redirections.
+	 *
+	 * @ticket 33821
+	 * @dataProvider data_domain_and_port_redirections
+	 *
+	 * @covers ::redirect_canonical
+	 *
+	 * @param string $home_url      The home URL to set.
+	 * @param string $site_url      The site URL to set.
+	 * @param string $request_host  The HTTP_HOST to simulate.
+	 * @param string $request_url   The URL to test redirection for.
+	 * @param string $expected_url  The expected redirect URL, or null if no redirect.
+	 * @param string $failure_msg   The message to display on test failure.
+	 */
+	public function test_domain_and_port_redirections( $home_url, $site_url, $request_host, $request_url, $expected_url, $failure_msg ) {
+		update_option( 'home', $home_url );
+		update_option( 'siteurl', $site_url );
+
+		// Simulate a request to a non-canonical domain.
+		$_SERVER['HTTP_HOST']   = $request_host;
 		$_SERVER['REQUEST_URI'] = '/';
 
-		$redirect = redirect_canonical( 'http://localhost:10018/', false );
+		$redirect = redirect_canonical( $request_url, false );
 
-		$this->assertSame( 'http://example.com/', $redirect );
+		$this->assertSame( $expected_url, $redirect, $failure_msg );
 	}
 
-	public function test_redirect_non_standard_localhost_port_to_canonical_domain_with_ssl() {
-		update_option( 'home', 'https://example.com' );
-		update_option( 'siteurl', 'https://example.com' );
-
-		// Simulate a request to a non-canonical domain
-		$_SERVER['HTTP_HOST']   = 'localhost:10020';
-		$_SERVER['REQUEST_URI'] = '/';
-
-		$redirect = redirect_canonical( 'http://localhost:10018/', false );
-
-		$this->assertSame( 'https://example.com/', $redirect );
-	}
-
-	public function test_different_host_casing_do_not_redirect() {
-		update_option( 'home', 'http://example.com' );
-		update_option( 'siteurl', 'http://example.com' );
-
-		// Simulate a request to a non-canonical domain
-		$_SERVER['HTTP_HOST']   = 'Example.com';
-		$_SERVER['REQUEST_URI'] = '/';
-
-		$redirect = redirect_canonical( 'http://Example.com/', false );
-
-		$this->assertNull( $redirect );
-	}
-
-	public function test_different_host_casing_with_port_redirect_without_host_change() {
-		update_option( 'home', 'http://example.com:8080' );
-		update_option( 'siteurl', 'http://example.com:8080' );
-
-		// Simulate a request to a non-canonical domain
-		$_SERVER['HTTP_HOST']   = 'Example.com:10200';
-		$_SERVER['REQUEST_URI'] = '/';
-
-		$redirect = redirect_canonical( 'http://Example.com:10200/', false );
-
-		$this->assertSame( 'http://Example.com:8080/', $redirect );
-	}
-
-	public function test_redirect_www_to_non_www() {
-		update_option( 'home', 'http://example.com' );
-		update_option( 'siteurl', 'http://example.com' );
-
-		// Simulate a request to a non-canonical domain
-		$_SERVER['HTTP_HOST']   = 'www.example.com';
-		$_SERVER['REQUEST_URI'] = '/';
-
-		$redirect = redirect_canonical( 'http://www.example.com/', false );
-
-		$this->assertSame( 'http://example.com/', $redirect );
-	}
-
-	public function test_redirect_non_www_to_www() {
-		update_option( 'home', 'http://www.example.com' );
-		update_option( 'siteurl', 'http://www.example.com' );
-
-		// Simulate a request to a non-canonical domain
-		$_SERVER['HTTP_HOST']   = 'example.com';
-		$_SERVER['REQUEST_URI'] = '/';
-
-		$redirect = redirect_canonical( 'http://example.com/', false );
-
-		$this->assertSame( 'http://www.example.com/', $redirect );
-	}
-
-	public function test_redirect_port_for_same_host() {
-		update_option( 'home', 'http://example.com:8080' );
-		update_option( 'siteurl', 'http://example.com:8080' );
-
-		// Simulate a request to a non-canonical domain
-		$_SERVER['HTTP_HOST']   = 'example.com:10200';
-		$_SERVER['REQUEST_URI'] = '/';
-
-		$redirect = redirect_canonical( 'http://example.com:10200/', false );
-
-		$this->assertSame( 'http://example.com:8080/', $redirect );
+	/**
+	 * Data provider for test_domain_and_port_redirections().
+	 *
+	 * @return array[] {
+	 *     @type string $home_url      The home URL to set.
+	 *     @type string $site_url      The site URL to set.
+	 *     @type string $request_host  The HTTP_HOST to simulate.
+	 *     @type string $request_url   The URL to test redirection for.
+	 *     @type string $expected_url  The expected redirect URL, or null if no redirect.
+	 *     @type string $failure_msg   The message to display on test failure.
+	 * }
+	 */
+	public function data_domain_and_port_redirections() {
+		return array(
+			'non-standard localhost port to canonical domain' => array(
+				'home_url'     => 'http://example.com',
+				'site_url'     => 'http://example.com',
+				'request_host' => 'localhost:10020',
+				'request_url'  => 'http://localhost:10020/',
+				'expected_url' => 'http://example.com/',
+				'failure_msg'  => 'Failed to redirect non-standard localhost port to canonical domain',
+			),
+			'non-standard localhost port to canonical domain with SSL' => array(
+				'home_url'     => 'https://example.com',
+				'site_url'     => 'https://example.com',
+				'request_host' => 'localhost:10020',
+				'request_url'  => 'http://localhost:10020/',
+				'expected_url' => 'https://example.com/',
+				'failure_msg'  => 'Failed to redirect non-standard localhost port to canonical domain with SSL',
+			),
+			'different host casing do not redirect' => array(
+				'home_url'     => 'http://example.com',
+				'site_url'     => 'http://example.com',
+				'request_host' => 'Example.com',
+				'request_url'  => 'http://Example.com/',
+				'expected_url' => null,
+				'failure_msg'  => 'Should not redirect when only host casing differs',
+			),
+			'different host casing with port redirect without host change' => array(
+				'home_url'     => 'http://example.com:8080',
+				'site_url'     => 'http://example.com:8080',
+				'request_host' => 'Example.com:10200',
+				'request_url'  => 'http://Example.com:10200/',
+				'expected_url' => 'http://Example.com:8080/',
+				'failure_msg'  => 'Failed to redirect to correct port while preserving host casing',
+			),
+			'www to non-www'                        => array(
+				'home_url'     => 'http://example.com',
+				'site_url'     => 'http://example.com',
+				'request_host' => 'www.example.com',
+				'request_url'  => 'http://www.example.com/',
+				'expected_url' => 'http://example.com/',
+				'failure_msg'  => 'Failed to redirect www to non-www domain',
+			),
+			'non-www to www'                        => array(
+				'home_url'     => 'http://www.example.com',
+				'site_url'     => 'http://www.example.com',
+				'request_host' => 'example.com',
+				'request_url'  => 'http://example.com/',
+				'expected_url' => 'http://www.example.com/',
+				'failure_msg'  => 'Failed to redirect non-www to www domain',
+			),
+			'port for same host'                    => array(
+				'home_url'     => 'http://example.com:8080',
+				'site_url'     => 'http://example.com:8080',
+				'request_host' => 'example.com:10200',
+				'request_url'  => 'http://example.com:10200/',
+				'expected_url' => 'http://example.com:8080/',
+				'failure_msg'  => 'Failed to redirect to correct port for same host',
+			),
+		);
 	}
 }
