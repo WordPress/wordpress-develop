@@ -1112,7 +1112,7 @@ BLOB;
 		$this->assertArrayNotHasKey( 'id', $gallery );
 
 		// Suppress warning to test behavior
-		$ids = @wp_list_pluck( $galleries, 'id' );
+		$ids = wp_list_pluck( $galleries, 'id' );
 
 		// Should return an array with null values
 		$this->assertSame( array( null ), $ids );
