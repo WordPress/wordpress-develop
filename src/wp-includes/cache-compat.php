@@ -199,3 +199,110 @@ if ( ! function_exists( 'wp_cache_supports' ) ) :
 		return false;
 	}
 endif;
+
+if ( ! function_exists( 'wp_cache_get_query_data' ) ) :
+
+	/**
+	 * Retrieves cached query data if valid and unchanged.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $cache_key The cache key used for storage and retrieval.
+	 * @param string $group The cache group used for organizing data.
+	 * @param string $last_changed The timestamp of the last modification to the cache group.
+	 * @return mixed|false The cached data if valid, or false if the cache does not exist or is outdated.
+	 */
+	function wp_cache_get_query_data( $cache_key, $group, $last_changed ) {
+		$cache = wp_cache_get( $cache_key, $group );
+
+		if ( ! is_array( $cache ) ) {
+			return false;
+		}
+
+		if ( ! isset( $cache['last_changed'], $cache['data'] ) || $last_changed !== $cache['last_changed'] ) {
+			return false;
+		}
+
+		return $cache['data'];
+	}
+endif;
+
+if ( ! function_exists( 'wp_cache_set_query_data' ) ) :
+	/**
+	 * Stores query-related data in the cache.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $cache_key The cache key under which to store the data.
+	 * @param mixed $data The data to be cached.
+	 * @param string $group The cache group to which the data belongs.
+	 * @param string $last_changed The timestamp or identifier indicating the last change to the cached data.
+	 * @param int $expire Optional. When to expire the cache contents, in seconds.
+	 *                            Default 0 (no expiration).
+	 */
+	function wp_cache_set_query_data( $cache_key, $data, $group, $last_changed, $expire = 0 ) {
+		wp_cache_set(
+			$cache_key,
+			array(
+				'data'         => $data,
+				'last_changed' => $last_changed,
+			),
+			$group,
+			$expire
+		);
+	}
+endif;
+
+if ( ! function_exists( 'wp_cache_get_multiple_query_data' ) ) :
+	/**
+	 * Retrieves multiple items from the cache and validates their freshness.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $cache_keys Array of cache keys to retrieve.
+	 * @param string $group The group of the cache to check.
+	 * @param string $last_changed The timestamp of the last cache modification for validation.
+	 * @return array An associative array containing cache values. Values are `false` if they are not found or outdated.
+	 */
+	function wp_cache_get_multiple_query_data( $cache_keys, $group, $last_changed ) {
+		$cache = wp_cache_get_multiple( $cache_keys, $group );
+
+		foreach ( $cache as $key => $value ) {
+			if ( ! is_array( $value ) ) {
+				$cache[ $key ] = false;
+				continue;
+			}
+			if ( ! isset( $value['last_changed'], $value['data'] ) || $last_changed !== $value['last_changed'] ) {
+				$cache[ $key ] = false;
+				continue;
+			}
+			$cache[ $key ] = $value['data'];
+		}
+
+		return $cache;
+	}
+endif;
+
+if ( ! function_exists( 'wp_cache_set_multiple_query_data' ) ) :
+	/**
+	 * Stores multiple pieces of query data in the cache.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param mixed $data Data to be stored in the cache for all keys.
+	 * @param string $group Group to which the cached data belongs.
+	 * @param string $last_changed Timestamp indicating the last modification time for the data.
+	 * @param int $expire Optional. When to expire the cache contents, in seconds.
+	 *                        Default 0 (no expiration).
+	 */
+	function wp_cache_set_multiple_query_data( $data, $group, $last_changed, $expire = 0 ) {
+		$new_cache = array();
+		foreach ( $data as $key => $value ) {
+			$new_cache[ $key ] = array(
+				'data'         => $value,
+				'last_changed' => $last_changed,
+			);
+		}
+		wp_cache_set_multiple( $new_cache, $group, $expire );
+	}
+endif;
