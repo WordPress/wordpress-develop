@@ -3039,6 +3039,8 @@ function wp_playlist_shortcode( $attr ) {
 	static $instance = 0;
 	++$instance;
 
+	static $is_loaded = false;
+
 	if ( ! empty( $attr['ids'] ) ) {
 		// 'ids' is explicitly ordered, unless you specify otherwise.
 		if ( empty( $attr['orderby'] ) ) {
@@ -3126,6 +3128,19 @@ function wp_playlist_shortcode( $attr ) {
 
 	if ( empty( $attachments ) ) {
 		return '';
+	}
+
+	if ( ! $is_loaded ) {
+		/**
+		 * Prints and enqueues playlist scripts, styles, and JavaScript templates.
+		 *
+		 * @since 3.9.0
+		 *
+		 * @param string $type  Type of playlist. Possible values are 'audio' or 'video'.
+		 * @param string $style The 'theme' for the playlist. Core provides 'light' and 'dark'.
+		 */
+		do_action( 'wp_playlist_scripts', $atts['type'], $atts['style'] );
+		$is_loaded = true;
 	}
 
 	if ( is_feed() ) {
@@ -3219,18 +3234,6 @@ function wp_playlist_shortcode( $attr ) {
 	$safe_style = esc_attr( $atts['style'] );
 
 	ob_start();
-
-	if ( 1 === $instance ) {
-		/**
-		 * Prints and enqueues playlist scripts, styles, and JavaScript templates.
-		 *
-		 * @since 3.9.0
-		 *
-		 * @param string $type  Type of playlist. Possible values are 'audio' or 'video'.
-		 * @param string $style The 'theme' for the playlist. Core provides 'light' and 'dark'.
-		 */
-		do_action( 'wp_playlist_scripts', $atts['type'], $atts['style'] );
-	}
 	?>
 <div class="wp-playlist wp-<?php echo $safe_type; ?>-playlist wp-playlist-<?php echo $safe_style; ?>">
 	<?php if ( 'audio' === $atts['type'] ) : ?>
