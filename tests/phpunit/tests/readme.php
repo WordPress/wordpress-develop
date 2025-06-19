@@ -80,9 +80,9 @@ class Tests_Readme extends WP_UnitTestCase {
 			}
 		}
 
-		// If the release ID is not found, expect it to be an EOL release and return one day before the current date.
+		// If the release ID is not found the version is unsupported.
 		if ( ! isset( $mariadb_eol ) ) {
-			$mariadb_eol = gmdate( 'Y-m-d', strtotime( '-1 day' ) );
+			$this->fail( "{$matches[1]} is not included in MariaDB's list of supported versions. Remember to update the WordPress.org Requirements page, too." );
 		}
 
 		$current_date = gmdate( 'Y-m-d' );
