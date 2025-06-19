@@ -8176,7 +8176,7 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 		return;
 	}
 
-	// Re calculate the term count only when either of status is `publish`.
+	// Do not calculate if both the statuses i.e., old and new status are not 'publish'.
 	if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
 		return;
 	}
