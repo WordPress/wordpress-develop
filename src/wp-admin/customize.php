@@ -84,8 +84,8 @@ if ( $wp_customize->changeset_post_id() ) {
 	}
 }
 
-$url       = ! empty( $_REQUEST['url'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['url'] ) ) : '';
-$return    = ! empty( $_REQUEST['return'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['return'] ) ) : '';
+$url       = ! empty( $_REQUEST['url'] ) ? esc_url_raw( wp_unslash( $_REQUEST['url'] ) ) : '';
+$return    = ! empty( $_REQUEST['return'] ) ? esc_url_raw( wp_unslash( $_REQUEST['return'] ) ) : '';
 $autofocus = ! empty( $_REQUEST['autofocus'] ) && is_array( $_REQUEST['autofocus'] )
 	? array_map( 'sanitize_text_field', wp_unslash( $_REQUEST['autofocus'] ) )
 	: array();
@@ -233,12 +233,12 @@ do_action( 'customize_controls_head' );
 			<div class="wp-full-overlay-sidebar-content" tabindex="-1">
 				<div id="customize-info" class="accordion-section customize-info" data-block-theme="<?php echo (int) wp_is_block_theme(); ?>">
 					<div class="accordion-section-title">
-						<span class="preview-notice">
+						<h2 class="preview-notice">
 						<?php
 							/* translators: %s: The site/panel title in the Customizer. */
 							printf( __( 'You are customizing %s' ), '<strong class="panel-title site-title">' . get_bloginfo( 'name', 'display' ) . '</strong>' );
 						?>
-						</span>
+						</h2>
 						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
 							<?php
 							/* translators: Hidden accessibility text. */

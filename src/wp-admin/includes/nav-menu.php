@@ -351,6 +351,7 @@ function wp_nav_menu_item_link_meta_box() {
 				type="text"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
 				class="code menu-item-textbox form-required" placeholder="https://"
 			/>
+			<span id="custom-url-error" class="error-message" style="display: none;"><?php _e( 'Please provide a valid link.' ); ?></span>
 		</p>
 
 		<p id="menu-item-name-wrap" class="wp-clearfix">
@@ -1238,7 +1239,8 @@ function _wp_nav_menu_meta_box_object( $data_object = null ) {
  * @since 3.0.0
  *
  * @param int $menu_id Optional. The ID of the menu to format. Default 0.
- * @return string|WP_Error The menu formatted to edit or error object on failure.
+ * @return string|WP_Error|null The menu formatted to edit or error object on failure.
+ *                              Null if the `$menu_id` parameter is not supplied or the term does not exist.
  */
 function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 	$menu = wp_get_nav_menu_object( $menu_id );
@@ -1320,6 +1322,8 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 	} elseif ( is_wp_error( $menu ) ) {
 		return $menu;
 	}
+
+	return null;
 }
 
 /**

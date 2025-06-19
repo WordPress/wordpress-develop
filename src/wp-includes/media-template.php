@@ -356,7 +356,7 @@ function wp_print_media_templates() {
 
 	<?php // Template for the uploading status errors. ?>
 	<script type="text/html" id="tmpl-uploader-status-error">
-		<span class="upload-error-filename">{{{ data.filename }}}</span>
+		<span class="upload-error-filename word-wrap-break-word">{{{ data.filename }}}</span>
 		<span class="upload-error-message">{{ data.message }}</span>
 	</script>
 
@@ -443,7 +443,7 @@ function wp_print_media_templates() {
 					?>
 				</h2>
 				<div class="uploaded"><strong><?php _e( 'Uploaded on:' ); ?></strong> {{ data.dateFormatted }}</div>
-				<div class="uploaded-by">
+				<div class="uploaded-by word-wrap-break-word">
 					<strong><?php _e( 'Uploaded by:' ); ?></strong>
 						<# if ( data.authorLink ) { #>
 							<a href="{{ data.authorLink }}">{{ data.authorName }}</a>
@@ -605,7 +605,7 @@ function wp_print_media_templates() {
 					<div class="centered">
 						<# if ( data.image && data.image.src && data.image.src !== data.icon ) { #>
 							<img src="{{ data.image.src }}" class="thumbnail" draggable="false" alt="" />
-						<# } else if ( data.sizes ) { 
+						<# } else if ( data.sizes ) {
 								if ( data.sizes.medium ) { #>
 									<img src="{{ data.sizes.medium.url }}" class="thumbnail" draggable="false" alt="" />
 								<# } else { #>
