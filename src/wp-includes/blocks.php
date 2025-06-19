@@ -3015,14 +3015,14 @@ function _wp_footnotes_force_filtered_html_on_import_filter( $arg ) {
  * @return string|null The domain path if found, null otherwise.
  */
 function wp_get_block_domain_path( $textdomain, $block_file ) {
-    
-    if ( 0 === strpos( $block_file, WP_PLUGIN_DIR ) ) {
-        return wp_get_plugin_domain_path_for_block( $textdomain, $block_file );
-    } elseif ( 0 === strpos( $block_file, get_theme_root() ) ) {
-        return wp_get_theme_domain_path_for_block( $textdomain, $block_file );
-    }
-    
-    return null;
+
+	if ( 0 === strpos( $block_file, WP_PLUGIN_DIR ) ) {
+		return wp_get_plugin_domain_path_for_block( $textdomain, $block_file );
+	} elseif ( 0 === strpos( $block_file, get_theme_root() ) ) {
+		return wp_get_theme_domain_path_for_block( $textdomain, $block_file );
+	}
+
+	return null;
 }
 
 /**
@@ -3033,19 +3033,19 @@ function wp_get_block_domain_path( $textdomain, $block_file ) {
  * @return string|null The domain path if found, null otherwise.
  */
 function wp_get_plugin_domain_path_for_block( $textdomain, $block_file ) {
-    $plugin_file = wp_find_main_plugin_file( $block_file );
-    
-    if ( ! $plugin_file ) {
-        return null;
-    }
-    
-    $plugin_data = get_plugin_data( $plugin_file, false, false );
-    
-    if ( ! empty( $plugin_data['DomainPath'] ) && $plugin_data['TextDomain'] === $textdomain ) {
-        return dirname( $plugin_file ) . $plugin_data['DomainPath'];
-    }
-    
-    return null;
+	$plugin_file = wp_find_main_plugin_file( $block_file );
+
+	if ( ! $plugin_file ) {
+		return null;
+	}
+
+	$plugin_data = get_plugin_data( $plugin_file, false, false );
+
+	if ( ! empty( $plugin_data['DomainPath'] ) && $plugin_data['TextDomain'] === $textdomain ) {
+		return dirname( $plugin_file ) . $plugin_data['DomainPath'];
+	}
+
+	return null;
 }
 
 /**
@@ -3056,25 +3056,25 @@ function wp_get_plugin_domain_path_for_block( $textdomain, $block_file ) {
  * @return string|null The domain path if found, null otherwise.
  */
 function wp_get_theme_domain_path_for_block( $textdomain, $block_file ) {
-    $theme_file = wp_find_main_theme_file( $block_file );
-    
-    if ( ! $theme_file ) {
-        return null;
-    }
-    
-    $theme_data = get_file_data( 
-        $theme_file, 
-        array(
-            'TextDomain' => 'Text Domain',
-            'DomainPath' => 'Domain Path',
-        )
-    );
-    
-    if ( ! empty( $theme_data['DomainPath'] ) && $theme_data['TextDomain'] === $textdomain ) {
-        return dirname( $theme_file ) . $theme_data['DomainPath'];
-    }
-    
-    return null;
+	$theme_file = wp_find_main_theme_file( $block_file );
+
+	if ( ! $theme_file ) {
+		return null;
+	}
+
+	$theme_data = get_file_data(
+		$theme_file,
+		array(
+			'TextDomain' => 'Text Domain',
+			'DomainPath' => 'Domain Path',
+		)
+	);
+
+	if ( ! empty( $theme_data['DomainPath'] ) && $theme_data['TextDomain'] === $textdomain ) {
+		return dirname( $theme_file ) . $theme_data['DomainPath'];
+	}
+
+	return null;
 }
 
 /**
@@ -3084,42 +3084,42 @@ function wp_get_theme_domain_path_for_block( $textdomain, $block_file ) {
  * @return string|null Path to the main plugin file, null if not found.
  */
 function wp_find_main_plugin_file( $block_file ) {
-    $block_file = wp_normalize_path( $block_file );
-    $current_dir = dirname( $block_file );
-    $plugin_dir = wp_normalize_path( WP_PLUGIN_DIR );
-    
-    if ( 0 !== strpos( $current_dir, $plugin_dir ) ) {
-        return null;
-    }
-    
-    while ( $current_dir && $current_dir !== $plugin_dir && $current_dir !== ABSPATH ) {
-        $files = glob( $current_dir . '/*.php' );
-        
-        if ( false === $files ) {
-            break;
-        }
-        
-        foreach ( $files as $file ) {
-            if ( ! is_readable( $file ) ) {
-                continue;
-            }
-            
-            $file_contents = file_get_contents( $file, false, null, 0, 8192 );
-            if ( $file_contents && false !== strpos( $file_contents, 'Plugin Name:' ) ) {
-                return $file;
-            }
-        }
-        
-        $parent_dir = dirname( $current_dir );
-        
-        if ( $parent_dir === $current_dir ) {
-            break;
-        }
-        
-        $current_dir = $parent_dir;
-    }
-    
-    return null;
+	$block_file  = wp_normalize_path( $block_file );
+	$current_dir = dirname( $block_file );
+	$plugin_dir  = wp_normalize_path( WP_PLUGIN_DIR );
+
+	if ( 0 !== strpos( $current_dir, $plugin_dir ) ) {
+		return null;
+	}
+
+	while ( $current_dir && $current_dir !== $plugin_dir && $current_dir !== ABSPATH ) {
+		$files = glob( $current_dir . '/*.php' );
+
+		if ( false === $files ) {
+			break;
+		}
+
+		foreach ( $files as $file ) {
+			if ( ! is_readable( $file ) ) {
+				continue;
+			}
+
+			$file_contents = file_get_contents( $file, false, null, 0, 8192 );
+			if ( $file_contents && false !== strpos( $file_contents, 'Plugin Name:' ) ) {
+				return $file;
+			}
+		}
+
+		$parent_dir = dirname( $current_dir );
+
+		if ( $parent_dir === $current_dir ) {
+			break;
+		}
+
+		$current_dir = $parent_dir;
+	}
+
+	return null;
 }
 
 /**
@@ -3129,32 +3129,32 @@ function wp_find_main_plugin_file( $block_file ) {
  * @return string|null Path to the main theme file, null if not found.
  */
 function wp_find_main_theme_file( $block_file ) {
-    $block_file = wp_normalize_path( $block_file );
-    $current_dir = dirname( $block_file );
-    $theme_root = wp_normalize_path( get_theme_root() );
-    
-    if ( 0 !== strpos( $current_dir, $theme_root ) ) {
-        return null;
-    }
-    
-    while ( $current_dir && $current_dir !== $theme_root && $current_dir !== ABSPATH ) {
-        $style_css = $current_dir . '/style.css';
-        
-        if ( file_exists( $style_css ) && is_readable( $style_css ) ) {
-            $file_contents = file_get_contents( $style_css, false, null, 0, 8192 );
-            if ( $file_contents && false !== strpos( $file_contents, 'Theme Name:' ) ) {
-                return $style_css;
-            }
-        }
-        
-        $parent_dir = dirname( $current_dir );
-        
-        if ( $parent_dir === $current_dir ) {
-            break;
-        }
-        
-        $current_dir = $parent_dir;
-    }
-    
-    return null;
+	$block_file  = wp_normalize_path( $block_file );
+	$current_dir = dirname( $block_file );
+	$theme_root  = wp_normalize_path( get_theme_root() );
+
+	if ( 0 !== strpos( $current_dir, $theme_root ) ) {
+		return null;
+	}
+
+	while ( $current_dir && $current_dir !== $theme_root && $current_dir !== ABSPATH ) {
+		$style_css = $current_dir . '/style.css';
+
+		if ( file_exists( $style_css ) && is_readable( $style_css ) ) {
+			$file_contents = file_get_contents( $style_css, false, null, 0, 8192 );
+			if ( $file_contents && false !== strpos( $file_contents, 'Theme Name:' ) ) {
+				return $style_css;
+			}
+		}
+
+		$parent_dir = dirname( $current_dir );
+
+		if ( $parent_dir === $current_dir ) {
+			break;
+		}
+
+		$current_dir = $parent_dir;
+	}
+
+	return null;
 }
