@@ -6387,7 +6387,7 @@ function get_pages( $args = array() ) {
 	 * @param array $defaults Array of default arguments.
 	 */
 	$args = apply_filters( 'get_pages_args', $args, $defaults );
-	
+
 	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$number       = (int) $parsed_args['number'];
