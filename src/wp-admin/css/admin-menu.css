@@ -28,7 +28,7 @@
 #adminmenu {
 	clear: left;
 	margin: 12px 0;
-	padding: 0;
+	padding-bottom: 2rem;
 	list-style: none;
 }
 
@@ -458,10 +458,14 @@ ul#adminmenu > li.current > a.current:after {
 	margin: 0;
 	border: none;
 	padding: 0;
-	position: relative;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 160px;
 	overflow: visible;
 	background: none;
 	color: #a7aaad;
+	background-color: #1d2327;
 	cursor: pointer;
 }
 
