@@ -173,7 +173,10 @@ jobs:
       multisite: ${{ matrix.multisite }}
 
   # The oldest version of WordPress receiving security updates should always be tested against
-  # the full list of PHP/MySQL combinations.
+  # the widest possible list of PHP/MySQL combinations.
+  #
+  # WordPress 4.6, 4.7, and 4.8 cannot run on PHP 8 due to the use of __autoload().
+  # See https://core.trac.wordpress.org/ticket/36926 and https://core.trac.wordpress.org/ticket/40109.
   upgrade-tests-oldest-wp-mysql:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
@@ -182,7 +185,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        php: [ '7.2', '7.3', '7.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4', '9.3' ]
         wp: [ '4.7' ]
