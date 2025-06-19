@@ -2409,7 +2409,7 @@ function do_blocks( $content ) {
 	$output                = '';
 
 	for ( $i = 0; $i < $top_level_block_count; $i++ ) {
-		$output .= render_block( $blocks[ $i ] );
+		$output      .= render_block( $blocks[ $i ] );
 		$blocks[ $i ] = null;
 	}
 
@@ -3092,7 +3092,7 @@ function wp_find_main_plugin_file( $block_file ) {
 		return null;
 	}
 
-	while ( $current_dir && $current_dir !== $plugin_dir && $current_dir !== ABSPATH ) {
+	while ( $current_dir && $current_dir !== $plugin_dir && ABSPATH !== $current_dir ) {
 		$files = glob( $current_dir . '/*.php' );
 
 		if ( false === $files ) {
@@ -3137,7 +3137,7 @@ function wp_find_main_theme_file( $block_file ) {
 		return null;
 	}
 
-	while ( $current_dir && $current_dir !== $theme_root && $current_dir !== ABSPATH ) {
+	while ( $current_dir && $current_dir !== $theme_root && ABSPATH !== $current_dir ) {
 		$style_css = $current_dir . '/style.css';
 
 		if ( file_exists( $style_css ) && is_readable( $style_css ) ) {
