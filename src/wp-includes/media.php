@@ -5301,7 +5301,7 @@ function get_post_galleries( $post, $html = true ) {
 
 				$ids = array();
 				foreach ( $attrs as $attr ) {
-					if ( isset( $attr['id'] ) ) {
+					if ( ! isset( $attr['id'] ) ) {
 						continue;
 					}
 
