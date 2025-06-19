@@ -8171,13 +8171,20 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
  */
 function _update_term_count_on_transition_post_status( $new_status, $old_status, $post ) {
 
-	// Do not calculate if both statuses are same.
+	// Do not calculate term count if both statuses are same.
 	if ( $new_status === $old_status ) {
 		return;
 	}
 
-	// Do not calculate if both the statuses i.e., old and new status are not 'publish'.
-	if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+	/**
+	 * Check for the post statuses that should be considered when updating term counts.
+	 *
+	 * This filter is documented in wp-includes/taxonomy.php.
+	 */
+	$post_statuses = apply_filters( 'update_post_term_count_statuses', array( 'publish' ), null );
+
+	// Do not calculate term count if both the statuses i.e., old and new status are not in the post statuses.
+	if ( ! in_array( $old_status, $post_statuses, true ) && ! in_array( $new_status, $post_statuses, true ) ) {
 		return;
 	}
 
