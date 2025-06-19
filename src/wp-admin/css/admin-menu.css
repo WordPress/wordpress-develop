@@ -469,8 +469,25 @@ ul#adminmenu > li.current > a.current:after {
 	cursor: pointer;
 }
 
+.collapse-button-icon::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  z-index: -1;
+}
+
 #collapse-button:hover {
 	color: #72aee6;
+}
+
+#collapse-button:hover .collapse-button-icon:before {
+  box-shadow: 0 0 0 2px #2271b1;
+  outline: 2px solid transparent;
 }
 
 #collapse-button:focus {
