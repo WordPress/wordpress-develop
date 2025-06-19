@@ -469,6 +469,10 @@ ul#adminmenu > li.current > a.current:after {
 	cursor: pointer;
 }
 
+.folded #collapse-button {
+	width: 36px;
+}
+
 .collapse-button-icon::before {
   content: "";
   position: absolute;
