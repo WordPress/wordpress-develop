@@ -2075,25 +2075,11 @@ div.action-links,
 		gap: 8px;
 	}
 
-	.comment .row-actions span {
-		font-size: 0;
-	}
-
 	.row-actions span a,
 	.row-actions span .button-link {
 		display: inline-block;
 		font-size: 13px;
 		line-height: 1.5;
-	}
-
-	.dashboard-comment-wrap .row-actions span a,
-	 .dashboard-comment-wrap .row-actions span .button-link{
-		padding: 4px 16px 4px 0;
-	}
-
-	.row-actions span.approve:before,
-	.row-actions span.unapprove:before {
-		content: "| ";
 	}
 
 	/* Quick Edit and Bulk Edit */
