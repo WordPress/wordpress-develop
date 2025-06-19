@@ -3138,7 +3138,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			$post_type_obj = get_post_type_object( $this->post_type );
-			if ( ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
+
+			$can_read_status = false;
+
+			if ( 'private' === $status ) {
+				$can_read_status = current_user_can( $post_type_obj->cap->read_private_posts );
+			} elseif ( 'draft' === $status ) {
+				$can_read_status = current_user_can( $post_type_obj->cap->read_private_posts );
+			} else {
+				$can_read_status = current_user_can( $post_type_obj->cap->edit_posts );
+			}
+
+			if ( ! $can_read_status ) {
 				return new WP_Error(
 					'rest_forbidden_status',
 					__( 'Sorry, you are not allowed to list non-published posts in this post type.' ),

@@ -2068,8 +2068,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 403 );
-		$this->assertCount( 3, $data );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 1, $data );
 		$this->assertSame( $private_post_id, $data[0]['id'] );
 	}
 
