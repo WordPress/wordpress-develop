@@ -489,7 +489,8 @@ ul#adminmenu > li.current > a.current:after {
 	color: #72aee6;
 }
 
-#collapse-button:hover .collapse-button-icon:before {
+#collapse-button:hover .collapse-button-icon:before,
+#collapse-button:focus .collapse-button-icon:before {
   box-shadow: 0 0 0 2px #2271b1;
   outline: 2px solid transparent;
 }
