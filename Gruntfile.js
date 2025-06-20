@@ -1251,6 +1251,7 @@ module.exports = function(grunt) {
 					'!' + SOURCE_DIR + 'js/**/*.js',
 					// Ignore version control directories.
 					'!' + SOURCE_DIR + '**/.{svn,git}/**',
+					// Maximum call stack size exceeded. See #63606
 					'!' + SOURCE_DIR + 'wp-content/plugins/**',
 					SOURCE_DIR + 'wp-content/plugins/akismet/**'
 				],
