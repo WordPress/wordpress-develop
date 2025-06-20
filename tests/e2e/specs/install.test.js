@@ -58,7 +58,7 @@ test.describe( 'WordPress installation process', () => {
 		await page.getByLabel( 'Password', { exact: true } ).fill( '' );
 		await page.getByLabel( 'Password', { exact: true } ).fill( 'password' );
 		await page.getByLabel( /Confirm use of weak password/ ).check()
-		await page.getByLabel( 'Your Email' ).fill( 'test@test.com' );
+		await page.getByLabel( 'Your Email' ).fill( 'test@example.com' );
 
 		await page.getByRole( 'button', { name: 'Install WordPress' } ).click();
 
