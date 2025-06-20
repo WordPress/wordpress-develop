@@ -161,6 +161,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * @since 1.2.1
 	 * @since 5.5.0 is_email() is used for email validation,
 	 *              instead of PHPMailer's default validator.
+	 * @since 6.9.0 Added $embeds parameter.
 	 *
 	 * @global PHPMailer\PHPMailer\PHPMailer $phpmailer
 	 *
@@ -169,9 +170,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * @param string          $message     Message contents.
 	 * @param string|string[] $headers     Optional. Additional headers.
 	 * @param string|string[] $attachments Optional. Paths to files to attach.
+	 * @param string|string[] $embeds      Optional. Paths to files to embed.
 	 * @return bool Whether the email was sent successfully.
 	 */
-	function wp_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
+	function wp_mail( $to, $subject, $message, $headers = '', $attachments = array(), $embeds = array() ) {
 		// Compact the input, apply the filters, and extract them back out.
 
 		/**
@@ -187,9 +189,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 *     @type string          $message     Message contents.
 		 *     @type string|string[] $headers     Additional headers.
 		 *     @type string|string[] $attachments Paths to files to attach.
+		 *     @type string|string[] $embeds      Paths to files to embed.
 		 * }
 		 */
-		$atts = apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) );
+		$atts = apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments', 'embeds' ) );
 
 		/**
 		 * Filters whether to preempt sending an email.
@@ -209,6 +212,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 *     @type string          $message     Message contents.
 		 *     @type string|string[] $headers     Additional headers.
 		 *     @type string|string[] $attachments Paths to files to attach.
+		 *     @type string|string[] $embeds      Paths to files to embed.
 		 * }
 		 */
 		$pre_wp_mail = apply_filters( 'pre_wp_mail', null, $atts );
@@ -244,6 +248,15 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		if ( ! is_array( $attachments ) ) {
 			$attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
 		}
+
+		if ( isset( $atts['embeds'] ) ) {
+			$embeds = $atts['embeds'];
+		}
+
+		if ( ! is_array( $embeds ) ) {
+			$embeds = explode( "\n", str_replace( "\r\n", "\n", $embeds ) );
+		}
+
 		global $phpmailer;
 
 		// (Re)create it, if it's gone missing.
@@ -563,6 +576,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			 *     @type string   $message     Message contents.
 			 *     @type string[] $headers     Additional headers.
 			 *     @type string[] $attachments Paths to files to attach.
+			 *     @type string[] $embeds      Paths to files to embed.
 			 * }
 			 */
 			do_action( 'wp_mail_succeeded', $mail_data );
@@ -1488,6 +1502,16 @@ if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 		// Remove %0D and %0A from location.
 		$strip = array( '%0d', '%0a', '%0D', '%0A' );
 		return _deep_replace( $strip, $location );
+	}
+
+	if ( ! empty( $embeds ) ) {
+		foreach ( $embeds as $embed ) {
+			try {
+				$phpmailer->addEmbeddedImage( $embed, md5( $embed ) );
+			} catch ( PHPMailer\PHPMailer\Exception $e ) {
+				continue;
+			}
+		}
 	}
 
 	/**
