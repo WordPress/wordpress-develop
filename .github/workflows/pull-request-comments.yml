@@ -158,7 +158,7 @@ jobs:
             - All changes will be lost when refreshing the page.
             - A fresh instance is created each time the link below is clicked.
             - Every time this pull request is updated, a new ZIP file containing all changes is created. If changes are not reflected in the Playground instance,
-            it's possible that the most recent build failed, or has not completed. Check the [list of workflow runs to be sure](https://github.com/WordPress/wordpress-develop/actions/workflows/wordpress-playground.yml).
+            it's possible that the most recent build failed, or has not completed. Check the [list of workflow runs to be sure](https://github.com/WordPress/wordpress-develop/actions/workflows/test-build-processes.yml).
 
             For more details about these limitations and more, check out the [Limitations page](https://wordpress.github.io/wordpress-playground/limitations/) in the WordPress Playground documentation.
 
