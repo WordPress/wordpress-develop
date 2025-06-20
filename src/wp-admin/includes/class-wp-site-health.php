@@ -509,6 +509,7 @@ class WP_Site_Health {
 		$theme_updates = get_theme_updates();
 
 		$themes_total        = 0;
+		$child_themes_total  = 0;
 		$themes_need_updates = 0;
 		$themes_inactive     = 0;
 
@@ -543,6 +544,12 @@ class WP_Site_Health {
 		}
 
 		foreach ( $all_themes as $theme_slug => $theme ) {
+
+			if ( $theme->get( 'Template' ) && $theme->get( 'Template' ) !== $theme_slug ) {
+				++$child_themes_total;
+				continue;
+			}
+
 			++$themes_total;
 
 			if ( array_key_exists( $theme_slug, $theme_updates ) ) {
@@ -607,6 +614,21 @@ class WP_Site_Health {
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
 					__( 'Your site does not have any installed themes.' )
+				);
+			}
+
+			if ( $child_themes_total > 0 ) {
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					sprintf(
+						/* translators: %d: The number of child themes. */
+						_n(
+							'Additionally, your site has %d installed child theme.',
+							'Additionally, your site has %d installed child themes.',
+							$child_themes_total
+						),
+						$child_themes_total
+					)
 				);
 			}
 		}
