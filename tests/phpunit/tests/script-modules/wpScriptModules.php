@@ -53,8 +53,6 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	/**
 	 * Gets a list of the enqueued script modules.
 	 *
-	 * @phpstan-return array<string, array{ url: string, fetchpriority: string|null }>
-	 *
 	 * @return array Enqueued script module URLs, keyed by script module identifier.
 	 */
 	public function get_enqueued_script_modules(): array {
@@ -99,8 +97,6 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 	/**
 	 * Gets a list of preloaded script modules.
-	 *
-	 * @phpstan-return array<string, array{ url: string, fetchpriority: string|null }>
 	 *
 	 * @return array Preloaded script module URLs, keyed by script module identifier.
 	 */

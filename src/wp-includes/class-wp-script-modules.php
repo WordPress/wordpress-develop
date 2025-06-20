@@ -12,14 +12,6 @@
  * Core class used to register script modules.
  *
  * @since 6.5.0
- *
- * @phpstan-type ScriptModule array{
- *     src: string,
- *     version: string|false|null,
- *     enqueue: bool,
- *     dependencies: array<array{ id: string, import: 'dynamic'|'static' }>,
- *     fetchpriority: 'auto'|'low'|'high',
- * }
  */
 class WP_Script_Modules {
 	/**
@@ -27,7 +19,6 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 * @var array[]
-	 * @phpstan-var array<string, ScriptModule>
 	 */
 	private $registered = array();
 
@@ -355,8 +346,6 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @phpstan-return array<string, ScriptModule>
-	 *
 	 * @return array<string, array> Script modules marked for enqueue, keyed by script module identifier.
 	 */
 	private function get_marked_for_enqueue(): array {
@@ -378,8 +367,6 @@ class WP_Script_Modules {
 	 * recursive and also retrieves dependencies of the dependencies.
 	 *
 	 * @since 6.5.0
-	 *
-	 * @phpstan-return array<string, ScriptModule>
 	 *
 	 * @param string[] $ids          The identifiers of the script modules for which to gather dependencies.
 	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
