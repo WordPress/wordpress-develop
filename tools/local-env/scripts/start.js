@@ -36,7 +36,7 @@ if ( process.env.LOCAL_PHP_MEMCACHED === 'true' ) {
 }
 
 if ( process.env.LOCAL_MAILHOG === 'true' ) {
-	containers += ' mailhog';
+	containers.push( 'mailhog' );
 }
 
 spawnSync(
