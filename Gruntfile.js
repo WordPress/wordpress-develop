@@ -1247,7 +1247,7 @@ module.exports = function(grunt) {
 					'!' + SOURCE_DIR + 'js/**/*.js',
 					// Ignore version control directories.
 					'!' + SOURCE_DIR + '**/.{svn,git}/**',
-					'!' + SOURCE_DIR + 'wp-content/plugins/**'
+					'!' + SOURCE_DIR + 'wp-content/plugins/**/node_modules/**'
 				],
 				tasks: ['clean:dynamic', 'copy:dynamic'],
 				options: {
