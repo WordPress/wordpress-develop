@@ -260,8 +260,12 @@ module.exports = function(grunt) {
 						dest: BUILD_DIR
 					},
 					{
-						[BUILD_DIR + 'index.php']: ['src/_index.php'],
-						[BUILD_DIR + 'wp-admin/index.php']: ['src/wp-admin/_index.php']
+						src: 'src/_index.php',
+						dest: BUILD_DIR + 'index.php'
+					},
+					{
+						src: 'src/wp-admin/_index.php',
+						dest: BUILD_DIR + 'wp-admin/index.php'
 					}
 				]
 			},
@@ -1247,7 +1251,8 @@ module.exports = function(grunt) {
 					'!' + SOURCE_DIR + 'js/**/*.js',
 					// Ignore version control directories.
 					'!' + SOURCE_DIR + '**/.{svn,git}/**',
-					'!' + SOURCE_DIR + 'wp-content/plugins/**'
+					'!' + SOURCE_DIR + 'wp-content/plugins/**',
+					SOURCE_DIR + 'wp-content/plugins/akismet/**'
 				],
 				tasks: ['clean:dynamic', 'copy:dynamic'],
 				options: {
