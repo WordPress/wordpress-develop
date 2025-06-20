@@ -262,8 +262,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			}
 		} elseif ( is_page() && ! empty( $_GET['pagename'] ) ) {
 			$page = get_page_by_path( $_GET['pagename'] );
-			if ( $page && $redirect_url = get_permalink( $page->ID ) ) {
-				$redirect['query'] = remove_query_arg( 'pagename', $redirect['query'] );
+			if ( $page ) {
+				$redirect_url = get_permalink( $page->ID );
+				if ( $redirect_url ) {
+					$redirect['query'] = remove_query_arg( 'pagename', $redirect['query'] );
+				}
 			}
 		} elseif ( is_page() && ! is_feed() && ! $redirect_url
 			&& 'page' === get_option( 'show_on_front' ) && get_queried_object_id() === (int) get_option( 'page_on_front' )
@@ -337,13 +340,14 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				}
 			}
 		} elseif ( is_author() && ! empty( $_GET['author_name'] ) ) {
-	        $author = get_user_by( 'slug', $_GET['author_name'] );
+			$author = get_user_by( 'slug', $_GET['author_name'] );
 
 			if ( ( false !== $author ) && $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE $wpdb->posts.post_author = %d AND $wpdb->posts.post_status = 'publish' LIMIT 1", $author->ID ) ) ) {
-				if ( $redirect_url = get_author_posts_url( $author->ID, $author->user_nicename ) ) {
+				$redirect_url = get_author_posts_url( $author->ID, $author->user_nicename );
+				if ( $redirect_url ) {
 					$redirect['query'] = remove_query_arg( 'author_name', $redirect['query'] );
 				}
-	        }
+			}
 		} elseif ( is_category() || is_tag() || is_tax() ) { // Terms (tags/categories).
 			$term_count = 0;
 

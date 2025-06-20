@@ -188,7 +188,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/?name=images-te', '/2008/09/03/images-test/', 20374 ),
 			// Page slug should resolve to post slug and remove the ?pagename= parameter.
 			array( '/?pagename=images-test', '/2008/09/03/images-test/', 20374 ),
-			array( '/?pagename=sample-page', '/sample-page/'),
+			array( '/?pagename=sample-page', '/sample-page/' ),
 
 			array( '/?post_format=audio', '/type/audio/' ),
 
