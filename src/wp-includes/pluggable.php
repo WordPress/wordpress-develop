@@ -552,7 +552,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				 * @since 6.9.0
 				 *
 				 * @param array $args {
-				 *     An array of arguments for `addEmbeddedImage()`.
+				 *     An array of arguments for `addEmbeddedImage()`. Using PHPMailer default values.
 				 *
 				 *     @type string $path        The path to the file.
 				 *     @type string $cid         The Content-ID of the image.
