@@ -545,9 +545,46 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		}
 
 		if ( ! empty( $embeds ) ) {
-			foreach ( $embeds as $embed ) {
+			foreach ( $embeds as $embed_path ) {
+				/**
+				 * Filters the arguments for PHPMailer's addEmbeddedImage() method.
+				 *
+				 * @since 6.9.0
+				 *
+				 * @param array $args {
+				 *     An array of arguments for `addEmbeddedImage()`.
+				 *
+				 *     @type string $path        The path to the file.
+				 *     @type string $cid         The Content-ID of the image.
+				 *     @type string $name        The filename of the image.
+				 *     @type string $encoding    The encoding of the image. Default 'base64'.
+				 *     @type string $type        The MIME type of the image. Default is empty string, which lets PHPMailer auto-detect.
+				 *     @type string $disposition The disposition of the image. Default 'inline'.
+				 * }
+				 * @param string $embed_path The path to the file being embedded.
+				 */
+				$embed_args = apply_filters(
+					'wp_mail_embed_args',
+					array(
+						'path'        => $embed_path,
+						'cid'         => md5( $embed_path ),
+						'name'        => basename( $embed_path ),
+						'encoding'    => 'base64',
+						'type'        => '',
+						'disposition' => 'inline',
+					),
+					$embed_path
+				);
+
 				try {
-					$phpmailer->addEmbeddedImage( $embed, md5( $embed ) );
+					$phpmailer->addEmbeddedImage(
+						$embed_args['path'],
+						$embed_args['cid'],
+						$embed_args['name'],
+						$embed_args['encoding'],
+						$embed_args['type'],
+						$embed_args['disposition']
+					);
 				} catch ( PHPMailer\PHPMailer\Exception $e ) {
 					continue;
 				}
