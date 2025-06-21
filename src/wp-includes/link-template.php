@@ -2193,7 +2193,7 @@ function prev_post_rel_link( $title = '%title', $in_same_term = false, $excluded
 function get_boundary_post( $in_same_term = false, $excluded_terms = '', $start = true, $taxonomy = 'category' ) {
 	$post = get_post();
 
-	if ( ! $post || ! is_single() || is_attachment() || ! taxonomy_exists( $taxonomy ) ) {
+	if ( ! taxonomy_exists( $taxonomy ) ) {
 		return null;
 	}
 
