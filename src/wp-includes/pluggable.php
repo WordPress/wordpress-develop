@@ -544,6 +544,16 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			}
 		}
 
+		if ( ! empty( $embeds ) ) {
+			foreach ( $embeds as $embed ) {
+				try {
+					$phpmailer->addEmbeddedImage( $embed, md5( $embed ) );
+				} catch ( PHPMailer\PHPMailer\Exception $e ) {
+					continue;
+				}
+			}
+		}
+
 		/**
 		 * Fires after PHPMailer is initialized.
 		 *
@@ -1504,15 +1514,6 @@ if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 		return _deep_replace( $strip, $location );
 	}
 
-	if ( ! empty( $embeds ) ) {
-		foreach ( $embeds as $embed ) {
-			try {
-				$phpmailer->addEmbeddedImage( $embed, md5( $embed ) );
-			} catch ( PHPMailer\PHPMailer\Exception $e ) {
-				continue;
-			}
-		}
-	}
 
 	/**
 	 * URL encodes UTF-8 characters in a URL.
