@@ -1995,6 +1995,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 								if ( $can_publish ) {
 									$inline_edit_statuses['publish'] = __( 'Published' );
 									$inline_edit_statuses['future']  = __( 'Scheduled' );
+									// There is already a checkbox for Private in Single Post Quick Edit. See #63612.
 									if ( $bulk ) {
 										$inline_edit_statuses['private'] = __( 'Private' );
 									}
