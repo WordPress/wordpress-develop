@@ -1984,7 +1984,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<div class="inline-edit-group wp-clearfix">
 
 						<label class="inline-edit-status alignleft">
-							<span class="title"><?php __( 'Status' ); ?></span>
+							<span class="title"><?php _e( 'Status' ); ?></span>
 							<select name="_status">
 								<?php
 								$inline_edit_statuses = array();
