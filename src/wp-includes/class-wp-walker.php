@@ -253,14 +253,17 @@ class Walker {
 		}
 
 		/*
-		 * If we are displaying all levels, and remaining children_elements is not empty,
-		 * then we got orphans, which should be displayed regardless.
-		 */
-		if ( ( 0 === $max_depth ) && count( $children_elements ) > 0 ) {
-			$empty_array = array();
-			foreach ( $children_elements as $orphans ) {
-				foreach ( $orphans as $op ) {
-					$this->display_element( $op, $empty_array, 1, 0, $args, $output );
+		* If we are displaying all levels (depth=0),
+		* OR if specific parents were excluded with limited depth,
+		* we may have got orphans, which should be displayed regardless.
+		*/
+		if ( 0 === $max_depth || ( $max_depth > 0 && ! empty( $args[0]['exclude'] ) ) ) {
+			if ( count( $children_elements ) > 0 ) {
+				$empty_array = array();
+				foreach ( $children_elements as $orphans ) {
+					foreach ( $orphans as $op ) {
+						$this->display_element( $op, $empty_array, 1, 0, $args, $output );
+					}
 				}
 			}
 		}
