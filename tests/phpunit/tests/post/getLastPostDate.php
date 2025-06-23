@@ -61,9 +61,14 @@ class Tests_Post_GetLastPostDate extends WP_UnitTestCase {
 	 */
 	public function test_pre_get_lastpostdate_filter_short_circuits() {
 		$custom_date = gmdate( 'Y-m-d H:i:s' );
-		add_filter( 'pre_get_lastpostdate', function( $pre, $timezone, $post_type ) use ( $custom_date ) {
-			return $custom_date;
-		}, 10, 3 );
+		add_filter(
+			'pre_get_lastpostdate',
+			function( $pre, $timezone, $post_type ) use ( $custom_date ) {
+				return $custom_date;
+			},
+			10,
+			3
+		);
 
 		// Should return our custom date, not the DB value.
 		$this->assertSame( $custom_date, get_lastpostdate( 'blog', 'post' ) );
