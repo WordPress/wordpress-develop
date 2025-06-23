@@ -1704,6 +1704,11 @@ function apply_block_bindings_to_block( &$parsed_block, $parent_block, $context 
 				}
 				foreach ( $computed_attributes as $attribute_name => $source_value ) {
 					$content = WP_Block::replace_html( $parsed_block['blockName'], $content, $attribute_name, $source_value );
+
+					// If this is a sourced attribute, we remove it from the parsed block's `attrs` array.
+					if ( isset( $block_instance->block_type->attributes[ $attribute_name ]['source'] ) ) {
+						unset( $parsed_block['attrs'][ $attribute_name ] );
+					}
 				}
 				$parsed_block['innerContent'][ $index ] = $content;
 			}
