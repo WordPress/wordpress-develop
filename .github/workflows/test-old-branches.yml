@@ -25,7 +25,7 @@ on:
 permissions: {}
 
 env:
-  CURRENTLY_SUPPORTED_BRANCH: '6.7'
+  CURRENTLY_SUPPORTED_BRANCH: '6.8'
 
 jobs:
   dispatch-workflows-for-old-branches:

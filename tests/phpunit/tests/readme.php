@@ -67,22 +67,24 @@ class Tests_Readme extends WP_UnitTestCase {
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
-		$this->markTestSkipped(
-			'Temporarily disabled. MariaDB has changed the layout and verbiage of their release documentation pages.'
-		);
-
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
 
 		preg_match( '#Recommendations.*MariaDB</a> version <strong>([0-9.]*)#s', $readme, $matches );
-		$matches[1] = str_replace( '.', '', $matches[1] );
 
-		$response_body = $this->get_response_body( "https://mariadb.com/kb/en/release-notes-mariadb-{$matches[1]}-series/" );
+		$response_body = $this->get_response_body( 'https://downloads.mariadb.org/rest-api/mariadb/' );
+		$releases      = json_decode( $response_body, true );
 
-		// Retrieve the date of the first stable release for the recommended branch.
-		preg_match( '#.*Stable.*?(\d{2} [A-Za-z]{3} \d{4})#s', $response_body, $mariadb_matches );
+		foreach ( $releases['major_releases'] as $release ) {
+			if ( isset( $release['release_id'] ) && $release['release_id'] === $matches[1] ) {
+				$mariadb_eol = $release['release_eol_date'];
+			}
+		}
 
-		// Per https://mariadb.org/about/#maintenance-policy, MariaDB releases are supported for 5 years.
-		$mariadb_eol  = gmdate( 'Y-m-d', strtotime( $mariadb_matches[1] . ' +5 years' ) );
+		// If the release ID is not found the version is unsupported.
+		if ( ! isset( $mariadb_eol ) ) {
+			$this->fail( "{$matches[1]} is not included in MariaDB's list of supported versions. Remember to update the WordPress.org Requirements page, too." );
+		}
+
 		$current_date = gmdate( 'Y-m-d' );
 
 		$this->assertLessThan( $mariadb_eol, $current_date, "readme.html's Recommended MariaDB version is too old. Remember to update the WordPress.org Requirements page, too." );
