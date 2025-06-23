@@ -63,7 +63,7 @@ class Tests_Post_GetLastPostDate extends WP_UnitTestCase {
 		$custom_date = gmdate( 'Y-m-d H:i:s' );
 		add_filter(
 			'pre_get_lastpostdate',
-			function( $pre, $timezone, $post_type ) use ( $custom_date ) {
+			function ( $_pre, $_timezone, $_post_type ) use ( $custom_date ) {
 				return $custom_date;
 			},
 			10,
