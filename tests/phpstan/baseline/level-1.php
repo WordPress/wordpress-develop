@@ -129,12 +129,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	// identifier: isset.variable
-	'message' => '#^Variable \\$newrow in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/general-template.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
 	'message' => '#^Variable \\$user_already_exists in isset\\(\\) always exists and is not nullable\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
@@ -150,12 +144,6 @@ $ignoreErrors[] = [
 	'message' => '#^Variable \\$schema in empty\\(\\) is never defined\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$default in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
 ];
 $ignoreErrors[] = [
 	// identifier: isset.variable

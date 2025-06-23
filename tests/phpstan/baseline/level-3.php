@@ -536,26 +536,8 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/comment-template.php',
 ];
 $ignoreErrors[] = [
-	// identifier: offsetAccess.nonOffsetAccessible
-	'message' => '#^Cannot access offset 0 on WP_Post\\.$#',
-	'count' => 4,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.type
-	'message' => '#^Function _close_comments_for_old_posts\\(\\) should return array but returns WP_Post\\.$#',
-	'count' => 4,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
-];
-$ignoreErrors[] = [
 	// identifier: return.empty
 	'message' => '#^Function get_page_of_comment\\(\\) should return int\\|null but empty return statement found\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.type
-	'message' => '#^Function separate_comments\\(\\) should return array\\<WP_Comment\\> but returns array\\<string, array\\<int, WP_Comment\\>\\>\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/comment.php',
 ];

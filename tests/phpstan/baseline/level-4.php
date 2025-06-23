@@ -254,12 +254,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
 ];
 $ignoreErrors[] = [
-	// identifier: deadCode.unreachable
-	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
-];
-$ignoreErrors[] = [
 	// identifier: while.alwaysTrue
 	'message' => '#^While loop condition is always true\\.$#',
 	'count' => 1,
