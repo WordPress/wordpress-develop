@@ -3885,7 +3885,17 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 
 		if ( isset( $parsed_args['last_error_message'] ) && $parsed_args['last_error_message'] ) {
-			$sent_header = ( WP_DEBUG || ( is_user_logged_in() ) );
+			$sent_header = ( WP_DEBUG || is_user_logged_in() );
+
+			/**
+			 * Filters whether to send the last error message to the user.
+			 *
+			 * @since 6.9.0
+			 *
+			 * @param bool $sent_header Whether to send the last error message to the user.
+			 *
+			 * @return bool Whether to send the last error message to the user.
+			 */
 			$sent_header = apply_filters( 'wp_die_handler_sent_error_header', $sent_header );
 
 			if ( $sent_header ) {
