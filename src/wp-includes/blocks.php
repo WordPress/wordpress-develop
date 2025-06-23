@@ -1638,6 +1638,24 @@ function apply_block_bindings_to_block( &$parsed_block, $parent_block, $context 
 			);
 		}
 
+		$block_context = array();
+
+		if ( $context instanceof WP_Post ) {
+			$block_context['postId'] = $context->ID;
+
+			/*
+			 * The `postType` context is largely unnecessary server-side, since the ID
+			 * is usually sufficient on its own. That being said, since a block's
+			 * manifest is expected to be shared between the server and the client,
+			 * it should be included to consistently fulfill the expectation.
+			 */
+			$block_context['postType'] = $context->post_type;
+		}
+
+		/** This filter is documented in wp-includes/blocks.php */
+		$block_context  = apply_filters( 'render_block_context', $block_context, $parsed_block, $parent_block );
+		$block_instance = new WP_Block( $parsed_block, $block_context );
+
 		foreach ( $bindings as $attribute_name => $block_binding ) {
 			// If the attribute is not in the supported list, process next attribute.
 			if ( ! in_array( $attribute_name, $supported_block_attributes[ $parsed_block['blockName'] ], true ) ) {
@@ -1653,23 +1671,6 @@ function apply_block_bindings_to_block( &$parsed_block, $parent_block, $context 
 				continue;
 			}
 
-			$block_context = array();
-
-			if ( $context instanceof WP_Post ) {
-				$block_context['postId'] = $context->ID;
-
-				/*
-				 * The `postType` context is largely unnecessary server-side, since the ID
-				 * is usually sufficient on its own. That being said, since a block's
-				 * manifest is expected to be shared between the server and the client,
-				 * it should be included to consistently fulfill the expectation.
-				 */
-				$block_context['postType'] = $context->post_type;
-			}
-
-			/** This filter is documented in wp-includes/blocks.php */
-			$block_context = apply_filters( 'render_block_context', $block_context, $parsed_block, $parent_block );
-
 			// FIXME: Adds the necessary context defined by the source.
 			// if ( ! empty( $block_binding_source->uses_context ) ) {
 			// 	foreach ( $block_binding_source->uses_context as $context_name ) {
@@ -1678,8 +1679,6 @@ function apply_block_bindings_to_block( &$parsed_block, $parent_block, $context 
 			// 		}
 			// 	}
 			// }
-
-			$block_instance = new WP_Block( $parsed_block, $block_context );
 
 			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
 			$source_value = $block_binding_source->get_value( $source_args, $block_instance, $attribute_name );
