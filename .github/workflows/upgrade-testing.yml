@@ -37,7 +37,7 @@ permissions: {}
 # Because the number of jobs spawned can quickly balloon out of control, the following methodology is applied when
 # building out the matrix below:
 #
-# - The three most recent releases of WordPress are tested against all PHP/MySQL LTS version combinations and the
+# - The two most recent releases of WordPress are tested against all PHP/MySQL LTS version combinations and the
 #   most recent innovation release.
 # - The next 6 oldest versions of WordPress are tested against both the oldest and newest releases of PHP currently
 #   supported for both PHP 7 & 8 along with the oldest and newest MySQL LTS versions currently supported (no innovation
@@ -45,7 +45,7 @@ permissions: {}
 # - Of the remaining versions of WordPress still receiving security updates, only test the ones where the database
 #   version was updated since the previous major release.
 # - The oldest version of WordPress receiving security updates should always be tested against the same combinations as
-#   detailed for the three most recent releases.
+#   detailed for the two most recent releases.
 
 #  Notes about chosen MySQL versions:
 #    - Only the most recent innovation release should be included in testing.
@@ -54,7 +54,7 @@ permissions: {}
 #    - 5.6.x Docker containers are available and work, but 5.6 only accounts for ~2.3% of installs as of 12/6/2024.defaults:
 #    - 5.7.x accounts for ~20% of installs, so this is used below instead.
 jobs:
-  # Tests the full list of PHP/MySQL combinations for the three most recent versions of WordPress.
+  # Tests the full list of PHP/MySQL combinations for the two most recent versions of WordPress.
   upgrade-tests-recent-releases:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
