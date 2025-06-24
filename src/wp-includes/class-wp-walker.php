@@ -252,13 +252,23 @@ class Walker {
 			$this->display_element( $e, $children_elements, $max_depth, 0, $args, $output );
 		}
 
+		$has_excluded_parents = false;
+
+		if ( $max_depth > 0 ) {
+			if ( is_array( $args[0] ) && ! empty( $args[0]['exclude'] ) ) {
+				$has_excluded_parents = true;
+			} elseif ( is_object( $args[0] ) && ! empty( $args[0]->exclude ) ) {
+				$has_excluded_parents = true;
+			}
+		}
+
 		/*
-		* If we are displaying all levels (depth=0),
+		* If we are displaying all levels (depth = 0),
 		* OR if specific parents were excluded with limited depth,
 		* we may have got orphans, which should be displayed regardless.
 		*/
-		if ( 0 === $max_depth || ( $max_depth > 0 && ! empty( $args[0]->exclude ) ) ) {
-			if ( count( $children_elements ) > 0 ) {
+		if ( 0 === $max_depth || $has_excluded_parents ) {
+			if ( ! empty( $children_elements ) ) {
 				$empty_array = array();
 				foreach ( $children_elements as $orphans ) {
 					foreach ( $orphans as $op ) {
