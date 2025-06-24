@@ -149,10 +149,10 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 		$params = array_diff_key( $params, $query_params );
 
 		if ( empty( $params ) || ! empty( array_diff_key( $params, $options ) ) ) {
-			$message = empty( $params ) 
+			$message = empty( $params )
 				? __( 'Request body cannot be empty.' )
 				: __( 'Invalid parameter(s) provided.' );
-			
+
 			return new WP_Error(
 				'rest_invalid_param',
 				$message,
