@@ -1551,7 +1551,6 @@ if ( ! function_exists( 'wp_sanitize_redirect' ) ) :
 		return _deep_replace( $strip, $location );
 	}
 
-
 	/**
 	 * URL encodes UTF-8 characters in a URL.
 	 *
