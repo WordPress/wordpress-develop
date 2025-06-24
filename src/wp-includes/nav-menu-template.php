@@ -503,7 +503,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 			}
 		}
 
-		// if current item, set active menu parent and ancestors
+		// if current item, set active menu parent and ancestors.
 		if ( $menu_items[ $key ]->current ) {
 			$active_parent_item_ids[]   = (int) $menu_item->menu_item_parent;
 			$active_parent_object_ids[] = (int) $menu_item->post_parent;
