@@ -481,13 +481,13 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 */
 		$phpmailer->CharSet = apply_filters( 'wp_mail_charset', $charset );
 
-		// Set mail's subject and body
+		// Set mail's subject and body.
 		$phpmailer->Subject = $subject;
 
 		if ( is_string( $message ) ) {
 			$phpmailer->Body = $message;
-			// Set Content-Type
-			// If we don't have a content-type from the input headers
+			// Set Content-Type.
+			// If we don't have a content-type from the input headers.
 			if ( ! isset( $content_type ) ) {
 				$content_type = 'text/plain';
 			}
@@ -501,13 +501,13 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			*/
 			$content_type           = apply_filters( 'wp_mail_content_type', $content_type );
 			$phpmailer->ContentType = $content_type;
-			// Set whether it's plaintext, depending on $content_type
+			// Set whether it's plaintext, depending on $content_type.
 			if ( 'text/html' === $content_type ) {
 					$phpmailer->isHTML( true );
 			}
 
 			// For backwards compatibility, new multipart emails should use
-			// the array style $message. This never really worked well anyway
+			// the array style $message. This never really worked well anyway.
 			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
 				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
 			}
@@ -525,13 +525,20 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			}
 		}
 
-		// Set to use PHP's mail()
+		// Set to use PHP's mail().
 		$phpmailer->isMail();
 
-		// Set custom headers
+		// Set custom headers.
 		if ( ! empty( $headers ) ) {
 			foreach ( (array) $headers as $name => $content ) {
-				$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+				// Only add custom headers not added automatically by PHPMailer.
+				if ( ! in_array( $name, array( 'MIME-Version', 'X-Mailer' ), true ) ) {
+					try {
+						$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+					} catch ( PHPMailer\PHPMailer\Exception $e ) {
+						continue;
+					}
+				}
 			}
 		}
 
