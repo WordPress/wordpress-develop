@@ -54,14 +54,6 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		// Already created by install defaults:
 		// $factory->term->create( array( 'taxonomy' => 'category', 'name' => 'uncategorized' ) );
 
-		self::$post_ids[] = $factory->post->create(
-			array(
-				'import_id'  => 587,
-				'post_title' => 'post-format-test-audio',
-				'post_date'  => '2008-06-02 00:00:00',
-			)
-		);
-
 		$post_format_audio_id = $factory->post->create(
 			array(
 				'import_id'  => 587,
