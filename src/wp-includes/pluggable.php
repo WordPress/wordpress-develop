@@ -155,6 +155,11 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * However, you can set the content type of the email by using the
 	 * {@see 'wp_mail_content_type'} filter.
 	 *
+	 * If $message is an array, the key of each is used to add as an attachment
+	 * with the value used as the body. The 'text/plain' element is used as the
+	 * text version of the body, with the 'text/html' element used as the HTML
+	 * version of the body. All other types are added as attachments.
+	 *
 	 * The default charset is based on the charset used on the blog. The charset can
 	 * be set using the {@see 'wp_mail_charset'} filter.
 	 *
@@ -166,7 +171,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 *
 	 * @param string|string[] $to          Array or comma-separated list of email addresses to send message.
 	 * @param string          $subject     Email subject.
-	 * @param string          $message     Message contents.
+	 * @param string|array $message     Message contents
 	 * @param string|string[] $headers     Optional. Additional headers.
 	 * @param string|string[] $attachments Optional. Paths to files to attach.
 	 * @return bool Whether the email was sent successfully.
@@ -318,6 +323,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							}
 							break;
 						case 'content-type':
+							if ( is_array( $message ) ) {
+								// Multipart email, ignore the content-type header
+								break;
+							}
 							if ( str_contains( $content, ';' ) ) {
 								list( $type, $charset_content ) = explode( ';', $content );
 								$content_type                   = trim( $type );
@@ -417,10 +426,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			return false;
 		}
 
-		// Set mail's subject and body.
-		$phpmailer->Subject = $subject;
-		$phpmailer->Body    = $message;
-
 		// Set destination addresses, using appropriate methods for handling addresses.
 		$address_headers = compact( 'to', 'cc', 'bcc', 'reply_to' );
 
@@ -461,32 +466,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			}
 		}
 
-		// Set to use PHP's mail().
-		$phpmailer->isMail();
-
-		// Set Content-Type and charset.
-
-		// If we don't have a Content-Type from the input headers.
-		if ( ! isset( $content_type ) ) {
-			$content_type = 'text/plain';
-		}
-
-		/**
-		 * Filters the wp_mail() content type.
-		 *
-		 * @since 2.3.0
-		 *
-		 * @param string $content_type Default wp_mail() content type.
-		 */
-		$content_type = apply_filters( 'wp_mail_content_type', $content_type );
-
-		$phpmailer->ContentType = $content_type;
-
-		// Set whether it's plaintext, depending on $content_type.
-		if ( 'text/html' === $content_type ) {
-			$phpmailer->isHTML( true );
-		}
-
+		//Set a charset.
 		// If we don't have a charset from the input headers.
 		if ( ! isset( $charset ) ) {
 			$charset = get_bloginfo( 'charset' );
@@ -501,21 +481,57 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 */
 		$phpmailer->CharSet = apply_filters( 'wp_mail_charset', $charset );
 
-		// Set custom headers.
-		if ( ! empty( $headers ) ) {
-			foreach ( (array) $headers as $name => $content ) {
-				// Only add custom headers not added automatically by PHPMailer.
-				if ( ! in_array( $name, array( 'MIME-Version', 'X-Mailer' ), true ) ) {
-					try {
-						$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
-					} catch ( PHPMailer\PHPMailer\Exception $e ) {
-						continue;
+		// Set mail's subject and body
+		$phpmailer->Subject = $subject;
+
+		if ( is_string( $message ) ) {
+			$phpmailer->Body = $message;
+			// Set Content-Type
+			// If we don't have a content-type from the input headers
+			if ( ! isset( $content_type ) ) {
+				$content_type = 'text/plain';
+			}
+
+			/**
+			* Filters the wp_mail() content type.
+			*
+			* @since 2.3.0
+			*
+			* @param string $content_type Default wp_mail() content type.
+			*/
+			$content_type           = apply_filters( 'wp_mail_content_type', $content_type );
+			$phpmailer->ContentType = $content_type;
+			// Set whether it's plaintext, depending on $content_type
+			if ( 'text/html' === $content_type ) {
+					$phpmailer->isHTML( true );
+			}
+
+			// For backwards compatibility, new multipart emails should use
+			// the array style $message. This never really worked well anyway
+			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
+				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
+			}
+		} elseif ( is_array( $message ) ) {
+			foreach ( $message as $type => $bodies ) {
+				foreach ( (array) $bodies as $body ) {
+					if ( 'text/html' === $type ) {
+						$phpmailer->Body = $body;
+					} elseif ( 'text/plain' === $type ) {
+						$phpmailer->AltBody = $body;
+					} else {
+						$phpmailer->addAttachment( $body, '', 'base64', $type );
 					}
 				}
 			}
+		}
 
-			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
-				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
+		// Set to use PHP's mail()
+		$phpmailer->isMail();
+
+		// Set custom headers
+		if ( ! empty( $headers ) ) {
+			foreach ( (array) $headers as $name => $content ) {
+				$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
 			}
 		}
 
