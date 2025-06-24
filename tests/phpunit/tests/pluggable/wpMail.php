@@ -572,19 +572,19 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		preg_match( '/boundary="(.*)"/', $GLOBALS['phpmailer']->mock_sent[0]['header'], $matches );
 		$boundary = $matches[1];
-		$body     = '--' . $boundary . "\n";
-		$body    .= 'Content-Type: text/plain; charset=us-ascii' . "\n";
-		$body    .= "\n";
-		$body    .= 'Here is some plain text.' . "\n";
-		$body    .= "\n";
-		$body    .= '--' . $boundary . "\n";
-		$body    .= 'Content-Type: text/html; charset=UTF-8' . "\n";
-		$body    .= 'Content-Transfer-Encoding: 8bit' . "\n";
-		$body    .= "\n";
-		$body    .= '<html><head></head><body>Here is the HTML with UTF-8 γειά σου Κόσμε;-)<body></html>' . "\n";
-		$body    .= "\n";
-		$body    .= "\n";
-		$body    .= '--' . $boundary . '--' . "\n";
+		$body     = '--' . $boundary . "\r\n";
+		$body    .= 'Content-Type: text/plain; charset=us-ascii' . "\r\n";
+		$body    .= "\r\n";
+		$body    .= 'Here is some plain text.' . "\r\n";
+		$body    .= "\r\n";
+		$body    .= '--' . $boundary . "\r\n";
+		$body    .= 'Content-Type: text/html; charset=UTF-8' . "\r\n";
+		$body    .= 'Content-Transfer-Encoding: 8bit' . "\r\n";
+		$body    .= "\r\n";
+		$body    .= '<html><head></head><body>Here is the HTML with UTF-8 γειά σου Κόσμε;-)<body></html>' . "\r\n";
+		$body    .= "\r\n";
+		$body    .= "\r\n";
+		$body    .= '--' . $boundary . '--' . "\r\n";
 
 		// We need some better assertions here but these test the behaviour for now.
 		$this->assertEquals( $body, $GLOBALS['phpmailer']->mock_sent[0]['body'], 'The body is not as expected.' );
