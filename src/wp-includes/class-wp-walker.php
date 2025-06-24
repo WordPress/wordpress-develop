@@ -254,7 +254,7 @@ class Walker {
 
 		$has_excluded_parents = false;
 
-		if ( $max_depth > 0 ) {
+		if ( $max_depth > 0 && isset( $args[0] ) ) {
 			if ( is_array( $args[0] ) && ! empty( $args[0]['exclude'] ) ) {
 				$has_excluded_parents = true;
 			} elseif ( is_object( $args[0] ) && ! empty( $args[0]->exclude ) ) {
