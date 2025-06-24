@@ -804,6 +804,12 @@
 				outline-offset: -4px;
 			}
 		}
+
+		&.aligncenter .wp-block-file__button {
+			margin-left: auto;
+			margin-right: auto;
+		}
+
 	}
 
 	//! Code

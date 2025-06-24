@@ -782,6 +782,11 @@ ul.wp-block-archives,
 	text-align: center;
 }
 
+.wp-block[data-align=center] .wp-block-file__button {
+	margin-left: auto;
+	margin-right: auto;
+}
+
 /** === Latest Posts === */
 .wp-block-latest-posts {
 
