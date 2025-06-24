@@ -331,16 +331,16 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 
 			if ( ! empty( $meta['album'] ) && ! empty( $meta['artist'] ) ) {
 				/* translators: 1: Audio track title, 2: Album title, 3: Artist name. */
-				$content .= sprintf( __( '"%1$s" from %2$s by %3$s.' ), $title, $meta['album'], $meta['artist'] );
+				$content .= sprintf( __( '&#8220;%1$s&#8221; from %2$s by %3$s.' ), $title, $meta['album'], $meta['artist'] );
 			} elseif ( ! empty( $meta['album'] ) ) {
 				/* translators: 1: Audio track title, 2: Album title. */
-				$content .= sprintf( __( '"%1$s" from %2$s.' ), $title, $meta['album'] );
+				$content .= sprintf( __( '&#8220;%1$s&#8221; from %2$s.' ), $title, $meta['album'] );
 			} elseif ( ! empty( $meta['artist'] ) ) {
 				/* translators: 1: Audio track title, 2: Artist name. */
-				$content .= sprintf( __( '"%1$s" by %2$s.' ), $title, $meta['artist'] );
+				$content .= sprintf( __( '&#8220;%1$s&#8221; by %2$s.' ), $title, $meta['artist'] );
 			} else {
 				/* translators: %s: Audio track title. */
-				$content .= sprintf( __( '"%s".' ), $title );
+				$content .= sprintf( __( '&#8220;%s&#8221;.' ), $title );
 			}
 		} elseif ( ! empty( $meta['album'] ) ) {
 
