@@ -219,6 +219,10 @@ if ( ! function_exists( 'twenty_twenty_one_the_posts_navigation' ) ) {
 	 * @return void
 	 */
 	function twenty_twenty_one_the_posts_navigation() {
+		$order         = get_query_var( 'order', 'DESC' );
+		$nav_prev_text = ( 'DESC' === $order ) ? __( 'Newer', 'twentytwentyone' ) : __( 'Older', 'twentytwentyone' );
+		$nav_next_text = ( 'DESC' === $order ) ? __( 'Older', 'twentytwentyone' ) : __( 'Newer', 'twentytwentyone' );
+
 		the_posts_pagination(
 			array(
 				'before_page_number' => esc_html__( 'Page', 'twentytwentyone' ) . ' ',
@@ -227,7 +231,11 @@ if ( ! function_exists( 'twenty_twenty_one_the_posts_navigation' ) ) {
 					'%s <span class="nav-prev-text">%s</span>',
 					is_rtl() ? twenty_twenty_one_get_icon_svg( 'ui', 'arrow_right' ) : twenty_twenty_one_get_icon_svg( 'ui', 'arrow_left' ),
 					wp_kses(
-						__( 'Newer <span class="nav-short">posts</span>', 'twentytwentyone' ),
+						sprintf(
+							/* translators: label for previous entries */
+							__( '%s <span class="nav-short">posts</span>', 'twentytwentyone' ),
+							$nav_prev_text
+						),
 						array(
 							'span' => array(
 								'class' => array(),
@@ -238,7 +246,11 @@ if ( ! function_exists( 'twenty_twenty_one_the_posts_navigation' ) ) {
 				'next_text'          => sprintf(
 					'<span class="nav-next-text">%s</span> %s',
 					wp_kses(
-						__( 'Older <span class="nav-short">posts</span>', 'twentytwentyone' ),
+						sprintf(
+							/* translators: label for next entries */
+							__( '%s <span class="nav-short">posts</span>', 'twentytwentyone' ),
+							$nav_next_text
+						),
 						array(
 							'span' => array(
 								'class' => array(),
