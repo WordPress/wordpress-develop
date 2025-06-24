@@ -458,6 +458,13 @@
 	margin: 5px 0 0 0;
 }
 
+.editor-styles-wrapper ul.wp-block-archives.has-text-color li,
+.editor-styles-wrapper ul.wp-block-categories.has-text-color li,
+.editor-styles-wrapper ul.wp-block-latest-posts.has-text-color li,
+.editor-styles-wrapper ul.wp-block-categories__list.has-text-color li {
+	color: inherit;
+}
+
 .editor-styles-wrapper ul.wp-block-archives li li,
 .editor-styles-wrapper ul.wp-block-categories li li,
 .editor-styles-wrapper ul.wp-block-categories__list li li,
@@ -497,6 +504,10 @@
 	margin-top: 0.15em;
 }
 
+.editor-styles-wrapper .wp-block-latest-comments.has-text-color time,
+.editor-styles-wrapper .wp-block-latest-posts.has-text-color time {
+	color: inherit;
+}
 
 /* Block: Table ------------------------------ */
 
