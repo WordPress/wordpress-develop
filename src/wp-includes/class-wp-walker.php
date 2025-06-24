@@ -257,7 +257,7 @@ class Walker {
 		* OR if specific parents were excluded with limited depth,
 		* we may have got orphans, which should be displayed regardless.
 		*/
-		if ( 0 === $max_depth || ( $max_depth > 0 && ! empty( $args[0]['exclude'] ) ) ) {
+		if ( 0 === $max_depth || ( $max_depth > 0 && ! empty( $args[0]->exclude ) ) ) {
 			if ( count( $children_elements ) > 0 ) {
 				$empty_array = array();
 				foreach ( $children_elements as $orphans ) {
