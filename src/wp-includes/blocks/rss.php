@@ -32,7 +32,8 @@ function render_block_core_rss( $attributes ) {
 	$rss_items  = $rss->get_items( 0, $attributes['itemsToShow'] );
 	$list_items = '';
 	foreach ( $rss_items as $item ) {
-		$title = esc_html( trim( strip_tags( $item->get_title() ) ) );
+		$title = esc_html( trim( strip_tags( html_entity_decode( $item->get_title() ) ) ) );
+
 		if ( empty( $title ) ) {
 			$title = __( '(no title)' );
 		}

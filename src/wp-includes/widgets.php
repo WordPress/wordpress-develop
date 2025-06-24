@@ -1630,7 +1630,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 		}
 		$link = esc_url( strip_tags( $link ) );
 
-		$title = esc_html( trim( strip_tags( html_entity_decode( $item->get_title(), ENT_QUOTES, get_option( 'blog_charset' ) ) ) ) );
+		$title = esc_html( trim( strip_tags( html_entity_decode( $item->get_title() ) ) ) );
 
 		if ( empty( $title ) ) {
 			$title = __( 'Untitled' );
