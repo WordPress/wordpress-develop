@@ -1228,12 +1228,7 @@ function link_categories_meta_box( $link ) {
 function link_target_meta_box( $link ) {
 
 	?>
-<fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: Hidden accessibility text. */
-	_e( 'Target' );
-	?>
-</span></legend>
+<fieldset><legend class="screen-reader-text"><span><?php _e( 'Target' ); ?></span></legend>
 <p><label for="link_target_blank" class="selectit">
 <input id="link_target_blank" type="radio" name="link_target" value="_blank" <?php echo ( isset( $link->link_target ) && ( '_blank' === $link->link_target ) ? 'checked="checked"' : '' ); ?> />
 	<?php _e( '<code>_blank</code> &mdash; new window or tab.' ); ?></label></p>
@@ -1324,12 +1319,7 @@ function link_xfn_meta_box( $link ) {
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'identity' ); ?></th>
 		<td><fieldset>
-			<legend class="screen-reader-text"><span>
-				<?php
-				/* translators: Hidden accessibility text. xfn: https://gmpg.org/xfn/ */
-				_e( 'identity' );
-				?>
-			</span></legend>
+			<legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'identity' ); ?></span></legend>
 			<label for="me">
 			<input type="checkbox" name="identity" value="me" id="me" <?php xfn_check( 'identity', 'me' ); ?> />
 			<?php _e( 'another web address of mine' ); ?></label>
@@ -1338,12 +1328,7 @@ function link_xfn_meta_box( $link ) {
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'friendship' ); ?></th>
 		<td><fieldset>
-			<legend class="screen-reader-text"><span>
-				<?php
-				/* translators: Hidden accessibility text. xfn: https://gmpg.org/xfn/ */
-				_e( 'friendship' );
-				?>
-			</span></legend>
+			<legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'friendship' ); ?></span></legend>
 			<label for="contact">
 			<input class="valinp" type="radio" name="friendship" value="contact" id="contact" <?php xfn_check( 'friendship', 'contact' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'contact' ); ?>
 			</label>
@@ -1361,12 +1346,7 @@ function link_xfn_meta_box( $link ) {
 	<tr>
 		<th scope="row"> <?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'physical' ); ?> </th>
 		<td><fieldset>
-			<legend class="screen-reader-text"><span>
-				<?php
-				/* translators: Hidden accessibility text. xfn: https://gmpg.org/xfn/ */
-				_e( 'physical' );
-				?>
-			</span></legend>
+			<legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'physical' ); ?></span></legend>
 			<label for="met">
 			<input class="valinp" type="checkbox" name="physical" value="met" id="met" <?php xfn_check( 'physical', 'met' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'met' ); ?>
 			</label>
@@ -1375,12 +1355,7 @@ function link_xfn_meta_box( $link ) {
 	<tr>
 		<th scope="row"> <?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'professional' ); ?> </th>
 		<td><fieldset>
-			<legend class="screen-reader-text"><span>
-				<?php
-				/* translators: Hidden accessibility text. xfn: https://gmpg.org/xfn/ */
-				_e( 'professional' );
-				?>
-			</span></legend>
+			<legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'professional' ); ?></span></legend>
 			<label for="co-worker">
 			<input class="valinp" type="checkbox" name="professional" value="co-worker" id="co-worker" <?php xfn_check( 'professional', 'co-worker' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'co-worker' ); ?>
 			</label>
@@ -1392,12 +1367,7 @@ function link_xfn_meta_box( $link ) {
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'geographical' ); ?></th>
 		<td><fieldset>
-			<legend class="screen-reader-text"><span>
-				<?php
-				/* translators: Hidden accessibility text. xfn: https://gmpg.org/xfn/ */
-				_e( 'geographical' );
-				?>
-			</span></legend>
+			<legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'geographical' ); ?></span></legend>
 			<label for="co-resident">
 			<input class="valinp" type="radio" name="geographical" value="co-resident" id="co-resident" <?php xfn_check( 'geographical', 'co-resident' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'co-resident' ); ?>
 			</label>
@@ -1412,12 +1382,7 @@ function link_xfn_meta_box( $link ) {
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'family' ); ?></th>
 		<td><fieldset>
-			<legend class="screen-reader-text"><span>
-				<?php
-				/* translators: Hidden accessibility text. xfn: https://gmpg.org/xfn/ */
-				_e( 'family' );
-				?>
-			</span></legend>
+			<legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'family' ); ?></span></legend>
 			<label for="child">
 			<input class="valinp" type="radio" name="family" value="child" id="child" <?php xfn_check( 'family', 'child' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'child' ); ?>
 			</label>
@@ -1441,12 +1406,7 @@ function link_xfn_meta_box( $link ) {
 	<tr>
 		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'romantic' ); ?></th>
 		<td><fieldset>
-			<legend class="screen-reader-text"><span>
-				<?php
-				/* translators: Hidden accessibility text. xfn: https://gmpg.org/xfn/ */
-				_e( 'romantic' );
-				?>
-			</span></legend>
+			<legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'romantic' ); ?></span></legend>
 			<label for="muse">
 			<input class="valinp" type="checkbox" name="romantic" value="muse" id="muse" <?php xfn_check( 'romantic', 'muse' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'muse' ); ?>
 			</label>
