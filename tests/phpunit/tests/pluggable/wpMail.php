@@ -587,7 +587,11 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		$body    .= '--' . $boundary . '--' . "\r\n";
 
 		// We need some better assertions here but these test the behaviour for now.
-		$this->assertEquals( $body, $GLOBALS['phpmailer']->mock_sent[0]['body'], 'The body is not as expected.' );
+		$this->assertEquals(
+			str_replace( "\r\n", "\n", $body ),
+			str_replace( "\r\n", "\n", $GLOBALS['phpmailer']->mock_sent[0]['body'] ),
+			'The body is not as expected.'
+		);
 		$this->assertSame(
 			1,
 			substr_count( $GLOBALS['phpmailer']->mock_sent[0]['header'], 'Content-Type: multipart/alternative;' ),
