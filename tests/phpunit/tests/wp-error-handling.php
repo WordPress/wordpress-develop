@@ -151,7 +151,7 @@ class Tests_WP_Error_Handling extends \WP_UnitTestCase {
 	}
 
 	public function data_wp_error_handler_printer() {
-		return array(
+		$tests = array(
 			'display_errors off'                        => array(
 				array( 'ini' => array( 'display_errors' => 'off' ) ),
 				array(
@@ -299,7 +299,6 @@ class Tests_WP_Error_Handling extends \WP_UnitTestCase {
 					array( E_PARSE, 'E_PARSE', 'file.php', 1, 'wp' ),
 					array( E_NOTICE, 'E_NOTICE', 'file.php', 1, 'wp' ),
 					array( E_USER_NOTICE, 'E_USER_NOTICE', 'file.php', 1, 'wp' ),
-					array( E_STRICT, 'E_STRICT', 'file.php', 1, 'wp' ),
 					array( E_DEPRECATED, 'E_DEPRECATED', 'file.php', 1, 'wp' ),
 					array( E_USER_DEPRECATED, 'E_USER_DEPRECATED', 'file.php', 1, 'wp' ),
 					array( -1, 'neg-one', 'file.php', 1, 'wp' ),
@@ -316,7 +315,6 @@ class Tests_WP_Error_Handling extends \WP_UnitTestCase {
 				. "<br />\n<b>Parse error</b>:  E_PARSE in <b>file.php</b> on line <b>1</b><br />\n"
 				. "<br />\n<b>Notice</b>:  E_NOTICE in <b>file.php</b> on line <b>1</b><br />\n"
 				. "<br />\n<b>Notice</b>:  E_USER_NOTICE in <b>file.php</b> on line <b>1</b><br />\n"
-				. "<br />\n<b>Strict Standards</b>:  E_STRICT in <b>file.php</b> on line <b>1</b><br />\n"
 				. "<br />\n<b>Deprecated</b>:  E_DEPRECATED in <b>file.php</b> on line <b>1</b><br />\n"
 				. "<br />\n<b>Deprecated</b>:  E_USER_DEPRECATED in <b>file.php</b> on line <b>1</b><br />\n"
 				. "<br />\n<b>Unknown error</b>:  neg-one in <b>file.php</b> on line <b>1</b><br />\n",
@@ -359,6 +357,20 @@ class Tests_WP_Error_Handling extends \WP_UnitTestCase {
 				. "<br />\n<b>Fatal error</b>:  &lt;i&gt;Some other error&lt;/i&gt; in <b>some-file.php</b> on line <b>42</b><br />\n",
 			),
 		);
+
+		if ( defined( 'E_STRICT' ) ) {
+			$tests['Deprecated error code E_STRICT'] = array(
+				// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Avoid warnings for constant deprecated in 8.4, while still supporting it for earlier versions.
+				array( 'ini' => array( 'error_reporting' => E_ALL | @E_STRICT ) ),
+				array(
+					// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Avoid warnings for constant deprecated in 8.4, while still supporting it for earlier versions.
+					array( @E_STRICT, 'E_STRICT', 'file.php', 1, 'wp' ),
+				),
+				"<br />\n<b>Strict Standards</b>:  E_STRICT in <b>file.php</b> on line <b>1</b><br />\n",
+			);
+		}
+
+		return $tests;
 	}
 
 	public function test_wp_error_handler_printer_turn_off() {

@@ -116,6 +116,9 @@ function _wp_error_handler_printer( $errno, $errstr, $errfile, $errline ) {
 		}
 	}
 
+	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Avoid warnings for constant deprecated in 8.4, while still supporting it for earlier versions.
+	$e_strict = defined( 'E_STRICT' ) ? @E_STRICT : 'E_STRICT';
+
 	switch ( $errno ) {
 		case E_ERROR:
 		case E_CORE_ERROR:
@@ -139,7 +142,7 @@ function _wp_error_handler_printer( $errno, $errstr, $errfile, $errline ) {
 		case E_USER_NOTICE:
 			$type_str = 'Notice';
 			break;
-		case E_STRICT:
+		case $e_strict:
 			$type_str = 'Strict Standards';
 			break;
 		case E_DEPRECATED:
