@@ -569,38 +569,29 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		);
 
 		wp_mail( $to, $subject, $messages );
+		$mailer = tests_retrieve_phpmailer_instance();
 
-		preg_match( '/boundary="(.*)"/', $GLOBALS['phpmailer']->mock_sent[0]['header'], $matches );
+		preg_match( '/boundary="(.*)"/', $mailer->get_sent()->header, $matches );
 		$boundary = $matches[1];
-		$body     = '--' . $boundary . "\r\n";
-		$body    .= 'Content-Type: text/plain; charset=us-ascii' . "\r\n";
-		$body    .= "\r\n";
-		$body    .= 'Here is some plain text.' . "\r\n";
-		$body    .= "\r\n";
-		$body    .= '--' . $boundary . "\r\n";
-		$body    .= 'Content-Type: text/html; charset=UTF-8' . "\r\n";
-		$body    .= 'Content-Transfer-Encoding: 8bit' . "\r\n";
-		$body    .= "\r\n";
-		$body    .= '<html><head></head><body>Here is the HTML with UTF-8 γειά σου Κόσμε;-)<body></html>' . "\r\n";
-		$body    .= "\r\n";
-		$body    .= "\r\n";
-		$body    .= '--' . $boundary . '--' . "\r\n";
+		$body     = '--' . $boundary . "\n";
+		$body    .= 'Content-Type: text/plain; charset=us-ascii' . "\n";
+		$body    .= "\n";
+		$body    .= 'Here is some plain text.' . "\n";
+		$body    .= "\n";
+		$body    .= '--' . $boundary . "\n";
+		$body    .= 'Content-Type: text/html; charset=UTF-8' . "\n";
+		$body    .= 'Content-Transfer-Encoding: 8bit' . "\n";
+		$body    .= "\n";
+		$body    .= '<html><head></head><body>Here is the HTML with UTF-8 γειά σου Κόσμε;-)<body></html>' . "\n";
+		$body    .= "\n";
+		$body    .= "\n";
+		$body    .= '--' . $boundary . '--' . "\n";
 
-		// We need some better assertions here but these test the behaviour for now.
-		$this->assertEquals(
-			str_replace( "\r\n", "\n", $body ),
-			str_replace( "\r\n", "\n", $GLOBALS['phpmailer']->mock_sent[0]['body'] ),
-			'The body is not as expected.'
-		);
-		$this->assertSame(
-			1,
-			substr_count( $GLOBALS['phpmailer']->mock_sent[0]['header'], 'Content-Type: multipart/alternative;' ),
-			'The multipart / alternative header is not present.'
-		);
-		$this->assertSame(
-			1,
-			substr_count( $GLOBALS['phpmailer']->mock_sent[0]['header'], 'Content-Type:' ),
-			'The Content-Type header is not present.'
+		$this->assertSameIgnoreEOL( $body, $mailer->get_sent()->body, 'The body is not as expected.' );
+		$this->assertStringContainsString(
+			'Content-Type: multipart/alternative;',
+			$mailer->get_sent()->header,
+			'The multipart/alternative header is not present.'
 		);
 	}
 
@@ -625,10 +616,22 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		wp_mail( $to, $subject, $message );
 		remove_action( 'phpmailer_init', array( $this, 'wp_mail_set_alt_body' ) );
 
-		$this->assertSame( 1, substr_count( $GLOBALS['phpmailer']->mock_sent[0]['header'], 'Content-Type: multipart/alternative;' ) );
-		$this->assertSame( 1, substr_count( $GLOBALS['phpmailer']->mock_sent[0]['header'], 'Content-Type:' ) );
-		$this->assertSame( 1, substr_count( $GLOBALS['phpmailer']->mock_sent[0]['body'], 'Content-Type: text/plain; charset=UTF-8' ) );
-		$this->assertSame( 1, substr_count( $GLOBALS['phpmailer']->mock_sent[0]['body'], 'Content-Type: text/html; charset=UTF-8' ) );
-		$this->assertSame( 2, substr_count( $GLOBALS['phpmailer']->mock_sent[0]['body'], 'Content-Type:' ) );
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertStringContainsString(
+			'Content-Type: multipart/alternative;',
+			$mailer->get_sent()->header,
+			'The multipart/alternative header is not present.'
+		);
+		$this->assertStringContainsString(
+			'Content-Type: text/plain; charset=UTF-8',
+			$mailer->get_sent()->body,
+			'The text/plain Content-Type header is not present.'
+		);
+		$this->assertStringContainsString(
+			'Content-Type: text/html; charset=UTF-8',
+			$mailer->get_sent()->body,
+			'The text/html Content-Type header is not present.'
+		);
 	}
 }
