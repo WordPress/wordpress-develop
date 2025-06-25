@@ -330,12 +330,7 @@ printf(
 	<th scope="row"><?php _e( 'Permalink structure' ); ?></th>
 	<td>
 		<fieldset class="structure-selection">
-			<legend class="screen-reader-text">
-				<?php
-				/* translators: Hidden accessibility text. */
-				_e( 'Permalink structure' );
-				?>
-			</legend>
+			<legend class="screen-reader-text"><?php _e( 'Permalink structure' ); ?></legend>
 			<?php foreach ( $default_structures as $input ) : ?>
 			<div class="row">
 				<input id="permalink-input-<?php echo esc_attr( $input['id'] ); ?>"

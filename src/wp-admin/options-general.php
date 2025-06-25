@@ -293,12 +293,7 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
 
 <tr>
 <th scope="row"><?php _e( 'Membership' ); ?></th>
-<td> <fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: Hidden accessibility text. */
-	_e( 'Membership' );
-	?>
-</span></legend><label for="users_can_register">
+<td> <fieldset><legend class="screen-reader-text"><span><?php _e( 'Membership' ); ?></span></legend><label for="users_can_register">
 <input name="users_can_register" type="checkbox" id="users_can_register" value="1" <?php checked( '1', get_option( 'users_can_register' ) ); ?> />
 	<?php _e( 'Anyone can register' ); ?></label>
 </fieldset></td>
@@ -464,12 +459,7 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 <tr>
 <th scope="row"><?php _e( 'Date Format' ); ?></th>
 <td>
-	<fieldset><legend class="screen-reader-text"><span>
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Date Format' );
-		?>
-	</span></legend>
+	<fieldset><legend class="screen-reader-text"><span><?php _e( 'Date Format' ); ?></span></legend>
 <?php
 	/**
 	 * Filters the default date formats.
@@ -514,12 +504,7 @@ foreach ( $date_formats as $format ) {
 <tr>
 <th scope="row"><?php _e( 'Time Format' ); ?></th>
 <td>
-	<fieldset><legend class="screen-reader-text"><span>
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Time Format' );
-		?>
-	</span></legend>
+	<fieldset><legend class="screen-reader-text"><span><?php _e( 'Time Format' ); ?></span></legend>
 <?php
 	/**
 	 * Filters the default time formats.
