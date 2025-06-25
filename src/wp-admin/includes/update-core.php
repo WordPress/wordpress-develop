@@ -1229,7 +1229,6 @@ function update_core( $from, $to ) {
 			sprintf(
 				/* translators: %s: WordPress version number */
 				__( 'The update cannot be installed because your database may still contain terms that are shared between categories and tags. Please update to WordPress %s first.' ),
-				$wp_version,
 				$interim_version
 			)
 		);
