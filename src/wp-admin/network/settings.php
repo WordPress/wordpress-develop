@@ -514,10 +514,7 @@ if ( isset( $_GET['updated'] ) ) {
 					<th scope="row"><?php _e( 'Enable administration menus' ); ?></th>
 					<td>
 						<?php
-						echo '<fieldset><legend class="screen-reader-text">' .
-							/* translators: Hidden accessibility text. */
-							__( 'Enable menus' ) .
-						'</legend>';
+						echo '<fieldset><legend class="screen-reader-text">' . __( 'Enable administration menus' ) . '</legend>';
 
 						foreach ( (array) $menu_items as $key => $val ) {
 							echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . ' /> ' . esc_html( $val ) . '</label><br/>';
