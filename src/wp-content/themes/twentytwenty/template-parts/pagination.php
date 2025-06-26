@@ -26,7 +26,7 @@ $old_posts_text = __( 'Older <span class="nav-short">Posts</span>', 'twentytwent
 $prev_text = sprintf(
 	'%s <span class="nav-prev-text">%s</span>',
 	'<span aria-hidden="true">&larr;</span>',
-	( 'DESC' === $order ) ? $new_posts_text : $old_posts_text,
+	( 'DESC' === $order ) ? $new_posts_text : $old_posts_text
 );
 $next_text = sprintf(
 	'<span class="nav-next-text">%s</span> %s',
