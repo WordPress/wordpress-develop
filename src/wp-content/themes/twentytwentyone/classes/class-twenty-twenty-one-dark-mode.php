@@ -72,7 +72,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			array( 'in_footer' => true )
 		);
 
-		if (is_admin()) {
+		if ( is_admin() ) {
 			wp_enqueue_script(
 				'twentytwentyone-editor-dark-mode-support',
 				get_template_directory_uri() . '/assets/js/editor-dark-mode-support.js',
