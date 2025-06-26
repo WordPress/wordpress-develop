@@ -415,10 +415,17 @@ if ( ! function_exists( 'twentytwelve_content_nav' ) ) :
 		global $wp_query;
 
 		if ( $wp_query->max_num_pages > 1 ) : ?>
+			<?php
+			$order   = get_query_var( 'order', 'DESC' );
+			$is_desc = ( 'DESC' === $order );
+
+			$new_posts_text = __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentytwelve' );
+			$old_posts_text = __( '<span class="meta-nav">&larr;</span> Older posts', 'twentytwelve' );
+			?>
 			<nav id="<?php echo esc_attr( $html_id ); ?>" class="navigation">
 				<h3 class="assistive-text"><?php _e( 'Post navigation', 'twentytwelve' ); ?></h3>
-				<div class="nav-previous"><?php next_posts_link( __( '<span class="meta-nav">&larr;</span> Older posts', 'twentytwelve' ) ); ?></div>
-				<div class="nav-next"><?php previous_posts_link( __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentytwelve' ) ); ?></div>
+				<div class="<?php echo esc_attr( $is_desc ? 'nav-previous' : 'nav-next' ); ?>"><?php next_posts_link( $is_desc ? $old_posts_text : $new_posts_text ); ?></div>
+				<div class="<?php echo esc_attr( $is_desc ? 'nav-next' : 'nav-previous' ); ?>"><?php previous_posts_link( $is_desc ? $new_posts_text : $old_posts_text ); ?></div>
 			</nav><!-- .navigation -->
 			<?php
 	endif;
