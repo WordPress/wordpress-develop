@@ -421,7 +421,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
 		$request->set_param( 'title', 'The new title!' );
-		$request->set_param( '_locale', 'user' );
+		$request->set_url_params( array( '_locale' => 'user' ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
