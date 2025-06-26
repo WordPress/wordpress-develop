@@ -2457,14 +2457,17 @@ function upgrade_682() {
 	global $wp_current_db_version;
 
 	if ( $wp_current_db_version < 60344 ) {
-		// Upgrade pingomatic URLs to use HTTPS.
+		// Upgrade Ping-O-Matic and Twingly to use HTTPS.
 		$ping_sites_value = get_option( 'ping_sites' );
 		$ping_sites_value = explode( "\n", $ping_sites_value );
 		$ping_sites_value = array_map(
 			function ( $url ) {
 				$url = trim( $url );
 				$url = sanitize_url( $url );
-				if ( str_ends_with( $url, '://rpc.pingomatic.com/' ) ) {
+				if (
+					str_ends_with( trailingslashit( $url ), '://rpc.pingomatic.com/' )
+					|| str_ends_with( trailingslashit( $url ), '://rpc.twingly.com/' )
+				) {
 					$url = set_url_scheme( $url, 'https' );
 				}
 				return $url;
