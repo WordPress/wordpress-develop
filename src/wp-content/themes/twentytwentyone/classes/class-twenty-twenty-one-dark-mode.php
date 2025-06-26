@@ -294,7 +294,6 @@ class Twenty_Twenty_One_Dark_Mode {
 			return;
 		}
 		$this->the_html();
-		$this->the_script();
 	}
 
 	/**
@@ -355,19 +354,6 @@ class Twenty_Twenty_One_Dark_Mode {
 		</style>
 
 		<?php
-	}
-
-	/**
-	 * Prints the dark-mode switch script.
-	 *
-	 * @since Twenty Twenty-One 1.0
-	 *
-	 * @return void
-	 */
-	public function the_script() {
-		echo '<script>';
-		include get_template_directory() . '/assets/js/dark-mode-toggler.js'; // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude
-		echo '</script>';
 	}
 
 	/**
