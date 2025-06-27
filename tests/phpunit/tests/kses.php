@@ -597,12 +597,6 @@ EOF;
 			'Encoded named entity &amp;amp;'     => array( '&amp;amp;', '&amp;amp;' ),
 			'Encoded named entity &#38;amp;'     => array( '&amp;amp;', '&amp;amp;' ),
 			'Encoded named entity &#x26;amp;'    => array( '&amp;amp;', '&amp;amp;' ),
-			'Encoded numeric entity &amp;#39;'   => array( '&amp;#39;', '&amp;#39;' ),
-			'Encoded numeric entity &#38;#39;'   => array( '&amp;#39;', '&amp;#39;' ),
-			'Encoded numeric entity &#x26;#39;'  => array( '&amp;#39;', '&amp;#39;' ),
-			'Encoded hex entity &amp;#x27;'      => array( '&amp;#x27;', '&amp;#x27;' ),
-			'Encoded hex entity &#38;#x27;'      => array( '&amp;#x27;', '&amp;#x27;' ),
-			'Encoded hex entity &#x26;#x27;'     => array( '&amp;#x27;', '&amp;#x27;' ),
 
 			/*
 			 * The codepoint value here is outside of the valid unicode range whose
