@@ -328,8 +328,9 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
 	$style_uri       = get_block_asset_url( $style_path_norm );
 
-	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
-	$result  = wp_register_style(
+	$block_version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$version       = $style_path_norm && defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? filemtime( $style_path_norm ) : $block_version;
+	$result        = wp_register_style(
 		$style_handle_name,
 		$style_uri,
 		array(),
@@ -1248,8 +1249,25 @@ function apply_block_hooks_to_content_from_post_object( $content, $post = null, 
 		$content
 	);
 
+	/*
+	 * We need to avoid inserting any blocks hooked into the `before` and `after` positions
+	 * of the temporary wrapper block that we create to wrap the content.
+	 * See https://core.trac.wordpress.org/ticket/63287 for more details.
+	 */
+	$suppress_blocks_from_insertion_before_and_after_wrapper_block = static function ( $hooked_block_types, $relative_position, $anchor_block_type ) use ( $wrapper_block_type ) {
+		if (
+			$wrapper_block_type === $anchor_block_type &&
+			in_array( $relative_position, array( 'before', 'after' ), true )
+		) {
+			return array();
+		}
+		return $hooked_block_types;
+	};
+
 	// Apply Block Hooks.
+	add_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX, 3 );
 	$content = apply_block_hooks_to_content( $content, $post, $callback );
+	remove_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX );
 
 	// Finally, we need to remove the temporary wrapper block.
 	$content = remove_serialized_parent_block( $content );
@@ -2386,11 +2404,13 @@ function parse_blocks( $content ) {
  * @return string Updated post content.
  */
 function do_blocks( $content ) {
-	$blocks = parse_blocks( $content );
-	$output = '';
+	$blocks                = parse_blocks( $content );
+	$top_level_block_count = count( $blocks );
+	$output                = '';
 
-	foreach ( $blocks as $block ) {
-		$output .= render_block( $block );
+	for ( $i = 0; $i < $top_level_block_count; $i++ ) {
+		$output .= render_block( $blocks[ $i ] );
+		$blocks[ $i ] = null;
 	}
 
 	// If there are blocks in this content, we shouldn't run wpautop() on it later.

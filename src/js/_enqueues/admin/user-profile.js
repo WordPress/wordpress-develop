@@ -56,8 +56,8 @@
 		// Once zxcvbn loads, passwords strength is known.
 		$( '#pw-weak-text-label' ).text( __( 'Confirm use of weak password' ) );
 
-		// Focus the password field.
-		if ( 'mailserver_pass' !== $pass1.prop('id' ) ) {
+		// Focus the password field if not the install screen.
+		if ( 'mailserver_pass' !== $pass1.prop('id' ) && ! $('#weblog_title').length ) {
 			$( $pass1 ).trigger( 'focus' );
 		}
 	}
@@ -101,6 +101,8 @@
 			return;
 		}
 		$toggleButton = $pass1Row.find('.wp-hide-pw');
+
+		// Toggle between showing and hiding the password.
 		$toggleButton.show().on( 'click', function () {
 			if ( 'password' === $pass1.attr( 'type' ) ) {
 				$pass1.attr( 'type', 'text' );
@@ -110,6 +112,14 @@
 				resetToggle( true );
 			}
 		});
+
+		// Ensure the password input type is set to password when the form is submitted.
+		$pass1Row.closest( 'form' ).on( 'submit', function() {
+			if ( $pass1.attr( 'type' ) === 'text' ) {
+				$pass1.attr( 'type', 'password' );
+				resetToggle( true );
+			}
+		} );
 	}
 
 	/**

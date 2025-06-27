@@ -633,7 +633,7 @@ mockedApiResponse.Schema = {
                         "ignore_sticky": {
                             "description": "Whether to ignore sticky posts or not.",
                             "type": "boolean",
-                            "default": false,
+                            "default": true,
                             "required": false
                         },
                         "format": {
