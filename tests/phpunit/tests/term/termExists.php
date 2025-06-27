@@ -401,4 +401,153 @@ class Tests_TermExists extends WP_UnitTestCase {
 		$this->assertNull( term_exists( '' ) );
 		$this->assertNull( term_exists( null ) );
 	}
+
+	/**
+	 * @ticket 55358
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_with_numeric_parent_term() {
+		register_taxonomy(
+			'foo',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$parent_term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'foo',
+			)
+		);
+
+		$child_term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'foo',
+				'parent'   => $parent_term,
+				'slug'     => 'child-term',
+			)
+		);
+
+		// Test with numeric parent_term as integer
+		$found = term_exists( 'child-term', 'foo', $parent_term );
+		$this->assertIsArray( $found );
+		$this->assertEquals( $child_term, $found['term_id'] );
+
+		// Test with numeric parent_term as string
+		$found = term_exists( 'child-term', 'foo', (string) $parent_term );
+		$this->assertIsArray( $found );
+		$this->assertEquals( $child_term, $found['term_id'] );
+
+		_unregister_taxonomy( 'foo' );
+	}
+
+	/**
+	 * @ticket 55358
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_with_non_numeric_parent_term() {
+		register_taxonomy(
+			'foo',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$parent_term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'foo',
+			)
+		);
+
+		$child_term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'foo',
+				'parent'   => $parent_term,
+				'slug'     => 'child-term',
+			)
+		);
+
+		// Test with non-numeric parent_term (should not set parent filter)
+		$found = term_exists( 'child-term', 'foo', 'not-numeric' );
+		$this->assertIsArray( $found );
+		$this->assertEquals( $child_term, $found['term_id'] );
+
+		// Test with null parent_term (should not set parent filter)
+		$found = term_exists( 'child-term', 'foo', null );
+		$this->assertIsArray( $found );
+		$this->assertEquals( $child_term, $found['term_id'] );
+
+		_unregister_taxonomy( 'foo' );
+	}
+
+	/**
+	 * @ticket 55358
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_with_empty_taxonomy_and_numeric_parent() {
+		register_taxonomy(
+			'foo',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$parent_term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'foo',
+			)
+		);
+
+		$child_term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'foo',
+				'parent'   => $parent_term,
+				'slug'     => 'child-term',
+			)
+		);
+
+		// Test with empty taxonomy and numeric parent_term (should not set parent filter)
+		$found = term_exists( 'child-term', '', $parent_term );
+		$this->assertIsString( $found );
+		$this->assertEquals( $child_term, $found );
+
+		_unregister_taxonomy( 'foo' );
+	}
+
+	/**
+	 * @ticket 55358
+	 * @covers ::term_exists()
+	 */
+	public function test_term_exists_with_wordpress_categories() {
+		// Create a parent category
+		$parent_cat = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Parent Category',
+				'slug'     => 'parent-category',
+			)
+		);
+
+		// Create a child category
+		$child_cat = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Child Category',
+				'slug'     => 'child-category',
+				'parent'   => $parent_cat,
+			)
+		);
+
+		// Test finding child category with numeric parent
+		$found = term_exists( 'child-category', 'category', $parent_cat );
+		$this->assertIsArray( $found );
+		$this->assertEquals( $child_cat, $found['term_id'] );
+
+		// Test finding child category with wrong parent
+		$found = term_exists( 'child-category', 'category', 999 );
+		$this->assertNull( $found );
+	}
 }
