@@ -1958,14 +1958,41 @@ function wp_kses_normalize_entities( $content, $context = 'html' ) {
 	// Disarm all entities by converting & to &amp;
 	$content = str_replace( '&', '&amp;', $content );
 
-	// Change back the allowed entities in our list of allowed entities.
+	/*
+	 * Decode any entities that are have just been double encoded.
+	 *
+	 * It's important that these numeric entity normalizations are performed before the named
+	 * entity normalizations to prevent encoded sequences from being decoded.
+	 *
+	 * At this point, all `&` have been transformed to `&amp;`. Below, double-encoded named entities
+	 * `&amp;amp;` will be decoded back to their encoded form `&amp;`. The following two lines
+	 * decode doubly-encoded numeric entities so that `&amp;#09;` becomes `&#9;`. If the named
+	 * entity conversion were performed first, there is no way to know if a double-encoded numeric
+	 * entity had been produced by decoding this function or was the original value.
+	 *
+	 * Consider the two examples, first with named entity decoding followed by numeric
+	 * entity decoding. We'll use U+002E FULL STOP (.) in our example:
+	 *
+	 * | Input        | &-encoded        | Named-entity double-decoded  | Numeric-entity double-decoded |
+	 * | ------------ | ---------------- | ---------------------------- | ----------------------------- |
+	 * | `&#x2E;`     | `&amp;#x2E;`     | `&amp;#x2E;`                 | `&#x2E;`                      |
+	 * | `&amp;#x2E;` | `&amp;amp;#x2E;` | `&amp;#x2E;`                 | `&#x2E;`                      |
+	 *
+	 * Notice that both inputs result in their decoded character ` `! Now consider the
+	 * with numeric double decoding first:
+	 *
+	 * | Input        | &-encoded        |  Numeric-entity double-decoded | Named-entity double-decoded |
+	 * | ------------ | ---------------- | ------------------------------ | --------------------------- |
+	 * | `&#x2E;`     | `&amp;#x2E;`     | `&#x2E;`                       | `&#x2E;`                    |
+	 * | `&amp;#x2E;` | `&amp;amp;#x2E;` | `&amp;amp;#x2E;`               | `&amp#x2E;`                 |
+	 */
+	$content = preg_replace_callback( '/&amp;#(0*[0-9]{1,7});/', 'wp_kses_normalize_entities2', $content );
+	$content = preg_replace_callback( '/&amp;#[Xx](0*[0-9A-Fa-f]{1,6});/', 'wp_kses_normalize_entities3', $content );
 	if ( 'xml' === $context ) {
 		$content = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_xml_named_entities', $content );
 	} else {
 		$content = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_named_entities', $content );
 	}
-	$content = preg_replace_callback( '/&amp;#(0*[0-9]{1,7});/', 'wp_kses_normalize_entities2', $content );
-	$content = preg_replace_callback( '/&amp;#[Xx](0*[0-9A-Fa-f]{1,6});/', 'wp_kses_normalize_entities3', $content );
 
 	return $content;
 }
