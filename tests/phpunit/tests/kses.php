@@ -573,11 +573,11 @@ EOF;
 			'Named entity: &frac34;'             => array( '&frac34;', '&frac34;' ),
 			'Named entity: &there4;'             => array( '&there4;', '&there4;' ),
 
-			'Numeric entity &#9; ( )'            => array( '&#9;', '&#9;' ),
-			'Numeric entity &#34; (")'           => array( '&#34;', '&#34;' ),
-			'Numeric entity &#0034; (")'         => array( '&#0034;', '&#34;' ),
-			'Numeric entity &#38; (&)'           => array( '&#38;', '&#38;' ),
-			"Numeric entity &#39; (')"           => array( '&#39;', '&#39;' ),
+			'Numeric entity &#9; ( )'            => array( '&#9;', '&#009;' ),
+			'Numeric entity &#34; (")'           => array( '&#34;', '&#034;' ),
+			'Numeric entity &#0034; (")'         => array( '&#0034;', '&#034;' ),
+			'Numeric entity &#38; (&)'           => array( '&#38;', '&#038;' ),
+			"Numeric entity &#39; (')"           => array( '&#39;', '&#039;' ),
 			'Numeric entity &#128525; (😍)'       => array( '&#128525;', '&#128525;' ),
 			'Numeric entity &#00128525; (😍)'     => array( '&#00128525;', '&#128525;' ),
 
