@@ -1464,24 +1464,6 @@ class WP_Debug_Data {
 			$concatenate_scripts_debug = 'undefined';
 		}
 
-		// Check COMPRESS_SCRIPTS.
-		if ( defined( 'COMPRESS_SCRIPTS' ) ) {
-			$compress_scripts       = COMPRESS_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
-			$compress_scripts_debug = COMPRESS_SCRIPTS ? 'true' : 'false';
-		} else {
-			$compress_scripts       = __( 'Undefined' );
-			$compress_scripts_debug = 'undefined';
-		}
-
-		// Check COMPRESS_CSS.
-		if ( defined( 'COMPRESS_CSS' ) ) {
-			$compress_css       = COMPRESS_CSS ? __( 'Enabled' ) : __( 'Disabled' );
-			$compress_css_debug = COMPRESS_CSS ? 'true' : 'false';
-		} else {
-			$compress_css       = __( 'Undefined' );
-			$compress_css_debug = 'undefined';
-		}
-
 		// Check WP_ENVIRONMENT_TYPE.
 		if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
 			$wp_environment_type       = WP_ENVIRONMENT_TYPE ? WP_ENVIRONMENT_TYPE : __( 'Empty value' );
@@ -1561,16 +1543,6 @@ class WP_Debug_Data {
 				'label' => 'CONCATENATE_SCRIPTS',
 				'value' => $concatenate_scripts,
 				'debug' => $concatenate_scripts_debug,
-			),
-			'COMPRESS_SCRIPTS'    => array(
-				'label' => 'COMPRESS_SCRIPTS',
-				'value' => $compress_scripts,
-				'debug' => $compress_scripts_debug,
-			),
-			'COMPRESS_CSS'        => array(
-				'label' => 'COMPRESS_CSS',
-				'value' => $compress_css,
-				'debug' => $compress_css_debug,
 			),
 			'WP_ENVIRONMENT_TYPE' => array(
 				'label' => 'WP_ENVIRONMENT_TYPE',
