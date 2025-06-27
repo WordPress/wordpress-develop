@@ -2075,7 +2075,7 @@ function wp_kses_normalize_entities2( $matches ) {
 	$i = $matches[1];
 
 	if ( valid_unicode( $i ) ) {
-		$i = ltrim( $i, '0' );
+		$i = str_pad( ltrim( $i, '0' ), 3, '0', STR_PAD_LEFT );
 		$i = "&#$i;";
 	} else {
 		$i = "&amp;#$i;";
