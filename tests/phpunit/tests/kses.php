@@ -551,18 +551,75 @@ EOF;
 	}
 
 	/**
-	 * @ticket 26290
+	 * Data provider.
 	 */
-	public function test_wp_kses_normalize_entities() {
-		$this->assertSame( '&spades;', wp_kses_normalize_entities( '&spades;' ) );
+	public static function data_html_entities(): array {
+		return array(
+			/**
+			 * These examples are from the wp_kses_normalize_entities function description.
+			 */
+			'AT&T'                               => array( 'AT&T', 'AT&amp;T' ),
+			'&#00058;'                           => array( '&#00058;', '&#058;' ),
+			'&#XYZZY;'                           => array( '&#XYZZY;', '&amp;#XYZZY;' ),
 
-		$this->assertSame( '&sup1;', wp_kses_normalize_entities( '&sup1;' ) );
-		$this->assertSame( '&sup2;', wp_kses_normalize_entities( '&sup2;' ) );
-		$this->assertSame( '&sup3;', wp_kses_normalize_entities( '&sup3;' ) );
-		$this->assertSame( '&frac14;', wp_kses_normalize_entities( '&frac14;' ) );
-		$this->assertSame( '&frac12;', wp_kses_normalize_entities( '&frac12;' ) );
-		$this->assertSame( '&frac34;', wp_kses_normalize_entities( '&frac34;' ) );
-		$this->assertSame( '&there4;', wp_kses_normalize_entities( '&there4;' ) );
+			'Named entity: &amp;'                => array( '&spades;', '&spades;' ),
+			'Named entity: &AMP;'                => array( '&spades;', '&spades;' ),
+			'Named entity: &spades;'             => array( '&spades;', '&spades;' ),
+			'Named entity: &sup1;'               => array( '&sup1;', '&sup1;' ),
+			'Named entity: &sup2;'               => array( '&sup2;', '&sup2;' ),
+			'Named entity: &sup3;'               => array( '&sup3;', '&sup3;' ),
+			'Named entity: &frac14;'             => array( '&frac14;', '&frac14;' ),
+			'Named entity: &frac12;'             => array( '&frac12;', '&frac12;' ),
+			'Named entity: &frac34;'             => array( '&frac34;', '&frac34;' ),
+			'Named entity: &there4;'             => array( '&there4;', '&there4;' ),
+
+			'Numeric entity &#9; ( )'            => array( '&#9;', '&#009;' ),
+			'Numeric entity &#34; (")'           => array( '&#34;', '&#034;' ),
+			'Numeric entity &#0034; (")'         => array( '&#0034;', '&#034;' ),
+			'Numeric entity &#38; (&)'           => array( '&#38;', '&#038;' ),
+			"Numeric entity &#39; (')"           => array( '&#39;', '&#039;' ),
+			'Numeric entity &#128525; (😍)'       => array( '&#128525;', '&#128525;' ),
+			'Numeric entity &#00128525; (😍)'     => array( '&#00128525;', '&#128525;' ),
+
+			'Hex entity &#x9; ( )'               => array( '&#x9;', '&#x9;' ),
+			'Hex entity &#x22; (")'              => array( '&#x22;', '&#x22;' ),
+			'Hex entity &#x0022; (")'            => array( '&#x0022;', '&#x22;' ),
+			'Hex entity &#x26; (&)'              => array( '&#x26;', '&#x26;' ),
+			"Hex entity &#x27; (')"              => array( '&#x27;', '&#x27;' ),
+			'Hex entity &#x1f60d; (😍)'           => array( '&#x1f60d;', '&#x1f60d;' ),
+			'Hex entity &#x001f60d; (😍)'         => array( '&#x001f60d;', '&#x1f60d;' ),
+
+			'HEX ENTITY &#X22; (")'              => array( '&#X22;', '&#x22;' ),
+			'HEX ENTITY &#X26; (&)'              => array( '&#X26;', '&#x26;' ),
+			"HEX ENTITY &#X27; (')"              => array( '&#X27;', '&#x27;' ),
+			'HEX ENTITY &#X1F60D; (😍)'           => array( '&#X1F60D;', '&#x1F60D;' ),
+
+			'Encoded named entity &amp;amp;'     => array( '&amp;amp;', '&amp;amp;' ),
+			'Encoded named entity &#38;amp;'     => array( '&amp;amp;', '&amp;amp;' ),
+			'Encoded named entity &#x26;amp;'    => array( '&amp;amp;', '&amp;amp;' ),
+			'Encoded numeric entity &amp;#39;'   => array( '&amp;#39;', '&amp;#39;' ),
+			'Encoded numeric entity &#38;#39;'   => array( '&amp;#39;', '&amp;#39;' ),
+			'Encoded numeric entity &#x26;#39;'  => array( '&amp;#39;', '&amp;#39;' ),
+			'Encoded hex entity &amp;#x27;'      => array( '&amp;#x27;', '&amp;#x27;' ),
+			'Encoded hex entity &#38;#x27;'      => array( '&amp;#x27;', '&amp;#x27;' ),
+			'Encoded hex entity &#x26;#x27;'     => array( '&amp;#x27;', '&amp;#x27;' ),
+
+			/*
+			 * The codepoint value here is outside of the valid unicode range whose
+			 * maximum is 0x10FFFF or 1114111.
+			 */
+			'Invalid numeric unicode &#1114112;' => array( '&#1114112;', '&amp;#1114112;' ),
+			'Invalid hex unicode &#x110000;'     => array( '&#x110000;', '&amp;#x110000;' ),
+		);
+	}
+
+	/**
+	 * @ticket 26290
+	 *
+	 * @dataProvider data_html_entities
+	 */
+	public function test_wp_kses_normalize_entities( string $input, string $expected ) {
+		$this->assertSame( $expected, wp_kses_normalize_entities( $input ) );
 	}
 
 	/**
