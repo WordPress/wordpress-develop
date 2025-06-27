@@ -1113,12 +1113,13 @@ class WP_Upgrader {
 	 * @return string hook extra action type. Default is "install".
 	 */
 	protected function get_hook_extra_action() {
-		if (
-			! empty( $this->skin->overwrite )
-			&&
-			in_array( $this->skin->overwrite, array( 'update', 'downgrade' ), true )
-		) {
-			return $this->skin->overwrite;
+		if ( ! empty( $this->skin->overwrite ) ) {
+			// Skin come in the format of "update-plugin" or "downgrade-theme"
+			$action = explode( '-', $this->skin->overwrite, 2 )[0];
+
+			if ( in_array( $action, array( 'update', 'downgrade' ), true ) ) {
+				return $action;
+			}
 		}
 
 		return 'install';
