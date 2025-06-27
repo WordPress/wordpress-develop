@@ -376,6 +376,27 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test wp_customize_url with existing query args.
+	 *
+	 * @ticket 63632
+	 */
+	public function test_wp_customize_url_with_existing_query_args() {
+		$clean_admin_url = admin_url( 'customize.php' );
+
+		// Ensure the existing query arg is present in the URL.
+		add_filter( 'admin_url', function( $url ) {
+			return add_query_arg( 'existing_arg', 'value', $url );
+		} );
+		$this->assertSame( esc_url( $clean_admin_url . '?existing_arg=value&theme=theme' ), wp_customize_url( 'theme' ) );
+
+		// Ensure the theme query arg is replaced with the new value.
+		add_filter( 'admin_url', function( $url ) {
+			return add_query_arg( 'theme', 'value', $url );
+		} );
+		$this->assertSame( esc_url( $clean_admin_url . '?existing_arg=value&theme=theme' ), wp_customize_url( 'theme' ) );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
