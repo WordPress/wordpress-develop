@@ -2395,15 +2395,25 @@ function _print_styles() {
  * @since 2.8.0
  *
  * @global bool $concatenate_scripts
+ * @global bool $compress_scripts
+ * @global bool $compress_css
  */
 function script_concat_settings() {
-	global $concatenate_scripts;
+	global $concatenate_scripts, $compress_scripts, $compress_css;
 
 	if ( ! isset( $concatenate_scripts ) ) {
 		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
 		if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
 			$concatenate_scripts = false;
 		}
+	}
+
+	if ( ! isset( $compress_scripts ) ) {
+		$compress_scripts = true;
+	}
+
+	if ( ! isset( $compress_css ) ) {
+		$compress_css = true;
 	}
 }
 
