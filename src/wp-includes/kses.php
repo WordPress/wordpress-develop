@@ -2085,15 +2085,62 @@ function wp_kses_normalize_entities3( $matches ) {
  *
  * @since 2.7.0
  *
+ * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-2/#G25564
+ *
+ * > On a computer, abstract characters are encoded internally as numbers. To create
+ * > a complete character encoding, it is necessary to define the list of all characters
+ * > to be encoded and to establish systematic rules for how the numbers represent
+ * > the characters.
+ * >
+ * > The range of integers used to code the abstract characters is called the codespace.
+ * > A particular integer in this set is called a code point. When an abstract character
+ * > is mapped or assigned to a particular code point in the codespace, it is then
+ * > referred to as an encoded character.
+ * >
+ * > In the Unicode Standard, the codespace consists of the integers from 0 to 10FFFF16,
+ * > comprising 1,114,112 code points available for assigning the repertoire of
+ * > abstract characters.
+ *
+ * This function chooses a more narrow definition of valid Unicode codepoints,
+ * considering a variety of characters to be invalid such as some control characters,
+ * noncharacters, or half surrogate pairs.
+ *
  * @param int $i Unicode codepoint.
  * @return bool Whether or not the codepoint is a valid Unicode codepoint.
  */
 function valid_unicode( $i ) {
 	$i = (int) $i;
 
-	return ( 0x9 === $i || 0xa === $i || 0xd === $i ||
+	return (
+		/*
+		 * The range U+0000 NULL to U+0020 SPACE contains control characters.
+		 * Most control characters are rejected except for some common
+		 * whitespace characters.
+		 */
+		0x9 === $i || // U+0009 HORIZONTAL TABULATION (HT)
+		0xa === $i || // U+000A LINE FEED (LF)
+		0xd === $i || // U+000D CARRIAGE RETURN (CR)
+
+		/*
+		 * A range of valid codepoints starting with U+0020 SPACE.
+		 */
 		( 0x20 <= $i && $i <= 0xd7ff ) ||
+
+		/*
+		 * The surrogate range U+D800 to U+DFFF is excluded.
+		 */
 		( 0xe000 <= $i && $i <= 0xfffd ) ||
+
+		/*
+		 * Two noncharacters are considered invalid:
+		 *
+		 * > Noncharacters
+		 * > These codes are intended for process-internal uses.
+		 * > - U+FFFE <not a character>
+		 * > - U+FFFF <not a character>
+		 *
+		 * Followed by another valid range up to the maximum unicode codepoint value U+10FFFF.
+		 */
 		( 0x10000 <= $i && $i <= 0x10ffff )
 	);
 }
