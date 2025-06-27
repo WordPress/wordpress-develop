@@ -555,6 +555,13 @@ EOF;
 	 */
 	public static function data_html_entities(): array {
 		return array(
+			/**
+			 * These examples are from the wp_kses_normalize_entities function description.
+			 */
+			'AT&T'                               => array( 'AT&T', 'AT&amp;T' ),
+			'&#00058;'                           => array( '&#00058;', '&#058;' ),
+			'&#XYZZY;'                           => array( '&#XYZZY;', '&amp;#XYZZY;' ),
+
 			'Named entity: &amp;'                => array( '&spades;', '&spades;' ),
 			'Named entity: &AMP;'                => array( '&spades;', '&spades;' ),
 			'Named entity: &spades;'             => array( '&spades;', '&spades;' ),
