@@ -1110,14 +1110,13 @@ class WP_Upgrader {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param string $package_type The package type (plugin or theme).
 	 * @return string hook extra action type. Default is "install".
 	 */
-	protected function get_hook_extra_action( $package_type ) {
+	protected function get_hook_extra_action() {
 		if (
 			! empty( $this->skin->overwrite )
 			&&
-			in_array( $this->skin->overwrite, array( "update-{$package_type}", "downgrade-{$package_type}" ), true )
+			in_array( $this->skin->overwrite, array( 'update', 'downgrade' ), true )
 		) {
 			return $this->skin->overwrite;
 		}
