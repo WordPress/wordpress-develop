@@ -573,24 +573,20 @@ EOF;
 			'Named entity: &frac34;'             => array( '&frac34;', '&frac34;' ),
 			'Named entity: &there4;'             => array( '&there4;', '&there4;' ),
 
+			'Numeric entity &#9; ( )'            => array( '&#9;', '&#9;' ),
 			'Numeric entity &#34; (")'           => array( '&#34;', '&#34;' ),
+			'Numeric entity &#0034; (")'         => array( '&#0034;', '&#34;' ),
 			'Numeric entity &#38; (&)'           => array( '&#38;', '&#38;' ),
 			"Numeric entity &#39; (')"           => array( '&#39;', '&#39;' ),
 			'Numeric entity &#128525; (😍)'       => array( '&#128525;', '&#128525;' ),
-
-			'Numeric entity &#0034; (")'         => array( '&#0034;', '&#34;' ),
-			'Numeric entity &#0038; (&)'         => array( '&#0038;', '&#38;' ),
-			"Numeric entity &#0039; (')"         => array( '&#0039;', '&#39;' ),
 			'Numeric entity &#00128525; (😍)'     => array( '&#00128525;', '&#128525;' ),
 
+			'Hex entity &#x9; ( )'               => array( '&#x9;', '&#x9;' ),
 			'Hex entity &#x22; (")'              => array( '&#x22;', '&#x22;' ),
+			'Hex entity &#x0022; (")'            => array( '&#x0022;', '&#x22;' ),
 			'Hex entity &#x26; (&)'              => array( '&#x26;', '&#x26;' ),
 			"Hex entity &#x27; (')"              => array( '&#x27;', '&#x27;' ),
 			'Hex entity &#x1f60d; (😍)'           => array( '&#x1f60d;', '&#x1f60d;' ),
-
-			'Hex entity &#x0022; (")'            => array( '&#x0022;', '&#x22;' ),
-			'Hex entity &#x0026; (&)'            => array( '&#x0026;', '&#x26;' ),
-			"Hex entity &#x0027; (')"            => array( '&#x0027;', '&#x27;' ),
 			'Hex entity &#x001f60d; (😍)'         => array( '&#x001f60d;', '&#x1f60d;' ),
 
 			'HEX ENTITY &#X22; (")'              => array( '&#X22;', '&#x22;' ),
