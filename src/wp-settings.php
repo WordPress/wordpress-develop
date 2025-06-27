@@ -138,7 +138,7 @@ require_wp_db();
  *
  * @global string $table_prefix The database table prefix.
  */
-$GLOBALS['table_prefix'] = $table_prefix;
+$GLOBALS['table_prefix'] = isset( $GLOBALS['table_prefix'] ) ? $GLOBALS['table_prefix'] : $table_prefix;
 
 // Set the database table prefix and the format specifiers for database table columns.
 wp_set_wpdb_vars();
