@@ -553,7 +553,7 @@ EOF;
 	/**
 	 * Data provider.
 	 */
-	public static function data_html_entities(): array {
+	public static function data_normalize_entities(): array {
 		return array(
 			/**
 			 * These examples are from the wp_kses_normalize_entities function description.
@@ -610,7 +610,7 @@ EOF;
 	/**
 	 * @ticket 26290
 	 *
-	 * @dataProvider data_html_entities
+	 * @dataProvider data_normalize_entities
 	 */
 	public function test_wp_kses_normalize_entities( string $input, string $expected ) {
 		$this->assertSame( $expected, wp_kses_normalize_entities( $input ) );
