@@ -2043,7 +2043,7 @@ function sanitize_file_name( $filename ) {
 		 *
 		 * @see https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
 		 */
-		$filename = preg_replace( "#\p{Zs}#siu", ' ', $filename );
+		$filename = preg_replace( '#\p{Zs}#siu', ' ', $filename );
 	}
 
 	/**
