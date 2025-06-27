@@ -555,14 +555,31 @@ EOF;
 	 */
 	public static function data_html_entities(): array {
 		return array(
-			'&spades;' => array( '&spades;', '&spades;' ),
-			'&sup1;'   => array( '&sup1;', '&sup1;' ),
-			'&sup2;'   => array( '&sup2;', '&sup2;' ),
-			'&sup3;'   => array( '&sup3;', '&sup3;' ),
-			'&frac14;' => array( '&frac14;', '&frac14;' ),
-			'&frac12;' => array( '&frac12;', '&frac12;' ),
-			'&frac34;' => array( '&frac34;', '&frac34;' ),
-			'&there4;' => array( '&there4;', '&there4;' ),
+			'Named entity: &amp;'          => array( '&spades;', '&spades;' ),
+			'Named entity: &AMP;'          => array( '&spades;', '&spades;' ),
+			'Named entity: &spades;'       => array( '&spades;', '&spades;' ),
+			'Named entity: &sup1;'         => array( '&sup1;', '&sup1;' ),
+			'Named entity: &sup2;'         => array( '&sup2;', '&sup2;' ),
+			'Named entity: &sup3;'         => array( '&sup3;', '&sup3;' ),
+			'Named entity: &frac14;'       => array( '&frac14;', '&frac14;' ),
+			'Named entity: &frac12;'       => array( '&frac12;', '&frac12;' ),
+			'Named entity: &frac34;'       => array( '&frac34;', '&frac34;' ),
+			'Named entity: &there4;'       => array( '&there4;', '&there4;' ),
+
+			'Numeric entity &#34; (")'     => array( '&#34;', '&#34;' ),
+			'Numeric entity &#38; (&)'     => array( '&#38;', '&#38;' ),
+			"Numeric entity &#39; (')"     => array( '&#39;', '&#39;' ),
+			'Numeric entity &#128525; (😍)' => array( '&#128525;', '&#128525;' ),
+
+			'Hex entity &#x22; (")'        => array( '&#x22;', '&#x22;' ),
+			'Hex entity &#x26; (&)'        => array( '&#x26;', '&#x26;' ),
+			"Hex entity &#x27; (')"        => array( '&#x27;', '&#x27;' ),
+			'Hex entity &#x1f60d; (😍)'     => array( '&#x1f60d;', '&#x1f60d;' ),
+
+			'HEX ENTITY &#X22; (")'        => array( '&#X22;', '&#x22;' ),
+			'HEX ENTITY &#X26; (&)'        => array( '&#X26;', '&#x26;' ),
+			"HEX ENTITY &#X27; (')"        => array( '&#X27;', '&#x27;' ),
+			'HEX ENTITY &#X1F60D; (😍)'     => array( '&#X1F60D;', '&#x1F60D;' ),
 		);
 	}
 
