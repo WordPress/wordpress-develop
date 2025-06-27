@@ -114,17 +114,17 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Sanitize the global styles ID or stylesheet to decode endpoint.
+	 * Sanitize the global styles stylesheet to decode endpoint.
 	 * For example, `wp/v2/global-styles/twentytwentytwo%200.4.0`
 	 * would be decoded to `twentytwentytwo 0.4.0`.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string $id_or_stylesheet Global styles ID or stylesheet.
-	 * @return string Sanitized global styles ID or stylesheet.
+	 * @param string $stylesheet Global styles stylesheet.
+	 * @return string Sanitized global styles stylesheet.
 	 */
-	public function _sanitize_global_styles_callback( $id_or_stylesheet ) {
-		return urldecode( $id_or_stylesheet );
+	public function _sanitize_global_styles_callback( $stylesheet ) {
+		return urldecode( $stylesheet );
 	}
 
 	/**
@@ -138,7 +138,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	protected function get_post( $id ) {
 		$error = new WP_Error(
 			'rest_global_styles_not_found',
-			__( 'No global styles config exist with that id.' ),
+			__( 'No global styles config exists with that ID.' ),
 			array( 'status' => 404 )
 		);
 
