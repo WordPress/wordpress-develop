@@ -551,18 +551,28 @@ EOF;
 	}
 
 	/**
-	 * @ticket 26290
+	 * Data provider.
 	 */
-	public function test_wp_kses_normalize_entities() {
-		$this->assertSame( '&spades;', wp_kses_normalize_entities( '&spades;' ) );
+	public static function data_html_entities(): array {
+		return array(
+			'&spades;' => array( '&spades;', '&spades;' ),
+			'&sup1;'   => array( '&sup1;', '&sup1;' ),
+			'&sup2;'   => array( '&sup2;', '&sup2;' ),
+			'&sup3;'   => array( '&sup3;', '&sup3;' ),
+			'&frac14;' => array( '&frac14;', '&frac14;' ),
+			'&frac12;' => array( '&frac12;', '&frac12;' ),
+			'&frac34;' => array( '&frac34;', '&frac34;' ),
+			'&there4;' => array( '&there4;', '&there4;' ),
+		);
+	}
 
-		$this->assertSame( '&sup1;', wp_kses_normalize_entities( '&sup1;' ) );
-		$this->assertSame( '&sup2;', wp_kses_normalize_entities( '&sup2;' ) );
-		$this->assertSame( '&sup3;', wp_kses_normalize_entities( '&sup3;' ) );
-		$this->assertSame( '&frac14;', wp_kses_normalize_entities( '&frac14;' ) );
-		$this->assertSame( '&frac12;', wp_kses_normalize_entities( '&frac12;' ) );
-		$this->assertSame( '&frac34;', wp_kses_normalize_entities( '&frac34;' ) );
-		$this->assertSame( '&there4;', wp_kses_normalize_entities( '&there4;' ) );
+	/**
+	 * @ticket 26290
+	 *
+	 * @dataProvider data_html_entities
+	 */
+	public function test_wp_kses_normalize_entities( string $input, string $expected ) {
+		$this->assertSame( $expected, wp_kses_normalize_entities( $input ) );
 	}
 
 	/**
