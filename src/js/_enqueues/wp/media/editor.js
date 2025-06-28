@@ -696,6 +696,7 @@
 
 			wp.media.featuredImage.set( selection ? selection.id : -1 );
 		},
+
 		/**
 		 * Open the content media manager to the 'featured image' tab when
 		 * the post thumbnail is clicked.
@@ -703,7 +704,17 @@
 		 * Update the featured image id when the 'remove' link is clicked.
 		 */
 		init: function() {
-			$('#postimagediv').on( 'click', '#set-post-thumbnail', function( event ) {
+				$(document).on('click', '.editor-post-featured-image__toggle', function(){
+					_wpPluploadSettings.defaults.multipart_params['is_featured'] = true;
+				});
+		
+				$(document).on('click', '.editor-media-placeholder__button', function(){
+					_wpPluploadSettings.defaults.multipart_params['is_featured'] = false;
+				});
+		
+				$('#postimagediv').on( 'click', '#set-post-thumbnail, .editor-post-featured-image__toggle', function( event ) {
+				_wpPluploadSettings.defaults.multipart_params['is_featured'] = true;
+
 				event.preventDefault();
 				// Stop propagation to prevent thickbox from activating.
 				event.stopPropagation();
@@ -783,6 +794,12 @@
 		 * @return {wp.media.view.MediaFrame.Select} A media workflow.
 		 */
 		add: function( id, options ) {
+			/**
+			 * Check upload media is not a featured image
+			 *
+			 **/
+				
+			_wpPluploadSettings.defaults.multipart_params['is_featured'] = false;
 			var workflow = this.get( id );
 
 			// Only add once: if exists return existing.
