@@ -2108,8 +2108,7 @@ function valid_unicode( $i ) {
 		0xA === $i || // U+000A LINE FEED (LF)
 		0xD === $i || // U+000D CARRIAGE RETURN (CR)
 		/*
-		 * The valid Unicode characters according to the
-		 * {@link https://www.w3.org/TR/xml/#charsets XML specification}.
+		 * The valid Unicode characters according to the XML specification:
 		 *
 		 * > any Unicode character, excluding the surrogate blocks, FFFE, and FFFF.
 		 */
