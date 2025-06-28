@@ -682,14 +682,21 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 		return $pre;
 	}
 
-	$userlist = implode( ',', array_map( 'absint', $users ) );
-	$where    = get_posts_by_author_sql( $post_type, true, null, $public_only );
+	$userlist    = implode( ',', array_map( 'absint', $users ) );
+	$cache_key   = "count_many_users_posts_{$post_type}_{ str_replace( ',', '_', $userlist ) }";
+	$cache_group = $public_only ? 'count_many_users_posts_public' : 'count_many_users_posts';
+	$count       = wp_cache_get( $cache_key, $cache_group );
 
-	$result = $wpdb->get_results( "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author", ARRAY_N );
+	if ( false === $count ) {
+		$where  = get_posts_by_author_sql( $post_type, true, null, $public_only );
+		$result = $wpdb->get_results( "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author", ARRAY_N );
 
-	$count = array_fill_keys( $users, 0 );
-	foreach ( $result as $row ) {
-		$count[ $row[0] ] = $row[1];
+		$count = array_fill_keys( $users, 0 );
+		foreach ( $result as $row ) {
+			$count[ $row[0] ] = $row[1];
+		}
+
+		wp_cache_add( $cache_key, $count, $cache_group );
 	}
 
 	return $count;
