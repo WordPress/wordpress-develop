@@ -122,18 +122,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/media.php',
 ];
 $ignoreErrors[] = [
-	// identifier: return.unusedType
-	'message' => '#^Function iis7_save_url_rewrite_rules\\(\\) never returns null so it can be removed from the return type\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/misc.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.unusedType
-	'message' => '#^Function save_mod_rewrite_rules\\(\\) never returns null so it can be removed from the return type\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/misc.php',
-];
-$ignoreErrors[] = [
 	// identifier: booleanAnd.leftAlwaysTrue
 	'message' => '#^Left side of && is always true\\.$#',
 	'count' => 1,

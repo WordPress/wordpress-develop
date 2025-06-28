@@ -86,18 +86,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/file.php',
 ];
 $ignoreErrors[] = [
-	// identifier: return.empty
-	'message' => '#^Function iis7_save_url_rewrite_rules\\(\\) should return bool\\|null but empty return statement found\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/misc.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.empty
-	'message' => '#^Function save_mod_rewrite_rules\\(\\) should return bool\\|null but empty return statement found\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/misc.php',
-];
-$ignoreErrors[] = [
 	// identifier: return.type
 	'message' => '#^Function wp_get_nav_menu_to_edit\\(\\) should return string\\|WP_Error\\|null but returns WP_Term\\|false\\.$#',
 	'count' => 1,
@@ -684,12 +672,6 @@ $ignoreErrors[] = [
 	'message' => '#^Function wp_post_revision_title_expanded\\(\\) should return string\\|false but returns array\\{\\}\\|null\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/post-template.php',
-];
-$ignoreErrors[] = [
-	// identifier: return.empty
-	'message' => '#^Function get_page_by_path\\(\\) should return array\\|WP_Post\\|null but empty return statement found\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
 ];
 $ignoreErrors[] = [
 	// identifier: return.type

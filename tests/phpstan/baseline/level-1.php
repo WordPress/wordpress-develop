@@ -32,12 +32,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-custom-image-header.php',
 ];
 $ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$oitar in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-custom-image-header.php',
-];
-$ignoreErrors[] = [
 	// identifier: constructor.unusedParameter
 	'message' => '#^Constructor of class WP_Filesystem_Direct has an unused parameter \\$arg\\.$#',
 	'count' => 1,
@@ -60,12 +54,6 @@ $ignoreErrors[] = [
 	'message' => '#^Variable \\$parent_file in empty\\(\\) always exists and is not falsy\\.$#',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/themes.php',
-];
-$ignoreErrors[] = [
-	// identifier: isset.variable
-	'message' => '#^Variable \\$area in isset\\(\\) always exists and is not nullable\\.$#',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
 ];
 $ignoreErrors[] = [
 	// identifier: empty.variable
