@@ -35,7 +35,7 @@ require ABSPATH . WPINC . '/version.php';
 require ABSPATH . WPINC . '/compat.php';
 require ABSPATH . WPINC . '/load.php';
 
-// Check for the required PHP version and for the MySQL extension or a database drop-in.
+// Check the server requirements.
 wp_check_php_mysql_versions();
 
 // Include files required for initialization.

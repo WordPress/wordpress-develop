@@ -139,8 +139,11 @@ function wp_populate_basic_auth_from_authorization_header() {
 }
 
 /**
- * Checks for the required PHP version, and the mysqli extension or
- * a database drop-in.
+ * Checks the server requirements.
+ *
+ *   - PHP version
+ *   - PHP extensions
+ *   - MySQL or MariaDB version (unless a database drop-in is present)
  *
  * Dies if requirements are not met.
  *
