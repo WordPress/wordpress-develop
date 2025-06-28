@@ -834,12 +834,11 @@ function get_comment_link( $comment = null, $args = array() ) {
 
 	if ( $cpage && get_option( 'page_comments' ) ) {
 		if ( $wp_rewrite->using_permalinks() ) {
-			if ( $cpage ) {
-				$comment_link = trailingslashit( $comment_link ) . $wp_rewrite->comments_pagination_base . '-' . $cpage;
-			}
-
+			// We build the link first.
+			$comment_link = trailingslashit( $comment_link ) . $wp_rewrite->comments_pagination_base . '-' . $cpage;
+			// Then, we filter & slash it.
 			$comment_link = user_trailingslashit( $comment_link, 'comment' );
-		} elseif ( $cpage ) {
+		} else {
 			$comment_link = add_query_arg( 'cpage', $cpage, $comment_link );
 		}
 	}
