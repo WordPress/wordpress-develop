@@ -8175,7 +8175,7 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 	}
 
 	// Update counts for the post's terms.
-	foreach ( (array) get_object_taxonomies( $post->post_type ) as $taxonomy ) {
+	foreach ( (array) get_object_taxonomies( $post->post_type, 'objects' ) as $taxonomy ) {
 		/** This filter is documented in wp-includes/taxonomy.php */
 		$counted_statuses = apply_filters( 'update_post_term_count_statuses', array( 'publish' ), $taxonomy );
 
@@ -8184,8 +8184,8 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 			continue;
 		}
 
-		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'tt_ids' ) );
-		wp_update_term_count( $tt_ids, $taxonomy );
+		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'tt_ids' ) );
+		wp_update_term_count( $tt_ids, $taxonomy->name );
 	}
 }
 

@@ -166,6 +166,89 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	}
 
 	/**
+	 * Test that the term count is not recalculated when neither the old nor new status are included in term counts.
+	 *
+	 * @ticket 63562
+	 */
+	public function test_term_count_is_not_recalculated_when_neither_status_is_counted() {
+		// Change post status to draft.
+		wp_update_post(
+			array(
+				'ID'          => self::$post_id,
+				'post_status' => 'draft',
+			)
+		);
+
+		$edited_term_taxonomy_count = did_action( 'edited_term_taxonomy' );
+
+		// Change the post to another status that is not included in term counts.
+		wp_update_post(
+			array(
+				'ID'          => self::$post_id,
+				'post_status' => 'pending',
+			)
+		);
+
+		$this->assertSame( 0, did_action( 'edited_term_taxonomy' ) - $edited_term_taxonomy_count, 'Term taxonomy count should not be recalculated when neither new nor old post status is included in term counts.' );
+		$this->assertTermCount( 0, self::$term_id );
+	}
+
+	public function test_update_post_term_count_statuses_filter_is_respected() {
+		$custom_taxonomy = 'category_with_pending';
+
+		// Add a custom taxonomy that includes 'pending' in its term counts.
+		register_taxonomy(
+			$custom_taxonomy,
+			self::$post_type
+		);
+		add_filter(
+			'update_post_term_count_statuses',
+			static function( array $statuses, WP_Taxonomy $taxonomy ) use ( $custom_taxonomy ) : array {
+				if ( $custom_taxonomy === $taxonomy->name ) {
+					$statuses[] = 'pending';
+				}
+
+				return $statuses;
+			},
+			10,
+			2
+		);
+
+		// Change post status to draft and give it a term to count.
+		wp_update_post(
+			array(
+				'ID'          => self::$post_id,
+				'post_status' => 'draft',
+			)
+		);
+		$custom_term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => $custom_taxonomy,
+				'name'     => 'Hello',
+			)
+		);
+		wp_set_object_terms(
+			self::$post_id,
+			$custom_term_id,
+			$custom_taxonomy
+		);
+
+		$edited_term_taxonomy_count = did_action( 'edited_term_taxonomy' );
+
+		// Change the post to another status that is included in term counts for one of its two taxonomies.
+		wp_update_post(
+			array(
+				'ID'          => self::$post_id,
+				'post_status' => 'pending',
+			)
+		);
+
+		$this->assertSame( 1, did_action( 'edited_term_taxonomy' ) - $edited_term_taxonomy_count, 'Term taxonomy count should respect the statuses returned by the update_post_term_count_statuses filter.' );
+		$this->assertTermCount( 0, self::$term_id );
+		$this->assertTermCount( 1, $custom_term_id );
+	}
+
+	/**
 	 * Assert that the term count is correct.
 	 *
 	 * @since 6.9.0
