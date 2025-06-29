@@ -6109,7 +6109,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( '0' === $cached || 0 === $cached ) {
-			return;
+			return null;
 		} else {
 			return get_post( $cached, $output );
 		}
@@ -8170,8 +8170,6 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
  * @param WP_Post $post       Post object.
  */
 function _update_term_count_on_transition_post_status( $new_status, $old_status, $post ) {
-
-	// Do not calculate term count if both statuses are same.
 	if ( $new_status === $old_status ) {
 		return;
 	}

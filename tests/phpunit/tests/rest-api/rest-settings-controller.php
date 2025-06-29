@@ -397,6 +397,9 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 400, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 41604
+	 */
 	public function test_update_item() {
 		wp_set_current_user( self::$administrator );
 
@@ -410,6 +413,39 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( get_option( 'blogname' ), $data['title'] );
 	}
 
+	/**
+	 * @ticket 41604
+	 */
+	public function test_update_item_with_global_parameters_present() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'title', 'The new title!' );
+		$request->set_url_params( array( '_locale' => 'user' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'The new title!', $data['title'] );
+		$this->assertSame( get_option( 'blogname' ), $data['title'] );
+	}
+
+	/**
+	 * @ticket 41604
+	 */
+	public function test_update_item_with_empty_body() {
+		wp_set_current_user( self::$administrator );
+
+		$request  = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 41604
+	 */
 	public function test_update_nonexistent_item() {
 		wp_set_current_user( self::$administrator );
 
@@ -420,6 +456,9 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 400, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 41604
+	 */
 	public function test_update_partially_valid_items() {
 		wp_set_current_user( self::$administrator );
 
