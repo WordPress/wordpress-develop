@@ -8174,20 +8174,16 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 		return;
 	}
 
-	/**
-	 * Check for the post statuses that should be considered when updating term counts.
-	 *
-	 * This filter is documented in wp-includes/taxonomy.php.
-	 */
-	$post_statuses = apply_filters( 'update_post_term_count_statuses', array( 'publish' ), null );
-
-	// Do not calculate term count if both the statuses i.e., old and new status are not in the post statuses.
-	if ( ! in_array( $old_status, $post_statuses, true ) && ! in_array( $new_status, $post_statuses, true ) ) {
-		return;
-	}
-
 	// Update counts for the post's terms.
 	foreach ( (array) get_object_taxonomies( $post->post_type ) as $taxonomy ) {
+		/** This filter is documented in wp-includes/taxonomy.php */
+		$counted_statuses = apply_filters( 'update_post_term_count_statuses', array( 'publish' ), $taxonomy );
+
+		// Do not recalculate term count if neither the old or new status are included in term counts.
+		if ( ! in_array( $old_status, $counted_statuses, true ) && ! in_array( $new_status, $counted_statuses, true ) ) {
+			continue;
+		}
+
 		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'tt_ids' ) );
 		wp_update_term_count( $tt_ids, $taxonomy );
 	}
