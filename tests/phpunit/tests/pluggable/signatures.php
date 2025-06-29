@@ -209,10 +209,15 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			'wp_hash'                         => array(
 				'data',
 				'scheme' => 'auth',
+				'algo'   => 'md5',
 			),
 			'wp_hash_password'                => array( 'password' ),
 			'wp_check_password'               => array(
 				'password',
+				'hash',
+				'user_id' => '',
+			),
+			'wp_password_needs_rehash'        => array(
 				'hash',
 				'user_id' => '',
 			),

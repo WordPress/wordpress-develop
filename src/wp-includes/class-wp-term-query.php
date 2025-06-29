@@ -148,8 +148,6 @@ class WP_Term_Query {
 	 *                                                   - 'id=>slug' Returns an associative array of term slugs,
 	 *                                                      keyed by term ID (`string[]`).
 	 *                                                   Default 'all'.
-	 *     @type bool            $count                  Whether to return a term count. If true, will take precedence
-	 *                                                   over `$fields`. Default false.
 	 *     @type string|string[] $name                   Name or array of names to return term(s) for.
 	 *                                                   Default empty.
 	 *     @type string|string[] $slug                   Slug or array of slugs to return term(s) for.
@@ -208,7 +206,6 @@ class WP_Term_Query {
 			'number'                 => '',
 			'offset'                 => '',
 			'fields'                 => 'all',
-			'count'                  => false,
 			'name'                   => '',
 			'slug'                   => '',
 			'term_taxonomy_id'       => '',
@@ -304,7 +301,7 @@ class WP_Term_Query {
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
 	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
-	 *                                         when 'count' is passed as a query var.
+	 *                                         when 'count' is passed to `$args['fields']`.
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -346,7 +343,7 @@ class WP_Term_Query {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
-	 *                                         when 'count' is passed as a query var.
+	 *                                         when 'count' is passed to `$args['fields']`.
 	 */
 	public function get_terms() {
 		global $wpdb;
