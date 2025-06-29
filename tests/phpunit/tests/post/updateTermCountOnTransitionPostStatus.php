@@ -203,7 +203,7 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 		);
 		add_filter(
 			'update_post_term_count_statuses',
-			static function( array $statuses, WP_Taxonomy $taxonomy ) use ( $custom_taxonomy ) : array {
+			static function ( array $statuses, WP_Taxonomy $taxonomy ) use ( $custom_taxonomy ): array {
 				if ( $custom_taxonomy === $taxonomy->name ) {
 					$statuses[] = 'pending';
 				}
