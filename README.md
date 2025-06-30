@@ -37,11 +37,11 @@ If you are not using a package manager, see the [Node.js download page](https://
 
 **Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
 
-You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
+You will also need a container environment (e.g. [Docker](https://www.docker.com/products/docker-desktop) or [Podman](https://podman-desktop.io/)) installed and running on your computer. The container environment is the virtualization software that powers the local development environment. Both applications can be installed just like any other regular application.
 
 ### Development Environment Commands
 
-Ensure [Docker](https://www.docker.com/products/docker-desktop) is running before using these commands.
+Ensure either [Docker](https://www.docker.com/products/docker-desktop) or [Podman](https://podman-desktop.io/) are running before using these commands.
 
 #### To start the development environment for the first time
 
@@ -97,7 +97,7 @@ npm run test:php -- --group <group name or ticket number>
 #### Generating a code coverage report
 PHP code coverage reports are [generated daily](https://github.com/WordPress/wordpress-develop/actions/workflows/test-coverage.yml) and [submitted to Codecov.io](https://app.codecov.io/gh/WordPress/wordpress-develop).
 
-After the local Docker environment has [been installed and started](#to-start-the-development-environment-for-the-first-time), the following command can be used to generate a code coverage report. 
+After the local container environment has [been installed and started](#to-start-the-development-environment-for-the-first-time), the following command can be used to generate a code coverage report. 
 
 ```
 npm run test:coverage
@@ -109,7 +109,7 @@ The command will generate three coverage reports in HTML, PHP, and text formats,
 
 #### To restart the development environment
 
-You may want to restart the environment if you've made changes to the configuration in the `docker-compose.yml` or `.env` files. Restart the environment with:
+You may want to restart the environment if you've made changes to the configuration in the `compose.yml` or `.env` files. Restart the environment with:
 
 ```
 npm run env:restart
@@ -133,7 +133,7 @@ npm run env:start
 
 #### Resetting the development environment
 
-The development environment can be reset. This will destroy the database and attempt to remove the pulled Docker images.
+The development environment can be reset. This will destroy the database and attempt to remove the pulled container images.
 
 ```
 npm run env:reset
@@ -141,12 +141,12 @@ npm run env:reset
 
 ### Apple Silicon machines and old MySQL/MariaDB versions
 
-Older MySQL and MariaDB Docker images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
+Older MySQL and MariaDB container images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
 
 - MySQL versions 5.7 and earlier
 - MariaDB 5.5
 
-When using these versions on an Apple Silicon machine, you must create a `docker-compose.override.yml` file with the following contents:
+When using these versions on an Apple Silicon machine, you must create a `compose.override.yml` file with the following contents:
 
 ```
 services:
@@ -155,7 +155,7 @@ services:
     platform: linux/amd64
 ```
 
-Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in Docker needs to be disabled for this workaround.
+Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in containers needs to be disabled for this workaround.
 
 ## Credentials
 
