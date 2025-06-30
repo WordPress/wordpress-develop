@@ -46,7 +46,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: %s: WordPress version number. */
-						__( '<strong>Version %s</strong> addressed some security issues.' ),
+						__( '<strong>Version %s</strong> addressed one security issue.' ),
 						'5.9.11'
 					);
 					?>
