@@ -1,6 +1,6 @@
 {
 	"name": "WordPress",
-	"version": "6.1.7",
+	"version": "6.1.8",
 	"description": "WordPress is open source software you can use to create a beautiful website, blog, or app.",
 	"repository": {
 		"type": "svn",
