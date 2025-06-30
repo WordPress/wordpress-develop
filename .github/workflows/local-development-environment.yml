@@ -1,4 +1,4 @@
-name: Local Docker Environment
+name: Local Development Environment
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
     paths:
       # Any changes to Docker related files.
       - '.env.example'
-      - 'docker-compose.yml'
+      - 'compose.yml'
       # Any changes to local environment related files
       - 'tools/local-env/**'
       # These files configure npm and the task runner. Changes could affect the outcome.
@@ -22,9 +22,9 @@ on:
       # These files define the versions to test.
       - '.version-support-*.json'
       # Changes to this and related workflow files should always be verified.
-      - '.github/workflows/local-docker-environment.yml'
+      - '.github/workflows/local-development-environment.yml'
       - '.github/workflows/reusable-support-json-reader-v1.yml'
-      - '.github/workflows/reusable-test-docker-environment-v1.yml'
+      - '.github/workflows/reusable-test-local-development-environment-v1.yml'
   pull_request:
     branches:
       - trunk
@@ -33,7 +33,7 @@ on:
     paths:
       # Any changes to Docker related files.
       - '.env.example'
-      - 'docker-compose.yml'
+      - 'compose.yml'
       # Any changes to local environment related files
       - 'tools/local-env/**'
       # These files configure npm and the task runner. Changes could affect the outcome.
@@ -46,9 +46,9 @@ on:
       # These files define the versions to test.
       - '.version-support-*.json'
       # Changes to this and related workflow files should always be verified.
-      - '.github/workflows/local-docker-environment.yml'
+      - '.github/workflows/local-development-environment.yml'
       - '.github/workflows/reusable-support-json-reader-v1.yml'
-      - '.github/workflows/reusable-test-docker-environment-v1.yml'
+      - '.github/workflows/reusable-test-local-development-environment-v1.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -80,7 +80,7 @@ jobs:
   # Tests the local Docker environment.
   environment-tests-mysql:
     name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
+    uses: ./.github/workflows/reusable-test-local-development-environment-v1.yml
     permissions:
       contents: read
     needs: [ build-test-matrix ]

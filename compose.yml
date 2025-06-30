@@ -4,7 +4,7 @@ services:
   # The web server container.
   ##
   wordpress-develop:
-    image: nginx:alpine
+    image: docker.io/nginx:alpine
 
     networks:
       - wpdevnet
@@ -32,7 +32,7 @@ services:
   # The PHP container.
   ##
   php:
-    image: wordpressdevelop/php:${LOCAL_PHP-latest}
+    image: docker.io/wordpressdevelop/php:${LOCAL_PHP-latest}
 
     networks:
       - wpdevnet
@@ -64,7 +64,7 @@ services:
   # The MySQL container.
   ##
   mysql:
-    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
+    image: docker.io/${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
 
     networks:
       - wpdevnet
@@ -95,7 +95,7 @@ services:
   # The WP CLI container.
   ##
   cli:
-    image: wordpressdevelop/cli:${LOCAL_PHP-latest}
+    image: docker.io/wordpressdevelop/cli:${LOCAL_PHP-latest}
 
     networks:
       - wpdevnet
@@ -130,7 +130,7 @@ services:
   # The Memcached container.
   ##
   memcached:
-    image: memcached
+    image: docker.io/memcached:latest
 
     networks:
       - wpdevnet

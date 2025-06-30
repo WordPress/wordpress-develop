@@ -104,6 +104,8 @@ wp-tests-config.php
 
 # Files for local environment config
 /docker-compose.override.yml
+# The compose.override.yml is the new preferred Compose file name.
+/compose.override.yml
 
 # Visual regression test diffs
 tests/visual-regression/specs/__snapshots__
