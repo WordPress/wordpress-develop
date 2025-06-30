@@ -835,7 +835,14 @@ function wp_register_post_personal_data_exporter( $exporters ) {
 function wp_posts_personal_data_exporter( $email_address, $page = 1 ) {
 	$email_address = trim( $email_address );
 
-	$number = 500;
+	/**
+	 * Filters the number of posts processed in a single batch in the personal data exporter.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int $number Default number of posts processed in a batch (500).
+	 */
+	$number = apply_filters( 'wp_privacy_personal_data_posts_batch_size', 500 );
 	$page   = (int) $page;
 
 	$data_to_export = array();

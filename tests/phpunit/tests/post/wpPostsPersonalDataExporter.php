@@ -78,7 +78,7 @@ class Tests_Post_wpPostsPersonalDataExporter extends WP_UnitTestCase {
 
 		$private_post_data = null;
 		foreach ( $actual['data'] as $post_data ) {
-			if ( $post_data['item_id'] === "post-{$post_id}" ) {
+			if ( "post-{$post_id}" === $post_data['item_id'] ) {
 				$private_post_data = $post_data;
 				break;
 			}
@@ -118,7 +118,7 @@ class Tests_Post_wpPostsPersonalDataExporter extends WP_UnitTestCase {
 
 		$password_post_data = null;
 		foreach ( $actual['data'] as $post_data ) {
-			if ( $post_data['item_id'] === "post-{$post_id}" ) {
+			if ( "post-{$post_id}" === $post_data['item_id'] ) {
 				$password_post_data = $post_data;
 				break;
 			}
@@ -162,14 +162,10 @@ class Tests_Post_wpPostsPersonalDataExporter extends WP_UnitTestCase {
 			)
 		);
 
-		// We need to modify the query directly via a filter since the function has a hardcoded posts_per_page value.
 		add_filter(
-			'pre_get_posts',
-			function ( $query ) {
-				if ( ! empty( $query->query_vars['author'] ) && $query->query_vars['author'] == self::$user_id ) {
-					$query->set( 'posts_per_page', 1 );
-				}
-				return $query;
+			'wp_privacy_personal_data_posts_batch_size',
+			function () {
+				return 1;
 			}
 		);
 
