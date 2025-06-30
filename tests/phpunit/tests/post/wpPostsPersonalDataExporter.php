@@ -51,7 +51,7 @@ class Tests_Post_wpPostsPersonalDataExporter extends WP_UnitTestCase {
 		// Exported post properties.
 		$this->assertSame( 'Test Post Title', $actual['data'][0]['data'][0]['value'] );
 		$this->assertSame( get_the_guid( $post ), $actual['data'][0]['data'][1]['value'] );
-		
+
 		// Verify item_id format.
 		$this->assertSame( "post-{$post_id}", $actual['data'][0]['item_id'] );
 	}
@@ -83,7 +83,7 @@ class Tests_Post_wpPostsPersonalDataExporter extends WP_UnitTestCase {
 				break;
 			}
 		}
-		
+
 		$this->assertNotNull( $private_post_data, 'Private post not found in export data' );
 
 		// Private posts should have title and ID but not URL.
@@ -102,11 +102,11 @@ class Tests_Post_wpPostsPersonalDataExporter extends WP_UnitTestCase {
 	 */
 	public function test_wp_posts_personal_data_exporter_password_protected_post() {
 		$args = array(
-			'post_author'    => self::$user_id,
-			'post_title'     => 'Test Password Protected Post',
-			'post_status'    => 'publish',
-			'post_type'      => 'post',
-			'post_password'  => 'password',
+			'post_author'   => self::$user_id,
+			'post_title'    => 'Test Password Protected Post',
+			'post_status'   => 'publish',
+			'post_type'     => 'post',
+			'post_password' => 'password',
 		);
 
 		$post_id = self::factory()->post->create( $args );
@@ -123,7 +123,7 @@ class Tests_Post_wpPostsPersonalDataExporter extends WP_UnitTestCase {
 				break;
 			}
 		}
-		
+
 		$this->assertNotNull( $password_post_data, 'Password protected post not found in export data' );
 		$this->assertCount( 2, $password_post_data['data'] );
 		$this->assertStringContainsString( 'Password Protected:', $password_post_data['data'][0]['value'] );
@@ -153,8 +153,8 @@ class Tests_Post_wpPostsPersonalDataExporter extends WP_UnitTestCase {
 	 * @ticket 43809
 	 */
 	public function test_wp_posts_personal_data_exporter_pagination() {
-		$post_ids = self::factory()->post->create_many( 
-			3, 
+		$post_ids = self::factory()->post->create_many(
+			3,
 			array(
 				'post_author' => self::$user_id,
 				'post_status' => 'publish',
@@ -165,7 +165,7 @@ class Tests_Post_wpPostsPersonalDataExporter extends WP_UnitTestCase {
 		// We need to modify the query directly via a filter since the function has a hardcoded posts_per_page value.
 		add_filter(
 			'pre_get_posts',
-			function( $query ) {
+			function ( $query ) {
 				if ( ! empty( $query->query_vars['author'] ) && $query->query_vars['author'] == self::$user_id ) {
 					$query->set( 'posts_per_page', 1 );
 				}
@@ -179,13 +179,13 @@ class Tests_Post_wpPostsPersonalDataExporter extends WP_UnitTestCase {
 		$this->assertFalse( $actual_page1['done'] );
 
 		$actual_page2 = wp_posts_personal_data_exporter( 'personal@local.host', 2 );
-		
+
 		// Second page should have another post.
 		$this->assertCount( 1, $actual_page2['data'] );
 		$this->assertFalse( $actual_page2['done'] );
 
 		$actual_page3 = wp_posts_personal_data_exporter( 'personal@local.host', 3 );
-		
+
 		// Third page should have the last post.
 		$this->assertCount( 1, $actual_page3['data'] );
 		$this->assertTrue( $actual_page3['done'] );
