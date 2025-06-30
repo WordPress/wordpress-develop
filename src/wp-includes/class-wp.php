@@ -353,11 +353,18 @@ class WP {
 			}
 		}
 
-		// Convert urldecoded spaces back into '+'.
 		foreach ( get_taxonomies( array(), 'objects' ) as $taxonomy => $t ) {
-			if ( $t->query_var && isset( $this->query_vars[ $t->query_var ] ) ) {
-				$this->query_vars[ $t->query_var ] = str_replace( ' ', '+', $this->query_vars[ $t->query_var ] );
+			if ( ! $t->query_var || ! isset( $this->query_vars[ $t->query_var ] ) ) {
+				continue;
 			}
+
+			// Taxonomy query vars only accept scalar values.
+			if ( ! is_scalar( $this->query_vars[ $t->query_var ] ) ) {
+				$this->query_vars[ $t->query_var ] = '';
+			}
+
+			// Convert urldecoded spaces back into '+'.
+			$this->query_vars[ $t->query_var ] = str_replace( ' ', '+', $this->query_vars[ $t->query_var ] );
 		}
 
 		// Don't allow non-publicly queryable taxonomies to be queried from the front end.
