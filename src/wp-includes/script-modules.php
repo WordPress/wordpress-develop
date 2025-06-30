@@ -173,3 +173,18 @@ function wp_default_script_modules() {
 		wp_register_script_module( $script_module_id, $path, $script_module_data['dependencies'], $script_module_data['version'] );
 	}
 }
+
+/**
+ * Registers default core script modules which do not come from Gutenberg.
+ *
+ * @since 6.9.0
+ *
+ * @todo Should this script module here be developed in Gutenberg as packages?
+ */
+function wp_default_core_script_modules(): void {
+	$suffix = defined( 'WP_RUN_CORE_TESTS' ) ? '.min' : wp_scripts_get_suffix();
+
+	$script_module_id = '@wordpress/bfcache';
+	$path             = includes_url( "js/bfcache{$suffix}.js" );
+	wp_register_script_module( $script_module_id, $path );
+}
