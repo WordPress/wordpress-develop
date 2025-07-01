@@ -2038,10 +2038,11 @@ function sanitize_file_name( $filename ) {
 		/**
 		 * Replace all whitespace characters with a basic space (U+0020).
 		 *
-		 * Characters in the White_Space category are listed with “Zs” in
-		 * their entry in the UnicodeData file maintained at the linked URL.
+		 * The “Zs” in the pattern selects characters in the `Space_Separator`
+		 * category, which includes all characters considered as white space
+		 * in the Unicode standard.
 		 *
-		 * @see https://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
+		 * @see https://www.unicode.org/reports/tr44/#General_Category_Values
 		 */
 		$filename = preg_replace( '#\p{Zs}#siu', ' ', $filename );
 	}
