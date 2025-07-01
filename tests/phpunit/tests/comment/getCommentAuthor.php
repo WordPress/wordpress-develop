@@ -112,4 +112,37 @@ class Tests_Comment_GetCommentAuthor extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 10653
+	 */
+	public function test_comment_author_with_name_different_from_user_name() {
+		$user_id = self::factory()->user->create(
+			array(
+				'display_name' => 'Commenter Name',
+			)
+		);
+		$comment = self::factory()->comment->create_and_get(
+			array(
+				'user_id' => $user_id,
+				'comment_author' => 'Old Commenter Name',
+			)
+		);
+		$this->assertEquals( 'Commenter Name (Initially posted by Old Commenter Name)', get_comment_author( $comment ) );
+	}
+
+	public function test_comment_author_with_name_different_from_user_name_with_custom_before_after() {
+		$user_id = self::factory()->user->create(
+			array(
+				'display_name' => 'Commenter Name',
+			)
+		);
+		$comment = self::factory()->comment->create_and_get(
+			array(
+				'user_id' => $user_id,
+				'comment_author' => 'Old Commenter Name',
+			)
+		);
+		$this->assertEquals( 'Commenter Name AKA Old Commenter Name', get_comment_author( $comment, ' AKA ', '' ) );
+	}
 }
