@@ -1267,6 +1267,10 @@ dt {
 	font-weight: bold;
 }
 
+.wp-block-list [data-block] {
+	margin: 0;
+}
+
 [data-align=full] .wp-block-media-text {
 	margin-top: 0;
 	margin-bottom: 0;
@@ -2439,13 +2443,10 @@ pre.wp-block-verse {
 	left: 5px;
 }
 
-html {
-	line-height: 1.7;
-}
-
 html,
 body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	line-height: 1.7;
 }
 
 body {

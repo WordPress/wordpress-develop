@@ -1372,6 +1372,10 @@ dt {
 	font-weight: bold;
 }
 
+.wp-block-list [data-block] {
+	margin: 0;
+}
+
 [data-align=full] .wp-block-media-text {
 	margin-top: 0;
 	margin-bottom: 0;
@@ -2340,6 +2344,7 @@ body {
 	font-family: var(--global--font-secondary);
 	font-size: var(--global--font-size-base);
 	font-weight: normal;
+	line-height: var(--global--line-height-body);
 	-moz-osx-font-smoothing: grayscale;
 	-webkit-font-smoothing: antialiased;
 }
