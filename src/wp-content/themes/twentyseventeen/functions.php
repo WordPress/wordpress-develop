@@ -709,12 +709,11 @@ endif;
 function twentyseventeen_should_show_featured_image() {
 	$show_featured_image = ( is_single() || ( is_page() && ! twentyseventeen_is_frontpage() ) ) && has_post_thumbnail( get_queried_object_id() );
 	/**
-	 * Filters whether to show the featured image below the header on single posts and pages, unless the page is the front page.
-	 *
-	 * @param bool $show_featured_image Whether to the featured image below the header on single posts and pages.
+	 * Filters whether to show the Twenty Seventeen featured image below the header on single posts and pages, unless the page is the front page.
 	 *
 	 * @since 3.7.0
 	 *
+	 * @param bool $show_featured_image whether to show the Twenty Seventeen featured image below the header on single posts and pages.
 	 */
 	return apply_filters( 'twentyseventeen_should_show_featured_image', $show_featured_image );
 }
