@@ -11,7 +11,7 @@
  * Determines if post thumbnail can be displayed.
  */
 function twentynineteen_can_show_post_thumbnail() {
-	$show_post_thumbnail = ! post_password_required() && ! is_attachment() && has_post_thumbnail();
+	$show_post_thumbnail = ( ! post_password_required() && ! is_attachment() && has_post_thumbnail() );
 	/**
 	 * Filters whether to show post thumbnail.
 	 *
