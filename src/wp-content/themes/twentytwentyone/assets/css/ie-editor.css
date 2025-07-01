@@ -1329,7 +1329,6 @@ p.has-background {
 pre.wp-block-preformatted {
 	overflow-x: auto;
 	white-space: pre !important;
-	font-size: 1rem;
 }
 
 .wp-block-pullquote {
