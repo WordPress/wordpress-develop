@@ -301,7 +301,7 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 
 <script id="tmpl-health-check-issue" type="text/template">
 	<h4 class="health-check-accordion-heading">
-		<button aria-expanded="false" class="health-check-accordion-trigger" aria-controls="health-check-accordion-block-{{ data.test }}" type="button">
+		<button id="health-check-section-{{ data.test }}" aria-expanded="false" class="health-check-accordion-trigger" aria-controls="health-check-accordion-block-{{ data.test }}" type="button">
 			<span class="title">{{ data.label }}</span>
 			<# if ( data.badge ) { #>
 				<span class="badge {{ data.badge.color }}">{{ data.badge.label }}</span>

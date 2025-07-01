@@ -44,6 +44,8 @@ jQuery( function( $ ) {
 	$( '.health-check-accordion' ).on( 'click', '.health-check-accordion-trigger', function() {
 		var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
 
+		window.location.hash = $( this ).attr( 'id' );
+
 		if ( isExpanded ) {
 			$( this ).attr( 'aria-expanded', 'false' );
 			$( '#' + $( this ).attr( 'aria-controls' ) ).attr( 'hidden', true );
@@ -52,6 +54,19 @@ jQuery( function( $ ) {
 			$( '#' + $( this ).attr( 'aria-controls' ) ).attr( 'hidden', false );
 		}
 	} );
+
+	// Get hash from query string and open the related accordion.
+	setTimeout( function() {
+		var hash = window.location.hash;
+
+		if ( hash ) {
+			var requestedPanel = $( hash );
+
+			if ( requestedPanel.length ) {
+				requestedPanel.trigger( 'click' );
+			}
+		}
+	}, 100 );
 
 	// Site Health test handling.
 
