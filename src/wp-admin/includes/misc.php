@@ -1624,8 +1624,8 @@ function wp_check_php_version() {
 
 	$response['is_lower_than_future_minimum'] = false;
 
-	// The minimum supported PHP version will be updated to 7.4 in the future. Check if the current version is lower.
-	if ( version_compare( $version, '7.4', '<' ) ) {
+	// The minimum supported PHP version will be updated to 8.0 in the future. Check if the current version is lower.
+	if ( version_compare( $version, '8.0', '<' ) ) {
 		$response['is_lower_than_future_minimum'] = true;
 
 		// Force showing of warnings.
