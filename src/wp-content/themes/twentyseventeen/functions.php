@@ -711,7 +711,7 @@ function twentyseventeen_should_show_featured_image() {
 	/**
 	 * Filters whether to show the Twenty Seventeen featured image below the header on single posts and pages, unless the page is the front page.
 	 *
-	 * @since 3.7.0
+	 * @since Twenty Seventeen 3.7
 	 *
 	 * @param bool $show_featured_image Whether to display the featured image below the header.
 	 */
