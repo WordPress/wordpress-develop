@@ -20,11 +20,11 @@ if ( ! function_exists( 'twentysixteen_entry_meta' ) ) :
 	function twentysixteen_entry_meta() {
 		if ( 'post' === get_post_type() ) {
 			/**
-			 * Filters the Twenty Sixteen author avatar size.
+			 * Filters the Twenty Sixteen entry meta avatar size.
 			 *
 			 * @since Twenty Sixteen 1.0
 			 *
-			 * @param int The height and width avatar dimension in pixels. Default 49.
+			 * @param int $size The avatar height and width size in pixels.
 			 */
 			$author_avatar_size = apply_filters( 'twentysixteen_author_avatar_size', 49 );
 			printf(
