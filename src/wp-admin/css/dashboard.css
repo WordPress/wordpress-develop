@@ -1003,6 +1003,7 @@ body #dashboard-widgets .postbox form .submit {
 }
 
 .hndle:hover .edit-box,
+.handle:hover .edit-box,
 .edit-box:focus {
 	opacity: 1;
 }
@@ -1036,7 +1037,8 @@ body #dashboard-widgets .postbox form .submit {
 	text-decoration: underline;
 }
 
-#dashboard-widgets .hndle .postbox-title-action {
+#dashboard-widgets .hndle .postbox-title-action,
+#dashboard-widgets .handle .postbox-title-action {
 	float: right;
 	line-height: 1.2;
 }
@@ -1181,7 +1183,8 @@ a.rsswidget {
 	border-color: transparent;
 }
 
-#dashboard_browser_nag h2.hndle {
+#dashboard_browser_nag h2.hndle,
+#dashboard_browser_nag h2.handle {
 	border: none;
 	font-weight: 600;
 	font-size: 20px;
