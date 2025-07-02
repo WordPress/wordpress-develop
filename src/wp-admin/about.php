@@ -41,7 +41,7 @@ include( ABSPATH . 'wp-admin/admin-header.php' );
 </h2>
 
 <div class="changelog point-releases">
-	<h3><?php echo _n( 'Maintenance and Security Release', 'Maintenance and Security Releases', 38 ); ?></h3>
+	<h3><?php echo _n( 'Maintenance and Security Release', 'Maintenance and Security Releases', 39 ); ?></h3>
 	<p>
 		<?php
 		printf(
