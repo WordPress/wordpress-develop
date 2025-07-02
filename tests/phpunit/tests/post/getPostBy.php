@@ -92,8 +92,8 @@ class Tests_Post_GetPostBy extends WP_UnitTestCase {
 
 	/**
 	 * Test getting a post by ID.
-     * 
-     * @ticket 12726
+	 *
+	 * @ticket 12726
 	 */
 	public function test_get_post_by_id() {
 		$post = get_post_by( 'id', self::$post_id, array() );
@@ -114,8 +114,8 @@ class Tests_Post_GetPostBy extends WP_UnitTestCase {
 
 	/**
 	 * Test getting a post by title.
-     * 
-     * @ticket 12726
+	 *
+	 * @ticket 12726
 	 */
 	public function test_get_post_by_title() {
 		// Test with post.
@@ -143,8 +143,8 @@ class Tests_Post_GetPostBy extends WP_UnitTestCase {
 
 	/**
 	 * Test getting a post by path.
-     * 
-     * @ticket 12726
+	 *
+	 * @ticket 12726
 	 */
 	public function test_get_post_by_path() {
 		// Test with post.
@@ -172,8 +172,8 @@ class Tests_Post_GetPostBy extends WP_UnitTestCase {
 
 	/**
 	 * Test with invalid field.
-     * 
-     * @ticket 12726
+	 *
+	 * @ticket 12726
 	 */
 	public function test_get_post_by_invalid_field() {
 		$result = get_post_by( 'invalid_field', 'some_value', array() );
@@ -182,8 +182,8 @@ class Tests_Post_GetPostBy extends WP_UnitTestCase {
 
 	/**
 	 * Test with different output formats.
-     * 
-     * @ticket 12726
+	 *
+	 * @ticket 12726
 	 */
 	public function test_get_post_by_with_different_output_formats() {
 		// Test with ARRAY_A output.
