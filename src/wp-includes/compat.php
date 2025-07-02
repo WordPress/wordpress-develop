@@ -273,7 +273,7 @@ function _mb_strlen( $str, $encoding = null ) {
 	return --$count;
 }
 
-// sodium_crypto_box() was introduced in PHP 7.2.
+// sodium_crypto_box() was introduced with Sodium in PHP 7.2, but the extension may not be enabled.
 if ( ! function_exists( 'sodium_crypto_box' ) ) {
 	require ABSPATH . WPINC . '/sodium_compat/autoload.php';
 }
