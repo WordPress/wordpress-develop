@@ -713,7 +713,7 @@ function populate_options( array $options = array() ) {
  * @since 2.0.0
  */
 function populate_roles() {
-	global $wp_roles;
+	$wp_roles = wp_roles();
 
 	// Disable role updates to the database while modifying roles.
 	$wp_roles->use_db = false;
