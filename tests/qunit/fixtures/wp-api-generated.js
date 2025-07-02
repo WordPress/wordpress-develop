@@ -6896,7 +6896,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/global-styles/(?P<id>[\\/\\d+]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -6914,8 +6914,8 @@ mockedApiResponse.Schema = {
                     },
                     "args": {
                         "id": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "ID of global styles config.",
+                            "type": "integer",
                             "required": false
                         }
                     }
