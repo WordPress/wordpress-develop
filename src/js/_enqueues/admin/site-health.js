@@ -55,8 +55,9 @@ jQuery( function( $ ) {
 		}
 	} );
 
-	// Get hash from query string and open the related accordion.
-	setTimeout( function() {
+	/* global setTimeout */
+	wp.domReady( function() {
+		// Get hash from query string and open the related accordion.
 		var hash = window.location.hash;
 
 		if ( hash ) {
@@ -66,7 +67,7 @@ jQuery( function( $ ) {
 				requestedPanel.trigger( 'click' );
 			}
 		}
-	}, 100 );
+	} );
 
 	// Site Health test handling.
 
