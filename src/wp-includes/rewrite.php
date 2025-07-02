@@ -406,17 +406,13 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 		$compare = 'day';
 	}
 
-	if ( ! $compare ) {
+	if ( ! $compare || ! array_key_exists( $compare, $query_vars ) || ! is_scalar( $query_vars[ $compare ] ) ) {
 		return $query_vars;
 	}
 
 	// This is the potentially clashing slug.
-	$value = '';
-	if ( $compare && array_key_exists( $compare, $query_vars ) ) {
-		$value = $query_vars[ $compare ];
-	}
-
-	$post = get_page_by_path( $value, OBJECT, 'post' );
+	$value = $query_vars[ $compare ];
+	$post  = get_page_by_path( $value, OBJECT, 'post' );
 	if ( ! ( $post instanceof WP_Post ) ) {
 		return $query_vars;
 	}
