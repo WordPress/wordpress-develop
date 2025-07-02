@@ -10056,12 +10056,14 @@ mockedApiResponse.Schema = {
                             "oneOf": [
                                 {
                                     "type": "string",
-                                    "format": "uuid",
+                                    "format": "uuid"
                                 },
                                 {
                                     "type": "string",
-                                    "enum": [ "" ],
-                                },
+                                    "enum": [
+                                        ""
+                                    ]
+                                }
                             ],
                             "required": false
                         },
@@ -10149,12 +10151,14 @@ mockedApiResponse.Schema = {
                             "oneOf": [
                                 {
                                     "type": "string",
-                                    "format": "uuid",
+                                    "format": "uuid"
                                 },
                                 {
                                     "type": "string",
-                                    "enum": [ "" ],
-                                },
+                                    "enum": [
+                                        ""
+                                    ]
+                                }
                             ],
                             "required": false
                         },
