@@ -9,9 +9,6 @@ const local_env_utils = require( './utils' );
 
 dotenvExpand.expand( dotenv.config() );
 
-// Determine if a non-default database authentication plugin needs to be used.
-local_env_utils.determine_auth_option();
-
 // Create wp-config.php.
 wp_cli( `config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"` );
 
