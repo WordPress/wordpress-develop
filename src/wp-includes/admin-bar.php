@@ -262,7 +262,7 @@ function wp_admin_bar_sidebar_toggle( $wp_admin_bar ) {
 function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 	$user_id      = get_current_user_id();
 	$current_user = wp_get_current_user();
-	$display_name = mb_strimwidth( $current_user->display_name, 0, 40, '...' );
+	$display_name = wp_html_excerpt( $current_user->display_name, 40, '&hellip;' );
 
 	if ( ! $user_id ) {
 		return;
@@ -307,7 +307,7 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 	$user_id      = get_current_user_id();
 	$current_user = wp_get_current_user();
-	$display_name = mb_strimwidth( $current_user->display_name, 0, 40, '...' );
+	$display_name = wp_html_excerpt( $current_user->display_name, 40, '&hellip;' );
 
 	if ( ! $user_id ) {
 		return;
