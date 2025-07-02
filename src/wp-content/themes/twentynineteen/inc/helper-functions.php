@@ -16,6 +16,8 @@ function twentynineteen_can_show_post_thumbnail() {
 	/**
 	 * Filters whether to show post thumbnail.
 	 *
+	 * @since Twenty Nineteen 1.0
+	 *
 	 * @param bool $show_post_thumbnail Whether to show post thumbnail.
 	 */
 	return apply_filters( 'twentynineteen_can_show_post_thumbnail', $show_post_thumbnail );
