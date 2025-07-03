@@ -44,7 +44,9 @@ jQuery( function( $ ) {
 	$( '.health-check-accordion' ).on( 'click', '.health-check-accordion-trigger', function() {
 		var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
 
-		window.location.hash = $( this ).attr( 'id' );
+		if ( 'undefined' !== typeof $( this ).attr( 'id' ) ) {
+			window.location.hash = $( this ).attr( 'id' );
+		}
 
 		if ( isExpanded ) {
 			$( this ).attr( 'aria-expanded', 'false' );
