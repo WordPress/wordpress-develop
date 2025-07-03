@@ -818,7 +818,7 @@ class WP_Http {
 
 			$cookies_header = '';
 			foreach ( (array) $r['cookies'] as $cookie ) {
-				$cookies_header .= $cookie->getHeaderValue() . '; ';
+				$cookies_header .= $cookie->get_header_value() . '; ';
 			}
 
 			$cookies_header         = substr( $cookies_header, 0, -2 );
