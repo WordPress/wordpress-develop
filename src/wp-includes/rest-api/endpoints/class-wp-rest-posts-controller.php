@@ -278,6 +278,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args['date_query'][] = array(
 				'before' => $request['before'],
 				'column' => 'post_date',
+				'inclusive' => true,
 			);
 		}
 
@@ -285,6 +286,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args['date_query'][] = array(
 				'before' => $request['modified_before'],
 				'column' => 'post_modified',
+				'inclusive' => true,
 			);
 		}
 
@@ -292,6 +294,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args['date_query'][] = array(
 				'after'  => $request['after'],
 				'column' => 'post_date',
+				'inclusive' => true,
 			);
 		}
 
@@ -299,6 +302,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args['date_query'][] = array(
 				'after'  => $request['modified_after'],
 				'column' => 'post_modified',
+				'inclusive' => true,
 			);
 		}
 
