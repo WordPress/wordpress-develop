@@ -65,6 +65,9 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Enqueues scripts, styles, settings, and templates.
+	 *
+	 * @since 3.4.0
 	 */
 	public function enqueue() {
 		wp_enqueue_media();
@@ -96,7 +99,11 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Prepare image control.
+	 *
 	 * @global Custom_Image_Header $custom_image_header
+	 *
+	 * @since 3.4.0
 	 */
 	public function prepare_control() {
 		global $custom_image_header;
@@ -113,6 +120,9 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Print header image template.
+	 *
+	 * @since 3.4.0
 	 */
 	public function print_header_image_template() {
 		?>
@@ -185,6 +195,10 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Get current image source.
+	 *
+	 * @since 3.4.0
+	 *
 	 * @return string|void
 	 */
 	public function get_current_image_src() {
@@ -196,6 +210,9 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	}
 
 	/**
+	 * Render content of header image control.
+	 *
+	 * @since 3.4.0
 	 */
 	public function render_content() {
 		$visibility = $this->get_current_image_src() ? '' : ' style="display:none" ';
