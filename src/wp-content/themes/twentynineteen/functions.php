@@ -245,6 +245,13 @@ function twentynineteen_content_width() {
 	// This variable is intended to be overruled from themes.
 	// Open WPCS issue: {@link https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/1043}.
 	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+	/**
+	 * Filters Twenty Nineteen content width of the theme.
+	 *
+	 * @since Twenty Nineteen 1.0
+	 *
+	 * @param int $content_width Content width in pixels.
+	 */
 	$GLOBALS['content_width'] = apply_filters( 'twentynineteen_content_width', 640 );
 }
 add_action( 'after_setup_theme', 'twentynineteen_content_width', 0 );
