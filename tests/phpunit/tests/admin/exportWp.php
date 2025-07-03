@@ -299,11 +299,11 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create( array( 'post_title' => 'Test Post' ) );
 		self::factory()->comment->create_post_comments( $post_id, 3 );
 
-		// Add filter to make get_comment return false.
+		// Add filter to make get_comment return null.
 		add_action(
 			'export_wp',
 			function () {
-				add_filter( 'get_comment', '__return_false' );
+				add_filter( 'get_comment', '__return_null' );
 			}
 		);
 
