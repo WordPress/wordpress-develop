@@ -886,7 +886,7 @@ function wp_setup_nav_menu_item( $menu_item ) {
 					$menu_item->_invalid   = true;
 				}
 
-				if ( 'trash' === get_post_status( $menu_item->object_id ) ) {
+				if ( 'publish' !== get_post_status( $menu_item->object_id ) ) {
 					$menu_item->_invalid = true;
 				}
 
