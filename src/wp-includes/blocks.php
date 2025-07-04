@@ -328,8 +328,9 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
 	$style_uri       = get_block_asset_url( $style_path_norm );
 
-	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
-	$result  = wp_register_style(
+	$block_version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$version       = $style_path_norm && defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? filemtime( $style_path_norm ) : $block_version;
+	$result        = wp_register_style(
 		$style_handle_name,
 		$style_uri,
 		array(),
@@ -376,6 +377,32 @@ function get_block_metadata_i18n_schema() {
 }
 
 /**
+ * Registers all block types from a block metadata collection.
+ *
+ * This can either reference a previously registered metadata collection or, if the `$manifest` parameter is provided,
+ * register the metadata collection directly within the same function call.
+ *
+ * @since 6.8.0
+ * @see wp_register_block_metadata_collection()
+ * @see register_block_type_from_metadata()
+ *
+ * @param string $path     The absolute base path for the collection ( e.g., WP_PLUGIN_DIR . '/my-plugin/blocks/' ).
+ * @param string $manifest Optional. The absolute path to the manifest file containing the metadata collection, in
+ *                         order to register the collection. If this parameter is not provided, the `$path` parameter
+ *                         must reference a previously registered block metadata collection.
+ */
+function wp_register_block_types_from_metadata_collection( $path, $manifest = '' ) {
+	if ( $manifest ) {
+		wp_register_block_metadata_collection( $path, $manifest );
+	}
+
+	$block_metadata_files = WP_Block_Metadata_Registry::get_collection_block_metadata_files( $path );
+	foreach ( $block_metadata_files as $block_metadata_file ) {
+		register_block_type_from_metadata( $block_metadata_file );
+	}
+}
+
+/**
  * Registers a block metadata collection.
  *
  * This function allows core and third-party plugins to register their block metadata
@@ -419,11 +446,13 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 * Using a static variable ensures that the metadata is only read once per request.
 	 */
 
+	$file_or_folder = wp_normalize_path( $file_or_folder );
+
 	$metadata_file = ( ! str_ends_with( $file_or_folder, 'block.json' ) ) ?
 		trailingslashit( $file_or_folder ) . 'block.json' :
 		$file_or_folder;
 
-	$is_core_block        = str_starts_with( $file_or_folder, ABSPATH . WPINC );
+	$is_core_block        = str_starts_with( $file_or_folder, wp_normalize_path( ABSPATH . WPINC ) );
 	$metadata_file_exists = $is_core_block || file_exists( $metadata_file );
 	$registry_metadata    = WP_Block_Metadata_Registry::get_metadata( $file_or_folder );
 
@@ -1220,8 +1249,25 @@ function apply_block_hooks_to_content_from_post_object( $content, $post = null, 
 		$content
 	);
 
+	/*
+	 * We need to avoid inserting any blocks hooked into the `before` and `after` positions
+	 * of the temporary wrapper block that we create to wrap the content.
+	 * See https://core.trac.wordpress.org/ticket/63287 for more details.
+	 */
+	$suppress_blocks_from_insertion_before_and_after_wrapper_block = static function ( $hooked_block_types, $relative_position, $anchor_block_type ) use ( $wrapper_block_type ) {
+		if (
+			$wrapper_block_type === $anchor_block_type &&
+			in_array( $relative_position, array( 'before', 'after' ), true )
+		) {
+			return array();
+		}
+		return $hooked_block_types;
+	};
+
 	// Apply Block Hooks.
+	add_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX, 3 );
 	$content = apply_block_hooks_to_content( $content, $post, $callback );
+	remove_filter( 'hooked_block_types', $suppress_blocks_from_insertion_before_and_after_wrapper_block, PHP_INT_MAX );
 
 	// Finally, we need to remove the temporary wrapper block.
 	$content = remove_serialized_parent_block( $content );
@@ -2358,11 +2404,32 @@ function parse_blocks( $content ) {
  * @return string Updated post content.
  */
 function do_blocks( $content ) {
-	$blocks = parse_blocks( $content );
-	$output = '';
+	$blocks                = parse_blocks( $content );
+	$top_level_block_count = count( $blocks );
+	$output                = '';
 
-	foreach ( $blocks as $block ) {
-		$output .= render_block( $block );
+	/**
+	 * Parsed blocks consist of a list of top-level blocks. Those top-level
+	 * blocks may themselves contain nested inner blocks. However, every
+	 * top-level block is rendered independently, meaning there are no data
+	 * dependencies between them.
+	 *
+	 * Ideally, therefore, the parser would only need to parse one complete
+	 * top-level block at a time, render it, and move on. Unfortunately, this
+	 * is not possible with {@see \parse_blocks()} because it must parse the
+	 * entire given document at once.
+	 *
+	 * While the current implementation prevents this optimization, it’s still
+	 * possible to reduce the peak memory use when calls to `render_block()`
+	 * on those top-level blocks are memory-heavy (which many of them are).
+	 * By setting each parsed block to `NULL` after rendering it, any memory
+	 * allocated during the render will be freed and reused for the next block.
+	 * Before making this change, that memory was retained and would lead to
+	 * out-of-memory crashes for certain posts that now run with this change.
+	 */
+	for ( $i = 0; $i < $top_level_block_count; $i++ ) {
+		$output      .= render_block( $blocks[ $i ] );
+		$blocks[ $i ] = null;
 	}
 
 	// If there are blocks in this content, we shouldn't run wpautop() on it later.
@@ -2564,8 +2631,10 @@ function build_query_vars_from_query_block( $block, $page ) {
 				 */
 				$query['post__in']            = ! empty( $sticky ) ? $sticky : array( 0 );
 				$query['ignore_sticky_posts'] = 1;
-			} else {
+			} elseif ( 'exclude' === $block->context['query']['sticky'] ) {
 				$query['post__not_in'] = array_merge( $query['post__not_in'], $sticky );
+			} elseif ( 'ignore' === $block->context['query']['sticky'] ) {
+				$query['ignore_sticky_posts'] = 1;
 			}
 		}
 		if ( ! empty( $block->context['query']['exclude'] ) ) {

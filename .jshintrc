@@ -3,7 +3,7 @@
 	"curly": true,
 	"eqeqeq": true,
 	"eqnull": true,
-	"esversion": 6,
+	"esversion": 10,
 	"expr": true,
 	"immed": true,
 	"noarg": true,
