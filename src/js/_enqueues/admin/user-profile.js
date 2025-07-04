@@ -365,7 +365,7 @@
 		// Skip warning on macOS Safari or Chrome (they show native indicators).
 		if (
 			isMac &&
-			( ua.indexOf( 'safari' ) !== -1 || ua.indexOf( 'chrome' ) !== -1 )
+			( ua.indexOf( 'safari' ) !== -1 )
 		) {
 			return false;
 		}
