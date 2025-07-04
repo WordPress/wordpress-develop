@@ -5239,3 +5239,4 @@ function _wp_filter_pre_hash_password( $password ) {
 
 	return $pre_hash_password;
 }
+
