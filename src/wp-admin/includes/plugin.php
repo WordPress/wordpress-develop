@@ -1484,11 +1484,6 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	if ( ! current_user_can( $capability ) ) {
 		$_wp_submenu_nopriv[ $parent_slug ][ $menu_slug ] = true;
 		return false;
-	} elseif ( isset( $_wp_submenu_nopriv[ $parent_slug ][ $menu_slug ] ) ) {
-		unset( $_wp_submenu_nopriv[ $parent_slug ][ $menu_slug ] );
-		if ( empty( $_wp_submenu_nopriv[ $parent_slug ] ) ) {
-				unset( $_wp_submenu_nopriv[ $parent_slug ] );
-		}
 	}
 
 	/*
