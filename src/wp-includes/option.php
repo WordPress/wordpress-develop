@@ -515,7 +515,7 @@ function wp_set_option_autoload_values( array $options ) {
  *
  * @see wp_set_option_autoload_values()
  *
- * @param string[] $options  List of option names. Expected to not be SQL-escaped.
+ * @param string[] $options  Array of option names. Expected to not be SQL-escaped.
  * @param bool     $autoload Autoload value to control whether to load the options when WordPress starts up.
  *                           For backward compatibility 'yes' and 'no' are also accepted, though using these values is
  *                           deprecated.
@@ -596,7 +596,7 @@ function form_option( $option ) {
  *
  * @param bool $force_cache Optional. Whether to force an update of the local cache
  *                          from the persistent cache. Default false.
- * @return array List of all options.
+ * @return array Array of all options.
  */
 function wp_load_alloptions( $force_cache = false ) {
 	global $wpdb;

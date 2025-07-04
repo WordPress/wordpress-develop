@@ -168,9 +168,9 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	 *     @type int    $users              Number of users on this WordPress installation.
 	 *     @type int    $multisite_enabled  Whether this WordPress installation uses Multisite.
 	 *     @type int    $initial_db_version Database version of WordPress at time of installation.
-	 *     @type array  $extensions         List of PHP extensions and their versions.
-	 *     @type array  $platform_flags     List containing the operating system name and bit support.
-	 *     @type array  $image_support      List of image formats supported by GD and Imagick.
+	 *     @type array  $extensions         Array of PHP extensions and their versions.
+	 *     @type array  $platform_flags     Array containing the operating system name and bit support.
+	 *     @type array  $image_support      Array of image formats supported by GD and Imagick.
 	 * }
 	 */
 	$query = apply_filters( 'core_version_check_query_args', $query );

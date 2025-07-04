@@ -460,7 +460,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	/**
 	 * Data provider for test_ajax_load_available_items_structure().
 	 *
-	 * Provides various post_args to return a list of items to test the array structure of.
+	 * Provides various post_args to return an array of items to test the array structure of.
 	 *
 	 * @since 4.3.0
 	 *

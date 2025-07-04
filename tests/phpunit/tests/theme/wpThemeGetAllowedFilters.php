@@ -9,7 +9,7 @@
  */
 class Tests_Theme_wpThemeGetAllowedFilters extends WP_UnitTestCase {
 	/**
-	 * @var array List of themes allowed before filters are applied.
+	 * @var array Array of themes allowed before filters are applied.
 	 */
 	protected $default_allowed;
 

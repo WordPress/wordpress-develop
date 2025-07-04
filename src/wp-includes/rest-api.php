@@ -335,7 +335,7 @@ function create_initial_rest_routes() {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param array $search_handlers List of search handlers to use in the controller. Each search
+	 * @param array $search_handlers Array of search handlers to use in the controller. Each search
 	 *                               handler instance must extend the `WP_REST_Search_Handler` class.
 	 *                               Default is only a handler for posts.
 	 */
@@ -1291,7 +1291,7 @@ function rest_get_avatar_urls( $id_or_email ) {
  *
  * @since 4.7.0
  *
- * @return int[] List of pixel sizes for avatars. Default `[ 24, 48, 96 ]`.
+ * @return int[] Array of pixel sizes for avatars. Default `[ 24, 48, 96 ]`.
  */
 function rest_get_avatar_sizes() {
 	/**
@@ -1656,7 +1656,7 @@ function rest_sanitize_object( $maybe_object ) {
  * @since 5.5.0
  *
  * @param mixed    $value The value to check.
- * @param string[] $types The list of possible types.
+ * @param string[] $types The array of possible types.
  * @return string The best matching type, an empty string if no types match.
  */
 function rest_get_best_type_for_value( $value, $types ) {
@@ -3000,7 +3000,7 @@ function rest_preload_api_request( $memo, $path ) {
  * @since 5.4.0
  *
  * @param string|array $embed Raw "_embed" parameter value.
- * @return true|string[] Either true to embed all embeds, or a list of relations to embed.
+ * @return true|string[] Either true to embed all embeds, or an array of relations to embed.
  */
 function rest_parse_embed_param( $embed ) {
 	if ( ! $embed || 'true' === $embed || '1' === $embed ) {

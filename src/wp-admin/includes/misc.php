@@ -361,7 +361,7 @@ function update_recently_edited( $file ) {
  * @since 4.9.0
  * @access private
  *
- * @param array $allowed_files List of theme file paths.
+ * @param array $allowed_files Array of theme file paths.
  * @return array Tree structure for listing theme files.
  */
 function wp_make_theme_file_tree( $allowed_files ) {
@@ -382,7 +382,7 @@ function wp_make_theme_file_tree( $allowed_files ) {
 }
 
 /**
- * Outputs the formatted file list for the theme file editor.
+ * Outputs the formatted file array for the theme file editor.
  *
  * @since 4.9.0
  * @access private
@@ -391,7 +391,7 @@ function wp_make_theme_file_tree( $allowed_files ) {
  *                               theme directory.
  * @global string $stylesheet    The stylesheet name of the theme being edited.
  *
- * @param array|string $tree  List of file/folder paths, or filename.
+ * @param array|string $tree  Array of file/folder paths, or filename.
  * @param int          $level The aria-level for the current iteration.
  * @param int          $size  The aria-setsize for the current iteration.
  * @param int          $index The aria-posinset for the current iteration.
@@ -466,7 +466,7 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
  * @since 4.9.0
  * @access private
  *
- * @param array $plugin_editable_files List of plugin file paths.
+ * @param array $plugin_editable_files Array of plugin file paths.
  * @return array Tree structure for listing plugin files.
  */
 function wp_make_plugin_file_tree( $plugin_editable_files ) {
@@ -487,12 +487,12 @@ function wp_make_plugin_file_tree( $plugin_editable_files ) {
 }
 
 /**
- * Outputs the formatted file list for the plugin file editor.
+ * Outputs the formatted file array for the plugin file editor.
  *
  * @since 4.9.0
  * @access private
  *
- * @param array|string $tree  List of file/folder paths, or filename.
+ * @param array|string $tree  Array of file/folder paths, or filename.
  * @param string       $label Name of file or folder to print.
  * @param int          $level The aria-level for the current iteration.
  * @param int          $size  The aria-setsize for the current iteration.

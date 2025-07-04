@@ -1833,7 +1833,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @dataProvider data_validate_file
 	 *
 	 * @param string $file          File path.
-	 * @param array  $allowed_files List of allowed files.
+	 * @param array  $allowed_files Array of allowed files.
 	 * @param int    $expected      Expected result.
 	 */
 	public function test_validate_file( $file, $allowed_files, $expected ) {
@@ -1846,7 +1846,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @return array {
 	 *     @type array ...$0 {
 	 *         @type string $0 File path.
-	 *         @type array  $1 List of allowed files.
+	 *         @type array  $1 Array of allowed files.
 	 *         @type int    $2 Expected result.
 	 *     }
 	 * }

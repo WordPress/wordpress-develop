@@ -580,7 +580,7 @@ class WP_Object_Cache {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string|string[] $groups List of groups that are global.
+	 * @param string|string[] $groups Array of groups that are global.
 	 */
 	public function add_global_groups( $groups ) {
 		$groups = (array) $groups;

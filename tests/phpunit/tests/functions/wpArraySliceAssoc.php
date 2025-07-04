@@ -19,7 +19,7 @@ class Tests_Functions_wpArraySliceAssoc extends WP_UnitTestCase {
 	 * @ticket 46638
 	 *
 	 * @param array $target_array The original array.
-	 * @param array $keys         The list of keys.
+	 * @param array $keys         The array of keys.
 	 * @param array $expected     The expected result.
 	 */
 	public function test_wp_array_slice_assoc( $target_array, $keys, $expected ) {

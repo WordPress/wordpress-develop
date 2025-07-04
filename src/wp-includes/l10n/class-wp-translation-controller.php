@@ -425,7 +425,7 @@ final class WP_Translation_Controller {
 	 *
 	 * @param string $textdomain Optional. Text domain. Default 'default'.
 	 * @param string $locale     Optional. Locale. Default current locale.
-	 * @return WP_Translation_File[] List of translation files.
+	 * @return WP_Translation_File[] Array of translation files.
 	 */
 	protected function get_files( string $textdomain = 'default', ?string $locale = null ): array {
 		if ( null === $locale ) {

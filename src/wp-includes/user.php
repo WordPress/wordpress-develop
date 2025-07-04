@@ -852,7 +852,7 @@ function get_user( $user_id ) {
  *
  * @param array $args Optional. Arguments to retrieve users. See WP_User_Query::prepare_query()
  *                    for more information on accepted arguments.
- * @return array List of users.
+ * @return array Array of users.
  */
 function get_users( $args = array() ) {
 
@@ -2935,7 +2935,7 @@ function wp_create_user(
  * @access private
  *
  * @param WP_User $user WP_User instance.
- * @return string[] List of user keys to be populated in wp_update_user().
+ * @return string[] Array of user keys to be populated in wp_update_user().
  */
 function _get_additional_user_keys( $user ) {
 	$keys = array( 'first_name', 'last_name', 'nickname', 'description', 'rich_editing', 'syntax_highlighting', 'comment_shortcuts', 'admin_color', 'use_ssl', 'show_admin_bar_front', 'locale' );
@@ -3912,7 +3912,7 @@ function new_user_email_admin_notice() {
  * @since 4.9.6
  * @access private
  *
- * @return string[] List of core privacy action types.
+ * @return string[] Array of core privacy action types.
  */
 function _wp_privacy_action_request_types() {
 	return array(

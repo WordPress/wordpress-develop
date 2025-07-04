@@ -2564,7 +2564,7 @@ class WP_Site_Health {
 		 * @since 6.1.0
 		 *
 		 * @param string   $notes              The notes appended to the health check description.
-		 * @param string[] $available_services The list of available persistent object cache services.
+		 * @param string[] $available_services The array of available persistent object cache services.
 		 */
 		$notes = apply_filters( 'site_status_persistent_object_cache_notes', $notes, $available_services );
 
@@ -2697,7 +2697,7 @@ class WP_Site_Health {
 	 * @since 5.2.0
 	 * @since 5.6.0 Added support for `has_rest` and `permissions`.
 	 *
-	 * @return array The list of tests to run.
+	 * @return array The array of tests to run.
 	 */
 	public static function get_tests() {
 		$tests = array(
@@ -3313,7 +3313,7 @@ class WP_Site_Health {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return array List of client caching headers and their (optional) verification callbacks.
+	 * @return array Array of client caching headers and their (optional) verification callbacks.
 	 */
 	public function get_page_cache_headers() {
 
@@ -3537,7 +3537,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param int[] $thresholds The list of threshold numbers keyed by threshold name.
+		 * @param int[] $thresholds The array of threshold numbers keyed by threshold name.
 		 */
 		$thresholds = apply_filters(
 			'site_status_persistent_object_cache_thresholds',
@@ -3592,11 +3592,11 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Returns a list of available persistent object cache services.
+	 * Returns a array of available persistent object cache services.
 	 *
 	 * @since 6.1.0
 	 *
-	 * @return string[] The list of available persistent object cache services.
+	 * @return string[] The array of available persistent object cache services.
 	 */
 	private function available_object_cache_services() {
 		$extensions = array_map(
@@ -3619,7 +3619,7 @@ class WP_Site_Health {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param string[] $services The list of available persistent object cache services.
+		 * @param string[] $services The array of available persistent object cache services.
 		 */
 		return apply_filters( 'site_status_available_object_cache_services', $services );
 	}

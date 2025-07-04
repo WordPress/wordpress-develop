@@ -174,7 +174,7 @@ abstract class WP_Sitemaps_Provider {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return array List of object subtypes objects keyed by their name.
+	 * @return array Array of object subtypes objects keyed by their name.
 	 */
 	public function get_object_subtypes() {
 		return array();

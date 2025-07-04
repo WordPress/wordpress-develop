@@ -142,7 +142,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Gets an associative array ( id => link ) with the list of views available on this table.
+	 * Gets an associative array ( id => link ) with the array of views available on this table.
 	 *
 	 * @since 4.9.6
 	 *

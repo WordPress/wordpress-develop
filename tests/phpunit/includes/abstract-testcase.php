@@ -1515,7 +1515,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @since 4.0.0
 	 *
 	 * @param string $dir Path to the directory to scan.
-	 * @return string[] List of file paths.
+	 * @return string[] Array of file paths.
 	 */
 	public function files_in_dir( $dir ) {
 		$files = array();
@@ -1536,7 +1536,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @return string[] List of file paths.
+	 * @return string[] Array of file paths.
 	 */
 	public function scan_user_uploads() {
 		static $files = array();
@@ -1581,7 +1581,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *              but returns an array of the directories instead.
 	 *
 	 * @param string $dir Path to the directory to scan.
-	 * @return string[] List of directories.
+	 * @return string[] Array of directories.
 	 */
 	public function scandir( $dir ) {
 		$matched_dirs = array();

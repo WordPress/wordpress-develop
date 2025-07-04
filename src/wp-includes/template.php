@@ -17,7 +17,7 @@
  * @since 1.5.0
  *
  * @param string   $type      Filename without extension.
- * @param string[] $templates An optional list of template candidates.
+ * @param string[] $templates An optional array of template candidates.
  * @return string Full path to template file.
  */
 function get_query_template( $type, $templates = array() ) {
@@ -57,7 +57,7 @@ function get_query_template( $type, $templates = array() ) {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string[] $templates A list of template candidates, in descending order of priority.
+	 * @param string[] $templates A array of template candidates, in descending order of priority.
 	 */
 	$templates = apply_filters( "{$type}_template_hierarchy", $templates );
 
@@ -98,7 +98,7 @@ function get_query_template( $type, $templates = array() ) {
 	 *
 	 * @param string   $template  Path to the template. See locate_template().
 	 * @param string   $type      Sanitized filename without extension.
-	 * @param string[] $templates A list of template candidates, in descending order of priority.
+	 * @param string[] $templates A array of template candidates, in descending order of priority.
 	 */
 	return apply_filters( "{$type}_template", $template, $type, $templates );
 }

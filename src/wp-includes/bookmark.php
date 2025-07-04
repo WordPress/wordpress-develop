@@ -131,7 +131,7 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
  *                                    and searched in 'link_url', 'link_name' and 'link_description'.
  *                                    Default empty.
  * }
- * @return object[] List of bookmark row objects.
+ * @return object[] Array of bookmark row objects.
  */
 function get_bookmarks( $args = '' ) {
 	global $wpdb;
@@ -169,7 +169,7 @@ function get_bookmarks( $args = '' ) {
 			 *
 			 * @see get_bookmarks()
 			 *
-			 * @param array $bookmarks   List of the cached bookmarks.
+			 * @param array $bookmarks   Array of the cached bookmarks.
 			 * @param array $parsed_args An array of bookmark query arguments.
 			 */
 			return apply_filters( 'get_bookmarks', $bookmarks, $parsed_args );

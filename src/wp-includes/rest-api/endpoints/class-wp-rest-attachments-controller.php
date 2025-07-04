@@ -1230,7 +1230,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @link https://tools.ietf.org/html/rfc2388
 	 * @link https://tools.ietf.org/html/rfc6266
 	 *
-	 * @param string[] $disposition_header List of Content-Disposition header values.
+	 * @param string[] $disposition_header Array of Content-Disposition header values.
 	 * @return string|null Filename if available, or null if not found.
 	 */
 	public static function get_filename_from_disposition( $disposition_header ) {

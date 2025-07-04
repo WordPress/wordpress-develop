@@ -263,7 +263,7 @@ class WP_Site_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+	 * @return WP_Site[]|int[]|int Array of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
 	 *                             or the number of sites when 'count' is passed as a query var.
 	 */
 	public function query( $query ) {
@@ -279,7 +279,7 @@ class WP_Site_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+	 * @return WP_Site[]|int[]|int Array of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
 	 *                             or the number of sites when 'count' is passed as a query var.
 	 */
 	public function get_sites() {

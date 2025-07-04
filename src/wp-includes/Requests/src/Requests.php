@@ -890,7 +890,7 @@ class Requests {
 	 * Convert a key => value array to a 'key: value' array for headers
 	 *
 	 * @param iterable $dictionary Dictionary of header values
-	 * @return array List of headers
+	 * @return array Array of headers
 	 *
 	 * @throws \WpOrg\Requests\Exception\InvalidArgument When the passed argument is not iterable.
 	 */

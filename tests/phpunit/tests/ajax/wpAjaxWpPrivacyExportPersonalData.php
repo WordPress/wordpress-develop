@@ -181,8 +181,8 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param array $exporters List of data exporters.
-	 * @return array List of data exporters.
+	 * @param array $exporters Array of data exporters.
+	 * @return array Array of data exporters.
 	 */
 	public function filter_exporter_callback_value( $exporters ) {
 		$exporters[ self::$exporter_key ]['callback'] = $this->new_callback_value;
@@ -203,9 +203,9 @@ class Tests_Ajax_wpAjaxWpPrivacyExportPersonalData extends WP_Ajax_UnitTestCase 
 	/**
 	 * Unset a specified key in the test exporter array.
 	 *
-	 * @param array $exporters List of data exporters.
+	 * @param array $exporters Array of data exporters.
 	 *
-	 * @return array List of data exporters.
+	 * @return array Array of data exporters.
 	 */
 	public function filter_unset_exporter_key( $exporters ) {
 		if ( false === $this->key_to_unset ) {

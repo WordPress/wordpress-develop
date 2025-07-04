@@ -347,7 +347,7 @@ function get_site( $site = null ) {
  * @see update_site_cache()
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $ids               ID list.
+ * @param array $ids               ID array.
  * @param bool  $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
 function _prime_site_caches( $ids, $update_meta_cache = true ) {
@@ -370,7 +370,7 @@ function _prime_site_caches( $ids, $update_meta_cache = true ) {
  *
  * @since 6.3.0
  *
- * @param array $site_ids List of site IDs.
+ * @param array $site_ids Array of site IDs.
  */
 function wp_lazyload_site_meta( array $site_ids ) {
 	if ( empty( $site_ids ) ) {
@@ -418,7 +418,7 @@ function update_site_cache( $sites, $update_meta_cache = true ) {
  *
  * @since 5.1.0
  *
- * @param array $site_ids List of site IDs.
+ * @param array $site_ids Array of site IDs.
  * @return array|false An array of metadata on success, false if there is nothing to update.
  */
 function update_sitemeta_cache( $site_ids ) {
@@ -439,7 +439,7 @@ function update_sitemeta_cache( $site_ids ) {
  *
  * @param string|array $args Optional. Array or string of arguments. See WP_Site_Query::__construct()
  *                           for information on accepted arguments. Default empty array.
- * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+ * @return WP_Site[]|int[]|int Array of WP_Site objects, an array of site IDs when 'fields' is set to 'ids',
  *                             or the number of sites when 'count' is passed as a query var.
  */
 function get_sites( $args = array() ) {

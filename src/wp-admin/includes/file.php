@@ -71,7 +71,7 @@ $wp_file_descriptions = array(
  * @since 1.5.0
  *
  * @global array $wp_file_descriptions Theme file descriptions.
- * @global array $allowed_files        List of allowed files.
+ * @global array $allowed_files        Array of allowed files.
  *
  * @param string $file Filesystem path or filename.
  * @return string Description of file from $wp_file_descriptions or basename of $file if description doesn't exist.
@@ -131,7 +131,7 @@ function get_home_path() {
  *
  * @param string   $folder         Optional. Full path to folder. Default empty.
  * @param int      $levels         Optional. Levels of folders to follow, Default 100 (PHP Loop limit).
- * @param string[] $exclusions     Optional. List of folders and files to skip.
+ * @param string[] $exclusions     Optional. Array of folders and files to skip.
  * @param bool     $include_hidden Optional. Whether to include details of hidden ("." prefixed) files.
  *                                 Default false.
  * @return string[]|false Array of files on success, false on failure.
@@ -1277,7 +1277,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param string[] $hostnames List of hostnames.
+		 * @param string[] $hostnames Array of hostnames.
 		 */
 		$signed_hostnames = apply_filters( 'wp_signature_hosts', array( 'wordpress.org', 'downloads.wordpress.org', 's.w.org' ) );
 
@@ -1677,7 +1677,7 @@ function unzip_file( $file, $to ) {
  *
  * @param string   $file        Full path and filename of ZIP archive.
  * @param string   $to          Full path on the filesystem to extract archive to.
- * @param string[] $needed_dirs A partial list of required folders needed to be created.
+ * @param string[] $needed_dirs A partial array of required folders needed to be created.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
 function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
@@ -1786,7 +1786,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	 * @param null|true|WP_Error $result         The result of the override. True on success, otherwise WP Error. Default null.
 	 * @param string             $file           Full path and filename of ZIP archive.
 	 * @param string             $to             Full path on the filesystem to extract archive to.
-	 * @param string[]           $needed_dirs    A full list of required folders that need to be created.
+	 * @param string[]           $needed_dirs    A full array of required folders that need to be created.
 	 * @param float              $required_space The space required to unzip the file and copy its contents, with a 10% buffer.
 	 */
 	$pre = apply_filters( 'pre_unzip_file', null, $file, $to, $needed_dirs, $required_space );
@@ -1842,7 +1842,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
 	 * @param true|WP_Error $result         The result of unzipping the archive. True on success, otherwise WP_Error. Default true.
 	 * @param string        $file           Full path and filename of ZIP archive.
 	 * @param string        $to             Full path on the filesystem the archive was extracted to.
-	 * @param string[]      $needed_dirs    A full list of required folders that were created.
+	 * @param string[]      $needed_dirs    A full array of required folders that were created.
 	 * @param float         $required_space The space required to unzip the file and copy its contents, with a 10% buffer.
 	 */
 	$result = apply_filters( 'unzip_file', true, $file, $to, $needed_dirs, $required_space );
@@ -1868,7 +1868,7 @@ function _unzip_file_ziparchive( $file, $to, $needed_dirs = array() ) {
  *
  * @param string   $file        Full path and filename of ZIP archive.
  * @param string   $to          Full path on the filesystem to extract archive to.
- * @param string[] $needed_dirs A partial list of required folders needed to be created.
+ * @param string[] $needed_dirs A partial array of required folders needed to be created.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
 function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {

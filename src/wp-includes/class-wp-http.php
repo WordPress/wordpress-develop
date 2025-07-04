@@ -132,7 +132,7 @@ class WP_Http {
 	 *                                             any response from the remote server. Default true.
 	 *     @type string|array $headers             Array or string of headers to send with the request.
 	 *                                             Default empty array.
-	 *     @type array        $cookies             List of cookies to send with the request. Default empty array.
+	 *     @type array        $cookies             Array of cookies to send with the request. Default empty array.
 	 *     @type string|array $body                Body to send with the request. Default null.
 	 *     @type bool         $compress            Whether to compress the $body when sending the request.
 	 *                                             Default false.

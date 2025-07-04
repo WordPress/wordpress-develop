@@ -406,7 +406,7 @@ class Item implements RegistryAware
      * Uses `<atom:category>`, `<category>` or `<dc:subject>`
      *
      * @since Beta 3
-     * @return \SimplePie\Category[]|null List of {@see \SimplePie\Category} objects
+     * @return \SimplePie\Category[]|null Array of {@see \SimplePie\Category} objects
      */
     public function get_categories()
     {
@@ -495,7 +495,7 @@ class Item implements RegistryAware
      * Uses `<atom:contributor>`
      *
      * @since 1.1
-     * @return \SimplePie\Author[]|null List of {@see \SimplePie\Author} objects
+     * @return \SimplePie\Author[]|null Array of {@see \SimplePie\Author} objects
      */
     public function get_contributors()
     {
@@ -548,7 +548,7 @@ class Item implements RegistryAware
      * Uses `<atom:author>`, `<author>`, `<dc:creator>` or `<itunes:author>`
      *
      * @since Beta 2
-     * @return \SimplePie\Author[]|null List of {@see \SimplePie\Author} objects
+     * @return \SimplePie\Author[]|null Array of {@see \SimplePie\Author} objects
      */
     public function get_authors()
     {
@@ -926,7 +926,7 @@ class Item implements RegistryAware
      * @since Beta 2
      * @todo Add support for end-user defined sorting of enclosures by type/handler (so we can prefer the faster-loading FLV over MP4).
      * @todo If an element exists at a level, but its value is empty, we should fall back to the value from the parent (if it exists).
-     * @return \SimplePie\Enclosure[]|null List of \SimplePie\Enclosure items
+     * @return \SimplePie\Enclosure[]|null Array of \SimplePie\Enclosure items
      */
     public function get_enclosures()
     {

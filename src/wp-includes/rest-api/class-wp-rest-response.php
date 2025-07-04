@@ -126,7 +126,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array List of links.
+	 * @return array Array of links.
 	 */
 	public function get_links() {
 		return $this->links;

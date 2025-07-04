@@ -4483,7 +4483,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type string $1 Username.
 	 *     @type string $2 Password.
 	 * }
-	 * @return array|IXR_Error List of post formats, otherwise IXR_Error object.
+	 * @return array|IXR_Error Array of post formats, otherwise IXR_Error object.
 	 */
 	public function wp_getPostFormats( $args ) {
 		$this->escape( $args );

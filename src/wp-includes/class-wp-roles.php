@@ -280,7 +280,7 @@ class WP_Roles {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @return string[] List of role names.
+	 * @return string[] Array of role names.
 	 */
 	public function get_names() {
 		return $this->role_names;

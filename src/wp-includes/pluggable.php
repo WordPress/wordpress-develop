@@ -120,7 +120,7 @@ if ( ! function_exists( 'cache_users' ) ) :
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param int[] $user_ids User ID numbers list
+	 * @param int[] $user_ids User ID numbers array.
 	 */
 	function cache_users( $user_ids ) {
 		global $wpdb;
@@ -1950,7 +1950,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param string[] $emails     List of email addresses to notify for comment moderation.
+		 * @param string[] $emails     Array of email addresses to notify for comment moderation.
 		 * @param int      $comment_id Comment ID.
 		 */
 		$emails = apply_filters( 'comment_moderation_recipients', $emails, $comment_id );

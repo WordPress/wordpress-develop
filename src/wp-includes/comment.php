@@ -263,7 +263,7 @@ function get_comment( $comment = null, $output = OBJECT ) {
  *
  * @param string|array $args Optional. Array or string of arguments. See WP_Comment_Query::__construct()
  *                           for information on accepted arguments. Default empty string.
- * @return WP_Comment[]|int[]|int List of comments or number of found comments if `$count` argument is true.
+ * @return WP_Comment[]|int[]|int Array of comments or number of found comments if `$count` argument is true.
  */
 function get_comments( $args = '' ) {
 	$query = new WP_Comment_Query();
@@ -278,7 +278,7 @@ function get_comments( $args = '' ) {
  *
  * @since 2.7.0
  *
- * @return string[] List of comment status labels keyed by status.
+ * @return string[] Array of comment status labels keyed by status.
  */
 function get_comment_statuses() {
 	$status = array(
@@ -526,7 +526,7 @@ function get_comment_meta( $comment_id, $key = '', $single = false ) {
  *
  * @since 6.3.0
  *
- * @param array $comment_ids List of comment IDs.
+ * @param array $comment_ids Array of comment IDs.
  */
 function wp_lazyload_comment_meta( array $comment_ids ) {
 	if ( empty( $comment_ids ) ) {

@@ -95,7 +95,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	/**
 	 * Helper function to get all sitemap entries data.
 	 *
-	 * @return array A list of sitemap entries.
+	 * @return array An array of sitemap entries.
 	 */
 	public function _get_sitemap_entries() {
 		$entries = array();
@@ -362,11 +362,11 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper function for building an expected url list.
+	 * Helper function for building an expected url array.
 	 *
 	 * @param string $type An object sub type, e.g., post type.
 	 * @param array  $ids  Array of object IDs.
-	 * @return array A formed URL list.
+	 * @return array A formed URL array.
 	 */
 	public function _get_expected_url_list( $type, $ids ) {
 		$posts = get_posts(

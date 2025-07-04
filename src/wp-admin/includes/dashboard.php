@@ -348,7 +348,7 @@ function wp_dashboard_right_now() {
 	}
 
 	/**
-	 * Filters the array of extra elements to list in the 'At a Glance'
+	 * Filters the array of extra elements to array in the 'At a Glance'
 	 * dashboard widget.
 	 *
 	 * Prior to 3.8.0, the widget was named 'Right Now'. Each element
@@ -991,7 +991,7 @@ function wp_dashboard_recent_posts( $args ) {
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param array $query_args The arguments passed to WP_Query to produce the list of posts.
+	 * @param array $query_args The arguments passed to WP_Query to produce the array of posts.
 	 */
 	$query_args = apply_filters( 'dashboard_recent_posts_query_args', $query_args );
 

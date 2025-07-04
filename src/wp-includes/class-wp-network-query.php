@@ -170,7 +170,7 @@ class WP_Network_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
+	 * @return array|int Array of WP_Network objects, an array of network IDs when 'fields' is set to 'ids',
 	 *                   or the number of networks when 'count' is passed as a query var.
 	 */
 	public function query( $query ) {
@@ -183,7 +183,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
+	 * @return array|int Array of WP_Network objects, an array of network IDs when 'fields' is set to 'ids',
 	 *                   or the number of networks when 'count' is passed as a query var.
 	 */
 	public function get_networks() {

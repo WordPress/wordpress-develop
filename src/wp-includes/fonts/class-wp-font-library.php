@@ -102,7 +102,7 @@ class WP_Font_Library {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array List of font collections.
+	 * @return array Array of font collections.
 	 */
 	public function get_font_collections() {
 		return $this->collections;

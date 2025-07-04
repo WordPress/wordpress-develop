@@ -61,7 +61,7 @@ if ( ! class_exists( 'Plural_Forms', false ) ) :
 		 * Tokens generated from the string.
 		 *
 		 * @since 4.9.0
-		 * @var array $tokens List of tokens.
+		 * @var array $tokens Array of tokens.
 		 */
 		protected $tokens = array();
 

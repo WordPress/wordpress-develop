@@ -1540,7 +1540,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  * @since 4.2.3
  *
  * @param string $element HTML element.
- * @return array|false List of attributes found in the element. Returns false on failure.
+ * @return array|false Array of attributes found in the element. Returns false on failure.
  */
 function wp_kses_attr_parse( $element ) {
 	$valid = preg_match( '%^(<\s*)(/\s*)?([a-zA-Z0-9]+\s*)([^>]*)(>?)$%', $element, $matches );
@@ -1591,7 +1591,7 @@ function wp_kses_attr_parse( $element ) {
  * @since 4.2.3
  *
  * @param string $attr Attribute list from HTML element to closing HTML element tag.
- * @return array|false List of attributes found in $attr. Returns false on failure.
+ * @return array|false Array of attributes found in $attr. Returns false on failure.
  */
 function wp_kses_hair_parse( $attr ) {
 	if ( '' === $attr ) {

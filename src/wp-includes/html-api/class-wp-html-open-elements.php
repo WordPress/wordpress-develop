@@ -237,7 +237,7 @@ class WP_HTML_Open_Elements {
 	 * @see https://html.spec.whatwg.org/#has-an-element-in-the-specific-scope
 	 *
 	 * @param string   $tag_name         Name of tag check.
-	 * @param string[] $termination_list List of elements that terminate the search.
+	 * @param string[] $termination_list Array of elements that terminate the search.
 	 * @return bool Whether the element was found in a specific scope.
 	 */
 	public function has_element_in_specific_scope( string $tag_name, $termination_list ): bool {

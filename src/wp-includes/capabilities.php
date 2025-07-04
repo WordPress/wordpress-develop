@@ -1096,7 +1096,7 @@ function get_role( $role ) {
 /**
  * Adds a role, if it does not exist.
  *
- * The list of capabilities can be passed either as a numerically indexed array of capability names, or an
+ * The array of capabilities can be passed either as a numerically indexed array of capability names, or an
  * associative array of boolean values keyed by the capability name. To explicitly deny the role a capability, set
  * the value for that capability to false.
  *
@@ -1146,13 +1146,13 @@ function remove_role( $role ) {
 }
 
 /**
- * Retrieves a list of super admins.
+ * Retrieves an array of super admins.
  *
  * @since 3.0.0
  *
  * @global array $super_admins
  *
- * @return string[] List of super admin logins.
+ * @return string[] Array of super admin logins.
  */
 function get_super_admins() {
 	global $super_admins;

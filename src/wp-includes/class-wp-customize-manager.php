@@ -5027,11 +5027,11 @@ final class WP_Customize_Manager {
 	}
 
 	/**
-	 * Returns a list of devices to allow previewing.
+	 * Returns an array of devices to allow previewing.
 	 *
 	 * @since 4.5.0
 	 *
-	 * @return array List of devices with labels and default setting.
+	 * @return array Array of devices with labels and default setting.
 	 */
 	public function get_previewable_devices() {
 		$devices = array(
@@ -5054,7 +5054,7 @@ final class WP_Customize_Manager {
 		 *
 		 * @see WP_Customize_Manager::get_previewable_devices()
 		 *
-		 * @param array $devices List of devices with labels and default setting.
+		 * @param array $devices Array of devices with labels and default setting.
 		 */
 		$devices = apply_filters( 'customize_previewable_devices', $devices );
 
@@ -5981,7 +5981,7 @@ final class WP_Customize_Manager {
 		 * @see WP_Customize_Manager::__construct()
 		 *
 		 * @param array|stdClass       $themes  Nested array or object of theme data.
-		 * @param array                $args    List of arguments, such as page, search term, and tags to query for.
+		 * @param array                $args    Array of arguments, such as page, search term, and tags to query for.
 		 * @param WP_Customize_Manager $manager Instance of Customize manager.
 		 */
 		$themes = apply_filters( 'customize_load_themes', $themes, $args, $this );

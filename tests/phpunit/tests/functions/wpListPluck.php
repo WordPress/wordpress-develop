@@ -207,7 +207,7 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_wp_list_pluck
 	 *
-	 * @param array      $input_list List of objects or arrays.
+	 * @param array      $input_list Array of objects or arrays.
 	 * @param int|string $field      Field from the object to place instead of the entire object
 	 * @param int|string $index_key  Field from the object to use as keys for the new array.
 	 * @param array      $expected   Expected result.

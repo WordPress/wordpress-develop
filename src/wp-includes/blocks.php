@@ -937,7 +937,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
 	 *
 	 * @since 6.4.0
 	 *
-	 * @param string[]                        $hooked_block_types The list of hooked block types.
+	 * @param string[]                        $hooked_block_types The array of hooked block types.
 	 * @param string                          $relative_position  The relative position of the hooked blocks.
 	 *                                                            Can be one of 'before', 'after', 'first_child', or 'last_child'.
 	 * @param string                          $anchor_block_type  The anchor block type.
@@ -1678,10 +1678,10 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  *
  *     @type string   $blockName    Name of block.
  *     @type array    $attrs        Attributes from block comment delimiters.
- *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+ *     @type array[]  $innerBlocks  Array of inner blocks. An array of arrays that
  *                                  have the same structure as this one.
  *     @type string   $innerHTML    HTML from inside block comment delimiters.
- *     @type array    $innerContent List of string fragments and null markers where
+ *     @type array    $innerContent Array of string fragments and null markers where
  *                                  inner blocks were found.
  * }
  * @return string String of rendered HTML.
@@ -1719,10 +1719,10 @@ function serialize_block( $block ) {
  *
  *         @type string   $blockName    Name of block.
  *         @type array    $attrs        Attributes from block comment delimiters.
- *         @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+ *         @type array[]  $innerBlocks  Array of inner blocks. An array of arrays that
  *                                      have the same structure as this one.
  *         @type string   $innerHTML    HTML from inside block comment delimiters.
- *         @type array    $innerContent List of string fragments and null markers where
+ *         @type array    $innerContent Array of string fragments and null markers where
  *                                      inner blocks were found.
  *     }
  * }
@@ -2138,7 +2138,7 @@ function excerpt_remove_blocks( $content ) {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param string[] $allowed_wrapper_blocks The list of names of allowed wrapper blocks.
+	 * @param string[] $allowed_wrapper_blocks The array of names of allowed wrapper blocks.
 	 */
 	$allowed_wrapper_blocks = apply_filters( 'excerpt_allowed_wrapper_blocks', $allowed_wrapper_blocks );
 
@@ -2152,7 +2152,7 @@ function excerpt_remove_blocks( $content ) {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param string[] $allowed_blocks The list of names of allowed blocks.
+	 * @param string[] $allowed_blocks The array of names of allowed blocks.
 	 */
 	$allowed_blocks = apply_filters( 'excerpt_allowed_blocks', $allowed_blocks );
 	$blocks         = parse_blocks( $content );
@@ -2213,7 +2213,7 @@ function excerpt_remove_footnotes( $content ) {
  * @access private
  *
  * @param array $parsed_block   The parsed block.
- * @param array $allowed_blocks The list of allowed inner blocks.
+ * @param array $allowed_blocks The array of allowed inner blocks.
  * @return string The rendered inner blocks.
  */
 function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
@@ -2246,10 +2246,10 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
  *
  *     @type string   $blockName    Name of block.
  *     @type array    $attrs        Attributes from block comment delimiters.
- *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+ *     @type array[]  $innerBlocks  Array of inner blocks. An array of arrays that
  *                                  have the same structure as this one.
  *     @type string   $innerHTML    HTML from inside block comment delimiters.
- *     @type array    $innerContent List of string fragments and null markers where
+ *     @type array    $innerContent Array of string fragments and null markers where
  *                                  inner blocks were found.
  * }
  * @return string String of rendered HTML.
@@ -2270,10 +2270,10 @@ function render_block( $parsed_block ) {
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+	 *     @type array[]  $innerBlocks  Array of inner blocks. An array of arrays that
 	 *                                  have the same structure as this one.
 	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where
+	 *     @type array    $innerContent Array of string fragments and null markers where
 	 *                                  inner blocks were found.
 	 * }
 	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
@@ -2296,10 +2296,10 @@ function render_block( $parsed_block ) {
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+	 *     @type array[]  $innerBlocks  Array of inner blocks. An array of arrays that
 	 *                                  have the same structure as this one.
 	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where
+	 *     @type array    $innerContent Array of string fragments and null markers where
 	 *                                  inner blocks were found.
 	 * }
 	 * @param array         $source_block {
@@ -2308,10 +2308,10 @@ function render_block( $parsed_block ) {
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+	 *     @type array[]  $innerBlocks  Array of inner blocks. An array of arrays that
 	 *                                  have the same structure as this one.
 	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where
+	 *     @type array    $innerContent Array of string fragments and null markers where
 	 *                                  inner blocks were found.
 	 * }
 	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
@@ -2344,10 +2344,10 @@ function render_block( $parsed_block ) {
 	 *
 	 *     @type string   $blockName    Name of block.
 	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+	 *     @type array[]  $innerBlocks  Array of inner blocks. An array of arrays that
 	 *                                  have the same structure as this one.
 	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where
+	 *     @type array    $innerContent Array of string fragments and null markers where
 	 *                                  inner blocks were found.
 	 * }
 	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
@@ -2373,10 +2373,10 @@ function render_block( $parsed_block ) {
  *
  *         @type string   $blockName    Name of block.
  *         @type array    $attrs        Attributes from block comment delimiters.
- *         @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
+ *         @type array[]  $innerBlocks  Array of inner blocks. An array of arrays that
  *                                      have the same structure as this one.
  *         @type string   $innerHTML    HTML from inside block comment delimiters.
- *         @type array    $innerContent List of string fragments and null markers where
+ *         @type array    $innerContent Array of string fragments and null markers where
  *                                      inner blocks were found.
  *     }
  * }

@@ -2222,7 +2222,7 @@ function remove_editor_styles() {
  *
  * @global array $editor_styles Registered editor stylesheets
  *
- * @return string[] If registered, a list of editor stylesheet URLs.
+ * @return string[] If registered, a array of editor stylesheet URLs.
  */
 function get_editor_stylesheets() {
 	$stylesheets = array();
@@ -3393,7 +3393,7 @@ function register_theme_feature( $feature, $args = array() ) {
  *
  * @global array $_wp_registered_theme_features
  *
- * @return array[] List of theme features, keyed by their name.
+ * @return array[] Array of theme features, keyed by their name.
  */
 function get_registered_theme_features() {
 	global $_wp_registered_theme_features;

@@ -33,7 +33,7 @@ class Text_Diff_Engine_string {
      * @param string $mode  The diff mode of the content in $diff. One of
      *                      'context', 'unified', or 'autodetect'.
      *
-     * @return array  List of all diff operations.
+     * @return array  Array of all diff operations.
      */
     function diff($diff, $mode = 'autodetect')
     {
@@ -86,7 +86,7 @@ class Text_Diff_Engine_string {
      *
      * @param array $diff  Array of lines.
      *
-     * @return array  List of all diff operations.
+     * @return array  Array of all diff operations.
      */
     function parseUnifiedDiff($diff)
     {
@@ -141,7 +141,7 @@ class Text_Diff_Engine_string {
      *
      * @param array $diff  Array of lines.
      *
-     * @return array  List of all diff operations.
+     * @return array  Array of all diff operations.
      */
     function parseContextDiff(&$diff)
     {

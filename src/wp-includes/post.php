@@ -1357,7 +1357,7 @@ function _wp_privacy_statuses() {
  *
  * @since 3.0.0
  *
- * @global stdClass[] $wp_post_statuses Inserts new post status object into the list
+ * @global stdClass[] $wp_post_statuses Inserts new post status object into the array
  *
  * @param string       $post_status Name of the post status.
  * @param array|string $args {
@@ -1483,7 +1483,7 @@ function register_post_status( $post_status, $args = array() ) {
  *
  * @since 3.0.0
  *
- * @global stdClass[] $wp_post_statuses List of post statuses.
+ * @global stdClass[] $wp_post_statuses Array of post statuses.
  *
  * @see register_post_status()
  *
@@ -1501,11 +1501,11 @@ function get_post_status_object( $post_status ) {
 }
 
 /**
- * Gets a list of post statuses.
+ * Gets an array of post statuses.
  *
  * @since 3.0.0
  *
- * @global stdClass[] $wp_post_statuses List of post statuses.
+ * @global stdClass[] $wp_post_statuses Array of post statuses.
  *
  * @see register_post_status()
  *
@@ -1515,7 +1515,7 @@ function get_post_status_object( $post_status ) {
  * @param string       $operator Optional. The logical operation to perform. 'or' means only one element
  *                               from the array needs to match; 'and' means all elements must match.
  *                               Default 'and'.
- * @return string[]|stdClass[] A list of post status names or objects.
+ * @return string[]|stdClass[] An array of post status names or objects.
  */
 function get_post_stati( $args = array(), $output = 'names', $operator = 'and' ) {
 	global $wp_post_statuses;
@@ -1587,7 +1587,7 @@ function get_post_type( $post = null ) {
  * @since 3.0.0
  * @since 4.6.0 Object returned is now an instance of `WP_Post_Type`.
  *
- * @global array $wp_post_types List of post types.
+ * @global array $wp_post_types Array of post types.
  *
  * @see register_post_type()
  *
@@ -1609,7 +1609,7 @@ function get_post_type_object( $post_type ) {
  *
  * @since 2.9.0
  *
- * @global array $wp_post_types List of post types.
+ * @global array $wp_post_types Array of post types.
  *
  * @see register_post_type() for accepted arguments.
  *
@@ -1655,7 +1655,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * @since 5.3.0 The `supports` argument will now accept an array of arguments for a feature.
  * @since 5.9.0 The `rest_namespace` argument was added.
  *
- * @global array $wp_post_types List of post types.
+ * @global array $wp_post_types Array of post types.
  *
  * @param string       $post_type Post type key. Must not exceed 20 characters and may only contain
  *                                lowercase alphanumeric characters, dashes, and underscores. See sanitize_key().
@@ -1855,7 +1855,7 @@ function register_post_type( $post_type, $args = array() ) {
  *
  * @since 4.5.0
  *
- * @global array $wp_post_types List of post types.
+ * @global array $wp_post_types Array of post types.
  *
  * @param string $post_type Post type to unregister.
  * @return true|WP_Error True on success, WP_Error on failure or if the post type doesn't exist.
@@ -2301,7 +2301,7 @@ function remove_post_type_support( $post_type, $feature ) {
  * @global array $_wp_post_type_features
  *
  * @param string $post_type The post type.
- * @return array Post type supports list.
+ * @return array Post type supports array.
  */
 function get_all_post_type_supports( $post_type ) {
 	global $_wp_post_type_features;
@@ -2342,7 +2342,7 @@ function post_type_supports( $post_type, $feature ) {
  *                               only one element from the array needs to match; 'and'
  *                               means all elements must match; 'not' means no elements may
  *                               match. Default 'and'.
- * @return string[] A list of post type names.
+ * @return string[] An array of post type names.
  */
 function get_post_types_by_support( $feature, $operator = 'and' ) {
 	global $_wp_post_type_features;
@@ -3495,7 +3495,7 @@ function wp_count_attachments( $mime_type = '' ) {
  * @since 2.9.0
  * @since 5.3.0 Added the 'Documents', 'Spreadsheets', and 'Archives' mime type groups.
  *
- * @return array List of post mime types.
+ * @return array Array of post mime types.
  */
 function get_post_mime_types() {
 	$post_mime_types = array(   // array( adj, noun )
@@ -3588,7 +3588,7 @@ function get_post_mime_types() {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param array $post_mime_types Default list of post mime types.
+	 * @param array $post_mime_types Default array of post mime types.
 	 */
 	return apply_filters( 'post_mime_types', $post_mime_types );
 }
@@ -3654,7 +3654,7 @@ function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
  *
  * @since 2.5.0
  *
- * @param string|string[] $post_mime_types List of mime types or comma separated string
+ * @param string|string[] $post_mime_types Array of mime types or comma separated string
  *                                         of mime types.
  * @param string          $table_alias     Optional. Specify a table alias, if needed.
  *                                         Default empty.
@@ -4271,7 +4271,7 @@ function wp_untrash_post_comments( $post = null ) {
  *                       global $post. Default 0.
  * @param array $args    Optional. Category query parameters. Default empty array.
  *                       See WP_Term_Query::__construct() for supported arguments.
- * @return array|WP_Error List of categories. If the `$fields` argument passed via `$args` is 'all' or
+ * @return array|WP_Error Array of categories. If the `$fields` argument passed via `$args` is 'all' or
  *                        'all_with_object_id', an array of WP_Term objects will be returned. If `$fields`
  *                        is 'ids', an array of category IDs. If `$fields` is 'names', an array of category names.
  *                        WP_Error object if 'category' taxonomy doesn't exist.
@@ -5698,7 +5698,7 @@ function wp_set_post_terms( $post_id = 0, $terms = '', $taxonomy = 'post_tag', $
  *
  * @param int       $post_id         Optional. The Post ID. Does not default to the ID
  *                                   of the global $post. Default 0.
- * @param int[]|int $post_categories Optional. List of category IDs, or the ID of a single category.
+ * @param int[]|int $post_categories Optional. Array of category IDs, or the ID of a single category.
  *                                   Default empty array.
  * @param bool      $append          If true, don't delete existing categories, just add on.
  *                                   If false, replace the categories with the new categories.
@@ -5989,7 +5989,7 @@ function get_pung( $post ) {
  * @since 4.7.0 `$post` can be a WP_Post object.
  *
  * @param int|WP_Post $post Post ID or post object.
- * @return string[]|false List of URLs yet to ping.
+ * @return string[]|false Array of URLs yet to ping.
  */
 function get_to_ping( $post ) {
 	$post = get_post( $post );
@@ -6006,7 +6006,7 @@ function get_to_ping( $post ) {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param string[] $to_ping List of URLs yet to ping.
+	 * @param string[] $to_ping Array of URLs yet to ping.
 	 */
 	return apply_filters( 'get_to_ping', $to_ping );
 }
@@ -6050,7 +6050,7 @@ function trackback_url_list( $tb_list, $post_id ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @return string[] List of page IDs as strings.
+ * @return string[] Array of page IDs as strings.
  */
 function get_all_page_ids() {
 	global $wpdb;
@@ -6192,8 +6192,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @since 1.5.1
  *
  * @param int       $page_id Page ID.
- * @param WP_Post[] $pages   List of page objects from which descendants should be identified.
- * @return WP_Post[] List of page children.
+ * @param WP_Post[] $pages   Array of page objects from which descendants should be identified.
+ * @return WP_Post[] Array of page children.
  */
 function get_page_children( $page_id, $pages ) {
 	// Build a hash of ID -> children.
@@ -8193,7 +8193,7 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int[] $ids               ID list.
+ * @param int[] $ids               ID array.
  * @param bool  $update_term_cache Optional. Whether to update the term cache. Default true.
  * @param bool  $update_meta_cache Optional. Whether to update the meta cache. Default true.
  */
@@ -8228,7 +8228,7 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int[] $ids ID list.
+ * @param int[] $ids ID array.
  */
 function _prime_post_parent_id_caches( array $ids ) {
 	global $wpdb;

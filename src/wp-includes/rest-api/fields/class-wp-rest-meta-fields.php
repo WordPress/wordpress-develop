@@ -273,7 +273,7 @@ abstract class WP_REST_Meta_Fields {
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
 	 * @param string $name      Name for the field that is exposed in the REST API.
-	 * @param array  $values    List of values to update to.
+	 * @param array  $values    Array of values to update to.
 	 * @return true|WP_Error True if meta fields are updated, WP_Error otherwise.
 	 */
 	protected function update_multi_meta_value( $object_id, $meta_key, $name, $values ) {

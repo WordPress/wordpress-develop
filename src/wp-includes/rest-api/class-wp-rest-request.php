@@ -226,7 +226,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $key Header name, will be canonicalized to lowercase.
-	 * @return array|null List of string values if set, null otherwise.
+	 * @return array|null Array of string values if set, null otherwise.
 	 */
 	public function get_header_as_array( $key ) {
 		$key = $this->canonicalize_header_name( $key );

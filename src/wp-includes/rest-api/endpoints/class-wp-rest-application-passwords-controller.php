@@ -653,7 +653,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_User $user The requested user.
 	 * @param array   $item The application password.
-	 * @return array The list of links.
+	 * @return array The array of links.
 	 */
 	protected function prepare_links( WP_User $user, $item ) {
 		return array(

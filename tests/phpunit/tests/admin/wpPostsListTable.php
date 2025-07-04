@@ -199,7 +199,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	/**
 	 * Helper function to test the output of a page which uses `WP_Posts_List_Table`.
 	 *
-	 * @param array $args         Query args for the list of pages.
+	 * @param array $args         Query args for the array of pages.
 	 * @param array $expected_ids Expected IDs of pages returned.
 	 */
 	protected function _test_list_hierarchical_page( array $args, array $expected_ids ) {

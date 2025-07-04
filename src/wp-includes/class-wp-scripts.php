@@ -918,9 +918,9 @@ JS;
 	 * @since 6.3.0
 	 *
 	 * @param string              $handle              The script handle.
-	 * @param string[]|null       $eligible_strategies Optional. The list of strategies to filter. Default null.
+	 * @param string[]|null       $eligible_strategies Optional. The array of strategies to filter. Default null.
 	 * @param array<string, true> $checked             Optional. An array of already checked script handles, used to avoid recursive loops.
-	 * @return string[] A list of eligible loading strategies that could be used.
+	 * @return string[] An array of eligible loading strategies that could be used.
 	 */
 	private function filter_eligible_strategies( $handle, $eligible_strategies = null, $checked = array() ) {
 		// If no strategies are being passed, all strategies are eligible.

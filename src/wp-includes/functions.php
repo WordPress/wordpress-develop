@@ -794,7 +794,7 @@ function xmlrpc_getposttitle( $content ) {
  * @global string $post_default_category Default XML-RPC post category.
  *
  * @param string $content XMLRPC XML Request content
- * @return string|array List of categories or category name.
+ * @return string|array Array of categories or category name.
  */
 function xmlrpc_getpostcategory( $content ) {
 	global $post_default_category;
@@ -2664,7 +2664,7 @@ function wp_unique_filename( $dir, $filename, $unique_filename_callback = null )
 			 *
 			 * @since 5.5.0
 			 *
-			 * @param array|null $files    The list of files to use for filename comparisons.
+			 * @param array|null $files    The array of files to use for filename comparisons.
 			 *                             Default null (to retrieve the list from the filesystem).
 			 * @param string     $dir      The directory for the new file.
 			 * @param string     $filename The proposed filename for the new file.
@@ -4881,7 +4881,7 @@ function smilies_init() {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string[] $wpsmiliestrans List of the smilies' hexadecimal representations, keyed by their smily code.
+	 * @param string[] $wpsmiliestrans Array of the smilies' hexadecimal representations, keyed by their smily code.
 	 */
 	$wpsmiliestrans = apply_filters( 'smilies', $wpsmiliestrans );
 
@@ -4994,7 +4994,7 @@ function wp_parse_id_list( $input_list ) {
  * @since 4.7.0
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
- * @param array|string $input_list List of slugs.
+ * @param array|string $input_list Array of slugs.
  * @return string[] Sanitized array of slugs.
  */
 function wp_parse_slug_list( $input_list ) {
@@ -5004,12 +5004,12 @@ function wp_parse_slug_list( $input_list ) {
 }
 
 /**
- * Extracts a slice of an array, given a list of keys.
+ * Extracts a slice of an array, given an array of keys.
  *
  * @since 3.1.0
  *
  * @param array $input_array The original array.
- * @param array $keys        The list of keys.
+ * @param array $keys        The array of keys.
  * @return array The array slice.
  */
 function wp_array_slice_assoc( $input_array, $keys ) {
@@ -5303,7 +5303,7 @@ function wp_is_numeric_array( $data ) {
  *                                match. Default 'AND'.
  * @param bool|string $field      Optional. A field from the object to place instead
  *                                of the entire object. Default false.
- * @return array A list of objects or object fields.
+ * @return array An array of objects or object fields.
  */
 function wp_filter_object_list( $input_list, $args = array(), $operator = 'and', $field = false ) {
 	if ( ! is_array( $input_list ) ) {
@@ -5361,7 +5361,7 @@ function wp_list_filter( $input_list, $args = array(), $operator = 'AND' ) {
  * @since 4.0.0 $index_key parameter added.
  * @since 4.7.0 Uses `WP_List_Util` class.
  *
- * @param array      $input_list List of objects or arrays.
+ * @param array      $input_list Array of objects or arrays.
  * @param int|string $field      Field from the object to place instead of the entire object.
  * @param int|string $index_key  Optional. Field from the object to use as keys for the new array.
  *                               Default null.
@@ -6889,7 +6889,7 @@ function wp_scheduled_delete() {
  * @since 2.9.0
  *
  * @param string $file            Absolute path to the file.
- * @param array  $default_headers List of headers, in the format `array( 'HeaderKey' => 'Header Name' )`.
+ * @param array  $default_headers Array of headers, in the format `array( 'HeaderKey' => 'Header Name' )`.
  * @param string $context         Optional. If specified adds filter hook {@see 'extra_$context_headers'}.
  *                                Default empty string.
  * @return string[] Array of file header values keyed by header name.

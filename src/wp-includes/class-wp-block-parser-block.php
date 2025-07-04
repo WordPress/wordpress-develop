@@ -76,9 +76,9 @@ class WP_Block_Parser_Block {
 	 *
 	 * @param string $name          Name of block.
 	 * @param array  $attrs         Optional set of attributes from block comment delimiters.
-	 * @param array  $inner_blocks  List of inner blocks (of this same class).
+	 * @param array  $inner_blocks  Array of inner blocks (of this same class).
 	 * @param string $inner_html    Resultant HTML from inside block comment delimiters after removing inner blocks.
-	 * @param array  $inner_content List of string fragments and null markers where inner blocks were found.
+	 * @param array  $inner_content Array of string fragments and null markers where inner blocks were found.
 	 */
 	public function __construct( $name, $attrs, $inner_blocks, $inner_html, $inner_content ) {
 		$this->blockName    = $name;          // phpcs:ignore WordPress.NamingConventions.ValidVariableName

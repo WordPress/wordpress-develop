@@ -2292,7 +2292,7 @@ HTML;
 	 * @ticket 12056
 	 *
 	 * @param string $context    The context to test ('user_description' or 'pre_term_description').
-	 * @param array  $attributes List of attributes to check for.
+	 * @param array  $attributes Array of attributes to check for.
 	 */
 	public function test_specific_attributes_preserved_in_context( $context, $attributes ) {
 		$allowed = wp_kses_allowed_html( $context );
