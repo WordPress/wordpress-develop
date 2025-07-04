@@ -97,7 +97,7 @@ window.wp = window.wp || {};
 		 * @param {number} total Total number of comments to load.
 		 */
 		load: function(total){
-			this.st = jQuery('#the-comment-list tr.comment:visible').length;
+			this.st = jQuery('#the-comment-list tr[id^="comment-"]:visible').length;
 			this.get(total);
 		}
 	};
