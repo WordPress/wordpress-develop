@@ -6423,7 +6423,6 @@ function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
 	return current_user_can_for_site( $blog_id, $capability, ...$args );
 }
 
-
 /**
  * Sanitizes category data based on context.
  *
