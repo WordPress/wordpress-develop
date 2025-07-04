@@ -354,7 +354,7 @@
 	 * Determines if Caps Lock is currently enabled.
 	 *
 	 * Uses `KeyboardEvent.getModifierState()` when available, with a fallback
-	 * for older browsers. On macOS Safari and Chrome, the native warning is preferred,
+	 * for older browsers. On macOS Safari, the native warning is preferred,
 	 * so this function returns false to suppress custom warnings.
 	 *
 	 * @param {KeyboardEvent} e The keydown event object.
@@ -362,7 +362,7 @@
 	 * @return {boolean} True if Caps Lock is on, false otherwise. 
 	 */
 	function isCapsLockOn( e ) {
-		// Skip warning on macOS Safari or Chrome (they show native indicators).
+		// Skip warning on macOS Safari (they show native indicators).
 		if (
 			isMac &&
 			( ua.indexOf( 'safari' ) !== -1 )
