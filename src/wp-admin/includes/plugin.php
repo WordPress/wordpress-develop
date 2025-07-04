@@ -1484,6 +1484,11 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 	if ( ! current_user_can( $capability ) ) {
 		$_wp_submenu_nopriv[ $parent_slug ][ $menu_slug ] = true;
 		return false;
+	} elseif ( isset( $_wp_submenu_nopriv[ $parent_slug ][ $menu_slug ] ) ) {
+		unset( $_wp_submenu_nopriv[ $parent_slug ][ $menu_slug ] );
+		if ( empty( $_wp_submenu_nopriv[ $parent_slug ] ) ) {
+				unset( $_wp_submenu_nopriv[ $parent_slug ] );
+		}
 	}
 
 	/*
@@ -1878,20 +1883,29 @@ function remove_menu_page( $menu_slug ) {
  * @return array|false The removed submenu on success, false if not found.
  */
 function remove_submenu_page( $menu_slug, $submenu_slug ) {
-	global $submenu;
+	global $submenu, $_wp_submenu_nopriv;
 
-	if ( ! isset( $submenu[ $menu_slug ] ) ) {
-		return false;
-	}
-
-	foreach ( $submenu[ $menu_slug ] as $i => $item ) {
-		if ( $submenu_slug === $item[2] ) {
-			unset( $submenu[ $menu_slug ][ $i ] );
-			return $item;
+	$removed = false;
+	if ( isset( $submenu[ $menu_slug ] ) ) {
+		foreach ( $submenu[ $menu_slug ] as $i => $item ) {
+			if ( $submenu_slug === $item[2] ) {
+				unset( $submenu[ $menu_slug ][ $i ] );
+				$removed = $item;
+				break;
+			}
 		}
 	}
 
-	return false;
+	// Remove the submenu from the nopriv array if it exists.
+	if ( isset( $_wp_submenu_nopriv[ $menu_slug ][ $submenu_slug ] ) ) {
+		unset( $_wp_submenu_nopriv[ $menu_slug ][ $submenu_slug ] );
+
+		if ( empty( $_wp_submenu_nopriv[ $menu_slug ] ) ) {
+			unset( $_wp_submenu_nopriv[ $menu_slug ] );
+		}
+	}
+
+	return $removed ? $removed : false;
 }
 
 /**
