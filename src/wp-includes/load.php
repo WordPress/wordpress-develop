@@ -423,12 +423,16 @@ function wp_maintenance() {
 /**
  * Checks if maintenance mode is enabled.
  *
- * Checks for a file in the WordPress root directory named ".maintenance".
+ * Checks for a file named ".maintenance". By default, this file is located in the WordPress
+ * root directory (ABSPATH), but the location can be customized by defining the WP_MAINTENANCE_FILE
+ * constant in wp-config.php.
+ *
  * This file will contain the variable $upgrading, set to the time the file
  * was created. If the file was created less than 10 minutes ago, WordPress
  * is in maintenance mode.
  *
  * @since 5.5.0
+ * @since 6.9.0 Added support for the WP_MAINTENANCE_FILE constant.
  *
  * @global int $upgrading The Unix timestamp marking when upgrading WordPress began.
  *
@@ -437,11 +441,14 @@ function wp_maintenance() {
 function wp_is_maintenance_mode() {
 	global $upgrading;
 
-	if ( ! file_exists( ABSPATH . '.maintenance' ) || wp_installing() ) {
+	// Check if a custom maintenance file location is defined.
+	$maintenance_file = defined( 'WP_MAINTENANCE_FILE' ) ? WP_MAINTENANCE_FILE : ABSPATH . '.maintenance';
+
+	if ( ! file_exists( $maintenance_file ) || wp_installing() ) {
 		return false;
 	}
 
-	require ABSPATH . '.maintenance';
+	require $maintenance_file;
 
 	// If the $upgrading timestamp is older than 10 minutes, consider maintenance over.
 	if ( ( time() - $upgrading ) >= 10 * MINUTE_IN_SECONDS ) {
