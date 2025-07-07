@@ -1829,6 +1829,8 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 			$value = esc_html( $value ); // textarea_escaped
 		} elseif ( 'slug' === $field ) {
 			$value = sanitize_title( $value );
+		} elseif ( in_array( $field, $int_fields, true ) ) {
+			$value = ( int ) $value;
 		} else {
 			$value = esc_attr( $value );
 		}
