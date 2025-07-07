@@ -82,17 +82,31 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$query_args['post_status'] = 'inherit';
 		}
 
-		$media_types = $this->get_media_types();
+		$all_mime_types = array();
+		$media_types    = $this->get_media_types();
 
-		if ( ! empty( $request['media_type'] ) && isset( $media_types[ $request['media_type'] ] ) ) {
-			$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
+		if ( ! empty( $request['media_type'] ) ) {
+			$media_type_input = is_array( $request['media_type'] )
+				? $request['media_type']
+				: explode( ',', $request['media_type'] );
+
+			foreach ( array_map( 'trim', $media_type_input ) as $type ) {
+				if ( isset( $media_types[ $type ] ) ) {
+					$all_mime_types = array_merge( $all_mime_types, $media_types[ $type ] );
+				}
+			}
 		}
 
 		if ( ! empty( $request['mime_type'] ) ) {
-			$parts = explode( '/', $request['mime_type'] );
-			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ], true ) ) {
-				$query_args['post_mime_type'] = $request['mime_type'];
-			}
+			$mime_type_input = is_array( $request['mime_type'] )
+				? $request['mime_type']
+				: explode( ',', $request['mime_type'] );
+
+			$all_mime_types = array_merge( $all_mime_types, array_map( 'trim', $mime_type_input ) );
+		}
+
+		if ( ! empty( $all_mime_types ) ) {
+			$query_args['post_mime_type'] = array_values( array_unique( $all_mime_types ) );
 		}
 
 		// Filter query clauses to include filenames.
@@ -1285,19 +1299,24 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$params                            = parent::get_collection_params();
 		$params['status']['default']       = 'inherit';
 		$params['status']['items']['enum'] = array( 'inherit', 'private', 'trash' );
-		$media_types                       = $this->get_media_types();
 
 		$params['media_type'] = array(
 			'default'     => null,
-			'description' => __( 'Limit result set to attachments of a particular media type.' ),
-			'type'        => 'string',
-			'enum'        => array_keys( $media_types ),
+			'description' => __( 'Limit result set to attachments of particular media types.' ),
+			'type'        => array( 'string', 'array' ),
+			'items'       => array(
+				'type' => 'string',
+				'enum' => array_keys( $this->get_media_types() ),
+			),
 		);
 
 		$params['mime_type'] = array(
 			'default'     => null,
-			'description' => __( 'Limit result set to attachments of a particular MIME type.' ),
-			'type'        => 'string',
+			'description' => __( 'Limit result set to attachments of particular MIME types.' ),
+			'type'        => array( 'string', 'array' ),
+			'items'       => array(
+				'type' => 'string',
+			),
 		);
 
 		return $params;
