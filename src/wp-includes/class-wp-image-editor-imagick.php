@@ -467,11 +467,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 						if (
 							is_callable( array( $this->image, 'getImageChannelDepth' ) )
 							&& defined( 'Imagick::CHANNEL_ALPHA' )
+							&& 1 < $this->image->getImageChannelDepth( Imagick::CHANNEL_ALPHA )
 						) {
-							$alpha_channel_depth = $this->image->getImageChannelDepth( Imagick::CHANNEL_ALPHA );
-							if ( $alpha_channel_depth > 1 ) {
-								$is_indexed_png_with_true_alpha_transparency = true;
-							}
+							$is_indexed_png_with_true_alpha_transparency = true;
 						}
 					}
 				}
