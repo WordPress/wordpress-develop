@@ -267,7 +267,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'audio',
 			'text',
 		);
-		$this->assertSameSets( $media_types, $data['endpoints'][0]['args']['media_type']['enum'] );
+		$this->assertSameSets( $media_types, $data['endpoints'][0]['args']['media_type']['items']['enum'] );
 	}
 
 	public function test_registered_get_item_params() {
@@ -439,6 +439,75 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( $id1, $data[0]['id'] );
+	}
+
+	/**
+	 * Test multiple media types support with various input formats.
+	 *
+	 * @ticket 63668
+	 */
+	public function test_get_items_multiple_media_types() {
+		$image_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		$video_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'video/mp4',
+			)
+		);
+
+		$audio_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'audio/mpeg',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		
+		// Test single media type
+		$request->set_param( 'media_type', 'image' );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertSame( $image_id, $data[0]['id'] );
+
+		// Test multiple media types with comma-separated string
+		$request->set_param( 'media_type', 'image,video' );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 2, $data );
+		$ids = wp_list_pluck( $data, 'id' );
+		$this->assertContains( $image_id, $ids );
+		$this->assertContains( $video_id, $ids );
+		$this->assertNotContains( $audio_id, $ids );
+
+		// Test multiple media types with array format
+		$request->set_param( 'media_type', array( 'image', 'video', 'audio' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 3, $data );
+		$ids = wp_list_pluck( $data, 'id' );
+		$this->assertContains( $image_id, $ids );
+		$this->assertContains( $video_id, $ids );
+		$this->assertContains( $audio_id, $ids );
+
+		// Test invalid media type mixed with valid ones
+		$request->set_param( 'media_type', 'image,invalid,video' );
+		$response = rest_get_server()->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 2, $data );
+		$ids = wp_list_pluck( $data, 'id' );
+		$this->assertContains( $image_id, $ids );
+		$this->assertContains( $video_id, $ids );
 	}
 
 	public function test_get_items_parent() {
