@@ -6372,7 +6372,7 @@ function wp_get_global_styles_custom_css() {
  */
 function wp_enqueue_global_styles_custom_css() {
 	_deprecated_function( __FUNCTION__, '6.7.0', 'wp_enqueue_global_styles' );
-	if ( ! wp_is_block_theme() || is_customize_preview() ) {
+	if ( ! wp_is_block_theme() ) {
 		return;
 	}
 
