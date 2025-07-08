@@ -9,7 +9,10 @@ parameters:
   tmpDir: ../../.cache
 
   # The Minimum PHP Version
-  phpVersion: 70224
+  phpVersion:
+    min: 70224
+    max: 80400
+
   # If it's not enforced by PHP we can't assume users are passing valid values.
   treatPhpDocTypesAsCertain: false
 
@@ -75,7 +78,6 @@ parameters:
       - ../../src/wp-includes/deprecated.php
       - ../../src/wp-includes/ms-deprecated.php
       - ../../src/wp-includes/pluggable-deprecated.php
-      - ../../src/wp-includes/js/tinymce/wp-tinymce.php
       # These files are not part of the WordPress Core codebase.
       - ../../src/wp-content
       # JavaScript/CSS/Asset files.
