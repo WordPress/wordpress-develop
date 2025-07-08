@@ -29,7 +29,6 @@
 		"@pmmmwh/react-refresh-webpack-plugin": "0.5.15",
 		"@wordpress/babel-preset-default": "8.19.1",
 		"@wordpress/dependency-extraction-webpack-plugin": "6.19.1",
-		"@wordpress/e2e-test-utils": "11.19.1",
 		"@wordpress/e2e-test-utils-playwright": "1.19.1",
 		"@wordpress/prettier-config": "4.19.1",
 		"@wordpress/scripts": "30.12.1",

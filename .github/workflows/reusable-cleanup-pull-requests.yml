@@ -50,16 +50,32 @@ jobs:
         with:
           script: |
             const fixedList = "${{ steps.trac-tickets.outputs.fixed_list }}".split(' ').filter(Boolean);
-
             let prNumbers = [];
 
             for (const ticket of fixedList) {
-              const tracTicketUrl = `https://core.trac.wordpress.org/ticket/${ ticket }`;
-              const corePrefix = `Core-${ ticket }`;
-              const query = `is:pr is:open repo:${ context.repo.owner }/${ context.repo.repo } in:body ${ tracTicketUrl } OR ${ corePrefix }`;
-              const result = await github.rest.search.issues({ q: query });
+              const tracTicketUrl = `https://core.trac.wordpress.org/ticket/${ticket}`;
+              const corePrefix = `Core-${ticket}`;
 
-              prNumbers = prNumbers.concat(result.data.items.map(pr => pr.number));
+              const query = `
+                query($searchQuery: String!) {
+                  search(query: $searchQuery, type: ISSUE_ADVANCED, first: 20) {
+                    nodes {
+                      ... on PullRequest {
+                        number
+                        state
+                      }
+                    }
+                  }
+                }
+              `;
+
+              const searchQuery = `repo:${context.repo.owner}/${context.repo.repo} is:pr is:open in:body ( "${tracTicketUrl}" OR "${corePrefix}" )`;
+
+              const result = await github.graphql(query, {
+                searchQuery,
+              });
+
+              prNumbers.push(...result.search.nodes.map(pr => pr.number));
             }
 
             return prNumbers;
