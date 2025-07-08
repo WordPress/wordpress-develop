@@ -444,6 +444,22 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		try {
+			/*
+			 * We need to perform some special handling for certain types of images:
+			 * 1. For PNG images, we need to specify compression settings and remove unneeded chunks.
+			 * 2. For indexed PNG images, the number of colors must not exceed 256.
+			 * 3. For indexed PNG images with an alpha channel, the tRNS chunk must be preserved.
+			 * 4. For indexed PNG images with true alpha transparency (an alpha channel > 1 bit),
+			 *    we need to avoid saving the image using ImageMagick's 'png8' format,
+			 *    because that supports only binary (1 bit) transparency.
+			 *
+			 * For #4 we want to check whether the image has a 1-bit alpha channel before resizing,
+			 * because resizing may cause the number of alpha values to multiply due to antialiasing.
+			 * (We're assuming that, if the original image had only a 1-bit alpha channel,
+			 * then a 1-bit alpha channel should be good enough for the resized images too.)
+			 * So we're going to perform all the necessary checks before resizing the image
+			 * and store the results in variables for later use.
+			 */
 			$is_png                                      = false;
 			$is_indexed_png                              = false;
 			$is_indexed_png_with_alpha_channel           = false;
