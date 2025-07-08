@@ -472,18 +472,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		
+
 		// Test single media type
 		$request->set_param( 'media_type', 'image' );
 		$response = rest_get_server()->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
 		$this->assertSame( $image_id, $data[0]['id'] );
 
 		// Test multiple media types with comma-separated string
 		$request->set_param( 'media_type', 'image,video' );
 		$response = rest_get_server()->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertCount( 2, $data );
 		$ids = wp_list_pluck( $data, 'id' );
 		$this->assertContains( $image_id, $ids );
@@ -493,7 +493,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// Test multiple media types with array format
 		$request->set_param( 'media_type', array( 'image', 'video', 'audio' ) );
 		$response = rest_get_server()->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertCount( 3, $data );
 		$ids = wp_list_pluck( $data, 'id' );
 		$this->assertContains( $image_id, $ids );
@@ -503,7 +503,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// Test invalid media type mixed with valid ones
 		$request->set_param( 'media_type', 'image,invalid,video' );
 		$response = rest_get_server()->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertCount( 2, $data );
 		$ids = wp_list_pluck( $data, 'id' );
 		$this->assertContains( $image_id, $ids );
@@ -549,18 +549,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		
+
 		// Test single MIME type
 		$request->set_param( 'mime_type', 'image/jpeg' );
 		$response = rest_get_server()->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
 		$this->assertSame( $jpeg_id, $data[0]['id'] );
 
 		// Test multiple MIME types with comma-separated string
 		$request->set_param( 'mime_type', 'image/jpeg,image/png' );
 		$response = rest_get_server()->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertCount( 2, $data );
 		$ids = wp_list_pluck( $data, 'id' );
 		$this->assertContains( $jpeg_id, $ids );
@@ -569,7 +569,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// Test multiple MIME types with array format
 		$request->set_param( 'mime_type', array( 'image/jpeg', 'video/mp4' ) );
 		$response = rest_get_server()->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertCount( 2, $data );
 		$ids = wp_list_pluck( $data, 'id' );
 		$this->assertContains( $jpeg_id, $ids );
@@ -579,7 +579,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'media_type', 'image,video' );
 		$request->set_param( 'mime_type', 'application/pdf' );
 		$response = rest_get_server()->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertCount( 4, $data );
 		$ids = wp_list_pluck( $data, 'id' );
 		$this->assertContains( $jpeg_id, $ids );
