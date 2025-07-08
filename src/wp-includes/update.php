@@ -583,7 +583,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$next_auto_update = array_filter(
 			array(
 				wp_next_scheduled( 'wp_version_check' ),
-				wp_next_scheduled( 'wp_maybe_auto_update' )
+				wp_next_scheduled( 'wp_maybe_auto_update' ),
 			)
 		);
 		if ( $next_auto_update ) {
