@@ -3673,7 +3673,7 @@ function get_gmt_from_date( $date_string, $format = 'Y-m-d H:i:s' ) {
 	$datetime = date_create( $date_string, wp_timezone() );
 
 	if ( false === $datetime ) {
-		return gmdate( $format, 0 );
+		return date_i18n( $format, false, true );
 	}
 
 	return $datetime->setTimezone( new DateTimeZone( 'UTC' ) )->format( $format );
@@ -3695,7 +3695,7 @@ function get_date_from_gmt( $date_string, $format = 'Y-m-d H:i:s' ) {
 	$datetime = date_create( $date_string, new DateTimeZone( 'UTC' ) );
 
 	if ( false === $datetime ) {
-		return gmdate( $format, 0 );
+		return date_i18n( $format );
 	}
 
 	return $datetime->setTimezone( wp_timezone() )->format( $format );
