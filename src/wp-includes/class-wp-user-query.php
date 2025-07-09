@@ -830,35 +830,7 @@ class WP_User_Query {
 			$cache_value   = false;
 			$cache_key     = $this->generate_cache_key( $qv, $this->request );
 			$cache_group   = 'user-queries';
-			$last_changed  = wp_cache_get_last_changed( 'users' );
-
-			if ( empty( $qv['orderby'] ) ) {
-				// Default order is by 'user_login'.
-				$ordersby = array( 'user_login' => '' );
-			} elseif ( is_array( $qv['orderby'] ) ) {
-				$ordersby = $qv['orderby'];
-			} else {
-				// 'orderby' values may be a comma- or space-separated list.
-				$ordersby = preg_split( '/[,\s]+/', $qv['orderby'] );
-			}
-
-			$blog_id = 0;
-			if ( isset( $qv['blog_id'] ) ) {
-				$blog_id = absint( $qv['blog_id'] );
-			}
-
-			if ( $qv['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
-				$switch = $blog_id && get_current_blog_id() !== $blog_id;
-				if ( $switch ) {
-					switch_to_blog( $blog_id );
-				}
-
-				$last_changed .= wp_cache_get_last_changed( 'posts' );
-
-				if ( $switch ) {
-					restore_current_blog();
-				}
-			}
+			$last_changed  = $this->get_cache_last_changed( $qv );
 
 			if ( $qv['cache_results'] ) {
 				$cache_value = wp_cache_get_query_data( $cache_key, $cache_group, $last_changed );
@@ -1073,10 +1045,11 @@ class WP_User_Query {
 	 * Generate cache key.
 	 *
 	 * @since 6.3.0
+	 * @since 6.9.0 $args is no longer used.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param array  $args Query arguments.
+	 * @param array  $args Unused. Query arguments.
 	 * @param string $sql  SQL statement.
 	 * @return string Cache key.
 	 */
@@ -1089,6 +1062,47 @@ class WP_User_Query {
 		$key = md5( $sql );
 
 		return "get_users:$key";
+	}
+
+	/**
+	 * Retrieves the last changed cache timestamp for users and optionally posts.
+     *
+     * @since 6.9.0
+	 *
+	 * @param array $args Query arguments.
+	 * @return string The last changed timestamp string for the relevant cache groups.
+	 */
+	protected function get_cache_last_changed( array $args ) {
+		$last_changed = wp_cache_get_last_changed( 'users' );
+
+		if ( empty( $args['orderby'] ) ) {
+			// Default order is by 'user_login'.
+			$ordersby = array( 'user_login' => '' );
+		} elseif ( is_array( $args['orderby'] ) ) {
+			$ordersby = $args['orderby'];
+		} else {
+			// 'orderby' values may be a comma- or space-separated list.
+			$ordersby = preg_split( '/[,\s]+/', $args['orderby'] );
+		}
+
+		if ( $args['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
+			$blog_id = 0;
+			if ( isset( $args['blog_id'] ) ) {
+				$blog_id = absint( $args['blog_id'] );
+			}
+			$switch = $blog_id && get_current_blog_id() !== $blog_id;
+			if ( $switch ) {
+				switch_to_blog( $blog_id );
+			}
+
+			$last_changed .= wp_cache_get_last_changed( 'posts' );
+
+			if ( $switch ) {
+				restore_current_blog();
+			}
+		}
+
+		return $last_changed;
 	}
 
 	/**
