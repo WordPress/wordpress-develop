@@ -2422,6 +2422,11 @@
 
 				parentControl = api.control( 'nav_menu_item[' + settingValue.menu_item_parent + ']' );
 				if ( ! parentControl ) {
+					control.setting.set(
+						$.extend({}, control.setting(), {
+							menu_item_parent: 0,
+						})
+					);
 					return;
 				}
 
