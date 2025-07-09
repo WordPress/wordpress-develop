@@ -1765,11 +1765,14 @@ function wp_kses_check_attr_val( $value, $vless, $checkname, $checkvalue ) {
 function wp_kses_bad_protocol( $content, $allowed_protocols ) {
 	$content = wp_kses_no_null( $content );
 
+	if ( is_allowed_text_fragment( $content ) ) {
+		return $content;
+	}
+
 	// Short-circuit if the string starts with `https://` or `http://`. Most common cases.
 	if (
 		( str_starts_with( $content, 'https://' ) && in_array( 'https', $allowed_protocols, true ) ) ||
-		( str_starts_with( $content, 'http://' ) && in_array( 'http', $allowed_protocols, true ) ) ||
-		( str_starts_with( $content, '#:~:' ) && in_array( '#:~:', $allowed_protocols, true ) )
+		( str_starts_with( $content, 'http://' ) && in_array( 'http', $allowed_protocols, true ) )
 	) {
 		return $content;
 	}
@@ -2779,4 +2782,16 @@ function _wp_kses_allow_pdf_objects( $url ) {
 	}
 
 	return false;
+}
+
+/**
+ * Checks if a content string is a valid text fragment link.
+ *
+ * This function handles the text fragment links (e.g., #:~:text=highlight) separately.
+ *
+ * @param string $content
+ * @return bool
+ */
+function is_allowed_text_fragment( string $content ): bool {
+	return str_starts_with( $content, '#:~:text=' );
 }

@@ -2340,25 +2340,23 @@ HTML;
 	}
 
 	/**
-	 * Test to ensure wp_kses() doesn't allow text fragment links when it's not part of allowed protocols.
+	 * Test to ensure wp_kses() doesn't allow fake text fragments.
 	 *
 	 * @ticket 60347
 	 *
 	 * @return void
 	 */
-	public function test_wp_kses_disallows_text_fragments_disabled() {
-		$protocols = wp_allowed_protocols();
-		$protocols = array_diff( $protocols, array( '#:~:' ) ); // Remove fragment directive
+	public function test_wp_kses_disallows_fake_text_fragment_without_custom_handling() {
+		$html = '<a href="javascript:alert(1)">Bad Link</a>';
 
-		$html         = '<a href="#:~:text=highlight">Text Fragment</a>';
 		$allowed_html = array(
 			'a' => array(
 				'href' => true,
 			),
 		);
 
-		$result = wp_kses( $html, $allowed_html, $protocols );
+		$result = wp_kses( $html, $allowed_html );
 		$this->assertNotSame( $html, $result );
-		$this->assertStringNotContainsString( '#:~:', $result );
+		$this->assertStringNotContainsString( 'javascript:', $result );
 	}
 }
