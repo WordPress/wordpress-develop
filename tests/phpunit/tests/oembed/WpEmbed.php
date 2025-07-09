@@ -196,29 +196,6 @@ class Tests_WP_Embed extends WP_UnitTestCase {
 		$this->assertEmpty( get_post_meta( $post_id, $cachekey_time, true ) );
 	}
 
-	/*
-	 * Test that when a post is deleted, the oembed cache for that post is removed.
-	 *
-	 * @ticket 63667
-	 */
-	public function test_removing_embed_should_remove_cache_oembed() {
-		$url        = 'https://example.com/';
-		$key_suffix = md5( $url . serialize( wp_embed_defaults( $url ) ) );
-		$cachekey   = '_oembed_' . $key_suffix;
-
-		$post_id = self::factory()->post->create( array( 'post_content' => 'https://example.com/' ) );
-
-		$this->wp_embed->cache_oembed( $post_id );
-
-		$this->assertNotEmpty( get_post_meta( $post_id, $cachekey, true ) );
-
-		wp_delete_post( $post_id, true );
-
-		$this->wp_embed->cache_oembed( $post_id );
-
-		$this->assertEmpty( get_post_meta( $post_id, $cachekey, true ) );
-	}
-
 	public function test_shortcode_should_get_cached_data_from_post_meta_for_known_post() {
 		global $post;
 

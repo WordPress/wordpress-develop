@@ -42,11 +42,8 @@ class WP_Embed {
 		add_filter( 'widget_text_content', array( $this, 'autoembed' ), 8 );
 		add_filter( 'widget_block_content', array( $this, 'autoembed' ), 8 );
 
-		// After a post is saved, cache oEmbed items via Ajax.
-		add_action( 'edit_form_advanced', array( $this, 'maybe_run_ajax_cache' ) );
-		add_action( 'edit_page_form', array( $this, 'maybe_run_ajax_cache' ) );
-		add_action( 'save_post', array( $this, 'maybe_run_ajax_cache' ) );
-		add_action( 'delete_post', array( $this, 'maybe_run_ajax_cache' ) );
+		// After a post is saved, cache oEmbed items
+		add_action( 'save_post', array( $this, 'cache_oembed' ) );
 	}
 
 	/**
