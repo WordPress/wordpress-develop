@@ -129,8 +129,10 @@ jobs:
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
   #
   # All LTS versions of MariaDB supported by WordPress with greater than 1% usage according to w.org/stats should be
-  # tested. The exception to this rule is version 5.5. That release was intended as a drop-in replacement for MySQL.
-  # Because the MySQL 5.5 Docker containers do not work, this ensures some level of MySQL 5.5 testing.
+  # tested. The exceptions to this rule are the most recent LTS and version 5.5.
+  #
+  # The 5.5 release was intended as a drop-in replacement for MySQL. Because the MySQL 5.5 Docker containers do not
+  # work, this ensures some level of MySQL 5.5 testing.
   #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
@@ -145,7 +147,7 @@ jobs:
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mariadb' ]
-        db-version: [ '5.5', '10.3', '10.4', '10.5', '10.6', '10.11', '11.4' ]
+        db-version: [ '5.5', '10.3', '10.4', '10.5', '10.6', '10.11', '11.4', '11.8' ]
         multisite: [ false, true ]
         memcached: [ false ]
 
@@ -154,13 +156,13 @@ jobs:
         - os: ubuntu-24.04
           php: '8.3'
           db-type: 'mariadb'
-          db-version: '11.4'
+          db-version: '11.8'
           multisite: false
           memcached: true
         - os: ubuntu-24.04
           php: '8.3'
           db-type: 'mariadb'
-          db-version: '11.4'
+          db-version: '11.8'
           multisite: true
           memcached: true
     with:
