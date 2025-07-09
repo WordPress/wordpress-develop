@@ -1066,8 +1066,8 @@ class WP_User_Query {
 
 	/**
 	 * Retrieves the last changed cache timestamp for users and optionally posts.
-     *
-     * @since 6.9.0
+	 *
+	 * @since 6.9.0
 	 *
 	 * @param array $args Query arguments.
 	 * @return string The last changed timestamp string for the relevant cache groups.
@@ -1085,11 +1085,13 @@ class WP_User_Query {
 			$ordersby = preg_split( '/[,\s]+/', $args['orderby'] );
 		}
 
+		$blog_id = 0;
+		if ( isset( $args['blog_id'] ) ) {
+			$blog_id = absint( $args['blog_id'] );
+		}
+
 		if ( $args['has_published_posts'] || in_array( 'post_count', $ordersby, true ) ) {
-			$blog_id = 0;
-			if ( isset( $args['blog_id'] ) ) {
-				$blog_id = absint( $args['blog_id'] );
-			}
+
 			$switch = $blog_id && get_current_blog_id() !== $blog_id;
 			if ( $switch ) {
 				switch_to_blog( $blog_id );
