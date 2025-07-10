@@ -129,14 +129,19 @@ services:
   ##
   # The MailHog container.
   ##
-  mailhog:
-    container_name: mailhog
-    image: mailhog/mailhog
-    logging:
-      driver: 'none'
+  mailpit:
+    container_name: mailpit
+    image:  axllent/mailpit
     ports:
       - 1025:1025  # smtp server
       - 8025:8025  # web ui
+    volumes:
+      - ./data:/data
+    environment:
+            MP_MAX_MESSAGES: 5000
+            MP_DATABASE: /data/mailpit.db
+            MP_SMTP_AUTH_ACCEPT_ANY: 1
+            MP_SMTP_AUTH_ALLOW_INSECURE: 1
     networks:
       - wpdevnet
 
