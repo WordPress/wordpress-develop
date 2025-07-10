@@ -43,7 +43,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 *
 	 *     [attr|=value]
 	 */
-	const MATCH_EXACT_OR_HYPHEN_PREFIXED = 'exact-or-hyphen-prefixed';
+	const MATCH_EXACT_OR_HYPHEN_SUFFIXED = 'exact-or-hyphen-suffixed';
 
 	/**
 	 * The attribute value matches the start of the attribute.
@@ -103,7 +103,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 * Allowed string values are the class constants:
 	 *   - {@see WP_CSS_Attribute_Selector::MATCH_EXACT}
 	 *   - {@see WP_CSS_Attribute_Selector::MATCH_ONE_OF_EXACT}
-	 *   - {@see WP_CSS_Attribute_Selector::MATCH_EXACT_OR_HYPHEN_PREFIXED}
+	 *   - {@see WP_CSS_Attribute_Selector::MATCH_EXACT_OR_HYPHEN_SUFFIXED}
 	 *   - {@see WP_CSS_Attribute_Selector::MATCH_PREFIXED_BY}
 	 *   - {@see WP_CSS_Attribute_Selector::MATCH_SUFFIXED_BY}
 	 *   - {@see WP_CSS_Attribute_Selector::MATCH_CONTAINS}
@@ -187,7 +187,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 				}
 				return false;
 
-			case self::MATCH_EXACT_OR_HYPHEN_PREFIXED:
+			case self::MATCH_EXACT_OR_HYPHEN_SUFFIXED:
 				// Attempt the full match first
 				if (
 					$case_insensitive
@@ -299,7 +299,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 					$updated_offset += 2;
 					break;
 				case '|':
-					$attr_matcher    = WP_CSS_Attribute_Selector::MATCH_EXACT_OR_HYPHEN_PREFIXED;
+					$attr_matcher    = WP_CSS_Attribute_Selector::MATCH_EXACT_OR_HYPHEN_SUFFIXED;
 					$updated_offset += 2;
 					break;
 				case '^':

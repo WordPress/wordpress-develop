@@ -57,7 +57,7 @@ class Tests_HtmlApi_WpCssAttributeSelector extends WP_UnitTestCase {
 			'[href \n ^=   baz   ]'    => array( "[href \n ^=   baz   ]", 'href', WP_CSS_Attribute_Selector::MATCH_PREFIXED_BY, 'baz', null, '' ),
 
 			'[match $= insensitive i]' => array( '[match $= insensitive i]', 'match', WP_CSS_Attribute_Selector::MATCH_SUFFIXED_BY, 'insensitive', WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE, '' ),
-			'[match|=sensitive s]'     => array( '[match|=sensitive s]', 'match', WP_CSS_Attribute_Selector::MATCH_EXACT_OR_HYPHEN_PREFIXED, 'sensitive', WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE, '' ),
+			'[match|=sensitive s]'     => array( '[match|=sensitive s]', 'match', WP_CSS_Attribute_Selector::MATCH_EXACT_OR_HYPHEN_SUFFIXED, 'sensitive', WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE, '' ),
 			'[att=val I]'              => array( '[att=val I]', 'att', WP_CSS_Attribute_Selector::MATCH_EXACT, 'val', WP_CSS_Attribute_Selector::MODIFIER_CASE_INSENSITIVE, '' ),
 			'[att=val S]'              => array( '[att=val S]', 'att', WP_CSS_Attribute_Selector::MATCH_EXACT, 'val', WP_CSS_Attribute_Selector::MODIFIER_CASE_SENSITIVE, '' ),
 
