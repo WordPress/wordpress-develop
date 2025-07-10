@@ -263,7 +263,7 @@ function save_mod_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -303,7 +303,7 @@ function iis7_save_url_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -1059,6 +1059,8 @@ function admin_color_scheme_picker( $user_id ) {
 /**
  *
  * @global array $_wp_admin_css_colors
+ *
+ * @since 3.8.0
  */
 function wp_color_scheme_settings() {
 	global $_wp_admin_css_colors;
