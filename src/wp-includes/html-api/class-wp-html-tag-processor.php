@@ -1581,9 +1581,6 @@ class WP_HTML_Tag_Processor {
 			 * "<script123" should not end a script region even though
 			 * "<script" is found within the text.
 			 */
-			if ( $at + 6 >= $doc_length ) {
-				continue;
-			}
 			$at += 6;
 			$c   = $html[ $at ];
 			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
