@@ -188,22 +188,12 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 				return false;
 
 			case self::MATCH_EXACT_OR_HYPHEN_SUFFIXED:
-				// Attempt the full match first
-				if (
-					$case_insensitive
-						? 0 === strcasecmp( $attr_value, $this->value )
-						: $attr_value === $this->value
-				) {
-					return true;
-				}
-
-				// Partial match
-				if ( strlen( $attr_value ) < strlen( $this->value ) + 1 ) {
-					return false;
-				}
-
-				$starts_with = "{$this->value}-";
-				return 0 === substr_compare( $attr_value, $starts_with, 0, strlen( $starts_with ), $case_insensitive );
+				$exact_length   = strlen( $this->value );
+				$matches_prefix = substr_compare( $attr_value, $this->value, 0, $exact_length, $case_insensitive );
+				return (
+					0 === $matches_prefix &&
+					( strlen( $attr_value ) === $exact_length || '-' === $attr_value[ $exact_length ] )
+				);
 
 			case self::MATCH_PREFIXED_BY:
 				return 0 === substr_compare( $attr_value, $this->value, 0, strlen( $this->value ), $case_insensitive );
