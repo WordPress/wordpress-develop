@@ -1613,8 +1613,6 @@ class WP_HTML_Tag_Processor {
 				}
 
 				if ( $this->bytes_already_parsed >= $doc_length ) {
-					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-
 					return false;
 				}
 
