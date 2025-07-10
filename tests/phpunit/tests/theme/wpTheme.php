@@ -376,6 +376,17 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test wp_customize_url with no query args.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_without_query_args() {
+		$this->assertSame( esc_url( admin_url( 'customize.php?theme=foo' ) ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
 	 * Test wp_customize_url with existing query args.
 	 *
 	 * @ticket 63632
@@ -386,22 +397,44 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		$clean_admin_url = admin_url( 'customize.php' );
 
 		// Ensure the existing query arg is present in the URL.
-		add_filter(
-			'admin_url',
-			static function ( $url ) {
-				return add_query_arg( 'existing_arg', 'value', $url );
-			}
-		);
+		add_filter( 'admin_url', function( $url ) {
+			return add_query_arg( 'existing_arg', 'value', $url );
+		} );
 		$this->assertSame( esc_url( $clean_admin_url . '?existing_arg=value&theme=foo' ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
+	 * Test wp_customize_url with existing theme query arg.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_existing_theme_query_arg() {
+		$clean_admin_url = admin_url( 'customize.php' );
 
 		// Ensure the theme query arg is replaced with the new value.
-		add_filter(
-			'admin_url',
-			static function ( $url ) {
-				return add_query_arg( 'theme', 'to-be-replaced', $url );
-			}
-		);
-		$this->assertSame( esc_url( $clean_admin_url . '?existing_arg=value&theme=bar' ), wp_customize_url( 'foo' ) );
+		add_filter( 'admin_url', function( $url ) {
+			return add_query_arg( 'theme', 'to-be-replaced', $url );
+		} );
+		$this->assertSame( esc_url( $clean_admin_url . '?theme=foo' ), wp_customize_url( 'foo' ) );
+	}
+
+	/**
+	 * Test wp_customize_url with multiple theme query args in array sintaxe.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_multiple_theme_query_args() {
+		$clean_admin_url = admin_url( 'customize.php' );
+
+		// Ensure the theme query arg is replaced with the new value.
+		add_filter( 'admin_url', function( $url ) {
+			return add_query_arg( [ 'theme' => [ 'to-be-replaced-1', 'to-be-replaced-2' ] ], $url );
+		} );
+		$this->assertSame( esc_url( $clean_admin_url . '?theme=foo' ), wp_customize_url( 'foo' ) );
 	}
 
 	/**
