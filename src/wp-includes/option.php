@@ -1113,6 +1113,23 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 
 	$value = sanitize_option( $option, $value );
 
+	/**
+	 * Filters whether to short-circuit the process of adding an option.
+	 *
+	 * Returning a value other than null will short-circuit the process, and the value will be
+	 * returned cast as a bool.
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param null   $skip   Whether to short-circuit the process. Default null.
+	 * @param string $option Name of the option to add.
+	 * @param mixed  $value  Option value.
+	 */
+	$skip = apply_filters( 'pre_add_option', null, $option, $value );
+	if ( ! is_null( $skip ) ) {
+		return (bool) $skip;
+	}
+
 	/*
 	 * Make sure the option doesn't already exist.
 	 * We can check the 'notoptions' cache before we ask for a DB query.
