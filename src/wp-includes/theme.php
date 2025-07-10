@@ -3762,7 +3762,6 @@ function _wp_customize_loader_settings() {
 /**
  * Returns a URL to load the Customizer.
  *
- * @unreleased Consider that `admin_url` can return a value with existing query args.
  * @since 3.4.0
  *
  * @param string $stylesheet Optional. Theme to customize. Defaults to active theme.
@@ -3771,12 +3770,7 @@ function _wp_customize_loader_settings() {
  */
 function wp_customize_url( $stylesheet = '' ) {
 	$url = admin_url( 'customize.php' );
-
 	if ( $stylesheet ) {
-		// Make sure any existing theme argument is removed.
-		$url = remove_query_arg( 'theme', $url );
-
-		// Add the theme argument to the URL.
 		$url = add_query_arg( 'theme', urlencode( $stylesheet ), $url );
 	}
 	return esc_url( $url );

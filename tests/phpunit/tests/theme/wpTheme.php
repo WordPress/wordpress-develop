@@ -379,6 +379,8 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 * Test wp_customize_url with existing query args.
 	 *
 	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
 	 */
 	public function test_wp_customize_url_with_existing_query_args() {
 		$clean_admin_url = admin_url( 'customize.php' );
@@ -390,16 +392,16 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 				return add_query_arg( 'existing_arg', 'value', $url );
 			}
 		);
-		$this->assertSame( esc_url( $clean_admin_url . '?existing_arg=value&theme=theme' ), wp_customize_url( 'theme' ) );
+		$this->assertSame( esc_url( $clean_admin_url . '?existing_arg=value&theme=foo' ), wp_customize_url( 'foo' ) );
 
 		// Ensure the theme query arg is replaced with the new value.
 		add_filter(
 			'admin_url',
 			static function ( $url ) {
-				return add_query_arg( 'theme', 'value', $url );
+				return add_query_arg( 'theme', 'to-be-replaced', $url );
 			}
 		);
-		$this->assertSame( esc_url( $clean_admin_url . '?existing_arg=value&theme=theme' ), wp_customize_url( 'theme' ) );
+		$this->assertSame( esc_url( $clean_admin_url . '?existing_arg=value&theme=bar' ), wp_customize_url( 'foo' ) );
 	}
 
 	/**
