@@ -1495,6 +1495,15 @@ class WP_HTML_Tag_Processor {
 
 		while ( false !== $at && $at < $doc_length ) {
 			$at += strcspn( $html, '-<', $at );
+			/*
+			 * Ultimately a SCRIPT closer (`</script>`) must be found or this function will
+			 * return false.
+			 * `</script` is the longest sequence that can be matched, so subsequent length checks
+			 * are redundant.
+			 */
+			if ( $at + 8 >= $doc_length ) {
+				return false;
+			}
 
 			/*
 			 * For all script states a "-->"  transitions
@@ -1502,7 +1511,6 @@ class WP_HTML_Tag_Processor {
 			 * even if that's the current state.
 			 */
 			if (
-				$at + 2 < $doc_length &&
 				'-' === $html[ $at ] &&
 				'-' === $html[ $at + 1 ] &&
 				'>' === $html[ $at + 2 ]
@@ -1510,10 +1518,6 @@ class WP_HTML_Tag_Processor {
 				$at   += 3;
 				$state = 'unescaped';
 				continue;
-			}
-
-			if ( $at + 1 >= $doc_length ) {
-				return false;
 			}
 
 			/*
@@ -1537,7 +1541,6 @@ class WP_HTML_Tag_Processor {
 			 * parsing after updating the state.
 			 */
 			if (
-				$at + 2 < $doc_length &&
 				'!' === $html[ $at ] &&
 				'-' === $html[ $at + 1 ] &&
 				'-' === $html[ $at + 2 ]
@@ -1561,7 +1564,6 @@ class WP_HTML_Tag_Processor {
 			 * proceed scanning to the next potential token in the text.
 			 */
 			if ( ! (
-				$at + 6 < $doc_length &&
 				( 's' === $html[ $at ] || 'S' === $html[ $at ] ) &&
 				( 'c' === $html[ $at + 1 ] || 'C' === $html[ $at + 1 ] ) &&
 				( 'r' === $html[ $at + 2 ] || 'R' === $html[ $at + 2 ] ) &&
