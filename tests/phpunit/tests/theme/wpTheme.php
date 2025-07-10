@@ -376,6 +376,17 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test wp_customize_url with no $stylesheet argument.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_no_stylesheet() {
+		$this->assertSame( esc_url( admin_url( 'customize.php' ) ), wp_customize_url() );
+	}
+
+	/**
 	 * Test wp_customize_url with no query args.
 	 *
 	 * @ticket 63632
