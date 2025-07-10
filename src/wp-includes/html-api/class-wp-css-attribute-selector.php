@@ -22,7 +22,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 *
 	 * @example
 	 *
-	 *     [att=val]
+	 *     [attr=val]
 	 */
 	const MATCH_EXACT = 'exact';
 
@@ -154,8 +154,8 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 * @return bool True if the processor's current position matches the selector.
 	 */
 	public function matches( WP_HTML_Tag_Processor $processor ): bool {
-		$att_value = $processor->get_attribute( $this->name );
-		if ( null === $att_value ) {
+		$attr_value = $processor->get_attribute( $this->name );
+		if ( null === $attr_value ) {
 			return false;
 		}
 
@@ -163,8 +163,8 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 			return true;
 		}
 
-		if ( true === $att_value ) {
-			$att_value = '';
+		if ( true === $attr_value ) {
+			$attr_value = '';
 		}
 
 		$case_insensitive = self::MODIFIER_CASE_INSENSITIVE === $this->modifier;
@@ -172,11 +172,11 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 		switch ( $this->matcher ) {
 			case self::MATCH_EXACT:
 				return $case_insensitive
-					? 0 === strcasecmp( $att_value, $this->value )
-					: $att_value === $this->value;
+					? 0 === strcasecmp( $attr_value, $this->value )
+					: $attr_value === $this->value;
 
 			case self::MATCH_ONE_OF_EXACT:
-				foreach ( $this->whitespace_delimited_list( $att_value ) as $val ) {
+				foreach ( $this->whitespace_delimited_list( $attr_value ) as $val ) {
 					if (
 						$case_insensitive
 							? 0 === strcasecmp( $val, $this->value )
@@ -191,31 +191,31 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 				// Attempt the full match first
 				if (
 					$case_insensitive
-						? 0 === strcasecmp( $att_value, $this->value )
-						: $att_value === $this->value
+						? 0 === strcasecmp( $attr_value, $this->value )
+						: $attr_value === $this->value
 				) {
 					return true;
 				}
 
 				// Partial match
-				if ( strlen( $att_value ) < strlen( $this->value ) + 1 ) {
+				if ( strlen( $attr_value ) < strlen( $this->value ) + 1 ) {
 					return false;
 				}
 
 				$starts_with = "{$this->value}-";
-				return 0 === substr_compare( $att_value, $starts_with, 0, strlen( $starts_with ), $case_insensitive );
+				return 0 === substr_compare( $attr_value, $starts_with, 0, strlen( $starts_with ), $case_insensitive );
 
 			case self::MATCH_PREFIXED_BY:
-				return 0 === substr_compare( $att_value, $this->value, 0, strlen( $this->value ), $case_insensitive );
+				return 0 === substr_compare( $attr_value, $this->value, 0, strlen( $this->value ), $case_insensitive );
 
 			case self::MATCH_SUFFIXED_BY:
-				return 0 === substr_compare( $att_value, $this->value, -strlen( $this->value ), null, $case_insensitive );
+				return 0 === substr_compare( $attr_value, $this->value, -strlen( $this->value ), null, $case_insensitive );
 
 			case self::MATCH_CONTAINS:
 				return false !== (
 					$case_insensitive
-						? stripos( $att_value, $this->value )
-						: strpos( $att_value, $this->value )
+						? stripos( $attr_value, $this->value )
+						: strpos( $attr_value, $this->value )
 				);
 		}
 	}
