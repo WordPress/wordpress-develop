@@ -438,6 +438,19 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test wp_customize_url with special characters in the theme name.
+	 *
+	 * @ticket 63632
+	 *
+	 * @covers ::wp_customize_url
+	 */
+	public function test_wp_customize_url_with_special_chars() {
+		$stylesheet = 'foo!@-_ +';
+		$expected   = admin_url( 'customize.php?theme=' . urlencode( $stylesheet ) );
+		$this->assertSame( esc_url( $expected ), wp_customize_url( $stylesheet ) );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
