@@ -60,6 +60,10 @@
 		if ( 'mailserver_pass' !== $pass1.prop('id' ) && ! $('#weblog_title').length ) {
 			$( $pass1 ).trigger( 'focus' );
 		}
+
+		if ( $form && $form.length ) {
+			originalFormContent = $form.serialize();
+		}
 	}
 
 	function bindPass1() {
@@ -67,7 +71,6 @@
 
 		if ( 1 === parseInt( $pass1.data( 'reveal' ), 10 ) ) {
 			generatePassword();
-			originalFormContent = $form.serialize();
 		}
 
 		$pass1.on( 'input' + ' pwupdate', function () {
