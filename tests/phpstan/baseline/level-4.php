@@ -1160,18 +1160,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/revision.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Left side of && is always true\\.$#',
-	'identifier' => 'booleanAnd.leftAlwaysTrue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rewrite.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Strict comparison using \\!\\=\\= between \'\' and int will always evaluate to true\\.$#',
-	'identifier' => 'notIdentical.alwaysTrue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rewrite.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Property WP_Query\\:\\:\\$max_num_pages \\(int\\) in isset\\(\\) is not nullable\\.$#',
 	'identifier' => 'isset.property',
 	'count' => 1,
@@ -1180,12 +1168,6 @@ $ignoreErrors[] = [
 $ignoreErrors[] = [
 	'message' => '#^Function get_term_to_edit\\(\\) never returns int so it can be removed from the return type\\.$#',
 	'identifier' => 'return.unusedType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Strict comparison using \\!\\=\\= between null and mixed will always evaluate to true\\.$#',
-	'identifier' => 'notIdentical.alwaysTrue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
 ];

@@ -584,12 +584,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-nav-menu-setting.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function _oembed_rest_pre_serve_request\\(\\) should return bool but returns string\\.$#',
-	'identifier' => 'return.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/embed.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Offset \'basedir\' does not exist on string\\.$#',
 	'identifier' => 'offsetAccess.notFound',
 	'count' => 2,
