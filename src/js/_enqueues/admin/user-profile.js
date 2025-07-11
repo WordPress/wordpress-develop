@@ -67,6 +67,7 @@
 
 		if ( 1 === parseInt( $pass1.data( 'reveal' ), 10 ) ) {
 			generatePassword();
+			originalFormContent = $form.serialize();
 		}
 
 		$pass1.on( 'input' + ' pwupdate', function () {
