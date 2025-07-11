@@ -3747,6 +3747,7 @@ img {
 	padding: 8px 3%;
 	min-height: 130px;
 	margin: 0;
+	word-break: break-all;
 }
 
 @media only screen and (max-width: 599px) {
