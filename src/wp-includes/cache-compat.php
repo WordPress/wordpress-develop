@@ -201,7 +201,6 @@ if ( ! function_exists( 'wp_cache_supports' ) ) :
 endif;
 
 if ( ! function_exists( 'wp_cache_get_query_data' ) ) :
-
 	/**
 	 * Retrieves cached query data if valid and unchanged.
 	 *
