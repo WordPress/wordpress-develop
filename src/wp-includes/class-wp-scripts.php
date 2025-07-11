@@ -341,7 +341,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		$translations = $this->print_translations( $handle, false );
 		if ( $translations ) {
-			$translations = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
+			$translations = wp_get_inline_script_tag( $translations, array( 'id' => esc_attr( $handle ) . '-js-translations' ) );
 		}
 
 		if ( $this->do_concat ) {
@@ -417,7 +417,7 @@ class WP_Scripts extends WP_Dependencies {
 
 		$attr = array(
 			'src' => $src,
-			'id'  => "{$handle}-js",
+			'id'  => esc_attr( $handle ) . '-js',
 		);
 		if ( $strategy ) {
 			$attr[ $strategy ] = true;

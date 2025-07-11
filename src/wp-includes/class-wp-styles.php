@@ -229,7 +229,7 @@ class WP_Styles extends WP_Dependencies {
 		$tag = sprintf(
 			"<link rel='%s' id='%s-css'%s href='%s'%s media='%s' />\n",
 			$rel,
-			$handle,
+			esc_attr( $handle ),
 			$title,
 			$href,
 			$this->type_attr,
@@ -261,7 +261,7 @@ class WP_Styles extends WP_Dependencies {
 			$rtl_tag = sprintf(
 				"<link rel='%s' id='%s-rtl-css'%s href='%s'%s media='%s' />\n",
 				$rel,
-				$handle,
+				esc_attr( $handle ),
 				$title,
 				$rtl_href,
 				$this->type_attr,
