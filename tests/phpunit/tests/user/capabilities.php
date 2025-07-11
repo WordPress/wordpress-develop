@@ -1833,6 +1833,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * Test if a user can edit their own profile based on their role.
 	 *
+	 * @ticket 63684
+	 *
 	 * @dataProvider data_user_can_edit_self
 	 *
 	 * @param string $role          The role of the user.
