@@ -60,8 +60,8 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			break;
 		case 'edit_user':
 		case 'edit_users':
-			// Anonymous users can't edit users, not even themselves.
-			if ( 0 === $user_id ) {
+			// Non-existent users can't edit users, not even themselves.
+			if ( $user_id < 1 ) {
 				$caps[] = 'do_not_allow';
 				break;
 			}
