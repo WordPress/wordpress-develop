@@ -1583,6 +1583,53 @@ EOF;
 		$this->assertSame( $expected, $output );
 	}
 
+	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_with_height_width() {
+		$mock_action = new MockAction();
+		add_filter( 'wp_get_attachment_image_attributes', array( $mock_action, 'filter' ) );
+		wp_get_attachment_image( self::$large_id );
+		$args = $mock_action->get_args();
+		$this->assertArrayHasKey( '0', $args, 'First argument should be an array.' );
+		$this->assertArrayHasKey( '0', $args[0], 'First argument should be an array.' );
+		$this->assertArrayHasKey( 'width', $args[0][0], 'Width should be set.' );
+		$this->assertArrayHasKey( 'height', $args[0][0], 'Height should be set.' );
+	}
+
+	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_change_height_width() {
+		add_filter(
+			'wp_get_attachment_image_attributes',
+			static function ( $args ) {
+				$args['height'] = '999';
+				$args['width']  = '999';
+				return $args;
+			}
+		);
+		$output = wp_get_attachment_image( self::$large_id );
+		$this->assertStringContainsString( 'width="999"', $output, 'Width should be changed.' );
+		$this->assertStringContainsString( 'height="999"', $output, 'Height should be changed.' );
+	}
+
+	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_unset_height_width() {
+		add_filter(
+			'wp_get_attachment_image_attributes',
+			static function ( $args ) {
+				unset( $args['height'], $args['width'] );
+				return $args;
+			}
+		);
+		$output = wp_get_attachment_image( self::$large_id );
+		$this->assertStringContainsString( 'width="150"', $output, 'Width should not be changed.' );
+		$this->assertStringContainsString( 'height="150"', $output, 'Height should not be changed.' );
+	}
+
 	public function filter_wp_get_attachment_image() {
 		return 'Override wp_get_attachment_image';
 	}
