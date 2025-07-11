@@ -2353,4 +2353,64 @@ class Tests_User extends WP_UnitTestCase {
 		// Verify there are no updates to 'use_ssl' user meta.
 		$this->assertSame( 1, $db_update_count );
 	}
+
+	public function test_set_password_action_on_wp_insert_user_with_update_false_and_true() {
+		$mock_action = new MockAction();
+
+		add_action( 'wp_set_password', array( $mock_action, 'action' ), 10, 3 );
+
+		// New User Scenario: $update = false
+		$username = 'testuser_' . wp_rand();
+		$password = 'password123';
+		$userdata = array(
+			'user_login' => $username,
+			'user_pass'  => $password,
+			'user_email' => $username . '@example.com',
+			'role'       => 'subscriber',
+		);
+
+		$user_id = wp_insert_user( $userdata );
+
+		// Assert that wp_set_password was called
+		$this->assertSame( 1, $mock_action->get_call_count(), 'wp_set_password action was not called for new user' );
+		$args = $mock_action->get_args();
+		$this->assertSame( $password, $args[0][0], 'Password mismatch for the new user' );
+		$this->assertSame( $user_id, $args[0][1], 'User ID mismatch for the new user' );
+
+		// Update Existing User Scenario: $update = true
+		$mock_action->reset(); // Reset the mock for a clean test
+		$updated_userdata = array(
+			'ID'         => $user_id, // Pass existing user ID to trigger an update
+			'user_pass'  => 'newpassword789',
+			'first_name' => 'Test',
+			'last_name'  => 'User',
+		);
+
+		wp_insert_user( $updated_userdata );
+
+		// Assert that wp_set_password was NOT called
+		$this->assertSame( 0, $mock_action->get_call_count(), 'wp_set_password action was incorrectly triggered for user update when $update = true' );
+	}
+
+	public function test_set_password_action_on_user_update() {
+		$mock_action = new MockAction();
+
+		add_action( 'wp_set_password', array( $mock_action, 'action' ), 10, 3 );
+
+		$user_id      = $this->factory()->user->create( array( 'role' => 'subscriber' ) );
+		$new_password = 'newpassword!@#';
+
+		$update_userdata = array(
+			'ID'        => $user_id,
+			'user_pass' => $new_password,
+		);
+
+		wp_update_user( $update_userdata );
+
+		// Assertions
+		$this->assertSame( 1, $mock_action->get_call_count(), 'The action wp_set_password was not called when updating a user.' );
+		$args = $mock_action->get_args();
+		$this->assertSame( $new_password, $args[0][0], 'The updated password is incorrect.' );
+		$this->assertSame( $user_id, $args[0][1], 'The user ID passed to the action is incorrect.' );
+	}
 }
