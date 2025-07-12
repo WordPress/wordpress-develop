@@ -635,18 +635,15 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
  *     @type WP_Error       $errors     WP_Error containing any errors found.
  * }
  */
-function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
+function wpmu_validate_new_blogname( $blogname, $user = '' ) {
 	global $wpdb, $domain;
+
+	$errors = new WP_Error();
 
 	$current_network = get_network();
 	$base            = $current_network->path;
-
-	$blog_title = strip_tags( $blog_title );
-
-	$errors        = new WP_Error();
-	$illegal_names = get_site_option( 'illegal_names' );
-
-	if ( ! is_array( $illegal_names ) ) {
+	$illegal_names   = get_site_option( 'illegal_names' );
+	if ( false == $illegal_names ) {
 		$illegal_names = array( 'www', 'web', 'root', 'admin', 'main', 'invite', 'administrator' );
 		add_site_option( 'illegal_names', $illegal_names );
 	}
@@ -707,12 +704,6 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	 */
 	$blogname = apply_filters( 'newblogname', $blogname );
 
-	$blog_title = wp_unslash( $blog_title );
-
-	if ( empty( $blog_title ) ) {
-		$errors->add( 'blog_title', __( 'Please enter a site title.' ) );
-	}
-
 	// Check if the domain/path has been used already.
 	if ( is_subdomain_install() ) {
 		$mydomain = $blogname . '.' . preg_replace( '|^www\.|', '', $domain );
@@ -730,15 +721,13 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	 * unless it's the user's own username.
 	 */
 	if ( username_exists( $blogname ) ) {
-		if ( ! is_object( $user ) || ( is_object( $user ) && $user->user_login !== $blogname ) ) {
+		if ( ! is_object( $user ) || ( is_object( $user ) && ( $user->user_login != $blogname ) ) ) {
 			$errors->add( 'blogname', __( 'Sorry, that site is reserved!' ) );
 		}
 	}
 
-	/*
-	 * Has someone already signed up for this domain?
-	 * TODO: Check email too?
-	 */
+	// Has someone already signed up for this domain?
+	// TODO: Check email too?
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE domain = %s AND path = %s", $mydomain, $path ) );
 	if ( $signup instanceof stdClass ) {
 		$diff = time() - mysql2date( 'U', $signup->registered );
@@ -756,6 +745,66 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		}
 	}
 
+	return $errors;
+}
+
+/**
+ * Processes new site registrations.
+ *
+ * Checks the data provided by the user during blog signup. Verifies
+ * the validity and uniqueness of blog paths and domains.
+ *
+ * This function prevents the current user from registering a new site
+ * with a blogname equivalent to another user's login name. Passing the
+ * $user parameter to the function, where $user is the other user, is
+ * effectively an override of this limitation.
+ *
+ * Filter {@see 'wpmu_validate_blog_signup'} if you want to modify
+ * the way that WordPress validates new site signups.
+ *
+ * @since MU (3.0.0)
+ *
+ * @global string $domain
+ *
+ * @param string         $blogname   The blog name provided by the user. Must be unique.
+ * @param string         $blog_title The blog title provided by the user.
+ * @param WP_User|string $user       Optional. The user object to check against the new site name.
+ * @return array {
+ *     Array of domain, path, blog name, blog title, user and error messages.
+ *
+ *     @type string         $domain     Domain for the site.
+ *     @type string         $path       Path for the site. Used in subdirectory installations.
+ *     @type string         $blogname   The unique site name (slug).
+ *     @type string         $blog_title Blog title.
+ *     @type string|WP_User $user       By default, an empty string. A user object if provided.
+ *     @type WP_Error       $errors     WP_Error containing any errors found.
+ * }
+ */
+function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
+	global $domain;
+
+	$blog_title = strip_tags( $blog_title );
+
+	$errors = new WP_Error();
+	$errors->merge_from( wpmu_validate_new_blogname( $blogname, $user ) );
+
+	$blog_title = wp_unslash( $blog_title );
+
+	if ( empty( $blog_title ) ) {
+		$errors->add( 'blog_title', __( 'Please enter a site title.' ) );
+	}
+
+	$current_network = get_network();
+	$base            = $current_network->path;
+
+	if ( is_subdomain_install() ) {
+		$mydomain = $blogname . '.' . preg_replace( '|^www\.|', '', $domain );
+		$path     = $base;
+	} else {
+		$mydomain = $domain;
+		$path     = $base . $blogname . '/';
+	}
+
 	$result = array(
 		'domain'     => $mydomain,
 		'path'       => $path,
@@ -771,12 +820,12 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	 * @since MU (3.0.0)
 	 *
 	 * @param array $result {
-	 *     Array of domain, path, site name, site title, user and error messages.
+	 *     Array of domain, path, blog name, blog title, user and error messages.
 	 *
 	 *     @type string         $domain     Domain for the site.
 	 *     @type string         $path       Path for the site. Used in subdirectory installations.
 	 *     @type string         $blogname   The unique site name (slug).
-	 *     @type string         $blog_title Site title.
+	 *     @type string         $blog_title Blog title.
 	 *     @type string|WP_User $user       By default, an empty string. A user object if provided.
 	 *     @type WP_Error       $errors     WP_Error containing any errors found.
 	 * }
