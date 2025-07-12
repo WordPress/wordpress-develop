@@ -551,18 +551,69 @@ EOF;
 	}
 
 	/**
-	 * @ticket 26290
+	 * Data provider.
 	 */
-	public function test_wp_kses_normalize_entities() {
-		$this->assertSame( '&spades;', wp_kses_normalize_entities( '&spades;' ) );
+	public static function data_normalize_entities(): array {
+		return array(
+			/**
+			 * These examples are from the wp_kses_normalize_entities function description.
+			 */
+			'AT&T'                               => array( 'AT&T', 'AT&amp;T' ),
+			'&#00058;'                           => array( '&#00058;', '&#058;' ),
+			'&#XYZZY;'                           => array( '&#XYZZY;', '&amp;#XYZZY;' ),
 
-		$this->assertSame( '&sup1;', wp_kses_normalize_entities( '&sup1;' ) );
-		$this->assertSame( '&sup2;', wp_kses_normalize_entities( '&sup2;' ) );
-		$this->assertSame( '&sup3;', wp_kses_normalize_entities( '&sup3;' ) );
-		$this->assertSame( '&frac14;', wp_kses_normalize_entities( '&frac14;' ) );
-		$this->assertSame( '&frac12;', wp_kses_normalize_entities( '&frac12;' ) );
-		$this->assertSame( '&frac34;', wp_kses_normalize_entities( '&frac34;' ) );
-		$this->assertSame( '&there4;', wp_kses_normalize_entities( '&there4;' ) );
+			'Named ref &amp;'                    => array( '&spades;', '&spades;' ),
+			'Named ref &AMP;'                    => array( '&spades;', '&spades;' ),
+			'Named ref &spades;'                 => array( '&spades;', '&spades;' ),
+			'Named ref &sup1;'                   => array( '&sup1;', '&sup1;' ),
+			'Named ref &sup2;'                   => array( '&sup2;', '&sup2;' ),
+			'Named ref &sup3;'                   => array( '&sup3;', '&sup3;' ),
+			'Named ref &frac14;'                 => array( '&frac14;', '&frac14;' ),
+			'Named ref &frac12;'                 => array( '&frac12;', '&frac12;' ),
+			'Named ref &frac34;'                 => array( '&frac34;', '&frac34;' ),
+			'Named ref &there4;'                 => array( '&there4;', '&there4;' ),
+
+			'Decimal ref &#9; ( )'               => array( '&#9;', '&#009;' ),
+			'Decimal ref &#34; (")'              => array( '&#34;', '&#034;' ),
+			'Decimal ref &#0034; (")'            => array( '&#0034;', '&#034;' ),
+			'Decimal ref &#38; (&)'              => array( '&#38;', '&#038;' ),
+			"Decimal ref &#39; (')"              => array( '&#39;', '&#039;' ),
+			'Decimal ref &#128525; (😍)'          => array( '&#128525;', '&#128525;' ),
+			'Decimal ref &#00128525; (😍)'        => array( '&#00128525;', '&#128525;' ),
+
+			'Hex ref &#x9; ( )'                  => array( '&#x9;', '&#x9;' ),
+			'Hex ref &#x22; (")'                 => array( '&#x22;', '&#x22;' ),
+			'Hex ref &#x0022; (")'               => array( '&#x0022;', '&#x22;' ),
+			'Hex ref &#x26; (&)'                 => array( '&#x26;', '&#x26;' ),
+			"Hex ref &#x27; (')"                 => array( '&#x27;', '&#x27;' ),
+			'Hex ref &#x1f60d; (😍)'              => array( '&#x1f60d;', '&#x1f60d;' ),
+			'Hex ref &#x001f60d; (😍)'            => array( '&#x001f60d;', '&#x1f60d;' ),
+
+			'HEX REF &#X22; (")'                 => array( '&#X22;', '&#x22;' ),
+			'HEX REF &#X26; (&)'                 => array( '&#X26;', '&#x26;' ),
+			"HEX REF &#X27; (')"                 => array( '&#X27;', '&#x27;' ),
+			'HEX REF &#X1F60D; (😍)'              => array( '&#X1F60D;', '&#x1F60D;' ),
+
+			'Encoded named ref &amp;amp;'        => array( '&amp;amp;', '&amp;amp;' ),
+			'Encoded named ref &#38;amp;'        => array( '&#38;amp;', '&#038;amp;' ),
+			'Encoded named ref &#x26;amp;'       => array( '&#x26;amp;', '&#x26;amp;' ),
+
+			/*
+			 * The codepoint value here is outside of the valid unicode range whose
+			 * maximum is 0x10FFFF or 1114111.
+			 */
+			'Invalid decimal unicode &#1114112;' => array( '&#1114112;', '&amp;#1114112;' ),
+			'Invalid hex unicode &#x110000;'     => array( '&#x110000;', '&amp;#x110000;' ),
+		);
+	}
+
+	/**
+	 * @ticket 26290
+	 *
+	 * @dataProvider data_normalize_entities
+	 */
+	public function test_wp_kses_normalize_entities( string $input, string $expected ) {
+		$this->assertSame( $expected, wp_kses_normalize_entities( $input ) );
 	}
 
 	/**
