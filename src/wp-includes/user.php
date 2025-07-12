@@ -477,7 +477,7 @@ function wp_authenticate_application_password(
 		 */
 		do_action( 'wp_authenticate_application_password_errors', $error, $user, $item, $password );
 
-		if ( is_wp_error( $error ) && $error->has_errors() ) {
+		if ( $error->has_errors() ) {
 			/** This action is documented in wp-includes/user.php */
 			do_action( 'application_password_failed_authentication', $error );
 
@@ -1126,7 +1126,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	 * @param object[] $sites   An array of site objects belonging to the user.
 	 * @param int      $user_id User ID.
 	 * @param bool     $all     Whether the returned sites array should contain all sites, including
-	 *                          those marked 'deleted', 'archived', or 'spam'. Default false.
+	 *                          those flagged for deletion, archived, or marked as spam.
 	 */
 	return apply_filters( 'get_blogs_of_user', $sites, $user_id, $all );
 }

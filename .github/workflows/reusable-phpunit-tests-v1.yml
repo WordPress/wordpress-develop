@@ -3,7 +3,7 @@
 #
 # A reusable workflow that runs the PHPUnit test suite with the specified configuration.
 #
-# This workflow is used by branches 4.1 through 5.1.
+# This workflow is used by branches 4.7 through 5.1.
 ##
 name: Run PHPUnit tests
 
