@@ -2750,6 +2750,11 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 			foreach ( $block_type->editor_script_handles as $editor_script_handle ) {
 				wp_enqueue_script( $editor_script_handle );
 			}
+		} elseif ( ! is_admin() ) {
+			// Front-end styles.
+			foreach ( $block_type->view_style_handles as $view_style_handle ) {
+				wp_enqueue_style( $view_style_handle );
+			}
 		}
 	}
 }
