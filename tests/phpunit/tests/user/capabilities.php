@@ -1856,7 +1856,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_user_can_edit_self() {
+	public static function data_user_can_edit_self() {
 		return array(
 			array( 'anonymous', false ),
 			array( 'administrator', true ),
