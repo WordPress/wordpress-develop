@@ -54,7 +54,7 @@ Source: https://fontsource.org/fonts/open-sans
 == Changelog ==
 
 = 4.6 =
-* Released: April 15, 2025
+* Released: July 15, 2025
 
 https://wordpress.org/documentation/article/twenty-twelve-changelog/#Version_4.6
 
