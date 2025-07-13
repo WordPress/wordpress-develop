@@ -33,7 +33,7 @@ No data is saved in the database or transferred.
 = 2.6 =
 * Released: July 15, 2025
 
-https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_2.5
+https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_2.6
 
 = 2.5 =
 * Released: April 15, 2025
