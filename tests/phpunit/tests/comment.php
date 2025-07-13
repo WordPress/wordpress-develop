@@ -168,7 +168,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 
 		$comment = get_comment( $comment_id );
-		$this->assertSame( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, 'Comment: ' . $comment->comment_content );
+		$this->assertEqualHTML( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, '<body>', 'Comment: ' . $comment->comment_content );
 	}
 
 	/**
