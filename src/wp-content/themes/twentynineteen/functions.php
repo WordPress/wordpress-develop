@@ -295,38 +295,38 @@ function twentynineteen_generate_color_palette_css() {
 		return;
 	}
 
-    $colors = get_theme_support( 'editor-color-palette' );
-    if ( ! $colors ) {
-        return;
-    }
-    
-    $colors = $colors[0];
-    $css = '';
-    
-    foreach ( $colors as $color ) {
-        // Generate text color classes
-        $css .= sprintf(
-            '.has-%1$s-color { color: %2$s !important; } ',
-            $color['slug'],
-            $color['color']
-        );
-        
-        // Generate background color classes
-        $css .= sprintf(
-            '.has-%1$s-background-color { background-color: %2$s !important; } ',
-            $color['slug'],
-            $color['color']
-        );
-        
-        // Generate border color classes
-        $css .= sprintf(
-            '.has-%1$s-border-color { border-color: %2$s !important; } ',
-            $color['slug'],
-            $color['color']
-        );
-    }
-    
-    $added = wp_add_inline_style( 'twentynineteen-style', $css );
+	$colors = get_theme_support( 'editor-color-palette' );
+	if ( ! $colors ) {
+		return;
+	}
+
+	$colors = $colors[0];
+	$css    = '';
+
+	foreach ( $colors as $color ) {
+		// Generate text color classes
+		$css .= sprintf(
+			'.has-%1$s-color { color: %2$s !important; } ',
+			$color['slug'],
+			$color['color']
+		);
+
+		// Generate background color classes
+		$css .= sprintf(
+			'.has-%1$s-background-color { background-color: %2$s !important; } ',
+			$color['slug'],
+			$color['color']
+		);
+
+		// Generate border color classes
+		$css .= sprintf(
+			'.has-%1$s-border-color { border-color: %2$s !important; } ',
+			$color['slug'],
+			$color['color']
+		);
+	}
+
+	$added = wp_add_inline_style( 'twentynineteen-style', $css );
 }
 
 add_action( 'wp_enqueue_scripts', 'twentynineteen_generate_color_palette_css' );
