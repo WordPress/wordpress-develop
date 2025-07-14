@@ -317,11 +317,12 @@ function wp_dashboard_right_now() {
 
 			$text             = sprintf( $text, number_format_i18n( $num_posts->publish ) );
 			$post_type_object = get_post_type_object( $post_type );
+			$icon_class       = 'dashicons-before dashicons-admin-' . $post_type;
 
 			if ( $post_type_object && current_user_can( $post_type_object->cap->edit_posts ) ) {
-				printf( '<li class="%1$s-count"><a href="edit.php?post_type=%1$s">%2$s</a></li>', $post_type, $text );
+				printf( '<li class="%1$s-count"><a class="%3$s" href="edit.php?post_type=%1$s">%2$s</a></li>', $post_type, $text, esc_attr( $icon_class ) );
 			} else {
-				printf( '<li class="%1$s-count"><span>%2$s</span></li>', $post_type, $text );
+				printf( '<li class="%1$s-count"><span class="%3$s">%2$s</span></li>', $post_type, $text, esc_attr( $icon_class ) );
 			}
 		}
 	}
@@ -334,7 +335,7 @@ function wp_dashboard_right_now() {
 		$text = sprintf( _n( '%s Comment', '%s Comments', $num_comm->approved ), number_format_i18n( $num_comm->approved ) );
 		?>
 		<li class="comment-count">
-			<a href="edit-comments.php"><?php echo $text; ?></a>
+			<a class="dashicons-before dashicons-admin-comments" href="edit-comments.php"><?php echo $text; ?></a>
 		</li>
 		<?php
 		$moderated_comments_count_i18n = number_format_i18n( $num_comm->moderated );
@@ -342,7 +343,7 @@ function wp_dashboard_right_now() {
 		$text = sprintf( _n( '%s Comment in moderation', '%s Comments in moderation', $num_comm->moderated ), $moderated_comments_count_i18n );
 		?>
 		<li class="comment-mod-count<?php echo ! $num_comm->moderated ? ' hidden' : ''; ?>">
-			<a href="edit-comments.php?comment_status=moderated" class="comments-in-moderation-text"><?php echo $text; ?></a>
+			<a href="edit-comments.php?comment_status=moderated" class="comments-in-moderation-text dashicons-before dashicons-format-chat"><?php echo $text; ?></a>
 		</li>
 		<?php
 	}
@@ -400,8 +401,9 @@ function wp_dashboard_right_now() {
 		$content = apply_filters( 'privacy_on_link_text', __( 'Search engines discouraged' ) );
 
 		$title_attr = '' === $title ? '' : " title='$title'";
+		$icon_class = 'dashicons-before dashicons-info';
 
-		echo "<p class='search-engines-info'><a href='options-reading.php'$title_attr>$content</a></p>";
+		echo '<p class="search-engines-info"><a href="options-reading.php"' . $title_attr . ' class="' . esc_attr( $icon_class ) . '">' . $content . '</a></p>';
 	}
 	?>
 	</div>
@@ -1652,9 +1654,11 @@ function wp_dashboard_quota() {
 		$percentused = ( $used / $quota ) * 100;
 	}
 
-	$used_class  = ( $percentused >= 70 ) ? ' warning' : '';
-	$used        = round( $used, 2 );
-	$percentused = number_format( $percentused );
+	$used_class   = ( $percentused >= 70 ) ? ' warning' : '';
+	$icon_class   = ( $percentused >= 70 ) ? ' dashicons-dismiss' : 'dashicons-admin-media';
+	$icon_class  .= ' dashicons-before';
+	$used         = round( $used, 2 );
+	$percentused  = number_format( $percentused );
 
 	?>
 	<h3 class="mu-storage"><?php _e( 'Storage Space' ); ?></h3>
@@ -1668,27 +1672,30 @@ function wp_dashboard_quota() {
 				number_format_i18n( $quota )
 			);
 			printf(
-				'<a href="%1$s">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
+				'<a href="%1$s" class="%4$s">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
-				__( 'Manage Uploads' )
+				__( 'Manage Uploads' ),
+				esc_attr( $icon_class )
 			);
 			?>
 		</li><li class="storage-count <?php echo $used_class; ?>">
 			<?php
-			$text = sprintf(
+			$icon_class .= ' musublink';
+			$text        = sprintf(
 				/* translators: 1: Number of megabytes, 2: Percentage. */
 				__( '%1$s MB (%2$s%%) Space Used' ),
 				number_format_i18n( $used, 2 ),
 				$percentused
 			);
 			printf(
-				'<a href="%1$s" class="musublink">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
+				'<a href="%1$s" class="%4$s">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
-				__( 'Manage Uploads' )
+				__( 'Manage Uploads' ),
+				esc_attr( $icon_class )
 			);
 			?>
 		</li>
