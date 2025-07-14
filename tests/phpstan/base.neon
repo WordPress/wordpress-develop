@@ -20,7 +20,7 @@ parameters:
 	checkFunctionNameCase: true
 	inferPrivatePropertyTypeFromConstructor: true
 
-	# Constants that are expected to be defined by users.
+	# Constants whose values may differ depending on the install.
 	dynamicConstantNames:
 		- ALLOW_SUBDIRECTORY_INSTALL
 		- AUTH_SALT
