@@ -1127,6 +1127,16 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	}
 
 	/**
+	 * Filters an option before its value is (maybe) serialized and added.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param mixed  $value  The unserialized option value.
+	 * @param string $option Name of the option.
+	 */
+	$value = apply_filters( 'pre_add_option', $value, $option );
+
+	/**
 	 * Filters a specific option before its value is (maybe) serialized and added.
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
@@ -1137,16 +1147,6 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	 * @param string $option Name of the option.
 	 */
 	$value = apply_filters( "pre_add_option_{$option}", $value, $option );
-
-	/**
-	 * Filters an option before its value is (maybe) serialized and added.
-	 *
-	 * @since n.e.x.t
-	 *
-	 * @param mixed  $value  The unserialized option value.
-	 * @param string $option Name of the option.
-	 */
-	$value = apply_filters( 'pre_add_option', $value, $option );
 
 	$serialized_value = maybe_serialize( $value );
 
