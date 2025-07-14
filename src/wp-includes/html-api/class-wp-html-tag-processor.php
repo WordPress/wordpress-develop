@@ -863,12 +863,12 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Progress through a document pausing on tags matching the provided CSS selector string.
 	 *
-	 * @example
+	 * Example:
 	 *
 	 *     $processor = new WP_HTML_Tag_Processor(
 	 *         '<meta charset="utf-8"><title>Example</title><meta property="og:type" content="website"><meta property="og:description" content="An example.">'
 	 *     );
-	 *     foreach ( $processor->select_all( 'meta[property^="og:" i]' ) as $_ ) {
+	 *     while ( $processor->select( 'meta[property^="og:" i]' ) ) {
 	 *         // Loop is entered twice.
 	 *         var_dump(
 	 *             $processor->get_tag(),                   // string(4) "META"
@@ -877,55 +877,37 @@ class WP_HTML_Tag_Processor {
 	 *         );
 	 *     }
 	 *
-	 * @since 6.8.0
+	 * @since {WP_VERSION}
 	 *
 	 * @param string $selector_string Selector string.
-	 * @return Generator<void> A generator pausing on each tag matching the selector.
+	 * @return bool Whether a selection was found.
 	 */
-	public function select_all( $selector_string ): Generator {
-		$selector = WP_CSS_Compound_Selector_List::from_selectors( $selector_string );
+	public function select( $selector_string ): bool {
+		static $previous_selector_string = null;
+		static $previous_selector        = null;
+
+		$selector = $selector_string === $previous_selector_string
+			? $previous_selector
+			: WP_CSS_Compound_Selector_List::from_selectors( $selector_string );
+
+		$previous_selector        = $selector;
+		$previous_selector_string = $selector_string;
+
 		if ( null === $selector ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf( 'Received unsupported or invalid selector "%s".', $selector_string ),
 				'6.8'
 			);
-			return;
+			return false;
 		}
 
 		while ( $this->next_tag() ) {
 			if ( $selector->matches( $this ) ) {
-				yield;
+				return true;
 			}
 		}
-	}
 
-	/**
-	 * Move to the next tag matching the provided CSS selector string.
-	 *
-	 * This method will stop at the next match. To progress through all matches, use
-	 * the {@see WP_HTML_Tag_Processor::select_all()} method.
-	 *
-	 * @example
-	 *
-	 *     $processor = new WP_HTML_Tag_Processor(
-	 *         '<meta charset="utf-8"><title>Example</title><meta property="og:title" content="Example">'
-	 *     );
-	 *     $processor->select( 'meta[charset]' );
-	 *     var_dump(
-	 *         $processor->get_tag(),                  // string(4) "META"
-	 *         $processor->get_attribute( 'charset' ), // string(5) "utf-8"
-	 *     );
-	 *
-	 * @since 6.8.0
-	 *
-	 * @param string $selector_string
-	 * @return bool  True if a matching tag was found, otherwise false.
-	 */
-	public function select( string $selector_string ): bool {
-		foreach ( $this->select_all( $selector_string ) as $_ ) {
-			return true;
-		}
 		return false;
 	}
 

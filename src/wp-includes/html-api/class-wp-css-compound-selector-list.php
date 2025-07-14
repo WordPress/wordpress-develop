@@ -12,7 +12,7 @@
  *
  * This class is designed for internal use by the HTML Tag Processor.
  *
- * For usage, see {@see WP_HTML_Tag_Processor::select()} or {@see WP_HTML_Tag_Processor::select_all()}.
+ * For usage, see {@see WP_HTML_Tag_Processor::select()}.
  *
  * This class is instantiated via the {@see WP_CSS_Compound_Selector_List::from_selectors()} method.
  * It takes a CSS selector string and returns an instance of itself or `null` if the selector

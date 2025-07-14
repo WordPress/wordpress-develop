@@ -3,10 +3,7 @@
  * Unit tests covering WP_HTML_Processor select functionality.
  *
  * Covers functionality related to CSS selectors and the {@see WP_HTML_Processor::select()}
- * and {@see WP_HTML_Processor::select_all()} methods.
- *
- * @package WordPress
- * @subpackage HTML-API
+ * and {@see WP_HTML_Processor::select()} methods.
  *
  * @since 6.8.0
  *
@@ -26,10 +23,10 @@ class Tests_HtmlApi_WpHtmlProcessor_Select extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_selectors
 	 */
-	public function test_select_all( string $html, string $selector, int $match_count ) {
+	public function test_selects_all_matches( string $html, string $selector, int $match_count ) {
 		$processor = WP_HTML_Processor::create_full_parser( $html );
 		$count     = 0;
-		foreach ( $processor->select_all( $selector ) as $_ ) {
+		while ( $processor->select( $selector ) ) {
 			$breadcrumb_string = implode( ', ', $processor->get_breadcrumbs() );
 			$this->assertTrue(
 				$processor->get_attribute( 'match' ),

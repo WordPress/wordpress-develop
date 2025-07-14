@@ -2,11 +2,7 @@
 /**
  * Unit tests covering WP_HTML_Tag_Processor CSS selection functionality.
  *
- * Covers functionality related to CSS selectors and the {@see WP_HTML_Tag_Processor::select()}
- * and {@see WP_HTML_Tag_Processor::select_all()} methods.
- *
- * @package WordPress
- * @subpackage HTML-API
+ * Covers functionality related to CSS selectors and the {@see WP_HTML_Tag_Processor::select()} method.
  *
  * @since 6.8.0
  *
@@ -29,7 +25,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor_Select extends WP_UnitTestCase {
 	public function test_select( string $html, string $selector, int $match_count ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$count     = 0;
-		foreach ( $processor->select_all( $selector ) as $_ ) {
+		while ( $processor->select( $selector ) ) {
 			$this->assertTrue(
 				$processor->get_attribute( 'match' ),
 				"Matched unexpected tag {$processor->get_tag()}"
