@@ -8,6 +8,18 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Inner named functions are not supported by PHPStan\\. Consider refactoring to an anonymous function, class method, or a top\\-level\\-defined function\\. See issue \\#165 \\(https\\://github\\.com/phpstan/phpstan/issues/165\\) for more details\\.$#',
+	'identifier' => 'function.inner',
+	'count' => 13,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/export.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Inner named functions are not supported by PHPStan\\. Consider refactoring to an anonymous function, class method, or a top\\-level\\-defined function\\. See issue \\#165 \\(https\\://github\\.com/phpstan/phpstan/issues/165\\) for more details\\.$#',
+	'identifier' => 'function.inner',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/file.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Function get_file not found\\.$#',
 	'identifier' => 'function.notFound',
 	'count' => 1,
@@ -30,6 +42,12 @@ $ignoreErrors[] = [
 	'identifier' => 'include.fileNotFound',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/press-this.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Inner named functions are not supported by PHPStan\\. Consider refactoring to an anonymous function, class method, or a top\\-level\\-defined function\\. See issue \\#165 \\(https\\://github\\.com/phpstan/phpstan/issues/165\\) for more details\\.$#',
+	'identifier' => 'function.inner',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Method WP_Theme_JSON\\:\\:should_override_preset\\(\\) should return bool but return statement is missing\\.$#',

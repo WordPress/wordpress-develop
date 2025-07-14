@@ -22,19 +22,18 @@ parameters:
 	reportUnmatchedIgnoredErrors: true
 
 	ignoreErrors:
-		# Inner functions aren't supported:
-		- '#Inner named functions are not supported by PHPStan#'
-		# Inner functions within the importer:
-		- '#Function wxr_[a-z_]+ not found#'
+		# Level 0:
+		- # Inner functions arent supported by PHPstan.
+			message: '#Function wxr_[a-z_]+ not found#'
+			path: src/wp-admin/includes/export.php
 
 		# Level 1:
-
-		# These are too noisy at the moment.
-		- '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
+		- These are too noisy at the moment.
+		  message: '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
 
 		# Level 2:
-		# Callable-strings are used as callables in WordPress.
-		- '#Default value of the parameter .* is incompatible with type callable.*#'
+		- # Callable-strings are used as callables in WordPress.
+		  message: '#Default value of the parameter .* is incompatible with type callable.*#'
 
 		# Level 6:
 		- # WPCS syntax for iterable types is not supported.
