@@ -12,7 +12,7 @@
  *
  * This class is used to test for matching HTML tags in a {@see WP_HTML_Processor}.
  *
- * A compound selector is at least a single compound selector. There may be additional selectors
+ * A complex selector is at least a single compound selector. There may be additional selectors
  * with combinators.
  *
  * @since {WP_VERSION}

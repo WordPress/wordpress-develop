@@ -8,7 +8,7 @@
  */
 
 /**
- * Base class for all CSS Selector praser/matcher classes.
+ * Base class for all CSS Selector parser/matcher classes.
  *
  * @since 6.8.0
  *
@@ -50,7 +50,7 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	 *
 	 * @param string $input The selector string.
 	 * @param int    $offset The offset into the string. The offset is passed by reference and will
-	 *                       be update to the byte after the whitespace sequence.
+	 *                       be updated to the byte after the whitespace sequence.
 	 * @return bool True if whitespace was consumed.
 	 */
 	final protected static function parse_whitespace( string $input, int &$offset ): bool {
@@ -258,7 +258,7 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	/**
 	 * Parse an ident token
 	 *
-	 * CAUTION: This method is _not_ for parsing and ID selector!
+	 * CAUTION: This method is _not_ for parsing an ID selector!
 	 *
 	 * > 4.3.11. Consume an ident sequence
 	 * > This section describes how to consume an ident sequence from a stream of code points. It returns a string containing the largest name that can be formed from adjacent code points in the stream, starting from the first.

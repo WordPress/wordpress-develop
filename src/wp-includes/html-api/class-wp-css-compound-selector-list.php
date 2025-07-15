@@ -59,7 +59,7 @@
  * - Pseudo-element selectors (`::before`)
  * - Pseudo-class selectors (`:hover` or `:nth-child(2)`)
  * - Namespace prefixes (`svg|title` or `[xlink|href]`)
- * - No combinators are supported (descendant, child, next sibling, subsequent sibling)
+ * - Combinators are not supported (descendant, child, next sibling, subsequent sibling)
  *
  * Future ideas:
  * - Namespace type selectors could be implemented with select namespaces in order to
