@@ -945,7 +945,7 @@ function confirm_delete_users( $users ) {
 						$user_list      = '';
 
 						foreach ( $blog_users as $user ) {
-							if ( ! in_array( (int) $user->ID, $allusers, true ) ) {
+							if ( ! in_array( (int) $user->ID, $users, true ) ) {
 								$user_list .= "<option value='{$user->ID}'>{$user->user_login}</option>";
 							}
 						}
@@ -987,7 +987,7 @@ function confirm_delete_users( $users ) {
 	</table>
 	<?php
 	/** This action is documented in wp-admin/users.php */
-	do_action( 'delete_user_form', $current_user, $allusers );
+	do_action( 'delete_user_form', $current_user, $users );
 
 	if ( 1 === count( $users ) ) :
 		?>
