@@ -56,8 +56,9 @@ if ( isset( $_GET['action'] ) ) {
 
 				$doaction     = $_POST['action'];
 				$userfunction = '';
+				$allusers     = (array) $_POST['allusers'];
 
-				foreach ( (array) $_POST['allusers'] as $user_id ) {
+				foreach ( $allusers as $user_id ) {
 					if ( ! empty( $user_id ) ) {
 						switch ( $doaction ) {
 							case 'delete':
@@ -72,7 +73,7 @@ if ( isset( $_GET['action'] ) ) {
 								require_once ABSPATH . 'wp-admin/admin-header.php';
 
 								echo '<div class="wrap">';
-								confirm_delete_users( $_POST['allusers'] );
+								confirm_delete_users( $allusers );
 								echo '</div>';
 
 								require_once ABSPATH . 'wp-admin/admin-footer.php';

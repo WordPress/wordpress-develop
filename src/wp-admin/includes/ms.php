@@ -882,8 +882,7 @@ function confirm_delete_users( $users ) {
 	?>
 	<table class="form-table" role="presentation">
 	<?php
-	$allusers = (array) $_POST['allusers'];
-	foreach ( $allusers as $user_id ) {
+	foreach ( $users as $user_id ) {
 		if ( '' !== $user_id && '0' !== $user_id ) {
 			$delete_user = get_userdata( $user_id );
 
