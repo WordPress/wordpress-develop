@@ -2567,17 +2567,22 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	do_action( 'edit_form_advanced', $post );
 	$classic_output = ob_get_clean();
 
-	$classic_elements = wp_html_split( $classic_output );
-	$hidden_inputs    = '';
-	foreach ( $classic_elements as $element ) {
-		if ( ! str_starts_with( $element, '<input ' ) ) {
-			continue;
-		}
+	$processor = new class( $classic_output ) extends WP_HTML_Tag_Processor {
+		public function extract_raw_token() {
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
 
-		if ( preg_match( '/\stype=[\'"]hidden[\'"]\s/', $element ) ) {
-			echo $element;
+			return substr( $this->html, $here->start, $here->length );
+		}
+	};
+
+	while ( $processor->next_tag( 'INPUT' ) ) {
+		if ( 'hidden' === $processor->get_attribute( 'type' ) ) {
+			echo $processor->extract_raw_token();
 		}
 	}
+
+	$hidden_inputs    = '';
 	?>
 	<input type="hidden" id="user-id" name="user_ID" value="<?php echo (int) $user_id; ?>" />
 	<input type="hidden" id="hiddenaction" name="action" value="<?php echo esc_attr( $form_action ); ?>" />
