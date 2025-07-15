@@ -942,7 +942,7 @@ function confirm_delete_users( $users ) {
 						$user_site     = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
 
 						?>
-						<ul style="list-style:none;">
+						<ul>
 							<li>
 								<?php
 								/* translators: %s: Link to user's site. */
@@ -950,9 +950,9 @@ function confirm_delete_users( $users ) {
 								?>
 							</li>
 							<?php // TODO: Fix duplicate IDs ?>
-							<li><label><input type="radio" id="delete_option0" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" />
+							<li><label><input type="radio" id="delete_option0" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
 							<?php _e( 'Delete all content.' ); ?></label></li>
-							<li><label><input type="radio" id="delete_option1" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" />
+							<li><label><input type="radio" id="delete_option1" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" required />
 							<?php _e( 'Attribute all content to:' ); ?></label>
 							<?php
 							wp_dropdown_users(
