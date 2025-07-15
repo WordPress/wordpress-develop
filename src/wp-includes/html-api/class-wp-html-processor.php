@@ -674,7 +674,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf( 'Received unsupported or invalid selector "%s".', $selector_string ),
-				'6.8'
+				'{WP_VERSION}'
 			);
 			return false;
 		}

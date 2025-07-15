@@ -6,7 +6,7 @@
  *
  * @subpackage HTML-API
  *
- * @since 6.8.0
+ * @since {WP_VERSION}
  *
  * @group html-api
  */

@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage HTML-API
- * @since 6.8.0
+ * @since {WP_VERSION}
  */
 
 /**
@@ -15,7 +15,7 @@
  * A compound selector is at least a single compound selector. There may be additional selectors
  * with combinators.
  *
- * @since 6.8.0
+ * @since {WP_VERSION}
  *
  * @access private
  */
@@ -184,7 +184,7 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser_Matcher {
 						__( 'Unsupported combinator "%s" found.' ),
 						$combinator
 					),
-					'6.8.0'
+					'{WP_VERSION}'
 				);
 				return false;
 		}

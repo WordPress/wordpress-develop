@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage HTML-API
- * @since 6.8.0
+ * @since {WP_VERSION}
  */
 
 /**
@@ -67,7 +67,7 @@
  *   - `svg|*` to select all SVG elements
  *   - `html|title` to select only HTML TITLE elements.
  *
- * @since 6.8.0
+ * @since {WP_VERSION}
  *
  * @access private
  *
@@ -115,8 +115,6 @@ class WP_CSS_Compound_Selector_List extends WP_CSS_Selector_Parser_Matcher {
 	/**
 	 * Takes a CSS selector string and returns an instance of itself or `null` if the selector
 	 * string is invalid or unsupported.
-	 *
-	 * @since 6.8.0
 	 *
 	 * @param string $input CSS selectors.
 	 * @return static|null

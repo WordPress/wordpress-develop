@@ -5,7 +5,7 @@
  * Covers functionality related to CSS selectors and the {@see WP_HTML_Processor::select()}
  * and {@see WP_HTML_Processor::select()} methods.
  *
- * @since 6.8.0
+ * @since {WP_VERSION}
  *
  * @group html-api
  */
