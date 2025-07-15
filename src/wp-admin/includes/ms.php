@@ -999,7 +999,7 @@ function confirm_delete_users( $users ) {
 		<?php
 	endif;
 
-	submit_button( __( 'Confirm Deletion' ), 'primary' );
+	submit_button( __( 'Confirm Deletion' ), 'primary', 'submit', false, array( 'id' => 'confirm-users-deletion' ) );
 	?>
 	</form>
 	<?php
