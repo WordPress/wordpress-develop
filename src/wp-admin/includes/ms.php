@@ -905,6 +905,8 @@ function confirm_delete_users( $users ) {
 					)
 				);
 			}
+
+			// TODO: Check if user has content.
 			?>
 			<tr>
 				<th scope="row"><?php echo $delete_user->user_login; ?>
