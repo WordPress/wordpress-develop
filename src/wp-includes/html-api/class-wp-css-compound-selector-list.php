@@ -41,7 +41,7 @@
  * @link https://www.w3.org/TR/selectors/#grammar Refer to the grammar for more details.
  *
  * This class of selectors does not support "complex" selectors. That is any selector with a
- * combinator such as descendent (`.ancestor .descendant`) or child (`.parent > .child`).
+ * combinator such as descendant (`.ancestor .descendant`) or child (`.parent > .child`).
  * See {@see WP_CSS_Complex_Selector_List} for support of some combinators.
  *
  * Note that this grammar has been adapted and does not support the full CSS selector grammar.
@@ -59,7 +59,8 @@
  * - Pseudo-element selectors (`::before`)
  * - Pseudo-class selectors (`:hover` or `:nth-child(2)`)
  * - Namespace prefixes (`svg|title` or `[xlink|href]`)
- * - Combinators are not supported (descendant, child, next sibling, subsequent sibling)
+ * - Combinators are not supported by this class (descendant, child, next sibling,
+ *   subsequent sibling). See {@see WP_CSS_Complex_Selector_List} for combinator support.
  *
  * Future ideas:
  * - Namespace type selectors could be implemented with select namespaces in order to

@@ -48,7 +48,7 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 * The "self selector" is the last element in a complex selector, it corresponds to the
 	 * selected element.
 	 *
-	 * @example
+	 * Example:
 	 *
 	 *                   $self_selector
 	 *                   ┏━━━━┻━━━━┓
@@ -67,38 +67,28 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 * the element at index 1 is the combinator string constant from this class,
 	 * e.g. `WP_CSS_Complex_Selector::COMBINATOR_CHILD`.
 	 *
-	 * In the example selector below, an element like `<el class="selected">` is selected iff:
+	 * In the example selector below, an element like `<strong class="selected">` matches iff:
 	 *   - it is a child of an `H1` element
-	 *   - *and* that `H1` element is a descendant of a `HEADING` element.
+	 *   - that `H1` element is a descendant of a `SECTION` element.
 	 *
-	 * The `H1` and `HEADING` parts of this selector are the "context selectors." Note that this
-	 * terminology is used for purposes of this class but does not correspond to language in the
-	 * CSS or selector specifications.
-	 *
-	 * @example
+	 * The `section` and `h1` parts of this selector and their combinators are the
+	 * "context selectors." Note that this terminology does not correspond to language in the
+	 * specification texts.
 	 *
 	 *     $context_selectors
-	 *     ┏━━━━━━┻━━━━┓
-	 *     .heading h1 > el.selected
+	 *     ┏━━━━━┻━━━━┓
+	 *     section h1 > strong.selected
 	 *
-	 * The example would have the following relative selectors:
+	 * The example would have the following context selectors:
 	 *
-	 * @example
-	 *
-	 *     array (
-	 *       array(
-	 *         WP_CSS_Type_Selector( 'ident' => 'h1' ),
-	 *         '>', // WP_CSS_Complex_Selector::COMBINATOR_CHILD
-	 *       ),
-	 *       array(
-	 *         new WP_CSS_Type_Selector( 'header' ),
-	 *         ' ', // WP_CSS_Complex_Selector::COMBINATOR_DESCENDANT
-	 *       ),
+	 *     // Pseudo-code
+	 *     array(
+	 *       array( WP_CSS_Type_Selector( 'type'=>'h1' ), '>' ),
+	 *       array( WP_CSS_Type_Selector( 'type'=>'section' ), ' ' ),
 	 *     )
 	 *
-	 * Note that the order of context selectors is reversed. This is to match the self selector
-	 * first and then match the context selectors beginning with the selector closest to the self
-	 * selector.
+	 * Context selectors are ordered from right to left in the selector text. The selectors closest
+	 * to the target appear at the start of the `context_selectors` array.
 	 *
 	 * @readonly
 	 * @var array{WP_CSS_Type_Selector, string}[]|null
