@@ -195,7 +195,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_status' => 'future',
-				'post_date'   => date( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
 				'post_name'   => 'future-post',
 			)
 		);
@@ -213,7 +213,7 @@ class Tests_Link extends WP_UnitTestCase {
 		// Add filter to allow future posts to use pretty permalinks.
 		add_filter(
 			'wp_force_plain_post_permalink_statuses',
-			function( $statuses ) {
+			function ( $statuses ) {
 				return array_diff( $statuses, array( 'future' ) );
 			}
 		);
@@ -221,7 +221,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_status' => 'future',
-				'post_date'   => date( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
 				'post_name'   => 'future-post',
 			)
 		);
@@ -242,7 +242,7 @@ class Tests_Link extends WP_UnitTestCase {
 		// Add filter to allow only future posts to use pretty permalinks.
 		add_filter(
 			'wp_force_plain_post_permalink_statuses',
-			function( $statuses ) {
+			function ( $statuses ) {
 				return array_diff( $statuses, array( 'future' ) );
 			}
 		);
@@ -250,7 +250,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$future_post_id = self::factory()->post->create(
 			array(
 				'post_status' => 'future',
-				'post_date'   => date( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
 				'post_name'   => 'future-post',
 			)
 		);
@@ -282,7 +282,7 @@ class Tests_Link extends WP_UnitTestCase {
 		// Add filter to allow future posts pretty permalinks only for 'post' type.
 		add_filter(
 			'wp_force_plain_post_permalink_statuses',
-			function( $statuses, $post ) {
+			function ( $statuses, $post ) {
 				if ( 'future' === $post->post_status && 'post' === $post->post_type ) {
 					return array_diff( $statuses, array( 'future' ) );
 				}
@@ -296,7 +296,7 @@ class Tests_Link extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_status' => 'future',
-				'post_date'   => date( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
 				'post_name'   => 'future-post',
 			)
 		);
@@ -306,7 +306,7 @@ class Tests_Link extends WP_UnitTestCase {
 			array(
 				'post_type'   => 'page',
 				'post_status' => 'future',
-				'post_date'   => date( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
 				'post_name'   => 'future-page',
 			)
 		);
@@ -340,5 +340,4 @@ class Tests_Link extends WP_UnitTestCase {
 		// Should return false (allow pretty permalink) for published posts.
 		$this->assertFalse( wp_force_plain_post_permalink( $post ) );
 	}
-
 }
