@@ -48,4 +48,13 @@ class Tests_HtmlApi_WpCssCompoundSelectorList extends WP_UnitTestCase {
 		$result = WP_CSS_Compound_Selector_List::from_selectors( $input );
 		$this->assertNull( $result );
 	}
+
+	/**
+	 * @ticket 62653
+	 */
+	public function test_unsupported_complex_selector() {
+		$input  = 'ancestor descendant';
+		$result = WP_CSS_Compound_Selector_List::from_selectors( $input );
+		$this->assertNull( $result );
+	}
 }
