@@ -865,7 +865,7 @@ function confirm_delete_users( $users ) {
 		return false;
 	}
 	?>
-	<h1><?php esc_html_e( 'Users' ); ?></h1>
+	<h1><?php esc_html_e( 'Delete Users' ); ?></h1>
 
 	<?php if ( 1 === count( $users ) ) : ?>
 		<p><?php _e( 'You have chosen to delete the user from all networks and sites.' ); ?></p>
