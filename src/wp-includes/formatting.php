@@ -872,16 +872,44 @@ function _get_wptexturize_shortcode_regex( $tagnames ) {
 /**
  * Replaces characters or phrases within HTML elements only.
  *
- * @since 4.2.3
+ * This is a dangerous function which can break HTML syntax,
+ * consider using methods from the HTML API instead.
  *
- * @param string $haystack      The text which has to be formatted.
+ * Example:
+ *
+ *     '<p class="test">data-class</p>' === wp_replace_in_html_tags(
+ *         '<p data-class="test">data-class</p>',
+ *         array( 'data-class' => 'class' )
+ *     );
+ *
+ * @since 4.2.3
+ * @since {WP_VERSION} Reliably parses HTML via the HTML API.
+ *
+ * @param string $html          Replace matches inside the tags of this HTML.
  * @param array  $replace_pairs In the form array('from' => 'to', ...).
- * @return string The formatted text.
+ * @return string HTML after replacing the `$replace_pairs` matches, but only those
+ *                matches which appear inside HTML opening and closing tags.
  */
-function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
-	// Find all elements.
-	$textarr = wp_html_split( $haystack );
-	$changed = false;
+function wp_replace_in_html_tags( $html, $replace_pairs ) {
+	$token_updater = new class( $html ) extends WP_HTML_Tag_Processor {
+		public function extract_raw_token() {
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
+
+			return substr( $this->html, $here->start, $here->length );
+		}
+
+		public function replace_raw_token( $new_raw_html ) {
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
+
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+				$here->start,
+				$here->length,
+				$new_raw_html
+			);
+		}
+	};
 
 	// Optimize when searching for one item.
 	if ( 1 === count( $replace_pairs ) ) {
@@ -889,35 +917,44 @@ function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
 		$needle  = array_key_first( $replace_pairs );
 		$replace = $replace_pairs[ $needle ];
 
-		// Loop through delimiters (elements) only.
-		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
-			if ( str_contains( $textarr[ $i ], $needle ) ) {
-				$textarr[ $i ] = str_replace( $needle, $replace, $textarr[ $i ] );
-				$changed       = true;
+		while ( $token_updater->next_token() ) {
+			if ( '#text' === $token_updater->get_token_name() ) {
+				continue;
+			}
+
+			$token   = $token_updater->extract_raw_token();
+			$updated = str_replace( $needle, $replace, $token );
+
+			if ( $token !== $updated ) {
+				$token_updater->replace_raw_token( $updated );
 			}
 		}
 	} else {
 		// Extract all $needles.
 		$needles = array_keys( $replace_pairs );
 
-		// Loop through delimiters (elements) only.
-		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) {
+		while ( $token_updater->next_token() ) {
+			if ( '#text' === $token_updater->get_token_name() ) {
+				continue;
+			}
+
+			$token   = $token_updater->extract_raw_token();
+			$updated = $token;
+
 			foreach ( $needles as $needle ) {
-				if ( str_contains( $textarr[ $i ], $needle ) ) {
-					$textarr[ $i ] = strtr( $textarr[ $i ], $replace_pairs );
-					$changed       = true;
-					// After one strtr() break out of the foreach loop and look at next element.
+				if ( str_contains( $token, $needle ) ) {
+					$updated = strtr( $updated, $replace_pairs );
 					break;
 				}
+			}
+
+			if ( $token !== $updated ) {
+				$token_updater->replace_raw_token( $updated );
 			}
 		}
 	}
 
-	if ( $changed ) {
-		$haystack = implode( $textarr );
-	}
-
-	return $haystack;
+	return $token_updater->get_updated_html();
 }
 
 /**
