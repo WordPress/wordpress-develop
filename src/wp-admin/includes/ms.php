@@ -864,6 +864,7 @@ function confirm_delete_users( $users ) {
 	if ( ! is_array( $users ) || empty( $users ) ) {
 		return false;
 	}
+
 	?>
 	<h1><?php esc_html_e( 'Delete Users' ); ?></h1>
 
@@ -932,6 +933,7 @@ function confirm_delete_users( $users ) {
 						array(
 							'blog_id' => $details->userblog_id,
 							'fields'  => array( 'ID', 'user_login' ),
+							'exclude' => $users,
 						)
 					);
 
