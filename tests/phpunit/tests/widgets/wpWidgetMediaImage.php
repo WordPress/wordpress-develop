@@ -259,12 +259,8 @@ class Tests_Widgets_wpWidgetMediaImage extends WP_UnitTestCase {
 			),
 			$instance
 		);
-		$this->assertSame(
-			$result,
-			array(
-				'alt' => '">',
-			)
-		);
+		$this->assertArrayHasKey( 'alt', $result );
+		$this->assertEqualHTML( '">', $result['alt'] );
 
 		// Should return valid link type.
 		$expected = array(
