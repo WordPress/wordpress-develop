@@ -75,11 +75,15 @@ class Tests_HtmlApi_WpHtmlProcessor_Select extends WP_UnitTestCase {
 	 */
 	public static function data_invalid_selectors(): array {
 		return array(
-			'invalid selector'                => array( '[invalid!selector]' ),
+			'invalid selector'                        => array( '[invalid!selector]' ),
 
 			// The class selectors below are not allowed in non-final position.
-			'unsupported child selector'      => array( '.parent > .child' ),
-			'unsupported descendant selector' => array( '.ancestor .descendant' ),
+			'unsupported child selector'              => array( '.parent > .child' ),
+			'unsupported descendant selector'         => array( '.ancestor .descendant' ),
+
+			// Unsupported combinators
+			'unsupported next sibling selector'       => array( 'p + p' ),
+			'unsupported subsequent sibling selector' => array( 'p ~ p' ),
 		);
 	}
 }
