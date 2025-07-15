@@ -48,8 +48,8 @@ final class WP_CSS_ID_Selector extends WP_CSS_Selector_Parser_Matcher {
 		$case_insensitive = $processor->is_quirks_mode();
 
 		return $case_insensitive
-		? 0 === strcasecmp( $id, $this->id )
-		: $processor->get_attribute( 'id' ) === $this->id;
+			? 0 === strcasecmp( $id, $this->id )
+			: $id === $this->id;
 	}
 
 	/**
