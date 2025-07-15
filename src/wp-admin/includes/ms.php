@@ -966,6 +966,7 @@ function confirm_delete_users( $users ) {
 								printf( __( 'Site: %s' ), $user_site );
 								?>
 							</li>
+							<?php // TODO: Fix duplicate IDs ?>
 							<li><label><input type="radio" id="delete_option0" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" />
 							<?php _e( 'Delete all content.' ); ?></label></li>
 							<li><label><input type="radio" id="delete_option1" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" />
