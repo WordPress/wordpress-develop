@@ -879,7 +879,6 @@ function confirm_delete_users( $users ) {
 	<?php
 	wp_nonce_field( 'ms-users-delete' );
 	$site_admins = get_super_admins();
-	$admin_out   = '<option value="' . esc_attr( $current_user->ID ) . '">' . $current_user->user_login . '</option>';
 	?>
 	<table class="form-table" role="presentation">
 	<?php
@@ -932,32 +931,16 @@ function confirm_delete_users( $users ) {
 					$blog_users = get_users(
 						array(
 							'blog_id' => $details->userblog_id,
-							'fields'  => array( 'ID', 'user_login' ),
+							'fields'  => array( 'ID' ),
 							'exclude' => $users,
 						)
 					);
 
+					$blog_users = wp_list_pluck( $blog_users, 'ID' );
+
 					if ( is_array( $blog_users ) && ! empty( $blog_users ) ) {
 						$user_site     = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
-						$user_dropdown = '<label for="reassign_user" class="screen-reader-text">' .
-								/* translators: Hidden accessibility text. */
-								__( 'Select a user' ) .
-							'</label>';
-						$user_dropdown .= "<select name='blog[$user_id][$key]' id='reassign_user'>";
-						$user_list      = '';
 
-						foreach ( $blog_users as $user ) {
-							if ( ! in_array( (int) $user->ID, $users, true ) ) {
-								$user_list .= "<option value='{$user->ID}'>{$user->user_login}</option>";
-							}
-						}
-
-						if ( '' === $user_list ) {
-							$user_list = $admin_out;
-						}
-
-						$user_dropdown .= $user_list;
-						$user_dropdown .= "</select>\n";
 						?>
 						<ul style="list-style:none;">
 							<li>
@@ -971,7 +954,18 @@ function confirm_delete_users( $users ) {
 							<?php _e( 'Delete all content.' ); ?></label></li>
 							<li><label><input type="radio" id="delete_option1" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" />
 							<?php _e( 'Attribute all content to:' ); ?></label>
-							<?php echo $user_dropdown; ?></li>
+							<?php
+							wp_dropdown_users(
+								array(
+									'name'    => "blog[$user_id][$key]",
+									'include' => $blog_users,
+									'show'    => 'display_name_with_login',
+								)
+							);
+							?>
+
+
+						</li>
 						</ul>
 						<?php
 					}
