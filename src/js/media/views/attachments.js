@@ -293,7 +293,13 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 
 			// Record the initial `index` of the dragged model.
 			start: function( event, ui ) {
-				ui.item.data('sortableIndexStart', ui.item.index());
+					/*
+					* Ensure that any caption that currently has focus and has potentially been changed
+					* is saved before the media is reordered, which would reset the caption.
+					*/
+					$( 'input.describe:focus').trigger( 'change' );
+
+					ui.item.data('sortableIndexStart', ui.item.index());
 			},
 
 			/*
