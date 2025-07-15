@@ -452,7 +452,7 @@ function twentyseventeen_scripts() {
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20241112' );
+	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20250415' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20240729' );
@@ -708,6 +708,16 @@ endif;
  */
 function twentyseventeen_should_show_featured_image() {
 	$show_featured_image = ( is_single() || ( is_page() && ! twentyseventeen_is_frontpage() ) ) && has_post_thumbnail( get_queried_object_id() );
+
+	/**
+	 * Filters whether to show the Twenty Seventeen featured image below the header.
+	 *
+	 * By default, the image is displayed on single posts and pages, unless the page is the front page.
+	 *
+	 * @since Twenty Seventeen 3.7
+	 *
+	 * @param bool $show_featured_image Whether to display the featured image below the header.
+	 */
 	return apply_filters( 'twentyseventeen_should_show_featured_image', $show_featured_image );
 }
 

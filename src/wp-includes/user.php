@@ -477,7 +477,7 @@ function wp_authenticate_application_password(
 		 */
 		do_action( 'wp_authenticate_application_password_errors', $error, $user, $item, $password );
 
-		if ( is_wp_error( $error ) && $error->has_errors() ) {
+		if ( $error->has_errors() ) {
 			/** This action is documented in wp-includes/user.php */
 			do_action( 'application_password_failed_authentication', $error );
 
@@ -637,7 +637,7 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
 	 * @since 4.1.0 Added `$post_type` argument.
 	 * @since 4.3.1 Added `$public_only` argument.
 	 *
-	 * @param int          $count       The user's post count.
+	 * @param string       $count       The user's post count as a numeric string.
 	 * @param int          $userid      User ID.
 	 * @param string|array $post_type   Single post type or array of post types to count the number of posts for.
 	 * @param bool         $public_only Whether to limit counted posts to public posts.
@@ -1126,7 +1126,7 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	 * @param object[] $sites   An array of site objects belonging to the user.
 	 * @param int      $user_id User ID.
 	 * @param bool     $all     Whether the returned sites array should contain all sites, including
-	 *                          those marked 'deleted', 'archived', or 'spam'. Default false.
+	 *                          those flagged for deletion, archived, or marked as spam.
 	 */
 	return apply_filters( 'get_blogs_of_user', $sites, $user_id, $all );
 }
@@ -1202,6 +1202,8 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 /**
  * Adds meta data to a user.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 3.0.0
  *
  * @param int    $user_id    User ID.
@@ -1227,6 +1229,8 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
  * You can match based on the key, or key and value. Removing based on key and
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching key, if needed.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 3.0.0
  *
@@ -1278,6 +1282,8 @@ function get_user_meta( $user_id, $key = '', $single = false ) {
  * same key and user ID.
  *
  * If the meta field for the user does not exist, it will be added.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 3.0.0
  *
@@ -2280,7 +2286,10 @@ function wp_insert_user( $userdata ) {
 	 */
 	$user_nicename = apply_filters( 'pre_user_nicename', $user_nicename );
 
-	if ( mb_strlen( $user_nicename ) > 50 ) {
+	// Check if the sanitized nicename is empty.
+	if ( empty( $user_nicename ) ) {
+		return new WP_Error( 'empty_user_nicename', __( 'Cannot create a user with an empty nicename.' ) );
+	} elseif ( mb_strlen( $user_nicename ) > 50 ) {
 		return new WP_Error( 'user_nicename_too_long', __( 'Nicename may not be longer than 50 characters.' ) );
 	}
 
@@ -2758,11 +2767,11 @@ All at ###SITENAME###
 		 *     @type string $subject The subject of the email.
 		 *     @type string $message The content of the email.
 		 *         The following strings have a special meaning and will get replaced dynamically:
-		 *         - ###USERNAME###    The current user's username.
-		 *         - ###ADMIN_EMAIL### The admin email in case this was unexpected.
-		 *         - ###EMAIL###       The user's email address.
-		 *         - ###SITENAME###    The name of the site.
-		 *         - ###SITEURL###     The URL to the site.
+		 *          - `###USERNAME###`    The current user's username.
+		 *          - `###ADMIN_EMAIL###` The admin email in case this was unexpected.
+		 *          - `###EMAIL###`       The user's email address.
+		 *          - `###SITENAME###`    The name of the site.
+		 *          - `###SITEURL###`     The URL to the site.
 		 *     @type string $headers Headers. Add headers in a newline (\r\n) separated string.
 		 * }
 		 * @param array $user     The original user array.
@@ -2816,12 +2825,12 @@ All at ###SITENAME###
 		 *     @type string $subject The subject of the email.
 		 *     @type string $message The content of the email.
 		 *         The following strings have a special meaning and will get replaced dynamically:
-		 *         - ###USERNAME###    The current user's username.
-		 *         - ###ADMIN_EMAIL### The admin email in case this was unexpected.
-		 *         - ###NEW_EMAIL###   The new email address.
-		 *         - ###EMAIL###       The old email address.
-		 *         - ###SITENAME###    The name of the site.
-		 *         - ###SITEURL###     The URL to the site.
+		 *          - `###USERNAME###`    The current user's username.
+		 *          - `###ADMIN_EMAIL###` The admin email in case this was unexpected.
+		 *          - `###NEW_EMAIL###`   The new email address.
+		 *          - `###EMAIL###`       The old email address.
+		 *          - `###SITENAME###`    The name of the site.
+		 *          - `###SITEURL###`     The URL to the site.
 		 *     @type string $headers Headers.
 		 * }
 		 * @param array $user     The original user array.
@@ -3172,7 +3181,7 @@ function retrieve_password( $user_login = '' ) {
 	$user_data = false;
 
 	// Use the passed $user_login if available, otherwise use $_POST['user_login'].
-	if ( ! $user_login && ! empty( $_POST['user_login'] ) ) {
+	if ( ! $user_login && ! empty( $_POST['user_login'] ) && is_string( $_POST['user_login'] ) ) {
 		$user_login = $_POST['user_login'];
 	}
 
@@ -3839,11 +3848,12 @@ All at ###SITENAME###
 		 * Filters the text of the email sent when a change of user email address is attempted.
 		 *
 		 * The following strings have a special meaning and will get replaced dynamically:
-		 * - ###USERNAME###  The current user's username.
-		 * - ###ADMIN_URL### The link to click on to confirm the email change.
-		 * - ###EMAIL###     The new email.
-		 * - ###SITENAME###  The name of the site.
-		 * - ###SITEURL###   The URL to the site.
+		 *
+		 *  - `###USERNAME###`  The current user's username.
+		 *  - `###ADMIN_URL###` The link to click on to confirm the email change.
+		 *  - `###EMAIL###`     The new email.
+		 *  - `###SITENAME###`  The name of the site.
+		 *  - `###SITEURL###`   The URL to the site.
 		 *
 		 * @since MU (3.0.0)
 		 * @since 4.9.0 This filter is no longer Multisite specific.
@@ -4268,11 +4278,11 @@ All at ###SITENAME###
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
 	 *
-	 * ###SITENAME###    The name of the site.
-	 * ###USER_EMAIL###  The user email for the request.
-	 * ###DESCRIPTION### Description of the action being performed so the user knows what the email is for.
-	 * ###MANAGE_URL###  The URL to manage requests.
-	 * ###SITEURL###     The URL to the site.
+	 *  - `###SITENAME###`    The name of the site.
+	 *  - `###USER_EMAIL###`  The user email for the request.
+	 *  - `###DESCRIPTION###` Description of the action being performed so the user knows what the email is for.
+	 *  - `###MANAGE_URL###`  The URL to manage requests.
+	 *  - `###SITEURL###`     The URL to the site.
 	 *
 	 * @since 4.9.6
 	 * @deprecated 5.8.0 Use {@see 'user_request_confirmed_email_content'} instead.
@@ -4311,11 +4321,11 @@ All at ###SITENAME###
 	 * The email is sent to an administrator when a user request is confirmed.
 	 * The following strings have a special meaning and will get replaced dynamically:
 	 *
-	 * ###SITENAME###    The name of the site.
-	 * ###USER_EMAIL###  The user email for the request.
-	 * ###DESCRIPTION### Description of the action being performed so the user knows what the email is for.
-	 * ###MANAGE_URL###  The URL to manage requests.
-	 * ###SITEURL###     The URL to the site.
+	 *  - `###SITENAME###`    The name of the site.
+	 *  - `###USER_EMAIL###`  The user email for the request.
+	 *  - `###DESCRIPTION###` Description of the action being performed so the user knows what the email is for.
+	 *  - `###MANAGE_URL###`  The URL to manage requests.
+	 *  - `###SITEURL###`     The URL to the site.
 	 *
 	 * @since 5.8.0
 	 *
@@ -4511,9 +4521,9 @@ All at ###SITENAME###
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
 	 *
-	 * ###SITENAME###           The name of the site.
-	 * ###PRIVACY_POLICY_URL### Privacy policy page URL.
-	 * ###SITEURL###            The URL to the site.
+	 *  - `###SITENAME###`           The name of the site.
+	 *  - `###PRIVACY_POLICY_URL###` Privacy policy page URL.
+	 *  - `###SITEURL###`            The URL to the site.
 	 *
 	 * @since 4.9.6
 	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_content'} instead.
@@ -4553,9 +4563,9 @@ All at ###SITENAME###
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
 	 *
-	 * ###SITENAME###           The name of the site.
-	 * ###PRIVACY_POLICY_URL### Privacy policy page URL.
-	 * ###SITEURL###            The URL to the site.
+	 *  - `###SITENAME###`           The name of the site.
+	 *  - `###PRIVACY_POLICY_URL###` Privacy policy page URL.
+	 *  - `###SITEURL###`            The URL to the site.
 	 *
 	 * @since 5.8.0
 	 *
@@ -4873,10 +4883,10 @@ All at ###SITENAME###
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
 	 *
-	 * ###DESCRIPTION### Description of the action being performed so the user knows what the email is for.
-	 * ###CONFIRM_URL### The link to click on to confirm the account action.
-	 * ###SITENAME###    The name of the site.
-	 * ###SITEURL###     The URL to the site.
+	 *  - `###DESCRIPTION###` Description of the action being performed so the user knows what the email is for.
+	 *  - `###CONFIRM_URL###` The link to click on to confirm the account action.
+	 *  - `###SITENAME###`    The name of the site.
+	 *  - `###SITEURL###`     The URL to the site.
 	 *
 	 * @since 4.9.6
 	 *

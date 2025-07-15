@@ -208,7 +208,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 
 		// First post.
 		$now             = current_time( 'mysql' );
-		$now_gmt         = current_time( 'mysql', 1 );
+		$now_gmt         = current_time( 'mysql', true );
 		$first_post_guid = get_option( 'home' ) . '/?p=1';
 
 		if ( is_multisite() ) {
@@ -315,20 +315,20 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 			$first_page .= __( "This is an example page. It's different from a blog post because it will stay in one place and will show up in your site navigation (in most themes). Most people start with an About page that introduces them to potential site visitors. It might say something like this:" );
 			$first_page .= "</p>\n<!-- /wp:paragraph -->\n\n";
 
-			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\"><p>";
+			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\">\n<!-- wp:paragraph -->\n<p>";
 			/* translators: First page content. */
 			$first_page .= __( "Hi there! I'm a bike messenger by day, aspiring actor by night, and this is my website. I live in Los Angeles, have a great dog named Jack, and I like pi&#241;a coladas. (And gettin' caught in the rain.)" );
-			$first_page .= "</p></blockquote>\n<!-- /wp:quote -->\n\n";
+			$first_page .= "</p>\n<!-- /wp:paragraph -->\n</blockquote>\n<!-- /wp:quote -->\n\n";
 
 			$first_page .= "<!-- wp:paragraph -->\n<p>";
 			/* translators: First page content. */
 			$first_page .= __( '...or something like this:' );
 			$first_page .= "</p>\n<!-- /wp:paragraph -->\n\n";
 
-			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\"><p>";
+			$first_page .= "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\">\n<!-- wp:paragraph -->\n<p>";
 			/* translators: First page content. */
 			$first_page .= __( 'The XYZ Doohickey Company was founded in 1971, and has been providing quality doohickeys to the public ever since. Located in Gotham City, XYZ employs over 2,000 people and does all kinds of awesome things for the Gotham community.' );
-			$first_page .= "</p></blockquote>\n<!-- /wp:quote -->\n\n";
+			$first_page .= "</p>\n<!-- /wp:paragraph -->\n</blockquote>\n<!-- /wp:quote -->\n\n";
 
 			$first_page .= "<!-- wp:paragraph -->\n<p>";
 			$first_page .= sprintf(
@@ -881,6 +881,11 @@ function upgrade_all() {
 	if ( $wp_current_db_version < 58975 ) {
 		upgrade_670();
 	}
+
+	if ( $wp_current_db_version < 60421 ) {
+		upgrade_682();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2439,6 +2444,42 @@ function upgrade_670() {
 		wp_set_options_autoload( $options, false );
 	}
 }
+
+/**
+ * Executes changes made in WordPress 6.8.2.
+ *
+ * @ignore
+ * @since 6.8.2
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_682() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 60421 ) {
+		// Upgrade Ping-O-Matic and Twingly to use HTTPS.
+		$ping_sites_value = get_option( 'ping_sites' );
+		$ping_sites_value = explode( "\n", $ping_sites_value );
+		$ping_sites_value = array_map(
+			function ( $url ) {
+				$url = trim( $url );
+				$url = sanitize_url( $url );
+				if (
+					str_ends_with( trailingslashit( $url ), '://rpc.pingomatic.com/' )
+					|| str_ends_with( trailingslashit( $url ), '://rpc.twingly.com/' )
+				) {
+					$url = set_url_scheme( $url, 'https' );
+				}
+				return $url;
+			},
+			$ping_sites_value
+		);
+		$ping_sites_value = array_filter( $ping_sites_value );
+		$ping_sites_value = implode( "\n", $ping_sites_value );
+		update_option( 'ping_sites', $ping_sites_value );
+	}
+}
+
 /**
  * Executes network-level upgrade routines.
  *
