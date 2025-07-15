@@ -2354,3 +2354,15 @@ $( function( $ ) {
 	// Expose public methods.
 	return pub;
 })();
+
+
+// Disable Confirm Deletion button until delete or reassignemnt is selected.
+( function( $ ) {
+	var $deleteButton = $( '#confirm-users-deletion' );
+
+	if ( ! $deleteButton.length ) {
+		return;
+	}
+
+	$deleteButton.prop( 'disabled', true );
+}( jQuery ));
