@@ -605,21 +605,41 @@ function wpautop( $text, $br = true ) {
 }
 
 /**
- * Separates HTML elements and comments from the text.
+ * Splits an HTML input into an array of raw strings, where each token
+ * represents a tag, a comment, a text node, etc…
+ *
+ * No effort is made to clean up, sanitize, or normalize the segments
+ * of HTML. {@see WP_HTML_Processor::normalize()} for normalization.
  *
  * @since 4.2.4
+ * @since {WP_VERSION} Reliably parses HTML via the HTML API.
  *
  * @param string $input The text which has to be formatted.
  * @return string[] Array of the formatted text.
  */
 function wp_html_split( $input ) {
-	return preg_split( get_html_split_regex(), $input, -1, PREG_SPLIT_DELIM_CAPTURE );
+	$token_reporter = new class( $input ) extends WP_HTML_Tag_Processor {
+		public function extract_raw_token() {
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
+
+			return substr( $this->html, $here->start, $here->length );
+		}
+	};
+
+	$tokens = array();
+	while ( $token_reporter->next_token() ) {
+		$tokens[] = $token_reporter->extract_raw_token();
+	}
+
+	return $tokens;
 }
 
 /**
  * Retrieves the regular expression for an HTML element.
  *
  * @since 4.4.0
+ * @deprecated {WP_VERSION} Use the HTML API instead.
  *
  * @return string The regular expression.
  */
