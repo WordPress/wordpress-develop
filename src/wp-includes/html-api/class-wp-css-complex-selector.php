@@ -218,10 +218,14 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser_Matcher {
 			$combinator    = null;
 			$next_selector = null;
 
+			// Sibling (`+` and `~`) combinators are not supported at this time.
 			if (
-				WP_CSS_Complex_Selector::COMBINATOR_CHILD === $input[ $updated_offset ] ||
 				WP_CSS_Complex_Selector::COMBINATOR_NEXT_SIBLING === $input[ $updated_offset ] ||
 				WP_CSS_Complex_Selector::COMBINATOR_SUBSEQUENT_SIBLING === $input[ $updated_offset ]
+			) {
+				return null;
+			} elseif (
+				WP_CSS_Complex_Selector::COMBINATOR_CHILD === $input[ $updated_offset ]
 			) {
 				$combinator = $input[ $updated_offset ];
 				++$updated_offset;
