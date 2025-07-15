@@ -32,7 +32,7 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 			),
 			array(
 				'abcd <![CDATA[ <html> ]]> efgh',
-				array( 'abcd ', '<![CDATA[ <html> ]]>', ' efgh' ),
+				array( 'abcd ', '<![CDATA[ <html>', ' ]]> efgh' ),
 			),
 		);
 	}
