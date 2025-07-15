@@ -5510,7 +5510,20 @@ function normalize_whitespace( $str ) {
  * the `<script>` and `<style>` tags. E.g. `strip_tags( '<script>something</script>' )`
  * will return 'something'. wp_strip_all_tags() will return an empty string.
  *
+ * Because tags and comments are disappearing, which might have
+ * separated sequences that could combine into new character
+ * references when joined, it’s important to start by removing
+ * any raw breaks before decoding, then fully decode each chunk,
+ * and finally re-encode the entire string once done. This ensures
+ * that no previous boundaries will be merged on accident.
+ *
+ * Example:
+ *
+ *     $html = '<p>&l<span>t;script</p>';
+ *     '&#038;lt;script' === wp_strip_all_tags( $html );
+ *
  * @since 2.9.0
+ * @since {WP_VERSION} Reliably parses HTML via the HTML API.
  *
  * @param string $text          String containing HTML tags
  * @param bool   $remove_breaks Optional. Whether to remove left over line breaks and white space chars
@@ -5544,14 +5557,45 @@ function wp_strip_all_tags( $text, $remove_breaks = false ) {
 		return '';
 	}
 
-	$text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
-	$text = strip_tags( $text );
+	$text_extractor = new class( $text ) extends WP_HTML_Tag_Processor {
+		public function extract_raw_token() {
+			$this->set_bookmark( 'here' );
+			$here = $this->bookmarks['here'];
 
+			return substr( $this->html, $here->start, $here->length );
+		}
+	};
+
+	$plaintext = '';
 	if ( $remove_breaks ) {
-		$text = preg_replace( '/[\r\n\t ]+/', ' ', $text );
+		while ( $text_extractor->next_token() ) {
+			if ( '#text' !== $text_extractor->get_token_name() ) {
+				continue;
+			}
+
+			$chunk      = $text_extractor->extract_raw_token();
+			$chunk      = preg_replace( '~[ \r\n\t\f]+~', ' ', $chunk );
+			$plaintext .= WP_HTML_Decoder::decode_text_node( $chunk );
+		}
+	} else {
+		while ( $text_extractor->next_token() ) {
+			if ( '#text' !== $text_extractor->get_token_name() ) {
+				continue;
+			}
+
+			$plaintext .= WP_HTML_Decoder::decode_text_node( $text_extractor->extract_raw_token() );
+		}
 	}
 
-	return trim( $text );
+	$html_syntax = array(
+		'&' => '&#038;',
+		'<' => '&lt;',
+		'>' => '&gt;',
+		'"' => '&quot;',
+		"'" => '&#039;',
+	);
+
+	return trim( strtr( $plaintext, $html_syntax ) );
 }
 
 /**
