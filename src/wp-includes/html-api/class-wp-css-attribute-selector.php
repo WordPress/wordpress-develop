@@ -217,7 +217,7 @@ final class WP_CSS_Attribute_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 *
 	 * @param string $input
 	 *
-	 * @return Generator<string>
+	 * @return Generator<string> Yields each whitespace-delimited value from the input string.
 	 */
 	private function whitespace_delimited_list( string $input ): Generator {
 		// Start by skipping whitespace.

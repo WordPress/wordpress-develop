@@ -99,7 +99,7 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser_Matcher {
 	 * Constructor.
 	 *
 	 * @param WP_CSS_Compound_Selector $self_selector The selector in the final position.
-	 * @param array{WP_CSS_Type_Selector, string}[]|null $selectors The context selectors.
+	 * @param array{WP_CSS_Type_Selector, string}[]|null $context_selectors The context selectors.
 	 */
 	private function __construct(
 		WP_CSS_Compound_Selector $self_selector,
@@ -246,7 +246,7 @@ final class WP_CSS_Complex_Selector extends WP_CSS_Selector_Parser_Matcher {
 				return null;
 			}
 
-			/** @var array{WP_CSS_Compound_Selector, string} */
+			/** @var array{WP_CSS_Type_Selector, string} */
 			$selector_pair = array( $self_selector->type_selector, $combinator );
 			$selectors[]   = $selector_pair;
 			$self_selector = $next_selector;

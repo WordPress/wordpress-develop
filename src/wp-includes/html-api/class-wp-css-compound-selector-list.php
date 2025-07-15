@@ -51,9 +51,7 @@
  * - ID selectors (e.g. `#unique-id`)
  * - Attribute selectors (e.g. `[attribute-name]` or `[attribute-name="value"]`)
  * - Comma-separated selector lists (e.g. `.selector-1, .selector-2`)
- * - The following combinators. Only type (element) selectors are allowed in non-final position:
- *   - descendant (e.g. `el .descendant`)
- *   - child (`el > .child`)
+ * - Compound selectors (e.g. `div.class-name#id[attr]`)
  *
  * Unsupported selector syntax:
  * - Pseudo-element selectors (`::before`)

@@ -123,7 +123,7 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	 * the <bad-string-token> is not a part of the selector grammar. That
 	 * case is treated as failure to parse and null is returned.
 	 *
-	 * @return string|null
+	 * @return string|null The parsed string token value, or null if parsing failed.
 	 */
 	final protected static function parse_string( string $input, int &$offset ): ?string {
 		if ( $offset >= strlen( $input ) ) {
@@ -278,7 +278,7 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	 *
 	 * https://www.w3.org/TR/css-syntax-3/#consume-name
 	 *
-	 * @return string|null
+	 * @return string|null The parsed identifier name, or null if parsing failed.
 	 */
 	final protected static function parse_ident( string $input, int &$offset ): ?string {
 		if ( ! self::check_if_three_code_points_would_start_an_ident_sequence( $input, $offset ) ) {
