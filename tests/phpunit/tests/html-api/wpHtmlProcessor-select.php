@@ -59,7 +59,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Select extends WP_UnitTestCase {
 	/**
 	 * @ticket 62653
 	 *
-	 * @expectedIncorrectUsage WP_HTML_Processor::select_all
+	 * @expectedIncorrectUsage WP_HTML_Processor::select
 	 *
 	 * @dataProvider data_invalid_selectors
 	 */
