@@ -482,7 +482,7 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 		 * This list includes \f.
 		 * A later step would normalize it to a known whitespace character, but it can be trimmed here as well.
 		 */
-		$input = trim( $input, " \t\r\n\r\f" );
+		$input = trim( $input, " \t\r\n\f" );
 
 		/*
 		 * > The input stream consists of the filtered code points pushed into it as the input byte stream is decoded.
