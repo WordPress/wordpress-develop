@@ -304,21 +304,21 @@ function twentynineteen_generate_color_palette_css() {
 	$css    = '';
 
 	foreach ( $colors as $color ) {
-		// Generate text color classes
+		// Generate text color classes.
 		$css .= sprintf(
 			'.has-%1$s-color { color: %2$s !important; } ',
 			$color['slug'],
 			$color['color']
 		);
 
-		// Generate background color classes
+		// Generate background color classes.
 		$css .= sprintf(
 			'.has-%1$s-background-color { background-color: %2$s !important; } ',
 			$color['slug'],
 			$color['color']
 		);
 
-		// Generate border color classes
+		// Generate border color classes.
 		$css .= sprintf(
 			'.has-%1$s-border-color { border-color: %2$s !important; } ',
 			$color['slug'],
