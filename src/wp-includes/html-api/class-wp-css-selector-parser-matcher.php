@@ -316,7 +316,10 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	 * Checks for two valid escape codepoints.
 	 *
 	 * > 4.3.8. Check if two code points are a valid escape
-	 * > This section describes how to check if two code points are a valid escape. The algorithm described here can be called explicitly with two code points, or can be called with the input stream itself. In the latter case, the two code points in question are the current input code point and the next input code point, in that order.
+	 * > This section describes how to check if two code points are a valid escape. The algorithm
+	 * > described here can be called explicitly with two code points, or can be called with the
+	 * > input stream itself. In the latter case, the two code points in question are the current
+	 * > input code point and the next input code point, in that order.
 	 * >
 	 * > Note: This algorithm will not consume any additional code point.
 	 * >
@@ -328,7 +331,7 @@ abstract class WP_CSS_Selector_Parser_Matcher {
 	 *
 	 * https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape
 	 *
-	 * @todo this does not check whether the second codepoint is valid.
+	 * @todo The second codepoint is not checked for validity.
 	 *
 	 * @param string $input The input string.
 	 * @param int $offset The byte offset in the string.
