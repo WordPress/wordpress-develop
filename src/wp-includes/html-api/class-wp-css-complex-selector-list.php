@@ -21,14 +21,24 @@
  * A subset of the CSS selector grammar is supported. The grammar is defined in the CSS Syntax
  * specification, which is available at {@link https://www.w3.org/TR/selectors/#grammar}.
  *
- * This class is rougly analogous to the <selector-list> in the grammar. See {@see WP_CSS_Compound_Selector_List} for more details on the grammar.
+ * This class is rougly analogous to the <selector-list> in the grammar.
+ * See {@see WP_CSS_Compound_Selector_List} for more details on the grammar.
  *
- * This class supports the same selector syntax as {@see WP_CSS_Compound_Selector_List} as well as:
- * - The following combinators:
- *   - Next sibling (`el + el`)
- *   - Subsequent sibling (`el ~ el`)
+ * This class supports the same selector syntax as {@see WP_CSS_Compound_Selector_List} as well as
+ * the following combinators:
+ *   - Descendant (`ancestor descendant`)
+ *   - Child (`parent > child`)
  *
- * @since 6.8.0
+ * Combinators may only be used with type selectors in the non-final position, for example:
+ *   - `div [type=input]` is valid because the `div` type selector appears in a non-final position.
+ *   - `[disabled] option` is NOT valid, because the `[disabled]` attribute selector appears
+ *     a non-final position.
+ *
+ * These combinators are not supported:
+ *   - Next sibling (`former-sibling + next-sibling`)
+ *   - Subsequent sibling (`former-sibling ~ subsequent-sibling`)
+ *
+ * @since {WP_VERSION}
  *
  * @access private
  */
