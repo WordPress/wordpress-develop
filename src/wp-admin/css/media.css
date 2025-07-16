@@ -168,7 +168,6 @@
 
 .media-item .filename {
 	padding: 14px 0;
-	overflow: hidden;
 	margin-left: 6px;
 }
 
@@ -1246,6 +1245,10 @@ audio, video {
 
 .wp-core-ui .mejs-time {
 	box-sizing: content-box;
+}
+
+.media-item-wrapper .attachment-details {
+	display: flex;
 }
 
 /* =Media Queries
