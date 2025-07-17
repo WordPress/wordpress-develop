@@ -2816,7 +2816,7 @@ function wp_update_comment_count_now( $post_id ) {
 		 * Get all the comments related to the post ID.
 		 */
 		$comments       = $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_parent, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
-		$comments_by_id = [];
+		$comments_by_id = array();
 
 		/**
 		 * Create a lookup array by comment ID.
@@ -2834,7 +2834,7 @@ function wp_update_comment_count_now( $post_id ) {
 		foreach ( $comments as $comment ) {
 
 			// Proceed only if comment is approved for counting.
-			if ( $comment->comment_approved !== '1' ) {
+			if ( '1' !== $comment->comment_approved ) {
 				continue;
 			}
 
@@ -2844,14 +2844,14 @@ function wp_update_comment_count_now( $post_id ) {
 			/**
 			 * Check until we get the parent id as 0.
 			 */
-			while ( $parent_id !== 0 ) {
+			while ( 0 !== $parent_id ) {
 				if ( ! isset( $comments_by_id[ $parent_id ] ) ) {
 					break;
 				}
 
 				$parent_comment = $comments_by_id[ $parent_id ];
 
-				if ( $parent_comment->comment_approved !== '1' ) {
+				if ( '1' !== $parent_comment->comment_approved ) {
 					$has_unapproved = true;
 					break;
 				}
