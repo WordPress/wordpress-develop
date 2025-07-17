@@ -471,8 +471,8 @@ class WP_Debug_Data {
 			'debug' => $imagick_loaded,
 		);
 
-		// OPCache.
-		$opcache_loaded = extension_loaded( 'opcache' );
+		// Opcode Cache.
+		$opcache_loaded = extension_loaded( 'Zend OPcache' );
 
 		$fields['opcache_availability'] = array(
 			'label' => __( 'Is the OPcache extension available?' ),
@@ -482,7 +482,7 @@ class WP_Debug_Data {
 
 		if ( $opcache_loaded && function_exists( 'opcache_get_status' ) ) {
 			$opcache_status = opcache_get_status( false );
-			
+
 			if ( $opcache_status ) {
 				$fields['opcache_enabled'] = array(
 					'label' => __( 'OPcache' ),

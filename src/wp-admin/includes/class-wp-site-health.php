@@ -2687,6 +2687,56 @@ class WP_Site_Health {
 		return $result;
 	}
 
+	<?php
+	/**
+	 * Tests if OPcache is enabled and available.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array The test result.
+	 */
+public function get_test_opcache() {
+	$opcache_loaded  = extension_loaded( 'Zend OPcache' );
+	$opcache_enabled = false;
+	if ( $opcache_loaded && function_exists( 'opcache_get_status' ) ) {
+		$status          = opcache_get_status( false );
+		$opcache_enabled = ! empty( $status['opcache_enabled'] );
+	}
+
+	$result = array(
+		'label'       => __( 'OPcache is enabled' ),
+		'status'      => 'good',
+		'badge'       => array(
+			'label' => __( 'Performance' ),
+			'color' => 'blue',
+		),
+		'description' => sprintf(
+			'<p>%s</p>',
+			__( 'OPcache improves PHP performance by storing precompiled script bytecode in memory, reducing the need for PHP to load and parse scripts on each request.' )
+		),
+		'actions'     => sprintf(
+			'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+			'https://www.php.net/manual/en/book.opcache.php',
+			__( 'Learn more about OPcache.' ),
+			/* translators: Hidden accessibility text. */
+			__( '(opens in a new tab)' )
+		),
+		'test'        => 'opcache',
+	);
+
+	if ( $opcache_loaded ) {
+		$result['status']       = 'recommended';
+		$result['label']        = __( 'OPcache is not available' );
+		$result['description'] .= '<p>' . __( 'OPcache is not installed or enabled on your server. Enabling OPcache can significantly improve the performance of your site.' ) . '</p>';
+	} elseif ( ! $opcache_enabled ) {
+		$result['status']       = 'recommended';
+		$result['label']        = __( 'OPcache is installed but not enabled' );
+		$result['description'] .= '<p>' . __( 'OPcache is installed but not enabled. Enabling OPcache can significantly improve the performance of your site.' ) . '</p>';
+	}
+
+	return $result;
+}
+
 	/**
 	 * Returns a set of tests that belong to the site status page.
 	 *
@@ -2774,6 +2824,10 @@ class WP_Site_Health {
 				'autoloaded_options'           => array(
 					'label' => __( 'Autoloaded options' ),
 					'test'  => 'autoloaded_options',
+				),
+				'opcache'                      => array(
+					'label' => __( 'OPcache' ),
+					'test'  => 'opcache',
 				),
 			),
 			'async'  => array(
