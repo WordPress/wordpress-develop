@@ -2966,6 +2966,7 @@
 					} );
 				} else {
 					panel._animateChangeExpanded( function() {
+						backBtn.attr( 'tabindex', '0' );
 						backBtn.trigger( 'focus' );
 						accordionSection.css( 'top', '' );
 						container.scrollTop( 0 );
