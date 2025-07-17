@@ -2812,7 +2812,59 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1'", $post_id ) );
+		/**
+		 * Get all the comments related to the post ID.
+		 */
+		$comments       = $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_parent, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
+		$comments_by_id = [];
+
+		/**
+		 * Create a lookup array by comment ID.
+		 */
+		foreach ( $comments as $comment ) {
+			$comments_by_id[ $comment->comment_ID ] = $comment;
+		}
+
+		// Count for comment.
+		$comment_count = 0;
+
+		/**
+		 * Loop through each comment and check for approved comment.
+		 */
+		foreach ( $comments as $comment ) {
+
+			// Proceed only if comment is approved for counting.
+			if ( $comment->comment_approved !== '1' ) {
+				continue;
+			}
+
+			$parent_id      = (int) $comment->comment_parent;
+			$has_unapproved = false;
+
+			/**
+			 * Check until we get the parent id as 0.
+			 */
+			while ( $parent_id !== 0 ) {
+				if ( ! isset( $comments_by_id[ $parent_id ] ) ) {
+					break;
+				}
+
+				$parent_comment = $comments_by_id[ $parent_id ];
+
+				if ( $parent_comment->comment_approved !== '1' ) {
+					$has_unapproved = true;
+					break;
+				}
+
+				$parent_id = (int) $parent_comment->comment_parent;
+			}
+
+			if ( ! $has_unapproved ) {
+				$comment_count++;
+			}
+		}
+
+		$new = $comment_count;
 	} else {
 		$new = (int) $new;
 	}
