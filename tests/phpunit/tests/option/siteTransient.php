@@ -5,14 +5,6 @@
  */
 class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
-	public function set_up() {
-		parent::set_up();
-
-		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
-		}
-	}
-
 	/**
 	 * @covers ::get_site_transient
 	 * @covers ::set_site_transient
@@ -63,6 +55,10 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 	 * @covers ::wp_load_alloptions
 	 */
 	public function test_set_site_transient_is_not_stored_as_autoload_option() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		$key = 'not_autoloaded';
 
 		set_site_transient( $key, 'Not an autoload option' );

@@ -5,14 +5,6 @@
  */
 class Tests_Option_Transient extends WP_UnitTestCase {
 
-	public function set_up() {
-		parent::set_up();
-
-		if ( wp_using_ext_object_cache() ) {
-			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
-		}
-	}
-
 	/**
 	 * @covers ::get_transient
 	 * @covers ::set_transient
@@ -63,6 +55,10 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::update_option
 	 */
 	public function test_transient_data_with_timeout() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		$key   = rand_str();
 		$value = rand_str();
 
@@ -88,6 +84,10 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::get_transient
 	 */
 	public function test_get_transient_with_timeout_makes_a_single_database_call() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		global $wpdb;
 		$key                        = 'test_transient';
 		$value                      = 'test_value';
@@ -134,6 +134,10 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::set_transient
 	 */
 	public function test_set_transient_primes_option_cache() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		global $wpdb;
 		$key                        = 'test_transient';
 		$value                      = 'test_value';
@@ -170,6 +174,10 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::update_option
 	 */
 	public function test_transient_add_timeout() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		$key    = rand_str();
 		$value  = rand_str();
 		$value2 = rand_str();
@@ -196,6 +204,10 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::get_transient
 	 */
 	public function test_nonexistent_key_dont_delete_if_false() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		// Create a bogus a transient.
 		$key = 'test_transient';
 		set_transient( $key, 'test', 60 * 10 );
@@ -227,6 +239,10 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	 * @covers ::get_transient
 	 */
 	public function test_nonexistent_key_old_timeout() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
 		// Create a transient.
 		$key = 'test_transient';
 		set_transient( $key, 'test', 60 * 10 );
