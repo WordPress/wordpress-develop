@@ -54,7 +54,7 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 		$this->assertEquals( 1, $filter->get_call_count(), 'The feed should be fetched on the first call.' );
 
 		fetch_feed( 'https://wordpress.org/news/feed/' );
-		$this->assertEquals( 1, $filter->get_call_count(), 'The feed should be cached on the second call.' );
+		$this->assertEquals( 1, $filter->get_call_count(), 'The feed should be cached on the second call. For SP 1.8.x upgrades, backport simplepie/simplepie#830 to resolve.' );
 	}
 
 	/**
