@@ -33,7 +33,6 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<a href="https://learn.wordpress.org/">Learn WordPress</a> is a learning resource providing workshops, quizzes, courses, lesson plans, and discussion groups so that anyone, from beginners to advanced users, can learn to do more with WordPress.', $content );
 	}
 
-
 	/**
 	 * Ensure that fetch_feed() is cached on second and subsequent calls.
 	 *
