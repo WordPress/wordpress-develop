@@ -1272,19 +1272,19 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 					'post_status' => 'publish',
 				)
 			),
-			'draft' => self::factory()->post->create(
+			'draft'     => self::factory()->post->create(
 				array(
 					'post_type'   => 'page',
 					'post_status' => 'draft',
 				)
 			),
-			'private' => self::factory()->post->create(
+			'private'   => self::factory()->post->create(
 				array(
 					'post_type'   => 'page',
 					'post_status' => 'private',
 				)
 			),
-			'trash' => self::factory()->post->create(
+			'trash'     => self::factory()->post->create(
 				array(
 					'post_type'   => 'page',
 					'post_status' => 'trash',
@@ -1293,7 +1293,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		);
 
 		// Test 1: 'any' combined with 'trash' using array format.
-		$result = get_pages(
+		$result   = get_pages(
 			array(
 				'post_status' => array( 'any', 'trash' ),
 			)
@@ -1306,7 +1306,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertContains( $pages['trash'], $page_ids );
 
 		// Test 2: 'any' with comma-separated string.
-		$result = get_pages(
+		$result   = get_pages(
 			array(
 				'post_status' => 'any,draft',
 			)
@@ -1326,8 +1326,8 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		register_post_status(
 			'custom_searchable',
 			array(
-				'public'              => false,
-				'exclude_from_search' => false,
+				'public'                    => false,
+				'exclude_from_search'       => false,
 				'show_in_admin_status_list' => true,
 			)
 		);
@@ -1335,8 +1335,8 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		register_post_status(
 			'custom_hidden',
 			array(
-				'public'              => false,
-				'exclude_from_search' => true,
+				'public'                    => false,
+				'exclude_from_search'       => true,
 				'show_in_admin_status_list' => true,
 			)
 		);
