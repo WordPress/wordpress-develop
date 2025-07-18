@@ -1124,7 +1124,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$request->set_attributes(
 			array(
 				'args' => array(
-					'someinteger' => array(
+					'someinteger'    => array(
 						'sanitize_callback' => 'absint',
 					),
 					'required_param' => array(
