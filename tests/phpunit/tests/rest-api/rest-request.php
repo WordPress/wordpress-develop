@@ -1085,64 +1085,61 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	/**
 	 * @ticket 61061
 	 */
-	public function test_sanitize_params_with_string_parameters() {
-		$this->request->set_url_params( 'foobar' );
+	public function test_set_param_with_non_array_parameter_types() {
+		$request = new WP_REST_Request();
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_method( 'POST' );
+		$request->set_body( '"invalid json string"' );
 
-		$this->request->set_attributes(
-			array(
-				'args' => array(
-					'someinteger' => array(
-						'sanitize_callback' => 'absint',
-					),
-					'somestring'  => array(
-						'sanitize_callback' => 'absint',
-					),
-				),
-			)
-		);
+		$request->set_param( 'test_param', 'test_value' );
 
-		$this->request->sanitize_params();
-
-		$this->assertSame( 'foobar', $this->request->get_url_params() );
+		$this->assertTrue( $request->has_param( 'test_param' ) );
+		$this->assertSame( 'test_value', $request->get_param( 'test_param' ) );
 	}
 
 	/**
 	 * @ticket 61061
 	 */
-	public function test_has_valid_params_with_string_parameter_and_required_attribute() {
-		$this->request->set_url_params( 'foobar' );
+	public function test_set_param_with_malformed_json_from_curl_request() {
+		$request = new WP_REST_Request();
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_method( 'POST' );
+		$request->set_body( '"+response.write(document.domain)+"' );
 
-		$this->request->set_attributes(
-			array(
-				'args' => array(
-					'someinteger' => array(
-						'sanitize_callback' => 'absint',
-						'required'          => true,
-					),
-				),
-			)
-		);
+		$request->set_param( 'test_param', 'test_value' );
 
-		$this->assertWPError( $this->request->has_valid_params() );
+		$this->assertTrue( $request->has_param( 'test_param' ) );
+		$this->assertSame( 'test_value', $request->get_param( 'test_param' ) );
 	}
 
 	/**
 	 * @ticket 61061
 	 */
-	public function test_has_valid_params_with_string_parameter_without_required_attribute() {
-		$this->request->set_url_params( 'foobar' );
+	public function test_sanitize_and_validate_params_with_non_array_parameter_types() {
+		$request = new WP_REST_Request();
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_method( 'POST' );
+		$request->set_body( '"invalid json string"' );
 
-		$this->request->set_attributes(
+		$request->set_attributes(
 			array(
 				'args' => array(
 					'someinteger' => array(
 						'sanitize_callback' => 'absint',
 					),
+					'required_param' => array(
+						'required' => true,
+					),
 				),
 			)
 		);
 
-		$this->assertTrue( $this->request->has_valid_params() );
+		$sanitize_result = $request->sanitize_params();
+		$this->assertTrue( $sanitize_result );
+
+		$validation_result = $request->has_valid_params();
+		$this->assertWPError( $validation_result );
+		$this->assertSame( 'rest_missing_callback_param', $validation_result->get_error_code() );
 	}
 
 	/**
