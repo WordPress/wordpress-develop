@@ -2748,7 +2748,7 @@ All at ###SITENAME###
 		);
 
 		$pass_change_email = array(
-			'to'      => $user['user_email'],
+			'to'      => wp_unslash( $user['user_email'] ),
 			/* translators: Password change notification email subject. %s: Site title. */
 			'subject' => __( '[%s] Password Changed' ),
 			'message' => $pass_change_text,
@@ -2781,7 +2781,7 @@ All at ###SITENAME###
 
 		$pass_change_email['message'] = str_replace( '###USERNAME###', $user['user_login'], $pass_change_email['message'] );
 		$pass_change_email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $pass_change_email['message'] );
-		$pass_change_email['message'] = str_replace( '###EMAIL###', $user['user_email'], $pass_change_email['message'] );
+		$pass_change_email['message'] = str_replace( '###EMAIL###', wp_unslash( $user['user_email'] ), $pass_change_email['message'] );
 		$pass_change_email['message'] = str_replace( '###SITENAME###', $blog_name, $pass_change_email['message'] );
 		$pass_change_email['message'] = str_replace( '###SITEURL###', home_url(), $pass_change_email['message'] );
 
@@ -2806,7 +2806,7 @@ All at ###SITENAME###
 		);
 
 		$email_change_email = array(
-			'to'      => $user['user_email'],
+			'to'      => wp_unslash( $user['user_email'] ),
 			/* translators: Email change notification email subject. %s: Site title. */
 			'subject' => __( '[%s] Email Changed' ),
 			'message' => $email_change_text,
@@ -2841,7 +2841,7 @@ All at ###SITENAME###
 		$email_change_email['message'] = str_replace( '###USERNAME###', $user['user_login'], $email_change_email['message'] );
 		$email_change_email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $email_change_email['message'] );
 		$email_change_email['message'] = str_replace( '###NEW_EMAIL###', $userdata['user_email'], $email_change_email['message'] );
-		$email_change_email['message'] = str_replace( '###EMAIL###', $user['user_email'], $email_change_email['message'] );
+		$email_change_email['message'] = str_replace( '###EMAIL###', wp_unslash( $user['user_email'] ), $email_change_email['message'] );
 		$email_change_email['message'] = str_replace( '###SITENAME###', $blog_name, $email_change_email['message'] );
 		$email_change_email['message'] = str_replace( '###SITEURL###', home_url(), $email_change_email['message'] );
 
@@ -3790,8 +3790,8 @@ function send_confirmation_on_profile_email() {
 		return false;
 	}
 
-	if ( $current_user->user_email !== $_POST['email'] ) {
-		if ( ! is_email( $_POST['email'] ) ) {
+	if ( $current_user->user_email !== wp_unslash( $_POST['email'] ) ) {
+		if ( ! is_email( wp_unslash( $_POST['email'] ) ) ) {
 			$errors->add(
 				'user_email',
 				__( '<strong>Error:</strong> The email address is not correct.' ),
@@ -3803,7 +3803,7 @@ function send_confirmation_on_profile_email() {
 			return;
 		}
 
-		if ( email_exists( $_POST['email'] ) ) {
+		if ( email_exists( wp_unslash( $_POST['email'] ) ) ) {
 			$errors->add(
 				'user_email',
 				__( '<strong>Error:</strong> The email address is already used.' ),
@@ -3816,10 +3816,10 @@ function send_confirmation_on_profile_email() {
 			return;
 		}
 
-		$hash           = md5( $_POST['email'] . time() . wp_rand() );
+		$hash           = md5( wp_unslash( $_POST['email'] ) . time() . wp_rand() );
 		$new_user_email = array(
 			'hash'     => $hash,
-			'newemail' => $_POST['email'],
+			'newemail' => wp_unslash( $_POST['email'] ),
 		);
 		update_user_meta( $current_user->ID, '_new_email', $new_user_email );
 
@@ -3870,12 +3870,12 @@ All at ###SITENAME###
 
 		$content = str_replace( '###USERNAME###', $current_user->user_login, $content );
 		$content = str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'profile.php?newuseremail=' . $hash ) ), $content );
-		$content = str_replace( '###EMAIL###', $_POST['email'], $content );
+		$content = str_replace( '###EMAIL###', wp_unslash( $_POST['email'] ), $content );
 		$content = str_replace( '###SITENAME###', $sitename, $content );
 		$content = str_replace( '###SITEURL###', home_url(), $content );
 
 		/* translators: New email address notification email subject. %s: Site title. */
-		wp_mail( $_POST['email'], sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
+		wp_mail( wp_unslash( $_POST['email'] ), sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
 
 		$_POST['email'] = $current_user->user_email;
 	}
