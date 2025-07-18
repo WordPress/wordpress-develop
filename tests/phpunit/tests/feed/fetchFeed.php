@@ -37,7 +37,7 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 	 * Ensure that fetch_feed() is cached on second and subsequent calls.
 	 *
 	 * Note: The HTTP request is mocked on the `pre_http_request` filter so
-	 * this tests doesn't make any HTTP requests so it doesn't need to be
+	 * this test doesn't make any HTTP requests so it doesn't need to be
 	 * placed in the external-http group.
 	 *
 	 * @group feed
