@@ -3790,7 +3790,7 @@ function send_confirmation_on_profile_email() {
 		return false;
 	}
 
-	if ( $current_user->user_email !== wp_unslash( $_POST['email'] ) ) {
+	if ( wp_unslash( $_POST['email'] ) !== $current_user->user_email ) {
 		if ( ! is_email( wp_unslash( $_POST['email'] ) ) ) {
 			$errors->add(
 				'user_email',
