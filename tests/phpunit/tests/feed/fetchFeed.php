@@ -40,6 +40,8 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 	 * this test doesn't make any HTTP requests so it doesn't need to be
 	 * placed in the external-http group.
 	 *
+	 * @ticket 63717
+	 *
 	 * @group feed
 	 *
 	 * @covers ::fetch_feed
