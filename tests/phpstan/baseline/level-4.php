@@ -140,22 +140,10 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/image.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Right side of && is always true\\.$#',
-	'identifier' => 'booleanAnd.rightAlwaysTrue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/image.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Offset \'created_timestamp\' on array\\{\\}\\|array\\{lossless\\?\\: mixed, bitrate\\?\\: int, bitrate_mode\\?\\: mixed, filesize\\?\\: int, mime_type\\?\\: mixed, length\\?\\: int, length_formatted\\?\\: mixed, width\\?\\: int, \\.\\.\\.\\} in empty\\(\\) does not exist\\.$#',
 	'identifier' => 'empty.offset',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/media.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Left side of && is always true\\.$#',
-	'identifier' => 'booleanAnd.leftAlwaysTrue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/misc.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^While loop condition is always true\\.$#',
@@ -860,12 +848,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/general-template.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Strict comparison using \\=\\=\\= between false and false will always evaluate to true\\.$#',
-	'identifier' => 'identical.alwaysTrue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/global-styles-and-settings.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
 	'identifier' => 'deadCode.unreachable',
 	'count' => 1,
@@ -1034,12 +1016,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Call to function is_object\\(\\) with object will always evaluate to true\\.$#',
-	'identifier' => 'function.alreadyNarrowedType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/ms-functions.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Negated boolean expression is always false\\.$#',
 	'identifier' => 'booleanNot.alwaysFalse',
 	'count' => 1,
@@ -1062,12 +1038,6 @@ $ignoreErrors[] = [
 	'identifier' => 'notIdentical.alwaysTrue',
 	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/nav-menu.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Left side of && is always true\\.$#',
-	'identifier' => 'booleanAnd.leftAlwaysTrue',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/option.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Negated boolean expression is always true\\.$#',
