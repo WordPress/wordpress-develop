@@ -29,11 +29,11 @@ parameters:
 
 		# Level 1:
 		- These are too noisy at the moment.
-		  message: '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
+			message: '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
 
 		# Level 2:
 		- # Callable-strings are used as callables in WordPress.
-		  message: '#Default value of the parameter .* is incompatible with type callable.*#'
+			message: '#Default value of the parameter .* is incompatible with type callable.*#'
 
 		# Level 6:
 		- # WPCS syntax for iterable types is not supported.
