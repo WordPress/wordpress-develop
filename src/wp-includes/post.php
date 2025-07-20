@@ -4385,12 +4385,12 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 
 	return $results ? $results : false;
 }
-
 /**
- * Inserts or update a post.
+ * Inserts or updates a post in the database.
  *
- * If the $postarr parameter has 'ID' set to a value, then post will be updated.
- *
+ * If the `$postarr` parameter contains an 'ID', the corresponding post will be updated.
+ * If not, a new post will be created using the values provided.
+
  * You can set the post date manually, by setting the values for 'post_date'
  * and 'post_date_gmt' keys. You can close the comments or open the comments by
  * setting the value for 'comment_status' key.
