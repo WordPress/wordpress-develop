@@ -74,7 +74,6 @@ define( 'REST_API_VERSION', '2.0' );
  * @param bool   $override        Optional. True to override existing route, false to merge (with newer overriding
  *                                if duplicate keys exist). Default false.
  * @return bool True on success, false on error.
- *
  */
 function register_rest_route( $route_namespace, $route, $args = array(), $override = false ) {
 	if ( empty( $route_namespace ) ) {
