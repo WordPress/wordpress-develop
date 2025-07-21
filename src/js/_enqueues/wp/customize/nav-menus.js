@@ -321,7 +321,7 @@
 		doSearch: function( page ) {
 			var self = this, params,
 				$section = $( '#available-menu-items-search' ),
-				$content = $section.find( '.accordion-section-content' )
+				$content = $section.find( '.accordion-section-content' );
 
 			if ( self.currentRequest ) {
 				self.currentRequest.abort();
