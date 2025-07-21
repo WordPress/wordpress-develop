@@ -306,12 +306,22 @@
 			});
 		},
 
+		renderMenuItem: function(menuItem) {
+			var $item = $(wp.template('available-menu-item')(menuItem.attributes));
+
+			$item.find('.menu-item-title').toggleClass(
+				'in-use',
+				this.isMenuItemAlreadyAdded(menuItem)
+			);
+
+			return $item;
+		},
+
 		// Get search results.
 		doSearch: function( page ) {
 			var self = this, params,
 				$section = $( '#available-menu-items-search' ),
-				$content = $section.find( '.accordion-section-content' ),
-				itemTemplate = wp.template( 'available-menu-item' );
+				$content = $section.find( '.accordion-section-content' )
 
 			if ( self.currentRequest ) {
 				self.currentRequest.abort();
@@ -354,20 +364,9 @@
 				self.loading = false;
 				items = new api.Menus.AvailableItemCollection( data.items );
 				self.collection.add( items.models );
-				items.each( function( menuItem ) {
-					var $item = $( itemTemplate( menuItem.attributes ) );
-					var inUse = this.currentMenuControl.getMenuItemControls().some( function( control ) {
-						var setting = control.setting();
-						return setting.object_id == menuItem.get( 'object_id' ) &&
-							setting.type === menuItem.get( 'type' ) &&
-							setting.object === menuItem.get( 'object' );
-					});
-
-					if ( inUse ) {
-						$item.find( '.menu-item-title' ).addClass( 'in-use' );
-					}
-
-					$content.append( $item );
+				items.each(function(menuItem) {
+					var $item = self.renderMenuItem(menuItem);
+					$content.append($item);
 				});
 
 				if ( 20 > items.length ) {
@@ -422,8 +421,7 @@
 		 * @return {void}
 		 */
 		loadItems: function( itemTypes, deprecated ) {
-			var self = this, _itemTypes, requestItemTypes = [], params, request, itemTemplate, availableMenuItemContainers = {};
-			itemTemplate = wp.template( 'available-menu-item' );
+			var self = this, _itemTypes, requestItemTypes = [], params, request, availableMenuItemContainers = {};
 
 			if ( _.isString( itemTypes ) && _.isString( deprecated ) ) {
 				_itemTypes = [ { type: itemTypes, object: deprecated } ];
@@ -480,19 +478,11 @@
 					}
 					typeItems = new api.Menus.AvailableItemCollection( typeItems );
 					self.collection.add( typeItems.models );
-					typeInner = availableMenuItemContainers[ name ].find( '.available-menu-items-list' );
-					typeInner.empty();
+					typeInner = availableMenuItemContainers[name].find('.available-menu-items-list').empty();
 					typeItems.each(function(menuItem) {
-						var $item = $(itemTemplate(menuItem.attributes));
-
-						if (self.isMenuItemAlreadyAdded(menuItem)) {
-							$item.find('.menu-item-title').addClass('in-use');
-						} else {
-							$item.find('.menu-item-title').removeClass('in-use');
-						}
-
+						var $item = self.renderMenuItem(menuItem);
 						typeInner.append($item);
-					} );
+					});
 					self.pages[ name ] += 1;
 				});
 			});
