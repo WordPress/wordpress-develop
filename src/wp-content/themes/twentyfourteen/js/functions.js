@@ -66,7 +66,7 @@
 		 * The callback on the scroll event is only added if there is a header
 		 * image and we are not on mobile.
 		 */
-		if ( _window.width() > 781 ) {
+		if ( _window.width() > 783 ) {
 			var mastheadHeight = $( '#masthead' ).height(),
 				toolbarOffset, mastheadOffset;
 
@@ -100,7 +100,7 @@
 	 * @see trac ticket #30575
 	 */
 	function touchDropdown() {
-		if ( 781 > _window.width() ) {
+		if ( 783 > _window.width() ) {
 			$( '.primary-navigation, .secondary-navigation' ).find( 'a' ).on( 'focus.twentyfourteen blur.twentyfourteen', function() {
 				$( this ).parents().toggleClass( 'focus' );
 			} );
@@ -131,7 +131,7 @@
 	 * @since Twenty Fourteen 1.4
 	 */
 	function onResizeARIA() {
-		if ( 781 > _window.width() ) {
+		if ( 783 > _window.width() ) {
 			button.attr( 'aria-expanded', 'false' );
 			menu.attr( 'aria-expanded', 'false' );
 			button.attr( 'aria-controls', 'primary-menu' );
