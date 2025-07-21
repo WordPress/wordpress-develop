@@ -100,6 +100,13 @@
 	 * @see trac ticket #30575
 	 */
 	function touchDropdown() {
+		var navMenus = $( '.primary-navigation, .secondary-navigation' );
+		
+		// Check if menus exist before proceeding.
+		if ( ! navMenus.length ) {
+			return;
+		}
+
 		if ( 783 > _window.width() ) {
 			$( '.primary-navigation, .secondary-navigation' ).find( 'a' ).on( 'focus.twentyfourteen blur.twentyfourteen', function() {
 				$( this ).parents().toggleClass( 'focus' );
