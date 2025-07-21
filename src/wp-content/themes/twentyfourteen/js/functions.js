@@ -95,6 +95,34 @@
 	} );
 
 	/**
+	 * Enable hover for dropdown menu for touch devices
+	 *
+	 * @see trac ticket #30575
+	 */
+	function touchDropdown() {
+		if ( 781 > _window.width() ) {
+			$( '.primary-navigation, .secondary-navigation' ).find( 'a' ).on( 'focus.twentyfourteen blur.twentyfourteen', function() {
+				$( this ).parents().toggleClass( 'focus' );
+			} );
+			if ( 'ontouchstart' in window ) {
+				$( document.body ).off( 'touchstart.twentyfourteen' );
+			}
+		} else {
+			if ( 'ontouchstart' in window ) {
+				$( document.body ).on( 'touchstart.twentyfourteen',  '.menu-item-has-children > a, .page_item_has_children > a', function( e ) {
+					var el = $( this ).parent( 'li' );
+
+					if ( ! el.hasClass( 'focus' ) ) {
+						e.preventDefault();
+						el.toggleClass( 'focus' );
+						el.siblings( '.focus' ).removeClass( 'focus' );
+					}
+				} );
+			}
+		}
+	}
+
+	/**
 	 * Add or remove ARIA attributes.
 	 *
 	 * Uses jQuery's width() function to determine the size of the window and add
@@ -107,16 +135,18 @@
 			button.attr( 'aria-expanded', 'false' );
 			menu.attr( 'aria-expanded', 'false' );
 			button.attr( 'aria-controls', 'primary-menu' );
+			$( '.menu-item-has-children' ).attr( 'aria-haspopup', 'false' );
 		} else {
 			button.removeAttr( 'aria-expanded' );
 			menu.removeAttr( 'aria-expanded' );
 			button.removeAttr( 'aria-controls' );
+			$( '.menu-item-has-children' ).attr( 'aria-haspopup', 'true' );
 		}
 	}
 
 	_window
-		.on( 'load.twentyfourteen', onResizeARIA )
-		.on( 'resize.twentyfourteen', function() {
+		.on( 'load.twentyfourteen resize.twentyfourteen', function() {
+			touchDropdown();
 			onResizeARIA();
 	} );
 
