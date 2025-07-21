@@ -180,8 +180,6 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * Test that the term count is not recalculated when neither the old nor new status are included in term counts.
 	 *
 	 * @ticket 63562
-	 *
-	 * @covers ::_update_term_count_on_transition_post_status
 	 */
 	public function test_term_count_is_not_recalculated_when_neither_status_is_counted() {
 		// Change post status to draft.
@@ -210,8 +208,6 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * Test to ensure that the `update_post_term_count_statuses` filter is respected.
 	 *
 	 * @ticket 63562
-	 *
-	 * @covers ::_update_term_count_on_transition_post_status
 	 */
 	public function test_update_post_term_count_statuses_filter_is_respected() {
 		$custom_taxonomy = 'category_with_pending';
