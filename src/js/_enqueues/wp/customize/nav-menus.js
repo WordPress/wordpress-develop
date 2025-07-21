@@ -292,6 +292,20 @@
 			this.doSearch( 1 );
 		},
 
+		isMenuItemAlreadyAdded: function(menuItem) {
+			if ( ! this.currentMenuControl ) return false;
+			var objectId = parseInt(menuItem.get('object_id'), 10);
+			var object = menuItem.get('object');
+			var type = menuItem.get('type');
+
+			return this.currentMenuControl.getMenuItemControls().some(function(control) {
+				var setting = control.setting();
+				return parseInt(setting.object_id, 10) === objectId &&
+					setting.object === object &&
+					setting.type === type;
+			});
+		},
+
 		// Get search results.
 		doSearch: function( page ) {
 			var self = this, params,
@@ -341,8 +355,21 @@
 				items = new api.Menus.AvailableItemCollection( data.items );
 				self.collection.add( items.models );
 				items.each( function( menuItem ) {
-					$content.append( itemTemplate( menuItem.attributes ) );
-				} );
+					var $item = $( itemTemplate( menuItem.attributes ) );
+					var inUse = this.currentMenuControl.getMenuItemControls().some( function( control ) {
+						var setting = control.setting();
+						return setting.object_id == menuItem.get( 'object_id' ) &&
+							setting.type === menuItem.get( 'type' ) &&
+							setting.object === menuItem.get( 'object' );
+					});
+
+					if ( inUse ) {
+						$item.find( '.menu-item-title' ).addClass( 'in-use' );
+					}
+
+					$content.append( $item );
+				});
+
 				if ( 20 > items.length ) {
 					self.pages.search = -1; // Up to 20 posts and 20 terms in results, if <20, no more results for either.
 				} else {
@@ -451,11 +478,20 @@
 					} else if ( ( 'post_type:page' === name ) && ( ! availableMenuItemContainers[ name ].hasClass( 'open' ) ) ) {
 						availableMenuItemContainers[ name ].find( '.accordion-section-title > button' ).trigger( 'click' );
 					}
-					typeItems = new api.Menus.AvailableItemCollection( typeItems ); // @todo Why is this collection created and then thrown away?
+					typeItems = new api.Menus.AvailableItemCollection( typeItems );
 					self.collection.add( typeItems.models );
 					typeInner = availableMenuItemContainers[ name ].find( '.available-menu-items-list' );
-					typeItems.each( function( menuItem ) {
-						typeInner.append( itemTemplate( menuItem.attributes ) );
+					typeInner.empty();
+					typeItems.each(function(menuItem) {
+						var $item = $(itemTemplate(menuItem.attributes));
+
+						if (self.isMenuItemAlreadyAdded(menuItem)) {
+							$item.find('.menu-item-title').addClass('in-use');
+						} else {
+							$item.find('.menu-item-title').removeClass('in-use');
+						}
+
+						typeInner.append($item);
 					} );
 					self.pages[ name ] += 1;
 				});
@@ -723,6 +759,11 @@
 
 			this.currentMenuControl = menuControl;
 
+			// Reset pagination tracking
+			_.each( api.Menus.data.itemTypes, function( itemType ) {
+				panel.pages[ itemType.type + ':' + itemType.object ] = 0;
+			});
+
 			this.itemSectionHeight();
 
 			if ( api.section.has( 'publish_settings' ) ) {
@@ -745,6 +786,7 @@
 			this.$el.find( '.selected' ).removeClass( 'selected' );
 
 			this.$search.trigger( 'focus' );
+			this.loadItems( api.Menus.data.itemTypes );
 		},
 
 		// Closes the panel.
