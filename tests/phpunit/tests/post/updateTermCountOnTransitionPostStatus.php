@@ -169,6 +169,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	 * Test that the term count is not recalculated when neither the old nor new status are included in term counts.
 	 *
 	 * @ticket 63562
+	 *
+	 * @covers ::_update_term_count_on_transition_post_status
 	 */
 	public function test_term_count_is_not_recalculated_when_neither_status_is_counted() {
 		// Change post status to draft.
@@ -190,9 +192,16 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 		);
 
 		$this->assertSame( 0, did_action( 'edited_term_taxonomy' ) - $edited_term_taxonomy_count, 'Term taxonomy count should not be recalculated when neither new nor old post status is included in term counts.' );
-		$this->assertTermCount( 0, self::$term_id );
+		$this->assertTermCount( 0, self::$term_id, 'Term count should remain unchanged when transitioning between post statuses that are not counted.' );
 	}
 
+	/**
+	 * Test to ensure that the `update_post_term_count_statuses` filter is respected.
+	 *
+	 * @ticket 63562
+	 *
+	 * @covers ::_update_term_count_on_transition_post_status
+	 */
 	public function test_update_post_term_count_statuses_filter_is_respected() {
 		$custom_taxonomy = 'category_with_pending';
 
@@ -244,8 +253,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 		);
 
 		$this->assertSame( 1, did_action( 'edited_term_taxonomy' ) - $edited_term_taxonomy_count, 'Term taxonomy count should respect the statuses returned by the update_post_term_count_statuses filter.' );
-		$this->assertTermCount( 0, self::$term_id );
-		$this->assertTermCount( 1, $custom_term_id );
+		$this->assertTermCount( 0, self::$term_id, 'Term count for the default taxonomy should remain zero since "pending" is not included in its countable statuses.' );
+		$this->assertTermCount( 1, $custom_term_id, 'Term count for the custom taxonomy should be updated to 1 because the "pending" status is included via the update_post_term_count_statuses filter.' );
 	}
 
 	/**
