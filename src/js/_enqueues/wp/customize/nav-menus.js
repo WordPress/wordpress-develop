@@ -485,7 +485,7 @@
 					} else if ( ( 'post_type:page' === name ) && ( ! availableMenuItemContainers[ name ].hasClass( 'open' ) ) ) {
 						availableMenuItemContainers[ name ].find( '.accordion-section-title > button' ).trigger( 'click' );
 					}
-					typeItems = new api.Menus.AvailableItemCollection( typeItems );
+					typeItems = new api.Menus.AvailableItemCollection( typeItems ); // @todo Why is this collection created and then thrown away?
 					self.collection.add( typeItems.models );
 					typeInner = availableMenuItemContainers[name].find('.available-menu-items-list').empty();
 					typeItems.each(function(menuItem) {
