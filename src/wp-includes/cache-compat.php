@@ -219,7 +219,7 @@ if ( ! function_exists( 'wp_cache_get_salted' ) ) :
 			return false;
 		}
 
-		if ( ! isset( $cache['salt'], $cache['data'] ) || $salt !== $cache['salt'] ) {
+		if ( ! isset( $cache['salt'] ) || ! isset( $cache['data'] ) || $salt !== $cache['salt'] ) {
 			return false;
 		}
 
