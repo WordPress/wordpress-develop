@@ -208,7 +208,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inselect
+	 * @deprecated {WP_VERSION} The "in select" insertion mode was removed from the standard.
+	 *
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -220,7 +221,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inselectintable
+	 * @deprecated {WP_VERSION} The "in select in table" insertion mode was removed from the standard.
+	 *
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
