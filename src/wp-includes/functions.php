@@ -656,8 +656,7 @@ function maybe_unserialize( $data ) {
 	if ( is_serialized( $data ) ) { // Don't attempt to unserialize data that wasn't serialized going in.
 		$previous_error_handler = set_error_handler(
 			function ( $errno, $errstr ) {
-				restore_error_handler();
-				if ( ( E_WARNING === $errno || E_NOTICE === $errno ) && strpos( $errstr, 'unserialize' ) !== false ) {
+				if ( str_starts_with( $errstr, 'unserialize():' ) ) {
 					if ( wp_is_development_mode() ) {
 						return false;
 					}
@@ -668,9 +667,14 @@ function maybe_unserialize( $data ) {
 			E_WARNING | E_NOTICE
 		);
 
-		$unserialized = unserialize( trim( $data ) );
-		restore_error_handler();
-		return $unserialized;
+		try {
+			$unserialized = unserialize( trim( $data ) );
+			return $unserialized;
+		} catch ( \Throwable $e ) {
+			return false;
+		} finally {
+			restore_error_handler();
+		}
 	}
 
 	return $data;
