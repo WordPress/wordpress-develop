@@ -2936,6 +2936,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if ( $this->state->stack_of_open_elements->has_p_in_button_scope() ) {
 					$this->close_a_p_element();
 				}
+
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
+					$this->generate_implied_end_tags();
+					/*
+					 * > If the stack of open elements has an option element in scope or has
+					 * > an optgroup element in scope, then this is a parse error.
+					 *
+					 * @todo Indicate a parse error once it's possible.
+					 */
+				}
+
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
 				return true;
