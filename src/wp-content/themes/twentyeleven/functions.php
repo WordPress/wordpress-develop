@@ -641,34 +641,21 @@ if ( ! function_exists( 'twentyeleven_content_nav' ) ) :
 	function twentyeleven_content_nav( $html_id ) {
 		global $wp_query;
 
+		$left_arrow  = '<span class="meta-nav">&larr;</span>';
+ 		$right_arrow = '<span class="meta-nav">&rarr;</span>';
+		$old_posts_text = __( 'Older posts', 'twentyeleven' );
+ 		$new_posts_text = __( 'Newer posts', 'twentyeleven' );
+
 		if ( $wp_query->max_num_pages > 1 ) :
-			$order   = get_query_var( 'order', 'DESC' );
-			$is_desc = ( 'DESC' === $order );
-
-			$new_posts_text = __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentyeleven' );
-			$old_posts_text = __( '<span class="meta-nav">&larr;</span> Older posts', 'twentyeleven' );
-
-			$prev_link = $is_desc ? get_next_posts_link( $old_posts_text ) : get_previous_posts_link( $old_posts_text );
-			$next_link = $is_desc ? get_previous_posts_link( $new_posts_text ) : get_next_posts_link( $new_posts_text );
-
-			$allowed_html_tags = array(
-				'a'    => array(
-					'href'  => array(),
-					'title' => array(),
-				),
-				'span' => array(
-					'class' => array(),
-				),
-			)
 			?>
 			<nav id="<?php echo esc_attr( $html_id ); ?>">
 				<h3 class="assistive-text"><?php _e( 'Post navigation', 'twentyeleven' ); ?></h3>
-				<?php if ( $prev_link ) : ?>
-					<div class="nav-previous"><?php echo wp_kses( $prev_link, $allowed_html_tags ); ?></div>
-				<?php endif; ?>
-
-				<?php if ( $next_link ) : ?>
-					<div class="nav-next"><?php echo wp_kses( $next_link, $allowed_html_tags ); ?></div>
+				<?php if ( get_query_var( 'order', 'DESC' ) === 'DESC' ) : ?>
+					<div class="nav-previous"><?php next_posts_link( $left_arrow . $old_posts_text ); ?></div>
+					<div class="nav-next"><?php previous_posts_link( $new_posts_text . $right_arrow ); ?></div>
+				<?php else : ?>
+					<div class="nav-next"><?php previous_posts_link( $old_posts_text . $right_arrow ); ?></div>
+					<div class="nav-previous"><?php next_posts_link( $left_arrow . $new_posts_text ); ?></div>
 				<?php endif; ?>
 			</nav><!-- #nav-above -->
 			<?php
