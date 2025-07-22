@@ -110,6 +110,7 @@ class WP_oEmbed {
 			'#https?://((play|www)\.)?anghami\.com/.*#i'   => array( 'https://api.anghami.com/rest/v1/oembed.view', true ),
 			'#https?://bsky.app/profile/.*/post/.*#i'      => array( 'https://embed.bsky.app/oembed', true ),
 			'#https?://(www\.)?canva\.com/design/.*/view.*#i' => array( 'https://canva.com/_oembed', true ),
+			'#https?://(?:www\.)?tidal\.com/(browse/)?(album|track|playlist)/.+#i' => array( 'https://embed.tidal.com/oembed', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -191,6 +192,7 @@ class WP_oEmbed {
 		 * | Anghami      | anghami.com                               | 6.3.0   |
 		 * | Bluesky      | bsky.app                                  | 6.6.0   |
 		 * | Canva        | canva.com                                 | 6.8.0   |
+		 * | Tidal        | tidal.com                                 | 6.8.0   |
 		 *
 		 * No longer supported providers:
 		 *
@@ -217,11 +219,11 @@ class WP_oEmbed {
 		 * | SlideShare   | slideshare.net       | 3.5.0     | 6.6.0     |
 		 * | Screencast   | screencast.com       | 4.8.0     | 6.8.2     |
 		 *
+		 * @param array[] $providers An array of arrays containing data about popular oEmbed providers.
+		 *@since 2.9.0
+		 *
 		 * @see wp_oembed_add_provider()
 		 *
-		 * @since 2.9.0
-		 *
-		 * @param array[] $providers An array of arrays containing data about popular oEmbed providers.
 		 */
 		$this->providers = apply_filters( 'oembed_providers', $providers );
 
