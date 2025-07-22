@@ -2546,7 +2546,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > An end tag whose tag name is one of: "address", "article", "aside", "blockquote",
 			 * > "button", "center", "details", "dialog", "dir", "div", "dl", "fieldset",
 			 * > "figcaption", "figure", "footer", "header", "hgroup", "listing", "main",
-			 * > "menu", "nav", "ol", "pre", "search", "section", "summary", "ul"
+			 * > "menu", "nav", "ol", "pre", "search", "section", "select", "summary", "ul"
 			 */
 			case '-ADDRESS':
 			case '-ARTICLE':
@@ -2573,6 +2573,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-PRE':
 			case '-SEARCH':
 			case '-SECTION':
+			case '-SELECT':
 			case '-SUMMARY':
 			case '-UL':
 				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $token_name ) ) {
