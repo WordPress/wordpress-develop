@@ -219,10 +219,11 @@ class WP_oEmbed {
 		 * | SlideShare   | slideshare.net       | 3.5.0     | 6.6.0     |
 		 * | Screencast   | screencast.com       | 4.8.0     | 6.8.2     |
 		 *
-		 * @param array[] $providers An array of arrays containing data about popular oEmbed providers.
+		 * @see wp_oembed_add_provider()
 		 *
 		 * @since 2.9.0
-		 * @see wp_oembed_add_provider()
+		 *
+		 * @param array[] $providers An array of arrays containing data about popular oEmbed providers.
 		 */
 		$this->providers = apply_filters( 'oembed_providers', $providers );
 
