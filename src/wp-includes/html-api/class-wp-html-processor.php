@@ -3063,13 +3063,39 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
-			 * > A start tag whose tag name is one of: "optgroup", "option"
+			 * > A start tag whose tag name is "option"
 			 */
-			case '+OPTGROUP':
 			case '+OPTION':
-				if ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
+					$this->generate_implied_end_tags( 'OPTGROUP' );
+					/*
+					 * > If the stack of open elements has an option element in scope, then this
+					 * > is a parse error.
+					 * @todo Indicate a parse error once it's possible.
+					 */
+				} elseif ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
 					$this->state->stack_of_open_elements->pop();
 				}
+
+				$this->reconstruct_active_formatting_elements();
+				$this->insert_html_element( $this->state->current_token );
+				return true;
+
+			/*
+			 * > A start tag whose tag name is "optgroup"
+			 */
+			case '+OPTGROUP':
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
+					$this->generate_implied_end_tags();
+					/*
+					 * > If the stack of open elements has an option element in scope or has an
+					 * > optgroup element in scope, then this is a parse error.
+					 * @todo Indicate a parse error once it's possible.
+					 */
+				} elseif ( $this->state->stack_of_open_elements->current_node_is( 'OPTION' ) ) {
+					$this->state->stack_of_open_elements->pop();
+				}
+
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
 				return true;
