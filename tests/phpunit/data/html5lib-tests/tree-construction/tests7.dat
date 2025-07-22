@@ -207,8 +207,8 @@ X</listing>
 |   <head>
 |   <body>
 |     <select>
-|       <input>
-|       "X"
+|     <input>
+|     "X"
 
 #data
 <!doctype html><select><select>X
