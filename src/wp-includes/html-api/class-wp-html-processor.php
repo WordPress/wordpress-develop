@@ -5905,46 +5905,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 			switch ( $node->node_name ) {
 				/*
-				 * > 4. If node is a `select` element, run these substeps:
-				 * >   1. If _last_ is true, jump to the step below labeled done.
-				 * >   2. Let _ancestor_ be _node_.
-				 * >   3. _Loop_: If _ancestor_ is the first node in the stack of open elements,
-				 * >      jump to the step below labeled done.
-				 * >   4. Let ancestor be the node before ancestor in the stack of open elements.
-				 * >   …
-				 * >   7. Jump back to the step labeled _loop_.
-				 * >   8. _Done_: Switch the insertion mode to "in select" and return.
-				 */
-				case 'SELECT':
-					if ( ! $last ) {
-						foreach ( $this->state->stack_of_open_elements->walk_up( $node ) as $ancestor ) {
-							if ( 'html' !== $ancestor->namespace ) {
-								continue;
-							}
-
-							switch ( $ancestor->node_name ) {
-								/*
-								 * > 5. If _ancestor_ is a `template` node, jump to the step below
-								 * >    labeled _done_.
-								 */
-								case 'TEMPLATE':
-									break 2;
-
-								/*
-								 * > 6. If _ancestor_ is a `table` node, switch the insertion mode to
-								 * >    "in select in table" and return.
-								 */
-								case 'TABLE':
-									$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE;
-									return;
-							}
-						}
-					}
-					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT;
-					return;
-
-				/*
-				 * > 5. If _node_ is a `td` or `th` element and _last_ is false, then switch the
+				 * > 4. If _node_ is a `td` or `th` element and _last_ is false, then switch the
 				 * >    insertion mode to "in cell" and return.
 				 */
 				case 'TD':
@@ -5955,16 +5916,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					}
 					break;
 
-					/*
-					* > 6. If _node_ is a `tr` element, then switch the insertion mode to "in row"
-					* >    and return.
-					*/
+				/*
+				* > 5. If _node_ is a `tr` element, then switch the insertion mode to "in row"
+				* >    and return.
+				*/
 				case 'TR':
 					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_ROW;
 					return;
 
 				/*
-				 * > 7. If _node_ is a `tbody`, `thead`, or `tfoot` element, then switch the
+				 * > 6. If _node_ is a `tbody`, `thead`, or `tfoot` element, then switch the
 				 * >    insertion mode to "in table body" and return.
 				 */
 				case 'TBODY':
@@ -5974,7 +5935,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 8. If _node_ is a `caption` element, then switch the insertion mode to
+				 * > 7. If _node_ is a `caption` element, then switch the insertion mode to
 				 * >    "in caption" and return.
 				 */
 				case 'CAPTION':
@@ -5982,7 +5943,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 9. If _node_ is a `colgroup` element, then switch the insertion mode to
+				 * > 8. If _node_ is a `colgroup` element, then switch the insertion mode to
 				 * >    "in column group" and return.
 				 */
 				case 'COLGROUP':
@@ -5990,15 +5951,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 10. If _node_ is a `table` element, then switch the insertion mode to
-				 * >     "in table" and return.
+				 * > 9. If _node_ is a `table` element, then switch the insertion mode to
+				 * >    "in table" and return.
 				 */
 				case 'TABLE':
 					$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE;
 					return;
 
 				/*
-				 * > 11. If _node_ is a `template` element, then switch the insertion mode to the
+				 * > 10. If _node_ is a `template` element, then switch the insertion mode to the
 				 * >     current template insertion mode and return.
 				 */
 				case 'TEMPLATE':
@@ -6006,7 +5967,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 12. If _node_ is a `head` element and _last_ is false, then switch the
+				 * > 11. If _node_ is a `head` element and _last_ is false, then switch the
 				 * >     insertion mode to "in head" and return.
 				 */
 				case 'HEAD':
@@ -6017,7 +5978,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					break;
 
 				/*
-				 * > 13. If _node_ is a `body` element, then switch the insertion mode to "in body"
+				 * > 12. If _node_ is a `body` element, then switch the insertion mode to "in body"
 				 * >     and return.
 				 */
 				case 'BODY':
@@ -6025,7 +5986,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 14. If _node_ is a `frameset` element, then switch the insertion mode to
+				 * > 13. If _node_ is a `frameset` element, then switch the insertion mode to
 				 * >     "in frameset" and return. (fragment case)
 				 */
 				case 'FRAMESET':
@@ -6033,7 +5994,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return;
 
 				/*
-				 * > 15. If _node_ is an `html` element, run these substeps:
+				 * > 14. If _node_ is an `html` element, run these substeps:
 				 * >     1. If the head element pointer is null, switch the insertion mode to
 				 * >        "before head" and return. (fragment case)
 				 * >     2. Otherwise, the head element pointer is not null, switch the insertion
@@ -6048,7 +6009,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		/*
-		 * > 16. If _last_ is true, then switch the insertion mode to "in body"
+		 * > 15. If _last_ is true, then switch the insertion mode to "in body"
 		 * >     and return. (fragment case)
 		 *
 		 * This is only reachable if `$last` is true, as per the fragment parsing case.
