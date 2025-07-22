@@ -280,6 +280,7 @@ class WP_HTML_Open_Elements {
 	 * >   - th
 	 * >   - marquee
 	 * >   - object
+	 * >   - select
 	 * >   - template
 	 * >   - MathML mi
 	 * >   - MathML mo
@@ -311,6 +312,7 @@ class WP_HTML_Open_Elements {
 				'TH',
 				'MARQUEE',
 				'OBJECT',
+				'SELECT',
 				'TEMPLATE',
 
 				'math MI',
