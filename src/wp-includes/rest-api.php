@@ -19,62 +19,17 @@ define( 'REST_API_VERSION', '2.0' );
  *
  * Note: Do not use before the {@see 'rest_api_init'} hook.
  *
- * Example usage:
- * ```php
- * add_action( 'rest_api_init', function () {
- *   register_rest_route( 'my-plugin/v1', '/settings', array(
- *     'methods'  => 'GET',
- *     'callback' => 'my_plugin_get_settings',
- *     'permission_callback' => function () {
- *       // Only allow users who can manage options.
- *       return current_user_can( 'manage_options' );
- *     },
- *   ) );
- * } );
- * ```
- *
  * @since 4.4.0
  * @since 5.1.0 Added a `_doing_it_wrong()` notice when not called on or after the `rest_api_init` hook.
  * @since 5.5.0 Added a `_doing_it_wrong()` notice when the required `permission_callback` argument is not set.
  *
  * @param string $route_namespace The first URL segment after core prefix. Should be unique to your package/plugin.
- * @param string $route           The base URL for route to be added with support for regular expressions.
- *                                Example: '/posts/(?P<id>[\d]+)'.
- * @param array $args             {
- *                                    Optional. An array of options for the endpoint. This can be a single associative
- *                                    array for one endpoint, or an array of associative arrays for multiple endpoints.
- *                                    Default empty array.
- *
- *                                    @type string|array $methods             Required. HTTP method(s) the route
- *                                                                            responds to. Can be a string or an array
- *                                                                            (e.g. 'GET', 'POST', ['GET', 'POST']).
- *                                    @type callable     $callback            Required. The callback function to handle
- *                                                                            the request. Accepts a `WP_REST_Request`
- *                                                                            and returns a `WP_REST_Response` or array.
- *                                    @type callable     $permission_callback Required. A function to check if the
- *                                                                            request has permission. Must return
- *                                                                            `true` or `WP_Error`.
- *                                    @type array        $args {
- *                                        Optional. An associative array of argument schema for validation and
- *                                        sanitization.
- *                                        Keys are argument names, values are arrays of argument options:
- *
- *                                        @type bool     $required           Whether this parameter is required.
- *                                                                           Default false.
- *                                        @type string   $type               Data type: 'string', 'integer', 'boolean',
- *                                                                           'array', etc.
- *                                        @type mixed    $default            Default value if the parameter is not
- *                                                                           provided.
- *                                        @type callable $validate_callback  Callback to validate the parameter.
- *                                        @type callable $sanitize_callback  Callback to sanitize the parameter.
- *                                        @type array    $enum               Allowed values (enumeration).
- *                                        @type array    $items              Schema for array items if type is 'array'.
- *                                                             }
- *                                }
- * @param bool   $override        Optional. True to override existing route, false to merge (with newer overriding
- *                                if duplicate keys exist). Default false.
+ * @param string $route           The base URL for route you are adding.
+ * @param array  $args            Optional. Either an array of options for the endpoint, or an array of arrays for
+ *                                multiple methods. Default empty array.
+ * @param bool   $override        Optional. If the route already exists, should we override it? True overrides,
+ *                                false merges (with newer overriding if duplicate keys exist). Default false.
  * @return bool True on success, false on error.
- *
  */
 function register_rest_route( $route_namespace, $route, $args = array(), $override = false ) {
 	if ( empty( $route_namespace ) ) {
@@ -86,7 +41,7 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: string value of the namespace, 2: string value of the route. */
+			/* translators: 1: string value of the namespace, 2: string value of the route. */
 				__( 'Routes must be namespaced with plugin or theme name and version. Instead there seems to be an empty namespace \'%1$s\' for route \'%2$s\'.' ),
 				'<code>' . $route_namespace . '</code>',
 				'<code>' . $route . '</code>'
@@ -98,7 +53,7 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: string value of the namespace, 2: string value of the route. */
+			/* translators: 1: string value of the namespace, 2: string value of the route. */
 				__( 'Route must be specified. Instead within the namespace \'%1$s\', there seems to be an empty route \'%2$s\'.' ),
 				'<code>' . $route_namespace . '</code>',
 				'<code>' . $route . '</code>'
@@ -114,7 +69,7 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: string value of the namespace, 2: string value of the route. */
+			/* translators: 1: string value of the namespace, 2: string value of the route. */
 				__( 'Namespace must not start or end with a slash. Instead namespace \'%1$s\' for route \'%2$s\' seems to contain a slash.' ),
 				'<code>' . $route_namespace . '</code>',
 				'<code>' . $route . '</code>'
@@ -127,7 +82,7 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: rest_api_init, 2: string value of the route, 3: string value of the namespace. */
+			/* translators: 1: rest_api_init, 2: string value of the route, 3: string value of the namespace. */
 				__( 'REST API routes must be registered on the %1$s action. Instead route \'%2$s\' with namespace \'%3$s\' was not registered on this action.' ),
 				'<code>rest_api_init</code>',
 				'<code>' . $route . '</code>',
@@ -168,7 +123,7 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 			_doing_it_wrong(
 				__FUNCTION__,
 				sprintf(
-					/* translators: 1: The REST API route being registered, 2: The argument name, 3: The suggested function name. */
+				/* translators: 1: The REST API route being registered, 2: The argument name, 3: The suggested function name. */
 					__( 'The REST API route definition for %1$s is missing the required %2$s argument. For REST API routes that are intended to be public, use %3$s as the permission callback.' ),
 					'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>',
 					'<code>permission_callback</code>',
@@ -183,7 +138,7 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf(
-						/* translators: 1: $args, 2: The REST API route being registered. */
+					/* translators: 1: $args, 2: The REST API route being registered. */
 						__( 'REST API %1$s should be an array of arrays. Non-array value detected for %2$s.' ),
 						'<code>$args</code>',
 						'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
@@ -2470,7 +2425,7 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 		return new WP_Error(
 			'rest_too_few_properties',
 			sprintf(
-				/* translators: 1: Parameter, 2: Number. */
+			/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at least %2$s property.',
 					'%1$s must contain at least %2$s properties.',
@@ -2486,7 +2441,7 @@ function rest_validate_object_value_from_schema( $value, $args, $param ) {
 		return new WP_Error(
 			'rest_too_many_properties',
 			sprintf(
-				/* translators: 1: Parameter, 2: Number. */
+			/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at most %2$s property.',
 					'%1$s must contain at most %2$s properties.',
@@ -2536,7 +2491,7 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 		return new WP_Error(
 			'rest_too_few_items',
 			sprintf(
-				/* translators: 1: Parameter, 2: Number. */
+			/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at least %2$s item.',
 					'%1$s must contain at least %2$s items.',
@@ -2552,7 +2507,7 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 		return new WP_Error(
 			'rest_too_many_items',
 			sprintf(
-				/* translators: 1: Parameter, 2: Number. */
+			/* translators: 1: Parameter, 2: Number. */
 				_n(
 					'%1$s must contain at most %2$s item.',
 					'%1$s must contain at most %2$s items.',
@@ -2642,7 +2597,7 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
 					sprintf(
-						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (exclusive) and %3$d (exclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2657,7 +2612,7 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
 					sprintf(
-						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (exclusive) and %3$d (inclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2672,7 +2627,7 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
 					sprintf(
-						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (inclusive) and %3$d (exclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2687,7 +2642,7 @@ function rest_validate_number_value_from_schema( $value, $args, $param ) {
 				return new WP_Error(
 					'rest_out_of_bounds',
 					sprintf(
-						/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
+					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
 						__( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ),
 						$param,
 						$args['minimum'],
@@ -2725,7 +2680,7 @@ function rest_validate_string_value_from_schema( $value, $args, $param ) {
 		return new WP_Error(
 			'rest_too_short',
 			sprintf(
-				/* translators: 1: Parameter, 2: Number of characters. */
+			/* translators: 1: Parameter, 2: Number of characters. */
 				_n(
 					'%1$s must be at least %2$s character long.',
 					'%1$s must be at least %2$s characters long.',
@@ -2741,7 +2696,7 @@ function rest_validate_string_value_from_schema( $value, $args, $param ) {
 		return new WP_Error(
 			'rest_too_long',
 			sprintf(
-				/* translators: 1: Parameter, 2: Number of characters. */
+			/* translators: 1: Parameter, 2: Number of characters. */
 				_n(
 					'%1$s must be at most %2$s character long.',
 					'%1$s must be at most %2$s characters long.',

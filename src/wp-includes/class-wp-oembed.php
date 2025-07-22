@@ -220,10 +220,9 @@ class WP_oEmbed {
 		 * | Screencast   | screencast.com       | 4.8.0     | 6.8.2     |
 		 *
 		 * @param array[] $providers An array of arrays containing data about popular oEmbed providers.
-		 *@since 2.9.0
 		 *
+		 * @since 2.9.0
 		 * @see wp_oembed_add_provider()
-		 *
 		 */
 		$this->providers = apply_filters( 'oembed_providers', $providers );
 
