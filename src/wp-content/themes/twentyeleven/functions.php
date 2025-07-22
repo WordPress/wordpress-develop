@@ -641,10 +641,10 @@ if ( ! function_exists( 'twentyeleven_content_nav' ) ) :
 	function twentyeleven_content_nav( $html_id ) {
 		global $wp_query;
 
-		$left_arrow  = '<span class="meta-nav">&larr;</span>';
- 		$right_arrow = '<span class="meta-nav">&rarr;</span>';
+		$left_arrow     = '<span class="meta-nav">&larr;</span>';
+		$right_arrow    = '<span class="meta-nav">&rarr;</span>';
 		$old_posts_text = __( 'Older posts', 'twentyeleven' );
- 		$new_posts_text = __( 'Newer posts', 'twentyeleven' );
+		$new_posts_text = __( 'Newer posts', 'twentyeleven' );
 
 		if ( $wp_query->max_num_pages > 1 ) :
 			?>
@@ -659,7 +659,7 @@ if ( ! function_exists( 'twentyeleven_content_nav' ) ) :
 				<?php endif; ?>
 			</nav><!-- #nav-above -->
 			<?php
-	endif;
+		endif;
 	}
 endif; // twentyeleven_content_nav()
 
