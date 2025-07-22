@@ -23,15 +23,15 @@ var twemoji = (function (
     //      properties     //
     /////////////////////////
 
-      // default assets url, by default will be jsDelivr CDN
-      base: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/',
-
-      // default assets file extensions, by default '.png'
-      ext: '.png',
-
       // default assets/folder size, by default "72x72"
       // available via jsDelivr: 72
       size: '72x72',
+
+      // default assets url, by default will be jsDelivr CDN
+      base: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/' + size + '/',
+
+      // default assets file extensions, by default '.png'
+      ext: '.png',
 
       // default class name, by default 'emoji'
       className: 'emoji',
