@@ -3095,6 +3095,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return true;
 
 			/*
+			 * > An end tag whose tag name is "option"
+			 *
+			 * The "option" end tag is handled in the any other end tag section below.
+			 */
+
+			/*
 			 * > A start tag whose tag name is one of: "rb", "rtc"
 			 */
 			case '+RB':
@@ -3194,6 +3200,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		} else {
 			/*
 			 * > Any other end tag
+			 *
+			 * OPTION end tags are handled here as well:
+			 *
+			 * > An end tag whose tag name is "option"
+			 * >   - Let option be the first option element in the stack of open elements.
+			 * >   - Run the steps for "any other end tag."
+			 * >   - If option is no longer in the stack of open elements, then run maybe clone
+			 * >     an option into selectedcontent given option.
+			 *
+			 * The "maybe clone an option into selectedcontent" algorithm is not implemented.
 			 */
 
 			/*
