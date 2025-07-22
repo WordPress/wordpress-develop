@@ -3033,30 +3033,33 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "select"
 			 */
 			case '+SELECT':
+				/*
+				 * > If the parser was created as part of the HTML fragment parsing algorithm
+				 * > (fragment case) and the context element passed to that algorithm is a
+				 * > select element:
+				 * >   1. Parse error.
+				 * >   2. Ignore the token.
+				 */
+				if ( null !== $this->context_node && 'SELECT' === $this->context_node->node_name ) {
+					// @todo Indicate a parse error once it's possible.
+					return $this->step();
+				}
+				/*
+				 * > Otherwise, if the stack of open elements has a select element in scope:
+				 * >   1. Parse error.
+				 * >   2. Ignore the token.
+				 * >   3. Pop elements from the stack of open elements until a select element
+				 * >      has been popped from the stack.
+				 */
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
+					// @todo Indicate a parse error once it's possible.
+					$this->state->stack_of_open_elements->pop_until( 'SELECT' );
+					return $this->step();
+				}
+
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
 				$this->state->frameset_ok = false;
-
-				switch ( $this->state->insertion_mode ) {
-					/*
-					 * > If the insertion mode is one of "in table", "in caption", "in table body", "in row",
-					 * > or "in cell", then switch the insertion mode to "in select in table".
-					 */
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_ROW:
-					case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
-						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE;
-						break;
-
-					/*
-					 * > Otherwise, switch the insertion mode to "in select".
-					 */
-					default:
-						$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT;
-						break;
-				}
 				return true;
 
 			/*
