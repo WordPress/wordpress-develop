@@ -301,6 +301,15 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				 * both string headers and an array of headers.
 				 */
 				$tempheaders = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
+
+				// Line which starts with space is a continuation of previous line, need to keep them as one
+				for ( $index = 0; $index < count( $tempheaders ); $index++ ) {
+					if ( $index > 0 && $tempheaders[ $index ] && ' ' === $tempheaders[ $index ][0] ) {
+						$tempheaders[ $index - 1 ] .= "\n" . $tempheaders[ $index ];
+						array_splice( $tempheaders, $index, 1 );
+						--$index;
+					}
+				}
 			} else {
 				$tempheaders = $headers;
 			}
@@ -334,6 +343,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 									$from_name = substr( $content, 0, $bracket_pos );
 									$from_name = str_replace( '"', '', $from_name );
 									$from_name = trim( $from_name );
+									// Only decode MIME headers if content contains newlines (multiline headers)
+									if ( function_exists( 'mb_decode_mimeheader' ) && str_contains( $content, "\n" ) ) {
+										$from_name = mb_decode_mimeheader( $from_name );
+									}
 								}
 
 								$from_email = substr( $content, $bracket_pos + 1 );
