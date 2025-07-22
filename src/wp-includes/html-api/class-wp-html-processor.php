@@ -2883,6 +2883,28 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * > A start tag whose tag name is "input"
 			 */
 			case '+INPUT':
+				/*
+				 * > If the parser was created as part of the HTML fragment parsing algorithm
+				 * > (fragment case) and the context element passed to that algorithm is a
+				 * > select element:
+				 * >   1. Parse error.
+				 * >   2. Ignore the token.
+				 * >   3. Return.
+				 */
+				if ( null !== $this->context_node && 'SELECT' === $this->context_node->node_name ) {
+					return $this->step();
+				}
+
+				/*
+				 * > If the stack of open elements has a select element in scope:
+				 * >   1. Parse error.
+				 * >   2. Pop elements from the stack of open elements until a select element
+				 * >      has been popped from the stack.
+				 */
+				if ( $this->state->stack_of_open_elements->has_element_in_scope( 'SELECT' ) ) {
+					$this->state->stack_of_open_elements->pop_until( 'SELECT' );
+				}
+
 				$this->reconstruct_active_formatting_elements();
 				$this->insert_html_element( $this->state->current_token );
 
