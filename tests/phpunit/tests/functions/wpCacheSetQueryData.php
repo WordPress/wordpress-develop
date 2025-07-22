@@ -3,7 +3,7 @@
 /**
  * @group functions
  *
- * @covers ::wp_cache_set_query_data
+ * @covers ::wp_cache_set_salted
  */
 class Tests_Functions_wpCacheSetQueryData extends WP_UnitTestCase {
 
@@ -21,7 +21,7 @@ class Tests_Functions_wpCacheSetQueryData extends WP_UnitTestCase {
 			'key2' => 'value2',
 		);
 
-		wp_cache_set_query_data( $cache_key, $data, $cache_group, $last_changed );
+		wp_cache_set_salted( $cache_key, $data, $cache_group, $last_changed );
 
 		$cached_data = wp_cache_get( $cache_key, 'query_data' );
 

@@ -200,7 +200,7 @@ if ( ! function_exists( 'wp_cache_supports' ) ) :
 	}
 endif;
 
-if ( ! function_exists( 'wp_cache_get_query_data' ) ) :
+if ( ! function_exists( 'wp_cache_get_salted' ) ) :
 	/**
 	 * Retrieves cached query data if valid and unchanged.
 	 *
@@ -208,17 +208,18 @@ if ( ! function_exists( 'wp_cache_get_query_data' ) ) :
 	 *
 	 * @param string $cache_key    The cache key used for storage and retrieval.
 	 * @param string $group        The cache group used for organizing data.
-	 * @param string $last_changed The timestamp (or multiple timestamps separated by a delimiter) indicating when the cache group(s) were last updated.
+	 * @param string|string[] $salt The timestamp (or multiple timestamps if an array) indicating when the cache group(s) were last updated.
 	 * @return mixed|false The cached data if valid, or false if the cache does not exist or is outdated.
 	 */
-	function wp_cache_get_query_data( $cache_key, $group, $last_changed ) {
+	function wp_cache_get_salted( $cache_key, $group, $salt ) {
+		$salt  = is_array( $salt ) ? implode( ':', $salt ) : $salt;
 		$cache = wp_cache_get( $cache_key, $group );
 
 		if ( ! is_array( $cache ) ) {
 			return false;
 		}
 
-		if ( ! isset( $cache['last_changed'], $cache['data'] ) || $last_changed !== $cache['last_changed'] ) {
+		if ( ! isset( $cache['salt'], $cache['data'] ) || $salt !== $cache['salt'] ) {
 			return false;
 		}
 
@@ -226,7 +227,7 @@ if ( ! function_exists( 'wp_cache_get_query_data' ) ) :
 	}
 endif;
 
-if ( ! function_exists( 'wp_cache_set_query_data' ) ) :
+if ( ! function_exists( 'wp_cache_set_salted' ) ) :
 	/**
 	 * Stores query-related data in the cache.
 	 *
@@ -235,16 +236,17 @@ if ( ! function_exists( 'wp_cache_set_query_data' ) ) :
 	 * @param string $cache_key    The cache key under which to store the data.
 	 * @param mixed  $data         The data to be cached.
 	 * @param string $group        The cache group to which the data belongs.
-	 * @param string $last_changed The timestamp (or multiple timestamps separated by a delimiter) indicating when the cache group(s) were last updated.
+	 * @param string $salt The timestamp (or multiple timestamps if an array) indicating when the cache group(s) were last updated.
 	 * @param int $expire          Optional. When to expire the cache contents, in seconds.
 	 *                             Default 0 (no expiration).
 	 */
-	function wp_cache_set_query_data( $cache_key, $data, $group, $last_changed, $expire = 0 ) {
+	function wp_cache_set_salted( $cache_key, $data, $group, $salt, $expire = 0 ) {
+		$salt = is_array( $salt ) ? implode( ':', $salt ) : $salt;
 		wp_cache_set(
 			$cache_key,
 			array(
-				'data'         => $data,
-				'last_changed' => $last_changed,
+				'data' => $data,
+				'salt' => $salt,
 			),
 			$group,
 			$expire
@@ -252,7 +254,7 @@ if ( ! function_exists( 'wp_cache_set_query_data' ) ) :
 	}
 endif;
 
-if ( ! function_exists( 'wp_cache_get_multiple_query_data' ) ) :
+if ( ! function_exists( 'wp_cache_get_multiple_salted' ) ) :
 	/**
 	 * Retrieves multiple items from the cache and validates their freshness.
 	 *
@@ -260,10 +262,11 @@ if ( ! function_exists( 'wp_cache_get_multiple_query_data' ) ) :
 	 *
 	 * @param array  $cache_keys   Array of cache keys to retrieve.
 	 * @param string $group        The group of the cache to check.
-	 * @param string $last_changed The timestamp (or multiple timestamps separated by a delimiter) indicating when the cache group(s) were last updated.
+	 * @param string|string[] $salt The timestamp (or multiple timestamps if an array) indicating when the cache group(s) were last updated.
 	 * @return array An associative array containing cache values. Values are `false` if they are not found or outdated.
 	 */
-	function wp_cache_get_multiple_query_data( $cache_keys, $group, $last_changed ) {
+	function wp_cache_get_multiple_salted( $cache_keys, $group, $salt ) {
+		$salt  = is_array( $salt ) ? implode( ':', $salt ) : $salt;
 		$cache = wp_cache_get_multiple( $cache_keys, $group );
 
 		foreach ( $cache as $key => $value ) {
@@ -271,7 +274,7 @@ if ( ! function_exists( 'wp_cache_get_multiple_query_data' ) ) :
 				$cache[ $key ] = false;
 				continue;
 			}
-			if ( ! isset( $value['last_changed'], $value['data'] ) || $last_changed !== $value['last_changed'] ) {
+			if ( ! isset( $value['salt'], $value['data'] ) || $salt !== $value['salt'] ) {
 				$cache[ $key ] = false;
 				continue;
 			}
@@ -282,7 +285,7 @@ if ( ! function_exists( 'wp_cache_get_multiple_query_data' ) ) :
 	}
 endif;
 
-if ( ! function_exists( 'wp_cache_set_multiple_query_data' ) ) :
+if ( ! function_exists( 'wp_cache_set_multiple_salted' ) ) :
 	/**
 	 * Stores multiple pieces of query data in the cache.
 	 *
@@ -290,16 +293,17 @@ if ( ! function_exists( 'wp_cache_set_multiple_query_data' ) ) :
 	 *
 	 * @param mixed  $data         Data to be stored in the cache for all keys.
 	 * @param string $group        Group to which the cached data belongs.
-	 * @param string $last_changed The timestamp (or multiple timestamps separated by a delimiter) indicating when the cache group(s) were last updated.
+	 * @param string|string[] $salt The timestamp (or multiple timestamps if an array) indicating when the cache group(s) were last updated.
 	 * @param int    $expire       Optional. When to expire the cache contents, in seconds.
 	 *                             Default 0 (no expiration).
 	 */
-	function wp_cache_set_multiple_query_data( $data, $group, $last_changed, $expire = 0 ) {
+	function wp_cache_set_multiple_salted( $data, $group, $salt, $expire = 0 ) {
+		$salt      = is_array( $salt ) ? implode( ':', $salt ) : $salt;
 		$new_cache = array();
 		foreach ( $data as $key => $value ) {
 			$new_cache[ $key ] = array(
-				'data'         => $value,
-				'last_changed' => $last_changed,
+				'data' => $value,
+				'salt' => $salt,
 			);
 		}
 		wp_cache_set_multiple( $new_cache, $group, $expire );

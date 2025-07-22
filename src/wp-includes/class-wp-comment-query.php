@@ -452,7 +452,7 @@ class WP_Comment_Query {
 		$last_changed = wp_cache_get_last_changed( 'comment' );
 
 		$cache_key   = "get_comments:$key";
-		$cache_value = wp_cache_get_query_data( $cache_key, 'comment-queries', $last_changed );
+		$cache_value = wp_cache_get_salted( $cache_key, 'comment-queries', $last_changed );
 		if ( false === $cache_value ) {
 			$comment_ids = $this->get_comment_ids();
 			if ( $comment_ids ) {
@@ -463,7 +463,7 @@ class WP_Comment_Query {
 				'comment_ids'    => $comment_ids,
 				'found_comments' => $this->found_comments,
 			);
-			wp_cache_set_query_data( $cache_key, $cache_value, 'comment-queries', $last_changed );
+			wp_cache_set_salted( $cache_key, $cache_value, 'comment-queries', $last_changed );
 		} else {
 			$comment_ids          = $cache_value['comment_ids'];
 			$this->found_comments = $cache_value['found_comments'];
@@ -1046,7 +1046,7 @@ class WP_Comment_Query {
 				foreach ( $_parent_ids as $parent_id ) {
 					$cache_keys[ $parent_id ] = "get_comment_child_ids:$parent_id:$key";
 				}
-				$cache_data = wp_cache_get_multiple_query_data( array_values( $cache_keys ), 'comment-queries', $last_changed );
+				$cache_data = wp_cache_get_multiple_salted( array_values( $cache_keys ), 'comment-queries', $last_changed );
 				foreach ( $_parent_ids as $parent_id ) {
 					$parent_child_ids = $cache_data[ $cache_keys[ $parent_id ] ];
 					if ( false !== $parent_child_ids ) {
@@ -1083,7 +1083,7 @@ class WP_Comment_Query {
 					$cache_key          = "get_comment_child_ids:$parent_id:$key";
 					$data[ $cache_key ] = $children;
 				}
-				wp_cache_set_multiple_query_data( $data, 'comment-queries', $last_changed );
+				wp_cache_set_multiple_salted( $data, 'comment-queries', $last_changed );
 			}
 
 			++$level;

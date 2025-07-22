@@ -779,7 +779,7 @@ class WP_Term_Query {
 		if ( $args['cache_results'] ) {
 			$cache_key    = $this->generate_cache_key( $args, $this->request );
 			$last_changed = wp_cache_get_last_changed( 'terms' );
-			$cache        = wp_cache_get_query_data( $cache_key, 'term-queries', $last_changed );
+			$cache        = wp_cache_get_salted( $cache_key, 'term-queries', $last_changed );
 
 			if ( false !== $cache ) {
 				if ( 'ids' === $_fields ) {
@@ -807,7 +807,7 @@ class WP_Term_Query {
 		if ( 'count' === $_fields ) {
 			$count = $wpdb->get_var( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			if ( $args['cache_results'] ) {
-				wp_cache_set_query_data( $cache_key, $count, 'term-queries', $last_changed );
+				wp_cache_set_salted( $cache_key, $count, 'term-queries', $last_changed );
 			}
 			return $count;
 		}
@@ -816,7 +816,7 @@ class WP_Term_Query {
 
 		if ( empty( $terms ) ) {
 			if ( $args['cache_results'] ) {
-				wp_cache_set_query_data( $cache_key, array(), 'term-queries', $last_changed );
+				wp_cache_set_salted( $cache_key, array(), 'term-queries', $last_changed );
 			}
 			return array();
 		}
@@ -900,7 +900,7 @@ class WP_Term_Query {
 		}
 
 		if ( $args['cache_results'] ) {
-			wp_cache_set_query_data( $cache_key, $term_cache, 'term-queries', $last_changed );
+			wp_cache_set_salted( $cache_key, $term_cache, 'term-queries', $last_changed );
 		}
 
 		$this->terms = $this->format_terms( $term_objects, $_fields );

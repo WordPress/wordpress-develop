@@ -833,7 +833,7 @@ class WP_User_Query {
 			$last_changed  = $this->get_cache_last_changed( $qv );
 
 			if ( $qv['cache_results'] ) {
-				$cache_value = wp_cache_get_query_data( $cache_key, $cache_group, $last_changed );
+				$cache_value = wp_cache_get_salted( $cache_key, $cache_group, $last_changed );
 			}
 			if ( false !== $cache_value ) {
 				$this->results     = $cache_value['user_data'];
@@ -868,7 +868,7 @@ class WP_User_Query {
 						'user_data'   => $this->results,
 						'total_users' => $this->total_users,
 					);
-					wp_cache_set_query_data( $cache_key, $cache_value, $cache_group, $last_changed );
+					wp_cache_set_salted( $cache_key, $cache_value, $cache_group, $last_changed );
 				}
 			}
 		}
@@ -1070,10 +1070,10 @@ class WP_User_Query {
 	 * @since 6.9.0
 	 *
 	 * @param array $args Query arguments.
-	 * @return string The last changed timestamp string for the relevant cache groups.
+	 * @return string[] The last changed timestamp string for the relevant cache groups.
 	 */
 	protected function get_cache_last_changed( array $args ) {
-		$last_changed = wp_cache_get_last_changed( 'users' );
+		$last_changed = (array) wp_cache_get_last_changed( 'users' );
 
 		if ( empty( $args['orderby'] ) ) {
 			// Default order is by 'user_login'.
@@ -1096,7 +1096,7 @@ class WP_User_Query {
 				switch_to_blog( $blog_id );
 			}
 
-			$last_changed .= wp_cache_get_last_changed( 'posts' );
+			$last_changed[] = wp_cache_get_last_changed( 'posts' );
 
 			if ( $switch ) {
 				restore_current_blog();

@@ -6,7 +6,7 @@
  * @group functions
  * @group cache
  *
- * @covers ::wp_cache_get_query_data
+ * @covers ::wp_cache_get_salted
  */
 class Tests_Functions_wpCacheGetQueryData extends WP_UnitTestCase {
 
@@ -26,7 +26,7 @@ class Tests_Functions_wpCacheGetQueryData extends WP_UnitTestCase {
 		);
 		wp_cache_set( 'cache_key', $cache_value, 'query_data' );
 
-		$result = wp_cache_get_query_data( 'cache_key', 'query_data', $last_changed );
+		$result = wp_cache_get_salted( 'cache_key', 'query_data', $last_changed );
 
 		$this->assertSameSets( $cache_value['data'], $result );
 	}
@@ -41,7 +41,7 @@ class Tests_Functions_wpCacheGetQueryData extends WP_UnitTestCase {
 	public function test_wp_cache_get_query_data_return_false( $cache_value ) {
 		wp_cache_set( 'cache_key', $cache_value, 'query_data' );
 		$last_changed = wp_cache_get_last_changed( 'query_data' );
-		$this->assertFalse( wp_cache_get_query_data( 'cache_key', 'query_data', $last_changed ) );
+		$this->assertFalse( wp_cache_get_salted( 'cache_key', 'query_data', $last_changed ) );
 	}
 
 	public function data_provider_for_wp_cache_get_query_data_return_false() {

@@ -624,10 +624,10 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
 
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 	$cache_key    = 'count_user_posts:' . md5( $query );
-	$count        = wp_cache_get_query_data( $cache_key, 'post-queries', $last_changed );
+	$count        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false === $count ) {
 		$count = $wpdb->get_var( $query );
-		wp_cache_set_query_data( $cache_key, $count, 'post-queries', $last_changed );
+		wp_cache_set_salted( $cache_key, $count, 'post-queries', $last_changed );
 	}
 
 	/**

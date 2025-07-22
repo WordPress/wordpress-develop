@@ -6,7 +6,7 @@
  * @group functions
  * @group cache
  *
- * @covers ::wp_cache_set_query_data
+ * @covers ::wp_cache_set_salted
  */
 class Tests_Functions_wpCacheSetMultipleQueryData extends WP_UnitTestCase {
 	/**
@@ -22,7 +22,7 @@ class Tests_Functions_wpCacheSetMultipleQueryData extends WP_UnitTestCase {
 			'key2' => 'value2',
 		);
 
-		wp_cache_set_multiple_query_data( $data, $cache_group, $last_changed );
+		wp_cache_set_multiple_salted( $data, $cache_group, $last_changed );
 		$cache_values          = wp_cache_get_multiple( array( 'key1', 'key2' ), $cache_group );
 		$expected_cache_values = array(
 			'key1' => array(

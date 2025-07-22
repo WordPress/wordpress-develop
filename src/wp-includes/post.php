@@ -6105,7 +6105,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 
 	$hash      = md5( $page_path . serialize( $post_type ) );
 	$cache_key = "get_page_by_path:$hash";
-	$cached    = wp_cache_get_query_data( $cache_key, 'post-queries', $last_changed );
+	$cached    = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( '0' === $cached || 0 === $cached ) {
@@ -6175,7 +6175,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	}
 
 	// We cache misses as well as hits.
-	wp_cache_set_query_data( $cache_key, $found_id, 'post-queries', $last_changed );
+	wp_cache_set_salted( $cache_key, $found_id, 'post-queries', $last_changed );
 
 	if ( $found_id ) {
 		return get_post( $found_id, $output );
