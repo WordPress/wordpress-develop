@@ -688,3 +688,43 @@ eof-in-math
 |   <body>
 |     <select>
 |     <input>
+
+#data
+<select><button><selectedcontent></button><option>X
+#errors
+#document
+| <html>
+|   <head>
+|   <body>
+|     <select>
+|       <button>
+|         <selectedcontent>
+|           "X"
+|       <option>
+|         "X"
+
+#data
+<select><button><selectedcontent></button><option>x<i>i<b>ib</i>b
+#errors
+#document
+| <html>
+|   <head>
+|   <body>
+|     <select>
+|       <button>
+|         <selectedcontent>
+|           "x"
+|           <i>
+|             "i"
+|             <b>
+|               "ib"
+|           <b>
+|             "b"
+|       <option>
+|         "x"
+|         <i>
+|           "i"
+|           <b>
+|             "ib"
+|         <b>
+|           "b"
