@@ -3194,6 +3194,20 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			/*
 			 * > Any other start tag
 			 */
+
+			/*
+			 * SELECT > BUTTON > SELECTEDCONTENT requires special handling, cloning the
+			 * selected option. This is unsupported.
+			 */
+			if ( 'SELECTEDCONTENT' === $token_name ) {
+				$walker = $this->state->stack_of_open_elements->walk_up();
+				if ( null !== $walker->current() && $walker->current()->node_name === 'BUTTON' ) {
+					$walker->next();
+					if ( null !== $walker->current() && $walker->current()->node_name === 'SELECT' ) {
+						$this->bail( 'Cannot process SELECTEDCONTENT where cloning may be necessary.' );
+					}
+				}
+			}
 			$this->reconstruct_active_formatting_elements();
 			$this->insert_html_element( $this->state->current_token );
 			return true;
