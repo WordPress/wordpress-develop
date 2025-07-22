@@ -18,8 +18,8 @@ class Tests_Functions_wpCacheGetQueryData extends WP_UnitTestCase {
 	public function test_wp_cache_get_query_data_return_data() {
 		$last_changed = wp_cache_get_last_changed( 'query_data' );
 		$cache_value  = array(
-			'last_changed' => $last_changed,
-			'data'         => array(
+			'salt' => $last_changed,
+			'data' => array(
 				'key1' => 'value1',
 				'key2' => 'value2',
 			),
@@ -52,11 +52,11 @@ class Tests_Functions_wpCacheGetQueryData extends WP_UnitTestCase {
 			array( 0 ),
 			array( array() ),
 			array( new StdClass() ),
-			array( array( 'last_changed' => '123' ) ),
+			array( array( 'salt' => '123' ) ),
 			array(
 				array(
-					'last_changed' => '123',
-					'data'         => array(),
+					'salt' => '123',
+					'data' => array(),
 				),
 			),
 			array( array( 'data' => array() ) ),

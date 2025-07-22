@@ -18,8 +18,8 @@ class Tests_Functions_wpCacheGetMultipleQueryData extends WP_UnitTestCase {
 	public function test_wp_cache_get_multiple_query_data_return_data() {
 		$last_changed = wp_cache_get_last_changed( 'query_data' );
 		$cache_value  = array(
-			'last_changed' => $last_changed,
-			'data'         => array(
+			'salt' => $last_changed,
+			'data' => array(
 				'key1' => 'value1',
 				'key2' => 'value2',
 			),
@@ -63,16 +63,16 @@ class Tests_Functions_wpCacheGetMultipleQueryData extends WP_UnitTestCase {
 		wp_cache_set(
 			'cache_key',
 			array(
-				'last_changed' => $last_changed,
-				'data'         => array( 123 ),
+				'salt' => $last_changed,
+				'data' => array( 123 ),
 			),
 			'query_data'
 		);
 		wp_cache_set(
 			'another_key',
 			array(
-				'last_changed' => '123',
-				'data'         => array(),
+				'salt' => '123',
+				'data' => array(),
 			),
 			'query_data'
 		);

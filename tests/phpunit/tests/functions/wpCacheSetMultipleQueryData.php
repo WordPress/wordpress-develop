@@ -27,13 +27,13 @@ class Tests_Functions_wpCacheSetMultipleQueryData extends WP_UnitTestCase {
 		$expected_cache_values = array(
 			'key1' => array(
 
-				'data'         => 'value1',
-				'last_changed' => $last_changed,
+				'data' => 'value1',
+				'salt' => $last_changed,
 			),
 			'key2' => array(
 
-				'data'         => 'value2',
-				'last_changed' => $last_changed,
+				'data' => 'value2',
+				'salt' => $last_changed,
 			),
 		);
 		$this->assertSameSets( $expected_cache_values, $cache_values );
