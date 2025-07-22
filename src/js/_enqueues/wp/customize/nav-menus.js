@@ -308,11 +308,20 @@
 
 		renderMenuItem: function(menuItem) {
 			var $item = $(wp.template('available-menu-item')(menuItem.attributes));
+			var $title = $item.find('.menu-item-title');
+			var $button = $item.find('.item-add');
+			var $srtext = $button.find('.screen-reader-text');
+			var isInUse = this.isMenuItemAlreadyAdded(menuItem);
 
-			$item.find('.menu-item-title').toggleClass(
-				'in-use',
-				this.isMenuItemAlreadyAdded(menuItem)
-			);
+			$title.toggleClass('in-use', isInUse);
+
+			// Append screen reader text if already in menu
+			if (isInUse) {
+				var markerText = wp.i18n.__('(in current menu)');
+				if (!$srtext.text().includes(markerText)) {
+					$srtext.append(' ' + markerText);
+				}
+			}
 
 			return $item;
 		},
