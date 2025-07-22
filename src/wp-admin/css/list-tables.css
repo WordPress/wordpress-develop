@@ -1313,13 +1313,18 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	white-space: nowrap;
 }
 
-.plugins .plugin-title img,
-.plugins .plugin-title .dashicons {
-	float: left;
-	padding: 0 10px 0 0;
-	width: 64px;
-	height: 64px;
+.plugins .plugin-title .dashicons,
+.plugins .plugin-title > img {
+    float: left;
+    margin-right: 6px;
 }
+
+.plugins .plugin-title .dashicons,
+.plugins .plugin-title img:not([src*="emoji"]) {
+	float: left;
+}
+
+
 
 .plugins .plugin-title .dashicons:before {
 	padding: 2px;
