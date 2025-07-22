@@ -417,7 +417,7 @@ function twentyfifteen_javascript_detection() {
 add_action( 'wp_head', 'twentyfifteen_javascript_detection', 0 );
 
 /**
- * Enqueue scripts and styles.
+ * Enqueues scripts and styles.
  *
  * @since Twenty Fifteen 1.0
  */
