@@ -43,7 +43,7 @@
 	}
 
 	/**
-	 * Add class.
+	 * Adds class.
 	 *
 	 * @param {Object} el
 	 * @param {string} cls

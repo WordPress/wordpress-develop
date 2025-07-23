@@ -1,6 +1,6 @@
 <?php
 /**
- * Implement a custom header for Twenty Thirteen
+ * Implements a custom header for Twenty Thirteen
  *
  * @link https://codex.wordpress.org/Custom_Headers
  *
@@ -10,7 +10,7 @@
  */
 
 /**
- * Set up the WordPress core custom header arguments and settings.
+ * Sets up the WordPress core custom header arguments and settings.
  *
  * @uses add_theme_support() to register support for 3.4 and up.
  * @uses twentythirteen_header_style() to style front end.
@@ -26,7 +26,7 @@ function twentythirteen_custom_header_setup() {
 		'default-text-color'     => '220e10',
 		'default-image'          => '%s/images/headers/circle.png',
 
-		// Set height and width, with a maximum value for the width.
+		// Sets height and width, with a maximum value for the width.
 		'height'                 => 230,
 		'width'                  => 1600,
 

@@ -151,7 +151,7 @@
 	} );
 
 	/**
-	 * Add styles to elements in the preview pane.
+	 * Adds styles to elements in the preview pane.
 	 *
 	 * @since Twenty Twenty 1.0
 	 *

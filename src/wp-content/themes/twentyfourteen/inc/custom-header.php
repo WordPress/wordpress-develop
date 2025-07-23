@@ -1,6 +1,6 @@
 <?php
 /**
- * Implement Custom Header functionality for Twenty Fourteen
+ * Implements Custom Header functionality for Twenty Fourteen
  *
  * @package WordPress
  * @subpackage Twenty_Fourteen
@@ -8,7 +8,7 @@
  */
 
 /**
- * Set up the WordPress core custom header settings.
+ * Sets up the WordPress core custom header settings.
  *
  * @since Twenty Fourteen 1.0
  *

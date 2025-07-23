@@ -11,7 +11,7 @@
  * @return {Object} - this
  */
 function _twentyTwentyColor( backgroundColor, accentHue ) {
-	// Set the object properties.
+	// Sets the object properties.
 	this.backgroundColor = backgroundColor;
 	this.accentHue = accentHue;
 	this.bgColorObj = new Color( backgroundColor );
@@ -49,7 +49,7 @@ _twentyTwentyColor.prototype.setAccentColorsArray = function() {
 				} ),
 				item,
 				/**
-				 * Get a score for this color in contrast to its background color and surrounding text.
+				 * Gets a score for this color in contrast to its background color and surrounding text.
 				 *
 				 * @since Twenty Twenty 1.0
 				 *
@@ -110,7 +110,7 @@ _twentyTwentyColor.prototype.setAccentColorsArray = function() {
 };
 
 /**
- * Get accessible text-color.
+ * Gets accessible text-color.
  *
  * @since Twenty Twenty 1.0
  *
@@ -121,7 +121,7 @@ _twentyTwentyColor.prototype.getTextColor = function() {
 };
 
 /**
- * Get accessible color for the defined accent-hue and background-color.
+ * Gets accessible color for the defined accent-hue and background-color.
  *
  * @since Twenty Twenty 1.0
  *

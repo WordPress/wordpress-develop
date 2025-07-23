@@ -8,7 +8,7 @@
  */
 
 /**
- * Register Block Pattern Category.
+ * Registers Block Pattern Category.
  */
 if ( function_exists( 'register_block_pattern_category' ) ) {
 
@@ -19,7 +19,7 @@ if ( function_exists( 'register_block_pattern_category' ) ) {
 }
 
 /**
- * Register Block Patterns.
+ * Registers Block Patterns.
  */
 if ( function_exists( 'register_block_pattern' ) ) {
 	register_block_pattern(

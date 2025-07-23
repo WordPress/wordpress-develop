@@ -12,7 +12,7 @@
 
 if ( function_exists( 'register_block_pattern_category' ) ) {
 	/**
-	 * Register Block Pattern Category.
+	 * Registers Block Pattern Category.
 	 *
 	 * @since Twenty Twenty-One 1.0
 	 *
@@ -28,11 +28,11 @@ if ( function_exists( 'register_block_pattern_category' ) ) {
 }
 
 /**
- * Register Block Patterns.
+ * Registers Block Patterns.
  */
 if ( function_exists( 'register_block_pattern' ) ) {
 	/**
-	 * Register Block Pattern.
+	 * Registers Block Pattern.
 	 *
 	 * @since Twenty Twenty-One 1.0
 	 *

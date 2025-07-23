@@ -5,7 +5,7 @@
  */
 
 /**
- * Add max-width & max-height to <iframe> elements, depending on their width & height props.
+ * Adds max-width & max-height to <iframe> elements, depending on their width & height props.
  *
  * @since Twenty Twenty-One 1.0
  *
@@ -22,7 +22,7 @@ function twentytwentyoneResponsiveEmbeds() {
 			proportion = parseFloat( iframe.width ) / parseFloat( iframe.height );
 			// Get the parent element's width.
 			parentWidth = parseFloat( window.getComputedStyle( iframe.parentElement, null ).width.replace( 'px', '' ) );
-			// Set the max-width & height.
+			// Sets the max-width & height.
 			iframe.style.maxWidth = '100%';
 			iframe.style.maxHeight = Math.round( parentWidth / proportion ).toString() + 'px';
 		}

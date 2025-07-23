@@ -1,6 +1,6 @@
 <?php
 /**
- * Implement an optional custom header for Twenty Twelve
+ * Implements an optional custom header for Twenty Twelve
  *
  * See https://codex.wordpress.org/Custom_Headers
  *
@@ -10,7 +10,7 @@
  */
 
 /**
- * Set up the WordPress core custom header arguments and settings.
+ * Sets up the WordPress core custom header arguments and settings.
  *
  * @uses add_theme_support() to register support for 3.4 and up.
  * @uses twentytwelve_header_style() to style front end.
@@ -25,7 +25,7 @@ function twentytwelve_custom_header_setup() {
 		'default-text-color'     => '515151',
 		'default-image'          => '',
 
-		// Set height and width, with a maximum value for the width.
+		// Sets height and width, with a maximum value for the width.
 		'height'                 => 250,
 		'width'                  => 960,
 		'max-width'              => 2000,

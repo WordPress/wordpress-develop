@@ -8,7 +8,7 @@
  */
 
 /**
- * Register Block Pattern Category.
+ * Registers Block Pattern Category.
  */
 if ( function_exists( 'register_block_pattern_category' ) ) {
 
@@ -19,7 +19,7 @@ if ( function_exists( 'register_block_pattern_category' ) ) {
 }
 
 /**
- * Register Block Patterns.
+ * Registers Block Patterns.
  */
 if ( function_exists( 'register_block_pattern' ) ) {
 	register_block_pattern(
@@ -150,11 +150,11 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'content'    => '<!-- wp:spacer -->
             <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->
-            
+
             <!-- wp:heading {"level":1,"style":{"typography":{"fontSize":50}}} -->
             <h1 style="font-size:50px">' . esc_html__( 'Our Services', 'twentyseventeen' ) . '</h1>
             <!-- /wp:heading -->
-            
+
             <!-- wp:columns -->
             <div class="wp-block-columns"><!-- wp:column -->
             <div class="wp-block-column">
@@ -163,7 +163,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:paragraph -->
             </div>
             <!-- /wp:column -->
-            
+
             <!-- wp:column -->
             <div class="wp-block-column">
             <!-- wp:paragraph {"style":{"typography":{"fontSize":21, "lineHeight":"2.5"}}} -->
@@ -171,7 +171,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:paragraph --></div>
             <!-- /wp:column --></div>
             <!-- /wp:columns -->
-            
+
             <!-- wp:spacer -->
             <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->',
@@ -187,7 +187,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-cover aligncenter has-background-dim" style="background-color:#93aab8;min-height:700px"><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"left","textColor":"white","style":{"typography":{"fontSize":50}}} -->
             <p class="has-text-align-left has-white-color has-text-color" style="font-size:50px">' . esc_html__( 'We are proud to serve outstanding clients.', 'twentyseventeen' ) . '</p>
             <!-- /wp:paragraph -->
-            
+
             <!-- wp:buttons -->
             <div class="wp-block-buttons"><!-- wp:button {"borderRadius":0,"backgroundColor":"black","textColor":"white","className":"is-style-fill"} -->
             <div class="wp-block-button is-style-fill"><a class="wp-block-button__link has-white-color has-black-background-color has-text-color has-background no-border-radius">' . esc_html__( 'Contact us', 'twentyseventeen' ) . '</a></div>

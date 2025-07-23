@@ -111,7 +111,7 @@ class Twenty_Twenty_One_Custom_Colors {
 	}
 
 	/**
-	 * Get luminance from a HEX color.
+	 * Gets luminance from a HEX color.
 	 *
 	 * @static
 	 *

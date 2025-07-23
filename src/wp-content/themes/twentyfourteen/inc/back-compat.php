@@ -26,7 +26,7 @@ function twentyfourteen_switch_theme() {
 add_action( 'after_switch_theme', 'twentyfourteen_switch_theme' );
 
 /**
- * Add message for unsuccessful theme switch.
+ * Adds message for unsuccessful theme switch.
  *
  * Prints an update nag after an unsuccessful attempt to switch to
  * Twenty Fourteen on WordPress versions prior to 3.6.

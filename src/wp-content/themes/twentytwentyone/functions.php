@@ -39,7 +39,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		add_theme_support( 'title-tag' );
 
 		/**
-		 * Add post-formats support.
+		 * Adds post-formats support.
 		 */
 		add_theme_support(
 			'post-formats',
@@ -72,7 +72,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		);
 
 		/*
-		 * Switch default core markup for search form, comment form, and comments
+		 * Switches default core markup for search form, comment form, and comments
 		 * to output valid HTML5.
 		 */
 		add_theme_support(
@@ -89,7 +89,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		);
 
 		/*
-		 * Add support for core custom logo.
+		 * Adds support for core custom logo.
 		 *
 		 * @link https://codex.wordpress.org/Theme_Logo
 		 */

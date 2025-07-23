@@ -18,7 +18,7 @@ if ( ! class_exists( 'TwentyTwenty_Non_Latin_Languages' ) ) {
 	class TwentyTwenty_Non_Latin_Languages {
 
 		/**
-		 * Get custom CSS.
+		 * Gets custom CSS.
 		 *
 		 * Return CSS for non-latin language, if available, or null
 		 *

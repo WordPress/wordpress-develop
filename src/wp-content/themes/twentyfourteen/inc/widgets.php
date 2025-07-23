@@ -45,7 +45,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Enqueue scripts.
+	 * Enqueues scripts.
 	 *
 	 * @since Twenty Fourteen 1.7
 	 */
@@ -280,7 +280,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Display the form for this widget on the Widgets page of the Admin area.
+	 * Displays the form for this widget on the Widgets page of the Admin area.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *

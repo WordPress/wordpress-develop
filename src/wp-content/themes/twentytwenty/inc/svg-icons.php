@@ -26,7 +26,7 @@ if ( ! function_exists( 'twentytwenty_the_theme_svg' ) ) {
 if ( ! function_exists( 'twentytwenty_get_theme_svg' ) ) {
 
 	/**
-	 * Get information about the SVG icon.
+	 * Gets information about the SVG icon.
 	 *
 	 * @since Twenty Twenty 1.0
 	 *

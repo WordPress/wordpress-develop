@@ -34,7 +34,7 @@ class Twenty_Twenty_One_Customize_Color_Control extends WP_Customize_Color_Contr
 	public $palette;
 
 	/**
-	 * Enqueue control related scripts/styles.
+	 * Enqueues control related scripts/styles.
 	 *
 	 * @since Twenty Twenty-One 1.0
 	 *

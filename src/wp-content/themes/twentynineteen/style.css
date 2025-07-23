@@ -1960,7 +1960,7 @@ abbr[title] {
 }
 
 /**
- * Add the correct font weight in Chrome, Edge, and Safari.
+ * Adds the correct font weight in Chrome, Edge, and Safari.
  */
 b,
 strong {
@@ -1981,7 +1981,7 @@ samp {
 }
 
 /**
- * Add the correct font size in all browsers.
+ * Adds the correct font size in all browsers.
  */
 small {
   font-size: 80%;
@@ -2038,7 +2038,7 @@ textarea {
 }
 
 /**
- * Show the overflow in IE.
+ * Shows the overflow in IE.
  * 1. Show the overflow in Edge.
  */
 button,
@@ -2117,7 +2117,7 @@ legend {
 }
 
 /**
- * Add the correct vertical alignment in Chrome, Firefox, and Opera.
+ * Adds the correct vertical alignment in Chrome, Firefox, and Opera.
  */
 progress {
   vertical-align: baseline;
@@ -2182,14 +2182,14 @@ textarea {
 /* Interactive
 	 ========================================================================== */
 /*
- * Add the correct display in Edge, IE 10+, and Firefox.
+ * Adds the correct display in Edge, IE 10+, and Firefox.
  */
 details {
   display: block;
 }
 
 /*
- * Add the correct display in all browsers.
+ * Adds the correct display in all browsers.
  */
 summary {
   display: list-item;
@@ -2198,14 +2198,14 @@ summary {
 /* Misc
 	 ========================================================================== */
 /**
- * Add the correct display in IE 10+.
+ * Adds the correct display in IE 10+.
  */
 template {
   display: none;
 }
 
 /**
- * Add the correct display in IE 10.
+ * Adds the correct display in IE 10.
  */
 [hidden] {
   display: none;
@@ -4142,7 +4142,7 @@ body.page .main-navigation {
 .site-header.featured-image:after {
   background: #000;
   /**
-		 * Add a transition to the readability overlay, to add a subtle
+		 * Adds a transition to the readability overlay, to add a subtle
 		 * but smooth effect when resizing the screen.
 		 */
   transition: opacity 1200ms ease-in-out;

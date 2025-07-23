@@ -8,7 +8,7 @@
  */
 
 /**
- * Set up the WordPress core custom header feature.
+ * Sets up the WordPress core custom header feature.
  *
  * @uses twentyfifteen_header_style()
  */

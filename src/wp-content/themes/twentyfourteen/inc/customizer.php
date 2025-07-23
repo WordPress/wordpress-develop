@@ -8,7 +8,7 @@
  */
 
 /**
- * Implement Customizer additions and adjustments.
+ * Implements Customizer additions and adjustments.
  *
  * @since Twenty Fourteen 1.0
  *
@@ -147,7 +147,7 @@ function twentyfourteen_customize_preview_js() {
 add_action( 'customize_preview_init', 'twentyfourteen_customize_preview_js' );
 
 /**
- * Add contextual help to the Themes and Post edit screens.
+ * Adds contextual help to the Themes and Post edit screens.
  *
  * @since Twenty Fourteen 1.0
  */

@@ -56,7 +56,7 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 		);
 
 		/*
-		 * Switch default core markup for search form, comment form, and comments
+		 * Switches default core markup for search form, comment form, and comments
 		 * to output valid HTML5.
 		 */
 		add_theme_support(
@@ -74,7 +74,7 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 		);
 
 		/**
-		 * Add support for core custom logo.
+		 * Adds support for core custom logo.
 		 *
 		 * @link https://codex.wordpress.org/Theme_Logo
 		 */
@@ -190,7 +190,7 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 endif;
 
 /**
- * Register widget area.
+ * Registers widget area.
  *
  * @link https://developer.wordpress.org/themes/functionality/sidebars/#registering-a-sidebar
  */
@@ -235,7 +235,7 @@ function twentynineteen_excerpt_more( $link ) {
 add_filter( 'excerpt_more', 'twentynineteen_excerpt_more' );
 
 /**
- * Set the content width in pixels, based on the theme's design and stylesheet.
+ * Sets the content width in pixels, based on the theme's design and stylesheet.
  *
  * Priority 0 to make it available to lower priority callbacks.
  *
@@ -311,7 +311,7 @@ function twentynineteen_skip_link_focus_fix() {
 }
 
 /**
- * Enqueue supplemental block editor styles.
+ * Enqueues supplemental block editor styles.
  */
 function twentynineteen_editor_customizer_styles() {
 
@@ -326,7 +326,7 @@ function twentynineteen_editor_customizer_styles() {
 add_action( 'enqueue_block_editor_assets', 'twentynineteen_editor_customizer_styles' );
 
 /**
- * Display custom color CSS in customizer and on frontend.
+ * Displays custom color CSS in customizer and on frontend.
  */
 function twentynineteen_colors_css_wrap() {
 
@@ -386,7 +386,7 @@ require get_template_directory() . '/inc/template-tags.php';
 require get_template_directory() . '/inc/customizer.php';
 
 /**
- * Register block patterns and pattern categories.
+ * Registers block patterns and pattern categories.
  *
  * @since Twenty Nineteen 3.0
  */

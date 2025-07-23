@@ -46,7 +46,7 @@ function twentytwenty_theme_support() {
 		)
 	);
 
-	// Set content-width.
+	// Sets content-width.
 	global $content_width;
 	if ( ! isset( $content_width ) ) {
 		$content_width = 580;
@@ -59,7 +59,7 @@ function twentytwenty_theme_support() {
 	 */
 	add_theme_support( 'post-thumbnails' );
 
-	// Set post thumbnail size.
+	// Sets post thumbnail size.
 	set_post_thumbnail_size( 1200, 9999 );
 
 	// Add custom image size used in Cover Template.
@@ -94,7 +94,7 @@ function twentytwenty_theme_support() {
 	add_theme_support( 'title-tag' );
 
 	/*
-	 * Switch default core markup for search form, comment form, and comments
+	 * Switches default core markup for search form, comment form, and comments
 	 * to output valid HTML5.
 	 */
 	add_theme_support(
@@ -176,7 +176,7 @@ require get_template_directory() . '/classes/class-twentytwenty-non-latin-langua
 require get_template_directory() . '/inc/custom-css.php';
 
 /**
- * Register block patterns and pattern categories.
+ * Registers block patterns and pattern categories.
  *
  * @since Twenty Twenty 2.8
  */
@@ -187,7 +187,7 @@ function twentytwenty_register_block_patterns() {
 add_action( 'init', 'twentytwenty_register_block_patterns' );
 
 /**
- * Register and Enqueue Styles.
+ * Registers and Enqueue Styles.
  *
  * @since Twenty Twenty 1.0
  * @since Twenty Twenty 2.6 Enqueue the CSS file for the variable font.
@@ -215,7 +215,7 @@ function twentytwenty_register_styles() {
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_styles' );
 
 /**
- * Register and Enqueue Scripts.
+ * Registers and Enqueue Scripts.
  *
  * @since Twenty Twenty 1.0
  */
@@ -260,7 +260,7 @@ function twentytwenty_skip_link_focus_fix() {
 }
 
 /**
- * Enqueue non-latin language styles.
+ * Enqueues non-latin language styles.
  *
  * @since Twenty Twenty 1.0
  *
@@ -277,7 +277,7 @@ function twentytwenty_non_latin_languages() {
 add_action( 'wp_enqueue_scripts', 'twentytwenty_non_latin_languages' );
 
 /**
- * Register navigation menus uses wp_nav_menu in five places.
+ * Registers navigation menus uses wp_nav_menu in five places.
  *
  * @since Twenty Twenty 1.0
  */
@@ -297,7 +297,7 @@ function twentytwenty_menus() {
 add_action( 'init', 'twentytwenty_menus' );
 
 /**
- * Get the information about the logo.
+ * Gets the information about the logo.
  *
  * @since Twenty Twenty 1.0
  *
@@ -385,7 +385,7 @@ function twentytwenty_skip_link() {
 add_action( 'wp_body_open', 'twentytwenty_skip_link', 5 );
 
 /**
- * Register widget areas.
+ * Registers widget areas.
  *
  * @since Twenty Twenty 1.0
  *
@@ -429,7 +429,7 @@ function twentytwenty_sidebar_registration() {
 add_action( 'widgets_init', 'twentytwenty_sidebar_registration' );
 
 /**
- * Enqueue supplemental block editor styles.
+ * Enqueues supplemental block editor styles.
  *
  * @since Twenty Twenty 1.0
  * @since Twenty Twenty 2.4 Removed a script related to the obsolete Squared style of Button blocks.
@@ -466,7 +466,7 @@ if ( is_admin() && version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
 }
 
 /**
- * Enqueue classic editor styles.
+ * Enqueues classic editor styles.
  *
  * @since Twenty Twenty 1.0
  * @since Twenty Twenty 2.6 Enqueue the CSS file for the variable font.
@@ -540,7 +540,7 @@ add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_non_latin_s
 
 /**
  * Block Editor Settings.
- * Add custom colors and font sizes to the block editor.
+ * Adds custom colors and font sizes to the block editor.
  *
  * @since Twenty Twenty 1.0
  */
@@ -665,7 +665,7 @@ function twentytwenty_customize_controls_enqueue_scripts() {
 add_action( 'customize_controls_enqueue_scripts', 'twentytwenty_customize_controls_enqueue_scripts' );
 
 /**
- * Enqueue scripts for the customizer preview.
+ * Enqueues scripts for the customizer preview.
  *
  * @since Twenty Twenty 1.0
  *
@@ -691,7 +691,7 @@ function twentytwenty_customize_preview_init() {
 add_action( 'customize_preview_init', 'twentytwenty_customize_preview_init' );
 
 /**
- * Get accessible color for an area.
+ * Gets accessible color for an area.
  *
  * @since Twenty Twenty 1.0
  *
@@ -749,7 +749,7 @@ function twentytwenty_get_customizer_color_vars() {
 }
 
 /**
- * Get an array of elements.
+ * Gets an array of elements.
  *
  * @since Twenty Twenty 1.0
  *

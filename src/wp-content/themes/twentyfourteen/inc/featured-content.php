@@ -104,7 +104,7 @@ class Featured_Content {
 	}
 
 	/**
-	 * Get featured posts.
+	 * Gets featured posts.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -129,7 +129,7 @@ class Featured_Content {
 	}
 
 	/**
-	 * Get featured post IDs
+	 * Gets featured post IDs
 	 *
 	 * This function will return the an array containing the
 	 * post IDs of all featured posts.
@@ -205,7 +205,7 @@ class Featured_Content {
 	/**
 	 * Exclude featured posts from the home page blog query.
 	 *
-	 * Filter the home page posts, and remove any featured post ID's from it.
+	 * Filters the home page posts, and remove any featured post ID's from it.
 	 * Hooked onto the 'pre_get_posts' action, this changes the parameters of
 	 * the query before it gets any posts.
 	 *
@@ -360,7 +360,7 @@ class Featured_Content {
 	}
 
 	/**
-	 * Register custom setting on the Settings -> Reading screen.
+	 * Registers custom setting on the Settings -> Reading screen.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 */
@@ -369,7 +369,7 @@ class Featured_Content {
 	}
 
 	/**
-	 * Add settings to the Customizer.
+	 * Adds settings to the Customizer.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -430,7 +430,7 @@ class Featured_Content {
 	}
 
 	/**
-	 * Enqueue the tag suggestion script.
+	 * Enqueues the tag suggestion script.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 */
@@ -439,9 +439,9 @@ class Featured_Content {
 	}
 
 	/**
-	 * Get featured content settings.
+	 * Gets featured content settings.
 	 *
-	 * Get all settings recognized by this module. This function
+	 * Gets all settings recognized by this module. This function
 	 * will return all settings whether or not they have been stored
 	 * in the database yet. This ensures that all keys are available
 	 * at all times.

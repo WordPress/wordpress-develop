@@ -16,7 +16,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 	class TwentyTwenty_Customize {
 
 		/**
-		 * Register customizer options.
+		 * Registers customizer options.
 		 *
 		 * @since Twenty Twenty 1.0
 		 *

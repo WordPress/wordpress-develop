@@ -44,7 +44,7 @@
 		}
 	});
 
-	// Set properties of navigation.
+	// Sets properties of navigation.
 	function setNavProps() {
 		navigationHeight      = $navigation.height();
 		navigationOuterHeight = $navigation.outerHeight();
@@ -85,7 +85,7 @@
 		}
 	}
 
-	// Set margins of branding in header.
+	// Sets margins of branding in header.
 	function adjustHeaderHeight() {
 		if ( 'none' === $menuToggle.css( 'display' ) ) {
 
@@ -102,7 +102,7 @@
 		}
 	}
 
-	// Set icon for quotes.
+	// Sets icon for quotes.
 	function setQuotesIcon() {
 		$( twentyseventeenScreenReaderText.quote ).prependTo( $formatQuote );
 	}

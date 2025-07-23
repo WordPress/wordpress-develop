@@ -8,7 +8,7 @@
  */
 
 /**
- * Add SVG definitions to the footer.
+ * Adds SVG definitions to the footer.
  */
 function twentyseventeen_include_svg_icons() {
 	// Define SVG sprite file.
@@ -44,7 +44,7 @@ function twentyseventeen_get_svg( $args = array() ) {
 		return __( 'Please define an SVG icon filename.', 'twentyseventeen' );
 	}
 
-	// Set defaults.
+	// Sets defaults.
 	$defaults = array(
 		'icon'     => '',
 		'title'    => '',
@@ -55,10 +55,10 @@ function twentyseventeen_get_svg( $args = array() ) {
 	// Parse args.
 	$args = wp_parse_args( $args, $defaults );
 
-	// Set aria hidden.
+	// Sets aria hidden.
 	$aria_hidden = ' aria-hidden="true"';
 
-	// Set ARIA.
+	// Sets ARIA.
 	$aria_labelledby = '';
 
 	/*
@@ -96,7 +96,7 @@ function twentyseventeen_get_svg( $args = array() ) {
 	}
 
 	/*
-	 * Display the icon.
+	 * Displays the icon.
 	 *
 	 * The whitespace around `<use>` is intentional - it is a work around to a keyboard navigation bug in Safari 10.
 	 *
@@ -115,7 +115,7 @@ function twentyseventeen_get_svg( $args = array() ) {
 }
 
 /**
- * Display SVG icons in social links menu.
+ * Displays SVG icons in social links menu.
  *
  * @param string   $item_output The menu item's starting HTML output.
  * @param WP_Post  $item        Menu item data object.
@@ -141,7 +141,7 @@ function twentyseventeen_nav_menu_social_icons( $item_output, $item, $depth, $ar
 add_filter( 'walker_nav_menu_start_el', 'twentyseventeen_nav_menu_social_icons', 10, 4 );
 
 /**
- * Add dropdown icon if menu item has children.
+ * Adds dropdown icon if menu item has children.
  *
  * @param string   $title The menu item's title.
  * @param WP_Post  $item  The current menu item.

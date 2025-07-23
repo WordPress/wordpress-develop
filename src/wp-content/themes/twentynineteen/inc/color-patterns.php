@@ -69,7 +69,7 @@ function twentynineteen_custom_colors_css() {
 
 	$theme_css = '
 		/*
-		 * Set background for:
+		 * Sets background for:
 		 * - featured image :before
 		 * - featured image :before
 		 * - post thumbnail :before
@@ -98,7 +98,7 @@ function twentynineteen_custom_colors_css() {
 		}
 
 		/*
-		 * Set Color for:
+		 * Sets Color for:
 		 * - all links
 		 * - main navigation links
 		 * - Post navigation links
@@ -132,7 +132,7 @@ function twentynineteen_custom_colors_css() {
 		}
 
 		/*
-		 * Set border color for:
+		 * Sets border color for:
 		 * wp block quote
 		 * :focus
 		 */
@@ -208,7 +208,7 @@ function twentynineteen_custom_colors_css() {
 
 	$editor_css = '
 		/*
-		 * Set colors for:
+		 * Sets colors for:
 		 * - links
 		 * - blockquote
 		 * - pullquote (solid color)

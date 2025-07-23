@@ -147,7 +147,7 @@ function twenty_twenty_one_get_starter_content() {
 			'page_for_posts' => '{{blog}}',
 		),
 
-		// Set up nav menus for each of the two areas registered in the theme.
+		// Sets up nav menus for each of the two areas registered in the theme.
 		'nav_menus' => array(
 			// Assign a menu to the "primary" location.
 			'primary' => array(

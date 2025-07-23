@@ -9,7 +9,7 @@
 
 if ( ! function_exists( 'twentyfourteen_paging_nav' ) ) :
 	/**
-	 * Display navigation to next/previous set of posts when applicable.
+	 * Displays navigation to next/previous set of posts when applicable.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -39,7 +39,7 @@ if ( ! function_exists( 'twentyfourteen_paging_nav' ) ) :
 		$format  = $wp_rewrite->using_index_permalinks() && ! strpos( $pagenum_link, 'index.php' ) ? 'index.php/' : '';
 		$format .= $wp_rewrite->using_permalinks() ? user_trailingslashit( $wp_rewrite->pagination_base . '/%#%', 'paged' ) : '?paged=%#%';
 
-		// Set up paginated links.
+		// Sets up paginated links.
 		$links = paginate_links(
 			array(
 				'base'      => $pagenum_link,
@@ -74,7 +74,7 @@ endif;
 
 if ( ! function_exists( 'twentyfourteen_post_nav' ) ) :
 	/**
-	 * Display navigation to next/previous post when applicable.
+	 * Displays navigation to next/previous post when applicable.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 */
@@ -121,7 +121,7 @@ if ( ! function_exists( 'twentyfourteen_posted_on' ) ) :
 			echo '<span class="featured-post">' . __( 'Sticky', 'twentyfourteen' ) . '</span>';
 		}
 
-		// Set up and print post meta information.
+		// Sets up and print post meta information.
 		printf(
 			'<span class="entry-date"><a href="%1$s" rel="bookmark"><time class="entry-date" datetime="%2$s">%3$s</time></a></span> <span class="byline"><span class="author vcard"><a class="url fn n" href="%4$s" rel="author">%5$s</a></span></span>',
 			esc_url( get_permalink() ),
@@ -179,7 +179,7 @@ add_action( 'save_post', 'twentyfourteen_category_transient_flusher' );
 
 if ( ! function_exists( 'twentyfourteen_post_thumbnail' ) ) :
 	/**
-	 * Display an optional post thumbnail.
+	 * Displays an optional post thumbnail.
 	 *
 	 * Wraps the post thumbnail in an anchor element on index
 	 * views, or a div element when on single views.

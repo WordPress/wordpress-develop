@@ -11,7 +11,7 @@
 
 if ( ! function_exists( 'twentyfifteen_comment_nav' ) ) :
 	/**
-	 * Display navigation to next/previous comments when applicable.
+	 * Displays navigation to next/previous comments when applicable.
 	 *
 	 * @since Twenty Fifteen 1.0
 	 */
@@ -199,7 +199,7 @@ add_action( 'save_post', 'twentyfifteen_category_transient_flusher' );
 
 if ( ! function_exists( 'twentyfifteen_post_thumbnail' ) ) :
 	/**
-	 * Display an optional post thumbnail.
+	 * Displays an optional post thumbnail.
 	 *
 	 * Wraps the post thumbnail in an anchor element on index views, or a div
 	 * element when on single views.
