@@ -8,7 +8,7 @@
 class Tests_Functions_wpCacheSetSalted extends WP_UnitTestCase {
 
 	/**
-	 * Test that wp_cache_set_query_data sets the data correctly.
+	 * Test that wp_cache_set_salted sets the data correctly.
 	 *
 	 * @ticket 59592
 	 */

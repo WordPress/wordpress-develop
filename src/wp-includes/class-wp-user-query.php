@@ -1045,15 +1045,15 @@ class WP_User_Query {
 	 * Generate cache key.
 	 *
 	 * @since 6.3.0
-	 * @since 6.9.0 $args is no longer used.
-	 *
+	 * @since 6.9.0 The `$args` parameter was deprecated and renamed to `$deprecated`.
+	*
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param array  $args Unused. Query arguments.
+	 * @param array $deprecated Unused.
 	 * @param string $sql  SQL statement.
 	 * @return string Cache key.
 	 */
-	protected function generate_cache_key( array $args, $sql ) {
+	protected function generate_cache_key( array $deprecated, $sql ) {
 		global $wpdb;
 
 		// Replace wpdb placeholder in the SQL statement used by the cache key.

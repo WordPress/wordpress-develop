@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests for the behavior of `wp_cache_get_multiple_query_data()`
+ * Tests for the behavior of `wp_cache_get_salted()`
  *
  * @group functions
  * @group cache
@@ -59,7 +59,7 @@ class Tests_Functions_wpCacheGetSalted extends WP_UnitTestCase {
 	/**
 	 * Test that wp_cache_get_salted returns false when no data is cached.
 	 *
-	 * @dataProvider data_provider_for_wp_cache_get_salted_return_false
+	 * @dataProvider data_wp_cache_get_salted_return_false
 	 *
 	 * @ticket 59592
 	 */
@@ -69,7 +69,12 @@ class Tests_Functions_wpCacheGetSalted extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get_salted( 'cache_key', 'query_data', $last_changed ) );
 	}
 
-	public function data_provider_for_wp_cache_get_salted_return_false() {
+	/**
+	 * Data provider for test_wp_cache_get_salted_return_false.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public function data_wp_cache_get_salted_return_false() {
 		return array(
 			array( false ),
 			array( null ),

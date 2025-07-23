@@ -57,7 +57,7 @@ class Tests_Functions_wpCacheGetMultipleSalted extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that wp_cache_get_multiple_salted returns an empty array when no data is cached.
+	 * Test that wp_cache_get_multiple_salted returns an array of false values when no data is cached.
 	 *
 	 * @ticket 59592
 	 */

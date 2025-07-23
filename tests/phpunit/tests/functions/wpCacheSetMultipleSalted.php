@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests for the behavior of `wp_cache_get_multiple_query_data()`
+ * Tests for the behavior of `wp_cache_set_multiple_salted()`
  *
  * @group functions
  * @group cache
