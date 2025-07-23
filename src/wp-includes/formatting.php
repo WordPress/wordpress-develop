@@ -3637,31 +3637,13 @@ function is_email( $email, $deprecated = false ) {
  * Converts to ASCII from email subjects.
  *
  * @since 1.2.0
- *
  * @param string $subject Subject line.
  * @return string Converted string to ASCII.
+ *@deprecated {WP_VERSION} Use {@see wp_decode_rfc2047()}.
+ *
  */
 function wp_iso_descrambler( $subject ) {
-	/* this may only work with iso-8859-1, I'm afraid */
-	if ( ! preg_match( '#\=\?(.+)\?Q\?(.+)\?\=#i', $subject, $matches ) ) {
-		return $subject;
-	}
-
-	$subject = str_replace( '_', ' ', $matches[2] );
-	return preg_replace_callback( '#\=([0-9a-f]{2})#i', '_wp_iso_convert', $subject );
-}
-
-/**
- * Helper function to convert hex encoded chars to ASCII.
- *
- * @since 3.1.0
- * @access private
- *
- * @param array $matches The preg_replace_callback matches array.
- * @return string Converted chars.
- */
-function _wp_iso_convert( $matches ) {
-	return chr( hexdec( strtolower( $matches[1] ) ) );
+	return wp_decode_rfc2047( $subject );
 }
 
 /**
