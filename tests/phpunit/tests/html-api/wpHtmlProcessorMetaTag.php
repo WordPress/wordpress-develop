@@ -5,7 +5,7 @@
  * @package WordPress
  * @subpackage HTML-API
  *
- * @since TBD
+ * @since 6.9
  *
  * @group html-api
  *
@@ -29,7 +29,7 @@ class Tests_HtmlApi_WpHtmlProcessorMetaTag extends WP_UnitTestCase {
 	/**
 	 * Ensures that META tags correctly handle encoding confidence.
 	 *
-	 * @ticket TBD
+	 * @ticket 63738
 	 *
 	 * @dataProvider data_supported_meta_tags
 	 */
@@ -59,7 +59,7 @@ class Tests_HtmlApi_WpHtmlProcessorMetaTag extends WP_UnitTestCase {
 	/**
 	 * Ensures that unsupported encoding META tags bail.
 	 *
-	 * @ticket TBD
+	 * @ticket 63738
 	 *
 	 * @dataProvider data_unsupported_meta_tags
 	 */
