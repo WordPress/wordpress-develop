@@ -7622,6 +7622,8 @@ function _canonical_charset( $charset ) {
  * `mbstring_binary_safe_encoding()` call must be followed up with an equal number
  * of `reset_mbstring_encoding()` calls.
  *
+ * Note: `mbstring.func_overload` has been REMOVED as of PHP 8.0.0.
+ *
  * @since 3.7.0
  *
  * @see reset_mbstring_encoding()

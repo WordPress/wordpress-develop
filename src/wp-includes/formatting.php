@@ -871,21 +871,43 @@ function shortcode_unautop( $text ) {
 /**
  * Checks to see if a string is utf8 encoded.
  *
+ * Using mb_check_encoding().
+ * MCE:       Yes          No
+ *              ∞   4200 MB/s
+ *
+ *   Valid         Yes           No
+ * JIT No:   3080 MB/s    3060 MB/s
+ *    Yes:   3510 MB/s    3617 MB/s
+ *
+ * Without strspn() short-circuiting ASCII
+ * Valid         Yes          No
+ * JIT No:   36 MB/s     35 MB/s
+ *    Yes:  292 MB/s    292 MB/s
+ *
  * NOTE: This function checks for 5-Byte sequences, UTF8
  *       has Bytes Sequences with a maximum length of 4.
  *
- * @author bmorel at ssi dot fr (modified)
  * @since 1.2.1
  *
  * @param string $str The string to be checked.
  * @return bool True if $str fits a UTF-8 model, false otherwise.
+ *@author bmorel at ssi dot fr (modified)
  */
 function seems_utf8( $str ) {
+//	if ( function_exists( 'mb_check_encoding' ) ) {
+//		return mb_check_encoding( $str, 'UTF-8' );
+//	}
+
 	mbstring_binary_safe_encoding();
 	$length = strlen( $str );
 	reset_mbstring_encoding();
 
 	for ( $i = 0; $i < $length; $i++ ) {
+		$i += strspn( $str, "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", $i );
+		if ( $i >= $length ) {
+			break;
+		}
+
 		$c = ord( $str[ $i ] );
 
 		if ( $c < 0x80 ) {
@@ -912,6 +934,139 @@ function seems_utf8( $str ) {
 	}
 
 	return true;
+}
+
+/**
+ *  Valid   Yes          No
+ * JIT No     ∞   3200 MB/s
+ *    Yes     ∞   4100 MB/s
+ */
+function seems_utf8_pcre( $str ) {
+	return 1 === preg_match( '/^./us', $str );
+}
+
+/**
+ * Valid          Yes          No
+ * JIT No:  3500 MB/s   3040 MB/s
+ *    Yes:  3060 MB/s   3530 MB/s
+ *
+ * @see https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
+ *
+ * @param $str
+ * @return bool|void
+ */
+function seems_utf8_branching_ord( $str ) {
+	$end = strlen( $str );
+
+	for ( $i = 0; $i < $end; $i++ ) {
+		$i += strspn( $str, "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", $i );
+		if ( $i >= $end ) {
+			break;
+		}
+
+		$b1 = ord( $str[ $i ] );
+		$b2 = ord( $str[ $i + 1 ] ?? "\xC0" );
+
+		if ( $b1 >= 0xC2 && $b1 <= 0xDF && $b2 >= 0x80 && $b2 <= 0xBF ) {
+			$i++;
+			continue;
+		}
+
+		$b3 = ord( $str[ $i + 2 ] ?? "\xC0" );
+		if ( $b3 < 0x80 || $b3 > 0xBF ) {
+			return false;
+		}
+
+		if (
+			( $b1 === 0xE0 && $b2 >= 0xA0 && $b2 <= 0xBF ) ||
+			( $b1 >= 0xE1 && $b1 <= 0xEC && $b2 >= 0x80 && $b2 <= 0xBF ) ||
+			( $b1 === 0xED && $b2 >= 0x80 && $b2 <= 0x9F ) ||
+			( $b1 >= 0xEE && $b1 <= 0xEF && $b2 >= 0x80 && $b2 <= 0xBF )
+		) {
+			$i += 2;
+			continue;
+		}
+
+		$b4 = ord( $str[ $i + 3 ] ?? "\xC0" );
+		if ( $b4 < 0x80 || $b4 > 0xBF ) {
+			return false;
+		}
+
+		if (
+			( $b1 === 0xF0 && $b2 >= 0x90 && $b2 <= 0xBF ) ||
+			( $b1 >= 0xF1 && $b1 <= 0xF3 && $b2 >= 0x80 && $b2 <= 0xBF ) ||
+			( $b1 === 0xF4 && $b2 >= 0x80 && $b2 <= 0x8F )
+		) {
+			$i += 3;
+			continue;
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ *
+ * JIT:
+ *  No   21 MB/s
+ * Yes  200 MB/s
+ *
+ * Believe it or not! This was faster as an array of numbers than
+ * it was as a contiguous string with character lookup. `ord()` is
+ * really slow, as confirmed in the other implementations.
+ *
+ * @see https://bjoern.hoehrmann.de/utf-8/decoder/dfa/
+ *
+ * @param $str
+ * @param $count
+ * @return bool
+ */
+function seems_utf8_fsm_int( $str, &$count = null ) {
+	mbstring_binary_safe_encoding();
+	$length = strlen( $str );
+	reset_mbstring_encoding();
+
+	static $table = array(
+		// The first part of the table maps bytes to character classes that
+		// to reduce the size of the transition table and create bitmasks.
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+		7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+		8, 8, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+		10, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 11, 6, 6, 6, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+
+		// The second part is a transition table that maps a combination
+		// of a state of the automaton and a character class to a state.
+		0, 12, 24, 36, 60, 96, 84, 12, 12, 12, 48, 72, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+		12, 0, 12, 12, 12, 12, 12, 0, 12, 0, 12, 12, 12, 24, 12, 12, 12, 12, 12, 24, 12, 24, 12, 12,
+		12, 12, 12, 12, 12, 12, 12, 24, 12, 12, 12, 12, 12, 24, 12, 12, 12, 12, 12, 12, 12, 24, 12, 12,
+		12, 12, 12, 12, 12, 12, 12, 36, 12, 36, 12, 12, 12, 36, 12, 12, 12, 12, 12, 36, 12, 36, 12, 12,
+		12, 36, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+	);
+
+	$state      = 0;
+	$code_point = 0;
+	$count      = -1;
+
+	for ( $i = 0; $i < $length; ++$i ) {
+		$byte = ord( $str[ $i ] );
+		$type = $table[ $byte ];
+
+		$count += $state === 0 ? 1 : 0;
+
+		$code_point = ( $state !== 0 )
+			? ( ( $byte & 0x3F ) | ( $code_point << 6 ) )
+			: ( ( 0xFF & $type ) & $byte );
+
+		$state = $table[ 256 + $state + $type ];
+	}
+
+	return $state === 0;
 }
 
 /**
