@@ -1046,11 +1046,11 @@ class WP_User_Query {
 	 *
 	 * @since 6.3.0
 	 * @since 6.9.0 The `$args` parameter was deprecated and renamed to `$deprecated`.
-	*
+	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param array $deprecated Unused.
-	 * @param string $sql  SQL statement.
+	 * @param array  $deprecated Unused.
+	 * @param string $sql        SQL statement.
 	 * @return string Cache key.
 	 */
 	protected function generate_cache_key( array $deprecated, $sql ) {
