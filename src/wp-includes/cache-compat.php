@@ -239,10 +239,11 @@ if ( ! function_exists( 'wp_cache_set_salted' ) ) :
 	 * @param string|string[] $salt The timestamp (or multiple timestamps if an array) indicating when the cache group(s) were last updated.
 	 * @param int $expire           Optional. When to expire the cache contents, in seconds.
 	 *                              Default 0 (no expiration).
+	 * @return bool True on success, false on failure.
 	 */
 	function wp_cache_set_salted( $cache_key, $data, $group, $salt, $expire = 0 ) {
 		$salt = is_array( $salt ) ? implode( ':', $salt ) : $salt;
-		wp_cache_set(
+		return wp_cache_set(
 			$cache_key,
 			array(
 				'data' => $data,
@@ -296,6 +297,8 @@ if ( ! function_exists( 'wp_cache_set_multiple_salted' ) ) :
 	 * @param string|string[] $salt The timestamp (or multiple timestamps if an array) indicating when the cache group(s) were last updated.
 	 * @param int    $expire        Optional. When to expire the cache contents, in seconds.
 	 *                              Default 0 (no expiration).
+	 * @return bool[] Array of return values, grouped by key. Each value is either
+	 *                true on success, or false on failure.
 	 */
 	function wp_cache_set_multiple_salted( $data, $group, $salt, $expire = 0 ) {
 		$salt      = is_array( $salt ) ? implode( ':', $salt ) : $salt;
@@ -306,6 +309,6 @@ if ( ! function_exists( 'wp_cache_set_multiple_salted' ) ) :
 				'salt' => $salt,
 			);
 		}
-		wp_cache_set_multiple( $new_cache, $group, $expire );
+		return wp_cache_set_multiple( $new_cache, $group, $expire );
 	}
 endif;
