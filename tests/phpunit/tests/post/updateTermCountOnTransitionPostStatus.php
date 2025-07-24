@@ -198,7 +198,7 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 			}
 		);
 
-		// Change the post to another status that is not included in term counts.
+		// Change the post to another status that is included in term counts.
 		wp_update_post(
 			array(
 				'ID'          => self::$post_id,
