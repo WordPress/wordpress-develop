@@ -49,10 +49,10 @@ class Tests_HtmlApi_WpHtmlProcessorMetaTag extends WP_UnitTestCase {
 	 */
 	public function data_unsupported_meta_tags(): array {
 		return array(
-			'With charset'    => array( '<meta charset="utf8">', 'Cannot yet process META tags with charset to determine encoding.' ),
-			'With CHARSET'    => array( '<meta CHARSET="utf8">', 'Cannot yet process META tags with charset to determine encoding.' ),
-			'With http-equiv' => array( '<meta http-equiv="content-type" content="">', 'Cannot yet process META tags with http-equiv Content-Type to determine encoding.' ),
-			'With http-equiv' => array( '<meta http-equiv="Content-Type" content="UTF-8">', 'Cannot yet process META tags with http-equiv Content-Type to determine encoding.' ),
+			'With charset'                => array( '<meta charset="utf8">', 'Cannot yet process META tags with charset to determine encoding.' ),
+			'With CHARSET'                => array( '<meta CHARSET="utf8">', 'Cannot yet process META tags with charset to determine encoding.' ),
+			'With http-equiv'             => array( '<meta http-equiv="content-type" content="">', 'Cannot yet process META tags with http-equiv Content-Type to determine encoding.' ),
+			'With http-equiv and content' => array( '<meta http-equiv="Content-Type" content="UTF-8">', 'Cannot yet process META tags with http-equiv Content-Type to determine encoding.' ),
 		);
 	}
 
