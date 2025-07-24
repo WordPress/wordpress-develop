@@ -915,6 +915,160 @@ function seems_utf8( $str ) {
 }
 
 /**
+ * Determines if a given byte string represents a valid UTF-8 encoding.
+ *
+ * Note that it’s unlikely for non-UTF-8 data to validate as UTF-8, but
+ * it is still possible. Many texts are simultaneously valid UTF-8,
+ * valid US-ASCII, and valid ISO-8859-1 (`latin1`).
+ *
+ * Example:
+ *
+ *     true === wp_is_valid_utf8( '' );
+ *     true === wp_is_valid_utf8( 'just a test' );
+ *     true === wp_is_valid_utf8( "\xE2\x9C\x8F" );    // Pencil, U+270F.
+ *     true === wp_is_valid_utf8( "\u{270F}" );        // Pencil, U+270F.
+ *     true === wp_is_valid_utf8( '✏' );              // Pencil, U+270F.
+ *
+ *     false === wp_is_valid_utf8( "just \xC0 test" ); // Invalid bytes.
+ *     false === wp_is_valid_utf8( "\xE2\x9C" );       // Invalid/incomplete sequences.
+ *     false === wp_is_valid_utf8( "\xC1\xBF" );       // Overlong sequences.
+ *     false === wp_is_valid_utf8( "\xED\xB0\x80" );   // Surrogate halves.
+ *     false === wp_is_valid_utf8( "B\xFCch" );        // ISO-8859-1 high-bytes.
+ *
+ * @since {WP_VERSION}
+ *
+ * @see https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
+ *
+ * @todo Add substantial test suite with valid and invalid UTF-8 strings.
+ *
+ * @param string $bytes String which might contain text encoded as UTF-8.
+ * @return bool Whether the provided bytes can decode as valid UTF-8.
+ */
+function wp_is_valid_utf8( string $bytes ): bool {
+	/*
+	 * Since PHP 8.3.0 the UTF-8 validity is cached internally
+	 * on string objects, making this a direct property lookup.
+	 *
+	 * This is to be preferred exclusively once PHP 8.3.0 is
+	 * the minimum supported version, because even when the
+	 * status isn’t cached, it uses highly-optimized code to
+	 * validate the byte stream.
+	 */
+	if ( function_exists( 'mb_check_encoding' ) ) {
+		return mb_check_encoding( $bytes, 'UTF-8' );
+	}
+
+	/*
+	 * Fallback to a safe mechanism for validating UTF-8 bytes.
+	 *
+	 * By implementing a raw method here the code will behave
+	 * in the same way on all installed systems, regardless of
+	 * what extensions are installed.
+	 *
+	 * > [The following table] lists all of the byte sequences that
+	 * > are well-formed in UTF-8. A range of byte values such as
+	 * > [A0, BF] indicates that any byte from A0 to BF (inclusive)
+	 * > is well-formed in that position. Any byte value outside
+	 * > of the ranges listed is ill-formed.
+	 *
+	 *     First Byte    Second Byte   Third Byte    Fourth Byte
+	 *     [0x00,0x7F]
+	 *     [0xC2,0xDF]   [0x80,0xBF]
+	 *     0xE0          [0xA0,0xBF]   [0x80,0xBF]
+	 *     [0xE1,0xEC]   [0x80,0xBF]   [0x80,0xBF]
+	 *     0xED          [0x80,0x9F]   [0x80,0xBF]
+	 *     [0xEE,0xEF]   [0x80,0xBF]   [0x80,0xBF]
+	 *     0xF0          [0x90,0xBF]   [0x80,0xBF]   [0x80,0xBF]
+	 *     [0xF1,0xF3]   [0x80,0xBF]   [0x80,0xBF]   [0x80,0xBF]
+	 *     0xF4          [0x80,0x8F]   [0x80,0xBF]   [0x80,0xBF]
+	 *
+	 * Notice that all valid third and forth bytes are in the range
+	 * [0x80,0xBF]. This validator takes advantage of that to only
+	 * check the range of those bytes once.
+	 *
+	 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
+	 */
+
+	$end = strlen( $bytes );
+
+	for ( $i = 0; $i < $end; $i++ ) {
+		/*
+		 * Quickly skip past US-ASCII bytes, all of which are valid UTF-8.
+		 *
+		 * This optimization step improves the speed from 10x to 100x
+		 * depending on whether the JIT has optimized the function.
+		 */
+		$i += strspn(
+			$bytes,
+			"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" .
+			"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f" .
+			"!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+			$i
+		);
+		if ( $i >= $end ) {
+			break;
+		}
+
+		/*
+		 * The 0xC0 bytes are used as a fallback to truncated text because they
+		 * always indicate invalid UTF-8 just the same as a missing continuation
+		 * byte would. This saves performing length checks before decoding.
+		 */
+
+		$b1 = ord( $bytes[ $i ] );
+		$b2 = ord( $bytes[ $i + 1 ] ?? "\xC0" );
+
+		// Valid two-byte code points.
+
+		if ( $b1 >= 0xC2 && $b1 <= 0xDF && $b2 >= 0x80 && $b2 <= 0xBF ) {
+			$i++;
+			continue;
+		}
+
+		$b3 = ord( $bytes[ $i + 2 ] ?? "\xC0" );
+
+		// Valid three-byte code points.
+
+		if ( $b3 < 0x80 || $b3 > 0xBF ) {
+			return false;
+		}
+
+		if (
+			( 0xE0 === $b1 && $b2 >= 0xA0 && $b2 <= 0xBF ) ||
+			( $b1 >= 0xE1 && $b1 <= 0xEC && $b2 >= 0x80 && $b2 <= 0xBF ) ||
+			( 0xED === $b1 && $b2 >= 0x80 && $b2 <= 0x9F ) ||
+			( $b1 >= 0xEE && $b1 <= 0xEF && $b2 >= 0x80 && $b2 <= 0xBF )
+		) {
+			$i += 2;
+			continue;
+		}
+
+		$b4 = ord( $bytes[ $i + 3 ] ?? "\xC0" );
+
+		// Valid four-byte code points.
+
+		if ( $b4 < 0x80 || $b4 > 0xBF ) {
+			return false;
+		}
+
+		if (
+			( 0xF0 === $b1 && $b2 >= 0x90 && $b2 <= 0xBF ) ||
+			( $b1 >= 0xF1 && $b1 <= 0xF3 && $b2 >= 0x80 && $b2 <= 0xBF ) ||
+			( 0xF4 === $b1 && $b2 >= 0x80 && $b2 <= 0x8F )
+		) {
+			$i += 3;
+			continue;
+		}
+
+		// Any other sequence is invalid.
+		return false;
+	}
+
+	// Reaching the end implies validating every byte.
+	return true;
+}
+
+/**
  * Converts a number of special characters into their HTML entities.
  *
  * Specifically deals with: `&`, `<`, `>`, `"`, and `'`.
