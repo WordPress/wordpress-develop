@@ -47,7 +47,7 @@ class Tests_HtmlApi_WpHtmlProcessorMetaTag extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 */
-	public function data_unsupported_meta_tags(): array {
+	public static function data_unsupported_meta_tags(): array {
 		return array(
 			'With charset'                => array( '<meta charset="utf8">', 'Cannot yet process META tags with charset to determine encoding.' ),
 			'With CHARSET'                => array( '<meta CHARSET="utf8">', 'Cannot yet process META tags with charset to determine encoding.' ),
