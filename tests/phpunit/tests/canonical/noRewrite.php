@@ -278,4 +278,14 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 			array( null, '/', 63316 ), // No Path and Query
 		);
 	}
+
+	/**
+	 * Test that the canonical URL is empty when the host header is not set.
+	 *
+	 * @ticket 63316
+	 */
+	public function test_missing_host_header() {
+		$_SERVER['HTTP_HOST'] = null;
+		$this->assertEmpty( $this->get_canonical( null ) );
+	}
 }
