@@ -172,6 +172,8 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	/**
 	 * Test that the term count is not recalculated when neither the old nor new status are included in term counts.
 	 *
+	 * This accounts for a transition such as draft -> pending.
+	 *
 	 * @ticket 63562
 	 */
 	public function test_term_count_is_not_recalculated_when_neither_status_is_counted() {
