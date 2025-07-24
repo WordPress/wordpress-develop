@@ -650,25 +650,16 @@ if ( ! function_exists( 'twentyeleven_content_nav' ) ) :
 
 			$prev_link = $is_desc ? get_next_posts_link( $old_posts_text ) : get_previous_posts_link( $old_posts_text );
 			$next_link = $is_desc ? get_previous_posts_link( $new_posts_text ) : get_next_posts_link( $new_posts_text );
-
-			$allowed_html_tags = array(
-				'a'    => array(
-					'href'  => array(),
-					'title' => array(),
-				),
-				'span' => array(
-					'class' => array(),
-				),
-			)
 			?>
+
 			<nav id="<?php echo esc_attr( $html_id ); ?>">
 				<h3 class="assistive-text"><?php _e( 'Post navigation', 'twentyeleven' ); ?></h3>
 				<?php if ( $prev_link ) : ?>
-					<div class="nav-previous"><?php echo wp_kses( $prev_link, $allowed_html_tags ); ?></div>
+					<div class="nav-previous"><?php echo wp_kses_post( $prev_link ); ?></div>
 				<?php endif; ?>
 
 				<?php if ( $next_link ) : ?>
-					<div class="nav-next"><?php echo wp_kses( $next_link, $allowed_html_tags ); ?></div>
+					<div class="nav-next"><?php echo wp_kses_post( $next_link ); ?></div>
 				<?php endif; ?>
 			</nav><!-- #nav-above -->
 			<?php
