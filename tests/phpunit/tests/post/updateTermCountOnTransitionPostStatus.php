@@ -207,7 +207,7 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 		);
 
 		$this->assertSame( 0, $action->get_call_count(), 'Term taxonomy count should not be recalculated both statuses are included in term counts.' );
-		$this->assertTermCount( 1, self::$term_id, 'Term count should remain unchanged when transitioning between post statuses that are not counted.' );
+		$this->assertTermCount( 1, self::$term_id, 'Term count should remain unchanged when transitioning between post statuses that are counted.' );
 	}
 
 	/**
