@@ -17,13 +17,13 @@
 
 		container.find( '.menu-item-has-children > a, .page_item_has_children > a' ).after( dropdownToggle );
 
-		// Sets the active submenu dropdown toggle button initial state.
+		// Set the active submenu dropdown toggle button initial state.
 		container.find( '.current-menu-ancestor > button' )
 			.addClass( 'toggled-on' )
 			.attr( 'aria-expanded', 'true' )
 			.find( '.screen-reader-text' )
 			.text( twentyseventeenScreenReaderText.collapse );
-		// Sets the active submenu initial state.
+		// Set the active submenu initial state.
 		container.find( '.current-menu-ancestor > .sub-menu' ).addClass( 'toggled-on' );
 
 		container.find( '.dropdown-toggle' ).on( 'click', function( e ) {

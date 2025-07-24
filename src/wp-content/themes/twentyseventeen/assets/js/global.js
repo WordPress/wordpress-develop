@@ -102,7 +102,7 @@
 		}
 	}
 
-	// Sets icon for quotes.
+	// Set icon for quotes.
 	function setQuotesIcon() {
 		$( twentyseventeenScreenReaderText.quote ).prependTo( $formatQuote );
 	}

@@ -110,7 +110,7 @@ _twentyTwentyColor.prototype.setAccentColorsArray = function() {
 };
 
 /**
- * Gets accessible text-color.
+ * Get accessible text-color.
  *
  * @since Twenty Twenty 1.0
  *
@@ -121,7 +121,7 @@ _twentyTwentyColor.prototype.getTextColor = function() {
 };
 
 /**
- * Gets accessible color for the defined accent-hue and background-color.
+ * Get accessible color for the defined accent-hue and background-color.
  *
  * @since Twenty Twenty 1.0
  *

@@ -5,7 +5,7 @@
  */
 
 /**
- * Adds max-width & max-height to <iframe> elements, depending on their width & height props.
+ * Add max-width & max-height to <iframe> elements, depending on their width & height props.
  *
  * @since Twenty Twenty-One 1.0
  *
