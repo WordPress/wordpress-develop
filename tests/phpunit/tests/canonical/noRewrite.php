@@ -22,7 +22,6 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 63316
 	 * @dataProvider data
 	 */
 	public function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
