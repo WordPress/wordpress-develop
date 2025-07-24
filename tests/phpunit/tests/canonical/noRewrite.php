@@ -280,10 +280,12 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
-	 * Test that the canonical URL is empty when the host header is not set.
+	 * Test the canonical URL when the host header is not set.
 	 *
 	 * @ticket 63316
 	 * @dataProvider data_missing_host_header
+	 * @param string $wp_home The WP_HOME value to set.
+	 * @param string $expected_url The expected canonical URL.
 	 */
 	public function test_missing_host_header( $wp_home, $expected_url ) {
 		$_SERVER['HTTP_HOST'] = null;
