@@ -472,26 +472,18 @@ class WP_Debug_Data {
 		);
 
 		// Opcode Cache.
-		$opcache_loaded = extension_loaded( 'Zend OPcache' );
-
-		$fields['opcache_availability'] = array(
-			'label' => __( 'Is the OPcache extension available?' ),
-			'value' => ( $opcache_loaded ? __( 'Yes' ) : __( 'No' ) ),
-			'debug' => $opcache_loaded,
-		);
-
-		if ( $opcache_loaded && function_exists( 'opcache_get_status' ) ) {
+		if ( function_exists( 'opcache_get_status' ) ) {
 			$opcache_status = opcache_get_status( false );
 
 			if ( $opcache_status ) {
 				$fields['opcache_enabled'] = array(
-					'label' => __( 'OPcache' ),
+					'label' => __( 'Opcode cache' ),
 					'value' => ( $opcache_status['opcache_enabled'] ? __( 'Enabled' ) : __( 'Disabled' ) ),
 					'debug' => $opcache_status['opcache_enabled'],
 				);
 
 				$fields['opcache_memory_usage'] = array(
-					'label' => __( 'OPcache memory usage' ),
+					'label' => __( 'Opcode cache memory usage' ),
 					'value' => sprintf(
 						/* translators: 1: Used memory, 2: Total memory */
 						__( '%1$s of %2$s' ),
@@ -506,25 +498,13 @@ class WP_Debug_Data {
 				);
 
 				$fields['opcache_hit_rate'] = array(
-					'label' => __( 'OPcache hit rate' ),
+					'label' => __( 'Opcode cache hit rate' ),
 					'value' => sprintf(
 						/* translators: %s: Hit rate percentage */
 						__( '%s%%' ),
 						round( $opcache_status['opcache_statistics']['opcache_hit_rate'], 2 )
 					),
 					'debug' => $opcache_status['opcache_statistics']['opcache_hit_rate'],
-				);
-
-				$fields['opcache_cached_scripts'] = array(
-					'label' => __( 'OPcache cached scripts' ),
-					'value' => number_format_i18n( $opcache_status['opcache_statistics']['num_cached_scripts'] ),
-					'debug' => $opcache_status['opcache_statistics']['num_cached_scripts'],
-				);
-
-				$fields['opcache_cached_keys'] = array(
-					'label' => __( 'OPcache cached keys' ),
-					'value' => number_format_i18n( $opcache_status['opcache_statistics']['num_cached_keys'] ),
-					'debug' => $opcache_status['opcache_statistics']['num_cached_keys'],
 				);
 			}
 		}
