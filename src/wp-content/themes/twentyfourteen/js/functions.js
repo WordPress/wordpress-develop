@@ -130,6 +130,13 @@
 						el.siblings( '.focus' ).removeClass( 'focus' );
 					}
 				} );
+
+				// Close open sub-menus when clicking outside.
+				$( document.body ).on( 'touchstart.twentyfourteen', function( e ) {
+					if ( ! $( e.target ).closest( '.menu-item-has-children, .page_item_has_children' ).length ) {
+						$( '.focus' ).removeClass( 'focus' );
+					}
+				} );
 			}
 		}
 	}
