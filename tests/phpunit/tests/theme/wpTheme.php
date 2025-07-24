@@ -451,7 +451,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		add_filter(
 			'admin_url',
 			function ( $url ) {
-				return add_query_arg( [ 'theme' => [ 'to-be-replaced-1', 'to-be-replaced-2' ] ], $url );
+				return add_query_arg( array( 'theme' => array( 'to-be-replaced-1', 'to-be-replaced-2' ) ), $url );
 			}
 		);
 		$this->assertSame( esc_url( $clean_admin_url . '?theme=foo' ), wp_customize_url( 'foo' ) );
