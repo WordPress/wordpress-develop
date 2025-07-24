@@ -37,11 +37,13 @@ If you are not using a package manager, see the [Node.js download page](https://
 
 **Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
 
-You will also need a container environment (e.g. [Docker](https://www.docker.com/products/docker-desktop) or [Podman](https://podman-desktop.io/)) installed and running on your computer. The container environment is the virtualization software that powers the local development environment. Both applications can be installed just like any other regular application.
+You will also need a container environment such as [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running on your computer. The container environment is the virtualization software that powers the local development environment and can be installed just like any other regular application.
+
+**Note:** WordPress currently only officially supports Docker but several container environments are available and should generally be compatible, such as [Colima](https://github.com/abiosoft/colima), [OrbStack](https://orbstack.dev/), [Podman Desktop](https://podman-desktop.io/), and [Rancher Desktop](https://rancherdesktop.io/).
 
 ### Development Environment Commands
 
-Ensure either [Docker](https://www.docker.com/products/docker-desktop) or [Podman](https://podman-desktop.io/) are running before using these commands.
+Ensure your container environment is running before using these commands.
 
 #### To start the development environment for the first time
 
