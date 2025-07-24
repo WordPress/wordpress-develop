@@ -25,7 +25,7 @@ function twentytwelve_custom_header_setup() {
 		'default-text-color'     => '515151',
 		'default-image'          => '',
 
-		// Sets height and width, with a maximum value for the width.
+		// Set height and width, with a maximum value for the width.
 		'height'                 => 250,
 		'width'                  => 960,
 		'max-width'              => 2000,

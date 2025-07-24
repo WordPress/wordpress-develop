@@ -44,7 +44,7 @@ function twentyseventeen_get_svg( $args = array() ) {
 		return __( 'Please define an SVG icon filename.', 'twentyseventeen' );
 	}
 
-	// Sets defaults.
+	// Set defaults.
 	$defaults = array(
 		'icon'     => '',
 		'title'    => '',
@@ -55,10 +55,10 @@ function twentyseventeen_get_svg( $args = array() ) {
 	// Parse args.
 	$args = wp_parse_args( $args, $defaults );
 
-	// Sets aria hidden.
+	// Set aria hidden.
 	$aria_hidden = ' aria-hidden="true"';
 
-	// Sets ARIA.
+	// Set ARIA.
 	$aria_labelledby = '';
 
 	/*

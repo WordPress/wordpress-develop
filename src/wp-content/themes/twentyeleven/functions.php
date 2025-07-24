@@ -231,7 +231,7 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		set_post_thumbnail_size( $custom_header_support['width'], $custom_header_support['height'], true );
 
 		/*
-		 * Adds Twenty Eleven's custom image sizes.
+		 * Add Twenty Eleven's custom image sizes.
 		 * Used for large feature (header) images.
 		 */
 		add_image_size( 'large-feature', $custom_header_support['width'], $custom_header_support['height'], true );

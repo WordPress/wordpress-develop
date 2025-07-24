@@ -138,7 +138,7 @@
 							}
 						}
 
-						// Sets up flags to prevent event duplication.
+						// Set up flags to prevent event duplication.
 						if ( watchedEvent === '' ) {
 							watchedEvent = event.type;
 						}
@@ -190,7 +190,7 @@
 							slider.featureAnimate( target );
 						}
 
-						// Sets up flags to prevent event duplication.
+						// Set up flags to prevent event duplication.
 						if ( watchedEvent === '' ) {
 							watchedEvent = event.type;
 						}

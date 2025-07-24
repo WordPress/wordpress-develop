@@ -11,7 +11,7 @@
  * @return {Object} - this
  */
 function _twentyTwentyColor( backgroundColor, accentHue ) {
-	// Sets the object properties.
+	// Set the object properties.
 	this.backgroundColor = backgroundColor;
 	this.accentHue = accentHue;
 	this.bgColorObj = new Color( backgroundColor );

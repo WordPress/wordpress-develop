@@ -44,7 +44,7 @@
 		}
 	});
 
-	// Sets properties of navigation.
+	// Set properties of navigation.
 	function setNavProps() {
 		navigationHeight      = $navigation.height();
 		navigationOuterHeight = $navigation.outerHeight();
@@ -85,7 +85,7 @@
 		}
 	}
 
-	// Sets margins of branding in header.
+	// Set margins of branding in header.
 	function adjustHeaderHeight() {
 		if ( 'none' === $menuToggle.css( 'display' ) ) {
 

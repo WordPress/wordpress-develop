@@ -26,7 +26,7 @@ function twentythirteen_custom_header_setup() {
 		'default-text-color'     => '220e10',
 		'default-image'          => '%s/images/headers/circle.png',
 
-		// Sets height and width, with a maximum value for the width.
+		// Set height and width, with a maximum value for the width.
 		'height'                 => 230,
 		'width'                  => 1600,
 

@@ -18,7 +18,7 @@ if ( version_compare( $GLOBALS['wp_version'], '4.7-alpha', '<' ) ) {
 }
 
 /**
- * Set up theme defaults and registers support for various WordPress features.
+ * Sets up theme defaults and registers support for various WordPress features.
  *
  * Note that this function is hooked into the after_setup_theme hook, which
  * runs before the init hook. The init hook is too late for some features, such
@@ -53,7 +53,7 @@ function twentyseventeen_setup() {
 
 	add_image_size( 'twentyseventeen-thumbnail-avatar', 100, 100, true );
 
-	// Sets the default content width.
+	// Set the default content width.
 	$GLOBALS['content_width'] = 525;
 
 	// This theme uses wp_nav_menu() in two locations.
@@ -195,7 +195,7 @@ function twentyseventeen_setup() {
 			'page_for_posts' => '{{blog}}',
 		),
 
-		// Sets the front page section theme mods to the IDs of the core-registered pages.
+		// Set the front page section theme mods to the IDs of the core-registered pages.
 		'theme_mods'  => array(
 			'panel_1' => '{{homepage-section}}',
 			'panel_2' => '{{about}}',
