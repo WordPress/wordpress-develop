@@ -438,7 +438,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test wp_customize_url with multiple theme query args in array sintaxe.
+	 * Test wp_customize_url with multiple theme query args in array syntax.
 	 *
 	 * @ticket 63632
 	 *
