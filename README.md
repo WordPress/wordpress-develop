@@ -157,7 +157,7 @@ services:
     platform: linux/amd64
 ```
 
-Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in containers needs to be disabled for this workaround.
+Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in your container environment (if applicable) needs to be disabled for this workaround.
 
 ## Credentials
 
