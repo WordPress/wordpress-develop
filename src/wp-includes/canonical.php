@@ -73,7 +73,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	$original = parse_url( $requested_url );
-	if ( false === $original || ! isset( $original['host'] ) || ! isset( $original['path'] ) ) {
+	if ( false === $original ) {
 		return;
 	}
 
@@ -616,15 +616,12 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	// Notice prevention after new parse_url( $redirect_url ) calls
-	if ( ! isset( $redirect['host'] ) ) {
-		$redirect['host'] = '';
-	}
-	if ( ! isset( $redirect['path'] ) ) {
-		$redirect['path'] = '';
-	}
-	if ( ! isset( $redirect['query'] ) ) {
-		$redirect['query'] = '';
-	}
+	$redirect += array(
+		'host'   => '',
+		'path'   => '',
+		'query'  => '',
+		'scheme' => '',
+	);
 
 	// Trailing /index.php.
 	$redirect['path'] = preg_replace( '|/' . preg_quote( $wp_rewrite->index, '|' ) . '/*?$|', '/', $redirect['path'] );
