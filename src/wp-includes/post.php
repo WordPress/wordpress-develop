@@ -8180,7 +8180,7 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 		$counted_statuses = apply_filters( 'update_post_term_count_statuses', array( 'publish' ), $taxonomy );
 
 		/*
-		 * Do not recalculare term count if both the old and new statuses are included in term counts.
+		 * Do not recalculate term count if both the old and new statuses are included in term counts.
 		 *
 		 * This accounts for transitioning between statuses which are both included in term counts. This can only occur
 		 * if the `update_post_term_count_statuses` filter is in use to count more than just the 'publish' status.
