@@ -111,7 +111,7 @@ The command will generate three coverage reports in HTML, PHP, and text formats,
 
 #### To restart the development environment
 
-You may want to restart the environment if you've made changes to the configuration in the `compose.yml` or `.env` files. Restart the environment with:
+You may want to restart the environment if you've made changes to the configuration in the `docker-compose.yml` or `.env` files. Restart the environment with:
 
 ```
 npm run env:restart
@@ -148,7 +148,7 @@ Older MySQL and MariaDB container images do not support Apple Silicon processors
 - MySQL versions 5.7 and earlier
 - MariaDB 5.5
 
-When using these versions on an Apple Silicon machine, you must create a `compose.override.yml` file with the following contents:
+When using these versions on an Apple Silicon machine, you must create a `docker-compose.override.yml` file with the following contents:
 
 ```
 services:
