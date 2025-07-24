@@ -34,7 +34,7 @@ if ( ! function_exists( 'twentytwentyfive_editor_style' ) ) :
 	 * @return void
 	 */
 	function twentytwentyfive_editor_style() {
-		add_editor_style( get_parent_theme_file_uri( 'assets/css/editor-style.css' ) );
+		add_editor_style( 'assets/css/editor-style.css' );
 	}
 endif;
 add_action( 'after_setup_theme', 'twentytwentyfive_editor_style' );
@@ -110,7 +110,7 @@ if ( ! function_exists( 'twentytwentyfive_pattern_categories' ) ) :
 		register_block_pattern_category(
 			'twentytwentyfive_post-format',
 			array(
-				'label'       => __( 'Post format', 'twentytwentyfive' ),
+				'label'       => __( 'Post formats', 'twentytwentyfive' ),
 				'description' => __( 'A collection of post format patterns.', 'twentytwentyfive' ),
 			)
 		);

@@ -733,7 +733,10 @@ final class WP_Customize_Widgets {
 				<p class="description">{description}</p>
 				<ul class="widget-area-select">
 					<% _.each( sidebars, function ( sidebar ){ %>
-						<li class="" data-id="<%- sidebar.id %>" title="<%- sidebar.description %>" tabindex="0"><%- sidebar.name %></li>
+						<li class="" data-id="<%- sidebar.id %>" tabindex="0">
+							<div><strong><%- sidebar.name %></strong></div>
+							<div><%- sidebar.description %></div>
+						</li>
 					<% }); %>
 				</ul>
 				<div class="move-widget-actions">
@@ -918,10 +921,12 @@ final class WP_Customize_Widgets {
 				</button>
 				<h3>
 					<span class="customize-action">
-					<?php
+						<?php
+						$panel       = $this->manager->get_panel( 'widgets' );
+						$panel_title = isset( $panel->title ) ? $panel->title : __( 'Widgets' );
 						/* translators: &#9656; is the unicode right-pointing triangle. %s: Section title in the Customizer. */
-						printf( __( 'Customizing &#9656; %s' ), esc_html( $this->manager->get_panel( 'widgets' )->title ) );
-					?>
+						printf( __( 'Customizing &#9656; %s' ), esc_html( $panel_title ) );
+						?>
 					</span>
 					<?php _e( 'Add a Widget' ); ?>
 				</h3>

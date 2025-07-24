@@ -1668,7 +1668,7 @@ class WP_HTML_Tag_Processor {
 				 *
 				 * @see https://html.spec.whatwg.org/#tag-open-state
 				 */
-				if ( 1 !== strspn( $html, '!/?abcdefghijklmnopqrstuvwxyzABCEFGHIJKLMNOPQRSTUVWXYZ', $at + 1, 1 ) ) {
+				if ( 1 !== strspn( $html, '!/?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', $at + 1, 1 ) ) {
 					++$at;
 					continue;
 				}
@@ -2549,6 +2549,15 @@ class WP_HTML_Tag_Processor {
 				'6.2.0'
 			);
 			return false;
+		}
+
+		$existing_bookmark = $this->bookmarks[ $bookmark_name ];
+
+		if (
+			$this->token_starts_at === $existing_bookmark->start &&
+			$this->token_length === $existing_bookmark->length
+		) {
+			return true;
 		}
 
 		if ( ++$this->seek_count > static::MAX_SEEK_OPS ) {
