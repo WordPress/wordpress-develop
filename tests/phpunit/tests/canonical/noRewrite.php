@@ -22,6 +22,7 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63316
 	 * @dataProvider data
 	 */
 	public function test( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
@@ -274,6 +275,8 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 			array( '/?feed=rss&p=1', '/?feed=rss2&p=1', 24623 ),
 
 			array( '/?comp=East+(North)', '/?comp=East+(North)', 49347 ),
+
+			array( null, '/', 63316 ), // No Path and Query
 		);
 	}
 }
