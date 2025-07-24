@@ -107,10 +107,15 @@
 			return;
 		}
 
+		// Remove existing handlers to avoid duplicates.
+		navMenus.find( 'a' ).off( 'focus.twentyfourteen blur.twentyfourteen' );
+
+		// Add focus handlers.
+		navMenus.find( 'a' ).on( 'focus.twentyfourteen blur.twentyfourteen', function() {
+			$( this ).parents().toggleClass( 'focus' );
+		} );
+
 		if ( 783 > _window.width() ) {
-			$( '.primary-navigation, .secondary-navigation' ).find( 'a' ).on( 'focus.twentyfourteen blur.twentyfourteen', function() {
-				$( this ).parents().toggleClass( 'focus' );
-			} );
 			if ( 'ontouchstart' in window ) {
 				$( document.body ).off( 'touchstart.twentyfourteen' );
 			}
