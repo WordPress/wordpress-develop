@@ -1981,7 +1981,7 @@ samp {
 }
 
 /**
- * Adds the correct font size in all browsers.
+ * Add the correct font size in all browsers.
  */
 small {
   font-size: 80%;
@@ -2182,7 +2182,7 @@ textarea {
 /* Interactive
 	 ========================================================================== */
 /*
- * Adds the correct display in Edge, IE 10+, and Firefox.
+ * Add the correct display in Edge, IE 10+, and Firefox.
  */
 details {
   display: block;
