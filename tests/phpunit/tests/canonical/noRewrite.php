@@ -283,9 +283,34 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 	 * Test that the canonical URL is empty when the host header is not set.
 	 *
 	 * @ticket 63316
+	 * @dataProvider data_missing_host_header
 	 */
-	public function test_missing_host_header() {
+	public function test_missing_host_header( $wp_home, $expected_url ) {
 		$_SERVER['HTTP_HOST'] = null;
-		$this->assertCanonical( '/', ':///', 63316 );
+		add_filter(
+			'pre_option_home',
+			static function () use ( $wp_home ) {
+				return $wp_home;
+			}
+		);
+		$this->assertCanonical( '/', $expected_url, 63316 );
+	}
+
+	/**
+	 * Data provider for test_missing_host_header().
+	 *
+	 * @return array[]
+	 */
+	public function data_missing_host_header() {
+		return array(
+			'no port'   => array(
+				'wp_home'      => 'http://example.com',
+				'expected_url' => ':///',
+			),
+			'with port' => array(
+				'wp_home'      => 'http://example.com:8889',
+				'expected_url' => '://:8889/',
+			),
+		);
 	}
 }
