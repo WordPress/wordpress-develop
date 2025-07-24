@@ -170,6 +170,47 @@ class Tests_Taxonomy_UpdateTermCountOnTransitionPostStatus extends WP_UnitTestCa
 	}
 
 	/**
+	 * Test that the term count is not recalculated when both the old and new status are included in term counts.
+	 *
+	 * This accounts for a transition such as draft -> pending.
+	 *
+	 * @ticket 63562
+	 */
+	public function test_term_count_is_not_recalculated_when_both_status_are_counted() {
+		// Create a mock action for `edited_term_taxonomy` to prevent flaky test.
+		$action = new MockAction();
+		add_action( 'edited_term_taxonomy', array( $action, 'action' ) );
+
+		// Register a custom status that is included in term counts.
+		register_post_status(
+			'counted',
+			array(
+				'label'  => 'Counted',
+				'public' => true,
+			)
+		);
+
+		add_filter(
+			'update_post_term_count_statuses',
+			static function ( $status ) {
+				$status[] = 'counted';
+				return $status;
+			}
+		);
+
+		// Change the post to another status that is not included in term counts.
+		wp_update_post(
+			array(
+				'ID'          => self::$post_id,
+				'post_status' => 'counted',
+			)
+		);
+
+		$this->assertSame( 0, $action->get_call_count(), 'Term taxonomy count should not be recalculated both statuses are included in term counts.' );
+		$this->assertTermCount( 1, self::$term_id, 'Term count should remain unchanged when transitioning between post statuses that are not counted.' );
+	}
+
+	/**
 	 * Test that the term count is not recalculated when neither the old nor new status are included in term counts.
 	 *
 	 * This accounts for a transition such as draft -> pending.
