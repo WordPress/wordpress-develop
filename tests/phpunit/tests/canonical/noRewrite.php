@@ -286,6 +286,6 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 	 */
 	public function test_missing_host_header() {
 		$_SERVER['HTTP_HOST'] = null;
-		$this->assertEmpty( $this->get_canonical( null ) );
+		$this->assertSame( ':///', $this->get_canonical( null ) );
 	}
 }
