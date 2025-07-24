@@ -504,17 +504,8 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 
 		$prev_link = $is_desc ? get_next_posts_link( $old_posts_text ) : get_previous_posts_link( $old_posts_text );
 		$next_link = $is_desc ? get_previous_posts_link( $new_posts_text ) : get_next_posts_link( $new_posts_text );
-
-		$allowed_html_tags = array(
-			'a'    => array(
-				'href'  => array(),
-				'title' => array(),
-			),
-			'span' => array(
-				'class' => array(),
-			),
-		)
 		?>
+
 		<nav class="navigation paging-navigation">
 		<h1 class="screen-reader-text">
 			<?php
@@ -525,7 +516,7 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 		<div class="nav-links">
 		<?php if ( $prev_link ) : ?>
 			<div class="nav-previous">
-				<?php echo wp_kses( $prev_link, $allowed_html_tags ); ?>
+				<?php echo wp_kses_post( $prev_link ); ?>
 			</div>
 			<?php
 		endif;
@@ -533,7 +524,7 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 		if ( $next_link ) :
 			?>
 			<div class="nav-next">
-				<?php echo wp_kses( $next_link, $allowed_html_tags ); ?>
+				<?php echo wp_kses_post( $next_link ); ?>
 			</div>
 		<?php endif; ?>
 
