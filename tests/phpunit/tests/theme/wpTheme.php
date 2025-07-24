@@ -410,7 +410,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		// Ensure the existing query arg is present in the URL.
 		add_filter(
 			'admin_url',
-			function ( $url ) {
+			static function ( $url ) {
 				return add_query_arg( 'existing_arg', 'value', $url );
 			}
 		);
@@ -430,7 +430,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		// Ensure the theme query arg is replaced with the new value.
 		add_filter(
 			'admin_url',
-			function ( $url ) {
+			static function ( $url ) {
 				return add_query_arg( 'theme', 'to-be-replaced', $url );
 			}
 		);
@@ -450,7 +450,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 		// Ensure the theme query arg is replaced with the new value.
 		add_filter(
 			'admin_url',
-			function ( $url ) {
+			static function ( $url ) {
 				return add_query_arg( array( 'theme' => array( 'to-be-replaced-1', 'to-be-replaced-2' ) ), $url );
 			}
 		);
