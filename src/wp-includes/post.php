@@ -8179,6 +8179,11 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 		/** This filter is documented in wp-includes/taxonomy.php */
 		$counted_statuses = apply_filters( 'update_post_term_count_statuses', array( 'publish' ), $taxonomy );
 
+		// Do not recalculate if both the old and new statuses are included in term counts.
+		if ( in_array( $old_status, $counted_statuses, true ) && in_array( $new_status, $counted_statuses, true ) ) {
+			continue;
+		}
+
 		// Do not recalculate term count if neither the old or new status are included in term counts.
 		if ( ! in_array( $old_status, $counted_statuses, true ) && ! in_array( $new_status, $counted_statuses, true ) ) {
 			continue;
