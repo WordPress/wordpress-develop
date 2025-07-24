@@ -23,8 +23,8 @@ class Tests_Media_Wp_Playlist_Shortcode extends WP_UnitTestCase {
 		);
 
 		wp_playlist_shortcode( array( 'ids' => '999999' ) );
-		wp_playlist_shortcode( array( 'ids' => (string)$attachment_id ) );
-		wp_playlist_shortcode( array( 'ids' => (string)$attachment_id ) );
+		wp_playlist_shortcode( array( 'ids' => (string) $attachment_id ) );
+		wp_playlist_shortcode( array( 'ids' => (string) $attachment_id ) );
 
 		$this->assertSame( 1, $script_load_count, 'The playlist scripts should be loaded exactly once.' );
 
