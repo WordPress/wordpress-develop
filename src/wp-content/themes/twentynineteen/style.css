@@ -4142,7 +4142,7 @@ body.page .main-navigation {
 .site-header.featured-image:after {
   background: #000;
   /**
-		 * Adds a transition to the readability overlay, to add a subtle
+		 * Add a transition to the readability overlay, to add a subtle
 		 * but smooth effect when resizing the screen.
 		 */
   transition: opacity 1200ms ease-in-out;
