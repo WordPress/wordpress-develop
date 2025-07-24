@@ -49,7 +49,7 @@ _twentyTwentyColor.prototype.setAccentColorsArray = function() {
 				} ),
 				item,
 				/**
-				 * Gets a score for this color in contrast to its background color and surrounding text.
+				 * Get a score for this color in contrast to its background color and surrounding text.
 				 *
 				 * @since Twenty Twenty 1.0
 				 *

@@ -1,5 +1,5 @@
 /**
- * Gets luminance from a HEX color.
+ * Get luminance from a HEX color.
  *
  * @since Twenty Twenty-One 1.0
  *
@@ -13,7 +13,7 @@ function twentytwentyoneGetHexLum( hex ) { // jshint ignore:line
 }
 
 /**
- * Gets RGB from HEX.
+ * Get RGB from HEX.
  *
  * @since Twenty Twenty-One 1.0
  *
