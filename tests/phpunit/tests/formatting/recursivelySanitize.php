@@ -25,12 +25,12 @@ class Tests_Formatting_RecursivelySanitize extends WP_UnitTestCase {
 			// Array with sanitized keys and values.
 			array(
 				array(
-					'text' => 'Simple <b>text</b>',
+					'text'            => 'Simple <b>text</b>',
 					'key with spaces' => 'value',
 				),
 				'auto',
 				array(
-					'text' => 'Simple text',
+					'text'          => 'Simple text',
 					'keywithspaces' => 'value',
 				),
 			),
@@ -53,12 +53,12 @@ class Tests_Formatting_RecursivelySanitize extends WP_UnitTestCase {
 			// Object.
 			array(
 				(object) array(
-					'text' => 'Text with <script>alert("xss")</script>',
+					'text'            => 'Text with <script>alert("xss")</script>',
 					'key with spaces' => 'value',
 				),
 				'auto',
 				(object) array(
-					'text' => 'Text with',
+					'text'          => 'Text with',
 					'keywithspaces' => 'value',
 				),
 			),
