@@ -91,7 +91,7 @@
 	}
 
 	/**
-	 * Sets menu container variable.
+	 * Set menu container variable.
 	 */
 	var navContainer = document.querySelector('.main-navigation');
 	var breaks       = [];
