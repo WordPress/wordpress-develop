@@ -2189,7 +2189,7 @@ details {
 }
 
 /*
- * Adds the correct display in all browsers.
+ * Add the correct display in all browsers.
  */
 summary {
   display: list-item;
@@ -2198,7 +2198,7 @@ summary {
 /* Misc
 	 ========================================================================== */
 /**
- * Adds the correct display in IE 10+.
+ * Add the correct display in IE 10+.
  */
 template {
   display: none;
