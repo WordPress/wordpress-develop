@@ -48,21 +48,21 @@
 }
 
 /**
- * Sets the default maximum responsive content-width
+ * Set the default maximum responsive content-width
  */
 .default-max-width {
 	@extend %responsive-aligndefault-width;
 }
 
 /**
- * Sets the wide maximum responsive content-width
+ * Set the wide maximum responsive content-width
  */
 .wide-max-width {
 	@extend %responsive-alignwide-width;
 }
 
 /**
- * Sets the full maximum responsive content-width
+ * Set the full maximum responsive content-width
  */
 .full-max-width {
 	@extend %responsive-alignfull-width-mobile;

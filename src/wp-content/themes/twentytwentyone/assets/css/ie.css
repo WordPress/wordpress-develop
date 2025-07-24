@@ -458,7 +458,7 @@ summary {
  */
 
 /**
- * Adds the correct display in IE 10.
+ * Add the correct display in IE 10.
  */
 template,
 [hidden] {
@@ -917,15 +917,15 @@ template,
 }
 
 /**
- * Sets the default maximum responsive content-width
+ * Set the default maximum responsive content-width
  */
 
 /**
- * Sets the wide maximum responsive content-width
+ * Set the wide maximum responsive content-width
  */
 
 /**
- * Sets the full maximum responsive content-width
+ * Set the full maximum responsive content-width
  */
 
 /*

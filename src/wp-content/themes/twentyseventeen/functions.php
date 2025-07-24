@@ -203,7 +203,7 @@ function twentyseventeen_setup() {
 			'panel_4' => '{{contact}}',
 		),
 
-		// Sets up nav menus for each of the two areas registered in the theme.
+		// Set up nav menus for each of the two areas registered in the theme.
 		'nav_menus'   => array(
 			// Assign a menu to the "top" location.
 			'top'    => array(

@@ -46,7 +46,7 @@ function twentytwenty_theme_support() {
 		)
 	);
 
-	// Sets content-width.
+	// Set content-width.
 	global $content_width;
 	if ( ! isset( $content_width ) ) {
 		$content_width = 580;
@@ -59,7 +59,7 @@ function twentytwenty_theme_support() {
 	 */
 	add_theme_support( 'post-thumbnails' );
 
-	// Sets post thumbnail size.
+	// Set post thumbnail size.
 	set_post_thumbnail_size( 1200, 9999 );
 
 	// Add custom image size used in Cover Template.

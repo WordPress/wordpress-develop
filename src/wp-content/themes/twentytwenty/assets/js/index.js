@@ -4,7 +4,7 @@
 
 var twentytwenty = twentytwenty || {};
 
-// Sets a default value for scrolled.
+// Set a default value for scrolled.
 twentytwenty.scrolled = 0;
 
 // polyfill closest
@@ -476,7 +476,7 @@ twentytwenty.primaryMenu = {
 				}
 			});
 
-			// Sets focus on current `a` element's parent `li`.
+			// Set focus on current `a` element's parent `li`.
 			self.parentElement.classList.add( 'focus' );
 			// If current element is inside sub-menu find main parent li and add focus.
 			if ( self.closest( '.menu-item-has-children' ) ) {

@@ -19,7 +19,7 @@ function twentytwentyoneDarkModeEditorInit( attempt ) {
 	var container = document.querySelector( '.block-editor__typewriter' ),
 		maxAttempts = 8;
 
-	// Sets the initial attempt if it's undefined.
+	// Set the initial attempt if it's undefined.
 	attempt = attempt || 0;
 
 	if ( twentytwentyoneIsDarkMode() ) {
