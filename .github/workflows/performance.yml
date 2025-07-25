@@ -92,6 +92,7 @@ jobs:
   performance:
     name: ${{ matrix.multisite && 'Multisite' || 'Single Site' }} ${{ matrix.memcached && 'Memcached' || 'Default' }}
     uses: ./.github/workflows/reusable-performance-test-v2.yml
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && ! matrix.memcached ) }}
     needs: [ determine-matrix ]
     permissions:
       contents: read
