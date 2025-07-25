@@ -1094,12 +1094,12 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		$attr = wp_parse_args( $attr, $default_attr );
 
 		// Ensure that the `$width` doesn't overwrite an already valid user-provided width.
-		if ( is_numeric( $width ) && ( ! isset( $attr['width'] ) || ! is_numeric( $attr['width'] ) ) ) {
+		if ( ! isset( $attr['width'] ) || ! is_numeric( $attr['width'] ) ) {
 			$attr['width'] = $width;
 		}
 
 		// Ensure that the `$height` doesn't overwrite an already valid user-provided height.
-		if ( is_numeric( $height ) && ( ! isset( $attr['height'] ) || ! is_numeric( $attr['height'] ) ) ) {
+		if ( ! isset( $attr['height'] ) || ! is_numeric( $attr['height'] ) ) {
 			$attr['height'] = $height;
 		}
 

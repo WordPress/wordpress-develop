@@ -1640,25 +1640,18 @@ EOF;
 	 * @ticket 63714
 	 */
 	public function test_wp_get_attachment_image_not_overwrite_user_provided_width_height() {
-		[$src, $width, $height] = wp_get_attachment_image_src( self::$large_id, 'large' );
-
-		$user_provided_width  = is_numeric( $width ) ? (int) $width + 1 : 999;
-		$user_provided_height = is_numeric( $height ) ? (int) $height + 1 : 199;
-
 		$img = wp_get_attachment_image(
 			self::$large_id,
 			'large',
 			false,
 			array(
-				'width'  => $user_provided_width,
-				'height' => $user_provided_height,
+				'width'  => 999,
+				'height' => 999,
 			)
 		);
 
-		$expected_width_attribute  = 'width="' . $user_provided_width . '"';
-		$expected_height_attribute = 'height="' . $user_provided_height . '"';
-		$this->assertStringContainsString( $expected_width_attribute, $img, 'User-provided width should not be changed.' );
-		$this->assertStringContainsString( $expected_height_attribute, $img, 'User-provided height should not be changed.' );
+		$this->assertStringContainsString( 'width="999"', $img, 'User-provided width should not be changed.' );
+		$this->assertStringContainsString( 'height="999"', $img, 'User-provided height should not be changed.' );
 	}
 
 	/**
