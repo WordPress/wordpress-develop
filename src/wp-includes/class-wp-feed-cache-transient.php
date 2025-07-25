@@ -12,6 +12,7 @@
  *
  * @since 2.8.0
  * @since 6.7.0 Now properly implements the SimplePie\Cache\Base interface.
+ * @since 6.9.0 Switched to Multisite's global cache via the `*_site_transient()` functions.
  */
 #[AllowDynamicProperties]
 class WP_Feed_Cache_Transient implements SimplePie\Cache\Base {
