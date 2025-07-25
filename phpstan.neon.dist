@@ -28,7 +28,7 @@ parameters:
 			path: src/wp-admin/includes/export.php
 
 		# Level 1:
-		- These are too noisy at the moment.
+		- # These are too noisy at the moment.
 			message: '#Variable \$[a-zA-Z0-9_]+ might not be defined\.#'
 
 		# Level 2:
