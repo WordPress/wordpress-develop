@@ -285,6 +285,14 @@ jobs:
             db-version: '8.4'
             db-type: 'mysql'
             phpunit-test-groups: 'html-api-html5lib-tests'
+
+        exclude:
+          # Exclude PHP versions that are not supported by the database versions.
+          - db-type: 'mysql'
+            db-version: '11.8'
+          - db-type: 'mariadb'
+            db-version: '8.4'
+
     with:
       php: ${{ matrix.php }}
       db-version: ${{ matrix.db-version }}
