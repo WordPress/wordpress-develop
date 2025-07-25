@@ -47,6 +47,7 @@ jobs:
   build:
     name: Build
     uses: ./.github/workflows/reusable-build-package.yml
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     permissions:
       contents: read
 
@@ -87,7 +88,7 @@ jobs:
   upgrade-tests-develop-forks:
     name: Upgrade from ${{ matrix.wp }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ github.repository != 'WordPress/wordpress-develop' }}
     needs: [ build ]
     strategy:
       fail-fast: false
