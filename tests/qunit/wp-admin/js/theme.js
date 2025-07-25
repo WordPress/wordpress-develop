@@ -7,7 +7,6 @@
 	QUnit.module( 'Theme Keyboard Navigation', function( hooks ) {
 		var themePreview, nextCalled, prevCalled;
 
-		// Mock theme preview object
 		function createThemePreview() {
 			return {
 				nextTheme: function() { nextCalled++; },
