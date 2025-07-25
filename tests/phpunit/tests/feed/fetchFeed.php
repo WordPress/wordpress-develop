@@ -79,7 +79,7 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 		switch_to_blog( $second_blog_id );
 
 		fetch_feed( 'https://wordpress.org/news/feed/' );
-		$this->assertEquals( 1, $filter->get_call_count(), 'The feed cache should be be global.' );
+		$this->assertEquals( 1, $filter->get_call_count(), 'The feed cache should be global.' );
 	}
 
 	/**
