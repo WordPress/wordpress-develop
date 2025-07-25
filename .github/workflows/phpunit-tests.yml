@@ -249,6 +249,13 @@ jobs:
       db-version: ${{ matrix.db-version }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
 
+  #
+  # Runs unit tests for forks.
+  #
+  # Because the majority of forks will belong to personal GitHub accounts (which are limited to just 20 concurrent jobs
+  # at any given time), forks only run a small subset of test combinations. This allows contributors to open pull
+  # requests back to their own forks for testing purposes without having to wait hours for workflow to complete.
+  #
   limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
