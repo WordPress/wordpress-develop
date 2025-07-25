@@ -542,18 +542,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/post.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$request_id of function wp_send_user_request expects string, int given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/privacy-tools.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$request_id of function wp_send_user_request expects string, int\\|WP_Error given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/privacy-tools.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$user_id of function get_the_author_meta expects int\\|false, string given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -930,12 +918,6 @@ $ignoreErrors[] = [
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-hook.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#3 \\$value of function curl_setopt expects int, string given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-http-curl.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$mode of function stream_set_blocking expects bool, int given\\.$#',
@@ -1764,12 +1746,6 @@ $ignoreErrors[] = [
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/widgets/class-wp-widget-recent-comments.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$request_id of function wp_validate_user_request_key expects string, int given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-login.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$text of function esc_html expects string, int given\\.$#',
