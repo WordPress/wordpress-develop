@@ -993,7 +993,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 				);
 
 				$args['walker'] = $walker;
-				if ( ! $popular_terms ){
+				if ( ! $popular_terms ) {
 					echo '<p>' . __( 'No items.' ) . '</p>';
 				}
 				echo walk_nav_menu_tree(
