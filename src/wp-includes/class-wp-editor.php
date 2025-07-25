@@ -668,12 +668,12 @@ final class _WP_Editors {
 				}
 
 				/**
-				 * Filters the first-row list of TinyMCE buttons (Visual tab).
+				 * Filters the first-row array of TinyMCE buttons (Visual tab).
 				 *
 				 * @since 2.0.0
 				 * @since 3.3.0 The `$editor_id` parameter was added.
 				 *
-				 * @param array  $mce_buttons First-row list of buttons.
+				 * @param array  $mce_buttons First-row array of buttons.
 				 * @param string $editor_id   Unique editor identifier, e.g. 'content'. Accepts 'classic-block'
 				 *                            when called from block editor's Classic block.
 				 */
@@ -697,36 +697,36 @@ final class _WP_Editors {
 				}
 
 				/**
-				 * Filters the second-row list of TinyMCE buttons (Visual tab).
+				 * Filters the second-row array of TinyMCE buttons (Visual tab).
 				 *
 				 * @since 2.0.0
 				 * @since 3.3.0 The `$editor_id` parameter was added.
 				 *
-				 * @param array  $mce_buttons_2 Second-row list of buttons.
+				 * @param array  $mce_buttons_2 Second-row array of buttons.
 				 * @param string $editor_id     Unique editor identifier, e.g. 'content'. Accepts 'classic-block'
 				 *                              when called from block editor's Classic block.
 				 */
 				$mce_buttons_2 = apply_filters( 'mce_buttons_2', $mce_buttons_2, $editor_id );
 
 				/**
-				 * Filters the third-row list of TinyMCE buttons (Visual tab).
+				 * Filters the third-row array of TinyMCE buttons (Visual tab).
 				 *
 				 * @since 2.0.0
 				 * @since 3.3.0 The `$editor_id` parameter was added.
 				 *
-				 * @param array  $mce_buttons_3 Third-row list of buttons.
+				 * @param array  $mce_buttons_3 Third-row array of buttons.
 				 * @param string $editor_id     Unique editor identifier, e.g. 'content'. Accepts 'classic-block'
 				 *                              when called from block editor's Classic block.
 				 */
 				$mce_buttons_3 = apply_filters( 'mce_buttons_3', array(), $editor_id );
 
 				/**
-				 * Filters the fourth-row list of TinyMCE buttons (Visual tab).
+				 * Filters the fourth-row array of TinyMCE buttons (Visual tab).
 				 *
 				 * @since 2.5.0
 				 * @since 3.3.0 The `$editor_id` parameter was added.
 				 *
-				 * @param array  $mce_buttons_4 Fourth-row list of buttons.
+				 * @param array  $mce_buttons_4 Fourth-row array of buttons.
 				 * @param string $editor_id     Unique editor identifier, e.g. 'content'. Accepts 'classic-block'
 				 *                              when called from block editor's Classic block.
 				 */

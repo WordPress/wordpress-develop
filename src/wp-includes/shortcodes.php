@@ -125,7 +125,7 @@ function remove_all_shortcodes() {
  *
  * @since 3.6.0
  *
- * @global array $shortcode_tags List of shortcode tags and their callback hooks.
+ * @global array $shortcode_tags Array of shortcode tags and their callback hooks.
  *
  * @param string $tag Shortcode tag to check.
  * @return bool Whether the given shortcode exists.
@@ -233,7 +233,7 @@ function apply_shortcodes( $content, $ignore_html = false ) {
  *
  * @since 2.5.0
  *
- * @global array $shortcode_tags List of shortcode tags and their callback hooks.
+ * @global array $shortcode_tags Array of shortcode tags and their callback hooks.
  *
  * @param string $content     Content to search for shortcodes.
  * @param bool   $ignore_html When true, shortcodes inside HTML elements will be skipped.
@@ -318,7 +318,7 @@ function _filter_do_shortcode_context() {
  *
  * @global array $shortcode_tags
  *
- * @param array $tagnames Optional. List of shortcodes to find. Defaults to all registered shortcodes.
+ * @param array $tagnames Optional. Array of shortcodes to find. Defaults to all registered shortcodes.
  * @return string The shortcode search regular expression
  */
 function get_shortcode_regex( $tagnames = null ) {
@@ -459,7 +459,7 @@ function do_shortcode_tag( $m ) {
  *
  * @param string $content     Content to search for shortcodes.
  * @param bool   $ignore_html When true, all square braces inside elements will be encoded.
- * @param array  $tagnames    List of shortcodes to find.
+ * @param array  $tagnames    Array of shortcodes to find.
  * @return string Content with shortcodes filtered out.
  */
 function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
@@ -656,10 +656,10 @@ function shortcode_parse_atts( $text ) {
  *
  * @since 2.5.0
  *
- * @param array  $pairs     Entire list of supported attributes and their defaults.
+ * @param array  $pairs     Entire array of supported attributes and their defaults.
  * @param array  $atts      User defined attributes in shortcode tag.
  * @param string $shortcode Optional. The name of the shortcode, provided for context to enable filtering
- * @return array Combined and filtered attribute list.
+ * @return array Combined and filtered attribute array.
  */
 function shortcode_atts( $pairs, $atts, $shortcode = '' ) {
 	$atts = (array) $atts;

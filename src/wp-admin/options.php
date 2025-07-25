@@ -217,7 +217,7 @@ if ( ! is_multisite() ) {
  * @since 2.7.0
  * @deprecated 5.5.0 Use {@see 'allowed_options'} instead.
  *
- * @param array $allowed_options The allowed options list.
+ * @param array $allowed_options The allowed options array.
  */
 $allowed_options = apply_filters_deprecated(
 	'whitelist_options',
@@ -232,7 +232,7 @@ $allowed_options = apply_filters_deprecated(
  *
  * @since 5.5.0
  *
- * @param array $allowed_options The allowed options list.
+ * @param array $allowed_options The allowed options array.
  */
 $allowed_options = apply_filters( 'allowed_options', $allowed_options );
 

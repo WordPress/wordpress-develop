@@ -197,7 +197,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_when_else
 	 *
-	 * @param array $args Function argument list.
+	 * @param array $args Function argument array.
 	 */
 	public function test_should_return_global_when_else( $args ) {
 		$args            = $this->init_func_args( $args, self::$bookmark->link_id );
@@ -216,7 +216,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_when_else
 	 *
-	 * @param array $args Function argument list.
+	 * @param array $args Function argument array.
 	 */
 	public function test_should_return_cached_bookmark_when_given_existing_link_id( $args ) {
 		// Cache the bookmark instance to setup the test.
@@ -247,7 +247,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_when_else
 	 *
-	 * @param array $args Function argument list.
+	 * @param array $args Function argument array.
 	 */
 	public function test_should_return_null_when_bookmark_not_in_database( $args ) {
 		$bookmark_link_id = self::$bookmark->link_id * 100;
@@ -272,7 +272,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_when_else
 	 *
-	 * @param array $args Function argument list.
+	 * @param array $args Function argument array.
 	 */
 	public function test_should_return_existing_bookmark_from_database( $args ) {
 		$args     = $this->init_func_args( $args, self::$bookmark->link_id );
@@ -358,9 +358,9 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * Initialize the get_bookmark's function arguments to match the order of the function's signature and
 	 * reduce code in the tests.
 	 *
-	 * @param array        $args     Function argument list.
+	 * @param array        $args     Function argument array.
 	 * @param int|stdClass $bookmark Optional. Bookmark's cache key or instance.
-	 * @return array Ordered argument list.
+	 * @return array Ordered argument array.
 	 */
 	private function init_func_args( array $args, $bookmark = null ) {
 		// The defaults sets the order to match the function's arguments as well as setting the default values.
@@ -386,7 +386,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
 	 * Maybe format the bookmark's expected data.
 	 *
-	 * @param array             $args     Function argument list.
+	 * @param array             $args     Function argument array.
 	 * @param int|stdClass|null $bookmark Optional. Bookmark's cache key or instance.
 	 * @return array|stdClass bookmark's data.
 	 */

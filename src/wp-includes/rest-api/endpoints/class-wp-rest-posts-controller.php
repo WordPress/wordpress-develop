@@ -2274,7 +2274,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Post         $post    Post object.
 	 * @param WP_REST_Request $request Request object.
-	 * @return array List of link relations.
+	 * @return array Array of link relations.
 	 */
 	protected function get_available_actions( $post, $request ) {
 
@@ -3118,7 +3118,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param string|array    $statuses  One or more post statuses.
 	 * @param WP_REST_Request $request   Full details about the request.
 	 * @param string          $parameter Additional parameter to pass to validation.
-	 * @return array|WP_Error A list of valid statuses, otherwise WP_Error object.
+	 * @return array|WP_Error A array of valid statuses, otherwise WP_Error object.
 	 */
 	public function sanitize_post_statuses( $statuses, $request, $parameter ) {
 		$statuses = wp_parse_slug_list( $statuses );

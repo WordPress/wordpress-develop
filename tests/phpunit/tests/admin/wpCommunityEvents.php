@@ -348,7 +348,7 @@ class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
 	 * @since 4.9.7
 	 * @since 5.5.2 Accepts and returns only the events, rather than an entire HTTP response.
 	 *
-	 * @return array A list of mock events.
+	 * @return array An array of mock events.
 	 */
 	public function _events_with_unpinned_wordcamp() {
 		return array(

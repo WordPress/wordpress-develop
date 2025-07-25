@@ -65,12 +65,12 @@ final class WP_Block_Patterns_Registry {
 	 *     @type bool     $inserter      Optional. Determines whether the pattern is visible in inserter.
 	 *                                   To hide a pattern so that it can only be inserted programmatically,
 	 *                                   set this to false. Default true.
-	 *     @type string[] $categories    Optional. A list of registered pattern categories used to group
+	 *     @type string[] $categories    Optional. An array of registered pattern categories used to group
 	 *                                   block patterns. Block patterns can be shown on multiple categories.
 	 *                                   A category must be registered separately in order to be used here.
-	 *     @type string[] $keywords      Optional. A list of aliases or keywords that help users discover
+	 *     @type string[] $keywords      Optional. An array of aliases or keywords that help users discover
 	 *                                   the pattern while searching.
-	 *     @type string[] $blockTypes    Optional. A list of block names including namespace that could use
+	 *     @type string[] $blockTypes    Optional. An array of block names including namespace that could use
 	 *                                   the block pattern in certain contexts (placeholder, transforms).
 	 *                                   The block pattern is available in the block editor inserter
 	 *                                   regardless of this list of block names.
@@ -284,7 +284,7 @@ final class WP_Block_Patterns_Registry {
  * @since 5.5.0
  *
  * @param string $pattern_name       Block pattern name including namespace.
- * @param array  $pattern_properties List of properties for the block pattern.
+ * @param array  $pattern_properties Array of properties for the block pattern.
  *                                   See WP_Block_Patterns_Registry::register() for accepted arguments.
  * @return bool True if the pattern was registered with success and false otherwise.
  */

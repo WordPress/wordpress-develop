@@ -3560,7 +3560,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	/**
 	 * Callback for the customize_previewable_devices filter.
 	 *
-	 * @param array $devices The list of devices.
+	 * @param array $devices The array of devices.
 	 *
 	 * @return array
 	 */

@@ -15,7 +15,7 @@
  *
  * @param string $version WordPress version. Defaults to the current version.
  * @param string $locale  WordPress locale. Defaults to the current user's locale.
- * @return array|false A list of all of the contributors, or false on error.
+ * @return array|false An array of all of the contributors, or false on error.
  */
 function wp_credits( $version = '', $locale = '' ) {
 	if ( ! $version ) {

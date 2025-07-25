@@ -944,7 +944,7 @@ class wpdb {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param array $modes Optional. A list of SQL modes to set. Default empty array.
+	 * @param array $modes Optional. An array of SQL modes to set. Default empty array.
 	 */
 	public function set_sql_mode( $modes = array() ) {
 		if ( empty( $modes ) ) {

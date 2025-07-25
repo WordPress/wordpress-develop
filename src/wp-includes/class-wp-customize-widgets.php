@@ -1058,7 +1058,7 @@ final class WP_Customize_Widgets {
 	 *
 	 * @see wp_list_widgets()
 	 *
-	 * @return array List of available widgets.
+	 * @return array Array of available widgets.
 	 */
 	public function get_available_widgets() {
 		static $available_widgets = array();
@@ -1256,7 +1256,7 @@ final class WP_Customize_Widgets {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param array $sidebars_widgets List of widgets for the current sidebar.
+	 * @param array $sidebars_widgets Array of widgets for the current sidebar.
 	 * @return array
 	 */
 	public function preview_sidebars_widgets( $sidebars_widgets ) {
@@ -1550,8 +1550,8 @@ final class WP_Customize_Widgets {
 	 *
 	 * @global array $wp_registered_widgets
 	 *
-	 * @param array $widget_ids List of widget IDs.
-	 * @return array Parsed list of widget IDs.
+	 * @param array $widget_ids Array of widget IDs.
+	 * @return array Parsed array of widget IDs.
 	 */
 	public function sanitize_sidebar_widgets_js_instance( $widget_ids ) {
 		global $wp_registered_widgets;

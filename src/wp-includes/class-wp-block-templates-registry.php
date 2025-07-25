@@ -154,8 +154,8 @@ final class WP_Block_Templates_Registry {
 	 * @param array  $query {
 	 *     Arguments to retrieve templates. Optional, empty by default.
 	 *
-	 *     @type string[] $slug__in     List of slugs to include.
-	 *     @type string[] $slug__not_in List of slugs to skip.
+	 *     @type string[] $slug__in     Array of slugs to include.
+	 *     @type string[] $slug__not_in Array of slugs to skip.
 	 *     @type string   $post_type    Post type to get the templates for.
 	 * }
 	 * @return WP_Block_Template[] Associative array of `$template_name => $template` pairs.

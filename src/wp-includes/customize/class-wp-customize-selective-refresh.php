@@ -426,7 +426,7 @@ final class WP_Customize_Selective_Refresh {
 		 *
 		 *     @type array $contents Associative array mapping a partial ID its corresponding array of contents
 		 *                           for the containers requested.
-		 *     @type array $errors   List of errors triggered during rendering of partials, if `WP_DEBUG_DISPLAY`
+		 *     @type array $errors   Array of errors triggered during rendering of partials, if `WP_DEBUG_DISPLAY`
 		 *                           is enabled.
 		 * }
 		 * @param WP_Customize_Selective_Refresh $refresh  Selective refresh component.

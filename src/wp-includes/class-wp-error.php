@@ -71,7 +71,7 @@ class WP_Error {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @return array List of error codes, if available.
+	 * @return array Array of error codes, if available.
 	 */
 	public function get_error_codes() {
 		if ( ! $this->has_errors() ) {

@@ -226,7 +226,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @global WP_Widget_Factory $wp_widget_factory
-	 * @global array             $wp_registered_widgets The list of registered widgets.
+	 * @global array             $wp_registered_widgets The array of registered widgets.
 	 *
 	 * @return array Array of widgets.
 	 */

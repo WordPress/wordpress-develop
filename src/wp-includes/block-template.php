@@ -56,7 +56,7 @@ function wp_render_empty_block_template_warning( $block_template ) {
  *
  * @param string   $template  Path to the template. See locate_template().
  * @param string   $type      Sanitized filename without extension.
- * @param string[] $templates A list of template candidates, in descending order of priority.
+ * @param string[] $templates An array of template candidates, in descending order of priority.
  * @return string The path to the Site Editor template canvas file, or the fallback PHP template.
  */
 function locate_block_template( $template, $type, array $templates ) {

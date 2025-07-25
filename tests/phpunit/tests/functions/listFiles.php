@@ -30,7 +30,7 @@ class Tests_Functions_ListFiles extends WP_UnitTestCase {
 	 *
 	 * @param string   $filename       The name of the hidden file.
 	 * @param bool     $include_hidden Whether to include hidden ("." prefixed) files.
-	 * @param string[] $exclusions     List of folders and files to skip.
+	 * @param string[] $exclusions     Array of folders and files to skip.
 	 * @param bool     $expected       Whether the file should be included in the results.
 	 */
 	public function test_list_files_should_optionally_include_hidden_files( $filename, $include_hidden, $exclusions, $expected ) {

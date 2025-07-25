@@ -1229,8 +1229,8 @@ class WP_Automatic_Updater {
 	 * @since 5.5.0
 	 *
 	 * @param string $type               The type of email to send. Can be one of 'success', 'fail', 'mixed'.
-	 * @param array  $successful_updates A list of updates that succeeded.
-	 * @param array  $failed_updates     A list of updates that failed.
+	 * @param array  $successful_updates An array of updates that succeeded.
+	 * @param array  $failed_updates     An array of updates that failed.
 	 */
 	protected function send_plugin_theme_email( $type, $successful_updates, $failed_updates ) {
 		// No updates were attempted.
@@ -1535,8 +1535,8 @@ class WP_Automatic_Updater {
 		 *     @type string $headers Any email headers, defaults to no headers.
 		 * }
 		 * @param string $type               The type of email being sent. Can be one of 'success', 'fail', 'mixed'.
-		 * @param array  $successful_updates A list of updates that succeeded.
-		 * @param array  $failed_updates     A list of updates that failed.
+		 * @param array  $successful_updates An array of updates that succeeded.
+		 * @param array  $failed_updates     An array of updates that failed.
 		 */
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
 

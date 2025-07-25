@@ -21,7 +21,7 @@
  *
  *     @type string $taxonomy Taxonomy to retrieve terms for. Default 'category'.
  * }
- * @return array List of category objects.
+ * @return array Array of category objects.
  */
 function get_categories( $args = '' ) {
 	$defaults = array( 'taxonomy' => 'category' );

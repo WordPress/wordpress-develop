@@ -122,7 +122,7 @@ class Walker_Comment extends Walker {
 	 * @see wp_list_comments()
 	 *
 	 * @param WP_Comment $element           Comment data object.
-	 * @param array      $children_elements List of elements to continue traversing. Passed by reference.
+	 * @param array      $children_elements Array of elements to continue traversing. Passed by reference.
 	 * @param int        $max_depth         Max depth to traverse.
 	 * @param int        $depth             Depth of the current element.
 	 * @param array      $args              An array of arguments.

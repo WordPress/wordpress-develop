@@ -564,7 +564,7 @@ function get_post_class( $css_class = '', $post = null ) {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string[] $taxonomies List of all taxonomy names to generate classes for.
+	 * @param string[] $taxonomies Array of all taxonomy names to generate classes for.
 	 * @param int      $post_id    The post ID.
 	 * @param string[] $classes    An array of post class names.
 	 * @param string[] $css_class  An array of additional class names added to the post.

@@ -1346,7 +1346,7 @@ final class WP_Customize_Nav_Menus {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @global stdClass[] $wp_post_statuses List of post statuses.
+	 * @global stdClass[] $wp_post_statuses Array of post statuses.
 	 */
 	public function make_auto_draft_status_previewable() {
 		global $wp_post_statuses;

@@ -560,7 +560,7 @@ function wp_cache_get_server_by_key( $server_key ) {
  *
  * @link https://www.php.net/manual/en/memcached.getserverlist.php
  *
- * @return array The list of all servers in the server pool.
+ * @return array The array of all servers in the server pool.
  */
 function wp_cache_get_server_list() {
 	global $wp_object_cache;
@@ -1753,7 +1753,7 @@ class WP_Object_Cache {
 	 *
 	 * @link https://www.php.net/manual/en/memcached.getserverlist.php
 	 *
-	 * @return array The list of all servers in the server pool.
+	 * @return array The array of all servers in the server pool.
 	 */
 	public function getServerList() {
 		return $this->m->getServerList();

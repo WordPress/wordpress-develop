@@ -400,7 +400,7 @@ class WP_REST_Server {
 		 * @since 5.5.0
 		 * @since 6.3.0 The `$request` parameter was added.
 		 *
-		 * @param string[]        $expose_headers The list of response headers to expose.
+		 * @param string[]        $expose_headers The array of response headers to expose.
 		 * @param WP_REST_Request $request        The request in context.
 		 */
 		$expose_headers = apply_filters( 'rest_exposed_cors_headers', $expose_headers, $request );
@@ -426,7 +426,7 @@ class WP_REST_Server {
 		 * @since 5.5.0
 		 * @since 6.3.0 The `$request` parameter was added.
 		 *
-		 * @param string[]        $allow_headers The list of request headers to allow.
+		 * @param string[]        $allow_headers The array of request headers to allow.
 		 * @param WP_REST_Request $request       The request in context.
 		 */
 		$allow_headers = apply_filters( 'rest_allowed_cors_headers', $allow_headers, $request );
@@ -577,7 +577,7 @@ class WP_REST_Server {
 	 * @since 5.4.0 The `$embed` parameter can now contain a list of link relations to include.
 	 *
 	 * @param WP_REST_Response $response Response object.
-	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
+	 * @param bool|string[]    $embed    Whether to embed all links, a filtered array of link relations, or no links.
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
@@ -763,7 +763,7 @@ class WP_REST_Server {
 	 * @since 5.4.0 The `$embed` parameter can now contain a list of link relations to include.
 	 *
 	 * @param array         $data  Data from the request.
-	 * @param bool|string[] $embed Whether to embed all links or a filtered list of link relations.
+	 * @param bool|string[] $embed Whether to embed all links or a filtered array of link relations.
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
@@ -854,7 +854,7 @@ class WP_REST_Server {
 	 * @since 6.0.0 The `$embed` parameter can now contain a list of link relations to include.
 	 *
 	 * @param WP_REST_Response $response Response object.
-	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
+	 * @param bool|string[]    $embed    Whether to embed all links, a filtered array of link relations, or no links.
 	 * @return WP_REST_Response New response with wrapped data
 	 */
 	public function envelope_response( $response, $embed ) {
@@ -1029,7 +1029,7 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return string[] List of registered namespaces.
+	 * @return string[] Array of registered namespaces.
 	 */
 	public function get_namespaces() {
 		return array_keys( $this->namespaces );

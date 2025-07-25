@@ -3841,7 +3841,7 @@ function wp_preload_resources() {
  * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
  * @global WP_Styles  $wp_styles  The WP_Styles object for printing styles.
  *
- * @return string[] A list of unique hosts of enqueued scripts and styles.
+ * @return string[] An array of unique hosts of enqueued scripts and styles.
  */
 function wp_dependencies_unique_hosts() {
 	global $wp_scripts, $wp_styles;

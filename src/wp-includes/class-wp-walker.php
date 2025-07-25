@@ -124,7 +124,7 @@ class Walker {
 	 * @since 2.5.0
 	 *
 	 * @param object $element           Data object.
-	 * @param array  $children_elements List of elements to continue traversing (passed by reference).
+	 * @param array  $children_elements Array of elements to continue traversing (passed by reference).
 	 * @param int    $max_depth         Max depth to traverse.
 	 * @param int    $depth             Depth of current element.
 	 * @param array  $args              An array of arguments.

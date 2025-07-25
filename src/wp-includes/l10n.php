@@ -1648,9 +1648,9 @@ function wp_get_l10n_php_file_data( $php_file ) {
  *
  *     @type string   $id                           ID attribute of the select element. Default 'locale'.
  *     @type string   $name                         Name attribute of the select element. Default 'locale'.
- *     @type string[] $languages                    List of installed languages, contain only the locales.
+ *     @type string[] $languages                    Array of installed languages, contain only the locales.
  *                                                  Default empty array.
- *     @type array    $translations                 List of available translations. Default result of
+ *     @type array    $translations                 Array of available translations. Default result of
  *                                                  wp_get_available_translations().
  *     @type string   $selected                     Language which should be selected. Default empty.
  *     @type bool|int $echo                         Whether to echo the generated markup. Accepts 0, 1, or their

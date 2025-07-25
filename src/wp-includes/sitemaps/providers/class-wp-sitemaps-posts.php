@@ -80,7 +80,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param array[]|null $url_list  The URL list. Default null.
+		 * @param array[]|null $url_list  The URL array. Default null.
 		 * @param string       $post_type Post type name.
 		 * @param int          $page_num  Page of results.
 		 */

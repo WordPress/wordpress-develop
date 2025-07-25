@@ -932,9 +932,9 @@ class WP_Theme_JSON {
 	 * @since 6.6.0 Updated schema to allow extended block style variations.
 	 *
 	 * @param array $input               Structure to sanitize.
-	 * @param array $valid_block_names   List of valid block names.
-	 * @param array $valid_element_names List of valid element names.
-	 * @param array $valid_variations    List of valid variations per block.
+	 * @param array $valid_block_names   Array of valid block names.
+	 * @param array $valid_element_names Array of valid element names.
+	 * @param array $valid_variations    Array of valid variations per block.
 	 * @return array The sanitized output.
 	 */
 	protected static function sanitize( $input, $valid_block_names, $valid_element_names, $valid_variations ) {
@@ -1320,7 +1320,7 @@ class WP_Theme_JSON {
 	 *                          - `presets`: only the classes for the presets.
 	 *                          - `base-layout-styles`: only the base layout styles.
 	 *                          - `custom-css`: only the custom CSS.
-	 * @param string[] $origins A list of origins to include. By default it includes VALID_ORIGINS.
+	 * @param string[] $origins An array of origins to include. By default it includes VALID_ORIGINS.
 	 * @param array    $options {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
@@ -1837,7 +1837,7 @@ class WP_Theme_JSON {
 	 * @since 5.9.0
 	 *
 	 * @param array    $setting_nodes Nodes with settings.
-	 * @param string[] $origins       List of origins to process presets from.
+	 * @param string[] $origins       Array of origins to process presets from.
 	 * @return string The new stylesheet.
 	 */
 	protected function get_preset_classes( $setting_nodes, $origins ) {
@@ -1874,7 +1874,7 @@ class WP_Theme_JSON {
 	 * @since 5.9.0 Added the `$origins` parameter.
 	 *
 	 * @param array    $nodes   Nodes with settings.
-	 * @param string[] $origins List of origins to process.
+	 * @param string[] $origins Array of origins to process.
 	 * @return string The new stylesheet.
 	 */
 	protected function get_css_variables( $nodes, $origins ) {
@@ -1906,7 +1906,7 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 *
 	 * @param string $selector     CSS selector.
-	 * @param array  $declarations List of declarations.
+	 * @param array  $declarations Array of declarations.
 	 * @return string The resulting CSS ruleset.
 	 */
 	protected static function to_ruleset( $selector, $declarations ) {
@@ -1934,7 +1934,7 @@ class WP_Theme_JSON {
 	 *
 	 * @param array    $settings Settings to process.
 	 * @param string   $selector Selector wrapping the classes.
-	 * @param string[] $origins  List of origins to process.
+	 * @param string[] $origins  Array of origins to process.
 	 * @return string The result of processing the presets.
 	 */
 	protected static function compute_preset_classes( $settings, $selector, $origins ) {
@@ -2087,7 +2087,7 @@ class WP_Theme_JSON {
 	 *
 	 * @param array    $settings        Settings to process.
 	 * @param array    $preset_metadata One of the PRESETS_METADATA values.
-	 * @param string[] $origins         List of origins to process.
+	 * @param string[] $origins         Array of origins to process.
 	 * @return array Array of presets where each key is a slug and each value is the preset value.
 	 */
 	protected static function get_settings_values_by_slug( $settings, $preset_metadata, $origins ) {
@@ -2129,7 +2129,7 @@ class WP_Theme_JSON {
 	 *
 	 * @param array    $settings        Settings to process.
 	 * @param array    $preset_metadata One of the PRESETS_METADATA values.
-	 * @param string[] $origins         List of origins to process.
+	 * @param string[] $origins         Array of origins to process.
 	 * @return array Array of presets where the key and value are both the slug.
 	 */
 	protected static function get_settings_slugs( $settings, $preset_metadata, $origins = null ) {
@@ -2181,7 +2181,7 @@ class WP_Theme_JSON {
 	 * @since 5.9.0 Added the `$origins` parameter.
 	 *
 	 * @param array    $settings Settings to process.
-	 * @param string[] $origins  List of origins to process.
+	 * @param string[] $origins  Array of origins to process.
 	 * @return array The modified $declarations.
 	 */
 	protected static function compute_preset_vars( $settings, $origins ) {
@@ -2518,7 +2518,7 @@ class WP_Theme_JSON {
 	 * @since 5.8.0
 	 *
 	 * @param array $theme_json The tree to extract setting nodes from.
-	 * @param array $selectors  List of selectors per block.
+	 * @param array $selectors  Array of selectors per block.
 	 * @return array An array of setting nodes metadata.
 	 */
 	protected static function get_setting_nodes( $theme_json, $selectors = array() ) {
@@ -2573,7 +2573,7 @@ class WP_Theme_JSON {
 	 * @since 6.6.0 Added options array for modifying generated nodes.
 	 *
 	 * @param array $theme_json The tree to extract style nodes from.
-	 * @param array $selectors  List of selectors per block.
+	 * @param array $selectors  Array of selectors per block.
 	 * @param array $options {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
@@ -2657,8 +2657,8 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.1
 	 *
-	 * @param array $declarations List of declarations.
-	 * @return array $declarations List of declarations filtered.
+	 * @param array $declarations Array of declarations.
+	 * @return array $declarations Array of declarations filtered.
 	 */
 	private static function update_separator_declarations( $declarations ) {
 		$background_color     = '';
@@ -2698,7 +2698,7 @@ class WP_Theme_JSON {
 	 * @since 6.7.0 Added $include_node_paths_only option.
 	 *
 	 * @param array $theme_json The theme.json converted to an array.
-	 * @param array $selectors  Optional list of selectors per block.
+	 * @param array $selectors  Optional array of selectors per block.
 	 * @param array $options {
 	 *     Optional. An array of options for now used for internal purposes only (may change without notice).
 	 *
@@ -3312,7 +3312,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.9.1
 	 *
-	 * @param array $origins List of origins to process.
+	 * @param array $origins Array of origins to process.
 	 * @return string SVG filters.
 	 */
 	public function get_svg_filters( $origins ) {
@@ -4594,7 +4594,7 @@ class WP_Theme_JSON {
 	 * @since 6.6.0
 	 * @since 6.8.0 Added the `$blocks_metadata` parameter.
 	 *
-	 * @param array $blocks_metadata Optional. List of metadata per block. Default is the metadata for all blocks.
+	 * @param array $blocks_metadata Optional. Array of metadata per block. Default is the metadata for all blocks.
 	 * @return array Valid block style variations by block type.
 	 */
 	protected static function get_valid_block_style_variations( $blocks_metadata = array() ) {

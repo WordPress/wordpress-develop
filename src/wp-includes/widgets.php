@@ -1014,7 +1014,7 @@ function is_active_sidebar( $index ) {
  * @global array $sidebars_widgets
  *
  * @param bool $deprecated Not used (argument deprecated).
- * @return array Upgraded list of widgets to version 3 array format when called from the admin.
+ * @return array Upgraded array of widgets to version 3 array format when called from the admin.
  */
 function wp_get_sidebars_widgets( $deprecated = true ) {
 	if ( true !== $deprecated ) {
@@ -1380,7 +1380,7 @@ function retrieve_widgets( $theme_changed = false ) {
  *
  * @global array $wp_registered_sidebars The registered sidebars.
  *
- * @param array $existing_sidebars_widgets List of sidebars and their widget instance IDs.
+ * @param array $existing_sidebars_widgets Array of sidebars and their widget instance IDs.
  * @return array Mapped sidebars widgets.
  */
 function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
@@ -1556,8 +1556,8 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
  *
  * @global array $wp_registered_widgets The registered widgets.
  *
- * @param array $sidebars_widgets   List of sidebars and their widget instance IDs.
- * @param array $allowed_widget_ids Optional. List of widget IDs to compare against. Default: Registered widgets.
+ * @param array $sidebars_widgets   Array of sidebars and their widget instance IDs.
+ * @param array $allowed_widget_ids Optional. Array of widget IDs to compare against. Default: Registered widgets.
  * @return array Sidebars with allowed widgets.
  */
 function _wp_remove_unregistered_widgets( $sidebars_widgets, $allowed_widget_ids = array() ) {

@@ -103,7 +103,7 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 	 *         @type int    $number_of_items The expected number of XML items.
 	 *         @type string $message         The assertion failure message.
 	 *     }
-	 *     @type array $ids A list of self::$post_ids keys.
+	 *     @type array $ids A array of self::$post_ids keys.
 	 */
 	public function test_should_include_attachments( array $args, array $expected ) {
 		$this->populate_args_post_authors( $args, $expected['ids'] );

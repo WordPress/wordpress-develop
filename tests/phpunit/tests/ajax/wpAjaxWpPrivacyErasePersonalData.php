@@ -169,7 +169,7 @@ class Tests_Ajax_wpAjaxWpPrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param array $erasers List of data erasers.
+	 * @param array $erasers Array of data erasers.
 	 *
 	 * @return array Array of data erasers.
 	 */

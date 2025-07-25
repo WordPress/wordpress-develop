@@ -821,7 +821,7 @@ function get_blog_status( $id, $pref ) {
  * @param int   $start      Optional. Number of blogs to offset the query. Used to build LIMIT clause.
  *                          Can be used for pagination. Default 0.
  * @param int   $quantity   Optional. The maximum number of blogs to retrieve. Default 40.
- * @return array The list of blogs.
+ * @return array The array of blogs.
  */
 function get_last_updated( $deprecated = '', $start = 0, $quantity = 40 ) {
 	global $wpdb;

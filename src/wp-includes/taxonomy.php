@@ -597,7 +597,7 @@ function register_taxonomy( $taxonomy, $object_type, $args = array() ) {
  *
  * @since 4.5.0
  *
- * @global WP_Taxonomy[] $wp_taxonomies List of taxonomies.
+ * @global WP_Taxonomy[] $wp_taxonomies Array of taxonomies.
  *
  * @param string $taxonomy Taxonomy name.
  * @return true|WP_Error True on success, WP_Error on failure or if the taxonomy doesn't exist.
@@ -1171,7 +1171,7 @@ function get_term_by( $field, $value, $taxonomy = '', $output = OBJECT, $filter 
  *
  * @param int    $term_id  ID of term to get children.
  * @param string $taxonomy Taxonomy name.
- * @return array|WP_Error List of term IDs. WP_Error returned if `$taxonomy` does not exist.
+ * @return array|WP_Error Array of term IDs. WP_Error returned if `$taxonomy` does not exist.
  */
 function get_term_children( $term_id, $taxonomy ) {
 	if ( ! taxonomy_exists( $taxonomy ) ) {
@@ -1490,7 +1490,7 @@ function update_term_meta( $term_id, $meta_key, $meta_value, $prev_value = '' ) 
  *
  * @since 4.4.0
  *
- * @param array $term_ids List of term IDs.
+ * @param array $term_ids Array of term IDs.
  * @return array|false An array of metadata on success, false if there is nothing to update.
  */
 function update_termmeta_cache( $term_ids ) {
@@ -1503,7 +1503,7 @@ function update_termmeta_cache( $term_ids ) {
  *
  * @since 6.3.0
  *
- * @param array $term_ids List of term IDs.
+ * @param array $term_ids Array of term IDs.
  */
 function wp_lazyload_term_meta( array $term_ids ) {
 	if ( empty( $term_ids ) ) {
@@ -1988,7 +1988,7 @@ function wp_count_terms( $args = array(), $deprecated = '' ) {
  * @since 2.3.0
  *
  * @param int          $object_id  The term object ID that refers to the term.
- * @param string|array $taxonomies List of taxonomy names or single taxonomy name.
+ * @param string|array $taxonomies Array of taxonomy names or single taxonomy name.
  */
 function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
 	$object_id = (int) $object_id;
@@ -2207,7 +2207,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	 * @param int     $tt_id        Term taxonomy ID.
 	 * @param string  $taxonomy     Taxonomy slug.
 	 * @param WP_Term $deleted_term Copy of the already-deleted term.
-	 * @param array   $object_ids   List of term object IDs.
+	 * @param array   $object_ids   Array of term object IDs.
 	 */
 	do_action( 'delete_term', $term, $tt_id, $taxonomy, $deleted_term, $object_ids );
 
@@ -2228,7 +2228,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	 * @param int     $term         Term ID.
 	 * @param int     $tt_id        Term taxonomy ID.
 	 * @param WP_Term $deleted_term Copy of the already-deleted term.
-	 * @param array   $object_ids   List of term object IDs.
+	 * @param array   $object_ids   Array of term object IDs.
 	 */
 	do_action( "delete_{$taxonomy}", $term, $tt_id, $deleted_term, $object_ids );
 
@@ -3621,7 +3621,7 @@ function wp_update_term_count_now( $terms, $taxonomy ) {
  *
  * @see get_object_taxonomies() for more on $object_type.
  *
- * @param int|array    $object_ids  Single or list of term object ID(s).
+ * @param int|array    $object_ids  Single or array of term object ID(s).
  * @param array|string $object_type The taxonomy object type.
  */
 function clean_object_term_cache( $object_ids, $object_type ) {
@@ -4031,7 +4031,7 @@ function _get_term_children( $term_id, $terms, $taxonomy, &$ancestors = array() 
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param object[]|WP_Term[] $terms    List of term objects (passed by reference).
+ * @param object[]|WP_Term[] $terms    Array of term objects (passed by reference).
  * @param string             $taxonomy Term context.
  */
 function _pad_term_counts( &$terms, $taxonomy ) {
@@ -4139,7 +4139,7 @@ function _prime_term_caches( $term_ids, $update_meta_cache = true ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int[]       $terms    List of term taxonomy IDs.
+ * @param int[]       $terms    Array of term taxonomy IDs.
  * @param WP_Taxonomy $taxonomy Current taxonomy object of terms.
  */
 function _update_post_term_count( $terms, $taxonomy ) {
@@ -4170,7 +4170,7 @@ function _update_post_term_count( $terms, $taxonomy ) {
 	 *
 	 * @since 5.7.0
 	 *
-	 * @param string[]    $post_statuses List of post statuses to include in the count. Default is 'publish'.
+	 * @param string[]    $post_statuses Array of post statuses to include in the count. Default is 'publish'.
 	 * @param WP_Taxonomy $taxonomy      Current taxonomy object.
 	 */
 	$post_statuses = esc_sql( apply_filters( 'update_post_term_count_statuses', $post_statuses, $taxonomy ) );
@@ -4207,7 +4207,7 @@ function _update_post_term_count( $terms, $taxonomy ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int[]       $terms    List of term taxonomy IDs.
+ * @param int[]       $terms    Array of term taxonomy IDs.
  * @param WP_Taxonomy $taxonomy Current taxonomy object of terms.
  */
 function _update_generic_term_count( $terms, $taxonomy ) {
@@ -4792,14 +4792,14 @@ function the_taxonomies( $args = array() ) {
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @param array       $args {
- *           Optional. Arguments about how to format the list of taxonomies. Default empty array.
+ *           Optional. Arguments about how to format the array of taxonomies. Default empty array.
  *
  *     @type string $template      Template for displaying a taxonomy label and list of terms.
  *                                 Default is "Label: Terms."
  *     @type string $term_template Template for displaying a single term in the list. Default is the term name
  *                                 linked to its archive.
  * }
- * @return string[] List of taxonomies.
+ * @return string[] Array of taxonomies.
  */
 function get_the_taxonomies( $post = 0, $args = array() ) {
 	$post = get_post( $post );

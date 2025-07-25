@@ -1305,7 +1305,7 @@ function get_category_children( $id, $before = '/', $after = '', $visited = arra
  *
  * @link https://developer.wordpress.org/reference/functions/get_all_category_ids/
  *
- * @return int[] List of all of the category IDs.
+ * @return int[] Array of all of the category IDs.
  */
 function get_all_category_ids() {
 	_deprecated_function( __FUNCTION__, '4.0.0', 'get_terms()' );
@@ -1845,7 +1845,7 @@ function __ngettext_noop( ...$args ) { // phpcs:ignore PHPCompatibility.Function
  * @deprecated 3.0.0 Use wp_load_alloptions())
  * @see wp_load_alloptions()
  *
- * @return array List of all options.
+ * @return array Array of all options.
  */
 function get_alloptions() {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'wp_load_alloptions()' );
@@ -2381,7 +2381,7 @@ function update_usermeta( $user_id, $meta_key, $meta_value ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $id Site ID.
- * @return array List of users that are part of that site ID
+ * @return array Array of users that are part of that site ID
  */
 function get_users_of_blog( $id = '' ) {
 	_deprecated_function( __FUNCTION__, '3.1.0', 'get_users()' );
@@ -2606,7 +2606,7 @@ function the_editor($content, $id = 'content', $prev_id = 'title', $media_button
  * @since 3.0.0
  * @deprecated 3.3.0
  *
- * @param array $ids User ID numbers list.
+ * @param array $ids User ID numbers array.
  * @return array of arrays. The array is indexed by user_id, containing $metavalues object arrays.
  */
 function get_user_metavalues($ids) {
@@ -2903,7 +2903,7 @@ function debug_fclose( $fp ) {
  * @deprecated 3.4.0 Use wp_get_themes()
  * @see wp_get_themes()
  *
- * @return array Theme list with theme data.
+ * @return array Theme array with theme data.
  */
 function get_themes() {
 	_deprecated_function( __FUNCTION__, '3.4.0', 'wp_get_themes()' );
@@ -3109,7 +3109,7 @@ function get_theme_data( $theme_file ) {
  * @deprecated 3.4.0 Use update_post_cache()
  * @see update_post_cache()
  *
- * @param array $pages list of page objects
+ * @param array $pages array of page objects
  */
 function update_page_cache( &$pages ) {
 	_deprecated_function( __FUNCTION__, '3.4.0', 'update_post_cache()' );
@@ -4221,7 +4221,7 @@ function wp_sensitive_page_meta() {
  * @see _excerpt_render_inner_blocks()
  *
  * @param array $columns        The parsed columns block.
- * @param array $allowed_blocks The list of allowed inner blocks.
+ * @param array $allowed_blocks The array of allowed inner blocks.
  * @return string The rendered inner blocks.
  */
 function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {

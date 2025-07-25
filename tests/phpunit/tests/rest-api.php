@@ -2359,7 +2359,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 *
 	 * @param string $expected The expected best type.
 	 * @param mixed  $value    The value to test.
-	 * @param array  $types    The list of available types.
+	 * @param array  $types    The array of available types.
 	 */
 	public function test_get_best_type_for_value( $expected, $value, $types ) {
 		$this->assertSame( $expected, rest_get_best_type_for_value( $value, $types ) );
@@ -2465,8 +2465,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @dataProvider data_rest_preload_api_request_embeds_links
 	 *
 	 * @param string   $embed        The embed parameter.
-	 * @param string[] $expected     The list of link relations that should be embedded.
-	 * @param string[] $not_expected The list of link relations that should not be embedded.
+	 * @param string[] $expected     The array of link relations that should be embedded.
+	 * @param string[] $not_expected The array of link relations that should not be embedded.
 	 */
 	public function test_rest_preload_api_request_embeds_links( $embed, $expected, $not_expected ) {
 		wp_set_current_user( 1 );

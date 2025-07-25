@@ -47,7 +47,7 @@ function _wp_post_revision_fields( $post = array(), $deprecated = false ) {
 	 * @since 2.6.0
 	 * @since 4.5.0 The `$post` parameter was added.
 	 *
-	 * @param string[] $fields List of fields to revision. Contains 'post_title',
+	 * @param string[] $fields Array of fields to revision. Contains 'post_title',
 	 *                         'post_content', and 'post_excerpt' by default.
 	 * @param array    $post   A post array being processed for insertion as a post revision.
 	 */

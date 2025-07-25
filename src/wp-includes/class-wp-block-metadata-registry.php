@@ -105,7 +105,7 @@ class WP_Block_Metadata_Registry {
 		 *
 		 * @since 6.7.2
 		 *
-		 * @param string[] $collection_roots List of allowed metadata collection root paths.
+		 * @param string[] $collection_roots Array of allowed metadata collection root paths.
 		 */
 		$collection_roots = apply_filters( 'wp_allowed_block_metadata_collection_roots', $collection_roots );
 
@@ -193,7 +193,7 @@ class WP_Block_Metadata_Registry {
 	 * @since 6.8.0
 	 *
 	 * @param string $path The absolute base path for a previously registered collection.
-	 * @return string[] List of block metadata file paths, or an empty array if the given `$path` is invalid.
+	 * @return string[] Array of block metadata file paths, or an empty array if the given `$path` is invalid.
 	 */
 	public static function get_collection_block_metadata_files( $path ) {
 		$path = rtrim( wp_normalize_path( $path ), '/' );
@@ -306,7 +306,7 @@ class WP_Block_Metadata_Registry {
 	 * @since 6.7.2
 	 *
 	 * @param string   $path             Normalized block metadata collection path, without trailing slash.
-	 * @param string[] $collection_roots List of normalized collection root paths, without trailing slashes.
+	 * @param string[] $collection_roots Array of normalized collection root paths, without trailing slashes.
 	 * @return bool True if the path is allowed, false otherwise.
 	 */
 	private static function is_valid_collection_path( $path, $collection_roots ) {
@@ -330,7 +330,7 @@ class WP_Block_Metadata_Registry {
 	 *
 	 * @since 6.7.2
 	 *
-	 * @return string[] List of directory paths within which metadata collections are allowed.
+	 * @return string[] Array of directory paths within which metadata collections are allowed.
 	 */
 	private static function get_default_collection_roots() {
 		if ( isset( self::$default_collection_roots ) ) {

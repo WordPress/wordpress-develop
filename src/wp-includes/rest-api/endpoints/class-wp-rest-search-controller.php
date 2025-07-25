@@ -59,7 +59,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param array $search_handlers List of search handlers to use in the controller. Each search
+	 * @param array $search_handlers Array of search handlers to use in the controller. Each search
 	 *                               handler instance must extend the `WP_REST_Search_Handler` class.
 	 */
 	public function __construct( array $search_handlers ) {
@@ -364,7 +364,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	 * @param string|array    $subtypes  One or more subtypes.
 	 * @param WP_REST_Request $request   Full details about the request.
 	 * @param string          $parameter Parameter name.
-	 * @return string[]|WP_Error List of valid subtypes, or WP_Error object on failure.
+	 * @return string[]|WP_Error Array of valid subtypes, or WP_Error object on failure.
 	 */
 	public function sanitize_subtypes( $subtypes, $request, $parameter ) {
 		$subtypes = wp_parse_slug_list( $subtypes );

@@ -1703,7 +1703,7 @@ function unregister_meta_key( $object_type, $meta_key, $object_subtype = '' ) {
  * @param string $object_type    Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                               'user', or any other object type with an associated meta table.
  * @param string $object_subtype Optional. The subtype of the object type. Default empty string.
- * @return array[] List of registered metadata args, keyed by their meta keys.
+ * @return array[] Array of registered metadata args, keyed by their meta keys.
  */
 function get_registered_meta_keys( $object_type, $object_subtype = '' ) {
 	global $wp_meta_keys;

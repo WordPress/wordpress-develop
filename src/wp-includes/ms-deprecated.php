@@ -216,7 +216,7 @@ function get_blog_list( $start = 0, $num = 10, $deprecated = '' ) {
  *
  * @param int  $num     Optional. Number of activate blogs to retrieve. Default 10.
  * @param bool $display Optional. Whether or not to display the most active blogs list. Default true.
- * @return array List of "most active" sites.
+ * @return array Array of "most active" sites.
  */
 function get_most_active_blogs( $num = 10, $display = true ) {
 	_deprecated_function( __FUNCTION__, '3.0.0' );

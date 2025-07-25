@@ -416,7 +416,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @param WP_Post         $post    Post object.
 	 * @param WP_REST_Request $request Request object.
-	 * @return array List of link relations.
+	 * @return array Array of link relations.
 	 */
 	protected function get_available_actions( $post, $request ) {
 		$rels = array();

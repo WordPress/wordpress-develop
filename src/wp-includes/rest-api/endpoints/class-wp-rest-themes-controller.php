@@ -733,7 +733,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @param string|array    $statuses  One or more theme statuses.
 	 * @param WP_REST_Request $request   Full details about the request.
 	 * @param string          $parameter Additional parameter to pass to validation.
-	 * @return array|WP_Error A list of valid statuses, otherwise WP_Error object.
+	 * @return array|WP_Error A array of valid statuses, otherwise WP_Error object.
 	 */
 	public function sanitize_theme_status( $statuses, $request, $parameter ) {
 		_deprecated_function( __METHOD__, '5.7.0' );

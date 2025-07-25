@@ -1457,7 +1457,7 @@ class SimplePie
     /**
      * Set the list of domains for which to force HTTPS.
      * @see \SimplePie\Sanitize::set_https_domains()
-     * @param array List of HTTPS domains. Example array('biz', 'example.com', 'example.org', 'www.example.net').
+     * @param array Array of HTTPS domains. Example array('biz', 'example.com', 'example.org', 'www.example.net').
      */
     public function set_https_domains($domains = [])
     {
@@ -2366,7 +2366,7 @@ class SimplePie
      * Uses `<atom:category>`, `<category>` or `<dc:subject>`
      *
      * @since Unknown
-     * @return array|null List of {@see \SimplePie\Category} objects
+     * @return array|null Array of {@see \SimplePie\Category} objects
      */
     public function get_categories()
     {
@@ -2435,7 +2435,7 @@ class SimplePie
      * Uses `<atom:author>`, `<author>`, `<dc:creator>` or `<itunes:author>`
      *
      * @since 1.1
-     * @return array|null List of {@see \SimplePie\Author} objects
+     * @return array|null Array of {@see \SimplePie\Author} objects
      */
     public function get_authors()
     {
@@ -2514,7 +2514,7 @@ class SimplePie
      * Uses `<atom:contributor>`
      *
      * @since 1.1
-     * @return array|null List of {@see \SimplePie\Author} objects
+     * @return array|null Array of {@see \SimplePie\Author} objects
      */
     public function get_contributors()
     {
@@ -2986,7 +2986,7 @@ class SimplePie
      * @since Beta 2
      * @param int $start Index to start at
      * @param int $end Number of items to return. 0 for all items after `$start`
-     * @return \SimplePie\Item[]|null List of {@see \SimplePie\Item} objects
+     * @return \SimplePie\Item[]|null Array of {@see \SimplePie\Item} objects
      */
     public function get_items($start = 0, $end = 0)
     {
@@ -3136,7 +3136,7 @@ class SimplePie
      * for the items or else SimplePie will refuse to sort them.
      *
      * @link http://simplepie.org/wiki/tutorial/sort_multiple_feeds_by_time_and_date#if_feeds_require_separate_per-feed_settings
-     * @param array $urls List of SimplePie feed objects to merge
+     * @param array $urls Array of SimplePie feed objects to merge
      * @param int $start Starting item
      * @param int $end Number of items to return
      * @param int $limit Maximum number of items per feed

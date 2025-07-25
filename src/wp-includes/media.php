@@ -3030,7 +3030,7 @@ function wp_playlist_scripts( $type ) {
  *     @type array   $ids          Create a playlist out of these explicit attachment IDs. If empty,
  *                                 a playlist will be created from all $type attachments of $id.
  *                                 Default empty.
- *     @type array   $exclude      List of specific attachment IDs to exclude from the playlist. Default empty.
+ *     @type array   $exclude      Array of specific attachment IDs to exclude from the playlist. Default empty.
  *     @type string  $style        Playlist style to use. Accepts 'light' or 'dark'. Default 'light'.
  *     @type bool    $tracklist    Whether to show or hide the playlist. Default true.
  *     @type bool    $tracknumbers Whether to show or hide the numbers next to entries in the playlist. Default true.
@@ -3550,7 +3550,7 @@ add_shortcode( 'audio', 'wp_audio_shortcode' );
  *
  * @since 3.6.0
  *
- * @return string[] List of supported video formats.
+ * @return string[] Array of supported video formats.
  */
 function wp_get_video_extensions() {
 	/**
@@ -3995,7 +3995,7 @@ function adjacent_image_link( $prev = true, $size = 'thumbnail', $text = false )
  * @param string           $output     Output type. 'names' to return an array of taxonomy names,
  *                                     or 'objects' to return an array of taxonomy objects.
  *                                     Default is 'names'.
- * @return string[]|WP_Taxonomy[] List of taxonomies or taxonomy names. Empty array on failure.
+ * @return string[]|WP_Taxonomy[] Array of taxonomies or taxonomy names. Empty array on failure.
  */
 function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 	if ( is_int( $attachment ) ) {
@@ -5082,7 +5082,7 @@ function wp_enqueue_media( $args = array() ) {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array   $settings List of media view settings.
+	 * @param array   $settings Array of media view settings.
 	 * @param WP_Post $post     Post object.
 	 */
 	$settings = apply_filters( 'media_view_settings', $settings, $post );
@@ -5226,7 +5226,7 @@ function get_media_embedded_in_content( $content, $types = null ) {
  *
  * @param int|WP_Post $post Post ID or object.
  * @param bool        $html Optional. Whether to return HTML or data in the array. Default true.
- * @return array A list of arrays, each containing gallery data and srcs parsed
+ * @return array An array of arrays, each containing gallery data and srcs parsed
  *               from the expanded shortcode.
  */
 function get_post_galleries( $post, $html = true ) {
@@ -5411,7 +5411,7 @@ function get_post_gallery( $post = 0, $html = true ) {
  * @see get_post_galleries()
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global `$post`.
- * @return array A list of lists, each containing image srcs parsed.
+ * @return array An array of arrays, each containing image srcs parsed.
  *               from an expanded shortcode
  */
 function get_post_galleries_images( $post = 0 ) {
@@ -5427,7 +5427,7 @@ function get_post_galleries_images( $post = 0 ) {
  * @see get_post_gallery()
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global `$post`.
- * @return string[] A list of a gallery's image srcs in order.
+ * @return string[] An array of a gallery's image srcs in order.
  */
 function get_post_gallery_images( $post = 0 ) {
 	$gallery = get_post_gallery( $post, false );

@@ -196,10 +196,10 @@ class WP_Customize_Control {
 	 *     @type string               $section         Section the control belongs to. Default empty.
 	 *     @type string               $label           Label for the control. Default empty.
 	 *     @type string               $description     Description for the control. Default empty.
-	 *     @type array                $choices         List of choices for 'radio' or 'select' type controls, where
+	 *     @type array                $choices         Array of choices for 'radio' or 'select' type controls, where
 	 *                                                 values are the keys, and labels are the values.
 	 *                                                 Default empty array.
-	 *     @type array                $input_attrs     List of custom input attributes for control output, where
+	 *     @type array                $input_attrs     Array of custom input attributes for control output, where
 	 *                                                 attribute names are the keys and values are the values. Not
 	 *                                                 used for 'checkbox', 'radio', 'select', 'textarea', or
 	 *                                                 'dropdown-pages' control types. Default empty array.

@@ -2768,7 +2768,7 @@ class WP_HTML_Tag_Processor {
 	 * @see https://html.spec.whatwg.org/multipage/syntax.html#attributes-2:ascii-case-insensitive
 	 *
 	 * @param string $prefix Prefix of requested attribute names.
-	 * @return array|null List of attribute names, or `null` when no tag opener is matched.
+	 * @return array|null Array of attribute names, or `null` when no tag opener is matched.
 	 */
 	public function get_attribute_names_with_prefix( $prefix ): ?array {
 		if (
