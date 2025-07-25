@@ -249,7 +249,7 @@ jobs:
       db-version: ${{ matrix.db-version }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
 
-  limited-matrix-for-forks-mysql:
+  limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
@@ -260,56 +260,36 @@ jobs:
       fail-fast: false
       matrix:
         php: [ '7.2', '8.4' ]
-        db-version: [ '5.7', '8.4' ]
-        multisite: [ true, false ]
-        memcached: [ false ]
+        db-version: [ '8.4', '11.8' ]
+        db-type: [ 'mysql', 'mariadb' ]
+        multisite: [ false ]
 
         include:
-          # Include jobs that test with memcached.
+          # Include one multisite job for each database type.
           - php: '8.4'
             db-version: '8.4'
+            db-type: 'mysql'
+            multisite: true
+          - php: '8.4'
+            db-version: '11.8'
+            db-type: 'mariadb'
+            multisite: true
+          # Test with memcached.
+          - php: '8.4'
+            db-version: '8.4'
+            db-type: 'mysql'
+            multisite: true
             memcached: true
           # Run specific test groups once.
           - php: '8.4'
             db-version: '8.4'
-            memcached: false
+            db-type: 'mysql'
             phpunit-test-groups: 'html-api-html5lib-tests'
     with:
       php: ${{ matrix.php }}
       db-version: ${{ matrix.db-version }}
-      memcached: ${{ matrix.memcached }}
-      phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
-
-  limited-matrix-for-forks-mariadb:
-    name: PHP ${{ matrix.php }}
-    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    permissions:
-      contents: read
-    secrets: inherit
-    if: ${{ github.repository != 'WordPress/wordpress-develop' && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '7.2', '8.4' ]
-        db-version: [ '5.5', '11.8' ]
-        multisite: [ true, false ]
-        memcached: [ false ]
-
-        include:
-          # Include jobs that test with memcached.
-          - php: '8.4'
-            db-version: '11.8'
-            memcached: true
-          # Run specific test groups once.
-          - php: '8.4'
-            db-version: '11.8'
-            memcached: false
-            phpunit-test-groups: 'html-api-html5lib-tests'
-    with:
-      php: ${{ matrix.php }}
-      db-type: 'mariadb'
-      db-version: ${{ matrix.db-version }}
-      memcached: ${{ matrix.memcached }}
+      db-type: ${{ matrix.db-type }}
+      memcached: ${{ matrix.memcached || false }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
 
   slack-notifications:
@@ -318,7 +298,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-with-mysql, test-with-mariadb, test-innovation-releases, specific-test-groups, limited-matrix-for-forks-mysql, limited-matrix-for-forks-mariadb ]
+    needs: [ test-with-mysql, test-with-mariadb, test-innovation-releases, specific-test-groups, limited-matrix-for-forks ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
