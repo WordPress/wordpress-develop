@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Note: WPINC is not defined yet, it is defined later in wp-settings.php.
  */
 if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
-	// If assets are built, load the real index.php and stop execution here.
+	// If assets are built,load the real index.php and stop execution here.
 	require_once ABSPATH . '_index.php';
 	return;
 }
