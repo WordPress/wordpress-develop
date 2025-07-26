@@ -920,6 +920,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-hook.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#3 \\$value of function curl_setopt expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-http-curl.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$mode of function stream_set_blocking expects bool, int given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
