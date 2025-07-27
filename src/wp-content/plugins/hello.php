@@ -40,7 +40,7 @@ So, golly, gee, fellas
 Have a little faith in me, fellas
 Dolly, never go away
 Promise, you'll never go away
-Dolly'll never go away again and again ";
+Dolly'll never go away again";
 
 	// Here we split it into lines.
 	$lyrics = explode( "\n", $lyrics );
