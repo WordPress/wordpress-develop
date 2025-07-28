@@ -49,7 +49,7 @@ wait_on( {
 		process.exit( 1 );
 	} )
 	.then( () => {
-		wp_cli( 'db reset --yes' );
+		wp_cli_retry( 'db reset --yes' );
 		const installCommand = process.env.LOCAL_MULTISITE === 'true'  ? 'multisite-install' : 'install';
 		wp_cli( `core ${ installCommand } --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@example.com --skip-email --url=http://localhost:${process.env.LOCAL_PORT}` );
 	} )
@@ -65,4 +65,19 @@ wait_on( {
  */
 function wp_cli( cmd ) {
 	execSync( `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
+}
+
+function wp_cli_retry( cmd, retries = 5 ) {
+	try {
+		wp_cli( cmd );
+	} catch ( e ) {
+		if ( retries > 0 ) {
+			console.warn( `Retrying command "${cmd}" (${retries} retries left)...` );
+			// Wait a bit before retrying.
+			setTimeout( () => {}, 1000 );
+			wp_cli_retry( cmd, retries - 1 );
+		} else {
+			throw e;
+		}
+	}
 }
