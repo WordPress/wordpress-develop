@@ -27,9 +27,9 @@ class Tests_Media_WpAddId3TagData extends WP_UnitTestCase {
 		$data = array(
 			'id3v2' => array(
 				'comments' => array(
-					'artist'          => array( 'The Northern Lights Ensemble' ),
-					'album'           => array( 'Horizons and Beyond' ),
-					'title'           => array( 'Aurora Rising' ),
+					'artist'          => 'The Northern Lights Ensemble',
+					'album'           => 'Horizons and Beyond',
+					'title'           => 'Aurora Rising',
 					'involved_people' => array(
 						array(
 							'role' => 'Mastered by Lead Audio Engineer',
