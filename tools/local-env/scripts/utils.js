@@ -8,7 +8,7 @@ const local_env_utils = {
 	 * Determines which Docker compose files are required to properly configure the local environment given the
 	 * specified PHP version, database type, and database version.
 	 *
-	 * By default, only the standard docker-compose.yml file will be used.
+	 * By default, only the standard compose.yml file will be used.
 	 *
 	 * When PHP 7.2 or 7.3 is used in combination with MySQL 8.4, an override file will also be returned to ensure
 	 * that the mysql_native_password plugin authentication plugin is on and available for use.
@@ -16,10 +16,10 @@ const local_env_utils = {
 	 * @return {string[]} Compose files.
 	 */
 	get_compose_files: function() {
-		const composeFiles = [ 'docker-compose.yml' ];
+		const composeFiles = [ 'compose.yml' ];
 
-		if ( existsSync( 'docker-compose.override.yml' ) ) {
-			composeFiles.push( 'docker-compose.override.yml' );
+		if ( existsSync( 'compose.override.yml' ) ) {
+			composeFiles.push( 'compose.override.yml' );
 		}
 
 		if ( process.env.LOCAL_DB_TYPE !== 'mysql' ) {
