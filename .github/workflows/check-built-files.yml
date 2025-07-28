@@ -26,6 +26,8 @@ on:
       - 'composer.*'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/check-built-files.yml'
+      # Changes to the default themes should be handled by the themes workflows.
+      - '!src/wp-content/themes/twenty**'
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
