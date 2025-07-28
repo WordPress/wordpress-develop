@@ -1152,6 +1152,14 @@ function wp_ajax_add_tag() {
 		$message = $messages['_item'][1];
 	}
 
+	// Get the new term count after the new term has been added.
+	$term_count = wp_count_terms(
+		array(
+			'taxonomy'   => $taxonomy,
+			'hide_empty' => false,
+		)
+	);
+
 	$x->add(
 		array(
 			'what'         => 'taxonomy',
@@ -1169,6 +1177,16 @@ function wp_ajax_add_tag() {
 			'what'         => 'term',
 			'position'     => $level,
 			'supplemental' => (array) $tag,
+		)
+	);
+
+	$x->add(
+		array(
+			'what'         => 'term-count',
+			'supplemental' => array(
+				'taxonomy' => $taxonomy,
+				'count'    => $term_count,
+			)
 		)
 	);
 

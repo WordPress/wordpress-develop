@@ -54,6 +54,17 @@ jQuery( function($) {
 					$('select#parent option[value="' + data.match(/tag_ID=(\d+)/)[1] + '"]').remove();
 					$('a.tag-link-' + data.match(/tag_ID=(\d+)/)[1]).remove();
 
+					/**
+					 * Updates the term count on deletion.
+					 */
+					var termCountWrapper = $( '#posts-filter .displaying-num' );
+					if ( termCountWrapper.length ) {
+						termCountWrapper.each(function () {
+							$( this ).text( $( this ).text().replace( /^\d+/, function ( match ) {
+								return parseInt( match, 10 ) - 1;
+							} ) );
+						} );
+					}
 				} else if ( '-1' == r ) {
 					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + wp.i18n.__( 'Sorry, you are not allowed to do that.' ) + '</p></div>');
 					tr.children().css('backgroundColor', '');
@@ -117,7 +128,7 @@ jQuery( function($) {
 		 * @return {void}
 		 */
 		$.post(ajaxurl, $('#addtag').serialize(), function(r){
-			var res, parent, term, indent, i;
+			var res, parent, term, indent, i, termCountWrapper, termCount;
 
 			addingTerm = false;
 			form.find( '.submit .spinner' ).removeClass( 'is-active' );
@@ -156,6 +167,19 @@ jQuery( function($) {
 					indent += '&nbsp;&nbsp;&nbsp;';
 
 				form.find( 'select#parent option:selected' ).after( '<option value="' + term.term_id + '">' + indent + term.name + '</option>' );
+			}
+
+			termCountWrapper = $( '#posts-filter .displaying-num' );
+			termCount = res.responses[ 2 ].supplemental.count ? res.responses[ 2 ].supplemental.count : null;
+
+			/**
+			 * Updates the term count if we get count and the term count wrapper exists.
+			 */
+			if ( termCountWrapper.length && null !== termCount ) {
+				termCountWrapper.each(function () {
+					console.log( $( this ).text().match( /^\d+/ ) );
+					$( this ).text( $( this ).text().replace( /^\d+/, termCount ) );
+				} );
 			}
 
 			$('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):visible, textarea:visible', form).val('');
