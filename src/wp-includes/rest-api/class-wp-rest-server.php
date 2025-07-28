@@ -40,6 +40,14 @@ class WP_REST_Server {
 	const EDITABLE = 'POST, PUT, PATCH';
 
 	/**
+	 * Alias for PUT transport method.
+	 * 
+	 * @since 6.9.0
+	 * @var string
+	 */
+	const UPDATABLE = 'PUT, PATCH';
+
+	/**
 	 * Alias for DELETE transport method.
 	 *
 	 * @since 4.4.0
