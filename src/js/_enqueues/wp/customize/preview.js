@@ -635,11 +635,22 @@
 		/**
 		 * Preview changes to custom css.
 		 *
-		 * @param {string} value Custom CSS..
+		 * @param {string} value Custom CSS.
 		 * @return {void}
 		 */
 		custom_css: function( value ) {
-			$( '#wp-custom-css' ).text( value );
+			var style;
+			// TODO: If none of the logic in this function resulted in a CSS update (e.g. due to some optimizer plugin that concatenates/minifies CSS), then a message should be sent to the controls to initiate a reload.
+			if ( api.settings.theme.isBlockTheme ) {
+				style = $( 'style#global-styles-inline-css' );
+				var textContent = style.text().replace( /(\/\*BEGIN_CUSTOMIZER_CUSTOM_CSS\*\/)((?:.|\s)*?)(\/\*END_CUSTOMIZER_CUSTOM_CSS\*\/)/, function ( match, beforeComment, oldValue, afterComment ) {
+					return beforeComment + value + afterComment;
+				} );
+				style.text( textContent );
+			} else {
+				style = $( 'style#wp-custom-css' );
+				style.text( value );
+			}
 		},
 
 		/**

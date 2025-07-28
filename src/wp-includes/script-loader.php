@@ -2542,21 +2542,16 @@ function wp_enqueue_global_styles() {
 		 */
 		remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
 
+		/*
+		 * Get the custom CSS from the Customizer and add it to the global stylesheet.
+		 * When in the Customizer preview, add milestone comments to allow customize-preview.js inject the CSS updates.
+		 */
 		if ( is_customize_preview() ) {
-			/*
-			 * In the Customizer preview, re-add the Customizer's Custom CSS so it is printed in a separate stylesheet
-			 * and before the global styles. A separate stylesheet needs to be printed for the sake of the Customizer's
-			 * live preview which updates the text contents of the STYLE tag. A priority of 7 is used because other
-			 * styles (including global styles) are printed at priority 8 via wp_print_styles(). This better preserves
-			 * the order in the CSS cascade at least for global styles, although it may not have the expected cascade
-			 * for other stylesheets enqueued by themes and plugins. Originally Custom CSS was printed at wp_head with
-			 * a priority of 101 so that it could all other styles. In this way, the Custom CSS in the Customizer is
-			 * de-prioritized when using a block theme, both inside and outside the Customizer.
-			 */
-			add_action( 'wp_head', 'wp_custom_css_cb', 7 );
-		} else {
-			// Get the custom CSS from the Customizer and add it to the global stylesheet.
-			$stylesheet .= wp_get_custom_css();
+			$stylesheet .= "\n/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/\n";
+		}
+		$stylesheet .= wp_get_custom_css();
+		if ( is_customize_preview() ) {
+			$stylesheet .= "\n/*END_CUSTOMIZER_CUSTOM_CSS*/\n";
 		}
 
 		// Add the global styles custom CSS at the end.
