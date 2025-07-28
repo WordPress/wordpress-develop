@@ -148,6 +148,32 @@ jobs:
       - name: Build theme
         run: npm run build
 
+      - name: Check for changes to versioned files
+        id: built-file-check
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          if git diff --quiet; then
+            echo "uncommitted_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "uncommitted_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Display changes to versioned files
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
+        run: git diff
+
+      - name: Save diff to a file
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
+        run: git diff > ./changes.diff
+
+      # Uploads the diff file as an artifact.
+      - name: Upload diff file as artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
+        with:
+          name: pr-built-file-changes
+          path: src/wp-content/themes/${{ matrix.theme }}/changes.diff
+
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
 
