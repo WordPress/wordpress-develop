@@ -302,7 +302,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				 */
 				$tempheaders = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
 
-				// Line which starts with space is a continuation of previous line, need to keep them as one
+				// Line which starts with space is a continuation of previous line, need to keep them as one.
 				for ( $index = 0; $index < count( $tempheaders ); $index++ ) {
 					if ( $index > 0 && $tempheaders[ $index ] && ' ' === $tempheaders[ $index ][0] ) {
 						$tempheaders[ $index - 1 ] .= "\n" . $tempheaders[ $index ];
