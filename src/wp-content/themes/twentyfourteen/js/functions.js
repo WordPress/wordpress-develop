@@ -66,7 +66,7 @@
 		 * The callback on the scroll event is only added if there is a header
 		 * image and we are not on mobile.
 		 */
-		if ( _window.width() > 781 ) {
+		if ( _window.width() > 783 ) {
 			var mastheadHeight = $( '#masthead' ).height(),
 				toolbarOffset, mastheadOffset;
 
@@ -95,6 +95,53 @@
 	} );
 
 	/**
+	 * Enable hover for dropdown menu for touch devices
+	 *
+	 * @see trac ticket #30575
+	 */
+	function touchDropdown() {
+		var navMenus = $( '.primary-navigation, .secondary-navigation' );
+		
+		// Check if menus exist before proceeding.
+		if ( ! navMenus.length ) {
+			return;
+		}
+
+		// Remove existing handlers to avoid duplicates.
+		navMenus.find( 'a' ).off( 'focus.twentyfourteen blur.twentyfourteen' );
+
+		// Add focus handlers.
+		navMenus.find( 'a' ).on( 'focus.twentyfourteen blur.twentyfourteen', function() {
+			$( this ).parents().toggleClass( 'focus' );
+		} );
+
+		if ( 783 > _window.width() ) {
+			if ( 'ontouchstart' in window ) {
+				$( document.body ).off( 'touchstart.twentyfourteen' );
+			}
+		} else {
+			if ( 'ontouchstart' in window ) {
+				$( document.body ).on( 'touchstart.twentyfourteen',  '.menu-item-has-children > a, .page_item_has_children > a', function( e ) {
+					var el = $( this ).parent( 'li' );
+
+					if ( ! el.hasClass( 'focus' ) ) {
+						e.preventDefault();
+						el.toggleClass( 'focus' );
+						el.siblings( '.focus' ).removeClass( 'focus' );
+					}
+				} );
+
+				// Close open sub-menus when clicking outside.
+				$( document.body ).on( 'touchstart.twentyfourteen', function( e ) {
+					if ( ! $( e.target ).closest( '.menu-item-has-children, .page_item_has_children' ).length ) {
+						$( '.focus' ).removeClass( 'focus' );
+					}
+				} );
+			}
+		}
+	}
+
+	/**
 	 * Add or remove ARIA attributes.
 	 *
 	 * Uses jQuery's width() function to determine the size of the window and add
@@ -103,20 +150,22 @@
 	 * @since Twenty Fourteen 1.4
 	 */
 	function onResizeARIA() {
-		if ( 781 > _window.width() ) {
+		if ( 783 > _window.width() ) {
 			button.attr( 'aria-expanded', 'false' );
 			menu.attr( 'aria-expanded', 'false' );
 			button.attr( 'aria-controls', 'primary-menu' );
+			$( '.menu-item-has-children' ).attr( 'aria-haspopup', 'false' );
 		} else {
 			button.removeAttr( 'aria-expanded' );
 			menu.removeAttr( 'aria-expanded' );
 			button.removeAttr( 'aria-controls' );
+			$( '.menu-item-has-children' ).attr( 'aria-haspopup', 'true' );
 		}
 	}
 
 	_window
-		.on( 'load.twentyfourteen', onResizeARIA )
-		.on( 'resize.twentyfourteen', function() {
+		.on( 'load.twentyfourteen resize.twentyfourteen', function() {
+			touchDropdown();
 			onResizeARIA();
 	} );
 
