@@ -119,7 +119,7 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 				<div class="actions">
 					<# if ( data.canUpload ) { #>
 						<button type="button" class="button remove-button"><?php echo $this->button_labels['remove']; ?></button>
-						<button type="button" class="button"><?php echo $this->button_labels['change']; ?></button>
+						<button type="button" class="button upload-button"><?php echo $this->button_labels['change']; ?></button>
 					<# } #>
 				</div>
 			</div>
