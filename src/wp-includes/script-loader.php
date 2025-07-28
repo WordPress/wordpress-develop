@@ -2547,9 +2547,14 @@ function wp_enqueue_global_styles() {
 		if ( is_customize_preview() ) {
 			/*
 			 * When in the Customizer preview, wrap the Custom CSS in milestone comments to allow customize-preview.js
-			 * to locate the CSS to replace for live previewing.
+			 * to locate the CSS to replace for live previewing. Make sure that the milestone comments are omitted from
+			 * the stored Custom CSS if by chance someone tried to add them, which would be highly unlikely, but it
+			 * would break live previewing.
 			 */
-			$custom_css = "\n/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/\n{$custom_css}\n/*END_CUSTOMIZER_CUSTOM_CSS*/\n";
+			$before_milestone = '/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/';
+			$after_milestone  = '/*END_CUSTOMIZER_CUSTOM_CSS*/';
+			$custom_css       = str_replace( array( $before_milestone, $after_milestone ), '', $custom_css );
+			$custom_css       = $before_milestone . $custom_css . $after_milestone;
 		}
 		$stylesheet .= $custom_css;
 
