@@ -643,6 +643,7 @@
 			// TODO: If none of the logic in this function resulted in a CSS update (e.g. due to some optimizer plugin that concatenates/minifies CSS), then a message should be sent to the controls to initiate a reload.
 			if ( api.settings.theme.isBlockTheme ) {
 				style = $( 'style#global-styles-inline-css' );
+				value = value.replace( /\/\*(BEGIN|END)_CUSTOMIZER_CUSTOM_CSS\*\//g, '' ); // Forbid milestone comments from appearing in Custom CSS which would break live preview.
 				var textContent = style.text().replace( /(\/\*BEGIN_CUSTOMIZER_CUSTOM_CSS\*\/)((?:.|\s)*?)(\/\*END_CUSTOMIZER_CUSTOM_CSS\*\/)/, function ( match, beforeComment, oldValue, afterComment ) {
 					return beforeComment + value + afterComment;
 				} );
