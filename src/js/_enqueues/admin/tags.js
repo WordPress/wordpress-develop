@@ -132,7 +132,7 @@ jQuery( function($) {
 		 * @return {void}
 		 */
 		$.post(ajaxurl, $('#addtag').serialize(), function(r){
-			var res, parent, term, indent, i, termCountWrapper, termCount;
+			var res, parent, term, indent, i, termCountWrapper;
 
 			addingTerm = false;
 			form.find( '.submit .spinner' ).removeClass( 'is-active' );
