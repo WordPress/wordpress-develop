@@ -2537,22 +2537,21 @@ function wp_enqueue_global_styles() {
 
 	if ( $is_block_theme ) {
 		/*
-		 * Remove the Customizer's Custom CSS from being printed as a separate stylesheet in a block theme since it is
-		 * merged into the global styles.
+		 * Dequeue the Customizer's custom CSS
+		 * and add it before the global styles custom CSS.
 		 */
 		remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
 
-		/*
-		 * Get the custom CSS from the Customizer and add it to the global stylesheet.
-		 * When in the Customizer preview, add milestone comments to allow customize-preview.js inject the CSS updates.
-		 */
+		// Get the custom CSS from the Customizer and add it to the global stylesheet.
+		$custom_css = wp_get_custom_css();
 		if ( is_customize_preview() ) {
-			$stylesheet .= "\n/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/\n";
+			/*
+			 * When in the Customizer preview, wrap the Custom CSS in milestone comments to allow customize-preview.js
+			 * to locate the CSS to replace for live previewing.
+			 */
+			$custom_css = "\n/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/\n{$custom_css}\n/*END_CUSTOMIZER_CUSTOM_CSS*/\n";
 		}
-		$stylesheet .= wp_get_custom_css();
-		if ( is_customize_preview() ) {
-			$stylesheet .= "\n/*END_CUSTOMIZER_CUSTOM_CSS*/\n";
-		}
+		$stylesheet .= $custom_css;
 
 		// Add the global styles custom CSS at the end.
 		$stylesheet .= wp_get_global_stylesheet( array( 'custom-css' ) );
