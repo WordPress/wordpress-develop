@@ -67,6 +67,15 @@ function wp_cli( cmd ) {
 	execSync( `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
 }
 
+/**
+ * Runs a WP-CLI command in the Docker environment with retry logic.
+ *
+ * If the command fails, the function will retry the command the
+ * specified number of times with a short delay between attempts.
+ *
+ * @param {string} cmd The WP-CLI command to run.
+ * @param {number} retries The number of retries left. Default to 5.
+ */
 function wp_cli_retry( cmd, retries = 5 ) {
 	try {
 		wp_cli( cmd );
