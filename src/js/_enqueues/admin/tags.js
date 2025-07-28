@@ -59,10 +59,14 @@ jQuery( function($) {
 					 */
 					var termCountWrapper = $( '#posts-filter .displaying-num' );
 					if ( termCountWrapper.length ) {
-						termCountWrapper.each(function () {
-							$( this ).text( $( this ).text().replace( /^\d+/, function ( match ) {
-								return parseInt( match, 10 ) - 1;
-							} ) );
+						termCountWrapper.each( function () {
+							$( this ).text(
+								$( this )
+									.text()
+									.replace( /^\d+/, function ( match ) {
+										return parseInt( match, 10 ) - 1;
+									} )
+							);
 						} );
 					}
 				} else if ( '-1' == r ) {
@@ -170,15 +174,19 @@ jQuery( function($) {
 			}
 
 			termCountWrapper = $( '#posts-filter .displaying-num' );
-			termCount = res.responses[ 2 ].supplemental.count ? res.responses[ 2 ].supplemental.count : null;
 
 			/**
-			 * Updates the term count if we get count and the term count wrapper exists.
+			 * Updates the term count on term add.
 			 */
-			if ( termCountWrapper.length && null !== termCount ) {
-				termCountWrapper.each(function () {
-					console.log( $( this ).text().match( /^\d+/ ) );
-					$( this ).text( $( this ).text().replace( /^\d+/, termCount ) );
+			if ( termCountWrapper.length ) {
+				termCountWrapper.each( function () {
+					$( this ).text(
+						$( this )
+							.text()
+							.replace( /^\d+/, function ( match ) {
+								return parseInt( match, 10 ) + 1;
+							} )
+					);
 				} );
 			}
 
