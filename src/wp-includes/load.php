@@ -97,7 +97,12 @@ function wp_fix_server_vars() {
 /**
  * Populates the Basic Auth server details from the Authorization header.
  *
- * Some servers running in CGI or FastCGI mode don't pass the Authorization
+<?php
+/**
+ * WordPress environment loader.
+ *
+ * @package WordPress
+ */ * Some servers running in CGI or FastCGI mode don't pass the Authorization
  * header on to WordPress.  If it's been rewritten to the `HTTP_AUTHORIZATION` header,
  * fill in the proper $_SERVER variables instead.
  *
@@ -144,7 +149,12 @@ function wp_populate_basic_auth_from_authorization_header() {
  *   - PHP version
  *   - PHP extensions
  *   - MySQL or MariaDB version (unless a database drop-in is present)
+<?php
+/**
+ * WordPress environment loader.
  *
+ * @package WordPress
+ */ *
  * Dies if requirements are not met.
  *
  * @since 3.0.0
