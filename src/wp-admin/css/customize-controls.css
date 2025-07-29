@@ -1437,8 +1437,8 @@ p.customize-section-description {
 	padding: 9px 0;
 }
 
-.attachment-media-view.attachment-media-view-image.landscape .actions .button.upload-button.control-focus {
-    width: auto;
+.customize-control .attachment-media-view .upload-button.control-focus {
+	width: auto;
 	padding: 0 10px;
 }
 
