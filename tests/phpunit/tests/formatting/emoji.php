@@ -202,17 +202,17 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		if ( ! empty( $html5_features ) ) {
 			add_theme_support( 'html5', $html5_features );
 		}
-		
+
 		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present.
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
-		
+
 		if ( $expected_has_type ) {
 			$this->assertStringContainsString( '"typeAttr":" type=\\"text\/javascript\\""', $output );
 		} else {
 			$this->assertStringContainsString( '"typeAttr":""', $output );
 		}
-		
+
 		$this->assertStringContainsString( 'window._wpemojiSettings', $output );
 	}
 
@@ -233,13 +233,13 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		wp_default_scripts( wp_scripts() );
 
 		$script_data = wp_scripts()->get_data( 'zxcvbn-async', 'data' );
-		
+
 		if ( $expected_has_type ) {
 			$this->assertStringContainsString( '"typeAttr":" type=\\"text\/javascript\\""', $script_data );
 		} else {
 			$this->assertStringContainsString( '"typeAttr":""', $script_data );
 		}
-		
+
 		$this->assertStringContainsString( '"src":', $script_data );
 	}
 
@@ -250,11 +250,11 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	 */
 	public function data_html5_script_support() {
 		return array(
-			'no html5 support' => array(
+			'no html5 support'          => array(
 				array(),
 				true,
 			),
-			'html5 script support' => array(
+			'html5 script support'      => array(
 				array( 'script' ),
 				false,
 			),
