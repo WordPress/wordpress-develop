@@ -2806,7 +2806,7 @@ function comment_form( $args = array(), $post = null ) {
 
 					echo $args['comment_notes_after'];
 
-				} elseif ( ! is_user_logged_in() ) {
+				} elseif ( ! is_user_logged_in() || ! in_array( $name, array( 'author', 'email', 'url', 'cookies' ), true ) ) {
 
 					if ( $first_field === $name ) {
 						/**
