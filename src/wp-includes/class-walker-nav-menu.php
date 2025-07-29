@@ -157,7 +157,8 @@ class Walker_Nav_Menu extends Walker {
 		// Restores the more descriptive, specific name for use within this method.
 		$menu_item = $data_object;
 
-		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
+		$args = (array) $args;
+		if ( isset( $args['item_spacing'] ) && 'discard' === $args['item_spacing'] ) {
 			$t = '';
 			$n = '';
 		} else {
@@ -178,7 +179,7 @@ class Walker_Nav_Menu extends Walker {
 		 * @param WP_Post  $menu_item Menu item data object.
 		 * @param int      $depth     Depth of menu item. Used for padding.
 		 */
-		$args = apply_filters( 'nav_menu_item_args', $args, $menu_item, $depth );
+		$args = apply_filters( 'nav_menu_item_args', (object) $args, $menu_item, $depth );
 
 		/**
 		 * Filters the CSS classes applied to a menu item's list item element.
