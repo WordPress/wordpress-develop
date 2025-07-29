@@ -1830,7 +1830,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 		} elseif ( 'slug' === $field ) {
 			$value = sanitize_title( $value );
 		} elseif ( in_array( $field, $int_fields, true ) ) {
-			$value = (int) $value;
+			$value = (string) absint( $value );
 		} else {
 			$value = esc_attr( $value );
 		}
