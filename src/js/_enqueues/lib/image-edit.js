@@ -319,9 +319,9 @@
 			$next = 0;
 		}
 		var target = false;
-		if ( event.keyCode === 40 ) {
+		if ( "ArrowDown" === event.key ) {
 			target = $collection.get( $next );
-		} else if ( event.keyCode === 38 ) {
+		} else if ( "ArrowUp" === event.key ) {
 			target = $collection.get( $prev );
 		}
 		if ( target ) {

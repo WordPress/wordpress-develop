@@ -727,7 +727,7 @@ $.extend( Datepicker.prototype, {
 						break; // +1 week on ctrl or command +down
 				default: handled = false;
 			}
-		} else if ( event.keyCode === 36 && event.ctrlKey ) { // display the date picker on ctrl+home
+		} else if ( event.key === "Home" && event.ctrlKey ) { // display the date picker on ctrl+home
 			$.datepicker._showDatepicker( this );
 		} else {
 			handled = false;

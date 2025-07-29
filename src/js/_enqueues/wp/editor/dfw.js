@@ -1446,7 +1446,7 @@
 		 * @return {void}
 		 */
 		function toggleViaKeyboard( event ) {
-			if ( event.altKey && event.shiftKey && 87 === event.keyCode ) {
+			if ( event.altKey && event.shiftKey && 'W' === event.key ) {
 				toggle();
 			}
 		}

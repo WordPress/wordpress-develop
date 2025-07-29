@@ -262,8 +262,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 			// Prevent hitting Esc from collapsing the widget control.
 			if ( wp.customize ) {
 				control.editor.codemirror.on( 'keydown', function onKeydown( codemirror, event ) {
-					var escKeyCode = 27;
-					if ( escKeyCode === event.keyCode ) {
+					if ( 'Escape' === event.key ) {
 						event.stopPropagation();
 					}
 				});

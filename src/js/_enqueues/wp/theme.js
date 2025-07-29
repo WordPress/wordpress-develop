@@ -742,7 +742,7 @@ themes.view.Details = wp.Backbone.View.extend({
 
 		// Detect if the click is inside the overlay and don't close it
 		// unless the target was the div.back button.
-		if ( $( event.target ).is( '.theme-backdrop' ) || $( event.target ).is( '.close' ) || event.keyCode === 27 ) {
+		if ( $( event.target ).is( '.theme-backdrop' ) || $( event.target ).is( '.close' ) || event.key === "Escape" ) {
 
 			// Add a temporary closing class while overlay fades out.
 			$( 'body' ).addClass( 'closing-overlay' );
@@ -1007,7 +1007,7 @@ themes.view.Preview = themes.view.Details.extend({
 
 	keyEvent: function( event ) {
 		// The escape key closes the preview.
-		if ( event.keyCode === 27 ) {
+		if ( "Escape" === event.key ) {
 			this.undelegateEvents();
 			this.close();
 		}
@@ -1018,12 +1018,12 @@ themes.view.Preview = themes.view.Details.extend({
 		}
 
 		// The right arrow key, next theme.
-		if ( event.keyCode === 39 ) {
+		if ( "ArrowRight" === event.key ) {
 			_.once( this.nextTheme() );
 		}
 
 		// The left arrow key, previous theme.
-		if ( event.keyCode === 37 ) {
+		if ( "ArrowLeft" === event.key ) {
 			this.previousTheme();
 		}
 	},
@@ -1127,17 +1127,17 @@ themes.view.Themes = wp.Backbone.View.extend({
 			}
 
 			// Pressing the right arrow key fires a theme:next event.
-			if ( event.keyCode === 39 ) {
+			if ( "ArrowRight" === event.key ) {
 				self.overlay.nextTheme();
 			}
 
 			// Pressing the left arrow key fires a theme:previous event.
-			if ( event.keyCode === 37 ) {
+			if ( "ArrowLeft" === event.key ) {
 				self.overlay.previousTheme();
 			}
 
 			// Pressing the escape key fires a theme:collapse event.
-			if ( event.keyCode === 27 ) {
+			if ( "Escape" === event.key ) {
 				self.overlay.collapse( event );
 			}
 		});

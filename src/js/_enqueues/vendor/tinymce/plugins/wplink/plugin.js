@@ -363,7 +363,7 @@
 		// When doing undo and redo with keyboard shortcuts (Ctrl|Cmd+Z, Ctrl|Cmd+Shift+Z, Ctrl|Cmd+Y),
 		// set a flag to not focus the inline dialog. The editor has to remain focused so the users can do consecutive undo/redo.
 		editor.on( 'keydown', function( event ) {
-			if ( event.keyCode === 27 ) { // Esc
+			if ( event.key === 'Escape' ) { // Esc
 				editor.execCommand( 'wp_link_cancel' );
 			}
 
@@ -373,7 +373,7 @@
 				return;
 			}
 
-			if ( event.keyCode === 89 || event.keyCode === 90 ) { // Y or Z
+			if ( event.key === 'y' || event.key === 'z' ) {
 				doingUndoRedo = true;
 
 				window.clearTimeout( doingUndoRedoTimer );
@@ -440,7 +440,7 @@
 							$input.val( ui.item.permalink );
 							$( element.firstChild.nextSibling.nextSibling ).val( ui.item.title );
 
-							if ( 9 === event.keyCode && typeof window.wpLinkL10n !== 'undefined' ) {
+							if ( 'Tab' === event.key && typeof window.wpLinkL10n !== 'undefined' ) {
 								// Audible confirmation message when a link has been selected.
 								speak( window.wpLinkL10n.linkSelected );
 							}
@@ -521,7 +521,7 @@
 				}
 
 				tinymce.$( input ).on( 'keydown', function( event ) {
-					if ( event.keyCode === 13 ) {
+					if ( event.key === 'Enter' ) {
 						editor.execCommand( 'wp_link_apply' );
 						event.preventDefault();
 					}

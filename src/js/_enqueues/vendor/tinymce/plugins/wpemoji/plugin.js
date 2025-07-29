@@ -62,7 +62,7 @@
 			 * Thankfully it sets keyCode 231 when the onscreen keyboard inserts any emoji.
 			 */
 			editor.on( 'keyup', function( event ) {
-				if ( event.keyCode === 231 ) {
+				if ( event.key === 'ç' ) {
 					parseNode( editor.selection.getNode() );
 				}
 			} );

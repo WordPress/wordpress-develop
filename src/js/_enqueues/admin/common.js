@@ -1803,11 +1803,11 @@ $( function() {
 				if ( ! $wpwrap.hasClass( 'wp-responsive-open' ) ) {
 				    return;
 				}
-				if ( 27 === event.keyCode ) {
+				if ( "Escape" === event.key ) {
 					$( toggleButton ).trigger( 'click.wp-responsive' );
 					$( toggleButton ).find( 'a' ).trigger( 'focus' );
 				} else {
-					if ( 9 === event.keyCode ) {
+					if ( "Tab" === event.key ) {
 						var sidebar        = $( '#adminmenuwrap' )[0];
 						var focusedElement = event.relatedTarget || document.activeElement;
 						// A brief delay is required to allow focus to switch to another element.

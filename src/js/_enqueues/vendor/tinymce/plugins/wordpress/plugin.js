@@ -400,7 +400,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 				$wrap.on( 'keydown', function( event ) {
 					// Prevent use of: page up, page down, end, home, left arrow, up arrow, right arrow, down arrow
 					// in the dialog keydown handler.
-					if ( event.keyCode >= 33 && event.keyCode <= 40 ) {
+					if ( event.key >= 'PageUp' && event.key <= 'ArrowDown' ) {
 						event.stopPropagation();
 					}
 				});
@@ -1048,7 +1048,7 @@ tinymce.PluginManager.add( 'wordpress', function( editor ) {
 			} );
 
 			toolbar.on( 'keydown', function( event ) {
-				if ( event.keyCode === 27 ) {
+				if ( event.key === 'Escape' ) {
 					this.hide();
 					editor.focus();
 				}
