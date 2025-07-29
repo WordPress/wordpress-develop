@@ -137,7 +137,7 @@ final class WP_Block_Patterns_Registry {
 						return false;
 					}
 				}
-			} else if ( ! $allowed_blocks ) {
+			} elseif ( ! $allowed_blocks ) {
 				_doing_it_wrong(
 					__METHOD__,
 					sprintf(
