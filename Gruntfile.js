@@ -530,6 +530,17 @@ module.exports = function(grunt) {
 				options: {
 					implementation: sass
 				}
+			},
+			adminbar: {
+				expand: true,
+				cwd: SOURCE_DIR,
+				dest: WORKING_DIR,
+				ext: '.css',
+				src: ['wp-includes/css/admin-bar.scss'],
+				options: {
+					implementation: sass,
+					outputStyle: 'expanded'
+				}
 			}
 		},
 		cssmin: {
@@ -1284,6 +1295,10 @@ module.exports = function(grunt) {
 				files: [SOURCE_DIR + 'wp-admin/css/colors/**'],
 				tasks: ['sass:colors']
 			},
+			adminbar: {
+				files: [SOURCE_DIR + 'wp-includes/css/admin-bar.scss'],
+				tasks: ['sass:adminbar', 'postcss:core']
+			},
 			rtl: {
 				files: [
 					SOURCE_DIR + 'wp-admin/css/*.css',
@@ -1323,6 +1338,7 @@ module.exports = function(grunt) {
 
 	// Color schemes task.
 	grunt.registerTask('colors', ['sass:colors', 'postcss:colors']);
+	grunt.registerTask('adminbar', ['sass:adminbar', 'postcss:core']);
 
 	// JSHint task.
 	grunt.registerTask( 'jshint:corejs', [
