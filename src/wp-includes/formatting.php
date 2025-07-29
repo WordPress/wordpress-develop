@@ -888,26 +888,11 @@ function seems_utf8( $str ) {
 	$valid = true;
 
 	for ( $i = 0; $i < $length && $valid; $i++ ) {
-		/*
-		 * Since all US-ASCII bytes, or all octets from x00–x7F, are valid UTF-8,
-		 * it’s possible to skip past ranges of all-ASCII bytes using internal PHP
-		 * functions. On typical HTML pages this can lead to major performance
-		 * improvements; up to around 10x without JIT optimization, and up to
-		 * around 100x with it.
-		 */
-		$i += strspn(
-			$str,
-			"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f",
-			$i
-		);
-		if ( $i >= $length ) {
-			break;
-		}
-
-		// Everything past here starts a multibyte sequence.
 		$c = ord( $str[ $i ] );
 
-		if ( ( $c & 0xE0 ) === 0xC0 ) {
+		if ( $c < 0x80 ) {
+			continue;
+		} elseif ( ( $c & 0xE0 ) === 0xC0 ) {
 			$n = 1; // 110bbbbb
 		} elseif ( ( $c & 0xF0 ) === 0xE0 ) {
 			$n = 2; // 1110bbbb
