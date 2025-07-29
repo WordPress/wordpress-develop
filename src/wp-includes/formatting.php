@@ -885,7 +885,9 @@ function seems_utf8( $str ) {
 	$length = strlen( $str );
 	reset_mbstring_encoding();
 
-	for ( $i = 0; $i < $length; $i++ ) {
+	$valid = true;
+
+	for ( $i = 0; $i < $length && $valid; $i++ ) {
 		/*
 		 * Since all US-ASCII bytes, or all octets from x00–x7F, are valid UTF-8,
 		 * it’s possible to skip past ranges of all-ASCII bytes using internal PHP
@@ -895,9 +897,7 @@ function seems_utf8( $str ) {
 		 */
 		$i += strspn(
 			$str,
-			"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" .
-			"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f" .
-			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f",
+			"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f",
 			$i
 		);
 		if ( $i >= $length ) {
@@ -918,17 +918,35 @@ function seems_utf8( $str ) {
 		} elseif ( ( $c & 0xFE ) === 0xFC ) {
 			$n = 5; // 1111110b
 		} else {
-			return false; // Does not match any model.
+			$n = $length; // This wil reject on the next check.
 		}
 
-		for ( $j = 0; $j < $n; $j++ ) { // n bytes matching 10bbbbbb follow?
-			if ( ( ++$i === $length ) || ( ( ord( $str[ $i ] ) & 0xC0 ) !== 0x80 ) ) {
-				return false;
-			}
+		if ( $i + $n >= $length ) {
+			return false;
 		}
+
+		switch ( $n ) {
+			case 5:
+				$valid &= ( ord( $str[ $i + 5 ] ) & 0xC0 ) === 0x80;
+				// fallthrough
+			case 4:
+				$valid &= ( ord( $str[ $i + 4 ] ) & 0xC0 ) === 0x80;
+				// fallthrough
+			case 3:
+				$valid &= ( ord( $str[ $i + 3 ] ) & 0xC0 ) === 0x80;
+				// fallthrough
+			case 2:
+				$valid &= ( ord( $str[ $i + 2 ] ) & 0xC0 ) === 0x80;
+				// fallthrough
+			case 1:
+				$valid &= ( ord( $str[ $i + 1 ] ) & 0xC0 ) === 0x80;
+				break;
+		}
+
+		$i += $n;
 	}
 
-	return true;
+	return (bool) $valid;
 }
 
 /**
