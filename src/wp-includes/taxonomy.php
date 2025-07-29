@@ -1830,7 +1830,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 		} elseif ( 'slug' === $field ) {
 			$value = sanitize_title( $value );
 		} elseif ( in_array( $field, $int_fields, true ) ) {
-			$value = (string) absint( $value );
+			$value = (int) $value;
 		} else {
 			$value = esc_attr( $value );
 		}
@@ -1946,7 +1946,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 
 	// Restore the type for integer fields after esc_attr().
 	if ( in_array( $field, $int_fields, true ) ) {
-		$value = (int) $value;
+		$value = (string) absint( $value );
 	}
 
 	return $value;
