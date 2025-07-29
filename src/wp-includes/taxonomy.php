@@ -1946,7 +1946,7 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 
 	// Restore the type for integer fields after esc_attr().
 	if ( in_array( $field, $int_fields, true ) ) {
-		$value = (string) absint( $value );
+		$value = absint( $value );
 	}
 
 	return $value;
