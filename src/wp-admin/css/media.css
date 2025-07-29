@@ -174,7 +174,7 @@
 
 .media-item .pinkynail {
 	float: left;
-	margin: 0 10px 0 0;
+	margin: 14px;
 	max-height: 70px;
 	max-width: 70px;
 }
@@ -899,6 +899,15 @@ border color while dragging a file over the uploader drop area */
 
 .imgedit-panel-active .imgedit-group-controls > * {
 	display: block;
+}
+
+.imgedit-panel-active .imgedit-group-controls > .imgedit-crop-apply {
+	display: flex;
+}
+
+.imgedit-crop-apply {
+	gap: 4px;
+	flex-wrap: wrap;
 }
 
 .wp_attachment_holder .imgedit-wrap .image-editor {

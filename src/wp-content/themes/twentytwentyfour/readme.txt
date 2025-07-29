@@ -1,7 +1,7 @@
 === Twenty Twenty-Four ===
 Contributors: wordpressdotorg
 Requires at least: 6.4
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.0
 Stable tag: 1.3
 License: GPLv2 or later
@@ -35,7 +35,7 @@ https://wordpress.org/documentation/article/twenty-twenty-four-changelog/#Versio
 
 == Copyright ==
 
-Twenty Twenty-Four WordPress Theme, (C) 2023-2024 WordPress.org and contributors.
+Twenty Twenty-Four WordPress Theme, (C) 2023-2025 WordPress.org and contributors.
 Twenty Twenty-Four is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify
