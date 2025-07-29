@@ -51,7 +51,7 @@ jobs:
     uses: ./.github/workflows/reusable-test-core-build-process.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     strategy:
       fail-fast: false
       matrix:
@@ -99,7 +99,7 @@ jobs:
     uses: ./.github/workflows/reusable-test-gutenberg-build-process.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     strategy:
       fail-fast: false
       matrix:
