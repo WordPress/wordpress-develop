@@ -2739,7 +2739,8 @@ function enqueue_block_styles_assets() {
 							if ( $block['blockName'] === $block_name ) {
 								// If the block didn't render any tags, then do not enqueue any styles. Rendering just an HTML comment is also excluded.
 								$processor = new WP_HTML_Tag_Processor( $html );
-								if ( $processor->next_tag() ) {
+									/** This filter is documented in src/wp-includes/class-wp-block.php */
+									if ( (bool) apply_filters( 'enqueue_empty_block_content_assets', $processor->next_tag(), $block_name ) ) {
 									wp_enqueue_style( $style_properties['style_handle'] );
 								}
 							}
@@ -3295,11 +3296,12 @@ function wp_enqueue_block_style( $block_name, $args ) {
 	 *                        is to ensure the content exists.
 	 * @return string Block content.
 	 */
-	$callback = static function ( $content ) use ( $args ) {
+	$callback = static function ( $content ) use ( $block_name, $args ) {
 
 		// If the block didn't render any tags, then do not enqueue any styles. Rendering just an HTML comment is also excluded.
 		$processor = new WP_HTML_Tag_Processor( $content );
-		if ( ! $processor->next_tag() ) {
+		/** This filter is documented in src/wp-includes/class-wp-block.php */
+		if ( ! (bool) apply_filters( 'enqueue_empty_block_content_assets', $processor->next_tag(), $block_name ) ) {
 			return $content;
 		}
 

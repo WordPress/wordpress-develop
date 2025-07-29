@@ -632,7 +632,16 @@ class WP_Block {
 		 * In all these cases, adding scripts and styles will be a waste since they will not be used on the page.
 		 */
 		$processor = new WP_HTML_Tag_Processor( $block_content );
-		if ( $processor->next_tag() ) {
+
+		/**
+		 * Filters whether to enqueue assets for a block which has no rendered content.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param bool   $enqueue    Whether to enqueue assets.
+		 * @param string $block_name Block name.
+		 */
+		if ( (bool) apply_filters( 'enqueue_empty_block_content_assets', $processor->next_tag(), $this->name ) ) {
 			if ( ( ! empty( $this->block_type->script_handles ) ) ) {
 				foreach ( $this->block_type->script_handles as $script_handle ) {
 					wp_enqueue_script( $script_handle );
