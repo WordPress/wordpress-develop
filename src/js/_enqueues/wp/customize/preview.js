@@ -645,7 +645,7 @@
 				style = $( 'style#global-styles-inline-css' );
 				value = value.replace( /\/\*(BEGIN|END)_CUSTOMIZER_CUSTOM_CSS\*\//g, '' ); // Forbid milestone comments from appearing in Custom CSS which would break live preview.
 				var textContent = style.text().replace( /(\/\*BEGIN_CUSTOMIZER_CUSTOM_CSS\*\/)((?:.|\s)*?)(\/\*END_CUSTOMIZER_CUSTOM_CSS\*\/)/, function ( match, beforeComment, oldValue, afterComment ) {
-					return beforeComment + value + afterComment;
+					return beforeComment + '\n' + value + '\n' + afterComment;
 				} );
 				style.text( textContent );
 			} else {
