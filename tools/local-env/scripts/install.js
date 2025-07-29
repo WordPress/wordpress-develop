@@ -15,9 +15,6 @@ local_env_utils.determine_auth_option();
 // Create wp-config.php.
 wp_cli( `config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"` );
 
-// Since WP-CLI runs as root, the wp-config.php created above will be read-only. This needs to be writable for the sake of E2E tests.
-execSync( 'node ./tools/local-env/scripts/docker.js exec cli chmod 666 wp-config.php' );
-
 // Add the debug settings to wp-config.php.
 // Windows requires this to be done as an additional step, rather than using the --extra-php option in the previous step.
 wp_cli( `config set WP_DEBUG ${process.env.LOCAL_WP_DEBUG} --raw --type=constant` );

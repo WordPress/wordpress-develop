@@ -445,6 +445,8 @@ add_action( 'wp_head', 'twentyseventeen_colors_css_wrap' );
 
 /**
  * Enqueues scripts and styles.
+ *
+ * @since Twenty Seventeen 1.0
  */
 function twentyseventeen_scripts() {
 	// Add custom fonts, used in the main stylesheet.
@@ -708,6 +710,16 @@ endif;
  */
 function twentyseventeen_should_show_featured_image() {
 	$show_featured_image = ( is_single() || ( is_page() && ! twentyseventeen_is_frontpage() ) ) && has_post_thumbnail( get_queried_object_id() );
+
+	/**
+	 * Filters whether to show the Twenty Seventeen featured image below the header.
+	 *
+	 * By default, the image is displayed on single posts and pages, unless the page is the front page.
+	 *
+	 * @since Twenty Seventeen 3.7
+	 *
+	 * @param bool $show_featured_image Whether to display the featured image below the header.
+	 */
 	return apply_filters( 'twentyseventeen_should_show_featured_image', $show_featured_image );
 }
 

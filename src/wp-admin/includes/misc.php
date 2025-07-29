@@ -205,7 +205,7 @@ Any changes to the directives between these markers will be overwritten.'
 
 		if ( ! $found_marker ) {
 			$pre_lines[] = $line;
-		} elseif ( $found_marker && $found_end_marker ) {
+		} elseif ( $found_end_marker ) {
 			$post_lines[] = $line;
 		} else {
 			$existing_lines[] = $line;
@@ -1059,6 +1059,8 @@ function admin_color_scheme_picker( $user_id ) {
 /**
  *
  * @global array $_wp_admin_css_colors
+ *
+ * @since 3.8.0
  */
 function wp_color_scheme_settings() {
 	global $_wp_admin_css_colors;
