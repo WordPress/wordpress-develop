@@ -13,7 +13,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	/**
 	 * Fake block type registry.
 	 *
-	 * @var WP_Block_Type_Registry
+	 * @var WP_Block_Type_Registry|null
 	 */
 	private $registry = null;
 
@@ -23,6 +23,11 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		global $wp_styles, $wp_scripts, $wp_script_modules;
+		$wp_styles         = null;
+		$wp_scripts        = null;
+		$wp_script_modules = null;
+
 		$this->registry = new WP_Block_Type_Registry();
 	}
 
@@ -31,6 +36,11 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		$this->registry = null;
+
+		global $wp_styles, $wp_scripts, $wp_script_modules;
+		$wp_styles         = null;
+		$wp_scripts        = null;
+		$wp_script_modules = null;
 
 		parent::tear_down();
 	}
@@ -350,6 +360,167 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		remove_filter( 'render_block_core/example', array( $this, 'filter_render_block' ) );
 
 		$this->assertSame( 'Original: "StaticOriginal: "Inner", from block "core/example"", from block "core/example"', $rendered_content );
+	}
+
+	/**
+	 * Data provider for test_render_enqueues_scripts_and_styles.
+	 *
+	 * @return array
+	 */
+	public function data_provider_test_render_enqueues_scripts_and_styles(): array {
+		return array(
+			'all_printed'                     => array(
+				'set_up'                  => null,
+				'expected_rendered_block' => '<div class="static"><p class="dynamic">Hello World!</p></div>',
+				'expected_styles'         => array( 'static-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'dynamic-view-script-module' ),
+			),
+			'dynamic_hidden_scripts_omitted'  => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block_core/dynamic', '__return_empty_string' );
+				},
+				'expected_rendered_block' => '<div class="static"></div>',
+				'expected_styles'         => array( 'static-view-style' ),
+				'expected_scripts'        => array( 'static-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module' ),
+			),
+			'dynamic_hidden_scripts_included' => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block_core/dynamic', '__return_empty_string' );
+					add_filter(
+						'enqueue_empty_block_content_assets',
+						static function ( $enqueue, $block_name ) {
+							if ( 'core/dynamic' === $block_name ) {
+								$enqueue = true;
+							}
+							return $enqueue;
+						},
+						10,
+						2
+					);
+				},
+				'expected_rendered_block' => '<div class="static"></div>',
+				'expected_styles'         => array( 'static-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'dynamic-view-script-module' ),
+			),
+			'static_hidden_scripts_omitted'   => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block_core/static', '__return_empty_string' );
+				},
+				'expected_rendered_block' => '',
+				// TODO: This test is currently failing. Since the inner dynamic block is rendered, it is getting its assets enqueued even though the parent static block is not rendered. When the parent is not rendered, then the nested assets really shouldn't be enqueued.
+				'expected_styles'         => array(),
+				'expected_scripts'        => array(),
+				'expected_script_modules' => array(),
+			),
+			'all_hidden_scripts_omitted'      => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block', '__return_empty_string' );
+				},
+				'expected_rendered_block' => '',
+				'expected_styles'         => array(),
+				'expected_scripts'        => array(),
+				'expected_script_modules' => array(),
+			),
+			'all_hidden_scripts_included'     => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block', '__return_empty_string' );
+					add_filter( 'enqueue_empty_block_content_assets', '__return_true' );
+				},
+				'expected_rendered_block' => '',
+				'expected_styles'         => array( 'static-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'dynamic-view-script-module' ),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 63676
+	 * @covers WP_Block::render()
+	 *
+	 * @dataProvider data_provider_test_render_enqueues_scripts_and_styles
+	 *
+	 * @param Closure|null $set_up
+	 * @param string[]     $expected_styles
+	 * @param string[]     $expected_scripts
+	 * @param string[]     $expected_script_modules
+	 */
+	public function test_render_enqueues_scripts_and_styles( ?Closure $set_up, string $expected_rendered_block, array $expected_styles, array $expected_scripts, array $expected_script_modules ) {
+		if ( $set_up instanceof Closure ) {
+			$set_up();
+		}
+		wp_register_style( 'static-view-style', home_url( '/static-view-style.css' ) );
+		wp_register_script( 'static-view-script', home_url( '/static-view-script.js' ) );
+		wp_register_script_module( 'static-view-script-module', home_url( '/static-view-script-module.js' ) );
+		$this->registry->register(
+			'core/static',
+			array(
+				'view_style_handles'     => array( 'static-view-style' ),
+				'view_script_handles'    => array( 'static-view-script' ),
+				'view_script_module_ids' => array( 'static-view-script-module' ),
+			)
+		);
+
+		wp_register_style( 'dynamic-view-style', home_url( '/dynamic-view-style.css' ) );
+		wp_register_script( 'dynamic-view-script', home_url( '/dynamic-view-script.js' ) );
+		wp_register_script_module( 'dynamic-view-script-module', home_url( '/dynamic-view-script-module.js' ) );
+		$this->registry->register(
+			'core/dynamic',
+			array(
+				'render_callback'        => static function () {
+					return '<p class="dynamic">Hello World!</p>';
+				},
+				'view_style_handles'     => array( 'dynamic-view-style' ),
+				'view_script_handles'    => array( 'dynamic-view-script' ),
+				'view_script_module_ids' => array( 'dynamic-view-script-module' ),
+			)
+		);
+
+		$parsed_blocks  = parse_blocks( '<!-- wp:static --><div class="static"><!-- wp:dynamic /--></div><!-- /wp:static -->' );
+		$parsed_block   = $parsed_blocks[0];
+		$context        = array();
+		$block          = new WP_Block( $parsed_block, $context, $this->registry );
+		$rendered_block = $block->render();
+
+		$this->assertEqualHTML(
+			$expected_rendered_block,
+			$rendered_block
+		);
+
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+
+		$actual_styles  = array();
+		$printed_styles = get_echo( 'wp_print_styles' );
+		$processor      = new WP_HTML_Tag_Processor( $printed_styles );
+		while ( $processor->next_tag( array( 'tag_name' => 'LINK' ) ) ) {
+			if ( 1 === preg_match( '/^(.+)-css$/', $processor->get_attribute( 'id' ), $matches ) ) {
+				$actual_styles[] = $matches[1];
+			}
+		}
+		$this->assertSameSets( $expected_styles, $actual_styles );
+
+		$actual_scripts  = array();
+		$printed_scripts = get_echo( 'wp_print_scripts' );
+		$processor       = new WP_HTML_Tag_Processor( $printed_scripts );
+		while ( $processor->next_tag( array( 'tag_name' => 'SCRIPT' ) ) ) {
+			if ( 1 === preg_match( '/^(.+)-js$/', $processor->get_attribute( 'id' ), $matches ) ) {
+				$actual_scripts[] = $matches[1];
+			}
+		}
+		$this->assertSameSets( $expected_scripts, $actual_scripts );
+
+		$actual_script_modules  = array();
+		$printed_script_modules = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+		$processor              = new WP_HTML_Tag_Processor( $printed_script_modules );
+		while ( $processor->next_tag( array( 'tag_name' => 'SCRIPT' ) ) ) {
+			if ( 1 === preg_match( '/^(.+)-js-module$/', $processor->get_attribute( 'id' ), $matches ) ) {
+				$actual_script_modules[] = $matches[1];
+			}
+		}
+		$this->assertSameSets( $expected_script_modules, $actual_script_modules );
 	}
 
 	/**
