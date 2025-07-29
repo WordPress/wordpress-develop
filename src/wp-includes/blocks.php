@@ -339,8 +339,9 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
 	$style_uri       = get_block_asset_url( $style_path_norm );
 
-	$version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
-	$result  = wp_register_style(
+	$block_version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$version       = $style_path_norm && defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? filemtime( $style_path_norm ) : $block_version;
+	$result        = wp_register_style(
 		$style_handle_name,
 		$style_uri,
 		array(),
@@ -1686,13 +1687,13 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
  * @param array $block {
  *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
  *
- *     @type string   $blockName    Name of block.
- *     @type array    $attrs        Attributes from block comment delimiters.
- *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
- *                                  have the same structure as this one.
- *     @type string   $innerHTML    HTML from inside block comment delimiters.
- *     @type array    $innerContent List of string fragments and null markers where
- *                                  inner blocks were found.
+ *     @type string|null $blockName    Name of block.
+ *     @type array       $attrs        Attributes from block comment delimiters.
+ *     @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+ *                                     have the same structure as this one.
+ *     @type string      $innerHTML    HTML from inside block comment delimiters.
+ *     @type array       $innerContent List of string fragments and null markers where
+ *                                     inner blocks were found.
  * }
  * @return string String of rendered HTML.
  */
@@ -1727,13 +1728,13 @@ function serialize_block( $block ) {
  *     @type array ...$0 {
  *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
  *
- *         @type string   $blockName    Name of block.
- *         @type array    $attrs        Attributes from block comment delimiters.
- *         @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
- *                                      have the same structure as this one.
- *         @type string   $innerHTML    HTML from inside block comment delimiters.
- *         @type array    $innerContent List of string fragments and null markers where
- *                                      inner blocks were found.
+ *         @type string|null $blockName    Name of block.
+ *         @type array       $attrs        Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+ *                                         have the same structure as this one.
+ *         @type string      $innerHTML    HTML from inside block comment delimiters.
+ *         @type array       $innerContent List of string fragments and null markers where
+ *                                         inner blocks were found.
  *     }
  * }
  * @return string String of rendered HTML.
@@ -2254,13 +2255,13 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
  * @param array $parsed_block {
  *     An associative array of the block being rendered. See WP_Block_Parser_Block.
  *
- *     @type string   $blockName    Name of block.
- *     @type array    $attrs        Attributes from block comment delimiters.
- *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
- *                                  have the same structure as this one.
- *     @type string   $innerHTML    HTML from inside block comment delimiters.
- *     @type array    $innerContent List of string fragments and null markers where
- *                                  inner blocks were found.
+ *     @type string|null $blockName    Name of block.
+ *     @type array       $attrs        Attributes from block comment delimiters.
+ *     @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+ *                                     have the same structure as this one.
+ *     @type string      $innerHTML    HTML from inside block comment delimiters.
+ *     @type array       $innerContent List of string fragments and null markers where
+ *                                     inner blocks were found.
  * }
  * @return string String of rendered HTML.
  */
@@ -2278,13 +2279,13 @@ function render_block( $parsed_block ) {
 	 * @param array         $parsed_block {
 	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
 	 *
-	 *     @type string   $blockName    Name of block.
-	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
-	 *                                  have the same structure as this one.
-	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where
-	 *                                  inner blocks were found.
+	 *     @type string|null $blockName    Name of block.
+	 *     @type array       $attrs        Attributes from block comment delimiters.
+	 *     @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                     have the same structure as this one.
+	 *     @type string      $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array       $innerContent List of string fragments and null markers where
+	 *                                     inner blocks were found.
 	 * }
 	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
@@ -2304,25 +2305,25 @@ function render_block( $parsed_block ) {
 	 * @param array         $parsed_block {
 	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
 	 *
-	 *     @type string   $blockName    Name of block.
-	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
-	 *                                  have the same structure as this one.
-	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where
-	 *                                  inner blocks were found.
+	 *     @type string|null $blockName    Name of block.
+	 *     @type array       $attrs        Attributes from block comment delimiters.
+	 *     @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                     have the same structure as this one.
+	 *     @type string      $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array       $innerContent List of string fragments and null markers where
+	 *                                     inner blocks were found.
 	 * }
 	 * @param array         $source_block {
 	 *     An un-modified copy of `$parsed_block`, as it appeared in the source content.
 	 *     See WP_Block_Parser_Block.
 	 *
-	 *     @type string   $blockName    Name of block.
-	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
-	 *                                  have the same structure as this one.
-	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where
-	 *                                  inner blocks were found.
+	 *     @type string|null $blockName    Name of block.
+	 *     @type array       $attrs        Attributes from block comment delimiters.
+	 *     @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                     have the same structure as this one.
+	 *     @type string      $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array       $innerContent List of string fragments and null markers where
+	 *                                     inner blocks were found.
 	 * }
 	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
@@ -2352,13 +2353,13 @@ function render_block( $parsed_block ) {
 	 * @param array         $parsed_block {
 	 *     An associative array of the block being rendered. See WP_Block_Parser_Block.
 	 *
-	 *     @type string   $blockName    Name of block.
-	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
-	 *                                  have the same structure as this one.
-	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where
-	 *                                  inner blocks were found.
+	 *     @type string|null $blockName    Name of block.
+	 *     @type array       $attrs        Attributes from block comment delimiters.
+	 *     @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                     have the same structure as this one.
+	 *     @type string      $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array       $innerContent List of string fragments and null markers where
+	 *                                     inner blocks were found.
 	 * }
 	 * @param WP_Block|null $parent_block If this is a nested block, a reference to the parent block.
 	 */
@@ -2381,13 +2382,13 @@ function render_block( $parsed_block ) {
  *     @type array ...$0 {
  *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
  *
- *         @type string   $blockName    Name of block.
- *         @type array    $attrs        Attributes from block comment delimiters.
- *         @type array[]  $innerBlocks  List of inner blocks. An array of arrays that
- *                                      have the same structure as this one.
- *         @type string   $innerHTML    HTML from inside block comment delimiters.
- *         @type array    $innerContent List of string fragments and null markers where
- *                                      inner blocks were found.
+ *         @type string|null $blockName    Name of block.
+ *         @type array       $attrs        Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+ *                                         have the same structure as this one.
+ *         @type string      $innerHTML    HTML from inside block comment delimiters.
+ *         @type array       $innerContent List of string fragments and null markers where
+ *                                         inner blocks were found.
  *     }
  * }
  */
@@ -2418,8 +2419,27 @@ function do_blocks( $content ) {
 	$top_level_block_count = count( $blocks );
 	$output                = '';
 
+	/**
+	 * Parsed blocks consist of a list of top-level blocks. Those top-level
+	 * blocks may themselves contain nested inner blocks. However, every
+	 * top-level block is rendered independently, meaning there are no data
+	 * dependencies between them.
+	 *
+	 * Ideally, therefore, the parser would only need to parse one complete
+	 * top-level block at a time, render it, and move on. Unfortunately, this
+	 * is not possible with {@see \parse_blocks()} because it must parse the
+	 * entire given document at once.
+	 *
+	 * While the current implementation prevents this optimization, it’s still
+	 * possible to reduce the peak memory use when calls to `render_block()`
+	 * on those top-level blocks are memory-heavy (which many of them are).
+	 * By setting each parsed block to `NULL` after rendering it, any memory
+	 * allocated during the render will be freed and reused for the next block.
+	 * Before making this change, that memory was retained and would lead to
+	 * out-of-memory crashes for certain posts that now run with this change.
+	 */
 	for ( $i = 0; $i < $top_level_block_count; $i++ ) {
-		$output .= render_block( $blocks[ $i ] );
+		$output      .= render_block( $blocks[ $i ] );
 		$blocks[ $i ] = null;
 	}
 
