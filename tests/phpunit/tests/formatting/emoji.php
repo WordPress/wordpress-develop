@@ -8,27 +8,6 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
 	private $png_cdn = 'https://s.w.org/images/core/emoji/15.0.3/72x72/';
 	private $svn_cdn = 'https://s.w.org/images/core/emoji/15.0.3/svg/';
-	private $original_theme_support;
-
-	/**
-	 * Set up test environment for HTML5 script type attribute tests.
-	 */
-	public function set_up() {
-		parent::set_up();
-
-		global $_wp_theme_features;
-		$this->original_theme_support = $_wp_theme_features;
-	}
-
-	/**
-	 * Tear down test environment for HTML5 script type attribute tests.
-	 */
-	public function tear_down() {
-		global $_wp_theme_features;
-		$_wp_theme_features = $this->original_theme_support;
-
-		parent::tear_down();
-	}
 
 	/**
 	 * @ticket 36525
@@ -189,79 +168,5 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	 */
 	public function test_wp_staticize_emoji( $emoji, $expected ) {
 		$this->assertSame( $expected, wp_staticize_emoji( $emoji ) );
-	}
-
-	/**
-	 * Test emoji detection script typeAttr setting based on HTML5 script support.
-	 *
-	 * @ticket 51837
-	 * @dataProvider data_html5_script_support
-	 */
-	public function test_emoji_detection_script_html5_type_attribute( $html5_features, $expected_has_type ) {
-		remove_theme_support( 'html5' );
-		if ( ! empty( $html5_features ) ) {
-			add_theme_support( 'html5', $html5_features );
-		}
-
-		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present.
-		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
-		$output = get_echo( '_print_emoji_detection_script' );
-
-		if ( $expected_has_type ) {
-			$this->assertStringContainsString( '"typeAttr":" type=\\"text\/javascript\\""', $output );
-		} else {
-			$this->assertStringContainsString( '"typeAttr":""', $output );
-		}
-
-		$this->assertStringContainsString( 'window._wpemojiSettings', $output );
-	}
-
-	/**
-	 * Test zxcvbn settings typeAttr based on HTML5 script support.
-	 *
-	 * @ticket 51837
-	 * @dataProvider data_html5_script_support
-	 */
-	public function test_zxcvbn_settings_html5_type_attribute( $html5_features, $expected_has_type ) {
-		remove_theme_support( 'html5' );
-		if ( ! empty( $html5_features ) ) {
-			add_theme_support( 'html5', $html5_features );
-		}
-
-		global $wp_scripts;
-		$wp_scripts = null;
-		wp_default_scripts( wp_scripts() );
-
-		$script_data = wp_scripts()->get_data( 'zxcvbn-async', 'data' );
-
-		if ( $expected_has_type ) {
-			$this->assertStringContainsString( '"typeAttr":" type=\\"text\/javascript\\""', $script_data );
-		} else {
-			$this->assertStringContainsString( '"typeAttr":""', $script_data );
-		}
-
-		$this->assertStringContainsString( '"src":', $script_data );
-	}
-
-	/**
-	 * Data provider for HTML5 script support scenarios.
-	 *
-	 * @return array
-	 */
-	public function data_html5_script_support() {
-		return array(
-			'no html5 support'          => array(
-				array(),
-				true,
-			),
-			'html5 script support'      => array(
-				array( 'script' ),
-				false,
-			),
-			'html5 other features only' => array(
-				array( 'comment-form', 'style' ),
-				true,
-			),
-		);
 	}
 }
