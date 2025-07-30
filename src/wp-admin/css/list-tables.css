@@ -1312,7 +1312,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	padding-right: 12px;
 	white-space: nowrap;
 }
-
+/* modified for the emoji */
 .plugins .plugin-title .dashicons,
 .plugins .plugin-title img.dashicons,
 .plugins .plugin-title img[class*="icon"],
