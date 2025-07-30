@@ -85,9 +85,9 @@
 				nextSibling = target.parentElement.nextElementSibling,
 				newTab, newTabChild;
 
-			if ( 37 === e.keyCode ) {
+			if ( 'ArrowLeft' === e.key ) {
 				newTab = previousSibling;
-			} else if ( 39 === e.keyCode ) {
+			} else if ( 'ArrowRight' === e.key ) {
 				newTab = nextSibling;
 			} else {
 				return false;
@@ -120,9 +120,9 @@
 		}
 
 		document.addEventListener( 'keydown', function ( e ) {
-			if ( 27 === e.keyCode && -1 === share_dialog.className.indexOf( 'hidden' ) ) {
+			if ( 'Escape' === e.key && -1 === share_dialog.className.indexOf( 'hidden' ) ) {
 				closeSharingDialog();
-			} else if ( 9 === e.keyCode ) {
+			} else if ( 'Tab' === e.key ) {
 				constrainTabbing( e );
 			}
 		}, false );

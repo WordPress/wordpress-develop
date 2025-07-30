@@ -184,13 +184,13 @@
 					 */
 					xbutton.on( 'click keypress', function( e ) {
 						// On click or when using the Enter/Spacebar keys.
-						if ( 'click' === e.type || 13 === e.keyCode || 32 === e.keyCode ) {
+						if ( 'click' === e.type || 'Enter' === e.key || ' ' === e.key ) {
 							/*
 							 * When using the keyboard, move focus back to the
 							 * add new tag field. Note: when releasing the pressed
 							 * key this will fire the `keyup` event on the input.
 							 */
-							if ( 13 === e.keyCode || 32 === e.keyCode ) {
+							if ( 'Enter' === e.key || ' ' === e.key ) {
  								$( this ).closest( '.tagsdiv' ).find( 'input.newtag' ).trigger( 'focus' );
  							}
 

@@ -165,15 +165,15 @@
 		});
 
 		$('#imgedit-panel-' + postid).on( 'keypress', 'input[type="text"]', function(e) {
-			var k = e.keyCode;
+			var k = e.key;
 
 			// Key codes 37 through 40 are the arrow keys.
-			if ( 36 < k && k < 41 ) {
+			if ( 'ArrowLeft' === k || 'ArrowRight' === k || 'ArrowUp' === k || 'ArrowDown' === k ) {
 				$(this).trigger( 'blur' );
 			}
 
 			// The key code 13 is the Enter key.
-			if ( 13 === k ) {
+			if ( 'Enter' === k ) {
 				e.preventDefault();
 				e.stopPropagation();
 				return false;
@@ -319,9 +319,9 @@
 			$next = 0;
 		}
 		var target = false;
-		if ( event.keyCode === 40 ) {
+		if ( event.key === 'ArrowRight' ) {
 			target = $collection.get( $next );
-		} else if ( event.keyCode === 38 ) {
+		} else if ( event.key === 'ArrowUp' ) {
 			target = $collection.get( $prev );
 		}
 		if ( target ) {

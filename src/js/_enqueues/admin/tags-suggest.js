@@ -107,11 +107,11 @@
 
 				$element.val( tags.join( separator + ' ' ) );
 
-				if ( $.ui.keyCode.TAB === event.keyCode ) {
+				if ( 'Tab' === event.key ) {
 					// Audible confirmation message when a tag has been selected.
 					window.wp.a11y.speak( wp.i18n.__( 'Term selected.' ), 'assertive' );
 					event.preventDefault();
-				} else if ( $.ui.keyCode.ENTER === event.keyCode ) {
+				} else if ( 'Enter' === event.key ) {
 					// If we're in the edit post Tags meta box, add the tag.
 					if ( window.tagBox ) {
 						window.tagBox.userAction = 'add';
