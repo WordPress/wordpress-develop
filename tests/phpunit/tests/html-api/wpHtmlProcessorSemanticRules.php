@@ -128,6 +128,9 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertSame( 'DIV', $processor->get_tag(), 'Did not stop at initial DIV tag.' );
 		$this->assertFalse( $processor->is_tag_closer(), 'Did not find that initial DIV tag is an opener.' );
 
+		$processor->step();
+		$this->assertSame( '#text', $processor->get_token_type(), 'Should have found the text node.' );
+
 		/*
 		 * When encountering the BUTTON closing tag, there is no BUTTON in the stack of open elements.
 		 * It should be ignored as there's no BUTTON to close.
@@ -384,7 +387,16 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 		$this->assertSame( 'CODE', $processor->get_tag(), "Expected to start test on CODE element but found {$processor->get_tag()} instead." );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV', 'SPAN', 'CODE' ), $processor->get_breadcrumbs(), 'Failed to produce expected DOM nesting.' );
 
-		$this->assertTrue( $processor->step(), 'Failed to advance past CODE tag to expected SPAN closer.' );
+		$this->assertTrue(
+			$processor->next_tag(
+				array(
+					'tag_name'    => 'SPAN',
+					'tag_closers' => 'visit',
+				)
+			),
+			'Failed to advance past CODE tag to expected SPAN closer.'
+		);
+		$this->assertSame( 'SPAN', $processor->get_tag() );
 		$this->assertTrue( $processor->is_tag_closer(), 'Expected to find closing SPAN, but found opener instead.' );
 		$this->assertSame( array( 'HTML', 'BODY', 'DIV' ), $processor->get_breadcrumbs(), 'Failed to advance past CODE tag to expected DIV opener.' );
 
@@ -394,27 +406,46 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures that support isn't accidentally partially added for the closing BR tag `</br>`.
-	 *
-	 * This tag closer has special rules and support shouldn't be added without implementing full support.
+	 * Ensures that closing `</br>` tags are appropriately treated as opening tags with no attributes.
 	 *
 	 * > An end tag whose tag name is "br"
 	 * >   Parse error. Drop the attributes from the token, and act as described in the next entry;
 	 * >   i.e. act as if this was a "br" start tag token with no attributes, rather than the end
 	 * >   tag token that it actually is.
 	 *
-	 * When this handling is implemented, this test should be removed. It's not incorporated
-	 * into the existing unsupported tag behavior test because the opening tag is supported;
-	 * only the closing tag isn't.
-	 *
 	 * @covers WP_HTML_Processor::step_in_body
 	 *
 	 * @ticket 60283
 	 */
 	public function test_br_end_tag_unsupported() {
-		$processor = WP_HTML_Processor::create_fragment( '</br>' );
+		$processor = WP_HTML_Processor::create_fragment( '</br id="an-opener" html>' );
 
-		$this->assertFalse( $processor->next_tag(), 'Found a BR tag that should not be handled.' );
-		$this->assertSame( WP_HTML_Processor::ERROR_UNSUPPORTED, $processor->get_last_error() );
+		$this->assertTrue( $processor->next_tag(), 'Failed to find the expected opening BR tag.' );
+		$this->assertFalse( $processor->is_tag_closer(), 'Should have treated the tag as an opening tag.' );
+		$this->assertNull( $processor->get_attribute_names_with_prefix( '' ), 'Should have ignored any attributes on the tag.' );
+	}
+
+	/*******************************************************************
+	 * RULES FOR "IN TABLE" MODE
+	 *******************************************************************/
+
+	/**
+	 * Ensure that form elements in tables (but not cells) are immediately popped off the stack.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_table_form_element_immediately_popped() {
+		$processor = WP_HTML_Processor::create_fragment( '<table><form><!--comment-->' );
+
+		// There should be a FORM opener and a (virtual) FORM closer.
+		$this->assertTrue( $processor->next_tag( 'FORM' ) );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( 'FORM', $processor->get_token_name() );
+		$this->assertTrue( $processor->is_tag_closer() );
+
+		// Followed by the comment token.
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( '#comment', $processor->get_token_name() );
+		$this->assertsame( array( 'HTML', 'BODY', 'TABLE', '#comment' ), $processor->get_breadcrumbs() );
 	}
 }

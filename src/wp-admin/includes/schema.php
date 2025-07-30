@@ -245,8 +245,8 @@ CREATE TABLE $wpdb->posts (
 
 	// Multisite global tables.
 	$ms_global_tables = "CREATE TABLE $wpdb->blogs (
-	blog_id bigint(20) NOT NULL auto_increment,
-	site_id bigint(20) NOT NULL default '0',
+	blog_id bigint(20) unsigned NOT NULL auto_increment,
+	site_id bigint(20) unsigned NOT NULL default '0',
 	domain varchar(200) NOT NULL default '',
 	path varchar(100) NOT NULL default '',
 	registered datetime NOT NULL default '0000-00-00 00:00:00',
@@ -263,7 +263,7 @@ CREATE TABLE $wpdb->posts (
 ) $charset_collate;
 CREATE TABLE $wpdb->blogmeta (
 	meta_id bigint(20) unsigned NOT NULL auto_increment,
-	blog_id bigint(20) NOT NULL default '0',
+	blog_id bigint(20) unsigned NOT NULL default '0',
 	meta_key varchar(255) default NULL,
 	meta_value longtext,
 	PRIMARY KEY  (meta_id),
@@ -271,24 +271,24 @@ CREATE TABLE $wpdb->blogmeta (
 	KEY blog_id (blog_id)
 ) $charset_collate;
 CREATE TABLE $wpdb->registration_log (
-	ID bigint(20) NOT NULL auto_increment,
+	ID bigint(20) unsigned NOT NULL auto_increment,
 	email varchar(255) NOT NULL default '',
 	IP varchar(30) NOT NULL default '',
-	blog_id bigint(20) NOT NULL default '0',
+	blog_id bigint(20) unsigned NOT NULL default '0',
 	date_registered datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (ID),
 	KEY IP (IP)
 ) $charset_collate;
 CREATE TABLE $wpdb->site (
-	id bigint(20) NOT NULL auto_increment,
+	id bigint(20) unsigned NOT NULL auto_increment,
 	domain varchar(200) NOT NULL default '',
 	path varchar(100) NOT NULL default '',
 	PRIMARY KEY  (id),
 	KEY domain (domain(140),path(51))
 ) $charset_collate;
 CREATE TABLE $wpdb->sitemeta (
-	meta_id bigint(20) NOT NULL auto_increment,
-	site_id bigint(20) NOT NULL default '0',
+	meta_id bigint(20) unsigned NOT NULL auto_increment,
+	site_id bigint(20) unsigned NOT NULL default '0',
 	meta_key varchar(255) default NULL,
 	meta_value longtext,
 	PRIMARY KEY  (meta_id),
@@ -296,7 +296,7 @@ CREATE TABLE $wpdb->sitemeta (
 	KEY site_id (site_id)
 ) $charset_collate;
 CREATE TABLE $wpdb->signups (
-	signup_id bigint(20) NOT NULL auto_increment,
+	signup_id bigint(20) unsigned NOT NULL auto_increment,
 	domain varchar(200) NOT NULL default '',
 	path varchar(100) NOT NULL default '',
 	title longtext NOT NULL,
@@ -424,7 +424,7 @@ function populate_options( array $options = array() ) {
 		'rss_use_excerpt'                 => 0,
 		'mailserver_url'                  => 'mail.example.com',
 		'mailserver_login'                => 'login@example.com',
-		'mailserver_pass'                 => 'password',
+		'mailserver_pass'                 => '',
 		'mailserver_port'                 => 110,
 		'default_category'                => 1,
 		'default_comment_status'          => 'open',
@@ -446,7 +446,7 @@ function populate_options( array $options = array() ) {
 		'moderation_keys'                 => '',
 		'active_plugins'                  => array(),
 		'category_base'                   => '',
-		'ping_sites'                      => 'http://rpc.pingomatic.com/',
+		'ping_sites'                      => 'https://rpc.pingomatic.com/',
 		'comment_max_links'               => 2,
 		'gmt_offset'                      => $gmt_offset,
 
@@ -594,9 +594,9 @@ function populate_options( array $options = array() ) {
 		}
 
 		if ( in_array( $option, $fat_options, true ) ) {
-			$autoload = 'no';
+			$autoload = 'off';
 		} else {
-			$autoload = 'yes';
+			$autoload = 'on';
 		}
 
 		if ( ! empty( $insert ) ) {
@@ -1047,6 +1047,11 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		)
 	);
 
+	// Remove the cron event since Recovery Mode is not used in Multisite.
+	if ( wp_next_scheduled( 'recovery_mode_clean_expired_keys' ) ) {
+		wp_clear_scheduled_hook( 'recovery_mode_clean_expired_keys' );
+	}
+
 	/*
 	 * When upgrading from single to multisite, assume the current site will
 	 * become the main site of the network. When using populate_network()
@@ -1243,39 +1248,13 @@ We hope you enjoy your new site. Thanks!
 --The Team @ SITE_NAME'
 	);
 
-	$misc_exts        = array(
-		// Images.
-		'jpg',
-		'jpeg',
-		'png',
-		'gif',
-		'webp',
-		'avif',
-		// Video.
-		'mov',
-		'avi',
-		'mpg',
-		'3gp',
-		'3g2',
-		// "audio".
-		'midi',
-		'mid',
-		// Miscellaneous.
-		'pdf',
-		'doc',
-		'ppt',
-		'odt',
-		'pptx',
-		'docx',
-		'pps',
-		'ppsx',
-		'xls',
-		'xlsx',
-		'key',
-	);
-	$audio_exts       = wp_get_audio_extensions();
-	$video_exts       = wp_get_video_extensions();
-	$upload_filetypes = array_unique( array_merge( $misc_exts, $audio_exts, $video_exts ) );
+	$allowed_file_types = array();
+	$all_mime_types     = get_allowed_mime_types();
+
+	foreach ( $all_mime_types as $ext => $mime ) {
+		array_push( $allowed_file_types, ...explode( '|', $ext ) );
+	}
+	$upload_filetypes = array_unique( $allowed_file_types );
 
 	$sitemeta = array(
 		'site_name'                   => __( 'My Network' ),

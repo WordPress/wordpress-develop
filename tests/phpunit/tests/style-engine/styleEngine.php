@@ -28,6 +28,8 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 58549
 	 * @ticket 58590
 	 * @ticket 60175
+	 * @ticket 61720
+	 * @ticket 62189
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -227,11 +229,12 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'textDecoration' => 'underline',
 						'textTransform'  => 'uppercase',
 						'letterSpacing'  => '2',
+						'writingMode'    => 'vertical-rl',
 					),
 				),
 				'options'         => null,
 				'expected_output' => array(
-					'css'          => 'font-size:clamp(2em, 2vw, 4em);font-family:Roboto,Oxygen-Sans,Ubuntu,sans-serif;font-style:italic;font-weight:800;line-height:1.3;column-count:2;text-decoration:underline;text-transform:uppercase;letter-spacing:2;',
+					'css'          => 'font-size:clamp(2em, 2vw, 4em);font-family:Roboto,Oxygen-Sans,Ubuntu,sans-serif;font-style:italic;font-weight:800;line-height:1.3;column-count:2;text-decoration:underline;text-transform:uppercase;letter-spacing:2;writing-mode:vertical-rl;',
 					'declarations' => array(
 						'font-size'       => 'clamp(2em, 2vw, 4em)',
 						'font-family'     => 'Roboto,Oxygen-Sans,Ubuntu,sans-serif',
@@ -242,6 +245,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 						'text-decoration' => 'underline',
 						'text-transform'  => 'uppercase',
 						'letter-spacing'  => '2',
+						'writing-mode'    => 'vertical-rl',
 					),
 				),
 			),
@@ -539,22 +543,24 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 			'inline_background_image_url_with_background_size' => array(
 				'block_styles'    => array(
 					'background' => array(
-						'backgroundImage'    => array(
+						'backgroundImage'      => array(
 							'url' => 'https://example.com/image.jpg',
 						),
-						'backgroundPosition' => 'center',
-						'backgroundRepeat'   => 'no-repeat',
-						'backgroundSize'     => 'cover',
+						'backgroundPosition'   => 'center',
+						'backgroundRepeat'     => 'no-repeat',
+						'backgroundSize'       => 'cover',
+						'backgroundAttachment' => 'fixed',
 					),
 				),
 				'options'         => array(),
 				'expected_output' => array(
-					'css'          => "background-image:url('https://example.com/image.jpg');background-position:center;background-repeat:no-repeat;background-size:cover;",
+					'css'          => "background-image:url('https://example.com/image.jpg');background-position:center;background-repeat:no-repeat;background-size:cover;background-attachment:fixed;",
 					'declarations' => array(
-						'background-image'    => "url('https://example.com/image.jpg')",
-						'background-position' => 'center',
-						'background-repeat'   => 'no-repeat',
-						'background-size'     => 'cover',
+						'background-image'      => "url('https://example.com/image.jpg')",
+						'background-position'   => 'center',
+						'background-repeat'     => 'no-repeat',
+						'background-size'       => 'cover',
+						'background-attachment' => 'fixed',
 					),
 				),
 			),
@@ -748,5 +754,69 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
 
 		$this->assertSame( '.gandalf{color:white;height:190px;border-style:dotted;padding:10px;margin-bottom:100px;}.dumbledore{color:grey;height:90px;border-style:dotted;}.rincewind{color:grey;height:90px;border-style:dotted;}', $compiled_stylesheet );
+	}
+
+	/**
+	 * Tests returning a generated stylesheet from a set of nested rules and merging their declarations.
+	 *
+	 * @ticket 61099
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 */
+	public function test_should_merge_declarations_for_rules_groups() {
+		$css_rules = array(
+			array(
+				'selector'     => '.saruman',
+				'rules_group'  => '@container (min-width: 700px)',
+				'declarations' => array(
+					'color'        => 'white',
+					'height'       => '100px',
+					'border-style' => 'solid',
+					'align-self'   => 'stretch',
+				),
+			),
+			array(
+				'selector'     => '.saruman',
+				'rules_group'  => '@container (min-width: 700px)',
+				'declarations' => array(
+					'color'       => 'black',
+					'font-family' => 'The-Great-Eye',
+				),
+			),
+		);
+
+		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
+
+		$this->assertSame( '@container (min-width: 700px){.saruman{color:black;height:100px;border-style:solid;align-self:stretch;font-family:The-Great-Eye;}}', $compiled_stylesheet );
+	}
+
+	/**
+	 * Tests returning a generated stylesheet from a set of nested rules.
+	 *
+	 * @ticket 61099
+	 *
+	 * @covers ::wp_style_engine_get_stylesheet_from_css_rules
+	 */
+	public function test_should_return_stylesheet_with_nested_rules() {
+		$css_rules = array(
+			array(
+				'rules_group'  => '.foo',
+				'selector'     => '@media (orientation: landscape)',
+				'declarations' => array(
+					'background-color' => 'blue',
+				),
+			),
+			array(
+				'rules_group'  => '.foo',
+				'selector'     => '@media (min-width > 1024px)',
+				'declarations' => array(
+					'background-color' => 'cotton-blue',
+				),
+			),
+		);
+
+		$compiled_stylesheet = wp_style_engine_get_stylesheet_from_css_rules( $css_rules, array( 'prettify' => false ) );
+
+		$this->assertSame( '.foo{@media (orientation: landscape){background-color:blue;}}.foo{@media (min-width > 1024px){background-color:cotton-blue;}}', $compiled_stylesheet );
 	}
 }

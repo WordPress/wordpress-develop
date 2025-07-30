@@ -22,9 +22,7 @@ if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
 }
 
 // Fix for mozBlog and other cases where '<?xml' isn't on the very first line.
-if ( isset( $HTTP_RAW_POST_DATA ) ) {
-	$HTTP_RAW_POST_DATA = trim( $HTTP_RAW_POST_DATA );
-}
+$HTTP_RAW_POST_DATA = trim( $HTTP_RAW_POST_DATA );
 // phpcs:enable
 
 /** Include the bootstrap for setting up WordPress environment */
@@ -91,10 +89,13 @@ exit;
 /**
  * logIO() - Writes logging info to a file.
  *
+ * @since 1.2.0
  * @deprecated 3.4.0 Use error_log()
  * @see error_log()
  *
- * @param string $io Whether input or output
+ * @global int|bool $xmlrpc_logging Whether to enable XML-RPC logging.
+ *
+ * @param string $io  Whether input or output.
  * @param string $msg Information describing logging reason.
  */
 function logIO( $io, $msg ) {

@@ -3001,7 +3001,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::query
 	 */
 	public function test_orderby_date_modified_gmt_should_order_by_comment_ID_in_case_of_tie_ASC() {
-		$now      = current_time( 'mysql', 1 );
+		$now      = current_time( 'mysql', true );
 		$comments = self::factory()->comment->create_many(
 			5,
 			array(
@@ -3028,7 +3028,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::query
 	 */
 	public function test_orderby_date_modified_gmt_should_order_by_comment_ID_in_case_of_tie_DESC() {
-		$now      = current_time( 'mysql', 1 );
+		$now      = current_time( 'mysql', true );
 		$comments = self::factory()->comment->create_many(
 			5,
 			array(
@@ -5349,5 +5349,27 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		global $wpdb;
 		$this->assertNotSame( "Column 'comment_ID' in where clause is ambiguous", $wpdb->last_error );
 		$this->assertStringNotContainsString( ' comment_ID ', $wpdb->last_query );
+	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace() {
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+				'user_id'         => 7,
+			)
+		);
+
+		$q = new WP_Comment_Query();
+		$q->query(
+			array(
+				'count'   => true,
+				'orderby' => 'none',
+			)
+		);
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
 }

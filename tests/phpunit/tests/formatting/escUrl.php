@@ -124,7 +124,11 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 			)
 		);
 
-		foreach ( wp_allowed_protocols() as $scheme ) {
+		$protocols = wp_allowed_protocols();
+
+		$this->assertNotEmpty( $protocols );
+
+		foreach ( $protocols as $scheme ) {
 			$this->assertSame( "{$scheme}://example.com", esc_url( "{$scheme}://example.com" ), $scheme );
 			$this->assertSame(
 				"{$scheme}://example.com",
@@ -258,7 +262,7 @@ EOT;
 	 *
 	 * @covers ::sanitize_url
 	 */
-	public function test_invalid_charaters() {
+	public function test_invalid_characters() {
 		$this->assertEmpty( sanitize_url( '"^<>{}`' ) );
 	}
 

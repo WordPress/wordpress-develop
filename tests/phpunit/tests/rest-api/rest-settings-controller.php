@@ -385,14 +385,24 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Settings can't be created
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
+		$request->set_param( 'new_setting', 'New value' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 41604
+	 */
 	public function test_update_item() {
 		wp_set_current_user( self::$administrator );
+
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
 		$request->set_param( 'title', 'The new title!' );
 		$response = rest_get_server()->dispatch( $request );
@@ -401,6 +411,63 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'The new title!', $data['title'] );
 		$this->assertSame( get_option( 'blogname' ), $data['title'] );
+	}
+
+	/**
+	 * @ticket 41604
+	 */
+	public function test_update_item_with_global_parameters_present() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'title', 'The new title!' );
+		$request->set_url_params( array( '_locale' => 'user' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'The new title!', $data['title'] );
+		$this->assertSame( get_option( 'blogname' ), $data['title'] );
+	}
+
+	/**
+	 * @ticket 41604
+	 */
+	public function test_update_item_with_empty_body() {
+		wp_set_current_user( self::$administrator );
+
+		$request  = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 41604
+	 */
+	public function test_update_nonexistent_item() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'i_do_no_exist', 'New value' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 41604
+	 */
+	public function test_update_partially_valid_items() {
+		wp_set_current_user( self::$administrator );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'title', 'The new title!' );
+		$request->set_param( 'i_do_no_exist', 'New value' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	public function update_setting_custom_callback( $result, $name, $value, $args ) {
@@ -780,5 +847,20 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'my-string', $response->data['mycustomsetting']['test1'] );
 		$this->assertSame( 2, $response->data['mycustomsetting']['test2'] );
 		$this->assertSame( 3, $response->data['mycustomsetting']['test3'] );
+	}
+
+	/**
+	 * @ticket 61023
+	 */
+	public function test_provides_setting_metadata_in_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/settings' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$title    = $data['schema']['properties']['title'];
+
+		$this->assertSame( 'string', $title['type'] );
+		$this->assertSame( 'Title', $title['title'] );
+		$this->assertSame( 'Site title.', $title['description'] );
+		$this->assertSame( null, $title['default'] );
 	}
 }

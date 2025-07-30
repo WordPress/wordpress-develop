@@ -236,7 +236,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
-		$this->assertCount( 1, $data, 'There should be 2 properties in the response data.' );
+		$this->assertCount( 1, $data, 'There should be 1 property in the response data.' );
 		$this->assertArrayHasKey( 'id', $data[0], 'The id property should exist in the response data.' );
 		$this->assertSame( $font_family->ID, $data[0]['id'], 'The id should match the expected ID in the response data.' );
 	}
@@ -382,8 +382,8 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		$this->assertSame( 201, $response->get_status(), 'The response status should be 201.' );
 		$this->check_font_family_data( $data, $data['id'], $response->get_links() );
 
-		$reponse_settings = $data['font_family_settings'];
-		$this->assertSame( $settings, $reponse_settings, 'The expected settings should exist in the font_family_settings data.' );
+		$response_settings = $data['font_family_settings'];
+		$this->assertSame( $settings, $response_settings, 'The expected settings should exist in the font_family_settings data.' );
 		$this->assertEmpty( $data['font_faces'], 'The font_faces should be empty or not exist in the response data.' );
 	}
 
@@ -431,7 +431,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	public function data_create_item_invalid_theme_json_version() {
 		return array(
 			array( 1 ),
-			array( 3 ),
+			array( 4 ),
 		);
 	}
 
@@ -487,7 +487,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 * @param string $settings Font family settings to test.
 	 * @param string $expected Expected settings result.
 	 */
-	public function test_create_item_santize_font_family_settings( $settings, $expected ) {
+	public function test_create_item_sanitize_font_family_settings( $settings, $expected ) {
 		$settings = array_merge( self::$default_settings, $settings );
 		$expected = array_merge( self::$default_settings, $expected );
 
@@ -752,7 +752,7 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	 * @param string $settings Font family settings to test.
 	 * @param string $expected Expected settings result.
 	 */
-	public function test_update_item_santize_font_family_settings( $settings, $expected ) {
+	public function test_update_item_sanitize_font_family_settings( $settings, $expected ) {
 		// Unset/modify slug from the data provider, since we're updating rather than creating.
 		unset( $settings['slug'] );
 		$initial_settings = array( 'slug' => 'open-sans-update' );

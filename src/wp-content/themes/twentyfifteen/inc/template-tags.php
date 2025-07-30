@@ -11,7 +11,7 @@
 
 if ( ! function_exists( 'twentyfifteen_comment_nav' ) ) :
 	/**
-	 * Display navigation to next/previous comments when applicable.
+	 * Displays navigation to next/previous comments when applicable.
 	 *
 	 * @since Twenty Fifteen 1.0
 	 */
@@ -97,7 +97,7 @@ if ( ! function_exists( 'twentyfifteen_entry_meta' ) ) :
 		if ( 'post' === get_post_type() ) {
 			if ( is_singular() || is_multi_author() ) {
 				printf(
-					'<span class="byline"><span class="author vcard"><span class="screen-reader-text">%1$s </span><a class="url fn n" href="%2$s">%3$s</a></span></span>',
+					'<span class="byline"><span class="screen-reader-text">%1$s </span><span class="author vcard"><a class="url fn n" href="%2$s">%3$s</a></span></span>',
 					/* translators: Hidden accessibility text. */
 					_x( 'Author', 'Used before post author name.', 'twentyfifteen' ),
 					esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ),
@@ -150,7 +150,7 @@ if ( ! function_exists( 'twentyfifteen_entry_meta' ) ) :
 endif;
 
 /**
- * Determine whether blog/site has more than one category.
+ * Determines whether blog/site has more than one category.
  *
  * @since Twenty Fifteen 1.0
  *
@@ -186,7 +186,7 @@ function twentyfifteen_categorized_blog() {
 }
 
 /**
- * Flush out the transients used in {@see twentyfifteen_categorized_blog()}.
+ * Flushes out the transients used in {@see twentyfifteen_categorized_blog()}.
  *
  * @since Twenty Fifteen 1.0
  */
@@ -199,7 +199,7 @@ add_action( 'save_post', 'twentyfifteen_category_transient_flusher' );
 
 if ( ! function_exists( 'twentyfifteen_post_thumbnail' ) ) :
 	/**
-	 * Display an optional post thumbnail.
+	 * Displays an optional post thumbnail.
 	 *
 	 * Wraps the post thumbnail in an anchor element on index views, or a div
 	 * element when on single views.
@@ -233,7 +233,7 @@ endif;
 
 if ( ! function_exists( 'twentyfifteen_get_link_url' ) ) :
 	/**
-	 * Return the post URL.
+	 * Returns the post URL.
 	 *
 	 * Falls back to the post permalink if no URL is found in the post.
 	 *
@@ -256,6 +256,7 @@ if ( ! function_exists( 'twentyfifteen_excerpt_more' ) && ! is_admin() ) :
 	 *
 	 * @since Twenty Fifteen 1.0
 	 *
+	 * @param string $more Default Read More excerpt link.
 	 * @return string 'Continue reading' link prepended with an ellipsis.
 	 */
 	function twentyfifteen_excerpt_more( $more ) {
@@ -287,7 +288,7 @@ endif;
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
-	 * Fire the wp_body_open action.
+	 * Fires the wp_body_open action.
 	 *
 	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *
