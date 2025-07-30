@@ -103,6 +103,8 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure site transients are stored in the sitemeta table on multisite.
+	 *
 	 * @group ms-required
 	 *
 	 * @covers ::set_site_transient
@@ -131,6 +133,8 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure site transients are not stored in the options table on multisite.
+	 *
 	 * @group ms-required
 	 *
 	 * @covers ::set_site_transient
