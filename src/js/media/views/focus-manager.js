@@ -85,7 +85,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 		var tabbables;
 
 		// Look for the tab key.
-		if ( 9 !== event.keyCode ) {
+		if ( 'Tab' !== event.key ) {
 			return;
 		}
 

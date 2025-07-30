@@ -168,13 +168,13 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		}
 
 		// Catch arrow events.
-		if ( 37 === event.keyCode || 38 === event.keyCode || 39 === event.keyCode || 40 === event.keyCode ) {
+		if ( 'ArrowUp' === event.key || 'ArrowDown' === event.key || 'ArrowLeft' === event.key || 'ArrowRight' === event.key ) {
 			this.controller.trigger( 'attachment:keydown:arrow', event );
 			return;
 		}
 
 		// Catch enter and space events.
-		if ( 'keydown' === event.type && 13 !== event.keyCode && 32 !== event.keyCode ) {
+		if ( 'keydown' === event.type && 'Enter' !== event.key && ' ' !== event.key ) {
 			return;
 		}
 
@@ -200,7 +200,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 		}
 
 		// Avoid toggles when the command or control key is pressed with the enter key to prevent deselecting the last selected attachment.
-		if ( ( event.metaKey || event.ctrlKey ) && ( 13 === event.keyCode || 10 === event.keyCode ) ) {
+		if ( ( event.metaKey || event.ctrlKey ) && ( 'Enter' === event.key || ' ' === event.key ) ) {
 			return;
 		}
 
@@ -492,7 +492,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	 */
 	removeFromLibrary: function( event ) {
 		// Catch enter and space events.
-		if ( 'keydown' === event.type && 13 !== event.keyCode && 32 !== event.keyCode ) {
+		if ( 'keydown' === event.type && 'Enter' !== event.key && ' ' !== event.key ) {
 			return;
 		}
 

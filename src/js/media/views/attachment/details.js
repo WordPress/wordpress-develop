@@ -258,7 +258,7 @@ Details = Attachment.extend(/** @lends wp.media.view.Attachment.Details.prototyp
 	 * @return {boolean|void} Returns false or undefined.
 	 */
 	toggleSelectionHandler: function( event ) {
-		if ( 'keydown' === event.type && 9 === event.keyCode && event.shiftKey && event.target === this.$( ':tabbable' ).get( 0 ) ) {
+		if ( 'keydown' === event.type && 'Tab' === event.key && event.shiftKey && event.target === this.$( ':tabbable' ).get( 0 ) ) {
 			this.controller.trigger( 'attachment:details:shift-tab', event );
 			return false;
 		}
