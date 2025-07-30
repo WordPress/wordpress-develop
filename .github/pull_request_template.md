@@ -5,6 +5,8 @@ Pull Requests in this GitHub repository **must** be linked to a ticket in the Wo
 
 See the WordPress Handbook page on using PRs for Code Review more information: https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/
 
+For security vulnerabilities, Responsible Disclosure policy needs to be followed instead of directly raising the PRs. Find more information on: https://make.wordpress.org/core/handbook/testing/reporting-security-vulnerabilities/
+
 If this is your first time contributing, you may also find reviewing these guides first to be helpful:
 - FAQs for New Contributors: https://make.wordpress.org/core/handbook/tutorials/faq-for-new-contributors/
 - Contributing with Code Guide: https://make.wordpress.org/core/handbook/contribute/
