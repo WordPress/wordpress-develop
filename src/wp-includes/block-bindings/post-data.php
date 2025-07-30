@@ -40,7 +40,7 @@ function _block_bindings_post_data_get_value( array $source_args, $block_instanc
 
 	if ( 'modified' === $source_args['key'] ) {
 		// Only return the modified date if it is later than the publishing date.
-		if ( get_the_modified_date( 'Ymdhi', $post_id ) > get_the_date( 'Ymdhi', $post_id ) ) {
+		if ( get_the_modified_date( 'U', $post_id ) > get_the_date( 'U', $post_id ) ) {
 			return esc_attr( get_the_modified_date( 'c', $post_id ) );
 		} else {
 			return '';
