@@ -40,8 +40,11 @@ window.wp = window.wp || {};
 		 */
 		get : function(total, num) {
 			var st = this.st, data;
-			if ( ! num )
-				num = 20;
+			if ( num ) {
+				this.num = num;
+			} else {
+				num = this.num || 10; // Fallback if not set yet
+			}
 
 			this.st += num;
 			this.total = total;
@@ -98,7 +101,7 @@ window.wp = window.wp || {};
 		 */
 		load: function(total){
 			this.st = jQuery('#the-comment-list tr.comment:visible').length;
-			this.get(total);
+			this.get(total, this.num || 10);
 		}
 	};
 
