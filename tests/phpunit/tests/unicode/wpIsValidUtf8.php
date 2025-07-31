@@ -75,13 +75,13 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 
 			switch ( $classification ) {
 				case 'valid':
-					yield "{$reference}: {$test_data}" => $test_data;
+					yield "{$reference}: {$test_data}" => array( $test_data );
 					break;
 
 				case 'valid hex':
 				case 'invalid hex':
 					$bytes = hex2bin( str_replace( ' ', '', $test_data ) );
-					yield "{$reference}: {$test_data}" => $bytes;
+					yield "{$reference}: {$test_data}" => array( $bytes );
 					break;
 			}
 		}
