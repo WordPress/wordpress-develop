@@ -2775,6 +2775,10 @@ class WP_Site_Health {
 					'label' => __( 'Autoloaded options' ),
 					'test'  => 'autoloaded_options',
 				),
+				'ms_files_deprecated'          => array(
+					'label' => __( 'MS Files Upload Handler' ),
+					'test'  => 'ms_files_deprecated',
+				),
 			),
 			'async'  => array(
 				'dotorg_communication' => array(
@@ -3622,5 +3626,51 @@ class WP_Site_Health {
 		 * @param string[] $services The list of available persistent object cache services.
 		 */
 		return apply_filters( 'site_status_available_object_cache_services', $services );
+	}
+
+	/**
+	 * Test if site is using the deprecated ms-files.php handler.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_ms_files_deprecated() {
+		$result = array(
+			'label'       => __( 'Your site is not using the deprecated ms-files.php handler' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Your multisite network is using the current upload system.' )
+			),
+			'actions'     => '',
+			'test'        => 'ms_files_deprecated',
+		);
+
+		// Skip this test if not in a multisite environment
+		if ( ! is_multisite() ) {
+			return $result;
+		}
+
+		// Check if site is using ms-files
+		if ( defined( 'BLOGUPLOADDIR' ) ) {
+			$result['status']      = 'critical';
+			$result['label']       = __( 'Your site is using the deprecated ms-files.php handler' );
+			$result['description'] = sprintf(
+				'<p>%s</p>',
+				__( 'Your multisite network is using the legacy ms-files.php file handler which has been deprecated since WordPress 3.5.0.' )
+			);
+			$result['actions']     = sprintf(
+				'<p><a href="%s" target="_blank" rel="noopener">%s</a></p>',
+				'https://halfelf.org/2012/dumping-ms-files/',
+				__( 'Learn how to migrate from ms-files.php' )
+			);
+		}
+
+		return $result;
 	}
 }

@@ -6,6 +6,16 @@
  *
  * @package WordPress
  * @subpackage Multisite
+ *
+ * WARNING: This is a legacy file handler that has been deprecated since WordPress 3.5.0.
+ * It is maintained only for backward compatibility with older multisite installations.
+ *
+ * IMPORTANT NOTICE FOR CONTRIBUTORS:
+ * - This file is in maintenance mode only
+ * - Only PHP compatibility and security-related changes should be made to this file
+ * - No new features should be added
+ * - Site administrators should migrate to the new upload system
+ * - See https://halfelf.org/2012/dumping-ms-files/ for migration guidance
  */
 
 define( 'MS_FILES_REQUEST', true );
