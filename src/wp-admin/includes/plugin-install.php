@@ -412,7 +412,7 @@ function display_plugins_table() {
 	if ( isset( $_GET['tab'] ) && 'featured' === $_GET['tab'] ) {
 	?>
 		<br>
-	<?php
+		<?php
 	}
 	?>
 	<form id="plugin-filter" method="post">
