@@ -41,7 +41,7 @@ window.wp = window.wp || {};
 		get : function(total, num) {
 			var st = this.st, data;
 			if ( ! num )
-				num = 20;
+				num = 10;
 
 			this.st += num;
 			this.total = total;
