@@ -140,6 +140,7 @@ $core_actions_post = array(
 	'health-check-background-updates',
 	'health-check-loopback-requests',
 	'health-check-get-sizes',
+	'health-check-core-integrity',
 	'toggle-auto-updates',
 	'send-password-reset',
 );

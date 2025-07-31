@@ -5529,6 +5529,25 @@ function wp_ajax_health_check_get_sizes() {
 }
 
 /**
+ * Ajax handler for site health checks on code integrity.
+ *
+ * @since 6.4.0
+ */
+function wp_ajax_health_check_core_integrity() {
+	check_ajax_referer( 'health-check-site-status' );
+
+	if ( ! current_user_can( 'view_site_health_checks' ) ) {
+			wp_send_json_error();
+	}
+
+	if ( ! class_exists( 'WP_Site_Health' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
+	}
+
+	$site_health = new WP_Site_Health();
+	wp_send_json_success( $site_health->get_test_core_integrity() );
+}
+/**
  * Handles renewing the REST API nonce via AJAX.
  *
  * @since 5.3.0

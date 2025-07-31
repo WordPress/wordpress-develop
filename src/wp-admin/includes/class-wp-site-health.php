@@ -2688,6 +2688,88 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Scan the WordPress core files for modified and/or missing files.
+	 *
+	 * Files that have been modified or that have gone missing may indicate that the site
+	 * has been compromised, installation failure, or that the code has been customized.
+	 * Users that know the code base should be unaltered will be offered to reinstall or
+	 * upgrade WordPress in response.
+	 *
+	 * @since 6.4.0
+	 *
+	 * @return array The test results.
+	 */
+	public function get_test_core_integrity() {
+		$result = array(
+			'label'       => __( 'No changes to the core files are detected' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => __( 'A scan for changes to the core WordPress files was performed. No changes are detected.' ),
+			'actions'     => '',
+			'test'        => 'core_integrity',
+		);
+
+		$wp_version = get_bloginfo( 'version' );
+		$wp_locale  = get_locale();
+
+		// Retrieve a list of checksums from the remote server for verification
+
+		$checksums = get_transient( 'health-check-code-integrity-checksums' );
+		if ( false === $checksums ) {
+			$checksums = get_core_checksums( $wp_version, $wp_locale );
+			if ( false === $checksums && false !== strpos( $wp_version, '-' ) ) {
+				$checksums = get_core_checksums( (float) $wp_version - 0.1, $wp_locale );
+			}
+
+			set_transient( 'health-check-code-integrity-checksums', $checksums, HOUR_IN_SECONDS );
+		}
+
+		if ( empty( $checksums ) ) {
+			$result['status']      = 'critical';
+			$result['label']       = __( 'Unable to scan core files for changes' );
+			$result['description'] = __( 'The checksum file list could not be downloaded. There maybe a connection issue or a list is not available for this version. Please try to run this test again at a later time.' );
+			return $result;
+		}
+
+		$changed_files = false;
+		foreach ( $checksums as $file => $checksum ) {
+
+			if ( 0 === strncmp( $file, 'wp-content', 10 ) ) {
+				continue;
+			}
+
+			if ( ! file_exists( ABSPATH . $file ) ) {
+				$changed_files = true;
+				break;
+			}
+
+			$existing_checksum = md5_file( ABSPATH . $file );
+			if ( $existing_checksum !== $checksum ) {
+				$changed_files = true;
+				break;
+			}
+		}
+
+		if ( true === $changed_files ) {
+
+			$result['status']      = 'recommended';
+			$result['label']       = __( 'Some core files may have been modified' );
+			$result['description'] = __( 'Some WordPress core files may have been changed. One reason this check can fail is that you need to install a version that makes use of the right translation files. If you have the ability to do so, a simple fix is to reinstall WordPress. Reinstall of the core system should not affect any plugins, themes, or content that you have posted.' );
+			$result['actions']     = sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( admin_url( 'update-core.php?force_check=1' ) ),
+				__( 'Reinstall WordPress manually' )
+			);
+
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Returns a set of tests that belong to the site status page.
 	 *
 	 * Each site status test is defined here, they may be `direct` tests, that run on page load, or `async` tests
@@ -2827,6 +2909,17 @@ class WP_Site_Health {
 			$tests['direct']['persistent_object_cache'] = array(
 				'label' => __( 'Persistent object cache' ),
 				'test'  => 'persistent_object_cache',
+			);
+		}
+
+		/*
+		 * Check integrity only for non-development environments and releases.
+		 * WordPress Nightly Builds, Alphas, and Betas contain a version suffix starting with "-", such as 6.4-alpha-56267-src.
+		 */
+		if ( ! wp_is_development_mode( false ) && ! strpos( get_bloginfo( 'version' ), '-' ) ) {
+			$tests['direct']['core_integrity'] = array(
+				'label' => __( 'WordPress Core Files Integrity Check' ),
+				'test'  => 'core_integrity',
 			);
 		}
 
