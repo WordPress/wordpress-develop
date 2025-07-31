@@ -70,6 +70,7 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 			}
 
 			list( $reference, $classification, $test_data ) = $test_parts;
+
 			$reference = trim( $reference );
 			$test_data = trim( $test_data );
 
