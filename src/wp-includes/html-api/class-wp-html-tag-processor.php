@@ -4510,7 +4510,7 @@ class WP_HTML_Tag_Processor {
 	const NO_QUIRKS_MODE = 'no-quirks-mode';
 
 	/**
-	 * Quirks mode document compatability mode.
+	 * Quirks mode document compatibility mode.
 	 *
 	 * > In quirks mode, layout emulates behavior in Navigator 4 and Internet
 	 * > Explorer 5. This is essential in order to support websites that were
