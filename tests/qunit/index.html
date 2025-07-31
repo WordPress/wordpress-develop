@@ -147,6 +147,7 @@
 
 		<!-- Unit tests -->
 		<script src="wp-admin/js/password-strength-meter.js"></script>
+		<script src="wp-admin/js/theme.js"></script>
 		<script src="wp-admin/js/customize-base.js"></script>
 		<script src="wp-admin/js/customize-header.js"></script>
 		<script src="wp-admin/js/dashboard.js"></script>
@@ -1171,10 +1172,10 @@
 			<div class="settings">
 				<# var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
 				<# if ( 'image' === data.type ) { #>
-					<label class="setting" data-setting="alt">
-						<span class="name">Alternative Text</span>
-						<input type="text" value="{{ data.alt }}" aria-describedby="alt-text-description" {{ maybeReadOnly }} />
-					</label>
+					<span class="setting alt-text has-description" data-setting="alt">
+						<label for="attachment-details-two-column-alt-text" class="name">Alternative Text</label>
+						<textarea id="attachment-details-two-column-alt-text" aria-describedby="alt-text-description" {{ maybeReadOnly }}>{{ data.alt }}</textarea>
+					</span>
 					<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
 				<# } #>
 								<label class="setting" data-setting="title">
@@ -1336,10 +1337,10 @@
 
 		<# var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly'; #>
 		<# if ( 'image' === data.type ) { #>
-			<label class="setting" data-setting="alt">
-				<span class="name">Alt Text</span>
-				<input type="text" value="{{ data.alt }}" aria-describedby="alt-text-description" {{ maybeReadOnly }} />
-			</label>
+			<span class="setting alt-text has-description" data-setting="alt">
+				<label for="attachment-details-alt-text" class="name">Alt Text</label>
+				<textarea id="attachment-details-alt-text" aria-describedby="alt-text-description" {{ maybeReadOnly }}>{{ data.alt }}</textarea>
+			</span>
 			<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
 		<# } #>
 				<label class="setting" data-setting="title">
@@ -1628,10 +1629,10 @@
 			<img src="{{ data.model.url }}" draggable="false" alt="" />
 		</div>
 
-		<label class="setting alt-text has-description">
-			<span>Alternative Text</span>
-			<input type="text" data-setting="alt" aria-describedby="alt-text-description" />
-		</label>
+		<span class="setting alt-text has-description">
+			<label for="embed-image-settings-alt-text" class="name">Alternative Text</label>
+			<textarea id="embed-image-settings-alt-text" data-setting="alt" aria-describedby="alt-text-description"></textarea>
+		</span>
 		<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
 
 					<label class="setting caption">
@@ -1683,10 +1684,10 @@
 					</div>
 				</div>
 				<div class="column-settings">
-					<label class="setting alt-text has-description">
-						<span>Alternative Text</span>
-						<input type="text" data-setting="alt" value="{{ data.model.alt }}" aria-describedby="alt-text-description" />
-					</label>
+					<span class="setting alt-text has-description">
+						<label for="image-details-alt-text" class="name">Alternative Text</label>
+						<textarea id="image-details-alt-text" data-setting="alt" aria-describedby="alt-text-description">{{ data.model.alt }}</textarea>
+					</span>
 					<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
 
 											<label class="setting caption">
@@ -2292,7 +2293,6 @@
 			</li>
 			<li class="wp-has-submenu wp-not-current-submenu menu-top menu-icon-plugins" id="menu-plugins">
 				<a href="plugins.php" class="wp-has-submenu wp-not-current-submenu menu-top menu-icon-plugins" aria-haspopup="true">
-					<div class="wp-menu-arrow"><div></div></div>
 					<div class="wp-menu-image dashicons-before dashicons-admin-plugins"><br></div>
 					<div class="wp-menu-name">Plugins
 				<span class="update-plugins count-2">

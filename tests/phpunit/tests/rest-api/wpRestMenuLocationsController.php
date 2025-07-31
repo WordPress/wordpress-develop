@@ -1,14 +1,10 @@
 <?php
 /**
- * WP_REST_Menu_Locations_Controller tests.
+ * Unit tests covering WP_REST_Menu_Locations_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
  * @since 5.9.0
- */
-
-/**
- * Tests for REST API for Menu locations.
  *
  * @group restapi
  *
@@ -125,6 +121,45 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
+	 * @ticket 54304
+	 * @covers ::get_items
+	 */
+	public function test_get_items_filter() {
+		$menus = array( 'primary', 'secondary' );
+		$this->register_nav_menu_locations( array( 'primary', 'secondary' ) );
+		add_filter( 'rest_menu_read_access', '__return_true' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/menu-locations' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = array_values( $data );
+		$this->assertCount( 2, $data, 'Number of menu location are not 2' );
+
+		$names        = wp_list_pluck( $data, 'name' );
+		$descriptions = wp_list_pluck( $data, 'description' );
+		$this->assertSame( $menus, $names );
+		$menu_descriptions = array_map( 'ucfirst', $names );
+
+		$this->assertSame( $menu_descriptions, $descriptions, 'Menu descriptions do not match' );
+	}
+
+	/**
+	 * @ticket 54304
+	 * @covers ::get_item
+	 */
+	public function test_get_item_filter() {
+		$menu = 'primary';
+		$this->register_nav_menu_locations( array( $menu ) );
+
+		add_filter( 'rest_menu_read_access', '__return_true' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/menu-locations/' . $menu );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( $menu, $data['name'] );
+	}
+
+	/**
 	 * @ticket 40878
 	 * @covers ::get_item
 	 */
@@ -140,24 +175,40 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * The test_create_item() method does not exist for menu locations.
+	 * The create_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_create_item() {}
+	public function test_create_item() {
+		// Controller does not implement create_item().
+	}
 
 	/**
-	 * The test_update_item() method does not exist for menu locations.
+	 * The update_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_update_item() {}
+	public function test_update_item() {
+		// Controller does not implement update_item().
+	}
 
 	/**
-	 * The test_delete_item() method does not exist for menu locations.
+	 * The delete_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_delete_item() {}
+	public function test_delete_item() {
+		// Controller does not implement delete_item().
+	}
 
 	/**
-	 * The test_prepare_item() method does not exist for menu locations.
+	 * The prepare_item() method does not exist for menu locations.
+	 *
+	 * @doesNotPerformAssertions
 	 */
-	public function test_prepare_item() {}
+	public function test_prepare_item() {
+		// Controller does not implement prepare_item().
+	}
 
 	/**
 	 * @ticket 40878
@@ -169,7 +220,7 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 3, count( $properties ) );
+		$this->assertCount( 3, $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'menu', $properties );

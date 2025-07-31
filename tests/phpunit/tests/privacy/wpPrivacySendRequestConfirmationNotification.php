@@ -5,16 +5,10 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 4.9.8
- */
-
-/**
- * Tests_Privacy_wpPrivacySendRequestConfirmationNotification class.
  *
  * @group privacy
  * @group user
  * @covers ::_wp_privacy_send_request_confirmation_notification
- *
- * @since 4.9.8
  */
 class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
 	/**
@@ -38,11 +32,11 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 	}
 
 	/**
-	 * The function should not send emails when the request ID does not exist.
+	 * The function should not send an email when the request ID does not exist.
 	 *
 	 * @ticket 43967
 	 */
-	public function test_function_should_not_send_email_when_not_a_valid_request_id() {
+	public function test_should_not_send_email_when_not_a_valid_request_id() {
 		_wp_privacy_send_request_confirmation_notification( 1234567890 );
 		$mailer = tests_retrieve_phpmailer_instance();
 
@@ -50,14 +44,14 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 	}
 
 	/**
-	 * The function should not send emails when the ID passed is not a WP_User_Request.
+	 * The function should not send an email when the ID passed does not correspond to a user request.
 	 *
 	 * @ticket 43967
 	 */
-	public function test_function_should_not_send_email_when_not_a_wp_user_request() {
-		$post_id = $this->factory->post->create(
+	public function test_should_not_send_email_when_not_a_user_request() {
+		$post_id = self::factory()->post->create(
 			array(
-				'post_type' => 'post',
+				'post_type' => 'post', // Should be 'user_request'.
 			)
 		);
 
@@ -72,7 +66,7 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 	 *
 	 * @ticket 43967
 	 */
-	public function test_function_should_send_email_to_site_admin_when_user_request_confirmed() {
+	public function test_should_send_email_to_site_admin_when_user_request_confirmed() {
 		$email      = 'export.request.from.unregistered.user@example.com';
 		$request_id = wp_create_user_request( $email, 'export_personal_data' );
 
@@ -95,7 +89,7 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 	 *
 	 * @ticket 43967
 	 */
-	public function test_function_should_only_send_email_to_site_admin_when_user_request_is_confirmed() {
+	public function test_should_only_send_email_to_site_admin_when_user_request_is_confirmed() {
 		$email      = 'export.request.from.unregistered.user@example.com';
 		$request_id = wp_create_user_request( $email, 'export_personal_data' );
 
@@ -115,7 +109,7 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 	 *
 	 * @ticket 43967
 	 */
-	public function test_function_should_only_send_email_once_to_admin_when_user_request_is_confirmed() {
+	public function test_should_only_send_email_once_to_admin_when_user_request_is_confirmed() {
 		$email      = 'export.request.from.unregistered.user@example.com';
 		$request_id = wp_create_user_request( $email, 'export_personal_data' );
 
@@ -246,5 +240,4 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 
 		return $headers;
 	}
-
 }

@@ -36,6 +36,7 @@ function options_general_add_js() {
 <script type="text/javascript">
 	jQuery( function($) {
 		var $siteName = $( '#wp-admin-bar-site-name' ).children( 'a' ).first(),
+			$siteIconPreview = $('#site-icon-preview-site-title'),
 			homeURL = ( <?php echo wp_json_encode( get_home_url() ); ?> || '' ).replace( /^(https?:\/\/)?(www\.)?/, '' );
 
 		$( '#blogname' ).on( 'input', function() {
@@ -47,6 +48,7 @@ function options_general_add_js() {
 			}
 
 			$siteName.text( title );
+			$siteIconPreview.text( title );
 		});
 
 		$( 'input[name="date_format"]' ).on( 'click', function() {
@@ -90,8 +92,10 @@ function options_general_add_js() {
 
 		var languageSelect = $( '#WPLANG' );
 		$( 'form' ).on( 'submit', function() {
-			// Don't show a spinner for English and installed languages,
-			// as there is nothing to download.
+			/*
+			 * Don't show a spinner for English and installed languages,
+			 * as there is nothing to download.
+			 */
 			if ( ! languageSelect.find( 'option:selected' ).data( 'installed' ) ) {
 				$( '#submit', this ).after( '<span class="spinner language-install-spinner is-active" />' );
 			}
@@ -130,5 +134,5 @@ function options_reading_add_js() {
  */
 function options_reading_blog_charset() {
 	echo '<input name="blog_charset" type="text" id="blog_charset" value="' . esc_attr( get_option( 'blog_charset' ) ) . '" class="regular-text" />';
-	echo '<p class="description">' . __( 'The <a href="https://wordpress.org/support/article/glossary/#character-set">character encoding</a> of your site (UTF-8 is recommended)' ) . '</p>';
+	echo '<p class="description">' . __( 'The <a href="https://wordpress.org/documentation/article/wordpress-glossary/#character-set">character encoding</a> of your site (UTF-8 is recommended)' ) . '</p>';
 }

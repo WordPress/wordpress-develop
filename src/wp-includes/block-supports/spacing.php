@@ -1,7 +1,7 @@
 <?php
 /**
  * Spacing block support flag.
-
+ *
  * For backwards compatibility, this remains separate to the dimensions.php
  * block support despite both belonging under a single panel in the editor.
  *
@@ -18,7 +18,7 @@
  * @param WP_Block_Type $block_type Block Type.
  */
 function wp_register_spacing_support( $block_type ) {
-	$has_spacing_support = block_has_support( $block_type, array( 'spacing' ), false );
+	$has_spacing_support = block_has_support( $block_type, 'spacing', false );
 
 	// Setup attributes and styles within that if needed.
 	if ( ! $block_type->attributes ) {
@@ -33,10 +33,11 @@ function wp_register_spacing_support( $block_type ) {
 }
 
 /**
- * Add CSS classes for block spacing to the incoming attributes array.
+ * Adds CSS classes for block spacing to the incoming attributes array.
  * This will be applied to the block markup in the front-end.
  *
  * @since 5.8.0
+ * @since 6.1.0 Implemented the style engine to generate CSS and classnames.
  * @access private
  *
  * @param WP_Block_Type $block_type       Block Type.
@@ -48,35 +49,34 @@ function wp_apply_spacing_support( $block_type, $block_attributes ) {
 		return array();
 	}
 
+	$attributes          = array();
 	$has_padding_support = block_has_support( $block_type, array( 'spacing', 'padding' ), false );
 	$has_margin_support  = block_has_support( $block_type, array( 'spacing', 'margin' ), false );
-	$skip_padding        = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'padding' );
-	$skip_margin         = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'margin' );
-	$styles              = array();
+	$block_styles        = isset( $block_attributes['style'] ) ? $block_attributes['style'] : null;
 
+	if ( ! $block_styles ) {
+		return $attributes;
+	}
+
+	$skip_padding         = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'padding' );
+	$skip_margin          = wp_should_skip_block_supports_serialization( $block_type, 'spacing', 'margin' );
+	$spacing_block_styles = array(
+		'padding' => null,
+		'margin'  => null,
+	);
 	if ( $has_padding_support && ! $skip_padding ) {
-		$padding_value = _wp_array_get( $block_attributes, array( 'style', 'spacing', 'padding' ), null );
-		if ( is_array( $padding_value ) ) {
-			foreach ( $padding_value as $key => $value ) {
-				$styles[] = sprintf( 'padding-%s: %s;', $key, $value );
-			}
-		} elseif ( null !== $padding_value ) {
-			$styles[] = sprintf( 'padding: %s;', $padding_value );
-		}
+		$spacing_block_styles['padding'] = isset( $block_styles['spacing']['padding'] ) ? $block_styles['spacing']['padding'] : null;
 	}
-
 	if ( $has_margin_support && ! $skip_margin ) {
-		$margin_value = _wp_array_get( $block_attributes, array( 'style', 'spacing', 'margin' ), null );
-		if ( is_array( $margin_value ) ) {
-			foreach ( $margin_value as $key => $value ) {
-				$styles[] = sprintf( 'margin-%s: %s;', $key, $value );
-			}
-		} elseif ( null !== $margin_value ) {
-			$styles[] = sprintf( 'margin: %s;', $margin_value );
-		}
+		$spacing_block_styles['margin'] = isset( $block_styles['spacing']['margin'] ) ? $block_styles['spacing']['margin'] : null;
+	}
+	$styles = wp_style_engine_get_styles( array( 'spacing' => $spacing_block_styles ) );
+
+	if ( ! empty( $styles['css'] ) ) {
+		$attributes['style'] = $styles['css'];
 	}
 
-	return empty( $styles ) ? array() : array( 'style' => implode( ' ', $styles ) );
+	return $attributes;
 }
 
 // Register the block support.

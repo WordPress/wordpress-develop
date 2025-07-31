@@ -101,7 +101,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		update_option( 'show_on_front', 'page' );
 		update_option(
 			'page_on_front',
-			$this->factory->post->create(
+			self::factory()->post->create(
 				array(
 					'post_title' => 'front-page',
 					'post_type'  => 'page',
@@ -128,7 +128,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 	}
 
 	public function test_home_title() {
-		$blog_page_id = $this->factory->post->create(
+		$blog_page_id = self::factory()->post->create(
 			array(
 				'post_title' => 'blog-page',
 				'post_type'  => 'page',
@@ -205,7 +205,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 			)
 		);
 
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_type' => 'cpt',
 			)

@@ -12,6 +12,7 @@
  *
  * @since 5.0.0
  */
+#[AllowDynamicProperties]
 final class WP_Block_Type_Registry {
 	/**
 	 * Registered block types, as `$name => $instance` pairs.
@@ -165,6 +166,20 @@ final class WP_Block_Type_Registry {
 	 */
 	public function is_registered( $name ) {
 		return isset( $this->registered_block_types[ $name ] );
+	}
+
+	public function __wakeup() {
+		if ( ! $this->registered_block_types ) {
+			return;
+		}
+		if ( ! is_array( $this->registered_block_types ) ) {
+			throw new UnexpectedValueException();
+		}
+		foreach ( $this->registered_block_types as $value ) {
+			if ( ! $value instanceof WP_Block_Type ) {
+				throw new UnexpectedValueException();
+			}
+		}
 	}
 
 	/**

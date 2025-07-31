@@ -51,8 +51,15 @@ function twentytwelve_setup() {
 	 * Translations can be filed at WordPress.org. See: https://translate.wordpress.org/projects/wp-themes/twentytwelve
 	 * If you're building a theme based on Twenty Twelve, use a find and replace
 	 * to change 'twentytwelve' to the name of your theme in all the template files.
+	 *
+	 * Manual loading of text domain is not required after the introduction of
+	 * just in time translation loading in WordPress version 4.6.
+	 *
+	 * @ticket 58318
 	 */
-	load_theme_textdomain( 'twentytwelve' );
+	if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+		load_theme_textdomain( 'twentytwelve' );
+	}
 
 	// This theme styles the visual editor with editor-style.css to match the theme style.
 	add_editor_style();
@@ -128,62 +135,50 @@ function twentytwelve_setup() {
 add_action( 'after_setup_theme', 'twentytwelve_setup' );
 
 /**
- * Add support for a custom header image.
+ * Adds support for a custom header image.
  */
 require get_template_directory() . '/inc/custom-header.php';
 
 /**
- * Add block patterns.
+ * Registers block patterns and pattern categories.
+ *
+ * @since Twenty Twelve 4.4
  */
-require get_template_directory() . '/inc/block-patterns.php';
-
-/**
- * Return the Google font stylesheet URL if available.
- *
- * The use of Open Sans by default is localized. For languages that use
- * characters not supported by the font, the font can be disabled.
- *
- * @since Twenty Twelve 1.2
- *
- * @return string Font stylesheet or empty string if disabled.
- */
-function twentytwelve_get_font_url() {
-	$font_url = '';
-
-	/*
-	 * translators: If there are characters in your language that are not supported
-	 * by Open Sans, translate this to 'off'. Do not translate into your own language.
-	 */
-	if ( 'off' !== _x( 'on', 'Open Sans font: on or off', 'twentytwelve' ) ) {
-		$subsets = 'latin,latin-ext';
-
-		/*
-		 * translators: To add an additional Open Sans character subset specific to your language,
-		 * translate this to 'greek', 'cyrillic' or 'vietnamese'. Do not translate into your own language.
-		 */
-		$subset = _x( 'no-subset', 'Open Sans font: add new subset (greek, cyrillic, vietnamese)', 'twentytwelve' );
-
-		if ( 'cyrillic' === $subset ) {
-			$subsets .= ',cyrillic,cyrillic-ext';
-		} elseif ( 'greek' === $subset ) {
-			$subsets .= ',greek,greek-ext';
-		} elseif ( 'vietnamese' === $subset ) {
-			$subsets .= ',vietnamese';
-		}
-
-		$query_args = array(
-			'family'  => urlencode( 'Open Sans:400italic,700italic,400,700' ),
-			'subset'  => urlencode( $subsets ),
-			'display' => urlencode( 'fallback' ),
-		);
-		$font_url   = add_query_arg( $query_args, 'https://fonts.googleapis.com/css' );
-	}
-
-	return $font_url;
+function twentytwelve_register_block_patterns() {
+	require get_template_directory() . '/inc/block-patterns.php';
 }
 
+add_action( 'init', 'twentytwelve_register_block_patterns' );
+
+if ( ! function_exists( 'twentytwelve_get_font_url' ) ) :
+	/**
+	 * Return the font stylesheet URL if available.
+	 *
+	 * The use of Open Sans by default is localized. For languages that use
+	 * characters not supported by the font, the font can be disabled.
+	 *
+	 * @since Twenty Twelve 1.2
+	 * @since Twenty Twelve 3.9 Replaced Google URL with self-hosted font.
+	 *
+	 * @return string Font stylesheet or empty string if disabled.
+	 */
+	function twentytwelve_get_font_url() {
+		$font_url = '';
+
+		/*
+		* translators: If there are characters in your language that are not supported
+		* by Open Sans, translate this to 'off'. Do not translate into your own language.
+		*/
+		if ( 'off' !== _x( 'on', 'Open Sans font: on or off', 'twentytwelve' ) ) {
+			$font_url = get_template_directory_uri() . '/fonts/font-open-sans.css';
+		}
+
+		return $font_url;
+	}
+endif;
+
 /**
- * Enqueue scripts and styles for front end.
+ * Enqueues scripts and styles for front end.
  *
  * @since Twenty Twelve 1.0
  */
@@ -199,42 +194,54 @@ function twentytwelve_scripts_styles() {
 	}
 
 	// Adds JavaScript for handling the navigation menu hide-and-show behavior.
-	wp_enqueue_script( 'twentytwelve-navigation', get_template_directory_uri() . '/js/navigation.js', array( 'jquery' ), '20141205', true );
+	wp_enqueue_script(
+		'twentytwelve-navigation',
+		get_template_directory_uri() . '/js/navigation.js',
+		array( 'jquery' ),
+		'20250303',
+		array(
+			'in_footer' => false, // Because involves header.
+			'strategy'  => 'defer',
+		)
+	);
 
 	$font_url = twentytwelve_get_font_url();
 	if ( ! empty( $font_url ) ) {
-		wp_enqueue_style( 'twentytwelve-fonts', esc_url_raw( $font_url ), array(), null );
+		$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+		wp_enqueue_style( 'twentytwelve-fonts', esc_url_raw( $font_url ), array(), $font_version );
 	}
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20190507' );
+	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri(), array(), '20250715' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20190406' );
+	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20240812' );
 
 	// Loads the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentytwelve-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentytwelve-style' ), '20150214' );
+	wp_enqueue_style( 'twentytwelve-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentytwelve-style' ), '20240722' );
 	$wp_styles->add_data( 'twentytwelve-ie', 'conditional', 'lt IE 9' );
 }
 add_action( 'wp_enqueue_scripts', 'twentytwelve_scripts_styles' );
 
 /**
- * Enqueue styles for the block-based editor.
+ * Enqueues styles for the block-based editor.
  *
  * @since Twenty Twelve 2.6
  */
 function twentytwelve_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20190406' );
+	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20250715' );
 	// Add custom fonts.
-	wp_enqueue_style( 'twentytwelve-fonts', twentytwelve_get_font_url(), array(), null );
+	$font_version = ( 0 === strpos( (string) twentytwelve_get_font_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
+	wp_enqueue_style( 'twentytwelve-fonts', twentytwelve_get_font_url(), array(), $font_version );
 }
 add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
 
 /**
- * Add preconnect for Google Fonts.
+ * Adds preconnect for Google Fonts.
  *
  * @since Twenty Twelve 2.2
+ * @deprecated Twenty Twelve 3.9 Disabled filter because, by default, fonts are self-hosted.
  *
  * @param array   $urls          URLs to print for resource hints.
  * @param string  $relation_type The relation type the URLs are printed.
@@ -254,14 +261,14 @@ function twentytwelve_resource_hints( $urls, $relation_type ) {
 
 	return $urls;
 }
-add_filter( 'wp_resource_hints', 'twentytwelve_resource_hints', 10, 2 );
+// add_filter( 'wp_resource_hints', 'twentytwelve_resource_hints', 10, 2 );
 
 /**
- * Filter TinyMCE CSS path to include Google Fonts.
+ * Filters TinyMCE CSS path to include hosted fonts.
  *
  * Adds additional stylesheets to the TinyMCE editor if needed.
  *
- * @uses twentytwelve_get_font_url() To get the Google Font stylesheet URL.
+ * @uses twentytwelve_get_font_url() To get the font stylesheet URL.
  *
  * @since Twenty Twelve 1.2
  *
@@ -286,7 +293,7 @@ function twentytwelve_mce_css( $mce_css ) {
 add_filter( 'mce_css', 'twentytwelve_mce_css' );
 
 /**
- * Filter the page title.
+ * Filters the page title.
  *
  * Creates a nicely formatted and more specific title element text
  * for output in head of document, based on current view.
@@ -324,7 +331,7 @@ function twentytwelve_wp_title( $title, $sep ) {
 add_filter( 'wp_title', 'twentytwelve_wp_title', 10, 2 );
 
 /**
- * Filter the page menu arguments.
+ * Filters the page menu arguments.
  *
  * Makes our wp_nav_menu() fallback -- wp_page_menu() -- show a home link.
  *
@@ -339,7 +346,7 @@ function twentytwelve_page_menu_args( $args ) {
 add_filter( 'wp_page_menu_args', 'twentytwelve_page_menu_args' );
 
 /**
- * Register sidebars.
+ * Registers sidebars.
  *
  * Registers our main widget area and the front page widget areas.
  *
@@ -428,6 +435,8 @@ if ( ! function_exists( 'twentytwelve_comment' ) ) :
 	 * Used as a callback by wp_list_comments() for displaying the comments.
 	 *
 	 * @since Twenty Twelve 1.0
+	 *
+	 * @global WP_Post $post Global post object.
 	 */
 	function twentytwelve_comment( $comment, $args, $depth ) {
 		$GLOBALS['comment'] = $comment;
@@ -474,7 +483,7 @@ if ( ! function_exists( 'twentytwelve_comment' ) ) :
 				}
 				?>
 
-				<?php if ( '0' == $comment->comment_approved ) : ?>
+				<?php if ( '0' === $comment->comment_approved ) : ?>
 				<p class="comment-awaiting-moderation"><?php echo $moderation_note; ?></p>
 				<?php endif; ?>
 
@@ -507,7 +516,7 @@ endif;
 
 if ( ! function_exists( 'twentytwelve_entry_meta' ) ) :
 	/**
-	 * Set up post entry meta.
+	 * Sets up post entry meta.
 	 *
 	 * Prints HTML with meta information for current post: categories, tags, permalink, author, and date.
 	 *
@@ -558,7 +567,7 @@ if ( ! function_exists( 'twentytwelve_entry_meta' ) ) :
 endif;
 
 /**
- * Extend the default WordPress body classes.
+ * Extends the default WordPress body classes.
  *
  * Extends the default WordPress body class to denote:
  * 1. Using a full-width layout, when no active widgets in the sidebar
@@ -614,7 +623,7 @@ function twentytwelve_body_class( $classes ) {
 add_filter( 'body_class', 'twentytwelve_body_class' );
 
 /**
- * Adjust content width in certain contexts.
+ * Adjusts content width in certain contexts.
  *
  * Adjusts content_width value for full-width and single image attachment
  * templates, and when there are no active widgets in the sidebar.
@@ -630,9 +639,9 @@ function twentytwelve_content_width() {
 add_action( 'template_redirect', 'twentytwelve_content_width' );
 
 /**
- * Register postMessage support.
+ * Registers postMessage support.
  *
- * Add postMessage support for site title and description for the Customizer.
+ * Adds postMessage support for site title and description for the Customizer.
  *
  * @since Twenty Twelve 1.0
  *
@@ -665,7 +674,7 @@ function twentytwelve_customize_register( $wp_customize ) {
 add_action( 'customize_register', 'twentytwelve_customize_register' );
 
 /**
- * Render the site title for the selective refresh partial.
+ * Renders the site title for the selective refresh partial.
  *
  * @since Twenty Twelve 2.0
  *
@@ -678,7 +687,7 @@ function twentytwelve_customize_partial_blogname() {
 }
 
 /**
- * Render the site tagline for the selective refresh partial.
+ * Renders the site tagline for the selective refresh partial.
  *
  * @since Twenty Twelve 2.0
  *
@@ -691,14 +700,14 @@ function twentytwelve_customize_partial_blogdescription() {
 }
 
 /**
- * Enqueue JavaScript postMessage handlers for the Customizer.
+ * Enqueues JavaScript postMessage handlers for the Customizer.
  *
  * Binds JS handlers to make the Customizer preview reload changes asynchronously.
  *
  * @since Twenty Twelve 1.0
  */
 function twentytwelve_customize_preview_js() {
-	wp_enqueue_script( 'twentytwelve-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20141120', true );
+	wp_enqueue_script( 'twentytwelve-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20250217', array( 'in_footer' => true ) );
 }
 add_action( 'customize_preview_init', 'twentytwelve_customize_preview_js' );
 
@@ -723,7 +732,7 @@ add_filter( 'widget_tag_cloud_args', 'twentytwelve_widget_tag_cloud_args' );
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
-	 * Fire the wp_body_open action.
+	 * Fires the wp_body_open action.
 	 *
 	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *

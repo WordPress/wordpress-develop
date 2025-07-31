@@ -1,17 +1,17 @@
 /*!
- * jQuery UI Slider 1.13.1
- * http://jqueryui.com
+ * jQuery UI Slider 1.13.3
+ * https://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
- * http://jquery.org/license
+ * https://jquery.org/license
  */
 
 //>>label: Slider
 //>>group: Widgets
 //>>description: Displays a flexible slider with ranges and accessibility via keyboard.
-//>>docs: http://api.jqueryui.com/slider/
-//>>demos: http://jqueryui.com/slider/
+//>>docs: https://api.jqueryui.com/slider/
+//>>demos: https://jqueryui.com/slider/
 //>>css.structure: ../../themes/base/core.css
 //>>css.structure: ../../themes/base/slider.css
 //>>css.theme: ../../themes/base/theme.css
@@ -25,7 +25,9 @@
 		define( [
 			"jquery",
 			"./mouse",
-			"./core"
+			"../keycode",
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 
@@ -36,7 +38,7 @@
 "use strict";
 
 return $.widget( "ui.slider", $.ui.mouse, {
-	version: "1.13.1",
+	version: "1.13.3",
 	widgetEventPrefix: "slide",
 
 	options: {
@@ -642,8 +644,8 @@ return $.widget( "ui.slider", $.ui.mouse, {
 			valueMin = this._valueMin();
 			valueMax = this._valueMax();
 			valPercent = ( valueMax !== valueMin ) ?
-				( value - valueMin ) / ( valueMax - valueMin ) * 100 :
-				0;
+					( value - valueMin ) / ( valueMax - valueMin ) * 100 :
+					0;
 			_set[ this.orientation === "horizontal" ? "left" : "bottom" ] = valPercent + "%";
 			this.handle.stop( 1, 1 )[ animate ? "animate" : "css" ]( _set, o.animate );
 

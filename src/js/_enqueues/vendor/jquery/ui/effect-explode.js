@@ -1,10 +1,10 @@
 /*!
- * jQuery UI Effects Explode 1.13.1
- * http://jqueryui.com
+ * jQuery UI Effects Explode 1.13.3
+ * https://jqueryui.com
  *
- * Copyright jQuery Foundation and other contributors
+ * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license.
- * http://jquery.org/license
+ * https://jquery.org/license
  */
 
 //>>label: Explode Effect
@@ -12,8 +12,8 @@
 /* eslint-disable max-len */
 //>>description: Explodes an element in all directions into n pieces. Implodes an element to its original wholeness.
 /* eslint-enable max-len */
-//>>docs: http://api.jqueryui.com/explode-effect/
-//>>demos: http://jqueryui.com/effect/
+//>>docs: https://api.jqueryui.com/explode-effect/
+//>>demos: https://jqueryui.com/effect/
 
 ( function( factory ) {
 	"use strict";
@@ -23,7 +23,8 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"./effect"
+			"../version",
+			"../effect"
 		], factory );
 	} else {
 
@@ -83,21 +84,21 @@ return $.effects.define( "explode", "hide", function( options, done ) {
 				// Select the wrapper - make it overflow: hidden and absolute positioned based on
 				// where the original was located +left and +top equal to the size of pieces
 				.parent()
-				.addClass( "ui-effects-explode" )
-				.css( {
-					position: "absolute",
-					overflow: "hidden",
-					width: width,
-					height: height,
-					left: left + ( show ? mx * width : 0 ),
-					top: top + ( show ? my * height : 0 ),
-					opacity: show ? 0 : 1
-				} )
-				.animate( {
-					left: left + ( show ? 0 : mx * width ),
-					top: top + ( show ? 0 : my * height ),
-					opacity: show ? 1 : 0
-				}, options.duration || 500, options.easing, childComplete );
+					.addClass( "ui-effects-explode" )
+					.css( {
+						position: "absolute",
+						overflow: "hidden",
+						width: width,
+						height: height,
+						left: left + ( show ? mx * width : 0 ),
+						top: top + ( show ? my * height : 0 ),
+						opacity: show ? 0 : 1
+					} )
+					.animate( {
+						left: left + ( show ? 0 : mx * width ),
+						top: top + ( show ? 0 : my * height ),
+						opacity: show ? 1 : 0
+					}, options.duration || 500, options.easing, childComplete );
 		}
 	}
 

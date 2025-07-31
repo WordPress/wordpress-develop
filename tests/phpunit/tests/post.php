@@ -9,6 +9,8 @@ class Tests_Post extends WP_UnitTestCase {
 	protected static $editor_id;
 	protected static $grammarian_id;
 
+	private $post_ids = array();
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
 
@@ -156,7 +158,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		_unregister_post_type( $post_type );
 		$count = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( new stdClass, $count );
+		$this->assertEquals( new stdClass(), $count );
 	}
 
 	public function test_wp_count_posts_filtered() {
@@ -234,7 +236,7 @@ class Tests_Post extends WP_UnitTestCase {
 		register_post_status( 'test' );
 
 		$counts = wp_count_posts();
-		$this->assertObjectHasAttribute( 'test', $counts );
+		$this->assertObjectHasProperty( 'test', $counts );
 		$this->assertSame( 0, $counts->test );
 	}
 
@@ -267,6 +269,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$terms = get_terms( $tax );
 		$term  = reset( $terms );
 
+		$this->assertNotEmpty( $matches );
+		$this->assertNotEmpty( $matches[1] );
+
 		foreach ( $matches[1] as $url ) {
 			$this->assertStringContainsString( 'tag_ID=' . $term->term_id, $url );
 			$this->assertStringContainsString( 'post_type=new_post_type', $url );
@@ -283,7 +288,7 @@ class Tests_Post extends WP_UnitTestCase {
 			$this->markTestSkipped( 'This test is only useful with the utf8 character set.' );
 		}
 
-		require_once ABSPATH . '/wp-admin/includes/post.php';
+		require_once ABSPATH . 'wp-admin/includes/post.php';
 
 		$post_id = self::factory()->post->create();
 
@@ -300,6 +305,8 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_excerpt' => 'foo&#x1f610;bat',
 		);
 
+		wp_set_current_user( self::$editor_id );
+
 		edit_post( $data );
 
 		$post = get_post( $post_id );
@@ -310,19 +317,12 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * If a post is sticky and is updated by a user that does not have the publish_post capability,
-	 * it should _stay_ sticky.
+	 * If a sticky post is updated via `wp_update_post()` by a user
+	 * without the `publish_posts` capability, it should stay sticky.
 	 *
 	 * @ticket 24153
 	 */
-	public function test_user_without_publish_cannot_affect_sticky() {
-		wp_set_current_user( self::$grammarian_id );
-
-		// Sanity check.
-		$this->assertFalse( current_user_can( 'publish_posts' ) );
-		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
-		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
-
+	public function test_user_without_publish_posts_cannot_affect_sticky() {
 		// Create a sticky post.
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -332,8 +332,15 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		stick_post( $post->ID );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertTrue( is_sticky( $post->ID ) );
+
+		wp_set_current_user( self::$grammarian_id );
+
+		// Confidence check.
+		$this->assertFalse( current_user_can( 'publish_posts' ) );
+		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
+		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
 
 		// Edit the post.
 		$post->post_title   = 'Updated';
@@ -348,12 +355,12 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * If the `edit_post()` method is invoked by a user without publish_posts permission,
-	 * the sticky status of the post should not be changed.
+	 * If a sticky post is updated via `edit_post()` by a user
+	 * without the `publish_posts` capability, it should stay sticky.
 	 *
 	 * @ticket 24153
 	 */
-	public function test_user_without_publish_cannot_affect_sticky_with_edit_post() {
+	public function test_user_without_publish_posts_cannot_affect_sticky_with_edit_post() {
 		// Create a sticky post.
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -363,12 +370,12 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 		stick_post( $post->ID );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertTrue( is_sticky( $post->ID ) );
 
 		wp_set_current_user( self::$grammarian_id );
 
-		// Sanity check.
+		// Confidence check.
 		$this->assertFalse( current_user_can( 'publish_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_others_posts' ) );
 		$this->assertTrue( current_user_can( 'edit_published_posts' ) );
@@ -450,7 +457,7 @@ class Tests_Post extends WP_UnitTestCase {
 	public function test_pre_wp_unique_post_slug_filter() {
 		add_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'title'       => 'An example',
 				'post_status' => 'publish',
@@ -463,7 +470,7 @@ class Tests_Post extends WP_UnitTestCase {
 		remove_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
 	}
 
-	public function filter_pre_wp_unique_post_slug( $default, $slug, $post_ID, $post_status, $post_type, $post_parent ) {
+	public function filter_pre_wp_unique_post_slug( $override_slug, $slug, $post_id, $post_status, $post_type, $post_parent ) {
 		return 'override-slug-' . $post_type;
 	}
 
@@ -597,7 +604,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'1 int'     => array( 1 ),
 			'null'      => array( null ),
 			'true'      => array( true ),
-			'an object' => array( new stdClass ),
+			'an object' => array( new stdClass() ),
 		);
 	}
 
@@ -722,7 +729,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 */
 	public function test_use_block_editor_for_post() {
 		$this->assertFalse( use_block_editor_for_post( -1 ) );
-		$bogus_post_id = $this->factory()->post->create(
+		$bogus_post_id = self::factory()->post->create(
 			array(
 				'post_type' => 'bogus',
 			)
@@ -735,14 +742,14 @@ class Tests_Post extends WP_UnitTestCase {
 				'show_in_rest' => false,
 			)
 		);
-		$restless_post_id = $this->factory()->post->create(
+		$restless_post_id = self::factory()->post->create(
 			array(
 				'post_type' => 'restless',
 			)
 		);
 		$this->assertFalse( use_block_editor_for_post( $restless_post_id ) );
 
-		$generic_post_id = $this->factory()->post->create();
+		$generic_post_id = self::factory()->post->create();
 
 		add_filter( 'use_block_editor_for_post', '__return_false' );
 		$this->assertFalse( use_block_editor_for_post( $generic_post_id ) );

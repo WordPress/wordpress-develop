@@ -6,8 +6,8 @@
  */
 class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
-	private $png_cdn = 'https://s.w.org/images/core/emoji/14.0.0/72x72/';
-	private $svn_cdn = 'https://s.w.org/images/core/emoji/14.0.0/svg/';
+	private $png_cdn = 'https://s.w.org/images/core/emoji/16.0.1/72x72/';
+	private $svn_cdn = 'https://s.w.org/images/core/emoji/16.0.1/svg/';
 
 	/**
 	 * @ticket 36525
@@ -80,15 +80,20 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	 */
 	public function test_wp_emoji_list_returns_data() {
 		$default = _wp_emoji_list();
-		$this->assertNotEmpty( $default );
+		$this->assertNotEmpty( $default, 'Default should not be empty' );
 
 		$entities = _wp_emoji_list( 'entities' );
-		$this->assertNotEmpty( $entities );
-
-		$this->assertSame( $default, $entities );
+		$this->assertNotEmpty( $entities, 'Entities should not be empty' );
+		$this->assertIsArray( $entities, 'Entities should be an array' );
+		// Emoji 15 contains 3718 entities, this number will only increase.
+		$this->assertGreaterThanOrEqual( 3718, count( $entities ), 'Entities should contain at least 3718 items' );
+		$this->assertSame( $default, $entities, 'Entities should be returned by default' );
 
 		$partials = _wp_emoji_list( 'partials' );
-		$this->assertNotEmpty( $partials );
+		$this->assertNotEmpty( $partials, 'Partials should not be empty' );
+		$this->assertIsArray( $partials, 'Partials should be an array' );
+		// Emoji 15 contains 1424 partials, this number will only increase.
+		$this->assertGreaterThanOrEqual( 1424, count( $partials ), 'Partials should contain at least 1424 items' );
 
 		$this->assertNotSame( $default, $partials );
 	}
@@ -106,9 +111,9 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 				'&#x1f642;',
 			),
 			array(
-				// Skin tone, gender, ZWJ, emoji selector.
-				'👮🏼‍♀️',
-				'&#x1f46e;&#x1f3fc;&#x200d;&#x2640;&#xfe0f;',
+				// Bird, ZWJ, black large square, emoji selector.
+				'🐦‍⬛',
+				'&#x1f426;&#x200d;&#x2b1b;',
 			),
 			array(
 				// Unicode 10.

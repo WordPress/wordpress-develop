@@ -7,7 +7,7 @@
  */
 
 /**
- * Add a link to using values provided in $_POST.
+ * Adds a link using values provided in $_POST.
  *
  * @since 2.0.0
  *
@@ -34,7 +34,6 @@ function edit_link( $link_id = 0 ) {
 		);
 	}
 
-	$_POST['link_url']   = esc_html( $_POST['link_url'] );
 	$_POST['link_url']   = esc_url( $_POST['link_url'] );
 	$_POST['link_name']  = esc_html( $_POST['link_name'] );
 	$_POST['link_image'] = esc_html( $_POST['link_image'] );
@@ -59,7 +58,7 @@ function edit_link( $link_id = 0 ) {
  * @return stdClass Default link object.
  */
 function get_default_link_to_edit() {
-	$link = new stdClass;
+	$link = new stdClass();
 	if ( isset( $_GET['linkurl'] ) ) {
 		$link->link_url = esc_url( wp_unslash( $_GET['linkurl'] ) );
 	} else {
@@ -84,7 +83,7 @@ function get_default_link_to_edit() {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int $link_id ID of the link to delete
+ * @param int $link_id ID of the link to delete.
  * @return true Always true.
  */
 function wp_delete_link( $link_id ) {
@@ -216,6 +215,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 	$link_rss         = ( ! empty( $parsed_args['link_rss'] ) ) ? $parsed_args['link_rss'] : '';
 	$link_rel         = ( ! empty( $parsed_args['link_rel'] ) ) ? $parsed_args['link_rel'] : '';
 	$link_category    = ( ! empty( $parsed_args['link_category'] ) ) ? $parsed_args['link_category'] : array();
+	$link_updated     = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp', 0 ) );
 
 	// Make sure we set a valid category.
 	if ( ! is_array( $link_category ) || 0 === count( $link_category ) ) {
@@ -223,7 +223,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 	}
 
 	if ( $update ) {
-		if ( false === $wpdb->update( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss' ), compact( 'link_id' ) ) ) {
+		if ( false === $wpdb->update( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss', 'link_updated' ), compact( 'link_id' ) ) ) {
 			if ( $wp_error ) {
 				return new WP_Error( 'db_update_error', __( 'Could not update link in the database.' ), $wpdb->last_error );
 			} else {
@@ -231,7 +231,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 			}
 		}
 	} else {
-		if ( false === $wpdb->insert( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss' ) ) ) {
+		if ( false === $wpdb->insert( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss', 'link_updated' ) ) ) {
 			if ( $wp_error ) {
 				return new WP_Error( 'db_insert_error', __( 'Could not insert link into the database.' ), $wpdb->last_error );
 			} else {
@@ -268,7 +268,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 }
 
 /**
- * Update link with the specified link categories.
+ * Updates link with the specified link categories.
  *
  * @since 2.1.0
  *

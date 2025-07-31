@@ -4,12 +4,15 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
+
+	/**
+	 * @var WP_REST_Request
+	 */
+	private $request;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Load the WP_REST_Test_Controller class if not already loaded.
@@ -359,7 +362,6 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		// Ignored properties.
 		$this->assertArrayNotHasKey( 'ignored_prop', $args['someobject'] );
-
 	}
 
 	/**

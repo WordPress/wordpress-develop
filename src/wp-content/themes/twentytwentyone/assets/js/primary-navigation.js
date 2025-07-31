@@ -120,6 +120,19 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			};
 		}
 
+		// Add aria-controls attributes to primary sub-menu.
+		var subMenus = document.querySelectorAll( '.primary-menu-container .sub-menu' );
+		subMenus.forEach( function( subMenu, index ) {
+			var parentLi = subMenu.closest( 'li.menu-item-has-children' );
+			subMenu.id = 'sub-menu-' + ( index + 1 );
+			if ( parentLi ) {
+				var parentLink = parentLi.querySelector( 'button' );
+				if ( parentLink ) {
+					parentLink.setAttribute( 'aria-controls', subMenu.id );
+				}
+			}
+		} );
+
 		/**
 		 * Trap keyboard navigation in the menu modal.
 		 * Adapted from Twenty Twenty.
@@ -172,9 +185,9 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 		 *
 		 * @since Twenty Twenty-One 1.1
 		 */
-		document.addEventListener( 'click', function( event ) {
+		document.getElementById( 'site-navigation' ).addEventListener( 'click', function( event ) {
 			// If target onclick is <a> with # within the href attribute
-			if ( event.target.hash && event.target.hash.includes( '#' ) ) {
+			if ( event.target.hash ) {
 				wrapper.classList.remove( id + '-navigation-open', 'lock-scrolling' );
 				twentytwentyoneToggleAriaExpanded( mobileButton );
 				// Wait 550 and scroll to the anchor.
@@ -198,7 +211,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 		} );
 	};
 
-	window.addEventListener( 'load', function() {
+	document.addEventListener( 'DOMContentLoaded', function() {
 		new navMenu( 'primary' );
 	} );
 }() );

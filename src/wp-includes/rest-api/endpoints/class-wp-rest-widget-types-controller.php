@@ -85,9 +85,9 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 					'form_data' => array(
 						'description'       => __( 'Serialized widget form data to encode into instance settings.' ),
 						'type'              => 'string',
-						'sanitize_callback' => static function( $string ) {
+						'sanitize_callback' => static function ( $form_data ) {
 							$array = array();
-							wp_parse_str( $string, $array );
+							wp_parse_str( $form_data, $array );
 							return $array;
 						},
 					),
@@ -145,6 +145,11 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
+		}
+
 		$data = array();
 		foreach ( $this->get_widgets() as $widget ) {
 			$widget_type = $this->prepare_item_for_response( $widget, $request );
@@ -297,8 +302,15 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
 		$widget_type = $item;
-		$fields      = $this->get_fields_for_response( $request );
-		$data        = array(
+
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-widget-types-controller.php */
+			return apply_filters( 'rest_prepare_widget_type', new WP_REST_Response( array() ), $widget_type, $request );
+		}
+
+		$fields = $this->get_fields_for_response( $request );
+		$data   = array(
 			'id' => $widget_type['id'],
 		);
 
@@ -464,8 +476,10 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Set the widget's number so that the id attributes in the HTML that we
-		// return are predictable.
+		/*
+		 * Set the widget's number so that the id attributes in the HTML that we
+		 * return are predictable.
+		 */
 		if ( isset( $request['number'] ) && is_numeric( $request['number'] ) ) {
 			$widget_object->_set( (int) $request['number'] );
 		} else {
@@ -529,7 +543,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $widget_object->widget_options['show_instance_in_rest'] ) ) {
 			// Use new stdClass so that JSON result is {} and not [].
-			$response['instance']['raw'] = empty( $instance ) ? new stdClass : $instance;
+			$response['instance']['raw'] = empty( $instance ) ? new stdClass() : $instance;
 		}
 
 		return rest_ensure_response( $response );

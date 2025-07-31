@@ -81,43 +81,29 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 * @since 6.0.0 Added 'slug' to request.
+	 * @since 6.2.0 Added 'per_page', 'page', 'offset', 'order', and 'orderby' to request.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		/*
-		 * Include an unmodified `$wp_version`, so the API can craft a response that's tailored to
-		 * it. Some plugins modify the version in a misguided attempt to improve security by
-		 * obscuring the version, which can cause invalid requests.
-		 */
-		require ABSPATH . WPINC . '/version.php';
-
-		$query_args = array(
-			'locale'     => get_user_locale(),
-			'wp-version' => $wp_version,
+		$valid_query_args = array(
+			'offset'   => true,
+			'order'    => true,
+			'orderby'  => true,
+			'page'     => true,
+			'per_page' => true,
+			'search'   => true,
+			'slug'     => true,
 		);
+		$query_args       = array_intersect_key( $request->get_params(), $valid_query_args );
 
-		$category_id = $request['category'];
-		$keyword_id  = $request['keyword'];
-		$search_term = $request['search'];
-		$slug        = $request['slug'];
+		$query_args['locale']             = get_user_locale();
+		$query_args['wp-version']         = wp_get_wp_version();
+		$query_args['pattern-categories'] = isset( $request['category'] ) ? $request['category'] : false;
+		$query_args['pattern-keywords']   = isset( $request['keyword'] ) ? $request['keyword'] : false;
 
-		if ( $category_id ) {
-			$query_args['pattern-categories'] = $category_id;
-		}
-
-		if ( $keyword_id ) {
-			$query_args['pattern-keywords'] = $keyword_id;
-		}
-
-		if ( $search_term ) {
-			$query_args['search'] = $search_term;
-		}
-
-		if ( $slug ) {
-			$query_args['slug'] = $slug;
-		}
+		$query_args = array_filter( $query_args );
 
 		$transient_key = $this->get_transient_key( $query_args );
 
@@ -175,6 +161,11 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			return $raw_patterns;
 		}
 
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
+		}
+
 		$response = array();
 
 		if ( $raw_patterns ) {
@@ -200,7 +191,8 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$raw_pattern      = $item;
+		$raw_pattern = $item;
+
 		$prepared_pattern = array(
 			'id'             => absint( $raw_pattern->id ),
 			'title'          => sanitize_text_field( $raw_pattern->title->rendered ),
@@ -209,6 +201,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			'keywords'       => array_map( 'sanitize_text_field', explode( ',', $raw_pattern->meta->wpop_keywords ) ),
 			'description'    => sanitize_text_field( $raw_pattern->meta->wpop_description ),
 			'viewport_width' => absint( $raw_pattern->meta->wpop_viewport_width ),
+			'block_types'    => array_map( 'sanitize_text_field', $raw_pattern->meta->wpop_block_types ),
 		);
 
 		$prepared_pattern = $this->add_additional_fields_to_object( $prepared_pattern, $request );
@@ -231,6 +224,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * Retrieves the block pattern's schema, conforming to JSON Schema.
 	 *
 	 * @since 5.8.0
+	 * @since 6.2.0 Added `'block_types'` to schema.
 	 *
 	 * @return array Item schema data.
 	 */
@@ -293,6 +287,14 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 				),
+
+				'block_types'    => array(
+					'description' => __( 'The block types which can use this pattern.' ),
+					'type'        => 'array',
+					'uniqueItems' => true,
+					'items'       => array( 'type' => 'string' ),
+					'context'     => array( 'view', 'embed' ),
+				),
 			),
 		);
 
@@ -303,16 +305,14 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * Retrieves the search parameters for the block pattern's collection.
 	 *
 	 * @since 5.8.0
+	 * @since 6.2.0 Added 'per_page', 'page', 'offset', 'order', and 'orderby' to request.
 	 *
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
 
-		// Pagination is not supported.
-		unset( $query_params['page'] );
-		unset( $query_params['per_page'] );
-
+		$query_params['per_page']['default'] = 100;
 		$query_params['search']['minLength'] = 1;
 		$query_params['context']['default']  = 'view';
 
@@ -333,6 +333,37 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			'type'        => 'array',
 		);
 
+		$query_params['offset'] = array(
+			'description' => __( 'Offset the result set by a specific number of items.' ),
+			'type'        => 'integer',
+		);
+
+		$query_params['order'] = array(
+			'description' => __( 'Order sort attribute ascending or descending.' ),
+			'type'        => 'string',
+			'default'     => 'desc',
+			'enum'        => array( 'asc', 'desc' ),
+		);
+
+		$query_params['orderby'] = array(
+			'description' => __( 'Sort collection by post attribute.' ),
+			'type'        => 'string',
+			'default'     => 'date',
+			'enum'        => array(
+				'author',
+				'date',
+				'id',
+				'include',
+				'modified',
+				'parent',
+				'relevance',
+				'slug',
+				'include_slugs',
+				'title',
+				'favorite_count',
+			),
+		);
+
 		/**
 		 * Filter collection parameters for the block pattern directory controller.
 		 *
@@ -343,7 +374,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 		return apply_filters( 'rest_pattern_directory_collection_params', $query_params );
 	}
 
-	/*
+	/**
 	 * Include a hash of the query args, so that different requests are stored in
 	 * separate caches.
 	 *

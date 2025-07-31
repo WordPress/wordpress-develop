@@ -14,11 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * @global string       $post_type
- * @global WP_Post_Type $post_type_object
+ * @global string       $post_type        Global post type.
+ * @global WP_Post_Type $post_type_object Global post type object.
  * @global WP_Post      $post             Global post object.
- * @global string       $title
- * @global array        $wp_meta_boxes
+ * @global string       $title            The title of the current screen.
+ * @global array        $wp_meta_boxes    Global meta box state.
  */
 global $post_type, $post_type_object, $post, $title, $wp_meta_boxes;
 
@@ -31,7 +31,7 @@ $current_screen->is_block_editor( true );
 // Default to is-fullscreen-mode to avoid jumps in the UI.
 add_filter(
 	'admin_body_class',
-	static function( $classes ) {
+	static function ( $classes ) {
 		return "$classes is-fullscreen-mode";
 	}
 );
@@ -51,25 +51,64 @@ wp_enqueue_script( 'wp-edit-post' );
 
 $rest_path = rest_get_route_for_post( $post );
 
+$active_theme                   = get_stylesheet();
+$global_styles_endpoint_context = current_user_can( 'edit_theme_options' ) ? 'edit' : 'view';
+$template_lookup_slug           = 'page' === $post->post_type ? 'page' : 'single-' . $post->post_type;
+if ( ! empty( $post->post_name ) ) {
+	$template_lookup_slug .= '-' . $post->post_name;
+}
 // Preload common data.
 $preload_paths = array(
 	'/wp/v2/types?context=view',
 	'/wp/v2/taxonomies?context=view',
-	add_query_arg(
-		array(
-			'context'  => 'edit',
-			'per_page' => -1,
-		),
-		rest_get_route_for_post_type_items( 'wp_block' )
-	),
 	add_query_arg( 'context', 'edit', $rest_path ),
 	sprintf( '/wp/v2/types/%s?context=edit', $post_type ),
 	'/wp/v2/users/me',
 	array( rest_get_route_for_post_type_items( 'attachment' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'page' ), 'OPTIONS' ),
 	array( rest_get_route_for_post_type_items( 'wp_block' ), 'OPTIONS' ),
+	array( rest_get_route_for_post_type_items( 'wp_template' ), 'OPTIONS' ),
 	sprintf( '%s/autosaves?context=edit', $rest_path ),
 	'/wp/v2/settings',
+	array( '/wp/v2/settings', 'OPTIONS' ),
+	'/wp/v2/global-styles/themes/' . $active_theme . '?context=view',
+	'/wp/v2/global-styles/themes/' . $active_theme . '/variations?context=view',
+	'/wp/v2/themes?context=edit&status=active',
+	array( '/wp/v2/global-styles/' . WP_Theme_JSON_Resolver::get_user_global_styles_post_id(), 'OPTIONS' ),
+	/*
+	 * Preload the global styles path with the correct context based on user caps.
+	 * NOTE: There is an equivalent conditional check in the client-side code to fetch
+	 * the global styles entity using the appropriate context value.
+	 * See the call to `canUser()`, under `useGlobalStylesUserConfig()` in `packages/edit-site/src/components/use-global-styles-user-config/index.js`.
+	 * Please ensure that the equivalent check is kept in sync with this preload path.
+	 */
+	'/wp/v2/global-styles/' . WP_Theme_JSON_Resolver::get_user_global_styles_post_id() . '?context=' . $global_styles_endpoint_context,
+	// Used by getBlockPatternCategories in useBlockEditorSettings.
+	'/wp/v2/block-patterns/categories',
+	// @see packages/core-data/src/entities.js
+	'/?_fields=' . implode(
+		',',
+		array(
+			'description',
+			'gmt_offset',
+			'home',
+			'name',
+			'site_icon',
+			'site_icon_url',
+			'site_logo',
+			'timezone_string',
+			'url',
+			'page_for_posts',
+			'page_on_front',
+			'show_on_front',
+		)
+	),
+	$paths[] = add_query_arg(
+		'slug',
+		// @see https://github.com/WordPress/gutenberg/blob/e093fefd041eb6cc4a4e7f67b92ab54fd75c8858/packages/core-data/src/private-selectors.ts#L244-L254
+		$template_lookup_slug,
+		'/wp/v2/templates/lookup'
+	),
 );
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
@@ -108,6 +147,24 @@ wp_add_inline_script(
 	'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . ');'
 );
 
+// Preload server-registered block bindings sources.
+$registered_sources = get_all_registered_block_bindings_sources();
+if ( ! empty( $registered_sources ) ) {
+	$filtered_sources = array();
+	foreach ( $registered_sources as $source ) {
+		$filtered_sources[] = array(
+			'name'        => $source->name,
+			'label'       => $source->label,
+			'usesContext' => $source->uses_context,
+		);
+	}
+	$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources ) );
+	wp_add_inline_script(
+		'wp-blocks',
+		$script
+	);
+}
+
 // Get admin url for handling meta boxes.
 $meta_box_url = admin_url( 'post.php' );
 $meta_box_url = add_query_arg(
@@ -123,6 +180,15 @@ wp_add_inline_script(
 	'wp-editor',
 	sprintf( 'var _wpMetaBoxUrl = %s;', wp_json_encode( $meta_box_url ) ),
 	'before'
+);
+
+// Set Heartbeat interval to 10 seconds, used to refresh post locks.
+wp_add_inline_script(
+	'heartbeat',
+	'jQuery( function() {
+		wp.heartbeat.interval( 10 );
+	} );',
+	'after'
 );
 
 /*
@@ -154,9 +220,12 @@ if ( $user_id ) {
 	if ( $locked ) {
 		$user         = get_userdata( $user_id );
 		$user_details = array(
-			'avatar' => get_avatar_url( $user_id, array( 'size' => 128 ) ),
-			'name'   => $user->display_name,
+			'name' => $user->display_name,
 		);
+
+		if ( get_option( 'show_avatars' ) ) {
+			$user_details['avatar'] = get_avatar_url( $user_id, array( 'size' => 128 ) );
+		}
 	}
 
 	$lock_details = array(
@@ -201,7 +270,7 @@ $editor_settings = array(
 		'unlockNonce' => wp_create_nonce( 'update-post_' . $post->ID ),
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
-	'supportsLayout'       => WP_Theme_JSON_Resolver::theme_has_support(),
+	'supportsLayout'       => wp_theme_has_theme_json(),
 	'supportsTemplateMode' => current_theme_supports( 'block-templates' ),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta
@@ -269,7 +338,7 @@ wp_enqueue_style( 'wp-edit-post' );
  */
 do_action( 'enqueue_block_editor_assets' );
 
-// In order to duplicate classic meta box behaviour, we need to run the classic meta box actions.
+// In order to duplicate classic meta box behavior, we need to run the classic meta box actions.
 require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
 register_and_do_post_meta_boxes( $post );
 
@@ -317,27 +386,45 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php // JavaScript is disabled. ?>
 	<div class="wrap hide-if-js block-editor-no-js">
 		<h1 class="wp-heading-inline"><?php echo esc_html( $title ); ?></h1>
-		<div class="notice notice-error notice-alt">
-			<p>
-				<?php
-					$message = sprintf(
-						/* translators: %s: A link to install the Classic Editor plugin. */
-						__( 'The block editor requires JavaScript. Please enable JavaScript in your browser settings, or try the <a href="%s">Classic Editor plugin</a>.' ),
-						esc_url( wp_nonce_url( self_admin_url( 'plugin-install.php?tab=favorites&user=wordpressdotorg&save=0' ), 'save_wporg_username_' . get_current_user_id() ) )
-					);
+		<?php
+		if ( file_exists( WP_PLUGIN_DIR . '/classic-editor/classic-editor.php' ) ) {
+			// If Classic Editor is already installed, provide a link to activate the plugin.
+			$installed           = true;
+			$plugin_activate_url = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=classic-editor/classic-editor.php', 'activate-plugin_classic-editor/classic-editor.php' );
+			$message             = sprintf(
+				/* translators: %s: Link to activate the Classic Editor plugin. */
+				__( 'The block editor requires JavaScript. Please enable JavaScript in your browser settings, or activate the <a href="%s">Classic Editor plugin</a>.' ),
+				esc_url( $plugin_activate_url )
+			);
+		} else {
+			// If Classic Editor is not installed, provide a link to install it.
+			$installed          = false;
+			$plugin_install_url = wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=classic-editor' ), 'install-plugin_classic-editor' );
+			$message            = sprintf(
+				/* translators: %s: Link to install the Classic Editor plugin. */
+				__( 'The block editor requires JavaScript. Please enable JavaScript in your browser settings, or install the <a href="%s">Classic Editor plugin</a>.' ),
+				esc_url( $plugin_install_url )
+			);
+		}
 
-					/**
-					 * Filters the message displayed in the block editor interface when JavaScript is
-					 * not enabled in the browser.
-					 *
-					 * @since 5.0.3
-					 *
-					 * @param string  $message The message being displayed.
-					 * @param WP_Post $post    The post being edited.
-					 */
-					echo apply_filters( 'block_editor_no_javascript_message', $message, $post );
-					?>
-			</p>
-		</div>
+		/**
+		 * Filters the message displayed in the block editor interface when JavaScript is
+		 * not enabled in the browser.
+		 *
+		 * @since 5.0.3
+		 * @since 6.4.0 Added `$installed` parameter.
+		 *
+		 * @param string  $message   The message being displayed.
+		 * @param WP_Post $post      The post being edited.
+		 * @param bool    $installed Whether the classic editor is installed.
+		 */
+		$message = apply_filters( 'block_editor_no_javascript_message', $message, $post, $installed );
+		wp_admin_notice(
+			$message,
+			array(
+				'type' => 'error',
+			)
+		);
+		?>
 	</div>
 </div>

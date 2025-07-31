@@ -23,24 +23,40 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	public $setting;
 
 	/**
+	 * The user ID to use for the tests.
+	 *
+	 * @var int
+	 */
+	public static $user_id = 0;
+
+	/**
 	 * Set up the test case.
 	 *
-	 * @see WP_UnitTestCase::setup()
+	 * @see WP_UnitTestCase::set_up()
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Create a user to use for the tests.
+		self::$user_id = $factory->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$user_id );
+		}
+	}
+
+	/**
+	 * Set up the test case.
+	 *
+	 * @see WP_UnitTestCase_Base::set_up()
 	 */
 	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
-		$user_id = self::factory()->user->create(
-			array(
-				'role' => 'administrator',
-			)
-		);
-		if ( is_multisite() ) {
-			grant_super_admin( $user_id );
-		}
-
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$user_id );
 
 		global $wp_customize;
 		$this->wp_customize = new WP_Customize_Manager();
@@ -120,7 +136,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		$this->assertNull( wp_get_custom_css_post( 'twentyten' ) );
 
 		$original_css      = 'body { color: black; }';
-		$post_id           = $this->factory()->post->create(
+		$post_id           = self::factory()->post->create(
 			array(
 				'post_title'   => $this->setting->stylesheet,
 				'post_name'    => $this->setting->stylesheet,
@@ -130,7 +146,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 			)
 		);
 		$twentyten_css     = 'body { color: red; }';
-		$twentyten_post_id = $this->factory()->post->create(
+		$twentyten_post_id = self::factory()->post->create(
 			array(
 				'post_title'   => 'twentyten',
 				'post_name'    => 'twentyten',
@@ -273,7 +289,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		$this->setting->default = '/*default*/';
 		$this->assertSame( '/*default*//*filtered*/', $this->setting->value() );
 
-		$this->factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'   => $this->setting->stylesheet,
 				'post_name'    => $this->setting->stylesheet,
@@ -310,7 +326,7 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 */
 	public function test_update_filter() {
 		$original_css = 'body { color:red; }';
-		$post_id      = $this->factory()->post->create(
+		$post_id      = self::factory()->post->create(
 			array(
 				'post_title'   => $this->setting->stylesheet,
 				'post_name'    => $this->setting->stylesheet,

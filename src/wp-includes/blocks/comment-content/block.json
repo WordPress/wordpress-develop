@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"name": "core/comment-content",
 	"title": "Comment Content",
 	"category": "theme",
@@ -29,7 +29,23 @@
 			"__experimentalFontWeight": true,
 			"__experimentalFontStyle": true,
 			"__experimentalTextTransform": true,
-			"__experimentalLetterSpacing": true
+			"__experimentalTextDecoration": true,
+			"__experimentalLetterSpacing": true,
+			"__experimentalDefaultControls": {
+				"fontSize": true
+			}
+		},
+		"__experimentalBorder": {
+			"radius": true,
+			"color": true,
+			"width": true,
+			"style": true,
+			"__experimentalDefaultControls": {
+				"radius": true,
+				"color": true,
+				"width": true,
+				"style": true
+			}
 		},
 		"spacing": {
 			"padding": [ "horizontal", "vertical" ],
@@ -38,5 +54,6 @@
 			}
 		},
 		"html": false
-	}
+	},
+	"style": "wp-block-comment-content"
 }

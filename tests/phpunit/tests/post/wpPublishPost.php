@@ -142,7 +142,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 	 */
 	public function test_wp_publish_post_respects_current_categories() {
 		$post_id     = self::$auto_draft_id;
-		$category_id = $this->factory->term->create( array( 'taxonomy' => 'category' ) );
+		$category_id = self::factory()->term->create( array( 'taxonomy' => 'category' ) );
 		wp_set_post_categories( $post_id, $category_id );
 		wp_publish_post( $post_id );
 
@@ -183,7 +183,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 	 */
 	public function test_wp_publish_post_adds_default_category_when_tagged() {
 		$post_id = self::$auto_draft_id;
-		$tag_id  = $this->factory->term->create( array( 'taxonomy' => 'post_tag' ) );
+		$tag_id  = self::factory()->term->create( array( 'taxonomy' => 'post_tag' ) );
 		wp_set_post_tags( $post_id, array( $tag_id ) );
 		wp_publish_post( $post_id );
 
@@ -218,7 +218,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 		);
 
 		$post_id = self::$auto_draft_id;
-		$term_id = $this->factory->term->create( array( 'taxonomy' => 'tax_51292' ) );
+		$term_id = self::factory()->term->create( array( 'taxonomy' => 'tax_51292' ) );
 		wp_set_object_terms( $post_id, array( $term_id ), 'tax_51292' );
 		wp_publish_post( $post_id );
 

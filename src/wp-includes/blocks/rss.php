@@ -8,6 +8,8 @@
 /**
  * Renders the `core/rss` block on server.
  *
+ * @since 5.2.0
+ *
  * @param array $attributes The block attributes.
  *
  * @return string Returns the block content with received rss items.
@@ -20,7 +22,7 @@ function render_block_core_rss( $attributes ) {
 	$rss = fetch_feed( $attributes['feedURL'] );
 
 	if ( is_wp_error( $rss ) ) {
-		return '<div class="components-placeholder"><div class="notice notice-error"><strong>' . __( 'RSS Error:' ) . '</strong> ' . $rss->get_error_message() . '</div></div>';
+		return '<div class="components-placeholder"><div class="notice notice-error"><strong>' . __( 'RSS Error:' ) . '</strong> ' . esc_html( $rss->get_error_message() ) . '</div></div>';
 	}
 
 	if ( ! $rss->get_item_quantity() ) {
@@ -48,8 +50,8 @@ function render_block_core_rss( $attributes ) {
 			if ( $date ) {
 				$date = sprintf(
 					'<time datetime="%1$s" class="wp-block-rss__item-publish-date">%2$s</time> ',
-					date_i18n( get_option( 'c' ), $date ),
-					date_i18n( get_option( 'date_format' ), $date )
+					esc_attr( date_i18n( 'c', $date ) ),
+					esc_attr( date_i18n( get_option( 'date_format' ), $date ) )
 				);
 			}
 		}
@@ -59,17 +61,20 @@ function render_block_core_rss( $attributes ) {
 			$author = $item->get_author();
 			if ( is_object( $author ) ) {
 				$author = $author->get_name();
-				$author = '<span class="wp-block-rss__item-author">' . sprintf(
-					/* translators: %s: the author. */
-					__( 'by %s' ),
-					esc_html( strip_tags( $author ) )
-				) . '</span>';
+				if ( ! empty( $author ) ) {
+					$author = '<span class="wp-block-rss__item-author">' . sprintf(
+						/* translators: byline. %s: author. */
+						__( 'by %s' ),
+						esc_html( strip_tags( $author ) )
+					) . '</span>';
+				}
 			}
 		}
 
-		$excerpt = '';
-		if ( $attributes['displayExcerpt'] ) {
-			$excerpt = html_entity_decode( $item->get_description(), ENT_QUOTES, get_option( 'blog_charset' ) );
+		$excerpt     = '';
+		$description = $item->get_description();
+		if ( $attributes['displayExcerpt'] && ! empty( $description ) ) {
+			$excerpt = html_entity_decode( $description, ENT_QUOTES, get_option( 'blog_charset' ) );
 			$excerpt = esc_attr( wp_trim_words( $excerpt, $attributes['excerptLength'], ' [&hellip;]' ) );
 
 			// Change existing [...] to [&hellip;].
@@ -107,6 +112,8 @@ function render_block_core_rss( $attributes ) {
 
 /**
  * Registers the `core/rss` block on server.
+ *
+ * @since 5.2.0
  */
 function register_block_core_rss() {
 	register_block_type_from_metadata(

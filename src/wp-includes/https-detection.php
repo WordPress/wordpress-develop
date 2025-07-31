@@ -49,9 +49,11 @@ function wp_is_home_url_using_https() {
  * @return bool True if using HTTPS, false otherwise.
  */
 function wp_is_site_url_using_https() {
-	// Use direct option access for 'siteurl' and manually run the 'site_url'
-	// filter because `site_url()` will adjust the scheme based on what the
-	// current request is using.
+	/*
+	 * Use direct option access for 'siteurl' and manually run the 'site_url'
+	 * filter because `site_url()` will adjust the scheme based on what the
+	 * current request is using.
+	 */
 	/** This filter is documented in wp-includes/link-template.php */
 	$site_url = apply_filters( 'site_url', get_option( 'siteurl' ), '', null, null );
 
@@ -61,48 +63,49 @@ function wp_is_site_url_using_https() {
 /**
  * Checks whether HTTPS is supported for the server and domain.
  *
+ * This function makes an HTTP request through `wp_get_https_detection_errors()`
+ * to check for HTTPS support. As this process can be resource-intensive,
+ * it should be used cautiously, especially in performance-sensitive environments,
+ * to avoid potential latency issues.
+ *
  * @since 5.7.0
  *
  * @return bool True if HTTPS is supported, false otherwise.
  */
 function wp_is_https_supported() {
-	$https_detection_errors = get_option( 'https_detection_errors' );
+	$https_detection_errors = wp_get_https_detection_errors();
 
-	// If option has never been set by the Cron hook before, run it on-the-fly as fallback.
-	if ( false === $https_detection_errors ) {
-		wp_update_https_detection_errors();
-
-		$https_detection_errors = get_option( 'https_detection_errors' );
-	}
-
-	// If there are no detection errors, HTTPS is supported.
+	// If there are errors, HTTPS is not supported.
 	return empty( $https_detection_errors );
 }
 
 /**
  * Runs a remote HTTPS request to detect whether HTTPS supported, and stores potential errors.
  *
- * This internal function is called by a regular Cron hook to ensure HTTPS support is detected and maintained.
+ * This function checks for HTTPS support by making an HTTP request. As this process can be resource-intensive,
+ * it should be used cautiously, especially in performance-sensitive environments.
+ * It is called when HTTPS support needs to be validated.
  *
- * @since 5.7.0
+ * @since 6.4.0
  * @access private
+ *
+ * @return array An array containing potential detection errors related to HTTPS, or an empty array if no errors are found.
  */
-function wp_update_https_detection_errors() {
+function wp_get_https_detection_errors() {
 	/**
 	 * Short-circuits the process of detecting errors related to HTTPS support.
 	 *
 	 * Returning a `WP_Error` from the filter will effectively short-circuit the default logic of trying a remote
 	 * request to the site over HTTPS, storing the errors array from the returned `WP_Error` instead.
 	 *
-	 * @since 5.7.0
+	 * @since 6.4.0
 	 *
 	 * @param null|WP_Error $pre Error object to short-circuit detection,
 	 *                           or null to continue with the default behavior.
 	 */
-	$support_errors = apply_filters( 'pre_wp_update_https_detection_errors', null );
+	$support_errors = apply_filters( 'pre_wp_get_https_detection_errors', null );
 	if ( is_wp_error( $support_errors ) ) {
-		update_option( 'https_detection_errors', $support_errors->errors );
-		return;
+		return $support_errors->errors;
 	}
 
 	$support_errors = new WP_Error();
@@ -151,41 +154,7 @@ function wp_update_https_detection_errors() {
 		}
 	}
 
-	update_option( 'https_detection_errors', $support_errors->errors );
-}
-
-/**
- * Schedules the Cron hook for detecting HTTPS support.
- *
- * @since 5.7.0
- * @access private
- */
-function wp_schedule_https_detection() {
-	if ( wp_installing() ) {
-		return;
-	}
-
-	if ( ! wp_next_scheduled( 'wp_https_detection' ) ) {
-		wp_schedule_event( time(), 'twicedaily', 'wp_https_detection' );
-	}
-}
-
-/**
- * Disables SSL verification if the 'cron_request' arguments include an HTTPS URL.
- *
- * This prevents an issue if HTTPS breaks, where there would be a failed attempt to verify HTTPS.
- *
- * @since 5.7.0
- * @access private
- *
- * @param array $request The cron request arguments.
- * @return array The filtered cron request arguments.
- */
-function wp_cron_conditionally_prevent_sslverify( $request ) {
-	if ( 'https' === wp_parse_url( $request['url'], PHP_URL_SCHEME ) ) {
-		$request['args']['sslverify'] = false;
-	}
-	return $request;
+	return $support_errors->errors;
 }
 
 /**
@@ -205,21 +174,14 @@ function wp_is_local_html_output( $html ) {
 	// 1. Check if HTML includes the site's Really Simple Discovery link.
 	if ( has_action( 'wp_head', 'rsd_link' ) ) {
 		$pattern = preg_replace( '#^https?:(?=//)#', '', esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) ) ); // See rsd_link().
-		return false !== strpos( $html, $pattern );
+		return str_contains( $html, $pattern );
 	}
 
-	// 2. Check if HTML includes the site's Windows Live Writer manifest link.
-	if ( has_action( 'wp_head', 'wlwmanifest_link' ) ) {
-		// Try both HTTPS and HTTP since the URL depends on context.
-		$pattern = preg_replace( '#^https?:(?=//)#', '', includes_url( 'wlwmanifest.xml' ) ); // See wlwmanifest_link().
-		return false !== strpos( $html, $pattern );
-	}
-
-	// 3. Check if HTML includes the site's REST API link.
+	// 2. Check if HTML includes the site's REST API link.
 	if ( has_action( 'wp_head', 'rest_output_link_wp_head' ) ) {
 		// Try both HTTPS and HTTP since the URL depends on context.
 		$pattern = preg_replace( '#^https?:(?=//)#', '', esc_url( get_rest_url() ) ); // See rest_output_link_wp_head().
-		return false !== strpos( $html, $pattern );
+		return str_contains( $html, $pattern );
 	}
 
 	// Otherwise the result cannot be determined.

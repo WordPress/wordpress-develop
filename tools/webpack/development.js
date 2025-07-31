@@ -35,7 +35,7 @@ module.exports = function( env = { environment: 'production', buildTarget: false
 				'@pmmmwh/react-refresh-webpack-plugin/client/ReactRefreshEntry.js',
 			},
 			plugins: [ new DependencyExtractionWebpackPlugin( {
-				outputFilename: '../../../assets/script-loader-[name].php',
+				outputFilename: `../../../assets/script-loader-[name]${ suffix }.php`,
 			} ) ],
 		},
 		{
@@ -43,7 +43,7 @@ module.exports = function( env = { environment: 'production', buildTarget: false
 			name: 'react-refresh-runtime',
 			entry: {
 				'react-refresh-runtime': {
-					import: 'react-refresh/runtime.js',
+					import: 'react-refresh/runtime',
 					library: {
 						name: 'ReactRefreshRuntime',
 						type: 'window',
@@ -53,7 +53,7 @@ module.exports = function( env = { environment: 'production', buildTarget: false
 			plugins: [
 				new DependencyExtractionWebpackPlugin( {
 					useDefaults: false,
-					outputFilename: '../../../assets/script-loader-[name].php'
+					outputFilename: `../../../assets/script-loader-[name]${ suffix }.php`
 				} ),
 			],
 		},

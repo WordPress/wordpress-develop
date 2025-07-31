@@ -25,6 +25,14 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	private $parent_post_type;
 
 	/**
+	 * Instance of a revision meta fields object.
+	 *
+	 * @since 6.4.0
+	 * @var WP_REST_Post_Meta_Fields
+	 */
+	protected $meta;
+
+	/**
 	 * Parent controller.
 	 *
 	 * @since 4.7.0
@@ -48,16 +56,19 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @param string $parent_post_type Post type of the parent.
 	 */
 	public function __construct( $parent_post_type ) {
-		$this->parent_post_type  = $parent_post_type;
+		$this->parent_post_type = $parent_post_type;
+		$post_type_object       = get_post_type_object( $parent_post_type );
+		$parent_controller      = $post_type_object->get_rest_controller();
+
+		if ( ! $parent_controller ) {
+			$parent_controller = new WP_REST_Posts_Controller( $parent_post_type );
+		}
+
+		$this->parent_controller = $parent_controller;
 		$this->rest_base         = 'revisions';
-		$post_type_object        = get_post_type_object( $parent_post_type );
 		$this->parent_base       = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 		$this->namespace         = ! empty( $post_type_object->rest_namespace ) ? $post_type_object->rest_namespace : 'wp/v2';
-		$this->parent_controller = $post_type_object->get_rest_controller();
-
-		if ( ! $this->parent_controller ) {
-			$this->parent_controller = new WP_REST_Posts_Controller( $parent_post_type );
-		}
+		$this->meta              = new WP_REST_Post_Meta_Fields( $parent_post_type );
 	}
 
 	/**
@@ -126,7 +137,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
-
 	}
 
 	/**
@@ -134,25 +144,29 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.2
 	 *
-	 * @param int $parent Supplied ID.
+	 * @param int $parent_post_id Supplied ID.
 	 * @return WP_Post|WP_Error Post object if ID is valid, WP_Error otherwise.
 	 */
-	protected function get_parent( $parent ) {
+	protected function get_parent( $parent_post_id ) {
 		$error = new WP_Error(
 			'rest_post_invalid_parent',
 			__( 'Invalid post parent ID.' ),
 			array( 'status' => 404 )
 		);
-		if ( (int) $parent <= 0 ) {
+
+		if ( (int) $parent_post_id <= 0 ) {
 			return $error;
 		}
 
-		$parent = get_post( (int) $parent );
-		if ( empty( $parent ) || empty( $parent->ID ) || $this->parent_post_type !== $parent->post_type ) {
+		$parent_post = get_post( (int) $parent_post_id );
+
+		if ( empty( $parent_post ) || empty( $parent_post->ID )
+			|| $this->parent_post_type !== $parent_post->post_type
+		) {
 			return $error;
 		}
 
-		return $parent;
+		return $parent_post;
 	}
 
 	/**
@@ -239,6 +253,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			);
 		}
 
+		$is_head_request = $request->is_method( 'HEAD' );
+
 		if ( wp_revisions_enabled( $parent ) ) {
 			$registered = $this->get_collection_params();
 			$args       = array(
@@ -273,6 +289,14 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				$args['orderby'] = 'date ID';
 			}
 
+			if ( $is_head_request ) {
+				// Force the 'fields' argument. For HEAD requests, only post IDs are required to calculate pagination.
+				$args['fields'] = 'ids';
+				// Disable priming post meta for HEAD requests to improve performance.
+				$args['update_post_term_cache'] = false;
+				$args['update_post_meta_cache'] = false;
+			}
+
 			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 			$args       = apply_filters( 'rest_revision_query', $args, $request );
 			$query_args = $this->prepare_items_query( $args, $request );
@@ -280,7 +304,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$revisions_query = new WP_Query();
 			$revisions       = $revisions_query->query( $query_args );
 			$offset          = isset( $query_args['offset'] ) ? (int) $query_args['offset'] : 0;
-			$page            = (int) $query_args['paged'];
+			$page            = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
 			$total_revisions = $revisions_query->found_posts;
 
 			if ( $total_revisions < 1 ) {
@@ -294,7 +318,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			}
 
 			if ( $revisions_query->query_vars['posts_per_page'] > 0 ) {
-				$max_pages = ceil( $total_revisions / (int) $revisions_query->query_vars['posts_per_page'] );
+				$max_pages = (int) ceil( $total_revisions / (int) $revisions_query->query_vars['posts_per_page'] );
 			} else {
 				$max_pages = $total_revisions > 0 ? 1 : 0;
 			}
@@ -321,20 +345,25 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$page            = (int) $request['page'];
 		}
 
-		$response = array();
+		if ( ! $is_head_request ) {
+			$response = array();
 
-		foreach ( $revisions as $revision ) {
-			$data       = $this->prepare_item_for_response( $revision, $request );
-			$response[] = $this->prepare_response_for_collection( $data );
+			foreach ( $revisions as $revision ) {
+				$data       = $this->prepare_item_for_response( $revision, $request );
+				$response[] = $this->prepare_response_for_collection( $data );
+			}
+
+			$response = rest_ensure_response( $response );
+		} else {
+			$response = new WP_REST_Response( array() );
 		}
-
-		$response = rest_ensure_response( $response );
 
 		$response->header( 'X-WP-Total', (int) $total_revisions );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
 		$request_params = $request->get_query_params();
-		$base           = add_query_arg( urlencode_deep( $request_params ), rest_url( sprintf( '%s/%s/%d/%s', $this->namespace, $this->parent_base, $request['parent'], $this->rest_base ) ) );
+		$base_path      = rest_url( sprintf( '%s/%s/%d/%s', $this->namespace, $this->parent_base, $request['parent'], $this->rest_base ) );
+		$base           = add_query_arg( urlencode_deep( $request_params ), $base_path );
 
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
@@ -372,6 +401,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Retrieves one revision from the collection.
 	 *
 	 * @since 4.7.0
+	 * @since 6.5.0 Added a condition to check that parent id matches revision parent id.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -385,6 +415,15 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$revision = $this->get_revision( $request['id'] );
 		if ( is_wp_error( $revision ) ) {
 			return $revision;
+		}
+
+		if ( (int) $parent->ID !== (int) $revision->post_parent ) {
+			return new WP_Error(
+				'rest_revision_parent_id_mismatch',
+				/* translators: %d: A post id. */
+				sprintf( __( 'The revision does not belong to the specified parent with id of "%d"' ), $parent->ID ),
+				array( 'status' => 404 )
+			);
 		}
 
 		$response = $this->prepare_item_for_response( $revision, $request );
@@ -404,8 +443,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $parent ) ) {
 			return $parent;
 		}
-
-		$parent_post_type = get_post_type_object( $parent->post_type );
 
 		if ( ! current_user_can( 'delete_post', $parent->ID ) ) {
 			return new WP_Error(
@@ -537,16 +574,25 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 *
+	 * @global WP_Post $post Global post object.
+	 *
 	 * @param WP_Post         $item    Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$post            = $item;
+		$post = $item;
+
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
+
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-revisions-controller.php */
+			return apply_filters( 'rest_prepare_revision', new WP_REST_Response( array() ), $post, $request );
+		}
 
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
@@ -614,13 +660,17 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			);
 		}
 
+		if ( rest_is_field_included( 'meta', $fields ) ) {
+			$data['meta'] = $this->meta->get_value( $post->ID, $request );
+		}
+
 		$context  = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data     = $this->add_additional_fields_to_object( $data, $request );
 		$data     = $this->filter_response_by_context( $data, $context );
 		$response = rest_ensure_response( $data );
 
 		if ( ! empty( $data['parent'] ) ) {
-			$response->add_link( 'parent', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->parent_base, $data['parent'] ) ) );
+			$response->add_link( 'parent', rest_url( rest_get_route_for_post( $data['parent'] ) ) );
 		}
 
 		/**
@@ -746,6 +796,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		if ( ! empty( $parent_schema['properties']['guid'] ) ) {
 			$schema['properties']['guid'] = $parent_schema['properties']['guid'];
 		}
+
+		$schema['properties']['meta'] = $this->meta->get_field_schema();
 
 		$this->schema = $schema;
 

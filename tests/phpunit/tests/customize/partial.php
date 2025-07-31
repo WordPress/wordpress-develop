@@ -1,12 +1,8 @@
 <?php
 /**
- * Test_WP_Customize_Partial tests.
+ * Tests for the Test_WP_Customize_Partial class.
  *
  * @package WordPress
- */
-
-/**
- * Tests for the Test_WP_Customize_Partial class.
  *
  * @group customize
  */

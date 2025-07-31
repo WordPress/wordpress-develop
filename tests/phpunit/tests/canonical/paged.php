@@ -26,5 +26,4 @@ class Tests_Canonical_Paged extends WP_Canonical_UnitTestCase {
 		// Non-existing page should redirect to the permalink.
 		$this->assertCanonical( $link . '4/', $link );
 	}
-
 }

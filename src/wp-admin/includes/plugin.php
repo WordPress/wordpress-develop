@@ -45,6 +45,7 @@
  * @since 1.5.0
  * @since 5.3.0 Added support for `Requires at least` and `Requires PHP` headers.
  * @since 5.8.0 Added support for `Update URI` header.
+ * @since 6.5.0 Added support for `Requires Plugins` header.
  *
  * @param string $plugin_file Absolute path to the main plugin file.
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
@@ -53,39 +54,41 @@
  * @return array {
  *     Plugin data. Values will be empty if not supplied by the plugin.
  *
- *     @type string $Name        Name of the plugin. Should be unique.
- *     @type string $PluginURI   Plugin URI.
- *     @type string $Version     Plugin version.
- *     @type string $Description Plugin description.
- *     @type string $Author      Plugin author's name.
- *     @type string $AuthorURI   Plugin author's website address (if set).
- *     @type string $TextDomain  Plugin textdomain.
- *     @type string $DomainPath  Plugin's relative directory path to .mo files.
- *     @type bool   $Network     Whether the plugin can only be activated network-wide.
- *     @type string $RequiresWP  Minimum required version of WordPress.
- *     @type string $RequiresPHP Minimum required version of PHP.
- *     @type string $UpdateURI   ID of the plugin for update purposes, should be a URI.
- *     @type string $Title       Title of the plugin and link to the plugin's site (if set).
- *     @type string $AuthorName  Plugin author's name.
+ *     @type string $Name            Name of the plugin. Should be unique.
+ *     @type string $PluginURI       Plugin URI.
+ *     @type string $Version         Plugin version.
+ *     @type string $Description     Plugin description.
+ *     @type string $Author          Plugin author's name.
+ *     @type string $AuthorURI       Plugin author's website address (if set).
+ *     @type string $TextDomain      Plugin textdomain.
+ *     @type string $DomainPath      Plugin's relative directory path to .mo files.
+ *     @type bool   $Network         Whether the plugin can only be activated network-wide.
+ *     @type string $RequiresWP      Minimum required version of WordPress.
+ *     @type string $RequiresPHP     Minimum required version of PHP.
+ *     @type string $UpdateURI       ID of the plugin for update purposes, should be a URI.
+ *     @type string $RequiresPlugins Comma separated list of dot org plugin slugs.
+ *     @type string $Title           Title of the plugin and link to the plugin's site (if set).
+ *     @type string $AuthorName      Plugin author's name.
  * }
  */
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 
 	$default_headers = array(
-		'Name'        => 'Plugin Name',
-		'PluginURI'   => 'Plugin URI',
-		'Version'     => 'Version',
-		'Description' => 'Description',
-		'Author'      => 'Author',
-		'AuthorURI'   => 'Author URI',
-		'TextDomain'  => 'Text Domain',
-		'DomainPath'  => 'Domain Path',
-		'Network'     => 'Network',
-		'RequiresWP'  => 'Requires at least',
-		'RequiresPHP' => 'Requires PHP',
-		'UpdateURI'   => 'Update URI',
+		'Name'            => 'Plugin Name',
+		'PluginURI'       => 'Plugin URI',
+		'Version'         => 'Version',
+		'Description'     => 'Description',
+		'Author'          => 'Author',
+		'AuthorURI'       => 'Author URI',
+		'TextDomain'      => 'Text Domain',
+		'DomainPath'      => 'Domain Path',
+		'Network'         => 'Network',
+		'RequiresWP'      => 'Requires at least',
+		'RequiresPHP'     => 'Requires PHP',
+		'UpdateURI'       => 'Update URI',
+		'RequiresPlugins' => 'Requires Plugins',
 		// Site Wide Only is deprecated in favor of Network.
-		'_sitewide'   => 'Site Wide Only',
+		'_sitewide'       => 'Site Wide Only',
 	);
 
 	$plugin_data = get_file_data( $plugin_file, $default_headers, 'plugin' );
@@ -102,7 +105,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 	// If no text domain is defined fall back to the plugin slug.
 	if ( ! $plugin_data['TextDomain'] ) {
 		$plugin_slug = dirname( plugin_basename( $plugin_file ) );
-		if ( '.' !== $plugin_slug && false === strpos( $plugin_slug, '/' ) ) {
+		if ( '.' !== $plugin_slug && ! str_contains( $plugin_slug, '/' ) ) {
 			$plugin_data['TextDomain'] = $plugin_slug;
 		}
 	}
@@ -178,8 +181,10 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 		'title' => true,
 	);
 
-	// Name is marked up inside <a> tags. Don't allow these.
-	// Author is too, but some plugins have used <a> here (omitting Author URI).
+	/*
+	 * Name is marked up inside <a> tags. Don't allow these.
+	 * Author is too, but some plugins have used <a> here (omitting Author URI).
+	 */
 	$plugin_data['Name']   = wp_kses( $plugin_data['Name'], $allowed_tags_in_links );
 	$plugin_data['Author'] = wp_kses( $plugin_data['Author'], $allowed_tags );
 
@@ -294,7 +299,7 @@ function get_plugins( $plugin_folder = '' ) {
 
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( '.' === substr( $file, 0, 1 ) ) {
+			if ( str_starts_with( $file, '.' ) ) {
 				continue;
 			}
 
@@ -303,21 +308,19 @@ function get_plugins( $plugin_folder = '' ) {
 
 				if ( $plugins_subdir ) {
 					while ( ( $subfile = readdir( $plugins_subdir ) ) !== false ) {
-						if ( '.' === substr( $subfile, 0, 1 ) ) {
+						if ( str_starts_with( $subfile, '.' ) ) {
 							continue;
 						}
 
-						if ( '.php' === substr( $subfile, -4 ) ) {
+						if ( str_ends_with( $subfile, '.php' ) ) {
 							$plugin_files[] = "$file/$subfile";
 						}
 					}
 
 					closedir( $plugins_subdir );
 				}
-			} else {
-				if ( '.php' === substr( $file, -4 ) ) {
-					$plugin_files[] = $file;
-				}
+			} elseif ( str_ends_with( $file, '.php' ) ) {
+				$plugin_files[] = $file;
 			}
 		}
 
@@ -371,7 +374,7 @@ function get_mu_plugins() {
 	$plugins_dir = @opendir( WPMU_PLUGIN_DIR );
 	if ( $plugins_dir ) {
 		while ( ( $file = readdir( $plugins_dir ) ) !== false ) {
-			if ( '.php' === substr( $file, -4 ) ) {
+			if ( str_ends_with( $file, '.php' ) ) {
 				$plugin_files[] = $file;
 			}
 		}
@@ -476,14 +479,23 @@ function get_dropins() {
 }
 
 /**
- * Returns drop-ins that WordPress uses.
+ * Returns drop-in plugins that WordPress uses.
  *
  * Includes Multisite drop-ins only when is_multisite()
  *
  * @since 3.0.0
- * @return array[] Key is file name. The value is an array, with the first value the
- *  purpose of the drop-in and the second value the name of the constant that must be
- *  true for the drop-in to be used, or true if no constant is required.
+ *
+ * @return array[] {
+ *     Key is file name. The value is an array of data about the drop-in.
+ *
+ *     @type array ...$0 {
+ *         Data about the drop-in.
+ *
+ *         @type string      $0 The purpose of the drop-in.
+ *         @type string|true $1 Name of the constant that must be true for the drop-in
+ *                              to be used, or true if no constant is required.
+ *     }
+ * }
  */
 function _get_dropins() {
 	$dropins = array(
@@ -852,7 +864,7 @@ function deactivate_plugins( $plugins, $silent = false, $network_wide = null ) {
  * @param bool            $network_wide Whether to enable the plugin for all sites in the network.
  *                                      Default false.
  * @param bool            $silent       Prevent calling activation hooks. Default false.
- * @return bool|WP_Error True when finished or WP_Error if there were errors during a plugin activation.
+ * @return true|WP_Error True when finished or WP_Error if there were errors during a plugin activation.
  */
 function activate_plugins( $plugins, $redirect = '', $network_wide = false, $silent = false ) {
 	if ( ! is_array( $plugins ) ) {
@@ -969,8 +981,10 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 		$this_plugin_dir = trailingslashit( dirname( $plugins_dir . $plugin_file ) );
 
-		// If plugin is in its own directory, recursively delete the directory.
-		// Base check on if plugin includes directory separator AND that it's not the root plugin folder.
+		/*
+		 * If plugin is in its own directory, recursively delete the directory.
+		 * Base check on if plugin includes directory separator AND that it's not the root plugin folder.
+		 */
 		if ( strpos( $plugin_file, '/' ) && $this_plugin_dir !== $plugins_dir ) {
 			$deleted = $wp_filesystem->delete( $this_plugin_dir, true );
 		} else {
@@ -1005,6 +1019,7 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 			foreach ( $translations as $translation => $data ) {
 				$wp_filesystem->delete( WP_LANG_DIR . '/plugins/' . $plugin_slug . '-' . $translation . '.po' );
 				$wp_filesystem->delete( WP_LANG_DIR . '/plugins/' . $plugin_slug . '-' . $translation . '.mo' );
+				$wp_filesystem->delete( WP_LANG_DIR . '/plugins/' . $plugin_slug . '-' . $translation . '.l10n.php' );
 
 				$json_translation_files = glob( WP_LANG_DIR . '/plugins/' . $plugin_slug . '-' . $translation . '-*.json' );
 				if ( $json_translation_files ) {
@@ -1109,13 +1124,14 @@ function validate_plugin( $plugin ) {
 /**
  * Validates the plugin requirements for WordPress version and PHP version.
  *
- * Uses the information from `Requires at least` and `Requires PHP` headers
+ * Uses the information from `Requires at least`, `Requires PHP` and `Requires Plugins` headers
  * defined in the plugin's main PHP file.
  *
  * @since 5.2.0
  * @since 5.3.0 Added support for reading the headers from the plugin's
  *              main PHP file, with `readme.txt` as a fallback.
  * @since 5.8.0 Removed support for using `readme.txt` as a fallback.
+ * @since 6.5.0 Added support for the 'Requires Plugins' header.
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return true|WP_Error True if requirements are met, WP_Error on failure.
@@ -1124,8 +1140,9 @@ function validate_plugin_requirements( $plugin ) {
 	$plugin_headers = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
 
 	$requirements = array(
-		'requires'     => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
-		'requires_php' => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+		'requires'         => ! empty( $plugin_headers['RequiresWP'] ) ? $plugin_headers['RequiresWP'] : '',
+		'requires_php'     => ! empty( $plugin_headers['RequiresPHP'] ) ? $plugin_headers['RequiresPHP'] : '',
+		'requires_plugins' => ! empty( $plugin_headers['RequiresPlugins'] ) ? $plugin_headers['RequiresPlugins'] : '',
 	);
 
 	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
@@ -1177,6 +1194,62 @@ function validate_plugin_requirements( $plugin ) {
 				$plugin_headers['Name'],
 				$requirements['requires']
 			) . '</p>'
+		);
+	}
+
+	WP_Plugin_Dependencies::initialize();
+
+	if ( WP_Plugin_Dependencies::has_unmet_dependencies( $plugin ) ) {
+		$dependency_names       = WP_Plugin_Dependencies::get_dependency_names( $plugin );
+		$unmet_dependencies     = array();
+		$unmet_dependency_names = array();
+
+		foreach ( $dependency_names as $dependency => $dependency_name ) {
+			$dependency_file = WP_Plugin_Dependencies::get_dependency_filepath( $dependency );
+
+			if ( false === $dependency_file ) {
+				$unmet_dependencies['not_installed'][ $dependency ] = $dependency_name;
+				$unmet_dependency_names[]                           = $dependency_name;
+			} elseif ( is_plugin_inactive( $dependency_file ) ) {
+				$unmet_dependencies['inactive'][ $dependency ] = $dependency_name;
+				$unmet_dependency_names[]                      = $dependency_name;
+			}
+		}
+
+		$error_message = sprintf(
+			/* translators: 1: Plugin name, 2: Number of plugins, 3: A comma-separated list of plugin names. */
+			_n(
+				'<strong>Error:</strong> %1$s requires %2$d plugin to be installed and activated: %3$s.',
+				'<strong>Error:</strong> %1$s requires %2$d plugins to be installed and activated: %3$s.',
+				count( $unmet_dependency_names )
+			),
+			$plugin_headers['Name'],
+			count( $unmet_dependency_names ),
+			implode( wp_get_list_item_separator(), $unmet_dependency_names )
+		);
+
+		if ( is_multisite() ) {
+			if ( current_user_can( 'manage_network_plugins' ) ) {
+				$error_message .= ' ' . sprintf(
+					/* translators: %s: Link to the plugins page. */
+					__( '<a href="%s">Manage plugins</a>.' ),
+					esc_url( network_admin_url( 'plugins.php' ) )
+				);
+			} else {
+				$error_message .= ' ' . __( 'Please contact your network administrator.' );
+			}
+		} else {
+			$error_message .= ' ' . sprintf(
+				/* translators: %s: Link to the plugins page. */
+				__( '<a href="%s">Manage plugins</a>.' ),
+				esc_url( admin_url( 'plugins.php' ) )
+			);
+		}
+
+		return new WP_Error(
+			'plugin_missing_dependencies',
+			"<p>{$error_message}</p>",
+			$unmet_dependencies
 		);
 	}
 
@@ -1935,7 +2008,7 @@ function get_admin_page_parent( $parent_page = '' ) {
 				$parent_file = $parent_page;
 				return $parent_page;
 			} elseif ( empty( $typenow ) && $pagenow === $submenu_array[2]
-				&& ( empty( $parent_file ) || false === strpos( $parent_file, '?' ) )
+				&& ( empty( $parent_file ) || ! str_contains( $parent_file, '?' ) )
 			) {
 				$parent_file = $parent_page;
 				return $parent_page;
@@ -1957,7 +2030,7 @@ function get_admin_page_parent( $parent_page = '' ) {
  *
  * @since 1.5.0
  *
- * @global string $title
+ * @global string $title       The title of the current screen.
  * @global array  $menu
  * @global array  $submenu
  * @global string $pagenow     The filename of the current screen.
@@ -2382,6 +2455,8 @@ function wp_add_privacy_policy_content( $plugin_name, $policy_text ) {
  *
  * @since 5.2.0
  *
+ * @global WP_Paused_Extensions_Storage $_paused_plugins
+ *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return bool True, if in the list of paused plugins. False, if not in the list.
  */
@@ -2403,6 +2478,8 @@ function is_plugin_paused( $plugin ) {
  * Gets the error that was recorded for a paused plugin.
  *
  * @since 5.2.0
+ *
+ * @global WP_Paused_Extensions_Storage $_paused_plugins
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return array|false Array of error information as returned by `error_get_last()`,
@@ -2436,7 +2513,7 @@ function wp_get_plugin_error( $plugin ) {
  *
  * @param string $plugin   Single plugin to resume.
  * @param string $redirect Optional. URL to redirect to. Default empty string.
- * @return bool|WP_Error True on success, false if `$plugin` was not paused,
+ * @return true|WP_Error True on success, false if `$plugin` was not paused,
  *                       `WP_Error` on failure.
  */
 function resume_plugin( $plugin, $redirect = '' ) {
@@ -2478,7 +2555,8 @@ function resume_plugin( $plugin, $redirect = '' ) {
  *
  * @since 5.2.0
  *
- * @global string $pagenow The filename of the current screen.
+ * @global string                       $pagenow         The filename of the current screen.
+ * @global WP_Paused_Extensions_Storage $_paused_plugins
  */
 function paused_plugins_notice() {
 	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {
@@ -2493,12 +2571,16 @@ function paused_plugins_notice() {
 		return;
 	}
 
-	printf(
-		'<div class="notice notice-error"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
+	$message = sprintf(
+		'<strong>%s</strong><br>%s</p><p><a href="%s">%s</a>',
 		__( 'One or more plugins failed to load properly.' ),
 		__( 'You can find more details and make changes on the Plugins screen.' ),
 		esc_url( admin_url( 'plugins.php?plugin_status=paused' ) ),
 		__( 'Go to the Plugins screen' )
+	);
+	wp_admin_notice(
+		$message,
+		array( 'type' => 'error' )
 	);
 }
 
@@ -2528,7 +2610,7 @@ function deactivated_plugins_notice() {
 
 	if ( false === $blog_deactivated_plugins ) {
 		// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
-		update_option( 'wp_force_deactivated_plugins', array() );
+		update_option( 'wp_force_deactivated_plugins', array(), false );
 	}
 
 	if ( is_multisite() ) {
@@ -2567,8 +2649,8 @@ function deactivated_plugins_notice() {
 			);
 		}
 
-		printf(
-			'<div class="notice notice-warning"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
+		$message = sprintf(
+			'<strong>%s</strong><br>%s</p><p><a href="%s">%s</a>',
 			sprintf(
 				/* translators: %s: Name of deactivated plugin. */
 				__( '%s plugin deactivated during WordPress upgrade.' ),
@@ -2578,10 +2660,11 @@ function deactivated_plugins_notice() {
 			esc_url( admin_url( 'plugins.php?plugin_status=inactive' ) ),
 			__( 'Go to the Plugins screen' )
 		);
+		wp_admin_notice( $message, array( 'type' => 'warning' ) );
 	}
 
 	// Empty the options.
-	update_option( 'wp_force_deactivated_plugins', array() );
+	update_option( 'wp_force_deactivated_plugins', array(), false );
 	if ( is_multisite() ) {
 		update_site_option( 'wp_force_deactivated_plugins', array() );
 	}
