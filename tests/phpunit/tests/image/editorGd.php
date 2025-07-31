@@ -672,7 +672,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that GD can convert a pallete image to WebP.
+	 * Tests that GD can convert a palette image to WebP.
 	 *
 	 * @ticket 63773
 	 */
