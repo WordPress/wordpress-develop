@@ -684,11 +684,14 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$file = DIR_TESTDATA . '/images/png-tests/dice-palette.png';
 
 		// Use the `image_editor_output_format` filter to set the output to WebP.
-		add_filter( 'image_editor_output_format', function() {
-			return array(
-				'image/png' => 'image/webp'
-			);
-		} );
+		add_filter(
+			'image_editor_output_format',
+			function () {
+				return array(
+					'image/png' => 'image/webp',
+				);
+			}
+		);
 
 		$gd_image_editor = new WP_Image_Editor_GD( $file );
 
