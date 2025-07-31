@@ -413,7 +413,7 @@ function display_plugins_table() {
 	?>
 		<br>
 		<?php
-	}
+		}
 	?>
 	<form id="plugin-filter" method="post">
 		<?php $wp_list_table->display(); ?>
