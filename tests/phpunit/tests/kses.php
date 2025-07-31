@@ -1178,88 +1178,7 @@ EOF;
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => '',
 			),
-			// Allowed RGBA color.
-			array(
-				'css'      => 'color: rgb(0,0,0,0)',
-				'expected' => 'color: rgb(0,0,0,0)',
-			),
-			array(
-				'css'      => 'border: rgba(0,0,0,0)',
-				'expected' => 'border: rgba(0,0,0,0)',
-			),
-			array(
-				'css'      => 'border-color: rgba(0, 0, 0, 0)',
-				'expected' => 'border-color: rgba(0, 0, 0, 0)',
-			),
-			array(
-				'css'      => 'border-right: rgba(100, 100, 100, 0)',
-				'expected' => 'border-right: rgba(100, 100, 100, 0)',
-			),
-			array(
-				'css'      => 'border-right-color: rgba(10%, 10%, 10%, 0)',
-				'expected' => 'border-right-color: rgba(10%, 10%, 10%, 0)',
-			),
-			array(
-				'css'      => 'border-bottom: rgba(0, 0, 0, 0.1)',
-				'expected' => 'border-bottom: rgba(0, 0, 0, 0.1)',
-			),
-			array(
-				'css'      => 'border-bottom-color: rgba(0, 0, 0, .1)',
-				'expected' => 'border-bottom-color: rgba(0, 0, 0, .1)',
-			),
-			array(
-				'css'      => 'border-left: rgba(0, 0, 0,.1)',
-				'expected' => 'border-left: rgba(0, 0, 0,.1)',
-			),
-			array(
-				'css'      => 'border-left-color: rgba(0, 0, 0 / 0.1)',
-				'expected' => 'border-left-color: rgba(0, 0, 0 / 0.1)',
-			),
-			array(
-				'css'      => 'border-top: rgba(0 , 0, 0, 0)',
-				'expected' => 'border-top: rgba(0 , 0, 0, 0)',
-			),
-			array(
-				'css'      => 'border-top-color: rgba(0,  0, 0, 0)',
-				'expected' => 'border-top-color: rgba(0,  0, 0, 0)',
-			),
-			array(
-				'css'      => 'background: rgba(0, 0, 0/ 0.1 )',
-				'expected' => 'background: rgba(0, 0, 0/ 0.1 )',
-			),
-			array(
-				'css'      => 'background-color: rgba(0, 0, 0 /0.1 )',
-				'expected' => 'background-color: rgba(0, 0, 0 /0.1 )',
-			),
-			array(
-				'css'      => 'color: rgba(0, 0, 0  / 0.1 )',
-				'expected' => 'color: rgba(0, 0, 0  / 0.1 )',
-			),
-			// Invalid RGBA color.
-			array(
-				'css'      => 'border: rg(0, 0, 0, 0)',
-				'expected' => '',
-			),
-			array(
-				'css'      => 'text-decoration-color : rgba(0, 0, 0, 0)',
-				'expected' => '',
-			),
-			array(
-				'css'      => 'border-color: rgba(red, 0, 0, 0)',
-				'expected' => '',
-			),
-			array(
-				'css'      => 'border-right: rgba(100px, 0, 0, 0)',
-				'expected' => '',
-			),
-			array(
-				'css'      => 'border-right-color: "rgba(0, 0, 0, 0)',
-				'expected' => '',
-			),
-			array(
-				'css'      => "border-bottom: 'rgba(0, 0, 0, 0)",
-				'expected' => '',
-			),
+
 			// Allow min().
 			array(
 				'css'      => 'width: min(50%, 400px)',
@@ -1380,6 +1299,73 @@ EOF;
 				'css'      => 'gap: 10px;column-gap: 5px;row-gap: 20px',
 				'expected' => 'gap: 10px;column-gap: 5px;row-gap: 20px',
 			),
+
+			// RGB color.
+			array(
+				'css'      => 'color: rgb(255, 0, 0)',
+				'expected' => 'color: rgb(255, 0, 0)',
+			),
+			array(
+				'css'      => 'color: rgb(255 0 0)',
+				'expected' => 'color: rgb(255 0 0)',
+			),
+			array(
+				'css'      => 'color: rgb(100%, 0%, 50%)',
+				'expected' => 'color: rgb(100%, 0%, 50%)',
+			),
+			array(
+				'css'      => 'color: rgb(255, 50%, 0)',
+				'expected' => 'color: rgb(255, 50%, 0)',
+			),
+			// RGBA color.
+			array(
+				'css'      => 'color: rgba(255, 128, 0, 0.5)',
+				'expected' => 'color: rgba(255, 128, 0, 0.5)',
+			),
+			array(
+				'css'      => 'color: rgb(255 128 0 / 50%)',
+				'expected' => 'color: rgb(255 128 0 / 50%)',
+			),
+			// RGB color with extra whitespace.
+			array(
+				'css'      => 'color: rgb( 255 , 128 , 0 )',
+				'expected' => 'color: rgb( 255 , 128 , 0 )',
+			),
+			// RGB background color.
+			array(
+				'css'      => 'background-color: rgb(200, 100, 50)',
+				'expected' => 'background-color: rgb(200, 100, 50)',
+			),
+			// RGBA border color.
+			array(
+				'css'      => 'border-color: rgba(100, 200, 300, 0.8)',
+				'expected' => 'border-color: rgba(100, 200, 300, 0.8)',
+			),
+			// Malformed RGB color, invalid number of values.
+			array(
+				'css'      => 'color: rgb(255, 128, 0, 0.5, 100)',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'color: rgb(255, 128)',
+				'expected' => '',
+			),
+			// Malformed RGB color, non-numeric values.
+			array(
+				'css'      => 'color: rgb(red, green, blue)',
+				'expected' => '',
+			),
+			// Malformed RGB color, unmatched parentheses.
+			array(
+				'css'      => 'color: rgb(255, 128, 0',
+				'expected' => '',
+			),
+			// Malformed RGB color, empty values.
+			array(
+				'css'      => 'color: rgb(, , )',
+				'expected' => '',
+			),
+
 			// Margin and padding logical properties introduced in 6.1.
 			array(
 				'css'      => 'margin-block-start: 1px;margin-block-end: 2px;margin-inline-start: 3px;margin-inline-end: 4px;',
