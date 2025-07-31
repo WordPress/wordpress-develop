@@ -1497,15 +1497,15 @@ class WP_HTML_Tag_Processor {
 			$at += strcspn( $html, '-<', $at );
 
 			/*
-			 * Ultimately a SCRIPT closer (`</script>`) must be found or this function will
-			 * return false. This removes the need for additional length checks and allows
-			 * for an early return if it's impossible to find a closer.
+			 * A SCRIPT close tag `</script>` must be found or this function will
+			 * return false. If a close tag would not fit in the remaining string,
+			 * no further work is necessary.
 			 *
-			 * $at is potentially here
-			 *   ↓
-			 *   </script>
-			 *    ╰──┬───╯
-			 * $at + 8 additional characters is the minimum length required to skip script data.
+			 *     $at is potentially here
+			 *       ↓
+			 *       </script>
+			 *        ╰──┬───╯
+			 *     $at + 8 additional characters is the minimum length required to skip script data.
 			 */
 			if ( $at + 8 >= $doc_length ) {
 				return false;
