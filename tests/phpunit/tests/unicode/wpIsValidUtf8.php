@@ -6,13 +6,13 @@
  * @subpackage Unicode
  */
 
-class WpIsValidUtf8TestCase extends WP_UnitTestCase {
+class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	/**
 	 * Verifies that WordPress can properly detect valid and invalid UTF-8.
 	 *
 	 * Ticket {WP_TICKET}
 	 *
-	 * @dataProvider data_utf8_test_suite
+	 * @dataProvider data_utf8_test_data
 	 *
 	 * @param string $bytes Bytes as a PHP string.
 	 */
@@ -33,7 +33,7 @@ class WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	 *
 	 * Ticket {WP_TICKET}
 	 *
-	 * @dataProvider data_utf8_test_suite
+	 * @dataProvider data_utf8_test_data
 	 *
 	 * @param string $bytes Bytes as a PHP string.
 	 */
@@ -56,11 +56,11 @@ class WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	 *
 	 * @return Generator
 	 */
-	public static function utf8_test_data() {
-		$test_file = fopen( __DIR__ . '/../../data/unicode/utf8-test.txt', 'r' );
+	public static function data_utf8_test_data() {
+		$test_file = fopen( __DIR__ . '/../../data/unicode/utf8tests.txt', 'r' );
 
 		while ( false !== ( $line = fgets( $test_file ) ) ) {
-			if ( empty( $line ) || str_starts_with( $line, '#' ) ) {
+			if ( empty( trim( $line ) ) || str_starts_with( $line, '#' ) ) {
 				continue;
 			}
 
@@ -70,6 +70,8 @@ class WpIsValidUtf8TestCase extends WP_UnitTestCase {
 			}
 
 			list( $reference, $classification, $test_data ) = $test_parts;
+			$reference = trim( $reference );
+			$test_data = trim( $test_data );
 
 			switch ( $classification ) {
 				case 'valid':
@@ -78,7 +80,7 @@ class WpIsValidUtf8TestCase extends WP_UnitTestCase {
 
 				case 'valid hex':
 				case 'invalid hex':
-					$bytes = hex2bin( strtr( $test_data, ' ', '' ) );
+					$bytes = hex2bin( str_replace( ' ', '', $test_data ) );
 					yield "{$reference}: {$test_data}" => $bytes;
 					break;
 			}
