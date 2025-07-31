@@ -71,4 +71,32 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$this->assertArrayNotHasKey( '_site_transient_' . $key, $options );
 	}
+
+	/**
+	 * @ticket 63719
+	 *
+	 * @covers fetch_feed
+	 */
+	public function test_feed_cache_transient_uses_site_transients() {
+		// Fetch the WordPress.org news feed - this should create site transients
+		$feed                     = fetch_feed( 'https://wordpress.org/news/feed/' );
+		$feed_hash                = md5( 'https://wordpress.org/news/feed/' );
+		$feed_transient_value     = get_site_transient( 'feed_' . $feed_hash );
+		$feed_mod_transient_value = get_site_transient( 'feed_mod_' . $feed_hash );
+
+		$this->assertNotFalse( $feed_transient_value, 'Feed transient should be stored as site transient' );
+		$this->assertNotFalse( $feed_mod_transient_value, 'Feed mod transient should be stored as site transient' );
+
+		// Verify the correct database table is used based on site type
+		if ( is_multisite() ) {
+			// In multisite, site transients should be stored in wp_sitemeta
+			$site_transient = get_site_option( '_site_transient_feed_' . $feed_hash );
+			$this->assertNotFalse( $site_transient, 'Feed transient should be stored in wp_sitemeta for multisite' );
+		} else {
+			// In single site, site transients should be stored in wp_options
+			// the option name is _site_transient_feed_<hash> since we are using the site transient API
+			$site_transient = get_option( '_site_transient_feed_' . $feed_hash );
+			$this->assertNotFalse( $site_transient, 'Feed transient should be stored in wp_options for single site' );
+		}
+	}
 }
