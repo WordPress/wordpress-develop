@@ -2305,14 +2305,15 @@ function get_calendar( $initial = true, $display = true ) {
 		$thismonth = current_time( 'm' );
 	}
 
-	$unixmonth = mktime( 0, 0, 0, $thismonth, 1, $thisyear );
-	$last_day  = gmdate( 't', $unixmonth );
+	$current_day = current_time( 'j' );
+	$unixmonth   = mktime( 0, 0, 0, $thismonth, $current_day, $thisyear );
+	$last_day    = gmdate( 't', $unixmonth );
 
 	// Get the next and previous month and year with at least one post.
 	$previous = $wpdb->get_row(
 		"SELECT MONTH(post_date) AS month, YEAR(post_date) AS year
 		FROM $wpdb->posts
-		WHERE post_date < '$thisyear-$thismonth-01'
+		WHERE post_date < '$thisyear-$thismonth-$current_day'
 		AND post_type = 'post' AND post_status = 'publish'
 		ORDER BY post_date DESC
 		LIMIT 1"
