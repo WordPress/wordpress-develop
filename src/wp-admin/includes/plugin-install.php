@@ -410,10 +410,8 @@ function display_plugins_table() {
 			break;
 	}
 	if ( isset( $_GET['tab'] ) && 'featured' === $_GET['tab'] ) {
-	?>
-		<br>
-		<?php
-		}
+		echo '<br />';
+	}
 	?>
 	<form id="plugin-filter" method="post">
 		<?php $wp_list_table->display(); ?>
