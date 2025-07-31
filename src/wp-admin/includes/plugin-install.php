@@ -409,7 +409,7 @@ function display_plugins_table() {
 			}
 			break;
 	}
-	if ( isset( $_GET['tab'] ) && $_GET['tab'] === 'featured' ) {
+	if ( isset( $_GET['tab'] ) && 'featured' === $_GET['tab'] ) {
 	?>
 	<br>
 	<?php
