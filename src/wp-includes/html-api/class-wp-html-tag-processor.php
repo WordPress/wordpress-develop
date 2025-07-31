@@ -4495,7 +4495,7 @@ class WP_HTML_Tag_Processor {
 	const COMMENT_AS_INVALID_HTML = 'COMMENT_AS_INVALID_HTML';
 
 	/**
-	 * No-quirks mode document compatability mode.
+	 * No-quirks mode document compatibility mode.
 	 *
 	 * > In no-quirks mode, the behavior is (hopefully) the desired behavior
 	 * > described by the modern HTML and CSS specifications.
