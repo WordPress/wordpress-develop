@@ -135,6 +135,8 @@ if ( ! CUSTOM_TAGS ) {
 			'valign'  => true,
 			'width'   => true,
 		),
+		'data'       => array(),
+		'datalist'   => array(),
 		'del'        => array(
 			'datetime' => true,
 		),
@@ -144,6 +146,7 @@ if ( ! CUSTOM_TAGS ) {
 			'align' => true,
 			'open'  => true,
 		),
+		'dialog'     => array(),
 		'div'        => array(
 			'align' => true,
 		),
@@ -250,9 +253,11 @@ if ( ! CUSTOM_TAGS ) {
 		'p'          => array(
 			'align' => true,
 		),
+		'picture'    => array(),
 		'pre'        => array(
 			'width' => true,
 		),
+		'progress'   => array(),
 		'q'          => array(
 			'cite' => true,
 		),
@@ -263,6 +268,7 @@ if ( ! CUSTOM_TAGS ) {
 		'ruby'       => array(),
 		's'          => array(),
 		'samp'       => array(),
+		'search'     => array(),
 		'span'       => array(
 			'align' => true,
 		),
@@ -344,6 +350,7 @@ if ( ! CUSTOM_TAGS ) {
 			'charoff' => true,
 			'valign'  => true,
 		),
+		'time'       => array(),
 		'title'      => array(),
 		'tr'         => array(
 			'align'   => true,
