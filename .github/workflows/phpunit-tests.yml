@@ -63,7 +63,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
     strategy:
       fail-fast: false
       matrix:
@@ -140,7 +140,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
     strategy:
       fail-fast: false
       matrix:
@@ -190,7 +190,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
     strategy:
       fail-fast: false
       matrix:
@@ -235,7 +235,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
     strategy:
       fail-fast: false
       matrix:
@@ -262,7 +262,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository != 'WordPress/wordpress-develop' && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+    if: ${{ ! startsWith( github.repository, 'WordPress/' ) && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
     strategy:
       fail-fast: false
       matrix:
