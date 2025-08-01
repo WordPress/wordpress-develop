@@ -876,11 +876,14 @@ function shortcode_unautop( $text ) {
  *
  * @author bmorel at ssi dot fr (modified)
  * @since 1.2.1
+ * @deprecated 6.9.0 Use {@see wp_is_valid_utf8()} instead.
  *
  * @param string $str The string to be checked.
  * @return bool True if $str fits a UTF-8 model, false otherwise.
  */
 function seems_utf8( $str ) {
+	_deprecated_function( __FUNCTION__, '6.9.0', 'wp_is_valid_utf8()' );
+
 	mbstring_binary_safe_encoding();
 	$length = strlen( $str );
 	reset_mbstring_encoding();
@@ -934,12 +937,12 @@ function seems_utf8( $str ) {
  *     false === wp_is_valid_utf8( "\xC1\xBF" );       // Overlong sequences.
  *     false === wp_is_valid_utf8( "\xED\xB0\x80" );   // Surrogate halves.
  *     false === wp_is_valid_utf8( "B\xFCch" );        // ISO-8859-1 high-bytes.
+ *                                                     // E.g. The “ü” in ISO-8859-1 is a single byte 0xFC,
+ *                                                     // but in UTF-8 is the two-byte sequence 0xC3 0xBC.
  *
- * @since {WP_VERSION}
+ * @since 6.9.0
  *
  * @see https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
- *
- * @todo Add substantial test suite with valid and invalid UTF-8 strings.
  *
  * @param string $bytes String which might contain text encoded as UTF-8.
  * @return bool Whether the provided bytes can decode as valid UTF-8.
@@ -1751,7 +1754,7 @@ function remove_accents( $text, $locale = '' ) {
 		return $text;
 	}
 
-	if ( seems_utf8( $text ) ) {
+	if ( wp_is_valid_utf8( $text ) ) {
 
 		/*
 		 * Unicode sequence normalization from NFD (Normalization Form Decomposed)
@@ -2182,7 +2185,7 @@ function sanitize_file_name( $filename ) {
 		$utf8_pcre = @preg_match( '/^./u', 'a' );
 	}
 
-	if ( ! seems_utf8( $filename ) ) {
+	if ( ! wp_is_valid_utf8( $filename ) ) {
 		$_ext     = pathinfo( $filename, PATHINFO_EXTENSION );
 		$_name    = pathinfo( $filename, PATHINFO_FILENAME );
 		$filename = sanitize_title_with_dashes( $_name ) . '.' . $_ext;
@@ -2431,7 +2434,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	// Restore octets.
 	$title = preg_replace( '|---([a-fA-F0-9][a-fA-F0-9])---|', '%$1', $title );
 
-	if ( seems_utf8( $title ) ) {
+	if ( wp_is_valid_utf8( $title ) ) {
 		if ( function_exists( 'mb_strtolower' ) ) {
 			$title = mb_strtolower( $title, 'UTF-8' );
 		}

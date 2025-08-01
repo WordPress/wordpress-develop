@@ -3,14 +3,14 @@
  * Unit tests covering WordPress’ UTF-8 handling.
  *
  * @package WordPress
- * @subpackage Unicode
+ * @group unicode
  */
 
 class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	/**
 	 * Verifies that WordPress can properly detect valid and invalid UTF-8.
 	 *
-	 * Ticket {WP_TICKET}
+	 * Ticket 38044
 	 *
 	 * @dataProvider data_utf8_test_data
 	 *
@@ -29,27 +29,6 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Verifies that WordPress can approximate valid and invalid UTF-8.
-	 *
-	 * Ticket {WP_TICKET}
-	 *
-	 * @dataProvider data_utf8_test_data
-	 *
-	 * @param string $bytes Bytes as a PHP string.
-	 */
-	public function test_seems_like_utf8( $bytes ) {
-		$is_valid = mb_check_encoding( $bytes, 'UTF-8' );
-
-		$this->assertSame(
-			$is_valid,
-			seems_utf8( $bytes ),
-			$is_valid
-				? 'Should have identified the input as a valid UTF-8 string.'
-				: 'Should have rejected the input as a valid UTF-8 string.'
-		);
-	}
-
-	/**
 	 * Data provider.
 	 *
 	 * @throws Exception
@@ -57,10 +36,16 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	 * @return Generator
 	 */
 	public static function data_utf8_test_data() {
-		$test_file = fopen( __DIR__ . '/../../data/unicode/utf8tests.txt', 'r' );
+		$test_file        = fopen( __DIR__ . '/../../data/unicode/utf8tests.txt', 'r' );
+		$last_description = '';
 
 		while ( false !== ( $line = fgets( $test_file ) ) ) {
-			if ( empty( trim( $line ) ) || str_starts_with( $line, '#' ) ) {
+			if ( empty( trim( $line ) ) ) {
+				continue;
+			}
+
+			if ( str_starts_with( $line, '#' ) ) {
+				$last_description = trim( substr( $line, 1 ) );
 				continue;
 			}
 
@@ -76,13 +61,13 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 
 			switch ( $classification ) {
 				case 'valid':
-					yield "{$reference}: {$test_data}" => array( $test_data );
+					yield "{$reference} {$last_description}" => array( $test_data );
 					break;
 
 				case 'valid hex':
 				case 'invalid hex':
 					$bytes = hex2bin( str_replace( ' ', '', $test_data ) );
-					yield "{$reference}: {$test_data}" => array( $bytes );
+					yield "{$reference} {$last_description}" => array( $bytes );
 					break;
 			}
 		}
