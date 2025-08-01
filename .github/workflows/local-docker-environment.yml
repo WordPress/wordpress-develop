@@ -99,11 +99,12 @@ jobs:
           - db-version: '9.0'
           - db-version: '9.1'
           - db-version: '9.2'
+          - db-version: '9.3'
           # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.3'
+            db-version: '9.4'
           - php: '7.3'
-            db-version: '9.3'
+            db-version: '9.4'
 
     with:
       os: ${{ matrix.os }}

@@ -184,6 +184,8 @@ jobs:
   # Because upstream support for innovation releases is dropped when a new one is released (including security updates),
   # only the most recent innovation version is tested.
   #
+  # MariaDB does not currently have a supported innovation release.
+  #
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
@@ -196,8 +198,8 @@ jobs:
       matrix:
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
-        db-type: [ 'mysql', 'mariadb' ]
-        db-version: [ '9.3', '11.7' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '9.4' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
@@ -205,14 +207,9 @@ jobs:
         exclude:
           # MySQL 9.0+ will not work on PHP <= 7.3 because mysql_native_password was removed. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.3'
+            db-version: '9.4'
           - php: '7.3'
-            db-version: '9.3'
-          # Exclude version combinations that don't exist.
-          - db-type: 'mariadb'
-            db-version: '9.3'
-          - db-type: 'mysql'
-            db-version: '11.7'
+            db-version: '9.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
