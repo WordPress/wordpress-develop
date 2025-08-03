@@ -2870,7 +2870,7 @@ All at ###SITENAME###
 	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_site_option( 'site_name' ), ENT_QUOTES ), $content );
 	$content      = str_replace( '###SITEURL###', network_home_url(), $content );
 
-	wp_mail( $value, $subject,	$content );
+	wp_mail( $value, $subject, $content );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
