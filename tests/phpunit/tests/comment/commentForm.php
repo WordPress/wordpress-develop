@@ -270,4 +270,29 @@ class Tests_Comment_CommentForm extends WP_UnitTestCase {
 
 		wp_set_current_user( 0 );
 	}
+
+	/**
+	 * @ticket 16576
+	 */
+	public function test_all_fields_displayed_for_non_logged_in_users() {
+		wp_set_current_user( 0 );
+		$this->assertFalse( is_user_logged_in() );
+
+		$args = array(
+			'fields' => array(
+				'author'       => '<p><label for="author">Name</label><input type="text" name="author" id="author" /></p>',
+				'email'        => '<p><label for="email">Email</label><input type="email" name="email" id="email" /></p>',
+				'url'          => '<p><label for="url">Website</label><input type="url" name="url" id="url" /></p>',
+				'custom_field' => '<p><label for="custom_field">Custom Field</label><input type="text" name="custom_field" id="custom_field" /></p>',
+			),
+		);
+
+		$form = get_echo( 'comment_form', array( $args, self::$post_id ) );
+
+		// All fields should be present for non-logged-in users
+		$this->assertStringContainsString( 'name="author"', $form );
+		$this->assertStringContainsString( 'name="email"', $form );
+		$this->assertStringContainsString( 'name="url"', $form );
+		$this->assertStringContainsString( 'name="custom_field"', $form );
+	}
 }
