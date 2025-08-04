@@ -146,7 +146,10 @@ if ( ! CUSTOM_TAGS ) {
 			'align' => true,
 			'open'  => true,
 		),
-		'dialog'     => array(),
+		'dialog'     => array(
+			'closedby' => true,
+			'open' => true,
+		),
 		'div'        => array(
 			'align' => true,
 		),
@@ -237,6 +240,14 @@ if ( ! CUSTOM_TAGS ) {
 		'menu'       => array(
 			'type' => true,
 		),
+		'meter'      => array(
+			'min' => true,
+			'max' => true,
+			'low' => true,
+			'high' => true,
+			'optimum' => true,
+			'value' => true,
+		),
 		'nav'        => array(
 			'align' => true,
 		),
@@ -253,11 +264,13 @@ if ( ! CUSTOM_TAGS ) {
 		'p'          => array(
 			'align' => true,
 		),
-		'picture'    => array(),
 		'pre'        => array(
 			'width' => true,
 		),
-		'progress'   => array(),
+		'progress'   => array(
+			'max' => true,
+			'value' => true,
+		),
 		'q'          => array(
 			'cite' => true,
 		),
@@ -350,7 +363,9 @@ if ( ! CUSTOM_TAGS ) {
 			'charoff' => true,
 			'valign'  => true,
 		),
-		'time'       => array(),
+		'time'       => array(
+			'datetime' => true,
+		),
 		'title'      => array(),
 		'tr'         => array(
 			'align'   => true,
