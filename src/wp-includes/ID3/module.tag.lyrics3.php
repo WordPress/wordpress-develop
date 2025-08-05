@@ -87,7 +87,7 @@ class getid3_lyrics3 extends getid3_handler
 					$lyrics3offset  = $info['ape']['tag_offset_start'] - $lyrics3size;
 					$info['avdataend'] = $lyrics3offset;
 					$lyrics3version = 1;
-					$this->warning('APE tag located after Lyrics3, will probably break Lyrics3 compatibility');
+					$this->warning('APE tag located after Lyrics3, will probably break Lyrics3 compatability');
 
 				} elseif ($lyrics3end == 'LYRICS200') {
 					// Lyrics3v2, APE, maybe ID3v1
@@ -95,7 +95,7 @@ class getid3_lyrics3 extends getid3_handler
 					$lyrics3size    = $lyrics3lsz + 6 + strlen('LYRICS200'); // LSZ = lyrics + 'LYRICSBEGIN'; add 6-byte size field; add 'LYRICS200'
 					$lyrics3offset  = $info['ape']['tag_offset_start'] - $lyrics3size;
 					$lyrics3version = 2;
-					$this->warning('APE tag located after Lyrics3, will probably break Lyrics3 compatibility');
+					$this->warning('APE tag located after Lyrics3, will probably break Lyrics3 compatability');
 
 				}
 
