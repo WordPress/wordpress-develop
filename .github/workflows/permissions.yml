@@ -1,0 +1,70 @@
+name: Permissions Tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  no-permissions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+
+    test-permissions:
+      name: "Test with no permissions"
+      steps:
+        - name: Upload artifact
+          uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+          with:
+            path: README.md
+            name: no-permissions
+
+  contents-read:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
+
+    test-permissions:
+      name: "Test with contents: read"
+      steps:
+        - name: Upload artifact
+          uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+          with:
+            path: README.md
+            name: contents-read
+
+  actions-read:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+
+    test-permissions:
+      name: "Test with actions: read"
+      steps:
+        - name: Upload artifact
+          uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+          with:
+            path: README.md
+            name: actions-read
+
+  actions-write:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write
+
+    test-permissions:
+      name: "Test with actions: write"
+      steps:
+        - name: Upload artifact
+          uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+          with:
+            path: README.md
+            name: actions-write
