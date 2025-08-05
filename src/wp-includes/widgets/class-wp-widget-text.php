@@ -24,24 +24,25 @@ class WP_Widget_Text extends WP_Widget {
 	 */
 	protected $registered = false;
 
-	/**
-	 * Sets up a new Text widget instance.
-	 *
-	 * @since 2.8.0
-	 */
-	public function __construct() {
-		$widget_ops  = array(
-			'classname'                   => 'widget_text',
-			'description'                 => __( 'Arbitrary text.' ),
-			'customize_selective_refresh' => true,
-			'show_instance_in_rest'       => true,
-		);
-		$control_ops = array(
-			'width'  => 400,
-			'height' => 350,
-		);
-		parent::__construct( 'text', __( 'Text' ), $widget_ops, $control_ops );
-	}
+/**
+ * Sets up a new Text widget instance.
+ *
+ * @since 4.8.0
+ */
+public function __construct() {
+    $widget_ops  = array(
+        'classname'                   => 'widget_text',
+        'description'                 => __( 'Arbitrary text.' ),
+        'customize_selective_refresh' => true,
+        'show_instance_in_rest'       => true,
+    );
+    $control_ops = array(
+        'width'  => 400,
+        'height' => 350,
+    );
+    parent::__construct( 'text', __( 'Text' ), $widget_ops, $control_ops );
+}
+
 
 	/**
 	 * Adds hooks for enqueueing assets when registering all widget instances of this widget class.
