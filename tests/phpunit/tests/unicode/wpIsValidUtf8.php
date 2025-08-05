@@ -36,7 +36,7 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	 * @return Generator
 	 */
 	public static function data_utf8_test_data() {
-		$test_file        = fopen( __DIR__ . '/../../data/unicode/utf8tests.txt', 'r' );
+		$test_file        = fopen( __DIR__ . '/../../data/unicode/utf8tests/utf8tests.txt', 'r' );
 		$last_description = '';
 
 		while ( false !== ( $line = fgets( $test_file ) ) ) {
