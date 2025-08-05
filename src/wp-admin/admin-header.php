@@ -6,6 +6,11 @@
  * @subpackage Administration
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 if ( ! defined( 'WP_ADMIN' ) ) {
 	require_once __DIR__ . '/admin.php';
@@ -14,15 +19,15 @@ if ( ! defined( 'WP_ADMIN' ) ) {
 /**
  * In case admin-header.php is included in a function.
  *
- * @global string    $title
+ * @global string    $title              The title of the current screen.
  * @global string    $hook_suffix
  * @global WP_Screen $current_screen     WordPress current screen object.
  * @global WP_Locale $wp_locale          WordPress date and time locale object.
- * @global string    $pagenow
+ * @global string    $pagenow            The filename of the current screen.
  * @global string    $update_title
  * @global int       $total_update_count
  * @global string    $parent_file
- * @global string    $typenow
+ * @global string    $typenow            The post type of the current screen.
  */
 global $title, $hook_suffix, $current_screen, $wp_locale, $pagenow,
 	$update_title, $total_update_count, $parent_file, $typenow;
@@ -49,22 +54,28 @@ if ( $admin_title === $title ) {
 	/* translators: Admin screen title. %s: Admin screen name. */
 	$admin_title = sprintf( __( '%s &#8212; WordPress' ), $title );
 } else {
+	$screen_title = $title;
+
+	if ( 'post' === $current_screen->base && 'add' !== $current_screen->action ) {
+		$post_title = get_the_title();
+		if ( ! empty( $post_title ) ) {
+			$post_type_obj = get_post_type_object( $typenow );
+			$screen_title  = sprintf(
+				/* translators: Editor admin screen title. 1: "Edit item" text for the post type, 2: Post title. */
+				__( '%1$s &#8220;%2$s&#8221;' ),
+				$post_type_obj->labels->edit_item,
+				$post_title
+			);
+		}
+	}
+
 	/* translators: Admin screen title. 1: Admin screen name, 2: Network or site name. */
-	$admin_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $title, $admin_title );
+	$admin_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $screen_title, $admin_title );
 }
 
 if ( wp_is_recovery_mode() ) {
 	/* translators: %s: Admin screen title. */
 	$admin_title = sprintf( __( 'Recovery Mode &#8212; %s' ), $admin_title );
-}
-
-if ( 'post' === $current_screen->base && 'add' !== $current_screen->action ) {
-	$post_title = get_the_title();
-	if ( ! empty( $post_title ) ) {
-		$obj = get_post_type_object( $typenow );
-		/* translators: Editor admin screen title. 1: "Edit item" text for the post type, 2: Post title. */
-		$admin_title = sprintf( __( '%1$s &#8220;%2$s&#8221;' ), $obj->labels->edit_item, $post_title );
-	}
 }
 
 /**
@@ -91,7 +102,7 @@ wp_enqueue_script( 'svg-painter' );
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 ?>
 <script type="text/javascript">
-addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(document).ready(func);else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
 	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
 	typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
@@ -103,7 +114,7 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 <?php
 
 /**
- * Enqueue scripts for all admin pages.
+ * Fires when enqueuing scripts for all admin pages.
  *
  * @since 2.8.0
  *
@@ -197,10 +208,15 @@ if ( is_network_admin() ) {
 	$admin_body_class .= ' network-admin';
 }
 
-$admin_body_class .= ' no-customize-support no-svg';
+$admin_body_class .= ' no-customize-support svg';
 
 if ( $current_screen->is_block_editor() ) {
 	$admin_body_class .= ' block-editor-page wp-embed-responsive';
+}
+
+$admin_body_class .= ' wp-theme-' . sanitize_html_class( get_template() );
+if ( is_child_theme() ) {
+	$admin_body_class .= ' wp-child-theme-' . sanitize_html_class( get_stylesheet() );
 }
 
 $error_get_last = error_get_last();
@@ -236,7 +252,7 @@ unset( $error_get_last );
 $admin_body_classes = apply_filters( 'admin_body_class', '' );
 $admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 ?>
-<body class="wp-admin wp-core-ui no-js <?php echo $admin_body_classes; ?>">
+<body class="wp-admin wp-core-ui no-js <?php echo esc_attr( $admin_body_classes ); ?>">
 <script type="text/javascript">
 	document.body.className = document.body.className.replace('no-js','js');
 </script>

@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi
  */
 class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
@@ -20,14 +18,19 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	protected static $supported_formats;
 	protected static $post_ids    = array();
+	protected static $terms       = array();
 	protected static $total_posts = 30;
 	protected static $per_page    = 50;
 
 	protected $forbidden_cat;
 	protected $posts_clauses;
 
+	private $attachments_created = false;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
+		self::$terms   = $factory->term->create_many( 15, array( 'taxonomy' => 'category' ) );
+		wp_set_object_terms( self::$post_id, self::$terms, 'category' );
 
 		self::$superadmin_id  = $factory->user->create(
 			array(
@@ -115,13 +118,24 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
 	}
 
+	public function tear_down() {
+		if ( true === $this->attachments_created ) {
+			$this->remove_added_uploads();
+			$this->attachments_created = false;
+		}
+
+		parent::tear_down();
+	}
+
 	public function wpSetUpBeforeRequest( $result, $server, $request ) {
 		$this->posts_clauses = array();
 		return $result;
 	}
 
 	public function save_posts_clauses( $orderby, $query ) {
-		array_push( $this->posts_clauses, $orderby );
+		if ( 'revision' !== $query->query_vars['post_type'] ) {
+			array_push( $this->posts_clauses, $orderby );
+		}
 		return $orderby;
 	}
 
@@ -154,12 +168,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$this->assertSame( array( 'v1' => true ), $data['endpoints'][0]['allow_batch'] );
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
@@ -180,6 +196,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'categories_exclude',
 				'context',
 				'exclude',
+				'format',
+				'ignore_sticky',
 				'include',
 				'modified_after',
 				'modified_before',
@@ -189,6 +207,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'page',
 				'per_page',
 				'search',
+				'search_columns',
+				'search_semantics',
 				'slug',
 				'status',
 				'sticky',
@@ -205,8 +225,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
-		sort( $keys );
-		$this->assertSame( array( 'context', 'id', 'password' ), $keys );
+		$this->assertEqualSets( array( 'context', 'id', 'password', 'excerpt_length' ), $keys );
+	}
+
+	public function test_registered_get_items_embed() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', array( self::$post_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->response_to_data( $response, true );
+		$this->assertArrayHasKey( '_embedded', $response[0], 'The _embedded key must exist' );
+		$this->assertArrayHasKey( 'wp:term', $response[0]['_embedded'], 'The wp:term key must exist' );
+		$this->assertCount( 15, $response[0]['_embedded']['wp:term'][0], 'Should should be 15 terms and not the default 10' );
+		$i = 0;
+		foreach ( $response[0]['_embedded']['wp:term'][0] as $term ) {
+			$this->assertSame( self::$terms[ $i ], $term['id'], 'Check term id existing in response' );
+			++$i;
+		}
 	}
 
 	/**
@@ -240,12 +274,44 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * A valid query that returns 0 results should return an empty JSON list.
-	 *
-	 * @issue 862
+	 * @ticket 56481
 	 */
-	public function test_get_items_empty_query() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+	public function test_get_items_with_head_request_should_not_prepare_post_data() {
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/posts' );
+
+		$hook_name = 'rest_prepare_post';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+
+		add_filter( $hook_name, $callback );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+
+		$this->assertNotWPError( $response );
+		$response = rest_ensure_response( $response );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+
+		$headers = $response->get_headers();
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$this->assertArrayHasKey( 'Link', $headers, 'The "Link" header should be present in the response.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * A valid query that returns 0 results should return an empty JSON list.
+	 * In case of a HEAD request, the response should not contain a body.
+	 *
+	 * @dataProvider data_readable_http_methods
+	 * @link https://github.com/WP-API/WP-API/issues/862
+	 * @ticket 56481
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_empty_query( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_query_params(
 			array(
 				'author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
@@ -253,137 +319,213 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEmpty( $response->get_data() );
-		$this->assertSame( 200, $response->get_status() );
+		if ( $request->is_method( 'HEAD' ) ) {
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+		} else {
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is an empty array for GET request.' );
+		}
+
+		$headers = $response->get_headers();
+		$this->assertSame( 0, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 0.' );
+		$this->assertSame( 0, $headers['X-WP-TotalPages'], 'Failed asserting that X-WP-TotalPages header is 0.' );
 	}
 
-	public function test_get_items_author_query() {
-		$this->factory->post->create( array( 'post_author' => self::$editor_id ) );
-		$this->factory->post->create( array( 'post_author' => self::$author_id ) );
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_author_query( $method ) {
+		self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		self::factory()->post->create( array( 'post_author' => self::$author_id ) );
 
 		$total_posts = self::$total_posts + 2;
 
 		// All posts in the database.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertCount( $total_posts, $response->get_data() );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( $total_posts, $response->get_data() );
+
+		} else {
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( $total_posts, $headers['X-WP-Total'] );
+		}
 
 		// Limit to editor and author.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'author', array( self::$editor_id, self::$author_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( 2, $data );
-		$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( 2, $data );
+			$this->assertSameSets( array( self::$editor_id, self::$author_id ), wp_list_pluck( $data, 'author' ) );
+		} else {
+			$this->assertSame( array(), $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 2.' );
+		}
 
 		// Limit to editor.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'author', self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( 1, $data );
-		$this->assertSame( self::$editor_id, $data[0]['author'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( 1, $data );
+			$this->assertSame( self::$editor_id, $data[0]['author'] );
+		} else {
+			$this->assertSame( array(), $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 1, $headers['X-WP-Total'], 'Failed asserting that X-WP-Total header is 1.' );
+		}
 	}
 
-	public function test_get_items_author_exclude_query() {
-		$this->factory->post->create( array( 'post_author' => self::$editor_id ) );
-		$this->factory->post->create( array( 'post_author' => self::$author_id ) );
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_author_exclude_query( $method ) {
+		self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		self::factory()->post->create( array( 'post_author' => self::$author_id ) );
 
 		$total_posts = self::$total_posts + 2;
 
 		// All posts in the database.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertCount( $total_posts, $response->get_data() );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( $total_posts, $response->get_data() );
+		} else {
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( $total_posts, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
 
 		// Exclude editor and author.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'author_exclude', array( self::$editor_id, self::$author_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( $total_posts - 2, $data );
-		$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
-		$this->assertNotEquals( self::$author_id, $data[0]['author'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( $total_posts - 2, $data );
+			$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
+			$this->assertNotEquals( self::$author_id, $data[0]['author'] );
+		} else {
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( $total_posts - 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
 
 		// Exclude editor.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'author_exclude', self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertCount( $total_posts - 1, $data );
-		$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
-		$this->assertNotEquals( self::$editor_id, $data[1]['author'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( $total_posts - 1, $data );
+			$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
+			$this->assertNotEquals( self::$editor_id, $data[1]['author'] );
+		} else {
+			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( $total_posts - 1, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
 
 		// Invalid 'author_exclude' should error.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'author_exclude', 'invalid' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
-	public function test_get_items_include_query() {
-		$id1 = $this->factory->post->create(
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_include_query( $method ) {
+		$id1 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => '2001-02-03 04:05:06',
 			)
 		);
-		$id2 = $this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => '2001-02-03 04:05:07',
 			)
 		);
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 
 		// Order defaults to date descending.
 		$request->set_param( 'include', array( $id1, $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertCount( 2, $data );
-		$this->assertSame( $id2, $data[0]['id'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( 2, $data );
+			$this->assertSame( $id2, $data[0]['id'] );
+		} else {
+			$this->assertSame( array(), $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
+
 		$this->assertPostsOrderedBy( '{posts}.post_date DESC' );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertCount( 2, $data );
-		$this->assertSame( $id1, $data[0]['id'] );
+		if ( $request->is_method( 'get' ) ) {
+			$this->assertCount( 2, $data );
+			$this->assertSame( $id1, $data[0]['id'] );
+		} else {
+			$this->assertSame( array(), $data, 'Failed asserting that response data is null for HEAD request.' );
+			$headers = $response->get_headers();
+			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
+		}
+
 		$this->assertPostsOrderedBy( "FIELD({posts}.ID,$id1,$id2)" );
 
 		// Invalid 'include' should error.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'include', 'invalid' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_get_items_orderby_author_query() {
-		$id2 = $this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_author' => self::$editor_id,
 			)
 		);
-		$id3 = $this->factory->post->create(
+		$id3 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_author' => self::$editor_id,
 			)
 		);
-		$id1 = $this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_author' => self::$author_id,
@@ -406,9 +548,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_orderby_modified_query() {
-		$id1 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id1 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$this->update_post_modified( $id1, '2016-04-20 4:26:20' );
 		$this->update_post_modified( $id2, '2016-02-01 20:24:02' );
@@ -430,19 +572,19 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_orderby_parent_query() {
-		$id1 = $this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 			)
 		);
-		$id2 = $this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
 			)
 		);
-		$id3 = $this->factory->post->create(
+		$id3 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_type'   => 'page',
@@ -468,8 +610,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_exclude_query() {
-		$id1 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id1 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
@@ -498,7 +640,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_search_query() {
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Search Result',
 				'post_status' => 'publish',
@@ -519,19 +661,24 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 'Search Result', $data[0]['title']['rendered'] );
 	}
 
+	/**
+	 * @ticket 63307
+	 */
 	public function test_get_items_slug_query() {
-		$this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_title'  => 'Apple',
 				'post_status' => 'publish',
 			)
 		);
-		$this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_title'  => 'Banana',
 				'post_status' => 'publish',
 			)
 		);
+
+		update_option( 'sticky_posts', array( $id2 ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'slug', 'apple' );
@@ -539,23 +686,23 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertSame( 'Apple', $data[0]['title']['rendered'] );
+		$this->assertSame( 'Apple', $data[0]['title']['rendered'], 'Return the post with the given slug' );
 	}
 
 	public function test_get_items_multiple_slugs_array_query() {
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Apple',
 				'post_status' => 'publish',
 			)
 		);
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Banana',
 				'post_status' => 'publish',
 			)
 		);
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Peach',
 				'post_status' => 'publish',
@@ -577,19 +724,19 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_multiple_slugs_string_query() {
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Apple',
 				'post_status' => 'publish',
 			)
 		);
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Banana',
 				'post_status' => 'publish',
 			)
 		);
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Peach',
 				'post_status' => 'publish',
@@ -613,7 +760,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_items_status_query() {
 		wp_set_current_user( 0 );
 
-		$this->factory->post->create( array( 'post_status' => 'draft' ) );
+		self::factory()->post->create( array( 'post_status' => 'draft' ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
@@ -639,9 +786,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_items_multiple_statuses_string_query() {
 		wp_set_current_user( self::$editor_id );
 
-		$this->factory->post->create( array( 'post_status' => 'draft' ) );
-		$this->factory->post->create( array( 'post_status' => 'private' ) );
-		$this->factory->post->create( array( 'post_status' => 'publish' ) );
+		self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		self::factory()->post->create( array( 'post_status' => 'private' ) );
+		self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'context', 'edit' );
@@ -662,9 +809,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_items_multiple_statuses_array_query() {
 		wp_set_current_user( self::$editor_id );
 
-		$this->factory->post->create( array( 'post_status' => 'draft' ) );
-		$this->factory->post->create( array( 'post_status' => 'pending' ) );
-		$this->factory->post->create( array( 'post_status' => 'publish' ) );
+		self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		self::factory()->post->create( array( 'post_status' => 'pending' ) );
+		self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'context', 'edit' );
@@ -694,7 +841,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 43701
 	 */
 	public function test_get_items_multiple_statuses_custom_role_one_invalid_query() {
-		$private_post_id = $this->factory->post->create( array( 'post_status' => 'private' ) );
+		$private_post_id = self::factory()->post->create( array( 'post_status' => 'private' ) );
 
 		wp_set_current_user( self::$private_reader_id );
 
@@ -715,7 +862,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_status_without_permissions() {
-		$draft_id = $this->factory->post->create(
+		$draft_id = self::factory()->post->create(
 			array(
 				'post_status' => 'draft',
 			)
@@ -729,31 +876,92 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 
 		$all_data = $response->get_data();
+
+		$this->assertNotEmpty( $all_data );
+
 		foreach ( $all_data as $post ) {
 			$this->assertNotEquals( $draft_id, $post['id'] );
 		}
 	}
 
+	/**
+	 * @ticket 56350
+	 *
+	 * @dataProvider data_get_items_exact_search
+	 *
+	 * @param string $search_term  The search term.
+	 * @param bool   $exact_search Whether the search is an exact or general search.
+	 * @param int    $expected     The expected number of matching posts.
+	 */
+	public function test_get_items_exact_search( $search_term, $exact_search, $expected ) {
+		self::factory()->post->create(
+			array(
+				'post_title'   => 'Rye',
+				'post_content' => 'This is a post about Rye Bread',
+			)
+		);
+
+		self::factory()->post->create(
+			array(
+				'post_title'   => 'Types of Bread',
+				'post_content' => 'Types of bread are White and Rye Bread',
+			)
+		);
+
+		$request           = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request['search'] = $search_term;
+		if ( $exact_search ) {
+			$request['search_semantics'] = 'exact';
+		}
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( $expected, $response->get_data() );
+	}
+
+	/**
+	 * Data provider for test_get_items_exact_search().
+	 *
+	 * @return array[]
+	 */
+	public function data_get_items_exact_search() {
+		return array(
+			'general search, one exact match and one partial match' => array(
+				'search_term'  => 'Rye',
+				'exact_search' => false,
+				'expected'     => 2,
+			),
+			'exact search, one exact match and one partial match' => array(
+				'search_term'  => 'Rye',
+				'exact_search' => true,
+				'expected'     => 1,
+			),
+			'exact search, no match and one partial match' => array(
+				'search_term'  => 'Rye Bread',
+				'exact_search' => true,
+				'expected'     => 0,
+			),
+		);
+	}
+
 	public function test_get_items_order_and_orderby() {
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Apple Pie',
 				'post_status' => 'publish',
 			)
 		);
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Apple Sauce',
 				'post_status' => 'publish',
 			)
 		);
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Apple Cobbler',
 				'post_status' => 'publish',
 			)
 		);
-		$this->factory->post->create(
+		self::factory()->post->create(
 			array(
 				'post_title'  => 'Apple Coffee Cake',
 				'post_status' => 'publish',
@@ -790,7 +998,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_with_orderby_include_without_include_param() {
-		$this->factory->post->create( array( 'post_status' => 'publish' ) );
+		self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'orderby', 'include' );
@@ -801,19 +1009,19 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_with_orderby_id() {
-		$id1 = $this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => '2016-01-13 02:26:48',
 			)
 		);
-		$id2 = $this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => '2016-01-12 02:26:48',
 			)
 		);
-		$id3 = $this->factory->post->create(
+		$id3 = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => '2016-01-11 02:26:48',
@@ -835,14 +1043,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_with_orderby_slug() {
-		$id1 = $this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_title'  => 'ABC',
 				'post_name'   => 'xyz',
 				'post_status' => 'publish',
 			)
 		);
-		$id2 = $this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_title'  => 'XYZ',
 				'post_name'   => 'abc',
@@ -866,7 +1074,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_items_with_orderby_slugs() {
 		$slugs = array( 'burrito', 'taco', 'chalupa' );
 		foreach ( $slugs as $slug ) {
-			$this->factory->post->create(
+			self::factory()->post->create(
 				array(
 					'post_title'  => $slug,
 					'post_name'   => $slug,
@@ -888,14 +1096,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_with_orderby_relevance() {
-		$id1 = $this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_title'   => 'Title is more relevant',
 				'post_content' => 'Content is',
 				'post_status'  => 'publish',
 			)
 		);
-		$id2 = $this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_title'   => 'Title is',
 				'post_content' => 'Content is less relevant',
@@ -916,14 +1124,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_with_orderby_relevance_two_terms() {
-		$id1 = $this->factory->post->create(
+		$id1 = self::factory()->post->create(
 			array(
 				'post_title'   => 'Title is more relevant',
 				'post_content' => 'Content is',
 				'post_status'  => 'publish',
 			)
 		);
-		$id2 = $this->factory->post->create(
+		$id2 = self::factory()->post->create(
 			array(
 				'post_title'   => 'Title is',
 				'post_content' => 'Content is less relevant',
@@ -990,9 +1198,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_tags_exclude_query() {
 		$id1 = self::$post_id;
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id4 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id4 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$tag = wp_insert_term( 'My Tag', 'post_tag' );
 
 		$total_posts = self::$total_posts + 3;
@@ -1013,7 +1221,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_tags_and_categories_query() {
 		$id1      = self::$post_id;
-		$id2      = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2      = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$tag      = wp_insert_term( 'My Tag', 'post_tag' );
 		$category = wp_insert_term( 'My Category', 'category' );
 
@@ -1038,7 +1246,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_get_items_tags_or_categories_query() {
 		$id1      = self::$post_id;
-		$id2      = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2      = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$tag      = wp_insert_term( 'My Tag', 'post_tag' );
 		$category = wp_insert_term( 'My Category', 'category' );
 
@@ -1060,7 +1268,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_tags_and_categories_exclude_query() {
 		$id1      = self::$post_id;
-		$id2      = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2      = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$tag      = wp_insert_term( 'My Tag', 'post_tag' );
 		$category = wp_insert_term( 'My Category', 'category' );
 
@@ -1087,9 +1295,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_get_items_tags_or_categories_exclude_query() {
 		$id1      = end( self::$post_ids );
-		$id2      = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id3      = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id4      = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2      = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id3      = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id4      = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$tag      = wp_insert_term( 'My Tag', 'post_tag' );
 		$category = wp_insert_term( 'My Category', 'category' );
 
@@ -1351,7 +1559,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_sticky() {
 		$id1 = self::$post_id;
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		update_option( 'sticky_posts', array( $id2 ) );
 
@@ -1372,7 +1580,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_sticky_with_include() {
 		$id1 = self::$post_id;
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		update_option( 'sticky_posts', array( $id2 ) );
 
@@ -1383,8 +1591,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
 
-		// FIXME Since this request returns zero posts, the query is executed twice.
-		$this->assertCount( 2, $this->posts_clauses );
+		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
@@ -1415,8 +1622,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
 
-		// FIXME Since this request returns zero posts, the query is executed twice.
-		$this->assertCount( 2, $this->posts_clauses );
+		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
@@ -1434,8 +1640,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( 0, $response->get_data() );
 
-		// FIXME Since this request returns zero posts, the query is executed twice.
-		$this->assertCount( 2, $this->posts_clauses );
+		$this->assertCount( 1, $this->posts_clauses );
 		$this->posts_clauses = array_slice( $this->posts_clauses, 0, 1 );
 
 		$this->assertPostsWhere( " AND {posts}.ID IN (0) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
@@ -1443,7 +1648,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_not_sticky() {
 		$id1 = end( self::$post_ids );
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$total_posts = self::$total_posts + 1;
 
@@ -1465,8 +1670,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_not_sticky_with_exclude() {
 		$id1 = end( self::$post_ids );
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$total_posts = self::$total_posts + 2;
 
@@ -1486,13 +1691,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotContains( $id2, $ids );
 		$this->assertNotContains( $id3, $ids );
 
-		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3,$id2) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
+		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id2,$id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
 
 	public function test_get_items_not_sticky_with_exclude_no_sticky_posts() {
 		$id1 = self::$post_id;
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$total_posts = self::$total_posts + 2;
 
@@ -1515,12 +1720,143 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
 
-	public function test_get_items_pagination_headers() {
+	/**
+	 * Tests that Rest Post controller supports search columns.
+	 *
+	 * @ticket 43867
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_items_with_custom_search_columns() {
+		$id1 = self::factory()->post->create(
+			array(
+				'post_title'   => 'Title contain foo and bar',
+				'post_content' => 'Content contain bar',
+				'post_excerpt' => 'Excerpt contain baz',
+			)
+		);
+		$id2 = self::factory()->post->create(
+			array(
+				'post_title'   => 'Title contain baz',
+				'post_content' => 'Content contain foo and bar',
+				'post_excerpt' => 'Excerpt contain foo, bar and baz',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'search', 'foo bar' );
+		$request->set_param( 'search_columns', array( 'post_title' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response should have a status code 200.' );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data, 'Response should contain one result.' );
+		$this->assertSame( $id1, $data[0]['id'], 'Result should match expected value.' );
+	}
+
+	/**
+	 * @ticket 55592
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 * @covers ::update_post_thumbnail_cache
+	 */
+	public function test_get_items_primes_thumbnail_cache_for_featured_media() {
+		$file           = DIR_TESTDATA . '/images/canola.jpg';
+		$attachment_ids = array();
+		$post_ids       = array();
+		for ( $i = 0; $i < 3; $i++ ) {
+			$post_ids[ $i ]       = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+			$attachment_ids[ $i ] = self::factory()->attachment->create_object(
+				$file,
+				$post_ids[ $i ],
+				array(
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
+			set_post_thumbnail( $post_ids[ $i ], $attachment_ids[ $i ] );
+		}
+
+		// Attachment creation warms thumbnail IDs. Needs clean up for test.
+		wp_cache_delete_multiple( $attachment_ids, 'posts' );
+
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', $post_ids );
+		rest_get_server()->dispatch( $request );
+
+		$args = $filter->get_args();
+		$last = end( $args );
+		$this->assertIsArray( $last, 'The last value is not an array' );
+		$this->assertSameSets( $attachment_ids, $last[1] );
+	}
+
+	/**
+	 * @ticket 55593
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 * @covers ::update_post_parent_caches
+	 */
+	public function test_get_items_primes_parent_post_caches() {
+		$parent_id1       = self::$post_ids[0];
+		$parent_id2       = self::$post_ids[1];
+		$parent_ids       = array( $parent_id1, $parent_id2 );
+		$attachment_ids   = array();
+		$attachment_ids[] = self::factory()->attachment->create_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			$parent_id1,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption 1',
+			)
+		);
+
+		$attachment_ids[] = self::factory()->attachment->create_object(
+			DIR_TESTDATA . '/images/canola.jpg',
+			$parent_id2,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption 2',
+			)
+		);
+
+		// Attachment creation warms parent IDs. Needs clean up for test.
+		wp_cache_delete_multiple( $parent_ids, 'posts' );
+		wp_cache_delete_multiple( $attachment_ids, 'posts' );
+
+		$filter = new MockAction();
+		add_filter( 'update_post_metadata_cache', array( $filter, 'filter' ), 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		rest_get_server()->dispatch( $request );
+
+		$events = $filter->get_events();
+		$args   = wp_list_pluck( $events, 'args' );
+		$primed = false;
+		sort( $parent_ids );
+		foreach ( $args as $arg ) {
+			sort( $arg[1] );
+			if ( $parent_ids === $arg[1] ) {
+				$primed = $arg;
+				break;
+			}
+		}
+
+		$this->assertIsArray( $primed, 'The last value is not an array' );
+		$this->assertSameSets( $parent_ids, $primed[1] );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_pagination_headers( $method ) {
 		$total_posts = self::$total_posts;
 		$total_pages = (int) ceil( $total_posts / 10 );
 
 		// Start of the index.
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( $total_posts, $headers['X-WP-Total'] );
@@ -1535,10 +1871,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// 3rd page.
-		$this->factory->post->create();
-		$total_posts++;
-		$total_pages++;
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		self::factory()->post->create();
+		++$total_posts;
+		++$total_pages;
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'page', 3 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
@@ -1560,7 +1896,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 
 		// Last page.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'page', $total_pages );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
@@ -1576,7 +1912,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 
 		// Out of bounds.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_param( 'page', 100 );
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
@@ -1584,7 +1920,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// With query params.
 		$total_pages = (int) ceil( $total_posts / 5 );
-		$request     = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request     = new WP_REST_Request( $method, '/wp/v2/posts' );
 		$request->set_query_params(
 			array(
 				'per_page' => 5,
@@ -1613,8 +1949,80 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
 
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method HTTP method to use.
+	 */
+	public function test_get_items_only_fetches_ids_for_head_requests( $method ) {
+		$is_head_request = 'HEAD' === $method;
+		$request         = new WP_REST_Request( $method, '/wp/v2/posts' );
+
+		$filter = new MockAction();
+
+		add_filter( 'posts_pre_query', array( $filter, 'filter' ), 10, 2 );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		if ( $is_head_request ) {
+			$this->assertEmpty( $response->get_data() );
+		} else {
+			$this->assertNotEmpty( $response->get_data() );
+		}
+
+		$args = $filter->get_args();
+		$this->assertTrue( isset( $args[0][1] ), 'Query parameters were not captured.' );
+		$this->assertInstanceOf( WP_Query::class, $args[0][1], 'Query parameters were not captured.' );
+
+		/** @var WP_Query $query */
+		$query = $args[0][1];
+
+		if ( $is_head_request ) {
+			$this->assertArrayHasKey( 'fields', $query->query, 'The fields parameter is not set in the query vars.' );
+			$this->assertSame( 'ids', $query->query['fields'], 'The query must fetch only post IDs.' );
+			$this->assertArrayHasKey( 'fields', $query->query_vars, 'The fields parameter is not set in the query vars.' );
+			$this->assertSame( 'ids', $query->query_vars['fields'], 'The query must fetch only post IDs.' );
+			$this->assertArrayHasKey( 'update_post_term_cache', $query->query_vars, 'The "update_post_term_cache" parameter is missing in the query vars.' );
+			$this->assertFalse( $query->query_vars['update_post_term_cache'], 'The "update_post_term_cache" parameter must be false for HEAD requests.' );
+			$this->assertArrayHasKey( 'update_post_meta_cache', $query->query_vars, 'The "update_post_meta_cache" parameter is missing in the query vars.' );
+			$this->assertFalse( $query->query_vars['update_post_meta_cache'], 'The "update_post_meta_cache" parameter must be false for HEAD requests.' );
+		} else {
+			$this->assertTrue( ! array_key_exists( 'fields', $query->query ) || 'ids' !== $query->query['fields'], 'The fields parameter should not be forced to "ids" for non-HEAD requests.' );
+			$this->assertTrue( ! array_key_exists( 'fields', $query->query_vars ) || 'ids' !== $query->query_vars['fields'], 'The fields parameter should not be forced to "ids" for non-HEAD requests.' );
+			$this->assertArrayHasKey( 'update_post_term_cache', $query->query_vars, 'The "update_post_term_cache" parameter is missing in the query vars.' );
+			$this->assertTrue( $query->query_vars['update_post_term_cache'], 'The "update_post_term_cache" parameter must be true for non-HEAD requests.' );
+			$this->assertArrayHasKey( 'update_post_meta_cache', $query->query_vars, 'The "update_post_meta_cache" parameter is missing in the query vars.' );
+			$this->assertTrue( $query->query_vars['update_post_meta_cache'], 'The "update_post_meta_cache" parameter must be true for non-HEAD requests.' );
+		}
+
+		if ( ! $is_head_request ) {
+			return;
+		}
+
+		global $wpdb;
+		$posts_table = preg_quote( $wpdb->posts, '/' );
+		$pattern     = '/^SELECT\s+SQL_CALC_FOUND_ROWS\s+' . $posts_table . '\.ID\s+FROM\s+' . $posts_table . '\s+WHERE/i';
+
+		// Assert that the SQL query only fetches the ID column.
+		$this->assertMatchesRegularExpression( $pattern, $query->request, 'The SQL query does not match the expected string.' );
+	}
+
 	public function test_get_items_status_draft_permissions() {
-		$draft_id = $this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$draft_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
 
 		// Drafts status query var inaccessible to unauthorized users.
 		wp_set_current_user( 0 );
@@ -1644,7 +2052,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 43701
 	 */
 	public function test_get_items_status_private_permissions() {
-		$private_post_id = $this->factory->post->create( array( 'post_status' => 'private' ) );
+		$private_post_id = self::factory()->post->create( array( 'post_status' => 'private' ) );
 
 		wp_set_current_user( 0 );
 
@@ -1692,16 +2100,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_invalid_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'after', rand_str() );
-		$request->set_param( 'before', rand_str() );
+		$request->set_param( 'after', 'foo' );
+		$request->set_param( 'before', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_get_items_valid_date() {
-		$post1 = $this->factory->post->create( array( 'post_date' => '2016-01-15T00:00:00Z' ) );
-		$post2 = $this->factory->post->create( array( 'post_date' => '2016-01-16T00:00:00Z' ) );
-		$post3 = $this->factory->post->create( array( 'post_date' => '2016-01-17T00:00:00Z' ) );
+		$post1 = self::factory()->post->create( array( 'post_date' => '2016-01-15T00:00:00Z' ) );
+		$post2 = self::factory()->post->create( array( 'post_date' => '2016-01-16T00:00:00Z' ) );
+		$post3 = self::factory()->post->create( array( 'post_date' => '2016-01-17T00:00:00Z' ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'after', '2016-01-15T00:00:00Z' );
@@ -1717,8 +2125,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_get_items_invalid_modified_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'modified_after', rand_str() );
-		$request->set_param( 'modified_before', rand_str() );
+		$request->set_param( 'modified_after', 'foo' );
+		$request->set_param( 'modified_before', 'bar' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
@@ -1727,9 +2135,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 50617
 	 */
 	public function test_get_items_valid_modified_date() {
-		$post1 = $this->factory->post->create( array( 'post_date' => '2016-01-01 00:00:00' ) );
-		$post2 = $this->factory->post->create( array( 'post_date' => '2016-01-02 00:00:00' ) );
-		$post3 = $this->factory->post->create( array( 'post_date' => '2016-01-03 00:00:00' ) );
+		$post1 = self::factory()->post->create( array( 'post_date' => '2016-01-01 00:00:00' ) );
+		$post2 = self::factory()->post->create( array( 'post_date' => '2016-01-02 00:00:00' ) );
+		$post3 = self::factory()->post->create( array( 'post_date' => '2016-01-03 00:00:00' ) );
 		$this->update_post_modified( $post1, '2016-01-15 00:00:00' );
 		$this->update_post_modified( $post2, '2016-01-16 00:00:00' );
 		$this->update_post_modified( $post3, '2016-01-17 00:00:00' );
@@ -1757,6 +2165,73 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->check_get_post_response( $response, 'view' );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_should_allow_adding_headers_via_filter( $method ) {
+		$request = new WP_REST_Request( $method, sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+
+		$hook_name = 'rest_prepare_' . get_post_type( self::$post_id );
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$header_filter = new class() {
+			public static function add_custom_header( $response ) {
+				$response->header( 'X-Test-Header', 'Test' );
+
+				return $response;
+			}
+		};
+		add_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+		remove_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The "' . $hook_name . '" filter was not called when it should be for GET/HEAD requests.' );
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'Link', $headers, 'The "Link" header should be present in the response.' );
+		$this->assertArrayHasKey( 'X-Test-Header', $headers, 'The "X-Test-Header" header should be present in the response.' );
+		$this->assertSame( 'Test', $headers['X-Test-Header'], 'The "X-Test-Header" header value should be equal to "Test".' );
+		if ( 'HEAD' !== $method ) {
+			return null;
+		}
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		$request = new WP_REST_Request( 'HEAD', sprintf( $path, self::$post_id ) );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/posts/%d' ),
+			'get_items request' => array( '/wp/v2/posts' ),
+		);
 	}
 
 	public function test_get_item_links() {
@@ -1846,8 +2321,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( rest_url( '/wp/v2/users/' . self::$author_id ), $links['author'][0]['href'] );
 	}
 
-	public function test_get_post_draft_status_not_authenicated() {
-		$draft_id = $this->factory->post->create(
+	public function test_get_post_draft_status_not_authenticated() {
+		$draft_id = self::factory()->post->create(
 			array(
 				'post_status' => 'draft',
 			)
@@ -1861,9 +2336,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
 	}
 
+	/**
+	 * Tests that authenticated users are only allowed to read password protected content
+	 * if they have the 'edit_post' meta capability for the post.
+	 */
 	public function test_get_post_draft_edit_context() {
 		$post_content = 'Hello World!';
-		$this->factory->post->create(
+
+		// Create a password protected post as an Editor.
+		self::factory()->post->create(
 			array(
 				'post_title'    => 'Hola',
 				'post_password' => 'password',
@@ -1872,18 +2353,27 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_author'   => self::$editor_id,
 			)
 		);
-		$draft_id = $this->factory->post->create(
+
+		// Create a draft with the Latest Posts block as a Contributor.
+		$draft_id = self::factory()->post->create(
 			array(
 				'post_status'  => 'draft',
 				'post_author'  => self::$contributor_id,
 				'post_content' => '<!-- wp:latest-posts {"displayPostContent":true} /--> <!-- wp:latest-posts {"displayPostContent":true,"displayPostContentRadio":"full_post"} /-->',
 			)
 		);
+
+		// Set the current user to Contributor and request the draft for editing.
 		wp_set_current_user( self::$contributor_id );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $draft_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+
+		/*
+		 * Verify that the content of a password protected post created by an Editor
+		 * is not viewable by a Contributor.
+		 */
 		$this->assertStringNotContainsString( $post_content, $data['content']['rendered'] );
 	}
 
@@ -1938,7 +2428,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_post_with_password() {
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_password' => '$inthebananastand',
 			)
@@ -1957,7 +2447,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_post_with_password_using_password() {
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_password' => '$inthebananastand',
 				'post_content'  => 'Some secret content.',
@@ -1981,7 +2471,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_post_with_password_using_incorrect_password() {
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_password' => '$inthebananastand',
 			)
@@ -1997,7 +2487,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_post_with_password_without_permission() {
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_password' => '$inthebananastand',
 				'post_content'  => 'Some secret content.',
@@ -2016,12 +2506,57 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 61837
+	 */
+	public function test_get_item_permissions_check_while_updating_password() {
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_url_params( array( 'id' => self::$post_id ) );
+		$request->set_body_params(
+			$this->set_post_data(
+				array(
+					'id'       => self::$post_id,
+					'password' => '123',
+				)
+			)
+		);
+		$permission = $endpoint->get_item_permissions_check( $request );
+
+		// Password provided in POST data, should not be used as authentication.
+		$this->assertNotWPError( $permission, 'Password in post body should be ignored by permissions check.' );
+		$this->assertTrue( $permission );
+	}
+
+	/**
+	 * @ticket 61837
+	 */
+	public function test_get_item_permissions_check_while_updating_password_with_invalid_type() {
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_url_params( array( 'id' => self::$post_id ) );
+		$request->set_body_params(
+			$this->set_post_data(
+				array(
+					'id'       => self::$post_id,
+					'password' => 123,
+				)
+			)
+		);
+		$permission = $endpoint->get_item_permissions_check( $request );
+
+		$this->assertNotWPError( $permission, 'Password in post body should be ignored by permissions check even when it is an invalid type.' );
+		$this->assertTrue( $permission );
+	}
+
+	/**
 	 * The post response should not have `block_version` when in view context.
 	 *
 	 * @ticket 43887
 	 */
 	public function test_get_post_should_not_have_block_version_when_context_view() {
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => '<!-- wp:core/separator -->',
 			)
@@ -2041,7 +2576,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_post_should_have_block_version_indicate_block_content_when_context_edit() {
 		wp_set_current_user( self::$editor_id );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => '<!-- wp:core/separator -->',
 			)
@@ -2062,7 +2597,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_post_should_have_block_version_indicate_no_block_content_when_context_edit() {
 		wp_set_current_user( self::$editor_id );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => '<hr />',
 			)
@@ -2137,8 +2672,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_filters_content_when_needed() {
 		$filter_count   = 0;
-		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+		$filter_content = static function () use ( &$filter_count ) {
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2173,8 +2708,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_prepare_item_skips_content_filter_if_not_needed() {
 		$filter_count   = 0;
-		$filter_content = static function() use ( &$filter_count ) {
-			$filter_count++;
+		$filter_content = static function () use ( &$filter_count ) {
+			++$filter_count;
 			return '<p>Filtered content.</p>';
 		};
 		add_filter( 'the_content', $filter_content );
@@ -2204,6 +2739,42 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 0, $filter_count );
 	}
 
+	/**
+	 * @ticket 59043
+	 *
+	 * @covers WP_REST_Posts_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_override_excerpt_length() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_excerpt' => '',
+				'post_content' => 'Bacon ipsum dolor amet porchetta capicola sirloin prosciutto brisket shankle jerky. Ham hock filet mignon boudin ground round, prosciutto alcatra spare ribs meatball turducken pork beef ribs ham beef. Bacon pastrami short loin, venison tri-tip ham short ribs doner swine. Tenderloin pig tongue pork jowl doner. Pork loin rump t-bone, beef strip steak flank drumstick tri-tip short loin capicola jowl. Cow filet mignon hamburger doner rump. Short loin jowl drumstick, tongue tail beef ribs pancetta flank brisket landjaeger chuck venison frankfurter turkey.
+
+Brisket shank rump, tongue beef ribs swine fatback turducken capicola meatball picanha chicken cupim meatloaf turkey. Bacon biltong shoulder tail frankfurter boudin cupim turkey drumstick. Porchetta pig shoulder, jerky flank pork tail meatball hamburger. Doner ham hock ribeye tail jerky swine. Leberkas ribeye pancetta, tenderloin capicola doner turducken chicken venison ground round boudin pork chop. Tail pork loin pig spare ribs, biltong ribeye brisket pork chop cupim. Short loin leberkas spare ribs jowl landjaeger tongue kevin flank bacon prosciutto.
+
+Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket bacon pork chop. Cupim hamburger pork loin short loin. Boudin ball tip cupim ground round ham shoulder. Sausage rump cow tongue bresaola pork pancetta biltong tail chicken turkey hamburger. Kevin flank pork loin salami biltong. Alcatra landjaeger pastrami andouille kielbasa ham tenderloin drumstick sausage turducken tongue corned beef.',
+			)
+		);
+
+		$endpoint = new WP_REST_Posts_Controller( 'post' );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'excerpt' );
+		$request->set_param( 'excerpt_length', 43 );
+		$response = $endpoint->prepare_item_for_response( get_post( $post_id ), $request );
+		$data     = $response->get_data();
+		$this->assertArrayHasKey( 'excerpt', $data, 'Response must contain an "excerpt" key.' );
+
+		// 43 words plus the ellipsis added via the 'excerpt_more' filter.
+		$this->assertCount(
+			44,
+			explode( ' ', $data['excerpt']['rendered'] ),
+			'Incorrect word count in the excerpt. Expected the excerpt to contain 44 words (43 words plus an ellipsis), but a different word count was found.'
+		);
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( self::$editor_id );
 
@@ -2216,7 +2787,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->check_create_post_response( $response );
 	}
 
-	public function post_dates_provider() {
+	public function data_post_dates() {
 		$all_statuses = array(
 			'draft',
 			'publish',
@@ -2287,7 +2858,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @dataProvider post_dates_provider
+	 * @dataProvider data_post_dates
 	 */
 	public function test_create_post_date( $status, $params, $results ) {
 		wp_set_current_user( self::$editor_id );
@@ -2689,30 +3260,32 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_create_update_post_with_featured_media() {
 
-		$file                = DIR_TESTDATA . '/images/canola.jpg';
-		$this->attachment_id = $this->factory->attachment->create_object(
+		$file          = DIR_TESTDATA . '/images/canola.jpg';
+		$attachment_id = self::factory()->attachment->create_object(
 			$file,
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
-				'menu_order'     => rand( 1, 100 ),
+				'menu_order'     => 1,
 			)
 		);
+
+		$this->attachments_created = true;
 
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params  = $this->set_post_data(
 			array(
-				'featured_media' => $this->attachment_id,
+				'featured_media' => $attachment_id,
 			)
 		);
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertSame( $this->attachment_id, $data['featured_media'] );
-		$this->assertSame( $this->attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
+		$this->assertSame( $attachment_id, $data['featured_media'] );
+		$this->assertSame( $attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $new_post->ID );
 		$params  = $this->set_post_data(
@@ -3092,7 +3665,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 */
 	public function test_rest_update_post_with_empty_date() {
 		// Create a new test post.
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		wp_set_current_user( self::$editor_id );
 
@@ -3308,7 +3881,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_update_post_ignore_readonly() {
 		wp_set_current_user( self::$editor_id );
 
-		$new_content       = rand_str();
+		$new_content       = 'foo bar baz';
 		$expected_modified = current_time( 'mysql' );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
@@ -3334,14 +3907,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @dataProvider post_dates_provider
+	 * @dataProvider data_post_dates
 	 */
 	public function test_update_post_date( $status, $params, $results ) {
 		wp_set_current_user( self::$editor_id );
 
 		update_option( 'timezone_string', $params['timezone_string'] );
 
-		$post_id = $this->factory->post->create( array( 'post_status' => $status ) );
+		$post_id = self::factory()->post->create( array( 'post_status' => $status ) );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		if ( isset( $params['date'] ) ) {
@@ -3373,7 +3946,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$params  = $this->set_post_data(
 			array(
-				'date' => rand_str(),
+				'date' => 'foo',
 			)
 		);
 		$request->set_body_params( $params );
@@ -3388,7 +3961,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$params  = $this->set_post_data(
 			array(
-				'date_gmt' => rand_str(),
+				'date_gmt' => 'foo',
 			)
 		);
 		$request->set_body_params( $params );
@@ -3406,7 +3979,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// Need to set dates using wpdb directly because `wp_update_post` and
 		// `wp_insert_post` have additional validation on dates.
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 		$wpdb->update(
 			$wpdb->posts,
 			array(
@@ -3889,7 +4462,17 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $expected_output['excerpt']['raw'], $post->post_excerpt );
 	}
 
-	public static function post_roundtrip_provider() {
+	/**
+	 * @dataProvider data_post_roundtrip_as_author
+	 */
+	public function test_post_roundtrip_as_author( $raw, $expected ) {
+		wp_set_current_user( self::$author_id );
+
+		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+		$this->verify_post_roundtrip( $raw, $expected );
+	}
+
+	public static function data_post_roundtrip_as_author() {
 		return array(
 			array(
 				// Raw values.
@@ -3974,26 +4557,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 						'rendered' => '<a href="#">link</a>',
 					),
 					'content' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
+						'raw'      => '<a href="#" target="_blank">link</a>',
+						'rendered' => '<p><a href="#" target="_blank">link</a></p>',
 					),
 					'excerpt' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
+						'raw'      => '<a href="#" target="_blank">link</a>',
+						'rendered' => '<p><a href="#" target="_blank">link</a></p>',
 					),
 				),
 			),
 		);
-	}
-
-	/**
-	 * @dataProvider post_roundtrip_provider
-	 */
-	public function test_post_roundtrip_as_author( $raw, $expected ) {
-		wp_set_current_user( self::$author_id );
-
-		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
-		$this->verify_post_roundtrip( $raw, $expected );
 	}
 
 	public function test_post_roundtrip_as_editor_unfiltered_html() {
@@ -4076,7 +4649,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_delete_item() {
-		$post_id = $this->factory->post->create( array( 'post_title' => 'Deleted post' ) );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Deleted post' ) );
 
 		wp_set_current_user( self::$editor_id );
 
@@ -4091,7 +4664,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_delete_item_skip_trash() {
-		$post_id = $this->factory->post->create( array( 'post_title' => 'Deleted post' ) );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Deleted post' ) );
 
 		wp_set_current_user( self::$editor_id );
 
@@ -4106,7 +4679,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_delete_item_already_trashed() {
-		$post_id = $this->factory->post->create( array( 'post_title' => 'Deleted post' ) );
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Deleted post' ) );
 
 		wp_set_current_user( self::$editor_id );
 
@@ -4127,7 +4700,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_delete_post_invalid_post_type() {
-		$page_id = $this->factory->post->create( array( 'post_type' => 'page' ) );
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 
 		wp_set_current_user( self::$editor_id );
 
@@ -4159,7 +4732,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayNotHasKey( '/wp/v2/invalid-controller', $routes );
 		_unregister_post_type( 'invalid-controller' );
-
 	}
 
 	public function test_get_item_schema() {
@@ -4167,7 +4739,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 26, $properties );
+		$this->assertCount( 27, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -4194,6 +4766,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'tags', $properties );
 		$this->assertArrayHasKey( 'categories', $properties );
+		$this->assertArrayHasKey( 'class_list', $properties );
 	}
 
 	/**
@@ -4223,6 +4796,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$expected_keys = array(
 			'author',
 			'categories',
+			'class_list',
 			'comment_status',
 			'content',
 			'date',
@@ -4261,6 +4835,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$expected_keys = array(
 			'author',
 			'categories',
+			'class_list',
 			'comment_status',
 			'content',
 			'date',
@@ -4370,7 +4945,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		wp_set_current_user( 1 );
 
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
 		$response = rest_get_server()->dispatch( $request );
@@ -4415,7 +4990,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'update_callback' => null,
 			)
 		);
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		// 'my_custom_int' should appear because ?_fields= isn't set.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
@@ -4474,15 +5049,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object ) {
-		return get_post_meta( $object['id'], 'my_custom_int', true );
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return get_post_meta( $response_data['id'], $field_name, true );
 	}
 
-	public function additional_field_update_callback( $value, $post ) {
+	public function additional_field_update_callback( $value, $post, $field_name ) {
 		if ( 'returnError' === $value ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
-		update_post_meta( $post->ID, 'my_custom_int', $value );
+		update_post_meta( $post->ID, $field_name, $value );
 	}
 
 	public function test_publish_action_ldo_registered() {
@@ -4836,7 +5411,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		wp_set_current_user( self::$editor_id );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title'  => 'Permalink Template',
 				'post_type'   => 'private-post',
@@ -4860,7 +5435,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		wp_set_current_user( self::$editor_id );
 
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title'  => 'Permalink Template',
 				'post_type'   => 'post',
@@ -4885,7 +5460,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'permalink_template', $data );
 		$this->assertArrayNotHasKey( 'generated_slug', $data );
-
 	}
 
 	/**
@@ -5154,12 +5728,343 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$GLOBALS['wp_rest_server']->override_by_default = false;
 	}
 
-	public function tear_down() {
-		if ( isset( $this->attachment_id ) ) {
-			$this->remove_added_uploads();
+	/**
+	 * @ticket 52422
+	 *
+	 * @covers WP_REST_Posts_Controller::create_item
+	 */
+	public function test_draft_post_does_not_have_the_same_slug_as_existing_post() {
+		wp_set_current_user( self::$editor_id );
+		self::factory()->post->create( array( 'post_name' => 'sample-slug' ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$params  = $this->set_post_data(
+			array(
+				'status' => 'draft',
+				'slug'   => 'sample-slug',
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertSame(
+			'sample-slug-2',
+			$new_data['slug'],
+			'The slug from the REST response did not match'
+		);
+
+		$post = get_post( $new_data['id'] );
+
+		$this->assertSame(
+			'draft',
+			$post->post_status,
+			'The post status is not draft'
+		);
+
+		$this->assertSame(
+			'sample-slug-2',
+			$post->post_name,
+			'The post slug was not set to "sample-slug-2"'
+		);
+	}
+
+	/**
+	 * Test the REST API ignores the post format parameter for post types that do not support them.
+	 *
+	 * @ticket 62646
+	 * @ticket 62014
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_standard_post_format_ignored_for_post_types_that_do_not_support_them() {
+		$initial_theme_support = get_theme_support( 'post-formats' );
+		add_theme_support( 'post-formats', array( 'aside', 'gallery', 'link', 'image', 'quote', 'status', 'video', 'audio', 'chat' ) );
+
+		self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'format', 'invalid_type' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		/*
+		 * Restore the initial post formats support.
+		 *
+		 * This needs to be done prior to the assertions to avoid unexpected
+		 * results for other tests should an assertion fail.
+		 */
+		if ( $initial_theme_support ) {
+			add_theme_support( 'post-formats', $initial_theme_support[0] );
+		} else {
+			remove_theme_support( 'post-formats' );
 		}
 
-		parent::tear_down();
+		$this->assertCount( 1, $response->get_data(), 'The response should ignore the post format parameter' );
+	}
+
+	/**
+	 * Test the REST API support for the standard post format.
+	 *
+	 * @ticket 62014
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_standard_post_format_support() {
+		$initial_theme_support = get_theme_support( 'post-formats' );
+		add_theme_support( 'post-formats', array( 'aside', 'gallery', 'link', 'image', 'quote', 'status', 'video', 'audio', 'chat' ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			)
+		);
+		set_post_format( $post_id, 'aside' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'format', array( 'standard' ) );
+		$request->set_param( 'per_page', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		/*
+		 * Restore the initial post formats support.
+		 *
+		 * This needs to be done prior to the assertions to avoid unexpected
+		 * results for other tests should an assertion fail.
+		 */
+		if ( $initial_theme_support ) {
+			add_theme_support( 'post-formats', $initial_theme_support[0] );
+		} else {
+			remove_theme_support( 'post-formats' );
+		}
+
+		$this->assertCount( 3, $response->get_data(), 'The response should only include standard post formats' );
+	}
+
+	/**
+	 * Test the REST API support for post formats.
+	 *
+	 * @ticket 62014
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_post_format_support() {
+		$initial_theme_support = get_theme_support( 'post-formats' );
+		add_theme_support( 'post-formats', array( 'aside', 'gallery', 'link', 'image', 'quote', 'status', 'video', 'audio', 'chat' ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			)
+		);
+		set_post_format( $post_id, 'aside' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'format', array( 'aside' ) );
+
+		$response_aside = rest_get_server()->dispatch( $request );
+
+		$request->set_param( 'format', array( 'invalid_format' ) );
+		$response_invalid = rest_get_server()->dispatch( $request );
+
+		/*
+		 * Restore the initial post formats support.
+		 *
+		 * This needs to be done prior to the assertions to avoid unexpected
+		 * results for other tests should an assertion fail.
+		 */
+		if ( $initial_theme_support ) {
+			add_theme_support( 'post-formats', $initial_theme_support[0] );
+		} else {
+			remove_theme_support( 'post-formats' );
+		}
+
+		$this->assertCount( 1, $response_aside->get_data(), 'Only one post is expected to be returned.' );
+		$this->assertErrorResponse( 'rest_invalid_param', $response_invalid, 400, 'An invalid post format should return an error' );
+	}
+
+	/**
+	 * Test the REST API support for multiple post formats.
+	 *
+	 * @ticket 62014
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_multiple_post_format_support() {
+		$initial_theme_support = get_theme_support( 'post-formats' );
+		add_theme_support( 'post-formats', array( 'aside', 'gallery', 'link', 'image', 'quote', 'status', 'video', 'audio', 'chat' ) );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			)
+		);
+		set_post_format( $post_id, 'aside' );
+
+		$post_id_2 = self::factory()->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			)
+		);
+		set_post_format( $post_id_2, 'gallery' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'format', array( 'aside', 'gallery' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		/*
+		 * Restore the initial post formats support.
+		 *
+		 * This needs to be done prior to the assertions to avoid unexpected
+		 * results for other tests should an assertion fail.
+		 */
+		if ( $initial_theme_support ) {
+			add_theme_support( 'post-formats', $initial_theme_support[0] );
+		} else {
+			remove_theme_support( 'post-formats' );
+		}
+
+		$this->assertCount( 2, $response->get_data(), 'Two posts are expected to be returned' );
+	}
+
+	/**
+	 * Tests for the pagination.
+	 *
+	 * @ticket 62292
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_posts_with_pagination() {
+
+		// Test offset.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'offset', 1 );
+		$request->set_param( 'per_page', 1 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertSame( 30, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 30, $response->get_headers()['X-WP-TotalPages'] );
+
+		// Test paged.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'page', 2 );
+		$request->set_param( 'per_page', 2 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertCount( 2, $data );
+		$this->assertSame( 30, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 15, $response->get_headers()['X-WP-TotalPages'] );
+
+		// Test out of bounds.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'page', 4 );
+		$request->set_param( 'per_page', 10 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_post_invalid_page_number', $response, 400 );
+	}
+
+	/**
+	 * Test the REST API doesn't prioritize sticky posts by default.
+	 *
+	 * @ticket 35907
+	 * @ticket 63307
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_posts_ignore_sticky_by_default() {
+		$id1 = self::$post_id;
+		// Create more recent post to avoid automatically placing other at the top.
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id1 ) );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$rest_ids = wp_list_pluck( $data, 'id' );
+
+		$this->assertSame( $data[0]['id'], $id2, 'Response has no sticky post at the top.' );
+
+		$posts_query = new WP_Query( array( 'ignore_sticky_posts' => true ) );
+		$post_ids    = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=true.' );
+	}
+
+	/**
+	 * Test the REST API support for `ignore_sticky_posts`.
+	 *
+	 * @ticket 35907
+	 * @ticket 63307
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_posts_ignore_sticky_false_prepends_sticky_posts() {
+		$id1 = self::$post_id;
+		// Create more recent post to avoid automatically placing other at the top.
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id1 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'ignore_sticky', false );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$rest_ids = wp_list_pluck( $data, 'id' );
+
+		$this->assertSame( $data[0]['id'], $id1, 'Response has sticky post at the top.' );
+		$this->assertSame( $data[1]['id'], $id2, 'It is followed by most recent post.' );
+
+		$posts_query = new WP_Query();
+		$post_ids    = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=false.' );
+	}
+
+	/**
+	 * Test the REST API support for `ignore_sticky_posts`.
+	 *
+	 * @ticket 35907
+	 * @ticket 63307
+	 *
+	 * @covers WP_REST_Posts_Controller::get_items
+	 */
+	public function test_get_posts_ignore_sticky_honors_include() {
+
+		$id1 = self::$post_id;
+		$id2 = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id1 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'include', array( $id2 ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$rest_ids = wp_list_pluck( $data, 'id' );
+
+		$this->assertCount( 1, $data, 'Only one post is expected to be returned.' );
+		$this->assertSame( $data[0]['id'], $id2, 'Returns the included post.' );
+
+		$posts_query = new WP_Query(
+			array(
+				'post__in'            => array( $id2 ),
+				'ignore_sticky_posts' => true,
+			)
+		);
+		$post_ids    = wp_list_pluck( $posts_query->get_posts(), 'ID' );
+		$this->assertSame( $rest_ids, $post_ids, 'Response is same as WP_Query with ignore_sticky_posts=truehas no sticky post at the top.' );
 	}
 
 	/**

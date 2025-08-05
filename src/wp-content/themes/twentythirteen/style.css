@@ -4,7 +4,8 @@ Theme URI: https://wordpress.org/themes/twentythirteen/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: The 2013 theme for WordPress takes us back to the blog, featuring a full range of post formats, each displayed beautifully in their own unique way. Design details abound, starting with a vibrant color scheme and matching header images, beautiful typography and icons, and a flexible layout that looks great on any device, big or small.
-Version: 3.4
+Version: 4.4
+Tested up to: 6.8
 Requires at least: 3.6
 Requires PHP: 5.2.4
 License: GNU General Public License v2 or later
@@ -228,6 +229,10 @@ pre {
 	white-space: pre;
 	white-space: pre-wrap;
 	word-wrap: break-word;
+}
+
+pre code {
+	font-size: inherit;
 }
 
 blockquote,
@@ -464,6 +469,19 @@ hr {
 	margin: 0 0 24px;
 }
 
+/* Custom gradient block backgrounds */
+.has-autumn-brown-gradient-background {
+	background: linear-gradient(135deg, rgba(226,45,15,1) 0%, rgba(158,25,13,1) 100%);
+}
+.has-sunset-yellow-gradient-background {
+	background: linear-gradient(135deg, rgba(233,139,41,1) 0%, rgba(238,179,95,1) 100%);
+}
+.has-light-sky-gradient-background {
+	background: linear-gradient(135deg,rgba(228,228,228,1.0) 0%,rgba(208,225,252,1.0) 100%);
+}
+.has-dark-sky-gradient-background {
+	background: linear-gradient(135deg,rgba(0,0,0,1.0) 0%,rgba(56,61,69,1.0) 100%);
+}
 
 /**
  * 2.0 Repeatable Patterns
@@ -541,7 +559,7 @@ hr {
 
 /* Assistive text */
 .screen-reader-text {
-	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
 	overflow: hidden;
 	position: absolute !important;
 	height: 1px;
@@ -552,7 +570,7 @@ hr {
 	background-color: #f1f1f1;
 	border-radius: 3px;
 	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
-	clip: auto !important;
+	clip-path: none;
 	color: #21759b;
 	display: block;
 	font-size: 14px;
@@ -903,7 +921,7 @@ div.nav-menu > ul {
 	height: 1px;
 	width: 1px;
 	overflow: hidden;
-	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
 }
 
 .nav-menu .sub-menu ul,
@@ -931,7 +949,7 @@ ul.nav-menu li:hover > ul,
 .nav-menu ul li:hover > ul,
 ul.nav-menu .focus > ul,
 .nav-menu .focus > ul {
-	clip: inherit;
+	clip-path: none;
 	overflow: inherit;
 	height: inherit;
 	width: inherit;
@@ -3131,7 +3149,7 @@ footer.entry-meta {
 		font-weight: normal;
 	}
 	.site-description {
-	    clip: rect(1px, 1px, 1px, 1px);
+		clip-path: inset(50%);
 	    position: absolute;
 	}
 	.gallery {

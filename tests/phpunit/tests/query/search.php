@@ -10,7 +10,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->post_type = rand_str( 12 );
+		$this->post_type = 'foo1';
 		register_post_type( $this->post_type );
 
 		$this->q = new WP_Query();
@@ -36,7 +36,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		foreach ( range( 1, 7 ) as $i ) {
 			self::factory()->post->create(
 				array(
-					'post_content' => $i . rand_str() . ' about',
+					'post_content' => "{$i} about",
 					'post_type'    => $this->post_type,
 				)
 			);
@@ -266,7 +266,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	 * @ticket 31025
 	 */
 	public function test_s_zero() {
-		$p1 = $this->factory->post->create(
+		$p1 = self::factory()->post->create(
 			array(
 				'post_status'  => 'publish',
 				'post_title'   => '1',
@@ -275,12 +275,12 @@ class Tests_Query_Search extends WP_UnitTestCase {
 			)
 		);
 
-		$p2 = $this->factory->post->create(
+		$p2 = self::factory()->post->create(
 			array(
 				'post_status'  => 'publish',
 				'post_title'   => '0',
 				'post_content' => 'this post contains zeroes',
-				'post_excerpt' => 'this post containts zeroes',
+				'post_excerpt' => 'this post contains zeroes',
 			)
 		);
 
@@ -408,7 +408,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Unfiltered search queries for attachment post types should not inlcude
+	 * Unfiltered search queries for attachment post types should not include
 	 * filenames to ensure the postmeta JOINs don't happen on the front end.
 	 *
 	 * @ticket 22744
@@ -454,7 +454,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		);
 
 		add_post_meta( $attachment, '_wp_attached_file', 'some-image1.png', true );
-		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+		add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 
 		// Pass post_type a string value.
 		$q = new WP_Query(
@@ -484,7 +484,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		);
 
 		add_post_meta( $attachment, '_wp_attached_file', 'some-image2.png', true );
-		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+		add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 
 		// Pass post_type an array value.
 		$q = new WP_Query(
@@ -543,7 +543,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 
 		add_post_meta( $attachment, '_wp_attached_file', 'some-image4.png', true );
 		add_post_meta( $attachment, '_test_meta_key', 'value', true );
-		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+		add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 
 		// Pass post_type a string value.
 		$q = new WP_Query(
@@ -583,7 +583,7 @@ class Tests_Query_Search extends WP_UnitTestCase {
 		wp_set_post_terms( $attachment, 'test', 'post_tag' );
 
 		add_post_meta( $attachment, '_wp_attached_file', 'some-image5.png', true );
-		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+		add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 
 		// Pass post_type a string value.
 		$q = new WP_Query(
@@ -608,25 +608,37 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	/**
 	 * @ticket 22744
 	 */
-	public function test_filter_query_attachment_filenames_unhooks_itself() {
-		add_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
-
-		apply_filters(
-			'posts_clauses',
+	public function test_wp_query_removes_filter_wp_allow_query_attachment_by_filename() {
+		$attachment = self::factory()->post->create(
 			array(
-				'where'    => '',
-				'groupby'  => '',
-				'join'     => '',
-				'orderby'  => '',
-				'distinct' => '',
-				'fields'   => '',
-				'limit'    => '',
+				'post_type'    => 'attachment',
+				'post_status'  => 'publish',
+				'post_title'   => 'bar foo',
+				'post_content' => 'foo bar',
+				'post_excerpt' => 'This post has foo',
 			)
 		);
 
-		$result = has_filter( 'posts_clauses', '_filter_query_attachment_filenames' );
+		add_post_meta( $attachment, '_wp_attached_file', 'some-image1.png', true );
+		add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
 
-		$this->assertFalse( $result );
+		$q = new WP_Query(
+			array(
+				's'           => 'image1',
+				'fields'      => 'ids',
+				'post_type'   => 'attachment',
+				'post_status' => 'inherit',
+			)
+		);
+
+		$this->assertSame( array( $attachment ), $q->posts );
+
+		/*
+		 * WP_Query should have removed the wp_allow_query_attachment_by_filename filter
+		 * and thus not match the attachment created above.
+		 */
+		$q->get_posts();
+		$this->assertEmpty( $q->posts );
 	}
 
 	public function filter_posts_search( $sql ) {

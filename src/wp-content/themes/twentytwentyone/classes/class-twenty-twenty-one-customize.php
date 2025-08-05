@@ -16,7 +16,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 	class Twenty_Twenty_One_Customize {
 
 		/**
-		 * Constructor. Instantiate the object.
+		 * Constructor. Instantiates the object.
 		 *
 		 * @since Twenty Twenty-One 1.0
 		 */
@@ -25,7 +25,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		}
 
 		/**
-		 * Register customizer options.
+		 * Registers customizer options.
 		 *
 		 * @since Twenty Twenty-One 1.0
 		 *
@@ -92,7 +92,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 				array(
 					'capability'        => 'edit_theme_options',
 					'default'           => 'excerpt',
-					'sanitize_callback' => static function( $value ) {
+					'sanitize_callback' => static function ( $value ) {
 						return 'excerpt' === $value || 'full' === $value ? $value : 'excerpt';
 					},
 				)
@@ -113,7 +113,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 
 			// Background color.
 			// Include the custom control class.
-			include_once get_theme_file_path( 'classes/class-twenty-twenty-one-customize-color-control.php' ); // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
+			require_once get_theme_file_path( 'classes/class-twenty-twenty-one-customize-color-control.php' ); // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
 
 			// Register the custom control.
 			$wp_customize->register_control_type( 'Twenty_Twenty_One_Customize_Color_Control' );
@@ -144,7 +144,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		}
 
 		/**
-		 * Sanitize boolean for checkbox.
+		 * Sanitizes a boolean for checkbox.
 		 *
 		 * @since Twenty Twenty-One 1.0
 		 *
@@ -156,7 +156,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		}
 
 		/**
-		 * Render the site title for the selective refresh partial.
+		 * Renders the site title for the selective refresh partial.
 		 *
 		 * @since Twenty Twenty-One 1.0
 		 *
@@ -167,7 +167,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		}
 
 		/**
-		 * Render the site tagline for the selective refresh partial.
+		 * Renders the site tagline for the selective refresh partial.
 		 *
 		 * @since Twenty Twenty-One 1.0
 		 *

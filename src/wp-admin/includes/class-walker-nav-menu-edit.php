@@ -61,7 +61,8 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 		global $_wp_nav_menu_max_depth;
 
 		// Restores the more descriptive, specific name for use within this method.
-		$menu_item              = $data_object;
+		$menu_item = $data_object;
+
 		$_wp_nav_menu_max_depth = $depth > $_wp_nav_menu_max_depth ? $depth : $_wp_nav_menu_max_depth;
 
 		ob_start();
@@ -180,8 +181,9 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 						printf(
 							'<a class="item-edit" id="edit-%s" href="%s" aria-label="%s"><span class="screen-reader-text">%s</span></a>',
 							$item_id,
-							$edit_url,
+							esc_url( $edit_url ),
 							esc_attr__( 'Edit menu item' ),
+							/* translators: Hidden accessibility text. */
 							__( 'Edit' )
 						);
 						?>
@@ -194,7 +196,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 					<p class="field-url description description-wide">
 						<label for="edit-menu-item-url-<?php echo $item_id; ?>">
 							<?php _e( 'URL' ); ?><br />
-							<input type="text" id="edit-menu-item-url-<?php echo $item_id; ?>" class="widefat code edit-menu-item-url" name="menu-item-url[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->url ); ?>" />
+							<input type="text" id="edit-menu-item-url-<?php echo $item_id; ?>" class="widefat code edit-menu-item-url" name="menu-item-url[<?php echo $item_id; ?>]" value="<?php echo esc_url( $menu_item->url ); ?>" />
 						</label>
 					</p>
 				<?php endif; ?>
@@ -216,25 +218,52 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 						<?php _e( 'Open link in a new tab' ); ?>
 					</label>
 				</p>
-				<p class="field-css-classes description description-thin">
-					<label for="edit-menu-item-classes-<?php echo $item_id; ?>">
-						<?php _e( 'CSS Classes (optional)' ); ?><br />
-						<input type="text" id="edit-menu-item-classes-<?php echo $item_id; ?>" class="widefat code edit-menu-item-classes" name="menu-item-classes[<?php echo $item_id; ?>]" value="<?php echo esc_attr( implode( ' ', $menu_item->classes ) ); ?>" />
-					</label>
-				</p>
-				<p class="field-xfn description description-thin">
-					<label for="edit-menu-item-xfn-<?php echo $item_id; ?>">
-						<?php _e( 'Link Relationship (XFN)' ); ?><br />
-						<input type="text" id="edit-menu-item-xfn-<?php echo $item_id; ?>" class="widefat code edit-menu-item-xfn" name="menu-item-xfn[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->xfn ); ?>" />
-					</label>
-				</p>
+				<div class="description-group">
+					<p class="field-css-classes description description-thin">
+						<label for="edit-menu-item-classes-<?php echo $item_id; ?>">
+							<?php _e( 'CSS Classes (optional)' ); ?><br />
+							<input type="text" id="edit-menu-item-classes-<?php echo $item_id; ?>" class="widefat code edit-menu-item-classes" name="menu-item-classes[<?php echo $item_id; ?>]" value="<?php echo esc_attr( implode( ' ', $menu_item->classes ) ); ?>" />
+						</label>
+					</p>
+					<p class="field-xfn description description-thin">
+						<label for="edit-menu-item-xfn-<?php echo $item_id; ?>">
+							<?php _e( 'Link Relationship (XFN)' ); ?><br />
+							<input type="text" id="edit-menu-item-xfn-<?php echo $item_id; ?>" class="widefat code edit-menu-item-xfn" name="menu-item-xfn[<?php echo $item_id; ?>]" value="<?php echo esc_attr( $menu_item->xfn ); ?>" />
+						</label>
+					</p>
+				</div>
 				<p class="field-description description description-wide">
 					<label for="edit-menu-item-description-<?php echo $item_id; ?>">
 						<?php _e( 'Description' ); ?><br />
 						<textarea id="edit-menu-item-description-<?php echo $item_id; ?>" class="widefat edit-menu-item-description" rows="3" cols="20" name="menu-item-description[<?php echo $item_id; ?>]"><?php echo esc_html( $menu_item->description ); // textarea_escaped ?></textarea>
-						<span class="description"><?php _e( 'The description will be displayed in the menu if the current theme supports it.' ); ?></span>
+						<span class="description"><?php _e( 'The description will be displayed in the menu if the active theme supports it.' ); ?></span>
 					</label>
 				</p>
+
+				<?php
+				/**
+				 * Update parent and order of menu item using select inputs.
+				 *
+				 * @since 6.7.0
+				 */
+				?>
+	
+				<div class="field-move-combo description-group">
+					<p class="description description-wide">
+						<label for="edit-menu-item-parent-<?php echo $item_id; ?>">
+							<?php _e( 'Menu Parent' ); ?>
+						</label>
+						<select class="edit-menu-item-parent widefat" id="edit-menu-item-parent-<?php echo $item_id; ?>" name="menu-item-parent[<?php echo $item_id; ?>]">
+						</select>
+					</p>
+					<p class="description description-wide">
+						<label for="edit-menu-item-order-<?php echo $item_id; ?>">
+							<?php _e( 'Menu Order' ); ?>
+						</label>
+						<select class="edit-menu-item-order widefat" id="edit-menu-item-order-<?php echo $item_id; ?>" name="menu-item-order[<?php echo $item_id; ?>]">
+						</select>
+					</p>
+				</div>
 
 				<?php
 				/**
@@ -242,11 +271,11 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 				 *
 				 * @since 5.4.0
 				 *
-				 * @param int      $item_id           Menu item ID.
-				 * @param WP_Post  $menu_item         Menu item data object.
-				 * @param int      $depth             Depth of menu item. Used for padding.
-				 * @param stdClass $args              An object of menu item arguments.
-				 * @param int      $current_object_id Nav menu ID.
+				 * @param string        $item_id           Menu item ID as a numeric string.
+				 * @param WP_Post       $menu_item         Menu item data object.
+				 * @param int           $depth             Depth of menu item. Used for padding.
+				 * @param stdClass|null $args              An object of menu item arguments.
+				 * @param int           $current_object_id Nav menu ID.
 				 */
 				do_action( 'wp_nav_menu_item_custom_fields', $item_id, $menu_item, $depth, $args, $current_object_id );
 				?>
@@ -265,7 +294,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 						<p class="link-to-original">
 							<?php
 							/* translators: %s: Link to menu item's original object. */
-							printf( __( 'Original: %s' ), '<a href="' . esc_attr( $menu_item->url ) . '">' . esc_html( $original_title ) . '</a>' );
+							printf( __( 'Original: %s' ), '<a href="' . esc_url( $menu_item->url ) . '">' . esc_html( $original_title ) . '</a>' );
 							?>
 						</p>
 					<?php endif; ?>
@@ -318,5 +347,4 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 		<?php
 		$output .= ob_get_clean();
 	}
-
 }

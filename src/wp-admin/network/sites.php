@@ -28,23 +28,21 @@ get_current_screen()->add_help_tab(
 		'id'      => 'overview',
 		'title'   => __( 'Overview' ),
 		'content' =>
-			'<p>' . __( 'Add New takes you to the Add New Site screen. You can search for a site by Name, ID number, or IP address. Screen Options allows you to choose how many sites to display on one page.' ) . '</p>' .
-			'<p>' . __( 'This is the main table of all sites on this network. Switch between list and excerpt views by using the icons above the right side of the table.' ) . '</p>' .
+		'<p>' . __( 'Add Site takes you to the screen for adding a new site to the network. You can search for a site by Name, ID number, or IP address. Screen Options allows you to choose how many sites to display on one page.' ) . '</p>' .
+		'<p>' . __( 'This is the main table of all sites on this network. Switch between list and excerpt views by using the icons above the right side of the table.' ) . '</p>' .
 			'<p>' . __( 'Hovering over each site reveals seven options (three for the primary site):' ) . '</p>' .
 			'<ul><li>' . __( 'An Edit link to a separate Edit Site screen.' ) . '</li>' .
 			'<li>' . __( 'Dashboard leads to the Dashboard for that site.' ) . '</li>' .
-			'<li>' . __( 'Deactivate, Archive, and Spam which lead to confirmation screens. These actions can be reversed later.' ) . '</li>' .
-			'<li>' . __( 'Delete which is a permanent action after the confirmation screens.' ) . '</li>' .
-			'<li>' . __( 'Visit to go to the front-end site live.' ) . '</li></ul>' .
-			'<p>' . __( 'The site ID is used internally, and is not shown on the front end of the site or to users/viewers.' ) . '</p>' .
-			'<p>' . __( 'Clicking on bold headings can re-sort this table.' ) . '</p>',
+			'<li>' . __( 'Flag for Deletion, Archive, and Spam which lead to confirmation screens. These actions can be reversed later.' ) . '</li>' .
+			'<li>' . __( 'Delete Permanently which is a permanent action after the confirmation screen.' ) . '</li>' .
+			'<li>' . __( 'Visit to go to the front-end of the live site.' ) . '</li></ul>',
 	)
 );
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-sites-screen">Documentation on Site Management</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>'
 );
 
 get_current_screen()->set_screen_reader_content(
@@ -63,9 +61,9 @@ if ( isset( $_GET['action'] ) ) {
 	// A list of valid actions and their associated messaging for confirmation output.
 	$manage_actions = array(
 		/* translators: %s: Site URL. */
-		'activateblog'   => __( 'You are about to activate the site %s.' ),
+		'activateblog'   => __( 'You are about to remove the deletion flag from the site %s.' ),
 		/* translators: %s: Site URL. */
-		'deactivateblog' => __( 'You are about to deactivate the site %s.' ),
+		'deactivateblog' => __( 'You are about to flag the site %s for deletion.' ),
 		/* translators: %s: Site URL. */
 		'unarchiveblog'  => __( 'You are about to unarchive the site %s.' ),
 		/* translators: %s: Site URL. */
@@ -102,12 +100,13 @@ if ( isset( $_GET['action'] ) ) {
 			header( 'Content-Type: text/html; charset=utf-8' );
 		}
 
-		if ( get_network()->site_id == $id ) {
+		if ( is_main_site( $id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to change the current site.' ) );
 		}
 
 		$site_details = get_site( $id );
 		$site_address = untrailingslashit( $site_details->domain . $site_details->path );
+		$submit       = __( 'Confirm' );
 
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
@@ -118,8 +117,30 @@ if ( isset( $_GET['action'] ) ) {
 					<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
 					<input type="hidden" name="_wp_http_referer" value="<?php echo esc_attr( wp_get_referer() ); ?>" />
 					<?php wp_nonce_field( $site_action . '_' . $id, '_wpnonce', false ); ?>
-					<p><?php printf( $manage_actions[ $site_action ], $site_address ); ?></p>
-					<?php submit_button( __( 'Confirm' ), 'primary' ); ?>
+					<?php
+					if ( 'deleteblog' === $site_action ) {
+						$submit = __( 'Delete this site permanently' );
+						?>
+						<div class="notice notice-warning inline">
+							<p><?php _e( 'Deleting a site is a permanent action that cannot be undone. This will delete the entire site and its uploads directory.' ); ?>
+						</div>
+						<?php
+					} elseif ( 'archiveblog' === $site_action ) {
+						?>
+						<div class="notice notice-warning inline">
+							<p><?php _e( 'Archiving a site makes the site unavailable to its users and visitors. This is a reversible action.' ); ?>
+						</div>
+						<?php
+					} elseif ( 'deactivateblog' === $site_action ) {
+						?>
+						<div class="notice notice-warning inline">
+							<p><?php _e( 'Flagging a site for deletion makes the site unavailable to its users and visitors. This is a reversible action. A super admin can permanently delete the site at a later date.' ); ?>
+						</div>
+						<?php
+					}
+					?>
+					<p><?php printf( $manage_actions[ $site_action ], "<strong>{$site_address}</strong>" ); ?></p>
+					<?php submit_button( $submit, 'primary' ); ?>
 				</form>
 			</div>
 		<?php
@@ -142,7 +163,7 @@ if ( isset( $_GET['action'] ) ) {
 			}
 
 			$updated_action = 'not_deleted';
-			if ( '0' != $id && get_network()->site_id != $id && current_user_can( 'delete_site', $id ) ) {
+			if ( 0 !== $id && ! is_main_site( $id ) && current_user_can( 'delete_site', $id ) ) {
 				wpmu_delete_blog( $id, true );
 				$updated_action = 'delete';
 			}
@@ -154,7 +175,7 @@ if ( isset( $_GET['action'] ) ) {
 			foreach ( (array) $_POST['site_ids'] as $site_id ) {
 				$site_id = (int) $site_id;
 
-				if ( get_network()->site_id == $site_id ) {
+				if ( is_main_site( $site_id ) ) {
 					continue;
 				}
 
@@ -181,8 +202,10 @@ if ( isset( $_GET['action'] ) ) {
 			if ( isset( $_POST['action'] ) && isset( $_POST['allblogs'] ) ) {
 				$doaction = $_POST['action'];
 
-				foreach ( (array) $_POST['allblogs'] as $key => $val ) {
-					if ( '0' != $val && get_network()->site_id != $val ) {
+				foreach ( (array) $_POST['allblogs'] as $site_id ) {
+					$site_id = (int) $site_id;
+
+					if ( 0 !== $site_id && ! is_main_site( $site_id ) ) {
 						switch ( $doaction ) {
 							case 'delete':
 								require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -193,20 +216,25 @@ if ( isset( $_GET['action'] ) ) {
 										<input type="hidden" name="action" value="delete_sites" />
 										<input type="hidden" name="_wp_http_referer" value="<?php echo esc_attr( wp_get_referer() ); ?>" />
 										<?php wp_nonce_field( 'ms-delete-sites', '_wpnonce', false ); ?>
+										<div class="notice notice-warning inline">
+											<p><?php _e( 'Deleting a site is a permanent action that cannot be undone. This will delete the entire site and its uploads directory.' ); ?>
+										</div>
 										<p><?php _e( 'You are about to delete the following sites:' ); ?></p>
 										<ul class="ul-disc">
 											<?php
 											foreach ( $_POST['allblogs'] as $site_id ) :
+												$site_id = (int) $site_id;
+
 												$site         = get_site( $site_id );
 												$site_address = untrailingslashit( $site->domain . $site->path );
 												?>
 												<li>
 													<?php echo $site_address; ?>
-													<input type="hidden" name="site_ids[]" value="<?php echo (int) $site_id; ?>" />
+													<input type="hidden" name="site_ids[]" value="<?php echo esc_attr( $site_id ); ?>" />
 												</li>
 											<?php endforeach; ?>
 										</ul>
-										<?php submit_button( __( 'Confirm' ), 'primary' ); ?>
+										<?php submit_button( __( 'Delete these sites permanently' ), 'primary' ); ?>
 									</form>
 								</div>
 								<?php
@@ -217,7 +245,7 @@ if ( isset( $_GET['action'] ) ) {
 							case 'spam':
 							case 'notspam':
 								$updated_action = ( 'spam' === $doaction ) ? 'all_spam' : 'all_notspam';
-								update_blog_status( $val, 'spam', ( 'spam' === $doaction ) ? '1' : '0' );
+								update_blog_status( $site_id, 'spam', ( 'spam' === $doaction ) ? '1' : '0' );
 								break;
 						}
 					} else {
@@ -257,22 +285,22 @@ if ( isset( $_GET['action'] ) ) {
 			update_blog_status( $id, 'deleted', '0' );
 
 			/**
-			 * Fires after a network site is activated.
+			 * Fires after a network site has its deletion flag removed.
 			 *
 			 * @since MU (3.0.0)
 			 *
-			 * @param string $id The ID of the activated site.
+			 * @param int $id The ID of the reactivated site.
 			 */
 			do_action( 'activate_blog', $id );
 			break;
 
 		case 'deactivateblog':
 			/**
-			 * Fires before a network site is deactivated.
+			 * Fires before a network site is flagged for deletion.
 			 *
 			 * @since MU (3.0.0)
 			 *
-			 * @param string $id The ID of the site being deactivated.
+			 * @param int $id The ID of the site being flagged for deletion.
 			 */
 			do_action( 'deactivate_blog', $id );
 
@@ -312,10 +340,10 @@ if ( isset( $_GET['updated'] ) ) {
 			$msg = __( 'Sites marked as spam.' );
 			break;
 		case 'all_delete':
-			$msg = __( 'Sites deleted.' );
+			$msg = __( 'Sites permanently deleted.' );
 			break;
 		case 'delete':
-			$msg = __( 'Site deleted.' );
+			$msg = __( 'Site permanently deleted.' );
 			break;
 		case 'not_deleted':
 			$msg = __( 'Sorry, you are not allowed to delete that site.' );
@@ -327,10 +355,10 @@ if ( isset( $_GET['updated'] ) ) {
 			$msg = __( 'Site unarchived.' );
 			break;
 		case 'activateblog':
-			$msg = __( 'Site activated.' );
+			$msg = __( 'Site deletion flag removed.' );
 			break;
 		case 'deactivateblog':
-			$msg = __( 'Site deactivated.' );
+			$msg = __( 'Site flagged for deletion.' );
 			break;
 		case 'unspamblog':
 			$msg = __( 'Site removed from spam.' );
@@ -354,7 +382,14 @@ if ( isset( $_GET['updated'] ) ) {
 	}
 
 	if ( ! empty( $msg ) ) {
-		$msg = '<div id="message" class="updated notice is-dismissible"><p>' . $msg . '</p></div>';
+		$msg = wp_get_admin_notice(
+			$msg,
+			array(
+				'type'        => 'success',
+				'dismissible' => true,
+				'id'          => 'message',
+			)
+		);
 	}
 }
 
@@ -367,7 +402,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <h1 class="wp-heading-inline"><?php _e( 'Sites' ); ?></h1>
 
 <?php if ( current_user_can( 'create_sites' ) ) : ?>
-	<a href="<?php echo esc_url( network_admin_url( 'site-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'Add New', 'site' ); ?></a>
+	<a href="<?php echo esc_url( network_admin_url( 'site-new.php' ) ); ?>" class="page-title-action"><?php echo esc_html__( 'Add Site' ); ?></a>
 <?php endif; ?>
 
 <?php

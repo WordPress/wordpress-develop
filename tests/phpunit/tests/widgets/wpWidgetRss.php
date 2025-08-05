@@ -94,19 +94,19 @@ class Tests_Widgets_wpWidgetRss extends WP_UnitTestCase {
 		return array(
 			'when url is given' => array(
 				'url' => 'https://wordpress.org/news/feed/',
-				'<section id="widget_rss-5" class="widget widget_rss"><h2><a class="rsswidget" href="https://wordpress.org/news/feed/">',
+				'<section id="widget_rss-5" class="widget widget_rss"><h2><a class="rsswidget rss-widget-feed" href="https://wordpress.org/news/feed/">',
 			),
 		);
 	}
 
 	public function mocked_rss_response() {
 		$single_value_headers = array(
-			'content-type' => 'application/rss+xml; charset=UTF-8',
+			'Content-Type' => 'application/rss+xml; charset=UTF-8',
 			'link'         => '<https://wordpress.org/news/wp-json/>; rel="https://api.w.org/"',
 		);
 
 		return array(
-			'headers'  => new Requests_Utility_CaseInsensitiveDictionary( $single_value_headers ),
+			'headers'  => new WpOrg\Requests\Utility\CaseInsensitiveDictionary( $single_value_headers ),
 			'body'     => file_get_contents( DIR_TESTDATA . '/feed/wordpress-org-news.xml' ),
 			'response' => array(
 				'code'    => 200,

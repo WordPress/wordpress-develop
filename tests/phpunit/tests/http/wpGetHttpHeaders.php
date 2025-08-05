@@ -12,8 +12,8 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		// Hook a fake HTTP request response.
-		add_filter( 'pre_http_request', array( $this, 'fake_http_request' ), 10, 3 );
+		// Hook a mocked HTTP request response.
+		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
 	}
 
 	/**
@@ -26,6 +26,8 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 
 	/**
 	 * Test with an invalid URL
+	 *
+	 * @group external-http
 	 */
 	public function test_wp_get_http_headers_invalid_url() {
 		$result = wp_get_http_headers( 'not_an_url' );
@@ -34,6 +36,8 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 
 	/**
 	 * Test to see if the deprecated argument is working
+	 *
+	 * @group external-http
 	 */
 	public function test_wp_get_http_headers_deprecated_argument() {
 		$this->setExpectedDeprecated( 'wp_get_http_headers' );
@@ -44,17 +48,16 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 	/**
 	 * Mock the HTTP request response
 	 *
-	 * @param bool   $false     False.
-	 * @param array  $arguments Request arguments.
-	 * @param string $url       Request URL.
-	 *
-	 * @return array|bool
+	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
+	 * @param array                $parsed_args HTTP request arguments.
+	 * @param string               $url         The request URL.
+	 * @return false|array|WP_Error Response data.
 	 */
-	public function fake_http_request( $false, $arguments, $url ) {
+	public function mock_http_request( $response, $parsed_args, $url ) {
 		if ( 'http://example.com' === $url ) {
 			return array( 'headers' => true );
 		}
 
-		return false;
+		return $response;
 	}
 }

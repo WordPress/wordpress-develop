@@ -10,7 +10,7 @@
  */
 
 /**
- * Set up the WordPress core custom header feature.
+ * Sets up the WordPress core custom header feature.
  *
  * @uses twentyseventeen_header_style()
  */
@@ -85,7 +85,7 @@ if ( ! function_exists( 'twentyseventeen_header_style' ) ) :
 		.site-title,
 		.site-description {
 			position: absolute;
-			clip: rect(1px, 1px, 1px, 1px);
+			clip-path: inset(50%);
 		}
 			<?php
 			// If the user has set a custom color for the text use that.
@@ -118,13 +118,15 @@ if ( ! function_exists( 'twentyseventeen_header_style' ) ) :
 endif; // End of twentyseventeen_header_style().
 
 /**
- * Customize video play/pause button in the custom header.
+ * Customizes video play/pause button in the custom header.
  *
  * @param array $settings Video settings.
  * @return array The filtered video settings.
  */
 function twentyseventeen_video_controls( $settings ) {
-	$settings['l10n']['play']  = '<span class="screen-reader-text">' . __( 'Play background video', 'twentyseventeen' ) . '</span>' . twentyseventeen_get_svg( array( 'icon' => 'play' ) );
+	/* translators: Hidden accessibility text. */
+	$settings['l10n']['play'] = '<span class="screen-reader-text">' . __( 'Play background video', 'twentyseventeen' ) . '</span>' . twentyseventeen_get_svg( array( 'icon' => 'play' ) );
+	/* translators: Hidden accessibility text. */
 	$settings['l10n']['pause'] = '<span class="screen-reader-text">' . __( 'Pause background video', 'twentyseventeen' ) . '</span>' . twentyseventeen_get_svg( array( 'icon' => 'pause' ) );
 	return $settings;
 }

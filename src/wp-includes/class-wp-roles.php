@@ -23,6 +23,7 @@
  *
  * @since 2.0.0
  */
+#[AllowDynamicProperties]
 class WP_Roles {
 	/**
 	 * List of roles and capabilities.
@@ -73,7 +74,7 @@ class WP_Roles {
 	protected $site_id = 0;
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
 	 * @since 2.0.0
 	 * @since 4.9.0 The `$site_id` argument was added.
@@ -91,7 +92,7 @@ class WP_Roles {
 	}
 
 	/**
-	 * Make private/protected methods readable for backward compatibility.
+	 * Makes private/protected methods readable for backward compatibility.
 	 *
 	 * @since 4.0.0
 	 *
@@ -107,7 +108,7 @@ class WP_Roles {
 	}
 
 	/**
-	 * Set up the object properties.
+	 * Sets up the object properties.
 	 *
 	 * The role key is set to the current prefix for the $wpdb object with
 	 * 'user_roles' appended. If the $wp_user_roles global is set, then it will
@@ -123,7 +124,7 @@ class WP_Roles {
 	}
 
 	/**
-	 * Reinitialize the object
+	 * Reinitializes the object.
 	 *
 	 * Recreates the role objects. This is typically called only by switch_to_blog()
 	 * after switching wpdb to a new site ID.
@@ -138,24 +139,47 @@ class WP_Roles {
 	}
 
 	/**
-	 * Add role name with capabilities to list.
+	 * Adds a role name with capabilities to the list.
 	 *
 	 * Updates the list of roles, if the role doesn't already exist.
 	 *
-	 * The capabilities are defined in the following format `array( 'read' => true );`
-	 * To explicitly deny a role a capability you set the value for that capability to false.
+	 * The list of capabilities can be passed either as a numerically indexed array of capability names, or an
+	 * associative array of boolean values keyed by the capability name. To explicitly deny the role a capability, set
+	 * the value for that capability to false.
+	 *
+	 * Examples:
+	 *
+	 *     // Add a role that can edit posts.
+	 *     wp_roles()->add_role( 'custom_role', 'Custom Role', array(
+	 *         'read',
+	 *         'edit_posts',
+	 *     ) );
+	 *
+	 * Or, using an associative array:
+	 *
+	 *     // Add a role that can edit posts but explicitly cannot not delete them.
+	 *     wp_roles()->add_role( 'custom_role', 'Custom Role', array(
+	 *         'read' => true,
+	 *         'edit_posts' => true,
+	 *         'delete_posts' => false,
+	 *     ) );
 	 *
 	 * @since 2.0.0
+	 * @since x.y.z Support was added for a numerically indexed array of strings for the capabilities array.
 	 *
-	 * @param string $role         Role name.
-	 * @param string $display_name Role display name.
-	 * @param bool[] $capabilities List of capabilities keyed by the capability name,
-	 *                             e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
-	 * @return WP_Role|void WP_Role object, if role is added.
+	 * @param string                               $role         Role name.
+	 * @param string                               $display_name Role display name.
+	 * @param array<string,bool>|array<int,string> $capabilities Capabilities to be added to the role.
+	 *                                                           Default empty array.
+	 * @return WP_Role|void WP_Role object, if the role is added.
 	 */
 	public function add_role( $role, $display_name, $capabilities = array() ) {
 		if ( empty( $role ) || isset( $this->roles[ $role ] ) ) {
 			return;
+		}
+
+		if ( wp_is_numeric_array( $capabilities ) ) {
+			$capabilities = array_fill_keys( $capabilities, true );
 		}
 
 		$this->roles[ $role ] = array(
@@ -163,7 +187,7 @@ class WP_Roles {
 			'capabilities' => $capabilities,
 		);
 		if ( $this->use_db ) {
-			update_option( $this->role_key, $this->roles );
+			update_option( $this->role_key, $this->roles, true );
 		}
 		$this->role_objects[ $role ] = new WP_Role( $role, $capabilities );
 		$this->role_names[ $role ]   = $display_name;
@@ -171,7 +195,7 @@ class WP_Roles {
 	}
 
 	/**
-	 * Remove role by name.
+	 * Removes a role by name.
 	 *
 	 * @since 2.0.0
 	 *
@@ -190,13 +214,13 @@ class WP_Roles {
 			update_option( $this->role_key, $this->roles );
 		}
 
-		if ( get_option( 'default_role' ) == $role ) {
+		if ( get_option( 'default_role' ) === $role ) {
 			update_option( 'default_role', 'subscriber' );
 		}
 	}
 
 	/**
-	 * Add capability to role.
+	 * Adds a capability to role.
 	 *
 	 * @since 2.0.0
 	 *
@@ -217,7 +241,7 @@ class WP_Roles {
 	}
 
 	/**
-	 * Remove capability from role.
+	 * Removes a capability from role.
 	 *
 	 * @since 2.0.0
 	 *
@@ -236,7 +260,7 @@ class WP_Roles {
 	}
 
 	/**
-	 * Retrieve role object by name.
+	 * Retrieves a role object by name.
 	 *
 	 * @since 2.0.0
 	 *
@@ -252,7 +276,7 @@ class WP_Roles {
 	}
 
 	/**
-	 * Retrieve list of role names.
+	 * Retrieves a list of role names.
 	 *
 	 * @since 2.0.0
 	 *
@@ -263,7 +287,7 @@ class WP_Roles {
 	}
 
 	/**
-	 * Whether role name is currently in the list of available roles.
+	 * Determines whether a role name is currently in the list of available roles.
 	 *
 	 * @since 2.0.0
 	 *
@@ -292,7 +316,7 @@ class WP_Roles {
 		}
 
 		/**
-		 * After the roles have been initialized, allow plugins to add their own roles.
+		 * Fires after the roles have been initialized, allowing plugins to add their own roles.
 		 *
 		 * @since 4.7.0
 		 *
@@ -357,7 +381,7 @@ class WP_Roles {
 			return $wp_user_roles;
 		}
 
-		if ( is_multisite() && get_current_blog_id() != $this->site_id ) {
+		if ( is_multisite() && get_current_blog_id() !== $this->site_id ) {
 			remove_action( 'switch_blog', 'wp_switch_roles_and_user', 1 );
 
 			$roles = get_blog_option( $this->site_id, $this->role_key, array() );

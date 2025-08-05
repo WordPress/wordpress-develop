@@ -1,0 +1,191 @@
+# Configure Dependabot scanning.
+version: 2
+
+updates:
+  # Check for updates to GitHub Actions.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Check for updates to Composer packages.
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    ignore:
+      # These dependencies do not currently need to be managed with Dependabot.
+      - dependency-name: "squizlabs/php_codesniffer"
+      - dependency-name: "wp-coding-standards/wpcs"
+      - dependency-name: "phpcompatibility/php-compatibility"
+      - dependency-name: "yoast/phpunit-polyfills"
+    groups:
+      composer-packages:
+        patterns:
+          - "composer/ca-bundle"
+
+  # Monitor some npm dependencies for updates in groups.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 20
+    ignore:
+      - dependency-name: "@wordpress/*"
+    groups:
+      ##
+      # Groups for updating devDependencies.
+      ##
+
+      # Dependencies related to Playwright testing (E2E, performance).
+      tests-playwright:
+        patterns:
+          - "*playwright*"
+      # Dependencies related to JavaScript testing with QUnit.
+      tests-qunit:
+        patterns:
+          - "*qunit*"
+          - "sinon*"
+      # Dependencies related to CSS and SASS building and manilupating.
+      dev-css-sass:
+        patterns:
+          - "autoprefixer"
+          # postcss and css related dependencies.
+          - "*css*"
+          - "*sass"
+      # Dependencies related to the Webpack build process.
+      dev-webpack:
+        patterns:
+          - "*webpack*"
+          - "react-refresh"
+          - "source-map-loader"
+      # Dependencies related to the local Docker development environment.
+      dev-docker:
+        patterns:
+          - "dotenv*"
+          - "wait-on"
+      # Dependencies that do not fall into a specific grouping.
+      dev-miscellaneous:
+        patterns:
+          - "chalk"
+          - "check-node-version"
+          - "ink-docstrap"
+          - "install-changed"
+          - "matchdep"
+          - "uuid"
+      # Dependencies related to JavaScript minification.
+      dev-uglify:
+        patterns:
+          - "*uglify*"
+      # All GruntJS related dependencies that do not relate to another group.
+      dev-grunt:
+        patterns:
+          - "*grunt*"
+
+      ##
+      # Groups for updating production dependencies.
+      ##
+
+      # Dependencies related to jQuery and its ecosystem.
+      external-jquery:
+        patterns:
+          - "jquery*"
+      # Dependencies related to React and its ecosystem.
+      external-react:
+        patterns:
+          - "react*"
+          - "!react-refresh"
+      # Dependencies used for bundling polyfill libraries into WordPress.
+      external-polyfills:
+        patterns:
+          - "core-js-url-browser"
+          - "element-closest"
+          - "formdata-polyfill"
+          - "imagesloaded"
+          - "objectFitPolyfill"
+          - "polyfill-library"
+          - "regenerator-runtime"
+          - "whatwg-fetch"
+          - "wicg-inert"
+      # Dependencies related to the Masonry library.
+      external-masonry:
+        patterns:
+          - "masonry-layout"
+      # Dependencies that do not fall into a specific grouping.
+      external-miscellaneous:
+        patterns:
+          - "backbone"
+          - "clipboard"
+          - "hoverintent"
+          - "json2php"
+          - "lodash"
+          - "moment"
+          - "underscore"
+
+  # Monitor npm dependencies within default themes.
+  - package-ecosystem: "npm"
+    directory: "/src/wp-content/themes/twentytwentyone"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
+    groups:
+      twentytwentyone-sass-css:
+        patterns:
+          - "**browserslist*"
+          - "autoprefixer"
+          - "*css*"
+          - "*sass*"
+          - "!*stylelint*"
+      twentytwentyone-eslint:
+        patterns:
+          - "**eslint*"
+      twentytwentyone-stylelint:
+        patterns:
+          - "**stylelint*"
+      twentytwentyone-miscellaneous:
+        patterns:
+          - "chokidar-cli"
+          - "minimist"
+          - "npm-run-all"
+
+  - package-ecosystem: "npm"
+    directory: "/src/wp-content/themes/twentytwenty"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
+    groups:
+      twentytwenty-css:
+        patterns:
+          - "**browserslist*"
+          - "autoprefixer"
+          - "*css*"
+      twentytwenty-stylelint:
+        patterns:
+          - "*stylelint*"
+      twentytwenty-miscellaneous:
+        patterns:
+          - "concurrently"
+          - "@wordpress/scripts"
+
+  - package-ecosystem: "npm"
+    directory: "/src/wp-content/themes/twentynineteen"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
+    groups:
+      twentynineteen-css-sass:
+        patterns:
+          - "**browserslist*"
+          - "autoprefixer"
+          - "*css*"
+          - "*sass*"
+      twentynineteen-miscellaneous:
+        patterns:
+          - "chokidar-cli"
+          - "npm-run-all"

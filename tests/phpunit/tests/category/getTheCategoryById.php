@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ * @group category
+ *
  * @covers ::get_the_category_by_ID
  */
 class Tests_Category_GetTheCategoryById extends WP_UnitTestCase {

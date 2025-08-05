@@ -6,11 +6,18 @@
 class Tests_Meta extends WP_UnitTestCase {
 	protected $updated_mids = array();
 
-	public function set_up() {
-		parent::set_up();
-		$this->author         = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );
-		$this->meta_id        = add_metadata( 'user', $this->author->ID, 'meta_key', 'meta_value' );
-		$this->delete_meta_id = add_metadata( 'user', $this->author->ID, 'delete_meta_key', 'delete_meta_value' );
+	/**
+	 * @var \WP_User
+	 */
+	private static $author;
+
+	private static $meta_id;
+	private static $delete_meta_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$author         = new WP_User( $factory->user->create( array( 'role' => 'author' ) ) );
+		self::$meta_id        = add_metadata( 'user', self::$author->ID, 'meta_key', 'meta_value' );
+		self::$delete_meta_id = add_metadata( 'user', self::$author->ID, 'delete_meta_key', 'delete_meta_value' );
 	}
 
 	public function meta_sanitize_cb( $meta_value, $meta_key, $meta_type ) {
@@ -29,51 +36,51 @@ class Tests_Meta extends WP_UnitTestCase {
 	public function test_delete_metadata_by_mid() {
 		// Let's try and delete a non-existing ID, non existing meta.
 		$this->assertFalse( delete_metadata_by_mid( 'user', 0 ) );
-		$this->assertFalse( delete_metadata_by_mid( 'non_existing_meta', $this->delete_meta_id ) );
+		$this->assertFalse( delete_metadata_by_mid( 'non_existing_meta', self::$delete_meta_id ) );
 
 		// Now let's delete the real meta data.
-		$this->assertTrue( delete_metadata_by_mid( 'user', $this->delete_meta_id ) );
+		$this->assertTrue( delete_metadata_by_mid( 'user', self::$delete_meta_id ) );
 
 		// And make sure it's been deleted.
-		$this->assertFalse( get_metadata_by_mid( 'user', $this->delete_meta_id ) );
+		$this->assertFalse( get_metadata_by_mid( 'user', self::$delete_meta_id ) );
 
 		// Make sure the caches are cleared.
-		$this->assertFalse( (bool) get_user_meta( $this->author->ID, 'delete_meta_key' ) );
+		$this->assertFalse( (bool) get_user_meta( self::$author->ID, 'delete_meta_key' ) );
 	}
 
 	public function test_update_metadata_by_mid() {
 		// Setup.
-		$meta = get_metadata_by_mid( 'user', $this->meta_id );
+		$meta = get_metadata_by_mid( 'user', self::$meta_id );
 
 		// Update the meta value.
-		$this->assertTrue( update_metadata_by_mid( 'user', $this->meta_id, 'meta_new_value' ) );
-		$meta = get_metadata_by_mid( 'user', $this->meta_id );
+		$this->assertTrue( update_metadata_by_mid( 'user', self::$meta_id, 'meta_new_value' ) );
+		$meta = get_metadata_by_mid( 'user', self::$meta_id );
 		$this->assertSame( 'meta_new_value', $meta->meta_value );
 
 		// Update the meta value.
-		$this->assertTrue( update_metadata_by_mid( 'user', $this->meta_id, 'meta_new_value', 'meta_new_key' ) );
-		$meta = get_metadata_by_mid( 'user', $this->meta_id );
+		$this->assertTrue( update_metadata_by_mid( 'user', self::$meta_id, 'meta_new_value', 'meta_new_key' ) );
+		$meta = get_metadata_by_mid( 'user', self::$meta_id );
 		$this->assertSame( 'meta_new_key', $meta->meta_key );
 
 		// Update the key and value.
-		$this->assertTrue( update_metadata_by_mid( 'user', $this->meta_id, 'meta_value', 'meta_key' ) );
-		$meta = get_metadata_by_mid( 'user', $this->meta_id );
+		$this->assertTrue( update_metadata_by_mid( 'user', self::$meta_id, 'meta_value', 'meta_key' ) );
+		$meta = get_metadata_by_mid( 'user', self::$meta_id );
 		$this->assertSame( 'meta_key', $meta->meta_key );
 		$this->assertSame( 'meta_value', $meta->meta_value );
 
 		// Update the value that has to be serialized.
-		$this->assertTrue( update_metadata_by_mid( 'user', $this->meta_id, array( 'first', 'second' ) ) );
-		$meta = get_metadata_by_mid( 'user', $this->meta_id );
+		$this->assertTrue( update_metadata_by_mid( 'user', self::$meta_id, array( 'first', 'second' ) ) );
+		$meta = get_metadata_by_mid( 'user', self::$meta_id );
 		$this->assertSame( array( 'first', 'second' ), $meta->meta_value );
 
 		// Let's try some invalid meta data.
 		$this->assertFalse( update_metadata_by_mid( 'user', 0, 'meta_value' ) );
-		$this->assertFalse( update_metadata_by_mid( 'user', $this->meta_id, 'meta_value', array( 'invalid', 'key' ) ) );
+		$this->assertFalse( update_metadata_by_mid( 'user', self::$meta_id, 'meta_value', array( 'invalid', 'key' ) ) );
 
 		// Let's see if caches get cleared after updates.
-		$meta  = get_metadata_by_mid( 'user', $this->meta_id );
+		$meta  = get_metadata_by_mid( 'user', self::$meta_id );
 		$first = get_user_meta( $meta->user_id, $meta->meta_key );
-		$this->assertTrue( update_metadata_by_mid( 'user', $this->meta_id, 'other_meta_value' ) );
+		$this->assertTrue( update_metadata_by_mid( 'user', self::$meta_id, 'other_meta_value' ) );
 		$second = get_user_meta( $meta->user_id, $meta->meta_key );
 		$this->assertFalse( $first === $second );
 	}
@@ -99,14 +106,16 @@ class Tests_Meta extends WP_UnitTestCase {
 		$found              = $this->updated_mids;
 		$this->updated_mids = array();
 
+		$this->assertNotEmpty( $found );
+
 		foreach ( $found as $action => $mids ) {
 			$this->assertCount( 2, $mids );
 		}
 	}
 
 	public function test_metadata_exists() {
-		$this->assertFalse( metadata_exists( 'user', $this->author->ID, 'foobarbaz' ) );
-		$this->assertTrue( metadata_exists( 'user', $this->author->ID, 'meta_key' ) );
+		$this->assertFalse( metadata_exists( 'user', self::$author->ID, 'foobarbaz' ) );
+		$this->assertTrue( metadata_exists( 'user', self::$author->ID, 'meta_key' ) );
 		$this->assertFalse( metadata_exists( 'user', 1234567890, 'foobarbaz' ) );
 		$this->assertFalse( metadata_exists( 'user', 1234567890, 'meta_key' ) );
 	}
@@ -117,7 +126,7 @@ class Tests_Meta extends WP_UnitTestCase {
 	public function test_metadata_exists_with_filter() {
 		// Let's see if it returns the correct value when adding a filter.
 		add_filter( 'get_user_metadata', '__return_zero' );
-		$this->assertFalse( metadata_exists( 'user', $this->author->ID, 'meta_key' ) ); // Existing meta key.
+		$this->assertFalse( metadata_exists( 'user', self::$author->ID, 'meta_key' ) ); // Existing meta key.
 		$this->assertFalse( metadata_exists( 'user', 1234567890, 'meta_key' ) );
 		remove_filter( 'get_user_metadata', '__return_zero' );
 	}
@@ -140,59 +149,53 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertCount( 1, $u );
 
 		// User found is not locally defined author (it's the admin).
-		$this->assertNotEquals( $this->author->user_login, $u[0]->user_login );
+		$this->assertNotEquals( self::$author->user_login, $u[0]->user_login );
 
 		// Test EXISTS and NOT EXISTS together, no users should be found.
-		$this->assertSame(
+		$this->assertCount(
 			0,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'meta_key',
-								'compare' => 'NOT EXISTS',
-							),
-							array(
-								'key'     => 'delete_meta_key',
-								'compare' => 'EXISTS',
-							),
+			get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'meta_key',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+						array(
+							'key'     => 'delete_meta_key',
+							'compare' => 'EXISTS',
+						),
+					),
 				)
 			)
 		);
 
-		$this->assertSame(
+		$this->assertCount(
 			2,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'non_existing_meta',
-								'compare' => 'NOT EXISTS',
-							),
+			get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'non_existing_meta',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+					),
 				)
 			)
 		);
 
-		delete_metadata( 'user', $this->author->ID, 'meta_key' );
+		delete_metadata( 'user', self::$author->ID, 'meta_key' );
 
-		$this->assertSame(
+		$this->assertCount(
 			2,
-			count(
-				get_users(
-					array(
-						'meta_query' => array(
-							array(
-								'key'     => 'meta_key',
-								'compare' => 'NOT EXISTS',
-							),
+			get_users(
+				array(
+					'meta_query' => array(
+						array(
+							'key'     => 'meta_key',
+							'compare' => 'NOT EXISTS',
 						),
-					)
+					),
 				)
 			)
 		);
@@ -204,28 +207,28 @@ class Tests_Meta extends WP_UnitTestCase {
 		$expected  = 'Testsingleslash';
 		$value2    = 'Test\\\\doubleslash';
 		$expected2 = 'Test\\doubleslash';
-		$this->assertFalse( metadata_exists( 'user', $this->author->ID, $key ) );
-		$this->assertFalse( delete_metadata( 'user', $this->author->ID, $key ) );
-		$this->assertSame( '', get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertIsInt( add_metadata( 'user', $this->author->ID, $key, $value ) );
-		$this->assertSame( $expected, get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertTrue( delete_metadata( 'user', $this->author->ID, $key ) );
-		$this->assertSame( '', get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertIsInt( update_metadata( 'user', $this->author->ID, $key, $value ) );
-		$this->assertSame( $expected, get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertTrue( update_metadata( 'user', $this->author->ID, $key, 'blah' ) );
-		$this->assertSame( 'blah', get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertTrue( delete_metadata( 'user', $this->author->ID, $key ) );
-		$this->assertSame( '', get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertFalse( metadata_exists( 'user', $this->author->ID, $key ) );
+		$this->assertFalse( metadata_exists( 'user', self::$author->ID, $key ) );
+		$this->assertFalse( delete_metadata( 'user', self::$author->ID, $key ) );
+		$this->assertSame( '', get_metadata( 'user', self::$author->ID, $key, true ) );
+		$this->assertIsInt( add_metadata( 'user', self::$author->ID, $key, $value ) );
+		$this->assertSame( $expected, get_metadata( 'user', self::$author->ID, $key, true ) );
+		$this->assertTrue( delete_metadata( 'user', self::$author->ID, $key ) );
+		$this->assertSame( '', get_metadata( 'user', self::$author->ID, $key, true ) );
+		$this->assertIsInt( update_metadata( 'user', self::$author->ID, $key, $value ) );
+		$this->assertSame( $expected, get_metadata( 'user', self::$author->ID, $key, true ) );
+		$this->assertTrue( update_metadata( 'user', self::$author->ID, $key, 'blah' ) );
+		$this->assertSame( 'blah', get_metadata( 'user', self::$author->ID, $key, true ) );
+		$this->assertTrue( delete_metadata( 'user', self::$author->ID, $key ) );
+		$this->assertSame( '', get_metadata( 'user', self::$author->ID, $key, true ) );
+		$this->assertFalse( metadata_exists( 'user', self::$author->ID, $key ) );
 
 		// Test overslashing.
-		$this->assertIsInt( add_metadata( 'user', $this->author->ID, $key, $value2 ) );
-		$this->assertSame( $expected2, get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertTrue( delete_metadata( 'user', $this->author->ID, $key ) );
-		$this->assertSame( '', get_metadata( 'user', $this->author->ID, $key, true ) );
-		$this->assertIsInt( update_metadata( 'user', $this->author->ID, $key, $value2 ) );
-		$this->assertSame( $expected2, get_metadata( 'user', $this->author->ID, $key, true ) );
+		$this->assertIsInt( add_metadata( 'user', self::$author->ID, $key, $value2 ) );
+		$this->assertSame( $expected2, get_metadata( 'user', self::$author->ID, $key, true ) );
+		$this->assertTrue( delete_metadata( 'user', self::$author->ID, $key ) );
+		$this->assertSame( '', get_metadata( 'user', self::$author->ID, $key, true ) );
+		$this->assertIsInt( update_metadata( 'user', self::$author->ID, $key, $value2 ) );
+		$this->assertSame( $expected2, get_metadata( 'user', self::$author->ID, $key, true ) );
 	}
 
 	/**
@@ -342,7 +345,7 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @ticket 37746
 	 */
 	public function test_negative_meta_id() {
-		$negative_mid = $this->meta_id * -1;
+		$negative_mid = self::$meta_id * -1;
 
 		$this->assertLessThan( 0, $negative_mid );
 		$this->assertFalse( get_metadata_by_mid( 'user', $negative_mid ) );
@@ -354,7 +357,7 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @ticket 37746
 	 */
 	public function test_floating_meta_id() {
-		$floating_mid = $this->meta_id + 0.1337;
+		$floating_mid = self::$meta_id + 0.1337;
 
 		$this->assertTrue( floor( $floating_mid ) !== $floating_mid );
 		$this->assertFalse( get_metadata_by_mid( 'user', $floating_mid ) );
@@ -366,11 +369,11 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @ticket 37746
 	 */
 	public function test_string_point_zero_meta_id() {
-		$meta_id = add_metadata( 'user', $this->author->ID, 'meta_key', 'meta_value_2' );
+		$meta_id = add_metadata( 'user', self::$author->ID, 'meta_key', 'meta_value_2' );
 
 		$string_mid = "{$meta_id}.0";
 
-		// phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- intentional implicit casting check
+		// phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual -- intentional implicit casting check
 		$this->assertTrue( floor( $string_mid ) == $string_mid );
 		$this->assertNotFalse( get_metadata_by_mid( 'user', $string_mid ) );
 		$this->assertNotFalse( update_metadata_by_mid( 'user', $string_mid, 'meta_new_value_2' ) );
@@ -383,8 +386,8 @@ class Tests_Meta extends WP_UnitTestCase {
 	public function test_get_metadata_with_empty_key_array_value() {
 		$data  = array( 1, 2 );
 		$value = serialize( $data );
-		add_metadata( 'user', $this->author->ID, 'foo', $data );
-		$found = get_metadata( 'user', $this->author->ID );
+		add_metadata( 'user', self::$author->ID, 'foo', $data );
+		$found = get_metadata( 'user', self::$author->ID );
 
 		$this->assertSame( array( $value ), $found['foo'] );
 	}
@@ -393,11 +396,11 @@ class Tests_Meta extends WP_UnitTestCase {
 	 * @ticket 15030
 	 */
 	public function test_get_metadata_with_empty_key_object_value() {
-		$data      = new stdClass;
+		$data      = new stdClass();
 		$data->foo = 'bar';
 		$value     = serialize( $data );
-		add_metadata( 'user', $this->author->ID, 'foo', $data );
-		$found = get_metadata( 'user', $this->author->ID );
+		add_metadata( 'user', self::$author->ID, 'foo', $data );
+		$found = get_metadata( 'user', self::$author->ID );
 
 		$this->assertSame( array( $value ), $found['foo'] );
 	}
@@ -411,10 +414,38 @@ class Tests_Meta extends WP_UnitTestCase {
 			array( 3, 4 ),
 		);
 		$value = serialize( $data );
-		add_metadata( 'user', $this->author->ID, 'foo', $data );
-		$found = get_metadata( 'user', $this->author->ID );
+		add_metadata( 'user', self::$author->ID, 'foo', $data );
+		$found = get_metadata( 'user', self::$author->ID );
 
 		$this->assertSame( array( $value ), $found['foo'] );
+	}
+
+	/**
+	 * @dataProvider data_get_metadata_with_non_existent_object_id
+	 */
+	public function test_get_metadata_with_non_existent_object_id( $expected, $args ) {
+		$this->assertSame( $expected, get_metadata( 'user', ...$args ) );
+	}
+
+	public function data_get_metadata_with_non_existent_object_id() {
+		return array(
+			'should return empty array for default `$meta_key` and `$single` values' => array(
+				'expected' => array(),
+				'args'     => array( PHP_INT_MAX ),
+			),
+			'should return empty array for default `$single` value' => array(
+				'expected' => array(),
+				'args'     => array( PHP_INT_MAX, 'meta_key' ),
+			),
+			'should return empty array when `$single` is `false`' => array(
+				'expected' => array(),
+				'args'     => array( PHP_INT_MAX, 'meta_key', false ),
+			),
+			'should return empty string when `$single` is `true`' => array(
+				'expected' => '',
+				'args'     => array( PHP_INT_MAX, 'meta_key', true ),
+			),
+		);
 	}
 
 	/** Helpers */

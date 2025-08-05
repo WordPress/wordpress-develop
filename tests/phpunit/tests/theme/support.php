@@ -76,11 +76,18 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24932
+	 *
+	 * @expectedIncorrectUsage add_theme_support( 'html5' )
 	 */
 	public function test_supports_html5() {
 		remove_theme_support( 'html5' );
 		$this->assertFalse( current_theme_supports( 'html5' ) );
 		$this->assertFalse( current_theme_supports( 'html5', 'comment-form' ) );
+
+		/*
+		 * If the second parameter is not specified, it should throw a _doing_it_wrong() notice
+		 * and fall back to `array( 'comment-list', 'comment-form', 'search-form' )` for back-compat.
+		 */
 		$this->assertNotFalse( add_theme_support( 'html5' ) );
 		$this->assertTrue( current_theme_supports( 'html5' ) );
 		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
@@ -98,6 +105,8 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		remove_theme_support( 'html5' );
 		$this->assertFalse( current_theme_supports( 'html5' ) );
 		$this->assertFalse( current_theme_supports( 'html5', 'comment-form' ) );
+
+		// The second parameter should be an array.
 		$this->assertFalse( add_theme_support( 'html5', 'comment-form' ) );
 		$this->assertNotFalse( add_theme_support( 'html5', array( 'comment-form' ) ) );
 		$this->assertTrue( current_theme_supports( 'html5', 'comment-form' ) );
@@ -149,6 +158,9 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		return false;
 	}
 
+	/**
+	 * @ticket 11611
+	 */
 	public function test_plugin_hook() {
 		$this->assertFalse( current_theme_supports( 'foobar' ) );
 		add_theme_support( 'foobar' );
@@ -162,6 +174,17 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 
 		remove_theme_support( 'foobar' );
 		$this->assertFalse( current_theme_supports( 'foobar', 'bar' ) );
+	}
+
+	/**
+	 * @ticket 55219
+	 */
+	public function test_plugin_hook_with_no_args() {
+		add_theme_support( 'foobar' );
+
+		add_filter( 'current_theme_supports-foobar', '__return_false' );
+
+		$this->assertFalse( current_theme_supports( 'foobar' ) );
 	}
 
 	/**

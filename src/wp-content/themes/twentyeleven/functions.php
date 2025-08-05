@@ -52,7 +52,7 @@ add_action( 'after_setup_theme', 'twentyeleven_setup' );
 
 if ( ! function_exists( 'twentyeleven_setup' ) ) :
 	/**
-	 * Set up theme defaults and registers support for various WordPress features.
+	 * Sets up theme defaults and registers support for various WordPress features.
 	 *
 	 * Note that this function is hooked into the after_setup_theme hook, which runs
 	 * before the init hook. The init hook is too late for some features, such as indicating
@@ -79,8 +79,15 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 		 * If you're building a theme based on Twenty Eleven, use
 		 * a find and replace to change 'twentyeleven' to the name
 		 * of your theme in all the template files.
+		 *
+		 * Manual loading of text domain is not required after the introduction of
+		 * just in time translation loading in WordPress version 4.6.
+		 *
+		 * @ticket 58318
 		 */
-		load_theme_textdomain( 'twentyeleven', get_template_directory() . '/languages' );
+		if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+			load_theme_textdomain( 'twentyeleven', get_template_directory() . '/languages' );
+		}
 
 		// This theme styles the visual editor with editor-style.css to match the theme style.
 		add_editor_style();
@@ -291,24 +298,24 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 endif; // twentyeleven_setup()
 
 /**
- * Enqueue scripts and styles for front end.
+ * Enqueues scripts and styles for front end.
  *
  * @since Twenty Eleven 2.9
  */
 function twentyeleven_scripts_styles() {
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20190102' );
+	wp_enqueue_style( 'twentyeleven-block-style', get_template_directory_uri() . '/blocks.css', array(), '20240703' );
 }
 add_action( 'wp_enqueue_scripts', 'twentyeleven_scripts_styles' );
 
 /**
- * Enqueue styles for the block-based editor.
+ * Enqueues styles for the block-based editor.
  *
  * @since Twenty Eleven 2.9
  */
 function twentyeleven_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20201208' );
+	wp_enqueue_style( 'twentyeleven-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20240716' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyeleven_block_editor_styles' );
 
@@ -322,7 +329,7 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 		$text_color = get_header_textcolor();
 
 		// If no custom options for text are set, let's bail.
-		if ( HEADER_TEXTCOLOR == $text_color ) {
+		if ( HEADER_TEXTCOLOR === $text_color ) {
 			return;
 		}
 
@@ -336,8 +343,7 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 		#site-title,
 		#site-description {
 			position: absolute;
-			clip: rect(1px 1px 1px 1px); /* IE6, IE7 */
-			clip: rect(1px, 1px, 1px, 1px);
+			clip-path: inset(50%);
 		}
 			<?php
 			// If the user has set a custom color for the text, use that.
@@ -386,7 +392,7 @@ if ( ! function_exists( 'twentyeleven_admin_header_style' ) ) :
 	}
 		<?php
 		// If the user has set a custom color for the text, use that.
-		if ( get_header_textcolor() != HEADER_TEXTCOLOR ) :
+		if ( get_header_textcolor() !== HEADER_TEXTCOLOR ) :
 			?>
 	#site-title a,
 	#site-description {
@@ -405,7 +411,7 @@ endif; // twentyeleven_admin_header_style()
 
 if ( ! function_exists( 'twentyeleven_admin_header_image' ) ) :
 	/**
-	 * Custom header image markup displayed on the Appearance > Header admin panel.
+	 * Displays custom header image markup on the Appearance > Header admin panel.
 	 *
 	 * Referenced via add_theme_support('custom-header') in twentyeleven_setup().
 	 *
@@ -433,8 +439,41 @@ if ( ! function_exists( 'twentyeleven_admin_header_image' ) ) :
 	}
 endif; // twentyeleven_admin_header_image()
 
+
+if ( ! function_exists( 'twentyeleven_header_image' ) ) :
+	/**
+	 * Displays custom header image markup.
+	 *
+	 * @since Twenty Eleven 4.5
+	 */
+	function twentyeleven_header_image() {
+		$attrs = array(
+			'alt' => get_bloginfo( 'name', 'display' ),
+		);
+
+		// Compatibility with versions of WordPress prior to 3.4.
+		if ( function_exists( 'get_custom_header' ) ) {
+			$custom_header   = get_custom_header();
+			$attrs['width']  = $custom_header->width;
+			$attrs['height'] = $custom_header->height;
+		} else {
+			$attrs['width']  = HEADER_IMAGE_WIDTH;
+			$attrs['height'] = HEADER_IMAGE_HEIGHT;
+		}
+
+		if ( function_exists( 'the_header_image_tag' ) ) {
+			the_header_image_tag( $attrs );
+			return;
+		}
+
+		?>
+		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>" />
+		<?php
+	}
+endif; // twentyeleven_header_image()
+
 /**
- * Set the post excerpt length to 40 words.
+ * Sets the post excerpt length to 40 words.
  *
  * To override this length in a child theme, remove
  * the filter and add your own function tied to
@@ -452,7 +491,7 @@ add_filter( 'excerpt_length', 'twentyeleven_excerpt_length' );
 
 if ( ! function_exists( 'twentyeleven_continue_reading_link' ) ) :
 	/**
-	 * Return a "Continue Reading" link for excerpts
+	 * Returns a "Continue Reading" link for excerpts.
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
@@ -464,7 +503,7 @@ if ( ! function_exists( 'twentyeleven_continue_reading_link' ) ) :
 endif; // twentyeleven_continue_reading_link()
 
 /**
- * Replace "[...]" in the Read More link with an ellipsis.
+ * Replaces "[...]" in the Read More link with an ellipsis.
  *
  * The "[...]" is appended to automatically generated excerpts.
  *
@@ -485,7 +524,7 @@ function twentyeleven_auto_excerpt_more( $more ) {
 add_filter( 'excerpt_more', 'twentyeleven_auto_excerpt_more' );
 
 /**
- * Add a pretty "Continue Reading" link to custom post excerpts.
+ * Adds a pretty "Continue Reading" link to custom post excerpts.
  *
  * To override this link in a child theme, remove the filter and add your own
  * function tied to the get_the_excerpt filter hook.
@@ -504,7 +543,7 @@ function twentyeleven_custom_excerpt_more( $output ) {
 add_filter( 'get_the_excerpt', 'twentyeleven_custom_excerpt_more' );
 
 /**
- * Show a home link for the wp_nav_menu() fallback, wp_page_menu().
+ * Shows a home link for the wp_nav_menu() fallback, wp_page_menu().
  *
  * @since Twenty Eleven 1.0
  *
@@ -520,9 +559,9 @@ function twentyeleven_page_menu_args( $args ) {
 add_filter( 'wp_page_menu_args', 'twentyeleven_page_menu_args' );
 
 /**
- * Register sidebars and widgetized areas.
+ * Registers sidebars and widgetized areas.
  *
- * Also register the default Epherma widget.
+ * Also register the default Ephemera widget.
  *
  * @since Twenty Eleven 1.0
  */
@@ -593,7 +632,7 @@ add_action( 'widgets_init', 'twentyeleven_widgets_init' );
 
 if ( ! function_exists( 'twentyeleven_content_nav' ) ) :
 	/**
-	 * Display navigation to next/previous pages when applicable.
+	 * Displays navigation to next/previous pages when applicable.
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
@@ -615,7 +654,7 @@ if ( ! function_exists( 'twentyeleven_content_nav' ) ) :
 endif; // twentyeleven_content_nav()
 
 /**
- * Return the first link from the post content. If none found, the
+ * Returns the first link from the post content. If none found, the
  * post permalink is used as a fallback.
  *
  * @since Twenty Eleven 1.0
@@ -637,7 +676,7 @@ function twentyeleven_get_first_url() {
 }
 
 /**
- * Return the URL for the first link found in the post content.
+ * Returns the URL for the first link found in the post content.
  *
  * @since Twenty Eleven 1.0
  *
@@ -652,7 +691,7 @@ function twentyeleven_url_grabber() {
 }
 
 /**
- * Count the number of footer sidebars to enable dynamic classes for the footer.
+ * Counts the number of footer sidebars to enable dynamic classes for the footer.
  *
  * @since Twenty Eleven 1.0
  */
@@ -660,15 +699,15 @@ function twentyeleven_footer_sidebar_class() {
 	$count = 0;
 
 	if ( is_active_sidebar( 'sidebar-3' ) ) {
-		$count++;
+		++$count;
 	}
 
 	if ( is_active_sidebar( 'sidebar-4' ) ) {
-		$count++;
+		++$count;
 	}
 
 	if ( is_active_sidebar( 'sidebar-5' ) ) {
-		$count++;
+		++$count;
 	}
 
 	$class = '';
@@ -724,7 +763,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					<?php
 					$avatar_size = 68;
 
-					if ( '0' != $comment->comment_parent ) {
+					if ( '0' !== $comment->comment_parent ) {
 						$avatar_size = 39;
 					}
 
@@ -756,7 +795,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					}
 					?>
 
-					<?php if ( '0' == $comment->comment_approved ) : ?>
+					<?php if ( '0' === $comment->comment_approved ) : ?>
 					<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 					<br />
 					<?php endif; ?>
@@ -789,7 +828,7 @@ endif; // twentyeleven_comment()
 
 if ( ! function_exists( 'twentyeleven_posted_on' ) ) :
 	/**
-	 * Print HTML with meta information for the current post-date/time and author.
+	 * Prints HTML with meta information for the current post-date/time and author.
 	 *
 	 * Create your own twentyeleven_posted_on to override in a child theme
 	 *
@@ -812,7 +851,7 @@ if ( ! function_exists( 'twentyeleven_posted_on' ) ) :
 endif;
 
 /**
- * Add two classes to the array of body classes.
+ * Adds two classes to the array of body classes.
  *
  * The first is if the site has only had one author with published posts.
  * The second is if a singular post being displayed
@@ -837,7 +876,7 @@ function twentyeleven_body_classes( $classes ) {
 add_filter( 'body_class', 'twentyeleven_body_classes' );
 
 /**
- * Retrieve the IDs for images in a gallery.
+ * Retrieves the IDs for images in a gallery.
  *
  * @uses get_post_galleries() First, if available. Falls back to shortcode parsing,
  *                            then as last option uses a get_posts() call.
@@ -901,7 +940,7 @@ add_filter( 'widget_tag_cloud_args', 'twentyeleven_widget_tag_cloud_args' );
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
-	 * Fire the wp_body_open action.
+	 * Fires the wp_body_open action.
 	 *
 	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *
@@ -918,7 +957,7 @@ if ( ! function_exists( 'wp_body_open' ) ) :
 endif;
 
 /**
- * Include a skip to content link at the top of the page so that users can bypass the menu.
+ * Includes a skip to content link at the top of the page so that users can bypass the menu.
  *
  * @since Twenty Eleven 3.4
  */
@@ -929,3 +968,17 @@ function twentyeleven_skip_link() {
 	}
 }
 add_action( 'wp_body_open', 'twentyeleven_skip_link', 5 );
+
+if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
+	/**
+	 * Retrieves the list item separator based on the locale.
+	 *
+	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
+	 *
+	 * @since 6.0.0
+	 */
+	function wp_get_list_item_separator() {
+		/* translators: Used between list items, there is a space after the comma. */
+		return __( ', ', 'twentyeleven' );
+	}
+endif;

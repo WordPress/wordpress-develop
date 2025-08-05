@@ -33,7 +33,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 	 * @ticket 30970
 	 */
 	public function test_setup_by_fake_post() {
-		$fake     = new stdClass;
+		$fake     = new stdClass();
 		$fake->ID = 98765;
 		setup_postdata( $fake->ID );
 
@@ -121,6 +121,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'posts_per_page' => 1,
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -221,6 +224,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'post__in' => array( $post2 ),
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -281,6 +287,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'posts_per_page' => 1,
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();
@@ -367,6 +376,9 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				'posts_per_page' => 1,
 			)
 		);
+
+		$this->assertTrue( $q->have_posts() );
+
 		if ( $q->have_posts() ) {
 			while ( $q->have_posts() ) {
 				$q->the_post();

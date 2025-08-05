@@ -7,6 +7,8 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 	public function test_instances() {
 		global $wp_taxonomies;
 
+		$this->assertNotEmpty( $wp_taxonomies );
+
 		foreach ( $wp_taxonomies as $taxonomy ) {
 			$this->assertInstanceOf( 'WP_Taxonomy', $taxonomy );
 		}
@@ -18,7 +20,7 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		/* @var WP $wp */
 		global $wp;
 
-		$taxonomy        = rand_str();
+		$taxonomy        = 'taxonomy1';
 		$taxonomy_object = new WP_Taxonomy( $taxonomy, 'post' );
 
 		$taxonomy_object->add_rewrite_rules();
@@ -31,7 +33,7 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		/* @var WP $wp */
 		global $wp;
 
-		$taxonomy        = rand_str();
+		$taxonomy        = 'taxonomy2';
 		$taxonomy_object = new WP_Taxonomy(
 			$taxonomy,
 			'post',
@@ -58,7 +60,7 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 		/* @var WP_Rewrite $wp_rewrite */
 		global $wp_rewrite;
 
-		$taxonomy        = rand_str();
+		$taxonomy        = 'taxonomy3';
 		$taxonomy_object = new WP_Taxonomy(
 			$taxonomy,
 			'post',
@@ -79,7 +81,7 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 	}
 
 	public function test_adds_ajax_callback() {
-		$taxonomy        = rand_str();
+		$taxonomy        = 'taxonomy4';
 		$taxonomy_object = new WP_Taxonomy(
 			$taxonomy,
 			'post',
@@ -97,6 +99,18 @@ class Tests_WP_Taxonomy extends WP_UnitTestCase {
 
 		$this->assertSame( 10, $has_action );
 		$this->assertFalse( $has_action_after );
+	}
 
+	public function test_applies_registration_args_filters() {
+		$taxonomy = 'taxonomy5';
+		$action   = new MockAction();
+
+		add_filter( 'register_taxonomy_args', array( $action, 'filter' ) );
+		add_filter( "register_{$taxonomy}_taxonomy_args", array( $action, 'filter' ) );
+
+		new WP_Taxonomy( $taxonomy, 'post' );
+		new WP_Taxonomy( 'random', 'post' );
+
+		$this->assertSame( 3, $action->get_call_count() );
 	}
 }

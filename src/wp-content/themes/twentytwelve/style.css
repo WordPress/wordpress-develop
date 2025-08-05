@@ -4,7 +4,8 @@ Theme URI: https://wordpress.org/themes/twentytwelve/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: The 2012 theme for WordPress is a fully responsive theme that looks great on any device. Features include a front page template with its own widgets, an optional display font, styling for post formats on both index and single views, and an optional no-sidebar page template. Make it yours with a custom menu, header image, and background.
-Version: 3.5
+Version: 4.6
+Tested up to: 6.8
 Requires at least: 3.5
 Requires PHP: 5.2.4
 License: GNU General Public License v2 or later
@@ -507,7 +508,7 @@ a:hover {
 .assistive-text,
 .site .screen-reader-text {
 	position: absolute !important;
-	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
 	overflow: hidden;
 	height: 1px;
 	width: 1px;
@@ -519,7 +520,7 @@ a:hover {
 	background: #fff;
 	border: 2px solid #333;
 	border-radius: 3px;
-	clip: auto !important;
+	clip-path: none;
 	color: #000;
 	display: block;
 	font-size: 12px;
@@ -902,6 +903,7 @@ article.sticky .featured-post {
 .entry-content pre code,
 .comment-content pre code {
 	display: block;
+	font-size: inherit;
 }
 .entry-content abbr,
 .comment-content abbr,
@@ -1605,11 +1607,11 @@ img#wpstats {
 		padding: 0;
 		position: absolute;
 		top: 100%;
-		z-index: 1;
+		z-index: 99999;
 		height: 1px;
 		width: 1px;
 		overflow: hidden;
-		clip: rect(1px, 1px, 1px, 1px);
+		clip-path: inset(50%);
 	}
 	.main-navigation li ul ul {
 		top: 0;
@@ -1619,7 +1621,7 @@ img#wpstats {
 	.main-navigation ul li:focus > ul,
 	.main-navigation .focus > ul {
 		border-left: 0;
-		clip: inherit;
+		clip-path: none;
 		overflow: inherit;
 		height: inherit;
 		width: inherit;

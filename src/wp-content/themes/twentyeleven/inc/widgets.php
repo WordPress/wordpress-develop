@@ -147,11 +147,10 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 		if ( ! is_customize_preview() ) {
 			wp_cache_set( 'widget_twentyeleven_ephemera', $cache, 'widget' );
 		}
-
 	}
 
 	/**
-	 * Update widget settings.
+	 * Updates widget settings.
 	 *
 	 * Deals with the settings when they are saved by the admin. Here is
 	 * where any validation should be dealt with.
@@ -173,7 +172,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Flush widget cache.
+	 * Flushes widget cache.
 	 *
 	 * @since Twenty Eleven 1.0
 	 */
@@ -182,11 +181,13 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Set up the widget form.
+	 * Sets up the widget form.
 	 *
 	 * Displays the form for this widget on the Widgets page of the WP Admin area.
 	 *
 	 * @since Twenty Eleven 1.0
+	 *
+	 * @param array $instance The settings for the particular instance of the widget.
 	 */
 	public function form( $instance ) {
 		$title  = isset( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';

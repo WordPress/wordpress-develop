@@ -25,6 +25,14 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	protected $widgets_retrieved = false;
 
 	/**
+	 * Whether the controller supports batching.
+	 *
+	 * @since 5.9.0
+	 * @var array
+	 */
+	protected $allow_batch = array( 'v1' => true );
+
+	/**
 	 * Widgets controller constructor.
 	 *
 	 * @since 5.8.0
@@ -56,7 +64,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema(),
 				),
-				'allow_batch' => array( 'v1' => true ),
+				'allow_batch' => $this->allow_batch,
 				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
@@ -90,7 +98,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'allow_batch' => array( 'v1' => true ),
+				'allow_batch' => $this->allow_batch,
 				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
@@ -125,9 +133,14 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response Response object.
 	 */
 	public function get_items( $request ) {
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
+		}
+
 		$this->retrieve_widgets();
 
 		$prepared          = array();
@@ -180,7 +193,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string $sidebar_id The sidebar id.
+	 * @param string $sidebar_id The sidebar ID.
 	 * @return bool Whether the sidebar can be read.
 	 */
 	protected function check_read_sidebar_permission( $sidebar_id ) {
@@ -452,10 +465,10 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 *
 		 * @since 5.8.0
 		 *
-		 * @param string           $widget_id  ID of the widget marked for deletion.
-		 * @param string           $sidebar_id ID of the sidebar the widget was deleted from.
-		 * @param WP_REST_Response $response   The response data.
-		 * @param WP_REST_Request  $request    The request sent to the API.
+		 * @param string                    $widget_id  ID of the widget marked for deletion.
+		 * @param string                    $sidebar_id ID of the sidebar the widget was deleted from.
+		 * @param WP_REST_Response|WP_Error $response   The response data, or WP_Error object on failure.
+		 * @param WP_REST_Request           $request    The request sent to the API.
 		 */
 		do_action( 'rest_delete_widget', $widget_id, $sidebar_id, $response, $request );
 
@@ -669,7 +682,13 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$widget    = $wp_registered_widgets[ $widget_id ];
+		$widget = $wp_registered_widgets[ $widget_id ];
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-widgets-controller.php */
+			return apply_filters( 'rest_prepare_widget', new WP_REST_Response( array() ), $widget, $request );
+		}
+
 		$parsed_id = wp_parse_widget_id( $widget_id );
 		$fields    = $this->get_fields_for_response( $request );
 
@@ -707,7 +726,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 				if ( ! empty( $widget_object->widget_options['show_instance_in_rest'] ) ) {
 					// Use new stdClass so that JSON result is {} and not [].
-					$prepared['instance']['raw'] = empty( $instance ) ? new stdClass : $instance;
+					$prepared['instance']['raw'] = empty( $instance ) ? new stdClass() : $instance;
 				}
 			}
 		}
@@ -718,16 +737,18 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $prepared );
 
-		$response->add_links( $this->prepare_links( $prepared ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $prepared ) );
+		}
 
 		/**
 		 * Filters the REST API response for a widget.
 		 *
 		 * @since 5.8.0
 		 *
-		 * @param WP_REST_Response $response The response object.
-		 * @param array            $widget   The registered widget data.
-		 * @param WP_REST_Request  $request  Request used to generate the response.
+		 * @param WP_REST_Response|WP_Error $response The response object, or WP_Error object on failure.
+		 * @param array                     $widget   The registered widget data.
+		 * @param WP_REST_Request           $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_widget', $response, $widget, $request );
 	}
@@ -851,9 +872,9 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array(),
 					'arg_options' => array(
-						'sanitize_callback' => static function( $string ) {
+						'sanitize_callback' => static function ( $form_data ) {
 							$array = array();
-							wp_parse_str( $string, $array );
+							wp_parse_str( $form_data, $array );
 							return $array;
 						},
 					),

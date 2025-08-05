@@ -9,7 +9,7 @@
 
 if ( ! function_exists( 'twentyfourteen_paging_nav' ) ) :
 	/**
-	 * Display navigation to next/previous set of posts when applicable.
+	 * Displays navigation to next/previous set of posts when applicable.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -47,7 +47,7 @@ if ( ! function_exists( 'twentyfourteen_paging_nav' ) ) :
 				'total'     => $wp_query->max_num_pages,
 				'current'   => $paged,
 				'mid_size'  => 1,
-				'add_args'  => array_map( 'urlencode', $query_args ),
+				'add_args'  => urlencode_deep( $query_args ),
 				'prev_text' => __( '&larr; Previous', 'twentyfourteen' ),
 				'next_text' => __( 'Next &rarr;', 'twentyfourteen' ),
 			)
@@ -57,7 +57,12 @@ if ( ! function_exists( 'twentyfourteen_paging_nav' ) ) :
 
 			?>
 		<nav class="navigation paging-navigation">
-		<h1 class="screen-reader-text"><?php _e( 'Posts navigation', 'twentyfourteen' ); ?></h1>
+		<h1 class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Posts navigation', 'twentyfourteen' );
+			?>
+		</h1>
 		<div class="pagination loop-pagination">
 			<?php echo $links; ?>
 		</div><!-- .pagination -->
@@ -69,7 +74,7 @@ endif;
 
 if ( ! function_exists( 'twentyfourteen_post_nav' ) ) :
 	/**
-	 * Display navigation to next/previous post when applicable.
+	 * Displays navigation to next/previous post when applicable.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 */
@@ -84,7 +89,12 @@ if ( ! function_exists( 'twentyfourteen_post_nav' ) ) :
 
 		?>
 		<nav class="navigation post-navigation">
-		<h1 class="screen-reader-text"><?php _e( 'Post navigation', 'twentyfourteen' ); ?></h1>
+		<h1 class="screen-reader-text">
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Post navigation', 'twentyfourteen' );
+			?>
+		</h1>
 		<div class="nav-links">
 			<?php
 			if ( is_attachment() ) :
@@ -102,7 +112,7 @@ endif;
 
 if ( ! function_exists( 'twentyfourteen_posted_on' ) ) :
 	/**
-	 * Print HTML with meta information for the current post-date/time and author.
+	 * Prints HTML with meta information for the current post-date/time and author.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 */
@@ -124,7 +134,7 @@ if ( ! function_exists( 'twentyfourteen_posted_on' ) ) :
 endif;
 
 /**
- * Find out if blog has more than one category.
+ * Finds out if blog has more than one category.
  *
  * @since Twenty Fourteen 1.0
  *
@@ -156,7 +166,7 @@ function twentyfourteen_categorized_blog() {
 }
 
 /**
- * Flush out the transients used in twentyfourteen_categorized_blog.
+ * Flushes out the transients used in twentyfourteen_categorized_blog.
  *
  * @since Twenty Fourteen 1.0
  */
@@ -169,7 +179,7 @@ add_action( 'save_post', 'twentyfourteen_category_transient_flusher' );
 
 if ( ! function_exists( 'twentyfourteen_post_thumbnail' ) ) :
 	/**
-	 * Display an optional post thumbnail.
+	 * Displays an optional post thumbnail.
 	 *
 	 * Wraps the post thumbnail in an anchor element on index
 	 * views, or a div element when on single views.
@@ -226,7 +236,7 @@ if ( ! function_exists( 'twentyfourteen_excerpt_more' ) && ! is_admin() ) :
 		$link = sprintf(
 			'<a href="%1$s" class="more-link">%2$s</a>',
 			esc_url( get_permalink( get_the_ID() ) ),
-			/* translators: %s: Post title. */
+			/* translators: %s: Post title. Only visible to screen readers. */
 			sprintf( __( 'Continue reading %s <span class="meta-nav">&rarr;</span>', 'twentyfourteen' ), '<span class="screen-reader-text">' . get_the_title( get_the_ID() ) . '</span>' )
 		);
 		return ' &hellip; ' . $link;
@@ -236,7 +246,7 @@ endif;
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
-	 * Fire the wp_body_open action.
+	 * Fires the wp_body_open action.
 	 *
 	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *

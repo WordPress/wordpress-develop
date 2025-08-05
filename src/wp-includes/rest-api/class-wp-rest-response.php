@@ -43,7 +43,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	/**
 	 * Adds a link to the response.
 	 *
-	 * @internal The $rel parameter is first, as this looks nicer when sending multiple.
+	 * {@internal The $rel parameter is first, as this looks nicer when sending multiple.}
 	 *
 	 * @since 4.4.0
 	 *
@@ -135,7 +135,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	/**
 	 * Sets a single link header.
 	 *
-	 * @internal The $rel parameter is first, as this looks nicer when sending multiple.
+	 * {@internal The $rel parameter is first, as this looks nicer when sending multiple.}
 	 *
 	 * @since 4.4.0
 	 *
@@ -144,7 +144,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @param string $rel   Link relation. Either an IANA registered type, or an absolute URL.
 	 * @param string $link  Target IRI for the link.
-	 * @param array  $other Optional. Other parameters to send, as an assocative array.
+	 * @param array  $other Optional. Other parameters to send, as an associative array.
 	 *                      Default empty array.
 	 */
 	public function link_header( $rel, $link, $other = array() ) {
@@ -227,7 +227,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 			return null;
 		}
 
-		$error = new WP_Error;
+		$error = new WP_Error();
 
 		if ( is_array( $this->get_data() ) ) {
 			$data = $this->get_data();
@@ -278,7 +278,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 		 * `http://w.org/{rel}` would transform a `http://w.org/term` relation
 		 * into `example:term`.
 		 *
-		 * Well-behaved clients should expand and normalise these back to their
+		 * Well-behaved clients should expand and normalize these back to their
 		 * full URI relation, however some naive clients may not resolve these
 		 * correctly, so adding new CURIEs may break backward compatibility.
 		 *
