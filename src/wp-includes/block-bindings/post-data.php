@@ -13,7 +13,7 @@
  * @since 6.9.0
  * @access private
  *
- * @param array    $source_args    Array containing source arguments used to look up the override value.
+ * @param array    $source_args    Array containing arguments used to look up the source value.
  *                                 Example: array( "key" => "foo" ).
  * @param WP_Block $block_instance The block instance.
  * @return mixed The value computed for the source.
