@@ -47,6 +47,7 @@ jobs:
   build:
     name: Build
     uses: ./.github/workflows/reusable-build-package.yml
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
     permissions:
       contents: read
 
@@ -54,7 +55,7 @@ jobs:
   upgrade-tests-develop:
     name: Upgrade from ${{ matrix.wp }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     needs: [ build ]
     strategy:
       fail-fast: false
@@ -74,6 +75,36 @@ jobs:
           # WordPress 4.9 does not support PHP 8.4.
           - php: '8.4'
             wp: '4.9'
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: develop
+      multisite: ${{ matrix.multisite }}
+
+  # Run a limited set of upgrade tests for the current branch on forks.
+  upgrade-tests-develop-forks:
+    name: Upgrade from ${{ matrix.wp }}
+    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    if: ${{ github.repository != 'WordPress/wordpress-develop' }}
+    needs: [ build ]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-24.04' ]
+        php: [ '7.2', '8.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '8.4' ]
+        # WordPress 4.9 is the oldest version that supports PHP 7.2.
+        wp: [ '6.7', '6.8' ]
+        multisite: [ false, true ]
+
+        exclude:
+          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '8.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
