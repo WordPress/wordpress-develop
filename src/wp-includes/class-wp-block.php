@@ -288,6 +288,19 @@ class WP_Block {
 			'core/post-date' => array( 'datetime' ),
 		);
 
+		/**
+		 * Filters the supported block attributes for block bindings.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param array $supported_block_attributes The supported block attributes for block bindings.
+		 *                                          The keys are block names and the values are arrays of attribute names.
+		 */
+		$supported_block_attributes = apply_filters(
+			'block_bindings_supported_block_attributes',
+			$supported_block_attributes
+		);
+
 		// If the block doesn't have the bindings property, isn't one of the supported
 		// block types, or the bindings property is not an array, return the block content.
 		if (
