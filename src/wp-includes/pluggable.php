@@ -302,9 +302,9 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				 */
 				$tempheaders = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
 
-				// Line which starts with space is a continuation of previous line, need to keep them as one.
+				// Line which starts with whitespace (space or tab) is a continuation of previous line, need to keep them as one.
 				for ( $index = 0; $index < count( $tempheaders ); $index++ ) {
-					if ( $index > 0 && $tempheaders[ $index ] && ' ' === $tempheaders[ $index ][0] ) {
+					if ( $index > 0 && isset( $tempheaders[ $index ] ) && ( ' ' === $tempheaders[ $index ][0] || "\t" === $tempheaders[ $index ][0] ) ) {
 						$tempheaders[ $index - 1 ] .= "\n" . $tempheaders[ $index ];
 						array_splice( $tempheaders, $index, 1 );
 						--$index;
@@ -343,8 +343,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 									$from_name = substr( $content, 0, $bracket_pos );
 									$from_name = str_replace( '"', '', $from_name );
 									$from_name = trim( $from_name );
-									// Only decode MIME headers if content contains newlines (multiline headers)
-									if ( function_exists( 'mb_decode_mimeheader' ) && str_contains( $content, "\n" ) ) {
+									// Decode MIME headers if they contain encoded content or newlines
+									if ( function_exists( 'mb_decode_mimeheader' ) && ( str_contains( $content, "\n" ) || str_contains( $from_name, '=?' ) ) ) {
 										$from_name = mb_decode_mimeheader( $from_name );
 									}
 								}
