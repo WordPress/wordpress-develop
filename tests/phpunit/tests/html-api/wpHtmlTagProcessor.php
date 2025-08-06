@@ -3089,6 +3089,8 @@ HTML
 
 			'Script tag with self-close flag (ignored)'    => array( '<script />', false ),
 			'Script data double-escaped'                   => array( '<script><!--<script></script>', false ),
+
+			'Unclosed script in escaped state'             => array( '<script><!--------------', false ),
 		);
 	}
 }
