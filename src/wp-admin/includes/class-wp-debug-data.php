@@ -478,7 +478,7 @@ class WP_Debug_Data {
 			if ( $opcache_status ) {
 				$fields['opcode_cache'] = array(
 					'label' => __( 'Opcode cache' ),
-					'value' => ( $opcache_status['opcode_cache_enabled'] ? __( 'Enabled' ) : __( 'Disabled' ) ),
+					'value' => ( $opcache_status['opcache_enabled'] ? __( 'Enabled' ) : __( 'Disabled' ) ),
 					'debug' => $opcache_status['opcache_enabled'],
 				);
 
@@ -507,6 +507,12 @@ class WP_Debug_Data {
 					'debug' => $opcache_status['opcache_statistics']['opcache_hit_rate'],
 				);
 			}
+		} else {
+			$fields['opcode_cache'] = array(
+				'label' => __( 'Opcode cache' ),
+				'value' => __( 'Disabled' ),
+				'debug' => 'not available',
+			);
 		}
 
 		// Pretty permalinks.
