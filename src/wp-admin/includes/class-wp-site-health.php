@@ -2725,7 +2725,7 @@ class WP_Site_Health {
 		if ( ! $opcode_cache_enabled ) {
 			$result['status']       = 'recommended';
 			$result['label']        = __( 'Opcode cache is not enabled' );
-			$result['description'] .= '<p>' . __( 'OPcache is not enabled. Enabling OPcache can significantly improve the performance of your site.' ) . '</p>';
+			$result['description'] .= '<p>' . __( 'Opcode cache is not enabled. Enabling this cache can significantly improve the performance of your site.' ) . '</p>';
 		}
 
 		return $result;
