@@ -1497,15 +1497,27 @@ class WP_HTML_Tag_Processor {
 			$at += strcspn( $html, '-<', $at );
 
 			/*
-			 * A SCRIPT close tag `</script>` must be found or this function will
-			 * return false. If a close tag would not fit in the remaining string,
-			 * no further work is necessary.
+			 * *IMPORTANT:* Any changes to this loop *must* ensure the conditions described in this
+			 * comment remain valid.
 			 *
-			 *     $at is potentially here
+			 * The rest of this loop matches different byte sequences. If a script close tag is not
+			 * found, the function will return false. The script close tag is the longest byte
+			 * sequenced to match. Therefore, a single length check for at least 8 additional
+			 * bytes allows for an early `false` return OR subsequent matches without length checks.
+			 *
+			 *     $at may be here.
 			 *       ↓
 			 *       </script>
 			 *        ╰──┬───╯
-			 *     $at + 8 additional characters is the minimum length required to skip script data.
+			 *     $at + 8 additional bytes are required for a non-false return value.
+			 *
+			 * The length of shorter matches is already satisfied:
+			 *
+			 *     $at may be here.
+			 *          ↓
+			 *          -->
+			 *           ├╯
+			 *     $at + 2 additional characters does not require an additional length check.
 			 */
 			if ( $at + 8 >= $doc_length ) {
 				return false;
