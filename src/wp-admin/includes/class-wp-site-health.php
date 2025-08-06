@@ -2702,7 +2702,7 @@ class WP_Site_Health {
 		}
 
 		$result = array(
-			'label'       => __( 'OPcache is enabled' ),
+			'label'       => __( 'Opcode cache is enabled' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Performance' ),
