@@ -1559,12 +1559,29 @@ class WP_HTML_Tag_Processor {
 			 * parsing after updating the state.
 			 */
 			if (
+				'unescaped' === $state &&
 				'!' === $html[ $at ] &&
 				'-' === $html[ $at + 1 ] &&
 				'-' === $html[ $at + 2 ]
 			) {
-				$at   += 3;
-				$state = 'unescaped' === $state ? 'escaped' : $state;
+				$at += 3;
+
+				/*
+				 * The parser is ready to enter the `escaped` state but may remain in the
+				 * `unescaped` state if there is immediately is a sequence of any number of 0 or
+				 * more "-" characters followed by ">". This is similar to abruptly closed HTML
+				 * comments like "<!-->" or "<!--->".
+				 *
+				 * Note that this check may have advance the position significantly and requires
+				 * a length check to prevent bad offsets on on inputs like `<script><!---------`.
+				 */
+				$at += strspn( $html, '-', $at );
+				if ( $at < $doc_length && '>' === $html[ $at ] ) {
+					++$at;
+					continue;
+				}
+
+				$state = 'escaped';
 				continue;
 			}
 
