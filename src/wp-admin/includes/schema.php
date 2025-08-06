@@ -715,7 +715,8 @@ function populate_options( array $options = array() ) {
 function populate_roles() {
 	$wp_roles = wp_roles();
 
-	// Disable role updates to the database while modifying roles.
+	// Disable role updates to the database while populating roles.
+	$original_use_db = $wp_roles->use_db;
 	$wp_roles->use_db = false;
 
 	// Populate roles
@@ -729,10 +730,12 @@ function populate_roles() {
 	populate_roles_300();
 
 	// Save the updated roles to the database.
-	update_option( $wp_roles->role_key, $wp_roles->roles, true );
+	if ( $original_use_db ) {
+		update_option( $wp_roles->role_key, $wp_roles->roles, true );
+	}
 
-	// Re-enable role updates to the database.
-	$wp_roles->use_db = true;
+	// Restore original value for writing to database.
+	$wp_roles->use_db = $original_use_db;
 }
 
 /**
