@@ -2821,7 +2821,7 @@ class WP_Site_Health {
 				),
 				'opcache'                      => array(
 					'label' => __( 'OPcache' ),
-					'test'  => 'opcache',
+					'test'  => 'opcode_cache',
 				),
 			),
 			'async'  => array(
