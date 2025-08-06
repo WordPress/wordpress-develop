@@ -716,7 +716,7 @@ function populate_roles() {
 	$wp_roles = wp_roles();
 
 	// Disable role updates to the database while populating roles.
-	$original_use_db = $wp_roles->use_db;
+	$original_use_db  = $wp_roles->use_db;
 	$wp_roles->use_db = false;
 
 	// Populate roles
