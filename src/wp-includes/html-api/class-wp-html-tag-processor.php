@@ -1497,27 +1497,31 @@ class WP_HTML_Tag_Processor {
 			$at += strcspn( $html, '-<', $at );
 
 			/*
-			 * *IMPORTANT:* Any changes to this loop *must* ensure the conditions described in this
-			 * comment remain valid.
+			 * Optimization: Every exit out of the script element requires no less than eight
+			 * additional bytes in the document. Some of the checks below transition internally
+			 * on strings shorter than eight bytes, and because of that they may be missed by
+			 * this check. However, since those transitions are insufficient to escape, this
+			 * function should still fail as incomplete.
 			 *
-			 * The rest of this loop matches different byte sequences. If a script close tag is not
-			 * found, the function will return false. The script close tag is the longest byte
-			 * sequenced to match. Therefore, a single length check for at least 8 additional
-			 * bytes allows for an early `false` return OR subsequent matches without length checks.
+			 * This may need updating if those internal transitions become significant or
+			 * exported from this function in some way, such as when building safe methods
+			 * to embed JavaScript or data inside a SCRIPT element.
 			 *
 			 *     $at may be here.
-			 *       ↓
-			 *       </script>
-			 *        ╰──┬───╯
+			 *        ↓
+			 *     ...</script>
+			 *         ╰──┬───╯
 			 *     $at + 8 additional bytes are required for a non-false return value.
 			 *
-			 * The length of shorter matches is already satisfied:
+			 * This single check eliminates the need to check lengths for the shorter spans.
+			 * For example, when leaving the script escaped state back into script data state.
 			 *
-			 *     $at may be here.
-			 *          ↓
-			 *          -->
-			 *           ├╯
-			 *     $at + 2 additional characters does not require an additional length check.
+			 *                                    $at may be here.
+			 *                                                 ↓
+			 *     <!-- <script>\n console.log( "</script>" ); -->
+			 *                                                  ├╯
+			 *                   $at + 2 additional characters does not
+			 *                   require an additional length check.
 			 */
 			if ( $at + 8 >= $doc_length ) {
 				return false;
