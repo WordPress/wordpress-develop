@@ -189,7 +189,7 @@ jobs:
       contents: read
     needs: [ check-for-empty-files, test-build-scripts ]
     timeout-minutes: 10
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
       matrix:
