@@ -17,6 +17,27 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 	);
 
 	/**
+	 * Sets up shared fixtures.
+	 * 
+	 * @since 6.9.0
+	 */
+	public static function wpSetUpBeforeClass() {
+		register_block_type(
+			'test/block',
+			array(
+				'attributes'      => array(
+					'myAttribute' => array(
+						'type' => 'string',
+					),
+				),
+				'render_callback' => function ( $attributes ) {
+					return '<p>' . esc_html( $attributes['myAttribute'] ) . '</p>';
+				},
+			)
+		);
+	}
+
+	/**
 	 * Tear down after each test.
 	 *
 	 * @since 6.5.0
@@ -29,6 +50,15 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 		}
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Tear down after class.
+	 *
+	 * @since 6.9.0
+	 */
+	public static function wpTearDownAfterClass() {
+		unregister_block_type( 'test/block' );
 	}
 
 	/**
@@ -87,20 +117,6 @@ HTML;
 			array(
 				'label'              => self::SOURCE_LABEL,
 				'get_value_callback' => $get_value_callback,
-			)
-		);
-
-		register_block_type(
-			'test/block',
-			array(
-				'attributes'      => array(
-					'myAttribute' => array(
-						'type' => 'string',
-					),
-				),
-				'render_callback' => function ( $attributes ) {
-					return '<p>' . esc_html( $attributes['myAttribute'] ) . '</p>';
-				},
 			)
 		);
 
