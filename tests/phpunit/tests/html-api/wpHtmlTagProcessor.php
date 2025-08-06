@@ -3077,16 +3077,18 @@ HTML
 	 */
 	public static function data_script_tag(): array {
 		return array(
-			'Basic script tag'                          => array( '<script></script>', true ),
-			'Script with type attribute'                => array( '<script type="text/javascript"></script>', true ),
-			'Script data escaped'                       => array( '<script><!--</script>', true ),
-			'Script data double-escaped exit (comment)' => array( '<script><!--<script>--></script>', true ),
-			'Script data double-escaped exit (closed)'  => array( '<script><!--<script></script></script>', true ),
+			'Basic script tag'                             => array( '<script></script>', true ),
+			'Script with type attribute'                   => array( '<script type="text/javascript"></script>', true ),
+			'Script data escaped'                          => array( '<script><!--</script>', true ),
+			'Script data double-escaped exit (comment)'    => array( '<script><!--<script>--></script>', true ),
+			'Script data double-escaped exit (closed)'     => array( '<script><!--<script></script></script>', true ),
 			'Script data double-escaped exit (closed/truncated)' => array( '<script><!--<script></script </script>', true ),
-			'Script data no double-escape'              => array( '<script><!-- --><script></script>', true ),
+			'Script data no double-escape'                 => array( '<script><!-- --><script></script>', true ),
+			'Script data no double-escape (short comment)' => array( '<script><!--><script></script>', true ),
+			'Script data almost double-escaped'            => array( '<script><!--<script</script>', true ),
 
-			'Script tag with self-close flag (ignored)' => array( '<script />', false ),
-			'Script data double-escaped'                => array( '<script><!--<script></script>', false ),
+			'Script tag with self-close flag (ignored)'    => array( '<script />', false ),
+			'Script data double-escaped'                   => array( '<script><!--<script></script>', false ),
 		);
 	}
 }
