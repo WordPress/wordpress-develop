@@ -2694,7 +2694,7 @@ class WP_Site_Health {
 	 *
 	 * @return array The test result.
 	 */
-	public function get_test_opcache() {
+	public function get_test_opcode_cache() {
 		$opcode_cache_enabled = false;
 		if ( function_exists( 'opcache_get_status' ) ) {
 			$status               = opcache_get_status( false );
