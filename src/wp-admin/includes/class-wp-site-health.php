@@ -2819,8 +2819,8 @@ class WP_Site_Health {
 					'label' => __( 'Autoloaded options' ),
 					'test'  => 'autoloaded_options',
 				),
-				'opcache'                      => array(
-					'label' => __( 'OPcache' ),
+				'opcode_cache'                 => array(
+					'label' => __( 'Opcode cache' ),
 					'test'  => 'opcode_cache',
 				),
 			),

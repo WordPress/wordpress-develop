@@ -482,7 +482,7 @@ class WP_Debug_Data {
 					'debug' => $opcache_status['opcache_enabled'],
 				);
 
-				$fields['opcache_memory_usage'] = array(
+				$fields['opcode_cache_memory_usage'] = array(
 					'label' => __( 'Opcode cache memory usage' ),
 					'value' => sprintf(
 						/* translators: 1: Used memory, 2: Total memory */
