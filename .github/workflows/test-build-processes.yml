@@ -56,7 +56,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
-        node: [ '', '22', '24' ]
         directory: [ 'src', 'build' ]
         include:
           # Only prepare artifacts for Playground once.
@@ -66,7 +65,6 @@ jobs:
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
     with:
       os: ${{ matrix.os }}
-      node-version: ${{ matrix.node }}
       directory: ${{ matrix.directory }}
       save-build: ${{ matrix.save-build && matrix.save-build || false }}
       prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
@@ -91,11 +89,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'macos-14', 'windows-2022' ]
-        node: [ '', '22', '24' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
-      node-version: ${{ matrix.node }}
       directory: ${{ matrix.directory }}
 
   # Tests the Gutenberg plugin build process within a wordpress-develop checkout.
@@ -109,11 +105,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
-        node: [ '', '22', '24' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
-      node-version: ${{ matrix.node }}
       directory: ${{ matrix.directory }}
 
   # Tests the Gutenberg plugin build process on additional operating systems.
@@ -136,11 +130,49 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'macos-14', 'windows-2022' ]
-        node: [ '', '22', '24' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
-      node-version: ${{ matrix.node }}
+      directory: ${{ matrix.directory }}
+
+  # Tests the WordPress Core build process on additional Node.js versions.
+  #
+  # Testing against additional Node.js versions can help spot potential issues before upgrading.
+  test-core-build-process-additional-node-versions:
+    name: Core running from ${{ matrix.directory }}
+    uses: ./.github/workflows/reusable-test-core-build-process.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-24.04', 'macos-14', 'windows-2022' ]
+        node-version: [ '22', '24' ]
+        directory: [ 'src', 'build' ]
+    with:
+      os: ${{ matrix.os }}
+      node-version: ${{ matrix.node-version }}
+      directory: ${{ matrix.directory }}
+
+  # Tests the Gutenberg build process on additional Node.js versions.
+  #
+  # Testing against additional Node.js versions can help spot potential issues before upgrading.
+  test-gutenberg-build-process-additional-node-versions:
+    name: Core running from ${{ matrix.directory }}
+    uses: ./.github/workflows/reusable-test-gutenberg-build-process.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-24.04', 'macos-14', 'windows-2022' ]
+        node-version: [ '22', '24' ]
+        directory: [ 'src', 'build' ]
+    with:
+      os: ${{ matrix.os }}
+      node-version: ${{ matrix.node-version }}
       directory: ${{ matrix.directory }}
 
   slack-notifications:
@@ -149,7 +181,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-core-build-process, test-core-build-process-additional-os, test-gutenberg-build-process, test-gutenberg-build-process-additional-os ]
+    needs: [ test-core-build-process, test-core-build-process-additional-os, test-gutenberg-build-process, test-gutenberg-build-process-additional-os, test-core-build-process-additional-node-versions, test-gutenberg-build-process-additional-node-versions ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
