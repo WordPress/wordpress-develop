@@ -497,7 +497,7 @@ class WP_Debug_Data {
 					),
 				);
 
-				$fields['opcache_hit_rate'] = array(
+				$fields['opcode_cache_hit_rate'] = array(
 					'label' => __( 'Opcode cache hit rate' ),
 					'value' => sprintf(
 						/* translators: %s: Hit rate percentage */
