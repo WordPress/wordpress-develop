@@ -93,7 +93,7 @@ HTML;
 		register_block_type(
 			'test/block',
 			array(
-				'attributes' => array(
+				'attributes'      => array(
 					'myAttribute' => array(
 						'type' => 'string',
 					),
