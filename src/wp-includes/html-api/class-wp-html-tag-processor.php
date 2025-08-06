@@ -1497,12 +1497,38 @@ class WP_HTML_Tag_Processor {
 			$at += strcspn( $html, '-<', $at );
 
 			/*
+			 * *IMPORTANT:* Any changes to this loop *must* ensure the conditions described in this
+			 * comment remain valid.
+			 *
+			 * The rest of this loop matches different byte sequences. If a script close tag is not
+			 * found, the function will return false. The script close tag is the longest byte
+			 * sequenced to match. Therefore, a single length check for at least 8 additional
+			 * bytes allows for an early `false` return OR subsequent matches without length checks.
+			 *
+			 *     $at may be here.
+			 *       ↓
+			 *       </script>
+			 *        ╰──┬───╯
+			 *     $at + 8 additional bytes are required for a non-false return value.
+			 *
+			 * The length of shorter matches is already satisfied:
+			 *
+			 *     $at may be here.
+			 *          ↓
+			 *          -->
+			 *           ├╯
+			 *     $at + 2 additional characters does not require an additional length check.
+			 */
+			if ( $at + 8 >= $doc_length ) {
+				return false;
+			}
+
+			/*
 			 * For all script states a "-->"  transitions
 			 * back into the normal unescaped script mode,
 			 * even if that's the current state.
 			 */
 			if (
-				$at + 2 < $doc_length &&
 				'-' === $html[ $at ] &&
 				'-' === $html[ $at + 1 ] &&
 				'>' === $html[ $at + 2 ]
@@ -1510,10 +1536,6 @@ class WP_HTML_Tag_Processor {
 				$at   += 3;
 				$state = 'unescaped';
 				continue;
-			}
-
-			if ( $at + 1 >= $doc_length ) {
-				return false;
 			}
 
 			/*
@@ -1537,7 +1559,6 @@ class WP_HTML_Tag_Processor {
 			 * parsing after updating the state.
 			 */
 			if (
-				$at + 2 < $doc_length &&
 				'!' === $html[ $at ] &&
 				'-' === $html[ $at + 1 ] &&
 				'-' === $html[ $at + 2 ]
@@ -1561,7 +1582,6 @@ class WP_HTML_Tag_Processor {
 			 * proceed scanning to the next potential token in the text.
 			 */
 			if ( ! (
-				$at + 6 < $doc_length &&
 				( 's' === $html[ $at ] || 'S' === $html[ $at ] ) &&
 				( 'c' === $html[ $at + 1 ] || 'C' === $html[ $at + 1 ] ) &&
 				( 'r' === $html[ $at + 2 ] || 'R' === $html[ $at + 2 ] ) &&
@@ -1579,9 +1599,6 @@ class WP_HTML_Tag_Processor {
 			 * "<script123" should not end a script region even though
 			 * "<script" is found within the text.
 			 */
-			if ( $at + 6 >= $doc_length ) {
-				continue;
-			}
 			$at += 6;
 			$c   = $html[ $at ];
 			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
@@ -1611,8 +1628,6 @@ class WP_HTML_Tag_Processor {
 				}
 
 				if ( $this->bytes_already_parsed >= $doc_length ) {
-					$this->parser_state = self::STATE_INCOMPLETE_INPUT;
-
 					return false;
 				}
 
