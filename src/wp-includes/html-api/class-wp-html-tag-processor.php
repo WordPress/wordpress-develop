@@ -1572,8 +1572,8 @@ class WP_HTML_Tag_Processor {
 				 * more "-" characters followed by ">". This is similar to abruptly closed HTML
 				 * comments like "<!-->" or "<!--->".
 				 *
-				 * Note that this check may have advance the position significantly and requires
-				 * a length check to prevent bad offsets on on inputs like `<script><!---------`.
+				 * Note that this check may have advanced the position significantly and requires
+				 * a length check to prevent bad offsets on inputs like `<script><!---------`.
 				 */
 				$at += strspn( $html, '-', $at );
 				if ( $at < $doc_length && '>' === $html[ $at ] ) {
