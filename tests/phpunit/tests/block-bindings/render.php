@@ -140,7 +140,7 @@ HTML;
 		$this->assertSame(
 			'test source value',
 			$block->attributes['myAttribute'],
-			"The 'content' attribute should be updated with the value returned by the source."
+			"The 'myAttribute' attribute should be updated with the value returned by the source."
 		);
 		$this->assertSame(
 			'<p>test source value</p>',
