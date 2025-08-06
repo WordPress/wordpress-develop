@@ -81,9 +81,10 @@ else :
 	if ( 'page' === get_option( 'show_on_front' ) && ! get_option( 'page_on_front' ) && ! get_option( 'page_for_posts' ) ) {
 		update_option( 'show_on_front', 'posts' );
 	}
+
+	$your_homepage_displays_title = __( 'Your homepage displays' );
 	?>
 <table class="form-table" role="presentation">
-<?php $your_homepage_displays_title = __( 'Your homepage displays' ); ?>
 <tr>
 <th scope="row"><?php echo $your_homepage_displays_title; ?></th>
 <td id="front-static-pages"><fieldset>

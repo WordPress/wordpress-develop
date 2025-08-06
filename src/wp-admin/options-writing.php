@@ -67,7 +67,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <table class="form-table" role="presentation">
 <?php if ( get_site_option( 'initial_db_version' ) < 32453 ) : ?>
-<?php $formatting_title = __( 'Formatting' ); ?>
+	<?php $formatting_title = __( 'Formatting' ); ?>
 <tr>
 <th scope="row"><?php echo $formatting_title; ?></th>
 <td><fieldset><legend class="screen-reader-text"><span><?php echo $formatting_title; ?></span></legend>

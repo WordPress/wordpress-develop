@@ -377,6 +377,8 @@ class Custom_Background {
 <input name="background-preset" type="hidden" value="custom">
 
 			<?php
+			$background_position_title = __( 'Image Position' );
+
 			$background_position = sprintf(
 				'%s %s',
 				get_theme_mod( 'background_position_x', get_theme_support( 'custom-background', 'default-position-x' ) ),
@@ -428,10 +430,9 @@ class Custom_Background {
 				),
 			);
 			?>
-<?php $image_position_title = __( 'Image Position' ); ?>
 <tr>
-<th scope="row"><?php echo $image_position_title; ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php echo $image_position_title; ?></span></legend>
+<th scope="row"><?php echo $background_position_title; ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo $background_position_title; ?></span></legend>
 <div class="background-position-control">
 			<?php foreach ( $background_position_options as $group ) : ?>
 	<div class="button-group">
@@ -448,7 +449,7 @@ class Custom_Background {
 </fieldset></td>
 </tr>
 
-<?php $image_size_title = __( 'Image Size' ); ?>
+			<?php $image_size_title = __( 'Image Size' ); ?>
 <tr>
 <th scope="row"><label for="background-size"><?php echo $image_size_title; ?></label></th>
 <td><fieldset><legend class="screen-reader-text"><span><?php echo $image_size_title; ?></span></legend>
@@ -460,7 +461,7 @@ class Custom_Background {
 </fieldset></td>
 </tr>
 
-<?php $background_repeat_title = _x( 'Repeat', 'Background Repeat' ); ?>
+			<?php $background_repeat_title = _x( 'Repeat', 'Background Repeat' ); ?>
 <tr>
 <th scope="row"><?php echo $background_repeat_title; ?></th>
 <td><fieldset><legend class="screen-reader-text"><span><?php echo $background_repeat_title; ?></span></legend>
@@ -469,7 +470,7 @@ class Custom_Background {
 </fieldset></td>
 </tr>
 
-<?php $background_scroll_title = _x( 'Scroll', 'Background Scroll' ); ?>
+			<?php $background_scroll_title = _x( 'Scroll', 'Background Scroll' ); ?>
 <tr>
 <th scope="row"><?php echo $background_scroll_title; ?></th>
 <td><fieldset><legend class="screen-reader-text"><span><?php echo $background_scroll_title; ?></span></legend>
@@ -479,7 +480,7 @@ class Custom_Background {
 </tr>
 <?php endif; // get_background_image() ?>
 
-<?php $background_color_title = __( 'Background Color' ); ?>
+		<?php $background_color_title = __( 'Background Color' ); ?>
 <tr>
 <th scope="row"><?php echo $background_color_title; ?></th>
 <td><fieldset><legend class="screen-reader-text"><span><?php echo $background_color_title; ?></span></legend>

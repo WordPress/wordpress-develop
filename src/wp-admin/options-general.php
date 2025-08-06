@@ -289,9 +289,10 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
 </td>
 </tr>
 
-<?php if ( ! is_multisite() ) { ?>
-
-<?php $membership_title = __( 'Membership' ); ?>
+<?php
+if ( ! is_multisite() ) {
+	$membership_title = __( 'Membership' );
+	?>
 <tr>
 <th scope="row"><?php echo $membership_title; ?></th>
 <td> <fieldset><legend class="screen-reader-text"><span><?php echo $membership_title; ?></span></legend><label for="users_can_register">
