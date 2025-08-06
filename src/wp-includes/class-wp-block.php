@@ -278,6 +278,7 @@ class WP_Block {
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
 	private function process_block_bindings() {
+		$block_type                 = $this->name;
 		$parsed_block               = $this->parsed_block;
 		$computed_attributes        = array();
 
@@ -289,20 +290,21 @@ class WP_Block {
 			'core/post-date' => array( 'datetime' ),
 		);
 
-		$supported_block_attributes = $all_supported_block_attributes[ $this->name ] ?? array();
+		$supported_block_attributes = $all_supported_block_attributes[ $block_type ] ?? array();
 
 		/**
 		 * Filters the supported block attributes for block bindings.
 		 *
+		 * The dynamic portion of the hook name, `$block_type`, refers to the block type
+		 * whose attributes are being filtered.
+		 *
 		 * @since 6.9.0
 		 *
 		 * @param string[] $supported_block_attributes The block's attributes that are supported by block bindings.
-		 * @param string   $block_name                 The name of the block whose attributes are being filtered.
 		 */
 		$supported_block_attributes = apply_filters(
-			'block_bindings_supported_block_attributes',
-			$supported_block_attributes,
-			$this->name
+			"block_bindings_supported_attributes_{$block_type}",
+			$supported_block_attributes
 		);
 
 		// If the block doesn't have the bindings property, isn't one of the supported
