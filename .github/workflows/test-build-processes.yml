@@ -56,15 +56,18 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
+        node: [ '', '22', '24' ]
         directory: [ 'src', 'build' ]
         include:
           # Only prepare artifacts for Playground once.
           - os: 'ubuntu-24.04'
+            node-version: ${{ matrix.node }}
             directory: 'build'
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
     with:
       os: ${{ matrix.os }}
+      node-version: ${{ matrix.node }}
       directory: ${{ matrix.directory }}
       save-build: ${{ matrix.save-build && matrix.save-build || false }}
       prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
@@ -89,9 +92,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'macos-14', 'windows-2022' ]
+        node: [ '', '22', '24' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
+      node-version: ${{ matrix.node }}
       directory: ${{ matrix.directory }}
 
   # Tests the Gutenberg plugin build process within a wordpress-develop checkout.
@@ -105,9 +110,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
+        node: [ '', '22', '24' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
+      node-version: ${{ matrix.node }}
       directory: ${{ matrix.directory }}
 
   # Tests the Gutenberg plugin build process on additional operating systems.
@@ -130,9 +137,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'macos-14', 'windows-2022' ]
+        node: [ '', '22', '24' ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
+      node-version: ${{ matrix.node }}
       directory: ${{ matrix.directory }}
 
   slack-notifications:
