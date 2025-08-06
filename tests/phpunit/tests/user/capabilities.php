@@ -1830,11 +1830,47 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( current_user_can( 'edit_user', $other_user->ID ) );
 	}
 
-	public function test_user_can_edit_self() {
-		foreach ( self::$users as $role => $user ) {
-			wp_set_current_user( $user->ID );
-			$this->assertTrue( current_user_can( 'edit_user', $user->ID ), "User with role {$role} should have the capability to edit their own profile" );
+	/**
+	 * Test if a user can edit their own profile based on their role.
+	 *
+	 * @ticket 63684
+	 *
+	 * @dataProvider data_user_can_edit_self
+	 *
+	 * @param string $role          The role of the user.
+	 * @param bool   $can_edit_self Whether the user can edit their own profile.
+	 */
+	public function test_user_can_edit_self( $role, $can_edit_self = true ) {
+		$user = self::$users[ $role ];
+		wp_set_current_user( $user->ID );
+
+		if ( $can_edit_self ) {
+			$this->assertTrue(
+				current_user_can( 'edit_user', $user->ID ),
+				"User with role '{$role}' should have the capability to edit their own profile"
+			);
+		} else {
+			$this->assertFalse(
+				current_user_can( 'edit_user', $user->ID ),
+				"User with role '{$role}' should not have the capability to edit their own profile"
+			);
 		}
+	}
+
+	/**
+	 * Data provider for test_user_can_edit_self.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public static function data_user_can_edit_self() {
+		return array(
+			'anonymous'     => array( 'anonymous', false ),
+			'administrator' => array( 'administrator', true ),
+			'editor'        => array( 'editor', true ),
+			'author'        => array( 'author', true ),
+			'contributor'   => array( 'contributor', true ),
+			'subscriber'    => array( 'subscriber', true ),
+		);
 	}
 
 	public function test_only_admins_and_super_admins_can_remove_users() {

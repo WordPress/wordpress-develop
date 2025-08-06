@@ -190,7 +190,7 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 endif;
 
 /**
- * Register widget area.
+ * Registers widget area.
  *
  * @link https://developer.wordpress.org/themes/functionality/sidebars/#registering-a-sidebar
  */
@@ -235,7 +235,7 @@ function twentynineteen_excerpt_more( $link ) {
 add_filter( 'excerpt_more', 'twentynineteen_excerpt_more' );
 
 /**
- * Set the content width in pixels, based on the theme's design and stylesheet.
+ * Sets the content width in pixels, based on the theme's design and stylesheet.
  *
  * Priority 0 to make it available to lower priority callbacks.
  *
@@ -250,7 +250,9 @@ function twentynineteen_content_width() {
 add_action( 'after_setup_theme', 'twentynineteen_content_width', 0 );
 
 /**
- * Enqueue scripts and styles.
+ * Enqueues scripts and styles.
+ *
+ * @since Twenty Nineteen 1.0
  */
 function twentynineteen_scripts() {
 	wp_enqueue_style( 'twentynineteen-style', get_stylesheet_uri(), array(), wp_get_theme()->get( 'Version' ) );
@@ -289,7 +291,7 @@ function twentynineteen_scripts() {
 add_action( 'wp_enqueue_scripts', 'twentynineteen_scripts' );
 
 /**
- * Fix skip link focus in IE11.
+ * Fixes skip link focus in IE11.
  *
  * This does not enqueue the script because it is tiny and because it is only for IE11,
  * thus it does not warrant having an entire dedicated blocking script being loaded.
@@ -309,7 +311,7 @@ function twentynineteen_skip_link_focus_fix() {
 }
 
 /**
- * Enqueue supplemental block editor styles.
+ * Enqueues supplemental block editor styles.
  */
 function twentynineteen_editor_customizer_styles() {
 
@@ -324,7 +326,7 @@ function twentynineteen_editor_customizer_styles() {
 add_action( 'enqueue_block_editor_assets', 'twentynineteen_editor_customizer_styles' );
 
 /**
- * Display custom color CSS in customizer and on frontend.
+ * Displays custom color CSS in customizer and on frontend.
  */
 function twentynineteen_colors_css_wrap() {
 
@@ -384,7 +386,7 @@ require get_template_directory() . '/inc/template-tags.php';
 require get_template_directory() . '/inc/customizer.php';
 
 /**
- * Register block patterns and pattern categories.
+ * Registers block patterns and pattern categories.
  *
  * @since Twenty Nineteen 3.0
  */
