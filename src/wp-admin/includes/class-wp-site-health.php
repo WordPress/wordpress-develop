@@ -2710,7 +2710,7 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( 'OPcache improves PHP performance by storing precompiled script bytecode in memory, reducing the need for PHP to load and parse scripts on each request.' )
+				__( 'Opcode cache improves PHP performance by storing precompiled script bytecode in memory, reducing the need for PHP to load and parse scripts on each request.' )
 			),
 			'actions'     => sprintf(
 				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
