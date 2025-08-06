@@ -99,6 +99,22 @@ class WP_Block {
 	public $inner_content = array();
 
 	/**
+	 * List of supported block attributes for block bindings.
+	 *
+	 * @since 6.9.0
+	 * @var array
+	 *
+	 * @see WP_Block::process_block_bindings()
+	 */
+	private const BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES = array(
+		'core/paragraph' => array( 'content' ),
+		'core/heading'   => array( 'content' ),
+		'core/image'     => array( 'id', 'url', 'title', 'alt' ),
+		'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
+		'core/post-date' => array( 'datetime' ),
+	);
+
+	/**
 	 * Constructor.
 	 *
 	 * Populates object properties from the provided block instance argument.
@@ -282,15 +298,9 @@ class WP_Block {
 		$parsed_block               = $this->parsed_block;
 		$computed_attributes        = array();
 
-		$all_supported_block_attributes = array(
-			'core/paragraph' => array( 'content' ),
-			'core/heading'   => array( 'content' ),
-			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
-			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
-			'core/post-date' => array( 'datetime' ),
-		);
-
-		$supported_block_attributes = $all_supported_block_attributes[ $block_type ] ?? array();
+		$supported_block_attributes =
+			self::BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES[ $block_type ] ??
+			array();
 
 		/**
 		 * Filters the supported block attributes for block bindings.
