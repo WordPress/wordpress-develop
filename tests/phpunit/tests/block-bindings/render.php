@@ -104,10 +104,13 @@ HTML;
 			)
 		);
 
-		add_filter( 'block_bindings_supported_attributes_test/block', function ( $supported_attributes ) {
-			$supported_attributes[] = 'myAttribute';
-			return $supported_attributes;
-		} );
+		add_filter(
+			'block_bindings_supported_attributes_test/block',
+			function ( $supported_attributes ) {
+				$supported_attributes[] = 'myAttribute';
+				return $supported_attributes;
+			}
+		);
 
 		$block_content = <<<HTML
 <!-- wp:test/block {"metadata":{"bindings":{"myAttribute":{"source":"test/source"}}}} -->
