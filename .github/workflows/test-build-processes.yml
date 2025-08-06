@@ -61,7 +61,7 @@ jobs:
         include:
           # Only prepare artifacts for Playground once.
           - os: 'ubuntu-24.04'
-            node-version: ${{ matrix.node }}
+            node-version: ''
             directory: 'build'
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
