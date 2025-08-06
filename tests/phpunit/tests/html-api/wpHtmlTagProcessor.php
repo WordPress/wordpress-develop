@@ -3091,6 +3091,7 @@ HTML
 			'Script data double-escaped'                   => array( '<script><!--<script></script>', false ),
 
 			'Unclosed script in escaped state'             => array( '<script><!--------------', false ),
+			'Unclosed script in double escaped state'      => array( '<script><!--<script ', false ),
 		);
 	}
 }
