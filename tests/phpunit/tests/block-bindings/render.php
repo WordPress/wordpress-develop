@@ -73,6 +73,64 @@ HTML;
 	}
 
 	/**
+	 * Test if the block_bindings_supported_attributes_{$block_type} filter is applied correctly.
+	 *
+	 * @ticket 62090
+	 */
+	public function test_filter_block_bindings_supported_attributes() {
+		$get_value_callback = function () {
+			return 'test source value';
+		};
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		register_block_type(
+			'test/block',
+			array(
+				'attributes' => array(
+					'myAttribute' => array(
+						'type' => 'string',
+					),
+				),
+				'render_callback' => function ( $attributes ) {
+					return '<p>' . esc_html( $attributes['myAttribute'] ) . '</p>';
+				},
+			)
+		);
+
+		add_filter( 'block_bindings_supported_attributes_test/block', function ( $supported_attributes ) {
+			$supported_attributes[] = 'myAttribute';
+			return $supported_attributes;
+		} );
+
+		$block_content = <<<HTML
+<!-- wp:test/block {"metadata":{"bindings":{"myAttribute":{"source":"test/source"}}}} -->
+<p>This should not appear</p>
+<!-- /wp:test/block -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+		$block         = new WP_Block( $parsed_blocks[0] );
+		$result        = $block->render();
+
+		$this->assertSame(
+			'test source value',
+			$block->attributes['myAttribute'],
+			"The 'content' attribute should be updated with the value returned by the source."
+		);
+		$this->assertSame(
+			'<p>test source value</p>',
+			trim( $result ),
+			'The block content should be updated with the value returned by the source.'
+		);
+	}
+
+	/**
 	 * Test passing arguments to the source.
 	 *
 	 * @ticket 60282
