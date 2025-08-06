@@ -159,7 +159,7 @@ jobs:
   #
   # Testing against additional Node.js versions can help spot potential issues before upgrading.
   test-gutenberg-build-process-additional-node-versions:
-    name: Core running from ${{ matrix.directory }}
+    name: Gutenberg running from ${{ matrix.directory }}
     uses: ./.github/workflows/reusable-test-gutenberg-build-process.yml
     permissions:
       contents: read
