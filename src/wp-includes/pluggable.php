@@ -306,16 +306,18 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			// If it's actually got contents.
 			if ( ! empty( $tempheaders ) ) {
 				// Iterate through the raw headers.
-				foreach ( (array) $tempheaders as $header ) {
-					if ( ! str_contains( $header, ':' ) ) {
+				foreach ( (array) $tempheaders as $key => $header ) {
+					if ( strpos($header, ':') === false ) {
 						if ( false !== stripos( $header, 'boundary=' ) ) {
 							$parts    = preg_split( '/boundary=/i', trim( $header ) );
 							$boundary = trim( str_replace( array( "'", '"' ), '', $parts[1] ) );
 						}
-						continue;
+						if ( is_numeric( $key ) ) {
+							continue;
+						}
 					}
 					// Explode them out.
-					list( $name, $content ) = explode( ':', trim( $header ), 2 );
+					list( $name, $content ) = ( is_numeric ( $key ) ) ? explode( ':', trim( $header ), 2 ) : array ( $key, $header );
 
 					// Cleanup crew.
 					$name    = trim( $name );
@@ -358,18 +360,35 @@ if ( ! function_exists( 'wp_mail' ) ) :
 								$content_type = trim( $content );
 							}
 							break;
-						case 'cc':
-							$cc = array_merge( (array) $cc, explode( ',', $content ) );
+												case 'cc':
+							$cc = array_merge(
+								(array) $cc,
+								( is_array( $content ) ) ? $content : explode( ',', $content )
+							);
 							break;
 						case 'bcc':
-							$bcc = array_merge( (array) $bcc, explode( ',', $content ) );
+							$bcc = array_merge(
+								(array) $bcc,
+								( is_array( $content ) ) ? $content : explode( ',', $content )
+							);
 							break;
 						case 'reply-to':
-							$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
+							$reply_to = array_merge(
+								(array) $reply_to,
+								( is_array( $content ) ) ? $content : explode( ',', $content )
+							);
 							break;
 						default:
-							// Add it to our grand headers array.
-							$headers[ trim( $name ) ] = trim( $content );
+							$name    = trim( $name );
+							$content = trim( $content );
+							if ( isset( $headers[ $name ] ) ) {
+								if ( ! is_array( $headers[ $name ] ) ) {
+									$headers[ $name ] = array( $headers[ $name ] );
+								}
+								$headers[ $name ][] = $content;
+							} else {
+								$headers[ $name ] = $content;
+							}
 							break;
 					}
 				}
@@ -532,7 +551,13 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				// Only add custom headers not added automatically by PHPMailer.
 				if ( ! in_array( $name, array( 'MIME-Version', 'X-Mailer' ), true ) ) {
 					try {
-						$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+						if ( is_array( $content ) ) {
+							foreach ( $content as $value ) {
+								$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $value ) );
+							}
+						} else {
+							$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+						}
 					} catch ( PHPMailer\PHPMailer\Exception $e ) {
 						continue;
 					}

@@ -6171,13 +6171,15 @@ function wp_staticize_emoji_for_email( $mail ) {
 		}
 	}
 
-	foreach ( $headers as $header ) {
-		if ( ! str_contains( $header, ':' ) ) {
-			continue;
+	foreach ( $headers as $key => $header ) {
+		if ( is_string( $header ) && strpos($header, ':') === false ) {
+			if ( is_numeric ( $key ) ) {
+				continue;
+			}
 		}
 
 		// Explode them out.
-		list( $name, $content ) = explode( ':', trim( $header ), 2 );
+		list( $name, $content ) = ( is_numeric ( $key ) ) ? explode( ':', trim( $header ), 2 ) : array ( $key, $header );
 
 		// Cleanup crew.
 		$name    = trim( $name );
