@@ -363,3 +363,14 @@ function _unhook_font_registration() {
 	remove_action( 'init', '_wp_register_default_font_collections' );
 }
 tests_add_filter( 'init', '_unhook_font_registration', 1000 );
+
+/**
+ * Ensure that PHPMailer is always a MockPHPMailer
+ *
+ * @param object $phpmailer The PHPMailer object.
+ * @return object The MockPHPMailer object.
+ */
+function _wp_phpmailer( $phpmailer ) {
+	return new MockPHPMailer();
+}
+tests_add_filter( 'wp_phpmailer', '_wp_phpmailer' );
