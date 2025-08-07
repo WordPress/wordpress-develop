@@ -2012,6 +2012,7 @@ HTML;
 	public static function data_script_tag(): array {
 		return array(
 			'Basic script tag'                          => array( '<script></script>', true ),
+			'Basic script tag with </script\f> close'   => array( "<script></script\f>", true ),
 			'Script with type attribute'                => array( '<script type="text/javascript"></script>', true ),
 			'Script data escaped'                       => array( '<script><!--</script>', true ),
 			'Script data double-escaped exit (comment)' => array( '<script><!--<script>--></script>', true ),
@@ -2021,6 +2022,7 @@ HTML;
 
 			'Script tag with self-close flag (ignored)' => array( '<script />', false ),
 			'Script data double-escaped'                => array( '<script><!--<script></script>', false ),
+			'Basic script tag double-escaped with <script\f' => array( "<script><!--<script\f</script>", false ),
 		);
 	}
 
