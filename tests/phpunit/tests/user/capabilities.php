@@ -2593,4 +2593,29 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $emcee_caps, $sally_caps, 'Emcee and Sally roles should have the same capabilities after update.' );
 		$this->assertLessThan( $emcee_queries, $sally_queries, 'Updating roles via update_option should be more efficient than WP_Roles using the database.' );
 	}
+
+	public function test_roles_option_not_populated_when_global_defined() {
+		global $wp_user_roles, $wp_roles;
+		$initial_roles_option = get_option( $wp_roles->role_key );
+		// This doesn't need to be complete for the purposes of this test.
+		$wp_user_roles = array(
+			'administrator' =>
+			array(
+				'name'         => 'Administrator',
+				'capabilities' => array(),
+			),
+		);
+
+		delete_option( $wp_roles->role_key );
+		$wp_roles = new WP_Roles();
+		populate_roles();
+		$after_populate_roles = get_option( $wp_roles->role_key );
+
+		unset( $wp_user_roles );
+		update_option( $wp_roles->role_key, $initial_roles_option );
+		$this->flush_roles();
+
+		$this->assertFalse( $after_populate_roles, 'Roles option should not be populated when $wp_user_roles is defined globally.' );
+		$this->assertNotEmpty( get_role( 'administrator' )->capabilities, 'Admin roles should be restored at end of test' );
+	}
 }
