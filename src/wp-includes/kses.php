@@ -1983,10 +1983,10 @@ function wp_kses_normalize_entities( $content, $context = 'html' ) {
 	 * Notice in the example above that different inputs result in the same result. The second case
 	 * was not normalized and produced HTML that is semantically different from the input.
 	 *
-	 * | Input        | &-encoded        |  Numericref double-decoded | Named ref double-decoded |
-	 * | ------------ | ---------------- | -------------------------- | ------------------------ |
-	 * | `&#x2E;`     | `&amp;#x2E;`     | `&#x2E;`                   | `&#x2E;`                 |
-	 * | `&amp;#x2E;` | `&amp;amp;#x2E;` | `&amp;amp;#x2E;`           | `&amp#x2E;`              |
+	 * | Input        | &-encoded        |  Numeric ref double-decoded | Named ref double-decoded |
+	 * | ------------ | ---------------- | --------------------------- | ------------------------ |
+	 * | `&#x2E;`     | `&amp;#x2E;`     | `&#x2E;`                    | `&#x2E;`                 |
+	 * | `&amp;#x2E;` | `&amp;amp;#x2E;` | `&amp;amp;#x2E;`            | `&amp;#x2E;`             |
 	 *
 	 * Here, each input is normalized to an appropriate output.
 	 */
