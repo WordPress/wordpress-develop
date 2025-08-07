@@ -556,6 +556,89 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that multiple headers with the same name are sent correctly.
+	 *
+	 * @ticket 30128
+	 * @ticket 56779
+	 */
+	public function test_wp_mail_with_multiple_same_name_headers() {
+		$to      = 'test@example.com';
+		$subject = 'Testing Multiple Headers';
+		$message = 'This is a test message.';
+		$headers = array(
+			'x-my-things: thing1',
+			'x-my-things: thing2',
+		);
+
+		wp_mail( $to, $subject, $message, $headers );
+
+		$mailer      = tests_retrieve_phpmailer_instance();
+		$sent_header = $mailer->get_sent()->header;
+
+		$this->assertStringContainsString( 'x-my-things: thing1', $sent_header, 'The first header was not sent.' );
+		$this->assertStringContainsString( 'x-my-things: thing2', $sent_header, 'The second header was not sent.' );
+	}
+
+	/**
+	 * Tests that headers are handled correctly in various formats.
+	 *
+	 * @dataProvider data_wp_mail_header_formats
+	 *
+	 * @ticket 30128
+	 */
+	public function test_wp_mail_header_formats( $headers, $expected_strings ) {
+		wp_mail( 'test@example.com', 'Test', 'Message', $headers );
+
+		$mailer      = tests_retrieve_phpmailer_instance();
+		$sent_header = $mailer->get_sent()->header;
+
+		foreach ( $expected_strings as $expected_string ) {
+			$this->assertStringContainsString( $expected_string, $sent_header );
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_mail_header_formats.
+	 */
+	public function data_wp_mail_header_formats() {
+		return array(
+			'associative array'                   => array(
+				'headers'          => array(
+					'From' => 'Me Myself <me@example.org>',
+					'Cc'   => 'Isaaco Harrelson <iharrel@example.org>',
+				),
+				'expected_strings' => array(
+					'From: Me Myself <me@example.org>',
+					'Cc: Isaaco Harrelson <iharrel@example.org>',
+				),
+			),
+			'indexed array'                       => array(
+				'headers'          => array(
+					'From: Me Myself <me@example.org>',
+					'Cc: Isaaco Harrelson <iharrel@example.org>',
+				),
+				'expected_strings' => array(
+					'From: Me Myself <me@example.org>',
+					'Cc: Isaaco Harrelson <iharrel@example.org>',
+				),
+			),
+			'associative array with multiple CCs' => array(
+				'headers'          => array(
+					'From' => 'Me Myself <me@example.org>',
+					'Cc'   => array(
+						'Isaaco Harrelson <iharrel@example.org>',
+						'frederick@wordpress.org',
+					),
+				),
+				'expected_strings' => array(
+					'From: Me Myself <me@example.org>',
+					'Cc: Isaaco Harrelson <iharrel@example.org>, frederick@wordpress.org',
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests that wp_mail() can send embedded images.
 	 *
 	 * @ticket 28059
