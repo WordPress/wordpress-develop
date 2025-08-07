@@ -1556,16 +1556,8 @@ class WP_HTML_Tag_Processor {
 			}
 
 			/*
-			 * Unlike with "-->", the "<!--" only transitions
-			 * into the escaped mode if not already there.
-			 *
-			 * Inside the escaped modes it will be ignored; and
-			 * should never break out of the double-escaped
-			 * mode and back into the escaped mode.
-			 *
-			 * While this requires a mode change, it does not
-			 * impact the parsing otherwise, so continue
-			 * parsing after updating the state.
+			 * "<!--" only transitions from _unescaped_ to _escaped_. This byte sequence is only
+			 * significant in the _unescaped_ state and is ignored in any other state.
 			 */
 			if (
 				'unescaped' === $state &&
@@ -1576,8 +1568,8 @@ class WP_HTML_Tag_Processor {
 				$at += 3;
 
 				/*
-				 * The parser is ready to enter the `escaped` state but may remain in the
-				 * `unescaped` state if there is immediately is a sequence of any number of 0 or
+				 * The parser is ready to enter the _escaped_ state, but may remain in the
+				 * _unescaped_ state if there is immediately is a sequence of any number of 0 or
 				 * more "-" characters followed by ">". This is similar to abruptly closed HTML
 				 * comments like "<!-->" or "<!--->".
 				 *
