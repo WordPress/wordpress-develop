@@ -136,7 +136,6 @@ if ( ! CUSTOM_TAGS ) {
 			'width'   => true,
 		),
 		'data'       => array(),
-		'datalist'   => array(),
 		'del'        => array(
 			'datetime' => true,
 		),
@@ -404,6 +403,7 @@ if ( ! CUSTOM_TAGS ) {
 			'src'         => true,
 			'width'       => true,
 		),
+		'wbr'        => array(),
 	);
 
 	/**
