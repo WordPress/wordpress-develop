@@ -1366,17 +1366,8 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	}
 
 	// If there's a category or tag.
-	if ( is_category() || is_tag() ) {
+	if ( is_category() || is_tag() || is_tax() ) {
 		$title = single_term_title( '', false );
-	}
-
-	// If there's a taxonomy.
-	if ( is_tax() ) {
-		$term = get_queried_object();
-		if ( $term ) {
-			$tax   = get_taxonomy( $term->taxonomy );
-			$title = single_term_title( $tax->labels->name . $t_sep, false );
-		}
 	}
 
 	// If there's an author.
@@ -1634,10 +1625,12 @@ function single_term_title( $prefix = '', $display = true ) {
 		return;
 	}
 
+	$result = apply_filters( 'single_term_title_result', $prefix . $term_name, $term_name, $prefix );
+
 	if ( $display ) {
-		echo $prefix . $term_name;
+		echo $result;
 	} else {
-		return $prefix . $term_name;
+		return $result;
 	}
 }
 
