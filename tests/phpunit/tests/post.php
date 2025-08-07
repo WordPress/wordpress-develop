@@ -759,4 +759,29 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
 		remove_filter( 'use_block_editor_for_post', '__return_true' );
 	}
+
+	/**
+	 * Tests that a private post with a future date returns both 'Private' and 'Scheduled' states.
+	 *
+	 * @ticket 18264
+	 */
+	public function test_get_post_states_for_future_dated_private_post() {
+		$future_date = gmdate( 'Y-m-d H:i:s', time() + HOUR_IN_SECONDS );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status'   => 'private',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'private'   => 'Private',
+				'scheduled' => 'Scheduled',
+			),
+			get_post_states( $post )
+		);
+	}
 }
