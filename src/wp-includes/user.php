@@ -2225,16 +2225,16 @@ function wp_insert_user( $userdata ) {
 		if ( empty( $userdata['user_pass'] ) ) {
 			wp_trigger_error(
 				__FUNCTION__,
-				__( 'The user_pass field is required when creating a new user. A random password has been generated.' ),
+				__( 'The user_pass field is required when creating a new user. The user will need to reset their password before logging in.' ),
 				E_USER_WARNING
 			);
 
-			// Generate and hash a random password
-			$user_pass = wp_hash_password( wp_generate_password( 32 ) );
-		} else {
-			// Hash the password.
-			$user_pass = wp_hash_password( $userdata['user_pass'] );
+			// Set the password as an empty string to force the password reset flow.
+			$userdata['user_pass'] = '';
 		}
+
+		// Hash the password.
+		$user_pass = wp_hash_password( $userdata['user_pass'] );
 	}
 
 	$sanitized_user_login = sanitize_user( $userdata['user_login'], true );
