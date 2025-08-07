@@ -794,7 +794,7 @@ class Tests_Post extends WP_UnitTestCase {
 	public function test_post_states_renders_correctly_for_future_private_post() {
 		$future_date = gmdate( 'Y-m-d H:i:s', time() + HOUR_IN_SECONDS );
 
-		$post        = self::factory()->post->create_and_get(
+		$post = self::factory()->post->create_and_get(
 			array(
 				'post_status'   => 'private',
 				'post_date'     => get_date_from_gmt( $future_date ),
