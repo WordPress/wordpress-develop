@@ -133,7 +133,7 @@ class WP_HTML_Doctype_Info {
 	 * This value should be considered "read only" and not modified.
 	 *
 	 * When an HTML parser has not already set the document compatibility mode,
-	 * (e.g. "quirks" or "no-quirks" mode), it will infer if from the properties
+	 * (e.g. "quirks" or "no-quirks" mode), it will be inferred from the properties
 	 * of the appropriate DOCTYPE declaration, if one exists. The DOCTYPE can
 	 * indicate one of three possible document compatibility modes:
 	 *
