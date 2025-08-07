@@ -2016,11 +2016,12 @@ HTML;
 			yield 'Script data escaped'                          => array( '<script><!--</script>', true );
 			yield 'Script data double-escaped exit (comment)'    => array( '<script><!--<script>--></script>', true );
 			yield 'Script data double-escaped exit (closed)'     => array( '<script><!--<script></script></script>', true );
-			yield 'Script data double-escaped exit (closed/truncated)' => array( '<script><!--<script></script </script>', true );
+			yield 'Script data double-escaped exit (closed/truncated)' =>
+				array( '<script><!--<script></script </script>', true );
 			yield 'Script data no double-escape'                 => array( '<script><!-- --><script></script>', true );
 			yield 'Script data no double-escape (short comment)' => array( '<script><!--><script></script>', true );
 			yield 'Script data almost double-escaped'            => array( '<script><!--<script</script>', true );
-			yield 'Script data with complex JavaScript'         => array(
+			yield 'Script data with complex JavaScript'          => array(
 				'<script>
 					var x = 10;
 					x--;
@@ -2029,10 +2030,13 @@ HTML;
 				true,
 			);
 
-			yield 'Script tag with self-close flag (ignored)'    => array( '<script />', false );
-			yield 'Script data double-escaped'                   => array( '<script><!--<script></script>', false );
-			yield 'Unclosed script in escaped state'             => array( '<script><!--------------', false );
-			yield 'Unclosed script in double escaped state'      => array( '<script><!--<script ', false );
+			yield 'Script tag with self-close flag (ignored)'     => array( '<script />', false );
+			yield 'Script data double-escaped'                    => array( '<script><!--<script></script>', false );
+			yield 'Unclosed script in escaped state'              => array( '<script><!--------------', false );
+			yield 'Unclosed script in double escaped state'       => array( '<script><!--<script ', false );
+			yield 'Document end in closer start'                  => array( '<script></', false );
+			yield 'Document end in script closer'                 => array( '<script></script', false );
+			yield 'Document end in script closer with attributes' => array( '<script></script attr="val"', false );
 	}
 
 	/**
