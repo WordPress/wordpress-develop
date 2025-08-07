@@ -1497,15 +1497,14 @@ class WP_HTML_Tag_Processor {
 			$at += strcspn( $html, '-<', $at );
 
 			/*
-			 * Optimization: Every exit out of the script element requires no less than eight
-			 * additional bytes in the document. Some of the checks below transition internally
-			 * on strings shorter than eight bytes, and because of that they may be missed by
-			 * this check. However, since those transitions are insufficient to escape, this
-			 * function should still fail as incomplete.
+			 * Optimization: Terminating a complete script element requires at least eight
+			 * additional bytes in the document. Some checks below may cause local escaped
+			 * state transitions when processing shorter strings, but those transitions are
+			 * irrelevant if the script tag is incomplete and the function must return false.
 			 *
-			 * This may need updating if those internal transitions become significant or
-			 * exported from this function in some way, such as when building safe methods
-			 * to embed JavaScript or data inside a SCRIPT element.
+			 * This may need updating if those transitions become significant or exported from
+			 * this function in some way, such as when building safe methods to embed JavaScript
+			 * or data inside a SCRIPT element.
 			 *
 			 *     $at may be here.
 			 *        ↓
@@ -1513,15 +1512,21 @@ class WP_HTML_Tag_Processor {
 			 *         ╰──┬───╯
 			 *     $at + 8 additional bytes are required for a non-false return value.
 			 *
-			 * This single check eliminates the need to check lengths for the shorter spans.
-			 * For example, when leaving the script escaped state back into script data state.
+			 * This single check eliminates the need to check lengths for the shorter spans:
 			 *
-			 *                                    $at may be here.
-			 *                                                 ↓
-			 *     <!-- <script>\n console.log( "</script>" ); -->
-			 *                                                  ├╯
-			 *                   $at + 2 additional characters does not
-			 *                   require an additional length check.
+			 *           $at may be here.
+			 *                  ↓
+			 *     <script><!-- --></script>
+			 *                   ├╯
+			 *             $at + 2 additional characters does not require a length check.
+			 *
+			 * The transition from "escaped" to "unescaped" is not relevant if the document ends:
+			 *
+			 *           $at may be here.
+			 *                  ↓
+			 *     <script><!-- -->[[END-OF-DOCUMENT]]
+			 *                   ╰──┬───╯
+			 *             $at + 8 additional bytes is not satisfied, return false.
 			 */
 			if ( $at + 8 >= $doc_length ) {
 				return false;
