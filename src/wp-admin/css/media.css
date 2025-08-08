@@ -115,10 +115,10 @@
 .media-item .attachment-tools {
 	display: flex;
 	align-items: center;
+	margin-top: 10px;
 }
 
 .media-item .edit-attachment {
-	padding: 14px 0;
 	display: block;
 	margin-right: 10px;
 }
@@ -168,7 +168,6 @@
 
 .media-item .filename {
 	padding: 14px 0;
-	overflow: hidden;
 	margin-left: 6px;
 }
 
@@ -1275,7 +1274,7 @@ audio, video {
 	.edit-attachment-frame textarea {
 		line-height: 1.5;
 	}
-	
+
 	.wp_attachment_details label[for="content"] {
 		font-size: 14px;
 		line-height: 1.5;
