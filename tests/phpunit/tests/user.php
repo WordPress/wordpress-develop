@@ -2353,4 +2353,46 @@ class Tests_User extends WP_UnitTestCase {
 		// Verify there are no updates to 'use_ssl' user meta.
 		$this->assertSame( 1, $db_update_count );
 	}
+
+	/**
+	 * Test user preference checkbox handling.
+	 *
+	 * @ticket 57393
+	 *
+	 * @covers ::edit_user
+	 */
+	public function test_user_preferences_checkbox_handling() {
+		wp_set_current_user( self::$admin_id );
+
+		// Test when preferences are enabled.
+		$_POST = array(
+			'nickname'            => 'Test User',
+			'email'               => 'test@example.com',
+			'rich_editing'        => 'true',
+			'syntax_highlighting' => 'true',
+			'admin_bar_front'     => 'true',
+		);
+
+		$result = edit_user( self::$author_id );
+		$this->assertNotWPError( $result );
+
+		$user = get_user_by( 'id', self::$author_id );
+		$this->assertSame( 'true', $user->rich_editing );
+		$this->assertSame( 'true', $user->syntax_highlighting );
+		$this->assertSame( 'true', $user->show_admin_bar_front );
+
+		// Test when preferences are disabled.
+		$_POST = array(
+			'nickname' => 'Test User',
+			'email'    => 'author@email.com',
+		);
+
+		$result = edit_user( self::$author_id );
+		$this->assertNotWPError( $result );
+
+		$user = get_user_by( 'id', self::$author_id );
+		$this->assertSame( 'false', $user->rich_editing );
+		$this->assertSame( 'false', $user->syntax_highlighting );
+		$this->assertSame( 'false', $user->show_admin_bar_front );
+	}
 }

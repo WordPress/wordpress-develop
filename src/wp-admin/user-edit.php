@@ -300,8 +300,8 @@ switch ( $action ) {
 						<tr class="user-rich-editing-wrap">
 							<th scope="row"><?php _e( 'Visual Editor' ); ?></th>
 							<td>
-								<label for="rich_editing"><input name="rich_editing" type="checkbox" id="rich_editing" value="false" <?php checked( 'false', $profile_user->rich_editing ); ?> />
-									<?php _e( 'Disable the visual editor when writing' ); ?>
+								<label for="rich_editing"><input name="rich_editing" type="checkbox" id="rich_editing" value="true"<?php checked( 'true', $profile_user->rich_editing ); ?> />
+									<?php _e( 'Enable the visual editor when writing' ); ?>
 								</label>
 							</td>
 						</tr>
@@ -324,8 +324,8 @@ switch ( $action ) {
 					<tr class="user-syntax-highlighting-wrap">
 						<th scope="row"><?php _e( 'Syntax Highlighting' ); ?></th>
 						<td>
-							<label for="syntax_highlighting"><input name="syntax_highlighting" type="checkbox" id="syntax_highlighting" value="false" <?php checked( 'false', $profile_user->syntax_highlighting ); ?> />
-								<?php _e( 'Disable syntax highlighting when editing code' ); ?>
+							<label for="syntax_highlighting"><input name="syntax_highlighting" type="checkbox" id="syntax_highlighting" value="true"<?php checked( 'true', $profile_user->syntax_highlighting ); ?> />
+								<?php _e( 'Enable syntax highlighting when editing code' ); ?>
 							</label>
 						</td>
 					</tr>
@@ -370,7 +370,7 @@ switch ( $action ) {
 						<th scope="row"><?php _e( 'Toolbar' ); ?></th>
 						<td>
 							<label for="admin_bar_front">
-								<input name="admin_bar_front" type="checkbox" id="admin_bar_front" value="1"<?php checked( _get_admin_bar_pref( 'front', $profile_user->ID ) ); ?> />
+								<input name="admin_bar_front" type="checkbox" id="admin_bar_front" value="true"<?php checked( _get_admin_bar_pref( 'front', $profile_user->ID ) ); ?> />
 								<?php _e( 'Show Toolbar when viewing site' ); ?>
 							</label><br />
 						</td>
