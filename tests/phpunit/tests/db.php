@@ -743,6 +743,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 21212
 	 * @ticket 32763
+	 * @ticket 62342
 	 */
 	public function data_get_table_from_query() {
 		$table       = 'a_test_table_name';
@@ -850,6 +851,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 			// @ticket 32763
 			'SELECT ' . str_repeat( 'a', 10000 ) . " FROM (SELECT * FROM $table) as subquery",
+
+			// @ticket 62342
+			"INSERT INTO $table (`option_name`, `option_value`, `autoload`) VALUES ('_transient_ticket-62342', '" . str_repeat( 'a=', 2000000 ) . "', 'off') ON DUPLICATE KEY UPDATE `option_name` = VALUES(`option_name`), `option_value` = VALUES(`option_value`), `autoload` = VALUES(`autoload`)",
 		);
 
 		$querycount = count( $queries );

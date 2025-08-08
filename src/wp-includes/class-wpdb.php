@@ -2301,7 +2301,7 @@ class wpdb {
 
 		if ( $this->last_error ) {
 			// Clear insert_id on a subsequent failed insert.
-			if ( $this->insert_id && preg_match( '/^\s*(insert|replace)\s/i', $query ) ) {
+			if ( $this->insert_id && preg_match( '/^\s*(?>insert|replace)\s/i', $query ) ) {
 				$this->insert_id = 0;
 			}
 
@@ -2309,13 +2309,13 @@ class wpdb {
 			return false;
 		}
 
-		if ( preg_match( '/^\s*(create|alter|truncate|drop)\s/i', $query ) ) {
+		if ( preg_match( '/^\s*(?>create|alter|truncate|drop)\s/i', $query ) ) {
 			$return_val = $this->result;
-		} elseif ( preg_match( '/^\s*(insert|delete|update|replace)\s/i', $query ) ) {
+		} elseif ( preg_match( '/^\s*(?>insert|delete|update|replace)\s/i', $query ) ) {
 			$this->rows_affected = mysqli_affected_rows( $this->dbh );
 
 			// Take note of the insert_id.
-			if ( preg_match( '/^\s*(insert|replace)\s/i', $query ) ) {
+			if ( preg_match( '/^\s*(?>insert|replace)\s/i', $query ) ) {
 				$this->insert_id = mysqli_insert_id( $this->dbh );
 			}
 
@@ -3801,7 +3801,20 @@ class wpdb {
 		$query = ltrim( $query, "\r\n\t (" );
 
 		// Strip everything between parentheses except nested selects.
-		$query = preg_replace( '/\((?!\s*select)[^(]*?\)/is', '()', $query );
+		$replaced_query = preg_replace( '/\((?!\s*select)(?:[^()]+|(?R))*+\)/i', '()', $query );
+		if ( null === $replaced_query ) {
+			$replaced_query = preg_replace( '/\((?!\s*select)[^()]+\)/i', '()', $query );
+		}
+
+		if ( null === $replaced_query ) {
+			$replaced_query = preg_replace(
+				'/\((?!\s*select)[^()]+\)/i',
+				'()',
+				substr( $query, 0, min( strlen( $query ), 1000000 ) )
+			);
+		}
+
+		$query = $replaced_query;
 
 		// Quickly match most common queries.
 		if ( preg_match(
