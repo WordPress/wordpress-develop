@@ -60,6 +60,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 5.9.0 Added the Twenty Twenty-Two theme.
 	 * @since 6.1.0 Added the Twenty Twenty-Three theme.
 	 * @since 6.4.0 Added the Twenty Twenty-Four theme.
+	 * @since 6.7.0 Added the Twenty Twenty-Five theme.
 	 * @var string[]
 	 */
 	private static $default_themes = array(
@@ -241,7 +242,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @global array $wp_theme_directories
+	 * @global string[] $wp_theme_directories
 	 *
 	 * @param string        $theme_dir  Directory of the theme within the theme_root.
 	 * @param string        $theme_root Theme root.
@@ -1847,7 +1848,7 @@ final class WP_Theme implements ArrayAccess {
 			$this->delete_pattern_cache();
 		}
 
-		$dirpath      = $this->get_stylesheet_directory() . '/patterns/';
+		$dirpath      = $this->get_stylesheet_directory() . '/patterns';
 		$pattern_data = array();
 
 		if ( ! file_exists( $dirpath ) ) {
@@ -1856,7 +1857,21 @@ final class WP_Theme implements ArrayAccess {
 			}
 			return $pattern_data;
 		}
-		$files = glob( $dirpath . '*.php' );
+
+		$files = (array) self::scandir( $dirpath, 'php', -1 );
+
+		/**
+		 * Filters list of block pattern files for a theme.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param array  $files   Array of theme files found within `patterns` directory.
+		 * @param string $dirpath Path of theme `patterns` directory being scanned.
+		 */
+		$files = apply_filters( 'theme_block_pattern_files', $files, $dirpath );
+
+		$dirpath = trailingslashit( $dirpath );
+
 		if ( ! $files ) {
 			if ( $can_use_cached ) {
 				$this->set_pattern_cache( $pattern_data );

@@ -29,7 +29,7 @@ class WP_Block {
 	 * @example "core/paragraph"
 	 *
 	 * @since 5.5.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $name;
 
@@ -54,16 +54,14 @@ class WP_Block {
 	 *
 	 * @since 5.5.0
 	 * @var array
-	 * @access protected
 	 */
-	protected $available_context;
+	protected $available_context = array();
 
 	/**
 	 * Block type registry.
 	 *
 	 * @since 5.9.0
 	 * @var WP_Block_Type_Registry
-	 * @access protected
 	 */
 	protected $registry;
 
@@ -101,6 +99,22 @@ class WP_Block {
 	public $inner_content = array();
 
 	/**
+	 * List of supported block attributes for block bindings.
+	 *
+	 * @since 6.9.0
+	 * @var array
+	 *
+	 * @see WP_Block::process_block_bindings()
+	 */
+	private const BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES = array(
+		'core/paragraph' => array( 'content' ),
+		'core/heading'   => array( 'content' ),
+		'core/image'     => array( 'id', 'url', 'title', 'alt' ),
+		'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
+		'core/post-date' => array( 'datetime' ),
+	);
+
+	/**
 	 * Constructor.
 	 *
 	 * Populates object properties from the provided block instance argument.
@@ -116,12 +130,12 @@ class WP_Block {
 	 * @param array                  $block             {
 	 *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
 	 *
-	 *     @type string   $blockName    Name of block.
-	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array    $innerBlocks  List of inner blocks. An array of arrays that
-	 *                                  have the same structure as this one.
-	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where inner blocks were found.
+	 *     @type string|null $blockName    Name of block.
+	 *     @type array       $attrs        Attributes from block comment delimiters.
+	 *     @type array       $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                     have the same structure as this one.
+	 *     @type string      $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array       $innerContent List of string fragments and null markers where inner blocks were found.
 	 * }
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
@@ -140,6 +154,28 @@ class WP_Block {
 
 		$this->available_context = $available_context;
 
+		$this->refresh_context_dependents();
+	}
+
+	/**
+	 * Updates the context for the current block and its inner blocks.
+	 *
+	 * The method updates the context of inner blocks, if any, by passing down
+	 * any context values the block provides (`provides_context`).
+	 *
+	 * If the block has inner blocks, the method recursively processes them by creating new instances of `WP_Block`
+	 * for each inner block and updating their context based on the block's `provides_context` property.
+	 *
+	 * @since 6.8.0
+	 */
+	public function refresh_context_dependents() {
+		/*
+		 * Merging the `$context` property here is not ideal, but for now needs to happen because of backward compatibility.
+		 * Ideally, the `$context` property itself would not be filterable directly and only the `$available_context` would be filterable.
+		 * However, this needs to be separately explored whether it's possible without breakage.
+		 */
+		$this->available_context = array_merge( $this->available_context, $this->context );
+
 		if ( ! empty( $this->block_type->uses_context ) ) {
 			foreach ( $this->block_type->uses_context as $context_name ) {
 				if ( array_key_exists( $context_name, $this->available_context ) ) {
@@ -148,7 +184,23 @@ class WP_Block {
 			}
 		}
 
-		if ( ! empty( $block['innerBlocks'] ) ) {
+		$this->refresh_parsed_block_dependents();
+	}
+
+	/**
+	 * Updates the parsed block content for the current block and its inner blocks.
+	 *
+	 * This method sets the `inner_html` and `inner_content` properties of the block based on the parsed
+	 * block content provided during initialization. It ensures that the block instance reflects the
+	 * most up-to-date content for both the inner HTML and any string fragments around inner blocks.
+	 *
+	 * If the block has inner blocks, this method initializes a new `WP_Block_List` for them, ensuring the
+	 * correct content and context are updated for each nested block.
+	 *
+	 * @since 6.8.0
+	 */
+	public function refresh_parsed_block_dependents() {
+		if ( ! empty( $this->parsed_block['innerBlocks'] ) ) {
 			$child_context = $this->available_context;
 
 			if ( ! empty( $this->block_type->provides_context ) ) {
@@ -159,15 +211,15 @@ class WP_Block {
 				}
 			}
 
-			$this->inner_blocks = new WP_Block_List( $block['innerBlocks'], $child_context, $registry );
+			$this->inner_blocks = new WP_Block_List( $this->parsed_block['innerBlocks'], $child_context, $this->registry );
 		}
 
-		if ( ! empty( $block['innerHTML'] ) ) {
-			$this->inner_html = $block['innerHTML'];
+		if ( ! empty( $this->parsed_block['innerHTML'] ) ) {
+			$this->inner_html = $this->parsed_block['innerHTML'];
 		}
 
-		if ( ! empty( $block['innerContent'] ) ) {
-			$this->inner_content = $block['innerContent'];
+		if ( ! empty( $this->parsed_block['innerContent'] ) ) {
+			$this->inner_content = $this->parsed_block['innerContent'];
 		}
 	}
 
@@ -242,19 +294,33 @@ class WP_Block {
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
 	private function process_block_bindings() {
+		$block_type                 = $this->name;
 		$parsed_block               = $this->parsed_block;
 		$computed_attributes        = array();
-		$supported_block_attributes = array(
-			'core/paragraph' => array( 'content' ),
-			'core/heading'   => array( 'content' ),
-			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
-			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
+
+		$supported_block_attributes =
+			self::BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES[ $block_type ] ??
+			array();
+
+		/**
+		 * Filters the supported block attributes for block bindings.
+		 *
+		 * The dynamic portion of the hook name, `$block_type`, refers to the block type
+		 * whose attributes are being filtered.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string[] $supported_block_attributes The block's attributes that are supported by block bindings.
+		 */
+		$supported_block_attributes = apply_filters(
+			"block_bindings_supported_attributes_{$block_type}",
+			$supported_block_attributes
 		);
 
 		// If the block doesn't have the bindings property, isn't one of the supported
 		// block types, or the bindings property is not an array, return the block content.
 		if (
-			! isset( $supported_block_attributes[ $this->name ] ) ||
+			empty( $supported_block_attributes ) ||
 			empty( $parsed_block['attrs']['metadata']['bindings'] ) ||
 			! is_array( $parsed_block['attrs']['metadata']['bindings'] )
 		) {
@@ -278,7 +344,7 @@ class WP_Block {
 			 * Note that this also omits the `__default` attribute from the
 			 * resulting array.
 			 */
-			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
+			foreach ( $supported_block_attributes as $attribute_name ) {
 				// Retain any non-pattern override bindings that might be present.
 				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
 					? $bindings[ $attribute_name ]
@@ -297,7 +363,7 @@ class WP_Block {
 
 		foreach ( $bindings as $attribute_name => $block_binding ) {
 			// If the attribute is not in the supported list, process next attribute.
-			if ( ! in_array( $attribute_name, $supported_block_attributes[ $this->name ], true ) ) {
+			if ( ! in_array( $attribute_name, $supported_block_attributes, true ) ) {
 				continue;
 			}
 			// If no source is provided, or that source is not registered, process next attribute.
@@ -374,7 +440,7 @@ class WP_Block {
 
 				foreach ( $selectors as $selector ) {
 					// If the parent tag, or any of its children, matches the selector, replace the HTML.
-					if ( strcasecmp( $block_reader->get_tag( $selector ), $selector ) === 0 || $block_reader->next_tag(
+					if ( strcasecmp( $block_reader->get_tag(), $selector ) === 0 || $block_reader->next_tag(
 						array(
 							'tag_name' => $selector,
 						)
@@ -506,13 +572,24 @@ class WP_Block {
 					if ( ! is_null( $pre_render ) ) {
 						$block_content .= $pre_render;
 					} else {
-						$source_block = $inner_block->parsed_block;
+						$source_block        = $inner_block->parsed_block;
+						$inner_block_context = $inner_block->context;
 
 						/** This filter is documented in wp-includes/blocks.php */
 						$inner_block->parsed_block = apply_filters( 'render_block_data', $inner_block->parsed_block, $source_block, $parent_block );
 
 						/** This filter is documented in wp-includes/blocks.php */
 						$inner_block->context = apply_filters( 'render_block_context', $inner_block->context, $inner_block->parsed_block, $parent_block );
+
+						/*
+						 * The `refresh_context_dependents()` method already calls `refresh_parsed_block_dependents()`.
+						 * Therefore the second condition is irrelevant if the first one is satisfied.
+						 */
+						if ( $inner_block->context !== $inner_block_context ) {
+							$inner_block->refresh_context_dependents();
+						} elseif ( $inner_block->parsed_block !== $source_block ) {
+							$inner_block->refresh_parsed_block_dependents();
+						}
 
 						$block_content .= $inner_block->render();
 					}
@@ -559,6 +636,11 @@ class WP_Block {
 			}
 		}
 
+		/*
+		 * For Core blocks, these styles are only enqueued if `wp_should_load_separate_core_block_assets()` returns
+		 * true. Otherwise these `wp_enqueue_style()` calls will not have any effect, as the Core blocks are relying on
+		 * the combined 'wp-block-library' stylesheet instead, which is unconditionally enqueued.
+		 */
 		if ( ( ! empty( $this->block_type->style_handles ) ) ) {
 			foreach ( $this->block_type->style_handles as $style_handle ) {
 				wp_enqueue_style( $style_handle );

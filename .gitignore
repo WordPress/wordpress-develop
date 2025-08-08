@@ -42,9 +42,11 @@ wp-tests-config.php
 /packagehash.txt
 /artifacts
 /setup.log
+/coverage
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
+/src/wp-content/database
 /src/wp-content/fonts
 /src/wp-content/languages
 /src/wp-content/mu-plugins

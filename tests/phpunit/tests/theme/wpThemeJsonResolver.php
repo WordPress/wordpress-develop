@@ -1207,12 +1207,12 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				),
 				array(
 					'name'   => 'Outlined',
-					'shadow' => '6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1)',
+					'shadow' => '6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0)',
 					'slug'   => 'outlined',
 				),
 				array(
 					'name'   => 'Crisp',
-					'shadow' => '6px 6px 0px rgba(0, 0, 0, 1)',
+					'shadow' => '6px 6px 0px rgb(0, 0, 0)',
 					'slug'   => 'crisp',
 				),
 			),

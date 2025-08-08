@@ -8,7 +8,7 @@
  */
 
 /**
- * Set up the WordPress core custom header feature.
+ * Sets up the WordPress core custom header feature.
  *
  * @uses twentyfifteen_header_style()
  */
@@ -47,7 +47,7 @@ function twentyfifteen_custom_header_setup() {
 add_action( 'after_setup_theme', 'twentyfifteen_custom_header_setup' );
 
 /**
- * Convert HEX to RGB.
+ * Converts HEX to RGB.
  *
  * @since Twenty Fifteen 1.0
  *
@@ -186,7 +186,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 			?>
 		.site-title,
 		.site-description {
-			clip: rect(1px, 1px, 1px, 1px);
+			clip-path: inset(50%);
 			position: absolute;
 		}
 	<?php endif; ?>

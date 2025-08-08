@@ -32,10 +32,17 @@
 
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
+<a class="screen-reader-text skip-link" href="#content">
+	<?php
+	/* translators: Hidden accessibility text. */
+	_e( 'Skip to content', 'twentyfourteen' );
+	?>
+</a>
 <div id="page" class="hfeed site">
+	<?php $is_front = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) ); ?>
 	<?php if ( get_header_image() ) : ?>
 	<div id="site-header">
-		<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
+		<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>>
 			<?php twentyfourteen_header_image(); ?>
 		</a>
 	</div>
@@ -43,7 +50,12 @@
 
 	<header id="masthead" class="site-header">
 		<div class="header-main">
-			<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></h1>
+			<?php
+			$site_name = get_bloginfo( 'name', 'display' );
+			if ( $site_name ) :
+				?>
+				<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php echo $site_name; ?></a></h1>
+			<?php endif; ?>
 
 			<div class="search-toggle">
 				<a href="#search-container" class="screen-reader-text" aria-expanded="false" aria-controls="search-container">
@@ -56,12 +68,6 @@
 
 			<nav id="primary-navigation" class="site-navigation primary-navigation">
 				<button class="menu-toggle"><?php _e( 'Primary Menu', 'twentyfourteen' ); ?></button>
-				<a class="screen-reader-text skip-link" href="#content">
-					<?php
-					/* translators: Hidden accessibility text. */
-					_e( 'Skip to content', 'twentyfourteen' );
-					?>
-				</a>
 				<?php
 				wp_nav_menu(
 					array(

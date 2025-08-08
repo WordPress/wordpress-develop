@@ -1,0 +1,114 @@
+##
+# A reusable workflow that finds and closes any pull requests that are linked to Trac
+# tickets that are referenced as fixed in commit messages.
+#
+# More info about using GitHub pull requests for contributing to WordPress can be found in the handbook: https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/.
+##
+name: Run pull request cleanup
+
+on:
+  workflow_call:
+
+jobs:
+  # Finds and closes pull requests referencing fixed Trac tickets in commit messages using the
+  # documented expected format
+  #
+  # Commit message format is documented in the Core handbook: https://make.wordpress.org/core/handbook/best-practices/commit-messages/.
+  #
+  # Performs the following steps:
+  # - Parse fixed ticket numbers from the commit message.
+  # - Parse the SVN revision from the commit message.
+  # - Searches for pull requests referencing any fixed tickets.
+  # - Leaves a comment on each PR before closing.
+  close-prs:
+    name: Find and close PRs
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Find fixed ticket numbers
+        id: trac-tickets
+        env:
+          COMMIT_MSG_RAW: ${{ github.event.head_commit.message }}
+        run: |
+          COMMIT_MESSAGE="$(echo "$COMMIT_MSG_RAW" | sed -n '/^Fixes #/,/\./p')"
+          echo "fixed_list=$(echo "$COMMIT_MESSAGE" | sed -n 's/.*Fixes #\([0-9]\+\).*/\1/p' | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Get the SVN revision
+        id: git-svn-id
+        env:
+          COMMIT_MSG_RAW: ${{ github.event.head_commit.message }}
+        run: |
+          COMMIT_MESSAGE="$(echo "$COMMIT_MSG_RAW" | sed -n '$p')"
+          echo "svn_revision_number=$(echo "$COMMIT_MESSAGE" | sed -n 's/.*git-svn-id: https:\/\/develop.svn.wordpress.org\/[^@]*@\([0-9]*\) .*/\1/p')" >> "$GITHUB_OUTPUT"
+
+      - name: Find pull requests
+        id: linked-prs
+        if: ${{ steps.trac-tickets.outputs.fixed_list != '' && steps.git-svn-id.outputs.svn_revision_number != '' }}
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fixedList = "${{ steps.trac-tickets.outputs.fixed_list }}".split(' ').filter(Boolean);
+            let prNumbers = [];
+
+            for (const ticket of fixedList) {
+              const tracTicketUrl = `https://core.trac.wordpress.org/ticket/${ticket}`;
+              const corePrefix = `Core-${ticket}`;
+
+              const query = `
+                query($searchQuery: String!) {
+                  search(query: $searchQuery, type: ISSUE_ADVANCED, first: 20) {
+                    nodes {
+                      ... on PullRequest {
+                        number
+                        state
+                      }
+                    }
+                  }
+                }
+              `;
+
+              const searchQuery = `repo:${context.repo.owner}/${context.repo.repo} is:pr is:open in:body ( "${tracTicketUrl}" OR "${corePrefix}" )`;
+
+              const result = await github.graphql(query, {
+                searchQuery,
+              });
+
+              prNumbers.push(...result.search.nodes.map(pr => pr.number));
+            }
+
+            return prNumbers;
+
+      - name: Comment and close pull requests
+        if: ${{ steps.trac-tickets.outputs.fixed_list != '' && steps.git-svn-id.outputs.svn_revision_number != '' }}
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const prNumbers = ${{ steps.linked-prs.outputs.result }};
+
+            const commentBody = `A commit was made that fixes the Trac ticket referenced in the description of this pull request.
+
+            SVN changeset: [${{ steps.git-svn-id.outputs.svn_revision_number }}](https://core.trac.wordpress.org/changeset/${{ steps.git-svn-id.outputs.svn_revision_number }})
+            GitHub commit: https://github.com/WordPress/wordpress-develop/commit/${{ github.sha }}
+
+            This PR will be closed, but please confirm the accuracy of this and reopen if there is more work to be done.`;
+
+            // Update all matched pull requests.
+            for (const prNumber of prNumbers) {
+              // Comment on the pull request with details.
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+
+              // Close the pull request.
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                state: 'closed'
+              });
+            }
