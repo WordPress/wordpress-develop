@@ -3847,12 +3847,28 @@ function wp_media_attach_action( $parent_id, $action = 'attach' ) {
 	}
 
 	if ( ! empty( $ids ) ) {
-		$ids_string = implode( ',', $ids );
-
 		if ( 'attach' === $action ) {
-			$result = $wpdb->query( $wpdb->prepare( "UPDATE $wpdb->posts SET post_parent = %d WHERE post_type = 'attachment' AND ID IN ( $ids_string )", $parent_id ) );
+			$result = $wpdb->query(
+				$wpdb->prepare(
+					sprintf(
+						"UPDATE $wpdb->posts SET post_parent = %%d
+						WHERE post_type = 'attachment' AND ID IN ( %s )",
+						implode( ',', array_fill( 0, count( $ids ), '%d' ) )
+					),
+					array_merge( array( $parent_id ), $ids )
+				)
+			);
 		} else {
-			$result = $wpdb->query( "UPDATE $wpdb->posts SET post_parent = 0 WHERE post_type = 'attachment' AND ID IN ( $ids_string )" );
+			$result = $wpdb->query(
+				$wpdb->prepare(
+					sprintf(
+						"UPDATE $wpdb->posts SET post_parent = 0
+						WHERE post_type = 'attachment' AND ID IN ( %s )",
+						implode( ',', array_fill( 0, count( $ids ), '%d' ) )
+					),
+					$ids
+				)
+			);
 		}
 	}
 

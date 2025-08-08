@@ -841,7 +841,7 @@ class WP_Comment_Query {
 				// $field_value may be an array.
 				$esses = array_fill( 0, count( (array) $field_value ), '%s' );
 
-				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$this->sql_clauses['where'][ $field_name ] = $wpdb->prepare( " {$wpdb->posts}.{$field_name} IN (" . implode( ',', $esses ) . ')', $field_value );
 			}
 		}
@@ -864,7 +864,7 @@ class WP_Comment_Query {
 
 				$esses = array_fill( 0, count( $q_values ), '%s' );
 
-				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$this->sql_clauses['where'][ $field_name ] = $wpdb->prepare( " {$wpdb->posts}.{$field_name} IN (" . implode( ',', $esses ) . ')', $q_values );
 			}
 		}
@@ -981,8 +981,10 @@ class WP_Comment_Query {
 			 {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			return (int) $wpdb->get_var( $this->request );
 		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$comment_ids = $wpdb->get_col( $this->request );
 			return array_map( 'intval', $comment_ids );
 		}
@@ -1010,6 +1012,7 @@ class WP_Comment_Query {
 			 */
 			$found_comments_query = apply_filters( 'found_comments_query', 'SELECT FOUND_ROWS()', $this );
 
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$this->found_comments = (int) $wpdb->get_var( $found_comments_query );
 		}
 	}
@@ -1155,6 +1158,7 @@ class WP_Comment_Query {
 
 		$searches = array();
 		foreach ( $columns as $column ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$searches[] = $wpdb->prepare( "$column LIKE %s", $like );
 		}
 
