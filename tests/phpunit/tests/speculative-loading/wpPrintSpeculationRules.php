@@ -54,7 +54,7 @@ class Tests_Speculative_Loading_wpPrintSpeculationRules extends WP_UnitTestCase 
 		$output = get_echo( 'wp_print_speculation_rules' );
 		$this->assertStringContainsString( '<script type="application/speculationrules+json">', $output );
 
-		$json = str_replace( array( '<script type="application/speculationrules+json"', '</script>' ), '', $output );
+		$json  = str_replace( array( '<script type="application/speculationrules+json"', '</script>' ), '', $output );
 		$rules = json_decode( $json, true );
 		$this->assertIsArray( $rules );
 		$this->assertArrayHasKey( 'prerender', $rules );
