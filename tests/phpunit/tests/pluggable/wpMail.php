@@ -419,7 +419,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertSame( 'wordpress@' . WP_TESTS_DOMAIN, $mailer->Sender );
+		$this->assertSame( 'wordpress@example.org', $mailer->Sender );
 	}
 
 	/**
