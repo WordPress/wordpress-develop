@@ -105,7 +105,7 @@ All at ###SITENAME###
 	$content = str_replace( '###SITENAME###', get_network()->site_name, $content );
 	$content = str_replace( '###SITEURL###', network_home_url(), $content );
 
-	wp_mail( get_option( 'admin_email' ), $subject,	$content );
+	wp_mail( get_option( 'admin_email' ), $subject, $content );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
