@@ -353,6 +353,13 @@ function wp_add_global_styles_for_blocks() {
 			} elseif ( ! $block_handle ) {
 				// Fallback for blocks with unexpected naming patterns.
 				wp_add_inline_style( $stylesheet_handle, $block_css );
+			} else {
+				// For third-party blocks, load styles if the block handle was generated successfully
+				// but not found in queue. This maintains backward compatibility where third-party
+				// block styles were always loaded.
+				if ( ! str_starts_with( $metadata['name'], 'core/' ) ) {
+					wp_add_inline_style( $stylesheet_handle, $block_css );
+				}
 			}
 		}
 
@@ -367,6 +374,13 @@ function wp_add_global_styles_for_blocks() {
 				} elseif ( ! $block_handle ) {
 					// Fallback for blocks with unexpected naming patterns.
 					wp_add_inline_style( $stylesheet_handle, $block_css );
+				} else {
+					// For third-party blocks, load styles if the block handle was generated successfully
+					// but not found in queue. This maintains backward compatibility where third-party
+					// block styles were always loaded.
+					if ( ! str_starts_with( $block_name, 'core/' ) ) {
+						wp_add_inline_style( $stylesheet_handle, $block_css );
+					}
 				}
 			}
 		}
@@ -398,15 +412,17 @@ function wp_get_block_name_from_theme_json_path( $path ) {
 	}
 
 	/*
-	 * As fallback and for backward compatibility, allow any block name to be
-	 * at any position in the path. Look for valid block name patterns.
+	 * As fallback and for backward compatibility, allow any core block to be
+	 * at any position.
 	 */
 	$result = array_values(
 		array_filter(
 			$path,
 			static function ( $item ) {
-				// Look for any valid block name pattern (namespace/block-name).
-				return is_string( $item ) && str_contains( $item, '/' ) && ! empty( $item );
+				if ( str_contains( $item, 'core/' ) ) {
+					return true;
+				}
+				return false;
 			}
 		)
 	);
