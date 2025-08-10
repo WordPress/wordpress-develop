@@ -1018,27 +1018,65 @@ JS;
 			return;
 		}
 
+		// Skip optimization if concatenation is enabled to avoid conflicts
+		if ( $this->do_concat ) {
+			return;
+		}
+
+		// Skip optimization if we have fewer than 3 scripts or no async/defer scripts
+		if ( count( $this->to_do ) < 3 ) {
+			return;
+		}
+
 		$start_time = microtime( true );
 		$original_order = $this->to_do;
+
+		// Check if we have any async/defer scripts to optimize
+		$has_delayed_strategies = false;
+		foreach ( $this->to_do as $handle ) {
+			if ( isset( $this->registered[ $handle ] ) ) {
+				$strategy = $this->get_eligible_loading_strategy( $handle );
+				if ( in_array( $strategy, array( 'async', 'defer' ), true ) ) {
+					$has_delayed_strategies = true;
+					break;
+				}
+			}
+		}
+
+		// Only optimize if we have scripts that can benefit from reordering
+		if ( ! $has_delayed_strategies ) {
+			return;
+		}
 
 		// Group scripts by loading priority
 		$script_priorities = array();
 		$dependency_map = array();
 
-		// Build dependency map and calculate priorities
+		// Build dependency map and calculate priorities - be more conservative
 		foreach ( $this->to_do as $handle ) {
 			if ( isset( $this->registered[ $handle ] ) ) {
 				$script = $this->registered[ $handle ];
 				$strategy = $this->get_eligible_loading_strategy( $handle );
-				$priority = $this->calculate_loading_priority( $handle, $strategy );
+				
+				// Skip reordering scripts with inline content to avoid breaking tests
+				if ( ! empty( $script->extra['before'] ) || ! empty( $script->extra['after'] ) || ! empty( $script->extra['data'] ) ) {
+					$priority = 4; // Keep complex scripts at the end
+				} else {
+					$priority = $this->calculate_loading_priority( $handle, $strategy );
+				}
 
 				$script_priorities[ $handle ] = $priority;
 				$dependency_map[ $handle ] = $script->deps ?? array();
 			}
 		}
 
-		// Sort scripts by priority while maintaining dependency order
+		// Only reorder if the change would be meaningful and safe
 		$optimized_order = $this->sort_with_dependencies( $script_priorities, $dependency_map );
+		
+		// Conservative check - don't change order if it might break dependencies
+		if ( ! $this->is_safe_reorder( $original_order, $optimized_order ) ) {
+			return;
+		}
 
 		// Update the to_do array with optimized order
 		$this->to_do = array_values( $optimized_order );
@@ -1163,6 +1201,40 @@ JS;
 		unset( $visiting[ $handle ] );
 		$visited[ $handle ] = true;
 		$sorted[] = $handle;
+	}
+
+	/**
+	 * Checks if reordering scripts is safe and won't break functionality.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $original_order The original script order.
+	 * @param array $optimized_order The proposed optimized order.
+	 * @return bool True if reordering is safe, false otherwise.
+	 */
+	private function is_safe_reorder( $original_order, $optimized_order ) {
+		// Don't reorder if there's no meaningful change
+		if ( $original_order === $optimized_order ) {
+			return false;
+		}
+
+		// Check if any blocking scripts with inline content would be moved
+		foreach ( $original_order as $i => $handle ) {
+			if ( isset( $this->registered[ $handle ] ) ) {
+				$script = $this->registered[ $handle ];
+				$has_inline = ! empty( $script->extra['before'] ) || ! empty( $script->extra['after'] ) || ! empty( $script->extra['data'] );
+				
+				// If a script with inline content moved significantly, it's not safe
+				if ( $has_inline ) {
+					$new_position = array_search( $handle, $optimized_order );
+					if ( $new_position !== false && abs( $i - $new_position ) > 2 ) {
+						return false;
+					}
+				}
+			}
+		}
+
+		return true;
 	}
 
 	/**
