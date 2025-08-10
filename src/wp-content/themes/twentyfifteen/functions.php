@@ -412,7 +412,7 @@ endif;
  * @since Twenty Fifteen 1.1
  */
 function twentyfifteen_javascript_detection() {
-	echo "<script>(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>\n";
+	wp_print_inline_script_tag( "(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);" );
 }
 add_action( 'wp_head', 'twentyfifteen_javascript_detection', 0 );
 
