@@ -1013,7 +1013,7 @@ JS;
 	 *
 	 * @since 6.8.0
 	 */
-	private function optimize_loading_order() {
+	protected function optimize_loading_order() {
 		if ( ! $this->optimize_loading_order_enabled || empty( $this->to_do ) ) {
 			return;
 		}
