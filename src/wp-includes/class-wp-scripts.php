@@ -1106,7 +1106,7 @@ JS;
 	/**
 	 * Sorts scripts by priority while maintaining dependency order.
 	 *
-	 * Uses stable sorting approach to maintain dependency order within 
+	 * Uses stable sorting approach to maintain dependency order within
 	 * same-strategy groups while optimizing loading performance.
 	 *
 	 * @since 6.8.0
@@ -1120,13 +1120,11 @@ JS;
 		$async_scripts = array();
 		$defer_scripts = array();
 		$blocking_scripts = array();
-		
 		// Categorize scripts while maintaining their relative positions
 		foreach ( $this->to_do as $handle ) {
 			if ( ! isset( $priorities[ $handle ] ) ) {
 				continue;
 			}
-			
 			$priority = $priorities[ $handle ];
 			switch ( $priority ) {
 				case 1: // async
@@ -1140,7 +1138,6 @@ JS;
 					break;
 			}
 		}
-		
 		// Return reordered scripts: async first, then defer, then blocking
 		// This maintains dependency order within each strategy group
 		return array_merge( $async_scripts, $defer_scripts, $blocking_scripts );
