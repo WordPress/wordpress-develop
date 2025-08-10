@@ -244,6 +244,37 @@ function wp_get_global_stylesheet( $types = array() ) {
 }
 
 /**
+ * Generate the stylesheet handle for a block.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param string $block_name The block name (e.g., 'core/paragraph' or 'my-plugin/custom-block').
+ * @return string|null The stylesheet handle or null if generation fails.
+ */
+function wp_generate_block_stylesheet_handle( $block_name ) {
+	if ( ! is_string( $block_name ) || empty( $block_name ) ) {
+		return null;
+	}
+
+	// Handle core blocks.
+	if ( str_starts_with( $block_name, 'core/' ) ) {
+		$block_name = str_replace( 'core/', '', $block_name );
+		return 'wp-block-' . $block_name;
+	}
+
+	// Handle third-party blocks.
+	$block_name_parts = explode( '/', $block_name );
+	if ( count( $block_name_parts ) === 2 && ! empty( $block_name_parts[0] ) && ! empty( $block_name_parts[1] ) ) {
+		$namespace = $block_name_parts[0];
+		$name      = $block_name_parts[1];
+		return 'wp-block-' . $namespace . '-' . $name;
+	}
+
+	return null;
+}
+
+/**
  * Adds global style rules to the inline style for each block.
  *
  * @since 6.1.0
@@ -315,24 +346,7 @@ function wp_add_global_styles_for_blocks() {
 		 * This conditional loading applies to both core and third-party blocks.
 		 */
 		if ( isset( $metadata['name'] ) ) {
-			$block_handle = null;
-
-			if ( str_starts_with( $metadata['name'], 'core/' ) ) {
-				$block_name   = str_replace( 'core/', '', $metadata['name'] );
-				$block_handle = 'wp-block-' . $block_name;
-			} else {
-				/*
-				 * For third-party blocks, generate the expected handle based on the block name.
-				 * Third-party blocks typically use the pattern 'namespace/block-name' and
-				 * WordPress generates handles in the format 'wp-block-namespace-block-name'.
-				 */
-				$block_name_parts = explode( '/', $metadata['name'] );
-				if ( count( $block_name_parts ) === 2 ) {
-					$namespace    = $block_name_parts[0];
-					$name         = $block_name_parts[1];
-					$block_handle = 'wp-block-' . $namespace . '-' . $name;
-				}
-			}
+			$block_handle = wp_generate_block_stylesheet_handle( $metadata['name'] );
 
 			if ( $block_handle && in_array( $block_handle, $wp_styles->queue, true ) ) {
 				wp_add_inline_style( $stylesheet_handle, $block_css );
@@ -346,20 +360,7 @@ function wp_add_global_styles_for_blocks() {
 		if ( ! isset( $metadata['name'] ) && ! empty( $metadata['path'] ) ) {
 			$block_name = wp_get_block_name_from_theme_json_path( $metadata['path'] );
 			if ( $block_name ) {
-				$block_handle = null;
-
-				if ( str_starts_with( $block_name, 'core/' ) ) {
-					$block_name   = str_replace( 'core/', '', $block_name );
-					$block_handle = 'wp-block-' . $block_name;
-				} else {
-					// Apply the same third-party block handle generation logic.
-					$block_name_parts = explode( '/', $block_name );
-					if ( count( $block_name_parts ) === 2 ) {
-						$namespace    = $block_name_parts[0];
-						$name         = $block_name_parts[1];
-						$block_handle = 'wp-block-' . $namespace . '-' . $name;
-					}
-				}
+				$block_handle = wp_generate_block_stylesheet_handle( $block_name );
 
 				if ( $block_handle && in_array( $block_handle, $wp_styles->queue, true ) ) {
 					wp_add_inline_style( $stylesheet_handle, $block_css );
@@ -397,17 +398,15 @@ function wp_get_block_name_from_theme_json_path( $path ) {
 	}
 
 	/*
-	 * As fallback and for backward compatibility, allow any core block to be
-	 * at any position.
+	 * As fallback and for backward compatibility, allow any block name to be
+	 * at any position in the path. Look for valid block name patterns.
 	 */
 	$result = array_values(
 		array_filter(
 			$path,
 			static function ( $item ) {
-				if ( str_contains( $item, 'core/' ) ) {
-					return true;
-				}
-				return false;
+				// Look for any valid block name pattern (namespace/block-name).
+				return is_string( $item ) && str_contains( $item, '/' ) && ! empty( $item );
 			}
 		)
 	);
