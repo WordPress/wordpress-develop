@@ -1046,12 +1046,15 @@ JS;
 		// Performance monitoring hook
 		if ( function_exists( 'do_action' ) ) {
 			$end_time = microtime( true );
-			do_action( 'wp_script_optimization_complete', array(
-				'execution_time' => $end_time - $start_time,
-				'scripts_processed' => count( $original_order ),
-				'original_order' => $original_order,
-				'optimized_order' => $this->to_do,
-			) );
+			do_action(
+				'wp_script_optimization_complete',
+				array(
+					'execution_time'     => $end_time - $start_time,
+					'scripts_processed'  => count( $original_order ),
+					'original_order'     => $original_order,
+					'optimized_order'    => $this->to_do,
+				)
+			);
 		}
 	}
 
