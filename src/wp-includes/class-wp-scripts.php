@@ -1106,8 +1106,8 @@ JS;
 	/**
 	 * Sorts scripts by priority while maintaining dependency order.
 	 *
-	 * Uses topological sorting to ensure dependencies are processed before
-	 * their dependents, while optimizing for loading performance.
+	 * Uses stable sorting approach to maintain dependency order within 
+	 * same-strategy groups while optimizing loading performance.
 	 *
 	 * @since 6.8.0
 	 *
@@ -1116,25 +1116,34 @@ JS;
 	 * @return array Optimized script order.
 	 */
 	private function sort_with_dependencies( $priorities, $dependencies ) {
-		$sorted = array();
-		$visited = array();
-		$visiting = array();
-
-		// Group scripts by priority
-		$priority_groups = array();
-		foreach ( $priorities as $handle => $priority ) {
-			$priority_groups[ $priority ][] = $handle;
-		}
-
-		// Sort each priority group while respecting dependencies
-		ksort( $priority_groups );
-		foreach ( $priority_groups as $priority => $handles ) {
-			foreach ( $handles as $handle ) {
-				$this->topological_sort_visit( $handle, $dependencies, $visited, $visiting, $sorted );
+		// Group scripts by loading strategy while preserving original order
+		$async_scripts = array();
+		$defer_scripts = array();
+		$blocking_scripts = array();
+		
+		// Categorize scripts while maintaining their relative positions
+		foreach ( $this->to_do as $handle ) {
+			if ( ! isset( $priorities[ $handle ] ) ) {
+				continue;
+			}
+			
+			$priority = $priorities[ $handle ];
+			switch ( $priority ) {
+				case 1: // async
+					$async_scripts[] = $handle;
+					break;
+				case 2: // defer
+					$defer_scripts[] = $handle;
+					break;
+				default: // blocking (priority 3 or 4)
+					$blocking_scripts[] = $handle;
+					break;
 			}
 		}
-
-		return $sorted;
+		
+		// Return reordered scripts: async first, then defer, then blocking
+		// This maintains dependency order within each strategy group
+		return array_merge( $async_scripts, $defer_scripts, $blocking_scripts );
 	}
 
 	/**
