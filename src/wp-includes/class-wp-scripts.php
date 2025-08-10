@@ -1197,7 +1197,7 @@ JS;
 		foreach ( $original_order as $i => $handle ) {
 			if ( isset( $this->registered[ $handle ] ) ) {
 				$script = $this->registered[ $handle ];
-				
+
 				// Only block reordering for scripts with 'before' inline content
 				// These are most likely to break tests due to variable declarations
 				if ( ! empty( $script->extra['before'] ) ) {
