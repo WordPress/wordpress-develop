@@ -224,12 +224,12 @@ jobs:
       report: ${{ false }}
 
   #
-  # Runs specific individual test groups.
+  # Runs HTML API test groups.
   #
   # These tests are run against the most recent LTS version of MySQL.
   #
-  specific-test-groups:
-    name: ${{ matrix.phpunit-test-groups }}
+  html-api-test-groups:
+    name: HTML API
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
