@@ -1,6 +1,7 @@
 name: Local Docker Environment
 
 on:
+  # Local Docker environment testing was introduced in WordPress 6.8.
   push:
     branches:
       - trunk
