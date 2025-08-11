@@ -383,6 +383,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$phpmailer->clearReplyTos();
 		$phpmailer->Body    = '';
 		$phpmailer->AltBody = '';
+		$phpmailer->Encoding = PHPMailer\PHPMailer\PHPMailer::ENCODING_8BIT;
 
 		// Set "From" name and email.
 
