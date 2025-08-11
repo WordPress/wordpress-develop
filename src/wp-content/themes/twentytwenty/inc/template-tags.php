@@ -661,9 +661,7 @@ add_filter( 'walker_nav_menu_start_el', 'twentytwenty_nav_menu_social_icons', 10
  */
 function twentytwenty_no_js_class() {
 
-	?>
-	<script>document.documentElement.className = document.documentElement.className.replace( 'no-js', 'js' );</script>
-	<?php
+	wp_print_inline_script_tag( "document.documentElement.className = document.documentElement.className.replace( 'no-js', 'js' );" );
 }
 
 add_action( 'wp_head', 'twentytwenty_no_js_class' );

@@ -74,7 +74,7 @@ add_action( 'wp_head', 'twenty_twenty_one_pingback_header' );
  * @return void
  */
 function twenty_twenty_one_supports_js() {
-	echo '<script>document.body.classList.remove("no-js");</script>';
+	wp_print_inline_script_tag( "document.body.classList.remove('no-js');" );
 }
 add_action( 'wp_footer', 'twenty_twenty_one_supports_js' );
 

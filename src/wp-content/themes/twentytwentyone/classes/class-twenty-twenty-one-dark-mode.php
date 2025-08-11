@@ -363,9 +363,12 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * @return void
 	 */
 	public function the_script() {
-		echo '<script>';
-		include get_template_directory() . '/assets/js/dark-mode-toggler.js'; // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude
-		echo '</script>';
+		$js_path = get_template_directory() . '/assets/js/dark-mode-toggler.js';
+
+		if ( file_exists( $js_path ) ) {
+			$script = file_get_contents( $js_path );
+			wp_print_inline_script_tag( $script );
+		}
 	}
 
 	/**
