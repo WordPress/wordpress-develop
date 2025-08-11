@@ -229,7 +229,7 @@ jobs:
   # These tests are run against the most recent LTS version of MySQL.
   #
   html-api-test-groups:
-    name: HTML API
+    name: ${{ matrix.label }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
@@ -242,6 +242,7 @@ jobs:
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
         phpunit-test-groups: [ 'html-api-html5lib-tests' ]
+        label: [ 'HTML API' ]
     with:
       php: ${{ matrix.php }}
       db-type: ${{ matrix.db-type }}
