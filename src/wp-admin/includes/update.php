@@ -947,6 +947,10 @@ function wp_print_admin_notice_templates() {
 		</div>
 	</script>
 	<script id="tmpl-wp-bulk-deletions-admin-notice" type="text/html">
+		<#
+		// Only render the notice if we have successes or errors.
+		if ( data.successes || data.errors ) {
+		#>
 		<div id="{{ data.id }}" class="{{ data.className }} notice <# if ( data.errors ) { #>notice-error<# } else { #>notice-success<# } #>">
 			<p>
 				<# if ( data.successes ) { #>
@@ -1002,6 +1006,7 @@ function wp_print_admin_notice_templates() {
 				</ul>
 			<# } #>
 		</div>
+		<# } #>
 	</script>
 	<?php
 }
