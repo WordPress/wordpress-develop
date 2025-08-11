@@ -56,7 +56,7 @@ env:
 jobs:
   # Runs the end-to-end test suite.
   e2e-tests:
-    name: E2E tests
+    name: ${{ matrix.label }}
     uses: ./.github/workflows/reusable-end-to-end-tests.yml
     permissions:
       contents: read
@@ -65,6 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
+        label: [ 'E2E Tests' ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
 
