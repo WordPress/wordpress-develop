@@ -23,6 +23,8 @@ on:
       - '**.php'
       # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
       # This file configures JSHint. Changes could affect the outcome.

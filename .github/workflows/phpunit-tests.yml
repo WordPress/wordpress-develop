@@ -25,6 +25,8 @@ on:
       - 'src/SECURITY.md'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       - 'Gruntfile.js'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
