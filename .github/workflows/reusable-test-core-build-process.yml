@@ -11,6 +11,11 @@ on:
         required: false
         type: 'string'
         default: 'ubuntu-24.04'
+      node-version:
+        description: 'The Node.js version to use (22, 20, etc.). Leave blank to use the version specified in .nvmrc.'
+        required: false
+        type: 'string'
+        default: ''
       directory:
         description: 'Directory to run WordPress from. Valid values are `src` or `build`'
         required: false
@@ -56,7 +61,7 @@ jobs:
   # - Saves the pull request number to a text file.
   # - Uploads the pull request number as an artifact.
   build-process-tests:
-    name: Core running from ${{ inputs.directory }} / ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
+    name: Core running from ${{ inputs.directory }} / ${{ inputs.node-version == '' && 'Default Node.js' || format( 'Node.js {0}', inputs.node-version ) }} ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -72,7 +77,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
-          node-version-file: '.nvmrc'
+          node-version: ${{ inputs.node-version }}
+          node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
           cache: npm
 
       - name: Log debug information
@@ -109,7 +115,7 @@ jobs:
 
       - name: Upload ZIP as a GitHub Actions artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: ${{ inputs.save-build || inputs.prepare-playground }}
+        if: ${{ ( inputs.save-build || inputs.prepare-playground ) && inputs.node-version == '' }}
         with:
           name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
           path: wordpress.zip
