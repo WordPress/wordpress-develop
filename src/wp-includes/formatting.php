@@ -965,30 +965,31 @@ function wp_is_valid_utf8( string $bytes ): bool {
 /**
  * Fallback mechanism for safely validating UTF-8 bytes.
  *
- * By implementing a raw method here the code will behave
- * in the same way on all installed systems, regardless of
- * what extensions are installed.
+ * By implementing a raw method here the code will behave in the same way on
+ * all installed systems, regardless of what extensions are installed.
  *
- * > [The following table] lists all of the byte sequences that
- * > are well-formed in UTF-8. A range of byte values such as
- * > [A0, BF] indicates that any byte from A0 to BF (inclusive)
- * > is well-formed in that position. Any byte value outside
- * > of the ranges listed is ill-formed.
+ * > [The following table] lists all of the byte sequences that are well-formed
+ * > in UTF-8. A range of byte values such as A0..BF indicates that any byte
+ * > from A0 to BF (inclusive) is well-formed in that position. Any byte value
+ * > outside of the ranges listed is ill-formed.
  *
- *     First Byte    Second Byte   Third Byte    Fourth Byte
- *     [0x00,0x7F]
- *     [0xC2,0xDF]   [0x80,0xBF]
- *     0xE0          [0xA0,0xBF]   [0x80,0xBF]
- *     [0xE1,0xEC]   [0x80,0xBF]   [0x80,0xBF]
- *     0xED          [0x80,0x9F]   [0x80,0xBF]
- *     [0xEE,0xEF]   [0x80,0xBF]   [0x80,0xBF]
- *     0xF0          [0x90,0xBF]   [0x80,0xBF]   [0x80,0xBF]
- *     [0xF1,0xF3]   [0x80,0xBF]   [0x80,0xBF]   [0x80,0xBF]
- *     0xF4          [0x80,0x8F]   [0x80,0xBF]   [0x80,0xBF]
+ * > Table 3-7. Well-Formed UTF-8 Byte Sequences
+ *  ╭─────────────────────┬────────────┬──────────────┬─────────────┬──────────────╮
+ *  │ Code Points         │ First Byte │ Second Byte  │ Third Byte  │ Fourth Byte  │
+ *  ├─────────────────────┼────────────┼──────────────┼─────────────┼──────────────┤
+ *  │ U+0000..U+007F      │ 00..7F     │              │             │              │
+ *  │ U+0080..U+07FF      │ C2..DF     │ 80..BF       │             │              │
+ *  │ U+0800..U+0FFF      │ E0         │ A0..BF       │ 80..BF      │              │
+ *  │ U+1000..U+CFFF      │ E1..EC     │ 80..BF       │ 80..BF      │              │
+ *  │ U+D000..U+D7FF      │ ED         │ 80..9F       │ 80..BF      │              │
+ *  │ U+E000..U+FFFF      │ EE..EF     │ 80..BF       │ 80..BF      │              │
+ *  │ U+10000..U+3FFFF    │ F0         │ 90..BF       │ 80..BF      │ 80..BF       │
+ *  │ U+40000..U+FFFFF    │ F1..F3     │ 80..BF       │ 80..BF      │ 80..BF       │
+ *  │ U+100000..U+10FFFF  │ F4         │ 80..8F       │ 80..BF      │ 80..BF       │
+ *  ╰─────────────────────┴────────────┴──────────────┴─────────────┴──────────────╯
  *
- * Notice that all valid third and forth bytes are in the range
- * [0x80,0xBF]. This validator takes advantage of that to only
- * check the range of those bytes once.
+ * Notice that all valid third and forth bytes are in the range 80..BF. This
+ * validator takes advantage of that to only check the range of those bytes once.
  *
  * @see wp_is_valid_utf8
  * @see https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
@@ -1022,9 +1023,15 @@ function _wp_is_valid_utf8_fallback( string $bytes ): bool {
 		}
 
 		/*
-		 * The 0xC0 bytes are used as a fallback to truncated text because they
-		 * always indicate invalid UTF-8 just the same as a missing continuation
-		 * byte would. This saves performing length checks before decoding.
+		 * The above fast-track handled all single-byte UTF-8 characters. What
+		 * follows MUST be a multibyte sequence otherwise there’s invalid UTF-8.
+		 *
+		 * Therefore everything past here is checking those multibyte sequences.
+		 * Because it’s possible that there are truncated characters, the use of
+		 * the null-coalescing operator with "\xC0" is a convenience for skipping
+		 * length checks on every continuation bytes. This works because 0xC0 is
+		 * always invalid in a UTF-8 string, meaning that if the string has been
+		 * truncated, it will find 0xC0 and reject as invalid UTF-8.
 		 */
 
 		$b1 = ord( $bytes[ $i ] );

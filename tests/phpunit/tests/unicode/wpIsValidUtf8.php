@@ -10,13 +10,13 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	/**
 	 * Verifies that WordPress can properly detect valid and invalid UTF-8.
 	 *
-	 * Ticket 38044
+	 * @ticket 38044
 	 *
 	 * @dataProvider data_utf8_test_data
 	 *
 	 * @param string $bytes Bytes as a PHP string.
 	 */
-	public function test_properly_validates_utf8( $bytes ) {
+	public function test_properly_validates_utf8( string $bytes ) {
 		$is_valid = mb_check_encoding( $bytes, 'UTF-8' );
 
 		$this->assertSame(
@@ -24,7 +24,7 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 			wp_is_valid_utf8( $bytes ),
 			$is_valid
 				? 'Should have identified the input as a valid UTF-8 string.'
-				: 'Should have rejected the input as a valid UTF-8 string.'
+				: 'Should have reject the invalid UTF-8 string.'
 		);
 	}
 
@@ -32,13 +32,13 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	 * Verifies that WordPress can properly detect valid and invalid UTF-8;
 	 * forces testing with the fallback mechanism in pure PHP code.
 	 *
-	 * Ticket 38044
+	 * @ticket 38044
 	 *
 	 * @dataProvider data_utf8_test_data
 	 *
 	 * @param string $bytes Bytes as a PHP string.
 	 */
-	public function test_fallback_properly_validates_utf8( $bytes ) {
+	public function test_fallback_properly_validates_utf8( string $bytes ) {
 		$is_valid = mb_check_encoding( $bytes, 'UTF-8' );
 
 		$this->assertSame(
@@ -46,7 +46,7 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 			_wp_is_valid_utf8_fallback( $bytes ),
 			$is_valid
 				? 'Should have identified the input as a valid UTF-8 string.'
-				: 'Should have rejected the input as a valid UTF-8 string.'
+				: 'Should have reject the invalid UTF-8 string.'
 		);
 	}
 
@@ -78,8 +78,9 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 
 			list( $reference, $classification, $test_data ) = $test_parts;
 
-			$reference = trim( $reference );
-			$test_data = trim( $test_data );
+			$reference      = trim( $reference );
+			$classification = trim( $classification );
+			$test_data      = trim( $test_data );
 
 			switch ( $classification ) {
 				case 'valid':
@@ -91,6 +92,9 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 					$bytes = hex2bin( str_replace( ' ', '', $test_data ) );
 					yield "{$reference} {$last_description}" => array( $bytes );
 					break;
+
+				default:
+					throw new Exception( "Test input file contains unrecognized input classification '{$classification}' (see utf8tests.txt): {$line}" );
 			}
 		}
 	}
