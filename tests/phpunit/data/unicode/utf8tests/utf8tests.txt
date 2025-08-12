@@ -1,8 +1,5 @@
 # == UTF-8 Test Cases ==
 
-# Borrowed from flenniken/utf8tests
-# https://github.com/flenniken/utf8tests/blob/52cbdf830f3603047036070b086a1e5196df94d1/utf8tests.txt
-
 # Updated on Sun Jan 16 18:52:08 UTC 2022
 
 # This file, utf8tests.txt, contains test cases for testing UTF-8
