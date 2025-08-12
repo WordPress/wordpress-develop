@@ -1421,7 +1421,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSame( 'edit_posts', $cap->edit_posts );
 
 		$this->assertTrue( $author->has_cap( $cap->create_posts ) );
-		$this->assertTrue( $author->has_cap( $cap->edit_posts ) );
+	$this->assertTrue( $author->has_cap( $cap->edit_posts ) );
 		$this->assertTrue( $contributor->has_cap( $cap->edit_posts ) );
 		$this->assertFalse( $contributor->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $subscriber->has_cap( $cap->create_posts ) );
