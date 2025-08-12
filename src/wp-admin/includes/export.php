@@ -243,8 +243,8 @@ function export_wp( $args = array() ) {
 	 * @return string
 	 */
 	function wxr_cdata( $str ) {
-		if ( ! seems_utf8( $str ) ) {
-			$str = utf8_encode( $str );
+		if ( ! seems_utf8( $str ) && function_exists( 'mb_convert_encoding' ) ) {
+			$str = mb_convert_encoding( $str, 'UTF-8', 'ISO-8859-1' );
 		}
 		// $str = ent2ncr(esc_html($str));
 		$str = '<![CDATA[' . str_replace( ']]>', ']]]]><![CDATA[>', $str ) . ']]>';

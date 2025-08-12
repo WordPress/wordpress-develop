@@ -970,12 +970,10 @@ function wp_read_image_metadata( $file ) {
 			if ( empty( $meta['caption'] ) && $exif_usercomment ) {
 				if ( ! empty( $meta['title'] ) && $exif_description === $meta['title'] ) {
 					$caption = $exif_usercomment;
-				} else {
-					if ( $exif_description === $exif_usercomment ) {
+				} elseif ( $exif_description === $exif_usercomment ) {
 						$caption = $exif_description;
-					} else {
-						$caption = trim( $exif_description . ' ' . $exif_usercomment );
-					}
+				} else {
+					$caption = trim( $exif_description . ' ' . $exif_usercomment );
 				}
 				$meta['caption'] = $caption;
 			}
@@ -1039,14 +1037,14 @@ function wp_read_image_metadata( $file ) {
 	}
 
 	foreach ( array( 'title', 'caption', 'credit', 'copyright', 'camera', 'iso' ) as $key ) {
-		if ( $meta[ $key ] && ! seems_utf8( $meta[ $key ] ) ) {
-			$meta[ $key ] = utf8_encode( $meta[ $key ] );
+		if ( $meta[ $key ] && ! seems_utf8( $meta[ $key ] ) && function_exists( 'mb_convert_encoding' ) ) {
+			$meta[ $key ] = mb_convert_encoding( $meta[ $key ], 'UTF-8', 'ISO-8859-1' );
 		}
 	}
 
 	foreach ( $meta['keywords'] as $key => $keyword ) {
-		if ( ! seems_utf8( $keyword ) ) {
-			$meta['keywords'][ $key ] = utf8_encode( $keyword );
+		if ( ! seems_utf8( $keyword ) && function_exists( 'mb_convert_encoding' ) ) {
+			$meta['keywords'][ $key ] = mb_convert_encoding( $keyword, 'UTF-8', 'ISO-8859-1' );
 		}
 	}
 
