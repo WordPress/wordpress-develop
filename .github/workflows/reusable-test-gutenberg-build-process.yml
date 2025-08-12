@@ -11,6 +11,11 @@ on:
         required: false
         type: 'string'
         default: 'ubuntu-24.04'
+      node-version:
+        description: 'The Node.js version to use (22, 20, etc.). Leave blank to use the version specified in .nvmrc.'
+        required: false
+        type: 'string'
+        default: ''
       directory:
         description: 'Directory to run WordPress from. Valid values are `src` or `build`'
         required: false
@@ -41,7 +46,7 @@ jobs:
   # - Builds Gutenberg.
   # - Ensures version-controlled files are not modified or deleted.
   build-process-tests:
-    name: Gutenberg running from ${{ inputs.directory }} / ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
+    name: Gutenberg running from ${{ inputs.directory }} / ${{ inputs.node-version != '' && format( 'Node.js {0}', inputs.node-version ) || '' }} ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -65,7 +70,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
-          node-version-file: '.nvmrc'
+          node-version: ${{ inputs.node-version }}
+          node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
           cache: npm
           cache-dependency-path: |
             package-lock.json
