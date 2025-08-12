@@ -29,6 +29,28 @@ class Tests_WpIsValidUtf8TestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that WordPress can properly detect valid and invalid UTF-8;
+	 * forces testing with the fallback mechanism in pure PHP code.
+	 *
+	 * Ticket 38044
+	 *
+	 * @dataProvider data_utf8_test_data
+	 *
+	 * @param string $bytes Bytes as a PHP string.
+	 */
+	public function test_fallback_properly_validates_utf8( $bytes ) {
+		$is_valid = mb_check_encoding( $bytes, 'UTF-8' );
+
+		$this->assertSame(
+			$is_valid,
+			_wp_is_valid_utf8_fallback( $bytes ),
+			$is_valid
+				? 'Should have identified the input as a valid UTF-8 string.'
+				: 'Should have rejected the input as a valid UTF-8 string.'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @throws Exception

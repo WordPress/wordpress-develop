@@ -940,9 +940,9 @@ function seems_utf8( $str ) {
  *                                                     // E.g. The “ü” in ISO-8859-1 is a single byte 0xFC,
  *                                                     // but in UTF-8 is the two-byte sequence 0xC3 0xBC.
  *
- * @since 6.9.0
+ * @see _wp_is_valid_utf8_fallback
  *
- * @see https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
+ * @since 6.9.0
  *
  * @param string $bytes String which might contain text encoded as UTF-8.
  * @return bool Whether the provided bytes can decode as valid UTF-8.
@@ -957,41 +957,50 @@ function wp_is_valid_utf8( string $bytes ): bool {
 	 * status isn’t cached, it uses highly-optimized code to
 	 * validate the byte stream.
 	 */
-	if ( function_exists( 'mb_check_encoding' ) ) {
-		return mb_check_encoding( $bytes, 'UTF-8' );
-	}
+	return function_exists( 'mb_check_encoding' )
+		? mb_check_encoding( $bytes, 'UTF-8' )
+		: _wp_is_valid_utf8_fallback( $bytes );
+}
 
-	/*
-	 * Fallback to a safe mechanism for validating UTF-8 bytes.
-	 *
-	 * By implementing a raw method here the code will behave
-	 * in the same way on all installed systems, regardless of
-	 * what extensions are installed.
-	 *
-	 * > [The following table] lists all of the byte sequences that
-	 * > are well-formed in UTF-8. A range of byte values such as
-	 * > [A0, BF] indicates that any byte from A0 to BF (inclusive)
-	 * > is well-formed in that position. Any byte value outside
-	 * > of the ranges listed is ill-formed.
-	 *
-	 *     First Byte    Second Byte   Third Byte    Fourth Byte
-	 *     [0x00,0x7F]
-	 *     [0xC2,0xDF]   [0x80,0xBF]
-	 *     0xE0          [0xA0,0xBF]   [0x80,0xBF]
-	 *     [0xE1,0xEC]   [0x80,0xBF]   [0x80,0xBF]
-	 *     0xED          [0x80,0x9F]   [0x80,0xBF]
-	 *     [0xEE,0xEF]   [0x80,0xBF]   [0x80,0xBF]
-	 *     0xF0          [0x90,0xBF]   [0x80,0xBF]   [0x80,0xBF]
-	 *     [0xF1,0xF3]   [0x80,0xBF]   [0x80,0xBF]   [0x80,0xBF]
-	 *     0xF4          [0x80,0x8F]   [0x80,0xBF]   [0x80,0xBF]
-	 *
-	 * Notice that all valid third and forth bytes are in the range
-	 * [0x80,0xBF]. This validator takes advantage of that to only
-	 * check the range of those bytes once.
-	 *
-	 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
-	 */
-
+/**
+ * Fallback mechanism for safely validating UTF-8 bytes.
+ *
+ * By implementing a raw method here the code will behave
+ * in the same way on all installed systems, regardless of
+ * what extensions are installed.
+ *
+ * > [The following table] lists all of the byte sequences that
+ * > are well-formed in UTF-8. A range of byte values such as
+ * > [A0, BF] indicates that any byte from A0 to BF (inclusive)
+ * > is well-formed in that position. Any byte value outside
+ * > of the ranges listed is ill-formed.
+ *
+ *     First Byte    Second Byte   Third Byte    Fourth Byte
+ *     [0x00,0x7F]
+ *     [0xC2,0xDF]   [0x80,0xBF]
+ *     0xE0          [0xA0,0xBF]   [0x80,0xBF]
+ *     [0xE1,0xEC]   [0x80,0xBF]   [0x80,0xBF]
+ *     0xED          [0x80,0x9F]   [0x80,0xBF]
+ *     [0xEE,0xEF]   [0x80,0xBF]   [0x80,0xBF]
+ *     0xF0          [0x90,0xBF]   [0x80,0xBF]   [0x80,0xBF]
+ *     [0xF1,0xF3]   [0x80,0xBF]   [0x80,0xBF]   [0x80,0xBF]
+ *     0xF4          [0x80,0x8F]   [0x80,0xBF]   [0x80,0xBF]
+ *
+ * Notice that all valid third and forth bytes are in the range
+ * [0x80,0xBF]. This validator takes advantage of that to only
+ * check the range of those bytes once.
+ *
+ * @see wp_is_valid_utf8
+ * @see https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
+ * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param string $bytes String which might contain text encoded as UTF-8.
+ * @return bool Whether the provided bytes can decode as valid UTF-8.
+ */
+function _wp_is_valid_utf8_fallback( string $bytes ): bool {
 	$end = strlen( $bytes );
 
 	for ( $i = 0; $i < $end; $i++ ) {
