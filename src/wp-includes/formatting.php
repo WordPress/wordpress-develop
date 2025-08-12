@@ -968,32 +968,7 @@ function wp_is_valid_utf8( string $bytes ): bool {
  * By implementing a raw method here the code will behave in the same way on
  * all installed systems, regardless of what extensions are installed.
  *
- * > [The following table] lists all of the byte sequences that are well-formed
- * > in UTF-8. A range of byte values such as A0..BF indicates that any byte
- * > from A0 to BF (inclusive) is well-formed in that position. Any byte value
- * > outside of the ranges listed is ill-formed.
- *
- * > Table 3-7. Well-Formed UTF-8 Byte Sequences
- *  ╭─────────────────────┬────────────┬──────────────┬─────────────┬──────────────╮
- *  │ Code Points         │ First Byte │ Second Byte  │ Third Byte  │ Fourth Byte  │
- *  ├─────────────────────┼────────────┼──────────────┼─────────────┼──────────────┤
- *  │ U+0000..U+007F      │ 00..7F     │              │             │              │
- *  │ U+0080..U+07FF      │ C2..DF     │ 80..BF       │             │              │
- *  │ U+0800..U+0FFF      │ E0         │ A0..BF       │ 80..BF      │              │
- *  │ U+1000..U+CFFF      │ E1..EC     │ 80..BF       │ 80..BF      │              │
- *  │ U+D000..U+D7FF      │ ED         │ 80..9F       │ 80..BF      │              │
- *  │ U+E000..U+FFFF      │ EE..EF     │ 80..BF       │ 80..BF      │              │
- *  │ U+10000..U+3FFFF    │ F0         │ 90..BF       │ 80..BF      │ 80..BF       │
- *  │ U+40000..U+FFFFF    │ F1..F3     │ 80..BF       │ 80..BF      │ 80..BF       │
- *  │ U+100000..U+10FFFF  │ F4         │ 80..8F       │ 80..BF      │ 80..BF       │
- *  ╰─────────────────────┴────────────┴──────────────┴─────────────┴──────────────╯
- *
- * Notice that all valid third and forth bytes are in the range 80..BF. This
- * validator takes advantage of that to only check the range of those bytes once.
- *
  * @see wp_is_valid_utf8
- * @see https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
- * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
  *
  * @since 6.9.0
  * @access private
@@ -1022,7 +997,7 @@ function _wp_is_valid_utf8_fallback( string $bytes ): bool {
 			break;
 		}
 
-		/*
+		/**
 		 * The above fast-track handled all single-byte UTF-8 characters. What
 		 * follows MUST be a multibyte sequence otherwise there’s invalid UTF-8.
 		 *
@@ -1032,6 +1007,32 @@ function _wp_is_valid_utf8_fallback( string $bytes ): bool {
 		 * length checks on every continuation bytes. This works because 0xC0 is
 		 * always invalid in a UTF-8 string, meaning that if the string has been
 		 * truncated, it will find 0xC0 and reject as invalid UTF-8.
+		 *
+		 *  > [The following table] lists all of the byte sequences that are well-formed
+		 * > in UTF-8. A range of byte values such as A0..BF indicates that any byte
+		 * > from A0 to BF (inclusive) is well-formed in that position. Any byte value
+		 * > outside of the ranges listed is ill-formed.
+		 *
+		 * > Table 3-7. Well-Formed UTF-8 Byte Sequences
+		 *  ╭─────────────────────┬────────────┬──────────────┬─────────────┬──────────────╮
+		 *  │ Code Points         │ First Byte │ Second Byte  │ Third Byte  │ Fourth Byte  │
+		 *  ├─────────────────────┼────────────┼──────────────┼─────────────┼──────────────┤
+		 *  │ U+0000..U+007F      │ 00..7F     │              │             │              │
+		 *  │ U+0080..U+07FF      │ C2..DF     │ 80..BF       │             │              │
+		 *  │ U+0800..U+0FFF      │ E0         │ A0..BF       │ 80..BF      │              │
+		 *  │ U+1000..U+CFFF      │ E1..EC     │ 80..BF       │ 80..BF      │              │
+		 *  │ U+D000..U+D7FF      │ ED         │ 80..9F       │ 80..BF      │              │
+		 *  │ U+E000..U+FFFF      │ EE..EF     │ 80..BF       │ 80..BF      │              │
+		 *  │ U+10000..U+3FFFF    │ F0         │ 90..BF       │ 80..BF      │ 80..BF       │
+		 *  │ U+40000..U+FFFFF    │ F1..F3     │ 80..BF       │ 80..BF      │ 80..BF       │
+		 *  │ U+100000..U+10FFFF  │ F4         │ 80..8F       │ 80..BF      │ 80..BF       │
+		 *  ╰─────────────────────┴────────────┴──────────────┴─────────────┴──────────────╯
+		 *
+		 * Notice that all valid third and forth bytes are in the range 80..BF. This
+		 * validator takes advantage of that to only check the range of those bytes once.
+		 *
+		 * @see https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
+		 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
 		 */
 
 		$b1 = ord( $bytes[ $i ] );
