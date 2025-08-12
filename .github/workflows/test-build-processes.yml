@@ -12,11 +12,11 @@ on:
       - '3.[7-9]'
       - '[4-9].[0-9]'
     paths:
-      # Any change to a PHP, CSS, JavaScript, or JSON file should run checks.
-      - '**.css'
-      - '**.js'
-      - '**.json'
-      - '**.php'
+      # Any change to a source PHP, CSS, JavaScript, or JSON file should run checks.
+      - 'src/**.css'
+      - 'src/**.js'
+      - 'src/**.json'
+      - 'src/**.php'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
       - '.npmrc'

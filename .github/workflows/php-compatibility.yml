@@ -13,8 +13,8 @@ on:
       - '5.[5-9]'
       - '[6-9].[0-9]'
     paths:
-      # This workflow only scans PHP files.
-      - '**.php'
+      # This workflow only scans source PHP files.
+      - 'src/**.php'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
       # This file configures PHP compatibility scanning. Changes could affect the outcome.

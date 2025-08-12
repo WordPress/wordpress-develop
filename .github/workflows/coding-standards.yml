@@ -14,9 +14,10 @@ on:
       - '3.[89]'
       - '[4-9].[0-9]'
     paths:
-      # Any change to a PHP or JavaScript file should run checks.
-      - '**.js'
-      - '**.php'
+      # Any change to a relevant PHP or JavaScript file should run checks.
+      - 'src/**.js'
+      - 'src/**.php'
+      - 'tests/**.php'
       # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       - '.npmrc'
