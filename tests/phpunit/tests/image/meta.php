@@ -140,6 +140,18 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 55603
+	 */
+	public function test_exif_with_encoding() {
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/gabcikovo.jpg' );
+
+		$this->assertSame( 'Slovensko vláda energetika Vodná elektráreň Gabčíkovo premiér', trim( $out['keywords'][0] ) );
+		$this->assertSame( 'Fico návšteva TTX', trim( $out['keywords'][1] ) );
+		$this->assertSame( 'Na snímke turbína na výrobu elektrickej energie vo Vodnej elektrárni Gabčíkovo 9. marca 2015. FOTO TASR - Martin Baumann', $out['caption'] );
+		$this->assertSame( 'Vodn· turbÌna na v˝robu elektrickej energie', $out['title'] );
+	}
+
+	/**
 	 * wp_read_image_metadata() should return false if the image file doesn't exist.
 	 */
 	public function test_missing_image_file() {
