@@ -32,7 +32,7 @@ if ( is_multisite() ) {
 if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 	check_admin_referer( 'add-user', '_wpnonce_add-user' );
 
-	$user_details = null;
+	$user_details  = null;
 	$redirect_args = array();
 	foreach ( array( 'email', 'role', 'noconfirmation' ) as $redirect_arg ) {
 		if ( isset( $_REQUEST[ $redirect_arg ] ) ) {
@@ -478,14 +478,14 @@ if ( is_multisite() && current_user_can( 'promote_users' ) ) {
 <input name="action" type="hidden" value="adduser" />
 	<?php wp_nonce_field( 'add-user', '_wpnonce_add-user' ); ?>
 
-<?php
-$adduser_email          = isset( $_GET['email'] ) ? wp_unslash( $_GET['email'] ) : '';
-$adduser_role           = isset( $_GET['role'] ) ? sanitize_text_field( wp_unslash( $_GET['role'] ) ) : '';
-$adduser_noconfirmation = isset( $_GET['noconfirmation'] ) ? wp_unslash( $_GET['noconfirmation'] ) : '';
-if ( $adduser_role && ! array_key_exists( $adduser_role, get_editable_roles() ) ) {
-	$adduser_role = '';
-}
-?>
+	<?php
+	$adduser_email          = isset( $_GET['email'] ) ? wp_unslash( $_GET['email'] ) : '';
+	$adduser_role           = isset( $_GET['role'] ) ? sanitize_text_field( wp_unslash( $_GET['role'] ) ) : '';
+	$adduser_noconfirmation = isset( $_GET['noconfirmation'] ) ? wp_unslash( $_GET['noconfirmation'] ) : '';
+	if ( $adduser_role && ! array_key_exists( $adduser_role, get_editable_roles() ) ) {
+		$adduser_role = '';
+	}
+	?>
 <table class="form-table" role="presentation">
 	<tr class="form-field form-required">
 		<th scope="row"><label for="adduser-email"><?php echo esc_html( $label ); ?></label></th>
