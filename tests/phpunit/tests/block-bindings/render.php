@@ -71,7 +71,16 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 <!-- /wp:paragraph -->
 HTML,
 				'<p>test source value</p>'
-			)
+			),
+			'button block' => array(
+				'text',
+				<<<HTML
+<!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button">This should not appear</a></div>
+<!-- /wp:button -->
+HTML,
+				'<div class="wp-block-button"><a class="wp-block-button__link wp-element-button">test source value</a></div>'
+			),
 		);
 	}
 

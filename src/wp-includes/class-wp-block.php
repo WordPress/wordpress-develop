@@ -429,7 +429,7 @@ class WP_Block {
 				// Store the parent tag and its attributes to be able to restore them later in the button.
 				// The button block has a wrapper while the paragraph and heading blocks don't.
 				if ( 'core/button' === $this->name ) {
-					$button_wrapper                 = $block_reader->get_tag();
+					$button_wrapper                 = strtolower( $block_reader->get_tag() );
 					$button_wrapper_attribute_names = $block_reader->get_attribute_names_with_prefix( '' );
 					$button_wrapper_attrs           = array();
 					foreach ( $button_wrapper_attribute_names as $name ) {
