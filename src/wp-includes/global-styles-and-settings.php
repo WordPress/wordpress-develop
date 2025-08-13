@@ -262,16 +262,16 @@ function wp_generate_block_stylesheet_handle( $block_name ) {
 	if ( ! is_string( $block_name ) || empty( $block_name ) ) {
 		return null;
 	}
-	
+
 	// Handle implicit core namespace (e.g., "paragraph" → "core/paragraph").
 	if ( ! str_contains( $block_name, '/' ) ) {
 		$block_name = "core/{$block_name}";
 	}
-	
+
 	// Strip core/ prefix and convert remaining slashes to dashes.
 	$block_name = str_replace( 'core/', '', $block_name );
 	$handle = str_replace( '/', '-', $block_name );
-	
+
 	return "wp-block-{$handle}";
 }
 
