@@ -2406,7 +2406,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$userdata = array(
 			'ID'        => $user_id,
-			'user_pass' => 'password',
+			'user_pass' => $updated_password,
 		);
 
 		wp_update_user( $userdata );
