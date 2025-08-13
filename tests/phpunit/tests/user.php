@@ -2400,6 +2400,8 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
+		$mock_action->reset();
+
 		$updated_password = 'newpassword123';
 
 		$userdata = array(
