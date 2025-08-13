@@ -5250,12 +5250,13 @@ function get_media_embedded_in_content( $content, $types = null ) {
  *
  * @since 3.6.0
  *
- * @param int|WP_Post $post Post ID or object.
- * @param bool        $html Optional. Whether to return HTML or data in the array. Default true.
+ * @param int|WP_Post $post          Post ID or object.
+ * @param bool        $html          Optional. Whether to return HTML or data in the array. Default true.
+ * @param int         $max_galleries Optional. Only collect up to this many galleries. Default unlimited.
  * @return array A list of arrays, each containing gallery data and srcs parsed
  *               from the expanded shortcode.
  */
-function get_post_galleries( $post, $html = true ) {
+function get_post_galleries( $post, $html = true, $max_galleries = PHP_INT_MAX ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
@@ -5301,95 +5302,161 @@ function get_post_galleries( $post, $html = true ) {
 		}
 	}
 
-	if ( has_block( 'gallery', $post->post_content ) ) {
-		$post_blocks = parse_blocks( $post->post_content );
+	$processor = WP_Block_Processor::create( $post->post_content );
+	$found     = 0;
 
-		while ( $block = array_shift( $post_blocks ) ) {
-			$has_inner_blocks = ! empty( $block['innerBlocks'] );
+	while ( $processor->next_delimiter() ) {
+		if ( ! $processor->opens_block( 'gallery' ) ) {
+			continue;
+		}
 
-			// Skip blocks with no blockName and no innerHTML.
-			if ( ! $block['blockName'] ) {
-				continue;
-			}
+		/*
+		 * It’s not clear yet whether this will have inner blocks.
+		 * Until then, start computing for both paths, then bail
+		 * once the block vintage is known.
+		 */
+		$gallery_depth    = $processor->get_depth();
+		$has_inner_blocks = false;
+		$gallery_ids      = $processor->allocate_and_return_parsed_attributes()['attrs']['ids'] ?? array();
 
-			// Skip non-Gallery blocks.
-			if ( 'core/gallery' !== $block['blockName'] ) {
-				// Move inner blocks into the root array before skipping.
-				if ( $has_inner_blocks ) {
-					array_push( $post_blocks, ...$block['innerBlocks'] );
+		$html_chunks = array();
+		$top_chunks  = array();
+		while ( $processor->next_delimiter( 'visit-html' ) && $processor->get_depth() >= $gallery_depth ) {
+			if ( $processor->opens_block( 'freeform' ) ) {
+				$opener = $processor->get_span();
+				$processor->next_delimiter( 'visit-html' );
+				$closer = $processor->get_span();
+
+				$chunk = substr( $post->post_content, $opener->start, $closer->start - $opener->start );
+				$html_chunks[] = $chunk;
+				if ( $gallery_depth === $processor->get_depth() ) {
+					$top_chunks[] = $chunk;
 				}
-				continue;
+			} else {
+				$has_inner_blocks = true;
+				break;
+			}
+		}
+
+		// New Gallery block format as HTML.
+		if ( $has_inner_blocks && $html ) {
+
+			// Get the rest of the innerHTML of the Gallery’s direct children.
+			while ( $processor->next_delimiter( 'visit-html' ) && $processor->get_depth() >= $gallery_depth ) {
+				if ( $processor->opens_block( 'freeform' ) ) {
+					$opener = $processor->get_span();
+					$processor->next_delimiter( 'visit-html' );
+					$closer = $processor->get_span();
+
+					$html_chunks[] = substr( $post->post_content, $opener->start, $closer->start - $opener->start );
+				}
 			}
 
-			// New Gallery block format as HTML.
-			if ( $has_inner_blocks && $html ) {
-				$block_html  = wp_list_pluck( $block['innerBlocks'], 'innerHTML' );
-				$galleries[] = '<figure>' . implode( ' ', $block_html ) . '</figure>';
+			$galleries[] = '<figure>' . implode( ' ', $html_chunks ) . '</figure>';
+			if ( ++$found >= $max_galleries ) {
+				break;
+			} else {
 				continue;
 			}
+		}
 
+		// New Gallery block format as an array.
+		if ( $has_inner_blocks ) {
+			// There are inner blocks and this is the first one.
+			$ids  = array();
 			$srcs = array();
 
-			// New Gallery block format as an array.
-			if ( $has_inner_blocks ) {
-				$attrs = wp_list_pluck( $block['innerBlocks'], 'attrs' );
-				$ids   = wp_list_pluck( $attrs, 'id' );
+			/**
+			 * @todo Could avoid computation by tracking seen ids and only looking up the
+			 *       attachment url if the id hasn’t already been resolved.
+			 */
 
-				foreach ( $ids as $id ) {
-					$url = wp_get_attachment_url( $id );
-
-					if ( is_string( $url ) && ! in_array( $url, $srcs, true ) ) {
-						$srcs[] = $url;
-					}
+			/** @var @todo Perfect use-case for lazy parsing here — only the `id` is wanted. */
+			$attrs = $processor->allocate_and_return_parsed_attributes();
+			$id    = $attrs['id'] ?? null;
+			if ( isset( $id ) ) {
+				$ids[] = $id;
+				$url   = wp_get_attachment_url( $id );
+				if ( is_string( $url ) ) {
+					$srcs[] = $url;
 				}
-
-				$galleries[] = array(
-					'ids' => implode( ',', $ids ),
-					'src' => $srcs,
-				);
-
-				continue;
 			}
 
-			// Old Gallery block format as HTML.
-			if ( $html ) {
-				$galleries[] = $block['innerHTML'];
-				continue;
-			}
+			while ( $processor->next_delimiter() && $processor->get_depth() >= $gallery_depth ) {
+				// Examine only the direct children of the gallery block.
+				if ( $processor->get_depth() === $gallery_depth && $processor->opens_block() ) {
+					$attrs = $processor->allocate_and_return_parsed_attributes();
+					$id    = $attrs['id'] ?? null;
+					if ( isset( $id ) ) {
+						$ids[] = $id;
+						$url   = wp_get_attachment_url( $id );
 
-			// Old Gallery block format as an array.
-			$ids = ! empty( $block['attrs']['ids'] ) ? $block['attrs']['ids'] : array();
-
-			// If present, use the image IDs from the JSON blob as canonical.
-			if ( ! empty( $ids ) ) {
-				foreach ( $ids as $id ) {
-					$url = wp_get_attachment_url( $id );
-
-					if ( is_string( $url ) && ! in_array( $url, $srcs, true ) ) {
-						$srcs[] = $url;
-					}
-				}
-
-				$galleries[] = array(
-					'ids' => implode( ',', $ids ),
-					'src' => $srcs,
-				);
-
-				continue;
-			}
-
-			// Otherwise, extract srcs from the innerHTML.
-			preg_match_all( '#src=([\'"])(.+?)\1#is', $block['innerHTML'], $found_srcs, PREG_SET_ORDER );
-
-			if ( ! empty( $found_srcs[0] ) ) {
-				foreach ( $found_srcs as $src ) {
-					if ( isset( $src[2] ) && ! in_array( $src[2], $srcs, true ) ) {
-						$srcs[] = $src[2];
+						if ( is_string( $url ) && !in_array( $url, $srcs, true ) ) {
+							$srcs[] = $url;
+						}
 					}
 				}
 			}
 
-			$galleries[] = array( 'src' => $srcs );
+			$galleries[] = array(
+				'ids' => implode( ',', $ids ),
+				'src' => $srcs,
+			);
+
+			if ( ++$found >= $max_galleries ) {
+				break;
+			} else {
+				continue;
+			}
+		}
+
+		// Old Gallery block format as HTML.
+		if ( $html ) {
+			$galleries[] = implode( '', $top_chunks );
+			if ( ++$found >= $max_galleries ) {
+				break;
+			} else {
+				continue;
+			}
+		}
+
+		// Old Gallery block format as an array.
+
+		// If present, use the image IDs from the JSON blob as canonical.
+		if ( ! empty( $gallery_ids ) ) {
+			foreach ( $ids as $id ) {
+				$url = wp_get_attachment_url( $id );
+
+				if ( is_string( $url ) && ! in_array( $url, $srcs, true ) ) {
+					$srcs[] = $url;
+				}
+			}
+
+			$galleries[] = array(
+				'ids' => implode( ',', $ids ),
+				'src' => $srcs,
+			);
+
+			if ( ++$found >= $max_galleries ) {
+				break;
+			} else {
+				continue;
+			}
+		}
+
+		// Otherwise, extract srcs from the innerHTML.
+		$inner_html = implode( '', $top_chunks );
+		$src_finder = new WP_HTML_Tag_Processor( $inner_html );
+		while ( $src_finder->next_tag() ) {
+			$src = $src_finder->get_attribute( 'src' );
+			if ( is_string( $src ) && ! in_array( $src, $srcs, true ) ) {
+				$srcs[] = $src;
+			}
+		}
+
+		$galleries[] = array( 'src' => $srcs );
+		if ( ++$found >= $max_galleries ) {
+			break;
 		}
 	}
 
@@ -5414,8 +5481,8 @@ function get_post_galleries( $post, $html = true ) {
  * @return string|array Gallery data and srcs parsed from the expanded shortcode.
  */
 function get_post_gallery( $post = 0, $html = true ) {
-	$galleries = get_post_galleries( $post, $html );
-	$gallery   = reset( $galleries );
+	$galleries = get_post_galleries( $post, $html, 1 );
+	$gallery   = $galleries[0] ?? false;
 
 	/**
 	 * Filters the first-found post gallery.
