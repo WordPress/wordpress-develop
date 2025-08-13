@@ -361,44 +361,31 @@ function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
  * @return bool Returns true if a block was located & printed, otherwise false.
  */
 function twenty_twenty_one_print_first_instance_of_block( $block_name, $content = null, $instances = 1 ) {
-	$instances_count = 0;
 	$blocks_content  = '';
 
 	if ( ! $content ) {
 		$content = get_the_content();
 	}
 
-	// Parse blocks in the content.
-	$blocks = parse_blocks( $content );
+	$processor      = WP_Block_Processor::create( $content );
+	$visit_freeform = in_array( $block_name, array( 'freeform', 'core/freeform', 'core/*' ), true );
+	$freeform_flag  = $visit_freeform ? 'visit-html' : 'skip-html';
+	$instance_count = 0;
 
-	// Loop blocks.
-	foreach ( $blocks as $block ) {
+	if ( str_ends_with( $block_name, '*' ) ) {
+		// Scan for blocks whose block type matches the prefix.
+		$prefix = rtrim( $block_name, '*' );
 
-		// Confidence check.
-		if ( ! isset( $block['blockName'] ) ) {
-			continue;
+		while ( $instance_count < $instances && $processor->next_delimiter( $freeform_flag ) ) {
+			if ( str_starts_with( $processor->get_block_type(), $prefix ) ) {
+				$blocks_content .= render_block( $processor->extract_block() );
+			}
 		}
-
-		// Check if this the block matches the $block_name.
-		$is_matching_block = false;
-
-		// If the block ends with *, try to match the first portion.
-		if ( '*' === $block_name[-1] ) {
-			$is_matching_block = 0 === strpos( $block['blockName'], rtrim( $block_name, '*' ) );
-		} else {
-			$is_matching_block = $block_name === $block['blockName'];
-		}
-
-		if ( $is_matching_block ) {
-			// Increment count.
-			++$instances_count;
-
-			// Add the block HTML.
-			$blocks_content .= render_block( $block );
-
-			// Break the loop if the $instances count was reached.
-			if ( $instances_count >= $instances ) {
-				break;
+	} else {
+		// Scan for blocks of the exact block type.
+		while ( $instance_count < $instances && $processor->next_delimiter( $freeform_flag ) ) {
+			if ( $processor->is_block_type( $block_name ) ) {
+				$blocks_content .= render_block( $processor->extract_block() );
 			}
 		}
 	}
