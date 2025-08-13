@@ -631,7 +631,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 *
 	 * @ticket 33972
 	 */
-	function test_wp_mail_encoding_does_not_bleed() {
+	public function test_wp_mail_encoding_does_not_bleed() {
 		$content = str_repeat( 'A', 1000 );
 		wp_mail( WP_TESTS_EMAIL, 'Looong line testing', $content );
 
