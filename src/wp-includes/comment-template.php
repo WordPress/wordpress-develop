@@ -1076,6 +1076,18 @@ function comment_text( $comment_id = 0, $args = array() ) {
 
 	$comment_text = get_comment_text( $comment, $args );
 
+	if ( is_admin() ) {
+		// Encode < and > in a numeric comparisons,
+		// to prevent them being parsed as HTML tags.
+		$comment_text = preg_replace_callback(
+			'/(<)(\s*\d+(?:\.\d+)?[^<>]*?)(>)(\s*\d+(?:\.\d+)?)/',
+			function ( $matches ) {
+				return htmlspecialchars( $matches[1] ) . $matches[2] . htmlspecialchars( $matches[3] ) . $matches[4];
+			},
+			$comment_text
+		);
+	}
+
 	/**
 	 * Filters the text of a comment to be displayed.
 	 *
