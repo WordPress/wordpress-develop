@@ -821,12 +821,17 @@ class WP_User_Query {
 
 		if ( null === $this->results ) {
 			// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
-			$this->request =
-				"SELECT {$this->query_fields}
-				 {$this->query_from}
-				 {$this->query_where}
-				 {$this->query_orderby}
-				 {$this->query_limit}";
+			$this->request = implode(
+				"\n\t",
+				array(
+					"SELECT {$this->query_fields}",
+					$this->query_from,
+					$this->query_where,
+					$this->query_orderby,
+					$this->query_limit,
+				)
+			);
+
 			$cache_value   = false;
 			$cache_key     = $this->generate_cache_key( $qv, $this->request );
 			$cache_group   = 'user-queries';

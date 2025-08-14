@@ -750,12 +750,16 @@ class WP_Term_Query {
 		$this->sql_clauses['limits']  = $limits;
 
 		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
-		$this->request =
-			"{$this->sql_clauses['select']}
-			 {$this->sql_clauses['from']}
-			 {$where}
-			 {$this->sql_clauses['orderby']}
-			 {$this->sql_clauses['limits']}";
+		$this->request = implode(
+			"\n\t",
+			array(
+				$this->sql_clauses['select'],
+				$this->sql_clauses['from'],
+				$where,
+				$this->sql_clauses['orderby'],
+				$this->sql_clauses['limits'],
+			)
+		);
 
 		$this->terms = null;
 
