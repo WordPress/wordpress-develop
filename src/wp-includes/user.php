@@ -2502,6 +2502,9 @@ function wp_insert_user( $userdata ) {
 	$user = new WP_User( $user_id );
 
 	if ( ! $update ) {
+		// On initial creation, there is no existing user data, but `wp_set_password` expects a `WP_User` object.
+		$old_user_data = new WP_User();
+
 		/** This action is documented in wp-includes/pluggable.php */
 		do_action( 'wp_set_password', $userdata['user_pass'], $user_id, $userdata );
 	}
