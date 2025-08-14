@@ -3188,9 +3188,9 @@ class WP_Query {
 				"SELECT $found_rows $distinct $fields",
 				"FROM {$wpdb->posts} $join",
 				"WHERE 1=1 $where",
-				"$groupby",
-				"$orderby",
-				"$limits",
+				$groupby,
+				$orderby,
+				$limits,
 			)
 		);
 
@@ -3408,9 +3408,9 @@ class WP_Query {
 						"SELECT $found_rows $distinct {$wpdb->posts}.ID",
 						"FROM {$wpdb->posts} $join",
 						"WHERE 1=1 $where",
-						"$groupby",
-						"$orderby",
-						"$limits",
+						$groupby,
+						$orderby,
+						$limits,
 					)
 				);
 
