@@ -46,8 +46,20 @@ jQuery( function($) {
 			 * @return {void}
 			 */
 			$.post(ajaxurl, data, function(r){
+				var message;
 				if ( '1' == r ) {
 					$('#ajax-response').empty();
+					let nextFocus = tr.next( 'tr' ).find( 'a.row-title' );
+					let prevFocus = tr.prev( 'tr' ).find( 'a.row-title' );
+					// If there is neither a next row or a previous row, focus the tag input field.
+					if ( nextFocus.length < 1 && prevFocus.length < 1 ) {
+						nextFocus = $( '#tag-name' ).trigger( 'focus' );
+					} else {
+						if ( nextFocus.length < 1 ) {
+							nextFocus = prevFocus;
+						}
+					}
+
 					tr.fadeOut('normal', function(){ tr.remove(); });
 
 					/**
@@ -59,15 +71,20 @@ jQuery( function($) {
 					 */
 					$('select#parent option[value="' + data.match(/tag_ID=(\d+)/)[1] + '"]').remove();
 					$('a.tag-link-' + data.match(/tag_ID=(\d+)/)[1]).remove();
-
+					nextFocus.trigger( 'focus' );
+					message = wp.i18n.__( 'The selected tag has been deleted.' );
+			
 				} else if ( '-1' == r ) {
-					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + wp.i18n.__( 'Sorry, you are not allowed to do that.' ) + '</p></div>');
+					message = wp.i18n.__( 'Sorry, you are not allowed to do that.' );
+					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + message + '</p></div>');
 					resetRowAfterFailure( tr );
 
 				} else {
-					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + wp.i18n.__( 'An error occurred while processing your request. Please try again later.' ) + '</p></div>');
+					message = wp.i18n.__( 'An error occurred while processing your request. Please try again later.' );
+					$('#ajax-response').empty().append('<div class="notice notice-error"><p>' + message + '</p></div>');
 					resetRowAfterFailure( tr );
 				}
+				wp.a11y.speak( message, 'assertive' );
 			});
 		}
 
