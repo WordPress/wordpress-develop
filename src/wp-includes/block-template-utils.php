@@ -1385,11 +1385,13 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 
 	$block_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $slug );
 
-	$block_template->content = apply_block_hooks_to_content(
-		$block_template->content,
-		$block_template,
-		'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
-	);
+	if ( $block_template ) {
+		$block_template->content = apply_block_hooks_to_content(
+			$block_template->content,
+			$block_template,
+			'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+		);
+	}
 
 	/**
 	 * Filters the block template object after it has been (potentially) fetched from the theme file.
