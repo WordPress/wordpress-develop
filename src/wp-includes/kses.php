@@ -1039,6 +1039,7 @@ function wp_kses_uri_attributes() {
 		'src',
 		'usemap',
 		'xmlns',
+		'srcset',
 	);
 
 	/**
@@ -1534,24 +1535,25 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 }
 
 /**
- * Santizes uris in attributes
+ * Sanitizes URI values in HTML attributes.
  *
- * This condenses code that was spread around two functions and several cases. It places the list of attributes
- * which can have uris in them and checks for ones that can have multiple uri candidates (like srcset)
- * It ultimately passes everything to wp_kses_bad_protocol() to do the actual work.
+ * This function centralizes logic for cleaning attribute values that are expected to contain URLs.
+ * It checks if the attribute name is one that should contain a URI (e.g., 'href', 'src', 'srcset').
+ * For attributes that can contain multiple URIs (such as 'srcset'), it splits the value and sanitizes each URI individually.
+ * All URI values are passed through {@see wp_kses_bad_protocol()} to remove disallowed protocols (e.g., 'javascript:').
  *
  * @since 6.9.0
  *
- * @param string.  $attrname          Attribute name to test against.
- * @param string   $attrvalue         Content to filter bad protocols from.
+ * @param string   $attrname          The attribute name to test.
+ * @param string   $attrvalue         The attribute value to sanitize.
  * @param string[] $allowed_protocols Array of allowed URL protocols.
- * @param string[] $multi_uri         Array of attributes that can have multiple uri candidates. Defaults to ['srcset'].
- * @return string Filtered content.
+ * @param string[] $multi_uri         Optional. Attributes that can contain multiple URIs. Default is array( 'srcset' ).
+ * @return string Sanitized attribute value.
  */
 function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $multi_uri = array( 'srcset' ) ) {
 	$uris = wp_kses_uri_attributes();
 
-	if ( ! in_array( strtolower( $attrname ), $uris ) ) {
+	if ( ! in_array( strtolower( $attrname ), $uris, true ) ) {
 		return $attrvalue;
 	} else {
 		if ( in_array( strtolower( $attrname ), $multi_uri, true ) ) {
