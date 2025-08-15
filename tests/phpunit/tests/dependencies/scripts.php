@@ -1630,6 +1630,8 @@ HTML
 
 	/**
 	 * Testing `wp_script_add_data` with the conditional key.
+	 * 
+	 * @since 6.9.0 Conditional comments should now return an empty string.
 	 *
 	 * @ticket 16024
 	 */
@@ -1637,28 +1639,7 @@ HTML
 		// Enqueue and add conditional comments.
 		wp_enqueue_script( 'test-only-conditional', 'example.com', array(), null );
 		wp_script_add_data( 'test-only-conditional', 'conditional', 'gt IE 7' );
-		$expected = "<!--[if gt IE 7]>\n<script type=\"text/javascript\" src=\"http://example.com\" id=\"test-only-conditional-js\"></script>\n<![endif]-->\n";
-
-		// Go!
-		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
-
-		// No scripts left to print.
-		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
-	}
-
-	/**
-	 * Testing `wp_script_add_data` with both the data & conditional keys.
-	 *
-	 * @ticket 16024
-	 */
-	public function test_wp_script_add_data_with_data_and_conditional_keys() {
-		// Enqueue and add data plus conditional comments for both.
-		wp_enqueue_script( 'test-conditional-with-data', 'example.com', array(), null );
-		wp_script_add_data( 'test-conditional-with-data', 'data', 'testing' );
-		wp_script_add_data( 'test-conditional-with-data', 'conditional', 'lt IE 9' );
-		$expected  = "<!--[if lt IE 9]>\n<script type='text/javascript' id='test-conditional-with-data-js-extra'>\n/* <![CDATA[ */\ntesting\n/* ]]> */\n</script>\n<![endif]-->\n";
-		$expected .= "<!--[if lt IE 9]>\n<script type='text/javascript' src='http://example.com' id='test-conditional-with-data-js'></script>\n<![endif]-->\n";
-		$expected  = str_replace( "'", '"', $expected );
+		$expected = '';
 
 		// Go!
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );

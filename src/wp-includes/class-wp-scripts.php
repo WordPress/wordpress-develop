@@ -289,12 +289,14 @@ class WP_Scripts extends WP_Dependencies {
 			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
 		}
 
-		$src                   = $obj->src;
-		$strategy              = $this->get_eligible_loading_strategy( $handle );
-		$intended_strategy     = (string) $this->get_data( $handle, 'strategy' );
-		$ie_conditional_prefix = '';
-		$ie_conditional_suffix = '';
-		$conditional           = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
+		$src               = $obj->src;
+		$strategy          = $this->get_eligible_loading_strategy( $handle );
+		$intended_strategy = (string) $this->get_data( $handle, 'strategy' );
+		$conditional       = isset( $obj->extra['conditional'] ) ? true : false;
+		if ( $conditional ) {
+
+			return false;
+		}
 
 		if ( ! $this->is_delayed_strategy( $intended_strategy ) ) {
 			$intended_strategy = '';
@@ -319,16 +321,11 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
-		if ( $conditional ) {
-			$ie_conditional_prefix = "<!--[if {$conditional}]>\n";
-			$ie_conditional_suffix = "<![endif]-->\n";
-		}
-
 		$before_script = $this->get_inline_script_tag( $handle, 'before' );
 		$after_script  = $this->get_inline_script_tag( $handle, 'after' );
 
 		if ( $before_script || $after_script ) {
-			$inline_script_tag = $ie_conditional_prefix . $before_script . $after_script . $ie_conditional_suffix;
+			$inline_script_tag = $before_script . $after_script;
 		} else {
 			$inline_script_tag = '';
 		}
@@ -364,7 +361,7 @@ class WP_Scripts extends WP_Dependencies {
 				// Have to print the so-far concatenated scripts right away to maintain the right order.
 				_print_scripts();
 				$this->reset();
-			} elseif ( $this->in_default_dir( $filtered_src ) && ! $conditional ) {
+			} elseif ( $this->in_default_dir( $filtered_src ) ) {
 				$this->print_code     .= $this->print_extra_script( $handle, false );
 				$this->concat         .= "$handle,";
 				$this->concat_version .= "$handle$ver";
@@ -375,17 +372,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
-		$has_conditional_data = $conditional && $this->get_data( $handle, 'data' );
-
-		if ( $has_conditional_data ) {
-			echo $ie_conditional_prefix;
-		}
-
 		$this->print_extra_script( $handle );
-
-		if ( $has_conditional_data ) {
-			echo $ie_conditional_suffix;
-		}
 
 		// A single item may alias a set of items, by having dependencies, but no source.
 		if ( ! $src ) {
@@ -425,9 +412,9 @@ class WP_Scripts extends WP_Dependencies {
 		if ( $intended_strategy ) {
 			$attr['data-wp-strategy'] = $intended_strategy;
 		}
-		$tag  = $translations . $ie_conditional_prefix . $before_script;
+		$tag  = $translations . $before_script;
 		$tag .= wp_get_script_tag( $attr );
-		$tag .= $after_script . $ie_conditional_suffix;
+		$tag .= $after_script;
 
 		/**
 		 * Filters the HTML script tag of an enqueued script.

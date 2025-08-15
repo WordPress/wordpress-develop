@@ -165,14 +165,11 @@ class WP_Styles extends WP_Dependencies {
 			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
 		}
 
-		$src                   = $obj->src;
-		$ie_conditional_prefix = '';
-		$ie_conditional_suffix = '';
-		$conditional           = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
-
+		$src         = $obj->src;
+		$conditional = isset( $obj->extra['conditional'] ) ? true : false;
 		if ( $conditional ) {
-			$ie_conditional_prefix = "<!--[if {$conditional}]>\n";
-			$ie_conditional_suffix = "<![endif]-->\n";
+
+			return false;
 		}
 
 		$inline_style = $this->print_inline_style( $handle, false );
@@ -189,7 +186,7 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		if ( $this->do_concat ) {
-			if ( $this->in_default_dir( $src ) && ! $conditional && ! isset( $obj->extra['alt'] ) ) {
+			if ( $this->in_default_dir( $src ) && ! isset( $obj->extra['alt'] ) ) {
 				$this->concat         .= "$handle,";
 				$this->concat_version .= "$handle$ver";
 
@@ -279,17 +276,13 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		if ( $this->do_concat ) {
-			$this->print_html .= $ie_conditional_prefix;
 			$this->print_html .= $tag;
 			if ( $inline_style_tag ) {
 				$this->print_html .= $inline_style_tag;
 			}
-			$this->print_html .= $ie_conditional_suffix;
 		} else {
-			echo $ie_conditional_prefix;
 			echo $tag;
 			$this->print_inline_style( $handle );
-			echo $ie_conditional_suffix;
 		}
 
 		return true;
