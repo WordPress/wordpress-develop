@@ -209,6 +209,7 @@ if ( ! CUSTOM_TAGS ) {
 			'srcset'   => true,
 			'usemap'   => true,
 			'width'    => true,
+			'sizes'    => true,
 		),
 		'ins'        => array(
 			'datetime' => true,
