@@ -1553,7 +1553,7 @@ function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols ) {
 	if ( ! in_array( strtolower( $attrname ), $uris ) ) {
 		return $attrvalue;
 	} else {
-		if ( in_array( strtolower( $attrname ), $uri_candidates ) ) {
+		if ( in_array( strtolower( $attrname ), $uri_candidates, true ) ) {
 			$thesevals = preg_split( '/\s*,\s*/', $attrvalue );
 		} else {
 			$thesevals = array( $attrvalue );
