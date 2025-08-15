@@ -2390,7 +2390,7 @@ HTML;
 			'style' => 'color: red;',
 			'alt' => 'alt',
 			'src' => '/test.png',
-			'srcset' => '/test.png 1x, /test-2x.png 2x',
+			'srcset' => '/test.png 1x, /test-2x.png 2x,/test-3x.png',
 			'width' => '100',
 			'height' => '100',
 			'usemap' => '#hash',
