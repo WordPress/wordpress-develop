@@ -2392,7 +2392,7 @@ HTML;
 			'style'    => 'color: red;',
 			'alt'      => 'alt',
 			'src'      => '/test.png',
-			'srcset'   => '/test.png 1x, /test-2x.png 2x,/test-3x.png',
+			'srcset'   => '/test.png 1x, /test-2x.png 2x, /test-3x.png',
 			'width'    => '100',
 			'height'   => '100',
 			'usemap'   => '#hash',
@@ -2401,7 +2401,7 @@ HTML;
 			'longdesc' => 'this is the longdesc',
 			'align'    => 'middle',
 			'border'   => '5',
-			'sizes'    => '(width <= 600px) 480px, 800px',
+			'sizes'    => '(max-width: 600px) 100vw, 50vw',
 		);
 
 		foreach ( $attributes as $name => $value ) {
@@ -2447,7 +2447,7 @@ HTML;
 			),
 			array(
 				'http://localhost/test.png,big 1x, bad://localhost/test.png,medium 2x',
-				'http://localhost/test.png,big 1x, //localhost/test.png,medium 2x',
+				'http://localhost/test.png, big 1x, //localhost/test.png, medium 2x',
 			),
 			array(
 				'path/to/test.png 1x, path/to/test-2x.png 2x',
