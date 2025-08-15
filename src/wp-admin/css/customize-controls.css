@@ -3000,6 +3000,10 @@ body.adding-widget .add-new-widget:before,
 		vertical-align: middle;
 	}
 
+	.customize-control .attachment-media-view .upload-button {
+		padding: 5px 0;
+	}
+
 	#customize-control-changeset_status .customize-inside-control-row {
 		padding-top: 15px;
 	}
