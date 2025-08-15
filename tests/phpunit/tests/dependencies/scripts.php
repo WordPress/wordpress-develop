@@ -1630,7 +1630,7 @@ HTML
 
 	/**
 	 * Testing `wp_script_add_data` with the conditional key.
-	 * 
+	 *
 	 * @since 6.9.0 Conditional comments should now return an empty string.
 	 *
 	 * @ticket 16024
