@@ -1228,7 +1228,7 @@ function wp_get_ready_cron_jobs() {
  */
 function _get_cron_array( $fresh = false ) {
 	if ( $fresh ) {
-		wp_cache_delete( 'alloptions', 'options' );	// there doesn't seem to be a more surgical way
+		wp_cache_delete( 'alloptions', 'options' ); // there doesn't seem to be a more surgical way
 	}
 
 	$cron = get_option( 'cron' );
