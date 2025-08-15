@@ -2387,28 +2387,28 @@ HTML;
 		global $allowedposttags;
 
 		$attributes = array(
-			'class' => 'classname',
-			'id' => 'idattr',
-			'style' => 'color: red;',
-			'alt' => 'alt',
-			'src' => '/test.png',
-			'srcset' => '/test.png 1x, /test-2x.png 2x,/test-3x.png',
-			'width' => '100',
-			'height' => '100',
-			'usemap' => '#hash',
-			'vspace' => '20',
-			'hspace' => '20',
+			'class'    => 'classname',
+			'id'       => 'idattr',
+			'style'    => 'color: red;',
+			'alt'      => 'alt',
+			'src'      => '/test.png',
+			'srcset'   => '/test.png 1x, /test-2x.png 2x,/test-3x.png',
+			'width'    => '100',
+			'height'   => '100',
+			'usemap'   => '#hash',
+			'vspace'   => '20',
+			'hspace'   => '20',
 			'longdesc' => 'this is the longdesc',
-			'align' => 'middle',
-			'border' => '5',
+			'align'    => 'middle',
+			'border'   => '5',
 		);
 
 		foreach ( $attributes as $name => $value ) {
 			if ( $name === $value ) {
-				$string = "<img $value />";
+				$string        = "<img $value />";
 				$expect_string = '<img ' . trim( $value, ';' ) . ' />';
 			} else {
-				$string = "<img $name='$value' />";
+				$string        = "<img $name='$value' />";
 				$expect_string = "<img $name='" . trim( $value, ';' ) . "' />";
 			}
 
@@ -2426,7 +2426,7 @@ HTML;
 	 */
 	public function test_wp_kses_srcset( $unfiltered, $expected ) {
 		$unfiltered = "<img src='test.png' srcset='{$unfiltered}' />";
-		$expected = "<img src='test.png' srcset='{$expected}' />";
+		$expected   = "<img src='test.png' srcset='{$expected}' />";
 		$this->assertEquals( $expected, wp_kses_post( $unfiltered ) );
 	}
 
