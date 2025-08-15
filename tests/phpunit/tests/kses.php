@@ -2401,6 +2401,7 @@ HTML;
 			'longdesc' => 'this is the longdesc',
 			'align'    => 'middle',
 			'border'   => '5',
+			'sizes'    => '(width <= 600px) 480px, 800px',
 		);
 
 		foreach ( $attributes as $name => $value ) {
