@@ -175,11 +175,19 @@ require get_template_directory() . '/classes/class-twentytwenty-non-latin-langua
 // Custom CSS.
 require get_template_directory() . '/inc/custom-css.php';
 
-// Block Patterns.
-require get_template_directory() . '/inc/block-patterns.php';
+/**
+ * Registers block patterns and pattern categories.
+ *
+ * @since Twenty Twenty 2.8
+ */
+function twentytwenty_register_block_patterns() {
+	require get_template_directory() . '/inc/block-patterns.php';
+}
+
+add_action( 'init', 'twentytwenty_register_block_patterns' );
 
 /**
- * Register and Enqueue Styles.
+ * Registers and Enqueues Styles.
  *
  * @since Twenty Twenty 1.0
  * @since Twenty Twenty 2.6 Enqueue the CSS file for the variable font.
@@ -192,7 +200,7 @@ function twentytwenty_register_styles() {
 	wp_style_add_data( 'twentytwenty-style', 'rtl', 'replace' );
 
 	// Enqueue the CSS file for the variable font, Inter.
-	wp_enqueue_style( 'twentytwenty-fonts', get_theme_file_uri( '/assets/css/font-inter.css' ), array(), wp_get_theme()->get( 'Version' ), 'all' );
+	wp_enqueue_style( 'twentytwenty-fonts', get_theme_file_uri( '/assets/css/font-inter.css' ), array(), $theme_version, 'all' );
 
 	// Add output of Customizer settings as inline style.
 	$customizer_css = twentytwenty_get_customizer_css( 'front-end' );
@@ -207,7 +215,7 @@ function twentytwenty_register_styles() {
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_styles' );
 
 /**
- * Register and Enqueue Scripts.
+ * Registers and Enqueues Scripts.
  *
  * @since Twenty Twenty 1.0
  */
@@ -232,7 +240,7 @@ function twentytwenty_register_scripts() {
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_scripts' );
 
 /**
- * Fix skip link focus in IE11.
+ * Fixes skip link focus in IE11.
  *
  * This does not enqueue the script because it is tiny and because it is only for IE11,
  * thus it does not warrant having an entire dedicated blocking script being loaded.
@@ -252,7 +260,7 @@ function twentytwenty_skip_link_focus_fix() {
 }
 
 /**
- * Enqueue non-latin language styles.
+ * Enqueues non-latin language styles.
  *
  * @since Twenty Twenty 1.0
  *
@@ -269,7 +277,9 @@ function twentytwenty_non_latin_languages() {
 add_action( 'wp_enqueue_scripts', 'twentytwenty_non_latin_languages' );
 
 /**
- * Register navigation menus uses wp_nav_menu in five places.
+ * Registers navigation menus.
+ *
+ * This theme uses wp_nav_menu() in five places.
  *
  * @since Twenty Twenty 1.0
  */
@@ -289,11 +299,11 @@ function twentytwenty_menus() {
 add_action( 'init', 'twentytwenty_menus' );
 
 /**
- * Get the information about the logo.
+ * Gets the information about the logo.
  *
  * @since Twenty Twenty 1.0
  *
- * @param string $html The HTML output from get_custom_logo (core function).
+ * @param string $html The HTML output from get_custom_logo() (core function).
  * @return string
  */
 function twentytwenty_get_custom_logo( $html ) {
@@ -348,12 +358,16 @@ add_filter( 'get_custom_logo', 'twentytwenty_get_custom_logo' );
 if ( ! function_exists( 'wp_body_open' ) ) {
 
 	/**
-	 * Shim for wp_body_open, ensuring backward compatibility with versions of WordPress older than 5.2.
+	 * Shim for wp_body_open(), ensuring backward compatibility with versions of WordPress older than 5.2.
 	 *
 	 * @since Twenty Twenty 1.0
 	 */
 	function wp_body_open() {
-		/** This action is documented in wp-includes/general-template.php */
+		/**
+		 * Triggered after the opening <body> tag.
+		 *
+		 * @since Twenty Twenty 1.0
+		 */
 		do_action( 'wp_body_open' );
 	}
 }
@@ -373,7 +387,7 @@ function twentytwenty_skip_link() {
 add_action( 'wp_body_open', 'twentytwenty_skip_link', 5 );
 
 /**
- * Register widget areas.
+ * Registers widget areas.
  *
  * @since Twenty Twenty 1.0
  *
@@ -417,7 +431,7 @@ function twentytwenty_sidebar_registration() {
 add_action( 'widgets_init', 'twentytwenty_sidebar_registration' );
 
 /**
- * Enqueue supplemental block editor styles.
+ * Enqueues supplemental block editor styles.
  *
  * @since Twenty Twenty 1.0
  * @since Twenty Twenty 2.4 Removed a script related to the obsolete Squared style of Button blocks.
@@ -425,8 +439,10 @@ add_action( 'widgets_init', 'twentytwenty_sidebar_registration' );
  */
 function twentytwenty_block_editor_styles() {
 
+	$theme_version = wp_get_theme()->get( 'Version' );
+
 	// Enqueue the editor styles.
-	wp_enqueue_style( 'twentytwenty-block-editor-styles', get_theme_file_uri( '/assets/css/editor-style-block.css' ), array(), wp_get_theme()->get( 'Version' ), 'all' );
+	wp_enqueue_style( 'twentytwenty-block-editor-styles', get_theme_file_uri( '/assets/css/editor-style-block.css' ), array(), $theme_version, 'all' );
 	wp_style_add_data( 'twentytwenty-block-editor-styles', 'rtl', 'replace' );
 
 	// Add inline style from the Customizer.
@@ -436,7 +452,7 @@ function twentytwenty_block_editor_styles() {
 	}
 
 	// Enqueue the CSS file for the variable font, Inter.
-	wp_enqueue_style( 'twentytwenty-fonts', get_theme_file_uri( '/assets/css/font-inter.css' ), array(), wp_get_theme()->get( 'Version' ), 'all' );
+	wp_enqueue_style( 'twentytwenty-fonts', get_theme_file_uri( '/assets/css/font-inter.css' ), array(), $theme_version, 'all' );
 
 	// Add inline style for non-latin fonts.
 	$custom_css = TwentyTwenty_Non_Latin_Languages::get_non_latin_css( 'block-editor' );
@@ -452,7 +468,7 @@ if ( is_admin() && version_compare( $GLOBALS['wp_version'], '6.3', '>=' ) ) {
 }
 
 /**
- * Enqueue classic editor styles.
+ * Enqueues classic editor styles.
  *
  * @since Twenty Twenty 1.0
  * @since Twenty Twenty 2.6 Enqueue the CSS file for the variable font.
@@ -526,7 +542,7 @@ add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_non_latin_s
 
 /**
  * Block Editor Settings.
- * Add custom colors and font sizes to the block editor.
+ * Adds custom colors and font sizes to the block editor.
  *
  * @since Twenty Twenty 1.0
  */
@@ -651,7 +667,7 @@ function twentytwenty_customize_controls_enqueue_scripts() {
 add_action( 'customize_controls_enqueue_scripts', 'twentytwenty_customize_controls_enqueue_scripts' );
 
 /**
- * Enqueue scripts for the customizer preview.
+ * Enqueues scripts for the customizer preview.
  *
  * @since Twenty Twenty 1.0
  *
@@ -677,7 +693,7 @@ function twentytwenty_customize_preview_init() {
 add_action( 'customize_preview_init', 'twentytwenty_customize_preview_init' );
 
 /**
- * Get accessible color for an area.
+ * Gets accessible color for an area.
  *
  * @since Twenty Twenty 1.0
  *
@@ -735,7 +751,7 @@ function twentytwenty_get_customizer_color_vars() {
 }
 
 /**
- * Get an array of elements.
+ * Gets an array of elements.
  *
  * @since Twenty Twenty 1.0
  *

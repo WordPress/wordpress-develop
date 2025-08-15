@@ -142,11 +142,14 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 
 		$ids = $result[ WP_REST_Search_Handler::RESULT_IDS ];
 
-		$results = array();
+		$is_head_request = $request->is_method( 'HEAD' );
+		if ( ! $is_head_request ) {
+			$results = array();
 
-		foreach ( $ids as $id ) {
-			$data      = $this->prepare_item_for_response( $id, $request );
-			$results[] = $this->prepare_response_for_collection( $data );
+			foreach ( $ids as $id ) {
+				$data      = $this->prepare_item_for_response( $id, $request );
+				$results[] = $this->prepare_response_for_collection( $data );
+			}
 		}
 
 		$total     = (int) $result[ WP_REST_Search_Handler::RESULT_TOTAL ];
@@ -162,7 +165,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$response = rest_ensure_response( $results );
+		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $results );
 		$response->header( 'X-WP-Total', $total );
 		$response->header( 'X-WP-TotalPages', $max_pages );
 
@@ -395,7 +398,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	protected function get_search_handler( $request ) {
 		$type = $request->get_param( self::PROP_TYPE );
 
-		if ( ! $type || ! isset( $this->search_handlers[ $type ] ) ) {
+		if ( ! $type || ! is_string( $type ) || ! isset( $this->search_handlers[ $type ] ) ) {
 			return new WP_Error(
 				'rest_search_invalid_type',
 				__( 'Invalid type parameter.' ),

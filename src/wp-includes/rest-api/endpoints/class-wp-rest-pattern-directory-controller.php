@@ -87,13 +87,6 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		/*
-		 * Include an unmodified `$wp_version`, so the API can craft a response that's tailored to
-		 * it. Some plugins modify the version in a misguided attempt to improve security by
-		 * obscuring the version, which can cause invalid requests.
-		 */
-		require ABSPATH . WPINC . '/version.php';
-
 		$valid_query_args = array(
 			'offset'   => true,
 			'order'    => true,
@@ -106,7 +99,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 		$query_args       = array_intersect_key( $request->get_params(), $valid_query_args );
 
 		$query_args['locale']             = get_user_locale();
-		$query_args['wp-version']         = $wp_version;
+		$query_args['wp-version']         = wp_get_wp_version();
 		$query_args['pattern-categories'] = isset( $request['category'] ) ? $request['category'] : false;
 		$query_args['pattern-keywords']   = isset( $request['keyword'] ) ? $request['keyword'] : false;
 
@@ -166,6 +159,11 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			$raw_patterns->add_data( array( 'status' => 500 ) );
 
 			return $raw_patterns;
+		}
+
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
 		}
 
 		$response = array();
@@ -376,7 +374,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 		return apply_filters( 'rest_pattern_directory_collection_params', $query_params );
 	}
 
-	/*
+	/**
 	 * Include a hash of the query args, so that different requests are stored in
 	 * separate caches.
 	 *

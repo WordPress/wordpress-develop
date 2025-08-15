@@ -3,6 +3,12 @@
  * Sets up the default filters and actions for most
  * of the WordPress hooks.
  *
+ * This file is loaded very early in the bootstrap which
+ * means many functions are not yet available and site
+ * information such as if this is multisite is unknown.
+ * Before using functions besides `add_filter` and
+ * `add_action`, verify things will work as expected.
+ *
  * If you need to remove a default hook, this file will
  * give you the priority to use for removing the hook.
  *
@@ -16,6 +22,11 @@
  *
  * @package WordPress
  */
+
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
 
 // Strip, trim, kses, special chars for string saves.
 foreach ( array( 'pre_term_name', 'pre_comment_author_name', 'pre_link_name', 'pre_link_target', 'pre_link_rel', 'pre_user_display_name', 'pre_user_first_name', 'pre_user_last_name', 'pre_user_nickname' ) as $filter ) {
@@ -147,9 +158,6 @@ foreach ( array( 'content_save_pre', 'excerpt_save_pre', 'comment_save_pre', 'pr
 	add_filter( $filter, 'balanceTags', 50 );
 }
 
-// Add proper rel values for links with target.
-add_action( 'init', 'wp_init_targeted_link_rel_filters' );
-
 // Format strings for display.
 foreach ( array( 'comment_author', 'term_name', 'link_name', 'link_description', 'link_notes', 'bloginfo', 'wp_title', 'document_title', 'widget_title' ) as $filter ) {
 	add_filter( $filter, 'wptexturize' );
@@ -189,6 +197,7 @@ add_filter( 'the_title', 'wptexturize' );
 add_filter( 'the_title', 'convert_chars' );
 add_filter( 'the_title', 'trim' );
 
+add_filter( 'the_content', 'apply_block_hooks_to_content_from_post_object', 8 ); // BEFORE do_blocks().
 add_filter( 'the_content', 'do_blocks', 9 );
 add_filter( 'the_content', 'wptexturize' );
 add_filter( 'the_content', 'convert_smilies', 20 );
@@ -286,6 +295,7 @@ foreach (
 }
 
 // Misc filters.
+add_filter( 'wp_default_autoload_value', 'wp_filter_default_autoload_value_via_option_size', 5, 4 ); // Allow the value to be overridden at the default priority.
 add_filter( 'option_ping_sites', 'privacy_ping_filter' );
 add_filter( 'option_blog_charset', '_wp_specialchars' ); // IMPORTANT: This must not be wp_specialchars() or esc_html() or it'll cause an infinite loop.
 add_filter( 'option_blog_charset', '_canonical_charset' );
@@ -348,6 +358,7 @@ add_action( 'wp_head', 'rel_canonical' );
 add_action( 'wp_head', 'wp_shortlink_wp_head', 10, 0 );
 add_action( 'wp_head', 'wp_custom_css_cb', 101 );
 add_action( 'wp_head', 'wp_site_icon', 99 );
+add_action( 'wp_footer', 'wp_print_speculation_rules' );
 add_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
 add_action( 'template_redirect', 'wp_shortlink_header', 11, 0 );
 add_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
@@ -361,7 +372,13 @@ add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_emoji_styles' );
 add_action( 'wp_print_styles', 'print_emoji_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_emoji_styles().
 
-if ( isset( $_GET['replytocom'] ) ) {
+if (
+	// Comment reply link.
+	isset( $_GET['replytocom'] )
+	||
+	// Unapproved comment preview.
+	( isset( $_GET['unapproved'] ) && isset( $_GET['moderation-hash'] ) )
+) {
 	add_filter( 'wp_robots', 'wp_robots_no_robots' );
 }
 
@@ -373,6 +390,7 @@ add_action( 'login_head', 'print_admin_styles', 9 );
 add_action( 'login_head', 'wp_site_icon', 99 );
 add_action( 'login_footer', 'wp_print_footer_scripts', 20 );
 add_action( 'login_init', 'send_frame_options_header', 10, 0 );
+add_action( 'login_init', 'wp_admin_headers' );
 
 // Feed generator tags.
 foreach ( array( 'rss2_head', 'commentsrss2_head', 'rss_head', 'rdf_header', 'atom_head', 'comments_atom_head', 'opml_head', 'app_head' ) as $action ) {
@@ -533,6 +551,9 @@ add_action( 'transition_post_status', '_wp_keep_alive_customize_changeset_depend
 // Block Theme Previews.
 add_action( 'plugins_loaded', 'wp_initialize_theme_preview_hooks', 1 );
 
+// Site preview for Classic Theme.
+add_action( 'init', 'wp_initialize_site_preview_hooks', 1 );
+
 // Calendar widget cache.
 add_action( 'save_post', 'delete_get_calendar_cache' );
 add_action( 'delete_post', 'delete_get_calendar_cache' );
@@ -563,12 +584,14 @@ add_action( 'set_current_user', 'kses_init' );
 // Script Loader.
 add_action( 'wp_default_scripts', 'wp_default_scripts' );
 add_action( 'wp_default_scripts', 'wp_default_packages' );
+add_action( 'wp_default_scripts', 'wp_default_script_modules' );
 
 add_action( 'wp_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'wp_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_classic_theme_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'admin_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
+add_action( 'enqueue_block_assets', 'wp_enqueue_classic_theme_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'enqueue_block_styles_assets', 30 );
 /*
@@ -593,14 +616,10 @@ add_action( 'wp_print_scripts', 'wp_just_in_time_script_localization' );
 add_filter( 'print_scripts_array', 'wp_prototype_before_jquery' );
 add_action( 'customize_controls_print_styles', 'wp_resource_hints', 1 );
 add_action( 'admin_head', 'wp_check_widget_editor_deps' );
-add_filter( 'block_editor_settings_all', 'wp_add_editor_classic_theme_styles' );
 
 // Global styles can be enqueued in both the header and the footer. See https://core.trac.wordpress.org/ticket/53494.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
-
-// Global styles custom CSS.
-add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles_custom_css' );
 
 // Block supports, and other styles parsed and stored in the Style Engine.
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
@@ -609,6 +628,7 @@ add_action( 'wp_footer', 'wp_enqueue_stored_styles', 1 );
 add_action( 'wp_default_styles', 'wp_default_styles' );
 add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );
 
+add_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', 1 );
 add_action( 'wp_head', 'wp_maybe_inline_styles', 1 ); // Run for styles enqueued in <head>.
 add_action( 'wp_footer', 'wp_maybe_inline_styles', 1 ); // Run for late-loaded styles in the footer.
 
@@ -753,7 +773,19 @@ add_action( 'before_delete_post', '_wp_before_delete_font_face', 10, 2 );
 add_action( 'init', '_wp_register_default_font_collections' );
 
 // Add ignoredHookedBlocks metadata attribute to the template and template part post types.
-add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 2 );
-add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes', 10, 2 );
+add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadata_attributes' );
+add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
+
+// Update ignoredHookedBlocks postmeta for some post types.
+add_filter( 'rest_pre_insert_page', 'update_ignored_hooked_blocks_postmeta' );
+add_filter( 'rest_pre_insert_post', 'update_ignored_hooked_blocks_postmeta' );
+add_filter( 'rest_pre_insert_wp_block', 'update_ignored_hooked_blocks_postmeta' );
+add_filter( 'rest_pre_insert_wp_navigation', 'update_ignored_hooked_blocks_postmeta' );
+
+// Inject hooked blocks into the Posts endpoint REST response for some given post types.
+add_filter( 'rest_prepare_page', 'insert_hooked_blocks_into_rest_response', 10, 2 );
+add_filter( 'rest_prepare_post', 'insert_hooked_blocks_into_rest_response', 10, 2 );
+add_filter( 'rest_prepare_wp_block', 'insert_hooked_blocks_into_rest_response', 10, 2 );
+add_filter( 'rest_prepare_wp_navigation', 'insert_hooked_blocks_into_rest_response', 10, 2 );
 
 unset( $filter, $action );

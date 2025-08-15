@@ -8,6 +8,8 @@
  *
  * @since 6.5.0
  *
+ * @coversDefaultClass WP_Interactivity_API
+ *
  * @group interactivity-api
  */
 class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
@@ -56,7 +58,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	public function test_wp_class_sets_class_name() {
 		$html    = '<div data-wp-class--some-class="myPlugin::state.true">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'some-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -74,7 +76,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 				data-wp-class--other-class="myPlugin::state.true"
 			>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-class other-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'some-class other-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -92,7 +94,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 				data-wp-class--other-class="myPlugin::state.false"
 			>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'some-class', $p->get_attribute( 'class' ) );
 
 		$html    = '
 			<div
@@ -101,7 +103,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 				data-wp-class--other-class="myPlugin::state.false"
 			>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'some-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -114,7 +116,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	public function test_wp_class_sets_class_name_when_class_attribute_exists() {
 		$html    = '<div class="other-class" data-wp-class--some-class="myPlugin::state.true">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'other-class some-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'other-class some-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -141,7 +143,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	public function test_wp_class_doesnt_add_class_name_on_false() {
 		$html    = '<div class="other-class" data-wp-class--some-class="myPlugin::state.false">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'other-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'other-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -155,7 +157,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	public function test_wp_class_keeps_class_name_when_class_name_exists() {
 		$html    = '<div class="some-class" data-wp-class--some-class="myPlugin::state.true">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'some-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -169,7 +171,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	public function test_wp_class_keeps_class_name_when_class_name_exists_and_is_not_the_only_one() {
 		$html    = '<div class="other-class some-class" data-wp-class--some-class="myPlugin::state.true">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'other-class some-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'other-class some-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -197,7 +199,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	public function test_wp_class_removes_class_name_when_class_name_exists_and_is_not_the_only_one() {
 		$html    = '<div class="other-class some-class" data-wp-class--some-class="myPlugin::state.false">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'other-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'other-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -225,7 +227,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	public function test_wp_class_doesnt_change_class_attribute_with_empty_directive_suffix() {
 		$html    = '<div class="other-class" data-wp-class="myPlugin::state.true">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'other-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'other-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -235,11 +237,12 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_class_doesnt_change_class_attribute_with_empty_value() {
 		$html    = '<div class="other-class" data-wp-class--some-class="">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'other-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'other-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -249,11 +252,12 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_class_doesnt_change_class_attribute_without_value() {
 		$html    = '<div class="other-class" data-wp-class--some-class>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'other-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'other-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -267,7 +271,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	public function test_wp_class_works_with_multiple_directives() {
 		$html    = '<div data-wp-class--some-class="myPlugin::state.true" data-wp-class--some-class="myPlugin::state.true">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'some-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
@@ -282,17 +286,17 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 		$this->interactivity->state( 'myPlugin', array( 'text' => 'some text' ) );
 		$html    = '<div data-wp-class--some-class="myPlugin::state.text">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'some-class', $p->get_attribute( 'class' ) );
 
 		$this->interactivity->state( 'myPlugin', array( 'array' => array( 1, 2 ) ) );
 		$html    = '<div data-wp-class--some-class="myPlugin::state.array">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'some-class', $p->get_attribute( 'class' ) );
 
 		$this->interactivity->state( 'myPlugin', array( 'number' => 1 ) );
 		$html    = '<div data-wp-class--some-class="myPlugin::state.number">Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertEquals( 'some-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'some-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**

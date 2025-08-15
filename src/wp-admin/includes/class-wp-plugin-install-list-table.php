@@ -36,7 +36,6 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * installed plugins.
 	 *
 	 * @since 4.9.0
-	 * @access protected
 	 *
 	 * @return array
 	 */
@@ -92,7 +91,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 		global $tabs, $tab, $paged, $type, $term;
 
-		wp_reset_vars( array( 'tab' ) );
+		$tab = ! empty( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : '';
 
 		$paged = $this->get_pagenum();
 
@@ -340,6 +339,12 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$views = apply_filters( "views_{$this->screen->id}", $views );
 
 		$this->screen->render_screen_reader_content( 'heading_views' );
+
+		printf(
+			/* translators: %s: https://wordpress.org/plugins/ */
+			'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may install plugins from the <a href="%s">WordPress Plugin Directory</a> right on this page, or upload a plugin in .zip format by clicking the button above.' ) . '</p>',
+			__( 'https://wordpress.org/plugins/' )
+		);
 		?>
 <div class="wp-filter">
 	<ul class="filter-links">
@@ -464,6 +469,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		}
 	}
 
+	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 */
 	public function display_rows() {
 		$plugins_allowedtags = array(
 			'a'       => array(
@@ -626,7 +636,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				} elseif ( ! $compatible_wp ) {
 					$incompatible_notice_message .= __( 'This plugin does not work with your version of WordPress.' );
 					if ( current_user_can( 'update_core' ) ) {
-						$incompatible_notice_message .= printf(
+						$incompatible_notice_message .= sprintf(
 							/* translators: %s: URL to WordPress Updates screen. */
 							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
 							self_admin_url( 'update-core.php' )

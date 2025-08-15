@@ -1,0 +1,157 @@
+##
+# A reusable workflow that runs end-to-end tests.
+#
+# Branches 6.3 and earlier used Puppeteer instead of Playwright.
+# Use https://github.com/WordPress/wordpress-develop/tree/6.3/.github/workflows/reusable-end-to-end-tests.yml instead.
+##
+name: End-to-end Tests
+
+on:
+  workflow_call:
+    inputs:
+      LOCAL_SCRIPT_DEBUG:
+        description: 'Whether to enable script debugging.'
+        required: false
+        type: 'boolean'
+        default: false
+      php-version:
+        description: 'The PHP version to use.'
+        required: false
+        type: 'string'
+        default: 'latest'
+      install-gutenberg:
+        description: 'Whether to install the Gutenberg plugin.'
+        required: false
+        type: 'boolean'
+        default: true
+      gutenberg-version:
+        description: 'A specific version of Gutenberg to install.'
+        required: false
+        type: 'string'
+      install-playwright:
+        description: 'Whether to install Playwright browsers.'
+        required: false
+        type: 'boolean'
+        default: true
+
+env:
+  LOCAL_DIR: build
+  LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Runs the end-to-end test suite.
+  #
+  # Performs the following steps:
+  # - Sets environment variables.
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs npm dependencies.
+  # - Install Playwright browsers.
+  # - Builds WordPress to run from the `build` directory.
+  # - Starts the WordPress Docker container.
+  # - Logs the running Docker containers.
+  # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
+  # - Install WordPress within the Docker container.
+  # - Install Gutenberg.
+  # - Install additional languages.
+  # - Run the E2E tests.
+  # - Uploads screenshots and HTML snapshots as an artifact.
+  # - Ensures version-controlled files are not modified or deleted.
+  e2e-tests:
+    name: SCRIPT_DEBUG ${{ inputs.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 20
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          locale -a
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        if: ${{ inputs.install-playwright }}
+        run: npx playwright install --with-deps
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker compose run --rm mysql mysql --version
+          docker compose run --rm php php --version
+          docker compose run --rm php php -m
+          docker compose run --rm php php -i
+          docker compose run --rm php locale -a
+
+      - name: Install WordPress
+        env:
+          LOCAL_SCRIPT_DEBUG: ${{ inputs.LOCAL_SCRIPT_DEBUG }}
+        run: npm run env:install
+
+      - name: Install Gutenberg
+        if: ${{ inputs.install-gutenberg }}
+        run: |
+          npm run env:cli -- plugin install gutenberg \
+          ${{ inputs.gutenberg-version && '--version="${GUTENBERG_VERSION}"' || '' }} \
+          --path="/var/www/${LOCAL_DIR}"
+        env:
+          GUTENBERG_VERSION: ${{ inputs.gutenberg-version }}
+
+      - name: Install additional languages
+        run: |
+          npm run env:cli -- language core install de_DE --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language plugin install de_DE --all --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language theme install de_DE --all --path="/var/www/${LOCAL_DIR}"
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Archive debug artifacts (screenshots, HTML snapshots)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: failures-artifacts${{ inputs.LOCAL_SCRIPT_DEBUG && '-SCRIPT_DEBUG' || '' }}-${{ github.run_id }}
+          path: artifacts
+          if-no-files-found: ignore
+          include-hidden-files: true
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
