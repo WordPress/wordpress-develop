@@ -1365,6 +1365,16 @@
 
 		this.currentCropSelection = null;
 
+		// Check if both width and height fields are empty - clear selection like "Clear Crop"
+		if ( elX.val() === '' && elY.val() === '' ) {
+			ias.cancelSelection();
+			this.setDisabled($('.imgedit-crop-apply'), 0);
+			$('#imgedit-start-x-' + postid).val('0');
+			$('#imgedit-start-y-' + postid).val('0');
+			$('#imgedit-selection-' + postid).val('');
+			return;
+		}
+
 		if ( false === this.validateNumeric( el ) ) {
 			return;
 		}
@@ -1507,7 +1517,13 @@
 	 *                        void when it is.
 	 */
 	validateNumeric: function( el ) {
-		if ( false === this.intval( $( el ).val() ) ) {
+		var value = $( el ).val();
+		// Allow empty values - they will be handled appropriately by setNumSelection
+		if ( value === '' ) {
+			return true;
+		}
+		// Check if the value is a valid number and not false from intval
+		if ( false === this.intval( value ) || isNaN( parseFloat( value ) ) || parseFloat( value ) < 0 ) {
 			$( el ).val( '' );
 			return false;
 		}
