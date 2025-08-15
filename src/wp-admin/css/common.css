@@ -3970,7 +3970,7 @@ img {
 		padding: 0 14px;
 		font-size: 14px;
 		white-space: nowrap;
-		min-height: 14px;
+		min-height: 40px;
 		line-height: 2.71428571;
 		vertical-align: middle;
 	}
