@@ -2379,6 +2379,8 @@ HTML;
 	}
 
 	/**
+	 * Test that wp_filter_post_kses() filters img tags correctly and allows the srcset element.
+	 *
 	 * @ticket 29807
 	 */
 	public function test_wp_filter_post_kses_img() {

@@ -1539,21 +1539,21 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  * which can have uris in them and checks for ones that can have multiple uri candidates (like srcset)
  * It ultimately passes everything to wp_kses_bad_protocol() to do the actual work.
  *
- * @since ?
+ * @since 6.9.0
  *
- * @param string $attrname Attribute name to test against.
- * @param string $attrvalue Content to filter bad protocols from.
+ * @param string.  $attrname          Attribute name to test against.
+ * @param string   $attrvalue         Content to filter bad protocols from.
  * @param string[] $allowed_protocols Array of allowed URL protocols.
+ * @param string[] $multi_uri         Array of attributes that can have multiple uri candidates. Defaults to ['srcset'].
  * @return string Filtered content.
  */
-function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols ) {
-	$uris           = wp_kses_uri_attributes();
-	$uri_candidates = array( 'srcset' );
+function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $multi_uri = array( 'srcset' ) ) {
+	$uris = wp_kses_uri_attributes();
 
 	if ( ! in_array( strtolower( $attrname ), $uris ) ) {
 		return $attrvalue;
 	} else {
-		if ( in_array( strtolower( $attrname ), $uri_candidates, true ) ) {
+		if ( in_array( strtolower( $attrname ), $multi_uri, true ) ) {
 			$thesevals = preg_split( '/\s*,\s*/', $attrvalue );
 		} else {
 			$thesevals = array( $attrvalue );
