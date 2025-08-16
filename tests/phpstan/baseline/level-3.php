@@ -206,12 +206,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-type.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Offset int\\<0, max\\> does not exist on WP_Block_List\\.$#',
-	'identifier' => 'offsetAccess.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Property WP_Block\\:\\:\\$inner_blocks \\(WP_Block_List\\) does not accept default value of type array\\.$#',
 	'identifier' => 'property.defaultValue',
 	'count' => 1,
