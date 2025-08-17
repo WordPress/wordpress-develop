@@ -2421,7 +2421,7 @@ HTML;
 	 * @ticket 29807
 	 *
 	 * @param string $unfiltered Unfiltered srcset value before wp_kses.
-	 * @param string $expected   Expected srset value after wp_kses.
+	 * @param string $expected   Expected srcset value after wp_kses.
 	 *
 	 * @dataProvider data_wp_kses_srcset
 	 */
