@@ -1400,7 +1400,6 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 	$attrarr  = array();
 	$mode     = 0;
 	$attrname = '';
-	$uris     = wp_kses_uri_attributes();
 
 	// Loop through the whole attribute list.
 
