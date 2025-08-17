@@ -2473,4 +2473,144 @@ HTML;
 		$expected = '<picture><source srcset="//pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
 		$this->assertEquals( $expected, wp_kses( $original, $allowedposttags ) );
 	}
+
+	/**
+	 * Test wp_kses_sanitize_uris function directly.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_sanitize_uris
+	 */
+	public function test_wp_kses_sanitize_uris( $attrname, $attrvalue, $expected, $multi_uri = array( 'srcset' ) ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result = wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $multi_uri );
+		$this->assertEquals( $expected, $result );
+	}
+
+	public function data_wp_kses_sanitize_uris() {
+		return array(
+			// Test non-URI attribute.
+			array( 'alt', 'description', 'description' ),
+
+			// Test single URI attribute.
+			array( 'src', 'http://example.com/image.jpg', 'http://example.com/image.jpg' ),
+
+			// Test single URI with bad protocol.
+			array( 'src', 'javascript:alert(1)', 'alert(1)' ),
+
+			// Test srcset with multiple URIs.
+			array( 'srcset', 'image1.jpg 1x, image2.jpg 2x', 'image1.jpg 1x, image2.jpg 2x' ),
+
+			// Test srcset with bad protocol.
+			array( 'srcset', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'alert(1) 1x, http://example.com/image.jpg 2x' ),
+
+			// Test custom multi_uri parameter.
+			array( 'custom', 'url1.jpg, url2.jpg', 'url1.jpg, url2.jpg', array( 'custom' ) ),
+		);
+	}
+
+	/**
+	 * Test edge cases for srcset sanitization.
+	 *
+	 * @ticket 29807
+	 * @dataProvider data_wp_kses_srcset_edge_cases
+	 */
+	public function test_wp_kses_srcset_edge_cases( $srcset_value, $expected ) {
+		$allowed_protocols = wp_allowed_protocols();
+		$result = wp_kses_sanitize_uris( 'srcset', $srcset_value, $allowed_protocols );
+		$this->assertEquals( $expected, $result );
+	}
+
+	public function data_wp_kses_srcset_edge_cases() {
+		return array(
+			// Test an empty srcset.
+			array( '', '' ),
+
+			// Srcset with extra whitespace.
+			array( '  image1.jpg 1x  ,   image2.jpg 2x  ', '  image1.jpg 1x, image2.jpg 2x  ' ),
+
+			// Srcset with single URL and no descriptor.
+			array( 'image.jpg', 'image.jpg' ),
+
+			// Srcset with complex descriptors.
+			array( 'small.jpg 480w, medium.jpg 800w, large.jpg 1200w', 'small.jpg 480w, medium.jpg 800w, large.jpg 1200w' ),
+		);
+	}
+
+	/**
+	 * Test malicious input sanitization in srcset.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_malicious_input() {
+		global $allowedposttags;
+
+		// JavaScript in srcset - the entire img tag gets escaped when it contains dangerous content.
+		$original = '<img srcset="javascript:alert(1) 1x, data:text/html,<script>alert(1)</script> 2x" />';
+		$result = wp_kses( $original, $allowedposttags );
+		// The whole img tag should be escaped when it contains script content.
+		$this->assertStringStartsWith( '&lt;', $result );
+
+		// Script tag in picture element (should be stripped).
+		$original = '<picture><script>alert(1)</script><source srcset="image.jpg"><img src="fallback.jpg"></picture>';
+		$result = wp_kses( $original, $allowedposttags );
+		// Script content should be converted to text, not completely removed.
+		$this->assertStringContainsString( 'alert(1)', $result );
+		$this->assertStringNotContainsString( '<script>', $result );
+
+		// Onclick in source element (should be stripped)
+		$original = '<picture><source srcset="image.jpg" onclick="alert(1)"><img src="fallback.jpg"></picture>';
+		$expected = '<picture><source srcset="image.jpg"><img src="fallback.jpg"></picture>';
+		$this->assertEquals( $expected, wp_kses( $original, $allowedposttags ) );
+	}
+
+	/**
+	 * Test sizes attribute handling.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_sizes_attribute() {
+		global $allowedposttags;
+
+		// Valid sizes attribute.
+		$html = '<img src="image.jpg" sizes="(max-width: 600px) 100vw, 50vw" />';
+		$this->assertEquals( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Complex sizes with multiple conditions.
+		$html = '<img src="image.jpg" sizes="(max-width: 320px) 280px, (max-width: 640px) 580px, 800px" />';
+		$this->assertEquals( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Sizes in source element.
+		$html = '<picture><source srcset="mobile.jpg" sizes="100vw" media="(max-width: 600px)"><img src="desktop.jpg"></picture>';
+		$this->assertEquals( $html, wp_kses( $html, $allowedposttags ) );
+	}
+
+	/**
+	 * Test comprehensive responsive image scenarios.
+	 *
+	 * @ticket 29807
+	 */
+	public function test_wp_kses_comprehensive_responsive_images() {
+		global $allowedposttags;
+
+		// Test complex srcset with width descriptors.
+		$html = '<img src="default.jpg" srcset="small.jpg 480w, medium.jpg 768w, large.jpg 1024w, xlarge.jpg 1440w" sizes="(max-width: 480px) 100vw, (max-width: 768px) 75vw, 50vw" alt="Responsive image" />';
+		$this->assertEquals( $html, wp_kses( $html, $allowedposttags ) );
+
+		// Test picture with multiple sources and mixed protocols.
+		$original = '<picture><source srcset="javascript:void(0) 480w, https://example.com/mobile.webp 480w" type="image/webp" media="(max-width: 600px)"><source srcset="bad://example.com/tablet.jpg 768w, https://example.com/tablet.jpg 768w" type="image/jpeg" media="(max-width: 1200px)"><img src="https://example.com/desktop.jpg" alt="Picture element test" /></picture>';
+		$result = wp_kses( $original, $allowedposttags );
+
+		// Should remove bad protocols but keep valid ones.
+		$this->assertStringContainsString( 'https://example.com/mobile.webp', $result );
+		$this->assertStringContainsString( 'https://example.com/tablet.jpg', $result );
+		$this->assertStringNotContainsString( 'javascript:', $result );
+		$this->assertStringNotContainsString( 'bad://', $result );
+
+		// Test nested picture scenario.
+		$original = '<picture><picture><source srcset="inner.jpg"></picture><source srcset="outer.jpg"><img src="fallback.jpg"></picture>';
+		$result = wp_kses( $original, $allowedposttags );
+		// KSES allows the nesting but should preserve the structure.
+		$this->assertStringContainsString( '<picture>', $result );
+		$this->assertStringContainsString( '<source', $result );
+	}
 }
