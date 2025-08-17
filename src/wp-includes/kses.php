@@ -1567,7 +1567,7 @@ function wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $mult
 		$thesevals[ $key ] = wp_kses_bad_protocol( $val, $allowed_protocols );
 	}
 
-	return join( ', ', $thesevals );
+	return implode( ', ', $thesevals );
 }
 
 /**
