@@ -49,7 +49,7 @@ function render_block_core_post_date( $attributes, $content, $block ) {
 	 * only display the modified date if it is later than the publishing date.
 	 */
 	if ( isset( $attributes['displayType'] ) && 'modified' === $attributes['displayType'] ) {
-		if ( get_the_modified_date( 'Ymdhi', $post_ID ) > get_the_date( 'Ymdhi', $post_ID ) ) {
+		if ( get_the_modified_date( 'U', $post_ID ) > get_the_date( 'U', $post_ID ) ) {
 			if ( isset( $attributes['format'] ) && 'human-diff' === $attributes['format'] ) {
 				// translators: %s: human-readable time difference.
 				$formatted_date = sprintf( __( '%s ago' ), human_time_diff( get_post_timestamp( $post_ID, 'modified' ) ) );
