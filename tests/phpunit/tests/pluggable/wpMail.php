@@ -83,7 +83,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		// We need some better assertions here but these catch the failure for now.
 		$this->assertSameIgnoreEOL( $body, $mailer->get_sent()->body );
-		$this->assertStringContainsString( 'boundary="----=_Part_4892_25692638.1192452070893"', iconv_mime_decode_headers( ( $mailer->get_sent()->header ) )['Content-Type'][0] );
+		$this->assertStringContainsString( 'boundary="----=_Part_4892_25692638.1192452070893"', $mailer->get_sent()->header );
 		$this->assertStringContainsString( 'charset=', $mailer->get_sent()->header );
 	}
 
