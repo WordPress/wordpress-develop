@@ -351,6 +351,9 @@ if ( ! function_exists( 'wp_mail' ) ) :
 								} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
 									$boundary = trim( str_replace( array( 'BOUNDARY=', 'boundary=', '"' ), '', $charset_content ) );
 									$charset  = '';
+									if ( preg_match( '~multipart/([a-z!#$&^_.+-]+)~i', $content_type, $matches ) ) {
+										$content_type = 'multipart/' . strtolower( $matches[1] ) . '; boundary="' . $boundary . '"';
+									}
 								}
 
 								// Avoid setting an empty $content_type.
@@ -546,10 +549,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 						continue;
 					}
 				}
-			}
-
-			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
-				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
 			}
 		}
 

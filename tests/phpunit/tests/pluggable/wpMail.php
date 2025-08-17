@@ -669,4 +669,90 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertEquals( '7bit', $mailer->Encoding );
 	}
+
+	/**
+	 * Test that wp_mail() can send a multipart/alternative email with plain text and html versions.
+	 *
+	 * @ticket 15448
+	 */
+	public function test_wp_mail_plain_and_html() {
+		$headers = 'Content-Type: multipart/alternative; boundary="TestBoundary"';
+		$to      = 'user@example.com';
+		$subject = 'Test email with plain text and html versions';
+		$message = <<<EOT
+--TestBoundary
+Content-Type: text/plain; charset=us-ascii
+
+Here is some plain text.
+--TestBoundary
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+<html><head></head><body>Here is the HTML with UTF-8 γειά σου Κόσμε;-)<body></html>
+--TestBoundary--
+EOT;
+
+		wp_mail( $to, $subject, $message, $headers );
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		preg_match( '/boundary="(.*)"/', $mailer->get_sent()->header, $matches );
+		$boundary = $matches[1];
+		$body     = '--' . $boundary . "\n";
+		$body    .= 'Content-Type: text/plain; charset=us-ascii' . "\n";
+		$body    .= "\n";
+		$body    .= 'Here is some plain text.' . "\n";
+		$body    .= '--' . $boundary . "\n";
+		$body    .= 'Content-Type: text/html; charset=UTF-8' . "\n";
+		$body    .= 'Content-Transfer-Encoding: 8bit' . "\n";
+		$body    .= "\n";
+		$body    .= '<html><head></head><body>Here is the HTML with UTF-8 γειά σου Κόσμε;-)<body></html>' . "\n";
+		$body    .= '--' . $boundary . '--' . "\n";
+
+		$this->assertSameIgnoreEOL( $body, $mailer->get_sent()->body, 'The body is not as expected.' );
+		$this->assertStringContainsString(
+			'Content-Type: multipart/alternative;',
+			$mailer->get_sent()->header,
+			'The multipart/alternative header is not present.'
+		);
+	}
+
+	/*
+	 * 'phpmailer_init' action for test_wp_mail_plain_and_html_workaround().
+	 */
+	public function wp_mail_set_alt_body( $mailer ) {
+		$mailer->AltBody = strip_tags( $mailer->Body );
+	}
+
+	/**
+	 * Check workarounds using phpmailer_init still work around.
+	 *
+	 * @ticket 15448
+	 */
+	public function test_wp_mail_plain_and_html_workaround() {
+		$to      = 'user@example.com';
+		$subject = 'Test email with plain text derived from html version';
+		$message = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head><body><p>Hello World! γειά σου Κόσμε</p></body></html>';
+
+		add_action( 'phpmailer_init', array( $this, 'wp_mail_set_alt_body' ) );
+		wp_mail( $to, $subject, $message );
+		remove_action( 'phpmailer_init', array( $this, 'wp_mail_set_alt_body' ) );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertStringContainsString(
+			'Content-Type: multipart/alternative;',
+			$mailer->get_sent()->header,
+			'The multipart/alternative header is not present.'
+		);
+		$this->assertStringContainsString(
+			'Content-Type: text/plain; charset=UTF-8',
+			$mailer->get_sent()->body,
+			'The text/plain Content-Type header is not present.'
+		);
+		$this->assertStringContainsString(
+			'Content-Type: text/html; charset=UTF-8',
+			$mailer->get_sent()->body,
+			'The text/html Content-Type header is not present.'
+		);
+	}
 }
