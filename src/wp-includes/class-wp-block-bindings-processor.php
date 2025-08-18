@@ -30,5 +30,7 @@ class WP_Block_Bindings_Processor extends WP_HTML_Processor {
 		$bm                   = $this->bookmarks['__wp_block_bindings_tag_closer'];
 		$this->end_of_flushed = $bm->start;
 		$this->release_bookmark( '_wp_block_bindings_tag_closer' );
+
+		return true;
 	}
 }
