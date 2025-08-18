@@ -416,7 +416,7 @@ class WP_Block {
 		switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
 			case 'html':
 			case 'rich-text':
-				$block_reader = WP_HTML_Processor::create_fragment( $block_content );
+				$block_reader = WP_Block_Bindings_Processor::create_fragment( $block_content );
 
 				// TODO: Support for CSS selectors whenever they are ready in the HTML API.
 				// In the meantime, support comma-separated selectors by exploding them into an array.
@@ -432,14 +432,10 @@ class WP_Block {
 							'tag_name' => $selector,
 						)
 					) ) {
+						// TODO: Use `WP_HTML_Processor::set_inner_html` method once it's available.
 						$block_reader->release_bookmark( 'iterate-selectors' );
-
-						// TODO: Use `set_inner_html` method whenever it's ready in the HTML API.)
-						$block_reader->next_token();
-						if ( '#text' === $block_reader->get_token_type() ) {
-							$block_reader->set_modifiable_text( $source_value );
-						}
-						return $block_reader->get_updated_html();
+						$block_reader->replace_rich_text( $source_value );
+						return $block_reader->build();
 					} else {
 						$block_reader->seek( 'iterate-selectors' );
 					}
