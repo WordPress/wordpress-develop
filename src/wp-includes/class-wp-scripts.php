@@ -792,6 +792,10 @@ JS;
 			return false;
 		}
 
+		if ( 'conditional' === $key ) {
+			$this->registered[ $handle ]->deps = array();
+		}
+
 		if ( 'strategy' === $key ) {
 			if ( ! empty( $value ) && ! $this->is_delayed_strategy( $value ) ) {
 				_doing_it_wrong(

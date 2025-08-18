@@ -347,6 +347,28 @@ class WP_Styles extends WP_Dependencies {
 	}
 
 	/**
+	 * Overrides the add_data method from WP_Dependencies, to allow unsetting dependencies for conditional styles.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $handle Name of the item. Should be unique.
+	 * @param string $key    The data key.
+	 * @param mixed  $value  The data value.
+	 * @return bool True on success, false on failure.
+	 */
+	public function add_data( $handle, $key, $value ) {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return false;
+		}
+
+		if ( 'conditional' === $key ) {
+			$this->registered[ $handle ]->deps = array();
+		}
+
+		return $this->registered[ $handle ]->add_data( $key, $value );
+	}
+
+	/**
 	 * Determines style dependencies.
 	 *
 	 * @since 2.6.0
