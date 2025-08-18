@@ -434,7 +434,7 @@ class WP_Block {
 					) ) {
 						// TODO: Use `WP_HTML_Processor::set_inner_html` method once it's available.
 						$block_reader->release_bookmark( 'iterate-selectors' );
-						$block_reader->replace_rich_text( $source_value );
+						$block_reader->replace_rich_text( wp_kses_post( $source_value ) );
 						return $block_reader->build();
 					} else {
 						$block_reader->seek( 'iterate-selectors' );
