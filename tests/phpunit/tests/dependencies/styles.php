@@ -327,16 +327,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * stylesheets are also conditional.
 	 */
 	public function test_conditional_inline_styles_are_also_conditional() {
-		$expected = <<<CSS
-<!--[if IE]>
-<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />
-<style id='handle-inline-css' type='text/css'>
-a { color: blue; }
-</style>
-<![endif]-->
-
-CSS;
+		$expected = '';
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
+		wp_style_add_data( 'handle', 'conditional', 'IE' );
 		wp_add_inline_style( 'handle', 'a { color: blue; }' );
 
 		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_styles' ) );
