@@ -1,5 +1,4 @@
-<?php declare( strict_types = 1 );
-
+<?php
 /**
  * Abilities API
  *
@@ -9,6 +8,8 @@
  * @subpackage Abilities API
  * @since 0.1.0
  */
+
+declare( strict_types = 1 );
 
 /**
  * Encapsulates the properties and methods related to a specific ability in the registry.
@@ -49,7 +50,7 @@ class WP_Ability {
 	 * The optional ability input schema.
 	 *
 	 * @since 0.1.0
-	 * @var array
+	 * @var array<string,mixed>
 	 */
 	protected $input_schema = array();
 
@@ -57,7 +58,7 @@ class WP_Ability {
 	 * The optional ability output schema.
 	 *
 	 * @since 0.1.0
-	 * @var array
+	 * @var array<string,mixed>
 	 */
 	protected $output_schema = array();
 
@@ -81,7 +82,7 @@ class WP_Ability {
 	 * The optional ability metadata.
 	 *
 	 * @since 0.1.0
-	 * @var array
+	 * @var array<string,mixed>
 	 */
 	protected $meta = array();
 
@@ -94,10 +95,10 @@ class WP_Ability {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param string $name       The name of the ability, with its namespace.
-	 * @param array  $properties An associative array of properties for the ability. This should
-	 *                           include `label`, `description`, `input_schema`, `output_schema`,
-	 *                           `execute_callback`, `permission_callback`, and `meta`.
+	 * @param string              $name       The name of the ability, with its namespace.
+	 * @param array<string,mixed> $properties An associative array of properties for the ability. This should
+	 *                                        include `label`, `description`, `input_schema`, `output_schema`,
+	 *                                        `execute_callback`, `permission_callback`, and `meta`.
 	 */
 	public function __construct( string $name, array $properties ) {
 		$this->name = $name;
@@ -145,7 +146,7 @@ class WP_Ability {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @return array The input schema for the ability.
+	 * @return array<string,mixed> The input schema for the ability.
 	 */
 	public function get_input_schema(): array {
 		return $this->input_schema;
@@ -156,7 +157,7 @@ class WP_Ability {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @return array The output schema for the ability.
+	 * @return array<string,mixed> The output schema for the ability.
 	 */
 	public function get_output_schema(): array {
 		return $this->output_schema;
@@ -167,7 +168,7 @@ class WP_Ability {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @return array The metadata for the ability.
+	 * @return array<string,mixed> The metadata for the ability.
 	 */
 	public function get_meta(): array {
 		return $this->meta;
@@ -178,7 +179,7 @@ class WP_Ability {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param array $input Optional. The input data to validate.
+	 * @param array<string,mixed> $input Optional. The input data to validate.
 	 * @return bool Returns true if valid, false if validation fails.
 	 */
 	protected function validate_input( array $input = array() ): bool {
@@ -214,7 +215,7 @@ class WP_Ability {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param array $input Optional. The input data for permission checking.
+	 * @param array<string,mixed> $input Optional. The input data for permission checking.
 	 * @return bool Whether the ability has the necessary permission.
 	 */
 	public function has_permission( array $input = array() ): bool {
@@ -234,8 +235,8 @@ class WP_Ability {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param array $input The input data for the ability.
-	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
+	 * @param array<string,mixed> $input The input data for the ability.
+	 * @return mixed|\WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	protected function do_execute( array $input ) {
 		if ( ! is_callable( $this->execute_callback ) ) {
@@ -292,8 +293,8 @@ class WP_Ability {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param array $input Optional. The input data for the ability.
-	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
+	 * @param array<string,mixed> $input Optional. The input data for the ability.
+	 * @return mixed|\WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	public function execute( array $input = array() ) {
 		if ( ! $this->has_permission( $input ) ) {
@@ -326,6 +327,6 @@ class WP_Ability {
 	 * @since 0.1.0
 	 */
 	public function __wakeup(): void {
-		throw new \LogicException( __CLASS__ . ' should never be unserialized.' );
+		throw new \LogicException( self::class . ' should never be unserialized.' );
 	}
 }

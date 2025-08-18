@@ -416,6 +416,12 @@ function create_initial_rest_routes() {
 	// Font Collections.
 	$font_collections_controller = new WP_REST_Font_Collections_Controller();
 	$font_collections_controller->register_routes();
+
+	// Abilities.
+	$abilities_run_controller  = new WP_REST_Abilities_Run_Controller();
+	$abilities_run_controller->register_routes();
+	$abilities_list_controller = new WP_REST_Abilities_List_Controller();
+	$abilities_list_controller->register_routes();
 }
 
 /**

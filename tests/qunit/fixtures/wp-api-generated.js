@@ -12391,6 +12391,110 @@ mockedApiResponse.Schema = {
                     }
                 }
             ]
+        },
+        "/wp/v2/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+?)/run": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE"
+                    ],
+                    "args": {
+                        "name": {
+                            "description": "Unique identifier for the ability.",
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-\\/]+$",
+                            "required": false
+                        },
+                        "input": {
+                            "description": "Input parameters for the ability execution.",
+                            "type": "object",
+                            "default": [],
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/abilities": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 50,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/abilities"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "description": "Unique identifier for the ability.",
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-\\/]+$",
+                            "required": false
+                        }
+                    }
+                }
+            ]
         }
     },
     "site_logo": 0,

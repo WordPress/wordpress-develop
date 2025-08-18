@@ -1,5 +1,4 @@
-<?php declare( strict_types = 1 );
-
+<?php
 /**
  * Abilities API
  *
@@ -9,6 +8,8 @@
  * @subpackage Abilities API
  * @since 0.1.0
  */
+
+declare( strict_types = 1 );
 
 /**
  * Manages the registration and lookup of abilities.
@@ -21,17 +22,9 @@ final class WP_Abilities_Registry {
 	 * Holds the registered abilities.
 	 *
 	 * @since 0.1.0
-	 * @var WP_Ability[]
+	 * @var \WP_Ability[]
 	 */
 	private $registered_abilities = array();
-
-	/**
-	 * Container for the main instance of the class.
-	 *
-	 * @since 0.1.0
-	 * @var ?WP_Abilities_Registry
-	 */
-	private static $instance = null;
 
 	/**
 	 * Registers a new ability.
@@ -42,13 +35,13 @@ final class WP_Abilities_Registry {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param string|WP_Ability $name       The name of the ability, or WP_Ability instance. The name must be a string
-	 *                                      containing a namespace prefix, i.e. `my-plugin/my-ability`. It can only
-	 *                                      contain lowercase alphanumeric characters, dashes and the forward slash.
-	 * @param array             $properties Optional. An associative array of properties for the ability. This should
-	 *                                      include `label`, `description`, `input_schema`, `output_schema`,
-	 *                                      `execute_callback`, `permission_callback`, and `meta`.
-	 * @return ?WP_Ability The registered ability instance on success, null on failure.
+	 * @param string|\WP_Ability  $name       The name of the ability, or WP_Ability instance. The name must be a string
+	 *                                        containing a namespace prefix, i.e. `my-plugin/my-ability`. It can only
+	 *                                        contain lowercase alphanumeric characters, dashes and the forward slash.
+	 * @param array<string,mixed> $properties Optional. An associative array of properties for the ability. This should
+	 *                                        include `label`, `description`, `input_schema`, `output_schema`,
+	 *                                        `execute_callback`, `permission_callback`, and `meta`.
+	 * @return ?\WP_Ability The registered ability instance on success, null on failure.
 	 */
 	public function register( $name, array $properties = array() ): ?WP_Ability {
 		$ability = null;
@@ -159,6 +152,7 @@ final class WP_Abilities_Registry {
 				'meta'                => $properties['meta'] ?? array(),
 			)
 		);
+
 		$this->registered_abilities[ $name ] = $ability;
 		return $ability;
 	}
@@ -173,9 +167,9 @@ final class WP_Abilities_Registry {
 	 * @since 0.1.0
 	 *
 	 * @param string $name The name of the registered ability, with its namespace.
-	 * @return ?WP_Ability The unregistered ability instance on success, null on failure.
+	 * @return ?\WP_Ability The unregistered ability instance on success, null on failure.
 	 */
-	public function unregister( $name ): ?WP_Ability {
+	public function unregister( string $name ): ?WP_Ability {
 		if ( ! $this->is_registered( $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -201,7 +195,7 @@ final class WP_Abilities_Registry {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @return WP_Ability[] The array of registered abilities.
+	 * @return \WP_Ability[] The array of registered abilities.
 	 */
 	public function get_all_registered(): array {
 		return $this->registered_abilities;
@@ -215,7 +209,7 @@ final class WP_Abilities_Registry {
 	 * @param string $name The name of the registered ability, with its namespace.
 	 * @return bool True if the ability is registered, false otherwise.
 	 */
-	public function is_registered( $name ): bool {
+	public function is_registered( string $name ): bool {
 		return isset( $this->registered_abilities[ $name ] );
 	}
 
@@ -229,9 +223,9 @@ final class WP_Abilities_Registry {
 	 * @since 0.1.0
 	 *
 	 * @param string $name The name of the registered ability, with its namespace.
-	 * @return ?WP_Ability The registered ability instance, or null if it is not registered.
+	 * @return ?\WP_Ability The registered ability instance, or null if it is not registered.
 	 */
-	public function get_registered( $name ): ?WP_Ability {
+	public function get_registered( string $name ): ?WP_Ability {
 		if ( ! $this->is_registered( $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -251,10 +245,10 @@ final class WP_Abilities_Registry {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @return WP_Abilities_Registry The main registry instance.
+	 * @return \WP_Abilities_Registry The main registry instance.
 	 */
-	public static function get_instance(): WP_Abilities_Registry {
-		/* @var WP_Abilities_Registry $wp_abilities */
+	public static function get_instance(): self {
+		/** @var \WP_Abilities_Registry $wp_abilities */
 		global $wp_abilities;
 
 		if ( empty( $wp_abilities ) ) {
@@ -267,7 +261,7 @@ final class WP_Abilities_Registry {
 			 *
 			 * @since 0.1.0
 			 *
-			 * @param WP_Abilities_Registry $instance Abilities registry object.
+			 * @param \WP_Abilities_Registry $instance Abilities registry object.
 			 */
 			do_action( 'abilities_api_init', $wp_abilities );
 		}
@@ -279,15 +273,12 @@ final class WP_Abilities_Registry {
 	 * Wakeup magic method.
 	 *
 	 * @since 0.1.0
+	 * @throws \UnexpectedValueException If any of the registered abilities is not an instance of WP_Ability.
 	 */
 	public function __wakeup(): void {
-		if ( empty( $this->registered_abilities ) ) {
-			return;
-		}
-
 		foreach ( $this->registered_abilities as $ability ) {
 			if ( ! $ability instanceof WP_Ability ) {
-				throw new UnexpectedValueException();
+				throw new \UnexpectedValueException();
 			}
 		}
 	}
