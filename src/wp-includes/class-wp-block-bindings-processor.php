@@ -22,7 +22,7 @@ class WP_Block_Bindings_Processor extends WP_HTML_Processor {
 		$this->output .= $rich_text;
 		$this->release_bookmark( '_wp_block_bindings_tag_opener' );
 
-        // Find matching tag closer.
+		// Find matching tag closer.
 		while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
 		}
 
