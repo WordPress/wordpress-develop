@@ -545,7 +545,7 @@ if ( ! function_exists( 'mb_trim' ) ) {
 	 *
 	 * Trims whitespace from the beginning and end of a string.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 *
 	 * @param string      $string     The string to trim.
 	 * @param string|null $characters Optional. The characters to trim from the string.
