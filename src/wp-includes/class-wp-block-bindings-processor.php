@@ -13,8 +13,7 @@ class WP_Block_Bindings_Processor extends WP_HTML_Processor {
 			return false;
 		}
 
-		$tag_name = $this->get_tag();
-		$depth    = $this->get_current_depth();
+		$depth = $this->get_current_depth();
 
 		$this->set_bookmark( '_wp_block_bindings_tag_opener' );
 		// The bookmark names are prefixed with `_` so the key below has an extra `_`.
@@ -23,6 +22,7 @@ class WP_Block_Bindings_Processor extends WP_HTML_Processor {
 		$this->output .= $rich_text;
 		$this->release_bookmark( '_wp_block_bindings_tag_opener' );
 
+        // Find matching tag closer.
 		while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
 		}
 
