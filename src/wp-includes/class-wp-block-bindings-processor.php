@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * WP_Block_Bindings_Processor class.
+ *
+ * This class can be used to perform the sort of structural
+ * changes to an HTML document that are required by
+ * Block Bindings.
+ */
 class WP_Block_Bindings_Processor extends WP_HTML_Processor {
 	private $output         = '';
 	private $end_of_flushed = 0;
@@ -8,6 +15,15 @@ class WP_Block_Bindings_Processor extends WP_HTML_Processor {
 		return $this->output . substr( $this->html, $this->end_of_flushed );
 	}
 
+	/**
+	 * Replace the rich text content between a tag opener and matching closer.
+	 *
+	 * When stopped on a tag opener, replace the content enclosed by it and its
+	 * matching closer with the provided rich text.
+	 *
+	 * @param string $rich_text The rich text to replace the original content with.
+	 * @return bool True on success.
+	 */
 	public function replace_rich_text( $rich_text ) {
 		if ( $this->is_tag_closer() ) {
 			return false;
