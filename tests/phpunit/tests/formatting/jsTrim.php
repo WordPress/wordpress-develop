@@ -7,7 +7,7 @@
  */
 class Tests_Formatting_JsTrim extends WP_UnitTestCase {
 	public function test_trims_ascii_whitespace() {
-		$this->assertSame( 'hello', js_trim( "  hello  " ) );
+		$this->assertSame( 'hello', js_trim( '  hello  ' ) );
 		$this->assertSame( 'hello', js_trim( "\t\n\rhello\n\r\t" ) );
 	}
 

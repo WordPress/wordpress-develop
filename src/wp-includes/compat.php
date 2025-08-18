@@ -599,7 +599,7 @@ if ( ! function_exists( 'mb_trim' ) ) {
 
 		if ( 'UTF-8' !== $encoding ) {
 			$characters = mb_convert_encoding( $characters, 'UTF-8', $encoding );
-			$str = mb_convert_encoding( $str, 'UTF-8', $encoding );
+			$str        = mb_convert_encoding( $str, 'UTF-8', $encoding );
 		}
 
 		// Use preg_replace to trim the characters from both ends of the string.

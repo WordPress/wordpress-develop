@@ -46,7 +46,7 @@ class Tests_Compat_mbTrim extends WP_UnitTestCase {
 			// Empty string.
 			array( '', '' ),
 			// With encoding.
-			array( "  hello  ", 'hello', null, 'UTF-8' ),
+			array( '  hello  ', 'hello', null, 'UTF-8' ),
 			// Null characters.
 			array( "\0hello\0", 'hello' ),
 			// Vertical tab and form feed.
@@ -71,17 +71,16 @@ class Tests_Compat_mbTrim extends WP_UnitTestCase {
 	 */
 	public function data_mb_trim_non_utf8() {
 		// Japanese "ヒス" (HIS) in Shift_JIS, with ASCII spaces around.
-		$shift_jis_str = mb_convert_encoding(' ヒス ', 'SJIS', 'UTF-8');
-		$shift_jis_expected = mb_convert_encoding('ヒス', 'SJIS', 'UTF-8');
+		$shift_jis_str      = mb_convert_encoding( ' ヒス ', 'SJIS', 'UTF-8' );
+		$shift_jis_expected = mb_convert_encoding( 'ヒス', 'SJIS', 'UTF-8' );
 
 		// Latin1 example with spaces.
-		$latin1_str = mb_convert_encoding(' café ', 'ISO-8859-1', 'UTF-8');
-		$latin1_expected = mb_convert_encoding('café', 'ISO-8859-1', 'UTF-8');
+		$latin1_str      = mb_convert_encoding( ' café ', 'ISO-8859-1', 'UTF-8' );
+		$latin1_expected = mb_convert_encoding( 'café', 'ISO-8859-1', 'UTF-8' );
 
 		return array(
 			array( $shift_jis_str, $shift_jis_expected, 'SJIS' ),
 			array( $latin1_str, $latin1_expected, 'ISO-8859-1' ),
 		);
 	}
-
 }
