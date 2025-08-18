@@ -24,7 +24,7 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 	 */
 	public function __construct( $exceptions = false ) {
 		parent::__construct( $exceptions );
-		$this->SetLanguage();
+		$this->setLanguage();
 	}
 
 	/**
@@ -32,10 +32,12 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 	 *
 	 * @since 6.8.0
 	 *
+	 * @param string $langcode  Optional. Unused. ISO 639-1 2-character language code. Default 'en'.
+	 * @param string $lang_path Optional. Unused. Path to the language file directory. Default empty string.
 	 * @return true Always returns true.
 	 */
-	public function SetLanguage( $langcode = 'en', $lang_path = '' ) {
-		$error_strings  = array(
+	public function setLanguage( $langcode = 'en', $lang_path = '' ) {
+		$this->language = array(
 			'authenticate'         => __( 'SMTP Error: Could not authenticate.' ),
 			'buggy_php'            => sprintf(
 				/* translators: 1: mail.add_x_header. 2: php.ini */
@@ -46,7 +48,7 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 				'php.ini'
 			),
 			'connect_host'         => __( 'SMTP Error: Could not connect to SMTP host.' ),
-			'data_not_accepted'    => __( 'SMTP Error: data not accepted.' ),
+			'data_not_accepted'    => __( 'SMTP Error: Data not accepted.' ),
 			'empty_message'        => __( 'Message body empty' ),
 			/* translators: There is a space after the colon. */
 			'encoding'             => __( 'Unknown encoding: ' ),
@@ -65,7 +67,7 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 			'invalid_address'      => __( 'Invalid address: ' ),
 			'invalid_header'       => __( 'Invalid header name or value' ),
 			/* translators: There is a space after the colon. */
-			'invalid_hostentry'    => __( 'Invalid hostentry: ' ),
+			'invalid_hostentry'    => __( 'Invalid host entry: ' ),
 			/* translators: There is a space after the colon. */
 			'invalid_host'         => __( 'Invalid host: ' ),
 			/* translators: There is a space at the beginning. */
@@ -86,8 +88,9 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 			'smtp_error'           => __( 'SMTP server error: ' ),
 			/* translators: There is a space after the colon. */
 			'variable_set'         => __( 'Cannot set or reset variable: ' ),
+			'no_smtputf8'          => __( 'Server does not support SMTPUTF8 needed to send to Unicode addresses' ),
 		);
-		$this->language = $error_strings;
+
 		return true;
 	}
 }

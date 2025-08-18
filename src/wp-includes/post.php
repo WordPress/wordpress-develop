@@ -1180,7 +1180,7 @@ function get_post_ancestors( $post ) {
  * @param int|WP_Post $post    Optional. Post ID or post object. Defaults to global $post.
  * @param string      $context Optional. How to filter the field. Accepts 'raw', 'edit', 'db',
  *                             or 'display'. Default 'display'.
- * @return string The value of the post field on success, empty string on failure.
+ * @return int|string|int[] The value of the post field on success, empty string on failure.
  */
 function get_post_field( $field, $post = null, $context = 'display' ) {
 	$post = get_post( $post );
@@ -1906,7 +1906,7 @@ function unregister_post_type( $post_type ) {
  * Otherwise, an 's' will be added to the value for the plural form. After
  * registration, capability_type will always be a string of the singular value.
  *
- * By default, eight keys are accepted as part of the capabilities array:
+ * By default, the following keys are accepted as part of the capabilities array:
  *
  * - edit_post, read_post, and delete_post are meta capabilities, which are then
  *   generally mapped to corresponding primitive capabilities depending on the
@@ -1921,8 +1921,9 @@ function unregister_post_type( $post_type ) {
  * - delete_posts - Controls whether objects of this post type can be deleted.
  * - publish_posts - Controls publishing objects of this post type.
  * - read_private_posts - Controls whether private objects can be read.
+ * - create_posts - Controls whether objects of this post type can be created.
  *
- * These five primitive capabilities are checked in core in various locations.
+ * These primitive capabilities are checked in core in various locations.
  * There are also six other primitive capabilities which are not referenced
  * directly in core, except in map_meta_cap(), which takes the three aforementioned
  * meta capabilities and translates them into one or more primitive capabilities
@@ -1948,7 +1949,25 @@ function unregister_post_type( $post_type ) {
  * @see map_meta_cap()
  *
  * @param object $args Post type registration arguments.
- * @return object Object with all the capabilities as member variables.
+ * @return object {
+ *     Object with all the capabilities as member variables.
+ *
+ *     @type string $edit_post              Capability to edit a post.
+ *     @type string $read_post              Capability to read a post.
+ *     @type string $delete_post            Capability to delete a post.
+ *     @type string $edit_posts             Capability to edit posts.
+ *     @type string $edit_others_posts      Capability to edit others' posts.
+ *     @type string $delete_posts           Capability to delete posts.
+ *     @type string $publish_posts          Capability to publish posts.
+ *     @type string $read_private_posts     Capability to read private posts.
+ *     @type string $create_posts           Capability to create posts.
+ *     @type string $read                   Optional. Capability to read a post.
+ *     @type string $delete_private_posts   Optional. Capability to delete private posts.
+ *     @type string $delete_published_posts Optional. Capability to delete published posts.
+ *     @type string $delete_others_posts    Optional. Capability to delete others' posts.
+ *     @type string $edit_private_posts     Optional. Capability to edit private posts.
+ *     @type string $edit_published_posts   Optional. Capability to edit published posts.
+ * }
  */
 function get_post_type_capabilities( $args ) {
 	if ( ! is_array( $args->capability_type ) ) {
@@ -2589,6 +2608,8 @@ function get_posts( $args = null ) {
  *
  * Post meta data is called "Custom Fields" on the Administration Screen.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 1.5.0
  *
  * @param int    $post_id    Post ID.
@@ -2620,6 +2641,8 @@ function add_post_meta( $post_id, $meta_key, $meta_value, $unique = false ) {
  * You can match based on the key, or key and value. Removing based on key and
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching the key, if needed.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 1.5.0
  *
@@ -2675,6 +2698,8 @@ function get_post_meta( $post_id, $key = '', $single = false ) {
  * If the meta field for the post does not exist, it will be added and its ID returned.
  *
  * Can be used in place of add_post_meta().
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 1.5.0
  *
@@ -4623,7 +4648,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 
 	if ( $update || '0000-00-00 00:00:00' === $post_date ) {
 		$post_modified     = current_time( 'mysql' );
-		$post_modified_gmt = current_time( 'mysql', 1 );
+		$post_modified_gmt = current_time( 'mysql', true );
 	} else {
 		$post_modified     = $post_date;
 		$post_modified_gmt = $post_date_gmt;
@@ -4848,6 +4873,15 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 				$data['ID'] = $import_id;
 			}
 		}
+
+		/**
+		 * Fires immediately before a new post is inserted in the database.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param array $data Array of unslashed post data.
+		 */
+		do_action( 'pre_post_insert', $data );
 
 		if ( false === $wpdb->insert( $wpdb->posts, $data ) ) {
 			if ( $wp_error ) {
@@ -6075,7 +6109,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( '0' === $cached || 0 === $cached ) {
-			return;
+			return null;
 		} else {
 			return get_post( $cached, $output );
 		}
@@ -6843,7 +6877,9 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
  *
  * @param int   $attachment_id Attachment post ID.
  * @param array $data          Attachment meta data.
- * @return int|false False if $post is invalid.
+ * @return int|bool Whether the metadata was successfully updated.
+ *                  True on success, the Meta ID if the key didn't exist.
+ *                  False if $post is invalid, on failure, or if $data is the same as the existing metadata.
  */
 function wp_update_attachment_metadata( $attachment_id, $data ) {
 	$attachment_id = (int) $attachment_id;
@@ -8134,10 +8170,35 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
  * @param WP_Post $post       Post object.
  */
 function _update_term_count_on_transition_post_status( $new_status, $old_status, $post ) {
+	if ( $new_status === $old_status ) {
+		return;
+	}
+
 	// Update counts for the post's terms.
-	foreach ( (array) get_object_taxonomies( $post->post_type ) as $taxonomy ) {
-		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'tt_ids' ) );
-		wp_update_term_count( $tt_ids, $taxonomy );
+	foreach ( (array) get_object_taxonomies( $post->post_type, 'objects' ) as $taxonomy ) {
+		/** This filter is documented in wp-includes/taxonomy.php */
+		$counted_statuses = apply_filters( 'update_post_term_count_statuses', array( 'publish' ), $taxonomy );
+
+		/*
+		 * Do not recalculate term count if both the old and new status are not included in term counts.
+		 * This accounts for a transition such as draft -> pending.
+		 */
+		if ( ! in_array( $old_status, $counted_statuses, true ) && ! in_array( $new_status, $counted_statuses, true ) ) {
+			continue;
+		}
+
+		/*
+		 * Do not recalculate term count if both the old and new status are included in term counts.
+		 *
+		 * This accounts for transitioning between statuses which are both included in term counts. This can only occur
+		 * if the `update_post_term_count_statuses` filter is in use to count more than just the 'publish' status.
+		 */
+		if ( in_array( $old_status, $counted_statuses, true ) && in_array( $new_status, $counted_statuses, true ) ) {
+			continue;
+		}
+
+		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'tt_ids' ) );
+		wp_update_term_count( $tt_ids, $taxonomy->name );
 	}
 }
 
