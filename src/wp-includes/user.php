@@ -2694,7 +2694,14 @@ function wp_update_user( $userdata ) {
 	}
 
 	// Escape data pulled from DB.
-	$user = add_magic_quotes( $user );
+	$user['display_name']  = wp_slash( $user['display_name'] );
+	$user['first_name']    = wp_slash( $user['first_name'] );
+	$user['last_name']     = wp_slash( $user['last_name'] );
+	$user['description']   = wp_slash( $user['description'] );
+	$user['nickname']      = wp_slash( $user['nickname'] );
+	$user['user_nicename'] = wp_slash( $user['user_nicename'] );
+	$user['user_login']    = wp_slash( $user['user_login'] );
+	$user['user_url']      = wp_slash( $user['user_url'] );
 
 	if ( ! empty( $userdata['user_pass'] ) && $userdata['user_pass'] !== $user_obj->user_pass ) {
 		// If password is changing, hash it now.
@@ -3806,6 +3813,8 @@ function send_confirmation_on_profile_email() {
 	if ( $current_user->ID !== (int) $_POST['user_id'] ) {
 		return false;
 	}
+
+	$_POST['email'] = wp_unslash( $_POST['email'] );
 
 	if ( $current_user->user_email !== $_POST['email'] ) {
 		if ( ! is_email( $_POST['email'] ) ) {
