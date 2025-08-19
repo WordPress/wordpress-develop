@@ -25,6 +25,8 @@ on:
       - 'src/SECURITY.md'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       - 'Gruntfile.js'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
@@ -222,12 +224,15 @@ jobs:
       report: ${{ false }}
 
   #
-  # Runs specific individual test groups.
+  # Runs the HTML API test group.
+  #
+  # This test group runs separately due to the large number of tests that are skipped in this group while the
+  # HTML API is being developed. The skipped tests would otherwise cloud the results of all other test groups.
   #
   # These tests are run against the most recent LTS version of MySQL.
   #
-  specific-test-groups:
-    name: ${{ matrix.phpunit-test-groups }}
+  html-api-test-groups:
+    name: ${{ matrix.label }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
@@ -240,6 +245,8 @@ jobs:
         db-type: [ 'mysql' ]
         db-version: [ '8.4' ]
         phpunit-test-groups: [ 'html-api-html5lib-tests' ]
+        # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
+        label: [ 'HTML API' ]
     with:
       php: ${{ matrix.php }}
       db-type: ${{ matrix.db-type }}
@@ -310,7 +317,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ test-with-mysql, test-with-mariadb, test-innovation-releases, specific-test-groups, limited-matrix-for-forks ]
+    needs: [ test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
