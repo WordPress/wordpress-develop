@@ -124,18 +124,18 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 	public function test_in_body_skips_unexpected_button_closer() {
 		$processor = WP_HTML_Processor::create_fragment( '<div>Test</button></div>' );
 
-		$processor->step();
+		$processor->next_token();
 		$this->assertSame( 'DIV', $processor->get_tag(), 'Did not stop at initial DIV tag.' );
 		$this->assertFalse( $processor->is_tag_closer(), 'Did not find that initial DIV tag is an opener.' );
 
-		$processor->step();
+		$processor->next_token();
 		$this->assertSame( '#text', $processor->get_token_type(), 'Should have found the text node.' );
 
 		/*
 		 * When encountering the BUTTON closing tag, there is no BUTTON in the stack of open elements.
 		 * It should be ignored as there's no BUTTON to close.
 		 */
-		$this->assertTrue( $processor->step(), 'Found no further tags when it should have found the closing DIV' );
+		$this->assertTrue( $processor->next_token(), 'Found no further tags when it should have found the closing DIV' );
 		$this->assertSame( 'DIV', $processor->get_tag(), "Did not skip unexpected BUTTON; stopped at {$processor->get_tag()}." );
 		$this->assertTrue( $processor->is_tag_closer(), 'Did not find that the terminal DIV tag is a closer.' );
 	}

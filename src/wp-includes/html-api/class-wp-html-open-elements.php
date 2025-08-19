@@ -515,11 +515,14 @@ class WP_HTML_Open_Elements {
 	 * @return bool Whether a node was popped off of the stack.
 	 */
 	public function pop(): bool {
-		$item = array_pop( $this->stack );
-		if ( null === $item ) {
+		$item = end( $this->stack );
+		if ( ! $item ) {
 			return false;
 		}
-
+		if ( $item->locked ) {
+			throw new WP_HTML_Stack_Exception( 'Cannot remove a locked element from the stack of open elements.' );
+		}
+		array_pop( $this->stack );
 		$this->after_element_pop( $item );
 		return true;
 	}
@@ -583,6 +586,10 @@ class WP_HTML_Open_Elements {
 		foreach ( $this->walk_up() as $position_from_end => $item ) {
 			if ( $token->bookmark_name !== $item->bookmark_name ) {
 				continue;
+			}
+
+			if ( $item->locked ) {
+				throw new WP_HTML_Stack_Exception( 'Cannot remove a locked element from the stack of open elements.' );
 			}
 
 			$position_from_start = $this->count() - $position_from_end - 1;

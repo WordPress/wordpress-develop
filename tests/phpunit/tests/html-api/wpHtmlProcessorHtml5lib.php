@@ -138,10 +138,6 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @return bool True if the test case should be skipped. False otherwise.
 	 */
 	private static function should_skip_test( ?string $test_context_element, string $test_name ): bool {
-		if ( null !== $test_context_element && 'body' !== $test_context_element ) {
-			return true;
-		}
-
 		if ( array_key_exists( $test_name, self::SKIP_TESTS ) ) {
 			return true;
 		}
@@ -157,11 +153,63 @@ class Tests_HtmlApi_Html5lib extends WP_UnitTestCase {
 	 * @return string|null Tree structure of parsed HTML, if supported, else null.
 	 */
 	private static function build_tree_representation( ?string $fragment_context, string $html ) {
-		$processor = $fragment_context
-			? WP_HTML_Processor::create_fragment( $html, "<{$fragment_context}>" )
-			: WP_HTML_Processor::create_full_parser( $html );
-		if ( null === $processor ) {
-			throw new WP_HTML_Unsupported_Exception( "Could not create a parser with the given fragment context: {$fragment_context}.", '', 0, '', array(), array() );
+		if ( $fragment_context ) {
+			/*
+			 * If the string of characters starts with "svg ", the context
+			 * element is in the SVG namespace and the substring after
+			 * "svg " is the local name. If the string of characters starts
+			 * with "math ", the context element is in the MathML namespace
+			 * and the substring after "math " is the local name.
+			 * Otherwise, the context element is in the HTML namespace and
+			 * the string is the local name.
+			 */
+			if ( str_starts_with( $fragment_context, 'svg ' ) ) {
+				$tag_name = substr( $fragment_context, 4 );
+				if ( 'svg' === $tag_name ) {
+					$fragment_context_html = '<svg>';
+				} else {
+					$fragment_context_html = "<svg><{$tag_name}>";
+				}
+			} elseif ( str_starts_with( $fragment_context, 'math ' ) ) {
+				$tag_name = substr( $fragment_context, 5 );
+				if ( 'math' === $tag_name ) {
+					$fragment_context_html = '<math>';
+				} else {
+					$fragment_context_html = "<math><{$tag_name}>";
+				}
+			} else {
+				// Tags that only appear in tables need a special case.
+				if ( in_array(
+					$fragment_context,
+					array(
+						'caption',
+						'col',
+						'colgroup',
+						'tbody',
+						'td',
+						'tfoot',
+						'th',
+						'thead',
+						'tr',
+					),
+					true
+				) ) {
+					$fragment_context_html = "<table><{$fragment_context}>";
+				} else {
+					$fragment_context_html = "<{$fragment_context}>";
+				}
+			}
+
+			$processor = WP_HTML_Processor::create_fragment( $html, $fragment_context_html );
+
+			if ( null === $processor ) {
+				throw new WP_HTML_Unsupported_Exception( "Could not create a parser with the given fragment context: {$fragment_context}.", '', 0, '', array(), array() );
+			}
+		} else {
+			$processor = WP_HTML_Processor::create_full_parser( $html );
+			if ( null === $processor ) {
+				throw new Exception( 'Could not create a full parser.' );
+			}
 		}
 
 		$output       = '';

@@ -141,6 +141,10 @@ class WP_HTML_Active_Formatting_Elements {
 				continue;
 			}
 
+			if ( $item->locked ) {
+				throw new WP_HTML_Stack_Exception( 'Cannot remove a locked element from the stack of active formatting elements.' );
+			}
+
 			$position_from_start = $this->count() - $position_from_end - 1;
 			array_splice( $this->stack, $position_from_start, 1 );
 			return true;
@@ -220,6 +224,9 @@ class WP_HTML_Active_Formatting_Elements {
 	 */
 	public function clear_up_to_last_marker(): void {
 		foreach ( $this->walk_up() as $item ) {
+			if ( $item->locked ) {
+				throw new WP_HTML_Stack_Exception( 'Cannot clear up to a locked element from the stack of active formatting elements.' );
+			}
 			array_pop( $this->stack );
 			if ( 'marker' === $item->node_name ) {
 				break;
