@@ -19,8 +19,8 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 
-		$this->assertStringContainsString( wp_json_encode( $this->png_cdn ), $output );
-		$this->assertStringContainsString( wp_json_encode( $this->svn_cdn ), $output );
+		$this->assertStringContainsString( wp_json_encode( $this->png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringContainsString( wp_json_encode( $this->svn_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
 	}
 
 	public function _filtered_emoji_svn_cdn( $cdn = '' ) {
@@ -41,9 +41,9 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 
-		$this->assertStringContainsString( wp_json_encode( $this->png_cdn ), $output );
-		$this->assertStringNotContainsString( wp_json_encode( $this->svn_cdn ), $output );
-		$this->assertStringContainsString( wp_json_encode( $filtered_svn_cdn ), $output );
+		$this->assertStringContainsString( wp_json_encode( $this->png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringNotContainsString( wp_json_encode( $this->svn_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringContainsString( wp_json_encode( $filtered_svn_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
 
 		remove_filter( 'emoji_svg_url', array( $this, '_filtered_emoji_svn_cdn' ) );
 	}
@@ -66,9 +66,9 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 
-		$this->assertStringContainsString( wp_json_encode( $filtered_png_cdn ), $output );
-		$this->assertStringNotContainsString( wp_json_encode( $this->png_cdn ), $output );
-		$this->assertStringContainsString( wp_json_encode( $this->svn_cdn ), $output );
+		$this->assertStringContainsString( wp_json_encode( $filtered_png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringNotContainsString( wp_json_encode( $this->png_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
+		$this->assertStringContainsString( wp_json_encode( $this->svn_cdn, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ), $output );
 
 		remove_filter( 'emoji_url', array( $this, '_filtered_emoji_png_cdn' ) );
 	}
