@@ -249,9 +249,9 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 		$schema   = $this->get_item_schema()['properties']['font_face_settings']['properties'];
 
 		// Sanitize settings based on callbacks in the schema.
-		foreach ( $settings as $key => $value ) {
-			$sanitize_callback = $schema[ $key ]['arg_options']['sanitize_callback'];
-			$settings[ $key ]  = call_user_func( $sanitize_callback, $value );
+		foreach ( $settings as $setting_key => $setting_value ) {
+			$sanitize_callback        = $schema[ $setting_key ]['arg_options']['sanitize_callback'];
+			$settings[ $setting_key ] = call_user_func( $sanitize_callback, $setting_value );
 		}
 
 		return $settings;
@@ -417,7 +417,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+		$force = isset( $request['force'] ) && $request['force'];
 
 		// We don't support trashing for font faces.
 		if ( ! $force ) {

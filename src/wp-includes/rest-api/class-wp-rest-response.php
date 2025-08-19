@@ -85,11 +85,9 @@ class WP_REST_Response extends WP_HTTP_Response {
 			return;
 		}
 
-		if ( $href ) {
-			$this->links[ $rel ] = wp_list_filter( $this->links[ $rel ], array( 'href' => $href ), 'NOT' );
-		} else {
-			$this->links[ $rel ] = array();
-		}
+		$this->links[ $rel ] = $href
+			? wp_list_filter( $this->links[ $rel ], array( 'href' => $href ), 'NOT' )
+			: array();
 
 		if ( ! $this->links[ $rel ] ) {
 			unset( $this->links[ $rel ] );

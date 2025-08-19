@@ -165,12 +165,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		// Otherwise grant access if the post is readable by the logged-in user.
-		if ( current_user_can( 'read_post', $post->ID ) ) {
-			return true;
-		}
-
-		// Otherwise, deny access.
-		return false;
+		return current_user_can( 'read_post', $post->ID );
 	}
 
 	/**
@@ -289,10 +284,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			if ( 0 === $request['parent'] ) {
 				// Only query top-level terms.
 				$prepared_args['parent'] = 0;
-			} else {
-				if ( $request['parent'] ) {
-					$prepared_args['parent'] = $request['parent'];
-				}
+			} elseif ( $request['parent'] ) {
+				$prepared_args['parent'] = $request['parent'];
 			}
 		}
 
@@ -769,7 +762,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return $term;
 		}
 
-		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+		$force = isset( $request['force'] ) && $request['force'];
 
 		// We don't support trashing for terms.
 		if ( ! $force ) {
@@ -1235,9 +1228,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	protected function check_is_taxonomy_allowed( $taxonomy ) {
 		$taxonomy_obj = get_taxonomy( $taxonomy );
-		if ( $taxonomy_obj && ! empty( $taxonomy_obj->show_in_rest ) ) {
-			return true;
-		}
-		return false;
+
+		return $taxonomy_obj && ! empty( $taxonomy_obj->show_in_rest );
 	}
 }

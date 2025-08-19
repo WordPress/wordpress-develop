@@ -330,7 +330,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 						__( 'The offset number requested is larger than or equal to the number of available revisions.' ),
 						array( 'status' => 400 )
 					);
-				} elseif ( ! $offset && $page > $max_pages ) {
+				}
+
+				if ( ! $offset && $page > $max_pages ) {
 					return new WP_Error(
 						'rest_revision_invalid_page_number',
 						__( 'The page number requested is larger than the number of pages available.' ),
@@ -487,7 +489,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			return $revision;
 		}
 
-		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+		$force = isset( $request['force'] ) && $request['force'];
 
 		// We don't support trashing for revisions.
 		if ( ! $force ) {
@@ -552,7 +554,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		// Map to proper WP_Query orderby param.
-		if ( isset( $query_args['orderby'] ) && isset( $request['orderby'] ) ) {
+		if ( isset( $query_args['orderby'], $request['orderby'] ) ) {
 			$orderby_mappings = array(
 				'id'            => 'ID',
 				'include'       => 'post__in',

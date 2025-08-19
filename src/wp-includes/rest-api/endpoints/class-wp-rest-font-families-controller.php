@@ -110,7 +110,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 			if ( isset( $settings['slug'] ) ) {
 				return new WP_Error(
 					'rest_invalid_param',
-					/* translators: %s: Name of parameter being updated: font_family_settings[slug]". */
+					/* translators: %s: Name of parameter being updated: "font_family_settings[slug]". */
 					sprintf( __( '%s cannot be updated.' ), 'font_family_settings[slug]' ),
 					array( 'status' => 400 )
 				);
@@ -154,9 +154,9 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 		$schema   = $this->get_item_schema()['properties']['font_family_settings']['properties'];
 
 		// Sanitize settings based on callbacks in the schema.
-		foreach ( $settings as $key => $value ) {
-			$sanitize_callback = $schema[ $key ]['arg_options']['sanitize_callback'];
-			$settings[ $key ]  = call_user_func( $sanitize_callback, $value );
+		foreach ( $settings as $setting_key => $setting_value ) {
+			$sanitize_callback        = $schema[ $setting_key ]['arg_options']['sanitize_callback'];
+			$settings[ $setting_key ] = call_user_func( $sanitize_callback, $setting_value );
 		}
 
 		return $settings;
@@ -204,7 +204,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
-		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+		$force = isset( $request['force'] ) && $request['force'];
 
 		// We don't support trashing for font families.
 		if ( ! $force ) {
@@ -534,8 +534,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 		$prepared_post->post_name   = sanitize_title( $settings['slug'] );
 
 		// Remove duplicate information from settings.
-		unset( $settings['name'] );
-		unset( $settings['slug'] );
+		unset( $settings['name'], $settings['slug'] );
 
 		$prepared_post->post_content = wp_json_encode( $settings );
 

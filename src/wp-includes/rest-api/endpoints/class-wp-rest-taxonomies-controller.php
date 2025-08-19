@@ -130,7 +130,11 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$data = array();
 
 		foreach ( $taxonomies as $tax_type => $value ) {
-			if ( empty( $value->show_in_rest ) || ( 'edit' === $request['context'] && ! current_user_can( $value->cap->assign_terms ) ) ) {
+			if ( empty( $value->show_in_rest ) ) {
+				continue;
+			}
+
+			if ( 'edit' === $request['context'] && ! current_user_can( $value->cap->assign_terms ) ) {
 				continue;
 			}
 
@@ -451,12 +455,12 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
-		$new_params            = array();
-		$new_params['context'] = $this->get_context_param( array( 'default' => 'view' ) );
-		$new_params['type']    = array(
-			'description' => __( 'Limit results to taxonomies associated with a specific post type.' ),
-			'type'        => 'string',
+		return array(
+			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
+			'type'    => array(
+				'description' => __( 'Limit results to taxonomies associated with a specific post type.' ),
+				'type'        => 'string',
+			),
 		);
-		return $new_params;
 	}
 }

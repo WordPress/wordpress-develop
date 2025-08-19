@@ -134,7 +134,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						__( 'Sorry, you are not allowed to read the post for this comment.' ),
 						array( 'status' => rest_authorization_required_code() )
 					);
-				} elseif ( 0 === $post_id && ! current_user_can( 'moderate_comments' ) ) {
+				}
+
+				if ( 0 === $post_id && ! current_user_can( 'moderate_comments' ) ) {
 					return new WP_Error(
 						'rest_cannot_read',
 						__( 'Sorry, you are not allowed to read comments without a post.' ),
@@ -437,10 +439,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $comment;
 		}
 
-		$data     = $this->prepare_item_for_response( $comment, $request );
-		$response = rest_ensure_response( $data );
+		$data = $this->prepare_item_for_response( $comment, $request );
 
-		return $response;
+		return rest_ensure_response( $data );
 	}
 
 	/**
@@ -494,15 +495,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( isset( $request['author_ip'] ) && ! current_user_can( 'moderate_comments' ) ) {
-			if ( empty( $_SERVER['REMOTE_ADDR'] ) || $request['author_ip'] !== $_SERVER['REMOTE_ADDR'] ) {
-				return new WP_Error(
-					'rest_comment_invalid_author_ip',
-					/* translators: %s: Request parameter. */
-					sprintf( __( "Sorry, you are not allowed to edit '%s' for comments." ), 'author_ip' ),
-					array( 'status' => rest_authorization_required_code() )
-				);
-			}
+		if ( isset( $request['author_ip'] )
+			&& ! current_user_can( 'moderate_comments' )
+			&& ( empty( $_SERVER['REMOTE_ADDR'] ) || $request['author_ip'] !== $_SERVER['REMOTE_ADDR'] )
+		) {
+			return new WP_Error(
+				'rest_comment_invalid_author_ip',
+				/* translators: %s: Request parameter. */
+				sprintf( __( "Sorry, you are not allowed to edit '%s' for comments." ), 'author_ip' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 		}
 
 		if ( isset( $request['status'] ) && ! current_user_can( 'moderate_comments' ) ) {
@@ -623,7 +625,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			&& empty( $prepared_comment['comment_author_email'] )
 			&& empty( $prepared_comment['comment_author_url'] );
 
-		if ( is_user_logged_in() && $missing_author ) {
+		if ( $missing_author && is_user_logged_in() ) {
 			$user = wp_get_current_user();
 
 			$prepared_comment['user_id']              = $user->ID;
@@ -633,14 +635,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Honor the discussion setting that requires a name and email address of the comment author.
-		if ( get_option( 'require_name_email' ) ) {
-			if ( empty( $prepared_comment['comment_author'] ) || empty( $prepared_comment['comment_author_email'] ) ) {
-				return new WP_Error(
-					'rest_comment_author_data_required',
-					__( 'Creating a comment requires valid author name and email values.' ),
-					array( 'status' => 400 )
-				);
-			}
+		if ( get_option( 'require_name_email' )
+			&& ( empty( $prepared_comment['comment_author'] ) || empty( $prepared_comment['comment_author_email'] ) )
+		) {
+			return new WP_Error(
+				'rest_comment_author_data_required',
+				__( 'Creating a comment requires valid author name and email values.' ),
+				array( 'status' => 400 )
+			);
 		}
 
 		if ( ! isset( $prepared_comment['comment_author_email'] ) ) {
@@ -965,7 +967,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $comment;
 		}
 
-		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+		$force = isset( $request['force'] ) && $request['force'];
 
 		/**
 		 * Filters whether a comment can be trashed via the REST API.
@@ -1823,10 +1825,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function check_read_permission( $comment, $request ) {
 		if ( ! empty( $comment->comment_post_ID ) ) {
 			$post = get_post( $comment->comment_post_ID );
-			if ( $post ) {
-				if ( $this->check_read_post_permission( $post, $request ) && 1 === (int) $comment->comment_approved ) {
-					return true;
-				}
+			if ( $post && ( 1 === (int) $comment->comment_approved ) && $this->check_read_post_permission( $post, $request ) ) {
+				return true;
 			}
 		}
 

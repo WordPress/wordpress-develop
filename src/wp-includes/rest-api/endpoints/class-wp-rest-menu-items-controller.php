@@ -1029,11 +1029,10 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function get_menu_id( $menu_item_id ) {
 		$menu_ids = wp_get_post_terms( $menu_item_id, 'nav_menu', array( 'fields' => 'ids' ) );
-		$menu_id  = 0;
 		if ( $menu_ids && ! is_wp_error( $menu_ids ) ) {
-			$menu_id = array_shift( $menu_ids );
+			return array_shift( $menu_ids );
 		}
 
-		return $menu_id;
+		return 0;
 	}
 }
