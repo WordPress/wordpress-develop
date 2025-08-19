@@ -5198,6 +5198,8 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
  * Changes to this function should follow updates in the client
  * with the same logic.
  *
+ * @since 5.8.0
+ *
  * @link https://github.com/lodash/lodash/blob/4.17/dist/lodash.js#L14369
  * @link https://github.com/lodash/lodash/blob/4.17/dist/lodash.js#L278
  * @link https://github.com/lodash-php/lodash-php/blob/master/src/String/kebabCase.php
@@ -8180,10 +8182,10 @@ All at ###SITENAME###
 	 *     @type string $subject The subject of the email.
 	 *     @type string $message The content of the email.
 	 *         The following strings have a special meaning and will get replaced dynamically:
-	 *         - ###OLD_EMAIL### The old site admin email address.
-	 *         - ###NEW_EMAIL### The new site admin email address.
-	 *         - ###SITENAME###  The name of the site.
-	 *         - ###SITEURL###   The URL to the site.
+	 *          - `###OLD_EMAIL###` The old site admin email address.
+	 *          - `###NEW_EMAIL###` The new site admin email address.
+	 *          - `###SITENAME###`  The name of the site.
+	 *          - `###SITEURL###`   The URL to the site.
 	 *     @type string $headers Headers.
 	 * }
 	 * @param string $old_email The old site admin email address.

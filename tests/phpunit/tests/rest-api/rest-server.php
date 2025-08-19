@@ -1871,6 +1871,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	public function test_get_routes_respects_namespace_parameter() {
 		$routes = rest_get_server()->get_routes( 'oembed/1.0' );
 
+		$this->assertNotEmpty( $routes );
+
 		foreach ( $routes as $route => $handlers ) {
 			$this->assertStringStartsWith( '/oembed/1.0', $route );
 		}
@@ -2325,6 +2327,30 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 400, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 63502
+	 */
+	public function test_batch_request_with_malformed_url() {
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'method' => 'POST',
+						'path'   => 'http://user@:80',
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data()['responses'][0]['body'] ?? null;
+
+		$this->assertIsArray( $data );
+		$this->assertSame( 'parse_path_failed', $data['code'] );
 	}
 
 	/**

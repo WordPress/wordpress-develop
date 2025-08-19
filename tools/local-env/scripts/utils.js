@@ -1,3 +1,5 @@
+/* jshint node:true */
+
 const { existsSync } = require( 'node:fs' );
 
 const local_env_utils = {
@@ -10,12 +12,14 @@ const local_env_utils = {
 	 *
 	 * When PHP 7.2 or 7.3 is used in combination with MySQL 8.4, an override file will also be returned to ensure
 	 * that the mysql_native_password plugin authentication plugin is on and available for use.
+	 *
+	 * @return {string[]} Compose files.
 	 */
 	get_compose_files: function() {
-		var composeFiles = '-f docker-compose.yml';
+		const composeFiles = [ 'docker-compose.yml' ];
 
 		if ( existsSync( 'docker-compose.override.yml' ) ) {
-			composeFiles = composeFiles + ' -f docker-compose.override.yml';
+			composeFiles.push( 'docker-compose.override.yml' );
 		}
 
 		if ( process.env.LOCAL_DB_TYPE !== 'mysql' ) {
@@ -28,7 +32,7 @@ const local_env_utils = {
 
 		// PHP 7.2/7.3 in combination with MySQL 8.4 requires additional configuration to function properly.
 		if ( process.env.LOCAL_DB_VERSION === '8.4' ) {
-			composeFiles = composeFiles + ' -f tools/local-env/old-php-mysql-84.override.yml';
+			composeFiles.push( 'tools/local-env/old-php-mysql-84.override.yml' );
 		}
 
 		return composeFiles;
