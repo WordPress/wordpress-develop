@@ -186,9 +186,9 @@ class WP_Script_Modules {
 	 */
 	public function add_hooks() {
 		$position = wp_is_block_theme() ? 'wp_head' : 'wp_footer';
-		add_action( $position, array( $this, 'print_import_map' ) );
-		add_action( $position, array( $this, 'print_enqueued_script_modules' ) );
-		add_action( $position, array( $this, 'print_script_module_preloads' ) );
+		add_action( $position, array( $this, 'print_import_map' ), 8 );
+		add_action( $position, array( $this, 'print_enqueued_script_modules' ), 8 );
+		add_action( $position, array( $this, 'print_script_module_preloads' ), 8 );
 
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
