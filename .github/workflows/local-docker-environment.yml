@@ -17,6 +17,8 @@ on:
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/webpack/**'
+      - '.npmrc'
+      - '.nvmrc'
       # These files configure Composer. Changes could affect the local environment.
       - 'composer.*'
       # These files define the versions to test.
@@ -41,6 +43,8 @@ on:
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/webpack/**'
+      - '.npmrc'
+      - '.nvmrc'
       # These files configure Composer. Changes could affect the local environment.
       - 'composer.*'
       # These files define the versions to test.
