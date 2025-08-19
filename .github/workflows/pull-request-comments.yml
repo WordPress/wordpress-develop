@@ -43,7 +43,7 @@ jobs:
             It looks like this is your first pull request to `wordpress-develop`. Here are a few things to be aware of that may help you out!
 
 
-            **No one monitors this repository for new pull requests.** Pull requests **must** be attached to a Trac ticket to be considered for inclusion in WordPress Core. To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description.
+            **Pull requests should be attached to a [trac](https://core.trac.wordpress.org/) ticket.** WordPress Core does not use GitHub as an issue tracker, to ensure your pull request receives necessary attention, please include a link to the Trac ticket's full URL in your pull request description.
 
 
             **Pull requests are never merged on GitHub.** The WordPress codebase continues to be managed through the SVN repository that this GitHub repository mirrors. Please feel free to open pull requests to work on any contribution you are making.
