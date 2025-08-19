@@ -434,6 +434,7 @@ add_action( 'post_updated', 'wp_save_post_revision', 10, 1 );
 add_action( 'publish_post', '_publish_post_hook', 5, 1 );
 add_action( 'transition_post_status', '_transition_post_status', 5, 3 );
 add_action( 'transition_post_status', '_update_term_count_on_transition_post_status', 10, 3 );
+add_action( 'wp_no_term_object_count_found', 'wp_update_term_count_for_post_type', 10, 2 );
 add_action( 'comment_form', 'wp_comment_form_unfiltered_html_nonce' );
 
 // Privacy.

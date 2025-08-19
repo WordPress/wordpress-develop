@@ -654,6 +654,14 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$p = self::factory()->post->create();
 		wp_set_object_terms( $p, $terms, 'wptests_tax' );
 
+		/**
+		 * `wp_set_object_terms()` populates the cache, but we need it empty to verify
+		 * behavior of 'update_term_meta_cache'.
+		 */
+		foreach ( $terms as $t ) {
+			wp_cache_delete( $t, 'term_meta' );
+		}
+
 		$found = wp_get_object_terms(
 			$p,
 			'wptests_tax',

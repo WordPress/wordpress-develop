@@ -3604,6 +3604,137 @@ function wp_update_term_count_now( $terms, $taxonomy ) {
 	return true;
 }
 
+/**
+ * Retrieves the number of objects of a specific type for a term.
+ *
+ * @since 6.8.0
+ *
+ * @param int    $term_id     Term ID.
+ * @param string $taxonomy    Taxonomy name.
+ * @param string $object_type Object type.
+ *
+ * @return WP_Error|int WP_Error on failure, term's object count for specified type otherwise.
+ */
+function wp_get_term_object_count( $term_id, $taxonomy, $object_type ) {
+	if ( ! taxonomy_exists( $taxonomy ) ) {
+		return new WP_Error(
+			'invalid_taxonomy',
+			__( 'Invalid taxonomy.' ),
+			array( 'taxonomy' => $taxonomy )
+		);
+	}
+
+	if ( ! is_object_in_taxonomy( $object_type, $taxonomy ) ) {
+		return new WP_Error(
+			'invalid_object_type',
+			__( 'Object type is not in taxonomy.' ),
+			array(
+				'object_type' => $object_type,
+				'taxonomy'    => $taxonomy,
+			)
+		);
+	}
+
+	$term = get_term( $term_id, $taxonomy );
+
+	if ( is_wp_error( $term ) ) {
+		return $term;
+	}
+
+	if ( 0 === $term->count ) {
+		// If the global count for a term is 0, no need for an object-specific count.
+		$count = 0;
+	} else {
+		$count = wp_get_term_object_count_from_meta( $term_id, $object_type );
+		// No calculated count found for this object type.
+		if ( false === $count ) {
+			/**
+			 * Fires when no object count is found for a given object type.
+			 *
+			 * This action provides an opportunity for third parties to run count routines.
+			 * When the object type is a post type, the count routine is run automatically.
+			 * See wp_update_term_count_for_post_type().
+			 *
+			 * @since 6.8.0
+			 *
+			 * @param WP_Term $term        Term object.
+			 * @param string  $object_type Object type name.
+			 */
+			do_action( 'wp_no_term_object_count_found', $term, $object_type );
+
+			// Try one more fetch after a count has potentially been triggered.
+			$count = (int) wp_get_term_object_count_from_meta( $term_id, $object_type );
+		}
+	}
+
+	/**
+	 * Filters the object count for a given term.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param int     $count       Count of objects of the given `$object_type` belonging to the term.
+	 * @param WP_Term $term        Term object.
+	 * @param string  $object_type Object type.
+	 */
+	return apply_filters( 'wp_term_object_count', $count, $term, $object_type );
+}
+
+/**
+ * Triggers a term count refresh when `$object_type` is a post type.
+ *
+ * Term-object counts are generally recalculated at the time that term-relationships are
+ * updated. See eg wp_set_object_terms(). But for terms that were last counted before the
+ * introduction of term-object counts, this data will initially be missing. This function
+ * forces a calculation of those counts when the object is a post type. Object types
+ * that are not post types must provide their own separate mechanism for triggering
+ * these counts.
+ *
+ * @since 6.8.0
+ *
+ * @param WP_Term $term        Term object.
+ * @param string  $object_type Object type.
+ */
+function wp_update_term_count_for_post_type( $term, $object_type ) {
+	// Non-post-types cannot be handled automatically.
+	if ( ! post_type_exists( $object_type ) ) {
+		return;
+	}
+
+	// Taxonomies with their own count callbacks cannot be handled automatically.
+	$taxonomy = get_taxonomy( $term->taxonomy );
+	if ( ! empty( $taxonomy->update_count_callback ) ) {
+		return;
+	}
+
+	wp_update_term_count_now( array( $term->term_taxonomy_id ), $term->taxonomy );
+}
+
+/**
+ * Get the cached term-object count from termmeta.
+ *
+ * @since 6.8.0
+ *
+ * @param int    $term_id     ID of the term.
+ * @param string $object_type Object type.
+ * @return bool|int Returns false when no metadata is found, which indicates that a count has not taken place.
+ */
+function wp_get_term_object_count_from_meta( $term_id, $object_type ) {
+	$term_object_count = get_term_meta( $term_id, '_wp_object_count_' . $object_type, true );
+
+	if ( $term_object_count ) {
+		return (int) $term_object_count;
+	}
+
+	$counted_object_types = (array) get_term_meta( $term_id, '_wp_counted_object_types', true );
+
+	// When the object type is marked counted and no meta key exists, the count is 0.
+	if ( in_array( $object_type, $counted_object_types, true ) ) {
+		return 0;
+	}
+
+	return false;
+}
+
 //
 // Cache.
 //
@@ -4136,6 +4267,7 @@ function _prime_term_caches( $term_ids, $update_meta_cache = true ) {
  *
  * @access private
  * @since 2.3.0
+ * @since 6.8.0 Store term counts on a per object type basis in meta.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -4160,7 +4292,7 @@ function _update_post_term_count( $terms, $taxonomy ) {
 	}
 
 	if ( $object_types ) {
-		$object_types = esc_sql( array_filter( $object_types, 'post_type_exists' ) );
+		$object_types = array_filter( $object_types, 'post_type_exists' );
 	}
 
 	$post_statuses = array( 'publish' );
@@ -4175,26 +4307,61 @@ function _update_post_term_count( $terms, $taxonomy ) {
 	 */
 	$post_statuses = esc_sql( apply_filters( 'update_post_term_count_statuses', $post_statuses, $taxonomy ) );
 
-	foreach ( (array) $terms as $term ) {
+	foreach ( (array) $terms as $tt_id ) {
 		$count = 0;
+		$term  = get_term_by( 'term_taxonomy_id', $tt_id );
+
+		// Remove previous counts to prevent stale data if an object type is removed from a taxonomy.
+		$counted_object_types = (array) get_term_meta( $term->term_id, '_wp_counted_object_types', true );
+
+		foreach ( $counted_object_types as $o_type ) {
+			delete_term_meta( $term->term_id, '_wp_object_count_' . $o_type );
+		}
+
+		delete_term_meta( $term->term_id, '_wp_counted_object_types' );
+
+		$term_count_meta = array();
+
+		if ( $object_types ) {
+			foreach ( $object_types as $type ) {
+				$current_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status = 'publish' AND post_type = %s AND term_taxonomy_id = %d", $type, $tt_id ) );
+
+				$count += $current_count;
+
+				$term_count_meta[ $type ] = $current_count;
+			}
+		}
 
 		// Attachments can be 'inherit' status, we need to base count off the parent's status if so.
 		if ( $check_attachments ) {
-			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status IN ('" . implode( "', '", $post_statuses ) . "') OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) IN ('" . implode( "', '", $post_statuses ) . "') ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $term ) );
+            // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
+			$attachment_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status IN ('" . implode( "','", $post_statuses ) . "') OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) IN ('" . implode( "','", $post_statuses ) . "') ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $tt_id ) );
+
+			$count += $attachment_count;
+
+			$term_count_meta['attachment'] = $attachment_count;
+
+			// Re-add attachment so the meta gets saved below.
+			$object_types[] = 'attachment';
 		}
 
 		if ( $object_types ) {
-			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status IN ('" . implode( "', '", $post_statuses ) . "') AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
+			// Save individual counts for each object type in term meta.
+			foreach ( $object_types as $type ) {
+				if ( ! empty( $term_count_meta[ $type ] ) ) {
+					update_term_meta( $term->term_id, '_wp_object_count_' . $type, (int) $term_count_meta[ $type ] );
+				}
+			}
 		}
 
-		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edit_term_taxonomy', $term, $taxonomy->name );
-		$wpdb->update( $wpdb->term_taxonomy, compact( 'count' ), array( 'term_taxonomy_id' => $term ) );
+		update_term_meta( $term->term_id, '_wp_counted_object_types', $object_types );
 
 		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edited_term_taxonomy', $term, $taxonomy->name );
+		do_action( 'edit_term_taxonomy', $tt_id, $taxonomy->name );
+		$wpdb->update( $wpdb->term_taxonomy, compact( 'count' ), array( 'term_taxonomy_id' => $tt_id ) );
+
+		/** This action is documented in wp-includes/taxonomy.php */
+		do_action( 'edited_term_taxonomy', $tt_id, $taxonomy->name );
 	}
 }
 
