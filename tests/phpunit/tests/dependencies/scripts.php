@@ -2127,7 +2127,6 @@ HTML;
 
 	/**
 	 * @ticket 36392
-	 * @ticket 63821
 	 */
 	public function test_wp_add_inline_script_before_with_concat_and_core_dependency() {
 		global $wp_scripts, $wp_version;
