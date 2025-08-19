@@ -2012,6 +2012,7 @@ HTML;
 	public static function data_script_tag(): Generator {
 
 			yield 'Basic script tag'                             => array( '<script></script>', true );
+			yield 'Basic script tag with </script\f> close'      => array( "<script></script\f>", true );
 			yield 'Script with type attribute'                   => array( '<script type="text/javascript"></script>', true );
 			yield 'Script data escaped'                          => array( '<script><!--</script>', true );
 			yield 'Script data double-escaped exit (comment)'    => array( '<script><!--<script>--></script>', true );
@@ -2030,13 +2031,14 @@ HTML;
 				true,
 			);
 
-			yield 'Script tag with self-close flag (ignored)'     => array( '<script />', false );
-			yield 'Script data double-escaped'                    => array( '<script><!--<script></script>', false );
-			yield 'Unclosed script in escaped state'              => array( '<script><!--------------', false );
-			yield 'Unclosed script in double escaped state'       => array( '<script><!--<script ', false );
-			yield 'Document end in closer start'                  => array( '<script></', false );
-			yield 'Document end in script closer'                 => array( '<script></script', false );
-			yield 'Document end in script closer with attributes' => array( '<script></script attr="val"', false );
+			yield 'Script tag with self-close flag (ignored)'      => array( '<script />', false );
+			yield 'Script data double-escaped'                     => array( '<script><!--<script></script>', false );
+			yield 'Unclosed script in escaped state'               => array( '<script><!--------------', false );
+			yield 'Unclosed script in double escaped state'        => array( '<script><!--<script ', false );
+			yield 'Document end in closer start'                   => array( '<script></', false );
+			yield 'Document end in script closer'                  => array( '<script></script', false );
+			yield 'Document end in script closer with attributes'  => array( '<script></script attr="val"', false );
+			yield 'Basic script tag double-escaped with <script\f' => array( "<script><!--<script\f</script>", false );
 	}
 
 	/**

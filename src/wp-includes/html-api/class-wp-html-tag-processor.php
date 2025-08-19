@@ -1619,7 +1619,30 @@ class WP_HTML_Tag_Processor {
 			 */
 			$at += 6;
 			$c   = $html[ $at ];
-			if ( ' ' !== $c && "\t" !== $c && "\r" !== $c && "\n" !== $c && '/' !== $c && '>' !== $c ) {
+			if (
+			/*
+			 * These characters trigger state transitions of interest:
+			 *
+			 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-name-state}
+			 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-name-state}
+			 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-start-state}
+			 * - @see {https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-end-state}
+			 *
+			 * The "\r" character is not present in the above references. However, "\r" must be
+			 * treated the same as "\n". This is because the HTML Standard requires newline
+			 * normalization during preprocessing which applies this replacement.
+			 *
+			 * - @see https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream
+			 * - @see https://infra.spec.whatwg.org/#normalize-newlines
+			 */
+				'>' !== $c &&
+				' ' !== $c &&
+				"\n" !== $c &&
+				'/' !== $c &&
+				"\t" !== $c &&
+				"\f" !== $c &&
+				"\r" !== $c
+			) {
 				continue;
 			}
 
