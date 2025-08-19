@@ -2221,8 +2221,15 @@ function wp_insert_user( $userdata ) {
 		$user_pass = ! empty( $userdata['user_pass'] ) ? $userdata['user_pass'] : $old_user_data->user_pass;
 	} else {
 		$update = false;
+
+		$pre_hash_password = _wp_filter_pre_hash_password( $userdata['user_pass'] );
+
+		if ( is_wp_error( $pre_hash_password ) ) {
+			return $pre_hash_password;
+		}
+
 		// Hash the password.
-		$user_pass = wp_hash_password( $userdata['user_pass'] );
+		$user_pass = wp_hash_password( $pre_hash_password );
 	}
 
 	$sanitized_user_login = sanitize_user( $userdata['user_login'], true );
@@ -2685,9 +2692,16 @@ function wp_update_user( $userdata ) {
 	$user = add_magic_quotes( $user );
 
 	if ( ! empty( $userdata['user_pass'] ) && $userdata['user_pass'] !== $user_obj->user_pass ) {
+
+		$pre_hash_password = _wp_filter_pre_hash_password( $userdata['user_pass'] );
+
+		if ( is_wp_error( $pre_hash_password ) ) {
+			return $pre_hash_password;
+		}
+
 		// If password is changing, hash it now.
-		$plaintext_pass        = $userdata['user_pass'];
-		$userdata['user_pass'] = wp_hash_password( $userdata['user_pass'] );
+		$plaintext_pass        = $pre_hash_password;
+		$userdata['user_pass'] = wp_hash_password( $pre_hash_password );
 
 		/** This action is documented in wp-includes/pluggable.php */
 		do_action( 'wp_set_password', $plaintext_pass, $user_id, $user_obj );
@@ -5203,4 +5217,30 @@ function wp_is_password_reset_allowed_for_user( $user ) {
 	 * @param int  $user_id The ID of the user attempting to reset a password.
 	 */
 	return apply_filters( 'allow_password_reset', $allow, $user->ID );
+}
+
+/**
+ * Filters and validates a password before hashing.
+ *
+ * @since 6.8.0
+ * @access private
+ *
+ * @param string $password The password to filter and validate.
+ * @return string|WP_Error The filtered password on success, WP_Error on failure.
+ */
+function _wp_filter_pre_hash_password( $password ) {
+	/**
+	 * Filters a password before hashing it.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $password The user's password.
+	 */
+	$pre_hash_password = apply_filters( 'pre_hash_password', $password );
+
+	if ( empty( $pre_hash_password ) ) {
+		return new WP_Error( 'empty_pre_hash_password', __( 'Cannot save user with an empty password.' ) );
+	}
+
+	return $pre_hash_password;
 }
