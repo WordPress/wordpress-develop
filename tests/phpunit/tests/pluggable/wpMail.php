@@ -554,4 +554,27 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		$phpmailer = $GLOBALS['phpmailer'];
 		$this->assertNotSame( 'user1', $phpmailer->AltBody );
 	}
+
+	/**
+	 * If the global $phpmailer is overridden, it should be recreated as a real MockPHPMailer object in tests.
+	 *
+	 * @ticket 28618
+	 */
+	public function test_global_override_can_create_real_phpmailer() {
+		global $phpmailer;
+
+		$this->assertInstanceOf( 'MockPHPMailer', $phpmailer, 'The global $phpmailer should be a MockPHPMailer.' );
+
+		$phpmailer = null;
+
+		global $phpmailer;
+
+		$this->assertNull( $phpmailer, 'The global $phpmailer should be null.' );
+
+		wp_mail( 'test@example.com', 'Test Subject', 'Test Message' );
+
+		global $phpmailer;
+
+		$this->assertInstanceOf( 'MockPHPMailer', $phpmailer, 'The global $phpmailer should still be a MockPHPMailer.' );
+	}
 }
