@@ -225,4 +225,41 @@ class Tests_Option_UpdateOption extends WP_UnitTestCase {
 	public function __return_foo() {
 		return 'foo';
 	}
+
+	/**
+	 * @ticket 26402
+	 *
+	 * @covers ::update_option
+	 */
+	public function test_should_invalidate_cache_when_db_update_fails() {
+		global $wpdb;
+
+		$option_name  = 'test_option_update_fail';
+		$option_value = 'initial';
+
+		add_option( $option_name, $option_value );
+		$this->assertSame( $option_value, get_option( $option_name ) );
+
+		$wpdb->delete( $wpdb->options, array( 'option_name' => $option_name ) );
+
+		tests_add_filter(
+			'query',
+			function ( $query ) use ( $wpdb ) {
+				if ( stripos( $query, "update `$wpdb->options`" ) === 0 ) {
+					return false; // Simulate DB update failure.
+				}
+				return $query;
+			}
+		);
+
+		$result = update_option( $option_name, 'new_value' );
+
+		$this->assertFalse( $result, 'Expected update_option() to fail when DB update fails.' );
+		$this->assertFalse( wp_cache_get( $option_name, 'options' ) );
+
+		// Verify alloptions cache no longer contains the option.
+		$alloptions = wp_cache_get( 'alloptions', 'options' );
+		$this->assertIsArray( $alloptions );
+		$this->assertArrayNotHasKey( $option_name, $alloptions );
+	}
 }
