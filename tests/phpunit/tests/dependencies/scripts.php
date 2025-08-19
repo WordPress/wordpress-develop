@@ -3568,4 +3568,51 @@ HTML;
 		$provider = array();
 		return $data['dependencies'];
 	}
+
+	/**
+	 * Tests the headers returned by load-scripts.php.
+	 *
+	 * @ticket 40602
+	 *
+	 * @covers ::wp_scripts_maybe_concat
+	 */
+	public function test_load_scripts_headers() {
+		global $wp_scripts, $concatenate_scripts;
+
+		// Ensure concatenation is enabled
+		$old_concatenate_scripts = $concatenate_scripts;
+		$concatenate_scripts     = true;
+
+		// Set up WP_Scripts
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( '/wp-admin/js/', '/wp-includes/js/' );
+
+		// Enqueue some scripts
+		wp_enqueue_script( 'jquery' );
+		wp_enqueue_script( 'underscore' );
+
+		// Generate the load-scripts.php URL
+		$url = 'http://localhost:8889/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=jquery,underscore';
+
+		// Make the request
+		$response = wp_remote_get( $url );
+
+		// Reset concatenation setting
+		$concatenate_scripts = $old_concatenate_scripts;
+
+		// Check that the request was successful
+		$this->assertEquals( 200, wp_remote_retrieve_response_code( $response ) );
+
+		// Check headers
+		$headers = wp_remote_retrieve_headers( $response );
+
+		$this->assertEquals( 'application/javascript; charset=UTF-8', $headers['content-type'] );
+		$this->assertEquals( 'public, max-age=31536000, immutable', $headers['cache-control'] );
+		$this->assertArrayHasKey( 'expires', $headers );
+		$this->assertArrayHasKey( 'etag', $headers );
+
+		// Also check the content of the response
+		$content = wp_remote_retrieve_body( $response );
+		$this->assertNotEmpty( $content );
+	}
 }

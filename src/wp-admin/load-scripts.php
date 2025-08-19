@@ -71,7 +71,7 @@ foreach ( $load as $handle ) {
 header( "Etag: $etag" );
 header( 'Content-Type: application/javascript; charset=UTF-8' );
 header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $expires_offset ) . ' GMT' );
-header( "Cache-Control: public, max-age=$expires_offset" );
+header( "Cache-Control: public, max-age=$expires_offset, immutable" );
 
 echo $out;
 exit;
