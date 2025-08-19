@@ -6,6 +6,12 @@
  * This class can be used to perform the sort of structural
  * changes to an HTML document that are required by
  * Block Bindings.
+ *
+ * @access private
+ *
+ * @package WordPress
+ * @subpackage Block Bindings
+ * @since 6.9.0
  */
 class WP_Block_Bindings_Processor extends WP_HTML_Processor {
 	private $output         = '';
