@@ -738,7 +738,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 			array(
 				'methods'             => 'GET',
 				'callback'            => function () {
-					return '<!-- unclosed comment and a script tag <script></script>';
+					return 'Unclosed comment and a script open tag <!--<script>';
 				},
 				'permission_callback' => '__return_true',
 			)
@@ -761,7 +761,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$expected = <<<HTML
 <script src="{$baseurl}/wp-includes/js/dist/api-fetch.min.js?ver=test" id="wp-api-fetch-js"></script>
 <script id="wp-api-fetch-js-after">
-wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( {"/test/v0/test-62797":{"body":["\\u003C!-- unclosed comment and a script tag \\u003Cscript\\u003E\\u003C/script\\u003E"],"headers":{"Allow":"GET"}}} ) );
+wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( {"/test/v0/test-62797":{"body":["Unclosed comment and a script open tag \\u003C!--\\u003Cscript\\u003E"],"headers":{"Allow":"GET"}}} ) );
 </script>
 
 HTML;
