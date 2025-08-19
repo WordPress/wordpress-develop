@@ -2010,7 +2010,6 @@ HTML;
 	 * Data provider.
 	 */
 	public static function data_script_tag(): Generator {
-
 			yield 'Basic script tag'                              => array( '<script></script>', true );
 			yield 'Script tag with </script> close'               => array( '<script></script>', true );
 			yield 'Script tag with </script/> close'              => array( '<script></script/>', true );
