@@ -473,9 +473,15 @@ class WP_Debug_Data {
 
 		// Opcode Cache.
 		if ( function_exists( 'opcache_get_status' ) ) {
-			$opcache_status = opcache_get_status( false );
+			$opcache_status = @opcache_get_status( false );
 
-			if ( $opcache_status ) {
+			if ( false === $opcache_status ) {
+				$fields['opcode_cache'] = array(
+					'label' => __( 'Opcode cache' ),
+					'value' => __( 'Disabled by configuration' ),
+					'debug' => 'not available',
+				);
+			} else {
 				$fields['opcode_cache'] = array(
 					'label' => __( 'Opcode cache' ),
 					'value' => ( $opcache_status['opcache_enabled'] ? __( 'Enabled' ) : __( 'Disabled' ) ),
