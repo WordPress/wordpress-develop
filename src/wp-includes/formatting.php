@@ -6465,7 +6465,6 @@ $js_trimmables = "\u{0009}\u{000A}\u{000B}\u{000C}\u{000D}\u{0020}\u{00A0}\u{168
  * @return string The trimmed string.
  */
 function js_trim( $string ) {
-        global $js_trimmables;
-
-        return mb_trim( $string, $js_trimmables, 'UTF-8' );
+		global $js_trimmables;
+		return mb_trim( $string, $js_trimmables, 'UTF-8' );
 }
