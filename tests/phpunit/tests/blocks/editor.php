@@ -727,8 +727,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	 * @covers ::block_editor_rest_api_preload
 	 *
 	 * Some valid JSON-encoded data is dangerous to embed in HTML without appropriate
-	 * escaping. This test includes prints an example of such data that would prevent
-	 * the enclosing `<script>` from closing on its apparent closer and remain open.
+	 * escaping. This test includes an example of data that would prevent the enclosing
+	 * `<script></script>` tag from closing on its apparent closer and remain open.
 	 */
 	public function test_ensure_preload_data_script_tag_closes() {
 		add_theme_support( 'html5', array( 'script' ) );
