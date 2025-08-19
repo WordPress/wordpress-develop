@@ -14,6 +14,11 @@
  * @property {?Function} readyCallback
  */
 
+// For compatibility with other scripts that read from this global.
+window._wpemojiSettings = /** @type {WPEmojiSettings} */ (
+	JSON.parse( document.getElementById( 'wp-emoji-settings' ).textContent )
+);
+
 /**
  * Support tests.
  * @typedef SupportTests
