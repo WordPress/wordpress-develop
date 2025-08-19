@@ -2011,24 +2011,28 @@ HTML;
 	 */
 	public static function data_script_tag(): Generator {
 
-			yield 'Basic script tag'                             => array( '<script></script>', true );
-			yield 'Basic script tag with </script> close'        => array( '<script></script>', true );
-			yield 'Basic script tag with </script/> close'       => array( '<script></script/>', true );
-			yield 'Basic script tag with </script > close'       => array( '<script></script >', true );
-			yield 'Basic script tag with </script\n> close'      => array( "<script></script\n>", true );
-			yield 'Basic script tag with </script\t> close'      => array( "<script></script\t>", true );
-			yield 'Basic script tag with </script\f> close'      => array( "<script></script\f>", true );
-			yield 'Basic script tag with </script\r> close'      => array( "<script></script\r>", true );
-			yield 'Script with type attribute'                   => array( '<script type="text/javascript"></script>', true );
-			yield 'Script data escaped'                          => array( '<script><!--</script>', true );
-			yield 'Script data double-escaped exit (comment)'    => array( '<script><!--<script>--></script>', true );
-			yield 'Script data double-escaped exit (closed)'     => array( '<script><!--<script></script></script>', true );
-			yield 'Script data double-escaped exit (closed/truncated)' =>
-				array( '<script><!--<script></script </script>', true );
-			yield 'Script data no double-escape'                 => array( '<script><!-- --><script></script>', true );
-			yield 'Script data no double-escape (short comment)' => array( '<script><!--><script></script>', true );
-			yield 'Script data almost double-escaped'            => array( '<script><!--<script</script>', true );
-			yield 'Script data with complex JavaScript'          => array(
+			yield 'Basic script tag'                              => array( '<script></script>', true );
+			yield 'Script tag with </script> close'               => array( '<script></script>', true );
+			yield 'Script tag with </script/> close'              => array( '<script></script/>', true );
+			yield 'Script tag with </script > close'              => array( '<script></script >', true );
+			yield 'Script tag with </script\n> close'             => array( "<script></script\n>", true );
+			yield 'Script tag with </script\t> close'             => array( "<script></script\t>", true );
+			yield 'Script tag with </script\f> close'             => array( "<script></script\f>", true );
+			yield 'Script tag with </script\r> close'             => array( "<script></script\r>", true );
+			yield 'Script with type attribute'                    => array( '<script type="text/javascript"></script>', true );
+			yield 'Script data escaped'                           => array( '<script><!--</script>', true );
+			yield 'Script data double-escaped exit (comment)'     => array( '<script><!--<script>--></script>', true );
+			yield 'Script data double-escaped exit (closed ">")'  => array( '<script><!--<script></script></script>', true );
+			yield 'Script data double-escaped exit (closed "/")'  => array( '<script><!--<script></script/</script>', true );
+			yield 'Script data double-escaped exit (closed " ")'  => array( '<script><!--<script></script </script>', true );
+			yield 'Script data double-escaped exit (closed "\n")' => array( "<script><!--<script></script\n</script>", true );
+			yield 'Script data double-escaped exit (closed "\t")' => array( "<script><!--<script></script\t</script>", true );
+			yield 'Script data double-escaped exit (closed "\f")' => array( "<script><!--<script></script\f</script>", true );
+			yield 'Script data double-escaped exit (closed "\r")' => array( "<script><!--<script></script\r</script>", true );
+			yield 'Script data no double-escape'                  => array( '<script><!-- --><script></script>', true );
+			yield 'Script data no double-escape (short comment)'  => array( '<script><!--><script></script>', true );
+			yield 'Script data almost double-escaped'             => array( '<script><!--<script</script>', true );
+			yield 'Script data with complex JavaScript'           => array(
 				'<script>
 					var x = 10;
 					x--;
@@ -2037,20 +2041,20 @@ HTML;
 				true,
 			);
 
-			yield 'Script tag with self-close flag (ignored)'      => array( '<script />', false );
-			yield 'Script data double-escaped'                     => array( '<script><!--<script></script>', false );
-			yield 'Unclosed script in escaped state'               => array( '<script><!--------------', false );
-			yield 'Unclosed script in double escaped state'        => array( '<script><!--<script ', false );
-			yield 'Document end in closer start'                   => array( '<script></', false );
-			yield 'Document end in script closer'                  => array( '<script></script', false );
-			yield 'Document end in script closer with attributes'  => array( '<script></script attr="val"', false );
-			yield 'Basic script tag double-escaped with <script>'  => array( '<script><!--<script></script>', false );
-			yield 'Basic script tag double-escaped with <script/'  => array( '<script><!--<script/</script>', false );
-			yield 'Basic script tag double-escaped with <script '  => array( '<script><!--<script </script>', false );
-			yield 'Basic script tag double-escaped with <script\n' => array( "<script><!--<script\n</script>", false );
-			yield 'Basic script tag double-escaped with <script\t' => array( "<script><!--<script\t</script>", false );
-			yield 'Basic script tag double-escaped with <script\f' => array( "<script><!--<script\f</script>", false );
-			yield 'Basic script tag double-escaped with <script\r' => array( "<script><!--<script\r</script>", false );
+			yield 'Script tag with self-close flag (ignored)'     => array( '<script />', false );
+			yield 'Script data double-escaped'                    => array( '<script><!--<script></script>', false );
+			yield 'Unclosed script in escaped state'              => array( '<script><!--------------', false );
+			yield 'Unclosed script in double escaped state'       => array( '<script><!--<script ', false );
+			yield 'Document end in closer start'                  => array( '<script></', false );
+			yield 'Document end in script closer'                 => array( '<script></script', false );
+			yield 'Document end in script closer with attributes' => array( '<script></script attr="val"', false );
+			yield 'Script tag double-escaped with <script>'       => array( '<script><!--<script></script>', false );
+			yield 'Script tag double-escaped with <script/'       => array( '<script><!--<script/</script>', false );
+			yield 'Script tag double-escaped with <script '       => array( '<script><!--<script </script>', false );
+			yield 'Script tag double-escaped with <script\n'      => array( "<script><!--<script\n</script>", false );
+			yield 'Script tag double-escaped with <script\t'      => array( "<script><!--<script\t</script>", false );
+			yield 'Script tag double-escaped with <script\f'      => array( "<script><!--<script\f</script>", false );
+			yield 'Script tag double-escaped with <script\r'      => array( "<script><!--<script\r</script>", false );
 	}
 
 	/**
