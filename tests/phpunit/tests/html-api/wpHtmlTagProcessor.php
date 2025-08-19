@@ -2012,7 +2012,13 @@ HTML;
 	public static function data_script_tag(): Generator {
 
 			yield 'Basic script tag'                             => array( '<script></script>', true );
+			yield 'Basic script tag with </script> close'        => array( '<script></script>', true );
+			yield 'Basic script tag with </script/> close'       => array( '<script></script/>', true );
+			yield 'Basic script tag with </script > close'       => array( '<script></script >', true );
+			yield 'Basic script tag with </script\n> close'      => array( "<script></script\n>", true );
+			yield 'Basic script tag with </script\t> close'      => array( "<script></script\t>", true );
 			yield 'Basic script tag with </script\f> close'      => array( "<script></script\f>", true );
+			yield 'Basic script tag with </script\r> close'      => array( "<script></script\r>", true );
 			yield 'Script with type attribute'                   => array( '<script type="text/javascript"></script>', true );
 			yield 'Script data escaped'                          => array( '<script><!--</script>', true );
 			yield 'Script data double-escaped exit (comment)'    => array( '<script><!--<script>--></script>', true );
@@ -2038,7 +2044,13 @@ HTML;
 			yield 'Document end in closer start'                   => array( '<script></', false );
 			yield 'Document end in script closer'                  => array( '<script></script', false );
 			yield 'Document end in script closer with attributes'  => array( '<script></script attr="val"', false );
+			yield 'Basic script tag double-escaped with <script>'  => array( '<script><!--<script></script>', false );
+			yield 'Basic script tag double-escaped with <script/'  => array( '<script><!--<script/</script>', false );
+			yield 'Basic script tag double-escaped with <script '  => array( '<script><!--<script </script>', false );
+			yield 'Basic script tag double-escaped with <script\n' => array( "<script><!--<script\n</script>", false );
+			yield 'Basic script tag double-escaped with <script\t' => array( "<script><!--<script\t</script>", false );
 			yield 'Basic script tag double-escaped with <script\f' => array( "<script><!--<script\f</script>", false );
+			yield 'Basic script tag double-escaped with <script\r' => array( "<script><!--<script\r</script>", false );
 	}
 
 	/**
