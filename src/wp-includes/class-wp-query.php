@@ -5143,8 +5143,7 @@ class WP_Query {
 		// Default factor to over-select rows, configurable via query var.
 		$rand_factor = isset( $q['rand_factor'] ) ? (float) $q['rand_factor'] : 3.0;
 		$size        = absint( $q['posts_per_page'] );
-		if ( $size <= 0 ) {
-			// If post_per_page is -1 set at least the default posts_per_page.
+		if ( 0 === $size ) {
 			$size = (int) get_option( 'posts_per_page' );
 		}
 
@@ -5157,8 +5156,12 @@ class WP_Query {
 			// Calculate probability, capped at 1.0 (100%).
 			$probability = min( 1.0, ( $size * $rand_factor ) / $row_count );
 
-			// Use seed if provided in query vars (e.g., 'orderby' => 'rand', 'seed' => 123).
-			$rand_call = isset( $q['seed'] ) ? $wpdb->prepare( 'RAND(%d)', $q['seed'] ) : 'RAND()';
+			// Use seed if provided in 'orderby' query var (e.g., 'orderby' => 'rand(123)').
+			if ( isset( $q['orderby'] ) && preg_match( '/RAND\(([0-9]+)\)/i', $q['orderby'], $matches ) ) {
+				$rand_call = $wpdb->prepare( 'RAND(%s)', (int) $matches[1] );
+			} else {
+				$rand_call = 'RAND()';
+			}
 
 			// Add the probability condition to the main $where clause.
 			$where .= $wpdb->prepare( " AND {$rand_call} <= %f ", $probability );
