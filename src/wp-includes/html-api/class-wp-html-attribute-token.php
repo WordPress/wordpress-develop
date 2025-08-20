@@ -21,13 +21,14 @@
  */
 class WP_HTML_Attribute_Token {
 	/**
-	 * Attribute name.
+	 * Byte length of attribute name.
 	 *
 	 * @since 6.2.0
+	 * @since 6.5.0
 	 *
-	 * @var string
+	 * @var int
 	 */
-	public $name;
+	public $name_length;
 
 	/**
 	 * Attribute value.
@@ -97,16 +98,17 @@ class WP_HTML_Attribute_Token {
 	 *
 	 * @since 6.2.0
 	 * @since 6.5.0 Replaced `end` with `length` to more closely match `substr()`.
+	 *              Replaced `name` with `name_length` to avoid string allocation.
 	 *
-	 * @param string $name         Attribute name.
-	 * @param int    $value_start  Attribute value.
-	 * @param int    $value_length Number of bytes attribute value spans.
-	 * @param int    $start        The string offset where the attribute name starts.
-	 * @param int    $length       Byte length of the entire attribute name or name and value pair expression.
-	 * @param bool   $is_true      Whether the attribute is a boolean attribute with true value.
+	 * @param int  $name_length  Byte length of attribute name.
+	 * @param int  $value_start  Attribute value.
+	 * @param int  $value_length Number of bytes attribute value spans.
+	 * @param int  $start        The string offset where the attribute name starts.
+	 * @param int  $length       Byte length of the entire attribute name or name and value pair expression.
+	 * @param bool $is_true      Whether the attribute is a boolean attribute with true value.
 	 */
-	public function __construct( $name, $value_start, $value_length, $start, $length, $is_true ) {
-		$this->name            = $name;
+	public function __construct( $name_length, $value_start, $value_length, $start, $length, $is_true ) {
+		$this->name_length     = $name_length;
 		$this->value_starts_at = $value_start;
 		$this->value_length    = $value_length;
 		$this->start           = $start;

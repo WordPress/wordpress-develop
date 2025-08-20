@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/9.2/phpunit.xsd"
+	bootstrap="my.bootstrap.php"
+	testdox="true"
+	colors="true"
+>
+	<php>
+		<const name="WP_TESTS_DOMAIN" value="example.org"/>
+    </php>
+	<testsuites>
+		<testsuite name="formatting">
+			<directory suffix=".php">tests/phpunit/tests/formatting</directory>
+		</testsuite>
+		<testsuite name="kses">
+			<file>tests/phpunit/tests/kses.php</file>
+		</testsuite>
+		<testsuite name="html-api">
+			<directory suffix=".php">tests/phpunit/tests/html-api</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

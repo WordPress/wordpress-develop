@@ -382,6 +382,52 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that duplicate attributes are skipped when iterating over them.
+	 *
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_returns_no_duplicate_attributes() {
+		$processor = new WP_HTML_Tag_Processor( '<div id=1 id=2 id=3 id=4 id=5>' );
+		$processor->next_tag();
+
+		$attribute_names = $processor->get_attribute_names_with_prefix( '' );
+		$count           = count( $attribute_names );
+
+		$this->assertSame(
+			array( 'id' ),
+			$attribute_names,
+			"Should have only returned the first `id` attribute, but returned ${count} duplicate copies."
+		);
+	}
+
+	/**
+	 * Ensures that duplicate attributes are skipped when iterating over them.
+	 *
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_returns_no_duplicate_attributes_after_modifying_it() {
+		$processor = new WP_HTML_Tag_Processor( '<div id=1 id=2 id=3 id=4 id=5>' );
+		$processor->next_tag();
+
+		$processor->remove_attribute( 'id' );
+		$processor->set_attribute( 'id', '6' );
+		$processor->set_attribute( 'id', '7' );
+
+		$attribute_names = $processor->get_attribute_names_with_prefix( '' );
+		$count           = count( $attribute_names );
+
+		$this->assertSame(
+			array( 'id' ),
+			$attribute_names,
+			"Should have only returned the first `id` attribute, but returned ${count} duplicate copies."
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::__toString
@@ -1249,6 +1295,32 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor = new WP_HTML_Tag_Processor( $processor->get_updated_html() );
 		$processor->next_tag();
 		$this->assertNull( $processor->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of duplicated attributes when getting updated HTML.' );
+	}
+
+	/**
+	 * Ensures that duplicate attributes are properly
+	 * removed even when queing updates.
+	 *
+	 * @ticket {TICKET_NUMBER}
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 *
+	 * @dataProvider data_html_with_duplicated_attributes
+	 */
+	public function test_remove_attribute_several_times_with_duplicated_attributes_removes_all_of_them_safely( $html_with_duplicate_attributes, $attribute_to_remove ) {
+		$p = new WP_HTML_Tag_Processor( $html_with_duplicate_attributes );
+		$p->next_tag();
+
+		$p->remove_attribute( $attribute_to_remove );
+		$p->set_attribute( $attribute_to_remove, 'test-value' );
+		$p->remove_attribute( $attribute_to_remove );
+		$p->remove_attribute( $attribute_to_remove );
+		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of an attribute when duplicated in modified source.' );
+
+		// Recreate a tag processor with the updated HTML after removing the attribute.
+		$p = new WP_HTML_Tag_Processor( $p->get_updated_html() );
+		$p->next_tag();
+		$this->assertNull( $p->get_attribute( $attribute_to_remove ), 'Failed to remove all copies of duplicated attributes when getting updated HTML.' );
 	}
 
 	/**
