@@ -236,7 +236,7 @@ if ( ! function_exists( 'wp_cache_set_salted' ) ) :
 	 * @param string          $cache_key The cache key under which to store the data.
 	 * @param mixed           $data      The data to be cached.
 	 * @param string          $group     The cache group to which the data belongs.
-	 * @param string|string[] $salt The timestamp (or multiple timestamps if an array) indicating when the cache group(s) were last updated.
+	 * @param string|string[] $salt      The timestamp (or multiple timestamps if an array) indicating when the cache group(s) were last updated.
 	 * @param int             $expire    Optional. When to expire the cache contents, in seconds.
 	 *                                   Default 0 (no expiration).
 	 * @return bool True on success, false on failure.
