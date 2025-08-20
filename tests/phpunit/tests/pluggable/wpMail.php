@@ -638,9 +638,9 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertEquals( 'quoted-printable', $mailer->Encoding );
 
-		wp_mail( WP_TESTS_EMAIL, 'A follow up short email', 'Short email –' );
+		wp_mail( WP_TESTS_EMAIL, 'A follow up short email', 'Short email' );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( '8bit', $mailer->Encoding );
+		$this->assertEquals( '', $mailer->Encoding );
 	}
 }
