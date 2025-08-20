@@ -434,7 +434,18 @@ class WP_Block {
 					) ) {
 						// TODO: Use `WP_HTML_Processor::set_inner_html` method once it's available.
 						$block_reader->release_bookmark( 'iterate-selectors' );
-						$block_reader->replace_rich_text( wp_kses_post( $source_value ) );
+						/*
+						 * If the value returned from the Block Bindings source is empty
+						 * for a block attribute that whose selector is `rich-text` or `html`,
+						 * we remove the HTML node denoted by its selector. For example, this
+						 * means removing an Image block's `<figcaption>` node if there's no
+						 * caption supplied.
+						 */
+						if ( empty( $source_value ) ) {
+							$block_reader->remove_node();
+						} else {
+							$block_reader->replace_rich_text( wp_kses_post( $source_value ) );
+						}
 						return $block_reader->get_updated_html();
 					} else {
 						$block_reader->seek( 'iterate-selectors' );

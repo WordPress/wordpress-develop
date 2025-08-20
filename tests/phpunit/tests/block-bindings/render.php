@@ -143,6 +143,50 @@ HTML
 		);
 	}
 
+	public function test_remove_containing_tag_if_rich_text_attribute_source_value_is_empty() {
+		$get_value_callback = function () {
+			return '';
+		};
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		$block_content = <<<HTML
+<!-- wp:image {"id":66,"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="breakfast.jpg" alt="" class="wp-image-1"/><figcaption class="wp-element-caption">Breakfast at a <em>café</em> in Wrocław.</figcaption></figure>
+<!-- /wp:image -->
+HTML;
+		$parsed_blocks = parse_blocks( $block_content );
+
+		$parsed_blocks[0]['attrs']['metadata'] = array(
+			'bindings' => array(
+				'caption' => array(
+					'source' => self::SOURCE_NAME,
+				),
+			),
+		);
+
+		$block  = new WP_Block( $parsed_blocks[0] );
+		$result = $block->render();
+
+		$this->assertSame(
+			'',
+			$block->attributes[ 'caption' ],
+			"The 'caption' attribute should be updated with the empty string value returned by the source."
+		);
+		$this->assertSame(
+			'<figure class="wp-block-image size-large"><img src="breakfast.jpg" alt="" class="wp-image-1"/></figure>',
+			trim( $result ),
+			'The <figcaption> and its rich text content should be removed.'
+		);
+	}
+
+
 	/**
 	 * Test if the block_bindings_supported_attributes_{$block_type} filter is applied correctly.
 	 *
