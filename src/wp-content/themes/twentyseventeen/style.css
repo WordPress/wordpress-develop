@@ -1112,6 +1112,59 @@ ul {
 ol {
 	list-style: decimal;
 }
+/* Lower Alpha */
+ol[type='a']{
+	list-style: lower-alpha;
+	list-style-type: lower-alpha; /* Fallback for older browsers */
+}
+ol[type='a']::-moz-list-plain {
+	list-style: lower-alpha; /* Firefox */
+}
+ol[type='a']::-webkit-list-plain {
+	list-style: lower-alpha; /* Chrome, Safari, Opera */
+}
+
+/* Upper Alpha */
+ol[type='aa'],
+ol[type='ua']{
+	list-style: upper-alpha;
+	list-style-type: upper-alpha; /* Fallback for older browsers */
+}
+ol[type='aa']::-moz-list-plain,
+ol[type='ua']::-moz-list-plain {
+	list-style: upper-alpha; /* Firefox */
+}
+ol[type='aa']::-webkit-list-plain,
+ol[type='ua']::-webkit-list-plain {
+	list-style: upper-alpha; /* Chrome, Safari, Opera */
+}
+
+/* Lower roman */
+ol[type='r']{
+	list-style: lower-roman;
+	list-style-type: lower-roman; /* Fallback for older browsers */
+}
+ol[type='r']::-moz-list-plain {
+	list-style: lower-roman; /* Firefox */
+}
+ol[type='r']::-webkit-list-plain {
+	list-style: lower-roman; /* Chrome, Safari, Opera */
+}
+
+/* Upper roman */
+ol[type='rr'],
+ol[type='ur']{
+	list-style: upper-roman;
+	list-style-type: upper-roman; /* Fallback for older browsers */
+}
+ol[type='rr']::-moz-list-plain,
+ol[type='ur']::-moz-list-plain {
+	list-style: upper-roman; /* Firefox */
+}
+ol[type='rr']::-webkit-list-plain,
+ol[type='ur']::-webkit-list-plain {
+	list-style: upper-roman; /* Chrome, Safari, Opera */
+}
 
 li > ul,
 li > ol {
