@@ -5,7 +5,19 @@
  *
  * This class can be used to perform the sort of structural
  * changes to an HTML document that are required by
- * Block Bindings.
+ * Block Bindings. Namely, proper nesting structure of HTML is
+ * maintained, but HTML updates could still leak out of the
+ * containing parent node. For example, this allows inserting
+ * an A element inside an open A element, which would close
+ * the containing A element.
+
+ * Modifications may be requested for a document _once_ after
+ * matching a token. Due to the way the modifications are
+ * applied, it's not possible to replace the rich text content
+ * for a node more than once. Furthermore, if a `replace_rich_text()`
+ * operation is followed by a `seek()` to a position before the
+ * updated rich text content, any modification at that earlier
+ * position will lead to broken output.
  *
  * @access private
  *
