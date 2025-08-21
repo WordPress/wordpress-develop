@@ -154,7 +154,10 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		$obj = $this->registered[ $handle ];
+		if ( $obj->extra['conditional'] ?? false ) {
 
+			return false;
+		}
 		if ( null === $obj->ver ) {
 			$ver = '';
 		} else {
@@ -165,13 +168,7 @@ class WP_Styles extends WP_Dependencies {
 			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
 		}
 
-		$src         = $obj->src;
-		$conditional = (bool) ( $obj->extra['conditional'] ?? false );
-		if ( $conditional ) {
-
-			return false;
-		}
-
+		$src          = $obj->src;
 		$inline_style = $this->print_inline_style( $handle, false );
 
 		if ( $inline_style ) {

@@ -278,6 +278,10 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$obj = $this->registered[ $handle ];
+		if ( $obj->extra['conditional'] ?? false ) {
+
+			return false;
+		}
 
 		if ( null === $obj->ver ) {
 			$ver = '';
@@ -292,11 +296,7 @@ class WP_Scripts extends WP_Dependencies {
 		$src               = $obj->src;
 		$strategy          = $this->get_eligible_loading_strategy( $handle );
 		$intended_strategy = (string) $this->get_data( $handle, 'strategy' );
-		$conditional       = (bool) ( $obj->extra['conditional'] ?? false );
-		if ( $conditional ) {
 
-			return false;
-		}
 
 		if ( ! $this->is_delayed_strategy( $intended_strategy ) ) {
 			$intended_strategy = '';
