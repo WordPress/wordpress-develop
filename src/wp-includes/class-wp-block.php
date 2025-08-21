@@ -416,7 +416,7 @@ class WP_Block {
 		switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
 			case 'html':
 			case 'rich-text':
-				$block_reader = self::get_block_bindings_processor($block_content);
+				$block_reader = self::get_block_bindings_processor( $block_content );
 
 				// TODO: Support for CSS selectors whenever they are ready in the HTML API.
 				// In the meantime, support comma-separated selectors by exploding them into an array.
@@ -462,7 +462,7 @@ class WP_Block {
 	}
 
 	private static function get_block_bindings_processor( string $block_content ) {
-		$internal_processor_class = new class ('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE) extends WP_HTML_Processor {
+		$internal_processor_class = new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE) extends WP_HTML_Processor {
 			private $output         = '';
 			private $end_of_flushed = 0;
 
