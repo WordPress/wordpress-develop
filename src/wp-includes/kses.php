@@ -1097,8 +1097,6 @@ function _wp_kses_split_callback( $matches ) {
  * @return string Fixed HTML element
  */
 function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
-	$content = wp_kses_stripslashes( $content );
-
 	/*
 	 * The regex pattern used to split HTML into chunks attempts
 	 * to split on HTML token boundaries. This function should
