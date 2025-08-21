@@ -166,7 +166,7 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		$src         = $obj->src;
-		$conditional = isset( $obj->extra['conditional'] ) ? true : false;
+		$conditional = (bool) ( $obj->extra['conditional'] ?? false );
 		if ( $conditional ) {
 
 			return false;
