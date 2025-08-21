@@ -1638,7 +1638,7 @@ HTML
 	public function test_wp_script_add_data_with_conditional_key() {
 		// Enqueue and add conditional comments.
 		wp_enqueue_script( 'test-only-conditional', 'example.com', array(), null );
-		wp_script_add_data( 'test-only-conditional', 'conditional', 'gt IE 7' );
+		$this->assertFalse( wp_script_add_data( 'test-only-conditional', 'conditional', 'gt IE 7' ) );
 		$expected = '';
 
 		// Go!
