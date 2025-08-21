@@ -8,6 +8,8 @@
 class Tests_Compat_arrayLast extends WP_UnitTestCase {
 
 	/**
+	 * @ticket 63853
+	 *
 	 * Test that array_last() is always available (either from PHP or WP).
 	 */
 	public function test_array_last_availability(): void {

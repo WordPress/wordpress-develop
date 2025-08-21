@@ -8,6 +8,8 @@
 class Tests_Compat_arrayFirst extends WP_UnitTestCase {
 
 	/**
+	 * @ticket 63853
+	 *
 	 * Test that array_first() is always available (either from PHP or WP).
 	 */
 	public function test_array_first_availability(): void {
