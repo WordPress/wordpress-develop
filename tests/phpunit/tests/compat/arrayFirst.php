@@ -15,9 +15,9 @@ class Tests_Compat_arrayFirst extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_array_first
-	 *
 	 * @ticket 63853
+	 *
+	 * @dataProvider data_array_first
 	 *
 	 * @param mixed $expected The value extracted from the given array.
 	 * @param array $arr      The array to get the first value from.

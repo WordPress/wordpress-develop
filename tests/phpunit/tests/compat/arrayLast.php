@@ -15,6 +15,8 @@ class Tests_Compat_arrayLast extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63853
+	 *
 	 * @dataProvider data_array_last
 	 *
 	 * @param mixed $expected The expected last value.

@@ -545,7 +545,7 @@ if ( ! function_exists( 'array_first' ) ) {
 	 *
 	 * Returns the first element of an array.
 	 *
-	 * @since 6.8.3
+	 * @since 6.9.0
 	 *
 	 * @param array $array The array to get the first element from.
 	 * @return mixed|null The first element of the array, or null if the array is empty.
@@ -555,7 +555,9 @@ if ( ! function_exists( 'array_first' ) ) {
 			return null;
 		}
 
-		return $array[ array_key_first( $array ) ];
+		foreach ( $array as $value ) {
+			return $value;
+		}
 	}
 }
 
@@ -565,7 +567,7 @@ if ( ! function_exists( 'array_last' ) ) {
 	 *
 	 * Returns the last element of an array.
 	 *
-	 * @since 6.8.3
+	 * @since 6.9.0
 	 *
 	 * @param array $array The array to get the last element from.
 	 * @return mixed|null The last element of the array, or null if the array is empty.
