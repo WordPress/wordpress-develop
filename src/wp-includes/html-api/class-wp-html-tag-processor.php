@@ -3790,7 +3790,10 @@ class WP_HTML_Tag_Processor {
 				 * properly escape these things, but this could mask regex patterns
 				 * that previously worked. Resolve this by not sending `</script`
 				 */
-				if ( false !== stripos( $plaintext_content, '</script' ) ) {
+				if (
+					false !== stripos( $plaintext_content, '</script' ) ||
+					false !== stripos( $plaintext_content, '<script' )
+				) {
 					return false;
 				}
 
