@@ -1639,10 +1639,9 @@ HTML
 		// Enqueue and add conditional comments.
 		wp_enqueue_script( 'test-only-conditional', 'example.com', array(), null );
 		$this->assertFalse( wp_script_add_data( 'test-only-conditional', 'conditional', 'gt IE 7' ) );
-		$expected = '';
 
-		// Go!
-		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+// Go!
+$this->assertEqualHTML( '', get_echo( 'wp_print_scripts' ) );
 
 		// No scripts left to print.
 		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
