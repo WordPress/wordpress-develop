@@ -8,16 +8,25 @@
 class Tests_Compat_mbTrim extends WP_UnitTestCase {
 
 	/**
+	 * @ticket 63804
+	 *
 	 * Test that mb_trim() is always available (either from PHP or WP).
 	 */
-	public function test_mb_trim_availability() {
+	public function test_mb_trim_availability(): void {
 		$this->assertTrue( function_exists( 'mb_trim' ) );
 	}
 
 	/**
+	 * @ticket 63804
+	 *
 	 * @dataProvider data_mb_trim
+	 *
+	 * @param string      $input      The input string to be trimmed.
+	 * @param string      $expected   The expected trimmed result.
+	 * @param string|null $characters Optional. The characters to trim. Default null (whitespace).
+	 * @param string|null $encoding   Optional. The character encoding. Default null (internal encoding).
 	 */
-	public function test_mb_trim( $input, $expected, $characters = null, $encoding = null ) {
+	public function test_mb_trim( $input, $expected, $characters = null, $encoding = null ): void {
 		$this->assertSame(
 			$expected,
 			mb_trim( $input, $characters, $encoding )
@@ -29,7 +38,7 @@ class Tests_Compat_mbTrim extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_mb_trim() {
+	public function data_mb_trim(): array {
 		return array(
 			// Basic ASCII whitespace.
 			array( '  hello  ', 'hello' ),
@@ -55,9 +64,15 @@ class Tests_Compat_mbTrim extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63804
+	 *
 	 * @dataProvider data_mb_trim_non_utf8
+	 *
+	 * @param string $input    The input string to be trimmed.
+	 * @param string $expected The expected trimmed result.
+	 * @param string $encoding The character encoding.
 	 */
-	public function test_mb_trim_non_utf8_encodings( $input, $expected, $encoding ) {
+	public function test_mb_trim_non_utf8_encodings( $input, $expected, $encoding ): void {
 		$this->assertSame(
 			$expected,
 			mb_trim( $input, null, $encoding )
@@ -69,7 +84,7 @@ class Tests_Compat_mbTrim extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_mb_trim_non_utf8() {
+	public function data_mb_trim_non_utf8(): array {
 		// Japanese "ヒス" (HIS) in Shift_JIS, with ASCII spaces around.
 		$shift_jis_str      = mb_convert_encoding( ' ヒス ', 'SJIS', 'UTF-8' );
 		$shift_jis_expected = mb_convert_encoding( 'ヒス', 'SJIS', 'UTF-8' );

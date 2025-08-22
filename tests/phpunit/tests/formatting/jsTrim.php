@@ -6,30 +6,50 @@
  * @covers ::js_trim
  */
 class Tests_Formatting_JsTrim extends WP_UnitTestCase {
-	public function test_trims_ascii_whitespace() {
-		$this->assertSame( 'hello', js_trim( '  hello  ' ) );
-		$this->assertSame( 'hello', js_trim( "\t\n\rhello\n\r\t" ) );
+
+	/**
+	 * @ticket 63804
+	 *
+	 * Test that js_trim() is always available (either from PHP or WP).
+	 */
+	public function test_js_trim_availability(): void {
+		$this->assertTrue( function_exists( 'js_trim' ) );
 	}
 
-	public function test_trims_unicode_whitespace() {
-		// NO-BREAK SPACE (U+00A0)
-		$this->assertSame( 'hello', js_trim( "\u{00A0}hello\u{00A0}" ) );
-		// IDEOGRAPHIC SPACE (U+3000)
-		$this->assertSame( 'hello', js_trim( "\u{3000}hello\u{3000}" ) );
-		// MIXED
-		$this->assertSame( 'hello', js_trim( "\u{00A0}\u{3000} hello \u{3000}\u{00A0}" ) );
+	/**
+	 * @ticket 63804
+	 *
+	 * @dataProvider data_js_trim
+	 *
+	 * @param string $input    The input string to be trimmed.
+	 * @param string $expected The expected trimmed result.
+	 */
+	public function test_js_trim( $input, $expected ): void {
+		$this->assertSame( $expected, js_trim( $input ) );
 	}
 
-	public function test_trims_null_and_control_chars() {
-		$this->assertSame( "\0hello\0", js_trim( "\0hello\0" ) );
-		$this->assertSame( 'hello', js_trim( "\v\fhello\f\v" ) );
-	}
-
-	public function test_no_trimming_needed() {
-		$this->assertSame( 'hello', js_trim( 'hello' ) );
-	}
-
-	public function test_empty_string_returns_empty() {
-		$this->assertSame( '', js_trim( '' ) );
+	/**
+	 * Data provider for js_trim tests.
+	 *
+	 * @return array[]
+	 */
+	public function data_js_trim(): array {
+		return array(
+			// Basic ASCII whitespace.
+			array( '  hello  ', 'hello' ),
+			array( "\t\n\rhello\n\r\t", 'hello' ),
+			// Unicode whitespace.
+			array( "\u{00A0}hello\u{00A0}", 'hello' ),
+			array( "\u{3000}hello\u{3000}", 'hello' ),
+			array( "\u{00A0}\u{3000} hello \u{3000}\u{00A0}", 'hello' ),
+			// Null characters should not be trimmed by js_trim().
+			array( "\0hello\0", "\0hello\0" ),
+			// Vertical tab and form feed are trimmed.
+			array( "\v\fhello\f\v", 'hello' ),
+			// No trimming needed.
+			array( 'hello', 'hello' ),
+			// Empty string.
+			array( '', '' ),
+		);
 	}
 }
