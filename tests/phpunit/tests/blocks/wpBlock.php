@@ -111,6 +111,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 			'attrs'     => array(
 				'explicit' => 20,
 			),
+			'innerHTML' => '',
 		);
 		$context      = array();
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
@@ -143,6 +144,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 		$parsed_block = array(
 			'blockName' => 'core/example',
 			'attrs'     => array(),
+			'innerHTML' => '',
 		);
 		$context      = array();
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );

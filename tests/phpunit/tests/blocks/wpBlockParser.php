@@ -18,7 +18,9 @@ class Tests_Blocks_wpBlockParser extends WP_UnitTestCase {
 	protected static $fixtures_dir;
 
 	/**
-	 * @ticket 45109
+	 * Data provider.
+	 *
+	 * @return array
 	 */
 	public function data_parsing_test_filenames() {
 		self::$fixtures_dir = DIR_TESTDATA . '/blocks/fixtures';
