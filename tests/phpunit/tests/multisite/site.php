@@ -186,9 +186,9 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 			}
 		}
 
-		// Update the blog count cache to use get_blog_count().
+		// Update the blog count cache to use get_site_count().
 		wp_update_network_counts();
-		$this->assertSame( 2, (int) get_blog_count() );
+		$this->assertSame( 2, get_site_count() );
 	}
 
 	public function test_site_caches_should_invalidate_when_invalidation_is_not_suspended() {
@@ -349,9 +349,9 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		// Delete the site without forcing a table drop.
 		wpmu_delete_blog( $blog_id, false );
 
-		// Update the blog count cache to use get_blog_count().
+		// Update the blog count cache to use get_site_count().
 		wp_update_network_counts();
-		$this->assertSame( 1, get_blog_count() );
+		$this->assertSame( 1, get_site_count() );
 	}
 
 	/**
@@ -363,9 +363,9 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		// Delete the site and force a table drop.
 		wpmu_delete_blog( $blog_id, true );
 
-		// Update the blog count cache to use get_blog_count().
+		// Update the blog count cache to use get_site_count().
 		wp_update_network_counts();
-		$this->assertSame( 1, get_blog_count() );
+		$this->assertSame( 1, get_site_count() );
 	}
 
 	/**

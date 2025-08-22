@@ -72,7 +72,7 @@ if ( get_option( 'db_upgraded' ) ) {
 	 * @param bool $do_mu_upgrade Whether to perform the Multisite upgrade routine. Default true.
 	 */
 	if ( apply_filters( 'do_mu_upgrade', true ) ) {
-		$c = get_blog_count();
+		$c = get_site_count();
 
 		/*
 		 * If there are 50 or fewer sites, run every time. Otherwise, throttle to reduce load:

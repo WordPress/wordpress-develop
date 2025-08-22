@@ -253,7 +253,7 @@ class WP_Debug_Data {
 
 			$site_count = 0;
 			foreach ( $network_ids as $network_id ) {
-				$site_count += get_blog_count( $network_id );
+				$site_count += get_site_count( $network_id );
 			}
 
 			$fields['site_count'] = array(

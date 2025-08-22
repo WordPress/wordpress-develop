@@ -85,7 +85,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	}
 
 	if ( is_multisite() ) {
-		$num_blogs         = get_blog_count();
+		$num_blogs         = get_site_count();
 		$wp_install        = network_site_url();
 		$multisite_enabled = 1;
 	} else {
