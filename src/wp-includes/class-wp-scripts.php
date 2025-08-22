@@ -297,7 +297,6 @@ class WP_Scripts extends WP_Dependencies {
 		$strategy          = $this->get_eligible_loading_strategy( $handle );
 		$intended_strategy = (string) $this->get_data( $handle, 'strategy' );
 
-
 		if ( ! $this->is_delayed_strategy( $intended_strategy ) ) {
 			$intended_strategy = '';
 		}
