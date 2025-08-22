@@ -80,7 +80,7 @@ jobs:
 
     steps:
       - name: Set up PHP ${{ inputs.php }}
-        uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401 # v2.32.0
+        uses: shivammathur/setup-php@20529878ed81ef8e78ddf08b480401e6101a850f # v2.35.3
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
@@ -116,7 +116,7 @@ jobs:
 
       - name: Download build artifact for the current branch
         if: ${{ inputs.new-version == 'develop' }}
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           name: wordpress-develop
 
