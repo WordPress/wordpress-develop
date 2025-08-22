@@ -600,6 +600,57 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::safe_plugin_activation_check
+	 */
+	public function test_safe_plugin_activation_check_with_syntax_error() {
+		// Create a plugin with actual syntax error (missing closing brace)
+		$plugin = $this->_create_plugin(
+			"<?php\n/*\nPlugin Name: Test Plugin\n*/\n\nfunction test_function() {\n  echo 'Missing closing brace';\n  // Missing }",
+			'test-plugin-with-syntax-error.php'
+		);
+
+		$result = safe_plugin_activation_check( $plugin[0] );
+
+		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertEquals( 'plugin_parse_error', $result->get_error_code() );
+
+		unlink( $plugin[1] );
+	}
+
+	/**
+	 * @covers ::safe_plugin_activation_check
+	 */
+	public function test_safe_plugin_activation_check_with_valid_plugin() {
+		$plugin = $this->_create_plugin(
+			"<?php\n/*\nPlugin Name: Test Plugin\n*/\n\nfunction test_function() {\n  echo 'Valid PHP code';\n}",
+			'test-plugin-valid.php'
+		);
+
+		$result = safe_plugin_activation_check( $plugin[0] );
+
+		$this->assertTrue( $result );
+
+		unlink( $plugin[1] );
+	}
+
+	/**
+	 * @covers ::safe_plugin_activation_check
+	 */
+	public function test_safe_plugin_activation_check_with_exception() {
+		$plugin = $this->_create_plugin(
+			"<?php\n/*\nPlugin Name: Test Plugin\n*/\n\nthrow new Exception('Test exception');",
+			'test-plugin-with-exception.php'
+		);
+
+		$result = safe_plugin_activation_check( $plugin[0] );
+
+		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertEquals( 'plugin_activation_exception', $result->get_error_code() );
+
+		unlink( $plugin[1] );
+	}
+
+	/**
 	 * @covers ::validate_active_plugins
 	 */
 	public function test_validate_active_plugins_empty() {

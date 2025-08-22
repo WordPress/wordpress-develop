@@ -654,9 +654,9 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 		return $valid;
 	}
 
-	$plugin_is_sage = safe_plugin_activation_check( $plugin );
-	if ( is_wp_error( $plugin_is_sage ) ) {
-		return $plugin_is_sage;
+	$safety_check = safe_plugin_activation_check( $plugin );
+	if ( is_wp_error( $safety_check ) ) {
+		return $safety_check;
 	}
 
 	$requirements = validate_plugin_requirements( $plugin );
@@ -1101,49 +1101,65 @@ function validate_active_plugins() {
 	return $invalid;
 }
 
-/* * Safely includes a plugin file and checks for fatal errors.
+/**
+ * Safely includes a plugin file and checks for fatal errors.
  *
  * This function is used to safely include a plugin file during activation
  * without causing fatal errors that could break the activation process.
+ * It converts PHP errors to exceptions for better error handling.
  *
  * @since 5.2.0
  *
- * @param string $plugin_file Path to the plugin file relative to the plugins' directory.
+ * @param string $plugin_file Path to the plugin file relative to the plugins directory.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
 function safe_plugin_activation_check( $plugin_file ) {
-	// Use output buffering to catch fatal errors
 	ob_start();
-	$error_handler = set_error_handler(
-		function ( $severity, $message, $file, $line ) {
-			return new WP_Error(
-				'plugin_activation_error',
-				sprintf(
-					/* translators: %s: Error message. */
-					__( 'Plugin activation failed with error: %s' ),
-					$message
-				),
-				array(
-					'file' => $file,
-					'line' => $line,
-				)
-			);
-		}
-	);
+
+	$previous_handler = set_error_handler(function($severity, $message, $file, $line) {
+		throw new ErrorException($message, 0, $severity, $file, $line);
+	});
 
 	try {
 		include_once WP_PLUGIN_DIR . '/' . $plugin_file;
 		ob_end_clean();
-		restore_error_handler();
+
+		if ( $previous_handler !== null ) {
+			restore_error_handler();
+		}
+
 		return true;
-	} catch ( Throwable $e ) {
+
+	} catch (ParseError $e) {
 		ob_end_clean();
-		restore_error_handler();
+
+		if ( $previous_handler !== null ) {
+			restore_error_handler();
+		}
+
+		return new WP_Error(
+			'plugin_parse_error',
+			sprintf(
+				__('Plugin activation failed due to syntax error: %s'),
+				$e->getMessage()
+			),
+			array(
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+			)
+		);
+
+	} catch (Throwable $e) {
+		ob_end_clean();
+
+		if ( $previous_handler !== null ) {
+			restore_error_handler();
+		}
+
 		return new WP_Error(
 			'plugin_activation_exception',
 			sprintf(
-				/* translators: %s: Exception message. */
-				__( 'Plugin activation failed with exception: %s' ),
+				__('Plugin activation failed with exception: %s'),
 				$e->getMessage()
 			),
 			array(
