@@ -73,7 +73,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 6.9.0
+	 * @ticket 63854
 	 *
 	 * @covers WP_HTML_Tag_Processor::__construct
 	 */
