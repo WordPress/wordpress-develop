@@ -404,7 +404,7 @@ add_action( 'rss2_head', 'rss2_site_icon' );
 
 // WP Cron.
 if ( ! defined( 'DOING_CRON' ) ) {
-	add_action( 'init', 'wp_cron' );
+	add_action( 'shutdown', 'wp_cron' );
 }
 
 // HTTPS migration.

@@ -375,7 +375,7 @@ final class WP_Customize_Manager {
 		add_action( 'wp_loaded', array( $this, 'wp_loaded' ) );
 
 		// Do not spawn cron (especially the alternate cron) while running the Customizer.
-		remove_action( 'init', 'wp_cron' );
+		remove_action( 'shutdown', 'wp_cron' );
 
 		// Do not run update checks when rendering the controls.
 		remove_action( 'admin_init', '_maybe_update_core' );
