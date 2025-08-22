@@ -830,7 +830,6 @@ class WP_HTML_Tag_Processor {
 	 * Constructor.
 	 *
 	 * @since 6.2.0
-	 * @since 6.9.0 Executes doing_it_wrong() when the HTML parameter is not a string.
 	 *
 	 * @param string $html HTML to process.
 	 */
