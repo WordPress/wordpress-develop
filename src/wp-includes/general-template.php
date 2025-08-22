@@ -2376,7 +2376,7 @@ function get_calendar( $args = array() ) {
 	if ( ! empty( $monthnum ) && ! empty( $year ) ) {
 		$thismonth = (int) $monthnum;
 		$thisyear  = (int) $year;
-		
+
 		// Validate month number - should be between 1 and 12
 		if ( $thismonth < 1 || $thismonth > 12 ) {
 			$thismonth = (int) current_time( 'm' );
