@@ -890,14 +890,15 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 
 	$term_ids = array_map( 'intval', $term_ids );
 
+	$last_changed = wp_cache_get_taxonomies_last_changed( $taxonomies );
+
 	$taxonomies = "'" . implode( "', '", array_map( 'esc_sql', $taxonomies ) ) . "'";
 	$term_ids   = "'" . implode( "', '", $term_ids ) . "'";
 
 	$sql = "SELECT tr.object_id FROM $wpdb->term_relationships AS tr INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN ($taxonomies) AND tt.term_id IN ($term_ids) ORDER BY tr.object_id $order";
 
-	$last_changed = wp_cache_get_last_changed( 'terms' );
-	$cache_key    = 'get_objects_in_term:' . md5( $sql ) . ":$last_changed";
-	$cache        = wp_cache_get( $cache_key, 'term-queries' );
+	$cache_key = 'get_objects_in_term:' . md5( $sql ) . ":$last_changed";
+	$cache     = wp_cache_get( $cache_key, 'term-queries' );
 	if ( false === $cache ) {
 		$object_ids = $wpdb->get_col( $sql );
 		wp_cache_set( $cache_key, $object_ids, 'term-queries' );
@@ -2956,6 +2957,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 
 	wp_cache_delete( $object_id, $taxonomy . '_relationships' );
 	wp_cache_set_terms_last_changed();
+	wp_cache_set_taxonomy_last_changed( $taxonomy );
 
 	/**
 	 * Fires after an object's terms have been set.
@@ -3054,6 +3056,7 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 
 		wp_cache_delete( $object_id, $taxonomy . '_relationships' );
 		wp_cache_set_terms_last_changed();
+		wp_cache_set_taxonomy_last_changed( $taxonomy );
 
 		/**
 		 * Fires immediately after an object-term relationship is deleted.
@@ -3637,9 +3640,13 @@ function clean_object_term_cache( $object_ids, $object_type ) {
 
 	$taxonomies = get_object_taxonomies( $object_type );
 
+	$cache_keys = array();
 	foreach ( $taxonomies as $taxonomy ) {
 		wp_cache_delete_multiple( $object_ids, "{$taxonomy}_relationships" );
+		$cache_keys[] = $taxonomy . ':last_changed';
 	}
+
+	wp_cache_delete_multiple( $cache_keys, 'terms' );
 
 	wp_cache_set_terms_last_changed();
 
@@ -3703,6 +3710,8 @@ function clean_term_cache( $ids, $taxonomy = '', $clean_taxonomy = true ) {
 			clean_taxonomy_cache( $taxonomy );
 		}
 
+		wp_cache_set_taxonomy_last_changed( $taxonomy );
+
 		/**
 		 * Fires once after each taxonomy's term cache has been cleaned.
 		 *
@@ -3729,6 +3738,7 @@ function clean_term_cache( $ids, $taxonomy = '', $clean_taxonomy = true ) {
 function clean_taxonomy_cache( $taxonomy ) {
 	wp_cache_delete( 'all_ids', $taxonomy );
 	wp_cache_delete( 'get', $taxonomy );
+	wp_cache_set_taxonomy_last_changed( $taxonomy );
 	wp_cache_set_terms_last_changed();
 
 	// Regenerate cached hierarchy.
@@ -5111,6 +5121,85 @@ function is_term_publicly_viewable( $term ) {
 	}
 
 	return is_taxonomy_viewable( $term->taxonomy );
+}
+
+
+/**
+ * Clears the term meta cache and updates the last changed timestamp for the term and its taxonomy.
+ *
+ * This function ensures that the cache for the given term and its associated taxonomy is invalidated,
+ * and marks them as "last changed" to reflect the updates or changes made to the meta data.
+ *
+ * @since x.x.x
+ */
+function wp_cache_clear_term_meta() {
+	wp_cache_set_terms_last_changed();
+	wp_cache_set_last_changed( 'term_meta' );
+}
+
+/**
+ * Sets the last changed time for a specific taxonomy in the cache.
+ *
+ * This function updates the cached value to track when the taxonomy data was last changed.
+ *
+ * @since x.x.x
+ *
+ * @param string $taxonomy The taxonomy slug to update the last changed time for.
+ * @return string The microtime when the taxonomy was last changed.
+ */
+function wp_cache_set_taxonomy_last_changed( $taxonomy ) {
+	$time = microtime();
+
+	wp_cache_set( $taxonomy . ':last_changed', $time, 'terms' );
+
+	return $time;
+}
+
+/**
+ * Retrieves the last changed time for a taxonomy.
+ *
+ * @since x.x.x
+ *
+ * @param string $taxonomy Taxonomy name.
+ * @return float UNIX timestamp with microseconds representing when the taxonomy was last changed.
+ */
+function wp_cache_get_taxonomy_last_changed( $taxonomy ) {
+	if ( ! $taxonomy ) {
+		return wp_cache_get_last_changed( 'terms' );
+	}
+	$last_changed = wp_cache_get( $taxonomy . ':last_changed', 'terms' );
+
+	if ( $last_changed ) {
+		return $last_changed;
+	}
+
+	return wp_cache_set_taxonomy_last_changed( $taxonomy );
+}
+
+/**
+ * Retrieves the last changed time for the 'taxonomies' cache group.
+ *
+ * @since x.x.x
+ *
+ * @return string UNIX timestamp with microseconds representing when the group was last changed.
+ */
+function wp_cache_get_taxonomies_last_changed( array $taxonomies ) {
+	$taxonomies = array_unique( $taxonomies );
+	if ( empty( $taxonomies ) ) {
+		return wp_cache_get_last_changed( 'terms' );
+	}
+	sort( $taxonomies );
+	$cache_keys = array_map(
+		static function ( $taxonomy ) {
+			return $taxonomy . ':last_changed';
+		},
+		array_filter( $taxonomies )
+	);
+	wp_cache_get_multiple( $cache_keys, 'terms' );
+	$last_changes = array_map( 'wp_cache_get_taxonomy_last_changed', $taxonomies );
+	$last_changes = array_map( 'floatval', $last_changes );
+
+	return (string) array_sum( $last_changes );
 }
 
 /**

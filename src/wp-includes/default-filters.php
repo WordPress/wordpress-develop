@@ -135,9 +135,9 @@ add_action( 'set_user_role', 'wp_cache_set_users_last_changed' );
 add_action( 'remove_user_role', 'wp_cache_set_users_last_changed' );
 
 // Term meta.
-add_action( 'added_term_meta', 'wp_cache_set_terms_last_changed' );
-add_action( 'updated_term_meta', 'wp_cache_set_terms_last_changed' );
-add_action( 'deleted_term_meta', 'wp_cache_set_terms_last_changed' );
+add_action( 'added_term_meta', 'wp_cache_clear_term_meta' );
+add_action( 'updated_term_meta', 'wp_cache_clear_term_meta' );
+add_action( 'deleted_term_meta', 'wp_cache_clear_term_meta' );
 add_filter( 'get_term_metadata', 'wp_check_term_meta_support_prefilter' );
 add_filter( 'add_term_metadata', 'wp_check_term_meta_support_prefilter' );
 add_filter( 'update_term_metadata', 'wp_check_term_meta_support_prefilter' );

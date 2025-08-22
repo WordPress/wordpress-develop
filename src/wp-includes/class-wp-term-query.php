@@ -1172,7 +1172,23 @@ class WP_Term_Query {
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 
 		$key          = md5( serialize( $cache_args ) . $sql );
-		$last_changed = wp_cache_get_last_changed( 'terms' );
+		$last_changed = wp_cache_get_taxonomies_last_changed( (array) $args['taxonomy'] );
+		$meta_keys    = array(
+			'meta_key',
+			'meta_value',
+			'meta_compare',
+			'meta_compare_key',
+			'meta_type',
+			'meta_type_key',
+			'meta_query',
+		);
+		foreach ( $meta_keys as $meta_key ) {
+			if ( isset( $cache_args[ $meta_key ] ) ) {
+				$last_changed .= ':' . wp_cache_get_last_changed( 'term_meta' );
+				break;
+			}
+		}
+
 		return "get_terms:$key:$last_changed";
 	}
 }

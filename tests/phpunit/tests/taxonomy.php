@@ -472,6 +472,37 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertSame( array(), $after );
 	}
 
+	public function test_invalidate_different_taxonomy_get_objects_in_term_cache() {
+		register_taxonomy( 'wptests_tax_1', 'post' );
+		register_taxonomy( 'wptests_tax_2', 'post' );
+
+		$posts     = self::factory()->post->create_many( 2 );
+		$term_id_1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_1',
+			)
+		);
+		$term_id_2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_2',
+			)
+		);
+
+		wp_set_object_terms( $posts[1], $term_id_1, 'wptests_tax_1' );
+		wp_set_object_terms( $posts[1], $term_id_2, 'wptests_tax_2' );
+
+		// Prime cache.
+		$before = get_objects_in_term( $term_id_1, 'wptests_tax_1' );
+		$this->assertEqualSets( array( $posts[1] ), $before );
+
+		clean_term_cache( $term_id_2, 'wptests_tax_2' );
+
+		$num_queries = get_num_queries();
+		$after       = get_objects_in_term( $term_id_1, 'wptests_tax_1' );
+		$this->assertEqualSets( array( $posts[1] ), $after );
+		$this->assertSame( $num_queries, get_num_queries() );
+	}
+
 	/**
 	 * @ticket 25706
 	 */
