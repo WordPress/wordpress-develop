@@ -1512,6 +1512,20 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
 	return function ( &$block, &$parent_block = null, $prev = null ) use ( $hooked_blocks, $context, $callback ) {
 		_inject_theme_attribute_in_template_part_block( $block );
 
+		// FIXME: We're using the name of the Block Hooks related callback to determine if this is a
+		// read, write, or read/write operation. This is not ideal, but it works for now.
+		switch ( $callback ) {
+			case 'insert_hooked_blocks':
+				apply_block_bindings_to_block( $block, $parent_block, $context, 'read' );
+				break;
+			case 'set_ignored_hooked_blocks_metadata':
+				apply_block_bindings_to_block( $block, $parent_block, $context, 'write' );
+				break;
+			case 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata':
+				apply_block_bindings_to_block( $block, $parent_block, $context, 'read/write' );
+				break;
+		}
+
 		$markup = '';
 
 		if ( $parent_block && ! $prev ) {
@@ -1581,6 +1595,198 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
 
 		return $markup;
 	};
+}
+
+function apply_block_bindings_to_block( &$parsed_block, $parent_block, $context, $mode ) {
+		//$parsed_block               = $this->parsed_block;
+		$computed_attributes        = array();
+		$supported_block_attributes = array(
+			'core/paragraph' => array( 'content' ),
+			'core/heading'   => array( 'content' ),
+			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
+			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
+		);
+
+		// If the block doesn't have the bindings property, isn't one of the supported
+		// block types, or the bindings property is not an array, return the block content.
+		if (
+			! isset( $supported_block_attributes[ $parsed_block['blockName'] ] ) ||
+			empty( $parsed_block['attrs']['metadata']['bindings'] ) ||
+			! is_array( $parsed_block['attrs']['metadata']['bindings'] )
+		) {
+			return $computed_attributes;
+		}
+
+		$bindings = $parsed_block['attrs']['metadata']['bindings'];
+
+		/*
+		 * If the default binding is set for pattern overrides, replace it
+		 * with a pattern override binding for all supported attributes.
+		 */
+		if (
+			isset( $bindings['__default']['source'] ) &&
+			'core/pattern-overrides' === $bindings['__default']['source']
+		) {
+			$updated_bindings = array();
+
+			/*
+			 * Build a binding array of all supported attributes.
+			 * Note that this also omits the `__default` attribute from the
+			 * resulting array.
+			 */
+			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
+				// Retain any non-pattern override bindings that might be present.
+				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
+					? $bindings[ $attribute_name ]
+					: array( 'source' => 'core/pattern-overrides' );
+			}
+			$bindings = $updated_bindings;
+			/*
+			 * Update the bindings metadata of the computed attributes.
+			 * This ensures the block receives the expanded __default binding metadata when it renders.
+			 */
+			$computed_attributes['metadata'] = array_merge(
+				$parsed_block['attrs']['metadata'],
+				array( 'bindings' => $bindings )
+			);
+		}
+
+		$block_context = array();
+
+		if ( $context instanceof WP_Post ) {
+			$block_context['postId'] = $context->ID;
+
+			/*
+			 * The `postType` context is largely unnecessary server-side, since the ID
+			 * is usually sufficient on its own. That being said, since a block's
+			 * manifest is expected to be shared between the server and the client,
+			 * it should be included to consistently fulfill the expectation.
+			 */
+			$block_context['postType'] = $context->post_type;
+		}
+
+		/** This filter is documented in wp-includes/blocks.php */
+		$block_context  = apply_filters( 'render_block_context', $block_context, $parsed_block, $parent_block );
+		$block_instance = new WP_Block( $parsed_block, $block_context );
+
+		foreach ( $bindings as $attribute_name => $block_binding ) {
+			// If the attribute is not in the supported list, process next attribute.
+			if ( ! in_array( $attribute_name, $supported_block_attributes[ $parsed_block['blockName'] ], true ) ) {
+				continue;
+			}
+			// If no source is provided, or that source is not registered, process next attribute.
+			if ( ! isset( $block_binding['source'] ) || ! is_string( $block_binding['source'] ) ) {
+				continue;
+			}
+
+			$block_binding_source = get_block_bindings_source( $block_binding['source'] );
+			if ( null === $block_binding_source ) {
+				continue;
+			}
+
+			// FIXME: Adds the necessary context defined by the source.
+			// if ( ! empty( $block_binding_source->uses_context ) ) {
+			// 	foreach ( $block_binding_source->uses_context as $context_name ) {
+			// 		if ( array_key_exists( $context_name, $this->available_context ) ) {
+			// 			$this->context[ $context_name ] = $this->available_context[ $context_name ];
+			// 		}
+			// 	}
+			// }
+
+			$source_args  = ! empty( $block_binding['args'] ) && is_array( $block_binding['args'] ) ? $block_binding['args'] : array();
+			$source_value = $block_binding_source->get_value( $source_args, $block_instance, $attribute_name );
+
+			if ( is_null( $source_value ) ) {
+				continue;
+			}
+
+			if ( 'write' === $mode || 'read/write' === $mode ) {
+				// If this is a sourced attribute, we extract its value from the content.
+				if ( isset( $block_instance->block_type->attributes[ $attribute_name ]['source'] ) ) {
+					$block_content = $parsed_block['innerContent'][0]; // FIXME
+					$block_reader  = WP_HTML_Processor::create_fragment( $block_content );
+
+					// TODO: Support for CSS selectors whenever they are ready in the HTML API.
+					// In the meantime, support comma-separated selectors by exploding them into an array.
+					$selectors = explode( ',', $block_instance->block_type->attributes[ $attribute_name ]['selector'] );
+					// Add a bookmark to the first tag to be able to iterate over the selectors.
+					$block_reader->next_tag();
+					$block_reader->set_bookmark( 'iterate-selectors' );
+
+					foreach ( $selectors as $selector ) {
+						// If the parent tag, or any of its children, matches the selector, replace the HTML.
+						if ( strcasecmp( $block_reader->get_tag(), $selector ) === 0 || $block_reader->next_tag(
+							array(
+								'tag_name' => $selector,
+							)
+						) ) {
+							if ( 'content' === $block_instance->block_type->attributes[ $attribute_name ]['role'] ) {
+								$updated_attribute_value = '';
+
+								$serialize_token = new ReflectionMethod( 'WP_HTML_Processor', 'serialize_token' );
+								$serialize_token->setAccessible( true );
+
+								while ( $block_reader->next_token() ) {
+									if ( strtoupper( $selector ) === $block_reader->get_tag() && $block_reader->is_tag_closer() ) {
+										break;
+									}
+									$updated_attribute_value .= $serialize_token->invoke( $block_reader );
+
+									call_user_func_array(
+										'scf_set_value_callback',
+										array( $source_args, $block_instance, $attribute_name, $updated_attribute_value )
+									);
+								}
+							}
+
+							$block_reader->release_bookmark( 'iterate-selectors' );
+						} else {
+							$block_reader->seek( 'iterate-selectors' );
+						}
+					}
+					$block_reader->release_bookmark( 'iterate-selectors' );
+				}
+			}
+
+			// If the value is not null, process the HTML based on the block and the attribute.
+			$computed_attributes[ $attribute_name ] = $source_value;
+		}
+
+		if ( 'read' === $mode ) {
+			$parsed_block['attrs'] = array_merge(
+				$parsed_block['attrs'],
+				$computed_attributes
+			);
+
+			// Ideally, we'd apply WP_Block::replace_html() to the entire block content (i.e. $parsed_block['innerHTML']),
+			// but that is overridden by the block's render stage (where it's concatenated from the items in the
+			// innerContent and innerBlocks arrays). So instead, we apply it here to each item in the innerContent array.
+			if ( ! empty( $computed_attributes ) ) {
+				foreach ( $parsed_block['innerContent'] as $index => $content ) {
+					if ( empty( $content ) ) {
+						continue;
+					}
+					foreach ( $computed_attributes as $attribute_name => $source_value ) {
+						$content = WP_Block::replace_html( $parsed_block['blockName'], $content, $attribute_name, $source_value );
+
+						// If this is a sourced attribute, we remove it from the parsed block's `attrs` array.
+						if ( isset( $block_instance->block_type->attributes[ $attribute_name ]['source'] ) ) {
+							unset( $parsed_block['attrs'][ $attribute_name ] );
+						}
+					}
+					$parsed_block['innerContent'][ $index ] = $content;
+				}
+			}
+		}
+}
+
+function scf_set_value_callback( array $source_args, $block_instance, string $attribute_name, $value ) {
+	if ( ! isset( $source_args['key'] ) || ! is_string( $source_args['key'] ) ) {
+		return;
+	} else {
+		return update_field( $source_args['key'], $value );
+	}
+
 }
 
 /**

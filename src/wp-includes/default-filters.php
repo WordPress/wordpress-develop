@@ -788,4 +788,6 @@ add_filter( 'rest_prepare_post', 'insert_hooked_blocks_into_rest_response', 10, 
 add_filter( 'rest_prepare_wp_block', 'insert_hooked_blocks_into_rest_response', 10, 2 );
 add_filter( 'rest_prepare_wp_navigation', 'insert_hooked_blocks_into_rest_response', 10, 2 );
 
+add_filter( 'rest_prepare_book', 'insert_hooked_blocks_into_rest_response', 10, 2 );
+
 unset( $filter, $action );
