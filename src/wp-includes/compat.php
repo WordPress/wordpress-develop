@@ -48,8 +48,20 @@ function _wp_can_use_pcre_u( $set = null ) {
 	}
 
 	if ( 'reset' === $utf8_pcre ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentional error generated to detect PCRE/u support.
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
+		$utf8_pcre = true;
+
+		set_error_handler(
+			function ( $errno, $errstr ) use ( &$utf8_pcre ) {
+				if ( str_starts_with( $errstr, 'preg_match():' ) ) {
+					$utf8_pcre = false;
+				}
+			},
+			E_WARNING
+		);
+
+		preg_match( '/^./u', '' );
+
+		restore_error_handler();
 	}
 
 	return $utf8_pcre;
