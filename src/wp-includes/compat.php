@@ -54,7 +54,10 @@ function _wp_can_use_pcre_u( $set = null ) {
 			function ( $errno, $errstr ) use ( &$utf8_pcre ) {
 				if ( str_starts_with( $errstr, 'preg_match():' ) ) {
 					$utf8_pcre = false;
+					return true;
 				}
+
+				return false;
 			},
 			E_WARNING
 		);
