@@ -1,14 +1,4 @@
-[client]
-ssl-mode=DISABLED
-
-# for MariaDB client compatibility
-[mariadb]
-ssl=0
-
-# cover specific client tools that WP-CLI may call
-[mysql]
-ssl-mode=DISABLED
-[mysqladmin]
-ssl-mode=DISABLED
-[mysqldump]
-ssl-mode=DISABLED
+[mysqld]
+ssl_ca=/etc/mysql/ssl/ca.pem
+ssl_cert=/etc/mysql/ssl/server-cert.pem
+ssl_key=/etc/mysql/ssl/server-key.pem

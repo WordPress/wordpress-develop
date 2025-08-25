@@ -50,9 +50,20 @@ services:
     volumes:
       - ./tools/local-env/php-config.ini:/usr/local/etc/php/conf.d/php-config.ini
       - ./:/var/www
+      # Trust the dev CA in the container
+      - ./tools/local-env/tls/ca.pem:/usr/local/share/ca-certificates/wpdev-ca.crt:ro
 
     # Copy or delete the Memcached dropin plugin file as appropriate.
-    command: /bin/sh -c "if [ $LOCAL_PHP_MEMCACHED = true ]; then cp -n /var/www/tests/phpunit/includes/object-cache.php /var/www/src/wp-content/object-cache.php; else rm -f /var/www/src/wp-content/object-cache.php; fi && exec php-fpm"
+    command: >
+      /bin/sh -c "
+        update-ca-certificates >/dev/null 2>&1 || true;
+        if [ \"$LOCAL_PHP_MEMCACHED\" = true ]; then
+          cp -n /var/www/tests/phpunit/includes/object-cache.php /var/www/src/wp-content/object-cache.php;
+        else
+          rm -f /var/www/src/wp-content/object-cache.php;
+        fi;
+        exec php-fpm
+      "
 
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true
@@ -78,6 +89,10 @@ services:
     volumes:
       - ./tools/local-env/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
       - mysql:/var/lib/mysql
+      - ./tools/local-env/tls/ca.pem:/etc/mysql/ssl/ca.pem:ro
+      - ./tools/local-env/tls/server-cert.pem:/etc/mysql/ssl/server-cert.pem:ro
+      - ./tools/local-env/tls/server-key.pem:/etc/mysql/ssl/server-key.pem:ro
+      - ./tools/local-env/my-ssl.cnf:/etc/mysql/conf.d/my-ssl.cnf:ro
 
     # For compatibility with PHP versions that don't support the caching_sha2_password auth plugin used in MySQL 8.0.
     command: ${LOCAL_DB_AUTH_OPTION-}
@@ -111,9 +126,12 @@ services:
     volumes:
       - ./:/var/www
       - ./tools/local-env/ssl.cnf:/root/.my.cnf:ro
+      # Trust the dev CA in the CLI container
+      - ./tools/local-env/tls/ca.pem:/usr/local/share/ca-certificates/wpdev-ca.crt:ro
 
     # Keeps the service alive.
-    command: 'sleep infinity'
+    command: >
+      /bin/sh -c "update-ca-certificates >/dev/null 2>&1 || true; sleep infinity"
 
     # The init directive ensures the command runs with a PID > 1, so Ctrl+C works correctly.
     init: true
