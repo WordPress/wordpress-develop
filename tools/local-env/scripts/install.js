@@ -61,5 +61,5 @@ wait_on( {
  * @param {string} cmd The WP-CLI command to run.
  */
 function wp_cli( cmd ) {
-	execSync( `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
+	execSync( `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR} --ssl-mode=DISABLED`, { stdio: 'inherit' } );
 }
