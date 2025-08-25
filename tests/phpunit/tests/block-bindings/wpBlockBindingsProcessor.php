@@ -10,13 +10,23 @@
  * @group block-bindings
  */
 class Tests_Blocks_wpBlockBindingsProcessor extends WP_UnitTestCase {
+
+	private static $get_block_bindings_processor_method;
+
+	public static function wpSetupBeforeClass() {
+		self::$get_block_bindings_processor_method = new ReflectionMethod( 'WP_Block', 'get_block_bindings_processor' );
+		self::$get_block_bindings_processor_method->setAccessible( true );
+	}
+
 	/**
 	 * @ticket 63840
 	 */
 	public function test_replace_rich_text() {
 		$button_wrapper_opener = '<div class="wp-block-button"><a class="wp-block-button__link wp-element-button">';
 		$button_wrapper_closer = '</a></div>';
-		$processor             = WP_Block_Bindings_Processor::create_fragment(
+
+		$processor = self::$get_block_bindings_processor_method->invoke(
+			null,
 			$button_wrapper_opener . 'This should not appear' . $button_wrapper_closer
 		);
 		$processor->next_tag( array( 'tag_name' => 'a' ) );
@@ -35,7 +45,8 @@ class Tests_Blocks_wpBlockBindingsProcessor extends WP_UnitTestCase {
 		$figure_opener = '<figure class="wp-block-image">';
 		$img           = '<img src="breakfast.jpg" alt="" class="wp-image-1"/>';
 		$figure_closer = '</figure>';
-		$processor     = WP_Block_Bindings_Processor::create_fragment(
+		$processor     = self::$get_block_bindings_processor_method->invoke(
+			null,
 			$figure_opener .
 			$img .
 			'<figcaption class="wp-element-caption">Breakfast at a <em>café</em> in Berlin</figcaption>' .
@@ -64,7 +75,8 @@ class Tests_Blocks_wpBlockBindingsProcessor extends WP_UnitTestCase {
 		$figure_opener = '<figure class="wp-block-image">';
 		$img           = '<img src="breakfast.jpg" alt="" class="wp-image-1"/>';
 		$figure_closer = '</figure>';
-		$processor     = WP_Block_Bindings_Processor::create_fragment(
+		$processor     = self::$get_block_bindings_processor_method->invoke(
+			null,
 			$figure_opener .
 			$img .
 			'<figcaption class="wp-element-caption">Breakfast at a <em>café</em> in Berlin</figcaption>' .
