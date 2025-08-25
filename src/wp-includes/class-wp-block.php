@@ -435,7 +435,7 @@ class WP_Block {
 						// TODO: Use `WP_HTML_Processor::set_inner_html` method once it's available.
 						$block_reader->release_bookmark( 'iterate-selectors' );
 						$block_reader->replace_rich_text( wp_kses_post( $source_value ) );
-						return $block_reader->build();
+						return $block_reader->get_updated_html();
 					} else {
 						$block_reader->seek( 'iterate-selectors' );
 					}
@@ -465,11 +465,6 @@ class WP_Block {
 		static $internal_processor_class = null;
 		if ( null === $internal_processor_class ) {
 			$internal_processor_class = new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE) extends WP_HTML_Processor {
-
-				public function build() {
-					return $this->get_updated_html();
-				}
-
 				/**
 				 * Replace the rich text content between a tag opener and matching closer.
 				 *

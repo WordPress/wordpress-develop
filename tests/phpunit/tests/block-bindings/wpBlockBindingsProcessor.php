@@ -34,7 +34,7 @@ class Tests_Blocks_wpBlockBindingsProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $processor->replace_rich_text( 'The hardest button to button' ) );
 		$this->assertEquals(
 			$button_wrapper_opener . 'The hardest button to button' . $button_wrapper_closer,
-			$processor->build()
+			$processor->get_updated_html()
 		);
 	}
 
@@ -64,7 +64,7 @@ class Tests_Blocks_wpBlockBindingsProcessor extends WP_UnitTestCase {
 			$img .
 			'<figcaption class="wp-element-caption"><strong>New</strong> image caption</figcaption>' .
 			$figure_closer,
-			$processor->build()
+			$processor->get_updated_html()
 		);
 	}
 
@@ -98,7 +98,7 @@ class Tests_Blocks_wpBlockBindingsProcessor extends WP_UnitTestCase {
 			'<img src="breakfast.jpg" alt="" class="wp-image-1 extra-img-class"/>' .
 			'<figcaption class="wp-element-caption"><strong>New</strong> image caption</figcaption>' .
 			$figure_closer,
-			$processor->build()
+			$processor->get_updated_html()
 		);
 	}
 }
