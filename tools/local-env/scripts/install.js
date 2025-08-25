@@ -24,6 +24,8 @@ wp_cli( `config set SCRIPT_DEBUG ${process.env.LOCAL_SCRIPT_DEBUG} --raw --type=
 wp_cli( `config set WP_ENVIRONMENT_TYPE ${process.env.LOCAL_WP_ENVIRONMENT_TYPE} --type=constant` );
 wp_cli( `config set WP_DEVELOPMENT_MODE ${process.env.LOCAL_WP_DEVELOPMENT_MODE} --type=constant` );
 
+wp_cli( 'config set MYSQL_CLIENT_FLAGS MYSQLI_CLIENT_SSL_DONT_VERIFY_SERVER_CERT --raw --type=constant' );
+
 // Read in wp-tests-config-sample.php, edit it to work with our config, then write it to wp-tests-config.php.
 const testConfig = readFileSync( 'wp-tests-config-sample.php', 'utf8' )
 	.replace( 'youremptytestdbnamehere', 'wordpress_develop_tests' )
