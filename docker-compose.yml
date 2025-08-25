@@ -77,6 +77,7 @@ services:
 
     volumes:
       - ./tools/local-env/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
+      - ./tools/local-env/test/cnf:/etc/my.cnf.d/custom.cnf
       - mysql:/var/lib/mysql
 
     # For compatibility with PHP versions that don't support the caching_sha2_password auth plugin used in MySQL 8.0.
