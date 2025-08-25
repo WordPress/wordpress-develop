@@ -1339,4 +1339,24 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['_wpnonce'] );
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['metabox_loader_nonce'] );
 	}
+
+	/**
+	 * Ensure default title is set to "(no title supported)" when CPT lacks title support.
+	 *
+	 * @ticket 45516
+	 */
+	public function test_no_title_supported_when_title_not_supported() {
+		wp_set_current_user( self::$editor_id );
+
+		register_post_type(
+			'no_title',
+			array(
+				'supports' => array( 'editor' ),
+			)
+		);
+
+		$default_post = get_default_post_to_edit( 'no_title', true );
+		$post         = get_post( $default_post->ID );
+		$this->assertSame( '(no title supported)', $post->post_title );
+	}
 }
