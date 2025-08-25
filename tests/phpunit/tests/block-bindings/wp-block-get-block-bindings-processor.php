@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for WP_Block_Bindings_Processor.
+ * Tests for WP_Block::get_block_bindings_processor.
  *
  * @package WordPress
  * @subpackage Blocks
@@ -9,7 +9,7 @@
  * @group blocks
  * @group block-bindings
  */
-class Tests_Blocks_wpBlockBindingsProcessor extends WP_UnitTestCase {
+class Tests_Blocks_GetBlockBindingsProcessor extends WP_UnitTestCase {
 
 	private static $get_block_bindings_processor_method;
 
