@@ -62,7 +62,12 @@ function _wp_can_use_pcre_u( $set = null ) {
 			E_WARNING
 		);
 
-		preg_match( '/^./u', '' );
+		/*
+		 * Attempt to compile a PCRE pattern with the PCRE_UTF8 flag. For
+		 * systems lacking Unicode support this will trigger a warning
+		 * during compilation, which the error handler will intercept.
+		 */
+		preg_match( '//u', '' );
 
 		restore_error_handler();
 	}
