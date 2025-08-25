@@ -91,10 +91,11 @@ class Tests_Blocks_wpBlockBindingsProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $processor->replace_rich_text( '<strong>New</strong> image caption' ) );
 
 		$processor->seek( 'image' );
+		$processor->add_class( 'extra-img-class' );
 
 		$this->assertEquals(
 			$figure_opener .
-			$img .
+			'<img src="breakfast.jpg" alt="" class="wp-image-1 extra-img-class"/>' .
 			'<figcaption class="wp-element-caption"><strong>New</strong> image caption</figcaption>' .
 			$figure_closer,
 			$processor->build()
