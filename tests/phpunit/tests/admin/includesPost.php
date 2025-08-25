@@ -1346,8 +1346,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 45516
 	 */
 	public function test_no_title_supported_when_title_not_supported() {
-		wp_set_current_user( self::$editor_id );
-
 		register_post_type(
 			'no_title',
 			array(
