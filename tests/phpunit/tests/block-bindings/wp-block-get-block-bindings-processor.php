@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 6.5.0
+ * @since 6.9.0
  *
  * @group blocks
  * @group block-bindings
