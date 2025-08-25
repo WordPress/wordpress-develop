@@ -48,7 +48,7 @@ a {
  * Progressive enhancement to reduce widows and orphans
  * https://github.com/WordPress/gutenberg/issues/55190
  */
-h1, h2, h3, h4, h5, h6, blockquote, caption, figcaption, p {
+h1, h2, h3, h4, h5, h6, blockquote, caption, figcaption, p, pre {
 	text-wrap: pretty;
 }
 
