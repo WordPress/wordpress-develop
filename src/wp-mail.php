@@ -36,6 +36,7 @@ if ( ! defined( 'WP_MAIL_INTERVAL' ) ) {
 	define( 'WP_MAIL_INTERVAL', 5 * MINUTE_IN_SECONDS );
 }
 
+
 $last_checked = get_transient( 'mailserver_last_checked' );
 
 if ( $last_checked ) {
