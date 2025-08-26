@@ -1117,7 +1117,7 @@ function get_comment_datetime( $comment = null, $source = 'local' ) {
  * Note that this function returns a true Unix timestamp, not summed with timezone offset
  * like older WP functions.
  *
- * @since 6.8.0
+ * @since 6.9.0
  *
  * @param int|WP_Comment $comment Optional. WP_Comment object or ID. Default is global `$comment` object.
  * @param string         $source  Optional. Local or UTC time to use from database. Accepts 'local' or 'gmt'.
