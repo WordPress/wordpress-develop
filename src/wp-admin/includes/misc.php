@@ -205,7 +205,7 @@ Any changes to the directives between these markers will be overwritten.'
 
 		if ( ! $found_marker ) {
 			$pre_lines[] = $line;
-		} elseif ( $found_marker && $found_end_marker ) {
+		} elseif ( $found_end_marker ) {
 			$post_lines[] = $line;
 		} else {
 			$existing_lines[] = $line;
@@ -263,7 +263,7 @@ function save_mod_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -303,7 +303,7 @@ function iis7_save_url_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -1057,6 +1057,8 @@ function admin_color_scheme_picker( $user_id ) {
 }
 
 /**
+ *
+ * @since 3.8.0
  *
  * @global array $_wp_admin_css_colors
  */

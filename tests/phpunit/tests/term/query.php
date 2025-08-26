@@ -852,6 +852,53 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, wp_list_pluck( $found, 'term_id' ) );
 	}
 
+	/**
+	 * Tests that a call to WP_Term_Query::get_terms() does not result in a PHP warning
+	 * when get_term() returns null for a child term.
+	 *
+	 * The warning that we should not see:
+	 * `Warning: Attempt to read property "count" on null`.
+	 *
+	 * @ticket 63877
+	 */
+	public function test_null_child_term_should_not_throw_warning() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $t1,
+			)
+		);
+
+		$this->term_id = $t2;
+
+		add_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => true,
+				'fields'     => 'ids',
+			)
+		);
+		remove_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+
+		$this->assertIsArray( $q->terms, 'The result should be an array.' );
+		$this->assertEmpty( $q->terms, 'The result should be empty.' );
+	}
+
 	public function filter_term_to_null( $term ) {
 		if ( $this->term_id === $term->term_id ) {
 			return null;
