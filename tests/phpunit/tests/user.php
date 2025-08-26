@@ -1856,6 +1856,46 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that email addresses with apostrophes are handled correctly in profile
+	 * email change confirmation.
+	 *
+	 * @ticket 54416
+	 */
+	public function test_send_confirmation_on_profile_email_with_apostrophe() {
+		reset_phpmailer_instance();
+		$was_confirmation_email_sent = false;
+
+		$user = self::factory()->user->create_and_get(
+			array(
+				'user_email' => 'user@example.com',
+			)
+		);
+
+		$_POST['email']   = "o'connor@example.com";
+		$_POST['user_id'] = $user->ID;
+
+		wp_set_current_user( $user->ID );
+
+		do_action( 'personal_options_update' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$recipient = $mailer->get_recipient( 'to' );
+		if ( $recipient ) {
+			$was_confirmation_email_sent = ( "o'connor@example.com" === $recipient->address );
+		}
+
+		$this->assertTrue( $was_confirmation_email_sent );
+		$this->assertSame( "o'connor@example.com", $recipient->address );
+
+		$new_email_meta = get_user_meta( $user->ID, '_new_email', true );
+		$this->assertSame( "o'connor@example.com", $new_email_meta['newemail'] );
+
+		$sent_email = $mailer->get_sent();
+		$this->assertStringContainsString( "o'connor@example.com", $sent_email->header );
+	}
+
+	/**
 	 * @ticket 16470
 	 */
 	public function test_remove_send_confirmation_on_profile_email() {
