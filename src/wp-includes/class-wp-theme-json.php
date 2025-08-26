@@ -613,6 +613,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 6.1.0 Added `heading`, `button`, and `caption` elements.
+	 * @since 6.9.0 Added `textInput` elements.
 	 * @var string[]
 	 */
 	const ELEMENTS = array(
