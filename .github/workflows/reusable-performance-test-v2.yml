@@ -122,7 +122,7 @@ jobs:
           persist-credentials: false
 
       - name: Create a Docker override file for memcached
-        if: ${{ contains( fromJSON('["7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]'), inputs.php-version ) }}
+        if: ${{ contains( fromJSON('["7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]'), inputs.php ) }}
         run: cp "tools/local-env/memcached-bookworm-docker-compose.override.yml" docker-compose.override.yml
 
       - name: Create a Docker override file
