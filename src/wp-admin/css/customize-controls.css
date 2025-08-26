@@ -1161,6 +1161,10 @@ p.customize-section-description {
 	flex-grow: 1;
 }
 
+.customize-control-dropdown-pages .new-content-item .create-item-input.invalid {
+	border: 1px solid #d63638;
+}
+
 .customize-control-dropdown-pages .add-new-toggle {
 	margin-left: 1px;
 	font-weight: 600;
