@@ -1073,7 +1073,7 @@ function get_comment_text( $comment_id = 0, $args = array() ) {
  * typically because of timezone setting changes. The parameter ensures the ability to reproduce backwards
  * compatible behaviors in such cases.
  *
- * @since 6.8.0
+ * @since 6.9.0
  *
  * @param int|WP_Comment $comment Optional. WP_Comment object or ID. Default is global `$comment` object.
  * @param string         $source  Optional. Local or UTC time to use from database. Accepts 'local' or 'gmt'.
