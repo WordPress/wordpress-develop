@@ -81,7 +81,7 @@ on:
         required: false
 
 env:
-  LOCAL_PHP: ${{ inputs.php }}-fpm
+  LOCAL_PHP: ${{ '8.4-fpm' == inputs.php && 'sha256:706cf32b9d761ef3f122aafea07c0e16b41f8fd2bf2574422615ac283c1e913d' || format( '{0}-fpm', inputs.php ) }}
   LOCAL_PHP_XDEBUG: ${{ inputs.coverage-report || false }}
   LOCAL_PHP_XDEBUG_MODE: ${{ inputs.coverage-report && 'coverage' || 'develop,debug' }}
   LOCAL_DB_TYPE: ${{ inputs.db-type }}
