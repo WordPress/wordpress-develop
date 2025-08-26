@@ -36,6 +36,9 @@
 			<group>html-api-html5lib-tests</group>
 		</exclude>
 	</groups>
+	<logging>
+		<log type="junit" target="build/logs/junit.xml" />
+	</logging>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true">
 			<directory suffix=".php">../../src</directory>
