@@ -1070,7 +1070,6 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		list( $src, $width, $height ) = $image;
 
 		$attachment = get_post( $attachment_id );
-		$hwstring   = image_hwstring( $width, $height );
 		$size_class = $size;
 
 		if ( is_array( $size_class ) ) {
@@ -1091,14 +1090,22 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 * @param string $context The context. Default 'wp_get_attachment_image'.
 		 */
 		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
-		$attr    = wp_parse_args( $attr, $default_attr );
 
-		$loading_attr              = $attr;
-		$loading_attr['width']     = $width;
-		$loading_attr['height']    = $height;
+		$attr = wp_parse_args( $attr, $default_attr );
+
+		// Ensure that the `$width` doesn't overwrite an already valid user-provided width.
+		if ( ! isset( $attr['width'] ) || ! is_numeric( $attr['width'] ) ) {
+			$attr['width'] = $width;
+		}
+
+		// Ensure that the `$height` doesn't overwrite an already valid user-provided height.
+		if ( ! isset( $attr['height'] ) || ! is_numeric( $attr['height'] ) ) {
+			$attr['height'] = $height;
+		}
+
 		$loading_optimization_attr = wp_get_loading_optimization_attributes(
 			'img',
-			$loading_attr,
+			$attr,
 			$context
 		);
 
@@ -1160,6 +1167,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 * Filters the list of attachment image attributes.
 		 *
 		 * @since 2.8.0
+		 * @since 6.8.2 The `$attr` array includes `width` and `height` attributes.
 		 *
 		 * @param string[]     $attr       Array of attribute values for the image markup, keyed by attribute name.
 		 *                                 See wp_get_attachment_image().
@@ -1169,8 +1177,17 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 */
 		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment, $size );
 
-		$attr = array_map( 'esc_attr', $attr );
-		$html = rtrim( "<img $hwstring" );
+		if ( isset( $attr['width'] ) && is_numeric( $attr['width'] ) ) {
+			$width = absint( $attr['width'] );
+		}
+		if ( isset( $attr['height'] ) && is_numeric( $attr['height'] ) ) {
+			$height = absint( $attr['height'] );
+		}
+		unset( $attr['width'], $attr['height'] );
+
+		$attr     = array_map( 'esc_attr', $attr );
+		$hwstring = image_hwstring( $width, $height );
+		$html     = rtrim( "<img $hwstring" );
 
 		foreach ( $attr as $name => $value ) {
 			$html .= " $name=" . '"' . $value . '"';
@@ -2992,9 +3009,6 @@ function wp_underscore_playlist_templates() {
 function wp_playlist_scripts( $type ) {
 	wp_enqueue_style( 'wp-mediaelement' );
 	wp_enqueue_script( 'wp-playlist' );
-	?>
-<!--[if lt IE 9]><script>document.createElement('<?php echo esc_js( $type ); ?>');</script><![endif]-->
-	<?php
 	add_action( 'wp_footer', 'wp_underscore_playlist_templates', 0 );
 	add_action( 'admin_footer', 'wp_underscore_playlist_templates', 0 );
 }
@@ -3502,14 +3516,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		}
 	}
 
-	$html = '';
-
-	if ( 'mediaelement' === $library && 1 === $instance ) {
-		$html .= "<!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->\n";
-	}
-
-	$html .= sprintf( '<audio %s controls="controls">', implode( ' ', $attr_strings ) );
-
+	$html    = sprintf( '<audio %s controls="controls">', implode( ' ', $attr_strings ) );
 	$fileurl = '';
 	$source  = '<source type="%s" src="%s" />';
 
@@ -3787,14 +3794,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		}
 	}
 
-	$html = '';
-
-	if ( 'mediaelement' === $library && 1 === $instance ) {
-		$html .= "<!--[if lt IE 9]><script>document.createElement('video');</script><![endif]-->\n";
-	}
-
-	$html .= sprintf( '<video %s controls="controls">', implode( ' ', $attr_strings ) );
-
+	$html    = sprintf( '<video %s controls="controls">', implode( ' ', $attr_strings ) );
 	$fileurl = '';
 	$source  = '<source type="%s" src="%s" />';
 
@@ -5575,6 +5575,8 @@ function wpview_media_sandbox_styles() {
 
 /**
  * Registers the personal data exporter for media.
+ *
+ * @since 4.9.6
  *
  * @param array[] $exporters An array of personal data exporters, keyed by their ID.
  * @return array[] Updated array of personal data exporters.

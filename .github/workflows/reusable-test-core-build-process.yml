@@ -56,7 +56,7 @@ jobs:
   # - Saves the pull request number to a text file.
   # - Uploads the pull request number as an artifact.
   build-process-tests:
-    name: Core running from ${{ inputs.directory }} / ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
+    name: ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}

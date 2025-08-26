@@ -1313,8 +1313,11 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	white-space: nowrap;
 }
 
-.plugins .plugin-title img,
-.plugins .plugin-title .dashicons {
+/* modified for the emoji */
+.plugins .plugin-title .dashicons,
+.plugins .plugin-title img.dashicons,
+.plugins .plugin-title img[class*="icon"],
+.plugins .plugin-title img[src*="data:image"] {
 	float: left;
 	padding: 0 10px 0 0;
 	width: 64px;
@@ -2064,7 +2067,6 @@ div.action-links,
 	}
 
 	.row-actions {
-		margin-left: -8px;
 		margin-right: -8px;
 		padding-top: 4px;
 	}
@@ -2077,10 +2079,15 @@ div.action-links,
 		color: transparent;
 	}
 
+	.row-actions span {
+		font-size: 0;
+	}
+
 	.row-actions span a,
 	.row-actions span .button-link {
 		display: inline-block;
-		padding: 4px 8px;
+		padding: 4px 16px 4px 0;
+		font-size: 13px;
 		line-height: 1.5;
 	}
 
