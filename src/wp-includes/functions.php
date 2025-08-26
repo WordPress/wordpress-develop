@@ -6554,6 +6554,29 @@ function wp_timezone_override_offset() {
 }
 
 /**
+ * Locale-aware string comparison.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param string $a First string.
+ * @param string $b Second string.
+ * @return int|false
+ */
+function _wp_locale_strcmp( $a, $b ) {
+	if ( class_exists( 'Collator' ) ) {
+		static $collator = null;
+		if ( null === $collator ) {
+			$collator = new Collator( str_replace( '_', '-', get_locale() ) );
+		}
+		if ( $collator ) {
+			return $collator->compare( $a, $b );
+		}
+	}
+	return strnatcasecmp( $a, $b );
+}
+
+/**
  * Sort-helper for timezones.
  *
  * @since 2.9.0
@@ -6587,15 +6610,15 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
 			return 1;
 		}
 
-		return strnatcasecmp( $a['city'], $b['city'] );
+		return _wp_locale_strcmp( $a['city'], $b['city'] );
 	}
 
 	if ( $a['t_continent'] === $b['t_continent'] ) {
 		if ( $a['t_city'] === $b['t_city'] ) {
-			return strnatcasecmp( $a['t_subcity'], $b['t_subcity'] );
+			return _wp_locale_strcmp( $a['t_subcity'], $b['t_subcity'] );
 		}
 
-		return strnatcasecmp( $a['t_city'], $b['t_city'] );
+		return _wp_locale_strcmp( $a['t_city'], $b['t_city'] );
 	} else {
 		// Force Etc to the bottom of the list.
 		if ( 'Etc' === $a['continent'] ) {
@@ -6606,7 +6629,7 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
 			return -1;
 		}
 
-		return strnatcasecmp( $a['t_continent'], $b['t_continent'] );
+		return _wp_locale_strcmp( $a['t_continent'], $b['t_continent'] );
 	}
 }
 
