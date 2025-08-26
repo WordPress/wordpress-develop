@@ -13,4 +13,4 @@ services:
     # Pinning to the latest `bookworm` image is a temporary solution
     # while the cause of recent failures can be investigated.
     # See https://core.trac.wordpress.org/ticket/63876.
-    image: memcached:bookworm
+    image: memcached:1.6.38-bookworm
