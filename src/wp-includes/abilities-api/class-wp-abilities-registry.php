@@ -19,6 +19,14 @@ declare( strict_types = 1 );
  */
 final class WP_Abilities_Registry {
 	/**
+	 * The singleton instance of the registry.
+	 *
+	 * @since 0.1.0
+	 * @var ?self
+	 */
+	private static $instance = null;
+
+	/**
 	 * Holds the registered abilities.
 	 *
 	 * @since 0.1.0
@@ -35,21 +43,27 @@ final class WP_Abilities_Registry {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param string|\WP_Ability  $name       The name of the ability, or WP_Ability instance. The name must be a string
-	 *                                        containing a namespace prefix, i.e. `my-plugin/my-ability`. It can only
-	 *                                        contain lowercase alphanumeric characters, dashes and the forward slash.
-	 * @param array<string,mixed> $properties Optional. An associative array of properties for the ability. This should
-	 *                                        include `label`, `description`, `input_schema`, `output_schema`,
-	 *                                        `execute_callback`, `permission_callback`, and `meta`.
+	 * @param string              $name       The name of the ability. The name must be a string containing a namespace
+	 *                                        prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
+	 *                                        alphanumeric characters, dashes and the forward slash.
+	 * @param array<string,mixed> $properties An associative array of properties for the ability. This should include
+	 *                                        `label`, `description`, `input_schema`, `output_schema`,
+	 *                                        `execute_callback`, `permission_callback`, `meta`, and ability_class.
 	 * @return ?\WP_Ability The registered ability instance on success, null on failure.
+	 *
+	 * @phpstan-param array{
+	 *   label?: string,
+	 *   description?: string,
+	 *   input_schema?: array<string,mixed>,
+	 *   output_schema?: array<string,mixed>,
+	 *   execute_callback?: callable( array<string,mixed> $input): (mixed|\WP_Error),
+	 *   permission_callback?: ?callable( array<string,mixed> $input ): (bool|\WP_Error),
+	 *   meta?: array<string,mixed>,
+	 *   ability_class?: class-string<\WP_Ability>,
+	 *   ...<string, mixed>
+	 * } $properties
 	 */
-	public function register( $name, array $properties = array() ): ?WP_Ability {
-		$ability = null;
-		if ( $name instanceof WP_Ability ) {
-			$ability = $name;
-			$name    = $ability->get_name();
-		}
-
+	public function register( string $name, array $properties = array() ): ?WP_Ability {
 		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -69,12 +83,6 @@ final class WP_Abilities_Registry {
 				'0.1.0'
 			);
 			return null;
-		}
-
-		// If the ability is already an instance, we can skip the rest of the validation.
-		if ( null !== $ability ) {
-			$this->registered_abilities[ $name ] = $ability;
-			return $ability;
 		}
 
 		if ( empty( $properties['label'] ) || ! is_string( $properties['label'] ) ) {
@@ -140,17 +148,22 @@ final class WP_Abilities_Registry {
 			return null;
 		}
 
-		$ability = new WP_Ability(
+		if ( isset( $properties['ability_class'] ) && ! is_a( $properties['ability_class'], WP_Ability::class, true ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html__( 'The ability properties should provide a valid `ability_class` that extends WP_Ability.' ),
+				'0.1.0'
+			);
+			return null;
+		}
+
+		// The class is only used to instantiate the ability, and is not a property of the ability itself.
+		$ability_class = $properties['ability_class'] ?? WP_Ability::class;
+		unset( $properties['ability_class'] );
+
+		$ability = new $ability_class(
 			$name,
-			array(
-				'label'               => $properties['label'],
-				'description'         => $properties['description'],
-				'input_schema'        => $properties['input_schema'] ?? array(),
-				'output_schema'       => $properties['output_schema'] ?? array(),
-				'execute_callback'    => $properties['execute_callback'],
-				'permission_callback' => $properties['permission_callback'] ?? null,
-				'meta'                => $properties['meta'] ?? array(),
-			)
+			$properties
 		);
 
 		$this->registered_abilities[ $name ] = $ability;
@@ -248,11 +261,9 @@ final class WP_Abilities_Registry {
 	 * @return \WP_Abilities_Registry The main registry instance.
 	 */
 	public static function get_instance(): self {
-		/** @var \WP_Abilities_Registry $wp_abilities */
-		global $wp_abilities;
+		if ( null === self::$instance ) {
+			self::$instance = new self();
 
-		if ( empty( $wp_abilities ) ) {
-			$wp_abilities = new self();
 			/**
 			 * Fires when preparing abilities registry.
 			 *
@@ -263,10 +274,10 @@ final class WP_Abilities_Registry {
 			 *
 			 * @param \WP_Abilities_Registry $instance Abilities registry object.
 			 */
-			do_action( 'abilities_api_init', $wp_abilities );
+			do_action( 'abilities_api_init', self::$instance );
 		}
 
-		return $wp_abilities;
+		return self::$instance;
 	}
 
 	/**
