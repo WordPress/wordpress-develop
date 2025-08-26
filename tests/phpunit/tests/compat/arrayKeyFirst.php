@@ -15,7 +15,6 @@ class Tests_Compat_arrayKeyFirst extends WP_UnitTestCase {
 		$this->assertTrue( function_exists( 'array_key_first' ) );
 	}
 
-
 	/**
 	 * @dataProvider data_array_key_first
 	 *
