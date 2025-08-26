@@ -1071,7 +1071,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
  *             or greater than zero if `$a->name` is greater than `$b->name`.
  */
 function _wp_object_name_sort_cb( $a, $b ) {
-	return strnatcasecmp( $a->name, $b->name );
+	return _wp_locale_strcmp( $a->name, $b->name );
 }
 
 /**
