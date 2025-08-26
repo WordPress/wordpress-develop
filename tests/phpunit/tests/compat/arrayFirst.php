@@ -78,7 +78,7 @@ class Tests_Compat_arrayFirst extends WP_UnitTestCase {
 	/**
 	 * Test that array_first() returns the pointer is not the first element.
 	 *
-	 * @ticket 45055
+	 * @ticket 63853
 	 */
 	public function test_array_first_with_end_pointer() {
 		$arr = array( 'key1' => 'val1', 'key2' => 'val2' );
