@@ -20,15 +20,27 @@ declare( strict_types = 1 );
  *
  * @since 0.1.0
  *
- * @param string|\WP_Ability  $name       The name of the ability, or WP_Ability instance.
- *                                        The name must be a string containing a namespace prefix, i.e. `my-plugin/my-ability`. It can only
- *                                        contain lowercase alphanumeric characters, dashes and the forward slash.
- * @param array<string,mixed> $properties Optional. An associative array of properties for the ability. This should
- *                                        include `label`, `description`, `input_schema`, `output_schema`,
- *                                        `execute_callback`, `permission_callback`, and `meta`.
+ * @param string              $name       The name of the ability. The name must be a string containing a namespace
+ *                                        prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
+ *                                        alphanumeric characters, dashes and the forward slash.
+ * @param array<string,mixed> $properties An associative array of properties for the ability. This should include
+ *                                        `label`, `description`, `input_schema`, `output_schema`, `execute_callback`,
+ *                                        `permission_callback`, `meta`, and `ability_class`.
  * @return ?\WP_Ability An instance of registered ability on success, null on failure.
+ *
+ * @phpstan-param array{
+ *   label?: string,
+ *   description?: string,
+ *   input_schema?: array<string,mixed>,
+ *   output_schema?: array<string,mixed>,
+ *   execute_callback?: callable( array<string,mixed> $input): (mixed|\WP_Error),
+ *   permission_callback?: callable( array<string,mixed> $input ): (bool|\WP_Error),
+ *   meta?: array<string,mixed>,
+ *   ability_class?: class-string<\WP_Ability>,
+ *   ...<string, mixed>
+ * } $properties
  */
-function wp_register_ability( $name, array $properties = array() ): ?WP_Ability {
+function wp_register_ability( string $name, array $properties = array() ): ?WP_Ability {
 	if ( ! did_action( 'abilities_api_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
@@ -36,7 +48,7 @@ function wp_register_ability( $name, array $properties = array() ): ?WP_Ability 
 				/* translators: 1: abilities_api_init, 2: string value of the ability name. */
 				esc_html__( 'Abilities must be registered on the %1$s action. The ability %2$s was not registered.' ),
 				'<code>abilities_api_init</code>',
-				'<code>' . esc_html( $name instanceof WP_Ability ? $name->get_name() : $name ) . '</code>'
+				'<code>' . esc_html( $name ) . '</code>'
 			),
 			'0.1.0'
 		);

@@ -1,6 +1,17 @@
 <?php declare( strict_types=1 );
 
 /**
+ * Mock used to test a custom ability class.
+ */
+class Mock_Custom_Ability extends WP_Ability {
+	protected function do_execute( array $input ) {
+		return 9999;
+	}
+}
+
+/**
+ * Tests for registering, unregistering and retrieving abilities.
+ *
  * @covers wp_register_ability
  * @covers wp_unregister_ability
  * @covers wp_get_ability
@@ -43,10 +54,10 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 				'description' => 'The result of adding the two numbers.',
 				'required'    => true,
 			),
-			'execute_callback'    => function ( array $input ): int {
+			'execute_callback'    => static function ( array $input ): int {
 				return $input['a'] + $input['b'];
 			},
-			'permission_callback' => function (): bool {
+			'permission_callback' => static function (): bool {
 				return true;
 			},
 			'meta'                => array(
@@ -60,9 +71,11 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 */
 	public function tear_down(): void {
 		foreach ( wp_get_abilities() as $ability ) {
-			if ( str_starts_with( $ability->get_name(), 'test/' ) ) {
-				wp_unregister_ability( $ability->get_name() );
+			if ( ! str_starts_with( $ability->get_name(), 'test/' ) ) {
+				continue;
 			}
+
+			wp_unregister_ability( $ability->get_name() );
 		}
 
 		parent::tear_down();
@@ -141,13 +154,11 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests executing an ability with no permissions.
-	 *
-	 * @expectedIncorrectUsage WP_Ability::execute
 	 */
 	public function test_register_ability_no_permissions(): void {
 		do_action( 'abilities_api_init' );
 
-		self::$test_ability_properties['permission_callback'] = function (): bool {
+		self::$test_ability_properties['permission_callback'] = static function (): bool {
 			return false;
 		};
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
@@ -160,7 +171,39 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertNull(
+
+		$actual = $result->execute(
+			array(
+				'a' => 2,
+				'b' => 3,
+			)
+		);
+		$this->assertWPError(
+			$actual,
+			'Execution should fail due to no permissions'
+		);
+		$this->assertEquals( 'ability_invalid_permissions', $actual->get_error_code() );
+	}
+
+	/**
+	 * Tests registering an ability with a custom ability class.
+	 */
+	public function test_register_ability_custom_ability_class(): void {
+		do_action( 'abilities_api_init' );
+
+		$result = wp_register_ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'ability_class' => Mock_Custom_Ability::class,
+				)
+			)
+		);
+
+		$this->assertInstanceOf( Mock_Custom_Ability::class, $result );
+		$this->assertSame(
+			9999,
 			$result->execute(
 				array(
 					'a' => 2,
@@ -168,71 +211,100 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 				)
 			)
 		);
+
+		// Try again with an invalid class throws a doing it wrong.
+		$this->setExpectedIncorrectUsage( WP_Abilities_Registry::class . '::register' );
+		wp_register_ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'ability_class' => 'Non_Existent_Class',
+				)
+			)
+		);
 	}
+
 
 	/**
 	 * Tests executing an ability with input not matching schema.
-	 *
-	 * @expectedIncorrectUsage WP_Ability::validate_input
-	 * @expectedIncorrectUsage WP_Ability::execute
 	 */
 	public function test_execute_ability_no_input_schema_match(): void {
 		do_action( 'abilities_api_init' );
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
 
-		$this->assertNull(
-			$result->execute(
-				array(
-					'a'       => 2,
-					'b'       => 3,
-					'unknown' => 1,
-				)
+		$actual = $result->execute(
+			array(
+				'a'       => 2,
+				'b'       => 3,
+				'unknown' => 1,
 			)
+		);
+
+		$this->assertWPError(
+			$actual,
+			'Execution should fail due to input not matching schema.'
+		);
+		$this->assertSame( 'ability_invalid_input', $actual->get_error_code() );
+		$this->assertSame(
+			'Ability "test/add-numbers" has invalid input. Reason: unknown is not a valid property of Object.',
+			$actual->get_error_message()
 		);
 	}
 
 	/**
 	 * Tests executing an ability with output not matching schema.
-	 *
-	 * @expectedIncorrectUsage WP_Ability::validate_output
 	 */
 	public function test_execute_ability_no_output_schema_match(): void {
 		do_action( 'abilities_api_init' );
 
-		self::$test_ability_properties['execute_callback'] = function (): bool {
+		self::$test_ability_properties['execute_callback'] = static function (): bool {
 			return true;
 		};
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
 
-		$this->assertNull(
-			$result->execute(
-				array(
-					'a' => 2,
-					'b' => 3,
-				)
+		$actual = $result->execute(
+			array(
+				'a' => 2,
+				'b' => 3,
 			)
+		);
+		$this->assertWPError(
+			$actual,
+			'Execution should fail due to output not matching schema.'
+		);
+		$this->assertSame( 'ability_invalid_output', $actual->get_error_code() );
+		$this->assertSame(
+			'Ability "test/add-numbers" has invalid output. Reason: output is not of type number.',
+			$actual->get_error_message()
 		);
 	}
 
 	/**
 	 * Tests permission callback receiving input not matching schema.
-	 *
-	 * @expectedIncorrectUsage WP_Ability::validate_input
 	 */
 	public function test_permission_callback_no_input_schema_match(): void {
 		do_action( 'abilities_api_init' );
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
 
-		$this->assertFalse(
-			$result->has_permission(
-				array(
-					'a'       => 2,
-					'b'       => 3,
-					'unknown' => 1,
-				)
+		$actual = $result->has_permission(
+			array(
+				'a'       => 2,
+				'b'       => 3,
+				'unknown' => 1,
 			)
+		);
+
+		$this->assertWPError(
+			$actual,
+			'Permission check should fail due to input not matching schema.'
+		);
+		$this->assertSame( 'ability_invalid_input', $actual->get_error_code() );
+		$this->assertSame(
+			'Ability "test/add-numbers" has invalid input. Reason: unknown is not a valid property of Object.',
+			$actual->get_error_message()
 		);
 	}
 
@@ -243,7 +315,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		do_action( 'abilities_api_init' );
 
 		$received_input                                       = null;
-		self::$test_ability_properties['permission_callback'] = function ( array $input ) use ( &$received_input ): bool {
+		self::$test_ability_properties['permission_callback'] = static function ( array $input ) use ( &$received_input ): bool {
 			$received_input = $input;
 			// Allow only if 'a' is greater than 'b'
 			return $input['a'] > $input['b'];
@@ -306,29 +378,28 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * Tests retrieving existing ability.
 	 */
 	public function test_get_existing_ability() {
-		global $wp_abilities;
-
 		$name       = self::$test_ability_name;
 		$properties = self::$test_ability_properties;
-		$callback   = function ( $instance ) use ( $name, $properties ) {
+		$callback   = static function ( $instance ) use ( $name, $properties ) {
 			wp_register_ability( $name, $properties );
 		};
 
 		add_action( 'abilities_api_init', $callback );
 
-		// Temporarily set `$wp_abilities` to null to ensure `wp_get_ability()` triggers `abilities_api_init` action.
-		$old_wp_abilities = $wp_abilities;
-		$wp_abilities     = null;
+		// Reset the Registry, to ensure it's empty before the test.
+		$registry_reflection = new ReflectionClass( WP_Abilities_Registry::class );
+		$instance_prop       = $registry_reflection->getProperty( 'instance' );
+		$instance_prop->setAccessible( true );
+		$instance_prop->setValue( null );
 
 		$result = wp_get_ability( $name );
-
-		$wp_abilities = $old_wp_abilities;
 
 		remove_action( 'abilities_api_init', $callback );
 
 		$this->assertEquals(
 			new WP_Ability( $name, $properties ),
-			$result
+			$result,
+			'Ability does not share expected properties.'
 		);
 	}
 

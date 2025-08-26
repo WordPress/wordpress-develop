@@ -89,7 +89,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param \WP_REST_Request $request Full details about the request.
+	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
 	 * @return \WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
@@ -144,7 +144,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param \WP_REST_Request $request Full details about the request.
+	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
 	 * @return \WP_REST_Response|\WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
@@ -167,7 +167,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param \WP_REST_Request $request Full details about the request.
+	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
 	 * @return bool True if the request has read access.
 	 */
 	public function get_permissions_check( $request ) {
@@ -179,8 +179,8 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 0.1.0
 	 *
-	 * @param \WP_Ability      $ability The ability object.
-	 * @param \WP_REST_Request $request Request object.
+	 * @param \WP_Ability                           $ability The ability object.
+	 * @param \WP_REST_Request<array<string,mixed>> $request Request object.
 	 * @return \WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $ability, $request ) {

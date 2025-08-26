@@ -10,7 +10,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	/**
 	 * REST Server instance.
 	 *
-	 * @var WP_REST_Server
+	 * @var \WP_REST_Server
 	 */
 	protected $server;
 
@@ -64,9 +64,11 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	public function tear_down(): void {
 		// Clean up test abilities
 		foreach ( wp_get_abilities() as $ability ) {
-			if ( str_starts_with( $ability->get_name(), 'test/' ) ) {
-				wp_unregister_ability( $ability->get_name() );
+			if ( ! str_starts_with( $ability->get_name(), 'test/' ) ) {
+				continue;
 			}
+
+			wp_unregister_ability( $ability->get_name() );
 		}
 
 		// Reset REST server
@@ -100,7 +102,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 				'output_schema'       => array(
 					'type' => 'number',
 				),
-				'execute_callback'    => function ( array $input ) {
+				'execute_callback'    => static function ( array $input ) {
 					switch ( $input['operation'] ) {
 						case 'add':
 							return $input['a'] + $input['b'];
@@ -114,7 +116,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 							return null;
 					}
 				},
-				'permission_callback' => function () {
+				'permission_callback' => static function () {
 					return current_user_can( 'read' );
 				},
 				'meta'                => array(
@@ -147,7 +149,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 						'wp_version'  => array( 'type' => 'string' ),
 					),
 				),
-				'execute_callback'    => function ( array $input ) {
+				'execute_callback'    => static function ( array $input ) {
 					$info = array(
 						'php_version' => phpversion(),
 						'wp_version'  => get_bloginfo( 'version' ),
@@ -157,7 +159,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 					}
 					return $info;
 				},
-				'permission_callback' => function () {
+				'permission_callback' => static function () {
 					return current_user_can( 'read' );
 				},
 				'meta'                => array(
@@ -174,7 +176,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 				array(
 					'label'               => "Test Ability {$i}",
 					'description'         => "Test ability number {$i}",
-					'execute_callback'    => function () use ( $i ) {
+					'execute_callback'    => static function () use ( $i ) {
 						return "Result from ability {$i}";
 					},
 					'permission_callback' => '__return_true',
@@ -409,7 +411,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Test Hyphen Ability',
 				'description'         => 'Test ability with hyphen',
-				'execute_callback'    => function ( $input ) {
+				'execute_callback'    => static function ( $input ) {
 					return array( 'success' => true );
 				},
 				'permission_callback' => '__return_true',
@@ -501,10 +503,12 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		// Should either use defaults or return error
 		$this->assertContains( $response->get_status(), array( 200, 400 ) );
 
-		if ( $response->get_status() === 200 ) {
-			// Check that reasonable defaults were used
-			$data = $response->get_data();
-			$this->assertIsArray( $data );
+		if ( $response->get_status() !== 200 ) {
+			return;
 		}
+
+		// Check that reasonable defaults were used
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
 	}
 }
