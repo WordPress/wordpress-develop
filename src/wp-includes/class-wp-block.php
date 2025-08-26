@@ -483,8 +483,8 @@ class WP_Block {
 
 					$this->set_bookmark( '_wp_block_bindings_tag_opener' );
 					// The bookmark names are prefixed with `_` so the key below has an extra `_`.
-					$bm    = $this->bookmarks['__wp_block_bindings_tag_opener'];
-					$start = $bm->start + $bm->length;
+					$tag_opener = $this->bookmarks['__wp_block_bindings_tag_opener'];
+					$start      = $tag_opener->start + $tag_opener->length;
 					$this->release_bookmark( '_wp_block_bindings_tag_opener' );
 
 					// Find matching tag closer.
@@ -492,8 +492,8 @@ class WP_Block {
 					}
 
 					$this->set_bookmark( '_wp_block_bindings_tag_closer' );
-					$bm  = $this->bookmarks['__wp_block_bindings_tag_closer'];
-					$end = $bm->start;
+					$tag_closer  = $this->bookmarks['__wp_block_bindings_tag_closer'];
+					$end         = $tag_closer->start;
 					$this->release_bookmark( '_wp_block_bindings_tag_closer' );
 
 					$this->lexical_updates[] = new WP_HTML_Text_Replacement(
