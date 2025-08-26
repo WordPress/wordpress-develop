@@ -81,7 +81,10 @@ class Tests_Compat_arrayFirst extends WP_UnitTestCase {
 	 * @ticket 63853
 	 */
 	public function test_array_first_with_end_pointer() {
-		$arr = array( 'key1' => 'val1', 'key2' => 'val2' );
+		$arr = array(
+			'key1' => 'val1',
+			'key2' => 'val2',
+		);
 		// change the pointer to the last element
 		end( $arr );
 
