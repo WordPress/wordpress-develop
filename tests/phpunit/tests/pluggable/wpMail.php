@@ -514,6 +514,88 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that email addresses with apostrophes and other escapable characters
+	 * are properly handled.
+	 *
+	 * @ticket 54416
+	 */
+	public function test_wp_mail_apostrophe_in_email_address() {
+		$email_with_apostrophe = "o'connor@example.com";
+		$subject               = 'Test Email with Apostrophe';
+		$message               = 'This is a test message';
+
+		$result = wp_mail( $email_with_apostrophe, $subject, $message );
+		$this->assertTrue( $result, 'wp_mail should successfully send to email with apostrophe' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertSame( $email_with_apostrophe, $mailer->get_recipient( 'to' )->address );
+		$this->assertStringNotContainsString( "o\\'connor", $mailer->get_recipient( 'to' )->address );
+
+		$headers = array(
+			"Reply-To: {$email_with_apostrophe}",
+			"Cc: {$email_with_apostrophe}",
+		);
+
+		reset_phpmailer_instance();
+		wp_mail( 'test@example.com', $subject, $message, $headers );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertSame( $email_with_apostrophe, $mailer->get_recipient( 'cc' )->address );
+
+		$sent_header = $mailer->get_sent()->header;
+		$this->assertStringContainsString( "Reply-To: {$email_with_apostrophe}", $sent_header );
+	}
+
+	/**
+	* Test multiple email addresses with apostrophes in To field.
+	*
+	* @ticket 54416
+	*/
+	public function test_wp_mail_multiple_apostrophe_email_addresses() {
+		$to      = "o'connor@example.com, d'angelo@example.com";
+		$subject = 'Multiple Apostrophe Emails';
+		$message = 'Test message for multiple recipients';
+
+		$result = wp_mail( $to, $subject, $message );
+		$this->assertTrue( $result, 'wp_mail should successfully send email with apostrophe in From header' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertSame( "o'connor@example.com", $mailer->get_recipient( 'to' )->address );
+		$this->assertSame( "d'angelo@example.com", $mailer->get_recipient( 'to', 0, 1 )->address );
+	}
+
+	/**
+	 * Test that email addresses with apostrophes in From header are handled correctly.
+	 *
+	 * @ticket 54416
+	 */
+	public function test_wp_mail_apostrophe_in_from_email_address() {
+		$from_email = "o'connor@example.com";
+		$from_name  = "John O'Connor";
+		$to         = 'recipient@example.com';
+		$subject    = 'Test From Email with Apostrophe';
+		$message    = 'Test message';
+		$headers    = "From: {$from_name} <{$from_email}>";
+
+		$result = wp_mail( $to, $subject, $message, $headers );
+		$this->assertTrue( $result, 'wp_mail should successfully send email with apostrophe in From header' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$this->assertSame( $from_email, $mailer->From );
+
+		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$this->assertSame( $from_name, $mailer->FromName );
+
+		$sent_header = $mailer->get_sent()->header;
+		$this->assertStringContainsString( $from_email, $sent_header );
+	}
+
+	/**
 	 * @ticket 50720
 	 */
 	public function test_phpmailer_validator() {
