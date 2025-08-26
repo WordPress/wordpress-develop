@@ -6566,13 +6566,16 @@ function wp_timezone_override_offset() {
 function _wp_locale_strcmp( $a, $b ) {
 	if ( class_exists( 'Collator' ) ) {
 		static $collator = null;
+
 		if ( null === $collator ) {
 			$collator = new Collator( str_replace( '_', '-', get_locale() ) );
 		}
+
 		if ( $collator ) {
 			return $collator->compare( $a, $b );
 		}
 	}
+
 	return strnatcasecmp( $a, $b );
 }
 
