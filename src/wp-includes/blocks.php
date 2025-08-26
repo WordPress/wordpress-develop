@@ -175,12 +175,12 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$module_version      = isset( $module_asset['version'] ) ? $module_asset['version'] : $block_version;
 
+	// Blocks using the Interactivity API are server-side rendered, so they are by design not in the critical rendering path and should be deprioritized.
 	$args = array();
 	if (
 		( isset( $metadata['supports']['interactivity'] ) && true === $metadata['supports']['interactivity'] ) ||
 		( isset( $metadata['supports']['interactivity']['interactive'] ) && true === $metadata['supports']['interactivity']['interactive'] )
 	) {
-		// TODO: Add ability for the fetchpriority to be specified in block.json for the viewScriptModule. In wp_default_script_modules() the fetchpriority defaults to low since server-side rendering is employed for core blocks, but there are no guarantees that this is the case for non-core blocks. That said, viewScriptModule entails Interactivity API, following the pattern from core it _should_ be SSR'ed and that is why this is the default for when the block supports interactivity.
 		$args['fetchpriority'] = 'low';
 	}
 
@@ -253,7 +253,6 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 	$script_args         = array();
 	if ( 'viewScript' === $field_name && $script_uri ) {
 		$script_args['strategy'] = 'defer';
-		// TODO: There needs to be a way to specify that a script defined in a module is safe to use fetchpriority=low. Perhaps the viewScript should not only allow a handle string or a `file:./foo.js` string, but allow an an array of params like { "href": "./foo.js", "fetchpriority": "low" }. This would allow for more metadata to be supplied, like the script loading strategy. Related: <https://core.trac.wordpress.org/ticket/56408> and <https://core.trac.wordpress.org/ticket/54018>.
 	}
 
 	$result = wp_register_script(
