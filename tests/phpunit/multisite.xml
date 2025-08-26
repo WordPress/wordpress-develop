@@ -72,4 +72,7 @@
 			</exclude>
 		</whitelist>
 	</filter>
+	<logging>
+		<log type="junit" target="tests/phpunit/build/logs/junit.xml" />
+	</logging>
 </phpunit>
