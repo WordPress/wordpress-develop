@@ -17,7 +17,7 @@
 class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 	public function __construct() {
-		$this->namespace = 'wp-site-health/v1';
+		$this->namespace = 'wp/v2';
 		$this->rest_base = 'sites';
 	}
 
