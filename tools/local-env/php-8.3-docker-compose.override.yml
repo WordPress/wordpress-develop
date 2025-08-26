@@ -1,3 +1,6 @@
+# This override file is a temporary solution to force the use of specific versions of the
+# `wordpressdevelop/php` and `wordpressdevelop/cli` images while the cause of recent failures
+# can be investigated. See https://core.trac.wordpress.org/ticket/63876.
 services:
 
   php:
