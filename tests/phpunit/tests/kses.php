@@ -597,6 +597,12 @@ EOF;
 			'Encoded named ref &amp;amp;'        => array( '&amp;amp;', '&amp;amp;' ),
 			'Encoded named ref &#38;amp;'        => array( '&#38;amp;', '&#038;amp;' ),
 			'Encoded named ref &#x26;amp;'       => array( '&#x26;amp;', '&#x26;amp;' ),
+			'Encoded numeric ref &amp;#39;'      => array( '&amp;#39;', '&amp;#39;' ),
+			'Encoded numeric ref &#38;#39;'      => array( '&#38;#39;', '&#038;#39;' ),
+			'Encoded numeric ref &#x26;#39;'     => array( '&#x26;#39;', '&#x26;#39;' ),
+			'Encoded hex ref &amp;#x27;'         => array( '&amp;#x27;', '&amp;#x27;' ),
+			'Encoded hex ref &#38;#x27;'         => array( '&#38;#x27;', '&#038;#x27;' ),
+			'Encoded hex ref &#x26;#x27;'        => array( '&#x26;#x27;', '&#x26;#x27;' ),
 
 			/*
 			 * The codepoint value here is outside of the valid unicode range whose
@@ -609,6 +615,7 @@ EOF;
 
 	/**
 	 * @ticket 26290
+	 * @ticket 63630
 	 *
 	 * @dataProvider data_normalize_entities
 	 */
