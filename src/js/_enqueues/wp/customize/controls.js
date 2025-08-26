@@ -4066,7 +4066,7 @@
 		 * @return {void}
 		 */
 		addNewPage: function () {
-			var control = this, promise, toggle, container, input, title, select;
+			var control = this, promise, toggle, container, input, inputError, title, select;
 
 			if ( 'dropdown-pages' !== control.params.type || ! control.params.allow_addition || ! api.Menus ) {
 				return;
