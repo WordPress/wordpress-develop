@@ -327,6 +327,61 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
+	 * @ticket 62742
+	 *
+	 * @covers WP_REST_Global_Styles_Revisions_Controller::get_items
+	 */
+	public function test_get_items_applies_rest_global_styles_revision_query_filter() {
+		wp_set_current_user( self::$admin_id );
+
+		$filter_fired = false;
+		$filter       = function ( $args ) use ( &$filter_fired ) {
+			$filter_fired           = true;
+			$args['posts_per_page'] = 1;
+			return $args;
+		};
+		add_filter( 'rest_global_styles_revision_query', $filter );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'rest_global_styles_revision_query', $filter );
+
+		$this->assertTrue( $filter_fired, 'The rest_global_styles_revision_query filter did not fire.' );
+		$this->assertCount( 1, $data, 'The filter did not modify the query args.' );
+	}
+
+	/**
+	 * @ticket 62742
+	 *
+	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
+	 */
+	public function test_get_items_applies_rest_prepare_global_styles_revision_filter() {
+		wp_set_current_user( self::$admin_id );
+
+		$filter_fired = false;
+		$filter       = function ( $response, $post, $request ) use ( &$filter_fired ) {
+			$filter_fired         = true;
+			$data                 = $response->get_data();
+			$data['custom_field'] = 'test_value';
+			$response->set_data( $data );
+			return $response;
+		};
+		add_filter( 'rest_prepare_global_styles_revision', $filter, 10, 3 );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		remove_filter( 'rest_prepare_global_styles_revision', $filter );
+
+		$this->assertTrue( $filter_fired, 'The rest_prepare_global_styles_revision filter did not fire.' );
+		$this->assertArrayHasKey( 'custom_field', $data[0], 'The filter did not modify the response.' );
+		$this->assertSame( 'test_value', $data[0]['custom_field'], 'The filter did not set the correct value.' );
+	}
+
+	/**
 	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::prepare_item_for_response
