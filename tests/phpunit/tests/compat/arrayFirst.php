@@ -28,6 +28,7 @@ class Tests_Compat_arrayFirst extends WP_UnitTestCase {
 		$this->assertSame( $expected, array_first( $arr ) );
 	}
 
+
 	/**
 	 * Data provider.
 	 *
@@ -72,5 +73,20 @@ class Tests_Compat_arrayFirst extends WP_UnitTestCase {
 				'arr'      => array( false, true, 1, 2, 3 ),
 			),
 		);
+	}
+
+	/**
+	 * Test that array_first() returns the pointer is not the first element.
+	 *
+	 * @ticket 45055
+	 */
+	public function test_array_first_with_end_pointer() {
+		$arr = array( 'key1' => 'val1', 'key2' => 'val2' );
+		// change the pointer to the last element
+		end( $arr );
+
+		$key = array_first( $arr );
+		$this->assertSame( 'val2', current( $arr ) );
+		$this->assertSame( 'val1', $key );
 	}
 }

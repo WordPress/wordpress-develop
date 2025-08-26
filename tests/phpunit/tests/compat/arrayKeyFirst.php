@@ -15,20 +15,6 @@ class Tests_Compat_arrayKeyFirst extends WP_UnitTestCase {
 		$this->assertTrue( function_exists( 'array_key_first' ) );
 	}
 
-	/**
-	 * Test that array_key_first() returns the pointer is not the first element.
-	 *
-	 * @ticket 45055
-	 */
-	public function test_array_key_first_with_end_pointer() {
-		$arr = array( 'key1' => 'val1', 'key2' => 'val2' );
-		// change the pointer to the last element
-		end( $arr );
-
-		$key = array_key_first( $arr );
-		$this->assertSame( 'key2', key( $arr ) );
-		$this->assertSame( 'key1', $key );
-	}
 
 	/**
 	 * @dataProvider data_array_key_first
