@@ -1,0 +1,7 @@
+services:
+
+  php:
+    image: wordpressdevelop/php@sha256:56d6cbf10d25bfcb80852c09c2fc2e967922881b233b6161ad2999df509eb59a
+
+  cli:
+    image: wordpressdevelop/cli@sha256:379f27b0c623c5cee5a7fbef1d617ce47fd3ba19158bac2e51861876fd68fdbf
