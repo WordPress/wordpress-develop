@@ -119,6 +119,10 @@ if ( ! $current_blog instanceof WP_Site ) {
 // Define upload directory constants.
 ms_upload_constants();
 
+// REST API integration.
+$sites_controller = new WP_REST_Sites_Controller();
+$sites_controller->register_routes();
+
 /**
  * Fires after the current site and network have been detected and loaded
  * in multisite's bootstrap.
