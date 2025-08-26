@@ -4,4 +4,4 @@
 services:
 
   memcached:
-    image: memcached@1.6.39-bookworm
+    image: memcached:1.6.39-bookworm
