@@ -4,32 +4,140 @@
  *
  * @link https://developer.wordpress.org/themes/basics/theme-functions/
  *
- * @package Twenty Twenty-Four
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
  * @since Twenty Twenty-Four 1.0
  */
+
+if ( ! function_exists( 'twentytwentyfour_setup' ) ) {
+	/**
+	 * Sets up theme defaults and registers support for various WordPress features.
+	 *
+	 * Note that this function is hooked into the after_setup_theme hook, which
+	 * runs before the init hook. The init hook is too late for some features, such
+	 * as indicating support for post thumbnails.
+	 *
+	 * @since Twenty Twenty-Four 1.0
+	 *
+	 * @return void
+	 */
+	function twentytwentyfour_setup() {
+		// Add default posts and comments RSS feed links to head.
+		add_theme_support( 'automatic-feed-links' );
+
+		// Set content-width.
+		global $content_width;
+		if ( ! isset( $content_width ) ) {
+			$content_width = 1024;
+		}
+
+		/*
+		 * Enable support for Post Thumbnails on posts and pages.
+		 *
+		 * @link https://developer.wordpress.org/themes/functionality/featured-images-post-thumbnails/
+		 */
+		add_theme_support( 'post-thumbnails' );
+		set_post_thumbnail_size( 1024, 0 );
+
+		/*
+		 * Let WordPress manage the document title.
+		 * By adding theme support, we declare that this theme does not use a
+		 * hard-coded <title> tag in the document head, and expect WordPress to
+		 * provide it for us.
+		 */
+		add_theme_support( 'title-tag' );
+
+		/*
+		 * Switch default core markup for search form, comment form, and comments
+		 * to output valid HTML5.
+		 */
+		add_theme_support(
+			'html5',
+			array(
+				'search-form',
+				'comment-form',
+				'comment-list',
+				'gallery',
+				'caption',
+				'script',
+				'style',
+				'navigation-widgets',
+			)
+		);
+
+		// Add support for Block Styles.
+		add_theme_support( 'wp-block-styles' );
+
+		// Add support for editor styles.
+		add_theme_support( 'editor-styles' );
+
+		// Enqueue editor styles and fonts.
+		add_editor_style(
+			array(
+				'./assets/css/style-shared.min.css',
+			)
+		);
+
+		// Add support for responsive embedded content.
+		add_theme_support( 'responsive-embeds' );
+
+		// Remove the core block patterns.
+		remove_theme_support( 'core-block-patterns' );
+	}
+}
+add_action( 'after_setup_theme', 'twentytwentyfour_setup' );
+
+/**
+ * Enqueue style sheet.
+ */
+function twentytwentyfour_enqueue_style_sheet() {
+	wp_enqueue_style(
+		'twentytwentyfour-style',
+		get_stylesheet_uri(),
+		[],
+		wp_get_theme()->get( 'Version' )
+	);
+}
+add_action( 'wp_enqueue_scripts', 'twentytwentyfour_enqueue_style_sheet' );
+
+/**
+ * Modify user request action email data to include the plain text confirm key
+ *
+ * @param string $content    The email content.
+ * @param array  $email_data The email data including the request object and confirm_url.
+ * @return string The filtered email content.
+ */
+function fix_user_request_confirm_key( $content, $email_data ) {
+    // Extract the confirm_key from the confirm_url
+    if ( isset( $email_data['confirm_url'] ) ) {
+        $url_parts = parse_url( $email_data['confirm_url'] );
+        if ( isset( $url_parts['query'] ) ) {
+            parse_str( $url_parts['query'], $query_params );
+            if ( isset( $query_params['confirm_key'] ) ) {
+                // Add the plain text confirm_key to the request object
+                $email_data['request']->plain_confirm_key = $query_params['confirm_key'];
+            }
+        }
+    }
+    
+    return $content;
+}
+add_filter( 'user_request_action_email_content', 'fix_user_request_confirm_key', 5, 2 );
 
 /**
  * Register block styles.
  */
+function twentytwentyfour_register_block_styles() {
 
-if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
-	/**
-	 * Registers custom block styles.
-	 *
-	 * @since Twenty Twenty-Four 1.0
-	 * @return void
-	 */
-	function twentytwentyfour_block_styles() {
-
-		register_block_style(
-			'core/details',
-			array(
-				'name'         => 'arrow-icon-details',
-				'label'        => __( 'Arrow icon', 'twentytwentyfour' ),
-				/*
-				 * Styles for the custom Arrow icon style of the Details block
-				 */
-				'inline_style' => '
+	register_block_style(
+		'core/details',
+		array(
+			'name'         => 'arrow-icon-details',
+			'label'        => __( 'Arrow icon', 'twentytwentyfour' ),
+			/*
+			 * Styles for the custom Arrow icon style of the Details block
+			 */
+			'inline_style' => '
 				.is-style-arrow-icon-details {
 					padding-top: var(--wp--preset--spacing--10);
 					padding-bottom: var(--wp--preset--spacing--10);
@@ -42,18 +150,18 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 				.is-style-arrow-icon-details[open]>summary {
 					list-style-type: "\2192\00a0\00a0\00a0";
 				}',
-			)
-		);
-		register_block_style(
-			'core/post-terms',
-			array(
-				'name'         => 'pill',
-				'label'        => __( 'Pill', 'twentytwentyfour' ),
-				/*
-				 * Styles variation for post terms
-				 * https://github.com/WordPress/gutenberg/issues/24956
-				 */
-				'inline_style' => '
+		)
+	);
+	register_block_style(
+		'core/post-terms',
+		array(
+			'name'         => 'pill',
+			'label'        => __( 'Pill', 'twentytwentyfour' ),
+			/*
+			 * Styles variation for post terms
+			 * https://github.com/WordPress/gutenberg/issues/24956
+			 */
+			'inline_style' => '
 				.is-style-pill a,
 				.is-style-pill span:not([class], [data-rich-text-placeholder]) {
 					display: inline-block;
@@ -65,18 +173,17 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 				.is-style-pill a:hover {
 					background-color: var(--wp--preset--color--contrast-3);
 				}',
-			)
-		);
-		register_block_style(
-			'core/list',
-			array(
-				'name'         => 'checkmark-list',
-				'label'        => __( 'Checkmark', 'twentytwentyfour' ),
-				/*
-				 * Styles for the custom checkmark list block style
-				 * https://github.com/WordPress/gutenberg/issues/51480
-				 */
-				'inline_style' => '
+		)
+	);
+	register_block_style(
+		'core/list',
+		array(
+			'name'         => 'checkmark-list',
+			'label'        => __( 'Checkmark', 'twentytwentyfour' ),
+			/*
+			 * Styles for the custom checkmark lists
+			 */
+			'inline_style' => '
 				ul.is-style-checkmark-list {
 					list-style-type: "\2713";
 				}
@@ -84,123 +191,126 @@ if ( ! function_exists( 'twentytwentyfour_block_styles' ) ) :
 				ul.is-style-checkmark-list li {
 					padding-inline-start: 1ch;
 				}',
-			)
-		);
-		register_block_style(
-			'core/navigation-link',
-			array(
-				'name'         => 'arrow-link',
-				'label'        => __( 'With arrow', 'twentytwentyfour' ),
-				/*
-				 * Styles for the custom arrow nav link block style
-				 */
-				'inline_style' => '
-				.is-style-arrow-link .wp-block-navigation-item__label:after {
-					content: "\2197";
-					padding-inline-start: 0.25rem;
-					vertical-align: middle;
-					text-decoration: none;
-					display: inline-block;
+		)
+	);
+	register_block_style(
+		'core/navigation-link',
+		array(
+			'name'         => 'outline',
+			'label'        => __( 'Outline', 'twentytwentyfour' ),
+			/*
+			 * Styles for the custom outline navigation link style
+			 */
+			'inline_style' => '
+				.is-style-outline .wp-block-navigation-item__content {
+					padding: 0.5rem 1.25rem !important;
+					border: 1px solid currentColor;
+					border-radius: var(--wp--preset--spacing--20);
+				}
+
+				.is-style-outline .wp-block-navigation-item__content:hover {
+					background-color: var(--wp--preset--color--contrast-3);
 				}',
-			)
-		);
-		register_block_style(
-			'core/heading',
-			array(
-				'name'         => 'asterisk',
-				'label'        => __( 'With asterisk', 'twentytwentyfour' ),
-				'inline_style' => "
+		)
+	);
+
+	register_block_style(
+		'core/heading',
+		array(
+			'name'         => 'asterisk',
+			'label'        => __( 'With asterisk', 'twentytwentyfour' ),
+			'inline_style' => "
 				.is-style-asterisk:before {
 					content: '';
 					width: 1.5rem;
 					height: 3rem;
 					background: var(--wp--preset--color--contrast-2, currentColor);
-					clip-path: path('M11.93.684v8.039l5.633-5.633 1.216 1.23-5.66 5.66h8.04v1.737H13.2l5.701 5.701-1.23 1.23-5.742-5.742V21h-1.737v-8.094l-5.77 5.77-1.23-1.217 5.743-5.742H.842V9.98h8.162l-5.701-5.7 1.23-1.231 5.66 5.66V.684h1.737Z');
+					clip-path: path('M11.93.684v8.039l5.633-5.633 1.216 1.23-5.66 5.66h8.04v1.737h-8.04l5.66 5.66-1.216 1.23-5.633-5.633v8.04H10.2v-8.04l-5.66 5.633-1.23-1.23 5.66-5.66H.93v-1.737h8.04l-5.66-5.66 1.23-1.23L10.2 8.723V.684h1.73Z');
 					display: block;
 				}
+				",
+		)
+	);
 
-				/* Hide the asterisk if the heading has no content, to avoid using empty headings to display the asterisk only, which is an A11Y issue */
-				.is-style-asterisk:empty:before {
-					content: none;
+	register_block_style(
+		'core/quote',
+		array(
+			'name'         => 'plain',
+			'label'        => __( 'Plain', 'twentytwentyfour' ),
+			'inline_style' => "
+				.is-style-plain {
+					border-left: 0 !important;
+				}
+				.is-style-plain:before {
+					content: '\201C';
+					font-family: Georgia, serif;
+					font-size: clamp(5rem, 10vw, 10rem);
+					line-height: 0;
+					display: block;
+					margin-bottom: -0.5rem;
+					color: var(--wp--preset--color--contrast-2, currentColor);
+				}
+				",
+		)
+	);
+
+	register_block_style(
+		'core/cover',
+		array(
+			'name'         => 'rounded-cover',
+			'label'        => __( 'Rounded', 'twentytwentyfour' ),
+			'inline_style' => "
+				.is-style-rounded-cover {
+					border-radius: 1rem;
+					overflow: hidden;
+				}
+				",
+		)
+	);
+
+	register_block_style(
+		'core/button',
+		array(
+			'name'         => 'outline-2',
+			'label'        => __( 'Outline alt', 'twentytwentyfour' ),
+			'inline_style' => '
+				.is-style-outline-2 .wp-element-button {
+					border: 1px solid currentColor;
+					padding: 0.4rem 1.4rem;
+					background-color: transparent;
+					color: currentColor;
 				}
 
-				.is-style-asterisk:-moz-only-whitespace:before {
-					content: none;
+				.is-style-outline-2 .wp-element-button:hover {
+					background-color: var(--wp--preset--color--contrast-3);
+					color: currentColor;
+				}',
+		)
+	);
+
+	register_block_style(
+		'core/button',
+		array(
+			'name'         => 'arrow-link',
+			'label'        => __( 'Arrow Link', 'twentytwentyfour' ),
+			'inline_style' => '
+				.is-style-arrow-link .wp-element-button {
+					background-color: transparent;
+					border: 0;
+					padding: 0;
+					color: currentColor;
 				}
 
-				.is-style-asterisk.has-text-align-center:before {
-					margin: 0 auto;
+				.is-style-arrow-link .wp-element-button::after {
+					content: "\2197";
+					padding-left: 0.5em;
 				}
 
-				.is-style-asterisk.has-text-align-right:before {
-					margin-left: auto;
-				}
-
-				.rtl .is-style-asterisk.has-text-align-left:before {
-					margin-right: auto;
-				}",
-			)
-		);
-	}
-endif;
-
-add_action( 'init', 'twentytwentyfour_block_styles' );
-
-/**
- * Enqueue block stylesheets.
- */
-
-if ( ! function_exists( 'twentytwentyfour_block_stylesheets' ) ) :
-	/**
-	 * Enqueues custom block stylesheets.
-	 *
-	 * @since Twenty Twenty-Four 1.0
-	 * @return void
-	 */
-	function twentytwentyfour_block_stylesheets() {
-		/**
-		 * The wp_enqueue_block_style() function allows us to enqueue a stylesheet
-		 * for a specific block. These will only get loaded when the block is rendered
-		 * (both in the editor and on the front end), improving performance
-		 * and reducing the amount of data requested by visitors.
-		 *
-		 * See https://make.wordpress.org/core/2021/12/15/using-multiple-stylesheets-per-block/ for more info.
-		 */
-		wp_enqueue_block_style(
-			'core/button',
-			array(
-				'handle' => 'twentytwentyfour-button-style-outline',
-				'src'    => get_parent_theme_file_uri( 'assets/css/button-outline.css' ),
-				'ver'    => wp_get_theme( get_template() )->get( 'Version' ),
-				'path'   => get_parent_theme_file_path( 'assets/css/button-outline.css' ),
-			)
-		);
-	}
-endif;
-
-add_action( 'init', 'twentytwentyfour_block_stylesheets' );
-
-/**
- * Register pattern categories.
- */
-
-if ( ! function_exists( 'twentytwentyfour_pattern_categories' ) ) :
-	/**
-	 * Registers pattern categories.
-	 *
-	 * @since Twenty Twenty-Four 1.0
-	 * @return void
-	 */
-	function twentytwentyfour_pattern_categories() {
-
-		register_block_pattern_category(
-			'twentytwentyfour_page',
-			array(
-				'label'       => _x( 'Pages', 'Block pattern category', 'twentytwentyfour' ),
-				'description' => __( 'A collection of full page layouts.', 'twentytwentyfour' ),
-			)
-		);
-	}
-endif;
-
-add_action( 'init', 'twentytwentyfour_pattern_categories' );
+				.is-style-arrow-link .wp-element-button:hover {
+					background-color: transparent;
+					text-decoration: underline;
+				}',
+		)
+	);
+}
+add_action( 'init', 'twentytwentyfour_register_block_styles' );
