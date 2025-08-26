@@ -462,50 +462,47 @@ class WP_Block {
 	}
 
 	private static function get_block_bindings_processor( string $block_content ) {
-		static $internal_processor_class = null;
-		if ( null === $internal_processor_class ) {
-			$internal_processor_class = new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE) extends WP_HTML_Processor {
-				/**
-				 * Replace the rich text content between a tag opener and matching closer.
-				 *
-				 * When stopped on a tag opener, replace the content enclosed by it and its
-				 * matching closer with the provided rich text.
-				 *
-				 * @param string $rich_text The rich text to replace the original content with.
-				 * @return bool True on success.
-				 */
-				public function replace_rich_text( $rich_text ) {
-					if ( $this->is_tag_closer() ) {
-						return false;
-					}
-
-					$depth = $this->get_current_depth();
-
-					$this->set_bookmark( '_wp_block_bindings_tag_opener' );
-					// The bookmark names are prefixed with `_` so the key below has an extra `_`.
-					$tag_opener = $this->bookmarks['__wp_block_bindings_tag_opener'];
-					$start      = $tag_opener->start + $tag_opener->length;
-					$this->release_bookmark( '_wp_block_bindings_tag_opener' );
-
-					// Find matching tag closer.
-					while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
-					}
-
-					$this->set_bookmark( '_wp_block_bindings_tag_closer' );
-					$tag_closer  = $this->bookmarks['__wp_block_bindings_tag_closer'];
-					$end         = $tag_closer->start;
-					$this->release_bookmark( '_wp_block_bindings_tag_closer' );
-
-					$this->lexical_updates[] = new WP_HTML_Text_Replacement(
-						$start,
-						$end - $start,
-						$rich_text
-					);
-
-					return true;
+		$internal_processor_class = new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE) extends WP_HTML_Processor {
+			/**
+			 * Replace the rich text content between a tag opener and matching closer.
+			 *
+			 * When stopped on a tag opener, replace the content enclosed by it and its
+			 * matching closer with the provided rich text.
+			 *
+			 * @param string $rich_text The rich text to replace the original content with.
+			 * @return bool True on success.
+			 */
+			public function replace_rich_text( $rich_text ) {
+				if ( $this->is_tag_closer() ) {
+					return false;
 				}
-			};
-		}
+
+				$depth = $this->get_current_depth();
+
+				$this->set_bookmark( '_wp_block_bindings_tag_opener' );
+				// The bookmark names are prefixed with `_` so the key below has an extra `_`.
+				$tag_opener = $this->bookmarks['__wp_block_bindings_tag_opener'];
+				$start      = $tag_opener->start + $tag_opener->length;
+				$this->release_bookmark( '_wp_block_bindings_tag_opener' );
+
+				// Find matching tag closer.
+				while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
+				}
+
+				$this->set_bookmark( '_wp_block_bindings_tag_closer' );
+				$tag_closer  = $this->bookmarks['__wp_block_bindings_tag_closer'];
+				$end         = $tag_closer->start;
+				$this->release_bookmark( '_wp_block_bindings_tag_closer' );
+
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$start,
+					$end - $start,
+					$rich_text
+				);
+
+				return true;
+			}
+		};
 
 		return $internal_processor_class::create_fragment( $block_content );
 	}
