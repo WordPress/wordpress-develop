@@ -289,6 +289,7 @@ th .comment-grey-bubble:before {
 
 table.fixed {
 	table-layout: fixed;
+	border-radius: 10px;
 }
 
 .fixed .column-rating,

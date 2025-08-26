@@ -7,11 +7,9 @@ body {
 
 body {
 	background: #f0f0f1;
-	min-width: 0;
-	color: #3c434a;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 13px;
-	line-height: 1.4;
+	margin: 150px auto;
 }
 
 a {
@@ -91,31 +89,14 @@ p {
 
 .login .button.wp-hide-pw {
 	background: transparent;
-	border: 1px solid transparent;
+	border: none;
 	box-shadow: none;
 	font-size: 14px;
-	line-height: 2;
 	width: 2.5rem;
-	height: 2.5rem;
-	min-width: 40px;
-	min-height: 40px;
-	margin: 0;
-	padding: 5px 9px;
+	height: 2.2rem;
 	position: absolute;
 	right: 0;
-	top: 0;
-}
-
-.login .button.wp-hide-pw:hover {
-	background: transparent;
-}
-
-.login .button.wp-hide-pw:focus {
-	background: transparent;
-	border-color: #3582c4;
-	box-shadow: 0 0 0 1px #3582c4;
-	/* Only visible in Windows High Contrast mode */
-	outline: 2px solid transparent;
+	top: 1px;
 }
 
 .login .button.wp-hide-pw:active {
@@ -144,8 +125,7 @@ p {
 	font-weight: 400;
 	overflow: hidden;
 	background: #fff;
-	border: 1px solid #c3c4c7;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+	border-radius: 10px;
 }
 
 .login form.shake {
@@ -268,6 +248,10 @@ p {
 	vertical-align: baseline;
 }
 
+#wp-submit {
+	border-radius: 10px;
+}
+
 .login h1 {
 	text-align: center;
 }
@@ -294,7 +278,7 @@ p {
 }
 
 #login {
-	width: 320px;
+	width: 300px;
 	padding: 5% 0 0;
 	margin: auto;
 }
@@ -338,17 +322,9 @@ p {
 	margin: 3em 0 2em;
 }
 
-.login form .input,
-.login input[type="text"],
-.login input[type="password"] {
-	font-size: 24px;
-	line-height: 1.33333333; /* 32px */
+.login form .input, .login input[type="text"], .login input[type="password"] {
 	width: 100%;
-	border-width: 0.0625rem;
-	padding: 0.1875rem 0.3125rem; /* 3px 5px */
 	margin: 0 6px 16px 0;
-	min-height: 40px;
-	max-height: none;
 }
 
 .login input.password-input {

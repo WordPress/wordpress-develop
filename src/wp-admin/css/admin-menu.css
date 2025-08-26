@@ -335,20 +335,6 @@ ul#adminmenu a.wp-has-current-submenu {
 	position: relative;
 }
 
-ul#adminmenu a.wp-has-current-submenu:after,
-ul#adminmenu > li.current > a.current:after {
-	right: 0;
-	border: solid 8px transparent;
-	content: " ";
-	height: 0;
-	width: 0;
-	position: absolute;
-	pointer-events: none;
-	border-right-color: #f0f0f1;
-	top: 50%;
-	margin-top: -8px;
-}
-
 .folded ul#adminmenu li:hover a.wp-has-current-submenu:after,
 .folded ul#adminmenu li.wp-has-current-submenu:focus-within a.wp-has-current-submenu:after {
 	display: none;
