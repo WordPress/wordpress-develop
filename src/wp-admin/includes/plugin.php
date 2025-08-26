@@ -1116,31 +1116,34 @@ function validate_active_plugins() {
 function safe_plugin_activation_check( $plugin_file ) {
 	ob_start();
 
-	$previous_handler = set_error_handler(function($severity, $message, $file, $line) {
-		throw new ErrorException($message, 0, $severity, $file, $line);
-	});
+	$previous_handler = set_error_handler(
+		function ( $severity, $message, $file, $line ) {
+			throw new ErrorException( $message, 0, $severity, $file, $line );
+		}
+	);
 
 	try {
 		include_once WP_PLUGIN_DIR . '/' . $plugin_file;
 		ob_end_clean();
 
-		if ( $previous_handler !== null ) {
+		if ( null !== $previous_handler ) {
 			restore_error_handler();
 		}
 
 		return true;
 
-	} catch (ParseError $e) {
+	} catch ( ParseError $e ) {
 		ob_end_clean();
 
-		if ( $previous_handler !== null ) {
+		if ( null !== $previous_handler ) {
 			restore_error_handler();
 		}
 
 		return new WP_Error(
 			'plugin_parse_error',
 			sprintf(
-				__('Plugin activation failed due to syntax error: %s'),
+			/* translators: %s: The error message returned when a plugin fails to activate due to syntax errors. */
+				__( 'Plugin activation failed due to syntax error: %s' ),
 				$e->getMessage()
 			),
 			array(
@@ -1149,17 +1152,18 @@ function safe_plugin_activation_check( $plugin_file ) {
 			)
 		);
 
-	} catch (Throwable $e) {
+	} catch ( Throwable $e ) {
 		ob_end_clean();
 
-		if ( $previous_handler !== null ) {
+		if ( null !== $previous_handler ) {
 			restore_error_handler();
 		}
 
 		return new WP_Error(
 			'plugin_activation_exception',
 			sprintf(
-				__('Plugin activation failed with exception: %s'),
+			/* translators: %s: The exception message returned when a plugin fails to activate. */
+				__( 'Plugin activation failed with exception: %s' ),
 				$e->getMessage()
 			),
 			array(
