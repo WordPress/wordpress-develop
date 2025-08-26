@@ -1,0 +1,7 @@
+# This override file is a temporary solution to force the use of a specific version of the
+# `memcached` image while the cause of recent failures can be investigated.
+# See https://core.trac.wordpress.org/ticket/63876.
+services:
+
+  memcached:
+    image: memcached@1.6.39-bookworm
