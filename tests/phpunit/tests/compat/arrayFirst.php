@@ -85,8 +85,8 @@ class Tests_Compat_arrayFirst extends WP_UnitTestCase {
 		// change the pointer to the last element
 		end( $arr );
 
-		$key = array_first( $arr );
+		$val = array_first( $arr );
 		$this->assertSame( 'val2', current( $arr ) );
-		$this->assertSame( 'val1', $key );
+		$this->assertSame( 'val1', $val );
 	}
 }
