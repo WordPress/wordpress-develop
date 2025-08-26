@@ -2624,7 +2624,7 @@ HTML;
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_php_file_will_be_passed() {
-		$real_file              = WP_PLUGIN_DIR . '/hello.php';
+		$real_file              = WP_PLUGIN_DIR . '/hello-dolly/hello.php';
 		$wp_enqueue_code_editor = wp_enqueue_code_editor( array( 'file' => $real_file ) );
 		$this->assertNonEmptyMultidimensionalArray( $wp_enqueue_code_editor );
 
