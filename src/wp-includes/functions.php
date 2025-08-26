@@ -6570,8 +6570,8 @@ function _wp_locale_strcmp( $a, $b ) {
 		if ( null === $collator ) {
 			$collator = new Collator( str_replace( '_', '-', get_locale() ) );
 			if ( ! $collator ) {
-                $collator = false;
-            }
+				$collator = false;
+			}
 		}
 
 		if ( $collator ) {
