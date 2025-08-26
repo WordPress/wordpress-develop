@@ -48,7 +48,7 @@ a {
  * Progressive enhancement to reduce widows and orphans
  * https://github.com/WordPress/gutenberg/issues/55190
  */
-h1, h2, h3, h4, h5, h6, blockquote, caption, figcaption, p, pre {
+h1, h2, h3, h4, h5, h6, blockquote, caption, figcaption, p {
 	text-wrap: pretty;
 }
 
@@ -58,4 +58,12 @@ h1, h2, h3, h4, h5, h6, blockquote, caption, figcaption, p, pre {
 */
 .more-link {
 	display: block;
+}
+
+/*
+ * Prevents unnecessary scrollbars while handling long lines of preformatted text.
+ * https://core.trac.wordpress.org/ticket/63875
+ */
+:where(pre) {
+    overflow-x: auto;
 }
