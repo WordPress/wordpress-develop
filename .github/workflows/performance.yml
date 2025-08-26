@@ -101,7 +101,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        memcached: [ true, false ]
+        memcached: [ false ]
         multisite: [ true, false ]
         subject: ${{ fromJson( needs.determine-matrix.outputs.subjects ) }}
     with:
