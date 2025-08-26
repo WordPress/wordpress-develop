@@ -1,0 +1,16 @@
+# This override file is a temporary solution to force the use of specific versions of the
+# `wordpressdevelop/php` and `wordpressdevelop/cli` images while the cause of recent failures
+# can be investigated. See https://core.trac.wordpress.org/ticket/63876.
+services:
+
+  php:
+    image: wordpressdevelop/php@sha256:56d6cbf10d25bfcb80852c09c2fc2e967922881b233b6161ad2999df509eb59a
+
+  cli:
+    image: wordpressdevelop/cli@sha256:379f27b0c623c5cee5a7fbef1d617ce47fd3ba19158bac2e51861876fd68fdbf
+
+  memcached:
+    # Pinning to the latest `bookworm` image is a temporary solution
+    # while the cause of recent failures can be investigated.
+    # See https://core.trac.wordpress.org/ticket/63876.
+    image: memcached:1.6.38-bookworm
