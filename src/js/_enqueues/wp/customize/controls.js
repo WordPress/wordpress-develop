@@ -4075,15 +4075,23 @@
 			toggle = control.container.find( '.add-new-toggle' );
 			container = control.container.find( '.new-content-item-wrapper' );
 			input = control.container.find( '.create-item-input' );
+			inputError = control.container.find('.create-item-error');
 			title = input.val();
 			select = control.container.find( 'select' );
 
 			if ( ! title ) {
-				input.addClass( 'invalid' );
+				container.addClass( 'form-invalid' );
+				input.attr('aria-invalid', 'true');
+				input.attr('aria-describedby', inputError.attr('id'));
+				inputError.show();
+				wp.a11y.speak( inputError.text() );
 				return;
 			}
 
-			input.removeClass( 'invalid' );
+			input.removeClass( 'form-invalid' );
+			input.attr('aria-invalid', 'false');
+			input.removeAttr('aria-describedby');
+			inputError.hide();
 			input.attr( 'disabled', 'disabled' );
 
 			// The menus functions add the page, publish when appropriate,
