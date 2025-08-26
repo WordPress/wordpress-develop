@@ -1285,17 +1285,28 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
 	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
 	static $utf8_pcre = null;
 	if ( ! isset( $utf8_pcre ) ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
+		$utf8_pcre = _wp_can_use_pcre_u();
 	}
 	// We can't demand utf8 in the PCRE installation, so just return the string in those cases.
 	if ( ! $utf8_pcre ) {
 		return $text;
 	}
 
-	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- preg_match fails when it encounters invalid UTF8 in $text.
-	if ( 1 === @preg_match( '/^./us', $text ) ) {
-		return $text;
+	// Test if the text is valid UTF-8 without error suppression for better debugging.
+	try {
+		$result = preg_match( '/^./us', $text );
+		if ( 1 === $result ) {
+			return $text;
+		}
+		
+		if ( false === $result ) {
+			$error = error_get_last();
+			if ( $error && isset( $error['message'] ) ) {
+				error_log( 'UTF-8 validation failed in wp_is_valid_utf8: ' . $error['message'] . ' for text: ' . substr( $text, 0, 100 ) );
+			}
+		}
+	} catch ( \Throwable $e ) {
+		error_log( 'UTF-8 validation threw error in wp_is_valid_utf8: ' . $e->getMessage() . ' for text: ' . substr( $text, 0, 100 ) );
 	}
 
 	// Attempt to strip the bad chars if requested (not recommended).
@@ -2198,8 +2209,7 @@ function sanitize_file_name( $filename ) {
 	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
 	static $utf8_pcre = null;
 	if ( ! isset( $utf8_pcre ) ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
+		$utf8_pcre = _wp_can_use_pcre_u();
 	}
 
 	if ( ! wp_is_valid_utf8( $filename ) ) {
