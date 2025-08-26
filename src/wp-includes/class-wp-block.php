@@ -473,7 +473,7 @@ class WP_Block {
 			 * @return bool True on success.
 			 */
 			public function replace_rich_text( $rich_text ) {
-				if ( $this->is_tag_closer() ) {
+				if ( $this->is_tag_closer() || ! $this->expects_closer() ) {
 					return false;
 				}
 
