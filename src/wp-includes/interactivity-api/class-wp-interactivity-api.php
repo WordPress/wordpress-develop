@@ -1241,8 +1241,8 @@ HTML;
 			}
 
 			// Extracts the namespace from the directive attribute value.
-			$namespace_value         = end( $this->namespace_stack );
-			list( $namespace_value ) = is_string( $attribute_value ) && ! empty( $attribute_value )
+			$namespace_value                = end( $this->namespace_stack );
+			list( $namespace_value, $path ) = is_string( $attribute_value ) && ! empty( $attribute_value )
 				? $this->extract_directive_value( $attribute_value, $namespace_value )
 				: array( $namespace_value, null );
 
@@ -1267,7 +1267,7 @@ HTML;
 				// Adds the `data-wp-each-child` to each top-level tag.
 				$i = new WP_Interactivity_API_Directives_Processor( $processed_item );
 				while ( $i->next_tag() ) {
-					$i->set_attribute( 'data-wp-each-child', true );
+					$i->set_attribute( 'data-wp-each-child', $namespace_value . '::' . $path );
 					$i->next_balanced_tag_closer_tag();
 				}
 				$processed_content .= $i->get_updated_html();
