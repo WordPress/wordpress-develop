@@ -1233,13 +1233,13 @@ function delete_option( $option ) {
 		if ( in_array( $row->autoload, wp_autoload_values_to_autoload(), true ) ) {
 			$alloptions = wp_load_alloptions( true );
 
-			if ( is_array( $alloptions ) && isset( $alloptions[ $option ] ) ) {
+			if ( is_array( $alloptions ) && array_key_exists( $option, $alloptions ) ) {
 				unset( $alloptions[ $option ] );
 				wp_cache_set( 'alloptions', $alloptions, 'options' );
 			}
-		} else {
-			wp_cache_delete( $option, 'options' );
 		}
+
+		wp_cache_delete( $option, 'options' );
 
 		$notoptions = wp_cache_get( 'notoptions', 'options' );
 
