@@ -46,21 +46,18 @@ class Tests_Dependencies_wpLocalizeScript extends WP_UnitTestCase {
 	 * @covers ::wp_localize_script
 	 */
 	public function test_wp_localize_script_outputs_safe_json() {
-		$unsafe_data     = array( '<!--' => '<script>' );
-		$expected_unsafe = '{"\\u003C!--":"\\u003Cscript\\u003E"}';
+		add_theme_support( 'html5', array( 'script' ) );
 
 		$path     = '/test.js';
 		$base_url = site_url( $path );
 
-		wp_register_script( 'test-script', $path, array(), null );
-		wp_localize_script( 'test-script', 'testData', $unsafe_data );
+		wp_enqueue_script( 'test-script', $path, array(), null );
+		wp_localize_script( 'test-script', 'testData', array( '<!--' => '<script>' ) );
 
-		ob_start();
-		wp_print_scripts( array( 'test-script' ) );
-		$output = ob_get_clean();
+		$output = get_echo( 'wp_print_scripts' );
 
-		$expected  = "<script type=\"text/javascript\" id=\"test-script-js-extra\">\n/* <![CDATA[ */\nvar testData = {$expected_unsafe};\n/* ]]> */\n</script>\n";
-		$expected .= "<script type=\"text/javascript\" src=\"{$base_url}\" id=\"test-script-js\"></script>\n";
+		$expected  = "<script id=\"test-script-js-extra\">\nvar testData = {\"\\u003C!--\":\"\\u003Cscript\\u003E\"};\n</script>\n";
+		$expected .= "<script src=\"{$base_url}\" id=\"test-script-js\"></script>\n";
 
 		$this->assertEqualHTML( $expected, $output );
 	}
