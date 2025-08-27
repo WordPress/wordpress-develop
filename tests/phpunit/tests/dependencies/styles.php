@@ -639,4 +639,24 @@ CSS;
 
 		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
 	}
+
+	/**
+	 * @ticket 63887
+	 */
+	public function test_source_url_encoding() {
+		$handle = '# test/</style> #';
+		wp_enqueue_style( $handle, '/example.css', array(), '0.0' );
+		wp_add_inline_style( $handle, 'custom-el { content: "ok"; }' );
+
+		$expected = <<<HTML
+<link rel='stylesheet' href="/example.css?ver=0.0" id="# test/</style> #-css" media="all" type="text/css">
+<style id="# test/</style> #-inline-css" type="text/css">
+custom-el { content: "ok"; }
+/*# sourceURL=%23%20test%2F%3C%2Fstyle%3E%20%23-inline-css */
+</style>
+
+HTML;
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
+	}
 }

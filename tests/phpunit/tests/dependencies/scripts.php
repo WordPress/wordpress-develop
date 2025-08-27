@@ -3623,4 +3623,26 @@ HTML;
 		$provider = array();
 		return $data['dependencies'];
 	}
+
+	/**
+	 * @ticket 63887
+	 */
+	public function test_source_url_encoding() {
+		$this->add_html5_script_theme_support();
+
+		$handle = '# test/</script> #';
+		wp_enqueue_script( $handle, '/example.js', array(), '0.0' );
+		wp_add_inline_script( $handle, '"ok";' );
+
+		$expected = <<<HTML
+<script src="/example.js?ver=0.0" id="# test/</script> #-js"></script>
+<script id="# test/</script> #-js-after">
+"ok";
+//# sourceURL=%23%20test%2F%3C%2Fscript%3E%20%23-js-after
+</script>
+
+HTML;
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
 }
