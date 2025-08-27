@@ -1793,7 +1793,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function test_query_cache_should_exclude_post_with_excluded_term() {
 		$term_id = self::$t1;
-		// Post 0 has the term applied
+		// Post 0 has the term applied.
 		$post_id = self::$posts[0];
 
 		$args = array(
@@ -1925,6 +1925,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 *
 	 * @since 6.1.1
 	 * @ticket 56948
+	 * @ticket 56992
 	 *
 	 * @covers WP_Query::the_post
 	 *
@@ -1978,13 +1979,10 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 	 */
 	public function data_author_cache_warmed_by_the_loop() {
 		return array(
-			'fields: empty' => array( '' ),
-			'fields: all'   => array( 'all' ),
-			'fields: ids'   => array( 'ids' ),
-			/*
-			 * `id=>parent` is untested pending the resolution of an existing bug.
-			 * See https://core.trac.wordpress.org/ticket/56992
-			 */
+			'fields: empty'      => array( '' ),
+			'fields: all'        => array( 'all' ),
+			'fields: ids'        => array( 'ids' ),
+			'fields: id=>parent' => array( 'id=>parent' ),
 		);
 	}
 

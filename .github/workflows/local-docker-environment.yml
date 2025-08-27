@@ -17,6 +17,8 @@ on:
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/webpack/**'
+      - '.npmrc'
+      - '.nvmrc'
       # These files configure Composer. Changes could affect the local environment.
       - 'composer.*'
       # These files define the versions to test.
@@ -41,6 +43,8 @@ on:
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/webpack/**'
+      - '.npmrc'
+      - '.nvmrc'
       # These files configure Composer. Changes could affect the local environment.
       - 'composer.*'
       # These files define the versions to test.
@@ -73,7 +77,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     with:
       wp-version: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
 
@@ -83,13 +87,12 @@ jobs:
     uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     needs: [ build-test-matrix ]
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        memcached: [ false, true ]
+        memcached: [ false ]
         php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
         db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
 
@@ -98,11 +101,14 @@ jobs:
           - db-version: '5.5'
           # Only test the latest innovation release.
           - db-version: '9.0'
+          - db-version: '9.1'
+          - db-version: '9.2'
+          - db-version: '9.3'
           # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.1'
+            db-version: '9.4'
           - php: '7.3'
-            db-version: '9.1'
+            db-version: '9.4'
 
     with:
       os: ${{ matrix.os }}

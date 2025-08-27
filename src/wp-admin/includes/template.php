@@ -817,9 +817,6 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 		$tab_index_attribute = " tabindex=\"$tab_index\"";
 	}
 
-	// @todo Remove this?
-	// echo '<label for="timestamp" style="display: block;"><input type="checkbox" class="checkbox" name="edit_date" value="1" id="timestamp"'.$tab_index_attribute.' /> '.__( 'Edit timestamp' ).'</label><br />';
-
 	$post_date = ( $for_post ) ? $post->post_date : get_comment()->comment_date;
 	$jj        = ( $edit ) ? mysql2date( 'd', $post_date, false ) : current_time( 'd' );
 	$mm        = ( $edit ) ? mysql2date( 'm', $post_date, false ) : current_time( 'm' );
@@ -2633,6 +2630,8 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 
 /**
  * Prints out the beginning of the admin HTML header.
+ *
+ * @since 3.3.0
  *
  * @global bool $is_IE
  */

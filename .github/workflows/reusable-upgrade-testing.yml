@@ -58,7 +58,8 @@ jobs:
   # - Checks the version of WordPress after the upgrade.
   upgrade-tests:
     name: ${{ inputs.wp }} to ${{ inputs.new-version }} / PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
-    permissions: {}
+    permissions:
+      contents: read
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
 
@@ -115,7 +116,7 @@ jobs:
 
       - name: Download build artifact for the current branch
         if: ${{ inputs.new-version == 'develop' }}
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: wordpress-develop
 

@@ -127,7 +127,7 @@
 	left: 160px;
 	overflow: visible;
 	word-wrap: break-word;
-	padding: 7px 0 8px;
+	padding: 6px 0;
 	z-index: 9999;
 	background-color: #2c3338;
 	box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
@@ -344,7 +344,7 @@ ul#adminmenu > li.current > a.current:after {
 	width: 0;
 	position: absolute;
 	pointer-events: none;
-	border-right-color: #fff;
+	border-right-color: #f0f0f1;
 	top: 50%;
 	margin-top: -8px;
 }
@@ -571,7 +571,7 @@ li#wp-admin-bar-menu-toggle {
 		position: absolute;
 		top: -1000em;
 		margin-right: -1px;
-		padding: 7px 0 8px;
+		padding: 6px 0;
 		z-index: 9999;
 	}
 

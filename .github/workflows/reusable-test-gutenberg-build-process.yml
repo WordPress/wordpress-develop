@@ -41,7 +41,7 @@ jobs:
   # - Builds Gutenberg.
   # - Ensures version-controlled files are not modified or deleted.
   build-process-tests:
-    name: Gutenberg running from ${{ inputs.directory }} / ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
+    name: ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -63,7 +63,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version-file: '.nvmrc'
           cache: npm

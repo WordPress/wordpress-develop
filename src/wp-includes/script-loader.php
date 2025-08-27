@@ -396,7 +396,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 			"\n",
 			array(
 				'( function() {',
-				'	var userId = ' . get_current_user_ID() . ';',
+				'	var userId = ' . get_current_user_id() . ';',
 				'	var storageKey = "WP_DATA_USER_" + userId;',
 				'	wp.data',
 				'		.use( wp.data.plugins.persistence, { storageKey: storageKey } );',
@@ -757,6 +757,28 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'common', "/wp-admin/js/common$suffix.js", array( 'jquery', 'hoverIntent', 'utils', 'wp-a11y' ), false, 1 );
 	$scripts->set_translations( 'common' );
 
+	$bulk_action_observer_ids = array(
+		'bulk_action' => 'action',
+		'changeit'    => 'new_role',
+	);
+	did_action( 'init' ) && $scripts->localize(
+		'common',
+		'bulkActionObserverIds',
+		/**
+		 * Filters the array of field name attributes for bulk actions.
+		 *
+		 * @since 6.8.1
+		 *
+		 * @param array $bulk_action_observer_ids {
+		 *      An array of field name attributes for bulk actions.
+		 *
+		 *      @type string $bulk_action The bulk action field name. Default 'action'.
+		 *      @type string $changeit    The new role field name. Default 'new_role'.
+		 * }
+		 */
+		apply_filters( 'bulk_action_observer_ids', $bulk_action_observer_ids )
+	);
+
 	$scripts->add( 'wp-sanitize', "/wp-includes/js/wp-sanitize$suffix.js", array(), false, 1 );
 
 	$scripts->add( 'sack', "/wp-includes/js/tw-sack$suffix.js", array(), '1.6.1', 1 );
@@ -975,8 +997,6 @@ function wp_default_scripts( $scripts ) {
 	// Not used in core, replaced by imgAreaSelect.
 	$scripts->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.js', array( 'jquery' ), '0.9.15' );
 
-	$scripts->add( 'swfobject', '/wp-includes/js/swfobject.js', array(), '2.2-20120417' );
-
 	// Error messages for Plupload.
 	$uploader_l10n = array(
 		'queue_limit_exceeded'      => __( 'You have attempted to queue too many files.' ),
@@ -1023,12 +1043,6 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'wp-plupload', "/wp-includes/js/plupload/wp-plupload$suffix.js", array( 'plupload', 'jquery', 'json2', 'media-models' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize( 'wp-plupload', 'pluploadL10n', $uploader_l10n );
-
-	// Keep 'swfupload' for back-compat.
-	$scripts->add( 'swfupload', '/wp-includes/js/swfupload/swfupload.js', array(), '2201-20110113' );
-	$scripts->add( 'swfupload-all', false, array( 'swfupload' ), '2201' );
-	$scripts->add( 'swfupload-handlers', "/wp-includes/js/swfupload/handlers$suffix.js", array( 'swfupload-all', 'jquery' ), '2201-20110524' );
-	did_action( 'init' ) && $scripts->localize( 'swfupload-handlers', 'swfuploadL10n', $uploader_l10n );
 
 	$scripts->add( 'comment-reply', "/wp-includes/js/comment-reply$suffix.js", array(), false, 1 );
 	did_action( 'init' ) && $scripts->add_data( 'comment-reply', 'strategy', 'async' );
@@ -1475,7 +1489,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'wp-color-picker', "/wp-admin/js/color-picker$suffix.js", array( 'iris' ), false, 1 );
 		$scripts->set_translations( 'wp-color-picker' );
 
-		$scripts->add( 'dashboard', "/wp-admin/js/dashboard$suffix.js", array( 'jquery', 'admin-comments', 'postbox', 'wp-util', 'wp-a11y', 'wp-date' ), false, 1 );
+		$scripts->add( 'dashboard', "/wp-admin/js/dashboard$suffix.js", array( 'common', 'jquery', 'admin-comments', 'postbox', 'wp-util', 'wp-a11y', 'wp-date' ), false, 1 );
 		$scripts->set_translations( 'dashboard' );
 
 		$scripts->add( 'list-revisions', "/wp-includes/js/wp-list-revisions$suffix.js" );
@@ -1661,6 +1675,10 @@ function wp_default_styles( $styles ) {
 	$block_library_theme_path = WPINC . "/css/dist/block-library/theme$suffix.css";
 	$styles->add( 'wp-block-library-theme', "/$block_library_theme_path" );
 	$styles->add_data( 'wp-block-library-theme', 'path', ABSPATH . $block_library_theme_path );
+
+	$classic_theme_styles_path = WPINC . "/css/classic-themes$suffix.css";
+	$styles->add( 'classic-theme-styles', "/$classic_theme_styles_path" );
+	$styles->add_data( 'classic-theme-styles', 'path', ABSPATH . $classic_theme_styles_path );
 
 	$styles->add(
 		'wp-reset-editor-styles',
@@ -2095,7 +2113,7 @@ function wp_style_loader_src( $src, $handle ) {
  *
  * @global bool $concatenate_scripts
  *
- * @return array
+ * @return string[] Handles of the scripts that were printed.
  */
 function print_head_scripts() {
 	global $concatenate_scripts;
@@ -2134,7 +2152,7 @@ function print_head_scripts() {
  * @global WP_Scripts $wp_scripts
  * @global bool       $concatenate_scripts
  *
- * @return array
+ * @return string[] Handles of the scripts that were printed.
  */
 function print_footer_scripts() {
 	global $wp_scripts, $concatenate_scripts;
@@ -2163,6 +2181,8 @@ function print_footer_scripts() {
 
 /**
  * Prints scripts (internal use only)
+ *
+ * @since 2.8.0
  *
  * @ignore
  *
@@ -2215,7 +2235,7 @@ function _print_scripts() {
  *
  * @global WP_Scripts $wp_scripts
  *
- * @return array
+ * @return string[] Handles of the scripts that were printed.
  */
 function wp_print_head_scripts() {
 	global $wp_scripts;
@@ -2280,7 +2300,7 @@ function wp_enqueue_scripts() {
  *
  * @global bool $concatenate_scripts
  *
- * @return array
+ * @return string[] Handles of the styles that were printed.
  */
 function print_admin_styles() {
 	global $concatenate_scripts;
@@ -2521,8 +2541,27 @@ function wp_enqueue_global_styles() {
 		 * and add it before the global styles custom CSS.
 		 */
 		remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
-		// Get the custom CSS from the Customizer and add it to the global stylesheet.
-		$custom_css  = wp_get_custom_css();
+
+		/*
+		 * Get the custom CSS from the Customizer and add it to the global stylesheet.
+		 * Always do this in Customizer preview for the sake of live preview since it be empty.
+		 */
+		$custom_css = trim( wp_get_custom_css() );
+		if ( $custom_css || is_customize_preview() ) {
+			if ( is_customize_preview() ) {
+				/*
+				 * When in the Customizer preview, wrap the Custom CSS in milestone comments to allow customize-preview.js
+				 * to locate the CSS to replace for live previewing. Make sure that the milestone comments are omitted from
+				 * the stored Custom CSS if by chance someone tried to add them, which would be highly unlikely, but it
+				 * would break live previewing.
+				 */
+				$before_milestone = '/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/';
+				$after_milestone  = '/*END_CUSTOMIZER_CUSTOM_CSS*/';
+				$custom_css       = str_replace( array( $before_milestone, $after_milestone ), '', $custom_css );
+				$custom_css       = $before_milestone . "\n" . $custom_css . "\n" . $after_milestone;
+			}
+			$custom_css = "\n" . $custom_css;
+		}
 		$stylesheet .= $custom_css;
 
 		// Add the global styles custom CSS at the end.
@@ -2653,12 +2692,8 @@ function wp_should_load_block_assets_on_demand() {
  * context (only enqueuing editor scripts while in context of the editor).
  *
  * @since 5.0.0
- *
- * @global WP_Screen $current_screen WordPress current screen object.
  */
 function wp_enqueue_registered_block_scripts_and_styles() {
-	global $current_screen;
-
 	if ( wp_should_load_block_assets_on_demand() ) {
 		return;
 	}
@@ -2874,7 +2909,7 @@ function wp_get_script_tag( $attributes ) {
 /**
  * Prints formatted `<script>` loader tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
@@ -2888,7 +2923,7 @@ function wp_print_script_tag( $attributes ) {
 /**
  * Constructs an inline script tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
@@ -2977,7 +3012,7 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 /**
  * Prints an inline script tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
@@ -3351,52 +3386,16 @@ function wp_enqueue_block_style( $block_name, $args ) {
 /**
  * Loads classic theme styles on classic themes in the frontend.
  *
- * This is needed for backwards compatibility for button blocks specifically.
+ * This is used for backwards compatibility for Button and File blocks specifically.
  *
  * @since 6.1.0
+ * @since 6.2.0 Added File block styles.
+ * @since 6.8.0 Moved stylesheet registration outside of this function.
  */
 function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_theme_has_theme_json() ) {
-		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css" );
-		wp_style_add_data( 'classic-theme-styles', 'path', ABSPATH . WPINC . "/css/classic-themes$suffix.css" );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
-}
-
-/**
- * Loads classic theme styles on classic themes in the editor.
- *
- * This is needed for backwards compatibility for button blocks specifically.
- *
- * @since 6.1.0
- *
- * @param array $editor_settings The array of editor settings.
- * @return array A filtered array of editor settings.
- */
-function wp_add_editor_classic_theme_styles( $editor_settings ) {
-	if ( wp_theme_has_theme_json() ) {
-		return $editor_settings;
-	}
-
-	$suffix               = wp_scripts_get_suffix();
-	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
-
-	/*
-	 * This follows the pattern of get_block_editor_theme_styles,
-	 * but we can't use get_block_editor_theme_styles directly as it
-	 * only handles external files or theme files.
-	 */
-	$classic_theme_styles_settings = array(
-		'css'            => file_get_contents( $classic_theme_styles ),
-		'__unstableType' => 'core',
-		'isGlobalStyles' => false,
-	);
-
-	// Add these settings to the start of the array so that themes can override them.
-	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
-
-	return $editor_settings;
 }
 
 /**

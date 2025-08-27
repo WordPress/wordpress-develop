@@ -40,7 +40,7 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 	global $wpdb;
 
 	// If manual moderation is enabled, skip all checks and return false.
-	if ( 1 == get_option( 'comment_moderation' ) ) {
+	if ( '1' === get_option( 'comment_moderation' ) ) {
 		return false;
 	}
 
@@ -126,18 +126,38 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 	 * as well as whether there are any moderation keywords (if set) present in the author
 	 * email address. If both checks pass, return true. Otherwise, return false.
 	 */
-	if ( 1 == get_option( 'comment_previously_approved' ) ) {
+	if ( '1' === get_option( 'comment_previously_approved' ) ) {
 		if ( 'trackback' !== $comment_type && 'pingback' !== $comment_type && '' !== $author && '' !== $email ) {
 			$comment_user = get_user_by( 'email', wp_unslash( $email ) );
 			if ( ! empty( $comment_user->ID ) ) {
-				$ok_to_comment = $wpdb->get_var( $wpdb->prepare( "SELECT comment_approved FROM $wpdb->comments WHERE user_id = %d AND comment_approved = '1' LIMIT 1", $comment_user->ID ) );
+				$ok_to_comment = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT comment_approved
+						FROM $wpdb->comments
+						WHERE user_id = %d
+						AND comment_approved = '1'
+						LIMIT 1",
+						$comment_user->ID
+					)
+				);
 			} else {
 				// expected_slashed ($author, $email)
-				$ok_to_comment = $wpdb->get_var( $wpdb->prepare( "SELECT comment_approved FROM $wpdb->comments WHERE comment_author = %s AND comment_author_email = %s and comment_approved = '1' LIMIT 1", $author, $email ) );
+				$ok_to_comment = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT comment_approved
+						FROM $wpdb->comments
+						WHERE comment_author = %s
+						AND comment_author_email = %s
+						AND comment_approved = '1'
+						LIMIT 1",
+						$author,
+						$email
+					)
+				);
 			}
-			if ( ( 1 == $ok_to_comment ) &&
-				( empty( $mod_keys ) || ! str_contains( $email, $mod_keys ) ) ) {
-					return true;
+
+			if ( '1' === $ok_to_comment && ( empty( $mod_keys ) || ! str_contains( $email, $mod_keys ) ) ) {
+				return true;
 			} else {
 				return false;
 			}
@@ -426,6 +446,8 @@ function get_comment_count( $post_id = 0 ) {
 /**
  * Adds meta data field to a comment.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 2.9.0
  *
  * @link https://developer.wordpress.org/reference/functions/add_comment_meta/
@@ -453,6 +475,8 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
  * You can match based on the key, or key and value. Removing based on key and
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching key, if needed.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 2.9.0
  *
@@ -519,6 +543,8 @@ function wp_lazyload_comment_meta( array $comment_ids ) {
  * same key and comment ID.
  *
  * If the meta field for the comment does not exist, it will be added.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 2.9.0
  *
@@ -906,8 +932,8 @@ function wp_check_comment_flood( $is_flood, $ip, $email, $date, $avoid_die = fal
  *
  * @since 2.7.0
  *
- * @param WP_Comment[] $comments Array of comments
- * @return WP_Comment[] Array of comments keyed by comment_type.
+ * @param WP_Comment[] $comments Array of comments.
+ * @return array<string, WP_Comment[]> Array of comments keyed by comment type.
  */
 function separate_comments( &$comments ) {
 	$comments_by_type = array(
@@ -1024,7 +1050,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 
 	$comment = get_comment( $comment_id );
 	if ( ! $comment ) {
-		return;
+		return null;
 	}
 
 	$defaults      = array(
@@ -1267,7 +1293,7 @@ function wp_check_comment_data( $comment_data ) {
 
 	if ( ! empty( $comment_data['user_id'] ) ) {
 		$user        = get_userdata( $comment_data['user_id'] );
-		$post_author = $wpdb->get_var(
+		$post_author = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT post_author FROM $wpdb->posts WHERE ID = %d LIMIT 1",
 				$comment_data['comment_post_ID']
@@ -1275,7 +1301,7 @@ function wp_check_comment_data( $comment_data ) {
 		);
 	}
 
-	if ( isset( $user ) && ( $comment_data['user_id'] == $post_author || $user->has_cap( 'moderate_comments' ) ) ) {
+	if ( isset( $user ) && ( $comment_data['user_id'] === $post_author || $user->has_cap( 'moderate_comments' ) ) ) {
 		// The author and the admins get respect.
 		$approved = 1;
 	} else {
@@ -2071,7 +2097,7 @@ function wp_insert_comment( $commentdata ) {
 
 	$id = (int) $wpdb->insert_id;
 
-	if ( 1 == $comment_approved ) {
+	if ( 1 === (int) $comment_approved ) {
 		wp_update_comment_count( $comment_post_id );
 
 		$data = array();
@@ -2299,7 +2325,7 @@ function wp_new_comment( $commentdata, $wp_error = false ) {
 	}
 
 	if ( empty( $commentdata['comment_date_gmt'] ) ) {
-		$commentdata['comment_date_gmt'] = current_time( 'mysql', 1 );
+		$commentdata['comment_date_gmt'] = current_time( 'mysql', true );
 	}
 
 	if ( empty( $commentdata['comment_type'] ) ) {
@@ -3034,22 +3060,19 @@ function do_trackbacks( $post ) {
 	$post_title = apply_filters( 'the_title', $post->post_title, $post->ID );
 	$post_title = strip_tags( $post_title );
 
-	if ( $to_ping ) {
-		foreach ( (array) $to_ping as $tb_ping ) {
-			$tb_ping = trim( $tb_ping );
-			if ( ! in_array( $tb_ping, $pinged, true ) ) {
-				trackback( $tb_ping, $post_title, $excerpt, $post->ID );
-				$pinged[] = $tb_ping;
-			} else {
-				$wpdb->query(
-					$wpdb->prepare(
-						"UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s,
-					'')) WHERE ID = %d",
-						$tb_ping,
-						$post->ID
-					)
-				);
-			}
+	foreach ( (array) $to_ping as $tb_ping ) {
+		$tb_ping = trim( $tb_ping );
+		if ( ! in_array( $tb_ping, $pinged, true ) ) {
+			trackback( $tb_ping, $post_title, $excerpt, $post->ID );
+			$pinged[] = $tb_ping;
+		} else {
+			$wpdb->query(
+				$wpdb->prepare(
+					"UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s, '')) WHERE ID = %d",
+					$tb_ping,
+					$post->ID
+				)
+			);
 		}
 	}
 }
@@ -3207,7 +3230,7 @@ function pingback( $content, $post ) {
  * @return mixed Empty string if blog is not public, returns $sites, if site is public.
  */
 function privacy_ping_filter( $sites ) {
-	if ( '0' != get_option( 'blog_public' ) ) {
+	if ( '0' !== get_option( 'blog_public' ) ) {
 		return $sites;
 	} else {
 		return '';
@@ -3410,9 +3433,9 @@ function _prime_comment_caches( $comment_ids, $update_meta_cache = true ) {
  * @since 2.7.0
  * @access private
  *
- * @param WP_Post  $posts Post data object.
- * @param WP_Query $query Query object.
- * @return array
+ * @param WP_Post[] $posts Array of post objects.
+ * @param WP_Query  $query Query object.
+ * @return WP_Post[]
  */
 function _close_comments_for_old_posts( $posts, $query ) {
 	if ( empty( $posts ) || ! $query->is_singular() || ! get_option( 'close_comments_for_old_posts' ) ) {

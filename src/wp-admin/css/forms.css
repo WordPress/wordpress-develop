@@ -227,11 +227,6 @@ textarea[readonly] {
 
 ::-moz-placeholder {
 	color: #646970;
-	opacity: 1;
-}
-
-:-ms-input-placeholder {
-	color: #646970;
 }
 
 .form-invalid .form-required,
@@ -794,32 +789,6 @@ ul#add-to-blog-users {
 	outline: 2px solid transparent;
 }
 
-.button-add-site-icon {
-	width: 100%;
-	cursor: pointer;
-	text-align: center;
-	border: 1px dashed #c3c4c7;
-	box-sizing: border-box;
-	padding: 9px 0;
-	line-height: 1.6;
-	max-width: 270px;
-	border-radius: 4px;
-	background: #f0f0f1;
-}
-
-.button-add-site-icon:focus,
-.button-add-site-icon:hover {
-	background: #fff;
-}
-
-.button-add-site-icon:focus {
-	background-color: #fff;
-	border-color: #3582c4;
-	border-style: solid;
-	box-shadow: 0 0 0 1px #3582c4;
-	outline: 2px solid transparent;
-}
-
 /*------------------------------------------------------------------------------
   15.0 - Comments Screen
 ------------------------------------------------------------------------------*/
@@ -859,7 +828,7 @@ ul#add-to-blog-users {
 	padding: 20px 10px 20px 0;
 	width: 200px;
 	line-height: 1.3;
-	font-weight: 400;
+	font-weight: 600;
 }
 
 .form-table th.th-full, /* Not used by core. Back-compat for pre-4.8 */
@@ -1590,10 +1559,6 @@ table.form-table td .updated p {
 		height: 0.5625rem;
 		margin: 0.4375rem;
 		line-height: 0.76190476;
-	}
-
-	.wp-upload-form input[type="submit"] {
-		margin-top: 10px;
 	}
 
 	.wp-core-ui select,

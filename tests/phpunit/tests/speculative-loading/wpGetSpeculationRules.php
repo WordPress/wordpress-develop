@@ -139,7 +139,7 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 		$this->assertCount( 4, $rules['prefetch'][0]['where']['and'] );
 		$this->assertArrayHasKey( 'not', $rules['prefetch'][0]['where']['and'][3] );
 		$this->assertArrayHasKey( 'selector_matches', $rules['prefetch'][0]['where']['and'][3]['not'] );
-		$this->assertSame( '.no-prefetch', $rules['prefetch'][0]['where']['and'][3]['not']['selector_matches'] );
+		$this->assertSame( '.no-prefetch, .no-prefetch a', $rules['prefetch'][0]['where']['and'][3]['not']['selector_matches'] );
 	}
 
 	/**
@@ -164,10 +164,10 @@ class Tests_Speculative_Loading_wpGetSpeculationRules extends WP_UnitTestCase {
 		$this->assertCount( 5, $rules['prerender'][0]['where']['and'] );
 		$this->assertArrayHasKey( 'not', $rules['prerender'][0]['where']['and'][3] );
 		$this->assertArrayHasKey( 'selector_matches', $rules['prerender'][0]['where']['and'][3]['not'] );
-		$this->assertSame( '.no-prerender', $rules['prerender'][0]['where']['and'][3]['not']['selector_matches'] );
+		$this->assertSame( '.no-prerender, .no-prerender a', $rules['prerender'][0]['where']['and'][3]['not']['selector_matches'] );
 		$this->assertArrayHasKey( 'not', $rules['prerender'][0]['where']['and'][4] );
 		$this->assertArrayHasKey( 'selector_matches', $rules['prerender'][0]['where']['and'][4]['not'] );
-		$this->assertSame( '.no-prefetch', $rules['prerender'][0]['where']['and'][4]['not']['selector_matches'] );
+		$this->assertSame( '.no-prefetch, .no-prefetch a', $rules['prerender'][0]['where']['and'][4]['not']['selector_matches'] );
 	}
 
 	/**

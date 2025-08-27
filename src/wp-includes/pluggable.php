@@ -446,10 +446,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							$phpmailer->addAddress( $address, $recipient_name );
 							break;
 						case 'cc':
-							$phpmailer->addCc( $address, $recipient_name );
+							$phpmailer->addCC( $address, $recipient_name );
 							break;
 						case 'bcc':
-							$phpmailer->addBcc( $address, $recipient_name );
+							$phpmailer->addBCC( $address, $recipient_name );
 							break;
 						case 'reply_to':
 							$phpmailer->addReplyTo( $address, $recipient_name );
@@ -2676,9 +2676,11 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 		 * - `PASSWORD_ARGON2ID`
 		 * - `PASSWORD_DEFAULT`
 		 *
+		 * The values of the algorithm constants are strings in PHP 7.4+ and integers in PHP 7.3 and earlier.
+		 *
 		 * @since 6.8.0
 		 *
-		 * @param string $algorithm The hashing algorithm. Default is the value of the `PASSWORD_BCRYPT` constant.
+		 * @param string|int $algorithm The hashing algorithm. Default is the value of the `PASSWORD_BCRYPT` constant.
 		 */
 		$algorithm = apply_filters( 'wp_hash_password_algorithm', PASSWORD_BCRYPT );
 
@@ -2688,12 +2690,14 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 		 * The default hashing algorithm is bcrypt, but this can be changed via the {@see 'wp_hash_password_algorithm'}
 		 * filter. You must ensure that the options are appropriate for the algorithm in use.
 		 *
+		 * The values of the algorithm constants are strings in PHP 7.4+ and integers in PHP 7.3 and earlier.
+		 *
 		 * @since 6.8.0
 		 *
-		 * @param array $options    Array of options to pass to the password hashing functions.
-		 *                          By default this is an empty array which means the default
-		 *                          options will be used.
-		 * @param string $algorithm The hashing algorithm in use.
+		 * @param array      $options   Array of options to pass to the password hashing functions.
+		 *                              By default this is an empty array which means the default
+		 *                              options will be used.
+		 * @param string|int $algorithm The hashing algorithm in use.
 		 */
 		$options = apply_filters( 'wp_hash_password_options', array(), $algorithm );
 
@@ -2724,7 +2728,6 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	 * @since 2.5.0
 	 * @since 6.8.0 Passwords in WordPress are now hashed with bcrypt by default. A
 	 *              password that wasn't hashed with bcrypt will be checked with phpass.
-	 *              Passwords hashed with md5 are no longer supported.
 	 *
 	 * @global PasswordHash $wp_hasher phpass object. Used as a fallback for verifying
 	 *                                 passwords that were hashed with phpass.
@@ -2742,30 +2745,14 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	) {
 		global $wp_hasher;
 
-		$check = false;
-
-		// If the hash is still md5 or otherwise truncated then invalidate it.
 		if ( strlen( $hash ) <= 32 ) {
-			/**
-			 * Filters whether the plaintext password matches the hashed password.
-			 *
-			 * @since 2.5.0
-			 * @since 6.8.0 Passwords are now hashed with bcrypt by default.
-			 *              Old passwords may still be hashed with phpass.
-			 *
-			 * @param bool       $check    Whether the passwords match.
-			 * @param string     $password The plaintext password.
-			 * @param string     $hash     The hashed password.
-			 * @param string|int $user_id  Optional ID of a user associated with the password.
-			 *                             Can be empty.
-			 */
-			return apply_filters( 'check_password', $check, $password, $hash, $user_id );
-		}
-
-		if ( ! empty( $wp_hasher ) ) {
+			// Check the hash using md5 regardless of the current hashing mechanism.
+			$check = hash_equals( $hash, md5( $password ) );
+		} elseif ( ! empty( $wp_hasher ) ) {
 			// Check the password using the overridden hasher.
 			$check = $wp_hasher->CheckPassword( $password, $hash );
 		} elseif ( strlen( $password ) > 4096 ) {
+			// Passwords longer than 4096 characters are not supported.
 			$check = false;
 		} elseif ( str_starts_with( $hash, '$wp' ) ) {
 			// Check the password using the current prefixed hash.
@@ -2780,7 +2767,19 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 			$check = password_verify( $password, $hash );
 		}
 
-		/** This filter is documented in wp-includes/pluggable.php */
+		/**
+		 * Filters whether the plaintext password matches the hashed password.
+		 *
+		 * @since 2.5.0
+		 * @since 6.8.0 Passwords are now hashed with bcrypt by default.
+		 *              Old passwords may still be hashed with phpass or md5.
+		 *
+		 * @param bool       $check    Whether the passwords match.
+		 * @param string     $password The plaintext password.
+		 * @param string     $hash     The hashed password.
+		 * @param string|int $user_id  Optional ID of a user associated with the password.
+		 *                             Can be empty.
+		 */
 		return apply_filters( 'check_password', $check, $password, $hash, $user_id );
 	}
 endif;
@@ -3053,6 +3052,8 @@ if ( ! function_exists( 'get_avatar' ) ) :
 	 *                              - 'monsterid' (a monster)
 	 *                              - 'wavatar' (a cartoon face)
 	 *                              - 'identicon' (the "quilt", a geometric pattern)
+	 *                              - 'initials' (initials based avatar with background color)
+	 *                              - 'color' (generated background color)
 	 *                              - 'mystery', 'mm', or 'mysteryman' (The Oyster Man)
 	 *                              - 'blank' (transparent GIF)
 	 *                              - 'gravatar_default' (the Gravatar logo)
