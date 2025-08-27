@@ -1,0 +1,181 @@
+name: Performance Tests
+
+on:
+  push:
+    branches:
+      - trunk
+      - '6.[2-9]'
+      - '[7-9].[0-9]'
+    tags:
+      - '[0-9]+.[0-9]'
+      - '[0-9]+.[0-9].[0-9]+'
+      - '![45].[0-9].[0-9]+'
+      - '!6.[01].[0-9]+'
+  pull_request:
+    branches:
+      - trunk
+      - '6.[2-9]'
+      - '[7-9].[0-9]'
+    paths:
+      # Any change to a PHP, CSS, or JavaScript file should run checks.
+      - '**.css'
+      - '**.js'
+      - '**.php'
+      # These files configure npm and the task runner. Changes could affect the outcome.
+      - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This files affect the performance tests. Changes could affect the outcome.
+      - 'tests/performance/**'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/performance.yml'
+      - '.github/workflows/reusable-performance.yml'
+      - '.github/workflows/reusable-performance-*.yml'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  determine-matrix:
+    name: Determine Matrix
+    runs-on: ubuntu-24.04
+    if: ${{ ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) && ! contains( github.event.before, '00000000' ) }}
+    permissions:
+      actions: read
+    env:
+      TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+    outputs:
+      subjects: ${{ steps.set-subjects.outputs.result }}
+      target_sha: ${{ env.TARGET_SHA }}
+    steps:
+      # The `workflow_dispatch` event is the only one missing the needed SHA to target.
+      - name: Retrieve previous commit SHA (if necessary)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> "$GITHUB_ENV"
+
+      - name: Set subjects
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        id: set-subjects
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'wordpress-build-' + process.env.TARGET_SHA,
+            });
+            const has_previous_build = !! artifacts.data.artifacts[0];
+
+            const subjects = [
+              'current',
+            ];
+
+            if ( context.eventName === 'push' && context.ref === 'refs/heads/trunk' ) {
+              subjects.push( 'base' );
+            } else if ( has_previous_build ) {
+              subjects.push( 'before' );
+            }
+
+            return subjects;
+
+  # Runs the performance test suite.
+  performance:
+    name: ${{ matrix.multisite && 'Multisite' || 'Single Site' }} ${{ matrix.memcached && 'Memcached' || 'Default' }}
+    uses: ./.github/workflows/reusable-performance-test-v2.yml
+    needs: [ determine-matrix ]
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        memcached: [ false ]
+        multisite: [ true, false ]
+        subject: ${{ fromJson( needs.determine-matrix.outputs.subjects ) }}
+    with:
+      memcached: ${{ matrix.memcached }}
+      multisite: ${{ matrix.multisite }}
+      subject: ${{ matrix.subject }}
+      TARGET_SHA: ${{ needs.determine-matrix.outputs.target_sha }}
+
+  compare:
+    name: ${{ matrix.label }}
+    uses: ./.github/workflows/reusable-performance-report-v2.yml
+    needs: [ determine-matrix, performance ]
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        memcached: [ false ]
+        multisite: [ true, false ]
+        # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
+        label: [ Compare ]
+    with:
+      memcached: ${{ matrix.memcached }}
+      multisite: ${{ matrix.multisite }}
+      BASE_TAG: ${{ needs.performance.outputs.BASE_TAG }}
+      publish: ${{ contains( fromJson( needs.determine-matrix.outputs.subjects ), 'base' ) && ! matrix.memcached && ! matrix.multisite }}
+    secrets:
+      CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: ./.github/workflows/slack-notifications.yml
+    permissions:
+      actions: read
+      contents: read
+    needs: [ performance ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    needs: [ slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: `${context.runId}`,
+              }
+            });

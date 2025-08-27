@@ -1,7 +1,7 @@
 <?php
 /**
  * @group taxonomy
- * @group category.php
+ * @group category
  *
  * @covers ::wp_dropdown_categories
  */

@@ -14,7 +14,7 @@
  *
  * Note: This implements ArrayAccess, and acts as an array of parameters when
  * used in that manner. It does not use ArrayObject (as we cannot rely on SPL),
- * so be aware it may have non-array behaviour in some cases.
+ * so be aware it may have non-array behavior in some cases.
  *
  * Note: When using features provided by ArrayAccess, be aware that WordPress deliberately
  * does not distinguish between arguments of the same name for different request methods.
@@ -162,10 +162,22 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Determines if the request is the given method.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $method HTTP method.
+	 * @return bool Whether the request is of the given method.
+	 */
+	public function is_method( $method ) {
+		return $this->get_method() === strtoupper( $method );
+	}
+
+	/**
 	 * Canonicalizes the header name.
 	 *
 	 * Ensures that header names are always treated the same regardless of
-	 * source. Header names are always case insensitive.
+	 * source. Header names are always case-insensitive.
 	 *
 	 * Note that we treat `-` (dashes) and `_` (underscores) as the same
 	 * character, as per header parsing rules in both Apache and nginx.
@@ -291,16 +303,16 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Retrieves the content-type of the request.
+	 * Retrieves the Content-Type of the request.
 	 *
 	 * @since 4.4.0
 	 *
 	 * @return array|null Map containing 'value' and 'parameters' keys
-	 *                    or null when no valid content-type header was
+	 *                    or null when no valid Content-Type header was
 	 *                    available.
 	 */
 	public function get_content_type() {
-		$value = $this->get_header( 'content-type' );
+		$value = $this->get_header( 'Content-Type' );
 		if ( empty( $value ) ) {
 			return null;
 		}
@@ -311,7 +323,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		$value = strtolower( $value );
-		if ( false === strpos( $value, '/' ) ) {
+		if ( ! str_contains( $value, '/' ) ) {
 			return null;
 		}
 
@@ -325,11 +337,11 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Checks if the request has specified a JSON content-type.
+	 * Checks if the request has specified a JSON Content-Type.
 	 *
 	 * @since 5.6.0
 	 *
-	 * @return bool True if the content-type header is JSON.
+	 * @return bool True if the Content-Type header is JSON.
 	 */
 	public function is_json_content_type() {
 		$content_type = $this->get_content_type();
@@ -473,11 +485,18 @@ class WP_REST_Request implements ArrayAccess {
 
 		$params = array();
 		foreach ( $order as $type ) {
-			// array_merge() / the "+" operator will mess up
-			// numeric keys, so instead do a manual foreach.
+			/*
+			 * array_merge() / the "+" operator will mess up
+			 * numeric keys, so instead do a manual foreach.
+			 */
 			foreach ( (array) $this->params[ $type ] as $key => $value ) {
 				$params[ $key ] = $value;
 			}
+		}
+
+		// Exclude rest_route if pretty permalinks are not enabled.
+		if ( ! get_option( 'permalink_structure' ) ) {
+			unset( $params['rest_route'] );
 		}
 
 		return $params;
@@ -707,7 +726,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * Parses the request body parameters.
 	 *
 	 * Parses out URL-encoded bodies for request methods that aren't supported
-	 * natively by PHP. In PHP 5.x, only POST has these parsed automatically.
+	 * natively by PHP.
 	 *
 	 * @since 4.4.0
 	 */
@@ -719,7 +738,7 @@ class WP_REST_Request implements ArrayAccess {
 		$this->parsed_body = true;
 
 		/*
-		 * Check that we got URL-encoded. Treat a missing content-type as
+		 * Check that we got URL-encoded. Treat a missing Content-Type as
 		 * URL-encoded for maximum compatibility.
 		 */
 		$content_type = $this->get_content_type();
@@ -1031,7 +1050,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		$api_root = rest_url();
-		if ( get_option( 'permalink_structure' ) && 0 === strpos( $url, $api_root ) ) {
+		if ( get_option( 'permalink_structure' ) && str_starts_with( $url, $api_root ) ) {
 			// Pretty permalinks on, and URL is under the API root.
 			$api_url_part = substr( $url, strlen( untrailingslashit( $api_root ) ) );
 			$route        = parse_url( $api_url_part, PHP_URL_PATH );

@@ -284,7 +284,6 @@ function wp_dashboard() {
 	<?php
 	wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
 	wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
-
 }
 
 //
@@ -492,7 +491,12 @@ function wp_network_dashboard_right_now() {
 
 	<form action="<?php echo esc_url( network_admin_url( 'users.php' ) ); ?>" method="get">
 		<p>
-			<label class="screen-reader-text" for="search-users"><?php _e( 'Search Users' ); ?></label>
+			<label class="screen-reader-text" for="search-users">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Search Users' );
+				?>
+			</label>
 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-users" />
 			<?php submit_button( __( 'Search Users' ), '', false, false, array( 'id' => 'submit_users' ) ); ?>
 		</p>
@@ -500,7 +504,12 @@ function wp_network_dashboard_right_now() {
 
 	<form action="<?php echo esc_url( network_admin_url( 'sites.php' ) ); ?>" method="get">
 		<p>
-			<label class="screen-reader-text" for="search-sites"><?php _e( 'Search Sites' ); ?></label>
+			<label class="screen-reader-text" for="search-sites">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Search Sites' );
+				?>
+			</label>
 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-sites" />
 			<?php submit_button( __( 'Search Sites' ), '', false, false, array( 'id' => 'submit_sites' ) ); ?>
 		</p>
@@ -522,7 +531,7 @@ function wp_network_dashboard_right_now() {
 }
 
 /**
- * The Quick Draft widget display and creation of drafts.
+ * Displays the Quick Draft widget.
  *
  * @since 3.8.0
  *
@@ -564,9 +573,16 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 
 	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="initial-form hide-if-no-js">
 
-		<?php if ( $error_msg ) : ?>
-		<div class="error"><?php echo $error_msg; ?></div>
-		<?php endif; ?>
+		<?php
+		if ( $error_msg ) {
+			wp_admin_notice(
+				$error_msg,
+				array(
+					'additional_classes' => array( 'error' ),
+				)
+			);
+		}
+		?>
 
 		<div class="input-text-wrap" id="title-wrap">
 			<label for="title">
@@ -710,18 +726,20 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			'view'      => '',
 		);
 
-		$del_nonce     = esc_html( '_wpnonce=' . wp_create_nonce( "delete-comment_$comment->comment_ID" ) );
-		$approve_nonce = esc_html( '_wpnonce=' . wp_create_nonce( "approve-comment_$comment->comment_ID" ) );
+		$approve_nonce = esc_html( '_wpnonce=' . wp_create_nonce( 'approve-comment_' . $comment->comment_ID ) );
+		$del_nonce     = esc_html( '_wpnonce=' . wp_create_nonce( 'delete-comment_' . $comment->comment_ID ) );
 
-		$approve_url   = esc_url( "comment.php?action=approvecomment&p=$comment->comment_post_ID&c=$comment->comment_ID&$approve_nonce" );
-		$unapprove_url = esc_url( "comment.php?action=unapprovecomment&p=$comment->comment_post_ID&c=$comment->comment_ID&$approve_nonce" );
-		$spam_url      = esc_url( "comment.php?action=spamcomment&p=$comment->comment_post_ID&c=$comment->comment_ID&$del_nonce" );
-		$trash_url     = esc_url( "comment.php?action=trashcomment&p=$comment->comment_post_ID&c=$comment->comment_ID&$del_nonce" );
-		$delete_url    = esc_url( "comment.php?action=deletecomment&p=$comment->comment_post_ID&c=$comment->comment_ID&$del_nonce" );
+		$action_string = 'comment.php?action=%s&p=' . $comment->comment_post_ID . '&c=' . $comment->comment_ID . '&%s';
+
+		$approve_url   = sprintf( $action_string, 'approvecomment', $approve_nonce );
+		$unapprove_url = sprintf( $action_string, 'unapprovecomment', $approve_nonce );
+		$spam_url      = sprintf( $action_string, 'spamcomment', $del_nonce );
+		$trash_url     = sprintf( $action_string, 'trashcomment', $del_nonce );
+		$delete_url    = sprintf( $action_string, 'deletecomment', $del_nonce );
 
 		$actions['approve'] = sprintf(
 			'<a href="%s" data-wp-lists="%s" class="vim-a aria-button-if-js" aria-label="%s">%s</a>',
-			$approve_url,
+			esc_url( $approve_url ),
 			"dim:the-comment-list:comment-{$comment->comment_ID}:unapproved:e7e7d3:e7e7d3:new=approved",
 			esc_attr__( 'Approve this comment' ),
 			__( 'Approve' )
@@ -729,7 +747,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 
 		$actions['unapprove'] = sprintf(
 			'<a href="%s" data-wp-lists="%s" class="vim-u aria-button-if-js" aria-label="%s">%s</a>',
-			$unapprove_url,
+			esc_url( $unapprove_url ),
 			"dim:the-comment-list:comment-{$comment->comment_ID}:unapproved:e7e7d3:e7e7d3:new=unapproved",
 			esc_attr__( 'Unapprove this comment' ),
 			__( 'Unapprove' )
@@ -752,7 +770,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 
 		$actions['spam'] = sprintf(
 			'<a href="%s" data-wp-lists="%s" class="vim-s vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
-			$spam_url,
+			esc_url( $spam_url ),
 			"delete:the-comment-list:comment-{$comment->comment_ID}::spam=1",
 			esc_attr__( 'Mark this comment as spam' ),
 			/* translators: "Mark as spam" link. */
@@ -762,7 +780,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 		if ( ! EMPTY_TRASH_DAYS ) {
 			$actions['delete'] = sprintf(
 				'<a href="%s" data-wp-lists="%s" class="delete vim-d vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
-				$delete_url,
+				esc_url( $delete_url ),
 				"delete:the-comment-list:comment-{$comment->comment_ID}::trash=1",
 				esc_attr__( 'Delete this comment permanently' ),
 				__( 'Delete Permanently' )
@@ -770,7 +788,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 		} else {
 			$actions['trash'] = sprintf(
 				'<a href="%s" data-wp-lists="%s" class="delete vim-d vim-destructive aria-button-if-js" aria-label="%s">%s</a>',
-				$trash_url,
+				esc_url( $trash_url ),
 				"delete:the-comment-list:comment-{$comment->comment_ID}::trash=1",
 				esc_attr__( 'Move this comment to the Trash' ),
 				_x( 'Trash', 'verb' )
@@ -784,17 +802,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 			__( 'View' )
 		);
 
-		/**
-		 * Filters the action links displayed for each comment in the 'Recent Comments'
-		 * dashboard widget.
-		 *
-		 * @since 2.6.0
-		 *
-		 * @param string[]   $actions An array of comment actions. Default actions include:
-		 *                            'Approve', 'Unapprove', 'Edit', 'Reply', 'Spam',
-		 *                            'Delete', and 'Trash'.
-		 * @param WP_Comment $comment The comment object.
-		 */
+		/** This filter is documented in wp-admin/includes/class-wp-comments-list-table.php */
 		$actions = apply_filters( 'comment_row_actions', array_filter( $actions ), $comment );
 
 		$i = 0;
@@ -910,7 +918,9 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 }
 
 /**
- * Callback function for Activity widget.
+ * Outputs the Activity widget.
+ *
+ * Callback function for {@see 'dashboard_activity'}.
  *
  * @since 3.8.0
  */
@@ -972,7 +982,7 @@ function wp_dashboard_recent_posts( $args ) {
 		'order'          => $args['order'],
 		'posts_per_page' => (int) $args['max'],
 		'no_found_rows'  => true,
-		'cache_results'  => false,
+		'cache_results'  => true,
 		'perm'           => ( 'future' === $args['status'] ) ? 'editable' : 'readable',
 	);
 
@@ -1064,26 +1074,33 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 		$comments_query['status'] = 'approve';
 	}
 
-	while ( count( $comments ) < $total_items && $possible = get_comments( $comments_query ) ) {
-		if ( ! is_array( $possible ) ) {
+	do {
+		$possible = get_comments( $comments_query );
+
+		if ( empty( $possible ) || ! is_array( $possible ) ) {
 			break;
 		}
 
 		foreach ( $possible as $comment ) {
-			if ( ! current_user_can( 'read_post', $comment->comment_post_ID ) ) {
+			if ( ! current_user_can( 'edit_post', $comment->comment_post_ID )
+				&& ( post_password_required( $comment->comment_post_ID )
+					|| ! current_user_can( 'read_post', $comment->comment_post_ID ) )
+			) {
+				// The user has no access to the post and thus cannot see the comments.
 				continue;
 			}
 
-			$comments[] = $comment;
+			$comments[]     = $comment;
+			$comments_count = count( $comments );
 
-			if ( count( $comments ) === $total_items ) {
+			if ( $comments_count === $total_items ) {
 				break 2;
 			}
 		}
 
 		$comments_query['offset'] += $comments_query['number'];
 		$comments_query['number']  = $total_items * 10;
-	}
+	} while ( $comments_count < $total_items );
 
 	if ( $comments ) {
 		echo '<div id="latest-comments" class="activity-block table-view-list">';
@@ -1096,7 +1113,10 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 		echo '</ul>';
 
 		if ( current_user_can( 'edit_posts' ) ) {
-			echo '<h3 class="screen-reader-text">' . __( 'View more comments' ) . '</h3>';
+			echo '<h3 class="screen-reader-text">' .
+				/* translators: Hidden accessibility text. */
+				__( 'View more comments' ) .
+			'</h3>';
 			_get_list_table( 'WP_Comments_List_Table' )->views();
 		}
 
@@ -1143,8 +1163,15 @@ function wp_dashboard_rss_output( $widget_id ) {
  * @return bool True on success, false on failure.
  */
 function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = array(), ...$args ) {
-	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p><div class="hide-if-js notice notice-error inline"><p>' . __( 'This widget requires JavaScript.' ) . '</p></div>';
 	$doing_ajax = wp_doing_ajax();
+	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p>';
+	$loading   .= wp_get_admin_notice(
+		__( 'This widget requires JavaScript.' ),
+		array(
+			'type'               => 'error',
+			'additional_classes' => array( 'inline', 'hide-if-js' ),
+		)
+	);
 
 	if ( empty( $check_urls ) ) {
 		$widgets = get_option( 'dashboard_widget_options' );
@@ -1214,10 +1241,9 @@ function wp_dashboard_trigger_widget_control( $widget_control_id = false ) {
 }
 
 /**
- * The RSS dashboard widget control.
+ * Sets up the RSS dashboard widget control and $args to be used as input to wp_widget_rss_form().
  *
- * Sets up $args to be used as input to wp_widget_rss_form(). Handles POST data
- * from RSS-type widgets.
+ * Handles POST data from RSS-type widgets.
  *
  * @since 2.5.0
  *
@@ -1256,7 +1282,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 			}
 		}
 
-		update_option( 'dashboard_widget_options', $widget_options );
+		update_option( 'dashboard_widget_options', $widget_options, false );
 
 		$locale    = get_user_locale();
 		$cache_key = 'dash_v2_' . md5( $widget_id . '_' . $locale );
@@ -1284,10 +1310,10 @@ function wp_dashboard_events_news() {
 	<p class="community-events-footer">
 		<?php
 			printf(
-				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				'https://make.wordpress.org/community/meetups-landing-page',
 				__( 'Meetups' ),
-				/* translators: Accessibility text. */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		?>
@@ -1296,10 +1322,10 @@ function wp_dashboard_events_news() {
 
 		<?php
 			printf(
-				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				'https://central.wordcamp.org/schedule/',
 				__( 'WordCamps' ),
-				/* translators: Accessibility text. */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		?>
@@ -1308,11 +1334,11 @@ function wp_dashboard_events_news() {
 
 		<?php
 			printf(
-				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+				'<a href="%1$s" target="_blank">%2$s <span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 				/* translators: If a Rosetta site exists (e.g. https://es.wordpress.org/news/), then use that. Otherwise, leave untranslated. */
 				esc_url( _x( 'https://wordpress.org/news/', 'Events and News dashboard widget' ) ),
 				__( 'News' ),
-				/* translators: Accessibility text. */
+				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
 			);
 		?>
@@ -1327,25 +1353,19 @@ function wp_dashboard_events_news() {
  * @since 4.8.0
  */
 function wp_print_community_events_markup() {
-	?>
+	$community_events_notice  = '<p class="hide-if-js">' . ( 'This widget requires JavaScript.' ) . '</p>';
+	$community_events_notice .= '<p class="community-events-error-occurred" aria-hidden="true">' . __( 'An error occurred. Please try again.' ) . '</p>';
+	$community_events_notice .= '<p class="community-events-could-not-locate" aria-hidden="true"></p>';
 
-	<div class="community-events-errors notice notice-error inline hide-if-js">
-		<p class="hide-if-js">
-			<?php _e( 'This widget requires JavaScript.' ); ?>
-		</p>
+	wp_admin_notice(
+		$community_events_notice,
+		array(
+			'type'               => 'error',
+			'additional_classes' => array( 'community-events-errors', 'inline', 'hide-if-js' ),
+			'paragraph_wrap'     => false,
+		)
+	);
 
-		<p class="community-events-error-occurred" aria-hidden="true">
-			<?php _e( 'An error occurred. Please try again.' ); ?>
-		</p>
-
-		<p class="community-events-could-not-locate" aria-hidden="true"></p>
-	</div>
-
-	<div class="community-events-loading hide-if-no-js">
-		<?php _e( 'Loading&hellip;' ); ?>
-	</div>
-
-	<?php
 	/*
 	 * Hide the main element when the page first loads, because the content
 	 * won't be ready until wp.communityEvents.renderEventsTemplate() has run.
@@ -1433,6 +1453,15 @@ function wp_print_community_events_templates() {
 					<div class="dashicons event-icon" aria-hidden="true"></div>
 					<div class="event-info-inner">
 						<a class="event-title" href="{{ event.url }}">{{ event.title }}</a>
+						<# if ( event.type ) {
+							const titleCaseEventType = event.type.replace(
+								/\w\S*/g,
+								function ( type ) { return type.charAt(0).toUpperCase() + type.substr(1).toLowerCase(); }
+							);
+						#>
+							{{ 'wordcamp' === event.type ? 'WordCamp' : titleCaseEventType }}
+							<span class="ce-separator"></span>
+						<# } #>
 						<span class="event-city">{{ event.location.location }}</span>
 					</div>
 				</div>
@@ -1538,7 +1567,11 @@ function wp_dashboard_primary() {
 			 *
 			 * @param string $link The widget's secondary link URL.
 			 */
-			'link'         => apply_filters( 'dashboard_secondary_link', __( 'https://planet.wordpress.org/' ) ),
+			'link'         => apply_filters(
+				'dashboard_secondary_link',
+				/* translators: Link to the Planet website of the locale. */
+				__( 'https://planet.wordpress.org/' )
+			),
 
 			/**
 			 * Filters the secondary feed URL for the 'WordPress Events and News' dashboard widget.
@@ -1547,7 +1580,11 @@ function wp_dashboard_primary() {
 			 *
 			 * @param string $url The widget's secondary feed URL.
 			 */
-			'url'          => apply_filters( 'dashboard_secondary_feed', __( 'https://planet.wordpress.org/feed/' ) ),
+			'url'          => apply_filters(
+				'dashboard_secondary_feed',
+				/* translators: Link to the Planet feed of the locale. */
+				__( 'https://planet.wordpress.org/feed/' )
+			),
 
 			/**
 			 * Filters the secondary link title for the 'WordPress Events and News' dashboard widget.
@@ -1634,9 +1671,10 @@ function wp_dashboard_quota() {
 				number_format_i18n( $quota )
 			);
 			printf(
-				'<a href="%1$s">%2$s <span class="screen-reader-text">(%3$s)</span></a>',
+				'<a href="%1$s">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
+				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' )
 			);
 			?>
@@ -1649,9 +1687,10 @@ function wp_dashboard_quota() {
 				$percentused
 			);
 			printf(
-				'<a href="%1$s" class="musublink">%2$s <span class="screen-reader-text">(%3$s)</span></a>',
+				'<a href="%1$s" class="musublink">%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
+				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' )
 			);
 			?>
@@ -1775,13 +1814,10 @@ function wp_check_browser_version() {
 	$response = get_site_transient( 'browser_' . $key );
 
 	if ( false === $response ) {
-		// Include an unmodified $wp_version.
-		require ABSPATH . WPINC . '/version.php';
-
 		$url     = 'http://api.wordpress.org/core/browse-happy/1.1/';
 		$options = array(
 			'body'       => array( 'useragent' => $_SERVER['HTTP_USER_AGENT'] ),
-			'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
+			'user-agent' => 'WordPress/' . wp_get_wp_version() . '; ' . home_url( '/' ),
 		);
 
 		if ( wp_http_supports( array( 'ssl' ) ) ) {
@@ -1879,10 +1915,10 @@ function wp_dashboard_php_nag() {
 	<p class="button-container">
 		<?php
 		printf(
-			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+			'<a class="button button-primary" href="%1$s" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 			esc_url( wp_get_update_php_url() ),
 			__( 'Learn more about updating PHP' ),
-			/* translators: Accessibility text. */
+			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
 		);
 		?>
@@ -1944,7 +1980,7 @@ function wp_dashboard_site_health() {
 	<div class="health-check-widget">
 		<div class="health-check-widget-title-section site-health-progress-wrapper loading hide-if-no-js">
 			<div class="site-health-progress">
-				<svg role="img" aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+				<svg aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
 					<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
 					<circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
 				</svg>
@@ -2008,7 +2044,9 @@ function wp_dashboard_site_health() {
 }
 
 /**
- * Empty function usable by plugins to output empty dashboard widget (to be populated later by JS).
+ * Outputs empty dashboard widget to be populated by JS later.
+ *
+ * Usable by plugins.
  *
  * @since 2.5.0
  */
@@ -2021,28 +2059,31 @@ function wp_dashboard_empty() {}
  * @since 5.9.0 Send users to the Site Editor if the active theme is block-based.
  */
 function wp_welcome_panel() {
-	list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
+	list( $display_version ) = explode( '-', wp_get_wp_version() );
 	$can_customize           = current_user_can( 'customize' );
 	$is_block_theme          = wp_is_block_theme();
 	?>
 	<div class="welcome-panel-content">
 	<div class="welcome-panel-header">
 		<div class="welcome-panel-header-image">
-			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/about-header-about.svg' ); ?>
+			<?php echo file_get_contents( dirname( __DIR__ ) . '/images/dashboard-background.svg' ); ?>
 		</div>
 		<h2><?php _e( 'Welcome to WordPress!' ); ?></h2>
 		<p>
 			<a href="<?php echo esc_url( admin_url( 'about.php' ) ); ?>">
 			<?php
 				/* translators: %s: Current WordPress version. */
-				printf( __( 'Learn more about the %s version.' ), $display_version );
+				printf( __( 'Learn more about the %s version.' ), esc_html( $display_version ) );
 			?>
 			</a>
 		</p>
 	</div>
 	<div class="welcome-panel-column-container">
 		<div class="welcome-panel-column">
-			<div class="welcome-panel-icon-pages"></div>
+			<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+				<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+				<path fill-rule="evenodd" clip-rule="evenodd" d="M32.0668 17.0854L28.8221 13.9454L18.2008 24.671L16.8983 29.0827L21.4257 27.8309L32.0668 17.0854ZM16 32.75H24V31.25H16V32.75Z" fill="white"/>
+			</svg>
 			<div class="welcome-panel-column-content">
 				<h3><?php _e( 'Author rich content with blocks and patterns' ); ?></h3>
 				<p><?php _e( 'Block patterns are pre-configured block layouts. Use them to get inspired or create new pages in a flash.' ); ?></p>
@@ -2050,7 +2091,10 @@ function wp_welcome_panel() {
 			</div>
 		</div>
 		<div class="welcome-panel-column">
-			<div class="welcome-panel-icon-layout"></div>
+			<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+				<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+				<path fill-rule="evenodd" clip-rule="evenodd" d="M18 16h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2V18a2 2 0 0 1 2-2zm12 1.5H18a.5.5 0 0 0-.5.5v3h13v-3a.5.5 0 0 0-.5-.5zm.5 5H22v8h8a.5.5 0 0 0 .5-.5v-7.5zm-10 0h-3V30a.5.5 0 0 0 .5.5h2.5v-8z" fill="#fff"/>
+			</svg>
 			<div class="welcome-panel-column-content">
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Customize your entire site with block themes' ); ?></h3>
@@ -2066,16 +2110,19 @@ function wp_welcome_panel() {
 			</div>
 		</div>
 		<div class="welcome-panel-column">
-			<div class="welcome-panel-icon-styles"></div>
+			<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+				<rect width="48" height="48" rx="4" fill="#1E1E1E"/>
+				<path fill-rule="evenodd" clip-rule="evenodd" d="M31 24a7 7 0 0 1-7 7V17a7 7 0 0 1 7 7zm-7-8a8 8 0 1 1 0 16 8 8 0 0 1 0-16z" fill="#fff"/>
+			</svg>
 			<div class="welcome-panel-column-content">
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
 				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
-				<a href="<?php echo esc_url( admin_url( 'site-editor.php?styles=open' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
+				<a href="<?php echo esc_url( admin_url( '/site-editor.php?path=%2Fwp_global_styles' ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
 				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
-				<a href="<?php echo esc_url( __( 'https://wordpress.org/support/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
+				<a href="<?php echo esc_url( __( 'https://wordpress.org/documentation/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
 			<?php endif; ?>
 			</div>
 		</div>

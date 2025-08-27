@@ -4,9 +4,7 @@
  *
  * @package WordPress
  * @subpackage REST API
- */
-
-/**
+ *
  * @group restapi-autosave
  * @group restapi
  */
@@ -181,9 +179,35 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->check_get_autosave_response( $data[0], $this->post_autosave );
 	}
 
-	public function test_get_items_no_permission() {
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_autosaves_data() {
+		$request = new WP_REST_Request( 'HEAD', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+
+		$hook_name = 'rest_prepare_autosave';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+
+		add_filter( $hook_name, $callback );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+
+		$this->assertNotWPError( $response );
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( 0, $filter->get_call_count(), 'The "' . $hook_name . '" filter was called when it should not be for HEAD requests.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_no_permission( $method ) {
 		wp_set_current_user( 0 );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 		wp_set_current_user( self::$contributor_id );
@@ -191,16 +215,40 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
-	public function test_get_items_missing_parent() {
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_missing_parent( $method ) {
 		wp_set_current_user( self::$editor_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/autosaves' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
 	}
 
-	public function test_get_items_invalid_parent_post_type() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_items_invalid_parent_post_type( $method ) {
 		wp_set_current_user( self::$editor_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$page_id . '/autosaves' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$page_id . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
 	}
@@ -217,18 +265,56 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'author',
 			'date',
 			'date_gmt',
+			'id',
+			'meta',
 			'modified',
 			'modified_gmt',
-			'guid',
-			'id',
 			'parent',
 			'slug',
+			'guid',
 			'title',
 			'excerpt',
 			'content',
 		);
 		$this->assertSameSets( $fields, array_keys( $data ) );
 		$this->assertSame( self::$editor_id, $data['author'] );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_should_allow_adding_headers_via_filter( $method ) {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
+
+		$hook_name = 'rest_prepare_autosave';
+		$filter    = new MockAction();
+		$callback  = array( $filter, 'filter' );
+		add_filter( $hook_name, $callback );
+		$header_filter = new class() {
+			public static function add_custom_header( $response ) {
+				$response->header( 'X-Test-Header', 'Test' );
+
+				return $response;
+			}
+		};
+		add_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+		$response = rest_get_server()->dispatch( $request );
+		remove_filter( $hook_name, $callback );
+		remove_filter( $hook_name, array( $header_filter, 'add_custom_header' ) );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The "' . $hook_name . '" filter was not called when it should be for GET/HEAD requests.' );
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'X-Test-Header', $headers, 'The "X-Test-Header" header should be present in the response.' );
+		$this->assertSame( 'Test', $headers['X-Test-Header'], 'The "X-Test-Header" header value should be equal to "Test".' );
+		if ( 'HEAD' !== $method ) {
+			return null;
+		}
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
 	}
 
 	public function test_get_item_embed_context() {
@@ -249,24 +335,41 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSameSets( $fields, array_keys( $data ) );
 	}
 
-	public function test_get_item_no_permission() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_no_permission( $method ) {
+		$request = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
 		wp_set_current_user( self::$contributor_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
-	public function test_get_item_missing_parent() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_missing_parent( $method ) {
 		wp_set_current_user( self::$editor_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/autosaves/' . self::$autosave_post_id );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/autosaves/' . self::$autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
-
 	}
 
-	public function test_get_item_invalid_parent_post_type() {
+	/**
+	 * @dataProvider data_readable_http_methods
+	 * @ticket 56481
+	 *
+	 * @param string $method The HTTP method to use.
+	 */
+	public function test_get_item_invalid_parent_post_type( $method ) {
 		wp_set_current_user( self::$editor_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$page_id . '/autosaves' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/posts/' . self::$page_id . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
 	}
@@ -291,7 +394,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 13, $properties );
+		$this->assertCount( 14, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
@@ -305,13 +408,14 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'preview_link', $properties );
+		$this->assertArrayHasKey( 'meta', $properties );
 	}
 
 	public function test_create_item() {
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$params = $this->set_post_data(
 			array(
@@ -327,7 +431,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	public function test_update_item() {
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$params = $this->set_post_data(
 			array(
@@ -342,11 +446,81 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->check_create_autosave_response( $response );
 	}
 
+	public function test_update_item_with_meta() {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+		register_post_meta(
+			'post',
+			'foo',
+			array(
+				'show_in_rest'      => true,
+				'revisions_enabled' => true,
+				'single'            => true,
+			)
+		);
+		$params = $this->set_post_data(
+			array(
+				'id'     => self::$post_id,
+				'author' => self::$contributor_id,
+				'meta'   => array(
+					'foo' => 'bar',
+				),
+			)
+		);
+
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->check_create_autosave_response( $response );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+		$this->assertArrayHasKey( 'foo', $data['meta'] );
+		$this->assertSame( 'bar', $data['meta']['foo'] );
+	}
+
+	public function test_update_item_with_json_meta() {
+		$meta = '[{\"content\":\"foot 1\",\"id\":\"fa97a10d-7401-42b9-ac54-df8f4510749a\"},{\"content\":\"fdddddoot 2\\\"\",\"id\":\"2216d0aa-34b8-42b4-b441-84dedc0406e0\"}]';
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
+		register_post_meta(
+			'post',
+			'foo',
+			array(
+				'show_in_rest'      => true,
+				'revisions_enabled' => true,
+				'single'            => true,
+			)
+		);
+		$params = $this->set_post_data(
+			array(
+				'id'     => self::$post_id,
+				'author' => self::$contributor_id,
+				'meta'   => array(
+					'foo' => $meta,
+				),
+			)
+		);
+
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->check_create_autosave_response( $response );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+		$this->assertArrayHasKey( 'foo', $data['meta'] );
+		$values = json_decode( wp_unslash( $data['meta']['foo'] ), true );
+		$this->assertNotNull( $values );
+	}
+
 	public function test_update_item_nopriv() {
 		wp_set_current_user( self::$contributor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$params = $this->set_post_data(
 			array(
@@ -365,7 +539,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 
 		$current_post = get_post( self::$post_id );
 
@@ -412,7 +586,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( $autosave_data ) );
 
 		$response = rest_get_server()->dispatch( $request );
@@ -451,7 +625,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( $autosave_data ) );
 
 		$response     = rest_get_server()->dispatch( $request );
@@ -514,12 +688,12 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$wp_rest_additional_fields = array();
 	}
 
-	public function additional_field_get_callback( $object ) {
-		return get_post_meta( $object['id'], 'my_custom_int', true );
+	public function additional_field_get_callback( $response_data, $field_name ) {
+		return get_post_meta( $response_data['id'], $field_name, true );
 	}
 
-	public function additional_field_update_callback( $value, $post ) {
-		update_post_meta( $post->ID, 'my_custom_int', $value );
+	public function additional_field_update_callback( $value, $post, $field_name ) {
+		update_post_meta( $post->ID, $field_name, $value );
 	}
 
 	protected function check_get_autosave_response( $response, $autosave ) {
@@ -572,7 +746,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	public function test_update_item_draft_page_with_parent() {
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . self::$child_draft_page_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$params = $this->set_post_data(
 			array(
@@ -593,7 +767,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/pages/' . self::$draft_page_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->add_header( 'Content-Type', 'application/x-www-form-urlencoded' );
 
 		$params = $this->set_post_data(
 			array(
@@ -648,7 +822,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 		// Initiate an autosave via the REST API as Gutenberg does.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
-		$request->add_header( 'content-type', 'application/json' );
+		$request->add_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( $autosave_data ) );
 
 		$response = rest_get_server()->dispatch( $request );
@@ -673,5 +847,77 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSame( $autosave_data['content'], $autosave_post->post_content );
 
 		wp_delete_post( $post_id );
+	}
+
+	/**
+	 * @ticket 49532
+	 *
+	 * @covers WP_REST_Autosaves_Controller::create_post_autosave
+	 */
+	public function test_rest_autosave_do_not_create_autosave_when_post_is_unchanged() {
+		// Create a post by the editor.
+		$post_data = array(
+			'post_content' => 'Test post content',
+			'post_title'   => 'Test post title',
+			'post_excerpt' => 'Test post excerpt',
+			'post_author'  => self::$editor_id,
+			'post_status'  => 'publish',
+		);
+		$post_id   = wp_insert_post( $post_data );
+		wp_set_current_user( self::$editor_id );
+
+		// Make a small change create the initial autosave.
+		$autosave_data = array(
+			'post_content' => 'Test post content changed',
+		);
+		$request       = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id . '/autosaves' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $autosave_data ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		// Store the first autosave ID.
+		$autosave = $response->get_data();
+
+		// Try creating an autosave using the REST endpoint with unchanged content.
+		$request->set_body( wp_json_encode( $autosave_data ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $autosave['id'], $data['id'], 'Original autosave was not returned' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'HEAD', sprintf( $path, self::$post_id, self::$autosave_post_id ) );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/posts/%d/autosaves/%d' ),
+			'get_items request' => array( '/wp/v2/posts/%d' ),
+		);
 	}
 }

@@ -35,7 +35,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Check support for ImageMagick compatible mime types.
+	 * Tests support for ImageMagick compatible mime types.
 	 */
 	public function test_supports_mime_type() {
 		$imagick_image_editor = new WP_Image_Editor_Imagick( null );
@@ -46,7 +46,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test resizing an image, not using crop
+	 * Tests resizing an image, not using crop.
 	 */
 	public function test_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -66,7 +66,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test multi_resize with single image resize and no crop
+	 * Tests multi_resize() with single image resize and no crop.
 	 */
 	public function test_single_multi_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -106,7 +106,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Ensure multi_resize doesn't create an image when
+	 * Tests that multi_resize() does not create an image when
 	 * both height and weight are missing, null, or 0.
 	 *
 	 * @ticket 26823
@@ -175,7 +175,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test multi_resize with multiple sizes
+	 * Tests multi_resize() with multiple sizes.
 	 *
 	 * @ticket 26823
 	 */
@@ -187,7 +187,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$sizes_array = array(
 
-			/**
+			/*
 			 * #0 - 10x10 resize, no cropping.
 			 * By aspect, should be 10x6 output.
 			 */
@@ -197,7 +197,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 				'crop'   => false,
 			),
 
-			/**
+			/*
 			 * #1 - 75x50 resize, with cropping.
 			 * Output dimensions should be 75x50
 			 */
@@ -207,7 +207,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 				'crop'   => true,
 			),
 
-			/**
+			/*
 			 * #2 - 20 pixel max height, no cropping.
 			 * By aspect, should be 30x20 output.
 			 */
@@ -217,7 +217,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 				'crop'   => false,
 			),
 
-			/**
+			/*
 			 * #3 - 45 pixel max height, with cropping.
 			 * By aspect, should be 45x400 output.
 			 */
@@ -227,7 +227,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 				'crop'   => true,
 			),
 
-			/**
+			/*
 			 * #4 - 50 pixel max width, no cropping.
 			 * By aspect, should be 50x33 output.
 			 */
@@ -235,7 +235,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 				'width' => 50,
 			),
 
-			/**
+			/*
 			 * #5 - 55 pixel max width, no cropping, null height
 			 * By aspect, should be 55x36 output.
 			 */
@@ -244,7 +244,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 				'height' => null,
 			),
 
-			/**
+			/*
 			 * #6 - 55 pixel max height, no cropping, no width specified.
 			 * By aspect, should be 82x55 output.
 			 */
@@ -252,7 +252,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 				'height' => 55,
 			),
 
-			/**
+			/*
 			 * #7 - 60 pixel max height, no cropping, null width.
 			 * By aspect, should be 90x60 output.
 			 */
@@ -261,7 +261,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 				'height' => 60,
 			),
 
-			/**
+			/*
 			 * #8 - 70 pixel max height, no cropping, negative width.
 			 * By aspect, should be 105x70 output.
 			 */
@@ -270,7 +270,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 				'height' => 70,
 			),
 
-			/**
+			/*
 			 * #9 - 200 pixel max width, no cropping, negative height.
 			 * By aspect, should be 200x133 output.
 			 */
@@ -391,7 +391,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test resizing an image with cropping
+	 * Tests resizing an image with cropping.
 	 */
 	public function test_resize_and_crop() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -411,7 +411,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test cropping an image
+	 * Tests cropping an image.
 	 */
 	public function test_crop() {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
@@ -431,7 +431,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test rotating an image 180 deg
+	 * Tests rotating an image 180 deg.
 	 */
 	public function test_rotate() {
 		$file = DIR_TESTDATA . '/images/one-blue-pixel-100x100.png';
@@ -450,7 +450,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test flipping an image
+	 * Tests flipping an image.
 	 */
 	public function test_flip() {
 		$file = DIR_TESTDATA . '/images/one-blue-pixel-100x100.png';
@@ -469,19 +469,19 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test the image created with WP_Image_Editor_Imagick preserves alpha when resizing
+	 * Tests that an image created with WP_Image_Editor_Imagick preserves alpha with no resizing.
 	 *
 	 * @ticket 24871
 	 */
-	public function test_image_preserves_alpha_on_resize() {
+	public function test_image_preserves_alpha() {
 		$file = DIR_TESTDATA . '/images/transparent.png';
 
-		$editor = new WP_Image_Editor_Imagick( $file );
-		$editor->load();
-		$editor->resize( 5, 5 );
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
+
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
 
-		$editor->save( $save_to_file );
+		$imagick_image_editor->save( $save_to_file );
 
 		$im       = new Imagick( $save_to_file );
 		$pixel    = $im->getImagePixelColor( 0, 0 );
@@ -493,19 +493,20 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test the image created with WP_Image_Editor_Imagick preserves alpha with no resizing etc
+	 * Tests that an image created with WP_Image_Editor_Imagick preserves alpha when resizing.
 	 *
 	 * @ticket 24871
 	 */
-	public function test_image_preserves_alpha() {
+	public function test_image_preserves_alpha_on_resize() {
 		$file = DIR_TESTDATA . '/images/transparent.png';
 
-		$editor = new WP_Image_Editor_Imagick( $file );
-		$editor->load();
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
 
+		$imagick_image_editor->resize( 5, 5 );
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
 
-		$editor->save( $save_to_file );
+		$imagick_image_editor->save( $save_to_file );
 
 		$im       = new Imagick( $save_to_file );
 		$pixel    = $im->getImagePixelColor( 0, 0 );
@@ -525,33 +526,37 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$pre_rotate_editor = new Imagick( $file );
 		$pre_rotate_pixel  = $pre_rotate_editor->getImagePixelColor( 0, 0 );
 		$pre_rotate_alpha  = $pre_rotate_pixel->getColorValue( imagick::COLOR_ALPHA );
-		$save_to_file      = tempnam( get_temp_dir(), '' ) . '.png';
+
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
 		$pre_rotate_editor->writeImage( $save_to_file );
 		$pre_rotate_editor->destroy();
 
-		$image_editor = new WP_Image_Editor_Imagick( $save_to_file );
-		$image_editor->load();
-		$image_editor->rotate( 180 );
-		$image_editor->save( $save_to_file );
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $save_to_file );
+		$imagick_image_editor->load();
+
+		$imagick_image_editor->rotate( 180 );
+		$imagick_image_editor->save( $save_to_file );
 
 		$this->assertImageAlphaAtPointImagick( $save_to_file, array( 0, 0 ), $pre_rotate_alpha );
+
 		unlink( $save_to_file );
 	}
 
 	/**
-	 * Test WP_Image_Editor_Imagick handles extension-less images
+	 * Tests that WP_Image_Editor_Imagick handles extensionless images.
 	 *
 	 * @ticket 39195
 	 */
 	public function test_image_non_existent_extension() {
-		$image_editor = new WP_Image_Editor_Imagick( DIR_TESTDATA . '/images/test-image-no-extension' );
-		$result       = $image_editor->load();
+		$imagick_image_editor = new WP_Image_Editor_Imagick( DIR_TESTDATA . '/images/test-image-no-extension' );
 
-		$this->assertTrue( $result );
+		$loaded = $imagick_image_editor->load();
+
+		$this->assertTrue( $loaded );
 	}
 
 	/**
-	 * Test resetting Exif orientation data on rotate
+	 * Tests resetting Exif orientation data on rotate.
 	 *
 	 * @ticket 37140
 	 * @requires function exif_read_data
@@ -564,24 +569,26 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$this->assertSame( 3, (int) $data['orientation'], 'Orientation value read from does not match image file Exif data: ' . $file );
 
 		$temp_file = wp_tempnam( $file );
-		$image     = wp_get_image_editor( $file );
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
 
 		// Test a value that would not lead back to 1, as WP is resetting the value to 1 manually.
-		$image->rotate( 90 );
-		$ret = $image->save( $temp_file, 'image/jpeg' );
+		$imagick_image_editor->rotate( 90 );
+		$saved = $imagick_image_editor->save( $temp_file, 'image/jpeg' );
 
-		$data = wp_read_image_metadata( $ret['path'] );
-
-		// Make sure the image is no longer in The Upside Down Exif orientation.
-		$this->assertSame( 1, (int) $data['orientation'], 'Orientation Exif data was not updated after rotating image: ' . $file );
+		$data = wp_read_image_metadata( $saved['path'] );
 
 		// Remove both the generated file ending in .tmp and tmp.jpg due to wp_tempnam().
 		unlink( $temp_file );
-		unlink( $ret['path'] );
+		unlink( $saved['path'] );
+
+		// Make sure the image is no longer in The Upside Down Exif orientation.
+		$this->assertSame( 1, (int) $data['orientation'], 'Orientation Exif data was not updated after rotating image: ' . $file );
 	}
 
 	/**
-	 * Test that images can be loaded and written over streams
+	 * Tests that images can be loaded and written over streams.
 	 */
 	public function test_streams() {
 		stream_wrapper_register( 'wptest', 'WP_Test_Stream' );
@@ -594,20 +601,20 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$file                 = 'wptest://Tests_Image_Editor_Imagick/read.jpg';
 		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
 
-		$ret = $imagick_image_editor->load();
-		$this->assertNotWPError( $ret );
+		$loaded = $imagick_image_editor->load();
+		$this->assertNotWPError( $loaded );
 
 		$temp_file = 'wptest://Tests_Image_Editor_Imagick/write.jpg';
 
-		$ret = $imagick_image_editor->save( $temp_file );
-		$this->assertNotWPError( $ret );
+		$saved = $imagick_image_editor->save( $temp_file );
 
-		$this->assertSame( $temp_file, $ret['path'] );
-
-		if ( $temp_file !== $ret['path'] ) {
-			unlink( $ret['path'] );
+		if ( $temp_file !== $saved['path'] ) {
+			unlink( $saved['path'] );
 		}
 		unlink( $temp_file );
+
+		$this->assertNotWPError( $saved );
+		$this->assertSame( $temp_file, $saved['path'] );
 	}
 
 	/**
@@ -616,20 +623,292 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	public function test_directory_creation() {
 		$file      = realpath( DIR_TESTDATA ) . '/images/a2-small.jpg';
 		$directory = realpath( DIR_TESTDATA ) . '/images/nonexistent-directory';
-		$editor    = new WP_Image_Editor_Imagick( $file );
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
 
 		$this->assertFileDoesNotExist( $directory );
 
-		$loaded = $editor->load();
+		$loaded = $imagick_image_editor->load();
 		$this->assertNotWPError( $loaded );
 
-		$resized = $editor->resize( 100, 100, true );
+		$resized = $imagick_image_editor->resize( 100, 100, true );
 		$this->assertNotWPError( $resized );
 
-		$saved = $editor->save( $directory . '/a2-small-cropped.jpg' );
-		$this->assertNotWPError( $saved );
+		$saved = $imagick_image_editor->save( $directory . '/a2-small-cropped.jpg' );
 
 		unlink( $directory . '/a2-small-cropped.jpg' );
 		rmdir( $directory );
+
+		$this->assertNotWPError( $saved );
+	}
+
+	/**
+	 * Tests that the alpha channel of PDFs is removed from PDF previews.
+	 *
+	 * Only affects systems with Ghostscript version >= 9.14.
+	 *
+	 * @ticket 39216
+	 *
+	 * @covers WP_Image_Editor_Imagick::remove_pdf_alpha_channel
+	 */
+	public function test_remove_pdf_alpha_channel_should_remove_the_alpha_channel_in_preview() {
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
+			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
+		}
+
+		$version = Imagick::getVersion();
+		if ( $version['versionNumber'] < 0x675 ) {
+			$this->markTestSkipped( 'The version of ImageMagick does not support removing alpha channels from PDFs.' );
+		}
+
+		$test_file     = DIR_TESTDATA . '/images/test-alpha.pdf';
+		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
+		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
+
+		$attached_file = get_attached_file( $attachment_id );
+		$this->assertNotEmpty( $attached_file, 'The attached file was not returned.' );
+
+		$rgb = array(
+			'r' => true,
+			'g' => true,
+			'b' => true,
+		);
+
+		// White.
+		$expected = array(
+			'r' => 1,
+			'g' => 1,
+			'b' => 1,
+		);
+
+		$check = image_get_intermediate_size( $attachment_id, 'full' );
+		$this->assertIsArray( $check, 'The intermediate size could not be retrieved.' );
+		$this->assertArrayHasKey( 'file', $check, 'The intermediate size file was not found.' );
+
+		$check_file = path_join( dirname( $attached_file ), $check['file'] );
+		$imagick    = new Imagick( $check_file );
+		$output     = array_map(
+			static function ( $value ) {
+				return (int) round( $value );
+			},
+			array_intersect_key( $imagick->getImagePixelColor( 100, 100 )->getColor( true /* normalized */ ), $rgb )
+		);
+		$imagick->destroy();
+		$this->assertSame( $expected, $output, 'The image color of the generated thumb does not match expected opaque background.' ); // Allow for floating point equivalence.
+	}
+
+	/**
+	 * Test filter `image_max_bit_depth` correctly sets the maximum bit depth of resized images.
+	 *
+	 * @ticket 62285
+	 */
+	public function test_image_max_bit_depth() {
+		$file                 = DIR_TESTDATA . '/images/colors_hdr_p3.avif';
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+
+		// Skip if AVIF not supported.
+		if ( ! $imagick_image_editor->supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( 'The image editor does not support the AVIF mime type.' );
+		}
+
+		// Skip if depth methods not available.
+		if ( ! method_exists( 'Imagick', 'getImageDepth' ) || ! method_exists( 'Imagick', 'setImageDepth' ) ) {
+			$this->markTestSkipped( 'The image editor does not support get or setImageDepth.' );
+		}
+
+		// Verify source image has 10-bit depth.
+		$imagick = new Imagick( $file );
+		$this->assertSame( 10, $imagick->getImageDepth() );
+
+		// Test ability to save 10-bit image.
+		$imagick->setImageDepth( 10 );
+		$test_file = tempnam( get_temp_dir(), '' ) . 'test10.avif';
+		$imagick->writeImage( $test_file );
+		$im = new Imagick( $test_file );
+
+		if ( $im->getImageDepth() !== 10 ) {
+			$this->markTestSkipped( 'Imagick is unable to save a 10 bit image.' );
+		}
+		$im->destroy();
+		unlink( $test_file );
+
+		// Test default behavior preserves 10-bit depth.
+		$imagick_image_editor->load();
+		$imagick_image_editor->resize( 100, 50 );
+		$test_file = tempnam( get_temp_dir(), '' ) . 'test1.avif';
+		$imagick_image_editor->save( $test_file );
+		$im = new Imagick( $test_file );
+		$this->assertSame( 10, $im->getImageDepth() );
+		unlink( $test_file );
+		$im->destroy();
+
+		// Test filter can set 8-bit depth
+		add_filter( 'image_max_bit_depth', array( $this, '__return_eight' ) );
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
+		$imagick_image_editor->resize( 100, 50 );
+		$test_file = tempnam( get_temp_dir(), '' ) . 'test2.avif';
+		$imagick_image_editor->save( $test_file );
+		$im = new Imagick( $test_file );
+		$this->assertSame( 8, $im->getImageDepth() );
+		unlink( $test_file );
+		$im->destroy();
+	}
+
+	/**
+	 * Helper function to return 8 for the `image_max_bit_depth` filter.
+	 *
+	 * @return int
+	 */
+	public function __return_eight() {
+		return 8;
+	}
+
+	/**
+	 * Test that resizes are smaller for 16 bit PNG images.
+	 *
+	 * @ticket 36477
+	 *
+	 * @dataProvider data_resizes_are_small_for_16bit_images
+	 *
+	 * @param string $file Path to the image file.
+	 */
+	public function test_resizes_are_small_for_16bit_images( $file ) {
+
+		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+		$imagick_image_editor->load();
+		$size = $imagick_image_editor->get_size();
+
+		$org_filesize = filesize( $file );
+
+		$imagick_image_editor->resize( $size['width'] * .5, $size['height'] * .5 );
+
+		$imagick_image_editor->save( $temp_file );
+
+		$new_filesize = filesize( $temp_file );
+
+		unlink( $temp_file );
+
+		$this->assertLessThan( $org_filesize, $new_filesize, 'The resized image file size is not smaller than the original file size.' );
+	}
+
+	/**
+	 * Data provider for test_resizes_are_small_for_16bit_images.
+	 *
+	 * @return array[]
+	 */
+	public static function data_resizes_are_small_for_16bit_images() {
+		return array(
+			'cloudflare-status'       => array(
+				DIR_TESTDATA . '/images/png-tests/cloudflare-status.png',
+			),
+			'deskcat8'                => array(
+				DIR_TESTDATA . '/images/png-tests/deskcat8.png',
+			),
+			'17-c3-duplicate-entries' => array(
+				DIR_TESTDATA . '/images/png-tests/Palette_icon-or8.png',
+			),
+			'rabbit-time-paletted'    => array(
+				DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted-or8.png',
+			),
+			'test8'                   => array(
+				DIR_TESTDATA . '/images/png-tests/test8.png',
+			),
+		);
+	}
+
+	/**
+	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing
+	 * Used to identify indexed PNG images, see https://www.w3.org/TR/PNG-Chunks.html#C.IHDR.
+	 *
+	 * @ticket 63448
+	 * @dataProvider data_png_color_type_after_resize
+	 *
+	 * @param string $file_path             Path to the image file.
+	 * @param int    $expected_color_type   The expected original color type.
+	 */
+	public function test_png_color_type_is_preserved_after_resize( $file_path, $expected_color_type ) {
+
+		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file_path );
+		$imagick_image_editor->load();
+
+		$size = $imagick_image_editor->get_size();
+		$imagick_image_editor->resize( $size['width'] * 0.5, $size['height'] * 0.5 );
+		$imagick_image_editor->save( $temp_file );
+
+		$imagick           = new Imagick( $temp_file );
+		$actual_color_type = $imagick->getImageProperty( 'png:IHDR.color-type-orig' );
+
+		unlink( $temp_file );
+
+		$this->assertSame( (string) $expected_color_type, $actual_color_type, "The PNG original color type should be preserved after resize for {$file_path}." );
+	}
+
+	/**
+	 * Data provider for test_png_color_type_is_preserved_after_resize.
+	 *
+	 * @return array[]
+	 */
+	public static function data_png_color_type_after_resize() {
+		return array(
+			'vivid-green-bird_color_type_6'         => array(
+				DIR_TESTDATA . '/images/png-tests/vivid-green-bird.png',
+				6, // RGBA.
+			),
+			'grayscale-test-image_color_type_4'     => array(
+				DIR_TESTDATA . '/images/png-tests/grayscale-test-image.png',
+				4, // Grayscale with Alpha.
+			),
+			'rabbit-time-paletted-or8_color_type_3' => array(
+				DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted-or8.png',
+				3, // Paletted.
+			),
+			'test8_color_type_3'                    => array(
+				DIR_TESTDATA . '/images/png-tests/test8.png',
+				3, // Paletted.
+			),
+		);
+	}
+
+	/**
+	 * Tests that alpha transparency is preserved after resizing.
+	 *
+	 * @ticket 63448
+	 * @dataProvider data_alpha_transparency_is_preserved_after_resize
+	 *
+	 * @param string $file_path Path to the image file.
+	 */
+	public function test_alpha_transparency_is_preserved_after_resize( $file_path ) {
+
+		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file_path );
+		$imagick_image_editor->load();
+
+		$size = $imagick_image_editor->get_size();
+		$imagick_image_editor->resize( $size['width'] * 0.5, $size['height'] * 0.5 );
+		$imagick_image_editor->save( $temp_file );
+
+		$imagick             = new Imagick( $temp_file );
+		$alpha_channel_depth = $imagick->getImageChannelDepth( Imagick::CHANNEL_ALPHA );
+
+		unlink( $temp_file );
+
+		$this->assertGreaterThan( 1, $alpha_channel_depth, "Alpha transparency should be preserved after resize for {$file_path}." );
+	}
+
+	public static function data_alpha_transparency_is_preserved_after_resize() {
+		return array(
+			'oval-or8'                   => array(
+				DIR_TESTDATA . '/images/png-tests/oval-or8.png',
+			),
+			'oval-or8-grayscale-indexed' => array(
+				DIR_TESTDATA . '/images/png-tests/oval-or8-grayscale-indexed.png',
+			),
+		);
 	}
 }

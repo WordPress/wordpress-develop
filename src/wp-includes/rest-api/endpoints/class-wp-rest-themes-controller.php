@@ -118,7 +118,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @since 5.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_item_permissions_check( $request ) {
 		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
@@ -144,7 +144,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.7.0
 	 *
-	 * @return bool|WP_Error Whether the theme can be read.
+	 * @return true|WP_Error True if the theme can be read, WP_Error object otherwise.
 	 */
 	protected function check_read_active_theme_permission() {
 		if ( current_user_can( 'edit_posts' ) ) {
@@ -201,7 +201,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$current_theme = wp_get_theme();
 		$status        = $request['status'];
 
-		foreach ( $active_themes as $theme_name => $theme ) {
+		foreach ( $active_themes as $theme ) {
 			$theme_status = ( $this->is_same_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
 			if ( is_array( $status ) && ! in_array( $theme_status, $status, true ) ) {
 				continue;
@@ -224,6 +224,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.0.0
 	 * @since 5.9.0 Renamed `$theme` to `$item` to match parent class for PHP 8 named parameter support.
+	 * @since 6.6.0 Added `stylesheet_uri` and `template_uri` fields.
 	 *
 	 * @param WP_Theme        $item    Theme object.
 	 * @param WP_REST_Request $request Request object.
@@ -231,9 +232,10 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		// Restores the more descriptive, specific name for use within this method.
-		$theme  = $item;
-		$data   = array();
+		$theme = $item;
+
 		$fields = $this->get_fields_for_response( $request );
+		$data   = array();
 
 		if ( rest_is_field_included( 'stylesheet', $fields ) ) {
 			$data['stylesheet'] = $theme->get_stylesheet();
@@ -324,6 +326,39 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 				$data['theme_supports'][ $name ] = $prepared;
 			}
+		}
+
+		if ( rest_is_field_included( 'is_block_theme', $fields ) ) {
+			$data['is_block_theme'] = $theme->is_block_theme();
+		}
+
+		if ( rest_is_field_included( 'stylesheet_uri', $fields ) ) {
+			if ( $this->is_same_theme( $theme, $current_theme ) ) {
+				$data['stylesheet_uri'] = get_stylesheet_directory_uri();
+			} else {
+				$data['stylesheet_uri'] = $theme->get_stylesheet_directory_uri();
+			}
+		}
+
+		if ( rest_is_field_included( 'template_uri', $fields ) ) {
+			if ( $this->is_same_theme( $theme, $current_theme ) ) {
+				$data['template_uri'] = get_template_directory_uri();
+			} else {
+				$data['template_uri'] = $theme->get_template_directory_uri();
+			}
+		}
+
+		if ( rest_is_field_included( 'default_template_types', $fields ) && $this->is_same_theme( $theme, $current_theme ) ) {
+			$default_template_types = array();
+			foreach ( get_default_block_template_types() as $slug => $template_type ) {
+				$template_type['slug']    = (string) $slug;
+				$default_template_types[] = $template_type;
+			}
+			$data['default_template_types'] = $default_template_types;
+		}
+
+		if ( rest_is_field_included( 'default_template_part_areas', $fields ) && $this->is_same_theme( $theme, $current_theme ) ) {
+			$data['default_template_part_areas'] = get_allowed_block_template_part_areas();
 		}
 
 		$data = $this->add_additional_fields_to_object( $data, $request );
@@ -437,17 +472,29 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			'title'      => 'theme',
 			'type'       => 'object',
 			'properties' => array(
-				'stylesheet'     => array(
+				'stylesheet'                  => array(
 					'description' => __( 'The theme\'s stylesheet. This uniquely identifies the theme.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
-				'template'       => array(
+				'stylesheet_uri'              => array(
+					'description' => __( 'The uri for the theme\'s stylesheet directory.' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+					'readonly'    => true,
+				),
+				'template'                    => array(
 					'description' => __( 'The theme\'s template. If this is a child theme, this refers to the parent theme, otherwise this is the same as the theme\'s stylesheet.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
-				'author'         => array(
+				'template_uri'                => array(
+					'description' => __( 'The uri for the theme\'s template directory. If this is a child theme, this refers to the parent theme, otherwise this is the same as the theme\'s stylesheet directory.' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+					'readonly'    => true,
+				),
+				'author'                      => array(
 					'description' => __( 'The theme author.' ),
 					'type'        => 'object',
 					'readonly'    => true,
@@ -462,7 +509,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'author_uri'     => array(
+				'author_uri'                  => array(
 					'description' => __( 'The website of the theme author.' ),
 					'type'        => 'object',
 					'readonly'    => true,
@@ -479,7 +526,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'description'    => array(
+				'description'                 => array(
 					'description' => __( 'A description of the theme.' ),
 					'type'        => 'object',
 					'readonly'    => true,
@@ -494,7 +541,12 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'name'           => array(
+				'is_block_theme'              => array(
+					'description' => __( 'Whether the theme is a block-based theme.' ),
+					'type'        => 'boolean',
+					'readonly'    => true,
+				),
+				'name'                        => array(
 					'description' => __( 'The name of the theme.' ),
 					'type'        => 'object',
 					'readonly'    => true,
@@ -509,23 +561,23 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'requires_php'   => array(
+				'requires_php'                => array(
 					'description' => __( 'The minimum PHP version required for the theme to work.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
-				'requires_wp'    => array(
+				'requires_wp'                 => array(
 					'description' => __( 'The minimum WordPress version required for the theme to work.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
-				'screenshot'     => array(
+				'screenshot'                  => array(
 					'description' => __( 'The theme\'s screenshot URL.' ),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'readonly'    => true,
 				),
-				'tags'           => array(
+				'tags'                        => array(
 					'description' => __( 'Tags indicating styles and features of the theme.' ),
 					'type'        => 'object',
 					'readonly'    => true,
@@ -543,18 +595,18 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'textdomain'     => array(
+				'textdomain'                  => array(
 					'description' => __( 'The theme\'s text domain.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
-				'theme_supports' => array(
+				'theme_supports'              => array(
 					'description' => __( 'Features supported by this theme.' ),
 					'type'        => 'object',
 					'readonly'    => true,
 					'properties'  => array(),
 				),
-				'theme_uri'      => array(
+				'theme_uri'                   => array(
 					'description' => __( 'The URI of the theme\'s webpage.' ),
 					'type'        => 'object',
 					'readonly'    => true,
@@ -571,15 +623,59 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 						),
 					),
 				),
-				'version'        => array(
+				'version'                     => array(
 					'description' => __( 'The theme\'s current version.' ),
 					'type'        => 'string',
 					'readonly'    => true,
 				),
-				'status'         => array(
+				'status'                      => array(
 					'description' => __( 'A named status for the theme.' ),
 					'type'        => 'string',
 					'enum'        => array( 'inactive', 'active' ),
+				),
+				'default_template_types'      => array(
+					'description' => __( 'A list of default template types.' ),
+					'type'        => 'array',
+					'readonly'    => true,
+					'items'       => array(
+						'type'       => 'object',
+						'properties' => array(
+							'slug'        => array(
+								'type' => 'string',
+							),
+							'title'       => array(
+								'type' => 'string',
+							),
+							'description' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+				'default_template_part_areas' => array(
+					'description' => __( 'A list of allowed area values for template parts.' ),
+					'type'        => 'array',
+					'readonly'    => true,
+					'items'       => array(
+						'type'       => 'object',
+						'properties' => array(
+							'area'        => array(
+								'type' => 'string',
+							),
+							'label'       => array(
+								'type' => 'string',
+							),
+							'description' => array(
+								'type' => 'string',
+							),
+							'icon'        => array(
+								'type' => 'string',
+							),
+							'area_tag'    => array(
+								'type' => 'string',
+							),
+						),
+					),
 				),
 			),
 		);

@@ -6,16 +6,11 @@
  * @package WordPress
  * @subpackage UnitTests
  * @since 5.9.0
- */
-
-/**
- * Class Test_WP_Debug_Mode.
  *
- * @group load.php
+ * @group load
  * @group wp-debug-mode
- * @covers ::wp_debug_mode
  *
- * @since 5.9.0
+ * @covers ::wp_debug_mode
  */
 class Test_WP_Debug_Mode extends WP_UnitTestCase {
 	/**

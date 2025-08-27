@@ -31,7 +31,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	protected $post_type = 'INVALID';
 
 	/**
-	 * Get columns to show in the list table.
+	 * Gets columns to show in the list table.
 	 *
 	 * @since 4.9.6
 	 *
@@ -49,7 +49,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Normalize the admin URL to the current page (by request_type).
+	 * Normalizes the admin URL to the current page (by request_type).
 	 *
 	 * @since 5.3.0
 	 *
@@ -66,7 +66,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Get a list of sortable columns.
+	 * Gets a list of sortable columns.
 	 *
 	 * @since 4.9.6
 	 *
@@ -87,7 +87,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Default primary column.
+	 * Returns the default primary column.
 	 *
 	 * @since 4.9.6
 	 *
@@ -98,7 +98,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Count number of requests for each status.
+	 * Counts the number of requests for each status.
 	 *
 	 * @since 4.9.6
 	 *
@@ -116,15 +116,20 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			return $counts;
 		}
 
-		$query = "
-			SELECT post_status, COUNT( * ) AS num_posts
-			FROM {$wpdb->posts}
-			WHERE post_type = %s
-			AND post_name = %s
-			GROUP BY post_status";
+		$results = (array) $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT post_status, COUNT( * ) AS num_posts
+				FROM {$wpdb->posts}
+				WHERE post_type = %s
+				AND post_name = %s
+				GROUP BY post_status",
+				$this->post_type,
+				$this->request_type
+			),
+			ARRAY_A
+		);
 
-		$results = (array) $wpdb->get_results( $wpdb->prepare( $query, $this->post_type, $this->request_type ), ARRAY_A );
-		$counts  = array_fill_keys( get_post_stati(), 0 );
+		$counts = array_fill_keys( get_post_stati(), 0 );
 
 		foreach ( $results as $row ) {
 			$counts[ $row['post_status'] ] = $row['num_posts'];
@@ -137,7 +142,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Get an associative array ( id => link ) with the list of views available on this table.
+	 * Gets an associative array ( id => link ) with the list of views available on this table.
 	 *
 	 * @since 4.9.6
 	 *
@@ -200,7 +205,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Get bulk actions.
+	 * Gets bulk actions.
 	 *
 	 * @since 4.9.6
 	 *
@@ -239,9 +244,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 					$resend = _wp_privacy_resend_request( $request_id );
 
 					if ( $resend && ! is_wp_error( $resend ) ) {
-						$count++;
+						++$count;
 					} else {
-						$failures++;
+						++$failures;
 					}
 				}
 
@@ -286,7 +291,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 					$result = _wp_privacy_completed_request( $request_id );
 
 					if ( $result && ! is_wp_error( $result ) ) {
-						$count++;
+						++$count;
 					}
 				}
 
@@ -309,9 +314,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			case 'delete':
 				foreach ( $request_ids as $request_id ) {
 					if ( wp_delete_post( $request_id, true ) ) {
-						$count++;
+						++$count;
 					} else {
-						$failures++;
+						++$failures;
 					}
 				}
 
@@ -354,7 +359,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Prepare items to output.
+	 * Prepares items to output.
 	 *
 	 * @since 4.9.6
 	 * @since 5.1.0 Added support for column sorting.
@@ -407,7 +412,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Checkbox column.
+	 * Returns the markup for the Checkbox column.
 	 *
 	 * @since 4.9.6
 	 *
@@ -415,7 +420,13 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @return string Checkbox column markup.
 	 */
 	public function column_cb( $item ) {
-		return sprintf( '<input type="checkbox" name="request_id[]" value="%1$s" /><span class="spinner"></span>', esc_attr( $item->ID ) );
+		return sprintf(
+			'<input type="checkbox" name="request_id[]" id="requester_%1$s" value="%1$s" />' .
+			'<label for="requester_%1$s"><span class="screen-reader-text">%2$s</span></label><span class="spinner"></span>',
+			esc_attr( $item->ID ),
+			/* translators: Hidden accessibility text. %s: Email address. */
+			sprintf( __( 'Select %s' ), $item->email )
+		);
 	}
 
 	/**
@@ -424,7 +435,8 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @since 4.9.6
 	 *
 	 * @param WP_User_Request $item Item being shown.
-	 * @return string Status column markup.
+	 * @return string|void Status column markup. Returns a string if no status is found,
+	 *                     otherwise it displays the markup.
 	 */
 	public function column_status( $item ) {
 		$status        = get_post_status( $item->ID );
@@ -456,7 +468,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Convert timestamp for display.
+	 * Converts a timestamp for display.
 	 *
 	 * @since 4.9.6
 	 *
@@ -479,7 +491,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Default column handler.
+	 * Handles the default column.
 	 *
 	 * @since 4.9.6
 	 * @since 5.7.0 Added `manage_{$this->screen->id}_custom_column` action.
@@ -489,10 +501,18 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 */
 	public function column_default( $item, $column_name ) {
 		/**
-		 * Fires for each custom column of a specific request type in the Requests list table.
+		 * Fires for each custom column of a specific request type in the Privacy Requests list table.
 		 *
 		 * Custom columns are registered using the {@see 'manage_export-personal-data_columns'}
 		 * and the {@see 'manage_erase-personal-data_columns'} filters.
+		 *
+		 * The dynamic portion of the hook name, `$this->screen->id`, refers to the ID given to the list table
+		 * according to which screen it's displayed on.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `manage_export-personal-data_custom_column`
+		 *  - `manage_erase-personal-data_custom_column`
 		 *
 		 * @since 5.7.0
 		 *
@@ -503,7 +523,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Created timestamp column. Overridden by children.
+	 * Returns the markup for the Created timestamp column. Overridden by children.
 	 *
 	 * @since 5.7.0
 	 *
@@ -527,7 +547,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Next steps column. Overridden by children.
+	 * Returns the markup for the next steps column. Overridden by children.
 	 *
 	 * @since 4.9.6
 	 *
@@ -551,7 +571,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Embed scripts used to perform actions. Overridden by children.
+	 * Embeds scripts used to perform actions. Overridden by children.
 	 *
 	 * @since 4.9.6
 	 */

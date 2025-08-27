@@ -239,9 +239,9 @@ class WP_Dependencies {
 	 * @since 2.6.0 Moved from `WP_Scripts`.
 	 *
 	 * @param string           $handle Name of the item. Should be unique.
-	 * @param string|bool      $src    Full URL of the item, or path of the item relative
+	 * @param string|false     $src    Full URL of the item, or path of the item relative
 	 *                                 to the WordPress root directory. If source is set to false,
-	 *                                 item is an alias of other items it depends on.
+	 *                                 the item is an alias of other items it depends on.
 	 * @param string[]         $deps   Optional. An array of registered item handles this item depends on.
 	 *                                 Default empty array.
 	 * @param string|bool|null $ver    Optional. String specifying item version number, if it has one,
@@ -491,4 +491,41 @@ class WP_Dependencies {
 		return true;
 	}
 
+	/**
+	 * Get etag header for cache validation.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @global string $wp_version The WordPress version string.
+	 *
+	 * @param string[] $load Array of script or style handles to load.
+	 * @return string Etag header.
+	 */
+	public function get_etag( $load ) {
+		/*
+		 * Note: wp_get_wp_version() is not used here, as this file can be included
+		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+		 * wp-includes/functions.php is not loaded.
+		 */
+		global $wp_version;
+
+		$etag = "WP:{$wp_version};";
+
+		foreach ( $load as $handle ) {
+			if ( ! array_key_exists( $handle, $this->registered ) ) {
+				continue;
+			}
+
+			$ver   = $this->registered[ $handle ]->ver ?? $wp_version;
+			$etag .= "{$handle}:{$ver};";
+		}
+
+		/*
+		 * This is not intended to be cryptographically secure, just a fast way to get
+		 * a fixed length string based on the script versions. As this file does not
+		 * load the full WordPress environment, it is not possible to use the salted
+		 * wp_hash() function.
+		 */
+		return 'W/"' . md5( $etag ) . '"';
+	}
 }

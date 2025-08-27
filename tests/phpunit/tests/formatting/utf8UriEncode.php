@@ -22,7 +22,7 @@ class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 	 */
 	public function test_output_is_not_longer_than_optional_length_argument( $utf8, $unused_for_this_test ) {
 		$max_length = 30;
-		$this->assertTrue( strlen( utf8_uri_encode( $utf8, $max_length ) ) <= $max_length );
+		$this->assertLessThanOrEqual( $max_length, strlen( utf8_uri_encode( $utf8, $max_length ) ) );
 	}
 
 	public function data() {
@@ -35,4 +35,3 @@ class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 		return $data_provided;
 	}
 }
-

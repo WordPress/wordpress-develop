@@ -6,7 +6,7 @@ use Yoast\PHPUnitPolyfills\TestCases\TestCase as Polyfill_TestCase;
  * PHPUnit adapter layer.
  *
  * This class enhances the PHPUnit native `TestCase` with polyfills
- * for assertions and expectation methods added between PHPUnit 4.8 - 9.5.
+ * for assertions and expectation methods added between PHPUnit 4.8 - 9.6.
  *
  * Additionally, the Polyfill TestCase offers a workaround for the addition
  * of the `void` return type to PHPUnit fixture methods by providing

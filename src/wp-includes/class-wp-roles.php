@@ -143,16 +143,34 @@ class WP_Roles {
 	 *
 	 * Updates the list of roles, if the role doesn't already exist.
 	 *
-	 * The capabilities are defined in the following format: `array( 'read' => true )`.
-	 * To explicitly deny the role a capability, set the value for that capability to false.
+	 * The list of capabilities can be passed either as a numerically indexed array of capability names, or an
+	 * associative array of boolean values keyed by the capability name. To explicitly deny the role a capability, set
+	 * the value for that capability to false.
+	 *
+	 * Examples:
+	 *
+	 *     // Add a role that can edit posts.
+	 *     wp_roles()->add_role( 'custom_role', 'Custom Role', array(
+	 *         'read',
+	 *         'edit_posts',
+	 *     ) );
+	 *
+	 * Or, using an associative array:
+	 *
+	 *     // Add a role that can edit posts but explicitly cannot not delete them.
+	 *     wp_roles()->add_role( 'custom_role', 'Custom Role', array(
+	 *         'read' => true,
+	 *         'edit_posts' => true,
+	 *         'delete_posts' => false,
+	 *     ) );
 	 *
 	 * @since 2.0.0
+	 * @since x.y.z Support was added for a numerically indexed array of strings for the capabilities array.
 	 *
-	 * @param string $role         Role name.
-	 * @param string $display_name Role display name.
-	 * @param bool[] $capabilities Optional. List of capabilities keyed by the capability name,
-	 *                             e.g. `array( 'edit_posts' => true, 'delete_posts' => false )`.
-	 *                             Default empty array.
+	 * @param string                               $role         Role name.
+	 * @param string                               $display_name Role display name.
+	 * @param array<string,bool>|array<int,string> $capabilities Capabilities to be added to the role.
+	 *                                                           Default empty array.
 	 * @return WP_Role|void WP_Role object, if the role is added.
 	 */
 	public function add_role( $role, $display_name, $capabilities = array() ) {
@@ -160,86 +178,20 @@ class WP_Roles {
 			return;
 		}
 
+		if ( wp_is_numeric_array( $capabilities ) ) {
+			$capabilities = array_fill_keys( $capabilities, true );
+		}
+
 		$this->roles[ $role ] = array(
 			'name'         => $display_name,
 			'capabilities' => $capabilities,
 		);
 		if ( $this->use_db ) {
-			update_option( $this->role_key, $this->roles );
+			update_option( $this->role_key, $this->roles, true );
 		}
 		$this->role_objects[ $role ] = new WP_Role( $role, $capabilities );
 		$this->role_names[ $role ]   = $display_name;
 		return $this->role_objects[ $role ];
-	}
-
-	/**
-	 * Updates an existing role. Creates a new role if it doesn't exist.
-	 *
-	 * Modifies the display name and/or capabilities for an existing role.
-	 * If the role does not exist then a new role is created.
-	 *
-	 * The capabilities are defined in the following format: `array( 'read' => true )`.
-	 * To explicitly deny the role a capability, set the value for that capability to false.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param string      $role         Role name.
-	 * @param string|null $display_name Optional. Role display name. If null, the display name
-	 *                                  is not modified. Default null.
-	 * @param bool[]|null $capabilities Optional. List of capabilities keyed by the capability name,
-	 *                                  e.g. `array( 'edit_posts' => true, 'delete_posts' => false )`.
-	 *                                  If null, don't alter capabilities for the existing role and make
-	 *                                  empty capabilities for the new one. Default null.
-	 * @return WP_Role|void WP_Role object, if the role is updated.
-	 */
-	public function update_role( $role, $display_name = null, $capabilities = null ) {
-		if ( ! is_string( $role ) || '' === trim( $role ) ) {
-			return;
-		}
-
-		if ( null !== $display_name && ( ! is_string( $display_name ) || '' === trim( $display_name ) ) ) {
-			return;
-		}
-
-		if ( null !== $capabilities && ! is_array( $capabilities ) ) {
-			return;
-		}
-
-		if ( null === $display_name && null === $capabilities ) {
-			if ( isset( $this->role_objects[ $role ] ) ) {
-				return $this->role_objects[ $role ];
-			}
-			return;
-		}
-
-		if ( null === $display_name ) {
-			if ( ! isset( $this->role_objects[ $role ] ) ) {
-				return;
-			}
-
-			$display_name = $this->roles[ $role ]['name'];
-		}
-
-		if ( null === $capabilities ) {
-			if ( isset( $this->role_objects[ $role ] ) ) {
-				$capabilities = $this->role_objects[ $role ]->capabilities;
-			} else {
-				$capabilities = array();
-			}
-		}
-
-		if ( isset( $this->roles[ $role ] ) ) {
-			if ( null === $capabilities ) {
-				$capabilities = $this->role_objects[ $role ]->capabilities;
-			}
-
-			unset( $this->role_objects[ $role ] );
-			unset( $this->role_names[ $role ] );
-			unset( $this->roles[ $role ] );
-		}
-
-		// The roles database option will be updated in ::add_role().
-		return $this->add_role( $role, $display_name, $capabilities );
 	}
 
 	/**
@@ -262,7 +214,7 @@ class WP_Roles {
 			update_option( $this->role_key, $this->roles );
 		}
 
-		if ( get_option( 'default_role' ) == $role ) {
+		if ( get_option( 'default_role' ) === $role ) {
 			update_option( 'default_role', 'subscriber' );
 		}
 	}
@@ -429,7 +381,7 @@ class WP_Roles {
 			return $wp_user_roles;
 		}
 
-		if ( is_multisite() && get_current_blog_id() != $this->site_id ) {
+		if ( is_multisite() && get_current_blog_id() !== $this->site_id ) {
 			remove_action( 'switch_blog', 'wp_switch_roles_and_user', 1 );
 
 			$roles = get_blog_option( $this->site_id, $this->role_key, array() );

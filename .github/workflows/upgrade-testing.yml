@@ -1,0 +1,272 @@
+# Confirms that updating WordPress using WP-CLI works successfully.
+#
+# This workflow is not meant to test wordpress-develop checkouts, but rather tagged versions officially available on WordPress.org.
+name: Upgrade Tests
+
+on:
+  push:
+    branches:
+      - trunk
+    # Always test the workflow after it's updated.
+    paths:
+      - '.github/workflows/upgrade-testing.yml'
+      - '.github/workflows/reusable-upgrade-testing.yml'
+  pull_request:
+    # Always test the workflow when changes are suggested.
+    paths:
+      - '.github/workflows/upgrade-testing.yml'
+      - '.github/workflows/reusable-upgrade-testing.yml'
+  workflow_dispatch:
+    inputs:
+      new-version:
+        description: 'The version to test installing. Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
+        type: string
+        default: 'latest'
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ inputs.new-version || github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+# Because the number of jobs spawned can quickly balloon out of control, the following methodology is applied when
+# building out the matrix below:
+#
+# - The two most recent releases of WordPress are tested against all PHP/MySQL LTS version combinations and the
+#   most recent innovation release.
+# - The next 6 oldest versions of WordPress are tested against both the oldest and newest releases of PHP currently
+#   supported for both PHP 7 & 8 along with the oldest and newest MySQL LTS versions currently supported (no innovation
+#   releases). At the current 3 releases per year pace, this accounts for 2 additional years worth of releases.
+# - Of the remaining versions of WordPress still receiving security updates, only test the ones where the database
+#   version was updated since the previous major release.
+# - The oldest version of WordPress receiving security updates should always be tested against the same combinations as
+#   detailed for the two most recent releases.
+
+#  Notes about chosen MySQL versions:
+#    - Only the most recent innovation release should be included in testing.
+#    - Even though MySQL >= 5.5.5 is currently supported, there are no 5.5.x Docker containers available that work on
+#      modern architectures.
+#    - 5.6.x Docker containers are available and work, but 5.6 only accounts for ~2.3% of installs as of 12/6/2024.defaults:
+#    - 5.7.x accounts for ~20% of installs, so this is used below instead.
+jobs:
+  # Tests the full list of PHP/MySQL combinations for the two most recent versions of WordPress.
+  upgrade-tests-recent-releases:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-24.04' ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.4' ]
+        wp: [ '6.7', '6.8' ]
+        multisite: [ false, true ]
+
+        exclude:
+          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '8.4'
+          - php: '7.3'
+            db-version: '8.4'
+          # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '9.4'
+          - php: '7.3'
+            db-version: '9.4'
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  # Tests 6.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 7 & 8.
+  upgrade-tests-wp-6x-mysql:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-24.04' ]
+        php: [ '7.2', '7.4', '8.0', '8.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.4' ]
+        wp: [ '6.0', '6.3', '6.4', '6.5' ]
+        multisite: [ false, true ]
+
+        exclude:
+          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '8.4'
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  # Tests 5.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 7.
+  upgrade-tests-wp-5x-php-7x-mysql:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-24.04' ]
+        php: [ '7.2', '7.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.4' ]
+        wp: [ '5.0', '5.1', '5.3', '5.4', '5.5', '5.6', '5.9' ]
+        multisite: [ false, true ]
+
+        exclude:
+          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '8.4'
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  # Tests 5.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 8.
+  #
+  # WordPress 5.0-5.2 are excluded from PHP 8+ testing because of the following fatal errors:
+  # - Use of __autoload().
+  # - array/string offset with curly braces.
+  upgrade-tests-wp-5x-php-8x-mysql:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-24.04' ]
+        php: [ '8.0', '8.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.4' ]
+        wp: [ '5.3', '5.4', '5.5', '5.6', '5.9' ]
+        multisite: [ false, true ]
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  # The oldest version of WordPress receiving security updates should always be tested against
+  # the widest possible list of PHP/MySQL combinations.
+  #
+  # WordPress 4.7 is excluded from PHP 8+ testing because of the following fatal errors:
+  # - Use of __autoload().
+  # - array/string offset with curly braces.
+  upgrade-tests-oldest-wp-mysql:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-24.04' ]
+        php: [ '7.2', '7.3', '7.4' ]
+        db-type: [ 'mysql' ]
+        db-version: [ '5.7', '8.0', '8.4', '9.4' ]
+        wp: [ '4.7' ]
+        multisite: [ false, true ]
+
+        exclude:
+          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '8.4'
+          - php: '7.3'
+            db-version: '8.4'
+          # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '9.4'
+          - php: '7.3'
+            db-version: '9.4'
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      multisite: ${{ matrix.multisite }}
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: ./.github/workflows/slack-notifications.yml
+    permissions:
+      actions: read
+      contents: read
+    needs: [ upgrade-tests-recent-releases, upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-oldest-wp-mysql ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    needs: [ slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: `${context.runId}`,
+              }
+            });

@@ -97,7 +97,7 @@ if ( ! function_exists( 'twentysixteen_header_style' ) ) :
 
 		.site-branding .site-title,
 		.site-description {
-			clip: rect(1px, 1px, 1px, 1px);
+			clip-path: inset(50%);
 			position: absolute;
 		}
 		</style>
@@ -248,7 +248,7 @@ function twentysixteen_customize_register( $wp_customize ) {
 add_action( 'customize_register', 'twentysixteen_customize_register', 11 );
 
 /**
- * Render the site title for the selective refresh partial.
+ * Renders the site title for the selective refresh partial.
  *
  * @since Twenty Sixteen 1.2
  *
@@ -261,7 +261,7 @@ function twentysixteen_customize_partial_blogname() {
 }
 
 /**
- * Render the site tagline for the selective refresh partial.
+ * Renders the site tagline for the selective refresh partial.
  *
  * @since Twenty Sixteen 1.2
  *
@@ -486,7 +486,7 @@ add_action( 'wp_enqueue_scripts', 'twentysixteen_color_scheme_css' );
  * @since Twenty Sixteen 1.0
  */
 function twentysixteen_customize_control_js() {
-	wp_enqueue_script( 'color-scheme-control', get_template_directory_uri() . '/js/color-scheme-control.js', array( 'customize-controls', 'iris', 'underscore', 'wp-util' ), '20170530', true );
+	wp_enqueue_script( 'color-scheme-control', get_template_directory_uri() . '/js/color-scheme-control.js', array( 'customize-controls', 'iris', 'underscore', 'wp-util' ), '20170530', array( 'in_footer' => true ) );
 	wp_localize_script( 'color-scheme-control', 'colorScheme', twentysixteen_get_color_schemes() );
 }
 add_action( 'customize_controls_enqueue_scripts', 'twentysixteen_customize_control_js' );
@@ -497,7 +497,7 @@ add_action( 'customize_controls_enqueue_scripts', 'twentysixteen_customize_contr
  * @since Twenty Sixteen 1.0
  */
 function twentysixteen_customize_preview_js() {
-	wp_enqueue_script( 'twentysixteen-customize-preview', get_template_directory_uri() . '/js/customize-preview.js', array( 'customize-preview' ), '20170530', true );
+	wp_enqueue_script( 'twentysixteen-customize-preview', get_template_directory_uri() . '/js/customize-preview.js', array( 'customize-preview' ), '20170530', array( 'in_footer' => true ) );
 }
 add_action( 'customize_preview_init', 'twentysixteen_customize_preview_js' );
 

@@ -57,14 +57,14 @@ get_current_screen()->add_help_tab(
 );
 
 $help_sidebar_content = '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-permalinks-screen/">Documentation on Permalinks Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/using-permalinks/">Documentation on Using Permalinks</a>' ) . '</p>';
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/settings-permalinks-screen/">Documentation on Permalinks Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/customize-permalinks/">Documentation on Using Permalinks</a>' ) . '</p>';
 
 if ( $is_nginx ) {
-	$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/article/nginx/">Documentation on Nginx configuration</a>.' ) . '</p>';
+	$help_sidebar_content .= '<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/server/web-server/nginx/">Documentation on Nginx configuration</a>.' ) . '</p>';
 }
 
-$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>';
+$help_sidebar_content .= '<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>';
 
 get_current_screen()->set_help_sidebar( $help_sidebar_content );
 unset( $help_sidebar_content );
@@ -87,7 +87,7 @@ if ( ! got_url_rewrite() ) {
  * base prefix, WordPress core can no longer account for the possible collision.
  */
 if ( is_multisite() && ! is_subdomain_install() && is_main_site()
-	&& 0 === strpos( $permalink_structure, '/blog/' )
+	&& str_starts_with( $permalink_structure, '/blog/' )
 ) {
 	$blog_prefix = '/blog';
 }
@@ -154,7 +154,7 @@ if ( $iis7_permalinks ) {
 	} else {
 		$writable = false;
 	}
-} elseif ( $is_nginx ) {
+} elseif ( $is_nginx || $is_caddy ) {
 	$writable = false;
 } else {
 	if ( ( ! file_exists( $home_path . '.htaccess' )
@@ -190,7 +190,7 @@ if ( $structure_updated ) {
 					'<code>web.config</code>'
 				);
 			}
-		} elseif ( ! $is_nginx && $htaccess_update_required && ! $writable ) {
+		} elseif ( ! $is_nginx && ! $is_caddy && $htaccess_update_required && ! $writable ) {
 			$message = sprintf(
 				/* translators: %s: .htaccess */
 				__( 'You should update your %s file now.' ),
@@ -224,14 +224,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 printf(
 	/* translators: %s: Documentation URL. */
 	__( 'WordPress offers you the ability to create a custom URL structure for your permalinks and archives. Custom URL structures can improve the aesthetics, usability, and forward-compatibility of your links. A <a href="%s">number of tags are available</a>, and here are some examples to get you started.' ),
-	__( 'https://wordpress.org/support/article/using-permalinks/' )
+	__( 'https://wordpress.org/documentation/article/customize-permalinks/' )
 );
 ?>
 </p>
 
 <?php
 if ( is_multisite() && ! is_subdomain_install() && is_main_site()
-	&& 0 === strpos( $permalink_structure, '/blog/' )
+	&& str_starts_with( $permalink_structure, '/blog/' )
 ) {
 	$permalink_structure = preg_replace( '|^/?blog|', '', $permalink_structure );
 	$category_base       = preg_replace( '|^/?blog|', '', $category_base );
@@ -330,18 +330,27 @@ printf(
 	<th scope="row"><?php _e( 'Permalink structure' ); ?></th>
 	<td>
 		<fieldset class="structure-selection">
-			<legend class="screen-reader-text"><?php _e( 'Permalink structure' ); ?></legend>
+			<legend class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Permalink structure' );
+				?>
+			</legend>
 			<?php foreach ( $default_structures as $input ) : ?>
 			<div class="row">
-				<input id="permalink-input-<?php echo $input['id']; ?>"
-					name="selection" aria-describedby="permalink-<?php echo $input['id']; ?>"
+				<input id="permalink-input-<?php echo esc_attr( $input['id'] ); ?>"
+					name="selection" aria-describedby="permalink-<?php echo esc_attr( $input['id'] ); ?>"
 					type="radio" value="<?php echo esc_attr( $input['value'] ); ?>"
 					<?php checked( $input['value'], $permalink_structure ); ?>
 				/>
 				<div>
-					<label for="permalink-input-<?php echo $input['id']; ?>"><?php echo $input['label']; ?></label>
+					<label for="permalink-input-<?php echo esc_attr( $input['id'] ); ?>">
+						<?php echo esc_html( $input['label'] ); ?>
+					</label>
 					<p>
-						<code id="permalink-<?php echo $input['id']; ?>"><?php echo $input['example']; ?></code>
+						<code id="permalink-<?php echo esc_attr( $input['id'] ); ?>">
+							<?php echo esc_html( $input['example'] ); ?>
+						</code>
 					</p>
 				</div>
 			</div><!-- .row -->
@@ -356,10 +365,13 @@ printf(
 					<label for="custom_selection"><?php _e( 'Custom Structure' ); ?></label>
 					<p>
 						<label for="permalink_structure" class="screen-reader-text">
-							<?php _e( 'Customize permalink structure by selecting available tags' ); ?>
+							<?php
+							/* translators: Hidden accessibility text. */
+							_e( 'Customize permalink structure by selecting available tags' );
+							?>
 						</label>
 						<span class="code">
-							<code id="permalink-custom"><?php echo $url_base; ?></code>
+							<code id="permalink-custom"><?php echo esc_url( $url_base ); ?></code>
 							<input name="permalink_structure" id="permalink_structure"
 								type="text" value="<?php echo esc_attr( $permalink_structure ); ?>"
 								aria-describedby="permalink-custom" class="regular-text code"
@@ -381,7 +393,7 @@ printf(
 										data-added="<?php echo esc_attr( sprintf( $tag_added, $tag ) ); ?>"
 										data-removed="<?php echo esc_attr( sprintf( $tag_removed, $tag ) ); ?>"
 										data-used="<?php echo esc_attr( sprintf( $tag_already_used, $tag ) ); ?>">
-										<?php echo '%' . $tag . '%'; ?>
+										<?php echo '%' . esc_html( $tag ) . '%'; ?>
 									</button>
 								</li>
 							<?php endforeach; ?>
@@ -453,7 +465,7 @@ printf(
 					/* translators: 1: web.config, 2: Documentation URL, 3: Ctrl + A, 4: ⌘ + A, 5: Element code. */
 					__( '<strong>Error:</strong> Your %1$s file is not <a href="%2$s">writable</a>, so updating it automatically was not possible. This is the URL rewrite rule you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all. Then insert this rule inside of the %5$s element in %1$s file.' ),
 					'<code>web.config</code>',
-					__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
+					__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' ),
 					'<kbd>Ctrl + A</kbd>',
 					'<kbd>⌘ + A</kbd>',
 					'<code>/&lt;configuration&gt;/&lt;system.webServer&gt;/&lt;rewrite&gt;/&lt;rules&gt;</code>'
@@ -485,7 +497,7 @@ printf(
 				printf(
 					/* translators: 1: Documentation URL, 2: web.config, 3: Ctrl + A, 4: ⌘ + A */
 					__( '<strong>Error:</strong> The root directory of your site is not <a href="%1$s">writable</a>, so creating a file automatically was not possible. This is the URL rewrite rule you should have in your %2$s file. Create a new file called %2$s in the root directory of your site. Click in the field and press %3$s (or %4$s on Mac) to select all. Then insert this code into the %2$s file.' ),
-					__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
+					__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' ),
 					'<code>web.config</code>',
 					'<kbd>Ctrl + A</kbd>',
 					'<kbd>⌘ + A</kbd>'
@@ -521,7 +533,7 @@ printf(
 				/* translators: 1: .htaccess, 2: Documentation URL, 3: Ctrl + A, 4: ⌘ + A */
 				__( '<strong>Error:</strong> Your %1$s file is not <a href="%2$s">writable</a>, so updating it automatically was not possible. These are the mod_rewrite rules you should have in your %1$s file. Click in the field and press %3$s (or %4$s on Mac) to select all.' ),
 				'<code>.htaccess</code>',
-				__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
+				__( 'https://developer.wordpress.org/advanced-administration/server/file-permissions/' ),
 				'<kbd>Ctrl + A</kbd>',
 				'<kbd>⌘ + A</kbd>'
 			);

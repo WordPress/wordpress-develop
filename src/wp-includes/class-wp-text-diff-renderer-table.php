@@ -7,6 +7,11 @@
  * @since 4.7.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 /**
  * Table renderer to display the diff lines.
  *
@@ -29,6 +34,30 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @since 2.6.0
 	 */
 	public $_trailing_context_lines = 10000;
+
+	/**
+	 * Title of the item being compared.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title;
+
+	/**
+	 * Title for the left column.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title_left;
+
+	/**
+	 * Title for the right column.
+	 *
+	 * @since 6.4.0 Declared a previously dynamic property.
+	 * @var string|null
+	 */
+	public $_title_right;
 
 	/**
 	 * Threshold for when a diff should be saved or omitted.
@@ -114,8 +143,10 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return string
 	 */
 	public function addedLine( $line ) {
-		return "<td class='diff-addedline'><span aria-hidden='true' class='dashicons dashicons-plus'></span><span class='screen-reader-text'>" . __( 'Added:' ) . " </span>{$line}</td>";
-
+		return "<td class='diff-addedline'><span aria-hidden='true' class='dashicons dashicons-plus'></span><span class='screen-reader-text'>" .
+			/* translators: Hidden accessibility text. */
+			__( 'Added:' ) .
+		" </span>{$line}</td>";
 	}
 
 	/**
@@ -125,7 +156,10 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return string
 	 */
 	public function deletedLine( $line ) {
-		return "<td class='diff-deletedline'><span aria-hidden='true' class='dashicons dashicons-minus'></span><span class='screen-reader-text'>" . __( 'Deleted:' ) . " </span>{$line}</td>";
+		return "<td class='diff-deletedline'><span aria-hidden='true' class='dashicons dashicons-minus'></span><span class='screen-reader-text'>" .
+			/* translators: Hidden accessibility text. */
+			__( 'Deleted:' ) .
+		" </span>{$line}</td>";
 	}
 
 	/**
@@ -135,7 +169,10 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return string
 	 */
 	public function contextLine( $line ) {
-		return "<td class='diff-context'><span class='screen-reader-text'>" . __( 'Unchanged:' ) . " </span>{$line}</td>";
+		return "<td class='diff-context'><span class='screen-reader-text'>" .
+			/* translators: Hidden accessibility text. */
+			__( 'Unchanged:' ) .
+		" </span>{$line}</td>";
 	}
 
 	/**
@@ -247,7 +284,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @param array $final
 	 * @return string
 	 */
-	public function _changed( $orig, $final ) {
+	public function _changed( $orig, $final ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.finalFound
 		$r = '';
 
 		/*
@@ -269,15 +306,17 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		foreach ( $orig_matches as $o => $f ) {
 			if ( is_numeric( $o ) && is_numeric( $f ) ) {
 				$text_diff = new Text_Diff( 'auto', array( array( $orig[ $o ] ), array( $final[ $f ] ) ) );
-				$renderer  = new $this->inline_diff_renderer;
+				$renderer  = new $this->inline_diff_renderer();
 				$diff      = $renderer->render( $text_diff );
 
 				// If they're too different, don't include any <ins> or <del>'s.
 				if ( preg_match_all( '!(<ins>.*?</ins>|<del>.*?</del>)!', $diff, $diff_matches ) ) {
 					// Length of all text between <ins> or <del>.
 					$stripped_matches = strlen( strip_tags( implode( ' ', $diff_matches[0] ) ) );
-					// Since we count length of text between <ins> or <del> (instead of picking just one),
-					// we double the length of chars not in those tags.
+					/*
+					 * Since we count length of text between <ins> or <del> (instead of picking just one),
+					 * we double the length of chars not in those tags.
+					 */
 					$stripped_diff = strlen( strip_tags( $diff ) ) * 2 - $stripped_matches;
 					$diff_ratio    = $stripped_matches / $stripped_diff;
 					if ( $diff_ratio > $this->_diff_threshold ) {
@@ -358,7 +397,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 *                                Value < 0 indicates a blank row.
 	 * }
 	 */
-	public function interleave_changed_lines( $orig, $final ) {
+	public function interleave_changed_lines( $orig, $final ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.finalFound
 
 		// Contains all pairwise string comparisons. Keys are such that this need only be a one dimensional array.
 		$matches = array();
@@ -407,8 +446,10 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		$orig_rows_copy = $orig_rows;
 		$final_rows     = array_keys( $final_matches );
 
-		// Interleaves rows with blanks to keep matches aligned.
-		// We may end up with some extraneous blank rows, but we'll just ignore them later.
+		/*
+		 * Interleaves rows with blanks to keep matches aligned.
+		 * We may end up with some extraneous blank rows, but we'll just ignore them later.
+		 */
 		foreach ( $orig_rows_copy as $orig_row ) {
 			$final_pos = array_search( $orig_matches[ $orig_row ], $final_rows, true );
 			$orig_pos  = (int) array_search( $orig_row, $orig_rows, true );
@@ -498,35 +539,53 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * Make private properties readable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Getting a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to get.
-	 * @return mixed Property.
+	 * @return mixed A declared property's value, else null.
 	 */
 	public function __get( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name;
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Getting a dynamic property is " .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
+		return null;
 	}
 
 	/**
 	 * Make private properties settable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Setting a dynamic property is deprecated.
 	 *
 	 * @param string $name  Property to check if set.
 	 * @param mixed  $value Property value.
-	 * @return mixed Newly-set property.
 	 */
 	public function __set( $name, $value ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
-			return $this->$name = $value;
+			$this->$name = $value;
+			return;
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Setting a dynamic property is " .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
 	}
 
 	/**
 	 * Make private properties checkable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Checking a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to check if set.
 	 * @return bool Whether the property is set.
@@ -535,18 +594,35 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"The property `{$name}` is not declared. Checking `isset()` on a dynamic property " .
+			'is deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
+		return false;
 	}
 
 	/**
 	 * Make private properties un-settable for backward compatibility.
 	 *
 	 * @since 4.0.0
+	 * @since 6.4.0 Unsetting a dynamic property is deprecated.
 	 *
 	 * @param string $name Property to unset.
 	 */
 	public function __unset( $name ) {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			unset( $this->$name );
+			return;
 		}
+
+		wp_trigger_error(
+			__METHOD__,
+			"A property `{$name}` is not declared. Unsetting a dynamic property is " .
+			'deprecated since version 6.4.0! Instead, declare the property on the class.',
+			E_USER_DEPRECATED
+		);
 	}
 }

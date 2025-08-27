@@ -121,8 +121,6 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 	 * @group cache
 	 */
 	public function test_taxonomy_classes_hit_cache() {
-		global $wpdb;
-
 		register_taxonomy( 'wptests_tax', 'post' );
 		wp_set_post_terms( $this->post_id, array( 'foo', 'bar' ), 'wptests_tax' );
 		wp_set_post_terms( $this->post_id, array( 'footag', 'bartag' ), 'post_tag' );
@@ -131,10 +129,10 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 		update_object_term_cache( $this->post_id, 'post' );
 		update_meta_cache( 'post', $this->post_id );
 
-		$num_queries = $wpdb->num_queries;
+		$num_queries = get_num_queries();
 
 		$found = get_post_class( '', $this->post_id );
 
-		$this->assertSame( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, get_num_queries() );
 	}
 }

@@ -1,11 +1,18 @@
 <?php
 
 /*
- * Disable error reporting.
- *
- * Set this to error_reporting( -1 ) for debugging.
+ * The error_reporting() function can be disabled in php.ini. On systems where that is the case,
+ * it's best to add a dummy function to the wp-config.php file, but as this call to the function
+ * is run prior to wp-config.php loading, it is wrapped in a function_exists() check.
  */
-error_reporting( 0 );
+if ( function_exists( 'error_reporting' ) ) {
+	/*
+	 * Disable error reporting.
+	 *
+	 * Set this to error_reporting( -1 ) for debugging.
+	 */
+	error_reporting( 0 );
+}
 
 // Set ABSPATH for execution.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -48,7 +55,9 @@ $out            = '';
 $wp_styles = new WP_Styles();
 wp_default_styles( $wp_styles );
 
-if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) === $wp_version ) {
+$etag = $wp_styles->get_etag( $load );
+
+if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) === $etag ) {
 	header( "$protocol 304 Not Modified" );
 	exit;
 }
@@ -73,7 +82,8 @@ foreach ( $load as $handle ) {
 
 	$content = get_file( $path ) . "\n";
 
-	if ( strpos( $style->src, '/' . WPINC . '/css/' ) === 0 ) {
+	// Note: str_starts_with() is not used here, as wp-includes/compat.php is not loaded in this file.
+	if ( 0 === strpos( $style->src, '/' . WPINC . '/css/' ) ) {
 		$content = str_replace( '../images/', '../' . WPINC . '/images/', $content );
 		$content = str_replace( '../js/tinymce/', '../' . WPINC . '/js/tinymce/', $content );
 		$content = str_replace( '../fonts/', '../' . WPINC . '/fonts/', $content );
@@ -83,7 +93,7 @@ foreach ( $load as $handle ) {
 	}
 }
 
-header( "Etag: $wp_version" );
+header( "Etag: $etag" );
 header( 'Content-Type: text/css; charset=UTF-8' );
 header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $expires_offset ) . ' GMT' );
 header( "Cache-Control: public, max-age=$expires_offset" );

@@ -17,26 +17,26 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider utf8_substrings
+	 * @dataProvider data_utf8_substrings
 	 */
-	public function test_mb_substr( $string, $start, $length, $expected_character_substring ) {
-		$this->assertSame( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
+	public function test_mb_substr( $input_string, $start, $length, $expected_character_substring ) {
+		$this->assertSame( $expected_character_substring, _mb_substr( $input_string, $start, $length, 'UTF-8' ) );
 	}
 
 	/**
-	 * @dataProvider utf8_substrings
+	 * @dataProvider data_utf8_substrings
 	 */
-	public function test_mb_substr_via_regex( $string, $start, $length, $expected_character_substring ) {
+	public function test_mb_substr_via_regex( $input_string, $start, $length, $expected_character_substring ) {
 		_wp_can_use_pcre_u( false );
-		$this->assertSame( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
+		$this->assertSame( $expected_character_substring, _mb_substr( $input_string, $start, $length, 'UTF-8' ) );
 		_wp_can_use_pcre_u( 'reset' );
 	}
 
 	/**
-	 * @dataProvider utf8_substrings
+	 * @dataProvider data_utf8_substrings
 	 */
-	public function test_8bit_mb_substr( $string, $start, $length, $expected_character_substring, $expected_byte_substring ) {
-		$this->assertSame( $expected_byte_substring, _mb_substr( $string, $start, $length, '8bit' ) );
+	public function test_8bit_mb_substr( $input_string, $start, $length, $expected_character_substring, $expected_byte_substring ) {
+		$this->assertSame( $expected_byte_substring, _mb_substr( $input_string, $start, $length, '8bit' ) );
 	}
 
 	/**
@@ -44,52 +44,52 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function utf8_substrings() {
+	public function data_utf8_substrings() {
 		return array(
 			array(
-				'string'                       => 'баба',
+				'input_string'                 => 'баба',
 				'start'                        => 0,
 				'length'                       => 3,
 				'expected_character_substring' => 'баб',
 				'expected_byte_substring'      => "б\xD0",
 			),
 			array(
-				'string'                       => 'баба',
+				'input_string'                 => 'баба',
 				'start'                        => 0,
 				'length'                       => -1,
 				'expected_character_substring' => 'баб',
 				'expected_byte_substring'      => "баб\xD0",
 			),
 			array(
-				'string'                       => 'баба',
+				'input_string'                 => 'баба',
 				'start'                        => 1,
 				'length'                       => null,
 				'expected_character_substring' => 'аба',
 				'expected_byte_substring'      => "\xB1аба",
 			),
 			array(
-				'string'                       => 'баба',
+				'input_string'                 => 'баба',
 				'start'                        => -3,
 				'length'                       => null,
 				'expected_character_substring' => 'аба',
 				'expected_byte_substring'      => "\xB1а",
 			),
 			array(
-				'string'                       => 'баба',
+				'input_string'                 => 'баба',
 				'start'                        => -3,
 				'length'                       => 2,
 				'expected_character_substring' => 'аб',
 				'expected_byte_substring'      => "\xB1\xD0",
 			),
 			array(
-				'string'                       => 'баба',
+				'input_string'                 => 'баба',
 				'start'                        => -1,
 				'length'                       => 2,
 				'expected_character_substring' => 'а',
 				'expected_byte_substring'      => "\xB0",
 			),
 			array(
-				'string'                       => 'I am your баба',
+				'input_string'                 => 'I am your баба',
 				'start'                        => 0,
 				'length'                       => 11,
 				'expected_character_substring' => 'I am your б',

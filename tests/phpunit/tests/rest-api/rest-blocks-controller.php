@@ -1,18 +1,12 @@
 <?php
 /**
- * WP_REST_Blocks_Controller tests
+ * Unit tests covering WP_REST_Blocks_Controller functionality.
  *
  * @package WordPress
  * @subpackage REST_API
  * @since 5.0.0
- */
-
-/**
- * Tests for WP_REST_Blocks_Controller.
  *
- * @since 5.0.0
- *
- * @see WP_Test_REST_Controller_Testcase
+ * @covers WP_REST_Blocks_Controller
  *
  * @group restapi-blocks
  * @group restapi
@@ -104,7 +98,7 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 
 	/**
 	 * Exhaustively check that each role either can or cannot create, edit,
-	 * update, and delete reusable blocks.
+	 * update, and delete synced patterns.
 	 *
 	 * @ticket 45098
 	 *
@@ -225,5 +219,40 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 			),
 			$data['content']
 		);
+	}
+
+	/**
+	 * Check that the `wp_pattern_sync_status` postmeta is moved from meta array to top
+	 * level of response.
+	 *
+	 * @ticket 58677
+	 */
+	public function test_wp_patterns_sync_status_post_meta() {
+		register_post_meta(
+			'wp_block',
+			'wp_pattern_sync_status',
+			array(
+				'single'       => true,
+				'type'         => 'string',
+				'show_in_rest' => array(
+					'schema' => array(
+						'type'       => 'string',
+						'properties' => array(
+							'sync_status' => array(
+								'type' => 'string',
+							),
+						),
+					),
+				),
+			)
+		);
+		wp_set_current_user( self::$user_ids['author'] );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/blocks/' . self::$post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertArrayHasKey( 'wp_pattern_sync_status', $data );
+		$this->assertArrayNotHasKey( 'wp_pattern_sync_status', $data['meta'] );
 	}
 }

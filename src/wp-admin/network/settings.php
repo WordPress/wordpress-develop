@@ -53,7 +53,7 @@ get_current_screen()->add_help_tab(
 			'<p>' . __( 'Registration settings can disable/enable public signups. If you let others sign up for a site, install spam plugins. Spaces, not commas, should separate names banned as sites for this network.' ) . '</p>' .
 			'<p>' . __( 'New site settings are defaults applied when a new site is created in the network. These include welcome email for when a new site or user account is registered, and what&#8127;s put in the first post, page, comment, comment author, and comment URL.' ) . '</p>' .
 			'<p>' . __( 'Upload settings control the size of the uploaded files and the amount of available upload space for each site. You can change the default value for specific sites when you edit a particular site. Allowed file types are also listed (space separated only).' ) . '</p>' .
-			'<p>' . __( 'You can set the language, and the translation files will be automatically downloaded and installed (available if your filesystem is writable).' ) . '</p>' .
+			'<p>' . __( 'You can set the language, and WordPress will automatically download and install the translation files (available if your filesystem is writable).' ) . '</p>' .
 			'<p>' . __( 'Menu setting enables/disables the plugin menus from appearing for non super admins, so that only super admins, not site admins, have access to activate plugins.' ) . '</p>' .
 			'<p>' . __( 'Super admins can no longer be added on the Options screen. You must now go to the list of existing users on Network Admin > Users and click on Username or the Edit action link below that name. This goes to an Edit User page where you can check a box to grant super admin privileges.' ) . '</p>',
 	)
@@ -61,8 +61,8 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/network-admin-settings-screen/">Documentation on Network Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/settings/">Documentation on Network Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 if ( $_POST ) {
@@ -138,8 +138,14 @@ if ( $_POST ) {
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_GET['updated'] ) ) {
-	?><div id="message" class="updated notice is-dismissible"><p><?php _e( 'Settings saved.' ); ?></p></div>
-	<?php
+	wp_admin_notice(
+		__( 'Settings saved.' ),
+		array(
+			'type'        => 'success',
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
 }
 ?>
 
@@ -166,24 +172,28 @@ if ( isset( $_GET['updated'] ) ) {
 					<?php
 					$new_admin_email = get_site_option( 'new_admin_email' );
 					if ( $new_admin_email && get_site_option( 'admin_email' ) !== $new_admin_email ) :
-						?>
-						<div class="updated inline">
-						<p>
-						<?php
-							printf(
-								/* translators: %s: New network admin email. */
-								__( 'There is a pending change of the network admin email to %s.' ),
-								'<code>' . esc_html( $new_admin_email ) . '</code>'
-							);
-							printf(
-								' <a href="%1$s">%2$s</a>',
-								esc_url( wp_nonce_url( network_admin_url( 'settings.php?dismiss=new_network_admin_email' ), 'dismiss_new_network_admin_email' ) ),
-								__( 'Cancel' )
-							);
-						?>
-						</p>
-						</div>
-					<?php endif; ?>
+						$notice_message = sprintf(
+							/* translators: %s: New network admin email. */
+							__( 'There is a pending change of the network admin email to %s.' ),
+							'<code>' . esc_html( $new_admin_email ) . '</code>'
+						);
+
+						$notice_message .= sprintf(
+							' <a href="%1$s">%2$s</a>',
+							esc_url( wp_nonce_url( network_admin_url( 'settings.php?dismiss=new_network_admin_email' ), 'dismiss_new_network_admin_email' ) ),
+							__( 'Cancel' )
+						);
+
+						wp_admin_notice(
+							$notice_message,
+							array(
+								'type'               => 'warning',
+								'dismissible'        => true,
+								'additional_classes' => array( 'inline' ),
+							)
+						);
+					endif;
+					?>
 				</td>
 			</tr>
 		</table>
@@ -199,7 +209,12 @@ if ( isset( $_GET['updated'] ) ) {
 				?>
 				<td>
 					<fieldset>
-					<legend class="screen-reader-text"><?php _e( 'New registrations settings' ); ?></legend>
+					<legend class="screen-reader-text">
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'New registrations settings' );
+						?>
+					</legend>
 					<label><input name="registration" type="radio" id="registration1" value="none"<?php checked( $reg, 'none' ); ?> /> <?php _e( 'Registration is disabled' ); ?></label><br />
 					<label><input name="registration" type="radio" id="registration2" value="user"<?php checked( $reg, 'user' ); ?> /> <?php _e( 'User accounts may be registered' ); ?></label><br />
 					<label><input name="registration" type="radio" id="registration3" value="blog"<?php checked( $reg, 'blog' ); ?> /> <?php _e( 'Logged in users may register new sites' ); ?></label><br />
@@ -233,9 +248,9 @@ if ( isset( $_GET['updated'] ) ) {
 			</tr>
 
 			<tr id="addnewusers">
-				<th scope="row"><?php _e( 'Add New Users' ); ?></th>
+				<th scope="row"><?php _e( 'Add Users' ); ?></th>
 				<td>
-					<label><input name="add_new_users" type="checkbox" id="add_new_users" value="1"<?php checked( get_site_option( 'add_new_users' ) ); ?> /> <?php _e( 'Allow site administrators to add new users to their site via the "Users &rarr; Add New" page' ); ?></label>
+					<label><input name="add_new_users" type="checkbox" id="add_new_users" value="1"<?php checked( get_site_option( 'add_new_users' ) ); ?> /> <?php _e( 'Allow site administrators to add new users to their site via the "Users &rarr; Add User" page' ); ?></label>
 				</td>
 			</tr>
 
@@ -390,7 +405,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><?php _e( 'Site upload space' ); ?></th>
 				<td>
-					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?>/>
+					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?> />
 						<?php
 						printf(
 							/* translators: %s: Number of megabytes to limit uploads to. */
@@ -400,7 +415,10 @@ if ( isset( $_GET['updated'] ) ) {
 						?>
 					</label><br />
 					<p class="screen-reader-text" id="blog-upload-space-desc">
-						<?php _e( 'Size in megabytes' ); ?>
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Size in megabytes' );
+						?>
 					</p>
 				</td>
 			</tr>
@@ -426,7 +444,10 @@ if ( isset( $_GET['updated'] ) ) {
 						);
 						?>
 					<p class="screen-reader-text" id="fileupload-maxk-desc">
-						<?php _e( 'Size in kilobytes' ); ?>
+						<?php
+						/* translators: Hidden accessibility text. */
+						_e( 'Size in kilobytes' );
+						?>
 					</p>
 				</td>
 			</tr>
@@ -493,7 +514,10 @@ if ( isset( $_GET['updated'] ) ) {
 					<th scope="row"><?php _e( 'Enable administration menus' ); ?></th>
 					<td>
 						<?php
-						echo '<fieldset><legend class="screen-reader-text">' . __( 'Enable menus' ) . '</legend>';
+						echo '<fieldset><legend class="screen-reader-text">' .
+							/* translators: Hidden accessibility text. */
+							__( 'Enable menus' ) .
+						'</legend>';
 
 						foreach ( (array) $menu_items as $key => $val ) {
 							echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . ' /> ' . esc_html( $val ) . '</label><br/>';

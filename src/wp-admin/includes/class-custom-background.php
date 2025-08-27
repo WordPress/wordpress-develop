@@ -17,16 +17,16 @@ class Custom_Background {
 	/**
 	 * Callback for administration header.
 	 *
-	 * @var callable
 	 * @since 3.0.0
+	 * @var callable
 	 */
 	public $admin_header_callback;
 
 	/**
 	 * Callback for header div.
 	 *
-	 * @var callable
 	 * @since 3.0.0
+	 * @var callable
 	 */
 	public $admin_image_div_callback;
 
@@ -42,8 +42,11 @@ class Custom_Background {
 	 * Constructor - Registers administration header callback.
 	 *
 	 * @since 3.0.0
-	 * @param callable $admin_header_callback
-	 * @param callable $admin_image_div_callback Optional custom image div output callback.
+	 *
+	 * @param callable $admin_header_callback    Optional. Administration header callback.
+	 *                                           Default empty string.
+	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
+	 *                                           Default empty string.
 	 */
 	public function __construct( $admin_header_callback = '', $admin_image_div_callback = '' ) {
 		$this->admin_header_callback    = $admin_header_callback;
@@ -63,7 +66,14 @@ class Custom_Background {
 	 * @since 3.0.0
 	 */
 	public function init() {
-		$page = add_theme_page( __( 'Background' ), __( 'Background' ), 'edit_theme_options', 'custom-background', array( $this, 'admin_page' ) );
+		$page = add_theme_page(
+			_x( 'Background', 'custom background' ),
+			_x( 'Background', 'custom background' ),
+			'edit_theme_options',
+			'custom-background',
+			array( $this, 'admin_page' )
+		);
+
 		if ( ! $page ) {
 			return;
 		}
@@ -98,7 +108,7 @@ class Custom_Background {
 		get_current_screen()->set_help_sidebar(
 			'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 			'<p>' . __( '<a href="https://codex.wordpress.org/Appearance_Background_Screen">Documentation on Custom Background</a>' ) . '</p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+			'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 		);
 
 		wp_enqueue_media();
@@ -232,30 +242,37 @@ class Custom_Background {
 <div class="wrap" id="custom-background">
 <h1><?php _e( 'Custom Background' ); ?></h1>
 
-		<?php if ( current_user_can( 'customize' ) ) { ?>
-<div class="notice notice-info hide-if-no-customize">
-	<p>
-			<?php
-			printf(
+		<?php
+		if ( current_user_can( 'customize' ) ) {
+			$message = sprintf(
 				/* translators: %s: URL to background image configuration in Customizer. */
 				__( 'You can now manage and live-preview Custom Backgrounds in the <a href="%s">Customizer</a>.' ),
 				admin_url( 'customize.php?autofocus[control]=background_image' )
 			);
-			?>
-	</p>
-</div>
-		<?php } ?>
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'info',
+					'additional_classes' => array( 'hide-if-no-customize' ),
+				)
+			);
+		}
 
-		<?php if ( ! empty( $this->updated ) ) { ?>
-<div id="message" class="updated">
-	<p>
-			<?php
-			/* translators: %s: Home URL. */
-			printf( __( 'Background updated. <a href="%s">Visit your site</a> to see how it looks.' ), esc_url( home_url( '/' ) ) );
-			?>
-	</p>
-</div>
-		<?php } ?>
+		if ( ! empty( $this->updated ) ) {
+			$updated_message = sprintf(
+				/* translators: %s: Home URL. */
+				__( 'Background updated. <a href="%s">Visit your site</a> to see how it looks.' ),
+				esc_url( home_url( '/' ) )
+			);
+			wp_admin_notice(
+				$updated_message,
+				array(
+					'id'                 => 'message',
+					'additional_classes' => array( 'updated' ),
+				)
+			);
+		}
+		?>
 
 <h2><?php _e( 'Background Image' ); ?></h2>
 
@@ -271,7 +288,7 @@ class Custom_Background {
 			$background_styles = '';
 			$bgcolor           = get_background_color();
 			if ( $bgcolor ) {
-				$background_styles .= 'background-color: #' . $bgcolor . ';';
+				$background_styles .= 'background-color: ' . maybe_hash_hex_color( $bgcolor ) . ';';
 			}
 
 			$background_image_thumb = get_background_image();
@@ -337,7 +354,7 @@ class Custom_Background {
 		<input type="file" id="upload" name="import" />
 		<input type="hidden" name="action" value="save" />
 			<?php wp_nonce_field( 'custom-background-upload', '_wpnonce-custom-background-upload' ); ?>
-			<?php submit_button( __( 'Upload' ), '', 'submit', false ); ?>
+			<?php submit_button( _x( 'Upload', 'verb' ), '', 'submit', false ); ?>
 	</p>
 	<p>
 		<label for="choose-from-library-link"><?php _e( 'Or choose an image from your media library:' ); ?></label><br />
@@ -413,7 +430,12 @@ class Custom_Background {
 			?>
 <tr>
 <th scope="row"><?php _e( 'Image Position' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Image Position' ); ?></span></legend>
+<td><fieldset><legend class="screen-reader-text"><span>
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Image Position' );
+			?>
+</span></legend>
 <div class="background-position-control">
 			<?php foreach ( $background_position_options as $group ) : ?>
 	<div class="button-group">
@@ -432,7 +454,12 @@ class Custom_Background {
 
 <tr>
 <th scope="row"><label for="background-size"><?php _e( 'Image Size' ); ?></label></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Image Size' ); ?></span></legend>
+<td><fieldset><legend class="screen-reader-text"><span>
+			<?php
+			/* translators: Hidden accessibility text. */
+			_e( 'Image Size' );
+			?>
+</span></legend>
 <select id="background-size" name="background-size">
 <option value="auto"<?php selected( 'auto', get_theme_mod( 'background_size', get_theme_support( 'custom-background', 'default-size' ) ) ); ?>><?php _ex( 'Original', 'Original Size' ); ?></option>
 <option value="contain"<?php selected( 'contain', get_theme_mod( 'background_size', get_theme_support( 'custom-background', 'default-size' ) ) ); ?>><?php _e( 'Fit to Screen' ); ?></option>
@@ -443,7 +470,12 @@ class Custom_Background {
 
 <tr>
 <th scope="row"><?php _ex( 'Repeat', 'Background Repeat' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _ex( 'Repeat', 'Background Repeat' ); ?></span></legend>
+<td><fieldset><legend class="screen-reader-text"><span>
+			<?php
+			/* translators: Hidden accessibility text. */
+			_ex( 'Repeat', 'Background Repeat' );
+			?>
+</span></legend>
 <input name="background-repeat" type="hidden" value="no-repeat">
 <label><input type="checkbox" name="background-repeat" value="repeat"<?php checked( 'repeat', get_theme_mod( 'background_repeat', get_theme_support( 'custom-background', 'default-repeat' ) ) ); ?>> <?php _e( 'Repeat Background Image' ); ?></label>
 </fieldset></td>
@@ -451,7 +483,12 @@ class Custom_Background {
 
 <tr>
 <th scope="row"><?php _ex( 'Scroll', 'Background Scroll' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _ex( 'Scroll', 'Background Scroll' ); ?></span></legend>
+<td><fieldset><legend class="screen-reader-text"><span>
+			<?php
+			/* translators: Hidden accessibility text. */
+			_ex( 'Scroll', 'Background Scroll' );
+			?>
+</span></legend>
 <input name="background-attachment" type="hidden" value="fixed">
 <label><input name="background-attachment" type="checkbox" value="scroll" <?php checked( 'scroll', get_theme_mod( 'background_attachment', get_theme_support( 'custom-background', 'default-attachment' ) ) ); ?>> <?php _e( 'Scroll with Page' ); ?></label>
 </fieldset></td>
@@ -459,7 +496,12 @@ class Custom_Background {
 <?php endif; // get_background_image() ?>
 <tr>
 <th scope="row"><?php _e( 'Background Color' ); ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Background Color' ); ?></span></legend>
+<td><fieldset><legend class="screen-reader-text"><span>
+		<?php
+		/* translators: Hidden accessibility text. */
+		_e( 'Background Color' );
+		?>
+</span></legend>
 		<?php
 		$default_color = '';
 		if ( current_theme_supports( 'custom-background', 'default-color' ) ) {
@@ -532,8 +574,9 @@ class Custom_Background {
 		$thumbnail = wp_get_attachment_image_src( $id, 'thumbnail' );
 		set_theme_mod( 'background_image_thumb', sanitize_url( $thumbnail[0] ) );
 
-		/** This action is documented in wp-admin/includes/class-custom-image-header.php */
-		do_action( 'wp_create_file_in_uploads', $file, $id ); // For replication.
+		/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
+		$file = apply_filters( 'wp_create_file_in_uploads', $file, $id ); // For replication.
+
 		$this->updated = true;
 	}
 

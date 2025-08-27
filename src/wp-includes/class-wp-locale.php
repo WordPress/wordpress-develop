@@ -19,9 +19,10 @@ class WP_Locale {
 	 * Stores the translated strings for the full weekday names.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
-	public $weekday;
+	public $weekday = array();
 
 	/**
 	 * Stores the translated strings for the one character weekday names.
@@ -32,41 +33,46 @@ class WP_Locale {
 	 * @see WP_Locale::init() for how to handle the hack.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
-	public $weekday_initial;
+	public $weekday_initial = array();
 
 	/**
 	 * Stores the translated strings for the abbreviated weekday names.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
-	public $weekday_abbrev;
+	public $weekday_abbrev = array();
 
 	/**
 	 * Stores the translated strings for the full month names.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
-	public $month;
+	public $month = array();
 
 	/**
 	 * Stores the translated strings for the month names in genitive case, if the locale specifies.
 	 *
 	 * @since 4.4.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
-	public $month_genitive;
+	public $month_genitive = array();
 
 	/**
 	 * Stores the translated strings for the abbreviated month names.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
-	public $month_abbrev;
+	public $month_abbrev = array();
 
 	/**
 	 * Stores the translated strings for 'am' and 'pm'.
@@ -74,9 +80,10 @@ class WP_Locale {
 	 * Also the capitalized versions.
 	 *
 	 * @since 2.1.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var string[]
 	 */
-	public $meridiem;
+	public $meridiem = array();
 
 	/**
 	 * The text direction of the locale language.
@@ -92,9 +99,10 @@ class WP_Locale {
 	 * The thousands separator and decimal point values used for localizing numbers.
 	 *
 	 * @since 2.3.0
+	 * @since 6.2.0 Initialized to an empty array.
 	 * @var array
 	 */
-	public $number_format;
+	public $number_format = array();
 
 	/**
 	 * The separator string used for localizing list item separator.
@@ -103,6 +111,16 @@ class WP_Locale {
 	 * @var string
 	 */
 	public $list_item_separator;
+
+	/**
+	 * The word count type of the locale language.
+	 *
+	 * Default is 'words'.
+	 *
+	 * @since 6.2.0
+	 * @var string
+	 */
+	public $word_count_type;
 
 	/**
 	 * Constructor which calls helper methods to set up object variables.
@@ -124,7 +142,6 @@ class WP_Locale {
 	 * @since 2.1.0
 	 *
 	 * @global string $text_direction
-	 * @global string $wp_version     The WordPress version string.
 	 */
 	public function init() {
 		// The weekdays.
@@ -202,8 +219,10 @@ class WP_Locale {
 		$this->meridiem['AM'] = __( 'AM' );
 		$this->meridiem['PM'] = __( 'PM' );
 
-		// Numbers formatting.
-		// See https://www.php.net/number_format
+		/*
+		 * Numbers formatting.
+		 * See https://www.php.net/number_format
+		 */
 
 		/* translators: $thousands_sep argument for https://www.php.net/number_format, default is ',' */
 		$thousands_sep = __( 'number_format_thousands_sep' );
@@ -218,7 +237,7 @@ class WP_Locale {
 
 		$this->number_format['decimal_point'] = ( 'number_format_decimal_point' === $decimal_point ) ? '.' : $decimal_point;
 
-		/* translators: used between list items, there is a space after the comma */
+		/* translators: Used between list items, there is a space after the comma. */
 		$this->list_item_separator = __( ', ' );
 
 		// Set text direction.
@@ -229,6 +248,9 @@ class WP_Locale {
 		} elseif ( 'rtl' === _x( 'ltr', 'text direction' ) ) {
 			$this->text_direction = 'rtl';
 		}
+
+		// Set the word count type.
+		$this->word_count_type = $this->get_word_count_type();
 	}
 
 	/**
@@ -293,10 +315,14 @@ class WP_Locale {
 	 * @since 2.1.0
 	 *
 	 * @param string|int $month_number '01' through '12'.
-	 * @return string Translated full month name.
+	 * @return string Translated full month name. If the month number is not found, an empty string is returned.
 	 */
 	public function get_month( $month_number ) {
-		return $this->month[ zeroise( $month_number, 2 ) ];
+		$month_number = zeroise( $month_number, 2 );
+		if ( ! isset( $this->month[ $month_number ] ) ) {
+			return '';
+		}
+		return $this->month[ $month_number ];
 	}
 
 	/**
@@ -312,6 +338,26 @@ class WP_Locale {
 	 */
 	public function get_month_abbrev( $month_name ) {
 		return $this->month_abbrev[ $month_name ];
+	}
+
+	/**
+	 * Retrieves translated version of month genitive string.
+	 *
+	 * The $month_number parameter has to be a string
+	 * because it must have the '0' in front of any number
+	 * that is less than 10. Starts from '01' and ends at
+	 * '12'.
+	 *
+	 * You can use an integer instead and it will add the
+	 * '0' before the numbers less than 10 for you.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string|int $month_number '01' through '12'.
+	 * @return string Translated genitive month name.
+	 */
+	public function get_month_genitive( $month_number ) {
+		return $this->month_genitive[ zeroise( $month_number, 2 ) ];
 	}
 
 	/**
@@ -333,6 +379,7 @@ class WP_Locale {
 	 *
 	 * For backward compatibility only.
 	 *
+	 * @since 2.1.0
 	 * @deprecated For backward compatibility only.
 	 *
 	 * @global array $weekday
@@ -340,8 +387,6 @@ class WP_Locale {
 	 * @global array $weekday_abbrev
 	 * @global array $month
 	 * @global array $month_abbrev
-	 *
-	 * @since 2.1.0
 	 */
 	public function register_globals() {
 		$GLOBALS['weekday']         = $this->weekday;
@@ -388,5 +433,31 @@ class WP_Locale {
 	 */
 	public function get_list_item_separator() {
 		return $this->list_item_separator;
+	}
+
+	/**
+	 * Retrieves the localized word count type.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @return string Localized word count type. Possible values are `characters_excluding_spaces`,
+	 *                `characters_including_spaces`, or `words`. Defaults to `words`.
+	 */
+	public function get_word_count_type() {
+
+		/*
+		 * translators: If your word count is based on single characters (e.g. East Asian characters),
+		 * enter 'characters_excluding_spaces' or 'characters_including_spaces'. Otherwise, enter 'words'.
+		 * Do not translate into your own language.
+		 */
+		$word_count_type = is_null( $this->word_count_type ) ? _x( 'words', 'Word count type. Do not translate!' ) : $this->word_count_type;
+
+		// Check for valid types.
+		if ( 'characters_excluding_spaces' !== $word_count_type && 'characters_including_spaces' !== $word_count_type ) {
+			// Defaults to 'words'.
+			$word_count_type = 'words';
+		}
+
+		return $word_count_type;
 	}
 }

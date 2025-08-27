@@ -4,12 +4,10 @@
  *
  * Also generates the fixture data used by the wp-api.js QUnit tests.
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage REST API
- * @since      5.6.0
- */
-
-/**
+ * @since 5.6.0
+ *
  * @group restapi
  */
 class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
@@ -94,6 +92,9 @@ class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test() {
 		wp_set_current_user( self::$admin );
 		$response = rest_do_request( '/wp-site-health/v1/tests/dotorg-communication' );
@@ -116,12 +117,12 @@ class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
 		$this->assertCount( 1, $route );
 
 		$route = current( $route );
-		$this->assertEquals(
+		$this->assertSame(
 			array( WP_REST_Server::READABLE => true ),
 			$route['methods']
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			'test_page_cache',
 			$route['callback'][1]
 		);

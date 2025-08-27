@@ -12,6 +12,8 @@
  *
  * @since 2.7.0
  * @since 3.7.0 Combined with the fsockopen transport and switched to `stream_socket_client()`.
+ * @deprecated 6.4.0 Use WP_Http
+ * @see WP_Http
  */
 #[AllowDynamicProperties]
 class WP_Http_Streams {
@@ -37,6 +39,9 @@ class WP_Http_Streams {
 			'headers'     => array(),
 			'body'        => null,
 			'cookies'     => array(),
+			'decompress'  => false,
+			'stream'      => false,
+			'filename'    => null,
 		);
 
 		$parsed_args = wp_parse_args( $args, $defaults );
@@ -101,8 +106,9 @@ class WP_Http_Streams {
 			 * @since 2.8.0
 			 * @since 5.1.0 The `$url` parameter was added.
 			 *
-			 * @param bool   $ssl_verify Whether to verify the SSL connection. Default true.
-			 * @param string $url        The request URL.
+			 * @param bool|string $ssl_verify Boolean to control whether to verify the SSL connection
+			 *                                or path to an SSL certificate.
+			 * @param string      $url        The request URL.
 			 */
 			$ssl_verify = apply_filters( 'https_local_ssl_verify', $ssl_verify, $url );
 		} elseif ( ! $is_local ) {
@@ -125,8 +131,13 @@ class WP_Http_Streams {
 			)
 		);
 
-		$timeout         = (int) floor( $parsed_args['timeout'] );
-		$utimeout        = $timeout == $parsed_args['timeout'] ? 0 : 1000000 * $parsed_args['timeout'] % 1000000;
+		$timeout  = (int) floor( $parsed_args['timeout'] );
+		$utimeout = 0;
+
+		if ( $timeout !== (int) $parsed_args['timeout'] ) {
+			$utimeout = 1000000 * $parsed_args['timeout'] % 1000000;
+		}
+
 		$connect_timeout = max( $timeout, 1 );
 
 		// Store error number.
@@ -216,8 +227,8 @@ class WP_Http_Streams {
 
 		$include_port_in_host_header = (
 			( $proxy->is_enabled() && $proxy->send_through_proxy( $url ) )
-			|| ( 'http' === $parsed_url['scheme'] && 80 != $parsed_url['port'] )
-			|| ( 'https' === $parsed_url['scheme'] && 443 != $parsed_url['port'] )
+			|| ( 'http' === $parsed_url['scheme'] && 80 !== $parsed_url['port'] )
+			|| ( 'https' === $parsed_url['scheme'] && 443 !== $parsed_url['port'] )
 		);
 
 		if ( $include_port_in_host_header ) {
@@ -319,7 +330,7 @@ class WP_Http_Streams {
 
 				$bytes_written_to_file = fwrite( $stream_handle, $block );
 
-				if ( $bytes_written_to_file != $this_block_size ) {
+				if ( $bytes_written_to_file !== $this_block_size ) {
 					fclose( $handle );
 					fclose( $stream_handle );
 					return new WP_Error( 'http_request_failed', __( 'Failed to write request to temporary file.' ) );

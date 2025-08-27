@@ -76,7 +76,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 			),
 			array_keys( $widget->l10n )
 		);
-		$this->assertSame( count( $widget->l10n ), count( array_filter( $widget->l10n ) ), 'Expected all translation strings to be defined.' );
+		$this->assertCount( count( $widget->l10n ), array_filter( $widget->l10n ), 'Expected all translation strings to be defined.' );
 		$this->assertSame( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
 		$this->assertFalse( has_action( 'wp_enqueue_scripts', array( $widget, 'enqueue_preview_scripts' ) ), 'Did not expect preview scripts to be enqueued when not in customize preview context.' );
 		$this->assertSame( 10, has_action( 'admin_footer-widgets.php', array( $widget, 'render_control_template_scripts' ) ) );
@@ -343,7 +343,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 		$this->widget_instance_filter_args = array();
 		$widget->widget( $args, $instance );
 		$this->assertCount( 3, $this->widget_instance_filter_args );
-		$this->assertEquals( $instance, $this->widget_instance_filter_args[0] );
+		$this->assertSameSetsWithIndex( $instance, $this->widget_instance_filter_args[0] );
 		$this->assertSame( $args, $this->widget_instance_filter_args[1] );
 		$this->assertSame( $widget, $this->widget_instance_filter_args[2] );
 		$output = ob_get_clean();
@@ -383,10 +383,10 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	 *
 	 * @param array           $instance Instance data.
 	 * @param array           $args     Widget args.
-	 * @param WP_Widget_Media $object   Widget object.
+	 * @param WP_Widget_Media $widget   Widget object.
 	 * @return array Instance.
 	 */
-	public function filter_widget_mocked_instance( $instance, $args, $object ) {
+	public function filter_widget_mocked_instance( $instance, $args, $widget ) {
 		$this->widget_instance_filter_args = func_get_args();
 		return $instance;
 	}

@@ -458,8 +458,7 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 	touch-action: none;
 }
 
-.wp-slider .ui-slider-handle,
-.wp-slider .ui-slider-handle.focus {
+.wp-slider .ui-slider-handle {
 	background: #f6f7f7;
 	border: 1px solid #c3c4c7;
 	box-shadow: 0 1px 0 #c3c4c7;
@@ -477,6 +476,15 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 	border-color: #8c8f94;
 	box-shadow: inset 0 2px 5px -3px rgba(0, 0, 0, 0.5);
 	transform: translateY(1px);
+}
+
+.wp-slider .ui-slider-handle:focus,
+.wp-slider .ui-slider-handle.ui-state-focus {
+	background: #f0f0f1;
+	border-color: #8c8f94;
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .wp-slider .ui-slider-handle:before {
@@ -558,10 +566,31 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
  * HiDPI Displays
  */
 @media print,
-  (-webkit-min-device-pixel-ratio: 1.25),
   (min-resolution: 120dpi) {
 	.revision-tick.completed-false {
 		background-image: url(../images/spinner-2x.gif);
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.revisions-meta .author-card:not(.comparing-two-revisions .author-card) {
+		display: flex;
+		flex-direction: column;
+		width: fit-content;
+		gap: 16px;
+	}
+
+	.comparing-two-revisions .revisions-meta .restore-revision {
+		margin-top: 16px;
+	}
+
+	.revisions-controls {
+		padding-top: 0;
+	}
+
+	.revision-toggle-compare-mode {
+		position: relative;
+		padding: 1rem 0;
 	}
 }
 
@@ -578,12 +607,16 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 
 	.revisions-controls,
 	.comparing-two-revisions .revisions-controls {
-		height: 170px;
+		height: fit-content;
 	}
 
 	.revisions-tooltip {
-		bottom: 130px;
+		bottom: 155px;
 		z-index: 2;
+	}
+
+	.comparing-two-revisions .revisions-tooltip {
+		bottom: 200px;
 	}
 
 	.diff-meta {

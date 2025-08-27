@@ -54,7 +54,6 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
-
 	}
 
 	/**
@@ -146,7 +145,19 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	public function update_item( $request ) {
 		$options = $this->get_registered_options();
 
-		$params = $request->get_params();
+		$params = array_diff_key( $request->get_params(), $request->get_query_params() );
+
+		if ( empty( $params ) || ! empty( array_diff_key( $params, $options ) ) ) {
+			$message = empty( $params )
+				? __( 'Request body cannot be empty.' )
+				: __( 'Invalid parameter(s) provided.' );
+
+			return new WP_Error(
+				'rest_invalid_param',
+				$message,
+				array( 'status' => 400 )
+			);
+		}
 
 		foreach ( $options as $name => $args ) {
 			if ( ! array_key_exists( $name, $params ) ) {
@@ -238,6 +249,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 
 			$default_schema = array(
 				'type'        => empty( $args['type'] ) ? null : $args['type'],
+				'title'       => empty( $args['label'] ) ? '' : $args['label'],
 				'description' => empty( $args['description'] ) ? '' : $args['description'],
 				'default'     => isset( $args['default'] ) ? $args['default'] : null,
 			);

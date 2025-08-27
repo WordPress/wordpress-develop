@@ -55,7 +55,7 @@ add_action( 'after_setup_theme', 'twentyten_setup' );
 
 if ( ! function_exists( 'twentyten_setup' ) ) :
 	/**
-	 * Set up theme defaults and registers support for various WordPress features.
+	 * Sets up theme defaults and registers support for various WordPress features.
 	 *
 	 * Note that this function is hooked into the after_setup_theme hook, which runs
 	 * before the init hook. The init hook is too late for some features, such as indicating
@@ -128,8 +128,15 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 		/*
 		 * Make theme available for translation.
 		 * Translations can be filed in the /languages/ directory.
+		 *
+		 * Manual loading of text domain is not required after the introduction of
+		 * just in time translation loading in WordPress version 4.6.
+		 *
+		 * @ticket 58318
 		 */
-		load_theme_textdomain( 'twentyten', get_template_directory() . '/languages' );
+		if ( version_compare( $GLOBALS['wp_version'], '4.6', '<' ) ) {
+			load_theme_textdomain( 'twentyten', get_template_directory() . '/languages' );
+		}
 
 		// This theme uses wp_nav_menu() in one location.
 		register_nav_menus(
@@ -165,7 +172,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			 */
 			'width'               => apply_filters( 'twentyten_header_image_width', 940 ),
 			/**
-			 * Filters the Twenty Ten defaul header image height.
+			 * Filters the Twenty Ten default header image height.
 			 *
 			 * @since Twenty Ten 1.0
 			 *
@@ -260,7 +267,7 @@ endif;
 
 if ( ! function_exists( 'twentyten_admin_header_style' ) ) :
 	/**
-	 * Style the header image displayed on the Appearance > Header admin panel.
+	 * Styles the header image displayed on the Appearance > Header admin panel.
 	 *
 	 * Referenced via add_custom_image_header() in twentyten_setup().
 	 *
@@ -283,8 +290,41 @@ if ( ! function_exists( 'twentyten_admin_header_style' ) ) :
 	}
 endif;
 
+
+if ( ! function_exists( 'twentyten_header_image' ) ) :
+	/**
+	 * Displays the custom header image markup.
+	 *
+	 * @since Twenty Ten 4.0
+	 */
+	function twentyten_header_image() {
+		$attrs = array(
+			'alt' => get_bloginfo( 'name', 'display' ),
+		);
+
+		// Compatibility with versions of WordPress prior to 3.4.
+		if ( function_exists( 'get_custom_header' ) ) {
+			$custom_header   = get_custom_header();
+			$attrs['width']  = $custom_header->width;
+			$attrs['height'] = $custom_header->height;
+		} else {
+			$attrs['width']  = HEADER_IMAGE_WIDTH;
+			$attrs['height'] = HEADER_IMAGE_HEIGHT;
+		}
+
+		if ( function_exists( 'the_header_image_tag' ) ) {
+			the_header_image_tag( $attrs );
+			return;
+		}
+
+		?>
+		<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $attrs['width'] ); ?>" height="<?php echo esc_attr( $attrs['height'] ); ?>" alt="<?php echo esc_attr( $attrs['alt'] ); ?>" />
+		<?php
+	}
+endif; // twentyten_header_image()
+
 /**
- * Show a home link for our wp_nav_menu() fallback, wp_page_menu().
+ * Shows a home link for our wp_nav_menu() fallback, wp_page_menu().
  *
  * To override this in a child theme, remove the filter and optionally add
  * your own function tied to the wp_page_menu_args filter hook.
@@ -302,7 +342,7 @@ function twentyten_page_menu_args( $args ) {
 add_filter( 'wp_page_menu_args', 'twentyten_page_menu_args' );
 
 /**
- * Set the post excerpt length to 40 characters.
+ * Sets the post excerpt length to 40 characters.
  *
  * To override this length in a child theme, remove the filter and add your own
  * function tied to the excerpt_length filter hook.
@@ -319,19 +359,19 @@ add_filter( 'excerpt_length', 'twentyten_excerpt_length' );
 
 if ( ! function_exists( 'twentyten_continue_reading_link' ) ) :
 	/**
-	 * Return a "Continue Reading" link for excerpts.
+	 * Returns a "Continue Reading" link for excerpts.
 	 *
 	 * @since Twenty Ten 1.0
 	 *
 	 * @return string "Continue Reading" link.
 	 */
 	function twentyten_continue_reading_link() {
-		return ' <a href="' . get_permalink() . '">' . __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'twentyten' ) . '</a>';
+		return ' <a href="' . esc_url( get_permalink() ) . '">' . __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'twentyten' ) . '</a>';
 	}
 endif;
 
 /**
- * Replace "[...]" with an ellipsis and twentyten_continue_reading_link().
+ * Replaces "[...]" with an ellipsis and twentyten_continue_reading_link().
  *
  * "[...]" is appended to automatically generated excerpts.
  *
@@ -352,7 +392,7 @@ function twentyten_auto_excerpt_more( $more ) {
 add_filter( 'excerpt_more', 'twentyten_auto_excerpt_more' );
 
 /**
- * Add a pretty "Continue Reading" link to custom post excerpts.
+ * Adds a pretty "Continue Reading" link to custom post excerpts.
  *
  * To override this link in a child theme, remove the filter and add your own
  * function tied to the get_the_excerpt filter hook.
@@ -371,7 +411,7 @@ function twentyten_custom_excerpt_more( $output ) {
 add_filter( 'get_the_excerpt', 'twentyten_custom_excerpt_more' );
 
 /**
- * Remove inline styles printed when the gallery shortcode is used.
+ * Removes inline styles printed when the gallery shortcode is used.
  *
  * Galleries are styled by the theme in Twenty Ten's style.css. This is just
  * a simple filter call that tells WordPress to not use the default styles.
@@ -389,6 +429,8 @@ add_filter( 'use_default_gallery_style', '__return_false' );
  * @since Twenty Ten 1.0
  * @deprecated Deprecated in Twenty Ten 1.2 for WordPress 3.1
  *
+ * @param string $css Default CSS styles and opening HTML div container
+ *                    for the gallery shortcode output.
  * @return string The gallery style filter, with the styles themselves removed.
  */
 function twentyten_remove_gallery_css( $css ) {
@@ -439,7 +481,7 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 				}
 				?>
 
-				<?php if ( '0' == $comment->comment_approved ) : ?>
+				<?php if ( '0' === $comment->comment_approved ) : ?>
 			<em class="comment-awaiting-moderation"><?php echo $moderation_note; ?></em>
 			<br />
 			<?php endif; ?>
@@ -486,7 +528,7 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 endif;
 
 /**
- * Register widgetized areas, including two sidebars and four widget-ready columns in the footer.
+ * Registers widgetized areas, including two sidebars and four widget-ready columns in the footer.
  *
  * To override twentyten_widgets_init() in a child theme, remove the action hook and add your own
  * function tied to the init hook.
@@ -578,7 +620,7 @@ function twentyten_widgets_init() {
 add_action( 'widgets_init', 'twentyten_widgets_init' );
 
 /**
- * Remove the default styles that are packaged with the Recent Comments widget.
+ * Removes the default styles that are packaged with the Recent Comments widget.
  *
  * To override this in a child theme, remove the filter and optionally add your own
  * function tied to the widgets_init action hook.
@@ -596,7 +638,7 @@ add_action( 'widgets_init', 'twentyten_remove_recent_comments_style' );
 
 if ( ! function_exists( 'twentyten_posted_on' ) ) :
 	/**
-	 * Print HTML with meta information for the current post-date/time and author.
+	 * Prints HTML with meta information for the current post-date/time and author.
 	 *
 	 * @since Twenty Ten 1.0
 	 */
@@ -607,13 +649,13 @@ if ( ! function_exists( 'twentyten_posted_on' ) ) :
 			'meta-prep meta-prep-author',
 			sprintf(
 				'<a href="%1$s" title="%2$s" rel="bookmark"><span class="entry-date">%3$s</span></a>',
-				get_permalink(),
+				esc_url( get_permalink() ),
 				esc_attr( get_the_time() ),
 				get_the_date()
 			),
 			sprintf(
 				'<span class="author vcard"><a class="url fn n" href="%1$s" title="%2$s">%3$s</a></span>',
-				get_author_posts_url( get_the_author_meta( 'ID' ) ),
+				esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ),
 				/* translators: %s: Author display name. */
 				esc_attr( sprintf( __( 'View all posts by %s', 'twentyten' ), get_the_author() ) ),
 				get_the_author()
@@ -624,7 +666,7 @@ endif;
 
 if ( ! function_exists( 'twentyten_posted_in' ) ) :
 	/**
-	 * Print HTML with meta information for the current post (category, tags and permalink).
+	 * Prints HTML with meta information for the current post (category, tags and permalink).
 	 *
 	 * @since Twenty Ten 1.0
 	 */
@@ -648,14 +690,14 @@ if ( ! function_exists( 'twentyten_posted_in' ) ) :
 			$posted_in,
 			get_the_category_list( ', ' ),
 			$tags_list,
-			get_permalink(),
+			esc_url( get_permalink() ),
 			the_title_attribute( 'echo=0' )
 		);
 	}
 endif;
 
 /**
- * Retrieve the IDs for images in a gallery.
+ * Retrieves the IDs for images in a gallery.
  *
  * @uses get_post_galleries() First, if available. Falls back to shortcode parsing,
  *                            then as last option uses a get_posts() call.
@@ -718,33 +760,41 @@ function twentyten_widget_tag_cloud_args( $args ) {
 add_filter( 'widget_tag_cloud_args', 'twentyten_widget_tag_cloud_args' );
 
 /**
- * Enqueue scripts and styles for front end.
+ * Enqueues scripts and styles for front end.
  *
  * @since Twenty Ten 2.6
  */
 function twentyten_scripts_styles() {
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyten-block-style', get_template_directory_uri() . '/blocks.css', array(), '20181218' );
+	wp_enqueue_style( 'twentyten-block-style', get_template_directory_uri() . '/blocks.css', array(), '20250220' );
 }
 add_action( 'wp_enqueue_scripts', 'twentyten_scripts_styles' );
 
 /**
- * Enqueue styles for the block-based editor.
+ * Enqueues styles for the block-based editor.
  *
  * @since Twenty Ten 2.6
  */
 function twentyten_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20201208' );
+	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20240703' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyten_block_editor_styles' );
 
-// Block Patterns.
-require get_template_directory() . '/block-patterns.php';
+/**
+ * Registers block patterns and pattern categories.
+ *
+ * @since Twenty Ten 4.3
+ */
+function twentyten_register_block_patterns() {
+	require get_template_directory() . '/block-patterns.php';
+}
+
+add_action( 'init', 'twentyten_register_block_patterns' );
 
 if ( ! function_exists( 'wp_body_open' ) ) :
 	/**
-	 * Fire the wp_body_open action.
+	 * Fires the wp_body_open action.
 	 *
 	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
 	 *

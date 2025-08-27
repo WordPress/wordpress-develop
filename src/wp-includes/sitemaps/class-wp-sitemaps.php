@@ -75,7 +75,6 @@ class WP_Sitemaps {
 		$this->register_sitemaps();
 
 		// Add additional action callbacks.
-		add_filter( 'pre_handle_404', array( $this, 'redirect_sitemapxml' ), 10, 2 );
 		add_filter( 'robots_txt', array( $this, 'add_robots' ), 0, 2 );
 	}
 
@@ -99,8 +98,8 @@ class WP_Sitemaps {
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param bool $is_enabled Whether XML Sitemaps are enabled or not. Defaults
-		 * to true for public sites.
+		 * @param bool $is_enabled Whether XML Sitemaps are enabled or not.
+		 *                         Defaults to true for public sites.
 		 */
 		return (bool) apply_filters( 'wp_sitemaps_enabled', $is_enabled );
 	}
@@ -223,12 +222,15 @@ class WP_Sitemaps {
 	 * Redirects a URL to the wp-sitemap.xml
 	 *
 	 * @since 5.5.0
+	 * @deprecated 6.7.0 Deprecated in favor of {@see WP_Rewrite::rewrite_rules()}
 	 *
 	 * @param bool     $bypass Pass-through of the pre_handle_404 filter value.
 	 * @param WP_Query $query  The WP_Query object.
 	 * @return bool Bypass value.
 	 */
 	public function redirect_sitemapxml( $bypass, $query ) {
+		_deprecated_function( __FUNCTION__, '6.7.0' );
+
 		// If a plugin has already utilized the pre_handle_404 function, return without action to avoid conflicts.
 		if ( $bypass ) {
 			return $bypass;
@@ -250,12 +252,12 @@ class WP_Sitemaps {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param string $output robots.txt output.
-	 * @param bool   $public Whether the site is public.
+	 * @param string $output    robots.txt output.
+	 * @param bool   $is_public Whether the site is public.
 	 * @return string The robots.txt output.
 	 */
-	public function add_robots( $output, $public ) {
-		if ( $public ) {
+	public function add_robots( $output, $is_public ) {
+		if ( $is_public ) {
 			$output .= "\nSitemap: " . esc_url( $this->index->get_index_url() ) . "\n";
 		}
 

@@ -5,15 +5,10 @@
  * @package WordPress\UnitTests
  *
  * @since 4.9.6
- */
-
-/**
- * Class Tests_Functions_Anonymization.
  *
- * @since 4.9.6
- *
- * @group functions.php
+ * @group functions
  * @group privacy
+ *
  * @covers ::wp_privacy_anonymize_data
  */
 class Tests_Functions_Anonymization extends WP_UnitTestCase {
@@ -46,8 +41,8 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $raw_ip          Raw IP address.
-	 *         @string string $expected_result Expected result.
+	 *         @type string $raw_ip          Raw IP address.
+	 *         @type string $expected_result Expected result.
 	 *     }
 	 * }
 	 */
@@ -200,8 +195,8 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $raw_ip          Raw IP address.
-	 *         @string string $expected_result Expected result.
+	 *         @type string $raw_ip          Raw IP address.
+	 *         @type string $expected_result Expected result.
 	 *     }
 	 * }
 	 */
@@ -326,5 +321,4 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 		}
 		return $anonymous;
 	}
-
 }

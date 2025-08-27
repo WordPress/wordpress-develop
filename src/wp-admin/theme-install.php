@@ -10,7 +10,7 @@
 require_once __DIR__ . '/admin.php';
 require ABSPATH . 'wp-admin/includes/theme-install.php';
 
-wp_reset_vars( array( 'tab' ) );
+$tab = ! empty( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : '';
 
 if ( ! current_user_can( 'install_themes' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
@@ -54,9 +54,8 @@ wp_localize_script(
 			'adminUrl'   => parse_url( self_admin_url(), PHP_URL_PATH ),
 		),
 		'l10n'            => array(
-			'addNew'              => __( 'Add New Theme' ),
+			'addNew'              => __( 'Add Theme' ),
 			'search'              => __( 'Search Themes' ),
-			'searchPlaceholder'   => __( 'Search themes...' ), // Placeholder (no ellipsis).
 			'upload'              => __( 'Upload Theme' ),
 			'back'                => __( 'Back' ),
 			'error'               => sprintf(
@@ -70,7 +69,7 @@ wp_localize_script(
 			'noThemesFound'       => __( 'No themes found. Try a different search.' ),
 			'collapseSidebar'     => __( 'Collapse Sidebar' ),
 			'expandSidebar'       => __( 'Expand Sidebar' ),
-			/* translators: Accessibility text. */
+			/* translators: Hidden accessibility text. */
 			'selectFeatureFilter' => __( 'Select one or more Theme features to filter by' ),
 		),
 		'installedThemes' => array_keys( $installed_themes ),
@@ -153,9 +152,9 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/appearance-themes-screen/#install-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/block-themes/">Documentation on Block Themes</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/appearance-themes-screen/#install-themes">Documentation on Adding New Themes</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/documentation/article/block-themes/">Documentation on Block Themes</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -183,15 +182,25 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 	<hr class="wp-header-end">
 
-	<div class="error hide-if-js">
-		<p><?php _e( 'The Theme Installer screen requires JavaScript.' ); ?></p>
-	</div>
+	<?php
+	wp_admin_notice(
+		__( 'The Theme Installer screen requires JavaScript.' ),
+		array(
+			'additional_classes' => array( 'error', 'hide-if-js' ),
+		)
+	);
+	?>
 
 	<div class="upload-theme">
 	<?php install_themes_upload(); ?>
 	</div>
 
-	<h2 class="screen-reader-text hide-if-no-js"><?php _e( 'Filter themes list' ); ?></h2>
+	<h2 class="screen-reader-text hide-if-no-js">
+		<?php
+		/* translators: Hidden accessibility text. */
+		_e( 'Filter themes list' );
+		?>
+	</h2>
 
 	<div class="wp-filter hide-if-no-js">
 		<div class="filter-count">
@@ -207,7 +216,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<button type="button" class="button drawer-toggle" aria-expanded="false"><?php _e( 'Feature Filter' ); ?></button>
 
-		<form class="search-form"></form>
+		<form class="search-form"><p class="search-box"></p></form>
 
 		<div class="favorites-form">
 			<?php
@@ -221,7 +230,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			?>
 			<p class="install-help"><?php _e( 'If you have marked themes as favorites on WordPress.org, you can browse them here.' ); ?></p>
 
-			<p>
+			<p class="favorites-username">
 				<label for="wporg-username-input"><?php _e( 'Your WordPress.org username:' ); ?></label>
 				<input type="hidden" id="wporg-username-nonce" name="_wpnonce" value="<?php echo esc_attr( wp_create_nonce( $action ) ); ?>" />
 				<input type="search" id="wporg-username-input" value="<?php echo esc_attr( $user ); ?>" />
@@ -263,7 +272,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 		</div>
 	</div>
-	<h2 class="screen-reader-text hide-if-no-js"><?php _e( 'Themes list' ); ?></h2>
+	<h2 class="screen-reader-text hide-if-no-js">
+		<?php
+		/* translators: Hidden accessibility text. */
+		_e( 'Themes list' );
+		?>
+	</h2>
 	<div class="theme-browser content-filterable"></div>
 	<div class="theme-install-overlay wp-full-overlay expanded"></div>
 
@@ -308,7 +322,15 @@ if ( $tab ) {
 	<# } #>
 
 	<# if ( data.installed ) { #>
-		<div class="notice notice-success notice-alt"><p><?php _ex( 'Installed', 'theme' ); ?></p></div>
+		<?php
+		wp_admin_notice(
+			_x( 'Installed', 'theme' ),
+			array(
+				'type'               => 'success',
+				'additional_classes' => array( 'notice-alt' ),
+			)
+		);
+		?>
 	<# } #>
 
 	<# if ( ! data.compatible_wp || ! data.compatible_php ) { #>
@@ -440,9 +462,24 @@ if ( $tab ) {
 <script id="tmpl-theme-preview" type="text/template">
 	<div class="wp-full-overlay-sidebar">
 		<div class="wp-full-overlay-header">
-			<button class="close-full-overlay"><span class="screen-reader-text"><?php _e( 'Close' ); ?></span></button>
-			<button class="previous-theme"><span class="screen-reader-text"><?php _e( 'Previous theme' ); ?></span></button>
-			<button class="next-theme"><span class="screen-reader-text"><?php _e( 'Next theme' ); ?></span></button>
+			<button class="close-full-overlay"><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Close' );
+				?>
+			</span></button>
+			<button class="previous-theme"><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Previous theme' );
+				?>
+			</span></button>
+			<button class="next-theme"><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Next theme' );
+				?>
+			</span></button>
 			<# if ( data.installed ) { #>
 				<# if ( data.compatible_wp && data.compatible_php ) { #>
 					<?php

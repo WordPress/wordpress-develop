@@ -16,7 +16,7 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_returns_hierachical_labels() {
+	public function test_returns_hierarchical_labels() {
 		$labels = get_post_type_labels(
 			(object) array(
 				'name'         => 'foo',
@@ -95,9 +95,9 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 
 		unregister_post_type( 'foo' );
 
-		$this->assertObjectHasAttribute( 'labels', $post_type_object );
-		$this->assertObjectHasAttribute( 'label', $post_type_object );
-		$this->assertObjectHasAttribute( 'not_found_in_trash', $post_type_object->labels );
+		$this->assertObjectHasProperty( 'labels', $post_type_object );
+		$this->assertObjectHasProperty( 'label', $post_type_object );
+		$this->assertObjectHasProperty( 'not_found_in_trash', $post_type_object->labels );
 	}
 
 	public function test_label_should_be_derived_from_labels_when_registering_a_post_type() {
@@ -122,8 +122,8 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 		add_filter( 'post_type_labels_foo', array( $this, 'filter_post_type_labels' ) );
 		register_post_type( 'foo' );
 
-		$this->assertObjectHasAttribute( 'featured_image', get_post_type_object( 'foo' )->labels );
-		$this->assertObjectHasAttribute( 'set_featured_image', get_post_type_object( 'foo' )->labels );
+		$this->assertObjectHasProperty( 'featured_image', get_post_type_object( 'foo' )->labels );
+		$this->assertObjectHasProperty( 'set_featured_image', get_post_type_object( 'foo' )->labels );
 
 		unregister_post_type( 'foo' );
 		remove_filter( 'post_type_labels_foo', array( $this, 'filter_post_type_labels' ) );

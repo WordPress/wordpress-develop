@@ -119,6 +119,11 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
+		}
+
 		$this->retrieve_widgets();
 
 		$data              = array();
@@ -261,8 +266,10 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	protected function do_permissions_check() {
-		// Verify if the current user has edit_theme_options capability.
-		// This capability is required to access the widgets screen.
+		/*
+		 * Verify if the current user has edit_theme_options capability.
+		 * This capability is required to access the widgets screen.
+		 */
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_widgets',
@@ -318,8 +325,15 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 
 		// Restores the more descriptive, specific name for use within this method.
 		$raw_sidebar = $item;
-		$id          = $raw_sidebar['id'];
-		$sidebar     = array( 'id' => $id );
+
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-sidebars-controller.php */
+			return apply_filters( 'rest_prepare_sidebar', new WP_REST_Response( array() ), $raw_sidebar, $request );
+		}
+
+		$id      = $raw_sidebar['id'];
+		$sidebar = array( 'id' => $id );
 
 		if ( isset( $wp_registered_sidebars[ $id ] ) ) {
 			$registered_sidebar = $wp_registered_sidebars[ $id ];
@@ -337,6 +351,10 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 			$sidebar['name']        = $raw_sidebar['name'];
 			$sidebar['description'] = '';
 			$sidebar['class']       = '';
+		}
+
+		if ( wp_is_block_theme() ) {
+			$sidebar['status'] = 'inactive';
 		}
 
 		$fields = $this->get_fields_for_response( $request );

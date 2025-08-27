@@ -34,21 +34,22 @@ function get_the_ID() { // phpcs:ignore WordPress.NamingConventions.ValidFunctio
  *
  * @since 0.71
  *
- * @param string $before Optional. Markup to prepend to the title. Default empty.
- * @param string $after  Optional. Markup to append to the title. Default empty.
- * @param bool   $echo   Optional. Whether to echo or return the title. Default true for echo.
- * @return void|string Void if `$echo` argument is true, current post title if `$echo` is false.
+ * @param string $before  Optional. Markup to prepend to the title. Default empty.
+ * @param string $after   Optional. Markup to append to the title. Default empty.
+ * @param bool   $display Optional. Whether to echo or return the title. Default true for echo.
+ * @return void|string Void if `$display` argument is true or the title is empty,
+ *                     current post title if `$display` is false.
  */
-function the_title( $before = '', $after = '', $echo = true ) {
+function the_title( $before = '', $after = '', $display = true ) {
 	$title = get_the_title();
 
-	if ( strlen( $title ) == 0 ) {
+	if ( strlen( $title ) === 0 ) {
 		return;
 	}
 
 	$title = $before . $title . $after;
 
-	if ( $echo ) {
+	if ( $display ) {
 		echo $title;
 	} else {
 		return $title;
@@ -88,7 +89,7 @@ function the_title_attribute( $args = '' ) {
 
 	$title = get_the_title( $parsed_args['post'] );
 
-	if ( strlen( $title ) == 0 ) {
+	if ( strlen( $title ) === 0 ) {
 		return;
 	}
 
@@ -284,8 +285,10 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		return '';
 	}
 
-	// Use the globals if the $post parameter was not specified,
-	// but only after they have been set up in setup_postdata().
+	/*
+	 * Use the globals if the $post parameter was not specified,
+	 * but only after they have been set up in setup_postdata().
+	 */
 	if ( null === $post && did_action( 'the_post' ) ) {
 		$elements = compact( 'page', 'more', 'preview', 'pages', 'multipage' );
 	} else {
@@ -342,7 +345,9 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		$content = array( $content );
 	}
 
-	if ( false !== strpos( $_post->post_content, '<!--noteaser-->' ) && ( ! $elements['multipage'] || 1 == $elements['page'] ) ) {
+	if ( str_contains( $_post->post_content, '<!--noteaser-->' )
+		&& ( ! $elements['multipage'] || 1 === $elements['page'] )
+	) {
 		$strip_teaser = true;
 	}
 
@@ -453,48 +458,52 @@ function has_excerpt( $post = 0 ) {
  *
  * @since 2.7.0
  *
- * @param string|string[] $class One or more classes to add to the class list.
- * @param int|WP_Post     $post  Optional. Post ID or post object. Defaults to the global `$post`.
+ * @param string|string[] $css_class Optional. One or more classes to add to the class list.
+ *                                   Default empty.
+ * @param int|WP_Post     $post      Optional. Post ID or post object. Defaults to the global `$post`.
  */
-function post_class( $class = '', $post = null ) {
+function post_class( $css_class = '', $post = null ) {
 	// Separates classes with a single space, collates classes for post DIV.
-	echo 'class="' . esc_attr( implode( ' ', get_post_class( $class, $post ) ) ) . '"';
+	echo 'class="' . esc_attr( implode( ' ', get_post_class( $css_class, $post ) ) ) . '"';
 }
 
 /**
  * Retrieves an array of the class names for the post container element.
  *
- * The class names are many. If the post is a sticky, then the 'sticky'
- * class name. The class 'hentry' is always added to each post. If the post has a
- * post thumbnail, 'has-post-thumbnail' is added as a class. For each taxonomy that
- * the post belongs to, a class will be added of the format '{$taxonomy}-{$slug}' -
- * eg 'category-foo' or 'my_custom_taxonomy-bar'.
+ * The class names are many:
  *
- * The 'post_tag' taxonomy is a special
- * case; the class has the 'tag-' prefix instead of 'post_tag-'. All class names are
- * passed through the filter, {@see 'post_class'}, with the list of class names, followed by
- * $class parameter value, with the post ID as the last parameter.
+ *  - If the post has a post thumbnail, `has-post-thumbnail` is added as a class.
+ *  - If the post is sticky, then the `sticky` class name is added.
+ *  - The class `hentry` is always added to each post.
+ *  - For each taxonomy that the post belongs to, a class will be added of the format
+ *    `{$taxonomy}-{$slug}`, e.g. `category-foo` or `my_custom_taxonomy-bar`.
+ *    The `post_tag` taxonomy is a special case; the class has the `tag-` prefix
+ *    instead of `post_tag-`.
+ *
+ * All class names are passed through the filter, {@see 'post_class'}, followed by
+ * `$css_class` parameter value, with the post ID as the last parameter.
  *
  * @since 2.7.0
  * @since 4.2.0 Custom taxonomy class names were added.
  *
- * @param string|string[] $class Space-separated string or array of class names to add to the class list.
- * @param int|WP_Post     $post  Optional. Post ID or post object.
+ * @param string|string[] $css_class Optional. Space-separated string or array of class names
+ *                                   to add to the class list. Default empty.
+ * @param int|WP_Post     $post      Optional. Post ID or post object.
  * @return string[] Array of class names.
  */
-function get_post_class( $class = '', $post = null ) {
+function get_post_class( $css_class = '', $post = null ) {
 	$post = get_post( $post );
 
 	$classes = array();
 
-	if ( $class ) {
-		if ( ! is_array( $class ) ) {
-			$class = preg_split( '#\s+#', $class );
+	if ( $css_class ) {
+		if ( ! is_array( $css_class ) ) {
+			$css_class = preg_split( '#\s+#', $css_class );
 		}
-		$classes = array_map( 'esc_attr', $class );
+		$classes = array_map( 'esc_attr', $css_class );
 	} else {
 		// Ensure that we always coerce class to being an array.
-		$class = array();
+		$css_class = array();
 	}
 
 	if ( ! $post ) {
@@ -558,9 +567,9 @@ function get_post_class( $class = '', $post = null ) {
 	 * @param string[] $taxonomies List of all taxonomy names to generate classes for.
 	 * @param int      $post_id    The post ID.
 	 * @param string[] $classes    An array of post class names.
-	 * @param string[] $class      An array of additional class names added to the post.
+	 * @param string[] $css_class  An array of additional class names added to the post.
 	*/
-	$taxonomies = apply_filters( 'post_class_taxonomies', $taxonomies, $post->ID, $classes, $class );
+	$taxonomies = apply_filters( 'post_class_taxonomies', $taxonomies, $post->ID, $classes, $css_class );
 
 	foreach ( (array) $taxonomies as $taxonomy ) {
 		if ( is_object_in_taxonomy( $post->post_type, $taxonomy ) ) {
@@ -591,11 +600,11 @@ function get_post_class( $class = '', $post = null ) {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string[] $classes An array of post class names.
-	 * @param string[] $class   An array of additional class names added to the post.
-	 * @param int      $post_id The post ID.
+	 * @param string[] $classes   An array of post class names.
+	 * @param string[] $css_class An array of additional class names added to the post.
+	 * @param int      $post_id   The post ID.
 	 */
-	$classes = apply_filters( 'post_class', $classes, $class, $post->ID );
+	$classes = apply_filters( 'post_class', $classes, $css_class, $post->ID );
 
 	return array_unique( $classes );
 }
@@ -605,11 +614,12 @@ function get_post_class( $class = '', $post = null ) {
  *
  * @since 2.8.0
  *
- * @param string|string[] $class Space-separated string or array of class names to add to the class list.
+ * @param string|string[] $css_class Optional. Space-separated string or array of class names
+ *                                   to add to the class list. Default empty.
  */
-function body_class( $class = '' ) {
+function body_class( $css_class = '' ) {
 	// Separates class names with a single space, collates class names for body element.
-	echo 'class="' . esc_attr( implode( ' ', get_body_class( $class ) ) ) . '"';
+	echo 'class="' . esc_attr( implode( ' ', get_body_class( $css_class ) ) ) . '"';
 }
 
 /**
@@ -619,10 +629,11 @@ function body_class( $class = '' ) {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @param string|string[] $class Space-separated string or array of class names to add to the class list.
+ * @param string|string[] $css_class Optional. Space-separated string or array of class names
+ *                                   to add to the class list. Default empty.
  * @return string[] Array of class names.
  */
-function get_body_class( $class = '' ) {
+function get_body_class( $css_class = '' ) {
 	global $wp_query;
 
 	$classes = array();
@@ -661,9 +672,11 @@ function get_body_class( $class = '' ) {
 	}
 
 	if ( is_singular() ) {
-		$post_id   = $wp_query->get_queried_object_id();
 		$post      = $wp_query->get_queried_object();
+		$post_id   = $post->ID;
 		$post_type = $post->post_type;
+
+		$classes[] = 'wp-singular';
 
 		if ( is_page_template() ) {
 			$classes[] = "{$post_type}-template";
@@ -705,16 +718,11 @@ function get_body_class( $class = '' ) {
 			$classes[]   = 'attachment-' . str_replace( $mime_prefix, '', $mime_type );
 		} elseif ( is_page() ) {
 			$classes[] = 'page';
-
-			$page_id = $wp_query->get_queried_object_id();
-
-			$post = get_post( $page_id );
-
-			$classes[] = 'page-id-' . $page_id;
+			$classes[] = 'page-id-' . $post_id;
 
 			if ( get_pages(
 				array(
-					'parent' => $page_id,
+					'parent' => $post_id,
 					'number' => 1,
 				)
 			) ) {
@@ -830,14 +838,19 @@ function get_body_class( $class = '' ) {
 		}
 	}
 
-	if ( ! empty( $class ) ) {
-		if ( ! is_array( $class ) ) {
-			$class = preg_split( '#\s+#', $class );
+	$classes[] = 'wp-theme-' . sanitize_html_class( get_template() );
+	if ( is_child_theme() ) {
+		$classes[] = 'wp-child-theme-' . sanitize_html_class( get_stylesheet() );
+	}
+
+	if ( ! empty( $css_class ) ) {
+		if ( ! is_array( $css_class ) ) {
+			$css_class = preg_split( '#\s+#', $css_class );
 		}
-		$classes = array_merge( $classes, $class );
+		$classes = array_merge( $classes, $css_class );
 	} else {
 		// Ensure that we always coerce class to being an array.
-		$class = array();
+		$css_class = array();
 	}
 
 	$classes = array_map( 'esc_attr', $classes );
@@ -847,10 +860,10 @@ function get_body_class( $class = '' ) {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param string[] $classes An array of body class names.
-	 * @param string[] $class   An array of additional class names added to the body.
+	 * @param string[] $classes   An array of body class names.
+	 * @param string[] $css_class An array of additional class names added to the body.
 	 */
-	$classes = apply_filters( 'body_class', $classes, $class );
+	$classes = apply_filters( 'body_class', $classes, $css_class );
 
 	return array_unique( $classes );
 }
@@ -880,7 +893,7 @@ function post_password_required( $post = null ) {
 	$hasher = new PasswordHash( 8, true );
 
 	$hash = wp_unslash( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] );
-	if ( 0 !== strpos( $hash, '$P$B' ) ) {
+	if ( ! str_starts_with( $hash, '$P$B' ) ) {
 		$required = true;
 	} else {
 		$required = ! $hasher->CheckPassword( $post->post_password, $hash );
@@ -974,11 +987,13 @@ function wp_link_pages( $args = '' ) {
 			$output .= $parsed_args['before'];
 			for ( $i = 1; $i <= $numpages; $i++ ) {
 				$link = $parsed_args['link_before'] . str_replace( '%', $i, $parsed_args['pagelink'] ) . $parsed_args['link_after'];
-				if ( $i != $page || ! $more && 1 == $page ) {
+
+				if ( $i !== $page || ! $more && 1 === $page ) {
 					$link = _wp_link_page( $i ) . $link . '</a>';
 				} elseif ( $i === $page ) {
 					$link = '<span class="post-page-numbers current" aria-current="' . esc_attr( $parsed_args['aria_current'] ) . '">' . $link . '</span>';
 				}
+
 				/**
 				 * Filters the HTML output of individual page number links.
 				 *
@@ -1050,12 +1065,12 @@ function _wp_link_page( $i ) {
 	$post       = get_post();
 	$query_args = array();
 
-	if ( 1 == $i ) {
+	if ( 1 === $i ) {
 		$url = get_permalink();
 	} else {
 		if ( ! get_option( 'permalink_structure' ) || in_array( $post->post_status, array( 'draft', 'pending' ), true ) ) {
 			$url = add_query_arg( 'page', $i, get_permalink() );
-		} elseif ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_on_front' ) == $post->ID ) {
+		} elseif ( 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) === $post->ID ) {
 			$url = trailingslashit( get_permalink() ) . user_trailingslashit( "$wp_rewrite->pagination_base/" . $i, 'single_paged' );
 		} else {
 			$url = trailingslashit( get_permalink() ) . user_trailingslashit( $i, 'single_paged' );
@@ -1546,7 +1561,7 @@ function wp_page_menu( $args = array() ) {
  */
 function walk_page_tree( $pages, $depth, $current_page, $args ) {
 	if ( empty( $args['walker'] ) ) {
-		$walker = new Walker_Page;
+		$walker = new Walker_Page();
 	} else {
 		/**
 		 * @var Walker $walker
@@ -1578,7 +1593,7 @@ function walk_page_tree( $pages, $depth, $current_page, $args ) {
  */
 function walk_page_dropdown_tree( ...$args ) {
 	if ( empty( $args[2]['walker'] ) ) { // The user's options are the third parameter.
-		$walker = new Walker_PageDropdown;
+		$walker = new Walker_PageDropdown();
 	} else {
 		/**
 		 * @var Walker $walker
@@ -1660,7 +1675,24 @@ function wp_get_attachment_link( $post = 0, $size = 'thumbnail', $permalink = fa
 		$link_text = esc_html( pathinfo( get_attached_file( $_post->ID ), PATHINFO_FILENAME ) );
 	}
 
-	$link_html = "<a href='" . esc_url( $url ) . "'>$link_text</a>";
+	/**
+	 * Filters the list of attachment link attributes.
+	 *
+	 * @since 6.2.0
+	 *
+	 * @param array $attributes An array of attributes for the link markup,
+	 *                          keyed on the attribute name.
+	 * @param int   $id         Post ID.
+	 */
+	$attributes = apply_filters( 'wp_get_attachment_link_attributes', array( 'href' => $url ), $_post->ID );
+
+	$link_attributes = '';
+	foreach ( $attributes as $name => $value ) {
+		$value            = 'href' === $name ? esc_url( $value ) : esc_attr( $value );
+		$link_attributes .= ' ' . esc_attr( $name ) . "='" . $value . "'";
+	}
+
+	$link_html = "<a$link_attributes>$link_text</a>";
 
 	/**
 	 * Filters a retrieved attachment page link.
@@ -1739,30 +1771,63 @@ function prepend_attachment( $content ) {
  * @since 1.0.0
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
- * @return string HTML content for password form for password protected post.
+ * @return string HTML content for password form for password-protected post.
  */
 function get_the_password_form( $post = 0 ) {
-	$post   = get_post( $post );
-	$label  = 'pwbox-' . ( empty( $post->ID ) ? rand() : $post->ID );
-	$output = '<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form" method="post">
-	<p>' . __( 'This content is password protected. To view it please enter your password below:' ) . '</p>
-	<p><label for="' . $label . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $label . '" type="password" size="20" /></label> <input type="submit" name="Submit" value="' . esc_attr_x( 'Enter', 'post password form' ) . '" /></p></form>
+	$post                  = get_post( $post );
+	$field_id              = 'pwbox-' . ( empty( $post->ID ) ? wp_rand() : $post->ID );
+	$invalid_password      = '';
+	$invalid_password_html = '';
+	$aria                  = '';
+	$class                 = '';
+	$redirect_field        = '';
+
+	// If the referrer is the same as the current request, the user has entered an invalid password.
+	if ( ! empty( $post->ID ) && wp_get_raw_referer() === get_permalink( $post->ID ) && isset( $_COOKIE[ 'wp-postpass_' . COOKIEHASH ] ) ) {
+		/**
+		 * Filters the invalid password message shown on password-protected posts.
+		 * The filter is only applied if the post is password-protected.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string  $text The message shown to users when entering an invalid password.
+		 * @param WP_Post $post Post object.
+		 */
+		$invalid_password      = apply_filters( 'the_password_form_incorrect_password', __( 'Invalid password.' ), $post );
+		$invalid_password_html = '<div class="post-password-form-invalid-password" role="alert"><p id="error-' . $field_id . '">' . $invalid_password . '</p></div>';
+		$aria                  = ' aria-describedby="error-' . $field_id . '"';
+		$class                 = ' password-form-error';
+	}
+
+	if ( ! empty( $post->ID ) ) {
+		$redirect_field = sprintf(
+			'<input type="hidden" name="redirect_to" value="%s" />',
+			esc_attr( get_permalink( $post->ID ) )
+		);
+	}
+
+	$output = '<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form' . $class . '" method="post">' . $redirect_field . $invalid_password_html . '
+	<p>' . __( 'This content is password-protected. To view it, please enter the password below.' ) . '</p>
+	<p><label for="' . $field_id . '">' . __( 'Password:' ) . ' <input name="post_password" id="' . $field_id . '" type="password" spellcheck="false" required size="20"' . $aria . ' /></label> <input type="submit" name="Submit" value="' . esc_attr_x( 'Enter', 'post password form' ) . '" /></p></form>
 	';
 
 	/**
 	 * Filters the HTML output for the protected post password form.
 	 *
-	 * If modifying the password field, please note that the core database schema
-	 * limits the password field to 20 characters regardless of the value of the
-	 * size attribute in the form input.
+	 * If modifying the password field, please note that the WordPress database schema
+	 * limits the password field to 255 characters regardless of the value of the
+	 * `minlength` or `maxlength` attributes or other validation that may be added to
+	 * the input.
 	 *
 	 * @since 2.7.0
 	 * @since 5.8.0 Added the `$post` parameter.
+	 * @since 6.8.0 Added the `$invalid_password` parameter.
 	 *
-	 * @param string  $output The password form HTML output.
-	 * @param WP_Post $post   Post object.
+	 * @param string  $output           The password form HTML output.
+	 * @param WP_Post $post             Post object.
+	 * @param string  $invalid_password The invalid password message.
 	 */
-	return apply_filters( 'the_password_form', $output, $post );
+	return apply_filters( 'the_password_form', $output, $post, $invalid_password );
 }
 
 /**
@@ -1794,7 +1859,7 @@ function is_page_template( $template = '' ) {
 		return (bool) $page_template;
 	}
 
-	if ( $template == $page_template ) {
+	if ( $template === $page_template ) {
 		return true;
 	}
 
@@ -1840,8 +1905,8 @@ function get_page_template_slug( $post = null ) {
  *
  * @since 2.6.0
  *
- * @param int|object $revision Revision ID or revision object.
- * @param bool       $link     Optional. Whether to link to revision's page. Default true.
+ * @param int|WP_Post $revision Revision ID or revision object.
+ * @param bool        $link     Optional. Whether to link to revision's page. Default true.
  * @return string|false i18n formatted datetimestamp or localized 'Current Revision'.
  */
 function wp_post_revision_title( $revision, $link = true ) {
@@ -1882,8 +1947,8 @@ function wp_post_revision_title( $revision, $link = true ) {
  *
  * @since 3.6.0
  *
- * @param int|object $revision Revision ID or revision object.
- * @param bool       $link     Optional. Whether to link to revision's page. Default true.
+ * @param int|WP_Post $revision Revision ID or revision object.
+ * @param bool        $link     Optional. Whether to link to revision's page. Default true.
  * @return string|false gravatar, user, i18n formatted datetimestamp or localized 'Current Revision'.
  */
 function wp_post_revision_title_expanded( $revision, $link = true ) {

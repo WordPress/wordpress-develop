@@ -1,0 +1,167 @@
+name: Local Docker Environment
+
+on:
+  push:
+    branches:
+      - trunk
+      - '6.[8-9]'
+      - '[7-9].[0-9]'
+    paths:
+      # Any changes to Docker related files.
+      - '.env.example'
+      - 'docker-compose.yml'
+      # Any changes to local environment related files
+      - 'tools/local-env/**'
+      # These files configure npm and the task runner. Changes could affect the outcome.
+      - 'package*.json'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
+      - '.npmrc'
+      - '.nvmrc'
+      # These files configure Composer. Changes could affect the local environment.
+      - 'composer.*'
+      # These files define the versions to test.
+      - '.version-support-*.json'
+      # Changes to this and related workflow files should always be verified.
+      - '.github/workflows/local-docker-environment.yml'
+      - '.github/workflows/reusable-support-json-reader-v1.yml'
+      - '.github/workflows/reusable-test-docker-environment-v1.yml'
+  pull_request:
+    branches:
+      - trunk
+      - '6.[8-9]'
+      - '[7-9].[0-9]'
+    paths:
+      # Any changes to Docker related files.
+      - '.env.example'
+      - 'docker-compose.yml'
+      # Any changes to local environment related files
+      - 'tools/local-env/**'
+      # These files configure npm and the task runner. Changes could affect the outcome.
+      - 'package*.json'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
+      - '.npmrc'
+      - '.nvmrc'
+      # These files configure Composer. Changes could affect the local environment.
+      - 'composer.*'
+      # These files define the versions to test.
+      - '.version-support-*.json'
+      # Changes to this and related workflow files should always be verified.
+      - '.github/workflows/local-docker-environment.yml'
+      - '.github/workflows/reusable-support-json-reader-v1.yml'
+      - '.github/workflows/reusable-test-docker-environment-v1.yml'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  #
+  # Determines the appropriate supported values for PHP and database versions based on the WordPress
+  # version being tested.
+  #
+  build-test-matrix:
+    name: Build Test Matrix
+    uses: ./.github/workflows/reusable-support-json-reader-v1.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    with:
+      wp-version: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
+
+  # Tests the local Docker environment.
+  environment-tests-mysql:
+    name: PHP ${{ matrix.php }}
+    uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
+    permissions:
+      contents: read
+    needs: [ build-test-matrix ]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04 ]
+        memcached: [ false ]
+        php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
+        db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
+
+        exclude:
+          # MySQL containers <= 5.5 do not exist or fail to start properly.
+          - db-version: '5.5'
+          # Only test the latest innovation release.
+          - db-version: '9.0'
+          - db-version: '9.1'
+          - db-version: '9.2'
+          - db-version: '9.3'
+          # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '9.4'
+          - php: '7.3'
+            db-version: '9.4'
+
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: 'mysql'
+      db-version: ${{ matrix.db-version }}
+      memcached: ${{ matrix.memcached }}
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: ./.github/workflows/slack-notifications.yml
+    permissions:
+      actions: read
+      contents: read
+    needs: [ build-test-matrix, environment-tests-mysql ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    needs: [ build-test-matrix, environment-tests-mysql, slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: `${context.runId}`,
+              }
+            });

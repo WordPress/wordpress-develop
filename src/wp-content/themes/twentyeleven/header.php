@@ -23,7 +23,7 @@
 <!--<![endif]-->
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>" />
-<meta name="viewport" content="width=device-width" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>
 <?php
 	// Print the <title> tag based on what is being viewed.
@@ -31,10 +31,10 @@
 
 	wp_title( '|', true, 'right' );
 
-	// Add the blog name.
+	// Add the site name.
 	bloginfo( 'name' );
 
-	// Add the blog description for the home/front page.
+	// Add the site description for the home/front page.
 	$site_description = get_bloginfo( 'description', 'display' );
 if ( $site_description && ( is_home() || is_front_page() ) ) {
 	echo " | $site_description";
@@ -49,10 +49,10 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 ?>
 	</title>
 <link rel="profile" href="https://gmpg.org/xfn/11" />
-<link rel="stylesheet" type="text/css" media="all" href="<?php bloginfo( 'stylesheet_url' ); ?>?ver=20190507" />
+<link rel="stylesheet" type="text/css" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20250415" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <!--[if lt IE 9]>
-<script src="<?php echo get_template_directory_uri(); ?>/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<script src="<?php echo esc_url( get_template_directory_uri() ); ?>/js/html5.js?ver=3.7.0" type="text/javascript"></script>
 <![endif]-->
 <?php
 	/*
@@ -78,13 +78,26 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 <div id="page" class="hfeed">
 	<header id="branding">
 			<hgroup>
-				<h1 id="site-title"><span><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a></span></h1>
-				<h2 id="site-description"><?php bloginfo( 'description' ); ?></h2>
+				<?php
+				$is_front         = ! is_paged() && ( is_front_page() || ( is_home() && ( (int) get_option( 'page_for_posts' ) !== get_queried_object_id() ) ) );
+				$site_name        = get_bloginfo( 'name', 'display' );
+				$site_description = get_bloginfo( 'description', 'display' );
+
+				if ( $site_name ) :
+					?>
+					<h1 id="site-title"><span><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>><?php echo $site_name; ?></a></span></h1>
+					<?php
+				endif;
+
+				if ( $site_description ) :
+					?>
+					<h2 id="site-description"><?php echo $site_description; ?></h2>
+				<?php endif; ?>
 			</hgroup>
 
 			<?php
-				// Check to see if the header image has been removed.
-				$header_image = get_header_image();
+			// Check to see if the header image has been removed.
+			$header_image = get_header_image();
 			if ( $header_image ) :
 				// Compatibility with versions of WordPress prior to 3.4.
 				if ( function_exists( 'get_custom_header' ) ) {
@@ -97,7 +110,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					$header_image_width = HEADER_IMAGE_WIDTH;
 				}
 				?>
-			<a href="<?php echo esc_url( home_url( '/' ) ); ?>">
+			<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" <?php echo $is_front ? 'aria-current="page"' : ''; ?>>
 				<?php
 				/*
 				 * The header image.
@@ -111,17 +124,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 					// Houston, we have a new header image!
 					echo get_the_post_thumbnail( $post->ID, 'post-thumbnail' );
 				} else {
-					// Compatibility with versions of WordPress prior to 3.4.
-					if ( function_exists( 'get_custom_header' ) ) {
-						$header_image_width  = get_custom_header()->width;
-						$header_image_height = get_custom_header()->height;
-					} else {
-						$header_image_width  = HEADER_IMAGE_WIDTH;
-						$header_image_height = HEADER_IMAGE_HEIGHT;
-					}
-					?>
-					<img src="<?php header_image(); ?>" width="<?php echo esc_attr( $header_image_width ); ?>" height="<?php echo esc_attr( $header_image_height ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" />
-					<?php
+					twentyeleven_header_image();
 				} // End check for featured image or standard header.
 				?>
 			</a>

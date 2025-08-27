@@ -15,14 +15,30 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 	public $wp_customize;
 
 	/**
+	 * ID of the administrator user.
+	 *
+	 * @var int
+	 */
+	public static $administrator_id;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	/**
 	 * Set up a test case.
 	 *
-	 * @see WP_UnitTestCase::setup()
+	 * @see WP_UnitTestCase_Base::set_up()
 	 */
 	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 
 		global $wp_customize;
 		$this->wp_customize = new WP_Customize_Manager();

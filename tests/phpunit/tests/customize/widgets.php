@@ -20,6 +20,22 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 */
 	protected $backup_registered_sidebars;
 
+	/**
+	 * ID of the administrator user.
+	 *
+	 * @var int
+	 */
+	public static $administrator_id;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
@@ -27,8 +43,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		add_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
 
-		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $user_id );
+		wp_set_current_user( self::$administrator_id );
 
 		update_option(
 			'widget_search',
@@ -236,7 +251,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 		$selective_refreshable_widgets = $this->manager->widgets->get_selective_refreshable_widgets();
 		$this->assertIsArray( $selective_refreshable_widgets );
-		$this->assertSame( count( $wp_widget_factory->widgets ), count( $selective_refreshable_widgets ) );
+		$this->assertCount( count( $wp_widget_factory->widgets ), $selective_refreshable_widgets );
 		$this->assertArrayHasKey( 'text', $selective_refreshable_widgets );
 		$this->assertTrue( $selective_refreshable_widgets['text'] );
 		$this->assertArrayHasKey( 'search', $selective_refreshable_widgets );
@@ -556,7 +571,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 */
 	private function get_test_widget_control_args() {
 		global $wp_registered_widgets;
-		require_once ABSPATH . '/wp-admin/includes/widgets.php';
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
 		$widget_id = 'search-2';
 		$widget    = $wp_registered_widgets[ $widget_id ];
 		$args      = array(
@@ -856,5 +871,43 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->manager->widgets->prepreview_added_sidebars_widgets();
 		$this->manager->widgets->prepreview_added_widget_instance();
 		$this->manager->widgets->remove_prepreview_filters();
+	}
+
+	/**
+	 * Test that output_widget_control_templates() works without sidebars.
+	 * This test verifies that the fix for accessing panel title works correctly
+	 * when no sidebars are registered or the widgets panel doesn't exist.
+	 *
+	 * @ticket 63151
+	 *
+	 * @covers WP_Customize_Widgets::output_widget_control_templates
+	 */
+	public function test_output_widget_control_templates_without_sidebars() {
+		global $wp_registered_sidebars;
+
+		$original_sidebars      = $wp_registered_sidebars;
+		$wp_registered_sidebars = array();
+		$manager                = new WP_Customize_Manager();
+		$widgets                = new WP_Customize_Widgets( $manager );
+
+		if ( $manager->get_panel( 'widgets' ) ) {
+			$manager->remove_panel( 'widgets' );
+		}
+
+		ob_start();
+
+		$widgets->output_widget_control_templates();
+
+		$output                 = ob_get_clean();
+		$wp_registered_sidebars = $original_sidebars;
+
+		$this->assertStringNotContainsString( 'Warning', $output, 'Failed asserting that the output does not contain "Warning".' );
+		$this->assertStringNotContainsString( 'Notice', $output, 'Failed asserting that the output does not contain "Notice".' );
+		$this->assertStringNotContainsString( 'Error', $output, 'Failed asserting that the output does not contain "Error".' );
+
+		// Check that the output contains expected widget controls HTML.
+		$this->assertStringContainsString( 'id="widgets-left"', $output, 'Failed asserting that the output contains "id=widgets-left".' );
+		$this->assertStringContainsString( 'id="available-widgets"', $output, 'Failed asserting that the output contains "id=available-widgets".' );
+		$this->assertStringNotContainsString( 'id="accordion-panel-widgets"', $output, 'Failed asserting that the output does not contain "id=accordion-panel-widgets".' );
 	}
 }

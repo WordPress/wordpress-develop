@@ -1,15 +1,9 @@
 <?php
 /**
- * Block rendering tests
+ * Tests for block rendering functions.
  *
  * @package WordPress
  * @subpackage Blocks
- * @since 5.0.0
- */
-
-/**
- * Tests for block rendering functions.
- *
  * @since 5.0.0
  *
  * @group blocks
@@ -224,14 +218,18 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 
 		$html = do_blocks( self::strip_r( file_get_contents( $html_path ) ) );
 		// If blocks opt into Gutenberg's layout implementation
-		// the container will receive an added classname of `wp_unique_id( 'wp-container-' )`
+		// the container will receive an additional, unique classname based on "wp-container-[blockname]-layout"
 		// so we need to normalize the random id.
-		$normalized_html = preg_replace( '/wp-container-\d+/', 'wp-container-1', $html );
+		$normalized_html = preg_replace( '/wp-container-[a-z-]+\d+/', 'wp-container-1', $html );
 
 		// The gallery block uses a unique class name of `wp_unique_id( 'wp-block-gallery-' )`
 		// so we need to normalize the random id.
 		$normalized_html = preg_replace( '/wp-block-gallery-\d+/', 'wp-block-gallery-1', $normalized_html );
 		$expected_html   = self::strip_r( file_get_contents( $server_html_path ) );
+
+		// Convert HTML to be white space insensitive.
+		$normalized_html = preg_replace( '/(\s+$)/m', '', $normalized_html );
+		$expected_html   = preg_replace( '/(\s+$)/m', '', $expected_html );
 
 		$this->assertSame(
 			$expected_html,
@@ -284,6 +282,56 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 			'between' .
 			'3:b2' .
 			'4:b2' .
+			'after'
+		);
+	}
+
+	/**
+	 * @ticket 62114
+	 */
+	public function test_dynamic_block_with_default_attributes() {
+		$settings = array(
+			'attributes'      => array(
+				'content'         => array(
+					'type'    => 'string',
+					'default' => 'Default content.',
+				),
+				'align'           => array(
+					'type'    => 'string',
+					'default' => 'full',
+				),
+				'backgroundColor' => array(
+					'type'    => 'string',
+					'default' => 'blueberry-1',
+				),
+				'textColor'       => array(
+					'type'    => 'string',
+					'default' => 'white',
+				),
+			),
+			'supports'        => array(
+				'align' => array( 'wide', 'full' ),
+				'color' => array(
+					'background' => true,
+					'text'       => true,
+				),
+			),
+			'render_callback' => function ( $attributes ) {
+				return '<p ' . get_block_wrapper_attributes() . '>' . $attributes['content'] . '</p>';
+			},
+		);
+		register_block_type( 'core/dynamic', $settings );
+
+		$post_content =
+			'before' .
+			'<!-- wp:core/dynamic --><!-- /wp:core/dynamic -->' .
+			'after';
+
+		$updated_post_content = do_blocks( $post_content );
+		$this->assertSame(
+			$updated_post_content,
+			'before' .
+			'<p class="alignfull wp-block-dynamic has-text-color has-white-color has-background has-blueberry-1-background-color">Default content.</p>' .
 			'after'
 		);
 	}
@@ -523,5 +571,4 @@ class Tests_Blocks_Render extends WP_UnitTestCase {
 
 		return $content;
 	}
-
 }

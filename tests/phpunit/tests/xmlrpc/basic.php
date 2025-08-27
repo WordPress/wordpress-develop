@@ -93,7 +93,6 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->assertArrayNotHasKey( 'faultCode', $result[0] );
 		$this->assertArrayHasKey( 'faultCode', $result[1] );
 		$this->assertArrayHasKey( 'faultCode', $result[2] );
-
 	}
 
 	/**

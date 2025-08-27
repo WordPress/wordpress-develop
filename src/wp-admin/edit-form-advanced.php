@@ -12,8 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * @global string       $post_type
- * @global WP_Post_Type $post_type_object
+ * @global string       $post_type        Global post type.
+ * @global WP_Post_Type $post_type_object Global post type object.
  * @global WP_Post      $post             Global post object.
  */
 global $post_type, $post_type_object, $post;
@@ -25,14 +25,7 @@ $current_screen->is_block_editor( false );
 if ( is_multisite() ) {
 	add_action( 'admin_footer', '_admin_notice_post_locked' );
 } else {
-	$check_users = get_users(
-		array(
-			'fields' => 'ID',
-			'number' => 2,
-		)
-	);
-
-	if ( count( $check_users ) > 1 ) {
+	if ( get_user_count() > 1 ) {
 		add_action( 'admin_footer', '_admin_notice_post_locked' );
 	}
 
@@ -290,9 +283,9 @@ if ( 'post' === $post_type ) {
 	);
 
 	$title_and_editor  = '<p>' . __( '<strong>Title</strong> &mdash; Enter a title for your post. After you enter a title, you&#8217;ll see the permalink below, which you can edit.' ) . '</p>';
-	$title_and_editor .= '<p>' . __( '<strong>Post editor</strong> &mdash; Enter the text for your post. There are two modes of editing: Visual and Text. Choose the mode by clicking on the appropriate tab.' ) . '</p>';
+	$title_and_editor .= '<p>' . __( '<strong>Post editor</strong> &mdash; Enter the text for your post. There are two modes of editing: Visual and Code. Choose the mode by clicking on the appropriate tab.' ) . '</p>';
 	$title_and_editor .= '<p>' . __( 'Visual mode gives you an editor that is similar to a word processor. Click the Toolbar Toggle button to get a second row of controls.' ) . '</p>';
-	$title_and_editor .= '<p>' . __( 'The Text mode allows you to enter HTML along with your post text. Note that &lt;p&gt; and &lt;br&gt; tags are converted to line breaks when switching to the Text editor to make it less cluttered. When you type, a single line break can be used instead of typing &lt;br&gt;, and two line breaks instead of paragraph tags. The line breaks are converted back to tags automatically.' ) . '</p>';
+	$title_and_editor .= '<p>' . __( 'The Code mode allows you to enter HTML along with your post text. Note that &lt;p&gt; and &lt;br&gt; tags are converted to line breaks when switching to the Code editor to make it less cluttered. When you type, a single line break can be used instead of typing &lt;br&gt;, and two line breaks instead of paragraph tags. The line breaks are converted back to tags automatically.' ) . '</p>';
 	$title_and_editor .= '<p>' . __( 'You can insert media files by clicking the button above the post editor and following the directions. You can align or edit images using the inline formatting toolbar available in Visual mode.' ) . '</p>';
 	$title_and_editor .= '<p>' . __( 'You can enable distraction-free writing mode using the icon to the right. This feature is not available for old browsers or devices with small screens, and requires that the full-height editor be enabled in Screen Options.' ) . '</p>';
 	$title_and_editor .= '<p>' . sprintf(
@@ -316,12 +309,12 @@ if ( 'post' === $post_type ) {
 			'tools.php'
 		) . '</p>' .
 			'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/article/wordpress-editor/">Documentation on Writing and Editing Posts</a>' ) . '</p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+			'<p>' . __( '<a href="https://wordpress.org/documentation/article/write-posts-classic-editor/">Documentation on Writing and Editing Posts</a>' ) . '</p>' .
+			'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 	);
 } elseif ( 'page' === $post_type ) {
 	$about_pages = '<p>' . __( 'Pages are similar to posts in that they have a title, body text, and associated metadata, but they are different in that they are not part of the chronological blog stream, kind of like permanent posts. Pages are not categorized or tagged, but can have a hierarchy. You can nest pages under other pages by making one the &#8220;Parent&#8221; of the other, creating a group of pages.' ) . '</p>' .
-		'<p>' . __( 'Creating a Page is very similar to creating a Post, and the screens can be customized in the same way using drag and drop, the Screen Options tab, and expanding/collapsing boxes as you choose. This screen also has the distraction-free writing space, available in both the Visual and Text modes via the Fullscreen buttons. The Page editor mostly works the same as the Post editor, but there are some Page-specific features in the Page Attributes box.' ) . '</p>';
+		'<p>' . __( 'Creating a Page is very similar to creating a Post, and the screens can be customized in the same way using drag and drop, the Screen Options tab, and expanding/collapsing boxes as you choose. This screen also has the distraction-free writing space, available in both the Visual and Code modes via the Fullscreen buttons. The Page editor mostly works the same as the Post editor, but there are some Page-specific features in the Page Attributes box.' ) . '</p>';
 
 	get_current_screen()->add_help_tab(
 		array(
@@ -333,9 +326,9 @@ if ( 'post' === $post_type ) {
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/article/pages-add-new-screen/">Documentation on Adding New Pages</a>' ) . '</p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/article/pages-screen/">Documentation on Editing Pages</a>' ) . '</p>' .
-			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+			'<p>' . __( '<a href="https://wordpress.org/documentation/article/pages-add-new-screen/">Documentation on Adding New Pages</a>' ) . '</p>' .
+			'<p>' . __( '<a href="https://wordpress.org/documentation/article/pages-screen/">Documentation on Editing Pages</a>' ) . '</p>' .
+			'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 	);
 } elseif ( 'attachment' === $post_type ) {
 	get_current_screen()->add_help_tab(
@@ -346,20 +339,20 @@ if ( 'post' === $post_type ) {
 				'<p>' . __( 'This screen allows you to edit fields for metadata in a file within the media library.' ) . '</p>' .
 				'<p>' . __( 'For images only, you can click on Edit Image under the thumbnail to expand out an inline image editor with icons for cropping, rotating, or flipping the image as well as for undoing and redoing. The boxes on the right give you more options for scaling the image, for cropping it, and for cropping the thumbnail in a different way than you crop the original image. You can click on Help in those boxes to get more information.' ) . '</p>' .
 				'<p>' . __( 'Note that you crop the image by clicking on it (the Crop icon is already selected) and dragging the cropping frame to select the desired part. Then click Save to retain the cropping.' ) . '</p>' .
-				'<p>' . __( 'Remember to click Update Media to save metadata entered or changed.' ) . '</p>',
+				'<p>' . __( 'Remember to click Update to save metadata entered or changed.' ) . '</p>',
 		)
 	);
 
 	get_current_screen()->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/article/edit-media/">Documentation on Edit Media</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
+		'<p>' . __( '<a href="https://wordpress.org/documentation/article/edit-media/">Documentation on Edit Media</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 	);
 }
 
 if ( 'post' === $post_type || 'page' === $post_type ) {
 	$inserting_media  = '<p>' . __( 'You can upload and insert media (images, audio, documents, etc.) by clicking the Add Media button. You can select from the images and files already uploaded to the Media Library, or upload new media to add to your page or post. To create an image gallery, select the images to add and click the &#8220;Create a new gallery&#8221; button.' ) . '</p>';
-	$inserting_media .= '<p>' . __( 'You can also embed media from many popular websites including Twitter, YouTube, Flickr and others by pasting the media URL on its own line into the content of your post/page. <a href="https://wordpress.org/support/article/embeds/">Learn more about embeds</a>.' ) . '</p>';
+	$inserting_media .= '<p>' . __( 'You can also embed media from many popular websites including Twitter, YouTube, Flickr and others by pasting the media URL on its own line into the content of your post/page. <a href="https://wordpress.org/documentation/article/embeds/">Learn more about embeds</a>.' ) . '</p>';
 
 	get_current_screen()->add_help_tab(
 		array(
@@ -377,7 +370,7 @@ if ( 'post' === $post_type ) {
 	'</li>';
 
 	if ( current_theme_supports( 'post-formats' ) && post_type_supports( 'post', 'post-formats' ) ) {
-		$publish_box .= '<li>' . __( '<strong>Format</strong> &mdash; Post Formats designate how your theme will display a specific post. For example, you could have a <em>standard</em> blog post with a title and paragraphs, or a short <em>aside</em> that omits the title and contains a short text blurb. Your theme could enable all or some of 10 possible formats. <a href="https://wordpress.org/support/article/post-formats/#supported-formats">Learn more about each post format</a>.' ) . '</li>';
+		$publish_box .= '<li>' . __( '<strong>Format</strong> &mdash; Post Formats designate how your theme will display a specific post. For example, you could have a <em>standard</em> blog post with a title and paragraphs, or a short <em>aside</em> that omits the title and contains a short text blurb. Your theme could enable all or some of 10 possible formats. <a href="https://developer.wordpress.org/advanced-administration/wordpress/post-formats/#supported-formats">Learn more about each post format</a>.' ) . '</li>';
 	}
 
 	if ( current_theme_supports( 'post-thumbnails' ) && post_type_supports( 'post', 'thumbnail' ) ) {
@@ -434,23 +427,49 @@ echo esc_html( $title );
 
 <?php
 if ( isset( $post_new_file ) && current_user_can( $post_type_object->cap->create_posts ) ) {
-	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new ) . '</a>';
+	echo ' <a href="' . esc_url( admin_url( $post_new_file ) ) . '" class="page-title-action">' . esc_html( $post_type_object->labels->add_new_item ) . '</a>';
 }
 ?>
 
 <hr class="wp-header-end">
 
-<?php if ( $notice ) : ?>
-<div id="notice" class="notice notice-warning"><p id="has-newer-autosave"><?php echo $notice; ?></p></div>
-<?php endif; ?>
-<?php if ( $message ) : ?>
-<div id="message" class="updated notice notice-success is-dismissible"><p><?php echo $message; ?></p></div>
-<?php endif; ?>
-<div id="lost-connection-notice" class="error hidden">
-	<p><span class="spinner"></span> <?php _e( '<strong>Connection lost.</strong> Saving has been disabled until you are reconnected.' ); ?>
-	<span class="hide-if-no-sessionstorage"><?php _e( 'This post is being backed up in your browser, just in case.' ); ?></span>
-	</p>
-</div>
+<?php
+if ( $notice ) :
+	wp_admin_notice(
+		'<p id="has-newer-autosave">' . $notice . '</p>',
+		array(
+			'type'           => 'warning',
+			'id'             => 'notice',
+			'paragraph_wrap' => false,
+		)
+	);
+endif;
+if ( $message ) :
+	wp_admin_notice(
+		$message,
+		array(
+			'type'               => 'success',
+			'dismissible'        => true,
+			'id'                 => 'message',
+			'additional_classes' => array( 'updated' ),
+		)
+	);
+endif;
+
+$connection_lost_message = sprintf(
+	'<span class="spinner"></span> %1$s <span class="hide-if-no-sessionstorage">%2$s</span>',
+	__( '<strong>Connection lost.</strong> Saving has been disabled until you are reconnected.' ),
+	__( 'This post is being backed up in your browser, just in case.' )
+);
+
+wp_admin_notice(
+	$connection_lost_message,
+	array(
+		'id'                 => 'lost-connection-notice',
+		'additional_classes' => array( 'error', 'hidden' ),
+	)
+);
+?>
 <form name="post" action="post.php" method="post" id="post"
 <?php
 /**
@@ -520,6 +539,13 @@ do_action( 'edit_form_top', $post );
 	?>
 	<label class="screen-reader-text" id="title-prompt-text" for="title"><?php echo $title_placeholder; ?></label>
 	<input type="text" name="post_title" size="30" value="<?php echo esc_attr( $post->post_title ); ?>" id="title" spellcheck="true" autocomplete="off" />
+	<?php
+	if ( post_type_supports( $post_type, 'editor' ) ) {
+		?>
+		<a href="#content" class="button-secondary screen-reader-text skiplink" onclick="if (tinymce) { tinymce.execCommand( 'mceFocus', false, 'content' ); }"><?php esc_html_e( 'Skip to Editor' ); ?></a>
+		<?php
+	}
+	?>
 </div>
 	<?php
 	/**
@@ -595,18 +621,16 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 		array(
 			'_content_editor_dfw' => $_content_editor_dfw,
 			'drag_drop_upload'    => true,
-			'tabfocus_elements'   => 'content-html,save-post',
 			'editor_height'       => 300,
 			'tinymce'             => array(
-				'resize'                  => false,
-				'wp_autoresize_on'        => $_wp_editor_expand,
-				'add_unload_trigger'      => false,
-				'wp_keep_scroll_position' => ! $is_IE,
+				'resize'             => false,
+				'wp_autoresize_on'   => $_wp_editor_expand,
+				'add_unload_trigger' => false,
 			),
 		)
 	);
 	?>
-<table id="post-status-info"><tbody><tr>
+<table id="post-status-info" role="presentation"><tbody><tr>
 	<td id="wp-word-count" class="hide-if-no-js">
 	<?php
 	printf(
@@ -623,11 +647,20 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 		echo '<span id="last-edit">';
 		$last_user = get_userdata( get_post_meta( $post->ID, '_edit_last', true ) );
 		if ( $last_user ) {
-			/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
-			printf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
+			printf(
+				/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
+				__( 'Last edited by %1$s on %2$s at %3$s' ),
+				esc_html( $last_user->display_name ),
+				mysql2date( __( 'F j, Y' ), $post->post_modified ),
+				mysql2date( __( 'g:i a' ), $post->post_modified )
+			);
 		} else {
-			/* translators: 1: Post edited date, 2: Post edited time. */
-			printf( __( 'Last edited on %1$s at %2$s' ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
+			printf(
+				/* translators: 1: Post edited date, 2: Post edited time. */
+				__( 'Last edited on %1$s at %2$s' ),
+				mysql2date( __( 'F j, Y' ), $post->post_modified ),
+				mysql2date( __( 'g:i a' ), $post->post_modified )
+			);
 		}
 		echo '</span>';
 	}

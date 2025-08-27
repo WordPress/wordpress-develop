@@ -1,4 +1,11 @@
 <?php
+/**
+ * WordPress Signup Page
+ *
+ * Handles the user registration and site creation process for multisite installations.
+ *
+ * @package WordPress
+ */
 
 /** Sets up the WordPress Environment. */
 require __DIR__ . '/wp-load.php';
@@ -61,7 +68,7 @@ function wpmu_signup_stylesheet() {
 		.mu_register form { margin-top: 2em; }
 		.mu_register fieldset,
 			.mu_register legend { margin: 0; padding: 0; border: none; }
-		.mu_register .error { font-weight: 600; padding: 10px; color: #333; background: #ffebe8; border: 1px solid #c00; }
+		.mu_register .error { padding: 10px; color: #333; background: #ffebe8; border: 1px solid #c00; }
 		.mu_register input[type="submit"],
 			.mu_register #blog_title,
 			.mu_register #user_email,
@@ -113,7 +120,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
 	}
 
 	$current_network = get_network();
-	// Blog name.
+	// Site name.
 	if ( ! is_subdomain_install() ) {
 		echo '<label for="blogname">' . __( 'Site Name (subdirectory only):' ) . '</label>';
 	} else {
@@ -399,7 +406,7 @@ function signup_another_blog( $blogname = '', $blog_title = '', $errors = '' ) {
 		<input type="hidden" name="stage" value="gimmeanotherblog" />
 		<?php
 		/**
-		 * Hidden sign-up form fields output when creating another site or user.
+		 * Fires when hidden sign-up form fields output when creating another site or user.
 		 *
 		 * @since MU (3.0.0)
 		 *
@@ -704,8 +711,8 @@ function confirm_user_signup( $user_name, $user_email ) {
 	<p><?php _e( 'But, before you can start using your new username, <strong>you must activate it</strong>.' ); ?></p>
 	<p>
 	<?php
-	/* translators: %s: Email address. */
-	printf( __( 'Check your inbox at %s and click the link given.' ), '<strong>' . $user_email . '</strong>' );
+	/* translators: %s: The user email address. */
+	printf( __( 'Check your inbox at %s and click on the given link.' ), '<strong>' . $user_email . '</strong>' );
 	?>
 	</p>
 	<p><?php _e( 'If you do not activate your username within two days, you will have to sign up again.' ); ?></p>
@@ -862,8 +869,8 @@ function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $use
 	<p><?php _e( 'But, before you can start using your site, <strong>you must activate it</strong>.' ); ?></p>
 	<p>
 	<?php
-	/* translators: %s: Email address. */
-	printf( __( 'Check your inbox at %s and click the link given.' ), '<strong>' . $user_email . '</strong>' );
+	/* translators: %s: The user email address. */
+	printf( __( 'Check your inbox at %s and click on the given link.' ), '<strong>' . $user_email . '</strong>' );
 	?>
 	</p>
 	<p><?php _e( 'If you do not activate your site within two days, you will have to sign up again.' ); ?></p>
