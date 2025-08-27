@@ -1076,7 +1076,7 @@ function comment_text( $comment_id = 0, $args = array() ) {
 
 	$comment_text = get_comment_text( $comment, $args );
 
-	if ( is_admin() ) {
+	if ( current_user_can( 'unfiltered_html' ) ) {
 		// Encode < and > in a numeric comparisons,
 		// to prevent them being parsed as HTML tags.
 		$comment_text = preg_replace_callback(
