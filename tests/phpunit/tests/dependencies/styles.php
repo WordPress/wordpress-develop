@@ -295,10 +295,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 */
 	public function test_plugin_doing_inline_styles_wrong() {
 
-		$style_tag_open = '';
-		$style          = ".thing {\n";
-		$style         .= "\tbackground: red;\n";
-		$style         .= '}';
+		$style  = ".thing {\n";
+		$style .= "\tbackground: red;\n";
+		$style .= '}';
 
 		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
