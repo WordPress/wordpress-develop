@@ -2499,7 +2499,7 @@ HTML;
 	 */
 	public function test_wp_kses_sanitize_uris( $attrname, $attrvalue, $expected, $multi_uri = array( 'srcset' ) ) {
 		$allowed_protocols = wp_allowed_protocols();
-		$result = wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $multi_uri );
+		$result            = wp_kses_sanitize_uris( $attrname, $attrvalue, $allowed_protocols, $multi_uri );
 		$this->assertEquals( $expected, $result );
 	}
 
@@ -2533,7 +2533,7 @@ HTML;
 	 */
 	public function test_wp_kses_srcset_edge_cases( $srcset_value, $expected ) {
 		$allowed_protocols = wp_allowed_protocols();
-		$result = wp_kses_sanitize_uris( 'srcset', $srcset_value, $allowed_protocols );
+		$result            = wp_kses_sanitize_uris( 'srcset', $srcset_value, $allowed_protocols );
 		$this->assertEquals( $expected, $result );
 	}
 
@@ -2563,13 +2563,13 @@ HTML;
 
 		// JavaScript in srcset - the entire img tag gets escaped when it contains dangerous content.
 		$original = '<img srcset="javascript:alert(1) 1x, data:text/html,<script>alert(1)</script> 2x" />';
-		$result = wp_kses( $original, $allowedposttags );
+		$result   = wp_kses( $original, $allowedposttags );
 		// The whole img tag should be escaped when it contains script content.
 		$this->assertStringStartsWith( '&lt;', $result );
 
 		// Script tag in picture element (should be stripped).
 		$original = '<picture><script>alert(1)</script><source srcset="image.jpg"><img src="fallback.jpg"></picture>';
-		$result = wp_kses( $original, $allowedposttags );
+		$result   = wp_kses( $original, $allowedposttags );
 		// Script content should be converted to text, not completely removed.
 		$this->assertStringContainsString( 'alert(1)', $result );
 		$this->assertStringNotContainsString( '<script>', $result );
@@ -2615,7 +2615,7 @@ HTML;
 
 		// Test picture with multiple sources and mixed protocols.
 		$original = '<picture><source srcset="javascript:void(0) 480w, https://example.com/mobile.webp 480w" type="image/webp" media="(max-width: 600px)"><source srcset="bad://example.com/tablet.jpg 768w, https://example.com/tablet.jpg 768w" type="image/jpeg" media="(max-width: 1200px)"><img src="https://example.com/desktop.jpg" alt="Picture element test" /></picture>';
-		$result = wp_kses( $original, $allowedposttags );
+		$result   = wp_kses( $original, $allowedposttags );
 
 		// Should remove bad protocols but keep valid ones.
 		$this->assertStringContainsString( 'https://example.com/mobile.webp', $result );
@@ -2625,7 +2625,7 @@ HTML;
 
 		// Test nested picture scenario.
 		$original = '<picture><picture><source srcset="inner.jpg"></picture><source srcset="outer.jpg"><img src="fallback.jpg"></picture>';
-		$result = wp_kses( $original, $allowedposttags );
+		$result   = wp_kses( $original, $allowedposttags );
 		// KSES allows the nesting but should preserve the structure.
 		$this->assertStringContainsString( '<picture>', $result );
 		$this->assertStringContainsString( '<source', $result );
