@@ -1670,7 +1670,7 @@ HTML
 		// Enqueue and add data.
 		wp_enqueue_script( 'test-only-data', 'example.com', array(), null );
 		wp_script_add_data( 'test-only-data', 'data', 'testing' );
-		$expected  = "<script type='text/javascript' id='test-only-data-js-extra'>\n/* <![CDATA[ */\ntesting\n/* ]]> */\n</script>\n";
+		$expected  = "<script type='text/javascript' id='test-only-data-js-extra'>\n/* <![CDATA[ */\ntesting\n//# sourceURL=test-only-data-js-extra\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-only-data-js'></script>\n";
 
 		// Go!
@@ -1708,7 +1708,7 @@ HTML
 		wp_enqueue_script( 'test-conditional-with-data', 'example.com', array(), null );
 		wp_script_add_data( 'test-conditional-with-data', 'data', 'testing' );
 		wp_script_add_data( 'test-conditional-with-data', 'conditional', 'lt IE 9' );
-		$expected  = "<!--[if lt IE 9]>\n<script type='text/javascript' id='test-conditional-with-data-js-extra'>\n/* <![CDATA[ */\ntesting\n/* ]]> */\n</script>\n<![endif]-->\n";
+		$expected  = "<!--[if lt IE 9]>\n<script type='text/javascript' id='test-conditional-with-data-js-extra'>\n/* <![CDATA[ */\ntesting\n//# sourceURL=test-conditional-with-data-js-extra\n/* ]]> */\n</script>\n<![endif]-->\n";
 		$expected .= "<!--[if lt IE 9]>\n<script type='text/javascript' src='http://example.com' id='test-conditional-with-data-js'></script>\n<![endif]-->\n";
 		$expected  = str_replace( "'", '"', $expected );
 
@@ -2043,7 +2043,7 @@ HTML;
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 
-		$expected  = "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n/* ]]> */\n</script>\n";
+		$expected  = "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n//# sourceURL=test-example-js-extra\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
@@ -2136,7 +2136,7 @@ HTML;
 		$wp_scripts->default_dirs = array( '/wp-admin/js/', '/wp-includes/js/' ); // Default dirs as in wp-includes/script-loader.php.
 
 		$expected_localized  = "<!--[if gte IE 9]>\n";
-		$expected_localized .= "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n/* ]]> */\n</script>\n";
+		$expected_localized .= "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n//# sourceURL=test-example-js-extra\n/* ]]> */\n</script>\n";
 		$expected_localized .= "<![endif]-->\n";
 		$expected_localized  = str_replace( "'", '"', $expected_localized );
 
@@ -3054,7 +3054,7 @@ HTML;
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_localize_script( 'test-example', 'testExample', $l10n_data );
 
-		$expected  = "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {$expected};\n/* ]]> */\n</script>\n";
+		$expected  = "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {$expected};\n//# sourceURL=test-example-js-extra\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );

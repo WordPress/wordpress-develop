@@ -222,6 +222,11 @@ class WP_Scripts extends WP_Dependencies {
 			return;
 		}
 
+		$output .= sprintf(
+			"\n//# sourceURL=%s",
+			rawurlencode( "{$handle}-js-extra" )
+		);
+
 		if ( ! $display ) {
 			return $output;
 		}
