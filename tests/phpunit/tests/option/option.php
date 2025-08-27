@@ -613,4 +613,28 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		return $stats['cmd_get'];
 	}
+
+	/**
+	 * Test that delete_option() properly removes options with null values from cache.
+	 *
+	 * @ticket 28701
+	 *
+	 * @covers ::delete_option
+	 */
+	public function test_delete_option_with_null_value_in_cache() {
+		$option_name = 'test_null_cache_' . wp_rand();
+
+		add_option( $option_name, 'value', '', true );
+
+		$alloptions                 = wp_load_alloptions();
+		$alloptions[ $option_name ] = null;
+		wp_cache_set( 'alloptions', $alloptions, 'options' );
+
+		delete_option( $option_name );
+
+		$alloptions_after = wp_load_alloptions();
+		$this->assertArrayNotHasKey( $option_name, $alloptions_after );
+
+		$this->assertSame( 'default', get_option( $option_name, 'default' ) );
+	}
 }
