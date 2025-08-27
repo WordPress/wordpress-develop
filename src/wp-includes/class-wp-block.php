@@ -397,104 +397,104 @@ class WP_Block {
 	}
 
 	/**
-	 * Depending on the block attribute name, replace its value in the HTML based on the value provided.
+	 * Adds wp-bind directives to block content and sets up Interactivity API store.
 	 *
-	 * @since 6.5.0
+	 * Instead of manually replacing HTML content, this method adds wp-bind directives
+	 * that will be processed by the Interactivity API to update content dynamically.
+	 * Uses wp_interactivity_state() to properly register store data.
 	 *
-	 * @param string $block_content  Block content.
-	 * @param string $attribute_name The attribute name to replace.
-	 * @param mixed  $source_value   The value used to replace in the HTML.
-	 * @return string The modified block content.
+	 * @since 6.8.0
+	 *
+	 * @param string $block_content     Block content.
+	 * @param array  $computed_attributes Computed attributes from block bindings.
+	 * @return string The modified block content with wp-bind directives.
 	 */
-	private function replace_html( string $block_content, string $attribute_name, $source_value ) {
+	private function add_interactivity_directives( string $block_content, array $computed_attributes ) {
 		$block_type = $this->block_type;
-		if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
-			return $block_content;
+		$block_id   = 'block-' . wp_unique_id();
+
+		// Prepare store data for this block instance
+		$store_data        = array();
+		$has_interactivity = false;
+
+		// First, collect all the store data
+		foreach ( $computed_attributes as $attribute_name => $source_value ) {
+			if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
+				continue;
+			}
+
+			$store_data[ $attribute_name ] = $source_value;
+			$has_interactivity             = true;
 		}
 
-		// Depending on the attribute source, the processing will be different.
-		switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
-			case 'html':
-			case 'rich-text':
-				$block_reader = new WP_HTML_Tag_Processor( $block_content );
-
-				// TODO: Support for CSS selectors whenever they are ready in the HTML API.
-				// In the meantime, support comma-separated selectors by exploding them into an array.
-				$selectors = explode( ',', $block_type->attributes[ $attribute_name ]['selector'] );
-				// Add a bookmark to the first tag to be able to iterate over the selectors.
-				$block_reader->next_tag();
-				$block_reader->set_bookmark( 'iterate-selectors' );
-
-				// TODO: This shouldn't be needed when the `set_inner_html` function is ready.
-				// Store the parent tag and its attributes to be able to restore them later in the button.
-				// The button block has a wrapper while the paragraph and heading blocks don't.
-				if ( 'core/button' === $this->name ) {
-					$button_wrapper                 = $block_reader->get_tag();
-					$button_wrapper_attribute_names = $block_reader->get_attribute_names_with_prefix( '' );
-					$button_wrapper_attrs           = array();
-					foreach ( $button_wrapper_attribute_names as $name ) {
-						$button_wrapper_attrs[ $name ] = $block_reader->get_attribute( $name );
-					}
-				}
-
-				foreach ( $selectors as $selector ) {
-					// If the parent tag, or any of its children, matches the selector, replace the HTML.
-					if ( strcasecmp( $block_reader->get_tag(), $selector ) === 0 || $block_reader->next_tag(
-						array(
-							'tag_name' => $selector,
-						)
-					) ) {
-						$block_reader->release_bookmark( 'iterate-selectors' );
-
-						// TODO: Use `set_inner_html` method whenever it's ready in the HTML API.
-						// Until then, it is hardcoded for the paragraph, heading, and button blocks.
-						// Store the tag and its attributes to be able to restore them later.
-						$selector_attribute_names = $block_reader->get_attribute_names_with_prefix( '' );
-						$selector_attrs           = array();
-						foreach ( $selector_attribute_names as $name ) {
-							$selector_attrs[ $name ] = $block_reader->get_attribute( $name );
-						}
-						$selector_markup = "<$selector>" . wp_kses_post( $source_value ) . "</$selector>";
-						$amended_content = new WP_HTML_Tag_Processor( $selector_markup );
-						$amended_content->next_tag();
-						foreach ( $selector_attrs as $attribute_key => $attribute_value ) {
-							$amended_content->set_attribute( $attribute_key, $attribute_value );
-						}
-						if ( 'core/paragraph' === $this->name || 'core/heading' === $this->name ) {
-							return $amended_content->get_updated_html();
-						}
-						if ( 'core/button' === $this->name ) {
-							$button_markup  = "<$button_wrapper>{$amended_content->get_updated_html()}</$button_wrapper>";
-							$amended_button = new WP_HTML_Tag_Processor( $button_markup );
-							$amended_button->next_tag();
-							foreach ( $button_wrapper_attrs as $attribute_key => $attribute_value ) {
-								$amended_button->set_attribute( $attribute_key, $attribute_value );
-							}
-							return $amended_button->get_updated_html();
-						}
-					} else {
-						$block_reader->seek( 'iterate-selectors' );
-					}
-				}
-				$block_reader->release_bookmark( 'iterate-selectors' );
-				return $block_content;
-
-			case 'attribute':
-				$amended_content = new WP_HTML_Tag_Processor( $block_content );
-				if ( ! $amended_content->next_tag(
-					array(
-						// TODO: build the query from CSS selector.
-						'tag_name' => $block_type->attributes[ $attribute_name ]['selector'],
-					)
-				) ) {
-					return $block_content;
-				}
-				$amended_content->set_attribute( $block_type->attributes[ $attribute_name ]['attribute'], $source_value );
-				return $amended_content->get_updated_html();
-
-			default:
-				return $block_content;
+		// Register the store data using wp_interactivity_state if we have interactivity
+		if ( $has_interactivity ) {
+			// Use wp_interactivity_state to register the store data
+			wp_interactivity_state(
+				'core/block-bindings',
+				array(
+					'blockBindings' => array(
+						$block_id => $store_data,
+					),
+				)
+			);
 		}
+
+		// Now add the directives and set up interactivity
+		$processor = new WP_HTML_Tag_Processor( $block_content );
+
+		// Add the data-wp-interactive directive to the main block container
+		if ( $has_interactivity && $processor->next_tag() ) {
+			$processor->set_attribute( 'data-wp-interactive', 'core/block-bindings' );
+			$block_content = $processor->get_updated_html();
+		}
+
+		// Add wp-bind directives for each computed attribute
+		foreach ( $computed_attributes as $attribute_name => $source_value ) {
+			if ( ! isset( $block_type->attributes[ $attribute_name ]['source'] ) ) {
+				continue;
+			}
+
+			// Reset processor for each attribute to ensure we start from the beginning
+			$processor = new WP_HTML_Tag_Processor( $block_content );
+
+			switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
+				case 'html':
+				case 'rich-text':
+					// Add data-wp-text directive to update text content
+					$selector = $block_type->attributes[ $attribute_name ]['selector'];
+					if ( $processor->next_tag( array( 'tag_name' => $selector ) ) ) {
+						$processor->set_attribute(
+							'data-wp-text',
+							"state.blockBindings.{$block_id}.{$attribute_name}"
+						);
+						$block_content = $processor->get_updated_html();
+					}
+					break;
+
+				case 'attribute':
+					// Add wp-bind directive for specific attribute
+					$selector    = $block_type->attributes[ $attribute_name ]['selector'];
+					$target_attr = $block_type->attributes[ $attribute_name ]['attribute'];
+					if ( $processor->next_tag( array( 'tag_name' => $selector ) ) ) {
+						$processor->set_attribute(
+							"data-wp-bind--{$target_attr}",
+							"state.blockBindings.{$block_id}.{$attribute_name}"
+						);
+						$block_content = $processor->get_updated_html();
+					}
+					break;
+			}
+		}
+
+		// Mark block as interactive after successful processing
+		if ( $has_interactivity ) {
+			if ( ! isset( $this->block_type->supports['interactivity'] ) ) {
+				$this->block_type->supports['interactivity'] = true;
+			}
+		}
+
+		return $block_content;
 	}
 
 
@@ -599,9 +599,8 @@ class WP_Block {
 		}
 
 		if ( ! empty( $computed_attributes ) && ! empty( $block_content ) ) {
-			foreach ( $computed_attributes as $attribute_name => $source_value ) {
-				$block_content = $this->replace_html( $block_content, $attribute_name, $source_value );
-			}
+			// Add wp-bind directives and setup interactivity store instead of manual HTML replacement
+			$block_content = $this->add_interactivity_directives( $block_content, $computed_attributes );
 		}
 
 		if ( $is_dynamic ) {
