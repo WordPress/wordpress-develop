@@ -396,7 +396,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 			"\n",
 			array(
 				'( function() {',
-				'	var userId = ' . get_current_user_ID() . ';',
+				'	var userId = ' . get_current_user_id() . ';',
 				'	var storageKey = "WP_DATA_USER_" + userId;',
 				'	wp.data',
 				'		.use( wp.data.plugins.persistence, { storageKey: storageKey } );',
@@ -997,8 +997,6 @@ function wp_default_scripts( $scripts ) {
 	// Not used in core, replaced by imgAreaSelect.
 	$scripts->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.js', array( 'jquery' ), '0.9.15' );
 
-	$scripts->add( 'swfobject', '/wp-includes/js/swfobject.js', array(), '2.2-20120417' );
-
 	// Error messages for Plupload.
 	$uploader_l10n = array(
 		'queue_limit_exceeded'      => __( 'You have attempted to queue too many files.' ),
@@ -1045,12 +1043,6 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'wp-plupload', "/wp-includes/js/plupload/wp-plupload$suffix.js", array( 'plupload', 'jquery', 'json2', 'media-models' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize( 'wp-plupload', 'pluploadL10n', $uploader_l10n );
-
-	// Keep 'swfupload' for back-compat.
-	$scripts->add( 'swfupload', '/wp-includes/js/swfupload/swfupload.js', array(), '2201-20110113' );
-	$scripts->add( 'swfupload-all', false, array( 'swfupload' ), '2201' );
-	$scripts->add( 'swfupload-handlers', "/wp-includes/js/swfupload/handlers$suffix.js", array( 'swfupload-all', 'jquery' ), '2201-20110524' );
-	did_action( 'init' ) && $scripts->localize( 'swfupload-handlers', 'swfuploadL10n', $uploader_l10n );
 
 	$scripts->add( 'comment-reply', "/wp-includes/js/comment-reply$suffix.js", array(), false, 1 );
 	did_action( 'init' ) && $scripts->add_data( 'comment-reply', 'strategy', 'async' );
@@ -2190,6 +2182,8 @@ function print_footer_scripts() {
 /**
  * Prints scripts (internal use only)
  *
+ * @since 2.8.0
+ *
  * @ignore
  *
  * @global WP_Scripts $wp_scripts
@@ -2547,8 +2541,27 @@ function wp_enqueue_global_styles() {
 		 * and add it before the global styles custom CSS.
 		 */
 		remove_action( 'wp_head', 'wp_custom_css_cb', 101 );
-		// Get the custom CSS from the Customizer and add it to the global stylesheet.
-		$custom_css  = wp_get_custom_css();
+
+		/*
+		 * Get the custom CSS from the Customizer and add it to the global stylesheet.
+		 * Always do this in Customizer preview for the sake of live preview since it be empty.
+		 */
+		$custom_css = trim( wp_get_custom_css() );
+		if ( $custom_css || is_customize_preview() ) {
+			if ( is_customize_preview() ) {
+				/*
+				 * When in the Customizer preview, wrap the Custom CSS in milestone comments to allow customize-preview.js
+				 * to locate the CSS to replace for live previewing. Make sure that the milestone comments are omitted from
+				 * the stored Custom CSS if by chance someone tried to add them, which would be highly unlikely, but it
+				 * would break live previewing.
+				 */
+				$before_milestone = '/*BEGIN_CUSTOMIZER_CUSTOM_CSS*/';
+				$after_milestone  = '/*END_CUSTOMIZER_CUSTOM_CSS*/';
+				$custom_css       = str_replace( array( $before_milestone, $after_milestone ), '', $custom_css );
+				$custom_css       = $before_milestone . "\n" . $custom_css . "\n" . $after_milestone;
+			}
+			$custom_css = "\n" . $custom_css;
+		}
 		$stylesheet .= $custom_css;
 
 		// Add the global styles custom CSS at the end.

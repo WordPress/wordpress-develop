@@ -3,7 +3,9 @@ name: Commit Built File Changes (PRs)
 
 on:
   workflow_run:
-    workflows: [ 'Check Built Files (PRs)' ]
+    workflows:
+      - 'Check Built Files (PRs)'
+      - 'Test Default Themes & Create ZIPs'
     types:
       - completed
 

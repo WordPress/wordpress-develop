@@ -2285,7 +2285,7 @@ function media_upload_form( $errors = null ) {
 			_ex( 'Upload', 'verb' );
 			?>
 		</label>
-		<input type="file" name="async-upload" id="async-upload" />
+		<input type="file" name="async-upload" id="async-upload" required />
 		<?php submit_button( _x( 'Upload', 'verb' ), 'primary', 'html-upload', false ); ?>
 		<a href="#" onclick="try{top.tb_remove();}catch(e){}; return false;"><?php _e( 'Cancel' ); ?></a>
 	</p>
@@ -3337,7 +3337,7 @@ function attachment_submitbox_metadata() {
 		$uploaded_by_link = get_edit_user_link( $author->ID );
 	}
 	?>
-	<div class="misc-pub-section misc-pub-uploadedby">
+	<div class="misc-pub-section misc-pub-uploadedby word-wrap-break-word">
 		<?php if ( $uploaded_by_link ) { ?>
 			<?php _e( 'Uploaded by:' ); ?> <a href="<?php echo $uploaded_by_link; ?>"><strong><?php echo $uploaded_by_name; ?></strong></a>
 		<?php } else { ?>

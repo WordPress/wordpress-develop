@@ -999,7 +999,6 @@ VIDEO;
 		$content = apply_filters( 'the_content', $video );
 
 		$expected = '<div style="width: ' . $width . 'px;" class="wp-video">' .
-			"<!--[if lt IE 9]><script>document.createElement('video');</script><![endif]-->\n" .
 			'<video class="wp-video-shortcode" id="video-' . $post_id . '-1" width="' . $width . '" height="' . $h . '" preload="metadata" controls="controls">' .
 			'<source type="video/mp4" src="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4?_=1" />' .
 			'<!-- WebM/VP8 for Firefox4, Opera, and Chrome --><source type="video/webm" src="myvideo.webm" />' .
@@ -1589,6 +1588,73 @@ EOF;
 	}
 
 	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_with_width_height() {
+		$mock_action = new MockAction();
+		add_filter( 'wp_get_attachment_image_attributes', array( $mock_action, 'filter' ) );
+		wp_get_attachment_image( self::$large_id );
+		$args = $mock_action->get_args();
+		$this->assertArrayHasKey( '0', $args, 'First argument should be an array.' );
+		$this->assertArrayHasKey( '0', $args[0], 'First argument should be an array.' );
+		$this->assertArrayHasKey( 'width', $args[0][0], 'Width should be set.' );
+		$this->assertArrayHasKey( 'height', $args[0][0], 'Height should be set.' );
+	}
+
+	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_change_width_height() {
+		add_filter(
+			'wp_get_attachment_image_attributes',
+			static function ( $args ) {
+				$args['width']  = '999';
+				$args['height'] = '999';
+				return $args;
+			}
+		);
+		$output = wp_get_attachment_image( self::$large_id );
+		$this->assertStringContainsString( 'width="999"', $output, 'Width should be changed.' );
+		$this->assertStringContainsString( 'height="999"', $output, 'Height should be changed.' );
+	}
+
+	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_unset_width_height() {
+		add_filter(
+			'wp_get_attachment_image_attributes',
+			static function ( $args ) {
+				unset( $args['width'], $args['height'] );
+				return $args;
+			}
+		);
+		$output = wp_get_attachment_image( self::$large_id );
+		$this->assertStringContainsString( 'width="150"', $output, 'Width should not be changed.' );
+		$this->assertStringContainsString( 'height="150"', $output, 'Height should not be changed.' );
+	}
+
+	/**
+	 * Test that `wp_get_attachment_image` doesn't overwrite an already valid user-provided width and height.
+	 *
+	 * @ticket 63714
+	 */
+	public function test_wp_get_attachment_image_not_overwrite_user_provided_width_height() {
+		$img = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				'width'  => 999,
+				'height' => 999,
+			)
+		);
+
+		$this->assertStringContainsString( 'width="999"', $img, 'User-provided width should not be changed.' );
+		$this->assertStringContainsString( 'height="999"', $img, 'User-provided height should not be changed.' );
+	}
+
+	/**
 	 * Test that `wp_get_attachment_image()` returns a proper alt value.
 	 *
 	 * @ticket 34635
@@ -1846,6 +1912,8 @@ EOF;
 
 		// Calculate a srcset array.
 		$sizes = explode( ', ', wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
+
+		$this->assertNotEmpty( $sizes );
 
 		// Test to confirm all sources in the array include the same edit hash.
 		foreach ( $sizes as $size ) {
@@ -3780,6 +3848,8 @@ EOF;
 
 		$query = $this->get_new_wp_query_for_published_post();
 
+		$this->assertTrue( have_posts() );
+
 		while ( have_posts() ) {
 			the_post();
 
@@ -3836,6 +3906,8 @@ EOF;
 
 		// Use the filter to alter the threshold for not lazy-loading to the first five elements.
 		$this->force_omit_loading_attr_threshold( 5 );
+
+		$this->assertTrue( have_posts() );
 
 		while ( have_posts() ) {
 			the_post();
