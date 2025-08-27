@@ -1023,6 +1023,29 @@ function wp_get_active_and_valid_plugins() {
 		return $plugins;
 	}
 
+	// Handle Hello Dolly plugin migration from hello.php to hello-dolly/hello.php.
+	$hello_key = array_search( 'hello.php', $active_plugins, true );
+	if ( false !== $hello_key ) {
+		$old_hello_exists = file_exists( WP_PLUGIN_DIR . '/hello.php' );
+		$new_hello_exists = file_exists( WP_PLUGIN_DIR . '/hello-dolly/hello.php' );
+
+		/**
+		 * Filters whether the Hello Dolly migration should be performed.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param bool $should_migrate Whether to migrate. Default is when old file doesn't exist but new file does.
+		 * @param bool $old_hello_exists Whether the old hello.php file exists.
+		 * @param bool $new_hello_exists Whether the new hello-dolly/hello.php file exists.
+		 */
+		$should_migrate = apply_filters( 'wp_should_migrate_hello_dolly', ! $old_hello_exists && $new_hello_exists, $old_hello_exists, $new_hello_exists );
+
+		if ( $should_migrate ) {
+			$active_plugins[ $hello_key ] = 'hello-dolly/hello.php';
+			update_option( 'active_plugins', $active_plugins );
+		}
+	}
+
 	$network_plugins = is_multisite() ? wp_get_active_network_plugins() : false;
 
 	foreach ( $active_plugins as $plugin ) {
