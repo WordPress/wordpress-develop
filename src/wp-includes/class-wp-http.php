@@ -197,8 +197,8 @@ class WP_Http {
 				mbstring_binary_safe_encoding();
 
 				try {
-					$raw_responses = Requests::request_multiple( $pending_requests );
-				} catch ( Requests_Exception $e ) {
+					$raw_responses = WpOrg\Requests\Requests::request_multiple( $pending_requests );
+				} catch ( WpOrg\Requests\Exception $e ) {
 					$raw_responses = new WP_Error( 'http_request_failed', $e->getMessage() );
 				}
 
@@ -234,14 +234,14 @@ class WP_Http {
 		mbstring_binary_safe_encoding();
 
 		try {
-			$response = Requests::request(
+			$response = WpOrg\Requests\Requests::request(
 				$formatted['url'],
 				$formatted['headers'],
 				$formatted['data'],
 				$formatted['type'],
 				$formatted['options']
 			);
-		} catch ( Requests_Exception $e ) {
+		} catch ( WpOrg\Requests\Exception $e ) {
 			$response = new WP_Error( 'http_request_failed', $e->getMessage() );
 		}
 
@@ -523,9 +523,9 @@ class WP_Http {
 	/**
 	 * Format a response into the expected shape.
 	 *
-	 * @param Requests_Response|WP_Error $response Response to format.
-	 * @param array                      $args     Request arguments.
-	 * @param string                     $url      Request URL.
+	 * @param WpOrg\Requests\Response|WP_Error $response Response to format.
+	 * @param array                            $args     Request arguments.
+	 * @param string                           $url      Request URL.
 	 * @return array|WP_Error
 	 */
 	protected function format_response( $response, $args, $url ) {
@@ -546,10 +546,10 @@ class WP_Http {
 		 * @param array|WP_Error $response    HTTP response or WP_Error object.
 		 * @param string         $context     Context under which the hook is fired.
 		 * @param string         $class       HTTP transport used.
-		 * @param array          $parsed_args HTTP request arguments.
+		 * @param array          $args        HTTP request arguments.
 		 * @param string         $url         The request URL.
 		 */
-		do_action( 'http_api_debug', $response, 'response', Requests::class, $parsed_args, $url );
+		do_action( 'http_api_debug', $response, 'response', \WpOrg\Requests\Requests::class, $args, $url );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
