@@ -3474,10 +3474,6 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
  * @since 6.9.0
  */
 function wp_enqueue_command_palette_assets() {
-	if ( ! is_admin() ) {
-		return;
-	}
-
 	wp_enqueue_script( 'wp-commands' );
 	wp_enqueue_style( 'wp-commands' );
 	wp_enqueue_script( 'wp-core-commands' );
