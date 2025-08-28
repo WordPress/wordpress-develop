@@ -94,7 +94,7 @@ class WP_Block_Supports {
 	 * @return string[] Array of HTML attribute values keyed by their name.
 	 */
 	public function apply_block_supports() {
-		if (array_key_exists('blockName', self::$block_to_render)) {
+		if ( array_key_exists( 'blockName', self::$block_to_render ) ) {
 			$block_type = WP_Block_Type_Registry::get_instance()->get_registered(
 				self::$block_to_render['blockName']
 			);
