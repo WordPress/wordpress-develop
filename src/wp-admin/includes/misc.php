@@ -1058,9 +1058,9 @@ function admin_color_scheme_picker( $user_id ) {
 
 /**
  *
- * @global array $_wp_admin_css_colors
- *
  * @since 3.8.0
+ *
+ * @global array $_wp_admin_css_colors
  */
 function wp_color_scheme_settings() {
 	global $_wp_admin_css_colors;
@@ -1085,7 +1085,7 @@ function wp_color_scheme_settings() {
 		);
 	}
 
-	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ) ) . ";</script>\n";
+	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
 }
 
 /**

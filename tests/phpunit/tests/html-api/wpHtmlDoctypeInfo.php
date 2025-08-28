@@ -34,8 +34,8 @@ class Tests_HtmlApi_WpHtmlDoctypeInfo extends WP_UnitTestCase {
 
 		$this->assertSame(
 			$expected_compat_mode,
-			$doctype->indicated_compatability_mode,
-			'Failed to infer the expected document compatability mode.'
+			$doctype->indicated_compatibility_mode,
+			'Failed to infer the expected document compatibility mode.'
 		);
 
 		$this->assertSame(

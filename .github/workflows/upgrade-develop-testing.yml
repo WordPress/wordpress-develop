@@ -57,6 +57,8 @@ jobs:
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     needs: [ build ]
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -90,6 +92,8 @@ jobs:
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository != 'WordPress/wordpress-develop' }}
     needs: [ build ]
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:

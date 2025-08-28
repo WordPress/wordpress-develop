@@ -17,6 +17,8 @@ on:
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/webpack/**'
+      - '.npmrc'
+      - '.nvmrc'
       # These files configure Composer. Changes could affect the local environment.
       - 'composer.*'
       # These files define the versions to test.
@@ -41,6 +43,8 @@ on:
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/webpack/**'
+      - '.npmrc'
+      - '.nvmrc'
       # These files configure Composer. Changes could affect the local environment.
       - 'composer.*'
       # These files define the versions to test.
@@ -88,7 +92,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        memcached: [ false, true ]
+        memcached: [ false ]
         php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
         db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
 
