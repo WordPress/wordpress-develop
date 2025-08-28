@@ -461,11 +461,6 @@ class WP_Term_Query {
 			}
 
 			$orderby = implode( ', ', $orderby_array );
-
-			// Fallback to default if all orderby fields are invalid.
-			if ( empty( $orderby ) ) {
-				$orderby = $this->parse_orderby( 'name' );
-			}
 		} else {
 			$orderby = $this->parse_orderby( $_orderby );
 		}
