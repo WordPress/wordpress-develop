@@ -223,7 +223,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$output .= sprintf(
-			"\n//# sourceURL=%s",
+			"\n//# sourceURL=inline:%s",
 			rawurlencode( "{$handle}-js-extra" )
 		);
 
@@ -527,7 +527,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$data[] = sprintf(
-			'//# sourceURL=%s',
+			'//# sourceURL=inline:%s',
 			rawurlencode( "{$handle}-js-{$position}" )
 		);
 
