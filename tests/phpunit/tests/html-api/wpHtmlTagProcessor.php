@@ -384,6 +384,16 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	/**
 	 * @ticket 63891
 	 *
+	 * @covers WP_HTML_Tag_Processor::next_tag
+	 */
+	public function test_next_attributes_stops_on_br_close() {
+		$processor = new WP_HTML_Tag_Processor( '</br>' );
+		$this->assertTrue( $processor->next_tag() );
+	}
+
+	/**
+	 * @ticket 63891
+	 *
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
 	 */
 	public function test_get_attribute_names_with_prefix_returns_array_br_close_tag() {
