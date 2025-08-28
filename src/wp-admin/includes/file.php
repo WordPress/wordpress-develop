@@ -1229,7 +1229,8 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		if ( $tmpfname_disposition && is_string( $tmpfname_disposition )
 			&& ( 0 === validate_file( $tmpfname_disposition ) )
 		) {
-			$tmpfname_disposition = dirname( $tmpfname ) . '/' . $tmpfname_disposition;
+			$tmpfdir = dirname( $tmpfname );
+			$tmpfname_disposition = $tmpfdir . '/' . wp_unique_filename( $tmpfdir, $tmpfname_disposition );
 
 			if ( rename( $tmpfname, $tmpfname_disposition ) ) {
 				$tmpfname = $tmpfname_disposition;
