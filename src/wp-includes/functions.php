@@ -576,7 +576,7 @@ function human_readable_duration( $duration = '' ) {
  * @since 0.71
  *
  * @param string     $mysqlstring   Date or datetime field type from MySQL.
- * @param int|string $start_of_week Optional. Start of the week as an integer. Default empty string.
+ * @param int|string $start_of_week Optional. Start of the week as an integer. Default is an empty string.
  * @return int[] {
  *     Week start and end dates as Unix timestamps.
  *
@@ -785,9 +785,9 @@ function xmlrpc_getposttitle( $content ) {
 /**
  * Retrieves the post category or categories from XMLRPC XML.
  *
- * If the category element is not found, then the default post category will be
- * used. The return type then would be what $post_default_category. If the
- * category is found, then it will always be an array.
+ * If the category element is not found, the default post category will be
+ * used. The return type will then be $post_default_category. If the
+ * category is found, it will always be an array.
  *
  * @since 0.71
  *
@@ -1011,20 +1011,16 @@ function wp_get_http_headers( $url, $deprecated = false ) {
  * @global string $currentday  The day of the current post in the loop.
  * @global string $previousday The day of the previous post in the loop.
  *
- * @return int 1 when new day, 0 if not a new day.
+ * @return bool True when new day, false if not a new day.
  */
 function is_new_day() {
 	global $currentday, $previousday;
 
-	if ( $currentday !== $previousday ) {
-		return 1;
-	} else {
-		return 0;
-	}
+	return $currentday !== $previousday;
 }
 
 /**
- * Builds URL query based on an associative and, or indexed array.
+ * Builds a URL query based on an associative or indexed array.
  *
  * This is a convenient function for easily building url queries. It sets the
  * separator to '&' and uses _http_build_query() function.
@@ -1357,7 +1353,7 @@ function wp( $query_vars = '' ) {
  * @global array $wp_header_to_desc
  *
  * @param int $code HTTP status code.
- * @return string Status description if found, an empty string otherwise.
+ * @return string Status description if found, or an empty string otherwise.
  */
 function get_status_header_desc( $code ) {
 	global $wp_header_to_desc;
