@@ -319,7 +319,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @ticket XXX
 	 */
 	public function test_invoked_derived_state_props_are_serialized() {
-		$returns_whatever = function () { 
+		$returns_whatever = function () {
 			return 'whatever';
 		};
 
@@ -329,31 +329,40 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 
 		$filter = $this->get_script_data_filter_result(
 			function () use ( $returns_whatever, $returns_array ) {
-				$this->interactivity->state( 'pluginWithInvokedDerivedState', array(
-					'derivedProp' => $returns_whatever,
-					'nested'      => array (
-						'derivedProp'             => $returns_whatever,
-						'derivedPropReturnsArray' => $returns_array,
-					),
-				) );
-
-				$this->interactivity->state( 'pluginWithInvokedDerivedStateReturningArray', array(
-					'derivedProp' => $returns_whatever,
-					'nested'      => array (
-						'derivedProp'             => $returns_whatever,
-						'derivedPropReturnsArray' => $returns_array,
-					),
-				) );
-
-				$this->interactivity->state( 'pluginWithoutInvokedDerivedState', array(
-					'derivedProp' => $returns_whatever,
-					'nested'      => array (
+				$this->interactivity->state(
+					'pluginWithInvokedDerivedState',
+					array(
 						'derivedProp' => $returns_whatever,
-					),
-				) );
+						'nested'      => array(
+							'derivedProp'             => $returns_whatever,
+							'derivedPropReturnsArray' => $returns_array,
+						),
+					)
+				);
+
+				$this->interactivity->state(
+					'pluginWithInvokedDerivedStateReturningArray',
+					array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp'             => $returns_whatever,
+							'derivedPropReturnsArray' => $returns_array,
+						),
+					)
+				);
+
+				$this->interactivity->state(
+					'pluginWithoutInvokedDerivedState',
+					array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp' => $returns_whatever,
+						),
+					)
+				);
 
 				$this->set_internal_context_stack( array() );
-				
+
 				// Multiple evaluations should be serialized only once.
 				$this->set_internal_namespace_stack( 'pluginWithInvokedDerivedState' );
 				$this->evaluate( 'state.derivedProp' );
@@ -370,23 +379,23 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				'state'                     => array(
-					'pluginWithInvokedDerivedState'               => array(
+					'pluginWithInvokedDerivedState'    => array(
 						'derivedProp' => $returns_whatever,
-						'nested'      => array (
+						'nested'      => array(
 							'derivedProp'             => $returns_whatever,
 							'derivedPropReturnsArray' => $returns_array,
 						),
 					),
 					'pluginWithInvokedDerivedStateReturningArray' => array(
 						'derivedProp' => $returns_whatever,
-						'nested'      => array (
+						'nested'      => array(
 							'derivedProp'             => $returns_whatever,
 							'derivedPropReturnsArray' => $returns_array,
 						),
 					),
-					'pluginWithoutInvokedDerivedState'            => array(
+					'pluginWithoutInvokedDerivedState' => array(
 						'derivedProp' => $returns_whatever,
-						'nested'      => array (
+						'nested'      => array(
 							'derivedProp' => $returns_whatever,
 						),
 					),
@@ -399,7 +408,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 					'pluginWithInvokedDerivedStateReturningArray' => array(
 						'state.nested.derivedProp',
 					),
-				)
+				),
 			),
 			$filter->get_args()[0][0]
 		);
