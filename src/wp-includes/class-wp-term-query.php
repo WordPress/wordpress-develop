@@ -92,6 +92,7 @@ class WP_Term_Query {
 	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
 	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 * @since 6.4.0 Introduced the 'cache_results' parameter.
+	 * @since 6.8.0 Added support for array of orderby fields.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of term query parameters. Default empty.
