@@ -422,7 +422,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRules extends WP_UnitTestCase {
 
 		$this->assertTrue( $processor->next_tag(), 'Failed to find the expected opening BR tag.' );
 		$this->assertFalse( $processor->is_tag_closer(), 'Should have treated the tag as an opening tag.' );
-		$this->assertNull( $processor->get_attribute_names_with_prefix( '' ), 'Should have ignored any attributes on the tag.' );
+		$this->assertSame( array(), $processor->get_attribute_names_with_prefix( '' ), 'Should have returned an empty array of attribute names.' );
 	}
 
 	/*******************************************************************
