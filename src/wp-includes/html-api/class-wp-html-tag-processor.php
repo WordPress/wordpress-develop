@@ -4313,7 +4313,7 @@ class WP_HTML_Tag_Processor {
 	 * @return bool Whether the given tag and its attribute match the search criteria.
 	 */
 	private function matches(): bool {
-		if ( $this->is_closing_tag && ! $this->stop_on_tag_closers ) {
+		if ( $this->is_tag_closer() && ! $this->stop_on_tag_closers ) {
 			return false;
 		}
 
