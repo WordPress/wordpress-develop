@@ -100,7 +100,7 @@ class WP_Term_Query {
 	 *                                                   should be limited.
 	 *     @type int|int[]       $object_ids             Object ID, or array of object IDs. Results will be
 	 *                                                   limited to terms associated with these objects.
-	 *     @type string          $orderby                Field(s) to order terms by. Accepts:
+	 *     @type string|array    $orderby                Field(s) to order terms by. Accepts:
 	 *                                                   - Term fields ('name', 'slug', 'term_group', 'term_id', 'id',
 	 *                                                     'description', 'parent', 'term_order'). Unless `$object_ids`
 	 *                                                     is not empty, 'term_order' is treated the same as 'term_id'.
