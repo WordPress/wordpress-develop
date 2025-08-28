@@ -445,7 +445,24 @@ class WP_Term_Query {
 			$_orderby = 'term_id';
 		}
 
-		$orderby = $this->parse_orderby( $_orderby );
+		if ( is_array( $_orderby ) ) {
+			$orderby_array = array();
+			
+			foreach ( $_orderby as $orderby_field => $order ) {
+				$parsed = $this->parse_orderby( $orderby_field );
+				
+				if ( ! $parsed ) {
+					continue;
+				}
+				
+				$order = $this->parse_order( $order );
+				$orderby_array[] = $parsed . ' ' . $order;
+			}
+			
+			$orderby = implode( ', ', $orderby_array );
+		} else {
+			$orderby = $this->parse_orderby( $_orderby );
+		}
 
 		if ( $orderby ) {
 			$orderby = "ORDER BY $orderby";
