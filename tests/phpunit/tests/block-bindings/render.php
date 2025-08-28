@@ -17,6 +17,27 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 	);
 
 	/**
+	 * Sets up shared fixtures.
+	 *
+	 * @since 6.9.0
+	 */
+	public static function wpSetUpBeforeClass() {
+		register_block_type(
+			'test/block',
+			array(
+				'attributes'      => array(
+					'myAttribute' => array(
+						'type' => 'string',
+					),
+				),
+				'render_callback' => function ( $attributes ) {
+					return '<p>' . esc_html( $attributes['myAttribute'] ) . '</p>';
+				},
+			)
+		);
+	}
+
+	/**
 	 * Tear down after each test.
 	 *
 	 * @since 6.5.0
@@ -32,13 +53,49 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down after class.
+	 *
+	 * @since 6.9.0
+	 */
+	public static function wpTearDownAfterClass() {
+		unregister_block_type( 'test/block' );
+	}
+
+	public function data_update_block_with_value_from_source() {
+		return array(
+			'paragraph block' => array(
+				'content',
+				<<<HTML
+<!-- wp:paragraph -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
+HTML
+				,
+				'<p>test source value</p>',
+			),
+			'button block'    => array(
+				'text',
+				<<<HTML
+<!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button">This should not appear</a></div>
+<!-- /wp:button -->
+HTML
+				,
+				'<div class="wp-block-button"><a class="wp-block-button__link wp-element-button">test source value</a></div>',
+			),
+		);
+	}
+
+	/**
 	 * Test if the block content is updated with the value returned by the source.
 	 *
 	 * @ticket 60282
 	 *
 	 * @covers ::register_block_bindings_source
+	 *
+	 * @dataProvider data_update_block_with_value_from_source
 	 */
-	public function test_update_block_with_value_from_source() {
+	public function test_update_block_with_value_from_source( $bound_attribute, $block_content, $expected_result ) {
 		$get_value_callback = function () {
 			return 'test source value';
 		};
@@ -51,10 +108,61 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 			)
 		);
 
+		$parsed_blocks = parse_blocks( $block_content );
+
+		$parsed_blocks[0]['attrs']['metadata'] = array(
+			'bindings' => array(
+				$bound_attribute => array(
+					'source' => self::SOURCE_NAME,
+				),
+			),
+		);
+
+		$block  = new WP_Block( $parsed_blocks[0] );
+		$result = $block->render();
+
+		$this->assertSame(
+			'test source value',
+			$block->attributes[ $bound_attribute ],
+			"The '{$bound_attribute}' attribute should be updated with the value returned by the source."
+		);
+		$this->assertSame(
+			$expected_result,
+			trim( $result ),
+			'The block content should be updated with the value returned by the source.'
+		);
+	}
+
+	/**
+	 * Test if the block_bindings_supported_attributes_{$block_type} filter is applied correctly.
+	 *
+	 * @ticket 62090
+	 */
+	public function test_filter_block_bindings_supported_attributes() {
+		$get_value_callback = function () {
+			return 'test source value';
+		};
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		add_filter(
+			'block_bindings_supported_attributes_test/block',
+			function ( $supported_attributes ) {
+				$supported_attributes[] = 'myAttribute';
+				return $supported_attributes;
+			}
+		);
+
 		$block_content = <<<HTML
-<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source"}}}} -->
+<!-- wp:test/block {"metadata":{"bindings":{"myAttribute":{"source":"test/source"}}}} -->
 <p>This should not appear</p>
-<!-- /wp:paragraph -->
+<!-- /wp:test/block -->
 HTML;
 		$parsed_blocks = parse_blocks( $block_content );
 		$block         = new WP_Block( $parsed_blocks[0] );
@@ -62,8 +170,8 @@ HTML;
 
 		$this->assertSame(
 			'test source value',
-			$block->attributes['content'],
-			"The 'content' attribute should be updated with the value returned by the source."
+			$block->attributes['myAttribute'],
+			"The 'myAttribute' attribute should be updated with the value returned by the source."
 		);
 		$this->assertSame(
 			'<p>test source value</p>',

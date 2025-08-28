@@ -222,6 +222,11 @@ class WP_Scripts extends WP_Dependencies {
 			return;
 		}
 
+		$output .= sprintf(
+			"\n//# sourceURL=%s",
+			rawurlencode( "{$handle}-js-extra" )
+		);
+
 		if ( ! $display ) {
 			return $output;
 		}
@@ -521,6 +526,11 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
+		$data[] = sprintf(
+			'//# sourceURL=%s',
+			rawurlencode( "{$handle}-js-{$position}" )
+		);
+
 		return trim( implode( "\n", $data ), "\n" );
 	}
 
@@ -596,7 +606,7 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
-		$script = "var $object_name = " . wp_json_encode( $l10n ) . ';';
+		$script = "var $object_name = " . wp_json_encode( $l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';';
 
 		if ( ! empty( $after ) ) {
 			$script .= "\n$after;";

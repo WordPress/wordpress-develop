@@ -1180,7 +1180,7 @@ function get_post_ancestors( $post ) {
  * @param int|WP_Post $post    Optional. Post ID or post object. Defaults to global $post.
  * @param string      $context Optional. How to filter the field. Accepts 'raw', 'edit', 'db',
  *                             or 'display'. Default 'display'.
- * @return string The value of the post field on success, empty string on failure.
+ * @return int|string|int[] The value of the post field on success, empty string on failure.
  */
 function get_post_field( $field, $post = null, $context = 'display' ) {
 	$post = get_post( $post );
@@ -6109,7 +6109,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( '0' === $cached || 0 === $cached ) {
-			return;
+			return null;
 		} else {
 			return get_post( $cached, $output );
 		}
@@ -8170,10 +8170,35 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
  * @param WP_Post $post       Post object.
  */
 function _update_term_count_on_transition_post_status( $new_status, $old_status, $post ) {
+	if ( $new_status === $old_status ) {
+		return;
+	}
+
 	// Update counts for the post's terms.
-	foreach ( (array) get_object_taxonomies( $post->post_type ) as $taxonomy ) {
-		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'tt_ids' ) );
-		wp_update_term_count( $tt_ids, $taxonomy );
+	foreach ( (array) get_object_taxonomies( $post->post_type, 'objects' ) as $taxonomy ) {
+		/** This filter is documented in wp-includes/taxonomy.php */
+		$counted_statuses = apply_filters( 'update_post_term_count_statuses', array( 'publish' ), $taxonomy );
+
+		/*
+		 * Do not recalculate term count if both the old and new status are not included in term counts.
+		 * This accounts for a transition such as draft -> pending.
+		 */
+		if ( ! in_array( $old_status, $counted_statuses, true ) && ! in_array( $new_status, $counted_statuses, true ) ) {
+			continue;
+		}
+
+		/*
+		 * Do not recalculate term count if both the old and new status are included in term counts.
+		 *
+		 * This accounts for transitioning between statuses which are both included in term counts. This can only occur
+		 * if the `update_post_term_count_statuses` filter is in use to count more than just the 'publish' status.
+		 */
+		if ( in_array( $old_status, $counted_statuses, true ) && in_array( $new_status, $counted_statuses, true ) ) {
+			continue;
+		}
+
+		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'tt_ids' ) );
+		wp_update_term_count( $tt_ids, $taxonomy->name );
 	}
 }
 

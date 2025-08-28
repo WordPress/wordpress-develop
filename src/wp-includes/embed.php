@@ -765,7 +765,7 @@ function wp_oembed_ensure_format( $format ) {
  * @param WP_HTTP_Response $result  Result to send to the client. Usually a `WP_REST_Response`.
  * @param WP_REST_Request  $request Request used to generate the response.
  * @param WP_REST_Server   $server  Server instance.
- * @return true
+ * @return bool True if the request was served, false otherwise.
  */
 function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	$params = $request->get_params();
@@ -791,7 +791,7 @@ function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	// Bail if there's no XML.
 	if ( ! $result ) {
 		status_header( 501 );
-		return get_status_header_desc( 501 );
+		die( get_status_header_desc( 501 ) );
 	}
 
 	if ( ! headers_sent() ) {

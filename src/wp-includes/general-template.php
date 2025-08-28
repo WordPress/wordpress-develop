@@ -2493,7 +2493,7 @@ function get_calendar( $args = array() ) {
 	$daysinmonth = (int) gmdate( 't', $unixmonth );
 
 	for ( $day = 1; $day <= $daysinmonth; ++$day ) {
-		if ( isset( $newrow ) && $newrow ) {
+		if ( $newrow ) {
 			$calendar_output .= "\n\t</tr>\n\t<tr>\n\t\t";
 		}
 
@@ -4066,7 +4066,7 @@ function wp_enqueue_code_editor( $args ) {
 		}
 	}
 
-	wp_add_inline_script( 'code-editor', sprintf( 'jQuery.extend( wp.codeEditor.defaultSettings, %s );', wp_json_encode( $settings ) ) );
+	wp_add_inline_script( 'code-editor', sprintf( 'jQuery.extend( wp.codeEditor.defaultSettings, %s );', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) );
 
 	/**
 	 * Fires when scripts and styles are enqueued for the code editor.
