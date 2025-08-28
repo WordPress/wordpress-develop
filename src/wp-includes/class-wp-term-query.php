@@ -768,7 +768,7 @@ class WP_Term_Query {
 
 		$this->sql_clauses['select']  = "SELECT $distinct $fields";
 		$this->sql_clauses['from']    = "FROM $wpdb->terms AS t $join";
-		$this->sql_clauses['orderby'] = $orderby ? "$orderby $order" : '';
+		$this->sql_clauses['orderby'] = $orderby ? ( is_array( $this->query_vars['orderby'] ) ? $orderby : "$orderby $order" ) : '';
 		$this->sql_clauses['limits']  = $limits;
 
 		// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
