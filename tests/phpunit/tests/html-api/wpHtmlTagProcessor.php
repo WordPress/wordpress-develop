@@ -382,6 +382,27 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63891
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_returns_array_br_close_tag() {
+		$processor = new WP_HTML_Tag_Processor( '</br>' );
+		$processor->next_tag();
+		$this->assertSame(
+			array(),
+			$processor->get_attribute_names_with_prefix( '' )
+		);
+
+		$processor = new WP_HTML_Tag_Processor( '</br class="example">' );
+		$processor->next_tag();
+		$this->assertSame(
+			array(),
+			$processor->get_attribute_names_with_prefix( '' )
+		);
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::__toString
