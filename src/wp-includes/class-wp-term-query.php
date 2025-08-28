@@ -449,14 +449,14 @@ class WP_Term_Query {
 			$orderby_array = array();
 			
 			foreach ( $_orderby as $orderby_field => $order ) {
-				$parsed = $this->parse_orderby( $orderby_field );
+				$parsed_orderby = $this->parse_orderby( $orderby_field );
 				
-				if ( ! $parsed ) {
+				if ( ! $parsed_orderby ) {
 					continue;
 				}
 				
 				$order = $this->parse_order( $order );
-				$orderby_array[] = $parsed . ' ' . $order;
+				$orderby_array[] = "{$parsed_orderby} {$order}";
 			}
 			
 			$orderby = implode( ', ', $orderby_array );
