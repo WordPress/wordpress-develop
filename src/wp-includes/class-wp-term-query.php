@@ -112,6 +112,7 @@ class WP_Term_Query {
 	 *                                                   - The value of `$meta_key`.
 	 *                                                   - The array keys of `$meta_query`.
 	 *                                                   - 'none' to omit the ORDER BY clause.
+	 *                                                   - Array of orderby fields as keys with order ('ASC'/'DESC') as values.
 	 *                                                   Default 'name'.
 	 *     @type string          $order                  Whether to order terms in ascending or descending order.
 	 *                                                   Accepts 'ASC' (ascending) or 'DESC' (descending).
