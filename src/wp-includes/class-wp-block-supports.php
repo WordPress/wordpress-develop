@@ -31,7 +31,7 @@ class WP_Block_Supports {
 	 * @since 5.6.0
 	 * @var array
 	 */
-	public static $block_to_render = null;
+	public static $block_to_render = array();
 
 	/**
 	 * Container for the main instance of the class.
@@ -94,9 +94,13 @@ class WP_Block_Supports {
 	 * @return string[] Array of HTML attribute values keyed by their name.
 	 */
 	public function apply_block_supports() {
-		$block_type = WP_Block_Type_Registry::get_instance()->get_registered(
-			self::$block_to_render['blockName']
-		);
+		if (array_key_exists('blockName', self::$block_to_render)) {
+			$block_type = WP_Block_Type_Registry::get_instance()->get_registered(
+				self::$block_to_render['blockName']
+			);
+		} else {
+			$block_type = null;
+		}
 
 		// If no render_callback, assume styles have been previously handled.
 		if ( ! $block_type || empty( $block_type ) ) {
