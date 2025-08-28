@@ -623,6 +623,40 @@ function twentysixteen_widget_tag_cloud_args( $args ) {
 }
 add_filter( 'widget_tag_cloud_args', 'twentysixteen_widget_tag_cloud_args' );
 
+if ( ! function_exists( 'wp_sanitize_script_attributes' ) ) {
+	/**
+	 * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
+	 *
+	 * Automatically injects type attribute if needed.
+	 * Used by {@see wp_get_script_tag()} and {@see wp_get_inline_script_tag()}.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+	 * @return string String made of sanitized `<script>` tag attributes.
+	 */
+	function wp_sanitize_script_attributes( $attributes ) {
+		$html5_script_support = ! is_admin() && ! current_theme_supports( 'html5', 'script' );
+		$attributes_string    = '';
+
+		/*
+		 * If HTML5 script tag is supported, only the attribute name is added
+		 * to $attributes_string for entries with a boolean value, and that are true.
+		 */
+		foreach ( $attributes as $attribute_name => $attribute_value ) {
+			if ( is_bool( $attribute_value ) ) {
+				if ( $attribute_value ) {
+					$attributes_string .= $html5_script_support ? sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_name ) ) : ' ' . esc_attr( $attribute_name );
+				}
+			} else {
+				$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+			}
+		}
+
+		return $attributes_string;
+	}
+}
+
 if ( ! function_exists( 'wp_get_inline_script_tag' ) ) {
 	/**
 	 * Constructs an inline script tag.
@@ -649,29 +683,29 @@ if ( ! function_exists( 'wp_get_inline_script_tag' ) ) {
 		}
 
 		/*
-		* XHTML extracts the contents of the SCRIPT element and then the XML parser
-		* decodes character references and other syntax elements. This can lead to
-		* misinterpretation of the script contents or invalid XHTML documents.
-		*
-		* Wrapping the contents in a CDATA section instructs the XML parser not to
-		* transform the contents of the SCRIPT element before passing them to the
-		* JavaScript engine.
-		*
-		* Example:
-		*
-		*     <script>console.log('&hellip;');</script>
-		*
-		*     In an HTML document this would print "&hellip;" to the console,
-		*     but in an XHTML document it would print "…" to the console.
-		*
-		*     <script>console.log('An image is <img> in HTML');</script>
-		*
-		*     In an HTML document this would print "An image is <img> in HTML",
-		*     but it's an invalid XHTML document because it interprets the `<img>`
-		*     as an empty tag missing its closing `/`.
-		*
-		* @see https://www.w3.org/TR/xhtml1/#h-4.8
-		*/
+		 * XHTML extracts the contents of the SCRIPT element and then the XML parser
+		 * decodes character references and other syntax elements. This can lead to
+		 * misinterpretation of the script contents or invalid XHTML documents.
+		 *
+		 * Wrapping the contents in a CDATA section instructs the XML parser not to
+		 * transform the contents of the SCRIPT element before passing them to the
+		 * JavaScript engine.
+		 *
+		 * Example:
+		 *
+		 *     <script>console.log('&hellip;');</script>
+		 *
+		 *     In an HTML document this would print "&hellip;" to the console,
+		 *     but in an XHTML document it would print "…" to the console.
+		 *
+		 *     <script>console.log('An image is <img> in HTML');</script>
+		 *
+		 *     In an HTML document this would print "An image is <img> in HTML",
+		 *     but it's an invalid XHTML document because it interprets the `<img>`
+		 *     as an empty tag missing its closing `/`.
+		 *
+		 * @see https://www.w3.org/TR/xhtml1/#h-4.8
+		 */
 		if (
 			! $is_html5 &&
 			(
@@ -684,14 +718,14 @@ if ( ! function_exists( 'wp_get_inline_script_tag' ) ) {
 			)
 		) {
 			/*
-			* If the string `]]>` exists within the JavaScript it would break
-			* out of any wrapping CDATA section added here, so to start, it's
-			* necessary to escape that sequence which requires splitting the
-			* content into two CDATA sections wherever it's found.
-			*
-			* Note: it's only necessary to escape the closing `]]>` because
-			* an additional `<![CDATA[` leaves the contents unchanged.
-			*/
+			 * If the string `]]>` exists within the JavaScript it would break
+			 * out of any wrapping CDATA section added here, so to start, it's
+			 * necessary to escape that sequence which requires splitting the
+			 * content into two CDATA sections wherever it's found.
+			 *
+			 * Note: it's only necessary to escape the closing `]]>` because
+			 * an additional `<![CDATA[` leaves the contents unchanged.
+			 */
 			$data = str_replace( ']]>', ']]]]><![CDATA[>', $data );
 
 			// Wrap the entire escaped script inside a CDATA section.
@@ -700,18 +734,7 @@ if ( ! function_exists( 'wp_get_inline_script_tag' ) ) {
 
 		$data = "\n" . trim( $data, "\n\r " ) . "\n";
 
-		/**
-		 * Filters attributes to be added to a script tag.
-		 *
-		 * Added for backward compatibility to support pre-5.7.0 WordPress versions.
-		 *
-		 * @since 5.7.0
-		 *
-		 * @param array  $attributes Key-value pairs representing `<script>` tag attributes.
-		 *                           Only the attribute name is added to the `<script>` tag for
-		 *                           entries with a boolean value, and that are true.
-		 * @param string $data       Inline data.
-		 */
+		/** This filter is documented in wp-includes/script-loader.php */
 		$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
 		return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $data );
