@@ -2422,10 +2422,11 @@ function upgrade_650() {
  * @ignore
  * @since 6.9.0
  *
- * @global int $wp_current_db_version The old (current) database version.
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
  */
 function upgrade_690() {
-	global $wp_current_db_version;
+	global $wp_current_db_version, $wpdb;
 
 	// Switch Hello Dolly from file to directory format. See #53323
 	$active_plugins = get_option( 'active_plugins' );
@@ -2436,6 +2437,11 @@ function upgrade_690() {
 	if ( $key ) {
 		$active_plugins[ $key ] = $new_plugin;
 		update_option( 'active_plugins', $active_plugins );
+	}
+
+	if ( $wp_current_db_version < 60498 ) {
+		$wpdb->query( "ALTER TABLE $wpdb->posts ADD INDEX type_status_post_date_gmt (post_type,post_status,post_date_gmt)" );
+		$wpdb->query( "ALTER TABLE $wpdb->posts ADD INDEX type_status_modified_date_gmt (post_type,post_status,post_modified_gmt)" );
 	}
 }
 /**
