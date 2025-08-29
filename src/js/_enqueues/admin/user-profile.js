@@ -255,9 +255,6 @@
 			$pass1.attr( 'disabled', false );
 			$pass2.attr( 'disabled', false );
 
-			// Set the password to the generated value.
-			generatePassword();
-
 			// Show generated password in plaintext by default.
 			resetToggle ( false );
 
@@ -265,6 +262,8 @@
 			wp.ajax.post( 'generate-password' )
 				.done( function( data ) {
 					$pass1.data( 'pw', data );
+					// Set the password to the generated value.
+					generatePassword();
 				} );
 		} );
 
