@@ -1011,12 +1011,16 @@ function wp_get_http_headers( $url, $deprecated = false ) {
  * @global string $currentday  The day of the current post in the loop.
  * @global string $previousday The day of the previous post in the loop.
  *
- * @return bool True when new day, false if not a new day.
+ * @return int 1 when new day, 0 if not a new day.
  */
 function is_new_day() {
-	global $currentday, $previousday;
+       global $currentday, $previousday;
 
-	return $currentday !== $previousday;
+       if ( $currentday !== $previousday ) {
+	       return 1;
+       } else {
+	       return 0;
+       }
 }
 
 /**
