@@ -778,7 +778,7 @@ function list_theme_updates() {
 				echo $auto_update_notice;
 			}
 
-			echo $upgrade_notice;
+			echo '<br />' . wp_strip_all_tags( $upgrade_notice );
 			?>
 		</p></td>
 	</tr>
