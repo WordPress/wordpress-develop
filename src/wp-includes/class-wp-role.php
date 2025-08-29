@@ -23,6 +23,14 @@ class WP_Role {
 	public $name;
 
 	/**
+	 * Role display name.
+	 *
+	 * @since 6.9
+	 * @var string
+	 */
+	public $display_name;
+
+	/**
 	 * List of capabilities the role contains.
 	 *
 	 * @since 2.0.0
@@ -46,6 +54,14 @@ class WP_Role {
 	public function __construct( $role, $capabilities ) {
 		$this->name         = $role;
 		$this->capabilities = $capabilities;
+
+		global $wp_roles;
+
+		if ( isset( $wp_roles->role_names[ $role ] ) ) {
+			$this->display_name = $wp_roles->role_names[ $role ];
+		} else {
+			$this->display_name = null;
+		}
 	}
 
 	/**
