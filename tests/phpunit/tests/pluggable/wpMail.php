@@ -566,7 +566,6 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			DIR_TESTDATA . '/images/canola.jpg',
 			DIR_TESTDATA . '/images/test-image-2.gif',
 			DIR_TESTDATA . '/images/avif-lossy.avif',
-			dirname( DIR_TESTROOT ) . '/e2e/assets/sample.svg',
 		);
 
 		$message = '';
