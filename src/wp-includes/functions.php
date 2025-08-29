@@ -7689,7 +7689,7 @@ function wp_validate_boolean( $value ) {
 		return $value;
 	}
 
-	$truthy_strings = array('true', 'on', 'yes', '1');
+	$truthy_strings = array( 'true', 'on', 'yes', '1' );
 
 	if ( is_string( $value ) && in_array( strtolower( trim( $value ) ), $truthy_strings, true ) ) {
 		return true;
