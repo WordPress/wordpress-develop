@@ -158,6 +158,17 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * The default charset is based on the charset used on the blog. The charset can
 	 * be set using the {@see 'wp_mail_charset'} filter.
 	 *
+	 * When using the `$embeds` parameter to embed images for use in HTML emails,
+	 * reference the embedded file in your HTML with a `cid:` URL whose value
+	 * matches the file's Content-ID. By default, the Content-ID (`cid`) used for
+	 * each embedded file is `md5( $embed_path )`, unless modified via the
+	 * {@see 'wp_mail_embed_args'} filter. For example:
+	 *
+	 * `<img src="cid:`md5( '/path/to/logo.png' )`" alt="Logo">`
+	 *
+	 * You may also customize the Content-ID for each file by using the
+	 * {@see 'wp_mail_embed_args'} filter and setting the `cid` value.
+	 *
 	 * @since 1.2.1
 	 * @since 5.5.0 is_email() is used for email validation,
 	 *              instead of PHPMailer's default validator.
@@ -555,13 +566,12 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				 *     An array of arguments for `addEmbeddedImage()`. Using PHPMailer default values.
 				 *
 				 *     @type string $path        The path to the file.
-				 *     @type string $cid         The Content-ID of the image.
+				 *     @type string $cid         The Content-ID of the image (default: md5( $embed_path )).
 				 *     @type string $name        The filename of the image.
 				 *     @type string $encoding    The encoding of the image. Default 'base64'.
 				 *     @type string $type        The MIME type of the image. Default is empty string, which lets PHPMailer auto-detect.
 				 *     @type string $disposition The disposition of the image. Default 'inline'.
 				 * }
-				 * @param string $embed_path The path to the file being embedded.
 				 */
 				$embed_args = apply_filters(
 					'wp_mail_embed_args',
@@ -572,8 +582,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 						'encoding'    => 'base64',
 						'type'        => '',
 						'disposition' => 'inline',
-					),
-					$embed_path
+					)
 				);
 
 				try {
