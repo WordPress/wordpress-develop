@@ -56,7 +56,7 @@ class Tests_Dependencies_wpLocalizeScript extends WP_UnitTestCase {
 
 		$output = get_echo( 'wp_print_scripts' );
 
-		$expected  = "<script id=\"test-script-js-extra\">\nvar testData = {\"\\u003C!--\":\"\\u003Cscript\\u003E\"};\n//# sourceURL=test-script-js-extra\n</script>\n";
+		$expected  = "<script id=\"test-script-js-extra\">\nvar testData = {\"\\u003C!--\":\"\\u003Cscript\\u003E\"};\n</script>\n";
 		$expected .= "<script src=\"{$base_url}\" id=\"test-script-js\"></script>\n";
 
 		$this->assertEqualHTML( $expected, $output );

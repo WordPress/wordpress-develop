@@ -150,7 +150,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
-		$expected .= "/*# sourceURL=handle-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -180,7 +179,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
-		$expected .= "/*# sourceURL=handle-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -276,7 +274,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style1\n";
 		$expected .= "$style2\n";
-		$expected .= "/*# sourceURL=handle-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -295,19 +292,18 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 */
 	public function test_plugin_doing_inline_styles_wrong() {
 
-		$style  = ".thing {\n";
+		$style  = "<style id='handle-inline-css' type='text/css'>\n";
+		$style .= ".thing {\n";
 		$style .= "\tbackground: red;\n";
-		$style .= '}';
+		$style .= "}\n";
+		$style .= '</style>';
 
 		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
-		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
-		$expected .= "/*# sourceURL=handle-inline-css */\n";
-		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
 
-		wp_add_inline_style( 'handle', "<style>{$style}</style>" );
+		wp_add_inline_style( 'handle', $style );
 
 		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
 	}
@@ -336,7 +332,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 <link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />
 <style id='handle-inline-css' type='text/css'>
 a { color: blue; }
-/*# sourceURL=handle-inline-css */
 </style>
 <![endif]-->
 
@@ -368,7 +363,6 @@ CSS;
 		$expected .= "<link rel='stylesheet' id='handle-two-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-three-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
-		$expected .= "/*# sourceURL=handle-three-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_register_style( 'handle-one', 'http://example.com', array(), 1 );
@@ -637,25 +631,5 @@ CSS;
 		wp_maybe_inline_styles();
 
 		$this->assertSame( $GLOBALS['wp_styles']->registered['test-handle']->src, $url );
-	}
-
-	/**
-	 * @ticket 63887
-	 */
-	public function test_source_url_encoding() {
-		$handle = '# test/</style> #';
-		wp_enqueue_style( $handle, '/example.css', array(), '0.0' );
-		wp_add_inline_style( $handle, 'custom-el { content: "ok"; }' );
-
-		$expected = <<<HTML
-<link rel='stylesheet' href="/example.css?ver=0.0" id="# test/</style> #-css" media="all" type="text/css">
-<style id="# test/</style> #-inline-css" type="text/css">
-custom-el { content: "ok"; }
-/*# sourceURL=%23%20test%2F%3C%2Fstyle%3E%20%23-inline-css */
-</style>
-
-HTML;
-
-		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
 	}
 }
