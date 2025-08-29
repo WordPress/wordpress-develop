@@ -689,4 +689,33 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 
 		remove_all_filters( 'locale' );
 	}
+
+	/**
+	 * Test fallback behavior when Intl extension is not available.
+	 *
+	 * @ticket 11740
+	 */
+	public function test_wp_timezone_choice_usort_callback_fallback() {
+		$timezones = array(
+			array(
+				'continent'   => 'Europe',
+				'city'        => 'Rome',
+				't_continent' => 'Europe',
+				't_city'      => 'Rome',
+				't_subcity'   => '',
+			),
+			array(
+				'continent'   => 'Europe',
+				'city'        => 'Amsterdam',
+				't_continent' => 'Europe',
+				't_city'      => 'Amsterdam',
+				't_subcity'   => '',
+			),
+		);
+
+		usort( $timezones, '_wp_timezone_choice_usort_callback' );
+
+		$this->assertSame( 'Amsterdam', $timezones[0]['t_city'] );
+		$this->assertSame( 'Rome', $timezones[1]['t_city'] );
+	}
 }
