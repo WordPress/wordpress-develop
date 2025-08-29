@@ -554,4 +554,47 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		$phpmailer = $GLOBALS['phpmailer'];
 		$this->assertNotSame( 'user1', $phpmailer->AltBody );
 	}
+
+	/**
+	 * Test that wp_mail() can send embedded images.
+	 *
+	 * @ticket 28059
+	 * @covers ::wp_mail
+	 */
+	public function test_wp_mail_can_send_embedded_images() {
+		$embeds = array(
+			DIR_TESTDATA . '/images/canola.jpg',
+			DIR_TESTDATA . '/images/test-image-2.gif',
+			DIR_TESTDATA . '/images/avif-lossy.avif',
+			dirname( DIR_TESTROOT ) . '/e2e/assets/sample.svg',
+		);
+
+		$message = '';
+		foreach ( $embeds as $path ) {
+			$message .= '<p><img src="cid:' . md5( $path ) . '" alt="" /></p>';
+		}
+
+		wp_mail(
+			'user@example.org',
+			'Embedded images test',
+			$message,
+			'Content-Type: text/html',
+			array(),
+			$embeds
+		);
+
+		$mailer      = tests_retrieve_phpmailer_instance();
+		$attachments = $mailer->getAttachments();
+
+		foreach ( $attachments as $attachment ) {
+			if ( in_array( $attachment[0], $embeds, true ) ) {
+				$this->assertSame( 'inline', $attachment[6], 'The attachment ' . $attachment[2] . ' is not inline.' );
+			}
+		}
+
+		foreach ( $embeds as $path ) {
+			$cid = md5( $path );
+			$this->assertStringContainsString( 'cid:' . $cid, $mailer->get_sent()->body, 'The cid ' . $cid . ' is not referenced in the mail body.' );
+		}
+	}
 }
