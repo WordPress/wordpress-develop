@@ -19,7 +19,7 @@
 		"ext-dom": "*"
 	},
 	"require-dev": {
-		"composer/ca-bundle": "1.5.7",
+		"composer/ca-bundle": "1.5.8",
 		"squizlabs/php_codesniffer": "3.13.2",
 		"wp-coding-standards/wpcs": "~3.2.0",
 		"phpcompatibility/phpcompatibility-wp": "~2.1.3",
