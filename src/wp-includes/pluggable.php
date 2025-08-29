@@ -563,10 +563,9 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				 * @since 6.9.0
 				 *
 				 * @param array $args {
-				 *     An array of arguments for `addEmbeddedImage()`. Using PHPMailer default values.
-				 *
+				 *     An array of arguments for `addEmbeddedImage()`.
 				 *     @type string $path        The path to the file.
-				 *     @type string $cid         The Content-ID of the image (default: md5( $embed_path )).
+				 *     @type string $cid         The Content-ID of the image. Default MD5( $path ).
 				 *     @type string $name        The filename of the image.
 				 *     @type string $encoding    The encoding of the image. Default 'base64'.
 				 *     @type string $type        The MIME type of the image. Default is empty string, which lets PHPMailer auto-detect.
