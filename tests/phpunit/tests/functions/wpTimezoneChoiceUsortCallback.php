@@ -639,4 +639,54 @@ class Tests_Functions_WpTimezoneChoiceUsortCallback extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Test locale-aware sorting for translated timezone names.
+	 *
+	 * @ticket 11740
+	 */
+	public function test_wp_timezone_choice_usort_callback_locale_aware() {
+		if ( ! class_exists( 'Collator' ) ) {
+			$this->markTestSkipped( 'Intl extension not available.' );
+		}
+
+		add_filter(
+			'locale',
+			function () {
+				return 'cs_CZ';
+			}
+		);
+
+		$timezones = array(
+			array(
+				'continent'   => 'Europe',
+				'city'        => 'Rome',
+				't_continent' => 'Evropa',
+				't_city'      => 'Řím',
+				't_subcity'   => '',
+			),
+			array(
+				'continent'   => 'Europe',
+				'city'        => 'Amsterdam',
+				't_continent' => 'Evropa',
+				't_city'      => 'Amsterdam',
+				't_subcity'   => '',
+			),
+			array(
+				'continent'   => 'Europe',
+				'city'        => 'Stockholm',
+				't_continent' => 'Evropa',
+				't_city'      => 'Stockholm',
+				't_subcity'   => '',
+			),
+		);
+
+		usort( $timezones, '_wp_timezone_choice_usort_callback' );
+
+		$this->assertSame( 'Amsterdam', $timezones[0]['t_city'] );
+		$this->assertSame( 'Řím', $timezones[1]['t_city'] );
+		$this->assertSame( 'Stockholm', $timezones[2]['t_city'] );
+
+		remove_all_filters( 'locale' );
+	}
 }
