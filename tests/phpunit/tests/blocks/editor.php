@@ -762,6 +762,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 <script src="{$baseurl}/wp-includes/js/dist/api-fetch.min.js?ver=test" id="wp-api-fetch-js"></script>
 <script id="wp-api-fetch-js-after">
 wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( {"/test/v0/test-62797":{"body":["Unclosed comment and a script open tag \\u003C!--\\u003Cscript\\u003E"],"headers":{"Allow":"GET"}}} ) );
+//# sourceURL=wp-api-fetch-js-after
 </script>
 
 HTML;
