@@ -161,11 +161,11 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * When using the `$embeds` parameter to embed images for use in HTML emails,
 	 * reference the embedded file in your HTML with a `cid:` URL whose value
 	 * matches the file's Content-ID. By default, the Content-ID (`cid`) used for
-	 * each embedded file is the key position in the embeds array, unless modified via the
+	 * each embedded file is the key in the embeds array, unless modified via the
 	 * {@see 'wp_mail_embed_args'} filter. For example:
 	 *
 	 * `<img src="cid:0" alt="Logo">`
-	 * `<img src="cid:1" alt="Image">`
+	 * `<img src="cid:my-image" alt="Image">`
 	 *
 	 * You may also customize the Content-ID for each file by using the
 	 * {@see 'wp_mail_embed_args'} filter and setting the `cid` value.
@@ -566,7 +566,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				 * @param array $args {
 				 *     An array of arguments for `addEmbeddedImage()`.
 				 *     @type string $path        The path to the file.
-				 *     @type string $cid         The Content-ID of the image. Default: The key position in the embeds array.
+				 *     @type string $cid         The Content-ID of the image. Default: The key in the embeds array.
 				 *     @type string $name        The filename of the image.
 				 *     @type string $encoding    The encoding of the image. Default: 'base64'.
 				 *     @type string $type        The MIME type of the image. Default: empty string, which lets PHPMailer auto-detect.
@@ -577,7 +577,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 					'wp_mail_embed_args',
 					array(
 						'path'        => $embed_path,
-						'cid'         => $key,
+						'cid'         => (string) $key,
 						'name'        => basename( $embed_path ),
 						'encoding'    => 'base64',
 						'type'        => '',
