@@ -164,6 +164,7 @@ body > .is-root-container > .wp-block-template-part > .wp-block-cover,
  * Prevents unnecessary scrollbars while handling long lines of preformatted text.
  * https://core.trac.wordpress.org/ticket/63875
  */
+
 :where(pre) {
-    overflow-x: auto;
+	overflow-x: auto;
 }
