@@ -594,15 +594,16 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		}
 	}
 	/**
-	 * Test that wp_mail() can send a single embedded image.
+	 * Test that wp_mail() can send embedded images as a multiple line string.
 	 *
 	 * @ticket 28059
 	 * @covers ::wp_mail
 	 */
-	public function test_wp_mail_single_embed_image() {
-		$embed = DIR_TESTDATA . '/images/canola.jpg';
+	public function test_wp_mail_string_embeds() {
+		$embeds  = DIR_TESTDATA . '/images/canola.jpg' . "\n";
+		$embeds .= DIR_TESTDATA . '/images/test-image-2.gif';
 
-		$message = '<p><img src="cid:0" alt="" /></p>';
+		$message = '<p><img src="cid:0" alt="" /></p><p><img src="cid:1" alt="" /></p>';
 
 		wp_mail(
 			'user@example.org',
@@ -610,16 +611,19 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			$message,
 			'Content-Type: text/html',
 			array(),
-			$embed
+			$embeds
 		);
 
-		$mailer      = tests_retrieve_phpmailer_instance();
-		$attachments = $mailer->getAttachments();
+		$embeds_array = explode( "\n", $embeds );
+		$mailer       = tests_retrieve_phpmailer_instance();
+		$attachments  = $mailer->getAttachments();
 
 		foreach ( $attachments as $attachment ) {
-			$inline_embed_exists = $attachment[0] === $embed && 'inline' === $attachment[6];
+			$inline_embed_exists = in_array( $attachment[0], $embeds_array, true ) && 'inline' === $attachment[6];
 			$this->assertTrue( $inline_embed_exists, 'The attachment ' . $attachment[2] . ' is not inline in the embeds array.' );
 		}
-		$this->assertStringContainsString( 'cid:0', $mailer->get_sent()->body, 'The cid 0 is not referenced in the mail body.' );
+		foreach ( $embeds_array as $key => $path ) {
+			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
+		}
 	}
 }
