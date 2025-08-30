@@ -44,12 +44,29 @@ function _wp_can_use_pcre_u( $set = null ) {
 	static $utf8_pcre = 'reset';
 
 	if ( null !== $set ) {
-		$utf8_pcre = $set;
+		// Only allow explicit reset or force values in testing contexts.
+		if ( in_array( $set, array( true, false, 'reset' ), true ) ) {
+			$utf8_pcre = $set;
+		}
 	}
 
 	if ( 'reset' === $utf8_pcre ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentional error generated to detect PCRE/u support.
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
+		try {
+			$utf8_pcre = preg_match( '/^./u', 'a' );
+
+			if ( false === $utf8_pcre ) {
+				$error = error_get_last();
+				if ( $error && isset( $error['message'] ) ) {
+					error_log( 'PCRE/u support detection failed: ' . $error['message'] );
+				}
+				$utf8_pcre = false;
+			} else {
+				$utf8_pcre = ( 1 === $utf8_pcre );
+			}
+		} catch ( \Throwable $e ) {
+			error_log( 'PCRE/u support detection threw error: ' . $e->getMessage() );
+			$utf8_pcre = false;
+		}
 	}
 
 	return $utf8_pcre;
