@@ -569,8 +569,8 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		);
 
 		$message = '';
-		foreach ( $embeds as $path ) {
-			$message .= '<p><img src="cid:' . md5( $path ) . '" alt="" /></p>';
+		foreach ( $embeds as $key => $path ) {
+			$message .= '<p><img src="cid:' . $key . '" alt="" /></p>';
 		}
 
 		wp_mail(
@@ -586,14 +586,11 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		$attachments = $mailer->getAttachments();
 
 		foreach ( $attachments as $attachment ) {
-			if ( in_array( $attachment[0], $embeds, true ) ) {
-				$this->assertSame( 'inline', $attachment[6], 'The attachment ' . $attachment[2] . ' is not inline.' );
-			}
+			$inline_embed_exists = in_array( $attachment[0], $embeds, true ) && 'inline' === $attachment[6];
+			$this->assertTrue( $inline_embed_exists, 'The attachment ' . $attachment[2] . ' is not inline in the embeds array.' );
 		}
-
-		foreach ( $embeds as $path ) {
-			$cid = md5( $path );
-			$this->assertStringContainsString( 'cid:' . $cid, $mailer->get_sent()->body, 'The cid ' . $cid . ' is not referenced in the mail body.' );
+		foreach ( $embeds as $key => $path ) {
+			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
 	}
 }

@@ -161,10 +161,11 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * When using the `$embeds` parameter to embed images for use in HTML emails,
 	 * reference the embedded file in your HTML with a `cid:` URL whose value
 	 * matches the file's Content-ID. By default, the Content-ID (`cid`) used for
-	 * each embedded file is `md5( $embed_path )`, unless modified via the
+	 * each embedded file is the key position in the embeds array, unless modified via the
 	 * {@see 'wp_mail_embed_args'} filter. For example:
 	 *
-	 * `<img src="cid:`md5( '/path/to/logo.png' )`" alt="Logo">`
+	 * `<img src="cid:0" alt="Logo">`
+	 * `<img src="cid:1" alt="Image">`
 	 *
 	 * You may also customize the Content-ID for each file by using the
 	 * {@see 'wp_mail_embed_args'} filter and setting the `cid` value.
@@ -556,7 +557,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		}
 
 		if ( ! empty( $embeds ) ) {
-			foreach ( $embeds as $embed_path ) {
+			foreach ( $embeds as $key => $embed_path ) {
 				/**
 				 * Filters the arguments for PHPMailer's addEmbeddedImage() method.
 				 *
@@ -565,18 +566,18 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				 * @param array $args {
 				 *     An array of arguments for `addEmbeddedImage()`.
 				 *     @type string $path        The path to the file.
-				 *     @type string $cid         The Content-ID of the image. Default MD5( $path ).
+				 *     @type string $cid         The Content-ID of the image. Default: The key position in the embeds array.
 				 *     @type string $name        The filename of the image.
-				 *     @type string $encoding    The encoding of the image. Default 'base64'.
-				 *     @type string $type        The MIME type of the image. Default is empty string, which lets PHPMailer auto-detect.
-				 *     @type string $disposition The disposition of the image. Default 'inline'.
+				 *     @type string $encoding    The encoding of the image. Default: 'base64'.
+				 *     @type string $type        The MIME type of the image. Default: empty string, which lets PHPMailer auto-detect.
+				 *     @type string $disposition The disposition of the image. Default: 'inline'.
 				 * }
 				 */
 				$embed_args = apply_filters(
 					'wp_mail_embed_args',
 					array(
 						'path'        => $embed_path,
-						'cid'         => md5( $embed_path ),
+						'cid'         => $key,
 						'name'        => basename( $embed_path ),
 						'encoding'    => 'base64',
 						'type'        => '',
