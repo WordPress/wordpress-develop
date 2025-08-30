@@ -4976,11 +4976,14 @@ function wp_parse_list( $input_list ) {
 /**
  * Cleans up an array, comma- or space-separated list of IDs.
  *
+ * Accepts a single integer, a string of IDs separated by commas or spaces,
+ * or an array of IDs. Returns an array of unique, positive integers.
+ *
  * @since 3.0.0
  * @since 5.1.0 Refactored to use wp_parse_list().
  *
- * @param array|string $input_list List of IDs.
- * @return int[] Sanitized array of IDs.
+ * @param int|string|array $input_list List of IDs.
+ * @return int[] Array of unique, positive integers.
  */
 function wp_parse_id_list( $input_list ) {
 	$input_list = wp_parse_list( $input_list );
