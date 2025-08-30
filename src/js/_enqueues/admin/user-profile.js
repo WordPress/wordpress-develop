@@ -531,14 +531,37 @@
 	});
 
 	/*
-	 * We need to generate a password as soon as the Reset Password page is loaded,
+	 * On some pages, we need to generate a password as soon as the page is loaded,
 	 * to avoid double clicking the button to retrieve the first generated password.
-	 * See ticket #39638.
+	 * (This is necessary for the Reset Password page and the Add User page.)
+	 * See tickets #39638 and #63897.
 	 */
 	$( function() {
-		if ( $( '.reset-pass-submit' ).length ) {
-			$( '.reset-pass-submit button.wp-generate-pw' ).trigger( 'click' );
+		var $generateButton = $pass1Row.find( 'button.wp-generate-pw' );
+		if ( $generateButton.length === 0 ) {
+			/*
+			 * Some pages do not have a button for generating a password.
+			 * (This includes the Install page, the Login page and the Writing Settings page.)
+			 */
+			return;
 		}
+
+		if ( $generateButton[0].hasAttribute( 'aria-expanded' ) ) {
+			/*
+			 * On some pages, the password field is initially hidden,
+			 * and the button for generating a password is also used to show the field.
+			 * (This is the case for the Edit User page and the Profile page.)
+			 * For these pages, we don't need to generate a password on page load,
+			 * because when the button is clicked to reveal the password field,
+			 * a password will be generated as a side effect.
+			 */
+			return;
+		}
+
+		/*
+		 * We must be on a page where we need to generate a password on page load.
+		 */
+		$generateButton.trigger( 'click' );
 	});
 
 })(jQuery);
