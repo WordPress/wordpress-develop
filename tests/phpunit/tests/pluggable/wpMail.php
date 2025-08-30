@@ -563,7 +563,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 */
 	public function test_wp_mail_can_send_embedded_images() {
 		$embeds = array(
-			DIR_TESTDATA . '/images/canola.jpg',
+			'canola' => DIR_TESTDATA . '/images/canola.jpg',
 			DIR_TESTDATA . '/images/test-image-2.gif',
 			DIR_TESTDATA . '/images/avif-lossy.avif',
 		);
