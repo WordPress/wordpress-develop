@@ -6132,8 +6132,13 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 
 	$post_types          = esc_sql( $post_types );
 	$post_type_in_string = "'" . implode( "','", $post_types ) . "'";
-	
-	$public_statuses = get_post_stati( array( 'public' => true, 'private' => true ) );
+
+	$public_statuses     = get_post_stati(
+		array(
+			'public'  => true,
+			'private' => true,
+		)
+	);
 	$public_statuses_sql = "'" . implode( "','", array_map( 'esc_sql', $public_statuses ) ) . "'";
 
 	$sql = "
