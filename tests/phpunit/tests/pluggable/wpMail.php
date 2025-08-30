@@ -593,4 +593,33 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
 	}
+	/**
+	 * Test that wp_mail() can send a single embedded image.
+	 *
+	 * @ticket 28059
+	 * @covers ::wp_mail
+	 */
+	public function test_wp_mail_single_embed_image() {
+		$embed = DIR_TESTDATA . '/images/canola.jpg';
+
+		$message = '<p><img src="cid:0" alt="" /></p>';
+
+		wp_mail(
+			'user@example.org',
+			'Embedded images test',
+			$message,
+			'Content-Type: text/html',
+			array(),
+			$embed
+		);
+
+		$mailer      = tests_retrieve_phpmailer_instance();
+		$attachments = $mailer->getAttachments();
+
+		foreach ( $attachments as $attachment ) {
+			$inline_embed_exists = $attachment[0] === $embed && 'inline' === $attachment[6];
+			$this->assertTrue( $inline_embed_exists, 'The attachment ' . $attachment[2] . ' is not inline in the embeds array.' );
+		}
+		$this->assertStringContainsString( 'cid:0', $mailer->get_sent()->body, 'The cid 0 is not referenced in the mail body.' );
+	}
 }
