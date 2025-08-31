@@ -529,16 +529,4 @@
 			return __( 'The changes you made will be lost if you navigate away from this page.' );
 		}
 	});
-
-	/*
-	 * We need to generate a password as soon as the Reset Password page is loaded,
-	 * to avoid double clicking the button to retrieve the first generated password.
-	 * See ticket #39638.
-	 */
-	$( function() {
-		if ( $( '.reset-pass-submit' ).length ) {
-			$( '.reset-pass-submit button.wp-generate-pw' ).trigger( 'click' );
-		}
-	});
-
 })(jQuery);
