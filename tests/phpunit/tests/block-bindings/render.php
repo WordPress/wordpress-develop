@@ -61,14 +61,41 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 		unregister_block_type( 'test/block' );
 	}
 
+	public function data_update_block_with_value_from_source() {
+		return array(
+			'paragraph block' => array(
+				'content',
+				<<<HTML
+<!-- wp:paragraph -->
+<p>This should not appear</p>
+<!-- /wp:paragraph -->
+HTML
+				,
+				'<p>test source value</p>',
+			),
+			'button block'    => array(
+				'text',
+				<<<HTML
+<!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button">This should not appear</a></div>
+<!-- /wp:button -->
+HTML
+				,
+				'<div class="wp-block-button"><a class="wp-block-button__link wp-element-button">test source value</a></div>',
+			),
+		);
+	}
+
 	/**
 	 * Test if the block content is updated with the value returned by the source.
 	 *
 	 * @ticket 60282
 	 *
 	 * @covers ::register_block_bindings_source
+	 *
+	 * @dataProvider data_update_block_with_value_from_source
 	 */
-	public function test_update_block_with_value_from_source() {
+	public function test_update_block_with_value_from_source( $bound_attribute, $block_content, $expected_result ) {
 		$get_value_callback = function () {
 			return 'test source value';
 		};
@@ -81,22 +108,26 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 			)
 		);
 
-		$block_content = <<<HTML
-<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"test/source"}}}} -->
-<p>This should not appear</p>
-<!-- /wp:paragraph -->
-HTML;
 		$parsed_blocks = parse_blocks( $block_content );
-		$block         = new WP_Block( $parsed_blocks[0] );
-		$result        = $block->render();
+
+		$parsed_blocks[0]['attrs']['metadata'] = array(
+			'bindings' => array(
+				$bound_attribute => array(
+					'source' => self::SOURCE_NAME,
+				),
+			),
+		);
+
+		$block  = new WP_Block( $parsed_blocks[0] );
+		$result = $block->render();
 
 		$this->assertSame(
 			'test source value',
-			$block->attributes['content'],
-			"The 'content' attribute should be updated with the value returned by the source."
+			$block->attributes[ $bound_attribute ],
+			"The '{$bound_attribute}' attribute should be updated with the value returned by the source."
 		);
 		$this->assertSame(
-			'<p>test source value</p>',
+			$expected_result,
 			trim( $result ),
 			'The block content should be updated with the value returned by the source.'
 		);
