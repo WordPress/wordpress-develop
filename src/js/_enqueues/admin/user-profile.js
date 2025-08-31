@@ -558,9 +558,7 @@
 			return;
 		}
 
-		/*
-		 * We must be on a page where we need to generate a password on page load.
-		 */
+		// We must be on a page where we need to generate a password on page load.
 		$generateButton.trigger( 'click' );
 	});
 
