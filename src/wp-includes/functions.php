@@ -3014,7 +3014,7 @@ function wp_ext2type( $ext ) {
  *
  * @param string $mime_type
  *
- * @return string|false
+ * @return string|false The first matching file extension or false if no extensions are found for the given mime type.
  */
 function wp_get_default_extension_for_mime_type( $mime_type ) {
 	$extensions = explode( '|', array_search( $mime_type, wp_get_mime_types(), true ) );
