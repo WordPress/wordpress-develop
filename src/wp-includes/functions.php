@@ -2993,7 +2993,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
  * @since 2.5.0
  *
  * @param string $ext The extension to search.
- * @return string|void The file type, example: audio, video, document, spreadsheet, etc.
+ * @return string|null The file type, example: audio, video, document, spreadsheet, etc.
  */
 function wp_ext2type( $ext ) {
 	$ext = strtolower( $ext );
