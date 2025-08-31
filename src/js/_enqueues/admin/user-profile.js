@@ -60,6 +60,12 @@
 		if ( 'mailserver_pass' !== $pass1.prop('id' ) && ! $('#weblog_title').length ) {
 			$( $pass1 ).trigger( 'focus' );
 		}
+
+		// Generate the next password and cache.
+		wp.ajax.post( 'generate-password' )
+			.done( function( data ) {
+				$pass1.data( 'pw', data );
+			} );
 	}
 
 	function bindPass1() {
@@ -255,16 +261,11 @@
 			$pass1.attr( 'disabled', false );
 			$pass2.attr( 'disabled', false );
 
+			// Set the password to the generated value.
+			generatePassword();
+
 			// Show generated password in plaintext by default.
 			resetToggle ( false );
-
-			// Generate the next password and cache.
-			wp.ajax.post( 'generate-password' )
-				.done( function( data ) {
-					$pass1.data( 'pw', data );
-					// Set the password to the generated value.
-					generatePassword();
-				} );
 		} );
 
 		$cancelButton = $pass1Row.find( 'button.wp-cancel-pw' );
