@@ -6115,73 +6115,19 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		}
 	}
 
-	$page_path     = rawurlencode( urldecode( $page_path ) );
-	$page_path     = str_replace( '%2F', '/', $page_path );
-	$page_path     = str_replace( '%20', ' ', $page_path );
-	$parts         = explode( '/', trim( $page_path, '/' ) );
-	$parts         = array_map( 'sanitize_title_for_query', $parts );
-	$escaped_parts = esc_sql( $parts );
-
-	$in_string = "'" . implode( "','", $escaped_parts ) . "'";
-
-	if ( is_array( $post_type ) ) {
-		$post_types = $post_type;
-	} else {
-		$post_types = array( $post_type, 'attachment' );
-	}
-
-	$post_types          = esc_sql( $post_types );
-	$post_type_in_string = "'" . implode( "','", $post_types ) . "'";
-	$sql                 = "
-		SELECT ID, post_name, post_parent, post_type
-		FROM $wpdb->posts
-		WHERE post_name IN ($in_string)
-		AND post_type IN ($post_type_in_string)
-	";
-
-	$pages = $wpdb->get_results( $sql, OBJECT_K );
-
-	$revparts = array_reverse( $parts );
-
-	$found_id = 0;
-	foreach ( (array) $pages as $page ) {
-		if ( $page->post_name === $revparts[0] ) {
-			$count = 0;
-			$p     = $page;
-
-			/*
-			 * Loop through the given path parts from right to left,
-			 * ensuring each matches the post ancestry.
-			 */
-			while ( 0 !== (int) $p->post_parent && isset( $pages[ $p->post_parent ] ) ) {
-				++$count;
-				$parent = $pages[ $p->post_parent ];
-				if ( ! isset( $revparts[ $count ] ) || $parent->post_name !== $revparts[ $count ] ) {
-					break;
-				}
-				$p = $parent;
-			}
-
-			if ( 0 === (int) $p->post_parent
-				&& count( $revparts ) === $count + 1
-				&& $p->post_name === $revparts[ $count ]
-			) {
-				$found_id = $page->ID;
-				if ( $page->post_type === $post_type ) {
-					break;
-				}
-			}
-		}
-	}
+	$post = get_post_by(
+		'path',
+		$page_path,
+		array(
+			'post_type' => $post_type,
+			'output'    => $output,
+		)
+	);
 
 	// We cache misses as well as hits.
-	wp_cache_set( $cache_key, $found_id, 'post-queries' );
+	wp_cache_set( $cache_key, $post ? $post->ID : 0, 'post-queries' );
 
-	if ( $found_id ) {
-		return get_post( $found_id, $output );
-	}
-
-	return null;
+	return $post;
 }
 
 /**
@@ -8585,4 +8531,145 @@ function wp_create_initial_post_meta() {
 			),
 		)
 	);
+}
+
+/**
+ * Retrieves post data by a given field.
+ *
+ * See {@link get_post()} for optional filter and output arguments values.
+ *
+ * @since 6.9.0
+ *
+ * @param string     $field The field to retrieve the post with. id | title | path
+ * @param int|string $value A value for $field. A post ID, title, or path.
+ * @param array      $args {
+ *     Optional. Array of arguments to modify behavior of get_post_by().
+ *
+ *     @type string|array $post_type  The post type to constrain the result by. Default 'post'.
+ *     @type string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                   correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                   respectively. Default OBJECT.
+ *     @type string       $filter     Optional. Type of filter to apply. Accepts 'raw', 'edit', 'db',
+ *                                   or 'display'. Default 'raw'.
+ *     @type bool         $use_like   Optional. If true then uses a LIKE query for post_title and post_name.
+ *                                   Default false.
+ * }
+ * @return WP_Post|null WP_Post on success or null on failure.
+ */
+function get_post_by( $field, $value, $args = array() ) {
+	global $wpdb;
+
+	$args = wp_parse_args(
+		$args,
+		array(
+			'post_type' => 'post',
+			'output'    => OBJECT,
+			'filter'    => 'raw',
+			'use_like'  => false,
+		)
+	);
+
+	$post_type = $args['post_type'];
+
+	switch ( $field ) {
+		case 'id':
+			$post = get_post( $value, $args['output'], $args['filter'] );
+			break;
+
+		case 'title':
+			if ( is_array( $post_type ) ) {
+				$post_type           = esc_sql( $post_type );
+				$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
+				$operator            = $args['use_like'] ? 'LIKE' : '=';
+				$sql                 = $wpdb->prepare(
+					"SELECT ID
+					FROM $wpdb->posts
+					WHERE post_title $operator %s
+					AND post_type IN ($post_type_in_string)",
+					$value
+				);
+			} else {
+				$operator = $args['use_like'] ? 'LIKE' : '=';
+				$sql      = $wpdb->prepare(
+					"SELECT ID
+					FROM $wpdb->posts
+					WHERE post_title $operator %s
+					AND post_type = %s",
+					$value,
+					$post_type
+				);
+			}
+
+			$post_id = $wpdb->get_var( $sql );
+			$post    = $post_id ? get_post( $post_id, $args['output'], $args['filter'] ) : null;
+			break;
+
+		case 'path':
+			$page_path     = rawurlencode( urldecode( $value ) );
+			$page_path     = str_replace( '%2F', '/', $page_path );
+			$page_path     = str_replace( '%20', ' ', $page_path );
+			$parts         = explode( '/', trim( $page_path, '/' ) );
+			$parts         = array_map( 'sanitize_title_for_query', $parts );
+			$escaped_parts = esc_sql( $parts );
+
+			$in_string = "'" . implode( "','", $escaped_parts ) . "'";
+
+			if ( is_array( $post_type ) ) {
+				$post_types = $post_type;
+			} else {
+				$post_types = array( $post_type, 'attachment' );
+			}
+
+			$post_types          = esc_sql( $post_types );
+			$post_type_in_string = "'" . implode( "','", $post_types ) . "'";
+			$sql                 = "
+				SELECT ID, post_name, post_parent, post_type
+				FROM $wpdb->posts
+				WHERE post_name IN ($in_string)
+				AND post_type IN ($post_type_in_string)
+			";
+
+			$pages = $wpdb->get_results( $sql, OBJECT_K );
+
+			$revparts = array_reverse( $parts );
+
+			$found_id = 0;
+			foreach ( (array) $pages as $page ) {
+				if ( $page->post_name === $revparts[0] ) {
+					$count = 0;
+					$p     = $page;
+
+					/*
+					 * Loop through the given path parts from right to left,
+					 * ensuring each matches the post ancestry.
+					 */
+					while ( 0 !== (int) $p->post_parent && isset( $pages[ $p->post_parent ] ) ) {
+						++$count;
+						$parent = $pages[ $p->post_parent ];
+						if ( ! isset( $revparts[ $count ] ) || $parent->post_name !== $revparts[ $count ] ) {
+							break;
+						}
+						$p = $parent;
+					}
+
+					if ( 0 === (int) $p->post_parent
+						&& count( $revparts ) === $count + 1
+						&& $p->post_name === $revparts[ $count ]
+					) {
+						$found_id = $page->ID;
+						if ( $page->post_type === $post_type ) {
+							break;
+						}
+					}
+				}
+			}
+
+			$post = $found_id ? get_post( $found_id, $args['output'], $args['filter'] ) : null;
+			break;
+
+		default:
+			$post = null;
+	}
+
+	return $post;
 }
