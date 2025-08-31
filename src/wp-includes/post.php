@@ -5015,6 +5015,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	clean_post_cache( $post_id );
 
 	$post = get_post( $post_id );
+	clean_post_author_cache( $post->post_author );
 
 	if ( ! empty( $postarr['page_template'] ) ) {
 		$post->page_template = $postarr['page_template'];
@@ -7460,7 +7461,7 @@ function get_posts_by_author_sql( $post_type, $full = true, $post_author = null,
 
 	$sql = '( ' . implode( ' OR ', $post_type_clauses ) . ' )';
 
-	if ( null !== $post_author ) {
+	if ( is_numeric( $post_author ) ) {
 		$sql .= $wpdb->prepare( ' AND post_author = %d', $post_author );
 	}
 
@@ -7710,6 +7711,18 @@ function clean_post_cache( $post ) {
 	}
 
 	wp_cache_set_posts_last_changed();
+	clean_post_author_cache( $post->post_author );
+}
+
+/**
+ * Will clean the post author in the cache.
+ *
+ * @since 6.8.0
+ *
+ * @param int $user_id User ID.
+ */
+function clean_post_author_cache( $user_id ) {
+	wp_cache_delete( 'last_changed', 'post_author:' . $user_id );
 }
 
 /**

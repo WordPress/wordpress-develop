@@ -622,7 +622,8 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
 	$where = get_posts_by_author_sql( $post_type, true, $userid, $public_only );
 	$query = "SELECT COUNT(*) FROM $wpdb->posts $where";
 
-	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$cache_group  = ! is_numeric( $userid ) ? 'posts' : 'post_author:' . $userid;
+	$last_changed = wp_cache_get_last_changed( $cache_group );
 	$cache_key    = 'count_user_posts:' . md5( $query ) . ':' . $last_changed;
 	$count        = wp_cache_get( $cache_key, 'post-queries' );
 	if ( false === $count ) {
@@ -2021,6 +2022,7 @@ function clean_user_cache( $user ) {
 	wp_cache_delete( $user->ID, 'users' );
 	wp_cache_delete( $user->user_login, 'userlogins' );
 	wp_cache_delete( $user->user_nicename, 'userslugs' );
+	clean_post_author_cache( $user->ID );
 
 	if ( ! empty( $user->user_email ) ) {
 		wp_cache_delete( $user->user_email, 'useremail' );
