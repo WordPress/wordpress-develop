@@ -125,16 +125,14 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 					)
 				);
 			}
-		} else {
-			if ( ! current_user_can( 'edit_posts' ) ) {
-				return new WP_Error(
-					'block_cannot_read',
-					__( 'Sorry, you are not allowed to read blocks as this user.' ),
-					array(
-						'status' => rest_authorization_required_code(),
-					)
-				);
-			}
+		} elseif ( ! current_user_can( 'edit_posts' ) ) {
+			return new WP_Error(
+				'block_cannot_read',
+				__( 'Sorry, you are not allowed to read blocks as this user.' ),
+				array(
+					'status' => rest_authorization_required_code(),
+				)
+			);
 		}
 
 		return true;

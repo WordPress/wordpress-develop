@@ -772,7 +772,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	 * @return bool
 	 */
 	public function validate_plugin_param( $file ) {
-		if ( ! is_string( $file ) || ! preg_match( '/' . self::PATTERN . '/u', $file ) ) {
+		if ( ! is_string( $file ) || 1 !== preg_match( '/' . self::PATTERN . '/u', $file ) ) {
 			return false;
 		}
 

@@ -577,15 +577,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( $post && ! empty( $request->get_query_params()['password'] ) ) {
-			// Check post password, and return error if invalid.
-			if ( ! hash_equals( $post->post_password, $request->get_query_params()['password'] ) ) {
-				return new WP_Error(
-					'rest_post_incorrect_password',
-					__( 'Incorrect post password.' ),
-					array( 'status' => 403 )
-				);
-			}
+		// Check post password, and return error if invalid.
+		if ( $post
+			&& ! empty( $request->get_query_params()['password'] )
+			&& ! hash_equals( $post->post_password, $request->get_query_params()['password'] )
+		) {
+			return new WP_Error(
+				'rest_post_incorrect_password',
+				__( 'Incorrect post password.' ),
+				array( 'status' => 403 )
+			);
 		}
 
 		// Allow access to all password protected posts if the context is edit.
@@ -1416,14 +1417,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
-			if ( ! empty( $prepared_post->ID ) && post_password_required( $prepared_post->ID ) ) {
-				return new WP_Error(
-					'rest_invalid_field',
-					__( 'A password protected post can not be set to sticky.' ),
-					array( 'status' => 400 )
-				);
-			}
+		if ( ! empty( $schema['properties']['sticky'] )
+			&& ! empty( $request['sticky'] )
+			&& ! empty( $prepared_post->ID )
+			&& post_password_required( $prepared_post->ID )
+		) {
+			return new WP_Error(
+				'rest_invalid_field',
+				__( 'A password protected post can not be set to sticky.' ),
+				array( 'status' => 400 )
+			);
 		}
 
 		// Parent.
@@ -1571,16 +1574,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$result = set_post_thumbnail( $post_id, $featured_media );
 			if ( $result ) {
 				return true;
-			} else {
-				return new WP_Error(
-					'rest_invalid_featured_media',
-					__( 'Invalid featured media ID.' ),
-					array( 'status' => 400 )
-				);
 			}
-		} else {
-			return delete_post_thumbnail( $post_id );
+
+			return new WP_Error(
+				'rest_invalid_featured_media',
+				__( 'Invalid featured media ID.' ),
+				array( 'status' => 400 )
+			);
 		}
+
+		return delete_post_thumbnail( $post_id );
 	}
 
 	/**
@@ -1718,11 +1721,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$post_type = get_post_type_object( $post_type );
 		}
 
-		if ( ! empty( $post_type ) && ! empty( $post_type->show_in_rest ) ) {
-			return true;
-		}
-
-		return false;
+		return ! empty( $post_type ) && ! empty( $post_type->show_in_rest );
 	}
 
 	/**
@@ -1763,11 +1762,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * If there isn't a parent, but the status is set to inherit, assume
 		 * it's published (as per get_post_status()).
 		 */
-		if ( 'inherit' === $post->post_status ) {
-			return true;
-		}
 
-		return false;
+		return 'inherit' === $post->post_status;
 	}
 
 	/**
@@ -2294,16 +2290,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$rels[] = 'https://api.w.org/action-unfiltered-html';
 		}
 
-		if ( 'post' === $post_type->name ) {
-			if ( current_user_can( $post_type->cap->edit_others_posts ) && current_user_can( $post_type->cap->publish_posts ) ) {
-				$rels[] = 'https://api.w.org/action-sticky';
-			}
+		if ( 'post' === $post_type->name
+			&& current_user_can( $post_type->cap->edit_others_posts )
+			&& current_user_can( $post_type->cap->publish_posts )
+		) {
+			$rels[] = 'https://api.w.org/action-sticky';
 		}
 
-		if ( post_type_supports( $post_type->name, 'author' ) ) {
-			if ( current_user_can( $post_type->cap->edit_others_posts ) ) {
-				$rels[] = 'https://api.w.org/action-assign-author';
-			}
+		if ( post_type_supports( $post_type->name, 'author' )
+			&& current_user_can( $post_type->cap->edit_others_posts )
+		) {
+			$rels[] = 'https://api.w.org/action-assign-author';
 		}
 
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
@@ -2515,7 +2512,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		foreach ( $post_type_attributes as $attribute ) {
 			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ], true ) ) {
 				continue;
-			} elseif ( ! isset( $fixed_schemas[ $this->post_type ] ) && ! post_type_supports( $this->post_type, $attribute ) ) {
+			}
+
+			if ( ! isset( $fixed_schemas[ $this->post_type ] ) && ! post_type_supports( $this->post_type, $attribute ) ) {
 				continue;
 			}
 

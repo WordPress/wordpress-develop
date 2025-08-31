@@ -289,10 +289,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			if ( 0 === $request['parent'] ) {
 				// Only query top-level terms.
 				$prepared_args['parent'] = 0;
-			} else {
-				if ( $request['parent'] ) {
-					$prepared_args['parent'] = $request['parent'];
-				}
+			} elseif ( $request['parent'] ) {
+				$prepared_args['parent'] = $request['parent'];
 			}
 		}
 
