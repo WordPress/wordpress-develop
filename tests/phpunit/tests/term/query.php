@@ -1185,4 +1185,39 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
+
+	/**
+	 * @ticket 63890
+	 */
+	public function test_orderby_array_multiple_fields() {
+		register_taxonomy( 'wptests_tax_orderby', 'post' );
+
+		$terms = self::factory()->term->create_many(
+			4,
+			array(
+				'taxonomy' => 'wptests_tax_orderby',
+			)
+		);
+
+		add_term_meta( $terms[0], 'priority', 2 );
+		add_term_meta( $terms[1], 'priority', 1 );
+		add_term_meta( $terms[2], 'priority', 2 );
+		add_term_meta( $terms[3], 'priority', 1 );
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_orderby',
+				'orderby'    => array(
+					'meta_value_num' => 'DESC',
+					'term_id'        => 'ASC',
+				),
+				'meta_key'   => 'priority',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$expected = array( $terms[0], $terms[2], $terms[1], $terms[3] );
+		$this->assertSame( $expected, $q->terms );
+	}
 }
