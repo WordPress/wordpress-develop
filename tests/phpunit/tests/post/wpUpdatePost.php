@@ -158,7 +158,7 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that wp_update_post() filters post content when 'post_status' is 'draft'.
+	 * Test the wp_update_post() filters post content when 'post_status' is 'draft'.
 	 *
 	 * @ticket 22944
 	 */
@@ -190,7 +190,7 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that wp_update_post() preserves post_date when changing to future status
+	 * Test updating a post and preserving post_date when changing to future status
 	 *
 	 * @ticket 62468
 	 *
