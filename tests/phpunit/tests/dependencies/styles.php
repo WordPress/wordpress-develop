@@ -167,7 +167,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 24813
 	 */
 	public function test_inline_styles_concat() {
-
 		global $wp_styles;
 
 		$wp_styles->do_concat    = true;
@@ -657,5 +656,39 @@ custom-el { content: "ok"; }
 HTML;
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
+	}
+
+	/**
+	 * Concatenated styles are problematic with sourceURL.
+	 *
+	 * @ticket 63887
+	 */
+	public function test_source_url_disabled_with_concat() {
+		global $wp_styles, $wp_version;
+		add_theme_support( 'html5', array( 'style' ) );
+
+		$wp_styles->do_concat    = true;
+		$wp_styles->default_dirs = array( '/wp-admin/' );
+
+		wp_enqueue_style( 'one', '/wp-admin/1.css' );
+		wp_enqueue_style( 'two', '/wp-admin/2.css' );
+		wp_add_inline_style( 'one', 'h1 { background: blue; }' );
+		wp_add_inline_style( 'two', 'h2 { color: green; }' );
+
+		wp_print_styles();
+		$printed = get_echo( '_print_styles' );
+
+		$expected = <<<HTML
+<link
+	rel="stylesheet"
+	href="/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=one,two&ver={$wp_version}"
+	media="all"
+>
+<style>
+h1 { background: blue; }h2 { color: green; }
+</style>
+HTML;
+
+		$this->assertEqualHTML( $expected, $printed );
 	}
 }

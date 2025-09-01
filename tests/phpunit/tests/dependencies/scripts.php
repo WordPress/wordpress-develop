@@ -3640,4 +3640,38 @@ HTML;
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
 	}
+
+	/**
+	 * Concatenated scripts are problematic with sourceURL.
+	 *
+	 * @ticket 63887
+	 */
+	public function test_source_url_disabled_with_concat() {
+		global $wp_scripts, $concatenate_scripts, $wp_version;
+		$this->add_html5_script_theme_support();
+
+		$concatenate_scripts = true;
+
+		$wp_scripts->do_concat    = true;
+		$wp_scripts->default_dirs = array( $this->default_scripts_dir );
+
+		wp_enqueue_script( 'one', $this->default_scripts_dir . '1.js' );
+		wp_enqueue_script( 'two', $this->default_scripts_dir . '2.js' );
+		wp_localize_script( 'one', 'one', array( 'key' => 'val' ) );
+		wp_localize_script( 'two', 'two', array( 'key' => 'val' ) );
+
+		wp_print_scripts();
+		$print_scripts = get_echo( '_print_scripts' );
+
+		$expected = <<<HTML
+<script>
+/* <![CDATA[ */
+var one = {"key":"val"};var two = {"key":"val"};/* ]]> */
+</script>
+<script src="/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=one,two&ver={$wp_version}"></script>
+
+HTML;
+
+		$this->assertEqualHTML( $expected, $print_scripts );
+	}
 }
