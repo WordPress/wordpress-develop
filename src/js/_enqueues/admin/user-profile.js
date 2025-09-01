@@ -61,11 +61,13 @@
 			$( $pass1 ).trigger( 'focus' );
 		}
 
-		// Generate the next password and cache.
-		wp.ajax.post( 'generate-password' )
-			.done( function( data ) {
-				$pass1.data( 'pw', data );
-			} );
+		if($( '.wp-generate-pw').length) {
+			// Generate the next password and cache.
+			wp.ajax.post( 'generate-password' )
+				.done( function( data ) {
+					$pass1.data( 'pw', data );
+				} );
+		}
 	}
 
 	function bindPass1() {
