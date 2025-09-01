@@ -792,6 +792,7 @@ JS;
 		}
 
 		if ( 'conditional' === $key ) {
+			// If a dependency is declared by a conditional script, remove it.
 			$this->registered[ $handle ]->deps = array();
 		}
 
