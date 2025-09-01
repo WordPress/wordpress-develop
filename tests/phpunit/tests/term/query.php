@@ -1308,4 +1308,33 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$this->assertSame( $terms, $q2->terms );
 	}
+
+	/**
+	 * @ticket 63890
+	 */
+	public function test_orderby_array_all_invalid_fields_fallback() {
+		register_taxonomy( 'wptests_tax_fallback', 'post' );
+
+		$terms = self::factory()->term->create_many(
+			2,
+			array(
+				'taxonomy' => 'wptests_tax_fallback',
+			)
+		);
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_fallback',
+				'orderby'    => array(
+					'invalid_field1' => 'ASC',
+					'invalid_field2' => 'DESC',
+				),
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertNotEmpty( $q->terms );
+		$this->assertCount( 2, $q->terms );
+	}
 }
