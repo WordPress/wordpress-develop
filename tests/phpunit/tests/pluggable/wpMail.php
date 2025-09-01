@@ -556,10 +556,9 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that wp_mail() can send embedded images.
+	 * Tests that wp_mail() can send embedded images.
 	 *
 	 * @ticket 28059
-	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_can_send_embedded_images() {
 		$embeds = array(
@@ -593,11 +592,11 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
 	}
+
 	/**
-	 * Test that wp_mail() can send embedded images as a multiple line string.
+	 * Tests that wp_mail() can send embedded images as a multiple line string.
 	 *
 	 * @ticket 28059
-	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_string_embeds() {
 		$embeds  = DIR_TESTDATA . '/images/canola.jpg' . "\n";
