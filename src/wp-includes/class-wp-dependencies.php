@@ -289,6 +289,14 @@ class WP_Dependencies {
 		if ( ! isset( $this->registered[ $handle ] ) ) {
 			return false;
 		}
+		if ( 'conditional' === $key ) {
+			_deprecated_argument(
+				'WP_Dependencies->add_data()',
+				'6.9.0',
+				/* translators: 1: WPLANG, 2: wp-config.php */
+				sprintf( __( 'The %1$s argument is no longer supported for inline scripts or styles.' ), 'conditional' )
+			);
+		}
 
 		return $this->registered[ $handle ]->add_data( $key, $value );
 	}
