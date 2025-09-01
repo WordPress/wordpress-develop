@@ -10,11 +10,12 @@
  * @group blocks
  */
 class Tests_Blocks_Serialize extends WP_UnitTestCase {
-
 	/**
 	 * @dataProvider data_serialize_identity_from_parsed
 	 *
 	 * @param string $original Original block markup.
+	 *
+	 * @ticket TBD
 	 */
 	public function test_serialize_identity_from_parsed( $original ) {
 		$blocks = parse_blocks( $original );
@@ -24,7 +25,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		$this->assertSame( $original, $actual );
 	}
 
-	public function data_serialize_identity_from_parsed() {
+	public static function data_serialize_identity_from_parsed(): array {
 		return array(
 			'Void block'                                  =>
 				array( '<!-- wp:void /-->' ),
@@ -52,6 +53,44 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 
 			'Tricky backslashes'                          =>
 				array( '<!-- wp:attributes {"bsbsQbsbsbsQ":"\\u005c\\u005c\\u0022\\u005c\\u005c\\u005c\\u005c\\u0022"} /-->' ),
+		);
+	}
+
+	/**
+	 * The serialization was adjusted to use unicode escapes sequences for escaped `\` and `"`
+	 * characters inside JSON strings.
+	 *
+	 * Ensure that the previous escape form can be parsed compatibly and serialized back to
+	 * the new form.
+	 *
+	 * @see https://github.com/WordPress/wordpress-develop/pull/9558
+	 * @see https://github.com/WordPress/gutenberg/pull/71291
+	 *
+	 * @ticket TBD
+	 *
+	 * @dataProvider data_serialize_compatible_forms
+	 *
+	 * @param string $before Previous serialization form.
+	 * @param string $after  New serialization form.
+	 */
+	public function test_older_serialization_is_compatible( string $before, string $after ) {
+		$this->assertNotSame( $before, $after, 'The same serialization should not be provided for before and after.' );
+		$blocks = parse_blocks( $before );
+		$actual = serialize_blocks( $blocks );
+		$this->assertSame( $after, $actual );
+	}
+
+	public static function data_serialize_compatible_forms(): array {
+		return array(
+			'Special characters' => array(
+				'<!-- wp:attributes {"lt":"\\u003c","gt":"\\u003e","amp":"\\u0026","bs":"\\\\","quot":"\\u0022"} /-->',
+				'<!-- wp:attributes {"lt":"\\u003c","gt":"\\u003e","amp":"\\u0026","bs":"\\u005c","quot":"\\u0022"} /-->',
+			),
+
+			'Backslashes'        => array(
+				'<!-- wp:attributes {"bs":"\\\\","bsQuote":"\\\\\\u0022","bsQuoteBs":"\\\\\\u0022\\\\"} /-->',
+				'<!-- wp:attributes {"bs":"\\u005c","bsQuote":"\\u005c\\u0022","bsQuoteBs":"\\u005c\\u0022\\u005c"} /-->',
+			),
 		);
 	}
 
