@@ -1271,4 +1271,41 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$expected = array( $term1, $term3, $term2 );
 		$this->assertSame( $expected, $q->terms );
 	}
+
+	/**
+	 * @ticket 63890
+	 */
+	public function test_orderby_array_backward_compatibility() {
+		register_taxonomy( 'wptests_tax_compat', 'post' );
+
+		$terms = self::factory()->term->create_many(
+			3,
+			array(
+				'taxonomy' => 'wptests_tax_compat',
+			)
+		);
+
+		$q1 = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_compat',
+				'orderby'    => 'term_id',
+				'order'      => 'ASC',
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSame( $terms, $q1->terms );
+
+		$q2 = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_compat',
+				'orderby'    => array( 'term_id' => 'ASC' ),
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSame( $terms, $q2->terms );
+	}
 }
