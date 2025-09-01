@@ -4189,6 +4189,17 @@ function _update_post_term_count( $terms, $taxonomy ) {
 			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status IN ('" . implode( "', '", $post_statuses ) . "') AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
 		}
 
+		/**
+		 * Fires when a term count is updated in the database.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param int    $tt_id         Term taxonomy ID.
+		 * @param string $taxonomy_name Taxonomy slug.
+		 * @param int    $count         Term count.
+		 */
+		do_action( 'update_term_count', $term, $taxonomy->name, $count );
+
 		/** This action is documented in wp-includes/taxonomy.php */
 		do_action( 'edit_term_taxonomy', $term, $taxonomy->name );
 		$wpdb->update( $wpdb->term_taxonomy, compact( 'count' ), array( 'term_taxonomy_id' => $term ) );
@@ -4215,6 +4226,9 @@ function _update_generic_term_count( $terms, $taxonomy ) {
 
 	foreach ( (array) $terms as $term ) {
 		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $term ) );
+
+		/** This action is documented in wp-includes/taxonomy.php */
+		do_action( 'update_term_count', $term, $taxonomy->name, $count );
 
 		/** This action is documented in wp-includes/taxonomy.php */
 		do_action( 'edit_term_taxonomy', $term, $taxonomy->name );
