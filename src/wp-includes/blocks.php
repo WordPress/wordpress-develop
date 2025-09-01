@@ -1601,14 +1601,19 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  * @return string Serialized attributes.
  */
 function serialize_block_attributes( $block_attributes ) {
-	$encoded_attributes = wp_json_encode( $block_attributes, JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-	$encoded_attributes = preg_replace( '/\\\\\\\\/', '\\u005c', $encoded_attributes );
-	$encoded_attributes = preg_replace( '/--/', '\\u002d\\u002d', $encoded_attributes );
-	$encoded_attributes = preg_replace( '/</', '\\u003c', $encoded_attributes );
-	$encoded_attributes = preg_replace( '/>/', '\\u003e', $encoded_attributes );
-	$encoded_attributes = preg_replace( '/&/', '\\u0026', $encoded_attributes );
+	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 
-	return $encoded_attributes;
+	return strtr(
+		$encoded_attributes,
+		array(
+			'\\\\' => '\\u005c',
+			'--'   => '\\u002d\\u002d',
+			'<'    => '\\u003c',
+			'>'    => '\\u003e',
+			'&'    => '\\u0026',
+			'\"'   => '\\u0022',
+		),
+	);
 }
 
 /**
