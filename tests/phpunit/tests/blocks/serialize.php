@@ -42,16 +42,16 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 				array( "<!-- wp:outer --><!-- wp:inner {\"key\":\"value\"} -->Example.<!-- /wp:inner -->\n\nExample.\n\n<!-- wp:void /--><!-- /wp:outer -->" ),
 
 			'Block with attribute values that may conflict with HTML comment' =>
-				array( '<!-- wp:attributes {"key":"\u002d\u002d\u003c\u003e\u0026\u0022"} /-->' ),
+				array( '<!-- wp:attributes {"key":"\\u002d\\u002d\\u003c\\u003e\\u0026\\u0022"} /-->' ),
 
 			'Block with attribute values that should not be escaped' =>
 				array( '<!-- wp:attributes {"key":"€1.00 / 3 for €2.00"} /-->' ),
 
 			'Backslashes in attributes, Gutenberg #16508' =>
-				array( '<!-- wp:attributes {"bs":"\u005c","bsQuote":"\u005c\u0022","bsQuoteBs":"\u005c\u0022\u005c"} /-->' ),
+				array( '<!-- wp:attributes {"bs":"\\u005c","bsQuote":"\\u005c\\u0022","bsQuoteBs":"\\u005c\\u0022\\u005c"} /-->' ),
 
 			'Tricky backslashes'                          =>
-				array( '<!-- wp:attributes {"bsbsQbsbsbsQ":"\u005c\u005c\u0022\u005c\u005c\u005c\u005c\u0022"} /-->' ),
+				array( '<!-- wp:attributes {"bsbsQbsbsbsQ":"\\u005c\\u005c\\u0022\\u005c\\u005c\\u005c\\u005c\\u0022"} /-->' ),
 		);
 	}
 
