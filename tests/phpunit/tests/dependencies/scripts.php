@@ -17,6 +17,11 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	protected $old_wp_scripts;
 
 	/**
+	 * @var bool
+	 */
+	protected $old_concatenate_scripts;
+
+	/**
 	 * @var WP_Styles
 	 */
 	protected $old_wp_styles;
@@ -32,8 +37,9 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->old_wp_scripts = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
-		$this->old_wp_styles  = isset( $GLOBALS['wp_styles'] ) ? $GLOBALS['wp_styles'] : null;
+		$this->old_wp_scripts          = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
+		$this->old_wp_styles           = isset( $GLOBALS['wp_styles'] ) ? $GLOBALS['wp_styles'] : null;
+		$this->old_concatenate_scripts = isset( $GLOBALS['concatenate_scripts'] ) ? $GLOBALS['concatenate_scripts'] : null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
@@ -55,8 +61,9 @@ JS;
 	}
 
 	public function tear_down() {
-		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
-		$GLOBALS['wp_styles']  = $this->old_wp_styles;
+		$GLOBALS['wp_scripts']          = $this->old_wp_scripts;
+		$GLOBALS['wp_styles']           = $this->old_wp_styles;
+		$GLOBALS['concatenate_scripts'] = $this->old_concatenate_scripts;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
 		parent::tear_down();
 	}
@@ -1480,7 +1487,6 @@ HTML
 	public function test_concatenate_with_defer_strategy() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
 
-		$old_value           = $concatenate_scripts;
 		$concatenate_scripts = true;
 
 		$wp_scripts->do_concat    = true;
@@ -1493,9 +1499,6 @@ HTML
 
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
-
-		// Reset global before asserting.
-		$concatenate_scripts = $old_value;
 
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep,two-concat-dep,three-concat-dep&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-defer-script-js' defer='defer' data-wp-strategy='defer'></script>\n";
@@ -1515,7 +1518,6 @@ HTML
 	public function test_concatenate_with_async_strategy() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
 
-		$old_value           = $concatenate_scripts;
 		$concatenate_scripts = true;
 
 		$wp_scripts->do_concat    = true;
@@ -1528,9 +1530,6 @@ HTML
 
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
-
-		// Reset global before asserting.
-		$concatenate_scripts = $old_value;
 
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-1,two-concat-dep-1,three-concat-dep-1&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' src='/main-script.js' id='main-async-script-1-js' async='async' data-wp-strategy='async'></script>\n";
@@ -1551,7 +1550,6 @@ HTML
 	public function test_concatenate_with_blocking_script_before_and_after_script_with_defer_strategy() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
 
-		$old_value           = $concatenate_scripts;
 		$concatenate_scripts = true;
 
 		$wp_scripts->do_concat    = true;
@@ -1567,9 +1565,6 @@ HTML
 
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
-
-		// Reset global before asserting.
-		$concatenate_scripts = $old_value;
 
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-2,two-concat-dep-2,three-concat-dep-2,four-concat-dep-2,five-concat-dep-2,six-concat-dep-2&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' src='/main-script.js' id='deferred-script-2-js' defer='defer' data-wp-strategy='defer'></script>\n";
