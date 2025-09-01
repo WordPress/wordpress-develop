@@ -48,7 +48,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 				array( '<!-- wp:attributes {"key":"€1.00 / 3 for €2.00"} /-->' ),
 
 			'Backslashes in attributes, Gutenberg #16508' =>
-				array( '<!-- wp:attributes {"key":"\\u0022\\\\"} /-->' ),
+				array( '<!-- wp:attributes {"bs":"\\u005c","bsQuote":"\\u005c\\u0022","bsQuoteBs":"\\u005c\\u0022\\u005c"} /-->' ),
 		);
 	}
 
