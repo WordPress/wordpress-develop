@@ -1325,4 +1325,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['_wpnonce'] );
 		$this->assertNotEmpty( $response['wp-refresh-metabox-loader-nonces']['replace']['metabox_loader_nonce'] );
 	}
+
+	/**
+	 * Test that get_default_post_to_edit() dies when wp_insert_post() returns WP_Error.
+	 *
+	 * @ticket 37441
+	 */
+	public function test_get_default_post_to_edit_wp_insert_post_error() {
+		add_filter( 'wp_insert_post_empty_content', '__return_true' );
+
+		$this->expectException( 'WPDieException' );
+		get_default_post_to_edit( 'post', true );
+	}
 }
