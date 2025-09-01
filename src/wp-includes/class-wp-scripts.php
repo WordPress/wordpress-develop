@@ -222,10 +222,12 @@ class WP_Scripts extends WP_Dependencies {
 			return;
 		}
 
-		$output .= sprintf(
-			"\n//# sourceURL=%s",
-			rawurlencode( "{$handle}-js-extra" )
-		);
+		if ( ! $this->do_concat ) {
+			$output .= sprintf(
+				"\n//# sourceURL=%s",
+				rawurlencode( "{$handle}-js-extra" )
+			);
+		}
 
 		if ( ! $display ) {
 			return $output;
@@ -526,10 +528,12 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
-		$data[] = sprintf(
-			'//# sourceURL=%s',
-			rawurlencode( "{$handle}-js-{$position}" )
-		);
+		if ( ! $this->do_concat ) {
+			$data[] = sprintf(
+				'//# sourceURL=%s',
+				rawurlencode( "{$handle}-js-{$position}" )
+			);
+		}
 
 		return trim( implode( "\n", $data ), "\n" );
 	}
