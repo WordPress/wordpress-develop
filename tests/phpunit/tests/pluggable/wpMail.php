@@ -554,4 +554,76 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		$phpmailer = $GLOBALS['phpmailer'];
 		$this->assertNotSame( 'user1', $phpmailer->AltBody );
 	}
+
+	/**
+	 * Test that wp_mail() can send embedded images.
+	 *
+	 * @ticket 28059
+	 * @covers ::wp_mail
+	 */
+	public function test_wp_mail_can_send_embedded_images() {
+		$embeds = array(
+			'canola' => DIR_TESTDATA . '/images/canola.jpg',
+			DIR_TESTDATA . '/images/test-image-2.gif',
+			DIR_TESTDATA . '/images/avif-lossy.avif',
+		);
+
+		$message = '';
+		foreach ( $embeds as $key => $path ) {
+			$message .= '<p><img src="cid:' . $key . '" alt="" /></p>';
+		}
+
+		wp_mail(
+			'user@example.org',
+			'Embedded images test',
+			$message,
+			'Content-Type: text/html',
+			array(),
+			$embeds
+		);
+
+		$mailer      = tests_retrieve_phpmailer_instance();
+		$attachments = $mailer->getAttachments();
+
+		foreach ( $attachments as $attachment ) {
+			$inline_embed_exists = in_array( $attachment[0], $embeds, true ) && 'inline' === $attachment[6];
+			$this->assertTrue( $inline_embed_exists, 'The attachment ' . $attachment[2] . ' is not inline in the embeds array.' );
+		}
+		foreach ( $embeds as $key => $path ) {
+			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
+		}
+	}
+	/**
+	 * Test that wp_mail() can send embedded images as a multiple line string.
+	 *
+	 * @ticket 28059
+	 * @covers ::wp_mail
+	 */
+	public function test_wp_mail_string_embeds() {
+		$embeds  = DIR_TESTDATA . '/images/canola.jpg' . "\n";
+		$embeds .= DIR_TESTDATA . '/images/test-image-2.gif';
+
+		$message = '<p><img src="cid:0" alt="" /></p><p><img src="cid:1" alt="" /></p>';
+
+		wp_mail(
+			'user@example.org',
+			'Embedded images test',
+			$message,
+			'Content-Type: text/html',
+			array(),
+			$embeds
+		);
+
+		$embeds_array = explode( "\n", $embeds );
+		$mailer       = tests_retrieve_phpmailer_instance();
+		$attachments  = $mailer->getAttachments();
+
+		foreach ( $attachments as $attachment ) {
+			$inline_embed_exists = in_array( $attachment[0], $embeds_array, true ) && 'inline' === $attachment[6];
+			$this->assertTrue( $inline_embed_exists, 'The attachment ' . $attachment[2] . ' is not inline in the embeds array.' );
+		}
+		foreach ( $embeds_array as $key => $path ) {
+			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
+		}
+	}
 }
