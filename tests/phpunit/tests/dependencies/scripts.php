@@ -1636,6 +1636,9 @@ HTML
 	 * @ticket 16024
 	 */
 	public function test_wp_script_add_data_with_conditional_key() {
+		$this->expectDeprecation();
+		$this->expectDeprecationMessageMatches( 'Function WP_Dependencies->add_data() was called with an argument that is deprecated since version 6.9.0! The conditional argument is no longer supported for inline scripts or styles.' );
+
 		// Enqueue and add conditional comments.
 		wp_enqueue_script( 'test-only-conditional', 'example.com', array(), null );
 		wp_script_add_data( 'test-only-conditional', 'conditional', 'gt IE 7' );
@@ -2058,6 +2061,9 @@ HTML;
 		$wp_scripts->do_concat    = true;
 		$wp_scripts->default_dirs = array( '/wp-admin/js/', '/wp-includes/js/' ); // Default dirs as in wp-includes/script-loader.php.
 
+		$this->expectDeprecation();
+		$this->expectDeprecationMessageMatches( 'Function WP_Dependencies->add_data() was called with an argument that is deprecated since version 6.9.0! The conditional argument is no longer supported for inline scripts or styles.' );
+
 		// Conditional scripts should not output.
 		$expected_localized = '';
 		$expected           = '';
@@ -2103,6 +2109,8 @@ HTML;
 	 */
 	public function test_wp_add_inline_script_after_with_concat_and_conditional_and_core_dependency() {
 		global $wp_scripts;
+		$this->expectDeprecation();
+		$this->expectDeprecationMessageMatches( 'Function WP_Dependencies->add_data() was called with an argument that is deprecated since version 6.9.0! The conditional argument is no longer supported for inline scripts or styles.' );
 
 		wp_default_scripts( $wp_scripts );
 
