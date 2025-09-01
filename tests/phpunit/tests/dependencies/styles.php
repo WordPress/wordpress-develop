@@ -179,7 +179,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
-		$expected .= "/*# sourceURL=handle-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
