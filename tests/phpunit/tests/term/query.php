@@ -1220,4 +1220,55 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$expected = array( $terms[0], $terms[2], $terms[1], $terms[3] );
 		$this->assertSame( $expected, $q->terms );
 	}
+
+	/**
+	 * @ticket 63890
+	 */
+	public function test_orderby_array_with_name_and_count() {
+		register_taxonomy( 'wptests_tax_orderby_name', 'post' );
+
+		$term1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_orderby_name',
+				'name'     => 'Beta Term',
+			)
+		);
+		$term2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_orderby_name',
+				'name'     => 'Zeta Term',
+			)
+		);
+		$term3 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax_orderby_name',
+				'name'     => 'Alpha Term',
+			)
+		);
+
+		$post1 = self::factory()->post->create();
+		$post2 = self::factory()->post->create();
+		$post3 = self::factory()->post->create();
+		$post4 = self::factory()->post->create();
+
+		wp_set_object_terms( $post1, array( $term1 ), 'wptests_tax_orderby_name' );
+		wp_set_object_terms( $post2, array( $term1 ), 'wptests_tax_orderby_name' );
+		wp_set_object_terms( $post3, array( $term2 ), 'wptests_tax_orderby_name' );
+		wp_set_object_terms( $post4, array( $term3 ), 'wptests_tax_orderby_name' );
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_orderby_name',
+				'orderby'    => array(
+					'count' => 'DESC',
+					'name'  => 'ASC',
+				),
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$expected = array( $term1, $term3, $term2 );
+		$this->assertSame( $expected, $q->terms );
+	}
 }
