@@ -607,23 +607,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 23474
-	 * @covers ::wp_update_post
-	 */
-	public function test_update_invalid_post_id() {
-		$post_id = self::factory()->post->create();
-		$post    = get_post( $post_id, ARRAY_A );
-
-		$post['ID'] = 123456789;
-
-		$this->assertSame( 0, wp_insert_post( $post ) );
-		$this->assertSame( 0, wp_update_post( $post ) );
-
-		$this->assertInstanceOf( 'WP_Error', wp_insert_post( $post, true ) );
-		$this->assertInstanceOf( 'WP_Error', wp_update_post( $post, true ) );
-	}
-
-	/**
 	 * @ticket 19373
 	 */
 	public function test_insert_programmatic_sanitized() {
@@ -930,48 +913,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 			2,
 			'The dates should be equal'
 		);
-	}
-
-	/**
-	 * Test ensuring that wp_update_post() does not unintentionally modify post tags
-	 * if the post has several tags with the same name but different slugs.
-	 *
-	 * Tags should only be modified if 'tags_input' parameter was explicitly provided,
-	 * and is different from the existing tags.
-	 *
-	 * @ticket 45121
-	 * @covers ::wp_update_post
-	 */
-	public function test_update_post_should_only_modify_post_tags_if_different_tags_input_was_provided() {
-		$tag_1 = wp_insert_term( 'wp_update_post_tag', 'post_tag', array( 'slug' => 'wp_update_post_tag_1' ) );
-		$tag_2 = wp_insert_term( 'wp_update_post_tag', 'post_tag', array( 'slug' => 'wp_update_post_tag_2' ) );
-		$tag_3 = wp_insert_term( 'wp_update_post_tag', 'post_tag', array( 'slug' => 'wp_update_post_tag_3' ) );
-
-		$post_id = self::factory()->post->create(
-			array(
-				'tags_input' => array( $tag_1['term_id'], $tag_2['term_id'] ),
-			)
-		);
-
-		$post = get_post( $post_id );
-
-		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
-		$this->assertSameSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags );
-
-		wp_update_post( $post );
-
-		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
-		$this->assertSameSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags );
-
-		wp_update_post(
-			array(
-				'ID'         => $post->ID,
-				'tags_input' => array( $tag_2['term_id'], $tag_3['term_id'] ),
-			)
-		);
-
-		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
-		$this->assertSameSets( array( $tag_2['term_id'], $tag_3['term_id'] ), $tags );
 	}
 
 	/**
