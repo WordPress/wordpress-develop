@@ -311,6 +311,29 @@ jobs:
       memcached: ${{ matrix.memcached || false }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
 
+  analyze-skipped-tests:
+    name: Analyze Skipped Tests
+    runs-on: ubuntu-24.04
+    needs:
+      - test-with-mysql
+      - test-with-mariadb
+      - test-innovation-releases
+      - html-api-test-groups
+    permissions:
+      contents: read
+    steps:
+      - name: Download skipped test artifacts
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
+        with:
+          pattern: skipped-tests-*
+          path: skipped-tests-artifacts
+          merge-multiple: true
+
+      - name: Analyze skipped tests
+        run: |
+          cd skipped-tests-artifacts
+          ../.github/scripts/analyze-skipped-tests.sh
+
   slack-notifications:
     name: Slack Notifications
     uses: ./.github/workflows/slack-notifications.yml

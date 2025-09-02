@@ -211,6 +211,7 @@ jobs:
             php ./vendor/bin/phpunit \
             --verbose \
             -c "${PHPUNIT_CONFIG}" \
+            --log-junit "phpunit-results-${MULTISITE_FLAG}.xml" \
             ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}"' || '' }} \
             ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml" --coverage-html "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}"' || '' }}
         env:
@@ -220,23 +221,58 @@ jobs:
       - name: Run AJAX tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ajax
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ajax --log-junit "phpunit-results-ajax-${MULTISITE_FLAG}.xml"
+        env:
+          MULTISITE_FLAG: ${{ inputs.multisite && 'multisite' || 'single' }}
 
       - name: Run ms-files tests as a multisite install
         if: ${{ inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files --log-junit "phpunit-results-ms-files.xml"
 
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http --log-junit "phpunit-results-external-http.xml"
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (Xdebug) tests
         if: ${{ inputs.php != '8.4' && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
+        run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__ --log-junit "phpunit-results-xdebug.xml"
+
+      - name: Extract skipped tests from JUnit XML
+        id: extract-skipped
+        env:
+          PHP_VERSION: ${{ inputs.php }}
+          DB_TYPE: ${{ inputs.db-type }}
+          DB_VERSION: ${{ inputs.db-version }}
+          MULTISITE: ${{ inputs.multisite && 'multisite' || 'single' }}
+          MEMCACHED: ${{ inputs.memcached && 'memcached' || 'no-memcached' }}
+          TEST_GROUPS: ${{ inputs.phpunit-test-groups && inputs.phpunit-test-groups || 'all-groups' }}
+        run: |
+          CONFIG_OUTPUT=$(./.github/scripts/extract-skipped-tests.sh \
+            "${PHP_VERSION}" \
+            "${DB_TYPE}" \
+            "${DB_VERSION}" \
+            "${MULTISITE}" \
+            "${MEMCACHED}" \
+            "${TEST_GROUPS}")
+
+          # Extract CONFIG_ID from the script output
+          CONFIG_ID=$(echo "$CONFIG_OUTPUT" | grep "CONFIG_ID=" | cut -d= -f2)
+          echo "CONFIG_ID=${CONFIG_ID}" >> $GITHUB_OUTPUT
+
+      - name: Upload skipped tests summary
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: skipped-tests-${{ steps.extract-skipped.outputs.CONFIG_ID }}
+          path: skipped-tests-*.txt
+          retention-days: 1
+          if-no-files-found: ignore
+
+      - name: Clean up test artifacts
+        run: rm -f phpunit-results-*.xml skipped-tests-*.txt
 
       - name: Upload test coverage report to Codecov
         if: ${{ inputs.coverage-report }}
