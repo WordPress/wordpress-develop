@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Extract skipped tests from PHPUnit JUnit XML output
-# Usage: extract-skipped-tests.sh <php> <db-type> <db-version> <multisite> <memcached> <test-groups>
+# Usage: extract-skipped-tests.sh <php> <db-type> <db-version> <multisite> <memcached> <test-groups> <os> <db-innovation> <tests-domain>
 
 # Create config ID from parameters
-CONFIG_ID="php${1}_${2}${3}_${4}_${5}_${6}"
+CONFIG_ID="php${1}_${2}${3}_${4}_${5}_${6}_${7}_${8}_${9}"
 CONFIG_ID="${CONFIG_ID//[^a-zA-Z0-9_-]/_}"
 
 echo "Extracting skipped tests for configuration: ${CONFIG_ID}"

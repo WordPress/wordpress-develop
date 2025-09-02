@@ -250,6 +250,9 @@ jobs:
           MULTISITE: ${{ inputs.multisite && 'multisite' || 'single' }}
           MEMCACHED: ${{ inputs.memcached && 'memcached' || 'no-memcached' }}
           TEST_GROUPS: ${{ inputs.phpunit-test-groups && inputs.phpunit-test-groups || 'all-groups' }}
+          OS: ${{ inputs.os }}
+          DB_INNOVATION: ${{ inputs.db-innovation && 'innovation' || 'stable' }}
+          TESTS_DOMAIN: ${{ inputs.tests-domain }}
         run: |
           CONFIG_OUTPUT=$(./.github/scripts/extract-skipped-tests.sh \
             "${PHP_VERSION}" \
@@ -257,7 +260,10 @@ jobs:
             "${DB_VERSION}" \
             "${MULTISITE}" \
             "${MEMCACHED}" \
-            "${TEST_GROUPS}")
+            "${TEST_GROUPS}" \
+            "${OS}" \
+            "${DB_INNOVATION}" \
+            "${TESTS_DOMAIN}")
 
           # Extract CONFIG_ID from the script output
           CONFIG_ID=$(echo "$CONFIG_OUTPUT" | grep "CONFIG_ID=" | cut -d= -f2)
