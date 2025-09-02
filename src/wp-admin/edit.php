@@ -235,6 +235,14 @@ if ( $doaction ) {
 $wp_list_table->prepare_items();
 
 wp_enqueue_script( 'inline-edit-post' );
+wp_localize_script(
+	'inline-edit-post',
+	'inlineEditPostConfig',
+	array(
+		// get the site offset and convert to minutes.
+		'siteTzOffset' => (int) ( - get_option( 'gmt_offset' ) * 60 ),
+	)
+);
 wp_enqueue_script( 'heartbeat' );
 
 if ( 'wp_block' === $post_type ) {
