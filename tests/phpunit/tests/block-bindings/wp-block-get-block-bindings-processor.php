@@ -101,4 +101,26 @@ class Tests_Blocks_GetBlockBindingsProcessor extends WP_UnitTestCase {
 			$processor->get_updated_html()
 		);
 	}
+
+	public function test_remove_node() {
+		$figure_opener = '<figure class="wp-block-image">';
+		$img           = '<img src="breakfast.jpg" alt="" class="wp-image-1"/>';
+		$figure_closer = '</figure>';
+		$processor     = self::$get_block_bindings_processor_method->invoke(
+			null,
+			$figure_opener .
+			$img .
+			'<figcaption class="wp-element-caption">Breakfast at a <em>café</em> in Berlin</figcaption>' .
+			$figure_closer
+		);
+
+		$processor->next_tag( array( 'tag_name' => 'figcaption' ) );
+
+		$this->assertTrue( $processor->remove_node() );
+
+		$this->assertEquals(
+			$figure_opener . $img . $figure_closer,
+			$processor->get_updated_html()
+		);
+	}
 }
