@@ -19,7 +19,7 @@ ALWAYS_SKIPPED_TESTS=""
 while IFS= read -r test; do
   if [ -n "$test" ]; then
     # Count how many files contain this test
-    count=$(grep -l "^${test}$" skipped-tests-*.txt | wc -l)
+    count=$(grep -l -F -x "$test" skipped-tests-*.txt | wc -l)
 
     # If skipped in all runs, add to list
     if [ "$count" -eq "$TOTAL_TEST_RUNS" ]; then
