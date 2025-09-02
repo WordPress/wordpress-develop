@@ -658,11 +658,9 @@ HTML;
 	}
 
 	/**
-	 * Concatenated styles are problematic with sourceURL.
-	 *
 	 * @ticket 63887
 	 */
-	public function test_source_url_disabled_with_concat() {
+	public function test_source_url_with_concat() {
 		global $wp_styles, $wp_version;
 		add_theme_support( 'html5', array( 'style' ) );
 
@@ -685,6 +683,7 @@ HTML;
 >
 <style>
 h1 { background: blue; }h2 { color: green; }
+/*# sourceURL=css-inline-concat-one%2Ctwo */
 </style>
 HTML;
 

@@ -3641,11 +3641,9 @@ HTML;
 	}
 
 	/**
-	 * Concatenated scripts are problematic with sourceURL.
-	 *
 	 * @ticket 63887
 	 */
-	public function test_source_url_disabled_with_concat() {
+	public function test_source_url_with_concat() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
 		$this->add_html5_script_theme_support();
 
@@ -3665,7 +3663,9 @@ HTML;
 		$expected = <<<HTML
 <script>
 /* <![CDATA[ */
-var one = {"key":"val"};var two = {"key":"val"};/* ]]> */
+var one = {"key":"val"};var two = {"key":"val"};
+//# sourceURL=js-inline-concat-one%2Ctwo
+/* ]]> */
 </script>
 <script src="/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=one,two&ver={$wp_version}"></script>
 
