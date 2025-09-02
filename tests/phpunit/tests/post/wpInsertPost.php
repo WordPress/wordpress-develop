@@ -1095,7 +1095,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_date_gmt' => $invalid_date,
 			)
 		);
-		
+
 		$this->assertWPError( $error );
 	}
 
@@ -1172,7 +1172,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_date_gmt' => $invalid_date,
 			)
 		);
-		$this->assertWPError($post);
+		$this->assertWPError( $post );
 	}
 
 	/**

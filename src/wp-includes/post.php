@@ -4631,18 +4631,18 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	if ( ! $post_date ) {
 		return $wp_error ? new WP_Error( 'invalid_date', __( 'Invalid date.' ) ) : 0;
 	}
-	
+
 	$post_date_gmt = '0000-00-00 00:00:00';
 
-	if ( ! empty($postarr['post_date_gmt']) && '0000-00-00 00:00:00' !== $postarr['post_date_gmt']) {
-		if ( ! wp_validate_post_date($postarr['post_date_gmt'])) {
+	if ( ! empty( $postarr['post_date_gmt'] ) && '0000-00-00 00:00:00' !== $postarr['post_date_gmt'] ) {
+		if ( ! wp_validate_post_date( $postarr['post_date_gmt'] ) ) {
 			return $wp_error ? new WP_Error( 'invalid_date', __( 'Invalid date.' ) ) : 0;
 		}
 		$post_date_gmt = $postarr['post_date_gmt'];
-	}else{
+	} else {
 		if ( ! in_array( $post_status, get_post_stati( array( 'date_floating' => true ) ), true ) ) {
 			$post_date_gmt = get_gmt_from_date( $post_date );
-		} 
+		}
 	}
 
 	if ( $update || '0000-00-00 00:00:00' === $post_date ) {
@@ -5373,12 +5373,12 @@ function check_and_publish_future_post( $post ) {
  */
 function wp_resolve_post_date( $post_date = '', $post_date_gmt = '' ) {
 	// If the date is empty, set the date to now.
-	
-	if ( ! empty( $post_date ) && '0000-00-00 00:00:00' !== $post_date) {
-		return wp_validate_post_date($post_date);
+
+	if ( ! empty( $post_date ) && '0000-00-00 00:00:00' !== $post_date ) {
+		return wp_validate_post_date( $post_date );
 	}
 
-	if ( ! empty( $post_date_gmt ) && '0000-00-00 00:00:00' !== $post_date_gmt) {
+	if ( ! empty( $post_date_gmt ) && '0000-00-00 00:00:00' !== $post_date_gmt ) {
 		return get_date_from_gmt( $post_date_gmt );
 	}
 
@@ -5393,7 +5393,7 @@ function wp_resolve_post_date( $post_date = '', $post_date_gmt = '' ) {
  * @param string $mysql_formatted_post_date The date in mysql format (`Y-m-d H:i:s`).
  * @return string|false A valid Gregorian-calendar date string, or false on failure.
  */
-function wp_validate_post_date($mysql_formatted_post_date){
+function wp_validate_post_date( $mysql_formatted_post_date ) {
 	// Validate the date.
 	$month = (int) substr( $mysql_formatted_post_date, 5, 2 );
 	$day   = (int) substr( $mysql_formatted_post_date, 8, 2 );
