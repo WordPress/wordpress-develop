@@ -32,7 +32,8 @@ for file in phpunit-results-*.xml; do
     fi
 
     # Extract skipped tests in class::method format
-    SKIPPED_TESTS=$(xmllint --format "$file" 2>/dev/null | grep -B1 "<skipped" | grep "testcase" | sed -n 's/.*name="\([^"]*\)".*class="\([^"]*\)".*/\2::\1/p' || true)
+    # Use xmllint to query the XML directly for skipped testcases
+    SKIPPED_TESTS=$(xmllint --xpath "//testcase[skipped]" "$file" 2>/dev/null | sed -n 's/.*name="\([^"]*\)".*class="\([^"]*\)".*/\2::\1/p' || true)
 
     echo "DEBUG: Extracted skipped tests: '$SKIPPED_TESTS'"
 
