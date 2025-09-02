@@ -148,6 +148,7 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53604
+	 * @ticket 63909
 	 */
 	public function test_inner_blocks_excerpt() {
 		$content_1 = '<!-- wp:group -->
@@ -180,6 +181,16 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 <p></p>
 <!-- /wp:paragraph -->';
 
+		$content_3 = '<!-- wp:list -->
+<ul class="wp-block-list"><!-- wp:list-item -->
+<li>List item inside a list.</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->
+
+<!-- wp:paragraph -->
+<p></p>
+<!-- /wp:paragraph -->';
+
 		$post_1 = self::factory()->post->create_and_get(
 			array(
 				'post_content' => $content_1,
@@ -194,6 +205,13 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 			)
 		);
 
+		$post_3 = self::factory()->post->create_and_get(
+			array(
+				'post_content' => $content_3,
+				'post_excerpt' => '',
+			)
+		);
+
 		$this->assertSame(
 			'Column 1 Column 2',
 			get_the_excerpt( ( new WP_Query( array( 'p' => $post_1->ID ) ) )->posts[0] )
@@ -202,6 +220,11 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 		$this->assertSame(
 			'Paragraph inside group block',
 			get_the_excerpt( ( new WP_Query( array( 'p' => $post_2->ID ) ) )->posts[0] )
+		);
+
+		$this->assertSame(
+			'List item inside a list.',
+			get_the_excerpt( ( new WP_Query( array( 'p' => $post_3->ID ) ) )->posts[0] )
 		);
 	}
 }
