@@ -2795,7 +2795,7 @@ class WP_Query {
 		}
 
 		// Paging.
-		if ( empty( $q['nopaging'] ) && ( ! $this->is_singular || ( isset( $q['posts_per_page'] ) && $q['posts_per_page'] > 0 ) ) ) {
+		if ( empty( $q['nopaging'] ) && ( ! $this->is_singular || ( isset( $q['posts_per_page'] ) && $q['posts_per_page'] > 0 && ( ! isset( $q['paged'] ) || $q['paged'] <= 1 ) ) ) ) {
 			$page = absint( $q['paged'] );
 			if ( ! $page ) {
 				$page = 1;
