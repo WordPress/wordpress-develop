@@ -26,13 +26,13 @@ for file in phpunit-results-*.xml; do
 
     # Check if file contains skipped tests
     SKIPPED_COUNT=$(grep -c "<skipped" "$file" 2>/dev/null || echo "0")
-    # Ensure SKIPPED_COUNT is a clean number (remove any newlines/whitespace)
-    SKIPPED_COUNT=$(echo "$SKIPPED_COUNT" | tr -d '\n\r ')
+    # Ensure SKIPPED_COUNT is a clean number (take only first line and extract digits)
+    SKIPPED_COUNT=$(echo "$SKIPPED_COUNT" | head -1 | grep -o '[0-9]*' | head -1 || echo "0")
     echo "DEBUG: Found $SKIPPED_COUNT skipped elements in $file"
 
     if [ "$SKIPPED_COUNT" -gt 0 ]; then
       echo "DEBUG: Sample skipped elements:"
-      grep -A2 -B2 "<skipped" "$file" | head -10
+      grep -A2 -B2 "<skipped" "$file" 2>/dev/null | head -10 || true
     fi
 
     # Extract skipped tests in class::method format
