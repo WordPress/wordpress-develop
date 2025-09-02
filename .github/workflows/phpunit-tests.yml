@@ -319,6 +319,7 @@ jobs:
       - test-with-mariadb
       - test-innovation-releases
       - html-api-test-groups
+    if: ${{ always() }}
     permissions:
       contents: read
     steps:
