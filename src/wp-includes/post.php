@@ -4629,21 +4629,20 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	$post_date = wp_resolve_post_date( $postarr['post_date'], $postarr['post_date_gmt'] );
 
 	if ( ! $post_date ) {
-		if ( $wp_error ) {
-			return new WP_Error( 'invalid_date', __( 'Invalid date.' ) );
-		} else {
-			return 0;
-		}
+		return $wp_error ? new WP_Error( 'invalid_date', __( 'Invalid date.' ) ) : 0;
 	}
+	
+	$post_date_gmt = '0000-00-00 00:00:00';
 
-	if ( empty( $postarr['post_date_gmt'] ) || '0000-00-00 00:00:00' === $postarr['post_date_gmt'] ) {
+	if ( ! empty($postarr['post_date_gmt']) && '0000-00-00 00:00:00' !== $postarr['post_date_gmt']) {
+		if ( ! wp_validate_post_date($postarr['post_date_gmt'])) {
+			return $wp_error ? new WP_Error( 'invalid_date', __( 'Invalid date.' ) ) : 0;
+		}
+		$post_date_gmt = $postarr['post_date_gmt'];
+	}else{
 		if ( ! in_array( $post_status, get_post_stati( array( 'date_floating' => true ) ), true ) ) {
 			$post_date_gmt = get_gmt_from_date( $post_date );
-		} else {
-			$post_date_gmt = '0000-00-00 00:00:00';
-		}
-	} else {
-		$post_date_gmt = $postarr['post_date_gmt'];
+		} 
 	}
 
 	if ( $update || '0000-00-00 00:00:00' === $post_date ) {
@@ -5360,7 +5359,7 @@ function check_and_publish_future_post( $post ) {
 
 /**
  * Uses wp_checkdate to return a valid Gregorian-calendar value for post_date.
- * If post_date is not provided, this first checks post_date_gmt if provided,
+ * If post_date is not provided, this checks post_date_gmt if provided,
  * then falls back to use the current time.
  *
  * For back-compat purposes in wp_insert_post, an empty post_date and an invalid
@@ -5374,26 +5373,35 @@ function check_and_publish_future_post( $post ) {
  */
 function wp_resolve_post_date( $post_date = '', $post_date_gmt = '' ) {
 	// If the date is empty, set the date to now.
-	if ( empty( $post_date ) || '0000-00-00 00:00:00' === $post_date ) {
-		if ( empty( $post_date_gmt ) || '0000-00-00 00:00:00' === $post_date_gmt ) {
-			$post_date = current_time( 'mysql' );
-		} else {
-			$post_date = get_date_from_gmt( $post_date_gmt );
-		}
+	
+	if ( ! empty( $post_date ) && '0000-00-00 00:00:00' !== $post_date) {
+		return wp_validate_post_date($post_date);
 	}
 
-	// Validate the date.
-	$month = (int) substr( $post_date, 5, 2 );
-	$day   = (int) substr( $post_date, 8, 2 );
-	$year  = (int) substr( $post_date, 0, 4 );
-
-	$valid_date = wp_checkdate( $month, $day, $year, $post_date );
-
-	if ( ! $valid_date ) {
-		return false;
+	if ( ! empty( $post_date_gmt ) && '0000-00-00 00:00:00' !== $post_date_gmt) {
+		return get_date_from_gmt( $post_date_gmt );
 	}
-	return $post_date;
+
+	return current_time( 'mysql' );
 }
+
+/**
+ * Check if a post_date or post_date_gmt is a valid mysql datetime formatted string
+ *
+ * @since 6.9.0
+ *
+ * @param string $mysql_formatted_post_date The date in mysql format (`Y-m-d H:i:s`).
+ * @return string|false A valid Gregorian-calendar date string, or false on failure.
+ */
+function wp_validate_post_date($mysql_formatted_post_date){
+	// Validate the date.
+	$month = (int) substr( $mysql_formatted_post_date, 5, 2 );
+	$day   = (int) substr( $mysql_formatted_post_date, 8, 2 );
+	$year  = (int) substr( $mysql_formatted_post_date, 0, 4 );
+
+	return wp_checkdate( $month, $day, $year, $mysql_formatted_post_date ) ? $mysql_formatted_post_date : false;
+}
+
 
 /**
  * Computes a unique slug for the post, when given the desired slug and some post details.
