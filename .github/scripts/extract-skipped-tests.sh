@@ -10,14 +10,22 @@ CONFIG_ID="${CONFIG_ID//[^a-zA-Z0-9_-]/_}"
 echo "Extracting skipped tests for configuration: ${CONFIG_ID}"
 
 # Extract skipped tests from XML files using xmllint
-touch "skipped-tests-${CONFIG_ID}.txt"
+SKIPPED_FOUND=false
 
 for file in phpunit-results-*.xml; do
   if [ -f "$file" ]; then
     # Extract skipped tests in class::method format
-    xmllint --format "$file" 2>/dev/null | grep -B1 "<skipped" | grep "testcase" | sed -n 's/.*name="\([^"]*\)".*classname="\([^"]*\)".*/\2::\1/p' >> "skipped-tests-${CONFIG_ID}.txt" || true
+    SKIPPED_TESTS=$(xmllint --format "$file" 2>/dev/null | grep -B1 "<skipped" | grep "testcase" | sed -n 's/.*name="\([^"]*\)".*classname="\([^"]*\)".*/\2::\1/p' || true)
+
+    if [ -n "$SKIPPED_TESTS" ]; then
+      echo "$SKIPPED_TESTS" >> "skipped-tests-${CONFIG_ID}.txt"
+      SKIPPED_FOUND=true
+    fi
   fi
 done
 
-echo "Skipped tests saved to skipped-tests-${CONFIG_ID}.txt"
-echo "CONFIG_ID=${CONFIG_ID}"
+if [ "$SKIPPED_FOUND" = false ]; then
+  echo "No skipped tests found"
+else
+  echo "Skipped tests saved to skipped-tests-${CONFIG_ID}.txt"
+fi
