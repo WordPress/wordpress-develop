@@ -35,7 +35,7 @@ function wp_script_modules(): WP_Script_Modules {
  * identifier has already been registered.
  *
  * @since 6.5.0
- * @since n.e.x.t Added the $args parameter.
+ * @since 6.9.0 Added the $args parameter.
  *
  * @param string            $id      The identifier of the script module. Should be unique. It will be used in the
  *                                   final import map.
@@ -78,7 +78,7 @@ function wp_register_script_module( string $id, string $src, array $deps = array
  * will be registered.
  *
  * @since 6.5.0
- * @since n.e.x.t Added the $args parameter.
+ * @since 6.9.0 Added the $args parameter.
  *
  * @param string            $id      The identifier of the script module. Should be unique. It will be used in the
  *                                   final import map.

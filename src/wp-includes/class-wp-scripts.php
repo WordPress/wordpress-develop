@@ -847,7 +847,7 @@ JS;
 						is_string( $value ) ? $value : gettype( $value ),
 						$handle
 					),
-					'n.e.x.t'
+					'6.9.0'
 				);
 				return false;
 			} elseif ( ! $this->registered[ $handle ]->src ) {
@@ -859,7 +859,7 @@ JS;
 						is_string( $value ) ? $value : gettype( $value ),
 						$handle
 					),
-					'n.e.x.t'
+					'6.9.0'
 				);
 				return false;
 			}
@@ -915,7 +915,7 @@ JS;
 	/**
 	 * Checks if the provided fetchpriority is valid.
 	 *
-	 * @since n.e.x.t
+	 * @since 6.9.0
 	 *
 	 * @param string|mixed $priority Fetch priority.
 	 * @return bool Whether valid fetchpriority.

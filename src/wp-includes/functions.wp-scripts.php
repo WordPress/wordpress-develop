@@ -158,7 +158,7 @@ function wp_add_inline_script( $handle, $data, $position = 'after' ) {
  * @since 2.1.0
  * @since 4.3.0 A return value was added.
  * @since 6.3.0 The $in_footer parameter of type boolean was overloaded to be an $args parameter of type array.
- * @since n.e.x.t The $fetchpriority parameter of type string was added to the $args parameter of type array.
+ * @since 6.9.0 The $fetchpriority parameter of type string was added to the $args parameter of type array.
  *
  * @param string           $handle    Name of the script. Should be unique.
  * @param string|false     $src       Full URL of the script, or path of the script relative to the WordPress root directory.
@@ -344,7 +344,7 @@ function wp_deregister_script( $handle ) {
  *
  * @since 2.1.0
  * @since 6.3.0 The $in_footer parameter of type boolean was overloaded to be an $args parameter of type array.
- * @since n.e.x.t The $fetchpriority parameter of type string was added to the $args parameter of type array.
+ * @since 6.9.0 The $fetchpriority parameter of type string was added to the $args parameter of type array.
  *
  * @param string           $handle    Name of the script. Should be unique.
  * @param string           $src       Full URL of the script, or path of the script relative to the WordPress root directory.

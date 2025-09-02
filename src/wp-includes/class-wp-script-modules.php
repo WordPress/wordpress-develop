@@ -46,7 +46,7 @@ class WP_Script_Modules {
 	 * identifier has already been registered.
 	 *
 	 * @since 6.5.0
-	 * @since n.e.x.t Added the $args parameter.
+	 * @since 6.9.0 Added the $args parameter.
 	 *
 	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
 	 *                                    final import map.
@@ -114,7 +114,7 @@ class WP_Script_Modules {
 							is_string( $args['fetchpriority'] ) ? $args['fetchpriority'] : gettype( $args['fetchpriority'] ),
 							$id
 						),
-						'n.e.x.t'
+						'6.9.0'
 					);
 				}
 			}
@@ -132,7 +132,7 @@ class WP_Script_Modules {
 	/**
 	 * Checks if the provided fetchpriority is valid.
 	 *
-	 * @since n.e.x.t
+	 * @since 6.9.0
 	 *
 	 * @param string|mixed $priority Fetch priority.
 	 * @return bool Whether valid fetchpriority.
@@ -144,7 +144,7 @@ class WP_Script_Modules {
 	/**
 	 * Sets the fetch priority for a script module.
 	 *
-	 * @since n.e.x.t
+	 * @since 6.9.0
 	 *
 	 * @param string              $id       Script module identifier.
 	 * @param 'auto'|'low'|'high' $priority Fetch priority for the script module.
@@ -164,7 +164,7 @@ class WP_Script_Modules {
 				__METHOD__,
 				/* translators: %s: Invalid fetchpriority. */
 				sprintf( __( 'Invalid fetchpriority: %s' ), $priority ),
-				'n.e.x.t'
+				'6.9.0'
 			);
 			return false;
 		}
@@ -180,7 +180,7 @@ class WP_Script_Modules {
 	 * will be registered.
 	 *
 	 * @since 6.5.0
-	 * @since n.e.x.t Added the $args parameter.
+	 * @since 6.9.0 Added the $args parameter.
 	 *
 	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
 	 *                                    final import map.
