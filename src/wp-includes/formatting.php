@@ -2507,6 +2507,13 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 				'%cc%80',
 				'%cc%84',
 				'%cc%8c',
+				// CJK punctuation.
+				'%e3%80%82', // 。 (U+3002, Ideographic Full Stop)
+				'%ef%bc%8c', // ， (U+FF0C, Fullwidth Comma)
+				'%ef%bc%81', // ！ (U+FF01, Fullwidth Exclamation Mark)
+				'%ef%bc%9a', // ： (U+FF1A, Fullwidth Colon)
+				'%e3%80%8a', // 《 (U+300A, Left Double Angle Bracket)
+				'%e3%80%8b', // 》 (U+300B, Right Double Angle Bracket)
 				// Non-visible characters that display without a width.
 				'%e2%80%8b', // Zero width space.
 				'%e2%80%8c', // Zero width non-joiner.
