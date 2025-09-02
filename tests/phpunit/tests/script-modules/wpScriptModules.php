@@ -1279,20 +1279,17 @@ HTML;
 	 * @param string $fetchpriority The fetchpriority value to test.
 	 */
 	public function test_fetchpriority_values( string $fetchpriority ) {
-		$reflection_class    = new ReflectionClass( $this->script_modules );
-		$registered_property = $reflection_class->getProperty( 'registered' );
-
 		$this->script_modules->register( 'test-script', '/test-script.js', array(), null, array( 'fetchpriority' => $fetchpriority ) );
-		$registered_modules = $registered_property->getValue( $this->script_modules );
+		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
 		$this->assertSame( $fetchpriority, $registered_modules['test-script']['fetchpriority'] );
 
 		$this->script_modules->register( 'test-script-2', '/test-script-2.js' );
 		$this->assertTrue( $this->script_modules->set_fetchpriority( 'test-script-2', $fetchpriority ) );
-		$registered_modules = $registered_property->getValue( $this->script_modules );
+		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
 		$this->assertSame( $fetchpriority, $registered_modules['test-script-2']['fetchpriority'] );
 
 		$this->assertTrue( $this->script_modules->set_fetchpriority( 'test-script-2', '' ) );
-		$registered_modules = $registered_property->getValue( $this->script_modules );
+		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
 		$this->assertSame( 'auto', $registered_modules['test-script-2']['fetchpriority'] );
 	}
 
@@ -1306,9 +1303,7 @@ HTML;
 	 */
 	public function test_register_script_module_having_fetchpriority_with_invalid_value() {
 		$this->script_modules->register( 'foo', '/foo.js', array(), false, array( 'fetchpriority' => 'silly' ) );
-		$reflection_class    = new ReflectionClass( $this->script_modules );
-		$registered_property = $reflection_class->getProperty( 'registered' );
-		$registered_modules  = $registered_property->getValue( $this->script_modules );
+		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
 		$this->assertSame( 'auto', $registered_modules['foo']['fetchpriority'] );
 		$this->assertArrayHasKey( 'WP_Script_Modules::register', $this->caught_doing_it_wrong );
 		$this->assertStringContainsString( 'Invalid fetchpriority `silly`', $this->caught_doing_it_wrong['WP_Script_Modules::register'] );
@@ -1324,9 +1319,7 @@ HTML;
 	 */
 	public function test_register_script_module_having_fetchpriority_with_invalid_value_type() {
 		$this->script_modules->register( 'foo', '/foo.js', array(), false, array( 'fetchpriority' => array( 'WHY AM I NOT A STRING???' ) ) );
-		$reflection_class    = new ReflectionClass( $this->script_modules );
-		$registered_property = $reflection_class->getProperty( 'registered' );
-		$registered_modules  = $registered_property->getValue( $this->script_modules );
+		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
 		$this->assertSame( 'auto', $registered_modules['foo']['fetchpriority'] );
 		$this->assertArrayHasKey( 'WP_Script_Modules::register', $this->caught_doing_it_wrong );
 		$this->assertStringContainsString( 'Invalid fetchpriority `array`', $this->caught_doing_it_wrong['WP_Script_Modules::register'] );
@@ -1344,10 +1337,21 @@ HTML;
 	public function test_set_fetchpriority_with_invalid_value() {
 		$this->script_modules->register( 'foo', '/foo.js' );
 		$this->script_modules->set_fetchpriority( 'foo', 'silly' );
-		$reflection_class    = new ReflectionClass( $this->script_modules );
-		$registered_property = $reflection_class->getProperty( 'registered' );
-		$registered_modules  = $registered_property->getValue( $this->script_modules );
+		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
 		$this->assertSame( 'auto', $registered_modules['foo']['fetchpriority'] );
+	}
+
+	/**
+	 * Gets registered script modules.
+	 *
+	 * @param WP_Script_Modules $script_modules
+	 * @return array<string, array> Registered modules.
+	 */
+	private function get_registered_script_modules( WP_Script_Modules $script_modules ): array {
+		$reflection_class    = new ReflectionClass( $script_modules );
+		$registered_property = $reflection_class->getProperty( 'registered' );
+		$registered_property->setAccessible( true );
+		return $registered_property->getValue( $script_modules );
 	}
 
 	/**
