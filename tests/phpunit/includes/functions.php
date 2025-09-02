@@ -228,7 +228,7 @@ function _wp_die_handler_txt( $message, $title, $args ) {
 	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
 
 	$message = html_entity_decode( strip_tags( $message ) );
-	$title = html_entity_decode( strip_tags( $title ) );
+	$title   = html_entity_decode( strip_tags( $title ) );
 
 	echo "\033[0;31m";
 	echo "\nwp_die() called\n";
@@ -265,7 +265,7 @@ function _wp_die_handler_exit( $message, $title, $args ) {
 	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
 
 	$message = html_entity_decode( strip_tags( $message ) );
-	$title = html_entity_decode( strip_tags( $title ) );
+	$title   = html_entity_decode( strip_tags( $title ) );
 
 	echo "\033[0;31m";
 	echo "\nwp_die() called\n";
