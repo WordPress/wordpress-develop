@@ -901,10 +901,10 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string $strategy The strategy to check.
+	 * @param string|mixed $strategy The strategy to check.
 	 * @return bool True if $strategy is one of the delayed strategies, otherwise false.
 	 */
-	private function is_delayed_strategy( $strategy ) {
+	private function is_delayed_strategy( $strategy ): bool {
 		return in_array(
 			$strategy,
 			$this->delayed_strategies,
