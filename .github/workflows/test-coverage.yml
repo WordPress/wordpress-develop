@@ -11,15 +11,15 @@ on:
       - 'docker-compose.yml'
       - 'phpunit.xml.dist'
       - 'tests/phpunit/multisite.xml'
-  pull_request:
-    branches:
-      - trunk
-    paths:
-      - '.github/workflows/test-coverage.yml'
-      - '.github/workflows/reusable-phpunit-tests-v3.yml'
-      - 'docker-compose.yml'
-      - 'phpunit.xml.dist'
-      - 'tests/phpunit/multisite.xml'
+  # pull_request:
+  #   branches:
+  #     - trunk
+  #   paths:
+  #     - '.github/workflows/test-coverage.yml'
+  #     - '.github/workflows/reusable-phpunit-tests-v3.yml'
+  #     - 'docker-compose.yml'
+  #     - 'phpunit.xml.dist'
+  #     - 'tests/phpunit/multisite.xml'
   # Once daily at 00:00 UTC.
   schedule:
     - cron: '0 0 * * *'
