@@ -332,8 +332,12 @@ jobs:
 
       - name: Analyze skipped tests
         run: |
-          cd skipped-tests-artifacts
-          ../.github/scripts/analyze-skipped-tests.sh
+          if [ -d "skipped-tests-artifacts" ] && [ "$(ls -A skipped-tests-artifacts 2>/dev/null)" ]; then
+            cd skipped-tests-artifacts
+            ../.github/scripts/analyze-skipped-tests.sh
+          else
+            echo "No skipped test artifacts found - all configurations had no skipped tests"
+          fi
 
   slack-notifications:
     name: Slack Notifications
