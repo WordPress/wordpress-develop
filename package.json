@@ -186,6 +186,7 @@
 		"env:cli": "node ./tools/local-env/scripts/docker.js exec --user wp_php cli wp",
 		"env:logs": "node ./tools/local-env/scripts/docker.js logs",
 		"env:pull": "node ./tools/local-env/scripts/docker.js pull",
+		"env:composer": "node ./tools/local-env/scripts/docker.js run -T --rm php composer",
 		"test:performance": "wp-scripts test-playwright --config tests/performance/playwright.config.js",
 		"test:php": "node ./tools/local-env/scripts/docker.js run --rm php ./vendor/bin/phpunit",
 		"test:coverage": "npm run test:php -- --coverage-html ./coverage/html/ --coverage-php ./coverage/php/report.php --coverage-text=./coverage/text/report.txt",
