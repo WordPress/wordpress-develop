@@ -4190,7 +4190,7 @@ function _update_post_term_count( $terms, $taxonomy ) {
 		}
 
 		/**
-		 * Fires when a term count is updated in the database.
+		 * Fires when a term count is calculated, before it is updated in the database.
 		 *
 		 * @since 6.9.0
 		 *
