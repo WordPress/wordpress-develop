@@ -1180,6 +1180,108 @@ HTML
 	}
 
 	/**
+	 * Data provider for test_fetchpriority_values.
+	 *
+	 * @return array<string, array{fetchpriority: string}>
+	 */
+	public function data_provider_fetchpriority_values(): array {
+		return array(
+			'auto' => array( 'fetchpriority' => 'auto' ),
+			'low'  => array( 'fetchpriority' => 'low' ),
+			'high' => array( 'fetchpriority' => 'high' ),
+		);
+	}
+
+	/**
+	 * Tests that valid fetchpriority values are correctly added to script data.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers ::wp_register_script
+	 * @covers WP_Scripts::add_data
+	 * @covers ::wp_script_add_data
+	 *
+	 * @dataProvider data_provider_fetchpriority_values
+	 *
+	 * @param string $fetchpriority The fetchpriority value to test.
+	 */
+	public function test_fetchpriority_values( string $fetchpriority ) {
+		wp_register_script( 'test-script', '/test-script.js', array(), null, array( 'fetchpriority' => $fetchpriority ) );
+		$this->assertArrayHasKey( 'fetchpriority', wp_scripts()->registered['test-script']->extra );
+		$this->assertSame( $fetchpriority, wp_scripts()->registered['test-script']->extra['fetchpriority'] );
+
+		wp_register_script( 'test-script-2', '/test-script-2.js' );
+		$this->assertTrue( wp_script_add_data( 'test-script-2', 'fetchpriority', $fetchpriority ) );
+		$this->assertArrayHasKey( 'fetchpriority', wp_scripts()->registered['test-script-2']->extra );
+		$this->assertSame( $fetchpriority, wp_scripts()->registered['test-script-2']->extra['fetchpriority'] );
+	}
+
+	/**
+	 * Tests that an empty fetchpriority is treated the same as auto.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers ::wp_register_script
+	 * @covers WP_Scripts::add_data
+	 */
+	public function test_empty_fetchpriority_value() {
+		wp_register_script( 'unset', '/joke.js', array(), null, array( 'fetchpriority' => 'low' ) );
+		$this->assertSame( 'low', wp_scripts()->registered['unset']->extra['fetchpriority'] );
+		$this->assertTrue( wp_script_add_data( 'unset', 'fetchpriority', null ) );
+		$this->assertSame( 'auto', wp_scripts()->registered['unset']->extra['fetchpriority'] );
+	}
+
+	/**
+	 * Tests that an invalid fetchpriority causes a _doing_it_wrong() warning.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers ::wp_register_script
+	 * @covers WP_Scripts::add_data
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::add_data
+	 */
+	public function test_invalid_fetchpriority_value() {
+		wp_register_script( 'joke', '/joke.js', array(), null, array( 'fetchpriority' => 'silly' ) );
+		$this->assertArrayNotHasKey( 'fetchpriority', wp_scripts()->registered['joke']->extra );
+		$this->assertArrayHasKey( 'WP_Scripts::add_data', $this->caught_doing_it_wrong );
+		$this->assertStringContainsString( 'Invalid fetchpriority `silly`', $this->caught_doing_it_wrong['WP_Scripts::add_data'] );
+	}
+
+	/**
+	 * Tests that an invalid fetchpriority causes a _doing_it_wrong() warning.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers ::wp_register_script
+	 * @covers WP_Scripts::add_data
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::add_data
+	 */
+	public function test_invalid_fetchpriority_value_type() {
+		wp_register_script( 'bad', '/bad.js' );
+		$this->assertFalse( wp_script_add_data( 'bad', 'fetchpriority', array( 'THIS IS SO WRONG!!!' ) ) );
+		$this->assertArrayNotHasKey( 'fetchpriority', wp_scripts()->registered['bad']->extra );
+		$this->assertArrayHasKey( 'WP_Scripts::add_data', $this->caught_doing_it_wrong );
+		$this->assertStringContainsString( 'Invalid fetchpriority `array`', $this->caught_doing_it_wrong['WP_Scripts::add_data'] );
+	}
+
+	/**
+	 * Tests that adding fetchpriority causes a _doing_it_wrong() warning on a script alias.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers ::wp_register_script
+	 * @covers WP_Scripts::add_data
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::add_data
+	 */
+	public function test_invalid_fetchpriority_on_alias() {
+		wp_register_script( 'alias', false, array(), null, array( 'fetchpriority' => 'low' ) );
+		$this->assertArrayNotHasKey( 'fetchpriority', wp_scripts()->registered['alias']->extra );
+	}
+
+	/**
 	 * Tests that scripts registered as defer become blocking when their dependents chain are all blocking.
 	 *
 	 * @ticket 12009
