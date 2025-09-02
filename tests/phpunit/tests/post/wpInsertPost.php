@@ -529,7 +529,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55877
-	 * @covers ::wp_insert_post
 	 */
 	public function test_wp_insert_post_should_not_trigger_warning_for_pending_posts_with_unknown_cpt() {
 		$post_id = wp_insert_post(
@@ -604,6 +603,20 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array( $parent_id ), get_post_ancestors( 0 ) );
+	}
+
+	/**
+	 * @ticket 23474
+	 */
+	public function test_insert_invalid_post_id() {
+		$post_id = self::factory()->post->create();
+		$post    = get_post( $post_id, ARRAY_A );
+
+		$post['ID'] = 123456789;
+
+		$this->assertSame( 0, wp_insert_post( $post ) );
+
+		$this->assertInstanceOf( 'WP_Error', wp_insert_post( $post, true ) );
 	}
 
 	/**

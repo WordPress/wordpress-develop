@@ -109,10 +109,8 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 
 		$post['ID'] = 123456789;
 
-		$this->assertSame( 0, wp_insert_post( $post ) );
 		$this->assertSame( 0, wp_update_post( $post ) );
 
-		$this->assertInstanceOf( 'WP_Error', wp_insert_post( $post, true ) );
 		$this->assertInstanceOf( 'WP_Error', wp_update_post( $post, true ) );
 	}
 
@@ -194,11 +192,11 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 	 *
 	 * @ticket 62468
 	 *
-	 * @dataProvider data_post_status_transitions
+	 * @dataProvider data_update_post_preserves_date_for_future_posts
 	 *
 	 * @param string $initial_status Initial post status.
 	 */
-	public function test_update_post_preserves_date( $initial_status ) {
+	public function test_update_post_preserves_date_for_future_posts( $initial_status ) {
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -220,11 +218,11 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_update_post_preserves_date
+	 * Data provider for test_update_post_preserves_date_for_future_posts
 	 *
 	 * @return array[] Test parameters
 	 */
-	public function data_post_status_transitions() {
+	public function data_update_post_preserves_date_for_future_posts() {
 		return array(
 			'pending to future' => array(
 				'initial_status' => 'pending',
