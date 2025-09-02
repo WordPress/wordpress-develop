@@ -941,9 +941,9 @@ function seems_utf8( $str ) {
  *                                                     // but in UTF-8 is the two-byte sequence 0xC3 0xBC.
  *
  * A “valid” string consists of “well-formed UTF-8 code unit sequence[s],” meaning
- * that the byte sequence follows the UTF-8 encoding scheme, that all representations
- * for a character are the smallest possible representation, and that no sequence
- * encodes a UTF-16 surrogate character or any character above the representable range.
+ * that the bytes conform to the UTF-8 encoding scheme, all characters use the minimal
+ * byte sequence required by UTF-8, and that no sequence encodes a UTF-16 surrogate
+ * code point or any character above the representable range.
  *
  * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G32860
  *
