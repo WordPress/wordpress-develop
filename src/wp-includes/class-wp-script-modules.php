@@ -212,7 +212,7 @@ class WP_Script_Modules {
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
 	 * }
 	 */
-	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false, $args = array() ) {
+	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false, array $args = array() ) {
 		if ( isset( $this->registered[ $id ] ) ) {
 			$this->registered[ $id ]['enqueue'] = true;
 		} elseif ( $src ) {
