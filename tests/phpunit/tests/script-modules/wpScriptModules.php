@@ -188,7 +188,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		// One Dependency.
 		$register( 'b-dep', '/b-dep.js' );
 		$register_and_enqueue( 'b', '/b.js', array( 'b-dep' ) );
-		wp_script_modules()->set_fetchpriority( 'b', 'low' );
+		$this->assertTrue( wp_script_modules()->set_fetchpriority( 'b', 'low' ) );
 
 		// Two dependencies with different formats and a false version.
 		$register( 'c-dep', '/c-static.js', array(), false, array( 'fetchpriority' => 'low' ) );
@@ -434,7 +434,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$this->script_modules->register( 'foo', '/foo.js' );
 		$this->script_modules->register( 'bar', '/bar.js', array(), false, array( 'fetchpriority' => 'high' ) );
 		$this->script_modules->register( 'baz', '/baz.js' );
-		$this->script_modules->set_fetchpriority( 'baz', 'low' );
+		$this->assertTrue( $this->script_modules->set_fetchpriority( 'baz', 'low' ) );
 		$this->script_modules->enqueue( 'foo' );
 		$this->script_modules->enqueue( 'bar' );
 		$this->script_modules->enqueue( 'baz' );
@@ -1251,6 +1251,103 @@ HTML;
 		$actual = get_echo( array( $this->script_modules, 'print_script_module_data' ) );
 
 		$this->assertSame( '', $actual );
+	}
+
+	/**
+	 * Data provider for test_fetchpriority_values.
+	 *
+	 * @return array<string, array{fetchpriority: string}>
+	 */
+	public function data_provider_fetchpriority_values(): array {
+		return array(
+			'auto' => array( 'fetchpriority' => 'auto' ),
+			'low'  => array( 'fetchpriority' => 'low' ),
+			'high' => array( 'fetchpriority' => 'high' ),
+		);
+	}
+
+	/**
+	 * Tests that valid fetchpriority values are correctly added to the registered module.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Script_Modules::register
+	 * @covers WP_Script_Modules::set_fetchpriority
+	 *
+	 * @dataProvider data_provider_fetchpriority_values
+	 *
+	 * @param string $fetchpriority The fetchpriority value to test.
+	 */
+	public function test_fetchpriority_values( string $fetchpriority ) {
+		$reflection_class    = new ReflectionClass( $this->script_modules );
+		$registered_property = $reflection_class->getProperty( 'registered' );
+
+		$this->script_modules->register( 'test-script', '/test-script.js', array(), null, array( 'fetchpriority' => $fetchpriority ) );
+		$registered_modules = $registered_property->getValue( $this->script_modules );
+		$this->assertSame( $fetchpriority, $registered_modules['test-script']['fetchpriority'] );
+
+		$this->script_modules->register( 'test-script-2', '/test-script-2.js' );
+		$this->assertTrue( $this->script_modules->set_fetchpriority( 'test-script-2', $fetchpriority ) );
+		$registered_modules = $registered_property->getValue( $this->script_modules );
+		$this->assertSame( $fetchpriority, $registered_modules['test-script-2']['fetchpriority'] );
+
+		$this->assertTrue( $this->script_modules->set_fetchpriority( 'test-script-2', '' ) );
+		$registered_modules = $registered_property->getValue( $this->script_modules );
+		$this->assertSame( 'auto', $registered_modules['test-script-2']['fetchpriority'] );
+	}
+
+	/**
+	 * Tests that a script module with an invalid fetchpriority value gets a value of auto.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Script_Modules::register
+	 * @expectedIncorrectUsage WP_Script_Modules::register
+	 */
+	public function test_register_script_module_having_fetchpriority_with_invalid_value() {
+		$this->script_modules->register( 'foo', '/foo.js', array(), false, array( 'fetchpriority' => 'silly' ) );
+		$reflection_class    = new ReflectionClass( $this->script_modules );
+		$registered_property = $reflection_class->getProperty( 'registered' );
+		$registered_modules  = $registered_property->getValue( $this->script_modules );
+		$this->assertSame( 'auto', $registered_modules['foo']['fetchpriority'] );
+		$this->assertArrayHasKey( 'WP_Script_Modules::register', $this->caught_doing_it_wrong );
+		$this->assertStringContainsString( 'Invalid fetchpriority `silly`', $this->caught_doing_it_wrong['WP_Script_Modules::register'] );
+	}
+
+	/**
+	 * Tests that a script module with an invalid fetchpriority value type gets a value of auto.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Script_Modules::register
+	 * @expectedIncorrectUsage WP_Script_Modules::register
+	 */
+	public function test_register_script_module_having_fetchpriority_with_invalid_value_type() {
+		$this->script_modules->register( 'foo', '/foo.js', array(), false, array( 'fetchpriority' => array( 'WHY AM I NOT A STRING???' ) ) );
+		$reflection_class    = new ReflectionClass( $this->script_modules );
+		$registered_property = $reflection_class->getProperty( 'registered' );
+		$registered_modules  = $registered_property->getValue( $this->script_modules );
+		$this->assertSame( 'auto', $registered_modules['foo']['fetchpriority'] );
+		$this->assertArrayHasKey( 'WP_Script_Modules::register', $this->caught_doing_it_wrong );
+		$this->assertStringContainsString( 'Invalid fetchpriority `array`', $this->caught_doing_it_wrong['WP_Script_Modules::register'] );
+	}
+
+	/**
+	 * Tests that a setting the fetchpriority for script module with an invalid value is ignored so that it remains auto.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Script_Modules::register
+	 * @covers WP_Script_Modules::set_fetchpriority
+	 * @expectedIncorrectUsage WP_Script_Modules::set_fetchpriority
+	 */
+	public function test_set_fetchpriority_with_invalid_value() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->set_fetchpriority( 'foo', 'silly' );
+		$reflection_class    = new ReflectionClass( $this->script_modules );
+		$registered_property = $reflection_class->getProperty( 'registered' );
+		$registered_modules  = $registered_property->getValue( $this->script_modules );
+		$this->assertSame( 'auto', $registered_modules['foo']['fetchpriority'] );
 	}
 
 	/**

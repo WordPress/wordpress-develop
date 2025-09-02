@@ -108,8 +108,12 @@ class WP_Script_Modules {
 				} else {
 					_doing_it_wrong(
 						__METHOD__,
-						/* translators: %s: Invalid fetchpriority. */
-						sprintf( __( 'Invalid fetchpriority: %s' ), $args['fetchpriority'] ),
+						sprintf(
+							/* translators: 1: $fetchpriority, 2: $id */
+							__( 'Invalid fetchpriority `%1$s` defined for `%2$s` during script registration.' ),
+							is_string( $args['fetchpriority'] ) ? $args['fetchpriority'] : gettype( $args['fetchpriority'] ),
+							$id
+						),
 						'n.e.x.t'
 					);
 				}
@@ -130,7 +134,7 @@ class WP_Script_Modules {
 	 *
 	 * @since n.e.x.t
 	 *
-	 * @param mixed $priority Fetch priority.
+	 * @param string|mixed $priority Fetch priority.
 	 * @return bool Whether valid fetchpriority.
 	 */
 	private function is_valid_fetchpriority( $priority ): bool {
@@ -144,10 +148,15 @@ class WP_Script_Modules {
 	 *
 	 * @param string              $id       Script module identifier.
 	 * @param 'auto'|'low'|'high' $priority Fetch priority for the script module.
+	 * @return bool Whether setting the fetchpriority was successful.
 	 */
-	public function set_fetchpriority( string $id, string $priority ) {
+	public function set_fetchpriority( string $id, string $priority ): bool {
 		if ( ! isset( $this->registered[ $id ] ) ) {
-			return;
+			return false;
+		}
+
+		if ( '' === $priority ) {
+			$priority = 'auto';
 		}
 
 		if ( ! $this->is_valid_fetchpriority( $priority ) ) {
@@ -157,10 +166,11 @@ class WP_Script_Modules {
 				sprintf( __( 'Invalid fetchpriority: %s' ), $priority ),
 				'n.e.x.t'
 			);
-			return;
+			return false;
 		}
 
 		$this->registered[ $id ]['fetchpriority'] = $priority;
+		return true;
 	}
 
 	/**
