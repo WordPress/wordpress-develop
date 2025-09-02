@@ -254,7 +254,7 @@ jobs:
           DB_INNOVATION: ${{ inputs.db-innovation && 'innovation' || 'stable' }}
           TESTS_DOMAIN: ${{ inputs.tests-domain }}
         run: |
-          CONFIG_OUTPUT=$(./.github/scripts/extract-skipped-tests.sh \
+          ./.github/scripts/extract-skipped-tests.sh \
             "${PHP_VERSION}" \
             "${DB_TYPE}" \
             "${DB_VERSION}" \
@@ -263,11 +263,7 @@ jobs:
             "${TEST_GROUPS}" \
             "${OS}" \
             "${DB_INNOVATION}" \
-            "${TESTS_DOMAIN}")
-
-          # Extract CONFIG_ID from the script output
-          CONFIG_ID=$(echo "$CONFIG_OUTPUT" | grep "CONFIG_ID=" | cut -d= -f2)
-          echo "CONFIG_ID=${CONFIG_ID}" >> "$GITHUB_OUTPUT"
+            "${TESTS_DOMAIN}"
 
       - name: Upload skipped tests summary
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

@@ -9,6 +9,9 @@ CONFIG_ID="${CONFIG_ID//[^a-zA-Z0-9_-]/_}"
 
 echo "Extracting skipped tests for configuration: ${CONFIG_ID}"
 
+# Output CONFIG_ID to GitHub Actions
+echo "CONFIG_ID=${CONFIG_ID}" >> "$GITHUB_OUTPUT"
+
 # Extract skipped tests from XML files using xmllint
 SKIPPED_FOUND=false
 
