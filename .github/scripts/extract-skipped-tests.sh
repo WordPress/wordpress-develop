@@ -10,7 +10,9 @@ CONFIG_ID="${CONFIG_ID//[^a-zA-Z0-9_-]/_}"
 echo "Extracting skipped tests for configuration: ${CONFIG_ID}"
 
 # Output CONFIG_ID to GitHub Actions
-echo "CONFIG_ID=${CONFIG_ID}" >> "$GITHUB_OUTPUT"
+if [ -n "$GITHUB_OUTPUT" ]; then
+  echo "CONFIG_ID=${CONFIG_ID}" >> "$GITHUB_OUTPUT"
+fi
 
 # Extract skipped tests from XML files using xmllint
 SKIPPED_FOUND=false
@@ -24,6 +26,8 @@ for file in phpunit-results-*.xml; do
 
     # Check if file contains skipped tests
     SKIPPED_COUNT=$(grep -c "<skipped" "$file" 2>/dev/null || echo "0")
+    # Ensure SKIPPED_COUNT is a clean number (remove any newlines/whitespace)
+    SKIPPED_COUNT=$(echo "$SKIPPED_COUNT" | tr -d '\n\r ')
     echo "DEBUG: Found $SKIPPED_COUNT skipped elements in $file"
 
     if [ "$SKIPPED_COUNT" -gt 0 ]; then
@@ -32,8 +36,8 @@ for file in phpunit-results-*.xml; do
     fi
 
     # Extract skipped tests in class::method format
-    # Use xmllint to query the XML directly for skipped testcases
-    SKIPPED_TESTS=$(xmllint --xpath "//testcase[skipped]" "$file" 2>/dev/null | sed -n 's/.*name="\([^"]*\)".*class="\([^"]*\)".*/\2::\1/p' || true)
+    # Find lines with <skipped/>, look at previous line for testcase info
+    SKIPPED_TESTS=$(grep -B1 "<skipped/>" "$file" | grep "<testcase" | sed -n 's/.*name="\([^"]*\)".*class="\([^"]*\)".*/\2::\1/p' || true)
 
     echo "DEBUG: Extracted skipped tests: '$SKIPPED_TESTS'"
 
