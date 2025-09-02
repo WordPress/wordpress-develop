@@ -254,7 +254,7 @@ switch ( $action ) {
 		if ( $user_id ) {
 			$user = get_userdata( $user_id );
 			/* translators: %s: User's display name. */
-			wp_die( sprintf( __( 'You cannot move this item to the Trash. %s is currently editing.' ), $user->display_name ), 400 );
+			wp_die( sprintf( __( 'You cannot move this item to the Trash. %s is currently editing.' ), $user->display_name ), 409 );
 		}
 
 		if ( ! wp_trash_post( $post_id ) ) {
