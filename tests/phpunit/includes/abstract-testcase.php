@@ -1836,6 +1836,33 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		return self::retry_on_error( 'wp_remote_head', $url, $args );
 	}
 
+	protected function mock_wp_remote_request( $url, $args = array() ) {
+		return self::mock_remote_request( 'wp_remote_request', $url, $args );
+	}
+
+	protected function mock_wp_remote_get( $url, $args = array() ) {
+		return self::mock_remote_request( 'wp_remote_get', $url, $args );
+	}
+
+	protected function mock_wp_remote_post( $url, $args = array() ) {
+		return self::mock_remote_request( 'wp_remote_post', $url, $args );
+	}
+
+	protected function mock_wp_remote_head( $url, $args = array() ) {
+		return self::mock_remote_request( 'wp_remote_head', $url, $args );
+	}
+
+	private function mock_remote_request( callable $callback, $url, $args ) {
+		$trace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 3 )[2];
+
+		add_action( 'requests-requests.before_request', function ( &$url, &$headers, &$data, &$type, &$options ) use ( $trace ) {
+			$options['transport'] = 'WP_Mock_Transport';
+			$options['_mock_response'] = $trace['class'] . '/' . $trace['function'];
+		}, 10, 5 );
+
+		return call_user_func( $callback, $url, $args );
+	}
+
 	/**
 	 * Retries an HTTP API request up to three times and skips the test on timeout.
 	 *

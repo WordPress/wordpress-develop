@@ -12,7 +12,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	public function test_head_request() {
 		// This URL gives a direct 200 response.
 		$url      = 'https://s.w.org/screenshots/3.9/dashboard.png';
-		$response = $this->wp_remote_head( $url );
+		$response = $this->mock_wp_remote_head( $url );
 
 		$this->assertNotWPError( $response );
 
@@ -30,7 +30,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	public function test_head_redirect() {
 		// This URL will 301 redirect.
 		$url      = 'https://wp.org/screenshots/3.9/dashboard.png';
-		$response = $this->wp_remote_head( $url );
+		$response = $this->mock_wp_remote_head( $url );
 
 		$this->assertNotWPError( $response );
 		$this->assertSame( 301, wp_remote_retrieve_response_code( $response ) );
@@ -41,7 +41,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 */
 	public function test_head_404() {
 		$url      = 'https://wordpress.org/screenshots/3.9/awefasdfawef.jpg';
-		$response = $this->wp_remote_head( $url );
+		$response = $this->mock_wp_remote_head( $url );
 
 		$this->assertNotWPError( $response );
 		$this->assertSame( 404, wp_remote_retrieve_response_code( $response ) );
@@ -55,7 +55,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	public function test_get_request() {
 		$url = 'https://s.w.org/screenshots/3.9/dashboard.png';
 
-		$response = $this->wp_remote_get( $url );
+		$response = $this->mock_wp_remote_get( $url );
 
 		$this->assertNotWPError( $response );
 
@@ -76,7 +76,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		// This will redirect to wordpress.org.
 		$url = 'https://wp.org/screenshots/3.9/dashboard.png';
 
-		$response = $this->wp_remote_get( $url );
+		$response = $this->mock_wp_remote_get( $url );
 
 		$this->assertNotWPError( $response );
 
@@ -96,7 +96,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$url = 'https://wp.org/screenshots/3.9/dashboard.png';
 
 		// Pretend we've already redirected 5 times.
-		$response = $this->wp_remote_get( $url, array( 'redirection' => -1 ) );
+		$response = $this->mock_wp_remote_get( $url, array( 'redirection' => -1 ) );
 
 		$this->assertWPError( $response );
 	}
@@ -112,7 +112,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	public function test_get_response_cookies() {
 		$url = 'https://login.wordpress.org/wp-login.php';
 
-		$response = $this->wp_remote_head( $url );
+		$response = $this->mock_wp_remote_head( $url );
 
 		$this->assertNotWPError( $response );
 
@@ -145,7 +145,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	public function test_get_response_cookies_with_wp_http_cookie_object() {
 		$url = 'https://login.wordpress.org/wp-login.php';
 
-		$response = $this->wp_remote_get(
+		$response = $this->mock_wp_remote_get(
 			$url,
 			array(
 				'cookies' => array(
@@ -181,7 +181,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	public function test_get_response_cookies_with_name_value_array() {
 		$url = 'https://login.wordpress.org/wp-login.php';
 
-		$response = $this->wp_remote_get(
+		$response = $this->mock_wp_remote_get(
 			$url,
 			array(
 				'cookies' => array(

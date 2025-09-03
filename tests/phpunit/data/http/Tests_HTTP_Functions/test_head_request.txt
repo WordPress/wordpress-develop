@@ -1,0 +1,18 @@
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 03 Sep 2025 02:11:05 GMT
+Content-Type: image/png
+Content-Length: 153204
+Connection: close
+Last-Modified: Mon, 19 May 2025 11:42:39 GMT
+X-Frame-Options: SAMEORIGIN
+Expires: Thu, 31 Dec 2037 23:55:55 GMT
+Cache-Control: max-age=315360000
+Accept-Ranges: bytes
+Access-Control-Allow-Methods: GET, HEAD
+Access-Control-Allow-Origin: *
+Alt-Svc: h3=":443"; ma=86400
+X-nc: HIT lhr 2
+Server-Timing: a8c-cdn, dc;desc=lhr, cache;desc=HIT;dur=0.0
+X-Content-Type-Options: nosniff
+

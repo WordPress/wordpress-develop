@@ -1,0 +1,18 @@
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 03 Sep 2025 02:11:07 GMT
+Content-Type: text/html; charset=UTF-8
+Connection: close
+Vary: Accept-Encoding
+Set-Cookie: wporg_locale=en_US; expires=Thu, 03-Sep-2026 02:11:06 GMT; Max-Age=31536000; path=/; domain=.wordpress.org; secure
+X-Olaf: ⛄
+Expires: Wed, 11 Jan 1984 05:00:00 GMT
+Cache-Control: no-cache, must-revalidate, max-age=0, no-store, private
+Set-Cookie: wordpress_test_cookie=WP%20Cookie%20check; path=/; domain=.wordpress.org; secure; HttpOnly
+X-Frame-Options: SAMEORIGIN
+Content-Security-Policy: frame-ancestors 'self';
+Referrer-Policy: strict-origin-when-cross-origin
+X-Frame-Options: SAMEORIGIN
+Content-Encoding: br
+Alt-Svc: h3=":443"; ma=86400
+

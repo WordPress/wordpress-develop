@@ -1,0 +1,15 @@
+HTTP/1.1 301 Moved Permanently
+Server: nginx
+Date: Wed, 03 Sep 2025 02:11:06 GMT
+Content-Type: text/html
+Content-Length: 162
+Connection: close
+Location: https://wordpress.org/screenshots/3.9/dashboard.png
+
+<html>
+<head><title>301 Moved Permanently</title></head>
+<body>
+<center><h1>301 Moved Permanently</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>

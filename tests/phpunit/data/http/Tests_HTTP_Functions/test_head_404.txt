@@ -1,0 +1,15 @@
+HTTP/1.1 404 Not Found
+Server: nginx
+Date: Wed, 03 Sep 2025 02:09:50 GMT
+Content-Type: text/html; charset=UTF-8
+Connection: close
+Vary: Accept-Encoding
+Strict-Transport-Security: max-age=3600
+X-Olaf: ⛄
+Expires: Wed, 11 Jan 1984 05:00:00 GMT
+Cache-Control: no-cache, must-revalidate, max-age=0, no-store, private
+Link: <https://wordpress.org/wp-json/>; rel="https://api.w.org/"
+X-Frame-Options: SAMEORIGIN
+Content-Encoding: br
+X-nc: MISS ord 2
+
