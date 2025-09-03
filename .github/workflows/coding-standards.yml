@@ -18,7 +18,7 @@ on:
       - 'src/**.js'
       - 'src/**.php'
       - 'tests/**.php'
-      - 'tests/qunit/**/*.js
+      - 'tests/qunit/**.js'
       # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       - '.npmrc'
@@ -26,7 +26,7 @@ on:
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
       # This file configures JSHint. Changes could affect the outcome.
-      - '.jshintrc'
+      - '**.jshintrc'
       # This file configures PHPCS. Changes could affect the outcome.
       - 'phpcs.xml.dist'
       # Confirm any changes to relevant workflow files.
