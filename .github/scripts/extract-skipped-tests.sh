@@ -37,12 +37,13 @@ for file in phpunit-results-*.xml; do
 
     # Extract skipped tests in class::method format
     # Find lines with <skipped/>, look at previous line for testcase info
-    SKIPPED_TESTS=$(grep -B1 "<skipped/>" "$file" | grep "<testcase" | sed -n 's/.*name="\([^"]*\)".*class="\([^"]*\)".*/\2::\1/p' || true)
+    # Strip data set information (everything after " with data set")
+    SKIPPED_TESTS=$(grep -B1 "<skipped/>" "$file" | grep "<testcase" | sed -n 's/.*name="\([^"]*\)".*class="\([^"]*\)".*/\2::\1/p' | sed 's/ with data set.*$//' || true)
 
     echo "DEBUG: Extracted skipped tests: '$SKIPPED_TESTS'"
 
     if [ -n "$SKIPPED_TESTS" ]; then
-      echo "$SKIPPED_TESTS" >> "skipped-tests-${CONFIG_ID}.txt"
+      echo "$SKIPPED_TESTS" | sort | uniq >> "skipped-tests-${CONFIG_ID}.txt"
       SKIPPED_FOUND=true
       echo "DEBUG: Added skipped tests to skipped-tests-${CONFIG_ID}.txt"
     fi
@@ -54,5 +55,9 @@ done
 if [ "$SKIPPED_FOUND" = false ]; then
   echo "No skipped tests found"
 else
-  echo "Skipped tests saved to skipped-tests-${CONFIG_ID}.txt"
+  # Deduplicate the final file
+  sort "skipped-tests-${CONFIG_ID}.txt" | uniq > "skipped-tests-${CONFIG_ID}.tmp"
+  mv "skipped-tests-${CONFIG_ID}.tmp" "skipped-tests-${CONFIG_ID}.txt"
+  FINAL_COUNT=$(wc -l < "skipped-tests-${CONFIG_ID}.txt")
+  echo "Skipped tests saved to skipped-tests-${CONFIG_ID}.txt (${FINAL_COUNT} unique tests)"
 fi
