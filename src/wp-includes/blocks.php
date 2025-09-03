@@ -1611,7 +1611,7 @@ function serialize_block_attributes( $block_attributes ) {
 			'<'    => '\\u003c',
 			'>'    => '\\u003e',
 			'&'    => '\\u0026',
-			'\"'   => '\\u0022',
+			'\\"'  => '\\u0022',
 		)
 	);
 }
