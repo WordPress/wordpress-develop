@@ -11,6 +11,31 @@
  */
 class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	/**
+	 * Ensure there are no issues with special character encoding.
+	 *
+	 * @ticket 63917
+	 */
+	public function test_attribute_encoding() {
+		$block = array(
+			'blockName'    => 'test',
+			'attrs'        => array(
+				'lt'    => '<',
+				'gt'    => '>',
+				'amp'   => '&',
+				'bs'    => '\\',
+				'quot'  => '"',
+				'bs-bs-quot' => '\\\\"',
+			),
+			'innerBlocks'  => array(),
+			'innerHTML'    => '',
+			'innerContent' => array(),
+		);
+
+		$expected = '<!-- wp:test {"lt":"\\u003c","gt":"\\u003e","amp":"\\u0026","bs":"\\u005c","quot":"\\u0022","bs-bs-quot":"\\u005c\\u005c\\u0022"} /-->';
+		$this->assertSame( $expected, serialize_block( $block ) );
+	}
+
+	/**
 	 * @dataProvider data_serialize_identity_from_parsed
 	 *
 	 * @param string $original Original block markup.
