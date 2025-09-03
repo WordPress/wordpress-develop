@@ -25,7 +25,7 @@ on:
       - '.nvmrc'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
-      # This file configures JSHint. Changes could affect the outcome.
+      # These files configures JSHint. Changes could affect the outcome.
       - '**.jshintrc'
       # This file configures PHPCS. Changes could affect the outcome.
       - 'phpcs.xml.dist'
