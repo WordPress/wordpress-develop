@@ -363,4 +363,16 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 22402
+	 */
+	public function test_strips_cjk_punctuation() {
+		$this->assertSame( 'hello-world', sanitize_title_with_dashes( 'Hello World。', '', 'save' ) );
+		$this->assertSame( 'test-title', sanitize_title_with_dashes( 'Test，Title', '', 'save' ) );
+		$this->assertSame( 'amazing-post', sanitize_title_with_dashes( 'Amazing！Post', '', 'save' ) );
+		$this->assertSame( 'great-content', sanitize_title_with_dashes( 'Great：Content', '', 'save' ) );
+		$this->assertSame( 'book-title', sanitize_title_with_dashes( '《Book》Title', '', 'save' ) );
+		$this->assertSame( 'mixed-punctuation', sanitize_title_with_dashes( 'Mixed。，！：《》Punctuation', '', 'save' ) );
+	}
 }
