@@ -1298,11 +1298,10 @@ function get_post_status( $post = null ) {
  *
  * @return string[] Array of post status labels keyed by their status.
  */
-function get_post_statuses()
-{
+function get_post_statuses() {
 	$status = array();
 
-	$excluded_statuses = apply_filters('post_statuses_excluded_labels', array(
+	$excluded_statuses = apply_filters( 'post_statuses_excluded_labels', array(
 		'trash',
 		'auto-draft',
 		'inherit',
@@ -1312,13 +1311,13 @@ function get_post_statuses()
 		'request-completed',
 	));
 
-	foreach (get_post_stati() as $post_status_name => $value) {
-		if (!array_key_exists($post_status_name, $status) && !in_array($post_status_name, $excluded_statuses, true)) {
-			$status[$post_status_name] = get_post_status_object($post_status_name)->label;
+	foreach ( get_post_stati() as $post_status_name => $value ) {
+		if ( ! array_key_exists( $post_status_name, $status ) && ! in_array( $post_status_name, $excluded_statuses, true ) ) {
+			$status[ $post_status_name ] = get_post_status_object( $post_status_name )->label;
 		}
 	}
 
-	return apply_filters('post_statuses_labels', $status);
+	return apply_filters( 'post_statuses_labels', $status );
 }
 
 /**
