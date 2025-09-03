@@ -59,12 +59,10 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 	/**
 	 * Tear down after class.
 	 */
-	public static function tear_down_after_class() {
+	public static function wpTearDownAfterClass() {
 		$role = get_role( 'administrator' );
 		$role->remove_cap( 'publish_mapped_meta_caps' );
 		$role->remove_cap( 'publish_unmapped_meta_caps' );
-
-		parent::tear_down_after_class();
 	}
 
 	/**
@@ -194,9 +192,11 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_update_post_preserves_date_for_future_posts
 	 *
-	 * @param string $initial_status Initial post status.
+	 * @param string $initial_status  Initial post status.
+	 * @param string $time_offset     Time offset.
+	 * @param string $expected_status Expected post status.
 	 */
-	public function test_update_post_preserves_date_for_future_posts( $initial_status ) {
+	public function test_update_post_preserves_date_for_future_posts( $initial_status, $time_offset, $expected_status ) {
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -204,7 +204,7 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 			)
 		);
 
-		$future_date = gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) );
+		$future_date = gmdate( 'Y-m-d H:i:s', strtotime( $time_offset ) );
 		$update_data = array(
 			'ID'          => $post_id,
 			'post_status' => 'future',
@@ -215,6 +215,7 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 		$updated_post = get_post( $post_id );
 
 		$this->assertSame( $future_date, $updated_post->post_date );
+		$this->assertSame( $expected_status, $updated_post->post_status );
 	}
 
 	/**
@@ -224,11 +225,35 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 	 */
 	public function data_update_post_preserves_date_for_future_posts() {
 		return array(
-			'pending to future' => array(
-				'initial_status' => 'pending',
+			'pending to future with 1 day more' => array(
+				'initial_status'  => 'pending',
+				'time_offset'     => '+1 day',
+				'expected_status' => 'future',
 			),
-			'draft to future'   => array(
-				'initial_status' => 'draft',
+			'draft to future with 1 day more'   => array(
+				'initial_status'  => 'draft',
+				'time_offset'     => '+1 day',
+				'expected_status' => 'future',
+			),
+			'publish to future with 1 day more' => array(
+				'initial_status'  => 'publish',
+				'time_offset'     => '+1 day',
+				'expected_status' => 'publish',
+			),
+			'draft to future with 1 day less'   => array(
+				'initial_status'  => 'draft',
+				'time_offset'     => '-1 day',
+				'expected_status' => 'publish',
+			),
+			'pending to future with 1 day less' => array(
+				'initial_status'  => 'pending',
+				'time_offset'     => '-1 day',
+				'expected_status' => 'publish',
+			),
+			'publish to future with 1 day less' => array(
+				'initial_status'  => 'publish',
+				'time_offset'     => '-1 day',
+				'expected_status' => 'publish',
 			),
 		);
 	}
