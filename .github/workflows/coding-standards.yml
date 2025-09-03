@@ -17,6 +17,7 @@ on:
       # Any change to a relevant PHP or JavaScript file should run checks.
       - 'src/**.js'
       - 'src/**.php'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       - 'tests/**.php'
       - 'tests/qunit/**.js'
       # These files configure npm. Changes could affect the outcome.

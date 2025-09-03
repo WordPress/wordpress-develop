@@ -20,6 +20,7 @@ on:
       - 'src/**.php'
       - 'src/license.txt'
       - 'src/SECURITY.md'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
       - '.npmrc'

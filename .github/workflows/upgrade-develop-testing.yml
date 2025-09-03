@@ -12,6 +12,7 @@ on:
     paths:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
@@ -23,6 +24,7 @@ on:
     paths:
       # Any change to a source PHP file should run checks.
       - 'src/**.php'
+      - '*.php' # PHP files in the root, like wp-config-sample.php.
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/upgrade-develop-testing.yml'
       - '.github/workflows/reusable-upgrade-testing.yml'
