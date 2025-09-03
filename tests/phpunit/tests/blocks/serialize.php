@@ -15,7 +15,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 *
 	 * @param string $original Original block markup.
 	 *
-	 * @ticket TBD
+	 * @ticket 63917
 	 */
 	public function test_serialize_identity_from_parsed( $original ) {
 		$blocks = parse_blocks( $original );
@@ -66,7 +66,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 * @see https://github.com/WordPress/wordpress-develop/pull/9558
 	 * @see https://github.com/WordPress/gutenberg/pull/71291
 	 *
-	 * @ticket TBD
+	 * @ticket 63917
 	 *
 	 * @dataProvider data_serialize_compatible_forms
 	 *
