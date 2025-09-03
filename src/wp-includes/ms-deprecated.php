@@ -616,7 +616,7 @@ function install_blog( $blog_id, $blog_title = '' ) {
 
 	$suppress = $wpdb->suppress_errors();
 	if ( $wpdb->get_results( "DESCRIBE {$wpdb->posts}" ) ) {
-		die( '<h1>' . __( 'Already Installed' ) . '</h1><p>' . __( 'You appear to have already installed WordPress. To reinstall please clear your old database tables first.' ) . '</p></body></html>' );
+		die( '<h1>' . __( 'Already Installed' ) . '</h1><p>' . __( 'You appear to have already installed WordPress. To reinstall, please change your database table prefix.' ) . '</p></body></html>' );
 	}
 	$wpdb->suppress_errors( $suppress );
 
