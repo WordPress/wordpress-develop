@@ -4228,10 +4228,12 @@ function wp_trim_words( $text, $num_words = 55, $more = null ) {
 		$text = trim( preg_replace( "/[\n\r\t ]+/", ' ', $text ), ' ' );
 		if ( _wp_can_use_pcre_u() ) {
 			preg_match_all( '/./u', $text, $words_array );
-		} elseif ( function_exists( 'mb_str_split' ) ) {
-				$words_array = array( mb_str_split( $text, 1, 'UTF-8' ) );
 		} else {
-			$words_array = array( str_split( $text ) );
+			if ( function_exists( 'mb_str_split' ) ) {
+				$words_array = array( mb_str_split( $text, 1, 'UTF-8' ) );
+			} else {
+				$words_array = array( str_split( $text ) );
+			}
 		}
 		$words_array = array_slice( $words_array[0], 0, $num_words + 1 );
 		$sep         = '';

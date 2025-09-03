@@ -29,7 +29,11 @@ class WP_Text_Diff_Renderer_inline extends Text_Diff_Renderer_inline {
 		if ( _wp_can_use_pcre_u() ) {
 			$words = preg_split( '/([^\w])/u', $string, -1, PREG_SPLIT_DELIM_CAPTURE );
 		} else {
-			$chars        = mb_str_split( $string, 1, 'UTF-8' );
+			if ( function_exists( 'mb_str_split' ) ) {
+				$chars = mb_str_split( $string, 1, 'UTF-8' );
+			} else {
+				$chars = str_split( $string );
+			}
 			$words        = array();
 			$current_word = '';
 
