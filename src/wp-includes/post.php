@@ -1337,7 +1337,7 @@ function get_page_statuses() {
 		'publish' => __( 'Published' ),
 	);
 
-	return apply_filters( 'page_statuses_labels', $status );
+	return $status;
 }
 
 /**
