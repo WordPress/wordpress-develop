@@ -1337,12 +1337,6 @@ function get_page_statuses() {
 		'publish' => __( 'Published' ),
 	);
 
-	foreach ( get_post_stati() as $post_status_name => $value ) {
-		if ( ! array_key_exists( $post_status_name, $status ) ) {
-			$status[ $post_status_name ] = $value;
-		}
-	}
-
 	return apply_filters( 'page_statuses_labels', $status );
 }
 
