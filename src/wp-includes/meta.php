@@ -945,7 +945,7 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 	$meta = get_metadata_by_mid( $meta_type, $meta_id );
 	if ( $meta ) {
 		$original_key = $meta->meta_key;
-		$object_id    = $meta->{$column};
+		$object_id    = (int) $meta->{$column};
 
 		/*
 		 * If a new meta_key (last parameter) was specified, change the meta key,
