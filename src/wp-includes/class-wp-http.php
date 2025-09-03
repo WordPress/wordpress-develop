@@ -523,12 +523,16 @@ class WP_Http {
 	/**
 	 * Format a response into the expected shape.
 	 *
-	 * @param WpOrg\Requests\Response|WP_Error $response Response to format.
-	 * @param array                            $args     Request arguments.
-	 * @param string                           $url      Request URL.
+	 * @param \WpOrg\Requests\Response|\WpOrg\Requests\Exception|WP_Error $response Response to format.
+	 * @param array                                                       $args     Request arguments.
+	 * @param string                                                      $url      Request URL.
 	 * @return array|WP_Error
 	 */
 	protected function format_response( $response, $args, $url ) {
+		if ( $response instanceof \WpOrg\Requests\Exception ) {
+			$response = new \WP_Error( 'http_request_failed', $response->getMessage() );
+		}
+
 		// Convert the response into an array.
 		if ( ! is_wp_error( $response ) ) {
 			$http_response = new WP_HTTP_Requests_Response( $response, $args['filename'] );
