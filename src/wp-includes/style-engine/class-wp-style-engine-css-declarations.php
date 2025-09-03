@@ -58,6 +58,10 @@ class WP_Style_Engine_CSS_Declarations {
 		if ( empty( $property ) ) {
 			return $this;
 		}
+		// Bails early if the value is not a string.
+		if ( ! is_string( $value ) ) {
+			return $this;
+		}
 
 		// Trims the value. If empty, bail early.
 		$value = trim( $value );
