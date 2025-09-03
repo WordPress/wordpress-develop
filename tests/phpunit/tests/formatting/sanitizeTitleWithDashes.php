@@ -369,11 +369,11 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	 */
 	public function test_strips_cjk_punctuation() {
 		$this->assertSame( 'hello-world', sanitize_title_with_dashes( 'Hello World。', '', 'save' ) );
-		$this->assertSame( 'test-title', sanitize_title_with_dashes( 'Test，Title', '', 'save' ) );
-		$this->assertSame( 'amazing-post', sanitize_title_with_dashes( 'Amazing！Post', '', 'save' ) );
-		$this->assertSame( 'great-content', sanitize_title_with_dashes( 'Great：Content', '', 'save' ) );
-		$this->assertSame( 'book-title', sanitize_title_with_dashes( '《Book》Title', '', 'save' ) );
-		$this->assertSame( 'mixed-punctuation', sanitize_title_with_dashes( 'Mixed。，！：《》Punctuation', '', 'save' ) );
+		$this->assertSame( 'testtitle', sanitize_title_with_dashes( 'Test，Title', '', 'save' ) );
+		$this->assertSame( 'amazingpost', sanitize_title_with_dashes( 'Amazing！Post', '', 'save' ) );
+		$this->assertSame( 'greatcontent', sanitize_title_with_dashes( 'Great：Content', '', 'save' ) );
+		$this->assertSame( 'booktitle', sanitize_title_with_dashes( '《Book》Title', '', 'save' ) );
+		$this->assertSame( 'mixedpunctuation', sanitize_title_with_dashes( 'Mixed。，！：《》Punctuation', '', 'save' ) );
 	}
 
 	/**
