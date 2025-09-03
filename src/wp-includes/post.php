@@ -1298,15 +1298,27 @@ function get_post_status( $post = null ) {
  *
  * @return string[] Array of post status labels keyed by their status.
  */
-function get_post_statuses() {
-	$status = array(
-		'draft'   => __( 'Draft' ),
-		'pending' => __( 'Pending Review' ),
-		'private' => __( 'Private' ),
-		'publish' => __( 'Published' ),
-	);
+function get_post_statuses()
+{
+	$status = array();
 
-	return $status;
+	$excluded_statuses = apply_filters('post_statuses_excluded_labels', array(
+		'trash',
+		'auto-draft',
+		'inherit',
+		'request-pending',
+		'request-confirmed',
+		'request-failed',
+		'request-completed',
+	));
+
+	foreach (get_post_stati() as $post_status_name => $value) {
+		if (!array_key_exists($post_status_name, $status) && !in_array($post_status_name, $excluded_statuses, true)) {
+			$status[$post_status_name] = get_post_status_object($post_status_name)->label;
+		}
+	}
+
+	return apply_filters('post_statuses_labels', $status);
 }
 
 /**
@@ -1326,7 +1338,13 @@ function get_page_statuses() {
 		'publish' => __( 'Published' ),
 	);
 
-	return $status;
+	foreach ( get_post_stati() as $post_status_name => $value ) {
+		if ( ! array_key_exists( $post_status_name, $status ) ) {
+			$status[ $post_status_name ] = $value;
+		}
+	}
+
+	return apply_filters( 'page_statuses_labels', $status );
 }
 
 /**
