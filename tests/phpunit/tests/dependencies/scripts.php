@@ -1184,7 +1184,7 @@ HTML
 	 *
 	 * @return array<string, array{fetchpriority: string}>
 	 */
-	public function data_provider_fetchpriority_values(): array {
+	public static function data_provider_fetchpriority_values(): array {
 		return array(
 			'auto' => array( 'fetchpriority' => 'auto' ),
 			'low'  => array( 'fetchpriority' => 'low' ),
