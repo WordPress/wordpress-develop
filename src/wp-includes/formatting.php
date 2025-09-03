@@ -1048,7 +1048,7 @@ function _wp_is_valid_utf8_fallback( string $bytes ): bool {
 		// Valid two-byte code points.
 
 		if ( $b1 >= 0xC2 && $b1 <= 0xDF && $b2 >= 0x80 && $b2 <= 0xBF ) {
-			$i++;
+			++$i;
 			continue;
 		}
 
@@ -1289,19 +1289,12 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
 		return $text;
 	}
 
-	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
-	static $utf8_pcre = null;
-	if ( ! isset( $utf8_pcre ) ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
-	}
-	// We can't demand utf8 in the PCRE installation, so just return the string in those cases.
-	if ( ! $utf8_pcre ) {
+	// Check for support for utf8 in the installed PCRE library.
+	if ( ! _wp_can_use_pcre_u() ) {
 		return $text;
 	}
 
-	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- preg_match fails when it encounters invalid UTF8 in $text.
-	if ( 1 === @preg_match( '/^./us', $text ) ) {
+	if ( 1 === preg_match( '/^./us', $text ) ) {
 		return $text;
 	}
 
@@ -4233,7 +4226,13 @@ function wp_trim_words( $text, $num_words = 55, $more = null ) {
 
 	if ( str_starts_with( wp_get_word_count_type(), 'characters' ) && preg_match( '/^utf\-?8$/i', get_option( 'blog_charset' ) ) ) {
 		$text = trim( preg_replace( "/[\n\r\t ]+/", ' ', $text ), ' ' );
-		preg_match_all( '/./u', $text, $words_array );
+		if ( _wp_can_use_pcre_u() ) {
+			preg_match_all( '/./u', $text, $words_array );
+		} elseif ( function_exists( 'mb_str_split' ) ) {
+				$words_array = array( mb_str_split( $text, 1, 'UTF-8' ) );
+		} else {
+			$words_array = array( str_split( $text ) );
+		}
 		$words_array = array_slice( $words_array[0], 0, $num_words + 1 );
 		$sep         = '';
 	} else {

@@ -4564,7 +4564,33 @@ function get_avatar_data( $id_or_email, $args = null ) {
 		}
 
 		if ( ! empty( $name ) ) {
-			if ( preg_match( '/\p{Han}|\p{Hiragana}|\p{Katakana}|\p{Hangul}/u', $name ) || false === strpos( $name, ' ' ) ) {
+			$is_cjk = false;
+
+			if ( _wp_can_use_pcre_u() ) {
+				$is_cjk = preg_match( '/\p{Han}|\p{Hiragana}|\p{Katakana}|\p{Hangul}/u', $name );
+			} elseif ( class_exists( 'IntlChar' ) ) {
+				$first_char = mb_substr( $name, 0, 1, 'UTF-8' );
+				$codepoint  = IntlChar::ord( $first_char );
+
+				if ( null !== $codepoint ) {
+					$block      = IntlChar::getBlockCode( $codepoint );
+					$cjk_blocks = array(
+						IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS,
+						IntlChar::BLOCK_CODE_HANGUL_SYLLABLES,
+						IntlChar::BLOCK_CODE_HIRAGANA,
+						IntlChar::BLOCK_CODE_KATAKANA,
+						IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A,
+						IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B,
+						IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_C,
+						IntlChar::BLOCK_CODE_CJK_UNIFIED_IDEOGRAPHS_EXTENSION_D,
+						IntlChar::BLOCK_CODE_HANGUL_JAMO,
+						IntlChar::BLOCK_CODE_HANGUL_COMPATIBILITY_JAMO,
+					);
+					$is_cjk     = in_array( $block, $cjk_blocks, true );
+				}
+			}
+
+			if ( $is_cjk || false === strpos( $name, ' ' ) ) {
 				$initials = mb_substr( $name, 0, min( 2, mb_strlen( $name, 'UTF-8' ) ), 'UTF-8' );
 			} else {
 				$first    = mb_substr( $name, 0, 1, 'UTF-8' );
