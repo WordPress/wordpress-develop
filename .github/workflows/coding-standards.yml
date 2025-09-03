@@ -18,6 +18,7 @@ on:
       - 'src/**.js'
       - 'src/**.php'
       - 'tests/**.php'
+      - 'tests/qunit/**/*.js
       # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
       - '.npmrc'
