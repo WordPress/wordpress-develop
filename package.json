@@ -33,7 +33,7 @@
 		"@wordpress/prettier-config": "4.19.1",
 		"@wordpress/scripts": "30.12.1",
 		"autoprefixer": "10.4.20",
-		"chalk": "5.4.1",
+		"chalk": "5.6.0",
 		"check-node-version": "4.2.1",
 		"copy-webpack-plugin": "13.0.0",
 		"cssnano": "7.0.6",
