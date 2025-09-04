@@ -886,7 +886,11 @@ function wp_setup_nav_menu_item( $menu_item ) {
 					$menu_item->_invalid   = true;
 				}
 
-				if ( 'publish' !== get_post_status( $menu_item->object_id ) ) {
+				$post_status = get_post_status( $menu_item->object_id );
+
+				if ( 'private' === $post_status && ! current_user_can( 'read_private_posts' ) ) {
+					$menu_item->_invalid = true;
+				} elseif ( 'private' !== $post_status && ! is_post_status_viewable( $post_status ) ) {
 					$menu_item->_invalid = true;
 				}
 
