@@ -1127,25 +1127,158 @@ HTML
 	/**
 	 * Tests that dependents that are async but attached to a deferred main script, print with defer as opposed to async.
 	 *
+	 * Also tests that fetchpriority attributes are added as expected.
+	 *
 	 * @ticket 12009
+	 * @ticket 61734
 	 *
 	 * @covers WP_Scripts::do_item
 	 * @covers WP_Scripts::get_eligible_loading_strategy
+	 * @covers ::wp_register_script
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_defer_with_async_dependent() {
 		// case with one async dependent.
-		wp_enqueue_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'dependent-script-d4-1', '/dependent-script-d4-1.js', array( 'main-script-d4' ), null, array( 'strategy' => 'defer' ) );
-		wp_enqueue_script( 'dependent-script-d4-2', '/dependent-script-d4-2.js', array( 'dependent-script-d4-1' ), null, array( 'strategy' => 'async' ) );
-		wp_enqueue_script( 'dependent-script-d4-3', '/dependent-script-d4-3.js', array( 'dependent-script-d4-2' ), null, array( 'strategy' => 'defer' ) );
+		wp_register_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script(
+			'dependent-script-d4-1',
+			'/dependent-script-d4-1.js',
+			array( 'main-script-d4' ),
+			null,
+			array(
+				'strategy'      => 'defer',
+				'fetchpriority' => 'auto',
+			)
+		);
+		wp_enqueue_script(
+			'dependent-script-d4-2',
+			'/dependent-script-d4-2.js',
+			array( 'dependent-script-d4-1' ),
+			null,
+			array(
+				'strategy'      => 'async',
+				'fetchpriority' => 'low',
+			)
+		);
+		wp_enqueue_script(
+			'dependent-script-d4-3',
+			'/dependent-script-d4-3.js',
+			array( 'dependent-script-d4-2' ),
+			null,
+			array(
+				'strategy'      => 'defer',
+				'fetchpriority' => 'high',
+			)
+		);
 		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js' defer='defer' data-wp-strategy='defer'></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer='defer' data-wp-strategy='defer'></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer='defer' data-wp-strategy='async'></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer='defer' data-wp-strategy='defer'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer='defer' data-wp-strategy='async' fetchpriority='low'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer='defer' data-wp-strategy='defer' fetchpriority='high'></script>\n";
 
 		$this->assertEqualHTML( $expected, $output, '<body>', 'Scripts registered as defer but that have dependents that are async are expected to have said dependents deferred.' );
+	}
+
+	/**
+	 * Data provider for test_fetchpriority_values.
+	 *
+	 * @return array<string, array{fetchpriority: string}>
+	 */
+	public function data_provider_fetchpriority_values(): array {
+		return array(
+			'auto' => array( 'fetchpriority' => 'auto' ),
+			'low'  => array( 'fetchpriority' => 'low' ),
+			'high' => array( 'fetchpriority' => 'high' ),
+		);
+	}
+
+	/**
+	 * Tests that valid fetchpriority values are correctly added to script data.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers ::wp_register_script
+	 * @covers WP_Scripts::add_data
+	 * @covers ::wp_script_add_data
+	 *
+	 * @dataProvider data_provider_fetchpriority_values
+	 *
+	 * @param string $fetchpriority The fetchpriority value to test.
+	 */
+	public function test_fetchpriority_values( string $fetchpriority ) {
+		wp_register_script( 'test-script', '/test-script.js', array(), null, array( 'fetchpriority' => $fetchpriority ) );
+		$this->assertArrayHasKey( 'fetchpriority', wp_scripts()->registered['test-script']->extra );
+		$this->assertSame( $fetchpriority, wp_scripts()->registered['test-script']->extra['fetchpriority'] );
+
+		wp_register_script( 'test-script-2', '/test-script-2.js' );
+		$this->assertTrue( wp_script_add_data( 'test-script-2', 'fetchpriority', $fetchpriority ) );
+		$this->assertArrayHasKey( 'fetchpriority', wp_scripts()->registered['test-script-2']->extra );
+		$this->assertSame( $fetchpriority, wp_scripts()->registered['test-script-2']->extra['fetchpriority'] );
+	}
+
+	/**
+	 * Tests that an empty fetchpriority is treated the same as auto.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers ::wp_register_script
+	 * @covers WP_Scripts::add_data
+	 */
+	public function test_empty_fetchpriority_value() {
+		wp_register_script( 'unset', '/joke.js', array(), null, array( 'fetchpriority' => 'low' ) );
+		$this->assertSame( 'low', wp_scripts()->registered['unset']->extra['fetchpriority'] );
+		$this->assertTrue( wp_script_add_data( 'unset', 'fetchpriority', null ) );
+		$this->assertSame( 'auto', wp_scripts()->registered['unset']->extra['fetchpriority'] );
+	}
+
+	/**
+	 * Tests that an invalid fetchpriority causes a _doing_it_wrong() warning.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers ::wp_register_script
+	 * @covers WP_Scripts::add_data
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::add_data
+	 */
+	public function test_invalid_fetchpriority_value() {
+		wp_register_script( 'joke', '/joke.js', array(), null, array( 'fetchpriority' => 'silly' ) );
+		$this->assertArrayNotHasKey( 'fetchpriority', wp_scripts()->registered['joke']->extra );
+		$this->assertArrayHasKey( 'WP_Scripts::add_data', $this->caught_doing_it_wrong );
+		$this->assertStringContainsString( 'Invalid fetchpriority `silly`', $this->caught_doing_it_wrong['WP_Scripts::add_data'] );
+	}
+
+	/**
+	 * Tests that an invalid fetchpriority causes a _doing_it_wrong() warning.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers ::wp_register_script
+	 * @covers WP_Scripts::add_data
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::add_data
+	 */
+	public function test_invalid_fetchpriority_value_type() {
+		wp_register_script( 'bad', '/bad.js' );
+		$this->assertFalse( wp_script_add_data( 'bad', 'fetchpriority', array( 'THIS IS SO WRONG!!!' ) ) );
+		$this->assertArrayNotHasKey( 'fetchpriority', wp_scripts()->registered['bad']->extra );
+		$this->assertArrayHasKey( 'WP_Scripts::add_data', $this->caught_doing_it_wrong );
+		$this->assertStringContainsString( 'Invalid fetchpriority `array`', $this->caught_doing_it_wrong['WP_Scripts::add_data'] );
+	}
+
+	/**
+	 * Tests that adding fetchpriority causes a _doing_it_wrong() warning on a script alias.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers ::wp_register_script
+	 * @covers WP_Scripts::add_data
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::add_data
+	 */
+	public function test_invalid_fetchpriority_on_alias() {
+		wp_register_script( 'alias', false, array(), null, array( 'fetchpriority' => 'low' ) );
+		$this->assertArrayNotHasKey( 'fetchpriority', wp_scripts()->registered['alias']->extra );
 	}
 
 	/**
