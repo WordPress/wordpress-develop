@@ -3761,13 +3761,24 @@ HTML;
 		$this->add_html5_script_theme_support();
 
 		$handle = '# test/</script> #';
+
 		wp_enqueue_script( $handle, '/example.js', array(), '0.0' );
-		wp_add_inline_script( $handle, '"ok";' );
+		wp_add_inline_script( $handle, '"before";', 'before' );
+		wp_add_inline_script( $handle, '"after";' );
+		wp_localize_script( $handle, 'test', array() );
 
 		$expected = <<<HTML
+<script id="# test/</script> #-js-extra">
+var test = [];
+//# sourceURL=%23%20test%2F%3C%2Fscript%3E%20%23-js-extra
+</script>
+<script id="# test/</script> #-js-before">
+"before";
+//# sourceURL=%23%20test%2F%3C%2Fscript%3E%20%23-js-before
+</script>
 <script src="/example.js?ver=0.0" id="# test/</script> #-js"></script>
 <script id="# test/</script> #-js-after">
-"ok";
+"after";
 //# sourceURL=%23%20test%2F%3C%2Fscript%3E%20%23-js-after
 </script>
 
