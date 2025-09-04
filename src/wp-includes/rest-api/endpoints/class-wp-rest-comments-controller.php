@@ -1139,11 +1139,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( in_array( 'i_replied', $fields, true ) ) {
 			$data['i_replied'] = (bool) get_comments(
-				[
+				array(
 					'user_id' => get_current_user_id(),
 					'parent'  => $comment->comment_ID,
 					'count'   => true,
-				]
+				)
 			);
 		}
 
