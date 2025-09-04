@@ -880,6 +880,7 @@ function upgrade_all() {
 
 	if ( $wp_current_db_version < 58975 ) {
 		upgrade_670();
+		upgrade_690();
 	}
 
 	if ( $wp_current_db_version < 60421 ) {
@@ -2414,6 +2415,29 @@ function upgrade_650() {
 		wp_set_option_autoload_values( $autoload );
 	}
 }
+
+/**
+ * Executes changes made in WordPress 6.9.0.
+ *
+ * @ignore
+ * @since 6.9.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_690() {
+	global $wp_current_db_version;
+
+	// Switch Hello Dolly from file to directory format. See #53323
+	$active_plugins = get_option( 'active_plugins' );
+	$old_plugin     = 'hello.php';
+	$new_plugin     = 'hello-dolly/hello.php';
+	$key            = array_search( $old_plugin, $active_plugins, true );
+
+	if ( $key ) {
+		$active_plugins[ $key ] = $new_plugin;
+		update_option( 'active_plugins', $active_plugins );
+	}
+}
 /**
  * Executes changes made in WordPress 6.7.0.
  *
@@ -3711,7 +3735,7 @@ function pre_schema_upgrade() {
 	}
 
 	// Multisite schema upgrades.
-	if ( $wp_current_db_version < 25448 && is_multisite() && wp_should_upgrade_global_tables() ) {
+	if ( $wp_current_db_version < 60497 && is_multisite() && wp_should_upgrade_global_tables() ) {
 
 		// Upgrade versions prior to 3.7.
 		if ( $wp_current_db_version < 25179 ) {
@@ -3724,6 +3748,20 @@ function pre_schema_upgrade() {
 			// Convert archived from enum to tinyint.
 			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived varchar(1) NOT NULL default '0'" );
 			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived tinyint(2) NOT NULL default 0" );
+		}
+
+		// Upgrade versions prior to 6.9
+		if ( $wp_current_db_version < 60497 ) {
+			// Convert ID columns from signed to unsigned
+			$wpdb->query( "ALTER TABLE $wpdb->blogs MODIFY blog_id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->blogs MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->blogmeta MODIFY blog_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY ID bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY blog_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->site MODIFY id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY meta_id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->signups MODIFY signup_id bigint(20) unsigned NOT NULL auto_increment" );
 		}
 	}
 
