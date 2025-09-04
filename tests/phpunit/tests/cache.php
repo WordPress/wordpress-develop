@@ -251,7 +251,7 @@ class Tests_Cache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * 
+	 *
 	 * @ticket 30430
 	 */
 	public function test_array_with_objects_deep_copy() {
@@ -260,28 +260,28 @@ class Tests_Cache extends WP_UnitTestCase {
 		}
 
 		$key = __FUNCTION__;
-		
-		$shallow_object = new stdClass();
+
+		$shallow_object      = new stdClass();
 		$shallow_object->foo = 'alpha';
-		
-		$deep_object = new stdClass();
+
+		$deep_object        = new stdClass();
 		$deep_object->value = 'deep_original';
 
 		$array_with_objects = array(
 			'shallow_obj' => $shallow_object,
-			'string' => 'gamma',
-			'nested' => array(
+			'string'      => 'gamma',
+			'nested'      => array(
 				'level2' => array(
-					'deep_obj' => $deep_object,
-					'primitive' => 'unchanged'
-				)
-			)
+					'deep_obj'  => $deep_object,
+					'primitive' => 'unchanged',
+				),
+			),
 		);
 
 		$this->cache->set( $key, $array_with_objects );
 
 		$shallow_object->foo = 'modified_alpha';
-		$deep_object->value = 'deep_modified';
+		$deep_object->value  = 'deep_modified';
 
 		$cached_array = $this->cache->get( $key );
 
@@ -290,7 +290,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( 'gamma', $cached_array['string'], 'String values should remain unchanged' );
 		$this->assertSame( 'unchanged', $cached_array['nested']['level2']['primitive'], 'Primitive values should remain unchanged' );
 
-		$cached_array['shallow_obj']->foo = 'modified_from_cache';
+		$cached_array['shallow_obj']->foo                    = 'modified_from_cache';
 		$cached_array['nested']['level2']['deep_obj']->value = 'modified_from_cache';
 
 		// Retreiving again should not affect the cached data
@@ -300,20 +300,20 @@ class Tests_Cache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * 
+	 *
 	 * @ticket 30430
 	 */
 	public function test_primitive_arrays_unchanged() {
 		$key = __FUNCTION__;
-		
+
 		$primitive_array = array(
-			'string' => 'test',
-			'number' => 123,
+			'string'  => 'test',
+			'number'  => 123,
 			'boolean' => false,
-			'nested' => array(
+			'nested'  => array(
 				'nested_string' => 'nested_test',
-				'nested_number' => 456
-			)
+				'nested_number' => 456,
+			),
 		);
 
 		$this->cache->set( $key, $primitive_array );
