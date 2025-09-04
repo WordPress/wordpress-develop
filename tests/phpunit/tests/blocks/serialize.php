@@ -19,11 +19,11 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		$block = array(
 			'blockName'    => 'test',
 			'attrs'        => array(
-				'lt'    => '<',
-				'gt'    => '>',
-				'amp'   => '&',
-				'bs'    => '\\',
-				'quot'  => '"',
+				'lt'         => '<',
+				'gt'         => '>',
+				'amp'        => '&',
+				'bs'         => '\\',
+				'quot'       => '"',
 				'bs-bs-quot' => '\\\\"',
 			),
 			'innerBlocks'  => array(),
