@@ -293,6 +293,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$cached_array['shallow_obj']->foo = 'modified_from_cache';
 		$cached_array['nested']['level2']['deep_obj']->value = 'modified_from_cache';
 
+		// Retreiving again should not affect the cached data
 		$cached_array_again = $this->cache->get( $key );
 		$this->assertSame( 'alpha', $cached_array_again['shallow_obj']->foo, 'Cached data should not be affected by modifications to retrieved objects' );
 		$this->assertSame( 'deep_original', $cached_array_again['nested']['level2']['deep_obj']->value, 'Deep cached data should not be affected by modifications to retrieved objects' );
