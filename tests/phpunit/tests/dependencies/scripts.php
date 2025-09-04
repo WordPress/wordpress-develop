@@ -54,6 +54,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	localeData[""].domain = domain;
 	wp.i18n.setLocaleData( localeData, domain );
 } )( "__DOMAIN__", __JSON_TRANSLATIONS__ );
+//# sourceURL=__HANDLE__-js-translations
 /* ]]> */
 </script>
 JS;
