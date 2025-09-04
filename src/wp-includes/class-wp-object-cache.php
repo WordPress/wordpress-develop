@@ -313,6 +313,8 @@ class WP_Object_Cache {
 
 		if ( is_object( $data ) ) {
 			$data = clone $data;
+		} elseif ( is_array( $data ) ) {
+			$data = $this->deep_copy( $data );
 		}
 
 		$this->cache[ $group ][ $key ] = $data;
@@ -640,5 +642,33 @@ class WP_Object_Cache {
 			echo '<li><strong>Group:</strong> ' . esc_html( $group ) . ' - ( ' . number_format( strlen( serialize( $cache ) ) / KB_IN_BYTES, 2 ) . 'k )</li>';
 		}
 		echo '</ul>';
+	}
+
+	/**
+	* Performs a deep copy of an item to ensure that arrays of objects
+	* are properly duplicated
+	*
+	* @param mixed $data The data to be duplicated
+	* @return mixed copy of the data
+	*/
+	public function deep_copy( $data ) {
+		if ( is_object( $data ) ) {
+			return clone $data;
+		} elseif ( is_array( $data ) ) {
+			$new = array();
+			foreach ( $data as $key => $value ) {
+				if ( is_object( $value ) ) {
+					$new[ $key ] = clone $value;
+				} elseif ( is_array( $value ) ) {
+					$new[ $key ] = $this->deep_copy( $value );
+				} else {
+					$new[ $key ] = $value;
+				}
+			}
+
+			return $new;
+		} else {
+			return $data;
+		}
 	}
 }
