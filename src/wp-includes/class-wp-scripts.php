@@ -539,7 +539,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$data[] = sprintf(
-			"//# sourceURL=%s",
+			'//# sourceURL=%s',
 			rawurlencode( "{$handle}-js-{$position}" )
 		);
 
