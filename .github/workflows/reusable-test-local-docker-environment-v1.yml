@@ -91,12 +91,6 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
-      - name: Create a Docker override file
-        if: ${{ contains( fromJSON('["8.3", "8.4"]'), inputs.php ) }}
-        env:
-          PHP_VERSION: ${{ inputs.php }}
-        run: cp "tools/local-env/php-$PHP_VERSION-docker-compose.override.yml" docker-compose.override.yml
-
       - name: Set up Node.js
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
