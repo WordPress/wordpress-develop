@@ -293,8 +293,7 @@ class WP_Dependencies {
 			_deprecated_argument(
 				'WP_Dependencies->add_data()',
 				'6.9.0',
-				/* translators: 1: WPLANG, 2: wp-config.php */
-				sprintf( __( 'The %1$s argument is no longer supported for inline scripts or styles.' ), 'conditional' )
+				__( 'The conditional argument is no longer supported for inline scripts or styles.' )
 			);
 		}
 
