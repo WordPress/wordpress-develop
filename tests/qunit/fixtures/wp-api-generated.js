@@ -10442,6 +10442,12 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "post_details": {
+                            "default": [],
+                            "description": "An array of post details.",
+                            "type": "array",
+                            "required": false
+                        },
                         "meta": {
                             "description": "Meta fields.",
                             "type": "object",
@@ -10587,6 +10593,11 @@ mockedApiResponse.Schema = {
                         "status": {
                             "description": "State of the comment.",
                             "type": "string",
+                            "required": false
+                        },
+                        "post_details": {
+                            "description": "An array of post details.",
+                            "type": "array",
                             "required": false
                         },
                         "meta": {
@@ -14042,6 +14053,14 @@ mockedApiResponse.CommentsCollection = [
         "link": "http://example.org/?p=4#comment-2",
         "status": "approved",
         "type": "comment",
+        "post_details": {
+            "id": 37283,
+            "title": "REST API Client Fixture: Post",
+            "type": "post",
+            "link": "http://example.org/index.php?rest_route=/wp/v2/posts/37283"
+        },
+        "i_replied": false,
+        "can_moderate": true,
         "author_avatar_urls": {
             "24": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
             "48": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
@@ -14096,6 +14115,14 @@ mockedApiResponse.CommentModel = {
     "link": "http://example.org/?p=4#comment-2",
     "status": "approved",
     "type": "comment",
+    "post_details": {
+        "id": 37283,
+        "title": "REST API Client Fixture: Post",
+        "type": "post",
+        "link": "http://example.org/index.php?rest_route=/wp/v2/posts/37283"
+    },
+    "i_replied": false,
+    "can_moderate": true,
     "author_avatar_urls": {
         "24": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
         "48": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",

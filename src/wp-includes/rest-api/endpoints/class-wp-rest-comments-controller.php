@@ -1124,6 +1124,33 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$data['type'] = get_comment_type( $comment->comment_ID );
 		}
 
+		if ( in_array( 'post_details', $fields, true ) ) {
+			$post = get_post( $comment->comment_post_ID );
+
+			if ( $post ) {
+				$data['post_details'] = array(
+					'id'    => (int) $post->ID,
+					'title' => (string) get_the_title( $post->ID ),
+					'type'  => $post->post_type,
+					'link'  => (string) rest_url( rest_get_route_for_post( $post ) ),
+				);
+			}
+		}
+
+		if ( in_array( 'i_replied', $fields, true ) ) {
+			$data['i_replied'] = (bool) get_comments(
+				[
+					'user_id' => get_current_user_id(),
+					'parent'  => $comment->comment_ID,
+					'count'   => true,
+				]
+			);
+		}
+
+		if ( in_array( 'can_moderate', $fields, true ) ) {
+			$data['can_moderate'] = (bool) current_user_can( 'edit_comment', $comment->comment_ID );
+		}
+
 		if ( in_array( 'author_avatar_urls', $fields, true ) ) {
 			$data['author_avatar_urls'] = rest_get_avatar_urls( $comment );
 		}
@@ -1519,6 +1546,24 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description' => __( 'Type of the comment.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
+				),
+				'post_details'    => array(
+					'description' => __( 'An array of post details.' ),
+					'type'        => 'array',
+					'context'     => array( 'view', 'edit' ),
+					'default'     => null,
+				),
+				'i_replied'       => array(
+					'description' => __( 'Whether the authenticated user has replied to the comment.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'can_moderate'       => array(
+					'description' => __( 'Whether the authenticated can moderate the comment.' ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
 			),

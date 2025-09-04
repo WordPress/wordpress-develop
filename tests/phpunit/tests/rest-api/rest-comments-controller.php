@@ -447,6 +447,63 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 	}
 
+	public function test_can_moderate_is_true_with_edit_post_permission() {
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . self::$approved_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$comment_data = $response->get_data();
+		$this->assertTrue( $comment_data['can_moderate'] );
+	}
+
+	public function test_can_moderate_is_false_without_edit_post_permission() {
+		wp_set_current_user( 0 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . self::$approved_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$comment_data = $response->get_data();
+		$this->assertFalse( $comment_data['can_moderate'] );
+	}
+
+	public function test_i_replied_is_true_if_authenticated_user_created_reply() {
+		wp_set_current_user( self::$editor_id );
+
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => self::$post_id,
+			'comment_parent'   => self::$approved_id,
+			'user_id'          => self::$editor_id,
+		);
+
+		self::factory()->comment->create( $args );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . self::$approved_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$comment_data = $response->get_data();
+		$this->assertTrue( $comment_data['i_replied'] );
+	}
+
+	public function test_i_replied_is_false_if_authenticated_user_did_not_create_reply() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . self::$approved_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$comment_data = $response->get_data();
+		$this->assertFalse( $comment_data['i_replied'] );
+	}
+
 	/**
 	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
 	 *
@@ -3265,7 +3322,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 17, $properties );
+		$this->assertCount( 20, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'author_avatar_urls', $properties );
@@ -3283,6 +3340,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayHasKey( 'post', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
+		$this->assertArrayHasKey( 'post_details', $properties );
+		$this->assertArrayHasKey( 'can_moderate', $properties );
+		$this->assertArrayHasKey( 'i_replied', $properties );
 
 		$this->assertSame( 0, $properties['parent']['default'] );
 		$this->assertSame( 0, $properties['post']['default'] );
@@ -3434,7 +3494,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		if ( $comment->comment_post_ID ) {
+			$post = get_post( $comment->comment_post_ID );
+
 			$this->assertSame( rest_url( '/wp/v2/posts/' . $comment->comment_post_ID ), $links['up'][0]['href'] );
+			$this->assertSame( $post->ID, $data['post_details']['id'] );
+			$this->assertSame( $post->post_title, $data['post_details']['title'] );
+			$this->assertSame( rest_url( '/wp/v2/posts/' . $comment->comment_post_ID ), $data['post_details']['link'] );
 		}
 
 		if ( 'edit' === $context ) {
