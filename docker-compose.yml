@@ -110,6 +110,7 @@ services:
 
     volumes:
       - ./:/var/www
+      - ./tools/local-env/mysql-client.cnf:/etc/mysql/conf.d/no-ssl.cnf:ro
 
     # Keeps the service alive.
     command: 'sleep infinity'
