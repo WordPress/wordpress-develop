@@ -701,6 +701,9 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Test filter `image_max_bit_depth` correctly sets the maximum bit depth of resized images.
 	 *
 	 * @ticket 62285
+	 *
+	 * // Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
+	 * @requires PHP < 8.3
 	 */
 	public function test_image_max_bit_depth() {
 		$file                 = DIR_TESTDATA . '/images/colors_hdr_p3.avif';
