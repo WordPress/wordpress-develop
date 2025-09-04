@@ -1606,11 +1606,36 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  * to ensure consistent operation between PHP and JavaScript.
  *
  * @since 5.3.1
+ * @since 6.8.2 Add $block_name parameter.
  *
- * @param array $block_attributes Attributes object.
+ * @param array       $block_attributes Attributes object.
+ * @param string|null $block_name       Block name. Null if the block name is unknown. Optional.
  * @return string Serialized attributes.
  */
-function serialize_block_attributes( $block_attributes ) {
+function serialize_block_attributes( $block_attributes, $block_name = null ) {
+	$attribute_definitions = null;
+	foreach ( $block_attributes as $attribute => $value ) {
+		if ( is_array( $value ) && empty( $value ) ) {
+			// An empty `array()` is encoded as `[]` in JSON. However, it's possible
+			// that the attribute type is really an object (associative array in PHP),
+			// so we need to check for that.
+			if ( null === $attribute_definitions ) {
+				$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
+				if ( $block_type && isset( $block_type->attributes ) ) {
+					$attribute_definitions = $block_type->attributes;
+				} else {
+					$attribute_definitions = array();
+				}
+			}
+			if ( ! empty( $attribute_definitions ) && isset( $attribute_definitions[ $attribute ]['type'] ) ) {
+				$attribute_type = $attribute_definitions[ $attribute ]['type'];
+				if ( 'object' === $attribute_type ) {
+					$block_attributes[ $attribute ] = new stdClass();
+				}
+			}
+		}
+	}
+
 	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	$encoded_attributes = preg_replace( '/--/', '\\u002d\\u002d', $encoded_attributes );
 	$encoded_attributes = preg_replace( '/</', '\\u003c', $encoded_attributes );
@@ -1657,7 +1682,7 @@ function get_comment_delimited_block_content( $block_name, $block_attributes, $b
 	}
 
 	$serialized_block_name = strip_core_block_namespace( $block_name );
-	$serialized_attributes = empty( $block_attributes ) ? '' : serialize_block_attributes( $block_attributes ) . ' ';
+	$serialized_attributes = empty( $block_attributes ) ? '' : serialize_block_attributes( $block_attributes, $block_name ) . ' ';
 
 	if ( empty( $block_content ) ) {
 		return sprintf( '<!-- wp:%s %s/-->', $serialized_block_name, $serialized_attributes );
