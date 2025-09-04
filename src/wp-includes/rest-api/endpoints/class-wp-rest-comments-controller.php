@@ -1556,13 +1556,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				),
 				'i_replied'       => array(
 					'description' => __( 'Whether the authenticated user has replied to the comment.' ),
-					'type'        => 'string',
+					'type'        => 'boolean',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'can_moderate'       => array(
 					'description' => __( 'Whether the authenticated can moderate the comment.' ),
-					'type'        => 'string',
+					'type'        => 'boolean',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
