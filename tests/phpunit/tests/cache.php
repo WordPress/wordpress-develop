@@ -298,6 +298,30 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( 'deep_original', $cached_array_again['nested']['level2']['deep_obj']->value, 'Deep cached data should not be affected by modifications to retrieved objects' );
 	}
 
+	/**
+	 * 
+	 * @ticket 30430
+	 */
+	public function test_primitive_arrays_unchanged() {
+		$key = __FUNCTION__;
+		
+		$primitive_array = array(
+			'string' => 'test',
+			'number' => 123,
+			'boolean' => false,
+			'nested' => array(
+				'nested_string' => 'nested_test',
+				'nested_number' => 456
+			)
+		);
+
+		$this->cache->set( $key, $primitive_array );
+
+		$cached_array = $this->cache->get( $key );
+
+		$this->assertSame( $primitive_array, $cached_array, 'Primitive arrays should be cached correctly' );
+	}
+
 	public function test_incr() {
 		$key = __FUNCTION__;
 
