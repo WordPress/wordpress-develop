@@ -531,12 +531,10 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
-		if ( ! $this->do_concat ) {
-			$data[] = sprintf(
-				'//# sourceURL=%s',
-				rawurlencode( "{$handle}-js-{$position}" )
-			);
-		}
+		$data[] = sprintf(
+			"//# sourceURL=%s",
+			rawurlencode( "{$handle}-js-{$position}" )
+		);
 
 		return trim( implode( "\n", $data ), "\n" );
 	}

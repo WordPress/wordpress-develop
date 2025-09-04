@@ -2195,7 +2195,7 @@ HTML;
 		wp_add_inline_script( 'one', 'console.log("before one");', 'before' );
 		wp_add_inline_script( 'two', 'console.log("before two");', 'before' );
 
-		$expected  = "<script type='text/javascript' id='one-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before one\");\n/* ]]> */\n</script>\n";
+		$expected  = "<script type='text/javascript' id='one-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before one\");\n//# sourceURL=one-js-before\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='{$this->default_scripts_dir}one.js?ver={$wp_version}' id='one-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='two-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before two\");\n//# sourceURL=two-js-before\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='{$this->default_scripts_dir}two.js?ver={$wp_version}' id='two-js'></script>\n";
@@ -2219,7 +2219,7 @@ HTML;
 
 		wp_add_inline_script( 'one', 'console.log("before one");', 'before' );
 
-		$expected  = "<script type='text/javascript' id='one-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before one\");\n/* ]]> */\n</script>\n";
+		$expected  = "<script type='text/javascript' id='one-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before one\");\n//# sourceURL=one-js-before\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='{$this->default_scripts_dir}one.js?ver={$wp_version}' id='one-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='{$this->default_scripts_dir}two.js?ver={$wp_version}' id='two-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='{$this->default_scripts_dir}three.js?ver={$wp_version}' id='three-js'></script>\n";
@@ -2246,7 +2246,7 @@ HTML;
 
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' src='{$this->default_scripts_dir}two.js?ver={$wp_version}' id='two-js'></script>\n";
-		$expected .= "<script type='text/javascript' id='two-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after two\");\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' id='two-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after two\");\n//# sourceURL=two-js-after\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='{$this->default_scripts_dir}three.js?ver={$wp_version}' id='three-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='three-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after three\");\n//# sourceURL=three-js-after\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='{$this->default_scripts_dir}four.js?ver={$wp_version}' id='four-js'></script>\n";
@@ -2269,9 +2269,9 @@ HTML;
 		$expected_localized  = str_replace( "'", '"', $expected_localized );
 
 		$expected  = "<!--[if gte IE 9]>\n";
-		$expected .= "<script type='text/javascript' id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script type='text/javascript' id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
 		$expected .= "<![endif]-->\n";
 		$expected  = str_replace( "'", '"', $expected );
 
@@ -2299,7 +2299,7 @@ HTML;
 
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script type='text/javascript' id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
 
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
@@ -2324,7 +2324,7 @@ HTML;
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<!--[if gte IE 9]>\n";
 		$expected .= "<script type=\"text/javascript\" src=\"http://example.com\" id=\"test-example-js\"></script>\n";
-		$expected .= "<script type=\"text/javascript\" id=\"test-example-js-after\">\n/* <![CDATA[ */\nconsole.log(\"after\");\n/* ]]> */\n</script>\n";
+		$expected .= "<script type=\"text/javascript\" id=\"test-example-js-after\">\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
 		$expected .= "<![endif]-->\n";
 
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
@@ -2350,7 +2350,7 @@ HTML;
 		$wp_scripts->do_concat = true;
 
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script type='text/javascript' id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
@@ -2375,12 +2375,15 @@ HTML;
 		$wp_scripts->do_concat = true;
 
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-dom-ready,wp-hooks&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script type='text/javascript' id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' id='test-example-js-before'>\n";
+		$expected .= "/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n";
+		$expected .= "</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n.min.js' id='wp-i18n-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='wp-i18n-js-after'>\n";
 		$expected .= "/* <![CDATA[ */\n";
 		$expected .= "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );\n";
+		$expected .= "//# sourceURL=wp-i18n-js-after\n";
 		$expected .= "/* ]]> */\n";
 		$expected .= "</script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/a11y.min.js' id='wp-a11y-js'></script>\n";
@@ -2465,7 +2468,7 @@ HTML;
 		wp_enqueue_script( 'four', '/wp-includes/js/script4.js' );
 
 		$expected  = "<script type='text/javascript' src='/wp-includes/js/script.js?ver={$wp_version}' id='one-js'></script>\n";
-		$expected .= "<script type='text/javascript' id='one-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after one\");\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' id='one-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after one\");\n//# sourceURL=one-js-after\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script2.js?ver={$wp_version}' id='two-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script3.js?ver={$wp_version}' id='three-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script4.js?ver={$wp_version}' id='four-js'></script>\n";
@@ -2489,7 +2492,7 @@ HTML;
 		wp_enqueue_script( 'four', '/wp-includes/js/script4.js' );
 
 		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one,two&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script type='text/javascript' id='three-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before three\");\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' id='three-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before three\");\n//# sourceURL=three-js-before\n/* ]]> */\n</script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script3.js?ver={$wp_version}' id='three-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script4.js?ver={$wp_version}' id='four-js'></script>\n";
 
