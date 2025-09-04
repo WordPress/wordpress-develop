@@ -186,7 +186,7 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test updating a post and preserving post_date when changing to future status
+	 * Test updating a post and preserving post_date when changing to future status.
 	 *
 	 * @ticket 62468
 	 *
@@ -219,9 +219,9 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_update_post_preserves_date_for_future_posts
+	 * Data provider for test_update_post_preserves_date_for_future_posts.
 	 *
-	 * @return array[] Test parameters
+	 * @return array[] Test parameters.
 	 */
 	public function data_update_post_preserves_date_for_future_posts() {
 		return array(
