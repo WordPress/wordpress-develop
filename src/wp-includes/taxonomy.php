@@ -896,11 +896,11 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 	$sql = "SELECT tr.object_id FROM $wpdb->term_relationships AS tr INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN ($taxonomies) AND tt.term_id IN ($term_ids) ORDER BY tr.object_id $order";
 
 	$last_changed = wp_cache_get_last_changed( 'terms' );
-	$cache_key    = 'get_objects_in_term:' . md5( $sql ) . ":$last_changed";
-	$cache        = wp_cache_get( $cache_key, 'term-queries' );
+	$cache_key    = 'get_objects_in_term:' . md5( $sql );
+	$cache        = wp_cache_get_salted( $cache_key, 'term-queries', $last_changed );
 	if ( false === $cache ) {
 		$object_ids = $wpdb->get_col( $sql );
-		wp_cache_set( $cache_key, $object_ids, 'term-queries' );
+		wp_cache_set_salted( $cache_key, $object_ids, 'term-queries', $last_changed );
 	} else {
 		$object_ids = (array) $cache;
 	}
@@ -1630,6 +1630,10 @@ function term_exists( $term, $taxonomy = '', $parent_term = null ) {
 	 */
 	$defaults = apply_filters( 'term_exists_default_query_args', $defaults, $term, $taxonomy, $parent_term );
 
+	if ( ! empty( $taxonomy ) && is_numeric( $parent_term ) ) {
+		$defaults['parent'] = (int) $parent_term;
+	}
+
 	if ( is_int( $term ) ) {
 		if ( 0 === $term ) {
 			return 0;
@@ -1640,10 +1644,6 @@ function term_exists( $term, $taxonomy = '', $parent_term = null ) {
 		$term = trim( wp_unslash( $term ) );
 		if ( '' === $term ) {
 			return null;
-		}
-
-		if ( ! empty( $taxonomy ) && is_numeric( $parent_term ) ) {
-			$defaults['parent'] = (int) $parent_term;
 		}
 
 		$args  = wp_parse_args( array( 'slug' => sanitize_title( $term ) ), $defaults );
