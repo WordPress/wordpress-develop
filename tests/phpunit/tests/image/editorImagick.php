@@ -703,6 +703,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * @ticket 62285
 	 *
 	 * // Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
+	 * // See https://core.trac.wordpress.org/ticket/63932.
 	 * @requires PHP < 8.3
 	 */
 	public function test_image_max_bit_depth() {
@@ -774,6 +775,10 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 *
 	 * @dataProvider data_resizes_are_small_for_16bit_images
 	 *
+	 * // Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
+	 * // See https://core.trac.wordpress.org/ticket/63932.
+	 * @requires PHP < 8.3
+	 *
 	 * @param string $file Path to the image file.
 	 */
 	public function test_resizes_are_small_for_16bit_images( $file ) {
@@ -828,6 +833,10 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 *
 	 * @ticket 63448
 	 * @dataProvider data_png_color_type_after_resize
+	 *
+	 * // Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
+	 * // See https://core.trac.wordpress.org/ticket/63932.
+	 * @requires PHP < 8.3
 	 *
 	 * @param string $file_path             Path to the image file.
 	 * @param int    $expected_color_type   The expected original color type.
