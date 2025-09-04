@@ -362,7 +362,7 @@ class WP_Styles extends WP_Dependencies {
 			$this->registered[ $handle ]->deps = array();
 		}
 
-		return $this->registered[ $handle ]->add_data( $key, $value );
+		return parent::add_data( $handle, $key, $value ); 
 	}
 
 	/**
