@@ -39,6 +39,11 @@ class WP_Block_Bindings_Render extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Sets up the test fixture.
+	 *
+	 * @since 6.9.0
+	 */
 	public function set_up() {
 		parent::set_up();
 
