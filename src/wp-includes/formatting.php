@@ -6411,8 +6411,8 @@ function sanitize_hex_color( $color ) {
  *
  * @since 3.4.0
  *
- * @param string $color
- * @return string|null
+ * @param string $color The color value to sanitize. Can be with or without a hash prefix.
+ * @return string|null The sanitized hex color without hash prefix, empty string if input is empty, or null if invalid.
  */
 function sanitize_hex_color_no_hash( $color ) {
 	$color = ltrim( $color, '#' );
