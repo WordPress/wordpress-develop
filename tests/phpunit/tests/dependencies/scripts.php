@@ -1773,7 +1773,7 @@ HTML
 		wp_enqueue_script( 'test-only-conditional', 'example.com', array(), null );
 		wp_script_add_data( 'test-only-conditional', 'conditional', 'gt IE 7' );
 		// No scripts left to print.
-		$this->assertSame( 'Function WP_Dependencies->add_data() was called with an argument that is deprecated since version 6.9.0! The conditional argument is no longer supported for inline scripts or styles.', get_echo( 'wp_print_scripts' ) );
+		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
 
 	/**
@@ -2192,8 +2192,8 @@ HTML;
 		$wp_scripts->default_dirs = array( '/wp-admin/js/', '/wp-includes/js/' ); // Default dirs as in wp-includes/script-loader.php.
 
 		// Conditional scripts should not output.
-		$expected_localized = 'Function WP_Dependencies->add_data() was called with an argument that is deprecated since version 6.9.0! The conditional argument is no longer supported for inline scripts or styles.';
-		$expected           = 'Function WP_Dependencies->add_data() was called with an argument that is deprecated since version 6.9.0! The conditional argument is no longer supported for inline scripts or styles.';
+		$expected_localized = '';
+		$expected           = '';
 
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_localize_script( 'test-example', 'testExample', array( 'foo' => 'bar' ) );
@@ -2240,7 +2240,7 @@ HTML;
 
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
-		$expected              = 'Function WP_Dependencies->add_data() was called with an argument that is deprecated since version 6.9.0! The conditional argument is no longer supported for inline scripts or styles.';
+		$expected              = '';
 
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
