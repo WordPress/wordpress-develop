@@ -1196,6 +1196,7 @@ HTML;
 	 * `template` tag.
 	 *
 	 * @since 6.5.0
+	 * @since 6.9.0 Include the list path in the rendered `data-wp-each-child` directives.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
@@ -1264,10 +1265,20 @@ HTML;
 					return;
 				}
 
-				// Adds the `data-wp-each-child` to each top-level tag.
+				/*
+				 * Adds the `data-wp-each-child` directive to each top-level tag
+				 * rendered by this `data-wp-each` directive. The value is the
+				 * `data-wp-each` directive's namespace and path.
+				 *
+				 * Nested `data-wp-each` directives could render
+				 * `data-wp-each-child` elements at the top level as well, and
+				 * they should be ignored.
+				 */
 				$i = new WP_Interactivity_API_Directives_Processor( $processed_item );
 				while ( $i->next_tag() ) {
-					$i->set_attribute( 'data-wp-each-child', $namespace_value . '::' . $path );
+					if ( ! $i->get_attribute( 'data-wp-each-child' ) ) {
+						$i->set_attribute( 'data-wp-each-child', $namespace_value . '::' . $path );
+					}
 					$i->next_balanced_tag_closer_tag();
 				}
 				$processed_content .= $i->get_updated_html();
