@@ -451,7 +451,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
  */
 function wp_schedule_bulk_events( int $timestamp, string $hook, array $args, bool $wp_error = false ) {
 	// check if all arguments are arrays
-	$is_array_args = array_reduce( 
+	$is_array_args = array_reduce(
 		$args,
 		function ( $carry, $item ) {
 			return $carry && is_array( $item );
