@@ -1807,16 +1807,25 @@ class WP_List_Table {
 					$data,
 					$primary
 				);
-			} elseif ( method_exists( $this, 'column_' . $column_name ) ) {
-				echo "<td $attributes>";
-				echo call_user_func( array( $this, 'column_' . $column_name ), $item );
-				echo $this->handle_row_actions( $item, $column_name, $primary );
-				echo '</td>';
 			} else {
-				echo "<td $attributes>";
-				echo $this->column_default( $item, $column_name );
+				$tag   = ( $primary === $column_name ) ? 'th' : 'td';
+				$scope = ( $primary === $column_name ) ? ' scope="row"' : '';
+
+				$abbr = '';
+				if ( $primary === $column_name && isset( $sortable[ $column_name ][2] ) && ! empty( $sortable[ $column_name ][2] ) ) {
+					$abbr = ' abbr="' . esc_attr( $sortable[ $column_name ][2] ) . '"';
+				}
+
+				echo "<$tag $attributes $scope $abbr>";
+
+				if ( method_exists( $this, 'column_' . $column_name ) ) {
+					echo call_user_func( array( $this, 'column_' . $column_name ), $item );
+				} else {
+					echo $this->column_default( $item, $column_name );
+				}
+
 				echo $this->handle_row_actions( $item, $column_name, $primary );
-				echo '</td>';
+				echo "</$tag>";
 			}
 		}
 	}
