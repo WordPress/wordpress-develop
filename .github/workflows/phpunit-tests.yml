@@ -32,6 +32,7 @@ on:
       - 'composer.*'
       # This files affect the phpunit tests. Changes could affect the outcome.
       - 'tests/phpunit/**'
+      - 'phpunit.xml.dist'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpunit-tests.yml'
       - '.github/workflows/reusable-phpunit-tests-*.yml'
