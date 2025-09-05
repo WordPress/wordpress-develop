@@ -559,14 +559,12 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 * Tests that wp_mail() can send embedded images.
 	 *
 	 * @ticket 28059
+	 *
+	 * @dataProvider data_wp_mail_can_send_embedded_images
+	 *
+	 * @param string[] $embeds The embeds to send.
 	 */
-	public function test_wp_mail_can_send_embedded_images() {
-		$embeds = array(
-			'canola' => DIR_TESTDATA . '/images/canola.jpg',
-			DIR_TESTDATA . '/images/test-image-2.gif',
-			DIR_TESTDATA . '/images/avif-lossy.avif',
-		);
-
+	public function test_wp_mail_can_send_embedded_images( $embeds ) {
 		$message = '';
 		foreach ( $embeds as $key => $path ) {
 			$message .= '<p><img src="cid:' . $key . '" alt="" /></p>';
@@ -591,6 +589,37 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		foreach ( $embeds as $key => $path ) {
 			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
+	}
+
+	/**
+	 * Data provider for test_wp_mail_can_send_embedded_images().
+	 *
+	 * @return array
+	 */
+	public static function data_wp_mail_can_send_embedded_images() {
+		return array(
+			'Mixed Array Embeds'       => array(
+				'embeds' => array(
+					'canola' => DIR_TESTDATA . '/images/canola.jpg',
+					DIR_TESTDATA . '/images/test-image-2.gif',
+					DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
+			),
+			'Associative Array Embeds' => array(
+				'embeds' => array(
+					'canola'       => DIR_TESTDATA . '/images/canola.jpg',
+					'test-image-2' => DIR_TESTDATA . '/images/test-image-2.gif',
+					'avif-lossy'   => DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
+			),
+			'Indexed Array Embeds'     => array(
+				'embeds' => array(
+					DIR_TESTDATA . '/images/canola.jpg',
+					DIR_TESTDATA . '/images/test-image-2.gif',
+					DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
+			),
+		);
 	}
 
 	/**
