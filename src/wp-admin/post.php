@@ -140,7 +140,7 @@ switch ( $action ) {
 		}
 
 		if ( 'trash' === $post->post_status ) {
-			wp_die( __( 'You cannot edit this item because it is in the Trash. Please restore it and try again.' ), 404 );
+			wp_die( __( 'You cannot edit this item because it is in the Trash. Please restore it and try again.' ), 409 );
 		}
 
 		if ( ! empty( $_GET['get-post-lock'] ) ) {
@@ -239,7 +239,7 @@ switch ( $action ) {
 		check_admin_referer( 'trash-post_' . $post_id );
 
 		if ( ! $post ) {
-			wp_die( __( 'The item you are trying to move to the Trash no longer exists.' ), 404 );
+			wp_die( __( 'The item you are trying to move to the Trash no longer exists.' ), 410 );
 		}
 
 		if ( ! $post_type_object ) {
@@ -276,7 +276,7 @@ switch ( $action ) {
 		check_admin_referer( 'untrash-post_' . $post_id );
 
 		if ( ! $post ) {
-			wp_die( __( 'The item you are trying to restore from the Trash no longer exists.' ), 404 );
+			wp_die( __( 'The item you are trying to restore from the Trash no longer exists.' ), 410 );
 		}
 
 		if ( ! $post_type_object ) {
@@ -305,7 +305,7 @@ switch ( $action ) {
 		check_admin_referer( 'delete-post_' . $post_id );
 
 		if ( ! $post ) {
-			wp_die( __( 'This item has already been deleted.' ), 404 );
+			wp_die( __( 'This item has already been deleted.' ), 410 );
 		}
 
 		if ( ! $post_type_object ) {
