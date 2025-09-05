@@ -1072,10 +1072,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param string  $primary
 	 */
 	protected function _column_title( $post, $classes, $data, $primary ) {
-		echo '<td class="' . $classes . ' page-title" ', $data, '>';
+		echo '<th scope="row" class="' . $classes . ' page-title" ', $data, '>';
 		echo $this->column_title( $post );
 		echo $this->handle_row_actions( $post, 'title', $primary );
-		echo '</td>';
+		echo '</th>';
 	}
 
 	/**
