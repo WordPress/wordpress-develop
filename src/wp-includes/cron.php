@@ -449,8 +449,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
  */
-function wp_schedule_bulk_events( int $timestamp, string $hook, array $args, bool $wp_error = false )
-{
+function wp_schedule_bulk_events( int $timestamp, string $hook, array $args, bool $wp_error = false ) {
 	// check if all arguments are arrays
 	$is_array_args = array_reduce( $args, fn($carry, $item) => $carry && is_array($item), true );
 
@@ -463,7 +462,7 @@ function wp_schedule_bulk_events( int $timestamp, string $hook, array $args, boo
 	$bulk_value = $orig_value = get_option( 'cron', array() );
 
 	// when updating the cron option, keep a copy of the original value (to skip update for now)
-	$tmp_update_option = function ($new_value, $old_value) use (&$bulk_value) {
+	$tmp_update_option = function ( $new_value, $old_value ) use (&$bulk_value) {
 		$bulk_value = $new_value;
 		return $old_value;
 	};
@@ -487,8 +486,8 @@ function wp_schedule_bulk_events( int $timestamp, string $hook, array $args, boo
 	remove_filter( 'pre_option_cron', $tmp_get_option, 10 );
 
 	// if the cron option was changed in the meantime, abort
-	if ( $orig_value !== get_option( 'cron', array() ) ) {
-		return $wp_error ? new \WP_Error( 'wp_schedule_bulk_events_failed', __( 'Failed to verify bulk schedule cron events, value has changed' , 'wordpress' ) ) : false;
+	if ( get_option( 'cron', array() ) !== $orig_value ) {
+		return $wp_error ? new \WP_Error( 'wp_schedule_bulk_events_failed', __( 'Failed to verify bulk schedule cron events, value has changed', 'wordpress' ) ) : false;
 	}
 
 	// update cron option
