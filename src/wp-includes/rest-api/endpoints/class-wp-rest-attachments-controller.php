@@ -985,7 +985,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$schema = parent::get_item_schema();
 
 		$schema['properties']['alt_text'] = array(
-			'description' => __( 'Alternative text to display when attachment is not displayed.' ),
+			'description' => __( 'Alt text to display when attachment is not displayed.' ),
 			'type'        => 'string',
 			'context'     => array( 'view', 'edit', 'embed' ),
 			'arg_options' => array(
