@@ -1812,7 +1812,12 @@ class WP_List_Table {
 				$scope = ( $primary === $column_name ) ? ' scope="row"' : '';
 
 				$abbr = '';
-				if ( $primary === $column_name && isset( $sortable[ $column_name ][2] ) && ! empty( $sortable[ $column_name ][2] ) ) {
+				if (
+					$primary === $column_name
+					&& ! empty( $sortable )
+					&& isset( $sortable[ $column_name ][2] )
+					&& $sortable[ $column_name ][2]
+				) {
 					$abbr = ' abbr="' . esc_attr( $sortable[ $column_name ][2] ) . '"';
 				}
 
