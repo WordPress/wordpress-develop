@@ -10443,7 +10443,6 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "post_details": {
-                            "default": [],
                             "description": "An array of post details.",
                             "type": "array",
                             "required": false
@@ -14054,10 +14053,10 @@ mockedApiResponse.CommentsCollection = [
         "status": "approved",
         "type": "comment",
         "post_details": {
-            "id": 37283,
+            "id": 4,
             "title": "REST API Client Fixture: Post",
             "type": "post",
-            "link": "http://example.org/index.php?rest_route=/wp/v2/posts/37283"
+            "link": "http://example.org/index.php?rest_route=/wp/v2/posts/4"
         },
         "i_replied": false,
         "can_moderate": true,
@@ -14116,10 +14115,10 @@ mockedApiResponse.CommentModel = {
     "status": "approved",
     "type": "comment",
     "post_details": {
-        "id": 37283,
+        "id": 4,
         "title": "REST API Client Fixture: Post",
         "type": "post",
-        "link": "http://example.org/index.php?rest_route=/wp/v2/posts/37283"
+        "link": "http://example.org/index.php?rest_route=/wp/v2/posts/4"
     },
     "i_replied": false,
     "can_moderate": true,
