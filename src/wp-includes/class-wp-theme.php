@@ -1505,10 +1505,11 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
+	 * @param  bool $force Optional. Whether to force loading the textdomain even if it is already loaded. Default false.
 	 * @return bool True if the textdomain was successfully loaded or has already been loaded.
 	 *  False if no textdomain was specified in the file headers, or if the domain could not be loaded.
 	 */
-	public function load_textdomain() {
+	public function load_textdomain( $force = false ) {
 		if ( isset( $this->textdomain_loaded ) ) {
 			return $this->textdomain_loaded;
 		}
@@ -1519,7 +1520,7 @@ final class WP_Theme implements ArrayAccess {
 			return false;
 		}
 
-		if ( is_textdomain_loaded( $textdomain ) ) {
+		if ( ! $force && is_textdomain_loaded( $textdomain ) ) {
 			$this->textdomain_loaded = true;
 			return true;
 		}
