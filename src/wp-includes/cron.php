@@ -459,7 +459,8 @@ function wp_schedule_bulk_events( int $timestamp, string $hook, array $args, boo
 	}
 
 	// get current cron events
-	$bulk_value = $orig_value = get_option( 'cron', array() );
+	$orig_value = get_option( 'cron', array() );
+	$bulk_value = $orig_value;
 
 	// when updating the cron option, keep a copy of the original value (to skip update for now)
 	$tmp_update_option = function ( $new_value, $old_value ) use ( &$bulk_value ) {
