@@ -4083,12 +4083,12 @@
 				container.addClass( 'form-invalid' );
 				input.attr('aria-invalid', 'true');
 				input.attr('aria-describedby', inputError.attr('id'));
-				inputError.show();
+				inputError.slideDown( 'fast' );
 				wp.a11y.speak( inputError.text() );
 				return;
 			}
 
-			input.removeClass( 'form-invalid' );
+			container.removeClass( 'form-invalid' );
 			input.attr('aria-invalid', 'false');
 			input.removeAttr('aria-describedby');
 			inputError.hide();
