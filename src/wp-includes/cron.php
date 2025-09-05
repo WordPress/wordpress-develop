@@ -451,7 +451,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
  */
 function wp_schedule_bulk_events( int $timestamp, string $hook, array $args, bool $wp_error = false ) {
 	// check if all arguments are arrays
-	$is_array_args = array_reduce( $args, fn($carry, $item) => $carry && is_array($item), true );
+	$is_array_args = array_reduce( $args, fn( $carry, $item ) => $carry && is_array( $item ), true );
 
 	// if not, schedule a single event
 	if ( ! $is_array_args ) {
@@ -459,16 +459,16 @@ function wp_schedule_bulk_events( int $timestamp, string $hook, array $args, boo
 	}
 
 	// get current cron events
-	$bulk_value = $orig_value = get_option( 'cron', array() );
+	$bulk_value = $orig_value = get_option( 'cron', array( ) );
 
 	// when updating the cron option, keep a copy of the original value (to skip update for now)
-	$tmp_update_option = function ( $new_value, $old_value ) use (&$bulk_value) {
+	$tmp_update_option = function ( $new_value, $old_value ) use ( &$bulk_value ) {
 		$bulk_value = $new_value;
 		return $old_value;
 	};
 
 	// when getting the cron option, return the modified value
-	$tmp_get_option = function () use (&$bulk_value) {
+	$tmp_get_option = function () use ( &$bulk_value ) {
 		return $bulk_value;
 	};
 
