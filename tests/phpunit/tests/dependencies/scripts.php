@@ -1764,6 +1764,8 @@ HTML
 	/**
 	 * Testing `wp_script_add_data` with the conditional key.
 	 *
+	 * @expectedDeprecated WP_Dependencies->add_data()
+	 *
 	 * @since 6.9.0 Conditional comments should now return an empty string.
 	 *
 	 * @ticket 16024
@@ -2182,6 +2184,8 @@ HTML;
 	}
 
 	/**
+	 * @expectedDeprecated WP_Dependencies->add_data()
+	 *
 	 * @ticket 14853
 	 * @ticket 63821
 	 */
@@ -2231,6 +2235,8 @@ HTML;
 	}
 
 	/**
+	 * @expectedDeprecated WP_Dependencies->add_data()
+	 *
 	 * @ticket 36392
 	 * @ticket 63821
 	 */
