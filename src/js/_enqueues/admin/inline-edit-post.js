@@ -437,9 +437,10 @@ window.wp = window.wp || {};
 		// Convert browser Date into site timezone before comparing.
 		var browserDate = new Date();
 		var browserOffset = browserDate.getTimezoneOffset();
-		var siteOffset = (window.inlineEditPostConfig && inlineEditPostConfig.siteTzOffset)
-			? parseInt(inlineEditPostConfig.siteTzOffset, 10)
-			: browserOffset;
+		var siteOffset = browserOffset;
+		if ( window.inlineEditPostConfig && window.inlineEditPostConfig.siteTzOffset ) {
+			siteOffset = parseInt( window.inlineEditPostConfig.siteTzOffset, 10 );
+		}
 		var siteDate = new Date( browserDate.getTime() + (browserOffset - siteOffset) * 60000 );
 		if ( 'future' !== status && siteDate > post_date ) {
 			$('select[name="_status"] option[value="future"]', editRow).remove();
