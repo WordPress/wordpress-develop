@@ -7,6 +7,8 @@ permissions: {}
 jobs:
   # Runs the actionlint GitHub Action workflow file linter.
   #
+  # See https://github.com/rhysd/actionlint.
+  #
   # This helps guard against common mistakes including strong type checking for expressions (${{ }}), security checks,
   # `run:` script checking, glob syntax validation, and more.
   actionlint:
@@ -22,14 +24,14 @@ jobs:
           persist-credentials: false
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
 
-      # actionlint is static checker for GitHub Actions workflow files.
-      # See https://github.com/rhysd/actionlint.
       - name: Run actionlint
         uses: docker://rhysd/actionlint@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9 # v1.7.7
         with:
           args: "-color -verbose"
 
   # Runs the Octoscan GitHub Action workflow file linter.
+  #
+  # See https://github.com/synacktiv/octoscan
   #
   # This helps guard against injection attacks, credential exposure, vulnerable actions, repository jacking,
   # dangerous checkouts, and artifact security issues.
@@ -61,6 +63,8 @@ jobs:
 
   # Runs the Zizmor GitHub Action workflow file linter.
   #
+  # See https://github.com/zizmorcore/zizmor
+  #
   # This helps guard against supply chain attacks, unpinned dependencies, excessive permissions,
   # dangerous triggers, credential leaks, and sophisticated security vulnerabilities.
   zizmor:
@@ -91,6 +95,8 @@ jobs:
           category: zizmor
 
   # Runs the Poutine GitHub Action workflow file linter.
+  #
+  # See https://github.com/boostsecurityio/poutine
   #
   # This helps guard against CI/CD pipeline risks, supply chain vulnerabilities, excessive permissions,
   # and dangerous build platform configurations.
