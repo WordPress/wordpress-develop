@@ -59,12 +59,14 @@ jobs:
       matrix:
         os: [ 'ubuntu-24.04' ]
         directory: [ 'src', 'build' ]
+        test-certificates: [ true ]
         include:
           # Only prepare artifacts for Playground once.
           - os: 'ubuntu-24.04'
             directory: 'build'
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
+
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
