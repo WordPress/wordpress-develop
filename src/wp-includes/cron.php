@@ -494,12 +494,12 @@ function wp_schedule_bulk_events( int $timestamp, string $hook, array $args, boo
 
 	// if the cron option was changed in the meantime, abort
 	if ( get_option( 'cron', array() ) !== $orig_value ) {
-		return $wp_error ? new \WP_Error( 'wp_schedule_bulk_events_failed', __( 'Failed to verify bulk schedule cron events, value has changed', 'wordpress' ) ) : false;
+		return $wp_error ? new \WP_Error( 'wp_schedule_bulk_events_verify_failed', __( 'Failed to verify bulk schedule cron events, value has changed', 'wordpress' ) ) : false;
 	}
 
 	// update cron option
 	if ( ! update_option( 'cron', $bulk_value ) ) {
-		return $wp_error ? new \WP_Error( 'wp_schedule_bulk_events_failed', __( 'Failed to update bulk schedule cron events', 'wordpress' ) ) : false;
+		return $wp_error ? new \WP_Error( 'wp_schedule_bulk_events_update_failed', __( 'Failed to update bulk schedule cron events', 'wordpress' ) ) : false;
 	}
 
 	return true;
