@@ -301,8 +301,18 @@ class WP_Script_Modules {
 			return null;
 		}
 
-		// Mark this handle as checked to guard against infinite recursion.
+		// Mark this script module as checked to guard against infinite recursion.
 		$checked[ $id ] = true;
+
+		// Abort if the script module is not enqueued or a dependency of an enqueued module.
+		$queue = array_keys( $this->get_marked_for_enqueue() );
+		$to_do = array_merge(
+			$queue,
+			array_keys( $this->get_dependencies( $queue, array( 'static' ) ) ) // See WP_Scripts::recurse_deps().
+		);
+		if ( ! in_array( $id, $to_do, true ) ) {
+			return null;
+		}
 
 		static $priority_mapping = array(
 			'low'  => 0,

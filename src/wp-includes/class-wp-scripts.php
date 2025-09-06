@@ -1054,7 +1054,7 @@ JS;
 		// Mark this handle as checked to guard against infinite recursion.
 		$checked[ $handle ] = true;
 
-		// If the handle is not enqueued, don't filter anything and return.
+		// Abort if the script is not enqueued or a dependency of an enqueued script.
 		if ( ! $this->query( $handle, 'enqueued' ) ) {
 			return null;
 		}

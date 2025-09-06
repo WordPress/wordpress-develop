@@ -1360,6 +1360,81 @@ HTML;
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{enqueues: string[], expected: string}>
+	 */
+	public function data_provider_to_test_fetchpriority_bumping(): array {
+		return array(
+			'enqueue_bajo' => array(
+				'enqueues' => array( 'bajo' ),
+				'expected' => array(
+					'preload_links' => array(),
+					'script_tags'   => array(
+						'bajo' => array(
+							'url'           => '/bajo.js',
+							'fetchpriority' => 'low',
+						),
+					),
+					'import_map'    => array(
+						'dyno' => '/dyno.js',
+					),
+				),
+			),
+			'enqueue_auto' => array(
+				'enqueues' => array( 'auto' ),
+				'expected' => array(
+					'preload_links' => array(
+						'bajo' => array(
+							'url'                   => '/bajo.js',
+							'fetchpriority'         => 'auto',
+							'data-wp-fetchpriority' => 'low',
+						),
+					),
+					'script_tags'   => array(
+						'auto' => array(
+							'url'           => '/auto.js',
+							'fetchpriority' => 'auto',
+						),
+					),
+					'import_map'    => array(
+						'bajo' => '/bajo.js',
+						'dyno' => '/dyno.js',
+					),
+				),
+			),
+			'enqueue_alto' => array(
+				'enqueues' => array( 'alto' ),
+				'expected' => array(
+					'preload_links' => array(
+						'auto' => array(
+							'url'                   => '/auto.js',
+							'fetchpriority'         => 'high',
+							'data-wp-fetchpriority' => 'auto',
+						),
+						'bajo' => array(
+							'url'                   => '/bajo.js',
+							'fetchpriority'         => 'high',
+							'data-wp-fetchpriority' => 'low',
+						),
+					),
+					'script_tags'   => array(
+						'alto' => array(
+							'url'           => '/alto.js',
+							'fetchpriority' => 'high',
+						),
+					),
+					'import_map'    => array(
+						'auto' => '/auto.js',
+						'bajo' => '/bajo.js',
+						'dyno' => '/dyno.js',
+					),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests a higher fetchpriority on a dependent script module causes the fetchpriority of a dependency script module to be bumped.
 	 *
 	 * @ticket 61734
@@ -1368,8 +1443,10 @@ HTML;
 	 * @covers WP_Script_Modules::get_dependents
 	 * @covers WP_Script_Modules::get_highest_fetchpriority_with_dependents
 	 * @covers WP_Script_Modules::print_script_module_preloads
+	 *
+	 * @dataProvider data_provider_to_test_fetchpriority_bumping
 	 */
-	public function test_fetchpriority_bumping() {
+	public function test_fetchpriority_bumping( array $enqueues, array $expected ) {
 		$this->script_modules->register(
 			'dyno',
 			'/dyno.js',
@@ -1411,8 +1488,9 @@ HTML;
 			array( 'fetchpriority' => 'high' )
 		);
 
-		$this->script_modules->enqueue( 'auto' );
-		$this->script_modules->enqueue( 'alto' );
+		foreach ( $enqueues as $enqueue ) {
+			$this->script_modules->enqueue( $enqueue );
+		}
 
 		$actual = array(
 			'preload_links' => $this->get_preloaded_script_modules(),
@@ -1420,31 +1498,7 @@ HTML;
 			'import_map'    => $this->get_import_map(),
 		);
 		$this->assertSame(
-			array(
-				'preload_links' => array(
-					'bajo' => array(
-						'url'                   => '/bajo.js',
-						'fetchpriority'         => 'high',
-						'data-wp-fetchpriority' => 'low',
-					),
-				),
-				'script_tags'   => array(
-					'auto' => array(
-						'url'                   => '/auto.js',
-						'fetchpriority'         => 'high',
-						'data-wp-fetchpriority' => 'auto',
-					),
-					'alto' => array(
-						'url'           => '/alto.js',
-						'fetchpriority' => 'high',
-					),
-				),
-				'import_map'    => array(
-					'bajo' => '/bajo.js',
-					'dyno' => '/dyno.js',
-					'auto' => '/auto.js',
-				),
-			),
+			$expected,
 			$actual,
 			"Snapshot:\n" . var_export( $actual, true )
 		);
