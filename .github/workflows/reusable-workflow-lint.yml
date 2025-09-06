@@ -61,6 +61,7 @@ jobs:
         with:
           sarif_file: "${{steps.octoscan.outputs.sarif_output}}"
           category: octoscan
+          wait-for-processing: false
 
   # Runs the Zizmor GitHub Action workflow file linter.
   #
@@ -94,6 +95,7 @@ jobs:
         with:
           sarif_file: results.sarif
           category: zizmor
+          wait-for-processing: false
 
   # Runs the Poutine GitHub Action workflow file linter.
   #
@@ -121,3 +123,4 @@ jobs:
       with:
         sarif_file: results.sarif
         category: poutine
+        wait-for-processing: false
