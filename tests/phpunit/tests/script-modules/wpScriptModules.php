@@ -67,9 +67,17 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 			$id             = preg_replace( '/-js-module$/', '', (string) $p->get_attribute( 'id' ) );
 			$fetchpriority  = $p->get_attribute( 'fetchpriority' );
-			$modules[ $id ] = array(
-				'url'           => $p->get_attribute( 'src' ),
-				'fetchpriority' => is_string( $fetchpriority ) ? $fetchpriority : 'auto',
+			$modules[ $id ] = array_merge(
+				array(
+					'url'           => $p->get_attribute( 'src' ),
+					'fetchpriority' => is_string( $fetchpriority ) ? $fetchpriority : 'auto',
+				),
+				...array_map(
+					static function ( $attribute_name ) use ( $p ) {
+						return array( $attribute_name => $p->get_attribute( $attribute_name ) );
+					},
+					$p->get_attribute_names_with_prefix( 'data-' )
+				)
 			);
 		}
 
@@ -112,9 +120,17 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 			$id              = preg_replace( '/-js-modulepreload$/', '', $p->get_attribute( 'id' ) );
 			$fetchpriority   = $p->get_attribute( 'fetchpriority' );
-			$preloads[ $id ] = array(
-				'url'           => $p->get_attribute( 'href' ),
-				'fetchpriority' => is_string( $fetchpriority ) ? $fetchpriority : 'auto',
+			$preloads[ $id ] = array_merge(
+				array(
+					'url'           => $p->get_attribute( 'href' ),
+					'fetchpriority' => is_string( $fetchpriority ) ? $fetchpriority : 'auto',
+				),
+				...array_map(
+					static function ( $attribute_name ) use ( $p ) {
+						return array( $attribute_name => $p->get_attribute( $attribute_name ) );
+					},
+					$p->get_attribute_names_with_prefix( 'data-' )
+				)
 			);
 		}
 
@@ -274,8 +290,9 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 						'fetchpriority' => 'auto',
 					),
 					'c-dep'        => array(
-						'url'           => '/c-static.js?ver=99.9.9',
-						'fetchpriority' => 'low',
+						'url'                   => '/c-static.js?ver=99.9.9',
+						'fetchpriority'         => 'auto', // Not 'low' because the dependent script 'c' has a fetchpriority of 'auto'.
+						'data-wp-fetchpriority' => 'low',
 					),
 					'c-static-dep' => array(
 						'url'           => '/c-static-dep.js?ver=99.9.9',
@@ -732,6 +749,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 					'import' => 'dynamic',
 				),
 			)
+			// Note: The default fetchpriority=auto is upgraded to high because the dependent script module 'static-dep' has a high fetch priority.
 		);
 		$this->script_modules->register(
 			'static-dep',
@@ -761,7 +779,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '/static-dep.js', $preloaded_script_modules['static-dep']['url'] );
 		$this->assertSame( 'high', $preloaded_script_modules['static-dep']['fetchpriority'] );
 		$this->assertStringStartsWith( '/nested-static-dep.js', $preloaded_script_modules['nested-static-dep']['url'] );
-		$this->assertSame( 'auto', $preloaded_script_modules['nested-static-dep']['fetchpriority'] );
+		$this->assertSame( 'high', $preloaded_script_modules['nested-static-dep']['fetchpriority'] );
 		$this->assertArrayNotHasKey( 'dynamic-dep', $preloaded_script_modules );
 		$this->assertArrayNotHasKey( 'nested-dynamic-dep', $preloaded_script_modules );
 		$this->assertArrayNotHasKey( 'no-dep', $preloaded_script_modules );
@@ -1339,6 +1357,97 @@ HTML;
 		$this->script_modules->set_fetchpriority( 'foo', 'silly' );
 		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
 		$this->assertSame( 'auto', $registered_modules['foo']['fetchpriority'] );
+	}
+
+	/**
+	 * Tests a higher fetchpriority on a dependent script module causes the fetchpriority of a dependency script module to be bumped.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Script_Modules::print_enqueued_script_modules
+	 * @covers WP_Script_Modules::get_dependents
+	 * @covers WP_Script_Modules::get_highest_fetchpriority_with_dependents
+	 * @covers WP_Script_Modules::print_script_module_preloads
+	 */
+	public function test_fetchpriority_bumping() {
+		$this->script_modules->register(
+			'dyno',
+			'/dyno.js',
+			array(),
+			null,
+			array( 'fetchpriority' => 'low' ) // This won't show up anywhere since it is a dynamic import dependency.
+		);
+
+		$this->script_modules->register(
+			'bajo',
+			'/bajo.js',
+			array(
+				array(
+					'id'     => 'dyno',
+					'import' => 'dynamic',
+				),
+			),
+			null,
+			array( 'fetchpriority' => 'low' )
+		);
+
+		$this->script_modules->register(
+			'auto',
+			'/auto.js',
+			array(
+				array(
+					'id'     => 'bajo',
+					'import' => 'static',
+				),
+			),
+			null,
+			array( 'fetchpriority' => 'auto' )
+		);
+		$this->script_modules->register(
+			'alto',
+			'/alto.js',
+			array( 'auto' ),
+			null,
+			array( 'fetchpriority' => 'high' )
+		);
+
+		$this->script_modules->enqueue( 'auto' );
+		$this->script_modules->enqueue( 'alto' );
+
+		$actual = array(
+			'preload_links' => $this->get_preloaded_script_modules(),
+			'script_tags'   => $this->get_enqueued_script_modules(),
+			'import_map'    => $this->get_import_map(),
+		);
+		$this->assertSame(
+			array(
+				'preload_links' => array(
+					'bajo' => array(
+						'url'                   => '/bajo.js',
+						'fetchpriority'         => 'high',
+						'data-wp-fetchpriority' => 'low',
+					),
+				),
+				'script_tags'   => array(
+					'auto' => array(
+						'url'                   => '/auto.js',
+						'fetchpriority'         => 'high',
+						'data-wp-fetchpriority' => 'auto',
+					),
+					'alto' => array(
+						'url'           => '/alto.js',
+						'fetchpriority' => 'high',
+					),
+				),
+				'import_map'    => array(
+					'bajo' => '/bajo.js',
+					'dyno' => '/dyno.js',
+					'auto' => '/auto.js',
+				),
+			),
+			$actual,
+			"Snapshot:\n" . var_export( $actual, true )
+		);
 	}
 
 	/**

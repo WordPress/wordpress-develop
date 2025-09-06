@@ -42,6 +42,15 @@ class WP_Script_Modules {
 	private $a11y_available = false;
 
 	/**
+	 * Holds a mapping of dependents (as IDs) for a given script ID.
+	 * Used to optimize recursive dependency tree checks.
+	 *
+	 * @since 6.9.0
+	 * @var array<string, string[]>
+	 */
+	private $dependents_map = array();
+
+	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
@@ -276,6 +285,50 @@ class WP_Script_Modules {
 	}
 
 	/**
+	 * Gets the highest fetch priority for a given script module and all of its dependent script modules.
+	 *
+	 * @since 6.9.0
+	 * @see WP_Scripts::filter_eligible_strategies()
+	 *
+	 * @param string $id Script module ID.
+	 * @return string|null Highest fetch priority for the script module and its dependents.
+	 */
+	private function get_highest_fetchpriority_with_dependents( string $id, array $checked = array() ): ?string {
+		// If by chance an unregistered script module is checked or there is a recursive dependency, return early.
+		if ( ! isset( $this->registered[ $id ] ) || isset( $checked[ $id ] ) ) {
+			return null;
+		}
+
+		// Mark this handle as checked to guard against infinite recursion.
+		$checked[ $id ] = true;
+
+		static $priority_mapping = array(
+			'low'  => 0,
+			'auto' => 1,
+			'high' => 2,
+		);
+
+		$highest_priority_index = $priority_mapping[ $this->registered[ $id ]['fetchpriority'] ];
+
+		foreach ( $this->get_dependents( $id ) as $dependent_id ) {
+			$dependent_priority = $this->get_highest_fetchpriority_with_dependents( $dependent_id, $checked );
+			if ( is_string( $dependent_priority ) ) {
+				$highest_priority_index = max(
+					$highest_priority_index,
+					$priority_mapping[ $dependent_priority ]
+				);
+			}
+		}
+
+		$highest_priority = array_search( $highest_priority_index, $priority_mapping, true );
+		if ( is_string( $highest_priority ) ) {
+			return $highest_priority;
+		}
+
+		return null;
+	}
+
+	/**
 	 * Prints the enqueued script modules using script tags with type="module"
 	 * attributes.
 	 *
@@ -288,15 +341,20 @@ class WP_Script_Modules {
 				'src'  => $this->get_src( $id ),
 				'id'   => $id . '-js-module',
 			);
-			if ( 'auto' !== $script_module['fetchpriority'] ) {
-				$args['fetchpriority'] = $script_module['fetchpriority'];
+
+			$fetchpriority = $this->get_highest_fetchpriority_with_dependents( $id );
+			if ( is_string( $fetchpriority ) && 'auto' !== $fetchpriority ) {
+				$args['fetchpriority'] = $fetchpriority;
+			}
+			if ( $fetchpriority !== $script_module['fetchpriority'] ) {
+				$args['data-wp-fetchpriority'] = $script_module['fetchpriority'];
 			}
 			wp_print_script_tag( $args );
 		}
 	}
 
 	/**
-	 * Prints the the static dependencies of the enqueued script modules using
+	 * Prints the static dependencies of the enqueued script modules using
 	 * link tags with rel="modulepreload" attributes.
 	 *
 	 * If a script module is marked for enqueue, it will not be preloaded.
@@ -307,12 +365,19 @@ class WP_Script_Modules {
 		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ), array( 'static' ) ) as $id => $script_module ) {
 			// Don't preload if it's marked for enqueue.
 			if ( true !== $script_module['enqueue'] ) {
-				echo sprintf(
-					'<link rel="modulepreload" href="%s" id="%s"%s>',
+				printf(
+					'<link rel="modulepreload" href="%s" id="%s"',
 					esc_url( $this->get_src( $id ) ),
-					esc_attr( $id . '-js-modulepreload' ),
-					'auto' !== $script_module['fetchpriority'] ? sprintf( ' fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) ) : ''
+					esc_attr( $id . '-js-modulepreload' )
 				);
+				$fetchpriority = $this->get_highest_fetchpriority_with_dependents( $id );
+				if ( is_string( $fetchpriority ) && 'auto' !== $fetchpriority ) {
+					printf( ' fetchpriority="%s"', esc_attr( $fetchpriority ) );
+				}
+				if ( $fetchpriority !== $script_module['fetchpriority'] ) {
+					printf( ' data-wp-fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) );
+				}
+				echo '>';
 			}
 		}
 	}
@@ -383,16 +448,16 @@ class WP_Script_Modules {
 	 *                               Default is both.
 	 * @return array[] List of dependencies, keyed by script module identifier.
 	 */
-	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ) {
+	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ): array {
 		return array_reduce(
 			$ids,
 			function ( $dependency_script_modules, $id ) use ( $import_types ) {
 				$dependencies = array();
 				foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
 					if (
-					in_array( $dependency['import'], $import_types, true ) &&
-					isset( $this->registered[ $dependency['id'] ] ) &&
-					! isset( $dependency_script_modules[ $dependency['id'] ] )
+						in_array( $dependency['import'], $import_types, true ) &&
+						isset( $this->registered[ $dependency['id'] ] ) &&
+						! isset( $dependency_script_modules[ $dependency['id'] ] )
 					) {
 						$dependencies[ $dependency['id'] ] = $this->registered[ $dependency['id'] ];
 					}
@@ -401,6 +466,37 @@ class WP_Script_Modules {
 			},
 			array()
 		);
+	}
+
+	/**
+	 * Gets all dependents of a script module.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @see WP_Scripts::get_dependents()
+	 *
+	 * @param string $id The script ID.
+	 * @return string[] Script module IDs.
+	 */
+	private function get_dependents( string $id ): array {
+		// Check if dependents map for the handle in question is present. If so, use it.
+		if ( isset( $this->dependents_map[ $id ] ) ) {
+			return $this->dependents_map[ $id ];
+		}
+
+		$dependents = array();
+
+		// Iterate over all registered scripts, finding dependents of the script passed to this method.
+		foreach ( $this->registered as $registered_id => $args ) {
+			if ( in_array( $id, wp_list_pluck( $args['dependencies'], 'id' ), true ) ) {
+				$dependents[] = $registered_id;
+			}
+		}
+
+		// Add the module's dependents to the map to ease future lookups.
+		$this->dependents_map[ $id ] = $dependents;
+
+		return $dependents;
 	}
 
 	/**

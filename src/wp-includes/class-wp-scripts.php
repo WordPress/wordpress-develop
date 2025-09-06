@@ -127,7 +127,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * Used to optimize recursive dependency tree checks.
 	 *
 	 * @since 6.3.0
-	 * @var array
+	 * @var array<string, string[]>
 	 */
 	private $dependents_map = array();
 
