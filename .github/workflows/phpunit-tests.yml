@@ -125,6 +125,7 @@ jobs:
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       tests-domain: ${{ matrix.tests-domain }}
+      phpunit-test-groups: 'media'
       report: ${{ matrix.report || false }}
 
   #
@@ -175,6 +176,7 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      phpunit-test-groups: 'media'
       report: ${{ false }}
 
   #
@@ -221,6 +223,7 @@ jobs:
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
+      phpunit-test-groups: 'media'
       report: ${{ false }}
 
   #
