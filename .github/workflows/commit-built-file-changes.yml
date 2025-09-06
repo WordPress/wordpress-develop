@@ -131,6 +131,7 @@ jobs:
           path: 'pr-repo'
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           token: ${{ env.ACCESS_TOKEN }}
+          persist-credentials: true
 
       - name: Apply patch
         if: ${{ steps.artifact-check.outputs.exists == 'true' }}
