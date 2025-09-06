@@ -1172,8 +1172,8 @@ HTML
 		);
 		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js' defer='defer' data-wp-strategy='defer'></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer='defer' data-wp-strategy='defer'></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer='defer' data-wp-strategy='async' fetchpriority='low'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer='defer' data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer='defer' data-wp-strategy='async' fetchpriority='high' data-wp-fetchpriority='low'></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer='defer' data-wp-strategy='defer' fetchpriority='high'></script>\n";
 
 		$this->assertEqualHTML( $expected, $output, '<body>', 'Scripts registered as defer but that have dependents that are async are expected to have said dependents deferred.' );
@@ -1279,6 +1279,59 @@ HTML
 	public function test_invalid_fetchpriority_on_alias() {
 		wp_register_script( 'alias', false, array(), null, array( 'fetchpriority' => 'low' ) );
 		$this->assertArrayNotHasKey( 'fetchpriority', wp_scripts()->registered['alias']->extra );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{enqueues: string[], expected: string}>
+	 */
+	public function data_provider_to_test_fetchpriority_bumping(): array {
+		return array(
+			'enqueue_bajo' => array(
+				'enqueues' => array( 'bajo' ),
+				'expected' => '<script fetchpriority="low" id="bajo-js" src="/bajo.js" type="text/javascript"></script>',
+			),
+			'enqueue_auto' => array(
+				'enqueues' => array( 'auto' ),
+				'expected' => '
+					<script type="text/javascript" src="/bajo.js" id="bajo-js" data-wp-fetchpriority="low"></script>
+					<script type="text/javascript" src="/auto.js" id="auto-js"></script>
+				',
+			),
+			'enqueue_alto' => array(
+				'enqueues' => array( 'alto' ),
+				'expected' => '
+					<script type="text/javascript" src="/bajo.js" id="bajo-js" fetchpriority="high" data-wp-fetchpriority="low"></script>
+					<script type="text/javascript" src="/auto.js" id="auto-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+					<script type="text/javascript" src="/alto.js" id="alto-js" fetchpriority="high"></script>
+				',
+			),
+		);
+	}
+
+	/**
+	 * Tests a higher fetchpriority on a dependent script module causes the fetchpriority of a dependency script module to be bumped.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Scripts::get_dependents
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 * @covers WP_Scripts::do_item
+	 *
+	 * @dataProvider data_provider_to_test_fetchpriority_bumping
+	 */
+	public function test_fetchpriority_bumping( array $enqueues, string $expected ) {
+		wp_register_script( 'bajo', '/bajo.js', array(), null, array( 'fetchpriority' => 'low' ) );
+		wp_register_script( 'auto', '/auto.js', array( 'bajo' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'alto', '/alto.js', array( 'auto' ), null, array( 'fetchpriority' => 'high' ) );
+
+		foreach ( $enqueues as $enqueue ) {
+			wp_enqueue_script( $enqueue );
+		}
+
+		$actual = get_echo( 'wp_print_scripts' );
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
 	}
 
 	/**

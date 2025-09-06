@@ -289,6 +289,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 * @see WP_Scripts::filter_eligible_strategies()
+	 * @see WP_Scripts::get_highest_fetchpriority_with_dependents()
 	 *
 	 * @param string              $id      Script module ID.
 	 * @param array<string, true> $checked Optional. An array of already checked script IDs, used to avoid recursive loops.

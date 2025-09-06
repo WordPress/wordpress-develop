@@ -425,8 +425,19 @@ class WP_Scripts extends WP_Dependencies {
 		if ( $intended_strategy ) {
 			$attr['data-wp-strategy'] = $intended_strategy;
 		}
-		if ( isset( $obj->extra['fetchpriority'] ) && 'auto' !== $obj->extra['fetchpriority'] && $this->is_valid_fetchpriority( $obj->extra['fetchpriority'] ) ) {
-			$attr['fetchpriority'] = $obj->extra['fetchpriority'];
+
+		if ( isset( $obj->extra['fetchpriority'] ) ) {
+			$original_fetchpriority = $obj->extra['fetchpriority'];
+			if ( ! $this->is_valid_fetchpriority( $original_fetchpriority ) ) {
+				$original_fetchpriority = 'auto';
+			}
+			$actual_fetchpriority = $this->get_highest_fetchpriority_with_dependents( $handle );
+			if ( is_string( $actual_fetchpriority ) && 'auto' !== $actual_fetchpriority ) {
+				$attr['fetchpriority'] = $actual_fetchpriority;
+			}
+			if ( $original_fetchpriority !== $actual_fetchpriority ) {
+				$attr['data-wp-fetchpriority'] = $original_fetchpriority;
+			}
 		}
 		$tag  = $translations . $ie_conditional_prefix . $before_script;
 		$tag .= wp_get_script_tag( $attr );
@@ -1021,6 +1032,62 @@ JS;
 		}
 
 		return $eligible_strategies;
+	}
+
+	/**
+	 * Gets the highest fetch priority for a given script and all of its dependent scripts.
+	 *
+	 * @since 6.9.0
+	 * @see self::filter_eligible_strategies()
+	 * @see WP_Script_Modules::get_highest_fetchpriority_with_dependents()
+	 *
+	 * @param string              $handle  Script module ID.
+	 * @param array<string, true> $checked Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @return string|null Highest fetch priority for the script and its dependents.
+	 */
+	private function get_highest_fetchpriority_with_dependents( string $handle, array $checked = array() ): ?string {
+		// If there is a recursive dependency, return early.
+		if ( isset( $checked[ $handle ] ) ) {
+			return null;
+		}
+
+		// Mark this handle as checked to guard against infinite recursion.
+		$checked[ $handle ] = true;
+
+		// If the handle is not enqueued, don't filter anything and return.
+		if ( ! $this->query( $handle, 'enqueued' ) ) {
+			return null;
+		}
+
+		$fetchpriority = $this->get_data( $handle, 'fetchpriority' );
+		if ( ! $this->is_valid_fetchpriority( $fetchpriority ) ) {
+			$fetchpriority = 'auto';
+		}
+
+		static $priority_mapping = array(
+			'low'  => 0,
+			'auto' => 1,
+			'high' => 2,
+		);
+
+		$highest_priority_index = $priority_mapping[ $fetchpriority ];
+
+		foreach ( $this->get_dependents( $handle ) as $dependent_handle ) {
+			$dependent_priority = $this->get_highest_fetchpriority_with_dependents( $dependent_handle, $checked );
+			if ( is_string( $dependent_priority ) ) {
+				$highest_priority_index = max(
+					$highest_priority_index,
+					$priority_mapping[ $dependent_priority ]
+				);
+			}
+		}
+
+		$highest_priority = array_search( $highest_priority_index, $priority_mapping, true );
+		if ( is_string( $highest_priority ) ) {
+			return $highest_priority;
+		}
+
+		return null;
 	}
 
 	/**
