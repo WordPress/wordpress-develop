@@ -3400,13 +3400,27 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 		return apply_filters( 'wp_count_posts', $counts, $type, $perm );
 	}
 
-	$query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s";
+	$query = $wpdb->prepare( "SELECT post_status, COUNT(*) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s", $type );
 
 	if ( 'readable' === $perm && is_user_logged_in() ) {
 		$post_type_object = get_post_type_object( $type );
 		if ( ! current_user_can( $post_type_object->cap->read_private_posts ) ) {
-			$query .= $wpdb->prepare(
-				" AND (post_status != 'private' OR ( post_author = %d AND post_status = 'private' ))",
+			// Optimized query using UNION ALL for better performance. See #61097.
+			$query = $wpdb->prepare(
+				"
+				SELECT post_status, COUNT(*) AS num_posts
+				FROM (
+					SELECT post_status
+					FROM {$wpdb->posts}
+					WHERE post_type = %s AND post_status != 'private'
+					UNION ALL
+					SELECT post_status
+					FROM {$wpdb->posts}
+					WHERE post_type = %s AND post_status = 'private' AND post_author = %d
+				) AS filtered_posts
+				",
+				$type,
+				$type,
 				get_current_user_id()
 			);
 		}
@@ -3414,7 +3428,17 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 
 	$query .= ' GROUP BY post_status';
 
-	$results = (array) $wpdb->get_results( $wpdb->prepare( $query, $type ), ARRAY_A );
+	/**
+	 * Filters the query used to retrieve post counts for a post type.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $query The query to retrieve post counts.
+	 * @param string $type  The post type.
+	 */
+	$query = apply_filters( 'wp_count_posts_query', $query, $type );
+
+	$results = (array) $wpdb->get_results( $query, ARRAY_A );
 	$counts  = array_fill_keys( get_post_stati(), 0 );
 
 	foreach ( $results as $row ) {
