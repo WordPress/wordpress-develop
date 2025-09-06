@@ -43,15 +43,17 @@ jobs:
           COMMIT_MESSAGE="$(echo "$COMMIT_MSG_RAW" | sed -n '$p')"
           echo "svn_revision_number=$(echo "$COMMIT_MESSAGE" | sed -n 's/.*git-svn-id: https:\/\/develop.svn.wordpress.org\/[^@]*@\([0-9]*\) .*/\1/p')" >> "$GITHUB_OUTPUT"
 
-      - name: Find pull requests
-        id: linked-prs
+      - name: Find and close pull requests
         if: ${{ steps.trac-tickets.outputs.fixed_list != '' && steps.git-svn-id.outputs.svn_revision_number != '' }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         env:
           FIXED_LIST: ${{ steps.trac-tickets.outputs.fixed_list }}
+          SVN_REVISION_NUMBER: ${{ steps.git-svn-id.outputs.svn_revision_number }}
         with:
           script: |
             const fixedList = process.env.FIXED_LIST.split(' ').filter(Boolean);
+            const svnRevisionNumber = process.env.SVN_REVISION_NUMBER;
+            const githubSha = process.env.GITHUB_SHA;
             let prNumbers = [];
 
             for (const ticket of fixedList) {
@@ -79,20 +81,6 @@ jobs:
 
               prNumbers.push(...result.search.nodes.map(pr => pr.number));
             }
-
-            return prNumbers;
-
-      - name: Comment and close pull requests
-        if: ${{ steps.trac-tickets.outputs.fixed_list != '' && steps.git-svn-id.outputs.svn_revision_number != '' }}
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        env:
-          PR_NUMBERS: ${{ steps.linked-prs.outputs.result }}
-          SVN_REVISION_NUMBER: ${{ steps.git-svn-id.outputs.svn_revision_number }}
-        with:
-          script: |
-            const prNumbers = process.env.PR_NUMBERS;
-            const svnRevisionNumber = process.env.SVN_REVISION_NUMBER;
-            const githubSha = process.env.GITHUB_SHA;
 
             const commentBody = `A commit was made that fixes the Trac ticket referenced in the description of this pull request.
 
