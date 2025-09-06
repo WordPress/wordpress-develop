@@ -86,6 +86,7 @@ $wp_xmlrpc_server->serve_request();
 
 exit;
 
+
 /**
  * logIO() - Writes logging info to a file.
  *
