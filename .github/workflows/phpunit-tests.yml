@@ -64,7 +64,9 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
     strategy:
       fail-fast: false
@@ -141,7 +143,9 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
     strategy:
       fail-fast: false
@@ -193,7 +197,9 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
     strategy:
       fail-fast: false
@@ -236,7 +242,9 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
     strategy:
       fail-fast: false
@@ -265,7 +273,9 @@ jobs:
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: ${{ ! startsWith( github.repository, 'WordPress/' ) && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
     strategy:
       fail-fast: false
