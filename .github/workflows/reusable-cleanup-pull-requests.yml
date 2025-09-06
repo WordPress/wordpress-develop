@@ -47,9 +47,11 @@ jobs:
         id: linked-prs
         if: ${{ steps.trac-tickets.outputs.fixed_list != '' && steps.git-svn-id.outputs.svn_revision_number != '' }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          FIXED_LIST: ${{ steps.trac-tickets.outputs.fixed_list }}
         with:
           script: |
-            const fixedList = "${{ steps.trac-tickets.outputs.fixed_list }}".split(' ').filter(Boolean);
+            const fixedList = process.env.FIXED_LIST.split(' ').filter(Boolean);
             let prNumbers = [];
 
             for (const ticket of fixedList) {
@@ -83,14 +85,19 @@ jobs:
       - name: Comment and close pull requests
         if: ${{ steps.trac-tickets.outputs.fixed_list != '' && steps.git-svn-id.outputs.svn_revision_number != '' }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          PR_NUMBERS: ${{ steps.linked-prs.outputs.result }}
+          SVN_REVISION_NUMBER: ${{ steps.git-svn-id.outputs.svn_revision_number }}
         with:
           script: |
-            const prNumbers = ${{ steps.linked-prs.outputs.result }};
+            const prNumbers = process.env.PR_NUMBERS;
+            const svnRevisionNumber = process.env.SVN_REVISION_NUMBER;
+            const githubSha = process.env.GITHUB_SHA;
 
             const commentBody = `A commit was made that fixes the Trac ticket referenced in the description of this pull request.
 
-            SVN changeset: [${{ steps.git-svn-id.outputs.svn_revision_number }}](https://core.trac.wordpress.org/changeset/${{ steps.git-svn-id.outputs.svn_revision_number }})
-            GitHub commit: https://github.com/WordPress/wordpress-develop/commit/${{ github.sha }}
+            SVN changeset: [${svnRevisionNumber}](https://core.trac.wordpress.org/changeset/${svnRevisionNumber})
+            GitHub commit: https://github.com/WordPress/wordpress-develop/commit/${githubSha}
 
             This PR will be closed, but please confirm the accuracy of this and reopen if there is more work to be done.`;
 
