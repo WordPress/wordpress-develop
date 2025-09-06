@@ -4,7 +4,6 @@
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
 var json2php = require( 'json2php' );
-const fs = require("fs");
 
 module.exports = function(grunt) {
 	var path = require('path'),
