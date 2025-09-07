@@ -783,6 +783,13 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 */
 	public function test_resizes_are_small_for_16bit_images( $file ) {
 
+		if ( DIR_TESTDATA . '/images/png-tests/test8.png' === $file ) {
+			$version = Imagick::getVersion();
+			if ( $version['versionNumber'] >= 0x700 ) {
+				$this->markTestSkipped( 'ImageMagick 7 is unable to optimize grayscale images with 1-bit transparency.' );
+			}
+		}
+
 		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
 
 		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
@@ -842,6 +849,13 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * @param int    $expected_color_type   The expected original color type.
 	 */
 	public function test_png_color_type_is_preserved_after_resize( $file_path, $expected_color_type ) {
+
+		if ( DIR_TESTDATA . '/images/png-tests/test8.png' === $file_path ) {
+			$version = Imagick::getVersion();
+			if ( $version['versionNumber'] >= 0x700 ) {
+				$this->markTestSkipped( 'ImageMagick 7 is unable to optimize grayscale images with 1-bit transparency.' );
+			}
+		}
 
 		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
 
