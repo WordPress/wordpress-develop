@@ -156,6 +156,10 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 		unset( $post_data['post_password'] );
 	}
 
+	if ( isset( $post_data['post_password'] ) && strlen( $post_data['post_password'] ) > 255 ) {
+		return new WP_Error( 'invalid_post_password', __( 'Error: Post passwords cannot be longer than 255 characters.' ) );
+	}
+
 	if ( ! isset( $post_data['comment_status'] ) ) {
 		$post_data['comment_status'] = 'closed';
 	}
