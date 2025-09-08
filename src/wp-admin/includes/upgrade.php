@@ -880,11 +880,14 @@ function upgrade_all() {
 
 	if ( $wp_current_db_version < 58975 ) {
 		upgrade_670();
-		upgrade_690();
 	}
 
 	if ( $wp_current_db_version < 60421 ) {
 		upgrade_682();
+	}
+
+	if ( $wp_current_db_version < 60717 ) {
+		upgrade_690();
 	}
 
 	maybe_disable_link_manager();
