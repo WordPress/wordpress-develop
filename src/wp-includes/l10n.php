@@ -1267,7 +1267,13 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 	// Check if a custom path was registered for the domain.
 	$reg_path = $wp_textdomain_registry->get( $domain, $locale );
 	if ( $reg_path ) {
-		$reg_path     = untrailingslashit( $reg_path );
+		$reg_path = untrailingslashit( $reg_path );
+
+		$translations = load_script_translations( $reg_path . '/' . $handle_filename, $handle, $domain );
+		if ( $translations ) {
+			return $translations;
+		}
+
 		$translations = load_script_translations( $reg_path . '/' . $md5_filename, $handle, $domain );
 		if ( $translations ) {
 			return $translations;
