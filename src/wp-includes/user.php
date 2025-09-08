@@ -2694,14 +2694,8 @@ function wp_update_user( $userdata ) {
 	}
 
 	// Escape data pulled from DB.
-	$user['display_name']  = wp_slash( $user['display_name'] );
-	$user['first_name']    = wp_slash( $user['first_name'] );
-	$user['last_name']     = wp_slash( $user['last_name'] );
-	$user['description']   = wp_slash( $user['description'] );
-	$user['nickname']      = wp_slash( $user['nickname'] );
-	$user['user_nicename'] = wp_slash( $user['user_nicename'] );
-	$user['user_login']    = wp_slash( $user['user_login'] );
-	$user['user_url']      = wp_slash( $user['user_url'] );
+	$user               = add_magic_quotes( $user );
+	$user['user_email'] = wp_unslash( $user['user_email'] );
 
 	if ( ! empty( $userdata['user_pass'] ) && $userdata['user_pass'] !== $user_obj->user_pass ) {
 		// If password is changing, hash it now.
