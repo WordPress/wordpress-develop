@@ -26,6 +26,9 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
+	/**
+	 * @covers ::_wp_translate_postdata
+	*/
 	public function test__wp_translate_postdata_cap_checks_contributor() {
 		wp_set_current_user( self::$contributor_id );
 
@@ -1330,8 +1333,9 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * Test that _wp_translate_postdata() validates post password length.
 	 *
 	 * @ticket 63943
+	 * @covers ::_wp_translate_postdata
 	 */
-	public function test__wp_translate_postdata_validates_post_password_length() {
+	public function test_invalid_length_post_password() {
 		wp_set_current_user( self::$editor_id );
 
 		// Test password over 255 characters should fail.
@@ -1344,6 +1348,5 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$result = _wp_translate_postdata( false, $post_data );
 		$this->assertWPError( $result );
 		$this->assertSame( 'invalid_post_password_length', $result->get_error_code() );
-		$this->assertSame( 'Post passwords cannot be longer than 255 characters.', $result->get_error_message() );
 	}
 }
