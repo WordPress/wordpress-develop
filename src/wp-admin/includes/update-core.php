@@ -1221,6 +1221,22 @@ function update_core( $from, $to ) {
 		}
 	}
 
+	$may_have_shared_terms = ! get_option( 'finished_splitting_shared_terms' );
+
+	if ( $may_have_shared_terms ) {
+		// This is the last version that contained support for handling and splitting shared terms.
+		$interim_version = '6.8';
+
+		return new WP_Error(
+			'may_have_shared_terms',
+			sprintf(
+				/* translators: %s: WordPress version number */
+				__( 'The update cannot be installed because your database may still contain terms that are shared between categories and tags. Please update to WordPress %s first.' ),
+				$interim_version
+			)
+		);
+	}
+
 	/** This filter is documented in wp-admin/includes/update-core.php */
 	apply_filters( 'update_feedback', __( 'Preparing to install the latest version&#8230;' ) );
 

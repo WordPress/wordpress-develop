@@ -67,7 +67,7 @@ jobs:
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
         # WordPress 4.9 is the oldest version that supports PHP 7.2.
-        wp: [ '4.9', '6.6', '6.7', '6.8' ]
+        wp: [ '4.1', '4.2', '4.3', '4.9', '6.6', '6.7', '6.8' ]
         multisite: [ false, true ]
 
         exclude:
@@ -77,6 +77,12 @@ jobs:
           # WordPress 4.9 does not support PHP 8.4.
           - php: '8.4'
             wp: '4.9'
+          - php: '8.4'
+            wp: '4.3'
+          - php: '8.4'
+            wp: '4.2'
+          - php: '8.4'
+            wp: '4.1'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}

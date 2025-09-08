@@ -636,47 +636,6 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		_unregister_taxonomy( 'wptests_tax', 'post' );
 	}
 
-	/**
-	 * @ticket 5809
-	 */
-	public function test_wp_insert_term_duplicate_slug_different_taxonomy_before_410_schema_change() {
-		$old_db_version = 30055;
-		update_option( 'db_version', $old_db_version );
-
-		register_taxonomy( 'wptests_tax', 'post' );
-		register_taxonomy( 'wptests_tax_2', 'post' );
-		$t = self::factory()->term->create(
-			array(
-				'name'     => 'Foo',
-				'slug'     => 'foo',
-				'taxonomy' => 'wptests_tax',
-			)
-		);
-
-		$term = get_term( $t, 'wptests_tax' );
-
-		$created = wp_insert_term(
-			'Foo 2',
-			'wptests_tax_2',
-			array(
-				'slug' => 'foo',
-			)
-		);
-
-		$this->assertNotWPError( $created );
-
-		$new_term = get_term( $created['term_id'], 'wptests_tax_2' );
-
-		/*
-		 * As of 4.1, we no longer create a shared term, but we also do not
-		 * allow for duplicate slugs.
-		 */
-		$this->assertSame( 'foo-2', $new_term->slug );
-		$this->assertNotEquals( $new_term->term_id, $term->term_id );
-
-		_unregister_taxonomy( 'wptests_tax', 'post' );
-	}
-
 	public function test_wp_insert_term_alias_of_no_term_group() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$t1     = self::factory()->term->create(
@@ -749,19 +708,6 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		_unregister_taxonomy( 'wptests_tax' );
 
 		$this->assertSame( 0, $created_term->term_group );
-	}
-
-	/**
-	 * @ticket 5809
-	 */
-	public function test_wp_insert_term_should_not_create_shared_term() {
-		register_taxonomy( 'wptests_tax', 'post' );
-		register_taxonomy( 'wptests_tax_2', 'post' );
-
-		$t1 = wp_insert_term( 'Foo', 'wptests_tax' );
-		$t2 = wp_insert_term( 'Foo', 'wptests_tax_2' );
-
-		$this->assertNotEquals( $t1['term_id'], $t2['term_id'] );
 	}
 
 	public function test_wp_insert_term_should_return_term_id_and_term_taxonomy_id() {

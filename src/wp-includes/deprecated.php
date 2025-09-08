@@ -6461,3 +6461,153 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
 
 	return $editor_settings;
 }
+
+/**
+ * Creates a new term for a term_taxonomy item that currently shares its term
+ * with another term_taxonomy.
+ *
+ * This function is non-operational since x.y.z.
+ *
+ * @ignore
+ * @since 4.2.0
+ * @since 4.3.0 Introduced `$record` parameter. Also, `$term_id` and
+ *              `$term_taxonomy_id` can now accept objects.
+ * @deprecated x.y.z Shared term functionality no longer exists.
+ *
+ * @param int|object $term_id          ID of the shared term, or the shared term object.
+ * @param int|object $term_taxonomy_id ID of the term_taxonomy item to receive a new term, or the term_taxonomy object
+ *                                     (corresponding to a row from the term_taxonomy table).
+ * @param bool       $record           Whether to record data about the split term in the options table. The recording
+ *                                     process has the potential to be resource-intensive, so during batch operations
+ *                                     it can be beneficial to skip inline recording and do it just once, after the
+ *                                     batch is processed. Only set this to `false` if you know what you are doing.
+ *                                     Default: true.
+ * @return int Returns the term ID.
+ */
+function _split_shared_term( $term_id, $term_taxonomy_id, $record = true ) {
+	return $term_id;
+}
+
+/**
+ * Splits a batch of shared taxonomy terms.
+ *
+ * This function is non-operational since x.y.z.
+ *
+ * @since 4.3.0
+ * @deprecated x.y.z Shared term functionality no longer exists.
+ */
+function _wp_batch_split_terms() {
+}
+
+/**
+ * In order to avoid the _wp_batch_split_terms() job being accidentally removed,
+ * checks that it's still scheduled while we haven't finished splitting terms.
+ *
+ * This function is non-operational since x.y.z.
+ *
+ * @ignore
+ * @since 4.3.0
+ * @deprecated x.y.z Shared term functionality no longer exists.
+ */
+function _wp_check_for_scheduled_split_terms() {
+}
+
+/**
+ * Checks default categories when a term gets split to see if any of them need to be updated.
+ *
+ * This function is non-operational since x.y.z.
+ *
+ * @ignore
+ * @since 4.2.0
+ * @deprecated x.y.z Shared term functionality no longer exists.
+ *
+ * @param int    $term_id          ID of the formerly shared term.
+ * @param int    $new_term_id      ID of the new term created for the $term_taxonomy_id.
+ * @param int    $term_taxonomy_id ID for the term_taxonomy row affected by the split.
+ * @param string $taxonomy         Taxonomy for the split term.
+ */
+function _wp_check_split_default_terms( $term_id, $new_term_id, $term_taxonomy_id, $taxonomy ) {
+}
+
+/**
+ * Checks menu items when a term gets split to see if any of them need to be updated.
+ *
+ * This function is non-operational since x.y.z.
+ *
+ * @ignore
+ * @since 4.2.0
+ * @deprecated x.y.z Shared term functionality no longer exists.
+ *
+ * @param int    $term_id          ID of the formerly shared term.
+ * @param int    $new_term_id      ID of the new term created for the $term_taxonomy_id.
+ * @param int    $term_taxonomy_id ID for the term_taxonomy row affected by the split.
+ * @param string $taxonomy         Taxonomy for the split term.
+ */
+function _wp_check_split_terms_in_menus( $term_id, $new_term_id, $term_taxonomy_id, $taxonomy ) {
+}
+
+/**
+ * If the term being split is a nav_menu, changes associations.
+ *
+ * This function is non-operational since x.y.z.
+ *
+ * @ignore
+ * @since 4.3.0
+ * @deprecated x.y.z Shared term functionality no longer exists.
+ *
+ * @param int    $term_id          ID of the formerly shared term.
+ * @param int    $new_term_id      ID of the new term created for the $term_taxonomy_id.
+ * @param int    $term_taxonomy_id ID for the term_taxonomy row affected by the split.
+ * @param string $taxonomy         Taxonomy for the split term.
+ */
+function _wp_check_split_nav_menu_terms( $term_id, $new_term_id, $term_taxonomy_id, $taxonomy ) {
+}
+
+/**
+ * Gets data about terms that previously shared a single term_id, but have since been split.
+ *
+ * This function is non-operational since x.y.z.
+ *
+ * @since 4.2.0
+ * @deprecated x.y.z Shared term functionality no longer exists.
+ *
+ * @param int $old_term_id Term ID. This is the old, pre-split term ID.
+ * @return array Array of new term IDs, keyed by taxonomy.
+ */
+function wp_get_split_terms( $old_term_id ) {
+	_deprecated_function( __FUNCTION__, 'x.y.z' );
+	return array();
+}
+
+/**
+ * Gets the new term ID corresponding to a previously split term.
+ *
+ * This function is non-operational since x.y.z.
+ *
+ * @since 4.2.0
+ * @deprecated x.y.z Shared term functionality no longer exists.
+ *
+ * @param int    $old_term_id Term ID. This is the old, pre-split term ID.
+ * @param string $taxonomy    Taxonomy that the term belongs to.
+ * @return int Returns the term ID.
+ */
+function wp_get_split_term( $old_term_id, $taxonomy ) {
+	_deprecated_function( __FUNCTION__, 'x.y.z' );
+	return $old_term_id;
+}
+
+/**
+ * Determines whether a term is shared between multiple taxonomies.
+ *
+ * This function is non-operational since x.y.z.
+ *
+ * @since 4.4.0
+ * @deprecated x.y.z Shared term functionality no longer exists.
+ *
+ * @param int $term_id Term ID.
+ * @return false Returns false.
+ */
+function wp_term_is_shared( $term_id ) {
+	_deprecated_function( __FUNCTION__, 'x.y.z' );
+	return false;
+}

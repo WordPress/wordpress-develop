@@ -549,9 +549,6 @@ class WP_Tax_Query {
 				$query = new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 				return;
 			}
-
-			// So long as there are shared terms, 'include_children' requires that a taxonomy is set.
-			$query['include_children'] = false;
 		} elseif ( ! taxonomy_exists( $query['taxonomy'] ) ) {
 			$query = new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 			return;

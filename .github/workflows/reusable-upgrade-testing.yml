@@ -120,6 +120,31 @@ jobs:
         with:
           name: wordpress-develop
 
+      - name: Handle the shared term guard condition
+        if: ${{ inputs.new-version == 'develop' && ( inputs.wp == '4.1' || inputs.wp == '4.2' ) }}
+        run: |
+          set +e
+          output=$(wp core update develop.zip 2>&1)
+          status=$?
+
+          if [ $status -ne 1 ]; then
+            echo "Expected the update to fail with exit code 1, but got $status."
+            echo "Output:"
+            echo "$output"
+            exit 1
+          fi
+
+          expected="The update cannot be installed because your database may still contain terms that are shared between categories and tags. Please update to WordPress 6.8 first."
+
+          if ! grep -q "$expected" <<< "$output"; then
+            echo "Unexpected error message:"
+            echo "$output"
+            exit 1
+          fi
+
+          wp core update --version=4.3
+          wp option update finished_splitting_shared_terms 1
+
       - name: Upgrade to WordPress at current branch
         if: ${{ inputs.new-version == 'develop' }}
         run: |

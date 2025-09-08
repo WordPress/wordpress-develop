@@ -2001,12 +2001,6 @@ function upgrade_430() {
 		upgrade_430_fix_comments();
 	}
 
-	// Shared terms are split in a separate process.
-	if ( $wp_current_db_version < 32814 ) {
-		update_option( 'finished_splitting_shared_terms', 0 );
-		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_split_shared_term_batch' );
-	}
-
 	if ( $wp_current_db_version < 33055 && 'utf8mb4' === $wpdb->charset ) {
 		if ( is_multisite() ) {
 			$tables = $wpdb->tables( 'blog' );
@@ -2080,12 +2074,6 @@ function upgrade_430_fix_comments() {
  * @since 4.3.1
  */
 function upgrade_431() {
-	// Fix incorrect cron entries for term splitting.
-	$cron_array = _get_cron_array();
-	if ( isset( $cron_array['wp_batch_split_terms'] ) ) {
-		unset( $cron_array['wp_batch_split_terms'] );
-		_set_cron_array( $cron_array );
-	}
 }
 
 /**

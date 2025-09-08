@@ -345,49 +345,6 @@ class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 		$this->assertSame( 'Bar', $t3_term->name );
 	}
 
-	/**
-	 * @ticket 5809
-	 */
-	public function test_wp_update_term_should_split_shared_term() {
-		global $wpdb;
-
-		register_taxonomy( 'wptests_tax', 'post' );
-		register_taxonomy( 'wptests_tax_2', 'post' );
-
-		$t1 = wp_insert_term( 'Foo', 'wptests_tax' );
-		$t2 = wp_insert_term( 'Foo', 'wptests_tax_2' );
-
-		// Manually modify because shared terms shouldn't naturally occur.
-		$wpdb->update(
-			$wpdb->term_taxonomy,
-			array( 'term_id' => $t1['term_id'] ),
-			array( 'term_taxonomy_id' => $t2['term_taxonomy_id'] ),
-			array( '%d' ),
-			array( '%d' )
-		);
-
-		$posts = self::factory()->post->create_many( 2 );
-		wp_set_object_terms( $posts[0], array( 'Foo' ), 'wptests_tax' );
-		wp_set_object_terms( $posts[1], array( 'Foo' ), 'wptests_tax_2' );
-
-		// Verify that the terms are shared.
-		$t1_terms = wp_get_object_terms( $posts[0], 'wptests_tax' );
-		$t2_terms = wp_get_object_terms( $posts[1], 'wptests_tax_2' );
-		$this->assertSame( $t1_terms[0]->term_id, $t2_terms[0]->term_id );
-
-		wp_update_term(
-			$t2_terms[0]->term_id,
-			'wptests_tax_2',
-			array(
-				'name' => 'New Foo',
-			)
-		);
-
-		$t1_terms = wp_get_object_terms( $posts[0], 'wptests_tax' );
-		$t2_terms = wp_get_object_terms( $posts[1], 'wptests_tax_2' );
-		$this->assertNotEquals( $t1_terms[0]->term_id, $t2_terms[0]->term_id );
-	}
-
 	public function test_wp_update_term_alias_of_no_term_group() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		$t1     = self::factory()->term->create(
