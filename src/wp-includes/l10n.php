@@ -1141,6 +1141,9 @@ function load_child_theme_textdomain( $domain, $path = false ) {
  *                      false if the script textdomain could not be loaded.
  */
 function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+	global $wp_textdomain_registry;
+
 	$wp_scripts = wp_scripts();
 
 	if ( ! isset( $wp_scripts->registered[ $handle ] ) ) {
@@ -1256,6 +1259,16 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 	if ( $path ) {
 		$translations = load_script_translations( $path . '/' . $md5_filename, $handle, $domain );
 
+		if ( $translations ) {
+			return $translations;
+		}
+	}
+
+	// Check if a custom path was registered for the domain.
+	$reg_path = $wp_textdomain_registry->get( $domain, $locale );
+	if ( $reg_path ) {
+		$reg_path     = untrailingslashit( $reg_path );
+		$translations = load_script_translations( $reg_path . '/' . $md5_filename, $handle, $domain );
 		if ( $translations ) {
 			return $translations;
 		}
