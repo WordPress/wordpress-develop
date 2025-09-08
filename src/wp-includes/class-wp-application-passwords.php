@@ -149,6 +149,23 @@ class WP_Application_Passwords {
 		 */
 		do_action( 'wp_create_application_password', $user_id, $new_item, $new_password, $args );
 
+		// Send email notification to user when a new application password is created.
+		$user = get_userdata( $user_id );
+		if ( $user && $user->user_email ) {
+			$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+			$subject = sprintf( __( '[%s] New application password added to your account' ), $site_name );
+			$message = sprintf(
+				__( "Hello %s,\n\nA new application password named '%s' was added to your account on %s. This password allows access to your account via the REST API.\n\nIf you did not expect this, please review your account security and revoke the password immediately.\n\nApplication password name: %s\nSite: %s\n\nYou can manage your application passwords in your account settings.\n\nRegards,\n%s" ),
+				$user->display_name,
+				$new_item['name'],
+				$site_name,
+				$new_item['name'],
+				home_url(),
+				$site_name
+			);
+			wp_mail( $user->user_email, $subject, $message );
+		}
+
 		return array( $new_password, $new_item );
 	}
 
