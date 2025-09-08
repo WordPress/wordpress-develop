@@ -2507,6 +2507,9 @@ function upgrade_690() {
 			$active_plugins[ $key ] = $new_plugin;
 			update_option( 'active_plugins', $active_plugins );
 		}
+
+		global $wpdb;
+		$wpdb->query( "ALTER TABLE $wpdb->posts ADD INDEX type_status_author (post_type,post_status,post_author)" );
 	}
 }
 
