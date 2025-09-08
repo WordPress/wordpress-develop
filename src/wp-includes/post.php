@@ -3891,7 +3891,7 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 
 	clean_post_cache( $post );
 
-	wp_cache_set_last_changed( $post->post_type . '_count' );( $post->post_type );
+	wp_cache_set_last_changed( $post->post_type . '_count' );;
 
 	if ( is_post_type_hierarchical( $post->post_type ) && $children ) {
 		foreach ( $children as $child ) {
@@ -6725,7 +6725,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file );
 
 	clean_post_cache( $post );
-	wp_cache_set_last_changed( $post->post_type . '_count' );( $post->post_type );
+	wp_cache_set_last_changed( $post->post_type . '_count' );;
 
 	return $post;
 }
@@ -7913,7 +7913,7 @@ function _transition_post_status( $new_status, $old_status, $post ) {
 	}
 
 	if ( $new_status !== $old_status ) {
-		wp_cache_set_last_changed( $post->post_type . '_count' );( $post->post_type );
+		wp_cache_set_last_changed( $post->post_type . '_count' );;
 	}
 
 	// Always clears the hook in case the post status bounced from future to draft.
