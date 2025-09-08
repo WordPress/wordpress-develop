@@ -21,8 +21,8 @@ class Mock_Custom_Ability extends WP_Ability {
  */
 class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
-	public static $test_ability_name       = 'test/add-numbers';
-	public static $test_ability_properties = array();
+	public static $test_ability_name = 'test/add-numbers';
+	public static $test_ability_args = array();
 
 	/**
 	 * Set up before each test.
@@ -30,7 +30,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		self::$test_ability_properties = array(
+		self::$test_ability_args = array(
 			'label'               => 'Add numbers',
 			'description'         => 'Calculates the result of adding two numbers.',
 			'input_schema'        => array(
@@ -108,7 +108,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		// Reset the action count to simulate it not being fired
 		unset( $wp_actions['abilities_api_init'] );
 
-		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
+		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
 		// Restore the original action count
 		if ( $original_count > 0 ) {
@@ -124,15 +124,15 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function test_register_valid_ability(): void {
 		do_action( 'abilities_api_init' );
 
-		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
+		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
 		$this->assertInstanceOf( WP_Ability::class, $result );
 		$this->assertSame( self::$test_ability_name, $result->get_name() );
-		$this->assertSame( self::$test_ability_properties['label'], $result->get_label() );
-		$this->assertSame( self::$test_ability_properties['description'], $result->get_description() );
-		$this->assertSame( self::$test_ability_properties['input_schema'], $result->get_input_schema() );
-		$this->assertSame( self::$test_ability_properties['output_schema'], $result->get_output_schema() );
-		$this->assertSame( self::$test_ability_properties['meta'], $result->get_meta() );
+		$this->assertSame( self::$test_ability_args['label'], $result->get_label() );
+		$this->assertSame( self::$test_ability_args['description'], $result->get_description() );
+		$this->assertSame( self::$test_ability_args['input_schema'], $result->get_input_schema() );
+		$this->assertSame( self::$test_ability_args['output_schema'], $result->get_output_schema() );
+		$this->assertSame( self::$test_ability_args['meta'], $result->get_meta() );
 		$this->assertTrue(
 			$result->has_permission(
 				array(
@@ -158,10 +158,10 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function test_register_ability_no_permissions(): void {
 		do_action( 'abilities_api_init' );
 
-		self::$test_ability_properties['permission_callback'] = static function (): bool {
+		self::$test_ability_args['permission_callback'] = static function (): bool {
 			return false;
 		};
-		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
+		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
 		$this->assertFalse(
 			$result->has_permission(
@@ -194,7 +194,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$result = wp_register_ability(
 			self::$test_ability_name,
 			array_merge(
-				self::$test_ability_properties,
+				self::$test_ability_args,
 				array(
 					'ability_class' => Mock_Custom_Ability::class,
 				)
@@ -217,7 +217,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		wp_register_ability(
 			self::$test_ability_name,
 			array_merge(
-				self::$test_ability_properties,
+				self::$test_ability_args,
 				array(
 					'ability_class' => 'Non_Existent_Class',
 				)
@@ -232,7 +232,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function test_execute_ability_no_input_schema_match(): void {
 		do_action( 'abilities_api_init' );
 
-		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
+		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
 		$actual = $result->execute(
 			array(
@@ -259,10 +259,11 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function test_execute_ability_no_output_schema_match(): void {
 		do_action( 'abilities_api_init' );
 
-		self::$test_ability_properties['execute_callback'] = static function (): bool {
+		self::$test_ability_args['execute_callback'] = static function (): bool {
 			return true;
 		};
-		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
 		$actual = $result->execute(
 			array(
@@ -287,7 +288,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function test_permission_callback_no_input_schema_match(): void {
 		do_action( 'abilities_api_init' );
 
-		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
+		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
 		$actual = $result->has_permission(
 			array(
@@ -314,14 +315,14 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function test_permission_callback_receives_input(): void {
 		do_action( 'abilities_api_init' );
 
-		$received_input                                       = null;
-		self::$test_ability_properties['permission_callback'] = static function ( array $input ) use ( &$received_input ): bool {
+		$received_input                                 = null;
+		self::$test_ability_args['permission_callback'] = static function ( array $input ) use ( &$received_input ): bool {
 			$received_input = $input;
 			// Allow only if 'a' is greater than 'b'
 			return $input['a'] > $input['b'];
 		};
 
-		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
+		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
 		// Test with a > b (should be allowed)
 		$this->assertTrue(
@@ -364,12 +365,12 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function test_unregister_existing_ability() {
 		do_action( 'abilities_api_init' );
 
-		wp_register_ability( self::$test_ability_name, self::$test_ability_properties );
+		wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
 		$result = wp_unregister_ability( self::$test_ability_name );
 
 		$this->assertEquals(
-			new WP_Ability( self::$test_ability_name, self::$test_ability_properties ),
+			new WP_Ability( self::$test_ability_name, self::$test_ability_args ),
 			$result
 		);
 	}
@@ -378,10 +379,10 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * Tests retrieving existing ability.
 	 */
 	public function test_get_existing_ability() {
-		$name       = self::$test_ability_name;
-		$properties = self::$test_ability_properties;
-		$callback   = static function ( $instance ) use ( $name, $properties ) {
-			wp_register_ability( $name, $properties );
+		$name     = self::$test_ability_name;
+		$args     = self::$test_ability_args;
+		$callback = static function ( $instance ) use ( $name, $args ) {
+			wp_register_ability( $name, $args );
 		};
 
 		add_action( 'abilities_api_init', $callback );
@@ -390,14 +391,14 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$registry_reflection = new ReflectionClass( WP_Abilities_Registry::class );
 		$instance_prop       = $registry_reflection->getProperty( 'instance' );
 		$instance_prop->setAccessible( true );
-		$instance_prop->setValue( null );
+		$instance_prop->setValue( null, null );
 
 		$result = wp_get_ability( $name );
 
 		remove_action( 'abilities_api_init', $callback );
 
 		$this->assertEquals(
-			new WP_Ability( $name, $properties ),
+			new WP_Ability( $name, $args ),
 			$result,
 			'Ability does not share expected properties.'
 		);
@@ -409,22 +410,22 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function test_get_all_registered_abilities() {
 		do_action( 'abilities_api_init' );
 
-		$ability_one_name       = 'test/ability-one';
-		$ability_one_properties = self::$test_ability_properties;
-		wp_register_ability( $ability_one_name, $ability_one_properties );
+		$ability_one_name = 'test/ability-one';
+		$ability_one_args = self::$test_ability_args;
+		wp_register_ability( $ability_one_name, $ability_one_args );
 
-		$ability_two_name       = 'test/ability-two';
-		$ability_two_properties = self::$test_ability_properties;
-		wp_register_ability( $ability_two_name, $ability_two_properties );
+		$ability_two_name = 'test/ability-two';
+		$ability_two_args = self::$test_ability_args;
+		wp_register_ability( $ability_two_name, $ability_two_args );
 
-		$ability_three_name       = 'test/ability-three';
-		$ability_three_properties = self::$test_ability_properties;
-		wp_register_ability( $ability_three_name, $ability_three_properties );
+		$ability_three_name = 'test/ability-three';
+		$ability_three_args = self::$test_ability_args;
+		wp_register_ability( $ability_three_name, $ability_three_args );
 
 		$expected = array(
-			$ability_one_name   => new WP_Ability( $ability_one_name, $ability_one_properties ),
-			$ability_two_name   => new WP_Ability( $ability_two_name, $ability_two_properties ),
-			$ability_three_name => new WP_Ability( $ability_three_name, $ability_three_properties ),
+			$ability_one_name   => new WP_Ability( $ability_one_name, $ability_one_args ),
+			$ability_two_name   => new WP_Ability( $ability_two_name, $ability_two_args ),
+			$ability_three_name => new WP_Ability( $ability_three_name, $ability_three_args ),
 		);
 
 		$result = wp_get_abilities();
