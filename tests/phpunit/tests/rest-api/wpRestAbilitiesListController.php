@@ -1,6 +1,8 @@
 <?php declare( strict_types=1 );
 
 /**
+ * Tests for the REST list controller for abilities endpoint.
+ *
  * @covers WP_REST_Abilities_List_Controller
  * @group abilities-api
  * @group rest-api

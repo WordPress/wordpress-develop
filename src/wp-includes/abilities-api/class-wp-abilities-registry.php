@@ -39,16 +39,16 @@ final class WP_Abilities_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_register_ability()` function.
 	 *
-	 * @see wp_register_ability()
-	 *
 	 * @since 0.1.0
 	 *
-	 * @param string              $name       The name of the ability. The name must be a string containing a namespace
-	 *                                        prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
-	 *                                        alphanumeric characters, dashes and the forward slash.
-	 * @param array<string,mixed> $properties An associative array of properties for the ability. This should include
-	 *                                        `label`, `description`, `input_schema`, `output_schema`,
-	 *                                        `execute_callback`, `permission_callback`, `meta`, and ability_class.
+	 * @see wp_register_ability()
+	 *
+	 * @param string              $name The name of the ability. The name must be a string containing a namespace
+	 *                                  prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
+	 *                                  alphanumeric characters, dashes and the forward slash.
+	 * @param array<string,mixed> $args An associative array of arguments for the ability. This should include
+	 *                                  `label`, `description`, `input_schema`, `output_schema`,
+	 *                                  `execute_callback`, `permission_callback`, `meta`, and ability_class.
 	 * @return ?\WP_Ability The registered ability instance on success, null on failure.
 	 *
 	 * @phpstan-param array{
@@ -61,9 +61,9 @@ final class WP_Abilities_Registry {
 	 *   meta?: array<string,mixed>,
 	 *   ability_class?: class-string<\WP_Ability>,
 	 *   ...<string, mixed>
-	 * } $properties
+	 * } $args
 	 */
-	public function register( string $name, array $properties = array() ): ?WP_Ability {
+	public function register( string $name, array $args ): ?WP_Ability {
 		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -85,86 +85,29 @@ final class WP_Abilities_Registry {
 			return null;
 		}
 
-		if ( empty( $properties['label'] ) || ! is_string( $properties['label'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				esc_html__( 'The ability properties must contain a `label` string.' ),
-				'0.1.0'
-			);
-			return null;
-		}
-
-		if ( empty( $properties['description'] ) || ! is_string( $properties['description'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				esc_html__( 'The ability properties must contain a `description` string.' ),
-				'0.1.0'
-			);
-			return null;
-		}
-
-		if ( isset( $properties['input_schema'] ) && ! is_array( $properties['input_schema'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				esc_html__( 'The ability properties should provide a valid `input_schema` definition.' ),
-				'0.1.0'
-			);
-			return null;
-		}
-
-		if ( isset( $properties['output_schema'] ) && ! is_array( $properties['output_schema'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				esc_html__( 'The ability properties should provide a valid `output_schema` definition.' ),
-				'0.1.0'
-			);
-			return null;
-		}
-
-		if ( empty( $properties['execute_callback'] ) || ! is_callable( $properties['execute_callback'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				esc_html__( 'The ability properties must contain a valid `execute_callback` function.' ),
-				'0.1.0'
-			);
-			return null;
-		}
-
-		if ( isset( $properties['permission_callback'] ) && ! is_callable( $properties['permission_callback'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				esc_html__( 'The ability properties should provide a valid `permission_callback` function.' ),
-				'0.1.0'
-			);
-			return null;
-		}
-
-		if ( isset( $properties['meta'] ) && ! is_array( $properties['meta'] ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				esc_html__( 'The ability properties should provide a valid `meta` array.' ),
-				'0.1.0'
-			);
-			return null;
-		}
-
-		if ( isset( $properties['ability_class'] ) && ! is_a( $properties['ability_class'], WP_Ability::class, true ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				esc_html__( 'The ability properties should provide a valid `ability_class` that extends WP_Ability.' ),
-				'0.1.0'
-			);
-			return null;
-		}
-
 		// The class is only used to instantiate the ability, and is not a property of the ability itself.
-		$ability_class = $properties['ability_class'] ?? WP_Ability::class;
-		unset( $properties['ability_class'] );
+		if ( isset( $args['ability_class'] ) && ! is_a( $args['ability_class'], WP_Ability::class, true ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html__( 'The ability args should provide a valid `ability_class` that extends WP_Ability.' ),
+				'0.1.0'
+			);
+			return null;
+		}
+		$ability_class = $args['ability_class'] ?? WP_Ability::class;
+		unset( $args['ability_class'] );
 
-		$ability = new $ability_class(
-			$name,
-			$properties
-		);
+		try {
+			// WP_Ability::prepare_properties() will throw an exception if the properties are invalid.
+			$ability = new $ability_class( $name, $args );
+		} catch ( \InvalidArgumentException $e ) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html( $e->getMessage() ),
+				'0.1.0'
+			);
+			return null;
+		}
 
 		$this->registered_abilities[ $name ] = $ability;
 		return $ability;
@@ -175,9 +118,9 @@ final class WP_Abilities_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_unregister_ability()` function.
 	 *
-	 * @see wp_unregister_ability()
-	 *
 	 * @since 0.1.0
+	 *
+	 * @see wp_unregister_ability()
 	 *
 	 * @param string $name The name of the registered ability, with its namespace.
 	 * @return ?\WP_Ability The unregistered ability instance on success, null on failure.
@@ -204,9 +147,9 @@ final class WP_Abilities_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_get_abilities()` function.
 	 *
-	 * @see wp_get_abilities()
-	 *
 	 * @since 0.1.0
+	 *
+	 * @see wp_get_abilities()
 	 *
 	 * @return \WP_Ability[] The array of registered abilities.
 	 */
@@ -231,9 +174,9 @@ final class WP_Abilities_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_get_ability()` function.
 	 *
-	 * @see wp_get_ability()
-	 *
 	 * @since 0.1.0
+	 *
+	 * @see wp_get_ability()
 	 *
 	 * @param string $name The name of the registered ability, with its namespace.
 	 * @return ?\WP_Ability The registered ability instance, or null if it is not registered.

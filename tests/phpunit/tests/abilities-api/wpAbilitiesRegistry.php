@@ -9,8 +9,8 @@
  */
 class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
-	public static $test_ability_name       = 'test/add-numbers';
-	public static $test_ability_properties = array();
+	public static $test_ability_name = 'test/add-numbers';
+	public static $test_ability_args = array();
 
 	/**
 	 * Mock abilities registry.
@@ -27,7 +27,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		$this->registry = new WP_Abilities_Registry();
 
-		self::$test_ability_properties = array(
+		self::$test_ability_args = array(
 			'label'               => 'Add numbers',
 			'description'         => 'Calculates the result of adding two numbers.',
 			'input_schema'        => array(
@@ -80,7 +80,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_name_without_namespace() {
-		$result = $this->registry->register( 'without-namespace', self::$test_ability_properties );
+		$result = $this->registry->register( 'without-namespace', self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -104,7 +104,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_uppercase_characters_in_name() {
-		$result = $this->registry->register( 'Test/AddNumbers', self::$test_ability_properties );
+		$result = $this->registry->register( 'Test/AddNumbers', self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -116,10 +116,10 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_missing_label() {
-		// Remove the label from the properties.
-		unset( self::$test_ability_properties['label'] );
+		// Remove the label from the args.
+		unset( self::$test_ability_args['label'] );
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -131,9 +131,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_label_type() {
-		self::$test_ability_properties['label'] = false;
+		self::$test_ability_args['label'] = false;
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -145,10 +145,10 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_missing_description() {
-		// Remove the description from the properties.
-		unset( self::$test_ability_properties['description'] );
+		// Remove the description from the args.
+		unset( self::$test_ability_args['description'] );
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -160,9 +160,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_description_type() {
-		self::$test_ability_properties['description'] = false;
+		self::$test_ability_args['description'] = false;
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -174,10 +174,10 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_missing_execute_callback() {
-		// Remove the execute_callback from the properties.
-		unset( self::$test_ability_properties['execute_callback'] );
+		// Remove the execute_callback from the args.
+		unset( self::$test_ability_args['execute_callback'] );
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -189,9 +189,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_incorrect_execute_callback_type() {
-		self::$test_ability_properties['execute_callback'] = 'not-a-callback';
+		self::$test_ability_args['execute_callback'] = 'not-a-callback';
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -203,9 +203,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_incorrect_permission_callback_type() {
-		self::$test_ability_properties['permission_callback'] = 'not-a-callback';
+		self::$test_ability_args['permission_callback'] = 'not-a-callback';
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -217,9 +217,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_incorrect_input_schema_type() {
-		self::$test_ability_properties['input_schema'] = 'not-an-array';
+		self::$test_ability_args['input_schema'] = 'not-an-array';
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -231,9 +231,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_incorrect_output_schema_type() {
-		self::$test_ability_properties['output_schema'] = 'not-an-array';
+		self::$test_ability_args['output_schema'] = 'not-an-array';
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -245,9 +245,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_meta_type() {
-		self::$test_ability_properties['meta'] = false;
+		self::$test_ability_args['meta'] = false;
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
 	}
 
@@ -259,9 +259,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_incorrect_already_registered_ability() {
-		$this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$this->registry->register( self::$test_ability_name, self::$test_ability_args );
 
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 
 		$this->assertNull( $result );
 	}
@@ -272,10 +272,10 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 */
 	public function test_register_new_ability() {
-		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_properties );
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 
 		$this->assertEquals(
-			new WP_Ability( self::$test_ability_name, self::$test_ability_properties ),
+			new WP_Ability( self::$test_ability_name, self::$test_ability_args ),
 			$result
 		);
 	}
@@ -297,9 +297,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::is_registered
 	 */
 	public function test_is_registered_for_known_ability() {
-		$this->registry->register( 'test/one', self::$test_ability_properties );
-		$this->registry->register( 'test/two', self::$test_ability_properties );
-		$this->registry->register( 'test/three', self::$test_ability_properties );
+		$this->registry->register( 'test/one', self::$test_ability_args );
+		$this->registry->register( 'test/two', self::$test_ability_args );
+		$this->registry->register( 'test/three', self::$test_ability_args );
 
 		$result = $this->registry->is_registered( 'test/one' );
 		$this->assertTrue( $result );
@@ -324,9 +324,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::get_registered
 	 */
 	public function test_get_registered_for_known_ability() {
-		$this->registry->register( 'test/one', self::$test_ability_properties );
-		$this->registry->register( 'test/two', self::$test_ability_properties );
-		$this->registry->register( 'test/three', self::$test_ability_properties );
+		$this->registry->register( 'test/one', self::$test_ability_args );
+		$this->registry->register( 'test/two', self::$test_ability_args );
+		$this->registry->register( 'test/three', self::$test_ability_args );
 
 		$result = $this->registry->get_registered( 'test/two' );
 		$this->assertEquals( 'test/two', $result->get_name() );
@@ -351,9 +351,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::unregister
 	 */
 	public function test_unregister_for_known_ability() {
-		$this->registry->register( 'test/one', self::$test_ability_properties );
-		$this->registry->register( 'test/two', self::$test_ability_properties );
-		$this->registry->register( 'test/three', self::$test_ability_properties );
+		$this->registry->register( 'test/one', self::$test_ability_args );
+		$this->registry->register( 'test/two', self::$test_ability_args );
+		$this->registry->register( 'test/three', self::$test_ability_args );
 
 		$result = $this->registry->unregister( 'test/three' );
 		$this->assertEquals( 'test/three', $result->get_name() );
@@ -369,18 +369,36 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_get_all_registered() {
 		$ability_one_name = 'test/one';
-		$this->registry->register( $ability_one_name, self::$test_ability_properties );
+		$this->registry->register( $ability_one_name, self::$test_ability_args );
 
 		$ability_two_name = 'test/two';
-		$this->registry->register( $ability_two_name, self::$test_ability_properties );
+		$this->registry->register( $ability_two_name, self::$test_ability_args );
 
 		$ability_three_name = 'test/three';
-		$this->registry->register( $ability_three_name, self::$test_ability_properties );
+		$this->registry->register( $ability_three_name, self::$test_ability_args );
 
 		$result = $this->registry->get_all_registered();
 		$this->assertCount( 3, $result );
 		$this->assertSame( $ability_one_name, $result[ $ability_one_name ]->get_name() );
 		$this->assertSame( $ability_two_name, $result[ $ability_two_name ]->get_name() );
 		$this->assertSame( $ability_three_name, $result[ $ability_three_name ]->get_name() );
+	}
+
+	/**
+	 * Direct instantiation of WP_Ability with invalid properties should throw an exception.
+	 *
+	 * @covers WP_Ability::__construct
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_wp_ability_invalid_properties_throws_exception() {
+		$this->expectException( \InvalidArgumentException::class );
+		new WP_Ability(
+			'test/invalid',
+			array(
+				'label'            => '',
+				'description'      => '',
+				'execute_callback' => null,
+			)
+		);
 	}
 }

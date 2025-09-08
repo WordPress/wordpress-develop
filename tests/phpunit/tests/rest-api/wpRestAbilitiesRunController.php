@@ -1,6 +1,8 @@
 <?php declare( strict_types=1 );
 
 /**
+ * Tests for the REST run controller for abilities endpoint.
+ *
  * @covers WP_REST_Abilities_Run_Controller
  * @group abilities-api
  * @group rest-api

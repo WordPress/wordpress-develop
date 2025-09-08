@@ -2,8 +2,9 @@
 /**
  * REST API list controller for Abilities API.
  *
- * @package abilities-api
- * @since   0.1.0
+ * @package WordPress
+ * @subpackage Abilities_API
+ * @since 0.1.0
  */
 
 declare( strict_types = 1 );
