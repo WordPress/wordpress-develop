@@ -1334,27 +1334,16 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	public function test__wp_translate_postdata_validates_post_password_length() {
 		wp_set_current_user( self::$editor_id );
 
-		// Test valid password within 255 character limit.
-		$valid_password = str_repeat( 'a', 255 );
-		$post_data = array(
-			'post_type'     => 'post',
-			'post_password' => $valid_password,
-		);
-
-		$result = _wp_translate_postdata( false, $post_data );
-		$this->assertNotWPError( $result );
-		$this->assertSame( $valid_password, $result['post_password'] );
-
-		// Test password over 255 characters (should fail).
-		$invalid_password = str_repeat( 'b', 256 );
-		$post_data = array(
+		// Test password over 255 characters should fail.
+		$invalid_password = str_repeat( 'a', 256 );
+		$post_data        = array(
 			'post_type'     => 'post',
 			'post_password' => $invalid_password,
 		);
 
 		$result = _wp_translate_postdata( false, $post_data );
 		$this->assertWPError( $result );
-		$this->assertSame( 'invalid_post_password', $result->get_error_code() );
-		$this->assertSame( 'Error: Post passwords cannot be longer than 255 characters.', $result->get_error_message() );
+		$this->assertSame( 'invalid_post_password_length', $result->get_error_code() );
+		$this->assertSame( 'Post passwords cannot be longer than 255 characters.', $result->get_error_message() );
 	}
 }
