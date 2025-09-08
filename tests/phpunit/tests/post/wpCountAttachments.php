@@ -25,8 +25,10 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 				'post_mime_type' => $mime_type,
 			)
 		);
-		$expected = wp_count_attachments( $mime_type );
-		$actual   = wp_cache_get( $cache_key, 'counts' );
+		$expected     = wp_count_attachments( $mime_type );
+		$last_changed = wp_cache_get_last_changed( 'posts' );
+
+		$actual = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 
 		$this->assertEquals( $expected, $actual );
 	}
