@@ -563,9 +563,11 @@ class WP_Users_List_Table extends WP_List_Table {
 			$attributes = "class='$classes' $data";
 
 			if ( 'cb' === $column_name ) {
-				$row .= "<th scope='row' class='check-column'>$checkbox</th>";
+				$row .= "<td class='check-column'>$checkbox</td>";
 			} else {
-				$row .= "<td $attributes>";
+				$tag = ( $primary === $column_name ) ? 'th' : 'td';
+				$scope = ( $primary === $column_name ) ? ' scope="row"' : '';
+				$row .= "<$tag $attributes$scope>";
 				switch ( $column_name ) {
 					case 'username':
 						$row .= "$avatar $edit";
@@ -628,7 +630,8 @@ class WP_Users_List_Table extends WP_List_Table {
 				if ( $primary === $column_name ) {
 					$row .= $this->row_actions( $actions );
 				}
-				$row .= '</td>';
+				$tag = ( $primary === $column_name ) ? 'th' : 'td';
+				$row .= "</$tag>";
 			}
 		}
 		$row .= '</tr>';
