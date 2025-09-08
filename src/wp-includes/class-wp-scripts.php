@@ -538,6 +538,12 @@ class WP_Scripts extends WP_Dependencies {
 			return '';
 		}
 
+		/*
+		 * Print sourceURL comment regardless of concatenation.
+		 *
+		 * Inline scripts prevent scripts from being concatenated, so
+		 * sourceURL comments are safe to print for inline scripts.
+		 */
 		$data[] = sprintf(
 			'//# sourceURL=%s',
 			rawurlencode( "{$handle}-js-{$position}" )
