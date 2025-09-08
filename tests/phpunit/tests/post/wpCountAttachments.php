@@ -26,7 +26,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 			)
 		);
 		$expected     = wp_count_attachments( $mime_type );
-		$last_changed = wp_cache_get_last_changed( 'posts' );
+		$last_changed = wp_cache_get_last_changed( 'attachment_count' );
 
 		$actual = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 
