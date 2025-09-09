@@ -27,7 +27,10 @@ class Tests_Admin_OptionsPermalink extends WP_UnitTestCase {
 	 * @ticket 16839
 	 * @dataProvider data_base_sanitization
 	 */
-	public function test_base_sanitization() {
+	public function test_base_sanitization( $input, $expected ) {
+		$base = ltrim( $input, '/' );
+		$result = empty( $base ) ? '' : '/' . implode( '/', array_map( 'sanitize_title_with_dashes', preg_split( '|/+|', $base ) ) );
 		
+		$this->assertSame( $expected, $result );
 	}
 }
