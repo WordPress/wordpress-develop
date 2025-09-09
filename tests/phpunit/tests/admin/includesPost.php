@@ -1335,7 +1335,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	 * @ticket 63943
 	 * @covers ::_wp_translate_postdata
 	 */
-	public function test_invalid_length_post_password() {
+	public function test_validity_post_password_length() {
 		wp_set_current_user( self::$editor_id );
 
 		// Test valid password within 255 character limit.
