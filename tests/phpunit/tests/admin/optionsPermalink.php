@@ -11,13 +11,13 @@ class Tests_Admin_OptionsPermalink extends WP_UnitTestCase {
 	 * Data provider for base sanitization tests.
 	 */
 	public function data_base_sanitization() {
-		return [
-			[ 'Foo Bar', '/foo-bar' ],
-			[ 'Foo & Bar!', '/foo-bar' ],
-			[ 'Foo Bar/Baz Qux', '/foo-bar/baz-qux' ],
-			[ '', '' ],
-			[ '/Foo Bar', '/foo-bar' ],
-			[ 'Multiple/Slashes', '/multiple/slashes' ],
-		];
+		return array(
+			array( 'Foo Bar', '/foo-bar' ),
+			array( 'Foo & Bar!', '/foo-bar' ),
+			array( 'Foo Bar/Baz Qux', '/foo-bar/baz-qux' ),
+			array( '', '' ),
+			array( '/Foo Bar', '/foo-bar' ),
+			array( 'Multiple/Slashes', '/multiple/slashes' ),
+		);
 	}
 }
