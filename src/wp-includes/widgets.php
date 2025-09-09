@@ -1352,7 +1352,7 @@ function retrieve_widgets( $theme_changed = false ) {
 
 	// Replace null values inside the array with an empty array.
 	foreach ( $sidebars_widgets as $key => $value ) {
-		if ( null === $value ) {
+		if ( ! is_array( $value ) ) {
 			$sidebars_widgets[ $key ] = array();
 		}
 	}
@@ -1520,7 +1520,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 
 		// Replace null values inside the array with an empty array.
 		foreach ( $new_sidebars_widgets as $key => $value ) {
-			if ( null === $value ) {
+			if ( ! is_array( $value ) ) {
 				$new_sidebars_widgets[ $key ] = array();
 			}
 		}
