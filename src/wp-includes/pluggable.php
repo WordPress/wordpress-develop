@@ -297,17 +297,19 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		} else {
 			if ( ! is_array( $headers ) ) {
 				/*
-				 * Explode the headers out, so this function can take
-				 * both string headers and an array of headers.
+				 * Process headers and handle folding in a single pass.
+				 * Lines starting with whitespace (space or tab) are continuations of the previous line.
 				 */
-				$tempheaders = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
+				$tempheaders        = array();
+				$normalized_headers = str_replace( "\r\n", "\n", $headers );
 
-				// Line which starts with whitespace (space or tab) is a continuation of previous line, need to keep them as one.
-				for ( $index = 0; $index < count( $tempheaders ); $index++ ) {
-					if ( $index > 0 && isset( $tempheaders[ $index ] ) && ( ' ' === $tempheaders[ $index ][0] || "\t" === $tempheaders[ $index ][0] ) ) {
-						$tempheaders[ $index - 1 ] .= "\n" . $tempheaders[ $index ];
-						array_splice( $tempheaders, $index, 1 );
-						--$index;
+				foreach ( explode( "\n", $normalized_headers ) as $header_line ) {
+					if ( ! empty( $tempheaders ) && isset( $header_line[0] ) && ( ' ' === $header_line[0] || "\t" === $header_line[0] ) ) {
+						// Continuation line - append to previous header.
+						$last_index                  = count( $tempheaders ) - 1;
+						$tempheaders[ $last_index ] .= "\n" . $header_line;
+					} else {
+						$tempheaders[] = $header_line;
 					}
 				}
 			} else {
