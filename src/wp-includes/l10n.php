@@ -1134,6 +1134,8 @@ function load_child_theme_textdomain( $domain, $path = false ) {
  *
  * @see WP_Scripts::set_translations()
  *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ *
  * @param string $handle Name of the script to register a translation domain to.
  * @param string $domain Optional. Text domain. Default 'default'.
  * @param string $path   Optional. The full file path to the directory containing translation files.
