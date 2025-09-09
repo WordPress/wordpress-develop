@@ -97,16 +97,29 @@ class WP_Widget_Categories extends WP_Widget {
 
 <script>
 (function() {
-	var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' );
+	var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' ), lastkey;
 	function onCatChange(e) {
-		if ( 'keyup' === e.type && 'Escape' !== e.key ) {
+      setTimeout(function() {
+        lastKey = dropdown.getAttribute( 'data-lastkey' );
+		if ( 'change' === e.type && 'escape' === lastKey ) {
 			return;
-		}
+        }
 		if ( dropdown.options[ dropdown.selectedIndex ].value > 0 ) {
-			dropdown.parentNode.submit();
+          dropdown.parentNode.submit();
 		}
+      }, 250 );
 	}
-	dropdown.addEventListener( 'change', onCatChange(e) );
+    dropdown.addEventListener( 'keyup', function(e) {
+     if ( 'Escape' === e.key ) {
+         dropdown.setAttribute( 'data-lastkey', 'escape' ); 
+     } else {
+        dropdown.removeAttribute( 'data-lastkey' ); 
+     }
+    });
+    dropdown.addEventListener( 'click', function() {
+      dropdown.removeAttribute( 'data-lastkey' );
+    });
+    dropdown.onchange = onCatChange;
 })();
 </script>
 
