@@ -99,27 +99,27 @@ class WP_Widget_Categories extends WP_Widget {
 (function() {
 	var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' ), lastkey;
 	function onCatChange(e) {
-      setTimeout(function() {
-        lastKey = dropdown.getAttribute( 'data-lastkey' );
-		if ( 'change' === e.type && 'escape' === lastKey ) {
-			return;
-        }
-		if ( dropdown.options[ dropdown.selectedIndex ].value > 0 ) {
-          dropdown.parentNode.submit();
-		}
-      }, 250 );
+		setTimeout(function() {
+			lastKey = dropdown.getAttribute( 'data-lastkey' );
+			if ( 'change' === e.type && 'escape' === lastKey ) {
+				return;
+			}
+			if ( dropdown.options[ dropdown.selectedIndex ].value > 0 ) {
+				dropdown.parentNode.submit();
+			}
+		}, 250 );
 	}
-    dropdown.addEventListener( 'keyup', function(e) {
-     if ( 'Escape' === e.key ) {
-         dropdown.setAttribute( 'data-lastkey', 'escape' ); 
-     } else {
-        dropdown.removeAttribute( 'data-lastkey' ); 
-     }
-    });
-    dropdown.addEventListener( 'click', function() {
-      dropdown.removeAttribute( 'data-lastkey' );
-    });
-    dropdown.onchange = onCatChange;
+	dropdown.addEventListener( 'keyup', function(e) {
+		if ( 'Escape' === e.key ) {
+			dropdown.setAttribute( 'data-lastkey', 'escape' ); 
+		} else {
+			dropdown.removeAttribute( 'data-lastkey' ); 
+		}
+	});
+	dropdown.addEventListener( 'click', function() {
+		dropdown.removeAttribute( 'data-lastkey' );
+	});
+	dropdown.onchange = onCatChange;
 })();
 </script>
 

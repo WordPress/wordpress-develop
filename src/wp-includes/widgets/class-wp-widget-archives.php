@@ -110,12 +110,28 @@ class WP_Widget_Archives extends WP_Widget {
 			<?php ob_start(); ?>
 <script>
 (function() {
-	var dropdown = document.getElementById( "<?php echo esc_js( $dropdown_id ); ?>" );
-	function onSelectChange() {
-		if ( dropdown.options[ dropdown.selectedIndex ].value !== '' ) {
-			document.location.href = this.options[ this.selectedIndex ].value;
-		}
+	var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' ), lastkey;
+	function onSelectChange(e) {
+		setTimeout(function() {
+			lastKey = dropdown.getAttribute( 'data-lastkey' );
+			if ( 'change' === e.type && 'escape' === lastKey ) {
+				return;
+			}
+			if ( dropdown.options[ dropdown.selectedIndex ].value !== '' ) {
+				document.location.href = this.options[ this.selectedIndex ].value;
+			}
+		}, 250 );
 	}
+	dropdown.addEventListener( 'keyup', function(e) {
+		if ( 'Escape' === e.key ) {
+			dropdown.setAttribute( 'data-lastkey', 'escape' ); 
+		} else {
+			dropdown.removeAttribute( 'data-lastkey' ); 
+		}
+	});
+    dropdown.addEventListener( 'click', function() {
+		dropdown.removeAttribute( 'data-lastkey' );
+    });
 	dropdown.onchange = onSelectChange;
 })();
 </script>
