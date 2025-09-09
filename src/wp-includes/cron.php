@@ -118,7 +118,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 	 * current time) all events scheduled within the next ten minutes
 	 * are considered duplicates.
 	 */
-	$crons = _get_cron_array();
+	$crons = _get_cron_array( true );
 
 	$key       = md5( serialize( $event->args ) );
 	$duplicate = false;
@@ -300,7 +300,7 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 
 	$key = md5( serialize( $event->args ) );
 
-	$crons = _get_cron_array();
+	$crons = _get_cron_array( true );
 
 	$crons[ $event->timestamp ][ $event->hook ][ $key ] = array(
 		'schedule' => $event->schedule,
