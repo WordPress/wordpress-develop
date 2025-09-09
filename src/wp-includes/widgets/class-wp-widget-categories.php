@@ -97,13 +97,16 @@ class WP_Widget_Categories extends WP_Widget {
 
 <script>
 (function() {
-	var dropdown = document.getElementById( "<?php echo esc_js( $dropdown_id ); ?>" );
-	function onCatChange() {
+	var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' );
+	function onCatChange(e) {
+		if ( 'keyup' === e.type && 'Escape' !== e.key ) {
+			return;
+		}
 		if ( dropdown.options[ dropdown.selectedIndex ].value > 0 ) {
 			dropdown.parentNode.submit();
 		}
 	}
-	dropdown.onchange = onCatChange;
+	dropdown.addEventListener( 'change', onCatChange(e) );
 })();
 </script>
 
