@@ -1338,6 +1338,17 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	public function test_invalid_length_post_password() {
 		wp_set_current_user( self::$editor_id );
 
+		// Test valid password within 255 character limit.
+		$valid_password = str_repeat( 'a', 255 );
+		$post_data      = array(
+			'post_type'     => 'post',
+			'post_password' => $valid_password,
+		);
+
+		$result = _wp_translate_postdata( false, $post_data );
+		$this->assertNotWPError( $result );
+		$this->assertSame( $valid_password, $result['post_password'] );
+
 		// Test password over 255 characters should fail.
 		$invalid_password = str_repeat( 'a', 256 );
 		$post_data        = array(
@@ -1348,5 +1359,24 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$result = _wp_translate_postdata( false, $post_data );
 		$this->assertWPError( $result );
 		$this->assertSame( 'invalid_post_password_length', $result->get_error_code() );
+	}
+
+	/**
+	 * Test that _wp_translate_postdata() removes post password for users without publish_posts capability.
+	 *
+	 * @covers ::_wp_translate_postdata
+	 */
+	public function test_post_password_removed_for_users_without_publish_posts_cap() {
+		wp_set_current_user( self::$contributor_id );
+
+		// Contributors cannot publish posts, so password should be removed.
+		$post_data = array(
+			'post_type'     => 'post',
+			'post_password' => 'test_password',
+			'post_status'   => 'draft',
+		);
+
+		$result = _wp_translate_postdata( false, $post_data );
+		$this->assertArrayNotHasKey( 'post_password', $result );
 	}
 }
