@@ -20,4 +20,14 @@ class Tests_Admin_OptionsPermalink extends WP_UnitTestCase {
 			array( 'Multiple/Slashes', '/multiple/slashes' ),
 		);
 	}
+
+	/**
+	 * Test category and tag base sanitization.
+	 *
+	 * @ticket 16839
+	 * @dataProvider data_base_sanitization
+	 */
+	public function test_base_sanitization() {
+		
+	}
 }
