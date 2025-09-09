@@ -1180,6 +1180,23 @@ EOF;
 				'css'      => 'object-fit: cover',
 				'expected' => 'object-fit: cover',
 			),
+			// `white-space` introduced in 6.9.0.
+			array(
+				'css'      => 'white-space: nowrap',
+				'expected' => 'white-space: nowrap',
+			),
+			array(
+				'css'      => 'white-space: pre',
+				'expected' => 'white-space: pre',
+			),
+			array(
+				'css'      => 'white-space: pre-wrap',
+				'expected' => 'white-space: pre-wrap',
+			),
+			array(
+				'css'      => 'white-space: pre-line',
+				'expected' => 'white-space: pre-line',
+			),
 			// Expressions are not allowed.
 			array(
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
