@@ -385,7 +385,7 @@
 	 * @return {boolean} True if Caps Lock is on, false otherwise. 
 	 */
 	function isCapsLockOn( e ) {
-		// Skip warning on macOS Safari (they show native indicators).
+		// Skip warning on macOS Safari + Firefox (they show native indicators).
 		if ( isMac && ( isSafari || isFirefox ) ) {
 			return false;
 		}
