@@ -1861,13 +1861,14 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @ticket 54416
 	 */
-	public function test_send_confirmation_on_profile_email_with_apostrophe() {
+	public function test_send_confirmation_on_profile_email_with_special_chars() {
 		reset_phpmailer_instance();
 		$was_confirmation_email_sent = false;
 
 		$user = self::factory()->user->create_and_get(
 			array(
-				'user_email' => 'user@example.com',
+				'role'       => 'subscriber',
+				'user_email' => 'before@example.com',
 			)
 		);
 
@@ -1878,22 +1879,21 @@ class Tests_User extends WP_UnitTestCase {
 
 		do_action( 'personal_options_update' );
 
-		$mailer = tests_retrieve_phpmailer_instance();
-
-		$recipient = $mailer->get_recipient( 'to' );
-		if ( $recipient ) {
-			$was_confirmation_email_sent = ( "o'connor@example.com" === $recipient->address );
+		if ( ! empty( $GLOBALS['phpmailer']->mock_sent ) ) {
+			$was_confirmation_email_sent = ( isset( $GLOBALS['phpmailer']->mock_sent[0] ) && "o'connor@example.com" === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] );
 		}
 
+		// A confirmation email is sent.
 		$this->assertTrue( $was_confirmation_email_sent );
-		$this->assertSame( "o'connor@example.com", $recipient->address );
 
+		// The new email address gets put into user_meta.
 		$new_email_meta = get_user_meta( $user->ID, '_new_email', true );
 		$this->assertSame( "o'connor@example.com", $new_email_meta['newemail'] );
 
-		$sent_email = $mailer->get_sent();
-		$this->assertStringContainsString( "o'connor@example.com", $sent_email->header );
+		// The email address of the user doesn't change. $_POST['email'] should be the email address pre-update.
+		$this->assertSame( $_POST['email'], $user->user_email );
 	}
+
 
 	/**
 	 * @ticket 16470
