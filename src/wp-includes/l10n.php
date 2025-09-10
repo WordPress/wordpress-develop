@@ -1152,16 +1152,17 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		return false;
 	}
 
-	$path   = untrailingslashit( $path );
 	$locale = determine_locale();
-
-	// If a path was given and the handle file exists simply return it.
-	$file_base       = 'default' === $domain ? $locale : $domain . '-' . $locale;
-	$handle_filename = $file_base . '-' . $handle . '.json';
 
 	if ( ! $path ) {
 		$path = $wp_textdomain_registry->get( $domain, $locale );
 	}
+
+	$path = untrailingslashit( $path );
+
+	// If a path was given and the handle file exists simply return it.
+	$file_base       = 'default' === $domain ? $locale : $domain . '-' . $locale;
+	$handle_filename = $file_base . '-' . $handle . '.json';
 
 	if ( $path ) {
 		$translations = load_script_translations( $path . '/' . $handle_filename, $handle, $domain );
