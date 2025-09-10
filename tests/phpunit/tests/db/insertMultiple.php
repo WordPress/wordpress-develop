@@ -35,12 +35,16 @@ class Tests_DB_InsertMultiple extends WP_UnitTestCase {
 			'%s',
 		);
 
+		$query_count_before = $wpdb->num_queries;
+
 		$inserted = $wpdb->insert_multiple(
 			$table,
 			$columns,
 			$datas,
 			$format
 		);
+
+		$query_count_after_insert = $wpdb->num_queries;
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
@@ -68,7 +72,15 @@ class Tests_DB_InsertMultiple extends WP_UnitTestCase {
 			),
 		);
 
+		$queries_used = $query_count_after_insert - $query_count_before;
+
 		$this->assertSame( 3, $inserted );
 		$this->assertSame( $expected_rows, $rows );
+		
+		// insert_multiple should use at most 2 queries: 
+		// 1 for charset info (if not cached) + 1 for the bulk insert.
+		// When run in isolation, it uses 2 queries. When run as part of the full wpdb test suite,
+		// charset info is cached from previous tests, so it only uses 1 query.
+		$this->assertLessThanOrEqual( 2, $queries_used, "Expected insert_multiple to use at most 2 queries for bulk insert" );
 	}
 }
