@@ -825,10 +825,10 @@ function image_get_intermediate_size( $post_id, $size = 'thumbnail' ) {
 
 			$data = array_shift( $candidates );
 			/*
-			* When the size requested is smaller than the thumbnail dimensions, we
-			* fall back to the thumbnail size to maintain backward compatibility with
-			* pre 4.6 versions of WordPress.
-			*/
+			 * When the size requested is smaller than the thumbnail dimensions, we
+			 * fall back to the thumbnail size to maintain backward compatibility with
+			 * pre 4.6 versions of WordPress.
+			 */
 		} elseif ( ! empty( $imagedata['sizes']['thumbnail'] ) && $imagedata['sizes']['thumbnail']['width'] >= $size[0] && $imagedata['sizes']['thumbnail']['width'] >= $size[1] ) {
 			$data = $imagedata['sizes']['thumbnail'];
 		} else {
