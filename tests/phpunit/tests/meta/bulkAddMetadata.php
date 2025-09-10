@@ -20,6 +20,9 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 	const SLASH_6 = 'String with 6 slashes \\\\\\\\\\\\';
 	const SLASH_7 = 'String with 7 slashes \\\\\\\\\\\\\\';
 
+	/**
+	 * @ticket 59269
+	 */
 	public function test_all_meta_fields_should_be_added() {
 		global $wpdb;
 
@@ -57,6 +60,9 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 		$this->assertSame( $added_post_meta_calls + 3, did_action( 'added_post_meta' ) );
 	}
 
+	/**
+	 * @ticket 59269
+	 */
 	public function test_correct_mids_should_be_returned_when_filter_is_in_place() {
 		global $wpdb;
 
@@ -108,6 +114,9 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 		$this->assertSame( $added_post_meta_calls + 2, did_action( 'added_post_meta' ) );
 	}
 
+	/**
+	 * @ticket 59269
+	 */
 	public function test_slashed_data_should_be_handled_correctly() {
 		$post_id = self::factory()->post->create();
 		$meta    = array(
