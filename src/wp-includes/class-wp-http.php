@@ -927,6 +927,17 @@ class WP_Http {
 		if ( null === $accessible_hosts ) {
 			$accessible_hosts = preg_split( '|,\s*|', WP_ACCESSIBLE_HOSTS );
 
+			/**
+			 * Filter the list of accessible hosts.
+			 *
+			 * @since 6.9
+			 *
+			 * @param array $wp_accessible_hosts List of accessible hosts.
+			 * @param string $uri The URL being accessed.
+			 * @param array $check The pasesed URL being accessed.
+			 */
+			$accessible_hosts = apply_filters( 'wp_http_accessible_hosts', $wp_accessible_hosts, $uri, $check );
+
 			if ( str_contains( WP_ACCESSIBLE_HOSTS, '*' ) ) {
 				$wildcard_regex = array();
 				foreach ( $accessible_hosts as $host ) {
