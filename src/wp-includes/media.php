@@ -1091,9 +1091,17 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 */
 		$context = apply_filters( 'wp_get_attachment_image_context', 'wp_get_attachment_image' );
 
-		$attr           = wp_parse_args( $attr, $default_attr );
-		$attr['width']  = $width;
-		$attr['height'] = $height;
+		$attr = wp_parse_args( $attr, $default_attr );
+
+		// Ensure that the `$width` doesn't overwrite an already valid user-provided width.
+		if ( ! isset( $attr['width'] ) || ! is_numeric( $attr['width'] ) ) {
+			$attr['width'] = $width;
+		}
+
+		// Ensure that the `$height` doesn't overwrite an already valid user-provided height.
+		if ( ! isset( $attr['height'] ) || ! is_numeric( $attr['height'] ) ) {
+			$attr['height'] = $height;
+		}
 
 		$loading_optimization_attr = wp_get_loading_optimization_attributes(
 			'img',
@@ -3048,6 +3056,8 @@ function wp_playlist_shortcode( $attr ) {
 	static $instance = 0;
 	++$instance;
 
+	static $is_loaded = false;
+
 	if ( ! empty( $attr['ids'] ) ) {
 		// 'ids' is explicitly ordered, unless you specify otherwise.
 		if ( empty( $attr['orderby'] ) ) {
@@ -3229,7 +3239,7 @@ function wp_playlist_shortcode( $attr ) {
 
 	ob_start();
 
-	if ( 1 === $instance ) {
+	if ( ! $is_loaded ) {
 		/**
 		 * Prints and enqueues playlist scripts, styles, and JavaScript templates.
 		 *
@@ -3239,6 +3249,7 @@ function wp_playlist_shortcode( $attr ) {
 		 * @param string $style The 'theme' for the playlist. Core provides 'light' and 'dark'.
 		 */
 		do_action( 'wp_playlist_scripts', $atts['type'], $atts['style'] );
+		$is_loaded = true;
 	}
 	?>
 <div class="wp-playlist wp-<?php echo $safe_type; ?>-playlist wp-playlist-<?php echo $safe_style; ?>">
@@ -3263,7 +3274,7 @@ function wp_playlist_shortcode( $attr ) {
 		?>
 	</ol>
 	</noscript>
-	<script type="application/json" class="wp-playlist-script"><?php echo wp_json_encode( $data ); ?></script>
+	<script type="application/json" class="wp-playlist-script"><?php echo wp_json_encode( $data, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?></script>
 </div>
 	<?php
 	return ob_get_clean();
@@ -4424,7 +4435,7 @@ function wp_plupload_default_settings() {
 		'limitExceeded' => is_multisite() && ! is_upload_space_available(),
 	);
 
-	$script = 'var _wpPluploadSettings = ' . wp_json_encode( $settings ) . ';';
+	$script = 'var _wpPluploadSettings = ' . wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';';
 
 	if ( $data ) {
 		$script = "$data\n$script";
