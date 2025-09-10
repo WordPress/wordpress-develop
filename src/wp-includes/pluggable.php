@@ -345,10 +345,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 									$from_name = substr( $content, 0, $bracket_pos );
 									$from_name = str_replace( '"', '', $from_name );
 									$from_name = trim( $from_name );
-									// Decode MIME headers if they contain encoded content or newlines
-									if ( function_exists( 'mb_decode_mimeheader' ) && ( str_contains( $content, "\n" ) || str_contains( $from_name, '=?' ) ) ) {
-										$from_name = mb_decode_mimeheader( $from_name );
-									}
 								}
 
 								$from_email = substr( $content, $bracket_pos + 1 );

@@ -760,6 +760,8 @@ EOT;
 	}
 
 	/**
+	 * Tests that wp_mail() correctly handles multiline From headers by unfolding them.
+	 *
 	 * @ticket 28473
 	 */
 	public function test_wp_mail_multiline_header() {
@@ -771,23 +773,9 @@ EOT;
 		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$this->assertSame( 'test@example.com', $mailer->From );
 		$this->assertSame(
-			'тест тест тест тест тест тест тест',
+			'=?UTF-8?B?0YLQtdGB0YIg0YLQtdGB0YIg0YLQtdGB0YIg0YLQtdGB0YIg0YLQtdGB0YIg?= =?UTF-8?B?0YLQtdGB0YIg0YLQtdGB0YI=?=',
 			$mailer->FromName
 		);
-		// phpcs:enable
-	}
-
-	/**
-	 * @ticket 28473
-	 */
-	public function test_wp_mail_single_line_utf8_header() {
-		$headers = 'From: =?UTF-8?B?VGVzdA==?= <test@example.com>';
-		wp_mail( 'test@test.com', 'subject', 'message', $headers );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		$this->assertSame( 'test@example.com', $mailer->From );
-		$this->assertSame( 'Test', $mailer->FromName );
 		// phpcs:enable
 	}
 }
