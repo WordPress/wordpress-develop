@@ -233,42 +233,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			return $pre_wp_mail;
 		}
 
-		if ( isset( $atts['to'] ) ) {
-			$to = $atts['to'];
-		}
-
-		if ( ! is_array( $to ) ) {
-			$to = explode( ',', $to );
-		}
-
-		if ( isset( $atts['subject'] ) ) {
-			$subject = $atts['subject'];
-		}
-
-		if ( isset( $atts['message'] ) ) {
-			$message = $atts['message'];
-		}
-
-		if ( isset( $atts['headers'] ) ) {
-			$headers = $atts['headers'];
-		}
-
-		if ( isset( $atts['attachments'] ) ) {
-			$attachments = $atts['attachments'];
-		}
-
-		if ( ! is_array( $attachments ) ) {
-			$attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
-		}
-
-		if ( isset( $atts['embeds'] ) ) {
-			$embeds = $atts['embeds'];
-		}
-
-		if ( ! is_array( $embeds ) ) {
-			$embeds = explode( "\n", str_replace( "\r\n", "\n", $embeds ) );
-		}
-
 		global $phpmailer;
 
 		// (Re)create it, if it's gone missing.
@@ -284,10 +248,15 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			};
 		}
 
-		// Headers.
+		// Process Headers First.
 		$cc       = array();
 		$bcc      = array();
 		$reply_to = array();
+		$charset  = get_bloginfo( 'charset' );
+
+		if ( isset( $atts['headers'] ) ) {
+			$headers = $atts['headers'];
+		}
 
 		if ( empty( $headers ) ) {
 			$headers = array();
@@ -323,25 +292,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 
 					switch ( strtolower( $name ) ) {
 						// Mainly for legacy -- process a "From:" header if it's there.
-						case 'from':
-							$bracket_pos = strpos( $content, '<' );
-							if ( false !== $bracket_pos ) {
-								// Text before the bracketed email is the "From" name.
-								if ( $bracket_pos > 0 ) {
-									$from_name = substr( $content, 0, $bracket_pos );
-									$from_name = str_replace( '"', '', $from_name );
-									$from_name = trim( $from_name );
-								}
-
-								$from_email = substr( $content, $bracket_pos + 1 );
-								$from_email = str_replace( '>', '', $from_email );
-								$from_email = trim( $from_email );
-
-								// Avoid setting an empty $from_email.
-							} elseif ( '' !== trim( $content ) ) {
-								$from_email = trim( $content );
-							}
-							break;
 						case 'content-type':
 							if ( str_contains( $content, ';' ) ) {
 								list( $type, $charset_content ) = explode( ';', $content );
@@ -350,7 +300,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 									$charset = trim( str_replace( array( 'charset=', '"' ), '', $charset_content ) );
 								} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
 									$boundary = trim( str_replace( array( 'BOUNDARY=', 'boundary=', '"' ), '', $charset_content ) );
-									$charset  = '';
 								}
 
 								// Avoid setting an empty $content_type.
@@ -358,14 +307,25 @@ if ( ! function_exists( 'wp_mail' ) ) :
 								$content_type = trim( $content );
 							}
 							break;
+						case 'from':
+							if ( ! empty( $content ) ) {
+								$addresses = $phpmailer->parseAddresses( $content, null, $charset );
+								if ( ! empty( $addresses[0]['name'] ) ) {
+									$from_name = $addresses[0]['name'];
+								}
+								if ( ! empty( $addresses[0]['address'] ) ) {
+									$from_email = $addresses[0]['address'];
+								}
+							}
+							break;
 						case 'cc':
-							$cc = array_merge( (array) $cc, explode( ',', $content ) );
+							$cc = array_merge( (array) $cc, $phpmailer->parseAddresses( $content, null, $charset ) );
 							break;
 						case 'bcc':
-							$bcc = array_merge( (array) $bcc, explode( ',', $content ) );
+							$bcc = array_merge( (array) $bcc, $phpmailer->parseAddresses( $content, null, $charset ) );
 							break;
 						case 'reply-to':
-							$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
+							$reply_to = array_merge( (array) $reply_to, $phpmailer->parseAddresses( $content, null, $charset ) );
 							break;
 						default:
 							// Add it to our grand headers array.
@@ -374,6 +334,40 @@ if ( ! function_exists( 'wp_mail' ) ) :
 					}
 				}
 			}
+		}
+
+		if ( isset( $atts['to'] ) ) {
+			$to = $atts['to'];
+		}
+
+		$raw_to = array();
+		if ( ! is_array( $to ) ) {
+			$raw_to = explode( ',', $to );
+			$to     = $phpmailer->parseAddresses( $to, null, $charset );
+		}
+
+		if ( isset( $atts['subject'] ) ) {
+			$subject = $atts['subject'];
+		}
+
+		if ( isset( $atts['message'] ) ) {
+			$message = $atts['message'];
+		}
+
+		if ( isset( $atts['attachments'] ) ) {
+			$attachments = $atts['attachments'];
+		}
+
+		if ( ! is_array( $attachments ) ) {
+			$attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
+		}
+
+		if ( isset( $atts['embeds'] ) ) {
+			$embeds = $atts['embeds'];
+		}
+
+		if ( ! is_array( $embeds ) ) {
+			$embeds = explode( "\n", str_replace( "\r\n", "\n", $embeds ) );
 		}
 
 		// Empty out the values that may be set.
@@ -457,14 +451,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			foreach ( (array) $addresses as $address ) {
 				try {
 					// Break $recipient into name and address parts if in the format "Foo <bar@baz.com>".
-					$recipient_name = '';
-
-					if ( preg_match( '/(.*)<(.+)>/', $address, $matches ) ) {
-						if ( count( $matches ) === 3 ) {
-							$recipient_name = $matches[1];
-							$address        = $matches[2];
-						}
-					}
+					$recipient_name = $address['name'] ?? '';
+					$address        = $address['address'];
 
 					switch ( $address_header ) {
 						case 'to':
@@ -489,7 +477,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		// Set to use PHP's mail().
 		$phpmailer->isMail();
 
-		// Set Content-Type and charset.
+		// Set Content-Type and Charset.
 
 		// If we don't have a Content-Type from the input headers.
 		if ( ! isset( $content_type ) ) {
@@ -510,11 +498,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		// Set whether it's plaintext, depending on $content_type.
 		if ( 'text/html' === $content_type ) {
 			$phpmailer->isHTML( true );
-		}
-
-		// If we don't have a charset from the input headers.
-		if ( ! isset( $charset ) ) {
-			$charset = get_bloginfo( 'charset' );
 		}
 
 		/**
@@ -609,7 +592,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 */
 		do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
 
-		$mail_data = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
+		$mail_data = array(
+			'to' => $raw_to,
+			...compact( 'subject', 'message', 'headers', 'attachments' ),
+		);
 
 		// Send!
 		try {

@@ -625,4 +625,17 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
 	}
+	/**
+	 * @ticket 62940
+	 */
+	public function test_wp_mail_single_line_utf8_header() {
+		$headers = 'From: =?UTF-8?B?VGVzdA==?= <test@example.com>';
+		wp_mail( 'test@test.com', 'subject', 'message', $headers );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$this->assertSame( 'test@example.com', $mailer->From );
+		$this->assertSame( 'Test', $mailer->FromName );
+		// phpcs:enable
+	}
 }
