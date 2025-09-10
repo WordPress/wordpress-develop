@@ -24,7 +24,7 @@ jobs:
       matrix:
         php:
           - '7.4'
-          - '8.4'
+          - '8.2'
 
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
