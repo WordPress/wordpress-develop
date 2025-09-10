@@ -1197,7 +1197,7 @@ function add_query_arg( ...$args ) {
 
 	$ret = build_query( $qs );
 	$ret = trim( $ret, '?' );
-	$ret = preg_replace( '#=(&|$)#', '$1', $ret );
+	$ret = preg_replace( '/(?<=^|&)[^=]+=(&|$)/', '$1', $ret );
 	$ret = $protocol . $base . $ret . $frag;
 	$ret = rtrim( $ret, '?' );
 	$ret = str_replace( '?#', '#', $ret );
