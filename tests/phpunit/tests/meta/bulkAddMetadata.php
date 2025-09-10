@@ -33,10 +33,15 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 			'key3' => '3',
 		);
 
-		$latest_mid              = (int) $wpdb->get_var( "SELECT MAX( meta_id ) FROM {$wpdb->postmeta}" );
-		$add_post_metadata_calls = did_filter( 'add_post_metadata' );
-		$add_post_meta_calls     = did_action( 'add_post_meta' );
-		$added_post_meta_calls   = did_action( 'added_post_meta' );
+		$latest_mid = (int) $wpdb->get_var( "SELECT MAX( meta_id ) FROM {$wpdb->postmeta}" );
+
+		$action1 = new MockAction();
+		$action2 = new MockAction();
+		$action3 = new MockAction();
+
+		add_filter( 'add_post_metadata', array( $action1, 'filter' ), 10, 5 );
+		add_action( 'add_post_meta', array( $action2, 'action' ) );
+		add_action( 'added_post_meta', array( $action3, 'action' ) );
 
 		$result = bulk_add_metadata( 'post', $post_id, $meta );
 
@@ -55,9 +60,9 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_vals, $actual_vals );
 		$this->assertSame( $expected_mids, $result );
-		$this->assertSame( $add_post_metadata_calls + 3, did_filter( 'add_post_metadata' ) );
-		$this->assertSame( $add_post_meta_calls + 3, did_action( 'add_post_meta' ) );
-		$this->assertSame( $added_post_meta_calls + 3, did_action( 'added_post_meta' ) );
+		$this->assertSame( 3, $action1->get_call_count() );
+		$this->assertSame( 3, $action2->get_call_count() );
+		$this->assertSame( 3, $action3->get_call_count() );
 	}
 
 	/**
@@ -82,10 +87,15 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 			'key3' => '3',
 		);
 
-		$latest_mid              = (int) $wpdb->get_var( "SELECT MAX( meta_id ) FROM {$wpdb->postmeta}" );
-		$add_post_metadata_calls = did_filter( 'add_post_metadata' );
-		$add_post_meta_calls     = did_action( 'add_post_meta' );
-		$added_post_meta_calls   = did_action( 'added_post_meta' );
+		$latest_mid = (int) $wpdb->get_var( "SELECT MAX( meta_id ) FROM {$wpdb->postmeta}" );
+
+		$action1 = new MockAction();
+		$action2 = new MockAction();
+		$action3 = new MockAction();
+
+		add_filter( 'add_post_metadata', array( $action1, 'filter' ), 10, 5 );
+		add_action( 'add_post_meta', array( $action2, 'action' ) );
+		add_action( 'added_post_meta', array( $action3, 'action' ) );
 
 		$result = bulk_add_metadata( 'post', $post_id, $meta );
 
@@ -109,9 +119,9 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_vals, $actual_vals );
 		$this->assertSame( $expected_mids, $result );
-		$this->assertSame( $add_post_metadata_calls + 3, did_filter( 'add_post_metadata' ) );
-		$this->assertSame( $add_post_meta_calls + 2, did_action( 'add_post_meta' ) );
-		$this->assertSame( $added_post_meta_calls + 2, did_action( 'added_post_meta' ) );
+		$this->assertSame( 3, $action1->get_call_count() );
+		$this->assertSame( 2, $action2->get_call_count() );
+		$this->assertSame( 2, $action3->get_call_count() );
 	}
 
 	/**
