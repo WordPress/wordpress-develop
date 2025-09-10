@@ -794,7 +794,7 @@
 	/**
 	 * wp.customize.Menus.MenusPanel
 	 *
-	 * Customizer panel for menus. This is used only for screen options management.
+	 * Customizer panel for menus. This is used only for display options management.
 	 * Note that 'menus' must match the WP_Customize_Menu_Panel::$type.
 	 *
 	 * @class    wp.customize.Menus.MenusPanel
@@ -1637,7 +1637,7 @@
 		 * Shows or hides buttons based on the location of the menu item.
 		 *
 		 * @param {Object} itemToRefresh The menu item that might need its advanced accessibility buttons refreshed
-		 * 
+		 *
 		 * @since 6.6.0
 		 */
 		refreshAdvancedAccessibilityOfItem: function( itemToRefresh ) {
@@ -1717,7 +1717,7 @@
 			}
 			control.renderContent();
 			control.deferred.embedded.resolve(); // This triggers control.ready().
-			
+
 			// Mark all menu items as unprocessed.
 			$( 'button.item-edit' ).data( 'needs_accessibility_refresh', true );
 		},
@@ -1796,7 +1796,7 @@
 					control.moveRight();
 					control.params.depth += 1;
 				}
-				
+
 				moveBtn.focus(); // Re-focus after the container was moved.
 
 				// Mark all menu items as unprocessed.

@@ -62,7 +62,7 @@ get_current_screen()->add_help_tab(
 				'widgets.php'
 			) . '</p>' .
 			'<p>' . __( 'Links may be separated into Link Categories; these are different than the categories used on your posts.' ) . '</p>' .
-			'<p>' . __( 'You can customize the display of this screen using the Screen Options tab and/or the dropdown filters above the links table.' ) . '</p>',
+			'<p>' . __( 'You can customize the display of this screen using the Display Options tab and/or the dropdown filters above the links table.' ) . '</p>',
 	)
 );
 get_current_screen()->add_help_tab(

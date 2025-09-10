@@ -35,7 +35,7 @@ jQuery( function($) {
 				welcomepanelnonce: $( '#welcomepanelnonce' ).val()
 			},
 			function() {
-				wp.a11y.speak( wp.i18n.__( 'Screen Options updated.' ) );
+				wp.a11y.speak( wp.i18n.__( 'Display Options updated.' ) );
 			}
 		);
 	};

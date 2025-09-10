@@ -21,7 +21,7 @@ $action = $wp_list_table->current_action();
 
 $s = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
 
-// Clean up request URI from temporary args for screen options/paging uri's to work as expected.
+// Clean up request URI from temporary args for display options/paging uri's to work as expected.
 $temp_args = array(
 	'enabled',
 	'disabled',

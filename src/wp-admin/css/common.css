@@ -1773,7 +1773,7 @@ p.auto-update-status {
 }
 
 /*------------------------------------------------------------------------------
-  6.1 - Screen Options Tabs
+  6.1 - Display Options Tabs
 ------------------------------------------------------------------------------*/
 
 #screen-options-wrap,
@@ -1793,7 +1793,7 @@ p.auto-update-status {
 	margin: 0 20px 0 0;
 }
 
-/* screen options and help tabs revert */
+/* display options and help tabs revert */
 #screen-meta {
 	display: none;
 	margin: 0 20px -1px 0;
@@ -1865,7 +1865,7 @@ p.auto-update-status {
 	content: "\f142";
 }
 
-/* end screen options and help tabs */
+/* end display options and help tabs */
 
 .toggle-arrow {
 	background-repeat: no-repeat;

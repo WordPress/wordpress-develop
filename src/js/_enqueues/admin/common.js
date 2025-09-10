@@ -386,7 +386,7 @@ window.adminMenu = {
 window.columns = {
 
 	/**
-	 * Initializes the column toggles in the screen options.
+	 * Initializes the column toggles in the display options.
 	 *
 	 * Binds an onClick event to the checkboxes to show or hide the table columns
 	 * based on their toggled state. And persists the toggled state.
@@ -428,7 +428,7 @@ window.columns = {
 				page: pagenow
 			},
 			function() {
-				wp.a11y.speak( __( 'Screen Options updated.' ) );
+				wp.a11y.speak( __( 'Display Options updated.' ) );
 			}
 		);
 	},
@@ -473,7 +473,7 @@ window.columns = {
 	},
 
 	/**
-	 * Gets the checked column toggles from the screen options.
+	 * Gets the checked column toggles from the display options.
 	 *
 	 * @since 3.0.0
 	 *
@@ -565,7 +565,7 @@ window.showNotice = {
 };
 
 /**
- * Represents the functions for the meta screen options panel.
+ * Represents the functions for the meta display options panel.
  *
  * @since 3.2.0
  *

@@ -1988,7 +1988,7 @@ div.action-links,
 		display: block;
 	}
 
-	/* Comment author hidden via Screen Options */
+	/* Comment author hidden via Display Options */
 	.fixed .column-author.hidden ~ .column-comment .comment-author {
 		display: none;
 	}
@@ -2239,7 +2239,7 @@ div.action-links,
 		display: table-cell;
 	}
 
-	/* Plugin description hidden via Screen Options */
+	/* Plugin description hidden via Display Options */
 	#wpbody-content .wp-list-table.plugins .desc.hidden {
 		display: none;
 	}

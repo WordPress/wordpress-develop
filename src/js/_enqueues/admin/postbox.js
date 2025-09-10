@@ -292,7 +292,7 @@
 			/**
 			 * Hides the postbox element
 			 *
-			 * Event handler for the screen options checkboxes. When a checkbox is
+			 * Event handler for the display options checkboxes. When a checkbox is
 			 * clicked this function will hide or show the relevant postboxes.
 			 *
 			 * @since 2.7.0
@@ -471,7 +471,7 @@
 					page: page
 				},
 				function() {
-					wp.a11y.speak( __( 'Screen Options updated.' ) );
+					wp.a11y.speak( __( 'Display Options updated.' ) );
 				}
 			);
 		},
@@ -559,7 +559,7 @@
 		 */
 		updateEmptySortablesText: function( visibleSortables, areAllVisibleSortablesEmpty ) {
 			var isDashboard = $( '#dashboard-widgets' ).length,
-				emptySortableText = areAllVisibleSortablesEmpty ?  __( 'Add boxes from the Screen Options menu' ) : __( 'Drag boxes here' );
+				emptySortableText = areAllVisibleSortablesEmpty ?  __( 'Add boxes from the Display Options menu' ) : __( 'Drag boxes here' );
 
 			if ( ! isDashboard ) {
 				return;

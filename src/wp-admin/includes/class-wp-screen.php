@@ -156,7 +156,7 @@ final class WP_Screen {
 	private static $_old_compat_help = array();
 
 	/**
-	 * The screen options associated with screen, if any.
+	 * The display options associated with screen, if any.
 	 *
 	 * @since 3.3.0
 	 * @var array
@@ -181,7 +181,7 @@ final class WP_Screen {
 	private $_show_screen_options;
 
 	/**
-	 * Stores the 'screen_settings' section of screen options.
+	 * Stores the 'screen_settings' section of display options.
 	 *
 	 * @since 3.3.0
 	 * @var string
@@ -495,7 +495,7 @@ final class WP_Screen {
 	 * Adds an option for the screen.
 	 *
 	 * Call this in template files after admin.php is loaded and before admin-header.php is loaded
-	 * to add screen options.
+	 * to add display options.
 	 *
 	 * @since 3.3.0
 	 *
@@ -702,7 +702,7 @@ final class WP_Screen {
 	 *
 	 * The layout_columns option controls the max number and default number of
 	 * columns. This method returns the number of columns within that range selected
-	 * by the user via Screen Options. If no selection has been made, the default
+	 * by the user via Display Options. If no selection has been made, the default
 	 * provisioned in layout_columns is returned. If the screen does not support
 	 * selecting the number of layout columns, 0 is returned.
 	 *
@@ -955,7 +955,7 @@ final class WP_Screen {
 		}
 		$GLOBALS['screen_layout_columns'] = $this->columns; // Set the global for back-compat.
 
-		// Add screen options.
+		// Add display options.
 		if ( $this->show_screen_options() ) {
 			$this->render_screen_options();
 		}
@@ -969,7 +969,7 @@ final class WP_Screen {
 		<div id="screen-meta-links">
 		<?php if ( $this->show_screen_options() ) : ?>
 			<div id="screen-options-link-wrap" class="hide-if-no-js screen-meta-toggle">
-			<button type="button" id="show-settings-link" class="button show-settings" aria-controls="screen-options-wrap" aria-expanded="false"><?php _e( 'Screen Options' ); ?></button>
+			<button type="button" id="show-settings-link" class="button show-settings" aria-controls="screen-options-wrap" aria-expanded="false"><?php _e( 'Display Options' ); ?></button>
 			</div>
 			<?php
 		endif;
@@ -1011,7 +1011,7 @@ final class WP_Screen {
 		}
 
 		/**
-		 * Filters the screen settings text displayed in the Screen Options tab.
+		 * Filters the screen settings text displayed in the Display Options tab.
 		 *
 		 * @since 3.0.0
 		 *
@@ -1025,11 +1025,11 @@ final class WP_Screen {
 		}
 
 		/**
-		 * Filters whether to show the Screen Options tab.
+		 * Filters whether to show the Display Options tab.
 		 *
 		 * @since 3.2.0
 		 *
-		 * @param bool      $show_screen Whether to show Screen Options tab.
+		 * @param bool      $show_screen Whether to show Display Options tab.
 		 *                               Default true.
 		 * @param WP_Screen $screen      Current WP_Screen instance.
 		 */
@@ -1038,7 +1038,7 @@ final class WP_Screen {
 	}
 
 	/**
-	 * Renders the screen options tab.
+	 * Renders the display options tab.
 	 *
 	 * @since 3.3.0
 	 *
@@ -1063,7 +1063,7 @@ final class WP_Screen {
 
 		// Output optional wrapper.
 		if ( $options['wrap'] ) {
-			$wrapper_start = '<div id="screen-options-wrap" class="hidden" tabindex="-1" aria-label="' . esc_attr__( 'Screen Options Tab' ) . '">';
+			$wrapper_start = '<div id="screen-options-wrap" class="hidden" tabindex="-1" aria-label="' . esc_attr__( 'Display Options Tab' ) . '">';
 			$wrapper_end   = '</div>';
 		}
 
@@ -1083,11 +1083,11 @@ final class WP_Screen {
 		echo $this->_screen_settings;
 
 		/**
-		 * Filters whether to show the Screen Options submit button.
+		 * Filters whether to show the Display Options submit button.
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param bool      $show_button Whether to show Screen Options submit button.
+		 * @param bool      $show_button Whether to show Display Options submit button.
 		 *                               Default false.
 		 * @param WP_Screen $screen      Current WP_Screen instance.
 		 */
