@@ -932,9 +932,9 @@ class WP_Http {
 			 *
 			 * @since 6.9
 			 *
-			 * @param array $wp_accessible_hosts List of accessible hosts.
-			 * @param string $uri The URL being accessed.
-			 * @param array $check The pasesed URL being accessed.
+			 * @param array  $wp_accessible_hosts List of accessible hosts.
+			 * @param string $uri                 The URL being accessed.
+			 * @param array  $check               The pasesed URL being accessed.
 			 */
 			$accessible_hosts = apply_filters( 'wp_http_accessible_hosts', $wp_accessible_hosts, $uri, $check );
 
