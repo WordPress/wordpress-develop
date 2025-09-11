@@ -600,6 +600,16 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50279
+	 * @group add_query_arg
+	 */
+	public function test_add_query_arg_preserves_empty_and_equal_sign_values() {
+		$this->assertSame( '/?baz&foo=1', add_query_arg( 'foo', '1', '/?baz=' ) );
+		$this->assertSame( '/?api_id=xxxxx%3D%3D&bar=2', add_query_arg( 'bar', '2', '/?api_id=xxxxx==' ) );
+		$this->assertSame( '/?empty_param&foo=1', add_query_arg( 'foo', '1', '/?empty_param=' ) );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
