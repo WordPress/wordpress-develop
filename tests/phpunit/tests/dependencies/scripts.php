@@ -1335,6 +1335,44 @@ HTML
 	}
 
 	/**
+	 * Tests bumping fetchpriority with complex dependency graph.
+	 *
+	 * @ticket 61734
+	 * @link https://github.com/WordPress/wordpress-develop/pull/9770#issuecomment-3280065818
+	 *
+	 * @covers WP_Scripts::get_dependents
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 * @covers WP_Scripts::do_item
+	 */
+	public function test_fetchpriority_bumping_a_to_z() {
+		wp_register_script( 'a', '/a.js', array( 'b' ), null, array( 'fetchpriority' => 'low' ) );
+		wp_register_script( 'b', '/b.js', array( 'c' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'c', '/c.js', array( 'd', 'e' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'd', '/d.js', array( 'z' ), null, array( 'fetchpriority' => 'high' ) );
+		wp_register_script( 'e', '/e.js', array(), null, array( 'fetchpriority' => 'auto' ) );
+
+		wp_register_script( 'x', '/x.js', array( 'd', 'y' ), null, array( 'fetchpriority' => 'high' ) );
+		wp_register_script( 'y', '/y.js', array( 'z' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'z', '/z.js', array(), null, array( 'fetchpriority' => 'auto' ) );
+
+		wp_enqueue_script( 'a' );
+		wp_enqueue_script( 'x' );
+
+		$actual   = get_echo( 'wp_print_scripts' );
+		$expected = '
+			<script type="text/javascript" src="/z.js" id="z-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+			<script type="text/javascript" src="/d.js" id="d-js" fetchpriority="high"></script>
+			<script type="text/javascript" src="/e.js" id="e-js"></script>
+			<script type="text/javascript" src="/c.js" id="c-js"></script>
+			<script type="text/javascript" src="/b.js" id="b-js"></script>
+			<script type="text/javascript" src="/a.js" id="a-js" fetchpriority="low"></script>
+			<script type="text/javascript" src="/y.js" id="y-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+			<script type="text/javascript" src="/x.js" id="x-js" fetchpriority="high"></script>
+		';
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+	}
+
+	/**
 	 * Tests that scripts registered as defer become blocking when their dependents chain are all blocking.
 	 *
 	 * @ticket 12009

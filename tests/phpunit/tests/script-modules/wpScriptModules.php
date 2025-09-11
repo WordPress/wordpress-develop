@@ -1505,6 +1505,46 @@ HTML;
 	}
 
 	/**
+	 * Tests bumping fetchpriority with complex dependency graph.
+	 *
+	 * @ticket 61734
+	 * @link https://github.com/WordPress/wordpress-develop/pull/9770#issuecomment-3280065818
+	 *
+	 * @covers WP_Script_Modules::print_enqueued_script_modules
+	 * @covers WP_Script_Modules::get_dependents
+	 * @covers WP_Script_Modules::get_highest_fetchpriority_with_dependents
+	 * @covers WP_Script_Modules::print_script_module_preloads
+	 */
+	public function test_fetchpriority_bumping_a_to_z() {
+		wp_register_script_module( 'a', '/a.js', array( 'b' ), null, array( 'fetchpriority' => 'low' ) );
+		wp_register_script_module( 'b', '/b.js', array( 'c' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script_module( 'c', '/c.js', array( 'd', 'e' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script_module( 'd', '/d.js', array( 'z' ), null, array( 'fetchpriority' => 'high' ) );
+		wp_register_script_module( 'e', '/e.js', array(), null, array( 'fetchpriority' => 'auto' ) );
+
+		wp_register_script_module( 'x', '/x.js', array( 'd', 'y' ), null, array( 'fetchpriority' => 'high' ) );
+		wp_register_script_module( 'y', '/y.js', array( 'z' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script_module( 'z', '/z.js', array(), null, array( 'fetchpriority' => 'auto' ) );
+
+		wp_enqueue_script_module( 'a' );
+		wp_enqueue_script_module( 'x' );
+
+		$actual   = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
+		$actual  .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+		$expected = '
+			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload">
+			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload">
+			<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="high">
+			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload">
+			<link rel="modulepreload" href="/z.js" id="z-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="auto">
+			<link rel="modulepreload" href="/y.js" id="y-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="auto">
+			<script type="module" src="/a.js" id="a-js-module" fetchpriority="low"></script>
+			<script type="module" src="/x.js" id="x-js-module" fetchpriority="high"></script>
+		';
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+	}
+
+	/**
 	 * Gets registered script modules.
 	 *
 	 * @param WP_Script_Modules $script_modules
