@@ -639,12 +639,18 @@ function wp_html_split( $input ) {
  * Retrieves the regular expression for an HTML element.
  *
  * @since 4.4.0
- * @deprecated {WP_VERSION} Use the HTML API instead.
+ * @deprecated 6.9.0 Use the HTML API instead.
  *
  * @return string The regular expression.
  */
 function get_html_split_regex() {
 	static $regex;
+
+	_deprecated_function(
+		__FUNCTION__,
+		'6.9.0',
+		'Use the HTML API instead.'
+	);
 
 	if ( ! isset( $regex ) ) {
 		// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound -- don't remove regex indentation
