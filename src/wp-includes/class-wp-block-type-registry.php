@@ -165,7 +165,7 @@ final class WP_Block_Type_Registry {
 	 * @return bool True if the block type is registered, false otherwise.
 	 */
 	public function is_registered( $name ) {
-		return isset( $this->registered_block_types[ $name ] );
+		return isset( $name, $this->registered_block_types[ $name ] );
 	}
 
 	public function __wakeup() {
