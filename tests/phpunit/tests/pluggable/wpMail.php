@@ -625,17 +625,85 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
 	}
+
+	public function addressProvider() {
+		return array(
+			'from encoded name'               => array(
+				'type'     => 'From',
+				'header'   => 'From: =?UTF-8?B?VGVzdA==?= <test@example.com>',
+				'expected' => array( 'test@example.com', 'Test' ),
+			),
+			'cc multiple encoded names'       => array(
+				'type'     => 'Cc',
+				'header'   => 'Cc: =?UTF-8?B?Sm9obg==?= <john@example.com>, Jane <jane@example.com>',
+				'expected' => array(
+					array( 'john@example.com', 'John' ),
+					array( 'jane@example.com', 'Jane' ),
+				),
+			),
+			'bcc multiple encoded names'      => array(
+				'type'     => 'Bcc',
+				'header'   => 'Bcc: =?UTF-8?B?Sm9obg==?= <john@example.com>, Jane <jane@example.com>',
+				'expected' => array(
+					array( 'john@example.com', 'John' ),
+					array( 'jane@example.com', 'Jane' ),
+				),
+			),
+			'reply-to multiple encoded names' => array(
+				'type'     => 'Reply-To',
+				'header'   => 'Reply-To: =?UTF-8?B?SmFuZQ==?= <jane@example.com>, =?UTF-8?B?Sm9obg==?= <john@example.com>',
+				'expected' => array(
+					'jane@example.com' => array( 'jane@example.com', 'Jane' ),
+					'john@example.com' => array( 'john@example.com', 'John' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 62940
+	 * @dataProvider addressProvider
+	 */
+	public function test_wp_mail_single_line_utf8_header( $type, $header, $expected ) {
+		wp_mail( 'test@example.com', 'subject', 'message', $header );
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		switch ( $type ) {
+			case 'From':
+				$this->assertSame( $expected, array( $mailer->From, $mailer->FromName ) );
+				break;
+
+			case 'Cc':
+				$this->assertSame( $expected, $mailer->getCcAddresses() );
+				break;
+
+			case 'Bcc':
+				$this->assertSame( $expected, $mailer->getBccAddresses() );
+				break;
+
+			case 'Reply-To':
+				$this->assertSame( $expected, $mailer->getReplyToAddresses() );
+				break;
+
+			default:
+				$this->fail( "Unknown header type: {$type}" );
+				break;
+		}
+		// phpcs:enable
+	}
+
 	/**
 	 * @ticket 62940
 	 */
-	public function test_wp_mail_single_line_utf8_header() {
-		$headers = 'From: =?UTF-8?B?VGVzdA==?= <test@example.com>';
-		wp_mail( 'test@test.com', 'subject', 'message', $headers );
-
-		$mailer = tests_retrieve_phpmailer_instance();
-		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		$this->assertSame( 'test@example.com', $mailer->From );
-		$this->assertSame( 'Test', $mailer->FromName );
-		// phpcs:enable
+	public function test_wp_mail_single_line_utf8_header_multiple_to() {
+		$to = '=?UTF-8?B?Sm9obg==?= <john@example.com>, Jane <jane@example.com>';
+		wp_mail( $to, 'subject', 'message' );
+		$mailer   = tests_retrieve_phpmailer_instance();
+		$expected = array(
+			array( 'john@example.com', 'John' ),
+			array( 'jane@example.com', 'Jane' ),
+		);
+		$this->assertSame( $expected, $mailer->getToAddresses() );
 	}
 }
