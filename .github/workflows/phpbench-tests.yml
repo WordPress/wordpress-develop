@@ -24,7 +24,7 @@ jobs:
       matrix:
         php:
           - '7.4'
-          - '8.2'
+          - '8.4'
 
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
@@ -37,6 +37,12 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+
+      - name: Create a Docker override file
+        if: ${{ contains( fromJSON('["8.3", "8.4"]'), inputs.php ) }}
+        env:
+          PHP_VERSION: ${{ inputs.php }}
+        run: cp "tools/local-env/php-${{ env.PHP_VERSION }}-docker-compose.override.yml" docker-compose.override.yml
 
       - name: Set up Node.js
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
