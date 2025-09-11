@@ -30,6 +30,13 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 				'abcd <!-- <html> --> efgh',
 				array( 'abcd ', '<!-- <html> -->', ' efgh' ),
 			),
+			/*
+			 * CDATA sections do not exist within HTML, so even though it looks
+			 * like this should be escaping the entire ` <html> ` span, there’s
+			 * actually an invalid comment starting at `<![CDATA[` and ending at
+			 * the very first `>` character, placing the end of the comment at
+			 * the end of `html>`. The rest is normal plaintext content.
+			 */
 			array(
 				'abcd <![CDATA[ <html> ]]> efgh',
 				array( 'abcd ', '<![CDATA[ <html>', ' ]]> efgh' ),

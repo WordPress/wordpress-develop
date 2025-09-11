@@ -536,6 +536,15 @@ Paragraph two.';
 				"Hello <![CDATA[ <!-- a\nhttps://youtu.be/jgz0uSaOZbE\n a\n9 ]]> -->",
 				"<p>Hello <![CDATA[ <!-- a\nhttps://youtu.be/jgz0uSaOZbE\n a\n9 ]]> --></p>\n",
 			),
+			/*
+			 * CDATA sections do not exist within HTML, so even though it looks
+			 * like this should be escaping the entire “inner comment” span, there’s
+			 * actually an invalid comment starting at `<![CDATA[` and ending at
+			 * the very first `>` character, placing the end of the comment at
+			 * what looks like the end of the “normal comment” — the ` -->`. Everything
+			 * afterward is normal HTML data so the `<br>` is a real `BR` element and
+			 * the `]]>` is normal plaintext, not the CDATA terminator.
+			 */
 			array(
 				"Hello <![CDATA[ <!-- a\nhttps://youtu.be/jgz0uSaOZbE\n a\n9 --> a\n9 ]]>",
 				"<p>Hello <![CDATA[ <!-- a\nhttps://youtu.be/jgz0uSaOZbE\n a\n9 --> a<br />\n9 ]]></p>\n",
