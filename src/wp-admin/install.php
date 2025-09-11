@@ -434,6 +434,10 @@ switch ( $step ) {
 			// TODO: Poka-yoke.
 			display_setup_form( __( 'Your passwords do not match. Please try again.' ) );
 			$error = true;
+		} elseif ( ! empty( $admin_password ) && empty( trim( $admin_password ) ) ) {
+			// TODO: Poka-yoke.
+			display_setup_form( __( '<strong>Error:</strong> Passwords cannot consist only of whitespace characters.' ) );
+			$error = true;
 		} elseif ( empty( $admin_email ) ) {
 			// TODO: Poka-yoke.
 			display_setup_form( __( 'You must provide an email address.' ) );
