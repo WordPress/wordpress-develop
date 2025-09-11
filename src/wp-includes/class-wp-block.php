@@ -298,8 +298,9 @@ class WP_Block {
 		$parsed_block               = $this->parsed_block;
 		$computed_attributes        = array();
 		$supported_block_attributes =
-			self::BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES[ $block_type ] ??
-			array();
+			isset( $block_type, self::BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES[ $block_type ] ) ?
+				self::BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES[ $block_type ] :
+				array();
 
 		/**
 		 * Filters the supported block attributes for block bindings.
