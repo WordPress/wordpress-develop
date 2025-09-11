@@ -445,7 +445,9 @@ JS;
 
 		$wp_scripts_reflection      = new ReflectionClass( WP_Scripts::class );
 		$filter_eligible_strategies = $wp_scripts_reflection->getMethod( 'filter_eligible_strategies' );
-		$filter_eligible_strategies->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$filter_eligible_strategies->setAccessible( true );
+		}
 		$this->assertSame( $expected, $filter_eligible_strategies->invokeArgs( wp_scripts(), array( $handle ) ), 'Expected return value of WP_Scripts::filter_eligible_strategies to match.' );
 	}
 
