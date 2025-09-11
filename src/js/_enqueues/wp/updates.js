@@ -30,6 +30,8 @@
  * @param {number}  settings.totals.count                    Holds the amount of available updates.
  */
 (function( $, wp, settings ) {
+
+	console.log(`pagenow: ` + pagenow);
 	var $document = $( document ),
 		__ = wp.i18n.__,
 		_x = wp.i18n._x,
@@ -965,7 +967,7 @@
 		wp.a11y.speak( __( 'Plugin dependencies check completed successfully.' ) );
 		$document.trigger( 'wp-check-plugin-dependencies-success', response );
 
-		if ( 'plugins-network' === pagenow ) {
+		if ( 'plugins-network' === pagenow || 'plugin-install-network' === pagenow ) {
 			buttonText = _x( 'Network Activate', 'plugin' );
 			ariaLabel  = sprintf(
 				/* translators: %s: Plugin name. */
