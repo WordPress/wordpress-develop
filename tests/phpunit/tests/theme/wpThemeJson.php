@@ -2458,7 +2458,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
 
 		$func = $theme_json->getMethod( 'get_block_nodes' );
-		if ( PHP_VERSION_ID < 81000 ) {
+		if ( PHP_VERSION_ID < 80100 ) {
 			$func->setAccessible( true );
 		}
 
@@ -2514,7 +2514,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
 
 		$func = $theme_json->getMethod( 'get_block_nodes' );
-		if ( PHP_VERSION_ID < 81000 ) {
+		if ( PHP_VERSION_ID < 80100 ) {
 			$func->setAccessible( true );
 		}
 
