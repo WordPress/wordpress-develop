@@ -31,7 +31,6 @@
  */
 (function( $, wp, settings ) {
 
-	console.log(`pagenow: ` + pagenow);
 	var $document = $( document ),
 		__ = wp.i18n.__,
 		_x = wp.i18n._x,
