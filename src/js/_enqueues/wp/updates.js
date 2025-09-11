@@ -30,7 +30,6 @@
  * @param {number}  settings.totals.count                    Holds the amount of available updates.
  */
 (function( $, wp, settings ) {
-
 	var $document = $( document ),
 		__ = wp.i18n.__,
 		_x = wp.i18n._x,
