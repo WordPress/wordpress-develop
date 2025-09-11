@@ -611,11 +611,44 @@ function wpautop( $text, $br = true ) {
  * No effort is made to clean up, sanitize, or normalize the segments
  * of HTML. {@see WP_HTML_Processor::normalize()} for normalization.
  *
- * @since 4.2.4
- * @since {WP_VERSION} Reliably parses HTML via the HTML API.
+ * Consider using the HTML API directly instead of relying on this
+ * legacy function: it bloats memory by default and provides a text
+ * interface for working with HTML whereas the HTML API provides a
+ * low-overhead and convenient structural interface.
  *
- * @param string $input The text which has to be formatted.
- * @return string[] Array of the formatted text.
+ * ## Output format:
+ *
+ * To maintain legacy behaviors with this function from when it
+ * operated via {@see preg_split()}, the output array injects text
+ * nodes which do not appear in the source HTML. That is, the original
+ * array, relying on {@see PREG_SPLIT_DELIM_CAPTURE}, included a text
+ * span on each side of every tag-like or comment-like “delimiter” in
+ * the matched string.
+ *
+ * Therefore, the output array will always start and end with text nodes
+ * and will separate every non-text node with a text node. If there is no
+ * actual content in the interstitial space between tokens in the source
+ * document, an empty text node will be created.
+ *
+ * Example:
+ *
+ *     array( '', '<img>', '' )    === wp_html_split( '<img>' );
+ *     array( 'test' )             === wp_html_split( 'test' );
+ *     array( '', '<p>', 'test' )  === wp_html_split( '<p>test' );
+ *     array( 'test', '</p>', '' ) === wp_html_split( 'test</p>' );
+ *
+ *     array( '', '<br>', '', '<!-- comment -->', '' ) === wp_html_split( '<br><!-- comment -->' );
+ *
+ *     // To avoid ambiguity, leading less-than signs (<) in text nodes are encoded.
+ *     array( '&#60;3' ) === wp_split_html( '<3' );
+ *
+ * @since 4.2.4
+ * @since 6.9.0 Reliably parses HTML via the HTML API.
+ *
+ * @param string $input HTML document to split, one item for every token.
+ *                      These can be text nodes, tags, comments, or doctype declarations.
+ * @return string[] Tokens from input; starting and ending in a text node, and with text
+ *                  nodes between every non-text node (see docblock note).
  */
 function wp_html_split( $input ) {
 	$token_reporter = new class( $input ) extends WP_HTML_Tag_Processor {
@@ -627,9 +660,33 @@ function wp_html_split( $input ) {
 		}
 	};
 
-	$tokens = array();
+	$tokens   = array();
+	$was_text = false;
 	while ( $token_reporter->next_token() ) {
-		$tokens[] = $token_reporter->extract_raw_token();
+		$raw_token = $token_reporter->extract_raw_token();
+		$is_text   = '#text' === $token_reporter->get_token_name();
+
+		if ( ! $is_text && ! $was_text ) {
+			$tokens[] = '';
+		}
+
+		/*
+		 * Some legacy code assumes that text nodes will never start with a
+		 * less-than sign (<) but this isn’t the case, as some text nodes do
+		 * if the less-than sign doesn’t introduce a syntax token. To avoid
+		 * further corruption a leading less-than sign is replaced by its
+		 * encoded equivalent numeric character reference.
+		 */
+		if ( $is_text && '<' === ( $raw_token[0] ?? '' ) ) {
+			$raw_token = '&#60;' . substr( $raw_token, 1 );
+		}
+
+		$tokens[] = $raw_token;
+		$was_text = $is_text;
+	}
+
+	if ( ! $was_text ) {
+		$tokens[] = '';
 	}
 
 	return $tokens;
