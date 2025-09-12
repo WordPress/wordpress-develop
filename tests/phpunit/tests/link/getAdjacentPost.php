@@ -352,6 +352,173 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63920
+	 */
+	public function test_get_adjacent_post_returns_empty_string_when_wp_get_object_terms_returns_wp_error() {
+		register_taxonomy( 'wptests_error_tax', 'post' );
+
+		$term1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_error_tax',
+			)
+		);
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'First',
+				'post_date'  => '2025-09-01 12:00:00',
+			)
+		);
+
+		$post_two = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Second',
+				'post_date'  => '2025-09-02 12:00:00',
+			)
+		);
+
+		wp_set_post_terms( $post->ID, array( $term1 ), 'wptests_error_tax' );
+		wp_set_post_terms( $post_two->ID, array( $term1 ), 'wptests_error_tax' );
+
+		$this->go_to( get_permalink( $post_two->ID ) );
+
+		add_filter( 'wp_get_object_terms', array( $this, 'return_wp_error_for_object_terms' ), 10, 4 );
+
+		$result = get_adjacent_post( true, '', true, 'wptests_error_tax' );
+
+		remove_filter( 'wp_get_object_terms', array( $this, 'return_wp_error_for_object_terms' ), 10 );
+
+		$this->assertSame( '', $result );
+	}
+
+	/**
+	 * Helper method to return a WP_Error for wp_get_object_terms calls.
+	 */
+	public function return_wp_error_for_object_terms( $terms, $object_ids, $taxonomies, $args ) {
+		return new WP_Error( 'test_error', 'Test error from wp_get_object_terms' );
+	}
+
+	/**
+	 * @ticket 63920
+	 */
+	public function test_get_adjacent_post_empty_term_array_after_exclusions() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$post_one = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'First',
+				'post_date'  => '2025-01-01 12:00:00',
+			)
+		);
+
+		$post_two = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Second',
+				'post_date'  => '2025-02-01 12:00:00',
+			)
+		);
+
+		wp_set_post_terms( $post_one->ID, array( $term1 ), 'wptests_tax' );
+		wp_set_post_terms( $post_two->ID, array( $term1 ), 'wptests_tax' );
+
+		$this->go_to( get_permalink( $post_two->ID ) );
+
+		$result = get_adjacent_post( true, array( $term1 ), true, 'wptests_tax' );
+
+		$this->assertSame( '', $result );
+	}
+
+	/**
+	 * @ticket 63920
+	 */
+	public function test_get_adjacent_post_term_array_processing_order() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$term2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$post_one = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'First',
+				'post_date'  => '2025-01-01 12:00:00',
+			)
+		);
+
+		$post_two = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Second',
+				'post_date'  => '2025-02-01 12:00:00',
+			)
+		);
+
+		$post_three = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Third',
+				'post_date'  => '2025-03-01 12:00:00',
+			)
+		);
+
+		// All posts have term1. post_two has term1 and term2
+		wp_set_post_terms( $post_one->ID, array( $term1 ), 'wptests_tax' );
+		wp_set_post_terms( $post_two->ID, array( $term1, $term2 ), 'wptests_tax' );
+		wp_set_post_terms( $post_three->ID, array( $term1 ), 'wptests_tax' );
+
+		// Set the current post to post_two
+		$this->go_to( get_permalink( $post_two->ID ) );
+
+		// When we exclude term2, we should still get adjacent posts that share term1
+		$result = get_adjacent_post( true, array( $term2 ), true, 'wptests_tax' );
+
+		// Should find post_one (previous post that shares term1)
+		$this->assertEquals( $post_one, $result );
+
+		// Test next post
+		$result = get_adjacent_post( true, array( $term2 ), false, 'wptests_tax' );
+
+		// Should find post_three (next post that shares term1)
+		$this->assertEquals( $post_three, $result );
+	}
+
+	/**
+	 * @ticket 63920
+	 */
+	public function test_get_adjacent_post_invalid_taxonomy() {
+		$post_one = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'First',
+				'post_date'  => '2025-01-01 12:00:00',
+			)
+		);
+
+		$post_two = self::factory()->post->create_and_get(
+			array(
+				'post_title' => 'Second',
+				'post_date'  => '2025-02-01 12:00:00',
+			)
+		);
+
+		$this->go_to( get_permalink( $post_two->ID ) );
+
+		$result = get_adjacent_post( true, '', true, 'invalid_taxonomy' );
+
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * @ticket 41131
 	 */
 	public function test_get_adjacent_post_cache() {
