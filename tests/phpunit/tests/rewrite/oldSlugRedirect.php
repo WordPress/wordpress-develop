@@ -227,14 +227,18 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	 * @ticket 52737
 	 */
 	public function test_old_slug_redirect_status_filter() {
+		// Use the same pattern as the working test
 		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
 
 		wp_update_post(
 			array(
 				'ID'        => self::$post_id,
-				'post_name' => 'bar-baz',
+				'post_name' => 'status-filter-test',
 			)
 		);
+
+		// Remove the default URL filter temporarily to test the redirect status
+		remove_filter( 'old_slug_redirect_url', array( $this, 'filter_old_slug_redirect_url' ) );
 
 		// Test default 301 status.
 		add_filter( 'wp_redirect', array( $this, 'capture_redirect_status' ), 10, 2 );
@@ -244,6 +248,10 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 		$this->assertSame( 301, $this->redirect_status );
 		$this->assertSame( self::$post_id, $this->redirect_post_id );
+
+		// Reset state for next test
+		$this->redirect_status = null;
+		$this->redirect_post_id = null;
 
 		// Test custom 302 status.
 		add_filter( 'old_slug_redirect_status', array( $this, 'filter_redirect_status_to_302' ), 10, 2 );
@@ -270,6 +278,9 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		// Clean up.
 		remove_filter( 'wp_redirect', array( $this, 'capture_redirect_status' ) );
 		remove_filter( 'old_slug_redirect_status', array( $this, 'filter_redirect_status_to_zero' ) );
+		
+		// Restore the URL filter
+		add_filter( 'old_slug_redirect_url', array( $this, 'filter_old_slug_redirect_url' ), 10, 1 );
 	}
 
 	public function capture_redirect_status( $location, $status ) {
