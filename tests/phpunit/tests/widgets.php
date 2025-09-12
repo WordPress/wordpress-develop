@@ -1380,8 +1380,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		$result = retrieve_widgets( true );
 		$this->assertArrayHasKey( 'primary', $result );
-		$this->assertIsArray( $result['primary'], 'Primary sidebar should be an array after normalization.' );
-		$this->assertEmpty( $result['primary'], 'Primary sidebar should be an empty array when original value was null.' );
+		$this->assertSame( array(), $result['primary'], 'Primary sidebar should be an empty array after normalization.' );
 		$this->assertArrayNotHasKey( 'extra_sidebar', $result, 'Unregistered sidebar should be removed.' );
 	}
 
@@ -1411,7 +1410,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		$new_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
 		$this->assertArrayHasKey( 'primary', $new_sidebars );
-		$this->assertIsArray( $new_sidebars['primary'], 'Primary sidebar should be an array after normalization.' );
-		$this->assertEmpty( $new_sidebars['primary'], 'Primary sidebar should be an empty array when original value was null.' );
+		$this->assertSame( array(), $new_sidebars['primary'], 'Primary sidebar should be an empty array after normalization.' );
 	}
 }
