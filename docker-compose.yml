@@ -32,7 +32,7 @@ services:
   # The PHP container.
   ##
   php:
-    image: wordpressdevelop/php:${LOCAL_PHP-latest}
+    image: ghcr.io/wordpress/wpdev-docker-images/php:${LOCAL_PHP-latest}-190
 
     networks:
       - wpdevnet
@@ -95,7 +95,7 @@ services:
   # The WP CLI container.
   ##
   cli:
-    image: wordpressdevelop/cli:${LOCAL_PHP-latest}
+    image: ghcr.io/wordpress/wpdev-docker-images/cli:${LOCAL_PHP-latest}-190
 
     networks:
       - wpdevnet
@@ -110,7 +110,6 @@ services:
 
     volumes:
       - ./:/var/www
-      - ./tools/local-env/mysql-client.cnf:/etc/mysql/conf.d/no-ssl.cnf:ro
 
     # Keeps the service alive.
     command: 'sleep infinity'
