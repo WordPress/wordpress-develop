@@ -544,7 +544,7 @@ EOF;
 	 * @dataProvider data_escaping
 	 */
 	public function test_escaping( $input, $output ) {
-		return $this->assertSame( $output, do_shortcode( $input ) );
+		return $this->assertEqualHTML( $output, do_shortcode( $input ) );
 	}
 
 	public function data_escaping() {

@@ -662,8 +662,10 @@ function wp_html_split( $input ) {
 
 	$tokens   = array();
 	$was_text = false;
+	$next_at  = 0;
 	while ( $token_reporter->next_token() ) {
 		$raw_token = $token_reporter->extract_raw_token();
+		$next_at  += strlen( $raw_token );
 		$is_text   = '#text' === $token_reporter->get_token_name();
 
 		if ( ! $is_text && ! $was_text ) {
@@ -683,6 +685,22 @@ function wp_html_split( $input ) {
 
 		$tokens[] = $raw_token;
 		$was_text = $is_text;
+	}
+
+	/*
+	 * The HTML API aborts when a string ends with the start of a
+	 * token which isn’t complete, such as an un-closed comment.
+	 * Typically it’s best to avoid processing or passing along
+	 * that content because it could impact any HTML which follows
+	 * it. However, to maintain backwards compatability this last
+	 * segment needs to appear.
+	 */
+	if ( $token_reporter->paused_at_incomplete_token() ) {
+		if ( ! $was_text ) {
+			$tokens[] = '';
+		}
+		$was_text = false;
+		$tokens[] = substr( $input, $next_at );
 	}
 
 	if ( ! $was_text ) {
