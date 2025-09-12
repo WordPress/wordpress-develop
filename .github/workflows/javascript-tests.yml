@@ -21,6 +21,8 @@ on:
       - '**.js'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/webpack/**'

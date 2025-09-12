@@ -13,7 +13,7 @@ dotenvExpand.expand( dotenv.config() );
 local_env_utils.determine_auth_option();
 
 // Create wp-config.php.
-wp_cli( `config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file=${process.env.LOCAL_DIR}/../wp-config.php` );
+wp_cli( `config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"` );
 
 // Add the debug settings to wp-config.php.
 // Windows requires this to be done as an additional step, rather than using the --extra-php option in the previous step.
@@ -61,7 +61,5 @@ wait_on( {
  * @param {string} cmd The WP-CLI command to run.
  */
 function wp_cli( cmd ) {
-	const composeFiles = local_env_utils.get_compose_files();
-
-	execSync( `docker compose ${composeFiles} run --quiet-pull --rm cli ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
+	execSync( `npm --silent run env:cli -- ${cmd} --path=/var/www/${process.env.LOCAL_DIR}`, { stdio: 'inherit' } );
 }
