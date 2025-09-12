@@ -115,7 +115,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           fetch-depth: ${{ github.event_name == 'workflow_dispatch' && '2' || '1' }}
@@ -128,7 +128,7 @@ jobs:
         run: cp "tools/local-env/php-$PHP_VERSION-docker-compose.override.yml" docker-compose.override.yml
 
       - name: Set up Node.js
-        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -155,7 +155,7 @@ jobs:
 
       - name: Download previous build artifact (target branch or previous commit)
         if: ${{ inputs.subject == 'before' }}
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         id: get-previous-build
         with:
           script: |
