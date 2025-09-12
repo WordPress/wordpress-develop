@@ -250,7 +250,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		$this->assertSame( self::$post_id, $this->redirect_post_id );
 
 		// Reset state for next test
-		$this->redirect_status = null;
+		$this->redirect_status  = null;
 		$this->redirect_post_id = null;
 
 		// Test custom 302 status.
@@ -278,7 +278,7 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 		// Clean up.
 		remove_filter( 'wp_redirect', array( $this, 'capture_redirect_status' ) );
 		remove_filter( 'old_slug_redirect_status', array( $this, 'filter_redirect_status_to_zero' ) );
-		
+
 		// Restore the URL filter
 		add_filter( 'old_slug_redirect_url', array( $this, 'filter_old_slug_redirect_url' ), 10, 1 );
 	}
