@@ -3663,6 +3663,31 @@ function content_url( $path = '' ) {
 }
 
 /**
+ * Retrieves the uploads directory URL.
+ *
+ * Returns either the base uploads URL (e.g. https://example.com/wp-content/uploads)
+ * or, when requested, the URL to the current time-based subdirectory
+ * (e.g. https://example.com/wp-content/uploads/2025/09) if year/month folders are enabled.
+ *
+ * This is a convenience wrapper around wp_upload_dir().
+ *
+ * @since 6.9.0
+ *
+ * @param bool $with_subdir Optional. Whether to include the time-based subdirectory
+ *                          when it is configured (mirrors wp_upload_dir()['url'] vs ['baseurl']). Default true.
+ * @return string Uploads URL. Empty string on failure.
+ */
+function upload_url( $with_subdir = true ) {
+    $uploads = wp_upload_dir();
+
+    if ( ! empty( $uploads['error'] ) ) {
+        return '';
+    }
+
+    return $with_subdir ? $uploads['url'] : $uploads['baseurl'];
+}
+
+/**
  * Retrieves a URL within the plugins or mu-plugins directory.
  *
  * Defaults to the plugins directory URL if no arguments are supplied.
