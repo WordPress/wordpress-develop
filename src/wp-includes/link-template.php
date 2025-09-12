@@ -3669,12 +3669,10 @@ function content_url( $path = '' ) {
  * or, when requested, the URL to the current time-based subdirectory
  * (e.g. https://example.com/wp-content/uploads/2025/09) if year/month folders are enabled.
  *
- * This is a convenience wrapper around wp_upload_dir().
- *
  * @since 6.9.0
  *
  * @param bool $with_subdir Optional. Whether to include the time-based subdirectory
- *                          when it is configured (mirrors wp_upload_dir()['url'] vs ['baseurl']). Default true.
+ *                          when it is configured. Default true.
  * @return string Uploads URL. Empty string on failure.
  */
 function upload_url( $with_subdir = true ) {
