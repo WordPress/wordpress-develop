@@ -1889,11 +1889,19 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 			}
 			$term_array = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) );
 
+			// Bail early if there's an error.
+			if ( is_wp_error( $term_array ) ) {
+				return '';
+			}
+
+			// Ensure we have an array before using array functions.
+			$term_array = array( $term_array );
+
 			// Remove any exclusions from the term array to include.
 			$term_array = array_diff( $term_array, (array) $excluded_terms );
 			$term_array = array_map( 'intval', $term_array );
 
-			if ( ! $term_array || is_wp_error( $term_array ) ) {
+			if ( empty( $term_array ) ) {
 				return '';
 			}
 
