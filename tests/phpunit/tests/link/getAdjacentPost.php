@@ -387,11 +387,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		};
 
 		add_filter( 'wp_get_object_terms', $return_wp_error_for_object_terms );
-
 		$result = get_adjacent_post( true, '', true, 'wptests_error_tax' );
-
-		remove_filter( 'wp_get_object_terms', $return_wp_error_for_object_terms );
-
 		$this->assertSame( '', $result );
 	}
 
