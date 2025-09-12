@@ -7,6 +7,9 @@
  */
 class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	protected $old_slug_redirect_url;
+	protected $redirect_status;
+	protected $redirect_location;
+	protected $redirect_post_id;
 
 	protected static $post_id;
 
@@ -34,6 +37,9 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 
 	public function tear_down() {
 		$this->old_slug_redirect_url = null;
+		$this->redirect_status = null;
+		$this->redirect_location = null;
+		$this->redirect_post_id = null;
 
 		parent::tear_down();
 	}
@@ -213,5 +219,73 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	public function filter_old_slug_redirect_url( $url ) {
 		$this->old_slug_redirect_url = $url;
 		return false;
+	}
+
+	/**
+	 * Test that the old_slug_redirect_status filter works correctly.
+	 *
+	 * @ticket 52737
+	 */
+	public function test_old_slug_redirect_status_filter() {
+		$old_permalink = user_trailingslashit( get_permalink( self::$post_id ) );
+
+		wp_update_post(
+			array(
+				'ID'        => self::$post_id,
+				'post_name' => 'bar-baz',
+			)
+		);
+
+		// Test default 301 status.
+		add_filter( 'wp_redirect', array( $this, 'capture_redirect_status' ), 10, 2 );
+		
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		
+		$this->assertSame( 301, $this->redirect_status );
+		$this->assertSame( self::$post_id, $this->redirect_post_id );
+
+		// Test custom 302 status.
+		add_filter( 'old_slug_redirect_status', array( $this, 'filter_redirect_status_to_302' ), 10, 2 );
+		
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		
+		$this->assertSame( 302, $this->redirect_status );
+		$this->assertSame( self::$post_id, $this->redirect_post_id );
+
+		// Test that returning 0 prevents redirect.
+		remove_filter( 'old_slug_redirect_status', array( $this, 'filter_redirect_status_to_302' ) );
+		add_filter( 'old_slug_redirect_status', array( $this, 'filter_redirect_status_to_zero' ), 10, 2 );
+		
+		$this->redirect_status = null;
+		$this->redirect_post_id = null;
+		
+		$this->go_to( $old_permalink );
+		wp_old_slug_redirect();
+		
+		$this->assertNull( $this->redirect_status );
+		$this->assertNull( $this->redirect_post_id );
+
+		// Clean up.
+		remove_filter( 'wp_redirect', array( $this, 'capture_redirect_status' ) );
+		remove_filter( 'old_slug_redirect_status', array( $this, 'filter_redirect_status_to_zero' ) );
+	}
+
+	public function capture_redirect_status( $location, $status ) {
+		$this->redirect_status = $status;
+		$this->redirect_location = $location;
+		// Prevent actual redirect in tests.
+		return false;
+	}
+
+	public function filter_redirect_status_to_302( $status, $post_id ) {
+		$this->redirect_post_id = $post_id;
+		return 302;
+	}
+
+	public function filter_redirect_status_to_zero( $status, $post_id ) {
+		$this->redirect_post_id = $post_id;
+		return 0;
 	}
 }
