@@ -3678,13 +3678,13 @@ function content_url( $path = '' ) {
  * @return string Uploads URL. Empty string on failure.
  */
 function upload_url( $with_subdir = true ) {
-    $uploads = wp_upload_dir();
+	$uploads = wp_upload_dir();
 
-    if ( ! empty( $uploads['error'] ) ) {
-        return '';
-    }
+	if ( ! empty( $uploads['error'] ) ) {
+		return '';
+	}
 
-    return $with_subdir ? $uploads['url'] : $uploads['baseurl'];
+	return $with_subdir ? $uploads['url'] : $uploads['baseurl'];
 }
 
 /**
