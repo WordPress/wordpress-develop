@@ -12,12 +12,6 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 	public function set_up() {
 		parent::set_up();
-
-		add_filter( 'wp_image_editors', array( $this, 'wp_image_editors' ) );
-	}
-
-	public function wp_image_editors() {
-		return array( $this->editor_engine );
 	}
 
 	public function test_resize_jpg() {
