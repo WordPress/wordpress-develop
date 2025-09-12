@@ -382,21 +382,19 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		$this->go_to( get_permalink( $post_two->ID ) );
 
-		add_filter( 'wp_get_object_terms', array( $this, 'return_wp_error_for_object_terms' ), 10, 4 );
+		$return_wp_error_for_object_terms = static function () {
+			return new WP_Error( 'test_error', 'Test error from wp_get_object_terms' );
+		};
+
+		add_filter( 'wp_get_object_terms', $return_wp_error_for_object_terms );
 
 		$result = get_adjacent_post( true, '', true, 'wptests_error_tax' );
 
-		remove_filter( 'wp_get_object_terms', array( $this, 'return_wp_error_for_object_terms' ), 10 );
+		remove_filter( 'wp_get_object_terms', $return_wp_error_for_object_terms );
 
 		$this->assertSame( '', $result );
 	}
 
-	/**
-	 * Helper method to return a WP_Error for wp_get_object_terms calls.
-	 */
-	public function return_wp_error_for_object_terms( $terms, $object_ids, $taxonomies, $args ) {
-		return new WP_Error( 'test_error', 'Test error from wp_get_object_terms' );
-	}
 
 	/**
 	 * @ticket 63920
@@ -472,24 +470,24 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 			)
 		);
 
-		// All posts have term1. post_two has term1 and term2
+		// All posts have term1. post_two has term1 and term2.
 		wp_set_post_terms( $post_one->ID, array( $term1 ), 'wptests_tax' );
 		wp_set_post_terms( $post_two->ID, array( $term1, $term2 ), 'wptests_tax' );
 		wp_set_post_terms( $post_three->ID, array( $term1 ), 'wptests_tax' );
 
-		// Set the current post to post_two
+		// Set the current post to post_two.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
-		// When we exclude term2, we should still get adjacent posts that share term1
+		// When we exclude term2, we should still get adjacent posts that share term1.
 		$result = get_adjacent_post( true, array( $term2 ), true, 'wptests_tax' );
 
-		// Should find post_one (previous post that shares term1)
+		// Should find post_one (previous post that shares term1).
 		$this->assertEquals( $post_one, $result );
 
-		// Test next post
+		// Test next post.
 		$result = get_adjacent_post( true, array( $term2 ), false, 'wptests_tax' );
 
-		// Should find post_three (next post that shares term1)
+		// Should find post_three (next post that shares term1).
 		$this->assertEquals( $post_three, $result );
 	}
 
