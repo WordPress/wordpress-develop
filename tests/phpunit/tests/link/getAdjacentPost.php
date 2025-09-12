@@ -391,7 +391,6 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$this->assertSame( '', $result );
 	}
 
-
 	/**
 	 * @ticket 63920
 	 */
@@ -491,7 +490,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	 * @ticket 63920
 	 */
 	public function test_get_adjacent_post_invalid_taxonomy() {
-		$post_one = self::factory()->post->create_and_get(
+		self::factory()->post->create(
 			array(
 				'post_title' => 'First',
 				'post_date'  => '2025-01-01 12:00:00',
