@@ -4674,7 +4674,8 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	/*
 	 * If the URL doesn't appear to contain a scheme, we presume
 	 * it needs http:// prepended (unless it's a relative link
-	 * starting with /, # or ?, or a PHP file).
+	 * starting with /, # or ?, or a PHP file). If the first item
+	 * in $protocols is 'https', then https:// is prepended.
 	 */
 	if ( ! str_contains( $url, ':' ) && ! in_array( $url[0], array( '/', '#', '?' ), true ) &&
 		! preg_match( '/^[a-z0-9-]+?\.php/i', $url )
