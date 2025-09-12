@@ -445,7 +445,9 @@ JS;
 
 		$wp_scripts_reflection      = new ReflectionClass( WP_Scripts::class );
 		$filter_eligible_strategies = $wp_scripts_reflection->getMethod( 'filter_eligible_strategies' );
-		$filter_eligible_strategies->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$filter_eligible_strategies->setAccessible( true );
+		}
 		$this->assertSame( $expected, $filter_eligible_strategies->invokeArgs( wp_scripts(), array( $handle ) ), 'Expected return value of WP_Scripts::filter_eligible_strategies to match.' );
 	}
 
@@ -2628,6 +2630,73 @@ HTML;
 			$this->wp_scripts_print_translations_output
 		);
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/script.js' id='test-example-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 63944
+	 */
+	public function test_wp_set_script_translations_uses_registered_domainpath_for_plugin() {
+		global $wp_textdomain_registry;
+
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'domain-path-plugin', '/wp-content/plugins/my-plugin/js/script.js', array(), null );
+
+		// Simulate a plugin declaring DomainPath: /languages by registering a custom path.
+		$wp_textdomain_registry->set_custom_path( 'internationalized-plugin', DIR_TESTDATA . '/languages/plugins' );
+		wp_set_script_translations( 'domain-path-plugin', 'internationalized-plugin' );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js' id='wp-i18n-js'></script>\n";
+		$expected .= str_replace(
+			array(
+				'__DOMAIN__',
+				'__HANDLE__',
+				'__JSON_TRANSLATIONS__',
+			),
+			array(
+				'internationalized-plugin',
+				'domain-path-plugin',
+				file_get_contents( DIR_TESTDATA . '/languages/plugins/internationalized-plugin-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json' ),
+			),
+			$this->wp_scripts_print_translations_output
+		);
+		$expected .= "<script type='text/javascript' src='/wp-content/plugins/my-plugin/js/script.js' id='domain-path-plugin-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 63944
+	 *
+	 * Ensure human-readable script translation filenames are found when a
+	 * textdomain has a custom DomainPath registered and no explicit $path is passed.
+	 */
+	public function test_wp_set_script_translations_prefers_human_readable_filename_in_registered_domainpath() {
+		global $wp_textdomain_registry;
+
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'script-handle', '/wp-admin/js/script.js', array(), null );
+
+		// Register the admin textdomain path and use the admin translations file for this script-handle test.
+		$wp_textdomain_registry->set_custom_path( 'admin', DIR_TESTDATA . '/languages' );
+		wp_set_script_translations( 'script-handle', 'admin' );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js' id='wp-i18n-js'></script>\n";
+		$expected .= str_replace(
+			array(
+				'__DOMAIN__',
+				'__HANDLE__',
+				'__JSON_TRANSLATIONS__',
+			),
+			array(
+				'admin',
+				'script-handle',
+				file_get_contents( DIR_TESTDATA . '/languages/admin-en_US-script-handle.json' ),
+			),
+			$this->wp_scripts_print_translations_output
+		);
+		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js' id='script-handle-js'></script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
 	}
