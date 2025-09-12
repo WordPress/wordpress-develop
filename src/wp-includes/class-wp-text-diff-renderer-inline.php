@@ -26,8 +26,35 @@ class WP_Text_Diff_Renderer_inline extends Text_Diff_Renderer_inline {
 	 */
 	public function _splitOnWords( $string, $newlineEscape = "\n" ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.stringFound,WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 		$string = str_replace( "\0", '', $string );
-		$words  = preg_split( '/([^\w])/u', $string, -1, PREG_SPLIT_DELIM_CAPTURE );
-		$words  = str_replace( "\n", $newlineEscape, $words ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
+		if ( _wp_can_use_pcre_u() ) {
+			$words = preg_split( '/([^\w])/u', $string, -1, PREG_SPLIT_DELIM_CAPTURE );
+		} else {
+			if ( function_exists( 'mb_str_split' ) ) {
+				$chars = mb_str_split( $string, 1, 'UTF-8' );
+			} else {
+				$chars = str_split( $string );
+			}
+			$words        = array();
+			$current_word = '';
+
+			foreach ( $chars as $char ) {
+				// Simple heuristic: letters, numbers, underscore = word characters
+				if ( ctype_alnum( $char ) || '_' === $char || ord( $char ) > 127 ) {
+					$current_word .= $char;
+				} else {
+					if ( '' !== $current_word ) {
+						$words[]      = $current_word;
+						$current_word = '';
+					}
+					$words[] = $char; // Capture delimiter
+				}
+			}
+			if ( '' !== $current_word ) {
+				$words[] = $current_word;
+			}
+		}
+
+		$words = str_replace( "\n", $newlineEscape, $words ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase
 		return $words;
 	}
 }

@@ -97,7 +97,11 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 			 * Check the comment fields for moderation keywords. If any are found,
 			 * fail the check for the given field by returning false.
 			 */
-			$pattern = "#$word#iu";
+			if ( _wp_can_use_pcre_u() ) {
+				$pattern = "#$word#iu";
+			} else {
+				$pattern = "#$word#i";
+			}
 			if ( preg_match( $pattern, $author ) ) {
 				return false;
 			}
@@ -1415,7 +1419,11 @@ function wp_check_comment_disallowed_list( $author, $email, $url, $comment, $use
 		// Do some escaping magic so that '#' chars in the spam words don't break things:
 		$word = preg_quote( $word, '#' );
 
-		$pattern = "#$word#iu";
+		if ( _wp_can_use_pcre_u() ) {
+			$pattern = "#$word#iu";
+		} else {
+			$pattern = "#$word#i";
+		}
 		if ( preg_match( $pattern, $author )
 			|| preg_match( $pattern, $email )
 			|| preg_match( $pattern, $url )

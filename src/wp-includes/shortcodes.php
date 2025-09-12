@@ -613,7 +613,11 @@ function get_shortcode_atts_regex() {
 function shortcode_parse_atts( $text ) {
 	$atts    = array();
 	$pattern = get_shortcode_atts_regex();
-	$text    = preg_replace( "/[\x{00a0}\x{200b}]+/u", ' ', $text );
+	if ( _wp_can_use_pcre_u() ) {
+		$text = preg_replace( "/[\x{00a0}\x{200b}]+/u", ' ', $text );
+	} else {
+		$text = str_replace( array( "\xc2\xa0", "\xe2\x80\x8b" ), ' ', $text );
+	}
 	if ( preg_match_all( $pattern, $text, $match, PREG_SET_ORDER ) ) {
 		foreach ( $match as $m ) {
 			if ( ! empty( $m[1] ) ) {

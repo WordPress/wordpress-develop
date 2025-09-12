@@ -360,12 +360,20 @@ function wp_maybe_decline_date( $date, $format = '' ) {
 			$decline = preg_match( '#[dj]\.? F#', $format );
 		} else {
 			// If the format is not passed, try to guess it from the date string.
-			$decline = preg_match( '#\b\d{1,2}\.? [^\d ]+\b#u', $date );
+			if ( _wp_can_use_pcre_u() ) {
+				$decline = preg_match( '#\b\d{1,2}\.? [^\d ]+\b#u', $date );
+			} else {
+				$decline = preg_match( '#\b\d{1,2}\.? [^\d ]+\b#', $date );
+			}
 		}
 
 		if ( $decline ) {
 			foreach ( $months as $key => $month ) {
-				$months[ $key ] = '# ' . preg_quote( $month, '#' ) . '\b#u';
+				if ( _wp_can_use_pcre_u() ) {
+					$months[ $key ] = '# ' . preg_quote( $month, '#' ) . '\b#u';
+				} else {
+					$months[ $key ] = '# ' . preg_quote( $month, '#' ) . '\b#';
+				}
 			}
 
 			foreach ( $months_genitive as $key => $month ) {
@@ -383,12 +391,20 @@ function wp_maybe_decline_date( $date, $format = '' ) {
 			$decline = preg_match( '#F [dj]#', $format );
 		} else {
 			// If the format is not passed, try to guess it from the date string.
-			$decline = preg_match( '#\b[^\d ]+ \d{1,2}(st|nd|rd|th)?\b#u', trim( $date ) );
+			if ( _wp_can_use_pcre_u() ) {
+				$decline = preg_match( '#\b[^\d ]+ \d{1,2}(st|nd|rd|th)?\b#u', trim( $date ) );
+			} else {
+				$decline = preg_match( '#\b[^\d ]+ \d{1,2}(st|nd|rd|th)?\b#', trim( $date ) );
+			}
 		}
 
 		if ( $decline ) {
 			foreach ( $months as $key => $month ) {
-				$months[ $key ] = '#\b' . preg_quote( $month, '#' ) . ' (\d{1,2})(st|nd|rd|th)?([-–]\d{1,2})?(st|nd|rd|th)?\b#u';
+				if ( _wp_can_use_pcre_u() ) {
+					$months[ $key ] = '#\b' . preg_quote( $month, '#' ) . ' (\d{1,2})(st|nd|rd|th)?([-–]\d{1,2})?(st|nd|rd|th)?\b#u';
+				} else {
+					$months[ $key ] = '#\b' . preg_quote( $month, '#' ) . ' (\d{1,2})(st|nd|rd|th)?([-–]\d{1,2})?(st|nd|rd|th)?\b#';
+				}
 			}
 
 			foreach ( $months_genitive as $key => $month ) {

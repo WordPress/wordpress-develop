@@ -155,7 +155,13 @@ if ( ! class_exists( 'PO', false ) ) :
 			$unpoified             = '';
 			$previous_is_backslash = false;
 			foreach ( $lines as $line ) {
-				preg_match_all( '/./u', $line, $chars );
+				if ( _wp_can_use_pcre_u() ) {
+					preg_match_all( '/./u', $line, $chars );
+				} elseif ( function_exists( 'mb_str_split' ) ) {
+					$chars = array( mb_str_split( $line, 1, 'UTF-8' ) );
+				} else {
+					$chars = array( str_split( $line ) );
+				}
 				$chars = $chars[0];
 				foreach ( $chars as $char ) {
 					if ( ! $previous_is_backslash ) {
