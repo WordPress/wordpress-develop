@@ -1987,7 +1987,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$default = $wpdb->allow_unsafe_unquoted_parameters;
 
 		$property = new ReflectionProperty( $wpdb, 'allow_unsafe_unquoted_parameters' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $wpdb, $allow );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -1995,7 +1997,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 		// Reset.
 		$property->setValue( $wpdb, $default );
-		$property->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( false );
+		}
 
 		$this->assertSame( $expected, $actual );
 	}

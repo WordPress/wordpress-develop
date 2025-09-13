@@ -875,7 +875,9 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 */
 	public function test_get_src() {
 		$get_src = new ReflectionMethod( $this->script_modules, 'get_src' );
-		$get_src->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_src->setAccessible( true );
+		}
 
 		$this->script_modules->register(
 			'module_with_version',
@@ -1350,7 +1352,9 @@ HTML;
 	private function get_registered_script_modules( WP_Script_Modules $script_modules ): array {
 		$reflection_class    = new ReflectionClass( $script_modules );
 		$registered_property = $reflection_class->getProperty( 'registered' );
-		$registered_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$registered_property->setAccessible( true );
+		}
 		return $registered_property->getValue( $script_modules );
 	}
 

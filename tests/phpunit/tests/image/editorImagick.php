@@ -440,7 +440,9 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$imagick_image_editor->load();
 
 		$property = new ReflectionProperty( $imagick_image_editor, 'image' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$color_top_left = $property->getValue( $imagick_image_editor )->getImagePixelColor( 0, 0 )->getColor();
 
@@ -459,7 +461,9 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$imagick_image_editor->load();
 
 		$property = new ReflectionProperty( $imagick_image_editor, 'image' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$color_top_left = $property->getValue( $imagick_image_editor )->getImagePixelColor( 0, 0 )->getColor();
 

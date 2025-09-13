@@ -186,6 +186,21 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 				'expected_wrapper'    => '<div class="wp-block-test has-background" style="color: red;font-size: 15px;background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
 				'wrapper'             => '<div class="wp-block-test" style="color: red;font-size: 15px;">Content</div>',
 			),
+			'background image style is appended if a boolean style attribute already exists' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-rules-are-output',
+				'background_settings' => array(
+					'backgroundImage' => true,
+				),
+				'background_style'    => array(
+					'backgroundImage' => array(
+						'url'    => 'https://example.com/image.jpg',
+						'source' => 'file',
+					),
+				),
+				'expected_wrapper'    => '<div class="has-background" classname="wp-block-test" style="background-image:url(&#039;https://example.com/image.jpg&#039;);background-size:cover;">Content</div>',
+				'wrapper'             => '<div classname="wp-block-test" style>Content</div>',
+			),
 			'background image style is not applied if the block does not support background image' => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',
 				'block_name'          => 'test/background-rules-are-not-output',
