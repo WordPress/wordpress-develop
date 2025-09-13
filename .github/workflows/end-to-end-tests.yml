@@ -31,7 +31,7 @@ on:
       - 'tools/webpack/**'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
-      # This files affect the e2e tests. Changes could affect the outcome.
+      # These files affect the e2e tests. Changes could affect the outcome.
       - 'tests/e2e/**'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/end-to-end-tests.yml'
