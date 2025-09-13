@@ -1020,6 +1020,17 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertSame( 'Invalid date.', $error->get_error_message() );
 	}
 
+	/**
+	 * @ticket 60184
+	 */
+	public function test_epoch() {
+		$schema = array(
+			'type'   => 'string',
+			'format' => 'date-time',
+		);
+		$this->assertTrue( rest_validate_value_from_schema( '1970-01-01T00:00:00Z', $schema ) );
+	}
+
 	public function test_object_or_string() {
 		$schema = array(
 			'type'       => array( 'object', 'string' ),

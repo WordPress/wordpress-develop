@@ -96,6 +96,16 @@ final class WP_Interactivity_API {
 	private $context_stack = null;
 
 	/**
+	 * Representation in array format of the element currently being processed.
+	 *
+	 * This is only available during directive processing, otherwise it is `null`.
+	 *
+	 * @since 6.7.0
+	 * @var array{attributes: array<string, string|bool>}|null
+	 */
+	private $current_element = null;
+
+	/**
 	 * Gets and/or sets the initial state of an Interactivity API store for a
 	 * given namespace.
 	 *
@@ -200,6 +210,26 @@ final class WP_Interactivity_API {
 	}
 
 	/**
+	 * Set client-side interactivity-router data.
+	 *
+	 * Once in the browser, the state will be parsed and used to hydrate the client-side
+	 * interactivity stores and the configuration will be available using a `getConfig` utility.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param array $data Data to filter.
+	 * @return array Data for the Interactivity Router script module.
+	 */
+	public function filter_script_module_interactivity_router_data( array $data ): array {
+		if ( ! isset( $data['i18n'] ) ) {
+			$data['i18n'] = array();
+		}
+		$data['i18n']['loading'] = __( 'Loading page, please wait.' );
+		$data['i18n']['loaded']  = __( 'Page Loaded.' );
+		return $data;
+	}
+
+	/**
 	 * Set client-side interactivity data.
 	 *
 	 * Once in the browser, the state will be parsed and used to hydrate the client-side
@@ -279,36 +309,45 @@ final class WP_Interactivity_API {
 	}
 
 	/**
+	 * Returns an array representation of the current element being processed.
+	 *
+	 * The returned array contains a copy of the element attributes.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @return array{attributes: array<string, string|bool>}|null Current element.
+	 */
+	public function get_element(): ?array {
+		if ( null === $this->current_element ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The element can only be read during directive processing.' ),
+				'6.7.0'
+			);
+		}
+
+		return $this->current_element;
+	}
+
+	/**
 	 * Registers the `@wordpress/interactivity` script modules.
+	 *
+	 * @deprecated 6.7.0 Script Modules registration is handled by {@see wp_default_script_modules()}.
 	 *
 	 * @since 6.5.0
 	 */
 	public function register_script_modules() {
-		$suffix = wp_scripts_get_suffix();
-
-		wp_register_script_module(
-			'@wordpress/interactivity',
-			includes_url( "js/dist/interactivity$suffix.js" )
-		);
-
-		wp_register_script_module(
-			'@wordpress/interactivity-router',
-			includes_url( "js/dist/interactivity-router$suffix.js" ),
-			array( '@wordpress/interactivity' )
-		);
+		_deprecated_function( __METHOD__, '6.7.0', 'wp_default_script_modules' );
 	}
 
 	/**
 	 * Adds the necessary hooks for the Interactivity API.
 	 *
 	 * @since 6.5.0
-	 * @since 6.7.0 Use the {@see "script_module_data_{$module_id}"} filter to pass client-side data.
 	 */
 	public function add_hooks() {
-		add_action( 'wp_enqueue_scripts', array( $this, 'register_script_modules' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'register_script_modules' ) );
-
 		add_filter( 'script_module_data_@wordpress/interactivity', array( $this, 'filter_script_module_interactivity_data' ) );
+		add_filter( 'script_module_data_@wordpress/interactivity-router', array( $this, 'filter_script_module_interactivity_router_data' ) );
 	}
 
 	/**
@@ -412,6 +451,26 @@ final class WP_Interactivity_API {
 
 					// Checks if there is a server directive processor registered for each directive.
 					foreach ( $p->get_attribute_names_with_prefix( 'data-wp-' ) as $attribute_name ) {
+						if ( ! preg_match(
+							/*
+							 * This must align with the client-side regex used by the interactivity API.
+							 * @see https://github.com/WordPress/gutenberg/blob/ca616014255efbb61f34c10917d52a2d86c1c660/packages/interactivity/src/vdom.ts#L20-L32
+							 */
+							'/' .
+							'^data-wp-' .
+							// Match alphanumeric characters including hyphen-separated
+							// segments. It excludes underscore intentionally to prevent confusion.
+							// E.g., "custom-directive".
+							'([a-z0-9]+(?:-[a-z0-9]+)*)' .
+							// (Optional) Match '--' followed by any alphanumeric charachters. It
+							// excludes underscore intentionally to prevent confusion, but it can
+							// contain multiple hyphens. E.g., "--custom-prefix--with-more-info".
+							'(?:--([a-z0-9_-]+))?$' .
+							'/i',
+							$attribute_name
+						) ) {
+							continue;
+						}
 						list( $directive_prefix ) = $this->extract_prefix_and_suffix( $attribute_name );
 						if ( array_key_exists( $directive_prefix, self::$directive_processors ) ) {
 							$directives_prefixes[] = $directive_prefix;
@@ -441,6 +500,19 @@ final class WP_Interactivity_API {
 				'exit'  => $p->is_tag_closer() || ! $p->has_and_visits_its_closer_tag(),
 			);
 
+			// Get the element attributes to include them in the element representation.
+			$element_attrs = array();
+			$attr_names    = $p->get_attribute_names_with_prefix( '' ) ?? array();
+
+			foreach ( $attr_names as $name ) {
+				$element_attrs[ $name ] = $p->get_attribute( $name );
+			}
+
+			// Assign the current element right before running its directive processors.
+			$this->current_element = array(
+				'attributes' => $element_attrs,
+			);
+
 			foreach ( $modes as $mode => $should_run ) {
 				if ( ! $should_run ) {
 					continue;
@@ -462,6 +534,9 @@ final class WP_Interactivity_API {
 					call_user_func_array( $func, array( $p, $mode, &$tag_stack ) );
 				}
 			}
+
+			// Clear the current element.
+			$this->current_element = null;
 		}
 
 		if ( $unbalanced ) {
@@ -524,12 +599,43 @@ final class WP_Interactivity_API {
 		$path_segments = explode( '.', $path );
 		$current       = $store;
 		foreach ( $path_segments as $path_segment ) {
+			/*
+			 * Special case for numeric arrays and strings. Add length
+			 * property mimicking JavaScript behavior.
+			 *
+			 * @since 6.8.0
+			 */
+			if ( 'length' === $path_segment ) {
+				if ( is_array( $current ) && array_is_list( $current ) ) {
+					$current = count( $current );
+					break;
+				}
+
+				if ( is_string( $current ) ) {
+					/*
+					 * Differences in encoding between PHP strings and
+					 * JavaScript mean that it's complicated to calculate
+					 * the string length JavaScript would see from PHP.
+					 * `strlen` is a reasonable approximation.
+					 *
+					 * Users that desire a more precise length likely have
+					 * more precise needs than "bytelength" and should
+					 * implement their own length calculation in derived
+					 * state taking into account encoding and their desired
+					 * output (codepoints, graphemes, bytes, etc.).
+					 */
+					$current = strlen( $current );
+					break;
+				}
+			}
+
 			if ( ( is_array( $current ) || $current instanceof ArrayAccess ) && isset( $current[ $path_segment ] ) ) {
 				$current = $current[ $path_segment ];
 			} elseif ( is_object( $current ) && isset( $current->$path_segment ) ) {
 				$current = $current->$path_segment;
 			} else {
-				return null;
+				$current = null;
+				break;
 			}
 
 			if ( $current instanceof Closure ) {
@@ -637,6 +743,8 @@ final class WP_Interactivity_API {
 
 	/**
 	 * Transforms a kebab-case string to camelCase.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string $str The kebab-case string to transform to camelCase.
 	 * @return string The transformed camelCase string.
@@ -986,28 +1094,33 @@ CSS;
 	}
 
 	/**
-	 * Outputs the markup for the top loading indicator and the screen reader
-	 * notifications during client-side navigations.
-	 *
-	 * This method prints a div element representing a loading bar visible during
-	 * navigation, as well as an aria-live region that can be read by screen
-	 * readers to announce navigation status.
+	 * Deprecated.
 	 *
 	 * @since 6.5.0
+	 * @deprecated 6.7.0 Use {@see WP_Interactivity_API::print_router_markup} instead.
 	 */
 	public function print_router_loading_and_screen_reader_markup() {
+		_deprecated_function( __METHOD__, '6.7.0', 'WP_Interactivity_API::print_router_markup' );
+
+		// Call the new method.
+		$this->print_router_markup();
+	}
+
+	/**
+	 * Outputs markup for the @wordpress/interactivity-router script module.
+	 *
+	 * This method prints a div element representing a loading bar visible during
+	 * navigation.
+	 *
+	 * @since 6.7.0
+	 */
+	public function print_router_markup() {
 		echo <<<HTML
 			<div
 				class="wp-interactivity-router-loading-bar"
 				data-wp-interactive="core/router"
 				data-wp-class--start-animation="state.navigation.hasStarted"
 				data-wp-class--finish-animation="state.navigation.hasFinished"
-			></div>
-			<div
-				class="screen-reader-text"
-				aria-live="polite"
-				data-wp-interactive="core/router"
-				data-wp-text="state.navigation.message"
 			></div>
 HTML;
 	}
@@ -1029,26 +1142,13 @@ HTML;
 		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
 
-			// Initialize the `core/router` store.
-			$this->state(
-				'core/router',
-				array(
-					'navigation' => array(
-						'texts' => array(
-							'loading' => __( 'Loading page, please wait.' ),
-							'loaded'  => __( 'Page Loaded.' ),
-						),
-					),
-				)
-			);
-
 			// Enqueues as an inline style.
 			wp_register_style( 'wp-interactivity-router-animations', false );
 			wp_add_inline_style( 'wp-interactivity-router-animations', $this->get_router_animation_styles() );
 			wp_enqueue_style( 'wp-interactivity-router-animations' );
 
 			// Adds the necessary markup to the footer.
-			add_action( 'wp_footer', array( $this, 'print_router_loading_and_screen_reader_markup' ) );
+			add_action( 'wp_footer', array( $this, 'print_router_markup' ) );
 		}
 	}
 

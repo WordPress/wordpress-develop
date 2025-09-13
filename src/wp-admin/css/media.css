@@ -167,14 +167,14 @@
 }
 
 .media-item .filename {
-	padding: 14px 0;
+	padding: 14px 2px;
 	overflow: hidden;
-	margin-left: 6px;
+	margin-left: 4px;
 }
 
 .media-item .pinkynail {
 	float: left;
-	margin: 0 10px 0 0;
+	margin: 14px;
 	max-height: 70px;
 	max-width: 70px;
 }
@@ -901,6 +901,15 @@ border color while dragging a file over the uploader drop area */
 	display: block;
 }
 
+.imgedit-panel-active .imgedit-group-controls > .imgedit-crop-apply {
+	display: flex;
+}
+
+.imgedit-crop-apply {
+	gap: 4px;
+	flex-wrap: wrap;
+}
+
 .wp_attachment_holder .imgedit-wrap .image-editor {
 	float: right;
 	width: 250px;
@@ -969,15 +978,6 @@ border color while dragging a file over the uploader drop area */
 	clear: both;
 	margin: 0;
 	padding: 1em 0 0;
-}
-
-.image-editor .imgedit-menu .button {
-	display: inline-block;
-	width: auto;
-	min-height: 28px;
-	font-size: 13px;
-	line-height: 2;
-	padding: 0 10px;
 }
 
 .imgedit-menu .button:after,

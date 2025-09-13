@@ -88,7 +88,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		// Lists/updates a single global style variation based on the given id.
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<id>[\/\w-]+)',
+			'/' . $this->rest_base . '/(?P<id>[\/\d+]+)',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -96,9 +96,8 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => array(
 						'id' => array(
-							'description'       => __( 'The id of a template' ),
-							'type'              => 'string',
-							'sanitize_callback' => array( $this, '_sanitize_global_styles_callback' ),
+							'description' => __( 'ID of global styles config.' ),
+							'type'        => 'integer',
 						),
 					),
 				),
@@ -115,17 +114,17 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Sanitize the global styles ID or stylesheet to decode endpoint.
+	 * Sanitize the global styles stylesheet to decode endpoint.
 	 * For example, `wp/v2/global-styles/twentytwentytwo%200.4.0`
 	 * would be decoded to `twentytwentytwo 0.4.0`.
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param string $id_or_stylesheet Global styles ID or stylesheet.
-	 * @return string Sanitized global styles ID or stylesheet.
+	 * @param string $stylesheet Global styles stylesheet.
+	 * @return string Sanitized global styles stylesheet.
 	 */
-	public function _sanitize_global_styles_callback( $id_or_stylesheet ) {
-		return urldecode( $id_or_stylesheet );
+	public function _sanitize_global_styles_callback( $stylesheet ) {
+		return urldecode( $stylesheet );
 	}
 
 	/**
@@ -139,7 +138,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	protected function get_post( $id ) {
 		$error = new WP_Error(
 			'rest_global_styles_not_found',
-			__( 'No global styles config exist with that id.' ),
+			__( 'No global styles config exists with that ID.' ),
 			array( 'status' => 404 )
 		);
 
@@ -464,7 +463,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			'properties' => array(
 				'id'       => array(
 					'description' => __( 'ID of global styles config.' ),
-					'type'        => 'string',
+					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
@@ -509,26 +508,40 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Checks if a given request has access to read a single theme global styles config.
 	 *
 	 * @since 5.9.0
+	 * @since 6.7.0 Allow users with edit post capabilities to view theme global styles.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_theme_item_permissions_check( $request ) {
 		/*
-		 * Verify if the current user has edit_theme_options capability.
-		 * This capability is required to edit/view/delete templates.
+		 * Verify if the current user has edit_posts capability.
+		 * This capability is required to view global styles.
 		 */
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error(
-				'rest_cannot_manage_global_styles',
-				__( 'Sorry, you are not allowed to access the global styles on this site.' ),
-				array(
-					'status' => rest_authorization_required_code(),
-				)
-			);
+		if ( current_user_can( 'edit_posts' ) ) {
+			return true;
 		}
 
-		return true;
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				return true;
+			}
+		}
+
+		/*
+		 * Verify if the current user has edit_theme_options capability.
+		 */
+		if ( current_user_can( 'edit_theme_options' ) ) {
+			return true;
+		}
+
+		return new WP_Error(
+			'rest_cannot_read_global_styles',
+			__( 'Sorry, you are not allowed to access the global styles on this site.' ),
+			array(
+				'status' => rest_authorization_required_code(),
+			)
+		);
 	}
 
 	/**
@@ -589,26 +602,13 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * Checks if a given request has access to read a single theme global styles config.
 	 *
 	 * @since 6.0.0
+	 * @since 6.7.0 Allow users with edit post capabilities to view theme global styles.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_theme_items_permissions_check( $request ) {
-		/*
-		 * Verify if the current user has edit_theme_options capability.
-		 * This capability is required to edit/view/delete templates.
-		 */
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new WP_Error(
-				'rest_cannot_manage_global_styles',
-				__( 'Sorry, you are not allowed to access the global styles on this site.' ),
-				array(
-					'status' => rest_authorization_required_code(),
-				)
-			);
-		}
-
-		return true;
+		return $this->get_theme_item_permissions_check( $request );
 	}
 
 	/**
@@ -632,7 +632,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$response   = array();
+		$response = array();
 
 		// Register theme-defined variations e.g. from block style variation partials under `/styles`.
 		$partials = WP_Theme_JSON_Resolver::get_style_variations( 'block' );

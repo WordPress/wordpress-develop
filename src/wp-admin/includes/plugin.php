@@ -153,8 +153,6 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 					load_plugin_textdomain( $textdomain, false, dirname( $plugin_file ) );
 				}
 			}
-		} elseif ( 'hello.php' === basename( $plugin_file ) ) {
-			$textdomain = 'default';
 		}
 		if ( $textdomain ) {
 			foreach ( array( 'Name', 'PluginURI', 'Description', 'Author', 'AuthorURI', 'Version' ) as $field ) {
@@ -1007,10 +1005,6 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 		}
 
 		$plugin_slug = dirname( $plugin_file );
-
-		if ( 'hello.php' === $plugin_file ) {
-			$plugin_slug = 'hello-dolly';
-		}
 
 		// Remove language files, silently.
 		if ( '.' !== $plugin_slug && ! empty( $plugin_translations[ $plugin_slug ] ) ) {
@@ -2610,7 +2604,7 @@ function deactivated_plugins_notice() {
 
 	if ( false === $blog_deactivated_plugins ) {
 		// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
-		update_option( 'wp_force_deactivated_plugins', array() );
+		update_option( 'wp_force_deactivated_plugins', array(), false );
 	}
 
 	if ( is_multisite() ) {
@@ -2664,7 +2658,7 @@ function deactivated_plugins_notice() {
 	}
 
 	// Empty the options.
-	update_option( 'wp_force_deactivated_plugins', array() );
+	update_option( 'wp_force_deactivated_plugins', array(), false );
 	if ( is_multisite() ) {
 		update_site_option( 'wp_force_deactivated_plugins', array() );
 	}

@@ -127,4 +127,29 @@ class Tests_Link_GetEditCommentLink extends WP_UnitTestCase {
 		$this->assertSame( $expected_url_display, $actual_url_display );
 		$this->assertSame( $expected_url, $actual_url );
 	}
+
+	/**
+	 * Tests that the 'get_edit_comment_link' filter receives the comment ID, even when a comment object is passed.
+	 *
+	 * @ticket 61727
+	 */
+	public function test_get_edit_comment_link_filter_uses_id() {
+		// Add a filter just to catch the $comment_id filter parameter value.
+		$comment_id_filter_param = null;
+		add_filter(
+			'get_edit_comment_link',
+			function ( $location, $comment_id ) use ( &$comment_id_filter_param ) {
+				$comment_id_filter_param = $comment_id;
+				return $location;
+			},
+			10,
+			2
+		);
+
+		// Pass a comment object to get_edit_comment_link().
+		get_edit_comment_link( get_comment( self::$comment_id ) );
+
+		// The filter should still always receive the comment ID, not the object.
+		$this->assertSame( self::$comment_id, $comment_id_filter_param );
+	}
 }

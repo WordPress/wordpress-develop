@@ -2333,7 +2333,7 @@
 	 *                                                'update' or 'install'.
 	 */
 	wp.updates.isValidResponse = function( response, action ) {
-		var error = __( 'Something went wrong.' ),
+		var error = __( 'An error occurred during the update process. Please try again.' ),
 			errorMessage;
 
 		// Make sure the response is a valid data object and not a Promise object.
@@ -2832,14 +2832,7 @@
 
 			// Bail if there were no items selected.
 			if ( ! itemsSelected.length ) {
-				event.preventDefault();
-				$( 'html, body' ).animate( { scrollTop: 0 } );
-
-				return wp.updates.addAdminNotice( {
-					id:        'no-items-selected',
-					className: 'notice-error is-dismissible',
-					message:   __( 'Please select at least one item to perform this action on.' )
-				} );
+				bulkAction = false;
 			}
 
 			// Determine the type of request we're dealing with.

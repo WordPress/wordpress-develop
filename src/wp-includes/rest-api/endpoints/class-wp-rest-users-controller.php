@@ -257,6 +257,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Retrieves all users.
 	 *
 	 * @since 4.7.0
+	 * @since 6.8.0 Added support for the search_columns query param.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -331,7 +332,34 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			if ( ! current_user_can( 'list_users' ) ) {
 				$prepared_args['search_columns'] = array( 'ID', 'user_login', 'user_nicename', 'display_name' );
 			}
+			$search_columns         = $request->get_param( 'search_columns' );
+			$valid_columns          = isset( $prepared_args['search_columns'] )
+				? $prepared_args['search_columns']
+				: array( 'ID', 'user_login', 'user_nicename', 'user_email', 'display_name' );
+			$search_columns_mapping = array(
+				'id'       => 'ID',
+				'username' => 'user_login',
+				'slug'     => 'user_nicename',
+				'email'    => 'user_email',
+				'name'     => 'display_name',
+			);
+			$search_columns         = array_map(
+				static function ( $column ) use ( $search_columns_mapping ) {
+					return $search_columns_mapping[ $column ];
+				},
+				$search_columns
+			);
+			$search_columns         = array_intersect( $search_columns, $valid_columns );
+			if ( ! empty( $search_columns ) ) {
+				$prepared_args['search_columns'] = $search_columns;
+			}
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
+		}
+
+		$is_head_request = $request->is_method( 'HEAD' );
+		if ( $is_head_request ) {
+			// Force the 'fields' argument. For HEAD requests, only user IDs are required.
+			$prepared_args['fields'] = 'id';
 		}
 		/**
 		 * Filters WP_User_Query arguments when querying users via the REST API.
@@ -347,14 +375,16 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$query = new WP_User_Query( $prepared_args );
 
-		$users = array();
+		if ( ! $is_head_request ) {
+			$users = array();
 
-		foreach ( $query->results as $user ) {
-			$data    = $this->prepare_item_for_response( $user, $request );
-			$users[] = $this->prepare_response_for_collection( $data );
+			foreach ( $query->get_results() as $user ) {
+				$data    = $this->prepare_item_for_response( $user, $request );
+				$users[] = $this->prepare_response_for_collection( $data );
+			}
 		}
 
-		$response = rest_ensure_response( $users );
+		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $users );
 
 		// Store pagination values for headers then unset for count query.
 		$per_page = (int) $prepared_args['number'];
@@ -999,6 +1029,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		// Restores the more descriptive, specific name for use within this method.
 		$user = $item;
 
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-users-controller.php */
+			return apply_filters( 'rest_prepare_user', new WP_REST_Response( array() ), $user, $request );
+		}
+
 		$fields = $this->get_fields_for_response( $request );
 		$data   = array();
 
@@ -1310,7 +1346,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param string          $param   The parameter name.
 	 * @return string|WP_Error The sanitized password, if valid, otherwise an error.
 	 */
-	public function check_user_password( $value, $request, $param ) {
+	public function check_user_password(
+		#[\SensitiveParameter]
+		$value,
+		$request,
+		$param
+	) {
 		$password = (string) $value;
 
 		if ( empty( $password ) ) {
@@ -1605,6 +1646,16 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'items'       => array(
 				'type' => 'string',
 				'enum' => get_post_types( array( 'show_in_rest' => true ), 'names' ),
+			),
+		);
+
+		$query_params['search_columns'] = array(
+			'default'     => array(),
+			'description' => __( 'Array of column names to be searched.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'enum' => array( 'email', 'name', 'id', 'username', 'slug' ),
+				'type' => 'string',
 			),
 		);
 

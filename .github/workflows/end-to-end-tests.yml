@@ -17,6 +17,25 @@ on:
       - trunk
       - '5.[3-9]'
       - '[6-9].[0-9]'
+    paths:
+      # Any change to a PHP, CSS, or JavaScript file should run checks.
+      - '**.css'
+      - '**.js'
+      - '**.php'
+      # These files configure npm and the task runner. Changes could affect the outcome.
+      - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
+      - 'Gruntfile.js'
+      - 'webpack.config.js'
+      - 'tools/webpack/**'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This files affect the e2e tests. Changes could affect the outcome.
+      - 'tests/e2e/**'
+      # Confirm any changes to relevant workflow files.
+      - '.github/workflows/end-to-end-tests.yml'
+      - '.github/workflows/reusable-end-to-end-tests*.yml'
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
@@ -37,21 +56,23 @@ env:
 jobs:
   # Runs the end-to-end test suite.
   e2e-tests:
-    name: Test with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-end-to-end-tests.yml@trunk
+    name: ${{ matrix.label }}
+    uses: ./.github/workflows/reusable-end-to-end-tests.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     strategy:
       fail-fast: false
       matrix:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
+        # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
+        label: [ 'E2E Tests' ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
@@ -67,7 +88,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ e2e-tests, slack-notifications ]
@@ -93,6 +114,6 @@ jobs:
               workflow_id: 'failed-workflow.yml',
               ref: 'trunk',
               inputs: {
-                run_id: '${{ github.run_id }}'
+                run_id: `${context.runId}`,
               }
             });

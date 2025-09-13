@@ -594,7 +594,7 @@ class Tests_Post_MetaRevisions extends WP_UnitTestCase {
 			)
 		);
 
-		// Check the last revision for the post to see if the meta key was revisioned
+		// Check the last revision for the post to see if the meta key was revisioned.
 		$revisions       = wp_get_post_revisions( $post_id );
 		$revision        = array_shift( $revisions );
 		$revisioned_meta = get_post_meta( $revision->ID, $meta_key, true );

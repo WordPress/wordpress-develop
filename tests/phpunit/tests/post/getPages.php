@@ -6,6 +6,42 @@
  * @covers ::get_pages
  */
 class Tests_Post_GetPages extends WP_UnitTestCase {
+
+	/**
+	 * ID of the first author.
+	 *
+	 * @var int
+	 */
+	public static $author_id_1;
+
+	/**
+	 * ID of the second author.
+	 *
+	 * @var int
+	 */
+	public static $author_id_2;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$author_id_1 = $factory->user->create(
+			array(
+				'user_login' => 'author1',
+				'role'       => 'author',
+			)
+		);
+
+		self::$author_id_2 = $factory->user->create(
+			array(
+				'user_login' => 'author2',
+				'role'       => 'author',
+			)
+		);
+	}
+
 	/**
 	 * @ticket 23167
 	 */
@@ -963,12 +999,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 12821
 	 */
 	public function test_get_pages_author() {
-		$author_1 = self::factory()->user->create(
-			array(
-				'user_login' => 'author1',
-				'role'       => 'author',
-			)
-		);
+		$author_1 = self::$author_id_1;
 		$posts    = self::factory()->post->create_many(
 			2,
 			array(
@@ -989,12 +1020,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 12821
 	 */
 	public function test_get_pages_multiple_authors() {
-		$author_1 = self::factory()->user->create(
-			array(
-				'user_login' => 'author1',
-				'role'       => 'author',
-			)
-		);
+		$author_1 = self::$author_id_1;
 		$post_1   = self::factory()->post->create(
 			array(
 				'post_title'  => 'Page 1',
@@ -1004,12 +1030,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			)
 		);
 
-		$author_2 = self::factory()->user->create(
-			array(
-				'user_login' => 'author2',
-				'role'       => 'author',
-			)
-		);
+		$author_2 = self::$author_id_2;
 		$post_2   = self::factory()->post->create(
 			array(
 				'post_title'  => 'Page 2',
@@ -1031,12 +1052,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 12821
 	 */
 	public function test_get_pages_multiple_authors_by_user_login() {
-		$author_1 = self::factory()->user->create(
-			array(
-				'user_login' => 'author1',
-				'role'       => 'author',
-			)
-		);
+		$author_1 = self::$author_id_1;
 		$post_1   = self::factory()->post->create(
 			array(
 				'post_title'  => 'Page 1',
@@ -1046,12 +1062,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			)
 		);
 
-		$author_2 = self::factory()->user->create(
-			array(
-				'user_login' => 'author2',
-				'role'       => 'author',
-			)
-		);
+		$author_2 = self::$author_id_2;
 		$post_2   = self::factory()->post->create(
 			array(
 				'post_title'  => 'Page 2',

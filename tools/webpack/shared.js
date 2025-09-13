@@ -97,10 +97,17 @@ const BUNDLED_PACKAGES = [
 	'@wordpress/interface',
 	'@wordpress/interactivity',
 	'@wordpress/sync',
+	'@wordpress/undo-manager',
+	'@wordpress/upload-media',
+	'@wordpress/fields',
 ];
 const MODULES = [
 	'@wordpress/interactivity',
 	'@wordpress/interactivity-router',
+];
+const SCRIPT_AND_MODULE_DUAL_PACKAGES = [
+	'@wordpress/a11y',
+	'@wordpress/block-library',
 ];
 const WORDPRESS_NAMESPACE = '@wordpress/';
 
@@ -111,5 +118,6 @@ module.exports = {
 	stylesTransform,
 	BUNDLED_PACKAGES,
 	MODULES,
+	SCRIPT_AND_MODULE_DUAL_PACKAGES,
 	WORDPRESS_NAMESPACE,
 };

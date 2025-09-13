@@ -204,6 +204,7 @@ class WP_Upgrader {
 		$this->strings['mkdir_failed']         = __( 'Could not create directory.' );
 		$this->strings['incompatible_archive'] = __( 'The package could not be installed.' );
 		$this->strings['files_not_writable']   = __( 'The update cannot be installed because some files could not be copied. This is usually due to inconsistent file permissions.' );
+		$this->strings['dir_not_readable']     = __( 'A directory could not be read.' );
 
 		$this->strings['maintenance_start'] = __( 'Enabling Maintenance mode&#8230;' );
 		$this->strings['maintenance_end']   = __( 'Disabling Maintenance mode&#8230;' );
@@ -402,7 +403,6 @@ class WP_Upgrader {
 	 * Flattens the results of WP_Filesystem_Base::dirlist() for iterating over.
 	 *
 	 * @since 4.9.0
-	 * @access protected
 	 *
 	 * @param array  $nested_files Array of files as returned by WP_Filesystem_Base::dirlist().
 	 * @param string $path         Relative path to prepend to child nodes. Optional.
@@ -485,7 +485,7 @@ class WP_Upgrader {
 	 * @since 6.2.0 Use move_dir() instead of copy_dir() when possible.
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem        WordPress filesystem subclass.
-	 * @global array              $wp_theme_directories
+	 * @global string[]           $wp_theme_directories
 	 *
 	 * @param array|string $args {
 	 *     Optional. Array or string of arguments for installing a package. Default empty array.
@@ -524,6 +524,11 @@ class WP_Upgrader {
 		$destination       = $args['destination'];
 		$clear_destination = $args['clear_destination'];
 
+		/*
+		 * Give the upgrade an additional 300 seconds (5 minutes) to ensure the install
+		 * doesn't prematurely timeout having used up the maximum script execution time
+		 * upacking and downloading in WP_Upgrader->run().
+		 */
 		if ( function_exists( 'set_time_limit' ) ) {
 			set_time_limit( 300 );
 		}
@@ -557,7 +562,13 @@ class WP_Upgrader {
 		$remote_source     = $args['source'];
 		$local_destination = $destination;
 
-		$source_files       = array_keys( $wp_filesystem->dirlist( $remote_source ) );
+		$dirlist = $wp_filesystem->dirlist( $remote_source );
+
+		if ( false === $dirlist ) {
+			return new WP_Error( 'source_read_failed', $this->strings['fs_error'], $this->strings['dir_not_readable'] );
+		}
+
+		$source_files       = array_keys( $dirlist );
 		$remote_destination = $wp_filesystem->find_folder( $local_destination );
 
 		// Locate which directory to copy to the new folder. This is based on the actual folder holding the files.
@@ -604,7 +615,13 @@ class WP_Upgrader {
 
 		// Has the source location changed? If so, we need a new source_files list.
 		if ( $source !== $remote_source ) {
-			$source_files = array_keys( $wp_filesystem->dirlist( $source ) );
+			$dirlist = $wp_filesystem->dirlist( $source );
+
+			if ( false === $dirlist ) {
+				return new WP_Error( 'new_source_read_failed', $this->strings['fs_error'], $this->strings['dir_not_readable'] );
+			}
+
+			$source_files = array_keys( $dirlist );
 		}
 
 		/*
@@ -990,23 +1007,36 @@ class WP_Upgrader {
 		global $wp_filesystem;
 
 		if ( ! $wp_filesystem ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-			WP_Filesystem();
+			if ( ! function_exists( 'WP_Filesystem' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
+
+			ob_start();
+			$credentials = request_filesystem_credentials( '' );
+			ob_end_clean();
+
+			if ( false === $credentials || ! WP_Filesystem( $credentials ) ) {
+				wp_trigger_error( __FUNCTION__, __( 'Could not access filesystem.' ) );
+				return;
+			}
 		}
 
 		$file = $wp_filesystem->abspath() . '.maintenance';
+
 		if ( $enable ) {
 			if ( ! wp_doing_cron() ) {
 				$this->skin->feedback( 'maintenance_start' );
 			}
+
 			// Create maintenance file to signal that we are upgrading.
 			$maintenance_string = '<?php $upgrading = ' . time() . '; ?>';
 			$wp_filesystem->delete( $file );
 			$wp_filesystem->put_contents( $file, $maintenance_string, FS_CHMOD_FILE );
-		} elseif ( ! $enable && $wp_filesystem->exists( $file ) ) {
+		} elseif ( $wp_filesystem->exists( $file ) ) {
 			if ( ! wp_doing_cron() ) {
 				$this->skin->feedback( 'maintenance_end' );
 			}
+
 			$wp_filesystem->delete( $file );
 		}
 	}
@@ -1053,7 +1083,7 @@ class WP_Upgrader {
 		}
 
 		// Update the lock, as by this point we've definitely got a lock, just need to fire the actions.
-		update_option( $lock_option, time() );
+		update_option( $lock_option, time(), false );
 
 		return true;
 	}

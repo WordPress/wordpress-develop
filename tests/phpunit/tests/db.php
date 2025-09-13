@@ -296,7 +296,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$check_new_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
 		$this->assertSameSets( $new_modes, explode( ',', $check_new_modes ) );
 
-		$wpdb->set_sql_mode( explode( ',', $current_modes ) );
+		$wpdb->set_sql_mode( empty( $current_modes ) ? array() : explode( ',', $current_modes ) );
 	}
 
 	/**
@@ -850,6 +850,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 			// @ticket 32763
 			'SELECT ' . str_repeat( 'a', 10000 ) . " FROM (SELECT * FROM $table) as subquery",
+
+			// @ticket 63777
+			"SET STATEMENT max_statement_time=1 FOR SELECT * FROM $table",
 		);
 
 		$querycount = count( $queries );
@@ -1984,7 +1987,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$default = $wpdb->allow_unsafe_unquoted_parameters;
 
 		$property = new ReflectionProperty( $wpdb, 'allow_unsafe_unquoted_parameters' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $wpdb, $allow );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -1992,7 +1997,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 		// Reset.
 		$property->setValue( $wpdb, $default );
-		$property->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( false );
+		}
 
 		$this->assertSame( $expected, $actual );
 	}
@@ -2454,5 +2461,16 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		$this->assertTrue( $wpdb->use_mysqli );
+	}
+
+	/**
+	 * Verify "pinging" the database works cross-version PHP.
+	 *
+	 * @ticket 62061
+	 */
+	public function test_check_connection_returns_true_when_there_is_a_connection() {
+		global $wpdb;
+
+		$this->assertTrue( $wpdb->check_connection( false ) );
 	}
 }
