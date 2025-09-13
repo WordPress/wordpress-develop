@@ -64,6 +64,7 @@ function wp_script_modules(): WP_Script_Modules {
  * @param array             $args    {
  *     Optional. An array of additional args. Default empty array.
  *
+ *     @type bool                $in_footer     Whether to print the script module in the footer. Default 'false'. Optional.
  *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
  * }
  */
@@ -107,6 +108,7 @@ function wp_register_script_module( string $id, string $src, array $deps = array
  * @param array             $args    {
  *     Optional. An array of additional args. Default empty array.
  *
+ *     @type bool                $in_footer     Whether to print the script module in the footer. Default 'false'. Optional.
  *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
  * }
  */

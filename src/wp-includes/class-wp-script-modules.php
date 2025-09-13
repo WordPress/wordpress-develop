@@ -75,6 +75,7 @@ class WP_Script_Modules {
 	 * @param array             $args     {
 	 *     Optional. An array of additional args. Default empty array.
 	 *
+	 *     @type bool                $in_footer     Whether to print the script module in the footer. Default 'false'. Optional.
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
 	 * }
 	 */
@@ -101,6 +102,11 @@ class WP_Script_Modules {
 				}
 			}
 
+			$in_footer = false;
+			if ( isset( $args['in_footer'] ) ) {
+				$in_footer = (bool) $args['in_footer'];
+			}
+
 			$fetchpriority = 'auto';
 			if ( isset( $args['fetchpriority'] ) ) {
 				if ( $this->is_valid_fetchpriority( $args['fetchpriority'] ) ) {
@@ -124,6 +130,7 @@ class WP_Script_Modules {
 				'version'       => $version,
 				'enqueue'       => isset( $this->enqueued_before_registered[ $id ] ),
 				'dependencies'  => $dependencies,
+				'in_footer'     => $in_footer,
 				'fetchpriority' => $fetchpriority,
 			);
 		}
@@ -209,6 +216,7 @@ class WP_Script_Modules {
 	 * @param array             $args     {
 	 *     Optional. An array of additional args. Default empty array.
 	 *
+	 *     @type bool                $in_footer     Whether to print the script module in the footer. Default 'false'. Optional.
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
 	 * }
 	 */
@@ -276,13 +284,54 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Prints the enqueued script modules using script tags with type="module"
-	 * attributes.
+	 * Prints the enqueued script modules in head or footer.
+	 *
+	 * For classic themes, all script modules are printed in the footer.
+	 * For block themes, allows script modules to be printed in the head or footer.
 	 *
 	 * @since 6.5.0
 	 */
 	public function print_enqueued_script_modules() {
-		foreach ( $this->get_marked_for_enqueue() as $id => $script_module ) {
+		$script_modules = $this->get_marked_for_enqueue();
+
+		// If we're in wp_footer, just print everything.
+		if ( 'wp_footer' === current_action() ) {
+			$this->print_script_modules( $script_modules );
+		} else {
+			$head_modules   = array();
+			$footer_modules = array();
+
+			foreach ( $script_modules as $id => $script_module ) {
+				if ( isset( $script_module['in_footer'] ) && $script_module['in_footer'] ) {
+					$footer_modules[ $id ] = $script_module;
+				} else {
+					$head_modules[ $id ] = $script_module;
+				}
+			}
+			$this->print_script_modules( $head_modules );
+
+			// If there are footer modules, print them in the footer.
+			if ( count( $footer_modules ) > 0 ) {
+				add_action(
+					'wp_footer',
+					function () use ( $footer_modules ) {
+						$this->print_script_modules( $footer_modules );
+					}
+				);
+			}
+		}
+	}
+
+	/**
+	 * Prints the enqueued script modules using script tags with type="module"
+	 * attributes.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $modules The script modules to print.
+	 */
+	private function print_script_modules( $modules ) {
+		foreach ( $modules as $id => $script_module ) {
 			$args = array(
 				'type' => 'module',
 				'src'  => $this->get_src( $id ),
