@@ -1681,7 +1681,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'default'           => 'approve',
 			'description'       => __( 'Limit result set to comments assigned a specific status. Requires authorization.' ),
 			'sanitize_callback' => 'sanitize_key',
-			'type'              => 'string',
+			'type'              => array( 'string', 'array' ),
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 
