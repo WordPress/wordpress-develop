@@ -673,12 +673,12 @@ function get_body_class( $css_class = '' ) {
 
 	if ( is_singular() ) {
 		$post      = $wp_query->get_queried_object();
-		$post_id   = $post->ID;
-		$post_type = $post->post_type;
+		$post_id   = $post ? $post->ID : 0;
+		$post_type = $post ? $post->post_type : '';
 
 		$classes[] = 'wp-singular';
 
-		if ( is_page_template() ) {
+		if ( $post_type && is_page_template() ) {
 			$classes[] = "{$post_type}-template";
 
 			$template_slug  = get_page_template_slug( $post_id );
@@ -688,18 +688,18 @@ function get_body_class( $css_class = '' ) {
 				$classes[] = "{$post_type}-template-" . sanitize_html_class( str_replace( array( '.', '/' ), '-', basename( $part, '.php' ) ) );
 			}
 			$classes[] = "{$post_type}-template-" . sanitize_html_class( str_replace( '.', '-', $template_slug ) );
-		} else {
+		} elseif ( $post_type ) {
 			$classes[] = "{$post_type}-template-default";
 		}
 
 		if ( is_single() ) {
 			$classes[] = 'single';
-			if ( isset( $post->post_type ) ) {
-				$classes[] = 'single-' . sanitize_html_class( $post->post_type, $post_id );
+			if ( $post_type ) {
+				$classes[] = 'single-' . sanitize_html_class( $post_type, $post_id );
 				$classes[] = 'postid-' . $post_id;
 
 				// Post Format.
-				if ( post_type_supports( $post->post_type, 'post-formats' ) ) {
+				if ( post_type_supports( $post_type, 'post-formats' ) ) {
 					$post_format = get_post_format( $post->ID );
 
 					if ( $post_format && ! is_wp_error( $post_format ) ) {
@@ -718,18 +718,23 @@ function get_body_class( $css_class = '' ) {
 			$classes[]   = 'attachment-' . str_replace( $mime_prefix, '', $mime_type );
 		} elseif ( is_page() ) {
 			$classes[] = 'page';
-			$classes[] = 'page-id-' . $post_id;
+			if ( $post_id ) {
+				$classes[] = 'page-id-' . $post_id;
+			}
 
-			if ( get_pages(
-				array(
-					'parent' => $post_id,
-					'number' => 1,
+			if (
+				$post_id &&
+				get_pages(
+					array(
+						'parent' => $post_id,
+						'number' => 1,
+					)
 				)
-			) ) {
+			) {
 				$classes[] = 'page-parent';
 			}
 
-			if ( $post->post_parent ) {
+			if ( ! empty( $post->post_parent ) ) {
 				$classes[] = 'page-child';
 				$classes[] = 'parent-pageid-' . $post->post_parent;
 			}
@@ -1353,7 +1358,7 @@ function wp_list_pages( $args = '' ) {
 			$current_page = get_queried_object_id();
 		} elseif ( is_singular() ) {
 			$queried_object = get_queried_object();
-			if ( is_post_type_hierarchical( $queried_object->post_type ) ) {
+			if ( $queried_object && is_post_type_hierarchical( $queried_object->post_type ) ) {
 				$current_page = $queried_object->ID;
 			}
 		}
