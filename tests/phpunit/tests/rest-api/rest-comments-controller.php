@@ -227,6 +227,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test getting items of a specific status.
+	 *
+	 * @ticket 99999
 	 */
 	public function test_get_items_by_status() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
@@ -239,6 +241,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$found = $q->query(
 			array(
 				'status' => 'approve',
+				'count'  => true,
 			)
 		);
 
@@ -248,6 +251,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test getting comments of all statuses.
+	 *
+	 * @ticket 99999
 	 */
 	public function test_get_items_by_all_status() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
@@ -260,6 +265,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$found = $q->query(
 			array(
 				'status' => 'all',
+				'count'  => true,
 			)
 		);
 
@@ -269,6 +275,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test getting items of multiple statuses.
+	 *
+	 * @ticket 99999
 	 */
 	public function test_get_items_by_multiple_status() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
@@ -281,6 +289,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$found = $q->query(
 			array(
 				'status' => array( 'approve', 'hold' ),
+				'count'  => true,
 			)
 		);
 
