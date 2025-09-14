@@ -119,6 +119,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'comment_content' => "Comment {$i}",
 					'comment_post_ID' => self::$post_id,
+					'status'          => ( rand( 0, 100 ) % 2 === 0 ) ? 'approve' : 'hold',
 				)
 			);
 		}
@@ -222,6 +223,70 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$comments = $response->get_data();
 		$this->assertCount( self::$total_comments, $comments );
+	}
+
+	/**
+	 * Test getting items of a specific status.
+	 */
+	public function test_get_items_by_status() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'status', 'approve' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$q = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'status' => 'approve',
+			)
+		);
+
+		$comments = $response->get_data();
+		$this->assertCount( $found, $comments );
+	}
+
+	/**
+	 * Test getting comments of all statuses.
+	 */
+	public function test_get_items_by_all_status() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'status', 'all' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$q = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'status' => 'all',
+			)
+		);
+
+		$comments = $response->get_data();
+		$this->assertCount( $found, $comments );
+	}
+
+	/**
+	 * Test getting items of multiple statuses.
+	 */
+	public function test_get_items_by_multiple_status() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'status', array( 'approve', 'hold' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$q = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'status' => array( 'approve', 'hold' ),
+			)
+		);
+
+		$comments = $response->get_data();
+		$this->assertCount( $found, $comments );
+
 	}
 
 	/**
