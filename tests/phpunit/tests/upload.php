@@ -105,4 +105,18 @@ class Tests_Upload extends WP_UnitTestCase {
 		$this->assertSame( $subdir, $info['subdir'] );
 		$this->assertFalse( $info['error'] );
 	}
+
+	/**
+	 * Tests the upload_url() function with default settings.
+	 *
+	 * @ticket 33963
+	 */
+	public function test_upload_url() {
+		$expected = wp_upload_dir();
+		$this->assertFalse( $expected['error'] );
+
+		$this->assertSame( $expected['url'], upload_url() );
+		$this->assertSame( $expected['url'], upload_url( true ) );
+		$this->assertSame( $expected['baseurl'], upload_url( false ) );
+	}
 }
