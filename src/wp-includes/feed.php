@@ -830,7 +830,7 @@ function fetch_feed( $url ) {
 		$feed->set_cache_class( 'WP_Feed_Cache' );
 	}
 
-	$feed->set_file_class( 'WP_SimplePie_File' );
+	$feed->get_registry()->register(SimplePie\File::class, 'WP_SimplePie_File', true);
 
 	$feed->set_feed_url( $url );
 	/** This filter is documented in wp-includes/class-wp-feed-cache-transient.php */
