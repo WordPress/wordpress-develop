@@ -1120,7 +1120,7 @@ function wp_old_slug_redirect() {
 		/**
 		 * Filters the old slug redirect status code.
 		 *
-		 * @since 6.8.0
+		 * @since 6.9.0
 		 *
 		 * @param int $status The HTTP response status code to use for the redirect.
 		 * @param int $id     The post ID being redirected to.
