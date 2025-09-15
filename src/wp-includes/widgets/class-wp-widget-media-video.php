@@ -131,6 +131,11 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 			return;
 		}
 
+		if ( ! filter_var( $src, FILTER_VALIDATE_URL ) ) {
+			$this->render_error_message( 'invalid_url' );
+			return;
+		}
+
 		$youtube_pattern = '#^https?://(?:www\.)?(?:youtube\.com/watch|youtu\.be/)#';
 		$vimeo_pattern   = '#^https?://(.+\.)?vimeo\.com/.*#';
 
