@@ -656,6 +656,11 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
 
+		$version = Imagick::getVersion();
+		if ( $version['versionNumber'] < 0x675 ) {
+			$this->markTestSkipped( 'The version of ImageMagick does not support removing alpha channels from PDFs.' );
+		}
+
 		$test_file     = DIR_TESTDATA . '/images/test-alpha.pdf';
 		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
 		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
