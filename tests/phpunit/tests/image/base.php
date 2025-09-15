@@ -6,6 +6,13 @@
 abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 
 	/**
+	 * The image editor engine class name to use for testing.
+	 *
+	 * @var string
+	 */
+	public $editor_engine;
+
+	/**
 	 * Set the image editor engine according to the unit test's specification
 	 */
 	public function set_up() {
