@@ -119,4 +119,19 @@ class Tests_Upload extends WP_UnitTestCase {
 		$this->assertSame( $expected['url'], upload_url( true ) );
 		$this->assertSame( $expected['baseurl'], upload_url( false ) );
 	}
+
+	/**
+	 * Tests the upload_url() function when year/month folders are disabled.
+	 *
+	 * @ticket 33963
+	 */
+	public function test_upload_url_without_yearmonth_folders() {
+		update_option( 'uploads_use_yearmonth_folders', 0 );
+
+		$expected = wp_upload_dir();
+
+		$this->assertFalse( $expected['error'] );
+		$this->assertSame( $expected['url'], upload_url() );
+		$this->assertSame( $expected['baseurl'], upload_url( false ) );
+	}
 }
