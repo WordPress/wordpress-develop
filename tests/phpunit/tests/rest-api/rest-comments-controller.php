@@ -227,6 +227,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test getting items of a specific status.
+	 *
+	 * @ticket 63982
 	 */
 	public function test_get_items_by_status() {
 		wp_set_current_user( self::$admin_id );
@@ -253,6 +255,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test getting comments of all statuses.
+	 *
+	 * @ticket 63982
 	 */
 	public function test_get_items_by_all_status() {
 		wp_set_current_user( self::$admin_id );
@@ -278,6 +282,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test getting items of multiple statuses.
+	 *
+	 * @ticket 63982
 	 */
 	public function test_get_items_by_multiple_status() {
 		wp_set_current_user( self::$admin_id );
@@ -300,6 +306,69 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comments = $response->get_data();
 		$this->assertCount( $found, $comments );
 	}
+
+	/**
+	 * Test sanization of the status parameter.
+	 *
+	 * @ticket 63982
+	 *
+	 * @dataProvider data_get_items_by_status_sanitize
+	 */
+	public function test_get_items_by_status_sanitize( $key, $expected ) {
+		wp_set_current_user( self::$admin_id );
+
+		// Create a post with the test status.
+		$params = array(
+			'post'         => self::$post_id,
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'content'      => 'Worst Comment Ever!',
+			'status'       => $key,
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 201, $response->get_status() );
+
+		$comment = $response->get_data();
+
+		$this->assertEquals( $expected, $comment['status'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_get_items_by_status_sanitize() {
+		return array(
+			'an empty string key'            => array(
+				'key'      => '',
+				'expected' => 'hold',
+			),
+			'a lowercase key with commas'    => array(
+				'key'      => 'howdy,admin',
+				'expected' => 'hold',
+			),
+			'a lowercase key with commas'    => array(
+				'key'      => 'HOWDY,ADMIN',
+				'expected' => 'hold',
+			),
+			'a mixed case key with commas'   => array(
+				'key'      => 'HoWdY,aDmIn',
+				'expected' => 'hold',
+			),
+			'a string with unicode'   => array(
+				'key'      =>  array( 'howdy&nbsp;admin', 'another-value' ),
+				'expected' => 'hold',
+			),
+		);
+	}
+
 
 	/**
 	 * @ticket 38692
