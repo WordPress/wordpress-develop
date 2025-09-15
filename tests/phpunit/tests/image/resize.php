@@ -23,6 +23,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	public function test_resize_jpg() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.jpg', 25, 25 );
 
+		$this->assertNotWPError( $image );
+
 		list( $w, $h, $type ) = getimagesize( $image );
 
 		unlink( $image );
@@ -78,6 +80,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 		$image = $this->resize_helper( $file, 25, 25 );
 
+		$this->assertNotWPError( $image );
+
 		list( $w, $h, $type ) = wp_getimagesize( $image );
 
 		unlink( $image );
@@ -99,6 +103,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	public function test_resize_thumb_128x96() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 128, 96 );
 
+		$this->assertNotWPError( $image );
+
 		list( $w, $h, $type ) = getimagesize( $image );
 
 		unlink( $image );
@@ -111,6 +117,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 	public function test_resize_thumb_128x0() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 128, 0 );
+
+		$this->assertNotWPError( $image );
 
 		list( $w, $h, $type ) = getimagesize( $image );
 
@@ -125,6 +133,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	public function test_resize_thumb_0x96() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 0, 96 );
 
+		$this->assertNotWPError( $image );
+
 		list( $w, $h, $type ) = getimagesize( $image );
 
 		unlink( $image );
@@ -137,6 +147,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 	public function test_resize_thumb_150x150_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 150, 150, true );
+
+		$this->assertNotWPError( $image );
 
 		list( $w, $h, $type ) = getimagesize( $image );
 
@@ -164,6 +176,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	public function test_resize_thumb_50x150_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 50, 150, true );
 
+		$this->assertNotWPError( $image );
+
 		list( $w, $h, $type ) = getimagesize( $image );
 
 		unlink( $image );
@@ -188,6 +202,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 	/**
 	 * Function to help out the tests
+	 *
+	 * @return string|WP_Error The path to the resized image file or a WP_Error on failure.
 	 */
 	protected function resize_helper( $file, $width, $height, $crop = false ) {
 		$editor = wp_get_image_editor( $file );

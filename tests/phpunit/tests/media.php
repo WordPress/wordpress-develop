@@ -5284,6 +5284,9 @@ EOF;
 
 		// Sub-sizes: for each size, the JPEGs should be smaller than the WebP.
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
+
+		$this->assertNotWPError( $sizes_to_compare );
+
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
 		}
