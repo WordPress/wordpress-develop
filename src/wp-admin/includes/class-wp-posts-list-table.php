@@ -272,12 +272,28 @@ class WP_Posts_List_Table extends WP_List_Table {
 			}
 		}
 
+		$edit_filter_link_vars = compact( 'url', 'link_text', 'class_html' );
+		/**
+		 * Filters the links created for filtering the posts list table.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param array $edit_filter_link_vars {
+		*       The edit filter link variables.
+		 *      @type string $url        The formatted link string.
+		 *      @type string $link_text  The link text.
+		 *      @type string $class_html The class HTML.
+		 * }
+		 * @param array $args URL parameters for the link.
+		 */
+		$edit_filter_link_vars = apply_filters( 'edit_filter_links', $edit_filter_link_vars, $args );
+
 		return sprintf(
 			'<a href="%s"%s%s>%s</a>',
-			esc_url( $url ),
-			$class_html,
+			esc_url( $edit_filter_link_vars['url'] ),
+			$edit_filter_link_vars['class_html'],
 			$aria_current,
-			$link_text
+			$edit_filter_link_vars['link_text']
 		);
 	}
 
