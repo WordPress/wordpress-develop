@@ -1680,7 +1680,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$query_params['status'] = array(
 			'default'           => 'approve',
 			'description'       => __( 'Limit result set to comments assigned a specific status. Requires authorization.' ),
-			'sanitize_callback' => 'sanitize_key',
+			'sanitize_callback' => 'sanitize_comment_statuses',
 			'type'              => 'array',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
@@ -1927,5 +1927,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * comment_content. See wp_handle_comment_submission().
 		 */
 		return '' !== $check['comment_content'];
+	}
+
+	/**
+	 * Sanitize a single comment status or a list of comment statuses with `sanitize_key`.
+	 *
+	 * @since 6.8.0
+	 * @param string|array $statuses Comment status or array of comment statuses.
+	 * @return array Sanitized array of comment statuses.
+	 */
+	public function sanitize_comment_statuses( $statuses ) {
+		$statuses = wp_parse_list( $statuses );
+		return array_unique( array_map( 'sanitize_key', $statuses ) );
 	}
 }
