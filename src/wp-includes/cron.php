@@ -485,7 +485,9 @@ function wp_schedule_bulk_events( int $timestamp, string $hook, array $args, boo
 
 	// add cron events
 	foreach ( $args as $arg ) {
-		wp_schedule_single_event( $timestamp, $hook, $arg, $wp_error );
+		if ( wp_next_scheduled( $hook, $arg ) === false ) {
+			wp_schedule_single_event( $timestamp, $hook, $arg, $wp_error );
+		}
 	}
 
 	// remove filters
