@@ -25,7 +25,6 @@ require_once ABSPATH . WPINC . '/version.php';
 require_once ABSPATH . WPINC . '/compat.php';
 require_once ABSPATH . WPINC . '/load.php';
 
-
 // Check for the required PHP version and for the MySQL extension or a database drop-in.
 wp_check_php_mysql_versions();
 
