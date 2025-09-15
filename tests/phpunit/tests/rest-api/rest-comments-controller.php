@@ -227,14 +227,15 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test getting items of a specific status.
-	 *
-	 * @ticket 99999
 	 */
 	public function test_get_items_by_status() {
+		wp_set_current_user( self::$admin_id );
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'status', 'approve' );
-
+		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
+
 		$this->assertSame( 200, $response->get_status() );
 
 		$q     = new WP_Comment_Query();
@@ -246,19 +247,21 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		$comments = $response->get_data();
+
 		$this->assertCount( $found, $comments );
 	}
 
 	/**
 	 * Test getting comments of all statuses.
-	 *
-	 * @ticket 99999
 	 */
 	public function test_get_items_by_all_status() {
+		wp_set_current_user( self::$admin_id );
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'status', 'all' );
-
+		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
+
 		$this->assertSame( 200, $response->get_status() );
 
 		$q     = new WP_Comment_Query();
@@ -275,12 +278,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Test getting items of multiple statuses.
-	 *
-	 * @ticket 99999
 	 */
 	public function test_get_items_by_multiple_status() {
+		wp_set_current_user( self::$admin_id );
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'status', array( 'approve', 'hold' ) );
+		$request->set_param( 'per_page', self::$per_page );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
