@@ -168,7 +168,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 
 			if ( empty( $oembed_html ) ) {
 				$file_extension = pathinfo( parse_url( $src, PHP_URL_PATH ), PATHINFO_EXTENSION );
-				if ( in_array( strtolower( $file_extension ), wp_get_video_extensions() ) ) {
+				if ( in_array( strtolower( $file_extension ), wp_get_video_extensions(), true ) ) {
 					$this->render_error_message( 'file_not_found' );
 				} else {
 					$this->render_error_message( 'unsupported_file_type' );
