@@ -8104,7 +8104,7 @@ function wp_delete_auto_drafts() {
 	$old_posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_status = 'auto-draft' AND DATE_SUB( NOW(), INTERVAL 7 DAY ) > post_date" );
 	foreach ( (array) $old_posts as $delete ) {
 		// Force delete.
-		wp_delete_post( $delete, true );
+		wp_delete_post( (int) $delete, true );
 	}
 }
 
