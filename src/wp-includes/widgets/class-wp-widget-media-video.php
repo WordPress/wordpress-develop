@@ -180,6 +180,22 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	}
 
 	/**
+	 * Render error message using notice classes.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $error_type The error type key from l10n array.
+	 */
+	private function render_error_message( $error_type ) {
+		if ( isset( $this->l10n[ $error_type ] ) ) {
+			printf(
+				'<div class="notice notice-error notice-alt"><p>%s</p></div>',
+				wp_kses_post( $this->l10n[ $error_type ] )
+			);
+		}
+	}
+
+	/**
 	 * Inject max-width and remove height for videos too constrained to fit inside sidebars on frontend.
 	 *
 	 * @since 4.8.0
