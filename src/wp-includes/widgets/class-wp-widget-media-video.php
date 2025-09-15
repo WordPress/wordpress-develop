@@ -49,6 +49,11 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 				'media_library_state_single' => __( 'Video Widget' ),
 				/* translators: %s: A list of valid video file extensions. */
 				'unsupported_file_type'      => sprintf( __( 'Sorry, the video at the supplied URL cannot be loaded. Please check that the URL is for a supported video file (%s) or stream (e.g. YouTube and Vimeo).' ), '<code>.' . implode( '</code>, <code>.', wp_get_video_extensions() ) . '</code>' ),
+				'invalid_url'                => __( 'Please enter a valid video URL. Supported formats include YouTube, Vimeo, or direct video file links.' ),
+				'youtube_error'              => __( 'This YouTube video cannot be displayed. It may be private, deleted, or restricted in your region.' ),
+				'vimeo_error'                => __( 'This Vimeo video cannot be displayed. It may be private, deleted, or require a password.' ),
+				'network_error'              => __( 'Unable to load the video due to a network error. Please check your internet connection and try again.' ),
+				'file_not_found'             => __( 'The video file could not be found. Please check the URL and make sure the file exists.' ),
 			)
 		);
 	}
