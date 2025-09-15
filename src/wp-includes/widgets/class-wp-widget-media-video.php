@@ -296,6 +296,46 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 					)
 				);
 				?>
+			<# } else if ( data.error && 'invalid_url' === data.error ) { #>
+				<?php
+				wp_admin_notice(
+					$this->l10n['invalid_url'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt' ),
+					)
+				);
+				?>
+			<# } else if ( data.error && 'youtube_error' === data.error ) { #>
+				<?php
+				wp_admin_notice(
+					$this->l10n['youtube_error'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt' ),
+					)
+				);
+				?>
+			<# } else if ( data.error && 'vimeo_error' === data.error ) { #>
+				<?php
+				wp_admin_notice(
+					$this->l10n['vimeo_error'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt' ),
+					)
+				);
+				?>
+			<# } else if ( data.error && 'file_not_found' === data.error ) { #>
+				<?php
+				wp_admin_notice(
+					$this->l10n['file_not_found'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt' ),
+					)
+				);
+				?>
 			<# } else if ( data.error ) { #>
 				<?php
 				wp_admin_notice(
