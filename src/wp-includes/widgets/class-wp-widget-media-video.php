@@ -164,7 +164,18 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 				echo $video_html;
 			}
 		} else {
-			echo $this->inject_video_max_width_style( wp_oembed_get( $src ) );
+			$oembed_html = wp_oembed_get( $src );
+
+			if ( empty( $oembed_html ) ) {
+				$file_extension = pathinfo( parse_url( $src, PHP_URL_PATH ), PATHINFO_EXTENSION );
+				if ( in_array( strtolower( $file_extension ), wp_get_video_extensions() ) ) {
+					$this->render_error_message( 'file_not_found' );
+				} else {
+					$this->render_error_message( 'unsupported_file_type' );
+				}
+			} else {
+				echo $this->inject_video_max_width_style( $oembed_html );
+			}
 		}
 	}
 
