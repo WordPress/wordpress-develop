@@ -42,7 +42,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 				<span data-wp-text="myPlugin::context.item"></span>
 			</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $original, $new );
+		$this->assertSame( $original, $new );
 	}
 
 	/**
@@ -68,7 +68,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 				<span data-wp-text="myPlugin::context.item"></span>
 			</template>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $original, $new );
+		$this->assertSame( $original, $new );
 	}
 
 	/**
@@ -92,7 +92,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child data-wp-text="myPlugin::context.item">2</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -116,7 +116,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'</template>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -145,7 +145,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 				'<div id="after-wp-each" data-wp-bind--id="myPlugin::context.after" data-wp-text="myPlugin::context.item">New text</div>' .
 			'</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -173,7 +173,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 				'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>' .
 			'</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -201,7 +201,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 				'<div id="after-wp-each" data-wp-bind--id="state.after">Text</div>' .
 			'</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -229,7 +229,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child data-wp-text="myPlugin::context.item">2</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -257,7 +257,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<img data-wp-each-child id="2" data-wp-bind--id="myPlugin::context.item">' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -286,7 +286,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child data-wp-text="myPlugin::context.item">2</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -318,7 +318,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'</div>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -361,7 +361,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child data-wp-text="myPlugin::context.item.name">two</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -385,7 +385,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child data-wp-text="myPlugin::context.myitem">2</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -410,7 +410,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child data-wp-text="myPlugin::context.myItem">2</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -426,14 +426,14 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 				'id: <span data-wp-text="myPlugin::context.item"></span>' .
 			'</template>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $original, $new );
+		$this->assertSame( $original, $new );
 
 		$original = '' .
 			'<template data-wp-each="myPlugin::state.list">' .
 				'<span data-wp-text="myPlugin::context.item"></span>!' .
 			'</template>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $original, $new );
+		$this->assertSame( $original, $new );
 
 		// But it should work fine with spaces and linebreaks.
 		$original = '
@@ -444,9 +444,9 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 		$p        = new WP_HTML_Tag_Processor( $new );
 		$p->next_tag( array( 'class_name' => 'test' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( '1', $p->get_attribute( 'id' ) );
+		$this->assertSame( '1', $p->get_attribute( 'id' ) );
 		$p->next_tag( array( 'class_name' => 'test' ) );
-		$this->assertEquals( '2', $p->get_attribute( 'id' ) );
+		$this->assertSame( '2', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -487,7 +487,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child data-wp-text="myPlugin::context.item2">4</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -533,7 +533,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child data-wp-text="myPlugin::context.item2">4</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -571,7 +571,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child data-wp-text="myPlugin::context.number">4</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -580,6 +580,8 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_wp_each_unbalanced_tags() {
 		$original = '' .
@@ -588,7 +590,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'</template>' .
 			'<div data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $original, $new );
+		$this->assertSame( $original, $new );
 	}
 
 	/**
@@ -598,6 +600,8 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_wp_each_unbalanced_tags_in_nested_template_tags() {
 		$this->interactivity->state( 'myPlugin', array( 'list2' => array( 3, 4 ) ) );
@@ -610,7 +614,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'</template>' .
 			'<div data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $original, $new );
+		$this->assertSame( $original, $new );
 	}
 
 	/**
@@ -635,23 +639,23 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 
 		$this->interactivity->state( 'myPlugin', array( 'list' => null ) );
 		$new = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 
 		$this->interactivity->state( 'myPlugin', array( 'list' => 'Text' ) );
 		$new = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 
 		$this->interactivity->state( 'myPlugin', array( 'list' => 100 ) );
 		$new = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 
 		$this->interactivity->state( 'myPlugin', array( 'list' => false ) );
 		$new = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 
 		$this->interactivity->state( 'myPlugin', array( 'list' => true ) );
 		$new = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 
 	/**
@@ -678,6 +682,6 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child data-wp-text="myPlugin::context.item">2</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
 		$new      = $this->interactivity->process_directives( $original );
-		$this->assertEquals( $expected, $new );
+		$this->assertSame( $expected, $new );
 	}
 }

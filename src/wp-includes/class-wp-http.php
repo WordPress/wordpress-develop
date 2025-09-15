@@ -7,6 +7,11 @@
  * @since 2.7.0
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
 	require ABSPATH . WPINC . '/Requests/src/Autoload.php';
 
@@ -145,8 +150,21 @@ class WP_Http {
 	 *     @type int          $limit_response_size Size in bytes to limit the response to. Default null.
 	 *
 	 * }
-	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
-	 *                        A WP_Error instance upon error.
+	 * @return array|WP_Error {
+	 *     Array of response data, or a WP_Error instance upon error.
+	 *
+	 *     @type \WpOrg\Requests\Utility\CaseInsensitiveDictionary $headers       Response headers keyed by name.
+	 *     @type string                                            $body          Response body.
+	 *     @type array                                             $response      {
+	 *         Array of HTTP response data.
+	 *
+	 *         @type int|false    $code    HTTP response status code.
+	 *         @type string|false $message HTTP response message.
+	 *     }
+	 *     @type WP_HTTP_Cookie[]                                  $cookies       Array of cookies set by the server.
+	 *     @type string|null                                       $filename      Optional. Filename of the response.
+	 *     @type WP_HTTP_Requests_Response|null                    $http_response Response object.
+	 * }
 	 */
 	public function request( $url, $args = array() ) {
 		$defaults = array(
@@ -246,7 +264,7 @@ class WP_Http {
 		 *
 		 *  - An array containing 'headers', 'body', 'response', 'cookies', and 'filename' elements
 		 *  - A WP_Error instance
-		 *  - boolean false to avoid short-circuiting the response
+		 *  - Boolean false to avoid short-circuiting the response
 		 *
 		 * Returning any other value may result in unexpected behavior.
 		 *
@@ -311,7 +329,7 @@ class WP_Http {
 
 		// WP allows passing in headers as a string, weirdly.
 		if ( ! is_array( $parsed_args['headers'] ) ) {
-			$processed_headers      = WP_Http::processHeaders( $parsed_args['headers'] );
+			$processed_headers      = self::processHeaders( $parsed_args['headers'] );
 			$parsed_args['headers'] = $processed_headers['headers'];
 		}
 
@@ -350,7 +368,7 @@ class WP_Http {
 
 		// If we've got cookies, use and convert them to WpOrg\Requests\Cookie.
 		if ( ! empty( $parsed_args['cookies'] ) ) {
-			$options['cookies'] = WP_Http::normalize_cookies( $parsed_args['cookies'] );
+			$options['cookies'] = self::normalize_cookies( $parsed_args['cookies'] );
 		}
 
 		// SSL certificate handling.
@@ -1058,7 +1076,7 @@ class WP_Http {
 			$redirect_location = array_pop( $redirect_location );
 		}
 
-		$redirect_location = WP_Http::make_absolute_url( $redirect_location, $url );
+		$redirect_location = self::make_absolute_url( $redirect_location, $url );
 
 		// POST requests should not POST to a redirected location.
 		if ( 'POST' === $args['method'] ) {

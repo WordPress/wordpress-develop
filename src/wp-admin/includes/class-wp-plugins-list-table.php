@@ -194,7 +194,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		if ( $screen->in_admin( 'network' ) ) {
 			update_site_option( 'recently_activated', $recently_activated );
 		} else {
-			update_option( 'recently_activated', $recently_activated );
+			update_option( 'recently_activated', $recently_activated, false );
 		}
 
 		$plugin_info = get_site_transient( 'update_plugins' );
@@ -453,8 +453,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 		?>
 		<p class="search-box">
-			<label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?>:</label>
-			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" placeholder="<?php esc_attr_e( 'Search installed plugins...' ); ?>" />
+			<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?></label>
+			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" />
 			<?php submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
 		</p>
 		<?php
@@ -694,6 +694,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global string $status
 	 */
 	public function display_rows() {
@@ -803,7 +807,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				if ( $is_active ) {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						if ( $has_active_dependents ) {
-							$actions['deactivate'] = __( 'Deactivate' ) .
+							$actions['deactivate'] = __( 'Network Deactivate' ) .
 								'<span class="screen-reader-text">' .
 								__( 'You cannot deactivate this plugin as other plugins require it.' ) .
 								'</span>';
@@ -1594,7 +1598,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		}
 
 		printf(
-			'<div class="requires"><p>%1$s</p><p>%2$s</p></div>',
+			'<div class="requires"><p>%1$s</p>%2$s</div>',
 			$requires,
 			$notice
 		);

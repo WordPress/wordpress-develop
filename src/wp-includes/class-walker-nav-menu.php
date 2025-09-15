@@ -40,6 +40,23 @@ class Walker_Nav_Menu extends Walker {
 	);
 
 	/**
+	 * The URL to the privacy policy page.
+	 *
+	 * @since 6.8.0
+	 * @var string
+	 */
+	private $privacy_policy_url;
+
+	/**
+	 * Constructor.
+	 *
+	 * @since 6.8.0
+	 */
+	public function __construct() {
+		$this->privacy_policy_url = get_privacy_policy_url();
+	}
+
+	/**
 	 * Starts the list before the elements are added.
 	 *
 	 * @since 3.0.0
@@ -126,6 +143,7 @@ class Walker_Nav_Menu extends Walker {
 	 * @since 4.4.0 The {@see 'nav_menu_item_args'} filter was added.
 	 * @since 5.9.0 Renamed `$item` to `$data_object` and `$id` to `$current_object_id`
 	 *              to match parent class for PHP 8 named parameter support.
+	 * @since 6.7.0 Removed redundant title attributes.
 	 *
 	 * @see Walker::start_el()
 	 *
@@ -212,17 +230,30 @@ class Walker_Nav_Menu extends Walker {
 
 		$output .= $indent . '<li' . $li_attributes . '>';
 
+		/** This filter is documented in wp-includes/post-template.php */
+		$title = apply_filters( 'the_title', $menu_item->title, $menu_item->ID );
+
+		// Save filtered value before filtering again.
+		$the_title_filtered = $title;
+
+		/**
+		 * Filters a menu item's title.
+		 *
+		 * @since 4.4.0
+		 *
+		 * @param string   $title     The menu item's title.
+		 * @param WP_Post  $menu_item The current menu item object.
+		 * @param stdClass $args      An object of wp_nav_menu() arguments.
+		 * @param int      $depth     Depth of menu item. Used for padding.
+		 */
+		$title = apply_filters( 'nav_menu_item_title', $title, $menu_item, $args, $depth );
+
 		$atts           = array();
-		$atts['title']  = ! empty( $menu_item->attr_title ) ? $menu_item->attr_title : '';
 		$atts['target'] = ! empty( $menu_item->target ) ? $menu_item->target : '';
-		if ( '_blank' === $menu_item->target && empty( $menu_item->xfn ) ) {
-			$atts['rel'] = 'noopener';
-		} else {
-			$atts['rel'] = $menu_item->xfn;
-		}
+		$atts['rel']    = ! empty( $menu_item->xfn ) ? $menu_item->xfn : '';
 
 		if ( ! empty( $menu_item->url ) ) {
-			if ( get_privacy_policy_url() === $menu_item->url ) {
+			if ( $this->privacy_policy_url === $menu_item->url ) {
 				$atts['rel'] = empty( $atts['rel'] ) ? 'privacy-policy' : $atts['rel'] . ' privacy-policy';
 			}
 
@@ -232,6 +263,17 @@ class Walker_Nav_Menu extends Walker {
 		}
 
 		$atts['aria-current'] = $menu_item->current ? 'page' : '';
+
+		// Add title attribute only if it does not match the link text (before or after filtering).
+		if ( ! empty( $menu_item->attr_title )
+			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $menu_item->title ) )
+			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $the_title_filtered ) )
+			&& trim( strtolower( $menu_item->attr_title ) ) !== trim( strtolower( $title ) )
+		) {
+			$atts['title'] = $menu_item->attr_title;
+		} else {
+			$atts['title'] = '';
+		}
 
 		/**
 		 * Filters the HTML attributes applied to a menu item's anchor element.
@@ -254,21 +296,6 @@ class Walker_Nav_Menu extends Walker {
 		 */
 		$atts       = apply_filters( 'nav_menu_link_attributes', $atts, $menu_item, $args, $depth );
 		$attributes = $this->build_atts( $atts );
-
-		/** This filter is documented in wp-includes/post-template.php */
-		$title = apply_filters( 'the_title', $menu_item->title, $menu_item->ID );
-
-		/**
-		 * Filters a menu item's title.
-		 *
-		 * @since 4.4.0
-		 *
-		 * @param string   $title     The menu item's title.
-		 * @param WP_Post  $menu_item The current menu item object.
-		 * @param stdClass $args      An object of wp_nav_menu() arguments.
-		 * @param int      $depth     Depth of menu item. Used for padding.
-		 */
-		$title = apply_filters( 'nav_menu_item_title', $title, $menu_item, $args, $depth );
 
 		$item_output  = $args->before;
 		$item_output .= '<a' . $attributes . '>';

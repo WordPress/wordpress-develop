@@ -379,7 +379,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	public function test_wp_generate_block_templates_export_file() {
 		$filename = wp_generate_block_templates_export_file();
 		$this->assertFileExists( $filename, 'zip file is created at the specified path' );
-		$this->assertTrue( filesize( $filename ) > 0, 'zip file is larger than 0 bytes' );
+		$this->assertGreaterThan( 0, filesize( $filename ), 'zip file is larger than 0 bytes' );
 
 		// Open ZIP file and make sure the directories exist.
 		$zip = new ZipArchive();

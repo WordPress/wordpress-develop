@@ -282,16 +282,16 @@ final class WP_Translation_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param array{0: string, 1: string} $plurals {
+	 * @param array       $plurals {
 	 *     Pair of singular and plural translations.
 	 *
 	 *     @type string $0 Singular translation.
 	 *     @type string $1 Plural translation.
 	 * }
-	 * @param int                         $number     Number of items.
-	 * @param string                      $context    Optional. Context for the string. Default empty string.
-	 * @param string                      $textdomain Optional. Text domain. Default 'default'.
-	 * @param string                      $locale     Optional. Locale. Default current locale.
+	 * @param int         $number     Number of items.
+	 * @param string      $context    Optional. Context for the string. Default empty string.
+	 * @param string      $textdomain Optional. Text domain. Default 'default'.
+	 * @param string|null $locale     Optional. Locale. Default current locale.
 	 * @return string|false Translation on success, false otherwise.
 	 */
 	public function translate_plural( array $plurals, int $number, string $context = '', string $textdomain = 'default', ?string $locale = null ) {
@@ -433,5 +433,23 @@ final class WP_Translation_Controller {
 		}
 
 		return $this->loaded_translations[ $locale ][ $textdomain ] ?? array();
+	}
+
+	/**
+	 * Returns a boolean to indicate whether a translation exists for a given string with optional text domain and locale.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string  $singular   Singular translation to check.
+	 * @param string  $textdomain Optional. Text domain. Default 'default'.
+	 * @param ?string $locale     Optional. Locale. Default current locale.
+	 * @return bool  True if the translation exists, false otherwise.
+	 */
+	public function has_translation( string $singular, string $textdomain = 'default', ?string $locale = null ): bool {
+		if ( null === $locale ) {
+			$locale = $this->current_locale;
+		}
+
+		return false !== $this->locate_translation( $singular, $textdomain, $locale );
 	}
 }

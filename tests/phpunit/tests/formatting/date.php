@@ -165,6 +165,7 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31809
+	 * @ticket 56468
 	 *
 	 * @dataProvider data_timezone_provider
 	 *
@@ -232,16 +233,15 @@ class Tests_Formatting_Date extends WP_UnitTestCase {
 	 */
 	public function data_timezone_provider() {
 		return array(
-			array(
+			'valid timezone string and GMT offset'      => array(
 				'timezone_string' => 'Europe/Helsinki',
 				'gmt_offset'      => 3,
 			),
-			array(
+			'empty timezone string, valid GMT offset'   => array(
 				'timezone_string' => '',
 				'gmt_offset'      => 3,
 			),
-			// @ticket 56468.
-			'deprecated timezone string and no GMT offset set' => array(
+			'deprecated timezone string, no GMT offset' => array(
 				'timezone_string' => 'America/Buenos_Aires',
 				'gmt_offset'      => 0,
 			),

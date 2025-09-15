@@ -244,7 +244,7 @@ function twentyseventeen_setup() {
 add_action( 'after_setup_theme', 'twentyseventeen_setup' );
 
 /**
- * Set the content width in pixels, based on the theme's design and stylesheet.
+ * Sets the content width in pixels, based on the theme's design and stylesheet.
  *
  * Priority 0 to make it available to lower priority callbacks.
  *
@@ -284,7 +284,7 @@ add_action( 'template_redirect', 'twentyseventeen_content_width', 0 );
 
 if ( ! function_exists( 'twentyseventeen_fonts_url' ) ) :
 	/**
-	 * Register custom fonts.
+	 * Registers custom fonts.
 	 *
 	 * @since Twenty Seventeen 1.0
 	 * @since Twenty Seventeen 3.2 Replaced Google URL with self-hosted fonts.
@@ -309,7 +309,7 @@ if ( ! function_exists( 'twentyseventeen_fonts_url' ) ) :
 endif;
 
 /**
- * Add preconnect for Google Fonts.
+ * Adds preconnect for Google Fonts.
  *
  * @since Twenty Seventeen 1.0
  * @deprecated Twenty Seventeen 3.2 Disabled filter because, by default, fonts are self-hosted.
@@ -331,7 +331,7 @@ function twentyseventeen_resource_hints( $urls, $relation_type ) {
 // add_filter( 'wp_resource_hints', 'twentyseventeen_resource_hints', 10, 2 );
 
 /**
- * Register widget area.
+ * Registers widget area.
  *
  * @link https://developer.wordpress.org/themes/functionality/sidebars/#registering-a-sidebar
  */
@@ -411,7 +411,7 @@ function twentyseventeen_javascript_detection() {
 add_action( 'wp_head', 'twentyseventeen_javascript_detection', 0 );
 
 /**
- * Add a pingback url auto-discovery header for singularly identifiable articles.
+ * Adds a pingback url auto-discovery header for singularly identifiable articles.
  */
 function twentyseventeen_pingback_header() {
 	if ( is_singular() && pings_open() ) {
@@ -421,7 +421,7 @@ function twentyseventeen_pingback_header() {
 add_action( 'wp_head', 'twentyseventeen_pingback_header' );
 
 /**
- * Display custom color CSS.
+ * Displays custom color CSS.
  */
 function twentyseventeen_colors_css_wrap() {
 	if ( 'custom' !== get_theme_mod( 'colorscheme' ) && ! is_customize_preview() ) {
@@ -445,6 +445,8 @@ add_action( 'wp_head', 'twentyseventeen_colors_css_wrap' );
 
 /**
  * Enqueues scripts and styles.
+ *
+ * @since Twenty Seventeen 1.0
  */
 function twentyseventeen_scripts() {
 	// Add custom fonts, used in the main stylesheet.
@@ -452,14 +454,14 @@ function twentyseventeen_scripts() {
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20240402' );
+	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20250415' );
 
 	// Theme block stylesheet.
-	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20220912' );
+	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20240729' );
 
 	// Load the dark colorscheme.
 	if ( 'dark' === get_theme_mod( 'colorscheme', 'light' ) || is_customize_preview() ) {
-		wp_enqueue_style( 'twentyseventeen-colors-dark', get_theme_file_uri( '/assets/css/colors-dark.css' ), array( 'twentyseventeen-style' ), '20191025' );
+		wp_enqueue_style( 'twentyseventeen-colors-dark', get_theme_file_uri( '/assets/css/colors-dark.css' ), array( 'twentyseventeen-style' ), '20240412' );
 	}
 
 	// Register the Internet Explorer 9 specific stylesheet, to fix display issues in the Customizer.
@@ -541,7 +543,7 @@ add_action( 'wp_enqueue_scripts', 'twentyseventeen_scripts' );
  */
 function twentyseventeen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyseventeen-block-editor-style', get_theme_file_uri( '/assets/css/editor-blocks.css' ), array(), '20230614' );
+	wp_enqueue_style( 'twentyseventeen-block-editor-style', get_theme_file_uri( '/assets/css/editor-blocks.css' ), array(), '20240824' );
 	// Add custom fonts.
 	$font_version = ( 0 === strpos( (string) twentyseventeen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), $font_version );
@@ -549,7 +551,7 @@ function twentyseventeen_block_editor_styles() {
 add_action( 'enqueue_block_editor_assets', 'twentyseventeen_block_editor_styles' );
 
 /**
- * Add custom image sizes attribute to enhance responsive image functionality
+ * Adds custom image sizes attribute to enhance responsive image functionality
  * for content images.
  *
  * @since Twenty Seventeen 1.0
@@ -580,6 +582,7 @@ add_filter( 'wp_calculate_image_sizes', 'twentyseventeen_content_image_sizes_att
  * Filters the `sizes` value in the header image markup.
  *
  * @since Twenty Seventeen 1.0
+ * @since Twenty Seventeen 3.7 Added larger image size for small screens.
  *
  * @param string $html   The HTML image tag markup being filtered.
  * @param object $header The custom header object returned by 'get_custom_header()'.
@@ -588,14 +591,14 @@ add_filter( 'wp_calculate_image_sizes', 'twentyseventeen_content_image_sizes_att
  */
 function twentyseventeen_header_image_tag( $html, $header, $attr ) {
 	if ( isset( $attr['sizes'] ) ) {
-		$html = str_replace( $attr['sizes'], '100vw', $html );
+		$html = str_replace( $attr['sizes'], '(max-width: 767px) 200vw, 100vw', $html );
 	}
 	return $html;
 }
 add_filter( 'get_header_image_tag', 'twentyseventeen_header_image_tag', 10, 3 );
 
 /**
- * Add custom image sizes attribute to enhance responsive image functionality
+ * Adds custom image sizes attribute to enhance responsive image functionality
  * for post thumbnails.
  *
  * @since Twenty Seventeen 1.0
@@ -619,7 +622,7 @@ function twentyseventeen_post_thumbnail_sizes_attr( $attr, $attachment, $size ) 
 add_filter( 'wp_get_attachment_image_attributes', 'twentyseventeen_post_thumbnail_sizes_attr', 10, 3 );
 
 /**
- * Use front-page.php when Front page displays is set to a static page.
+ * Uses front-page.php when Front page displays is set to a static page.
  *
  * @since Twenty Seventeen 1.0
  *
@@ -689,6 +692,38 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 endif;
 
 /**
+ * Shows the featured image below the header on single posts and pages, unless
+ * the page is the front page.
+ *
+ * Uses the filter `twentyseventeen_should_show_featured_image` in a child theme or
+ * plugin to change when the image is shown. This example prevents the image
+ * from showing:
+ *
+ *     add_filter(
+ *         'twentyseventeen_should_show_featured_image',
+ *         '__return_false'
+ *     );
+ *
+ * @since Twenty Seventeen 3.7
+ *
+ * @return bool Whether the post thumbnail should be shown.
+ */
+function twentyseventeen_should_show_featured_image() {
+	$show_featured_image = ( is_single() || ( is_page() && ! twentyseventeen_is_frontpage() ) ) && has_post_thumbnail( get_queried_object_id() );
+
+	/**
+	 * Filters whether to show the Twenty Seventeen featured image below the header.
+	 *
+	 * By default, the image is displayed on single posts and pages, unless the page is the front page.
+	 *
+	 * @since Twenty Seventeen 3.7
+	 *
+	 * @param bool $show_featured_image Whether to display the featured image below the header.
+	 */
+	return apply_filters( 'twentyseventeen_should_show_featured_image', $show_featured_image );
+}
+
+/**
  * Implement the Custom Header feature.
  */
 require get_parent_theme_file_path( '/inc/custom-header.php' );
@@ -714,6 +749,12 @@ require get_parent_theme_file_path( '/inc/customizer.php' );
 require get_parent_theme_file_path( '/inc/icon-functions.php' );
 
 /**
- * Block Patterns.
+ * Registers block patterns and pattern categories.
+ *
+ * @since Twenty Seventeen 3.8
  */
-require get_template_directory() . '/inc/block-patterns.php';
+function twentyseventeen_register_block_patterns() {
+	require get_template_directory() . '/inc/block-patterns.php';
+}
+
+add_action( 'init', 'twentyseventeen_register_block_patterns' );

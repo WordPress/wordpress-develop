@@ -65,7 +65,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
-	 * @global WP_Post_Type $post_type_object
+	 * @global WP_Post_Type $post_type_object Global post type object.
 	 * @global wpdb         $wpdb             WordPress database abstraction object.
 	 *
 	 * @param array $args An associative array of arguments.
@@ -496,7 +496,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Displays a formats drop-down for filtering items.
 	 *
 	 * @since 5.2.0
-	 * @access protected
 	 *
 	 * @param string $post_type Post type slug.
 	 */
@@ -723,7 +722,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			 *
 			 * @since 2.5.0
 			 *
-			 * @param string[] $post_columns An associative array of column headings.
+			 * @param string[] $posts_columns An associative array of column headings.
 			 */
 			$posts_columns = apply_filters( 'manage_pages_columns', $posts_columns );
 		} else {
@@ -733,8 +732,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 			 *
 			 * @since 1.5.0
 			 *
-			 * @param string[] $post_columns An associative array of column headings.
-			 * @param string   $post_type    The post type slug.
+			 * @param string[] $posts_columns An associative array of column headings.
+			 * @param string   $post_type     The post type slug.
 			 */
 			$posts_columns = apply_filters( 'manage_posts_columns', $posts_columns, $post_type );
 		}
@@ -751,7 +750,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 *
 		 * @since 3.0.0
 		 *
-		 * @param string[] $post_columns An associative array of column headings.
+		 * @param string[] $posts_columns An associative array of column headings.
 		 */
 		return apply_filters( "manage_{$post_type}_posts_columns", $posts_columns );
 	}
@@ -790,8 +789,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global WP_Query $wp_query WordPress Query object.
-	 * @global int $per_page
+	 * @global int      $per_page
+	 *
 	 * @param array $posts
 	 * @param int   $level
 	 */
@@ -1272,15 +1276,22 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * Handles the post author column output.
 	 *
 	 * @since 4.3.0
+	 * @since 6.8.0 Added fallback text when author's name is unknown.
 	 *
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_author( $post ) {
-		$args = array(
-			'post_type' => $post->post_type,
-			'author'    => get_the_author_meta( 'ID' ),
-		);
-		echo $this->get_edit_link( $args, get_the_author() );
+		$author = get_the_author();
+
+		if ( ! empty( $author ) ) {
+			$args = array(
+				'post_type' => $post->post_type,
+				'author'    => get_the_author_meta( 'ID' ),
+			);
+			echo $this->get_edit_link( $args, esc_html( $author ) );
+		} else {
+			echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . __( '(no author)' ) . '</span>';
+		}
 	}
 
 	/**
@@ -1837,6 +1848,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 							if ( $bulk ) {
 								$dropdown_args['show_option_no_change'] = __( '&mdash; No Change &mdash;' );
+								$dropdown_args['id']                    = 'bulk_edit_post_parent';
 							}
 
 							/**
@@ -1974,20 +1986,42 @@ class WP_Posts_List_Table extends WP_List_Table {
 						<label class="inline-edit-status alignleft">
 							<span class="title"><?php _e( 'Status' ); ?></span>
 							<select name="_status">
-								<?php if ( $bulk ) : ?>
-									<option value="-1"><?php _e( '&mdash; No Change &mdash;' ); ?></option>
-								<?php endif; // $bulk ?>
+								<?php
+								$inline_edit_statuses = array();
+								if ( $bulk ) {
+									$inline_edit_statuses['-1'] = __( '&mdash; No Change &mdash;' );
+								}
+								// Contributors only get "Unpublished" and "Pending Review".
+								if ( $can_publish ) {
+									$inline_edit_statuses['publish'] = __( 'Published' );
+									$inline_edit_statuses['future']  = __( 'Scheduled' );
+									// There is already a checkbox for Private in Single Post Quick Edit. See #63612.
+									if ( $bulk ) {
+										$inline_edit_statuses['private'] = __( 'Private' );
+									}
+								}
 
-								<?php if ( $can_publish ) : // Contributors only get "Unpublished" and "Pending Review". ?>
-									<option value="publish"><?php _e( 'Published' ); ?></option>
-									<option value="future"><?php _e( 'Scheduled' ); ?></option>
-									<?php if ( $bulk ) : ?>
-										<option value="private"><?php _e( 'Private' ); ?></option>
-									<?php endif; // $bulk ?>
-								<?php endif; ?>
+								$inline_edit_statuses['pending'] = __( 'Pending Review' );
+								$inline_edit_statuses['draft']   = __( 'Draft' );
 
-								<option value="pending"><?php _e( 'Pending Review' ); ?></option>
-								<option value="draft"><?php _e( 'Draft' ); ?></option>
+								/**
+								 * Filters the statuses available in the Quick Edit and Bulk Edit UI.
+								 *
+								 * @since 6.9.0
+								 *
+								 * @param array<string,string> $inline_edit_statuses An array of statuses available in the Quick Edit UI.
+								 * @param string               $post_type            The post type slug.
+								 * @param bool                 $bulk                 A flag to denote if it's a bulk action.
+								 * @param bool                 $can_publish          A flag to denote if the user can publish posts.
+								 */
+								$inline_edit_statuses = apply_filters( 'quick_edit_statuses', $inline_edit_statuses, $screen->post_type, $bulk, $can_publish );
+
+								foreach ( $inline_edit_statuses as $inline_status_value => $inline_status_text ) :
+									?>
+									<option value="<?php echo esc_attr( $inline_status_value ); ?>"><?php echo esc_attr( $inline_status_text ); ?></option>
+									<?php
+								endforeach;
+								?>
 							</select>
 						</label>
 

@@ -42,11 +42,13 @@ const getBaseConfig = ( env ) => {
 		plugins: [
 			new DefinePlugin( {
 				// Inject the `IS_GUTENBERG_PLUGIN` global, used for feature flagging.
-				'process.env.IS_GUTENBERG_PLUGIN': false,
+				'globalThis.IS_GUTENBERG_PLUGIN': JSON.stringify( false ),
 				// Inject the `IS_WORDPRESS_CORE` global, used for feature flagging.
-				'process.env.IS_WORDPRESS_CORE': true,
+				'globalThis.IS_WORDPRESS_CORE': JSON.stringify( true ),
 				// Inject the `SCRIPT_DEBUG` global, used for dev versions of JavaScript.
-				SCRIPT_DEBUG: mode === 'development',
+				'globalThis.SCRIPT_DEBUG': JSON.stringify(
+					mode === 'development'
+				),
 			} ),
 		],
 	};
@@ -95,10 +97,17 @@ const BUNDLED_PACKAGES = [
 	'@wordpress/interface',
 	'@wordpress/interactivity',
 	'@wordpress/sync',
+	'@wordpress/undo-manager',
+	'@wordpress/upload-media',
+	'@wordpress/fields',
 ];
 const MODULES = [
 	'@wordpress/interactivity',
 	'@wordpress/interactivity-router',
+];
+const SCRIPT_AND_MODULE_DUAL_PACKAGES = [
+	'@wordpress/a11y',
+	'@wordpress/block-library',
 ];
 const WORDPRESS_NAMESPACE = '@wordpress/';
 
@@ -109,5 +118,6 @@ module.exports = {
 	stylesTransform,
 	BUNDLED_PACKAGES,
 	MODULES,
+	SCRIPT_AND_MODULE_DUAL_PACKAGES,
 	WORDPRESS_NAMESPACE,
 };

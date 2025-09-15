@@ -52,12 +52,16 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 
 		// Set the request type as 'export_personal_data'.
 		$reflection_property = $reflection->getProperty( 'request_type' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 		$reflection_property->setValue( $instance, 'export_personal_data' );
 
 		// Set the post type as 'user_request'.
 		$reflection_property = $reflection->getProperty( 'post_type' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 		$reflection_property->setValue( $instance, 'user_request' );
 
 		return $instance;
@@ -196,11 +200,11 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 42066
 	 *
-	 * @covers WP_Privacy_Requests_List_Table::get_views
+	 * @covers WP_Privacy_Requests_Table::get_views
 	 */
 	public function test_get_views_should_return_views_by_default() {
 		$expected = array(
-			'all' => '<a href="http://example.org/wp-admin/export-personal-data.php" class="current" aria-current="page">All <span class="count">(0)</span></a>',
+			'all' => '<a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/export-personal-data.php" class="current" aria-current="page">All <span class="count">(0)</span></a>',
 		);
 
 		$this->assertSame( $expected, $this->get_mocked_class_instance()->get_views() );

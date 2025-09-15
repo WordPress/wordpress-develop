@@ -103,8 +103,8 @@ class WP_Block_Supports {
 			return array();
 		}
 
-		$block_attributes = array_key_exists( 'attrs', self::$block_to_render )
-			? self::$block_to_render['attrs']
+		$block_attributes = array_key_exists( 'attrs', self::$block_to_render ) && is_array( self::$block_to_render['attrs'] )
+			? $block_type->prepare_attributes_for_render( self::$block_to_render['attrs'] )
 			: array();
 
 		$output = array();
@@ -181,7 +181,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 
 	// This is hardcoded on purpose.
 	// We only support a fixed list of attributes.
-	$attributes_to_merge = array( 'style', 'class', 'id' );
+	$attributes_to_merge = array( 'style', 'class', 'id', 'aria-label' );
 	$attributes          = array();
 	foreach ( $attributes_to_merge as $attribute_name ) {
 		if ( empty( $new_attributes[ $attribute_name ] ) && empty( $extra_attributes[ $attribute_name ] ) ) {

@@ -17,16 +17,16 @@ class Custom_Background {
 	/**
 	 * Callback for administration header.
 	 *
-	 * @var callable
 	 * @since 3.0.0
+	 * @var callable
 	 */
 	public $admin_header_callback;
 
 	/**
 	 * Callback for header div.
 	 *
-	 * @var callable
 	 * @since 3.0.0
+	 * @var callable
 	 */
 	public $admin_image_div_callback;
 
@@ -288,7 +288,7 @@ class Custom_Background {
 			$background_styles = '';
 			$bgcolor           = get_background_color();
 			if ( $bgcolor ) {
-				$background_styles .= 'background-color: #' . $bgcolor . ';';
+				$background_styles .= 'background-color: ' . maybe_hash_hex_color( $bgcolor ) . ';';
 			}
 
 			$background_image_thumb = get_background_image();
@@ -354,7 +354,7 @@ class Custom_Background {
 		<input type="file" id="upload" name="import" />
 		<input type="hidden" name="action" value="save" />
 			<?php wp_nonce_field( 'custom-background-upload', '_wpnonce-custom-background-upload' ); ?>
-			<?php submit_button( __( 'Upload' ), '', 'submit', false ); ?>
+			<?php submit_button( _x( 'Upload', 'verb' ), '', 'submit', false ); ?>
 	</p>
 	<p>
 		<label for="choose-from-library-link"><?php _e( 'Or choose an image from your media library:' ); ?></label><br />

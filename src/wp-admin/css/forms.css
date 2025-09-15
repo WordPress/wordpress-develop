@@ -227,11 +227,6 @@ textarea[readonly] {
 
 ::-moz-placeholder {
 	color: #646970;
-	opacity: 1;
-}
-
-:-ms-input-placeholder {
-	color: #646970;
 }
 
 .form-invalid .form-required,
@@ -720,8 +715,13 @@ fieldset label,
 }
 
 p.search-box {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	column-gap: 0.5rem;
+	position: relative;
 	float: right;
-	margin: 0;
+	margin: 11px 0;
 }
 
 .network-admin.themes-php p.search-box {
@@ -786,42 +786,6 @@ ul#add-to-blog-users {
 	background-color: #2271b1;
 	color: #fff;
 	/* Only visible in Windows High Contrast mode */
-	outline: 2px solid transparent;
-}
-
-.button-add-site-icon {
-	width: 100%;
-	cursor: pointer;
-	text-align: center;
-	border: 1px dashed #c3c4c7;
-	box-sizing: border-box;
-	padding: 9px 0;
-	line-height: 1.6;
-	max-width: 270px;
-}
-
-.button-add-site-icon:focus,
-.button-add-site-icon:hover {
-	background: #fff;
-}
-
-.site-icon-section .favicon-preview {
-	float: left;
-}
-.site-icon-section .app-icon-preview {
-	float: left;
-	margin: 0 20px;
-}
-
-.site-icon-section .site-icon-preview img {
-	max-width: 100%;
-}
-
-.button-add-site-icon:focus {
-	background-color: #fff;
-	border-color: #3582c4;
-	border-style: solid;
-	box-shadow: 0 0 0 1px #3582c4;
 	outline: 2px solid transparent;
 }
 
@@ -1007,6 +971,7 @@ table.form-table td .updated p {
 }
 
 .application-password-display input.code {
+	margin-bottom: 6px;
 	width: 19em;
 }
 
@@ -1501,28 +1466,6 @@ table.form-table td .updated p {
 	margin: 0;
 }
 
-.email-personal-data::before {
-	display: inline-block;
-	font: normal 20px/1 dashicons;
-	margin: 3px 5px 0 -2px;
-	speak: never;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	vertical-align: top;
-}
-
-.email-personal-data--sending::before {
-	color: #d63638;
-	content: "\f463";
-	animation: rotation 2s infinite linear;
-}
-
-.email-personal-data--sent::before {
-	color: #68de7c;
-	content: "\f147";
-}
-
-
 /* =Media Queries
 -------------------------------------------------------------- */
 
@@ -1594,10 +1537,6 @@ table.form-table td .updated p {
 		height: 0.5625rem;
 		margin: 0.4375rem;
 		line-height: 0.76190476;
-	}
-
-	.wp-upload-form input[type="submit"] {
-		margin-top: 10px;
 	}
 
 	.wp-core-ui select,

@@ -18,7 +18,7 @@ class WP_Script_Modules {
 	 * Holds the registered script modules, keyed by script module identifier.
 	 *
 	 * @since 6.5.0
-	 * @var array
+	 * @var array[]
 	 */
 	private $registered = array();
 
@@ -31,10 +31,22 @@ class WP_Script_Modules {
 	private $enqueued_before_registered = array();
 
 	/**
+	 * Tracks whether the @wordpress/a11y script module is available.
+	 *
+	 * Some additional HTML is required on the page for the module to work. Track
+	 * whether it's available to print at the appropriate time.
+	 *
+	 * @since 6.7.0
+	 * @var bool
+	 */
+	private $a11y_available = false;
+
+	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
 	 * @since 6.5.0
+	 * @since 6.9.0 Added the $args parameter.
 	 *
 	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
 	 *                                    final import map.
@@ -60,13 +72,18 @@ class WP_Script_Modules {
 	 *                                    It is added to the URL as a query string for cache busting purposes. If $version
 	 *                                    is set to false, the version number is the currently installed WordPress version.
 	 *                                    If $version is set to null, no version is added.
+	 * @param array             $args     {
+	 *     Optional. An array of additional args. Default empty array.
+	 *
+	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+	 * }
 	 */
-	public function register( string $id, string $src, array $deps = array(), $version = false ) {
+	public function register( string $id, string $src, array $deps = array(), $version = false, array $args = array() ) {
 		if ( ! isset( $this->registered[ $id ] ) ) {
 			$dependencies = array();
 			foreach ( $deps as $dependency ) {
 				if ( is_array( $dependency ) ) {
-					if ( ! isset( $dependency['id'] ) ) {
+					if ( ! isset( $dependency['id'] ) || ! is_string( $dependency['id'] ) ) {
 						_doing_it_wrong( __METHOD__, __( 'Missing required id key in entry among dependencies array.' ), '6.5.0' );
 						continue;
 					}
@@ -84,13 +101,76 @@ class WP_Script_Modules {
 				}
 			}
 
+			$fetchpriority = 'auto';
+			if ( isset( $args['fetchpriority'] ) ) {
+				if ( $this->is_valid_fetchpriority( $args['fetchpriority'] ) ) {
+					$fetchpriority = $args['fetchpriority'];
+				} else {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: 1: $fetchpriority, 2: $id */
+							__( 'Invalid fetchpriority `%1$s` defined for `%2$s` during script registration.' ),
+							is_string( $args['fetchpriority'] ) ? $args['fetchpriority'] : gettype( $args['fetchpriority'] ),
+							$id
+						),
+						'6.9.0'
+					);
+				}
+			}
+
 			$this->registered[ $id ] = array(
-				'src'          => $src,
-				'version'      => $version,
-				'enqueue'      => isset( $this->enqueued_before_registered[ $id ] ),
-				'dependencies' => $dependencies,
+				'src'           => $src,
+				'version'       => $version,
+				'enqueue'       => isset( $this->enqueued_before_registered[ $id ] ),
+				'dependencies'  => $dependencies,
+				'fetchpriority' => $fetchpriority,
 			);
 		}
+	}
+
+	/**
+	 * Checks if the provided fetchpriority is valid.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string|mixed $priority Fetch priority.
+	 * @return bool Whether valid fetchpriority.
+	 */
+	private function is_valid_fetchpriority( $priority ): bool {
+		return in_array( $priority, array( 'auto', 'low', 'high' ), true );
+	}
+
+	/**
+	 * Sets the fetch priority for a script module.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string              $id       Script module identifier.
+	 * @param 'auto'|'low'|'high' $priority Fetch priority for the script module.
+	 * @return bool Whether setting the fetchpriority was successful.
+	 */
+	public function set_fetchpriority( string $id, string $priority ): bool {
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return false;
+		}
+
+		if ( '' === $priority ) {
+			$priority = 'auto';
+		}
+
+		if ( ! $this->is_valid_fetchpriority( $priority ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				/* translators: %s: Invalid fetchpriority. */
+				sprintf( __( 'Invalid fetchpriority: %s' ), $priority ),
+				'6.9.0'
+			);
+			return false;
+		}
+
+		$this->registered[ $id ]['fetchpriority'] = $priority;
+		return true;
 	}
 
 	/**
@@ -100,6 +180,7 @@ class WP_Script_Modules {
 	 * will be registered.
 	 *
 	 * @since 6.5.0
+	 * @since 6.9.0 Added the $args parameter.
 	 *
 	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
 	 *                                    final import map.
@@ -125,12 +206,17 @@ class WP_Script_Modules {
 	 *                                    It is added to the URL as a query string for cache busting purposes. If $version
 	 *                                    is set to false, the version number is the currently installed WordPress version.
 	 *                                    If $version is set to null, no version is added.
+	 * @param array             $args     {
+	 *     Optional. An array of additional args. Default empty array.
+	 *
+	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+	 * }
 	 */
-	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false ) {
+	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false, array $args = array() ) {
 		if ( isset( $this->registered[ $id ] ) ) {
 			$this->registered[ $id ]['enqueue'] = true;
 		} elseif ( $src ) {
-			$this->register( $id, $src, $deps, $version );
+			$this->register( $id, $src, $deps, $version, $args );
 			$this->registered[ $id ]['enqueue'] = true;
 		} else {
 			$this->enqueued_before_registered[ $id ] = true;
@@ -178,6 +264,15 @@ class WP_Script_Modules {
 		add_action( $position, array( $this, 'print_import_map' ) );
 		add_action( $position, array( $this, 'print_enqueued_script_modules' ) );
 		add_action( $position, array( $this, 'print_script_module_preloads' ) );
+
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ) );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_preloads' ) );
+
+		add_action( 'wp_footer', array( $this, 'print_script_module_data' ) );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_script_module_data' ) );
+		add_action( 'wp_footer', array( $this, 'print_a11y_script_module_html' ), 20 );
+		add_action( 'admin_print_footer_scripts', array( $this, 'print_a11y_script_module_html' ), 20 );
 	}
 
 	/**
@@ -188,13 +283,15 @@ class WP_Script_Modules {
 	 */
 	public function print_enqueued_script_modules() {
 		foreach ( $this->get_marked_for_enqueue() as $id => $script_module ) {
-			wp_print_script_tag(
-				array(
-					'type' => 'module',
-					'src'  => $this->get_src( $id ),
-					'id'   => $id . '-js-module',
-				)
+			$args = array(
+				'type' => 'module',
+				'src'  => $this->get_src( $id ),
+				'id'   => $id . '-js-module',
 			);
+			if ( 'auto' !== $script_module['fetchpriority'] ) {
+				$args['fetchpriority'] = $script_module['fetchpriority'];
+			}
+			wp_print_script_tag( $args );
 		}
 	}
 
@@ -211,9 +308,10 @@ class WP_Script_Modules {
 			// Don't preload if it's marked for enqueue.
 			if ( true !== $script_module['enqueue'] ) {
 				echo sprintf(
-					'<link rel="modulepreload" href="%s" id="%s">',
+					'<link rel="modulepreload" href="%s" id="%s"%s>',
 					esc_url( $this->get_src( $id ) ),
-					esc_attr( $id . '-js-modulepreload' )
+					esc_attr( $id . '-js-modulepreload' ),
+					'auto' !== $script_module['fetchpriority'] ? sprintf( ' fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) ) : ''
 				);
 			}
 		}
@@ -223,28 +321,12 @@ class WP_Script_Modules {
 	 * Prints the import map using a script tag with a type="importmap" attribute.
 	 *
 	 * @since 6.5.0
-	 *
-	 * @global WP_Scripts $wp_scripts The WP_Scripts object for printing the polyfill.
 	 */
 	public function print_import_map() {
 		$import_map = $this->get_import_map();
 		if ( ! empty( $import_map['imports'] ) ) {
-			global $wp_scripts;
-			if ( isset( $wp_scripts ) ) {
-				wp_print_inline_script_tag(
-					wp_get_script_polyfill(
-						$wp_scripts,
-						array(
-							'HTMLScriptElement.supports && HTMLScriptElement.supports("importmap")' => 'wp-polyfill-importmap',
-						)
-					),
-					array(
-						'id' => 'wp-load-polyfill-importmap',
-					)
-				);
-			}
 			wp_print_inline_script_tag(
-				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_HEX_AMP ),
+				wp_json_encode( $import_map, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
 				array(
 					'type' => 'importmap',
 					'id'   => 'wp-importmap',
@@ -274,7 +356,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return array Script modules marked for enqueue, keyed by script module identifier.
+	 * @return array<string, array> Script modules marked for enqueue, keyed by script module identifier.
 	 */
 	private function get_marked_for_enqueue(): array {
 		$enqueued = array();
@@ -296,11 +378,10 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-
 	 * @param string[] $ids          The identifiers of the script modules for which to gather dependencies.
-	 * @param array    $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
+	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
 	 *                               Default is both.
-	 * @return array List of dependencies, keyed by script module identifier.
+	 * @return array[] List of dependencies, keyed by script module identifier.
 	 */
 	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ) {
 		return array_reduce(
@@ -353,11 +434,151 @@ class WP_Script_Modules {
 		 *
 		 * @since 6.5.0
 		 *
-		 * @param string $src Module source url.
+		 * @param string $src Module source URL.
 		 * @param string $id  Module identifier.
 		 */
 		$src = apply_filters( 'script_module_loader_src', $src, $id );
 
 		return $src;
+	}
+
+	/**
+	 * Print data associated with Script Modules.
+	 *
+	 * The data will be embedded in the page HTML and can be read by Script Modules on page load.
+	 *
+	 * @since 6.7.0
+	 *
+	 * Data can be associated with a Script Module via the
+	 * {@see "script_module_data_{$module_id}"} filter.
+	 *
+	 * The data for a Script Module will be serialized as JSON in a script tag with an ID of the
+	 * form `wp-script-module-data-{$module_id}`.
+	 */
+	public function print_script_module_data(): void {
+		$modules = array();
+		foreach ( array_keys( $this->get_marked_for_enqueue() ) as $id ) {
+			if ( '@wordpress/a11y' === $id ) {
+				$this->a11y_available = true;
+			}
+			$modules[ $id ] = true;
+		}
+		foreach ( array_keys( $this->get_import_map()['imports'] ) as $id ) {
+			if ( '@wordpress/a11y' === $id ) {
+				$this->a11y_available = true;
+			}
+			$modules[ $id ] = true;
+		}
+
+		foreach ( array_keys( $modules ) as $module_id ) {
+			/**
+			 * Filters data associated with a given Script Module.
+			 *
+			 * Script Modules may require data that is required for initialization or is essential
+			 * to have immediately available on page load. These are suitable use cases for
+			 * this data.
+			 *
+			 * The dynamic portion of the hook name, `$module_id`, refers to the Script Module ID
+			 * that the data is associated with.
+			 *
+			 * This is best suited to pass essential data that must be available to the module for
+			 * initialization or immediately on page load. It does not replace the REST API or
+			 * fetching data from the client.
+			 *
+			 * Example:
+			 *
+			 *     add_filter(
+			 *         'script_module_data_MyScriptModuleID',
+			 *         function ( array $data ): array {
+			 *             $data['dataForClient'] = 'ok';
+			 *             return $data;
+			 *         }
+			 *     );
+			 *
+			 * If the filter returns no data (an empty array), nothing will be embedded in the page.
+			 *
+			 * The data for a given Script Module, if provided, will be JSON serialized in a script
+			 * tag with an ID of the form `wp-script-module-data-{$module_id}`.
+			 *
+			 * The data can be read on the client with a pattern like this:
+			 *
+			 * Example:
+			 *
+			 *     const dataContainer = document.getElementById( 'wp-script-module-data-MyScriptModuleID' );
+			 *     let data = {};
+			 *     if ( dataContainer ) {
+			 *         try {
+			 *             data = JSON.parse( dataContainer.textContent );
+			 *         } catch {}
+			 *     }
+			 *     // data.dataForClient === 'ok';
+			 *     initMyScriptModuleWithData( data );
+			 *
+			 * @since 6.7.0
+			 *
+			 * @param array $data The data associated with the Script Module.
+			 */
+			$data = apply_filters( "script_module_data_{$module_id}", array() );
+
+			if ( is_array( $data ) && array() !== $data ) {
+				/*
+				 * This data will be printed as JSON inside a script tag like this:
+				 *   <script type="application/json"></script>
+				 *
+				 * A script tag must be closed by a sequence beginning with `</`. It's impossible to
+				 * close a script tag without using `<`. We ensure that `<` is escaped and `/` can
+				 * remain unescaped, so `</script>` will be printed as `\u003C/script\u00E3`.
+				 *
+				 *   - JSON_HEX_TAG: All < and > are converted to \u003C and \u003E.
+				 *   - JSON_UNESCAPED_SLASHES: Don't escape /.
+				 *
+				 * If the page will use UTF-8 encoding, it's safe to print unescaped unicode:
+				 *
+				 *   - JSON_UNESCAPED_UNICODE: Encode multibyte Unicode characters literally (instead of as `\uXXXX`).
+				 *   - JSON_UNESCAPED_LINE_TERMINATORS: The line terminators are kept unescaped when
+				 *     JSON_UNESCAPED_UNICODE is supplied. It uses the same behaviour as it was
+				 *     before PHP 7.1 without this constant. Available as of PHP 7.1.0.
+				 *
+				 * The JSON specification requires encoding in UTF-8, so if the generated HTML page
+				 * is not encoded in UTF-8 then it's not safe to include those literals. They must
+				 * be escaped to avoid encoding issues.
+				 *
+				 * @see https://www.rfc-editor.org/rfc/rfc8259.html for details on encoding requirements.
+				 * @see https://www.php.net/manual/en/json.constants.php for details on these constants.
+				 * @see https://html.spec.whatwg.org/#script-data-state for details on script tag parsing.
+				 */
+				$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS;
+				if ( ! is_utf8_charset() ) {
+					$json_encode_flags = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES;
+				}
+
+				wp_print_inline_script_tag(
+					wp_json_encode(
+						$data,
+						$json_encode_flags
+					),
+					array(
+						'type' => 'application/json',
+						'id'   => "wp-script-module-data-{$module_id}",
+					)
+				);
+			}
+		}
+	}
+
+	/**
+	 * @access private This is only intended to be called by the registered actions.
+	 *
+	 * @since 6.7.0
+	 */
+	public function print_a11y_script_module_html() {
+		if ( ! $this->a11y_available ) {
+			return;
+		}
+		echo '<div style="position:absolute;margin:-1px;padding:0;height:1px;width:1px;overflow:hidden;clip-path:inset(50%);border:0;word-wrap:normal !important;">'
+			. '<p id="a11y-speak-intro-text" class="a11y-speak-intro-text" hidden>' . esc_html__( 'Notifications' ) . '</p>'
+			. '<div id="a11y-speak-assertive" class="a11y-speak-region" aria-live="assertive" aria-relevant="additions text" aria-atomic="true"></div>'
+			. '<div id="a11y-speak-polite" class="a11y-speak-region" aria-live="polite" aria-relevant="additions text" aria-atomic="true"></div>'
+			. '</div>';
 	}
 }

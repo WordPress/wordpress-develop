@@ -6,6 +6,7 @@
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
 		beStrictAboutOutputDuringTests="true"
+		failOnRisky="true"
 		convertErrorsToExceptions="true"
 		convertWarningsToExceptions="true"
 		convertNoticesToExceptions="true"

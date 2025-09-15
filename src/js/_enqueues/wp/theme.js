@@ -118,11 +118,13 @@ themes.view.Appearance = wp.Backbone.View.extend({
 		// Render and append after screen title.
 		view.render();
 		this.searchContainer
-			.append( $.parseHTML( '<label class="screen-reader-text" for="wp-filter-search-input">' + l10n.search + '</label>' ) )
-			.append( view.el )
-			.on( 'submit', function( event ) {
-				event.preventDefault();
-			});
+			.find( '.search-box' )
+			.append( $.parseHTML( '<label for="wp-filter-search-input">' + l10n.search + '</label>' ) )
+			.append( view.el );
+
+		this.searchContainer.on( 'submit', function( event ) {
+			event.preventDefault();
+		});
 	},
 
 	// Checks when the user gets close to the bottom
@@ -1009,6 +1011,12 @@ themes.view.Preview = themes.view.Details.extend({
 			this.undelegateEvents();
 			this.close();
 		}
+
+		// Return if Ctrl + Shift or Shift key pressed
+		if ( event.shiftKey || ( event.ctrlKey && event.shiftKey ) ) {
+			return;
+		}
+
 		// The right arrow key, next theme.
 		if ( event.keyCode === 39 ) {
 			_.once( this.nextTheme() );
@@ -1110,6 +1118,11 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Bail if the filesystem credentials dialog is shown.
 			if ( $( '#request-filesystem-credentials-dialog' ).is( ':visible' ) ) {
+				return;
+			}
+
+			// Return if Ctrl + Shift or Shift key pressed
+			if ( event.shiftKey || ( event.ctrlKey && event.shiftKey ) ) {
 				return;
 			}
 
@@ -1359,7 +1372,6 @@ themes.view.Search = wp.Backbone.View.extend({
 	searching: false,
 
 	attributes: {
-		placeholder: l10n.searchPlaceholder,
 		type: 'search',
 		'aria-describedby': 'live-search-desc'
 	},
@@ -1664,7 +1676,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 		this.listenTo( this.collection, 'query:fail', function() {
 			$( 'body' ).removeClass( 'loading-content' );
 			$( '.theme-browser' ).find( 'div.error' ).remove();
-			$( '.theme-browser' ).find( 'div.themes' ).before( '<div class="error"><p>' + l10n.error + '</p><p><button class="button try-again">' + l10n.tryAgain + '</button></p></div>' );
+			$( '.theme-browser' ).find( 'div.themes' ).before( '<div class="notice notice-error"><p>' + l10n.error + '</p><p><button class="button try-again">' + l10n.tryAgain + '</button></p></div>' );
 			$( '.theme-browser .error .try-again' ).on( 'click', function( e ) {
 				e.preventDefault();
 				$( 'input.wp-filter-search' ).trigger( 'input' );

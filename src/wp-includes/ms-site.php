@@ -439,8 +439,8 @@ function update_sitemeta_cache( $site_ids ) {
  *
  * @param string|array $args Optional. Array or string of arguments. See WP_Site_Query::__construct()
  *                           for information on accepted arguments. Default empty array.
- * @return array|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
- *                   or the number of sites when 'count' is passed as a query var.
+ * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
+ *                             or the number of sites when 'count' is passed as a query var.
  */
 function get_sites( $args = array() ) {
 	$query = new WP_Site_Query();
@@ -524,11 +524,7 @@ function wp_prepare_site_data( $data, $defaults, $old_site = null ) {
 function wp_normalize_site_data( $data ) {
 	// Sanitize domain if passed.
 	if ( array_key_exists( 'domain', $data ) ) {
-		$data['domain'] = trim( $data['domain'] );
-		$data['domain'] = preg_replace( '/\s+/', '', sanitize_user( $data['domain'], true ) );
-		if ( is_subdomain_install() ) {
-			$data['domain'] = str_replace( '@', '', $data['domain'] );
-		}
+		$data['domain'] = preg_replace( '/[^a-z0-9\-.:]+/i', '', $data['domain'] );
 	}
 
 	// Sanitize path if passed.
@@ -1026,11 +1022,19 @@ function clean_blog_cache( $blog ) {
 /**
  * Adds metadata to a site.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 5.1.0
  *
  * @param int    $site_id    Site ID.
  * @param string $meta_key   Metadata name.
- * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
+ * @param mixed  $meta_value Metadata value. Arrays and objects are stored as serialized data and
+ *                           will be returned as the same type when retrieved. Other data types will
+ *                           be stored as strings in the database:
+ *                           - false is stored and retrieved as an empty string ('')
+ *                           - true is stored and retrieved as '1'
+ *                           - numbers (both integer and float) are stored and retrieved as strings
+ *                           Must be serializable if non-scalar.
  * @param bool   $unique     Optional. Whether the same key should not be added.
  *                           Default false.
  * @return int|false Meta ID on success, false on failure.
@@ -1045,6 +1049,8 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
  * You can match based on the key, or key and value. Removing based on key and
  * value, will keep from removing duplicate metadata with the same key. It also
  * allows removing all metadata matching key, if needed.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 5.1.0
  *
@@ -1073,7 +1079,13 @@ function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
  * @return mixed An array of values if `$single` is false.
  *               The value of meta data field if `$single` is true.
  *               False for an invalid `$site_id` (non-numeric, zero, or negative value).
- *               An empty string if a valid but non-existing site ID is passed.
+ *               An empty array if a valid but non-existing site ID is passed and `$single` is false.
+ *               An empty string if a valid but non-existing site ID is passed and `$single` is true.
+ *               Note: Non-serialized values are returned as strings:
+ *               - false values are returned as empty strings ('')
+ *               - true values are returned as '1'
+ *               - numbers (both integer and float) are returned as strings
+ *               Arrays and objects retain their original type.
  */
 function get_site_meta( $site_id, $key = '', $single = false ) {
 	return get_metadata( 'blog', $site_id, $key, $single );
@@ -1082,10 +1094,12 @@ function get_site_meta( $site_id, $key = '', $single = false ) {
 /**
  * Updates metadata for a site.
  *
- * Use the $prev_value parameter to differentiate between meta fields with the
+ * Use the `$prev_value` parameter to differentiate between meta fields with the
  * same key and site ID.
  *
  * If the meta field for the site does not exist, it will be added.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 5.1.0
  *
@@ -1229,7 +1243,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		if ( '1' === $new_site->deleted ) {
 
 			/**
-			 * Fires when the 'deleted' status is added to a site.
+			 * Fires when the 'flagged for deletion' status is added to a site.
 			 *
 			 * @since 3.5.0
 			 *
@@ -1239,7 +1253,7 @@ function wp_maybe_transition_site_statuses_on_update( $new_site, $old_site = nul
 		} else {
 
 			/**
-			 * Fires when the 'deleted' status is removed from a site.
+			 * Fires when the 'flagged for deletion' status is removed from a site.
 			 *
 			 * @since 3.5.0
 			 *
