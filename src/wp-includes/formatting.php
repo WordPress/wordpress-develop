@@ -940,6 +940,13 @@ function seems_utf8( $str ) {
  *                                                     // E.g. The “ü” in ISO-8859-1 is a single byte 0xFC,
  *                                                     // but in UTF-8 is the two-byte sequence 0xC3 0xBC.
  *
+ * A “valid” string consists of “well-formed UTF-8 code unit sequence[s],” meaning
+ * that the bytes conform to the UTF-8 encoding scheme, all characters use the minimal
+ * byte sequence required by UTF-8, and that no sequence encodes a UTF-16 surrogate
+ * code point or any character above the representable range.
+ *
+ * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G32860
+ *
  * @see _wp_is_valid_utf8_fallback
  *
  * @since 6.9.0
@@ -2195,20 +2202,13 @@ function sanitize_file_name( $filename ) {
 
 	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', '’', '«', '»', '”', '“', chr( 0 ) );
 
-	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
-	static $utf8_pcre = null;
-	if ( ! isset( $utf8_pcre ) ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
-	}
-
 	if ( ! wp_is_valid_utf8( $filename ) ) {
 		$_ext     = pathinfo( $filename, PATHINFO_EXTENSION );
 		$_name    = pathinfo( $filename, PATHINFO_FILENAME );
 		$filename = sanitize_title_with_dashes( $_name ) . '.' . $_ext;
 	}
 
-	if ( $utf8_pcre ) {
+	if ( _wp_can_use_pcre_u() ) {
 		/**
 		 * Replace all whitespace characters with a basic space (U+0020).
 		 *
@@ -4642,6 +4642,8 @@ function esc_sql( $data ) {
  * is applied to the returned cleaned URL.
  *
  * @since 2.8.0
+ * @since 6.9.0 Prepends `https://` to the URL if it does not already contain a scheme
+ *              and the first item in `$protocols` is 'https'.
  *
  * @param string   $url       The URL to be cleaned.
  * @param string[] $protocols Optional. An array of acceptable protocols.
@@ -4674,12 +4676,14 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	/*
 	 * If the URL doesn't appear to contain a scheme, we presume
 	 * it needs http:// prepended (unless it's a relative link
-	 * starting with /, # or ?, or a PHP file).
+	 * starting with /, # or ?, or a PHP file). If the first item
+	 * in $protocols is 'https', then https:// is prepended.
 	 */
 	if ( ! str_contains( $url, ':' ) && ! in_array( $url[0], array( '/', '#', '?' ), true ) &&
 		! preg_match( '/^[a-z0-9-]+?\.php/i', $url )
 	) {
-		$url = 'http://' . $url;
+		$scheme = ( is_array( $protocols ) && 'https' === array_first( $protocols ) ) ? 'https://' : 'http://';
+		$url    = $scheme . $url;
 	}
 
 	// Replace ampersands and single quotes only when displaying.
@@ -5978,16 +5982,20 @@ function wp_unslash( $value ) {
  *
  * @since 3.6.0
  *
- * @param string $content A string which might contain a URL.
- * @return string|false The found URL.
+ * @param string $content A string which might contain an `A` element with a non-empty `href` attribute.
+ * @return string|false Database-escaped URL via {@see esc_url()} if found, otherwise `false`.
  */
 function get_url_in_content( $content ) {
 	if ( empty( $content ) ) {
 		return false;
 	}
 
-	if ( preg_match( '/<a\s[^>]*?href=([\'"])(.+?)\1/is', $content, $matches ) ) {
-		return sanitize_url( $matches[2] );
+	$processor = new WP_HTML_Tag_Processor( $content );
+	while ( $processor->next_tag( 'A' ) ) {
+		$href = $processor->get_attribute( 'href' );
+		if ( is_string( $href ) && '' !== $href ) {
+			return sanitize_url( $href );
+		}
 	}
 
 	return false;
@@ -6407,8 +6415,9 @@ function sanitize_hex_color( $color ) {
  *
  * @since 3.4.0
  *
- * @param string $color
- * @return string|null
+ * @param string $color The color value to sanitize. Can be with or without a #.
+ * @return string|null The sanitized hex color without the hash prefix,
+ *                     empty string if input is empty, or null if invalid.
  */
 function sanitize_hex_color_no_hash( $color ) {
 	$color = ltrim( $color, '#' );
@@ -6428,8 +6437,9 @@ function sanitize_hex_color_no_hash( $color ) {
  *
  * @since 3.4.0
  *
- * @param string $color
- * @return string
+ * @param string $color The color value to add the hash prefix to. Can be with or without a #.
+ * @return string The color with the hash prefix if it's a valid hex color,
+ *                otherwise the original value.
  */
 function maybe_hash_hex_color( $color ) {
 	$unhashed = sanitize_hex_color_no_hash( $color );
