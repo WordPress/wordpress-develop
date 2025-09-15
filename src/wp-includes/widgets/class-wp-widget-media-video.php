@@ -142,7 +142,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 		if ( $attachment || preg_match( $youtube_pattern, $src ) || preg_match( $vimeo_pattern, $src ) ) {
 			add_filter( 'wp_video_shortcode', array( $this, 'inject_video_max_width_style' ) );
 
-			echo wp_video_shortcode(
+			$video_html = wp_video_shortcode(
 				array_merge(
 					$instance,
 					compact( 'src' )
@@ -151,6 +151,18 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 			);
 
 			remove_filter( 'wp_video_shortcode', array( $this, 'inject_video_max_width_style' ) );
+
+			if ( empty( $video_html ) || false !== strpos( $video_html, 'Sorry, this content isn\'t available right now' ) ) {
+				if ( preg_match( $youtube_pattern, $src ) ) {
+					$this->render_error_message( 'youtube_error' );
+				} elseif ( preg_match( $vimeo_pattern, $src ) ) {
+					$this->render_error_message( 'vimeo_error' );
+				} else {
+					$this->render_error_message( 'file_not_found' );
+				}
+			} else {
+				echo $video_html;
+			}
 		} else {
 			echo $this->inject_video_max_width_style( wp_oembed_get( $src ) );
 		}
