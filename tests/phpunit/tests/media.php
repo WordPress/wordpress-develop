@@ -5431,7 +5431,7 @@ EOF;
 		// Sub-sizes: for each size, the AVIF should be smaller than the JPEG.
 		$sizes_to_compare = array_intersect_key( $avif_sizes['sizes'], $smaller_avif_sizes['sizes'] );
 
-		$this->assertNotWPError( $image );
+		$this->assertNotWPError( $sizes_to_compare );
 
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $smaller_avif_sizes['sizes'][ $size ]['filesize'] );
