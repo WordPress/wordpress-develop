@@ -55,6 +55,11 @@ function wp_cli( cmd ) {
 function install_wp_importer() {
 	const testPluginDirectory = 'tests/phpunit/data/plugins/wordpress-importer';
 
+
+	// The final version of the WordPress Importer plugin with support for PHP < 7.2 is 0.9.0.
+	const phpVersion = parseFloat(process.env.LOCAL_PHP.split('-')[0]);
+	const branchFlag = phpVersion < 7.2 ? '--branch 0.9.0' : '';
+
 	execSync( `docker compose exec -T php rm -rf ${testPluginDirectory}`, { stdio: 'inherit' } );
-	execSync( `docker compose exec -T php git clone https://github.com/WordPress/wordpress-importer.git ${testPluginDirectory} --depth=1`, { stdio: 'inherit' } );
+	execSync( `docker compose exec -T php git clone ${branchFlag} https://github.com/WordPress/wordpress-importer.git ${testPluginDirectory} --depth=1`, { stdio: 'inherit' } );
 }
