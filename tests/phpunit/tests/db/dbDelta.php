@@ -1090,4 +1090,26 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 			$updates
 		);
 	}
+
+	public function test_no_update_reported_when_tablename_in_backticks() {
+		global $wpdb;
+
+		$updates = dbDelta(
+			"
+			CREATE TABLE `{$wpdb->prefix}dbdelta_test` (
+				id bigint(20) NOT NULL AUTO_INCREMENT,
+				column_1 varchar(255) NOT NULL,
+				column_2 text,
+				column_3 blob,
+				PRIMARY KEY  (id),
+				KEY key_1 (column_1($this->max_index_length)),
+				KEY compound_key (id,column_1($this->max_index_length)),
+				FULLTEXT KEY fulltext_key (column_1)
+			) {$this->db_engine}
+			",
+			false
+		);
+
+		$this->assertEmpty( $updates );
+	}
 }
