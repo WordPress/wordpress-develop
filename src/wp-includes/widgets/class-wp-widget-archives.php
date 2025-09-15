@@ -129,7 +129,7 @@ class WP_Widget_Archives extends WP_Widget {
 			dropdown.removeAttribute( 'data-lastkey' ); 
 		}
 	});
-    dropdown.addEventListener( 'click', function() {
+	dropdown.addEventListener( 'click', function() {
 		dropdown.removeAttribute( 'data-lastkey' );
     });
 	dropdown.onchange = onSelectChange;
