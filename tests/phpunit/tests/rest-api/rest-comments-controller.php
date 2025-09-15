@@ -119,7 +119,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'comment_content' => "Comment {$i}",
 					'comment_post_ID' => self::$post_id,
-					'status'          => ( rand( 0, 100 ) % 2 === 0 ) ? 'approve' : 'hold',
+					'status'          => ( $i % 2 === 0 ) ? 'approve' : 'hold',
 				)
 			);
 		}
