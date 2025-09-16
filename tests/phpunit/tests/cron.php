@@ -708,12 +708,10 @@ class Tests_Cron extends WP_UnitTestCase {
 			'schedule' => false,
 			'args'     => $args,
 		);
-
 		_set_cron_array( $crons );
 
 		// Test that wp_get_scheduled_event() can retrieve the event at timestamp 0.
 		$event = wp_get_scheduled_event( $hook, $args, 0 );
-
 		$this->assertIsObject( $event, 'wp_get_scheduled_event() should return an object for timestamp 0 event' );
 		$this->assertSame( $hook, $event->hook );
 		$this->assertSame( 0, $event->timestamp );
