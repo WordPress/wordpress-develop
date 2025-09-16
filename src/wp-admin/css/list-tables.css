@@ -1308,8 +1308,10 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	white-space: nowrap;
 }
 
-.plugins .plugin-title img,
-.plugins .plugin-title .dashicons {
+
+.plugins .plugin-title .dashicons,
+.plugins .plugin-title img.plugin-icon,
+.plugins .plugin-title img.updates-table-screenshot {
 	float: left;
 	padding: 0 10px 0 0;
 	width: 64px;
@@ -1324,7 +1326,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	color: #c3c4c7;
 }
 
-#update-themes-table .plugin-title img,
+#update-themes-table .plugin-title img.updates-table-screenshot,
 #update-themes-table .plugin-title .dashicons {
 	width: 85px;
 }
@@ -1731,7 +1733,7 @@ div.action-links,
 	margin: 20px 20px 0;
 }
 
-.plugin-icon {
+.plugin-card .plugin-icon {
 	position: absolute;
 	top: 20px;
 	left: 20px;

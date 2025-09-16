@@ -2353,4 +2353,69 @@ class Tests_User extends WP_UnitTestCase {
 		// Verify there are no updates to 'use_ssl' user meta.
 		$this->assertSame( 1, $db_update_count );
 	}
+
+	/**
+	 * Tests that `wp_set_password` action is triggered correctly during `wp_insert_user()`.
+	 *
+	 * @ticket 22114
+	 */
+	public function test_set_password_action_fires_during_wp_insert_user() {
+		$mock_action = new MockAction();
+
+		add_action( 'wp_set_password', array( $mock_action, 'action' ), 10, 3 );
+
+		$userdata = array(
+			'user_login' => 'testuser_' . wp_rand(),
+			'user_pass'  => 'initialpassword',
+			'user_email' => 'testuser@example.com',
+		);
+
+		$user_id = wp_insert_user( $userdata );
+
+		// Assert that `wp_set_password` was triggered once during user creation.
+		$this->assertSame( 1, $mock_action->get_call_count(), 'wp_set_password was not triggered during user creation.' );
+
+		$args = $mock_action->get_args();
+
+		$this->assertSame( $userdata['user_pass'], $args[0][0], 'Wrong password argument in action.' );
+		$this->assertSame( $user_id, $args[0][1], 'Wrong user ID in action.' );
+	}
+
+	/**
+	 * Tests that `wp_set_password` action is triggered correctly during `wp_update_user()`.
+	 *
+	 * @ticket 22114
+	 */
+	public function test_set_password_action_on_user_update() {
+		$mock_action = new MockAction();
+
+		add_action( 'wp_set_password', array( $mock_action, 'action' ), 10, 3 );
+
+		$user_id = $this->factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_login' => 'testuser_update',
+				'user_email' => 'testuser_update@example.com',
+				'user_pass'  => 'initialpassword',
+			)
+		);
+
+		$mock_action->reset();
+
+		$updated_password = 'newpassword123';
+
+		$userdata = array(
+			'ID'        => $user_id,
+			'user_pass' => $updated_password,
+		);
+
+		wp_update_user( $userdata );
+
+		$this->assertSame( 1, $mock_action->get_call_count(), 'wp_set_password was not triggered during password update.' );
+
+		$args = $mock_action->get_args();
+
+		$this->assertSame( $updated_password, $args[0][0], 'Invalid password in wp_set_password action.' );
+		$this->assertSame( $user_id, $args[0][1], 'Invalid user ID in wp_set_password action.' );
+	}
 }
