@@ -80,7 +80,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       actions: write
     needs: [ phpcs, jshint, slack-notifications ]

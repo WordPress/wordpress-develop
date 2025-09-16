@@ -55,16 +55,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04, windows-2022 ]
+        os: [ ubuntu-latest, windows-2022 ]
         directory: [ 'src', 'build' ]
         include:
           # Only prepare artifacts for Playground once.
-          - os: ubuntu-24.04
+          - os: ubuntu-latest
             directory: 'build'
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
           # Test certificate build commands with Linux only.
-          - os: ubuntu-24.04
+          - os: ubuntu-latest
             test-certificates: true
 
     with:
@@ -107,7 +107,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04, windows-2022 ]
+        os: [ ubuntu-latest, windows-2022 ]
         directory: [ 'src', 'build' ]
     with:
       os: ${{ matrix.os }}
@@ -154,7 +154,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       actions: write
     needs: [ slack-notifications ]

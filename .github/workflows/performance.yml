@@ -50,7 +50,7 @@ permissions: {}
 jobs:
   determine-matrix:
     name: Determine Matrix
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: ${{ ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) && ! contains( github.event.before, '00000000' ) }}
     permissions: {}
     env:
@@ -145,7 +145,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       actions: write
     needs: [ slack-notifications ]
