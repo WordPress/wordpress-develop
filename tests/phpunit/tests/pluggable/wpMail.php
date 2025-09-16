@@ -628,33 +628,24 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 	public function address_provider() {
 		return array(
-			'from encoded name'               => array(
-				'type'     => 'From',
-				'header'   => 'From: =?UTF-8?B?VGVzdA==?= <test@example.com>',
-				'expected' => array( 'test@example.com', 'Test' ),
+			'single encoded name'                  => array(
+				'content'  => '=?UTF-8?B?Sm9obg==?= <john@example.com>',
+				'expected' => array(
+					array( 'john@example.com', 'John' ),
+				),
 			),
-			'cc multiple encoded names'       => array(
-				'type'     => 'Cc',
-				'header'   => 'Cc: =?UTF-8?B?Sm9obg==?= <john@example.com>, Jane <jane@example.com>',
+			'multiple names with one encoded name' => array(
+				'content'  => '=?UTF-8?B?Sm9obg==?= <john@example.com>, Jane <jane@example.com>',
 				'expected' => array(
 					array( 'john@example.com', 'John' ),
 					array( 'jane@example.com', 'Jane' ),
 				),
 			),
-			'bcc multiple encoded names'      => array(
-				'type'     => 'Bcc',
-				'header'   => 'Bcc: =?UTF-8?B?Sm9obg==?= <john@example.com>, Jane <jane@example.com>',
+			'multiple encoded names'               => array(
+				'content'  => '=?UTF-8?B?Sm9obg==?= <john@example.com>, =?UTF-8?B?SmFuZQ==?= <jane@example.com>',
 				'expected' => array(
 					array( 'john@example.com', 'John' ),
 					array( 'jane@example.com', 'Jane' ),
-				),
-			),
-			'reply-to multiple encoded names' => array(
-				'type'     => 'Reply-To',
-				'header'   => 'Reply-To: =?UTF-8?B?SmFuZQ==?= <jane@example.com>, =?UTF-8?B?Sm9obg==?= <john@example.com>',
-				'expected' => array(
-					'jane@example.com' => array( 'jane@example.com', 'Jane' ),
-					'john@example.com' => array( 'john@example.com', 'John' ),
 				),
 			),
 		);
@@ -664,47 +655,61 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 * @ticket 62940
 	 * @dataProvider address_provider
 	 */
-	public function test_wp_mail_single_line_utf8_header( $type, $header, $expected ) {
-		wp_mail( 'test@example.com', 'subject', 'message', $header );
-		$mailer = tests_retrieve_phpmailer_instance();
+	public function test_wp_mail_single_line_utf8_header( $content, $expected ) {
+		$headers = array( 'Cc', 'Bcc', 'Reply-To' );
 
-		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		switch ( $type ) {
-			case 'From':
-				$this->assertSame( $expected, array( $mailer->From, $mailer->FromName ) );
-				break;
+		foreach ( $headers as $header ) {
+			$mail_header = sprintf( '%s: %s', $header, $content );
+			wp_mail( 'test@example.com', 'subject', 'message', $mail_header );
+			$mailer = tests_retrieve_phpmailer_instance();
 
-			case 'Cc':
-				$this->assertSame( $expected, $mailer->getCcAddresses() );
-				break;
+			switch ( $header ) {
+				case 'Cc':
+					$this->assertSame( $expected, $mailer->getCcAddresses() );
+					break;
 
-			case 'Bcc':
-				$this->assertSame( $expected, $mailer->getBccAddresses() );
-				break;
+				case 'Bcc':
+					$this->assertSame( $expected, $mailer->getBccAddresses() );
+					break;
 
-			case 'Reply-To':
-				$this->assertSame( $expected, $mailer->getReplyToAddresses() );
-				break;
+				case 'Reply-To':
+					// Reply-To returns associative array, so modify expected data accordingly.
+					$expected_reply_to = array();
+					foreach ( $expected as $addr ) {
+						$expected_reply_to[ $addr[0] ] = $addr;
+					}
+					$this->assertSame( $expected_reply_to, $mailer->getReplyToAddresses() );
+					break;
 
-			default:
-				$this->fail( "Unknown header type: {$type}" );
-				break;
+				default:
+					$this->fail( "Unknown header type: {$header}" );
+					break;
+			}
+			reset_phpmailer_instance();
 		}
-		// phpcs:enable
+	}
+
+	/**
+	 * @ticket 62940
+	 * @dataProvider address_provider
+	 */
+	public function test_wp_mail_single_line_utf8_header_multiple_to( $content, $expected ) {
+		wp_mail( $content, 'subject', 'message' );
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertSame( $expected, $mailer->getToAddresses() );
 	}
 
 	/**
 	 * @ticket 62940
 	 */
-	public function test_wp_mail_single_line_utf8_header_multiple_to() {
-		$to = '=?UTF-8?B?Sm9obg==?= <john@example.com>, Jane <jane@example.com>';
-		wp_mail( $to, 'subject', 'message' );
-		$mailer   = tests_retrieve_phpmailer_instance();
-		$expected = array(
-			array( 'john@example.com', 'John' ),
-			array( 'jane@example.com', 'Jane' ),
-		);
-		$this->assertSame( $expected, $mailer->getToAddresses() );
+	public function test_wp_mail_encoded_from() {
+		$header   = 'From: =?UTF-8?B?VGVzdA==?= <test@example.com>';
+		$expected = array( 'test@example.com', 'Test' );
+		wp_mail( 'john@example.com', 'subject', 'message', $header );
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$this->assertSame( $expected, array( $mailer->From, $mailer->FromName ) );
 	}
 
 	public function addr_list_provider() {
