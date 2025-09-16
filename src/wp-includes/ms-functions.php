@@ -2104,7 +2104,7 @@ function wpmu_log_new_registrations( $blog_id, $user_id ) {
 			$wpdb->registration_log,
 			array(
 				'email'           => $user->user_email,
-				'IP'              => preg_replace( '/[^0-9., ]/', '', wp_unslash( $_SERVER['REMOTE_ADDR'] ) ),
+				'IP'              => preg_replace( '/[^a-f0-9:., ]/', '', wp_unslash( $_SERVER['REMOTE_ADDR'] ) ),
 				'blog_id'         => $blog_id,
 				'date_registered' => current_time( 'mysql' ),
 			)
