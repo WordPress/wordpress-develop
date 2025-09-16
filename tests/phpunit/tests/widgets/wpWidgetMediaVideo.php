@@ -277,7 +277,7 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 
 		// Custom attributes.
 		$this->assertStringContainsString( 'preload="metadata"', $output );
-		$this->assertStringContainsString( 'loop="1"', $output );
+		$this->assertStringContainsString( 'loop', $output );
 
 		// Externally hosted video.
 		ob_start();

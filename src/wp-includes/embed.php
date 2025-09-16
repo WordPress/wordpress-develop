@@ -765,7 +765,7 @@ function wp_oembed_ensure_format( $format ) {
  * @param WP_HTTP_Response $result  Result to send to the client. Usually a `WP_REST_Response`.
  * @param WP_REST_Request  $request Request used to generate the response.
  * @param WP_REST_Server   $server  Server instance.
- * @return true
+ * @return bool True if the request was served, false otherwise.
  */
 function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	$params = $request->get_params();
@@ -791,7 +791,7 @@ function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	// Bail if there's no XML.
 	if ( ! $result ) {
 		status_header( 501 );
-		return get_status_header_desc( 501 );
+		die( get_status_header_desc( 501 ) );
 	}
 
 	if ( ! headers_sent() ) {
@@ -843,10 +843,10 @@ function _oembed_create_xml( $data, $node = null ) {
  *
  * @since 5.2.0
  *
- * @param string $result The oEmbed HTML result.
- * @param object $data   A data object result from an oEmbed provider.
- * @param string $url    The URL of the content to be embedded.
- * @return string The filtered oEmbed result.
+ * @param string|false $result The oEmbed HTML result.
+ * @param object       $data   A data object result from an oEmbed provider.
+ * @param string       $url    The URL of the content to be embedded.
+ * @return string|false The filtered oEmbed result.
  */
 function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
 	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
@@ -910,10 +910,10 @@ function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
  *
  * @since 4.4.0
  *
- * @param string $result The oEmbed HTML result.
- * @param object $data   A data object result from an oEmbed provider.
- * @param string $url    The URL of the content to be embedded.
- * @return string The filtered and sanitized oEmbed result.
+ * @param string|false $result The oEmbed HTML result.
+ * @param object       $data   A data object result from an oEmbed provider.
+ * @param string       $url    The URL of the content to be embedded.
+ * @return string|false The filtered and sanitized oEmbed result.
  */
 function wp_filter_oembed_result( $result, $data, $url ) {
 	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
