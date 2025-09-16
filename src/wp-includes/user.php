@@ -1179,24 +1179,17 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 		return false;
 	}
 
-	$keys = get_user_meta( $user_id );
-	if ( empty( $keys ) ) {
-		return false;
-	}
-
 	// No underscore before capabilities in $base_capabilities_key.
 	$base_capabilities_key = $wpdb->base_prefix . 'capabilities';
 	$site_capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
 
-	if ( isset( $keys[ $base_capabilities_key ] ) && 1 === $blog_id ) {
-		return true;
+	if ( 1 === $blog_id ) {
+		$has_cap = get_user_meta( $user_id, $base_capabilities_key, true );
+	} else {
+		$has_cap = get_user_meta( $user_id, $site_capabilities_key, true );
 	}
 
-	if ( isset( $keys[ $site_capabilities_key ] ) ) {
-		return true;
-	}
-
-	return false;
+	return is_array( $has_cap );
 }
 
 /**
