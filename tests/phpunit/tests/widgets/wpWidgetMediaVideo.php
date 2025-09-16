@@ -118,6 +118,33 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test enhanced error messages are properly defined.
+	 *
+	 * @covers WP_Widget_Media_Video::__construct
+	 */
+	public function test_enhanced_error_messages() {
+		$widget = new WP_Widget_Media_Video();
+
+		$required_error_messages = array(
+			'invalid_url',
+			'youtube_error',
+			'vimeo_error',
+			'file_not_found',
+			'network_error',
+		);
+
+		foreach ( $required_error_messages as $error_key ) {
+			$this->assertArrayHasKey( $error_key, $widget->l10n, "Error message '$error_key' should be defined" );
+			$this->assertNotEmpty( $widget->l10n[ $error_key ], "Error message '$error_key' should not be empty" );
+			$this->assertIsString( $widget->l10n[ $error_key ], "Error message '$error_key' should be a string" );
+		}
+
+		$this->assertStringNotContainsString( 'filter_var', $widget->l10n['invalid_url'] );
+		$this->assertStringNotContainsString( 'HTTP', $widget->l10n['youtube_error'] );
+		$this->assertStringNotContainsString( 'oEmbed', $widget->l10n['vimeo_error'] );
+	}
+
+	/**
 	 * Test get_instance_schema method.
 	 *
 	 * @covers WP_Widget_Media_Video::update
