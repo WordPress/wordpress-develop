@@ -874,7 +874,7 @@ function confirm_delete_users( $users ) {
 		<p><?php _e( 'You have chosen to delete the following users from all networks and sites.' ); ?></p>
 	<?php endif; ?>
 
-	<form action="users.php?action=dodelete" method="post">
+	<form action="users.php?action=dodelete" method="post" class="delete-and-reassign-users-form">
 	<input type="hidden" name="dodelete" />
 	<?php
 	wp_nonce_field( 'ms-users-delete' );
@@ -949,22 +949,31 @@ function confirm_delete_users( $users ) {
 								printf( __( 'Site: %s' ), $user_site );
 								?>
 							</li>
-							<?php // TODO: Fix duplicate IDs ?>
-							<li><label><input type="radio" id="delete_option0" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
-							<?php _e( 'Delete all content.' ); ?></label></li>
-							<li><label><input type="radio" id="delete_option1" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" required />
-							<?php _e( 'Attribute all content to:' ); ?></label>
-							<?php
-							wp_dropdown_users(
-								array(
-									'name'    => "blog[$user_id][$key]",
-									'include' => $blog_users,
-									'show'    => 'display_name_with_login',
-								)
-							);
-							?>
+							<li>
+								<label>
+									<input type="radio" id="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
+									<?php _e( 'Delete all content.' ); ?>
+								</label>
+							</li>
+							<li>
+								<label>
+									<input type="radio" id="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" required />
+									<?php _e( 'Attribute all content to:' ); ?>
+								</label>
 
+								<?php
+								wp_dropdown_users(
+									array(
+										'show_option_none' => __( 'Select a user' ),
+										'name'             => "blog[$user_id][$key]",
+										'include'          => $blog_users,
+										'show'             => 'display_name_with_login',
+										'id'               => "reassign_user_{$details->userblog_id}_{$delete_user->ID}",
+									)
+								);
+								?>
 
+							</li>
 						</li>
 						</ul>
 						<?php

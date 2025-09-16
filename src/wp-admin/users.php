@@ -208,12 +208,12 @@ switch ( $wp_list_table->current_action() ) {
 				continue;
 			}
 
-			switch ( $_REQUEST['delete_option'] ) {
+			switch ( $_REQUEST['delete_option'][ $id ] ) {
 				case 'delete':
 					wp_delete_user( $id );
 					break;
 				case 'reassign':
-					wp_delete_user( $id, $_REQUEST['reassign_user'] );
+					wp_delete_user( $id, $_REQUEST['reassign_user'][ $id ] );
 					break;
 			}
 
@@ -301,40 +301,9 @@ switch ( $wp_list_table->current_action() ) {
 			$user_ids = array_diff( $user_ids, array( $current_user->ID ) );
 		}
 
-		/**
-		 * Filters whether the users being deleted have additional content
-		 * associated with them outside of the `post_author` and `link_owner` relationships.
-		 *
-		 * @since 5.2.0
-		 *
-		 * @param bool  $users_have_additional_content Whether the users have additional content. Default false.
-		 * @param int[] $user_ids                      Array of IDs for users being deleted.
-		 */
-		$users_have_content = (bool) apply_filters( 'users_have_additional_content', false, $user_ids );
-
-		if ( $user_ids && ! $users_have_content ) {
-			if ( $wpdb->get_var(
-				"SELECT ID FROM {$wpdb->posts}
-				WHERE post_author IN( " . implode( ',', $user_ids ) . ' )
-				LIMIT 1'
-			) ) {
-				$users_have_content = true;
-			} elseif ( $wpdb->get_var(
-				"SELECT link_id FROM {$wpdb->links}
-				WHERE link_owner IN( " . implode( ',', $user_ids ) . ' )
-				LIMIT 1'
-			) ) {
-				$users_have_content = true;
-			}
-		}
-
-		if ( $users_have_content ) {
-			add_action( 'admin_head', 'delete_users_add_js' );
-		}
-
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
-		<form method="post" name="updateusers" id="updateusers">
+		<form method="post" name="updateusers" id="updateusers" class="delete-and-reassign-users-form">
 		<?php wp_nonce_field( 'delete-users' ); ?>
 		<?php echo $referer; ?>
 
@@ -361,6 +330,7 @@ switch ( $wp_list_table->current_action() ) {
 		<ul>
 		<?php
 		$go_delete = 0;
+		$users_have_content = false;
 
 		foreach ( $all_user_ids as $id ) {
 			$user = get_userdata( $id );
@@ -386,6 +356,76 @@ switch ( $wp_list_table->current_action() ) {
 					$id,
 					$user->user_login
 				);
+
+				/**
+				 * Filters whether the users being deleted have additional content
+				 * associated with them outside of the `post_author` and `link_owner` relationships.
+				 *
+				 * @since 5.2.0
+				 *
+				 * @param bool  $users_have_additional_content Whether the users have additional content. Default false.
+				 * @param int[] $user_ids                      Array of IDs for users being deleted.
+				 */
+				$user_has_content = (bool) apply_filters( 'users_have_additional_content', false, array( $id ) );
+
+				if ( ! $user_has_content ) {
+					if ( $wpdb->get_var(
+						$wpdb->prepare(
+							"SELECT ID FROM {$wpdb->posts}
+							WHERE post_author = %d
+							LIMIT 1",
+							$id
+						)
+					) ) {
+						$user_has_content = true;
+					} elseif ( $wpdb->get_var(
+						$wpdb->prepare(
+							"SELECT link_id FROM {$wpdb->links}
+							WHERE link_owner = %d
+							LIMIT 1",
+							$id
+						)
+					) ) {
+						$user_has_content = true;
+					}
+				}
+
+				if ( ! $user_has_content ) {
+					?>
+					<input type="hidden" name="delete_option[<?php echo esc_attr( $id ); ?>]" value="delete" required />
+					<p><legend><?php _e( 'This user does not have any content.' ); ?></legend></p>
+					<?php
+				} else {
+					?>
+					<fieldset>
+					<p><legend><?php _e( 'What should be done with content owned by this user?' ); ?></legend></p>
+
+					<ul style="list-style:none;">
+						<li>
+							<input type="radio" id="delete_option_<?php echo esc_attr( $id ); ?>" name="delete_option[<?php echo esc_attr( $id ); ?>]" value="delete" required />
+							<label for="delete_option_<?php echo esc_attr( $id ); ?>"><?php _e( 'Delete all content.' ); ?></label>
+						</li>
+						<li>
+							<input type="radio" id="reassign_option_<?php echo esc_attr( $id ); ?>" name="delete_option[<?php echo esc_attr( $id ); ?>]" value="reassign" required />
+							<label for="reassign_option_<?php echo esc_attr( $id ); ?>"><?php _e( 'Attribute all content to:' ); ?></label>
+							<?php
+							wp_dropdown_users(
+								array(
+									'show_option_none' => __( 'Select a user' ),
+									'name'             => 'reassign_user[' . $id . ']',
+									'id'               => 'reassign_user_' . $id,
+									'exclude'          => $user_ids,
+									'show'             => 'display_name_with_login',
+								)
+							);
+							?>
+						</li>
+					</ul>
+					</fieldset>
+					<?php
+					$users_have_content = true;
+				}
+
 				echo "</li>\n";
 
 				++$go_delete;
@@ -396,41 +436,6 @@ switch ( $wp_list_table->current_action() ) {
 
 		<?php
 		if ( $go_delete ) :
-
-			if ( ! $users_have_content ) :
-				?>
-				<input type="hidden" name="delete_option" value="delete" />
-			<?php else : ?>
-				<fieldset>
-				<?php if ( 1 === $go_delete ) : ?>
-					<p><legend><?php _e( 'What should be done with content owned by this user?' ); ?></legend></p>
-				<?php else : ?>
-					<p><legend><?php _e( 'What should be done with content owned by these users?' ); ?></legend></p>
-				<?php endif; ?>
-
-				<ul style="list-style:none;">
-					<li>
-						<input type="radio" id="delete_option0" name="delete_option" value="delete" />
-						<label for="delete_option0"><?php _e( 'Delete all content.' ); ?></label>
-					</li>
-					<li>
-						<input type="radio" id="delete_option1" name="delete_option" value="reassign" />
-						<label for="delete_option1"><?php _e( 'Attribute all content to:' ); ?></label>
-						<?php
-						wp_dropdown_users(
-							array(
-								'name'    => 'reassign_user',
-								'exclude' => $user_ids,
-								'show'    => 'display_name_with_login',
-							)
-						);
-						?>
-					</li>
-				</ul>
-				</fieldset>
-				<?php
-			endif;
-
 			/**
 			 * Fires at the end of the delete users form prior to the confirm button.
 			 *
