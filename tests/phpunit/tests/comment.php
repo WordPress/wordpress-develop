@@ -1163,6 +1163,38 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Check Reply-To Header is set correctly for reply comments.
+	 *
+	 * @group 49661
+	 * @covers ::wp_new_comment_notify_postauthor
+	 */
+	public function test_reply_comment_notification_includes_reply_to_header() {
+		$parent = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => self::$post_id,
+			)
+		);
+
+		$reply_author_name  = 'Jane Doe';
+		$reply_author_email = 'jane@example.com';
+
+		$reply = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_parent'       => $parent,
+				'comment_author'       => $reply_author_name,
+				'comment_author_email' => $reply_author_email,
+				'comment_approved'     => '1',
+			)
+		);
+
+		wp_new_comment_notify_postauthor( $reply );
+		$mailer = tests_retrieve_phpmailer_instance();
+		$header = $mailer->get_sent()->header;
+		$this->assertStringContainsString( 'Reply-To: ' . $reply_author_name . ' <' . $reply_author_email . '>', $header );
+	}
+
+	/**
 	 * Callback for the `comment_notification_text` & `comment_moderation_text` filters.
 	 *
 	 * @param string $notify_message The comment notification or moderation email text.
