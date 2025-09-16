@@ -3741,7 +3741,7 @@ function pre_schema_upgrade() {
 	}
 
 	// Multisite schema upgrades.
-	if ( $wp_current_db_version < 60497 && is_multisite() && wp_should_upgrade_global_tables() ) {
+	if ( $wp_current_db_version < 60498 && is_multisite() && wp_should_upgrade_global_tables() ) { // TODO: Update with commit.
 
 		// Upgrade versions prior to 3.7.
 		if ( $wp_current_db_version < 25179 ) {
@@ -3768,6 +3768,9 @@ function pre_schema_upgrade() {
 			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY meta_id bigint(20) unsigned NOT NULL auto_increment" );
 			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
 			$wpdb->query( "ALTER TABLE $wpdb->signups MODIFY signup_id bigint(20) unsigned NOT NULL auto_increment" );
+		}
+		if ( $wp_current_db_version < 60498 ) { // TODO: Update with commit.
+				$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY IP varchar(39) NOT NULL default ''" );
 		}
 	}
 
