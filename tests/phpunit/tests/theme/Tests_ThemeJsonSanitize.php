@@ -70,10 +70,10 @@ class Tests_Theme_WPThemeJson_Sanitize extends WP_UnitTestCase {
 			'styles'  => array(
 				'elements' => array(
 					'link' => array(
-						'color'         => array( 'text' => '#000' ),
-						':hover'        => array( 'color' => array( 'text' => '#111' ) ),
-						':focus-visible'=> array( 'color' => array( 'text' => '#222' ) ),
-						':unknown'      => array( 'color' => array( 'text' => 'red' ) ), // Not in allow-list; should be removed.
+						'color'          => array( 'text' => '#000' ),
+						':hover'         => array( 'color' => array( 'text' => '#111' ) ),
+						':focus-visible' => array( 'color' => array( 'text' => '#222' ) ),
+						':unknown'       => array( 'color' => array( 'text' => 'red' ) ), // Not in allow-list; should be removed.
 					),
 					'fake' => array(
 						'color' => array( 'text' => '#123456' ), // Not a valid element name; should be removed.
@@ -177,5 +177,4 @@ class Tests_Theme_WPThemeJson_Sanitize extends WP_UnitTestCase {
 		$cache = $prop->getValue();
 		$this->assertCount( 0, $cache, 'Cache should be empty after reset.' );
 	}
-
 }
