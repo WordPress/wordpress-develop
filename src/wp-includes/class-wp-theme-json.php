@@ -958,7 +958,6 @@ class WP_Theme_JSON {
 		$output = array();
 
 		if ( ! is_array( $input ) ) {
-
 			return $output;
 		}
 
