@@ -280,6 +280,34 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test render_media method with invalid URLs.
+	 *
+	 * @covers WP_Widget_Media_Video::render_media
+	 */
+	public function test_render_media_invalid_url() {
+		$widget = new WP_Widget_Media_Video();
+
+		ob_start();
+		$widget->render_media( array( 'url' => 'not-a-valid-url' ) );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'notice notice-error', $output );
+		$this->assertStringContainsString( $widget->l10n['invalid_url'], $output );
+
+		ob_start();
+		$widget->render_media( array( 'url' => '' ) );
+		$output = ob_get_clean();
+
+		$this->assertEmpty( $output );
+
+		ob_start();
+		$widget->render_media( array( 'url' => 'https://www.youtube.com/watch?v=72xdCU__XCk' ) );
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( $widget->l10n['invalid_url'], $output );
+	}
+
+	/**
 	 * Test render_media method.
 	 *
 	 * @covers WP_Widget_Media_Video::render_media
