@@ -63,10 +63,14 @@ jobs:
             directory: 'build'
             save-build: true
             prepare-playground: ${{ github.event_name == 'pull_request' && true || '' }}
+          # Test certificate build commands with Linux only.
+          - os: ubuntu-24.04
+            test-certificates: true
 
     with:
       os: ${{ matrix.os }}
       directory: ${{ matrix.directory }}
+      test-certificates: ${{ matrix.test-certificates && true || false }}
       save-build: ${{ matrix.save-build && matrix.save-build || false }}
       prepare-playground: ${{ matrix.prepare-playground && matrix.prepare-playground || false }}
 
