@@ -22,6 +22,9 @@ class Tests_Theme_WPThemeJson_Sanitize extends WP_UnitTestCase {
 		return $ref->invoke( null, $input, $valid_block_names, $valid_element_names, $valid_variations );
 	}
 
+	/**
+	 * @ticket 62126
+	 */
 	public function test_sanitize_keeps_only_valid_top_level_keys_and_converts_vars() {
 		$input = array(
 			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -64,6 +67,9 @@ class Tests_Theme_WPThemeJson_Sanitize extends WP_UnitTestCase {
 		$this->assertTrue( $result['settings']['color']['custom'] );
 	}
 
+	/**
+	 * @ticket 62126
+	 */
 	public function test_sanitize_filters_elements_and_allows_valid_pseudo_selectors() {
 		$input = array(
 			'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -107,6 +113,9 @@ class Tests_Theme_WPThemeJson_Sanitize extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( ':unknown', $result['styles']['elements']['link'] );
 	}
 
+	/**
+	 * @ticket 62126
+	 */
 	public function test_sanitize_non_array_returns_empty_array() {
 		$this->assertSame(
 			array(),
@@ -119,6 +128,10 @@ class Tests_Theme_WPThemeJson_Sanitize extends WP_UnitTestCase {
 		);
 	}
 
+
+	/**
+	 * @ticket 62126
+	 */
 	public function test_sanitize_caching_returns_identical_results() {
 		$input = array(
 			'version' => WP_Theme_JSON::LATEST_SCHEMA,
@@ -132,6 +145,10 @@ class Tests_Theme_WPThemeJson_Sanitize extends WP_UnitTestCase {
 
 		$this->assertSame( $first, $second, 'Sanitize results should be identical (cache hit).' );
 	}
+
+	/**
+	 * @ticket 62126
+	 */
 	public function test_sanitize_cache_populates_and_resets_correctly() {
 		// Ensure a clean slate.
 		WP_Theme_JSON::reset_sanitize_input_cache();
