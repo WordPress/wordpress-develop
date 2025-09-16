@@ -107,6 +107,11 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 				'missing_attachment',
 				'no_media_selected',
 				'add_media',
+				'invalid_url',
+				'youtube_error',
+				'vimeo_error',
+				'network_error',
+				'file_not_found',
 			),
 			array_keys( $widget->l10n )
 		);
