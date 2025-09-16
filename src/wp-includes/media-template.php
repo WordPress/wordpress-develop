@@ -749,6 +749,8 @@ function wp_print_media_templates() {
 					<?php if ( MEDIA_TRASH ) : ?>
 					<# if ( 'trash' === data.status ) { #>
 						<button type="button" class="button-link untrash-attachment"><?php _e( 'Restore from Trash' ); ?></button>
+						<span class="links-separator">|</span>
+						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete permanently' ); ?></button>
 					<# } else { #>
 						<button type="button" class="button-link trash-attachment"><?php _e( 'Move to Trash' ); ?></button>
 					<# } #>
