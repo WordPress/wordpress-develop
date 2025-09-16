@@ -687,6 +687,43 @@ class Tests_Cron extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure wp_get_scheduled_event() can retrieve events scheduled at timestamp 0.
+	 *
+	 * @ticket 63987
+	 *
+	 * @covers ::wp_get_scheduled_event
+	 */
+	public function test_get_scheduled_event_timestamp_zero() {
+		$hook = __FUNCTION__;
+		$args = array( 'test_arg' );
+
+		// Manually add an event at timestamp 0 to the cron array.
+		$crons = _get_cron_array();
+		if ( ! $crons ) {
+			$crons = array();
+		}
+
+		$key                       = md5( serialize( $args ) );
+		$crons[0][ $hook ][ $key ] = array(
+			'schedule' => false,
+			'args'     => $args,
+		);
+
+		_set_cron_array( $crons );
+
+		// Test that wp_get_scheduled_event() can retrieve the event at timestamp 0.
+		$event = wp_get_scheduled_event( $hook, $args, 0 );
+
+		$this->assertIsObject( $event, 'wp_get_scheduled_event() should return an object for timestamp 0 event' );
+		$this->assertSame( $hook, $event->hook );
+		$this->assertSame( 0, $event->timestamp );
+
+		// Test that wp_unschedule_event() can remove the event at timestamp 0.
+		$unscheduled = wp_unschedule_event( 0, $hook, $args );
+		$this->assertTrue( $unscheduled );
+	}
+
+	/**
 	 * Ensure wp_get_scheduled_event() returns false when expected.
 	 *
 	 * @ticket 45976

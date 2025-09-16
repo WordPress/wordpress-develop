@@ -461,7 +461,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
  */
 function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
-	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+	if ( ! is_numeric( $timestamp ) || $timestamp < 0 ) {
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
@@ -784,7 +784,7 @@ function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
 
 	$key = md5( serialize( $args ) );
 
-	if ( ! $timestamp ) {
+	if ( null === $timestamp ) {
 		// Get next event.
 		$next = false;
 		foreach ( $crons as $timestamp => $cron ) {
