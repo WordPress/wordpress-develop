@@ -4588,7 +4588,7 @@ class WP_Theme_JSON {
 	 * Clears the cache of sanitize input data.
 	 * used when json is added/upated later in the flow control
 	 *
-	 * @return void
+	 * @since 6.9.0
 	 */
 	public static function reset_sanitize_input_cache() {
 		self::$sanitize_input_cache = array();
