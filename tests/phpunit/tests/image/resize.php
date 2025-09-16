@@ -87,14 +87,18 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	 * Test resizing AVIF image.
 	 *
 	 * @ticket 51228
-	 *
-	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
-	 * See https://core.trac.wordpress.org/ticket/63932.
-	 * @requires PHP < 8.3
 	 */
 	public function test_resize_avif() {
 		$file   = DIR_TESTDATA . '/images/avif-lossy.avif';
 		$editor = wp_get_image_editor( $file );
+
+		if ( 'WP_Image_Editor_Imagick' == $this->editor_engine ) {
+			$version = Imagick::getVersion();
+
+			if ( $version['versionNumber'] >= 0x700 ) {
+				$this->markTestSkipped( 'ImageMagick 7 is unable to perform this test at this time.' );
+			}
+		}
 
 		// Check if the editor supports the avif mime type.
 		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/avif' ) ) {

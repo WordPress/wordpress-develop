@@ -5472,10 +5472,6 @@ EOF;
 	 * Test AVIF quality filters.
 	 *
 	 * @ticket 61614
-	 *
-	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
-	 * See https://core.trac.wordpress.org/ticket/63932.
-	 * @requires PHP < 8.3
 	 */
 	public function test_quality_with_avif_conversion_file_sizes() {
 		$temp_dir = get_temp_dir();
