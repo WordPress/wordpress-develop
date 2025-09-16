@@ -180,10 +180,22 @@ class SplFixedArray implements Iterator, ArrayAccess, Countable
     }
 
     /**
+     * Unserialize magic method.
+     *
+     * @since 6.9.0
+     * @param array $data Data to unserialize.
+     */
+    public function __unserialize($data)
+    {
+        // Do nothing.
+    }
+
+    /**
      * Do nothing.
      */
     public function __wakeup()
     {
-        // NOP
+
+        $this->__unserialize(array());
     }
 }

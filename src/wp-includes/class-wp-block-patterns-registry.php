@@ -245,7 +245,13 @@ final class WP_Block_Patterns_Registry {
 		return isset( $this->registered_patterns[ $pattern_name ] );
 	}
 
-	public function __wakeup() {
+	/**
+	 * Unserialize magic method.
+	 *
+	 * @since 6.9.0
+	 * @param array $data Data to unserialize.
+	 */
+	public function __unserialize( $data ) {
 		if ( ! $this->registered_patterns ) {
 			return;
 		}
@@ -258,6 +264,10 @@ final class WP_Block_Patterns_Registry {
 			}
 		}
 		$this->registered_patterns_outside_init = array();
+	}
+
+	public function __wakeup() {
+		$this->__unserialize( array() );
 	}
 
 	/**

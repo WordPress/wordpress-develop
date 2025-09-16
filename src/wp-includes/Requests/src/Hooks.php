@@ -97,7 +97,11 @@ class Hooks implements HookManager {
 		return true;
 	}
 
-	public function __wakeup() {
+	public function __unserialize( $data ) {
 		throw new \LogicException( __CLASS__ . ' should never be unserialized' );
+	}
+
+	public function __wakeup() {
+		$this->__unserialize( array() );
 	}
 }

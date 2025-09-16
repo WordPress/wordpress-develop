@@ -55,7 +55,9 @@ final class FilteredIterator extends ArrayIterator {
 	 * @return void
 	 */
 	#[ReturnTypeWillChange]
-	public function __unserialize($data) {}
+	public function __unserialize($data) {
+		unset($this->callback);
+	}
 	// phpcs:enable
 
 	/**
@@ -66,7 +68,7 @@ final class FilteredIterator extends ArrayIterator {
 	 * @return void
 	 */
 	public function __wakeup() {
-		unset($this->callback);
+		$this->__unserialize( array() );
 	}
 
 	/**

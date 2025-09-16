@@ -780,11 +780,12 @@ final class WP_Theme implements ArrayAccess {
 	}
 
 	/**
-	 * Perform reinitialization tasks.
+	 * Unserialize magic method.
 	 *
-	 * Prevents a callback from being injected during unserialization of an object.
+	 * @since 6.9.0
+	 * @param array $data Data to unserialize.
 	 */
-	public function __wakeup() {
+	public function __unserialize( $data ) {
 		if ( $this->parent && ! $this->parent instanceof self ) {
 			throw new UnexpectedValueException();
 		}
@@ -797,6 +798,16 @@ final class WP_Theme implements ArrayAccess {
 			}
 		}
 		$this->headers_sanitized = array();
+	}
+
+	/**
+	 * Perform reinitialization tasks.
+	 *
+	 * Prevents a callback from being injected during unserialization of an object.
+	 */
+	public function __wakeup() {
+		// Re-validate the object state for PHP versions < 7.4 compatibility.
+		$this->__unserialize( array() );
 	}
 
 	/**
