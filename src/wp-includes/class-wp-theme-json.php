@@ -939,7 +939,7 @@ class WP_Theme_JSON {
 	 * @since 5.9.0 Added the `$valid_block_names` and `$valid_element_name` parameters.
 	 * @since 6.3.0 Added the `$valid_variations` parameter.
 	 * @since 6.6.0 Updated schema to allow extended block style variations.
-	 * @since 6.8.0 Added caching to improve performance.
+	 * @since 6.9.0 Added caching to improve performance.
 	 *
 	 * @param array $input               Structure to sanitize.
 	 * @param array $valid_block_names   List of valid block names.
