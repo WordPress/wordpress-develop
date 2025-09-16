@@ -24,16 +24,16 @@ class Tests_Theme_WPThemeJson_Sanitize extends WP_UnitTestCase {
 
 	public function test_sanitize_keeps_only_valid_top_level_keys_and_converts_vars() {
 		$input = array(
-			'version'    => WP_Theme_JSON::LATEST_SCHEMA,
-			'title'      => 'Sample',
-			'foo'        => 'bar', // invalid top-level key; should be removed.
-			'styles'     => array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'title'   => 'Sample',
+			'foo'     => 'bar', // invalid top-level key; should be removed.
+			'styles'  => array(
 				'color' => array(
 					// Internal var: format should be converted to var(--wp--preset--color--black).
 					'text' => 'var:preset|color|black',
 				),
 			),
-			'settings'   => array(
+			'settings' => array(
 				'color' => array(
 					'custom' => true,
 				),
