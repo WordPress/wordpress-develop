@@ -92,7 +92,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		$file   = DIR_TESTDATA . '/images/avif-lossy.avif';
 		$editor = wp_get_image_editor( $file );
 
-		if ( 'WP_Image_Editor_Imagick' == $this->editor_engine ) {
+		if ( 'WP_Image_Editor_Imagick' === $this->editor_engine ) {
 			$version = Imagick::getVersion();
 
 			if ( $version['versionNumber'] >= 0x700 ) {
