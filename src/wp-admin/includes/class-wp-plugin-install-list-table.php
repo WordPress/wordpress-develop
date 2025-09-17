@@ -553,7 +553,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			$author = wp_kses( $plugin['author'], $plugins_allowedtags );
 			if ( ! empty( $author ) ) {
 				/* translators: %s: Plugin author. */
-				$author = ' <cite>' . sprintf( __( 'By %s' ), $author ) . '</cite>';
+				$author = ' <span class="plugin-author">' . sprintf( __( 'By %s' ), $author ) . '</span>';
 			}
 
 			$requires_php = isset( $plugin['requires_php'] ) ? $plugin['requires_php'] : null;
