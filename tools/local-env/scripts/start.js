@@ -41,7 +41,6 @@ spawnSync(
 		'compose',
 		...composeFiles.map( ( composeFile ) => [ '-f', composeFile ] ).flat(),
 		'up',
-		'--quiet-pull',
 		'-d',
 		...containers,
 	],
