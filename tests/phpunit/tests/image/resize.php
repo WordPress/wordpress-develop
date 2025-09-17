@@ -92,6 +92,10 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		$file   = DIR_TESTDATA . '/images/avif-lossy.avif';
 		$editor = wp_get_image_editor( $file );
 
+		if ( 'WP_Image_Editor_GD' === $this->editor_engine && PHP_VERSION < 80100 ) {
+			$this->markTestSkipped( 'AVIF is only supported in GD with PHP >= 8.1.' );
+		}
+
 		if ( 'WP_Image_Editor_Imagick' === $this->editor_engine ) {
 			$version = Imagick::getVersion();
 
