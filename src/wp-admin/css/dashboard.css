@@ -1084,7 +1084,8 @@ body #dashboard-widgets .postbox form .submit {
 	color: #646970;
 }
 
-#latest-comments #the-comment-list .comment-meta cite {
+#latest-comments #the-comment-list .comment-meta cite,
+#latest-comments #the-comment-list .comment-meta .comment-author {
 	font-style: normal;
 	font-weight: 400;
 }
