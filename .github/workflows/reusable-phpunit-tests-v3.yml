@@ -178,6 +178,10 @@ jobs:
         run: |
           docker -v
 
+      - name: Pull Docker containers
+        run: |
+          npm run env:pull
+
       - name: Start Docker environment
         run: |
           npm run env:start
