@@ -3067,6 +3067,10 @@ div.action-links {
 	font-size: 13px;
 }
 
+.plugin-author {
+	font-style: italic;
+}
+
 /* For non-js plugin installation screen ticket #36430. */
 .update-php .button.button-primary {
 	margin-right: 1em;
