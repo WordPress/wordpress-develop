@@ -953,7 +953,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$editor = wp_get_image_editor( $file );
 		// Only continue if the server supports AVIF.
 		if ( ! $editor->supports_mime_type( 'image/avif' ) ) {
-			$this->markTestSkipped( 'AVIF is not supported by the selected image editor.' );
+			$this->markTestSkipped( sprintf( 'No AVIF support in the editor engine %s on this system.', $this->editor_engine ) );
 		}
 
 		$attachment_id = self::factory()->attachment->create_object(
