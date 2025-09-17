@@ -210,7 +210,7 @@ function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup 
 		if ( $plugin_data['Author'] ) {
 			$plugin_data['Description'] .= sprintf(
 				/* translators: %s: Plugin author. */
-				' <cite>' . __( 'By %s.' ) . '</cite>',
+				' <span class="plugin-author">' . __( 'By %s.' ) . '</span>',
 				$plugin_data['Author']
 			);
 		}
