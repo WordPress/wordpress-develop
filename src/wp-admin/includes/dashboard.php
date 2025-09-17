@@ -853,7 +853,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 					printf(
 						/* translators: 1: Comment author, 2: Post link, 3: Notification if the comment is pending. */
 						__( 'From %1$s on %2$s %3$s' ),
-						'<cite class="comment-author">' . get_comment_author_link( $comment ) . '</cite>',
+						'<span class="comment-author">' . get_comment_author_link( $comment ) . '</span>',
 						$comment_post_link,
 						'<span class="approve">' . __( '[Pending]' ) . '</span>'
 					);
@@ -861,7 +861,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 					printf(
 						/* translators: 1: Comment author, 2: Notification if the comment is pending. */
 						__( 'From %1$s %2$s' ),
-						'<cite class="comment-author">' . get_comment_author_link( $comment ) . '</cite>',
+						'<span class="comment-author">' . get_comment_author_link( $comment ) . '</span>',
 						'<span class="approve">' . __( '[Pending]' ) . '</span>'
 					);
 				}
