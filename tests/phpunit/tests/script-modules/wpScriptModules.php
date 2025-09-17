@@ -287,7 +287,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 				'preload_links' => array(
 					'b-dep'        => array(
 						'url'           => '/b-dep.js?ver=99.9.9',
-						'fetchpriority' => 'auto',
+						'fetchpriority' => 'low', // Propagates from 'b'.
 					),
 					'c-dep'        => array(
 						'url'                   => '/c-static.js?ver=99.9.9',
@@ -295,8 +295,9 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 						'data-wp-fetchpriority' => 'low',
 					),
 					'c-static-dep' => array(
-						'url'           => '/c-static-dep.js?ver=99.9.9',
-						'fetchpriority' => 'high',
+						'url'                   => '/c-static-dep.js?ver=99.9.9',
+						'fetchpriority'         => 'auto', // Propagated from 'c'.
+						'data-wp-fetchpriority' => 'high',
 					),
 					'd-static-dep' => array(
 						'url'           => '/d-static-dep.js?ver=99.9.9',
@@ -777,9 +778,9 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 		$this->assertCount( 2, $preloaded_script_modules );
 		$this->assertStringStartsWith( '/static-dep.js', $preloaded_script_modules['static-dep']['url'] );
-		$this->assertSame( 'high', $preloaded_script_modules['static-dep']['fetchpriority'] );
+		$this->assertSame( 'auto', $preloaded_script_modules['static-dep']['fetchpriority'] ); // Not 'high'
 		$this->assertStringStartsWith( '/nested-static-dep.js', $preloaded_script_modules['nested-static-dep']['url'] );
-		$this->assertSame( 'high', $preloaded_script_modules['nested-static-dep']['fetchpriority'] );
+		$this->assertSame( 'auto', $preloaded_script_modules['nested-static-dep']['fetchpriority'] ); // Auto because the enqueued script foo has the fetchpriority of auto.
 		$this->assertArrayNotHasKey( 'dynamic-dep', $preloaded_script_modules );
 		$this->assertArrayNotHasKey( 'nested-dynamic-dep', $preloaded_script_modules );
 		$this->assertArrayNotHasKey( 'no-dep', $preloaded_script_modules );
@@ -987,7 +988,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 		$preloaded_script_modules = $this->get_preloaded_script_modules();
 		$this->assertSame( '/dep.js?ver=2.0', $preloaded_script_modules['dep']['url'] );
-		$this->assertSame( 'high', $preloaded_script_modules['dep']['fetchpriority'] );
+		$this->assertSame( 'auto', $preloaded_script_modules['dep']['fetchpriority'] ); // Because 'foo' has a priority of 'auto'.
 	}
 
 	/**
@@ -1362,7 +1363,7 @@ HTML;
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{enqueues: string[], expected: string}>
+	 * @return array<string, array{enqueues: string[], expected: array}>
 	 */
 	public function data_provider_to_test_fetchpriority_bumping(): array {
 		return array(
@@ -1372,8 +1373,9 @@ HTML;
 					'preload_links' => array(),
 					'script_tags'   => array(
 						'bajo' => array(
-							'url'           => '/bajo.js',
-							'fetchpriority' => 'low',
+							'url'                   => '/bajo.js',
+							'fetchpriority'         => 'high',
+							'data-wp-fetchpriority' => 'low',
 						),
 					),
 					'import_map'    => array(
@@ -1393,8 +1395,9 @@ HTML;
 					),
 					'script_tags'   => array(
 						'auto' => array(
-							'url'           => '/auto.js',
-							'fetchpriority' => 'auto',
+							'url'                   => '/auto.js',
+							'fetchpriority'         => 'high',
+							'data-wp-fetchpriority' => 'auto',
 						),
 					),
 					'import_map'    => array(
@@ -1408,9 +1411,8 @@ HTML;
 				'expected' => array(
 					'preload_links' => array(
 						'auto' => array(
-							'url'                   => '/auto.js',
-							'fetchpriority'         => 'high',
-							'data-wp-fetchpriority' => 'auto',
+							'url'           => '/auto.js',
+							'fetchpriority' => 'high',
 						),
 						'bajo' => array(
 							'url'                   => '/bajo.js',
@@ -1441,7 +1443,8 @@ HTML;
 	 *
 	 * @covers WP_Script_Modules::print_enqueued_script_modules
 	 * @covers WP_Script_Modules::get_dependents
-	 * @covers WP_Script_Modules::get_highest_fetchpriority_with_dependents
+	 * @covers WP_Script_Modules::get_recursive_dependents
+	 * @covers WP_Script_Modules::get_highest_fetchpriority
 	 * @covers WP_Script_Modules::print_script_module_preloads
 	 *
 	 * @dataProvider data_provider_to_test_fetchpriority_bumping
@@ -1512,7 +1515,8 @@ HTML;
 	 *
 	 * @covers WP_Script_Modules::print_enqueued_script_modules
 	 * @covers WP_Script_Modules::get_dependents
-	 * @covers WP_Script_Modules::get_highest_fetchpriority_with_dependents
+	 * @covers WP_Script_Modules::get_recursive_dependents
+	 * @covers WP_Script_Modules::get_highest_fetchpriority
 	 * @covers WP_Script_Modules::print_script_module_preloads
 	 */
 	public function test_fetchpriority_bumping_a_to_z() {
@@ -1526,20 +1530,67 @@ HTML;
 		wp_register_script_module( 'y', '/y.js', array( 'z' ), null, array( 'fetchpriority' => 'auto' ) );
 		wp_register_script_module( 'z', '/z.js', array(), null, array( 'fetchpriority' => 'auto' ) );
 
+		// The fetch priorities are derived from these enqueued dependents.
 		wp_enqueue_script_module( 'a' );
 		wp_enqueue_script_module( 'x' );
 
 		$actual   = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
 		$actual  .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 		$expected = '
-			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload">
-			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload">
+			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload" fetchpriority="low">
+			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="low">
 			<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="high">
-			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload">
-			<link rel="modulepreload" href="/z.js" id="z-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="auto">
-			<link rel="modulepreload" href="/y.js" id="y-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="auto">
+			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="low">
+			<link rel="modulepreload" href="/z.js" id="z-js-modulepreload" fetchpriority="high">
+			<link rel="modulepreload" href="/y.js" id="y-js-modulepreload" fetchpriority="high">
 			<script type="module" src="/a.js" id="a-js-module" fetchpriority="low"></script>
 			<script type="module" src="/x.js" id="x-js-module" fetchpriority="high"></script>
+		';
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+	}
+
+	/**
+	 * Tests bumping fetchpriority with complex dependency graph.
+	 *
+	 * @ticket 61734
+	 * @link https://github.com/WordPress/wordpress-develop/pull/9770#issuecomment-3284266884
+	 *
+	 * @covers WP_Script_Modules::print_enqueued_script_modules
+	 * @covers WP_Script_Modules::get_dependents
+	 * @covers WP_Script_Modules::get_recursive_dependents
+	 * @covers WP_Script_Modules::get_highest_fetchpriority
+	 * @covers WP_Script_Modules::print_script_module_preloads
+	 */
+	public function test_fetchpriority_propagation() {
+		// The high fetchpriority for this module will be disregarded because its enqueued dependent has a non-high priority.
+		wp_register_script_module( 'a', '/a.js', array( 'd', 'e' ), null, array( 'fetchpriority' => 'high' ) );
+		wp_register_script_module( 'b', '/b.js', array( 'e' ), null );
+		wp_register_script_module( 'c', '/c.js', array( 'e', 'f' ), null );
+		wp_register_script_module( 'd', '/d.js', array(), null );
+		// The low fetchpriority for this module will be disregarded because its enqueued dependent has a non-low priority.
+		wp_register_script_module( 'e', '/e.js', array(), null, array( 'fetchpriority' => 'low' ) );
+		wp_register_script_module( 'f', '/f.js', array(), null );
+
+		wp_register_script_module( 'x', '/x.js', array( 'a' ), null, array( 'fetchpriority' => 'low' ) );
+		wp_register_script_module( 'y', '/y.js', array( 'b' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script_module( 'z', '/z.js', array( 'c' ), null, array( 'fetchpriority' => 'high' ) );
+
+		wp_enqueue_script_module( 'x' );
+		wp_enqueue_script_module( 'y' );
+		wp_enqueue_script_module( 'z' );
+
+		$actual   = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
+		$actual  .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+		$expected = '
+			<link rel="modulepreload" href="/a.js" id="a-js-modulepreload" fetchpriority="low" data-wp-fetchpriority="high">
+			<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="low">
+			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload">
+			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="high">
+			<link rel="modulepreload" href="/f.js" id="f-js-modulepreload" fetchpriority="high">
+			<script type="module" src="/x.js" id="x-js-module" fetchpriority="low"></script>
+			<script type="module" src="/y.js" id="y-js-module"></script>
+			<script type="module" src="/z.js" id="z-js-module" fetchpriority="high"></script>
 		';
 		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
 	}

@@ -285,59 +285,31 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Gets the highest fetch priority for a given script module and all of its dependent script modules.
+	 * Gets the highest fetch priority for the provided script IDs.
 	 *
 	 * @since 6.9.0
-	 * @see WP_Scripts::filter_eligible_strategies()
-	 * @see WP_Scripts::get_highest_fetchpriority_with_dependents()
 	 *
-	 * @param string              $id      Script module ID.
-	 * @param array<string, true> $checked Optional. An array of already checked script IDs, used to avoid recursive loops.
-	 * @return string|null Highest fetch priority for the script module and its dependents.
+	 * @param string[] $ids Script module IDs.
+	 * @return string Highest fetch priority for the provided script module IDs.
 	 */
-	private function get_highest_fetchpriority_with_dependents( string $id, array $checked = array() ): ?string {
-		// If by chance an unregistered script module is checked or there is a recursive dependency, return early.
-		if ( ! isset( $this->registered[ $id ] ) || isset( $checked[ $id ] ) ) {
-			return null;
-		}
-
-		// Mark this script module as checked to guard against infinite recursion.
-		$checked[ $id ] = true;
-
-		// Abort if the script module is not enqueued or a dependency of an enqueued module.
-		$queue = array_keys( $this->get_marked_for_enqueue() );
-		$to_do = array_merge(
-			$queue,
-			array_keys( $this->get_dependencies( $queue, array( 'static' ) ) ) // See WP_Scripts::recurse_deps().
-		);
-		if ( ! in_array( $id, $to_do, true ) ) {
-			return null;
-		}
-
-		static $priority_mapping = array(
-			'low'  => 0,
-			'auto' => 1,
-			'high' => 2,
+	private function get_highest_fetchpriority( array $ids ): string {
+		static $priorities = array(
+			'low',
+			'auto',
+			'high',
 		);
 
-		$highest_priority_index = $priority_mapping[ $this->registered[ $id ]['fetchpriority'] ];
-
-		foreach ( $this->get_dependents( $id ) as $dependent_id ) {
-			$dependent_priority = $this->get_highest_fetchpriority_with_dependents( $dependent_id, $checked );
-			if ( is_string( $dependent_priority ) ) {
+		$highest_priority_index = 0;
+		foreach ( $ids as $id ) {
+			if ( isset( $this->registered[ $id ] ) ) {
 				$highest_priority_index = max(
 					$highest_priority_index,
-					$priority_mapping[ $dependent_priority ]
+					array_search( $this->registered[ $id ]['fetchpriority'], $priorities, true )
 				);
 			}
 		}
 
-		$highest_priority = array_search( $highest_priority_index, $priority_mapping, true );
-		if ( is_string( $highest_priority ) ) {
-			return $highest_priority;
-		}
-
-		return null;
+		return $priorities[ $highest_priority_index ];
 	}
 
 	/**
@@ -354,8 +326,9 @@ class WP_Script_Modules {
 				'id'   => $id . '-js-module',
 			);
 
-			$fetchpriority = $this->get_highest_fetchpriority_with_dependents( $id );
-			if ( is_string( $fetchpriority ) && 'auto' !== $fetchpriority ) {
+			$dependents    = $this->get_recursive_dependents( $id );
+			$fetchpriority = $this->get_highest_fetchpriority( array_merge( array( $id ), $dependents ) );
+			if ( 'auto' !== $fetchpriority ) {
 				$args['fetchpriority'] = $fetchpriority;
 			}
 			if ( $fetchpriority !== $script_module['fetchpriority'] ) {
@@ -374,19 +347,21 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_script_module_preloads() {
-		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ), array( 'static' ) ) as $id => $script_module ) {
+		$enqueued_ids = array_keys( $this->get_marked_for_enqueue() );
+		foreach ( $this->get_dependencies( $enqueued_ids, array( 'static' ) ) as $id => $script_module ) {
 			// Don't preload if it's marked for enqueue.
 			if ( true !== $script_module['enqueue'] ) {
+				$enqueued_dependents   = array_intersect( $this->get_recursive_dependents( $id ), $enqueued_ids );
+				$highest_fetchpriority = $this->get_highest_fetchpriority( $enqueued_dependents );
 				printf(
 					'<link rel="modulepreload" href="%s" id="%s"',
 					esc_url( $this->get_src( $id ) ),
 					esc_attr( $id . '-js-modulepreload' )
 				);
-				$fetchpriority = $this->get_highest_fetchpriority_with_dependents( $id );
-				if ( is_string( $fetchpriority ) && 'auto' !== $fetchpriority ) {
-					printf( ' fetchpriority="%s"', esc_attr( $fetchpriority ) );
+				if ( 'auto' !== $highest_fetchpriority ) {
+					printf( ' fetchpriority="%s"', esc_attr( $highest_fetchpriority ) );
 				}
-				if ( $fetchpriority !== $script_module['fetchpriority'] ) {
+				if ( $highest_fetchpriority !== $script_module['fetchpriority'] && 'auto' !== $script_module['fetchpriority'] ) {
 					printf( ' data-wp-fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) );
 				}
 				echo '>';
@@ -483,6 +458,8 @@ class WP_Script_Modules {
 	/**
 	 * Gets all dependents of a script module.
 	 *
+	 * This is not recursive.
+	 *
 	 * @since 6.9.0
 	 *
 	 * @see WP_Scripts::get_dependents()
@@ -509,6 +486,43 @@ class WP_Script_Modules {
 		$this->dependents_map[ $id ] = $dependents;
 
 		return $dependents;
+	}
+
+	/**
+	 * Gets all recursive dependents of a script module.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @see WP_Scripts::get_dependents()
+	 *
+	 * @param string $id The script ID.
+	 * @return string[] Script module IDs.
+	 */
+	private function get_recursive_dependents( string $id ): array {
+		$get = function ( string $id, array $checked = array() ) use ( &$get ): ?array {
+
+			// If by chance an unregistered script module is checked or there is a recursive dependency, return early.
+			if ( ! isset( $this->registered[ $id ] ) || isset( $checked[ $id ] ) ) {
+				return null;
+			}
+
+			// Mark this script module as checked to guard against infinite recursion.
+			$checked[ $id ] = true;
+
+			$dependents = array();
+			foreach ( $this->get_dependents( $id ) as $dependent ) {
+				$dependents[] = $dependent;
+
+				$recursive_dependents = $get( $dependent, $checked );
+				if ( is_array( $recursive_dependents ) ) {
+					$dependents = array_merge( $dependents, $recursive_dependents );
+				}
+			}
+
+			return $dependents;
+		};
+
+		return array_unique( $get( $id ) );
 	}
 
 	/**

@@ -881,6 +881,8 @@ JS;
 	/**
 	 * Gets all dependents of a script.
 	 *
+	 * This is not recursive.
+	 *
 	 * @since 6.3.0
 	 *
 	 * @param string $handle The script handle.
