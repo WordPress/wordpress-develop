@@ -11,6 +11,7 @@
  * Core class used for querying comments.
  *
  * @since 3.1.0
+ * @since 6.9.0 Private comment types are automatically excluded from queries unless explicitly requested.
  *
  * @see WP_Comment_Query::__construct() for accepted arguments.
  */
@@ -251,7 +252,8 @@ class WP_Comment_Query {
 	 *     @type string[]        $type__in                  Include comments from a given array of comment types.
 	 *                                                      Default empty.
 	 *     @type string[]        $type__not_in              Exclude comments from a given array of comment types.
-	 *                                                      Default empty.
+	 *                                                      Default empty. Note: Private comment types are
+	 *                                                      automatically excluded by default.
 	 *     @type int             $user_id                   Include comments for a specific user ID. Default empty.
 	 *     @type bool|string     $hierarchical              Whether to include comment descendants in the results.
 	 *                                                      - 'threaded' returns a tree, with each comment's children
@@ -769,6 +771,35 @@ class WP_Comment_Query {
 			'IN'     => array_merge( (array) $this->query_vars['type'], (array) $this->query_vars['type__in'] ),
 			'NOT IN' => (array) $this->query_vars['type__not_in'],
 		);
+
+		/**
+		 * Filters comment types that should not be publicly queryable.
+		 *
+		 * Comment types returned by this filter will be excluded from queries by default
+		 * and must be explicitly requested via the 'type' or 'type__in' parameters.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string[] $private_types Array of private comment type names. Default: array( 'block_comment' ).
+		 */
+		$private_comment_types = apply_filters( 'get_private_comment_types', array( 'block_comment' ) );
+
+		// Check if any private comment types are explicitly requested.
+		$explicitly_requested_types = array_merge( $raw_types['IN'] );
+		$explicitly_requesting_private = false;
+		foreach ( $explicitly_requested_types as $requested_type ) {
+			if ( in_array( $requested_type, $private_comment_types, true ) ) {
+				$explicitly_requesting_private = true;
+				break;
+			}
+		}
+
+		// Auto-exclude private comment types unless explicitly requested.
+		if ( ! $explicitly_requesting_private ) {
+			$raw_types['NOT IN'] = array_merge( $raw_types['NOT IN'], $private_comment_types );
+			// Remove duplicates
+			$raw_types['NOT IN'] = array_unique( $raw_types['NOT IN'] );
+		}
 
 		$comment_types = array();
 		foreach ( $raw_types as $operator => $_raw_types ) {
