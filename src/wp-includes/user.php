@@ -682,8 +682,12 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 		return $pre;
 	}
 
-	$userlist    = implode( ',', array_map( 'absint', $users ) );
-	$cache_key   = "count_many_users_posts_{$post_type}_{$public_only}_" . str_replace( ',', '_', $userlist ) . '_' . get_current_user_id();
+	// Cleanup the users array. Remove duplicates and sort for consistent ordering.
+	$users = array_unique( array_filter( array_map( 'absint', (array) $users ) ) );
+	sort( $users );
+
+	$userlist    = implode( '_', $users );
+	$cache_key   = "count_many_users_posts_{$post_type}_{$public_only}_{$userlist}_" . get_current_user_id();
 	$cache_group = $public_only ? 'count_many_users_posts_public' : 'count_many_users_posts';
 	$count       = wp_cache_get( $cache_key, $cache_group );
 
