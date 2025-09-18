@@ -43,7 +43,7 @@ class WP_Theme_JSON {
 	 * process it more than once.
 	 *
 	 * @since 6.9.0
-	 * @var array
+	 * @var array<string, array>
 	 */
 	protected static $sanitize_input_cache = array();
 
