@@ -363,7 +363,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'expected' => 'hold',
 			),
 			'a string with unicode'   => array(
-				'key'      =>  array( 'howdy&nbsp;admin', 'another-value' ),
+				'key'      => array( 'howdy&nbsp;admin', 'another-value' ),
 				'expected' => 'hold',
 			),
 		);
