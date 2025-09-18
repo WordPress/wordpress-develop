@@ -54,7 +54,7 @@ class File_Upload_Upgrader {
 	public function __construct( $form, $urlholder ) {
 
 		if ( empty( $_FILES[ $form ]['name'] ) && empty( $_GET[ $urlholder ] ) ) {
-			wp_die( __( 'Please select a file' ) );
+			wp_die( __( 'Please select a file' ), 400 );
 		}
 
 		// Handle a newly uploaded file. Else, assume it's already been uploaded.
@@ -79,7 +79,7 @@ class File_Upload_Upgrader {
 							self_admin_url( 'plugin-install.php' ),
 							__( 'Return to the Plugin Installer' )
 						);
-						wp_die( __( 'Incompatible Archive.' ) . '<br />' . $plugins_page );
+						wp_die( __( 'Incompatible Archive.' ) . '<br />' . $plugins_page, 422 );
 					}
 
 					if ( 'themezip' === $form ) {
@@ -88,7 +88,7 @@ class File_Upload_Upgrader {
 							self_admin_url( 'theme-install.php' ),
 							__( 'Return to the Theme Installer' )
 						);
-						wp_die( __( 'Incompatible Archive.' ) . '<br />' . $themes_page );
+						wp_die( __( 'Incompatible Archive.' ) . '<br />' . $themes_page, 422 );
 					}
 				}
 			}
@@ -117,7 +117,7 @@ class File_Upload_Upgrader {
 			$this->id   = (int) $_GET[ $urlholder ];
 			$attachment = get_post( $this->id );
 			if ( empty( $attachment ) ) {
-				wp_die( __( 'Please select a file' ) );
+				wp_die( __( 'Please select a file' ), 120 );
 			}
 
 			$this->filename = $attachment->post_title;
@@ -126,7 +126,7 @@ class File_Upload_Upgrader {
 			// Else, It's set to something, Back compat for plugins using the old (pre-3.3) File_Uploader handler.
 			$uploads = wp_upload_dir();
 			if ( ! ( $uploads && false === $uploads['error'] ) ) {
-				wp_die( $uploads['error'] );
+				wp_die( $uploads['error'], 400 );
 			}
 
 			$this->filename = sanitize_file_name( $_GET[ $urlholder ] );

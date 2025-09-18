@@ -10,7 +10,7 @@
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'upload_files' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to upload files.' ) );
+	wp_die( __( 'Sorry, you are not allowed to upload files.' ), 403 );
 }
 
 $message = '';
@@ -293,7 +293,7 @@ if ( $doaction ) {
 			}
 			foreach ( $post_ids as $post_id ) {
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
-					wp_die( __( 'Sorry, you are not allowed to move this item to the Trash.' ) );
+					wp_die( __( 'Sorry, you are not allowed to move this item to the Trash.' ), 403 );
 				}
 
 				if ( ! wp_trash_post( $post_id ) ) {
@@ -314,7 +314,7 @@ if ( $doaction ) {
 			}
 			foreach ( $post_ids as $post_id ) {
 				if ( ! current_user_can( 'delete_post', $post_id ) ) {
-					wp_die( __( 'Sorry, you are not allowed to restore this item from the Trash.' ) );
+					wp_die( __( 'Sorry, you are not allowed to restore this item from the Trash.' ), 403 );
 				}
 
 				if ( ! wp_untrash_post( $post_id ) ) {
@@ -329,7 +329,7 @@ if ( $doaction ) {
 			}
 			foreach ( $post_ids as $post_id_del ) {
 				if ( ! current_user_can( 'delete_post', $post_id_del ) ) {
-					wp_die( __( 'Sorry, you are not allowed to delete this item.' ) );
+					wp_die( __( 'Sorry, you are not allowed to delete this item.' ), 403 );
 				}
 
 				if ( ! wp_delete_attachment( $post_id_del ) ) {

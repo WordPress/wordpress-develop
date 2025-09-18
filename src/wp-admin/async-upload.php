@@ -32,7 +32,7 @@ if ( isset( $_REQUEST['action'] ) && 'upload-attachment' === $_REQUEST['action']
 }
 
 if ( ! current_user_can( 'upload_files' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to upload files.' ) );
+	wp_die( __( 'Sorry, you are not allowed to upload files.' ), 403 );
 }
 
 // Just fetch the detail form for that attachment.
@@ -40,7 +40,7 @@ if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && 
 	$id   = (int) $_REQUEST['attachment_id'];
 	$post = get_post( $id );
 	if ( 'attachment' !== $post->post_type ) {
-		wp_die( __( 'Invalid post type.' ) );
+		wp_die( __( 'Invalid post type.' ), 400 );
 	}
 
 	switch ( $_REQUEST['fetch'] ) {
