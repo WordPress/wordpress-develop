@@ -42,6 +42,15 @@ class WP_Script_Modules {
 	private $a11y_available = false;
 
 	/**
+	 * Holds the script module identifiers that have been printed.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @var string[]
+	 */
+	private $done = array();
+
+	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
@@ -268,10 +277,12 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function add_hooks() {
-		$position = wp_is_block_theme() ? 'wp_head' : 'wp_footer';
-		add_action( $position, array( $this, 'print_import_map' ) );
-		add_action( $position, array( $this, 'print_enqueued_script_modules' ) );
-		add_action( $position, array( $this, 'print_script_module_preloads' ) );
+		add_action( wp_is_block_theme() ? 'wp_head' : 'wp_footer', array( $this, 'print_import_map' ) );
+		if ( wp_is_block_theme() ) {
+			add_action( 'wp_head', array( $this, 'print_head_enqueued_script_modules' ) );
+		}
+		add_action( 'wp_footer', array( $this, 'print_enqueued_script_modules' ) );
+		add_action( wp_is_block_theme() ? 'wp_head' : 'wp_footer', array( $this, 'print_script_module_preloads' ) );
 
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
@@ -284,64 +295,54 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Prints the enqueued script modules in head or footer.
+	 * Prints the enqueued script modules in head.
 	 *
-	 * For classic themes, all script modules are printed in the footer.
-	 * For block themes, allows script modules to be printed in the head or footer.
-	 *
-	 * @since 6.5.0
+	 * @since 6.9.0
 	 */
-	public function print_enqueued_script_modules() {
+	public function print_head_enqueued_script_modules() {
 		$script_modules = $this->get_marked_for_enqueue();
-
-		// If we're in wp_footer, just print everything.
-		if ( 'wp_footer' === current_action() ) {
-			$this->print_script_modules( $script_modules );
-		} else {
-			$head_modules   = array();
-			$footer_modules = array();
-
-			foreach ( $script_modules as $id => $script_module ) {
-				if ( isset( $script_module['in_footer'] ) && $script_module['in_footer'] ) {
-					$footer_modules[ $id ] = $script_module;
-				} else {
-					$head_modules[ $id ] = $script_module;
-				}
-			}
-			$this->print_script_modules( $head_modules );
-
-			// If there are footer modules, print them in the footer.
-			if ( count( $footer_modules ) > 0 ) {
-				add_action(
-					'wp_footer',
-					function () use ( $footer_modules ) {
-						$this->print_script_modules( $footer_modules );
-					}
-				);
+		foreach ( $script_modules as $id => $script_module ) {
+			if ( ! in_array( $id, $this->done, true ) && ! $script_module['in_footer'] ) {
+				$this->done[] = $id;
+				$this->print_script_module( $id, $script_module );
 			}
 		}
 	}
 
 	/**
-	 * Prints the enqueued script modules using script tags with type="module"
+	 * Prints the enqueued script modules in footer.
+	 *
+	 * @since 6.5.0
+	 */
+	public function print_enqueued_script_modules() {
+		$script_modules = $this->get_marked_for_enqueue();
+		foreach ( $script_modules as $id => $script_module ) {
+			if ( ! in_array( $id, $this->done, true ) ) {
+				$this->done[] = $id;
+				$this->print_script_module( $id, $script_module );
+			}
+		}
+	}
+
+	/**
+	 * Prints the enqueued script module using script tags with type="module"
 	 * attributes.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param array $modules The script modules to print.
+	 * @param string $id      The script module identifier.
+	 * @param array $module   The script module to print.
 	 */
-	private function print_script_modules( $modules ) {
-		foreach ( $modules as $id => $script_module ) {
-			$args = array(
-				'type' => 'module',
-				'src'  => $this->get_src( $id ),
-				'id'   => $id . '-js-module',
-			);
-			if ( 'auto' !== $script_module['fetchpriority'] ) {
-				$args['fetchpriority'] = $script_module['fetchpriority'];
-			}
-			wp_print_script_tag( $args );
+	private function print_script_module( $id, $script_module ) {
+		$args = array(
+			'type' => 'module',
+			'src'  => $this->get_src( $id ),
+			'id'   => $id . '-js-module',
+		);
+		if ( 'auto' !== $script_module['fetchpriority'] ) {
+			$args['fetchpriority'] = $script_module['fetchpriority'];
 		}
+		wp_print_script_tag( $args );
 	}
 
 	/**
