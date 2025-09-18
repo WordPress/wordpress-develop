@@ -292,13 +292,21 @@ HTML;
 	 * Tests if the block content is updated with the value returned by the source
 	 * for the Image block in the placeholder state.
 	 *
+	 * Furthermore tests if the caption attribute is correctly processed.
+	 *
 	 * @ticket 60282
+	 * @ticket XXXXX
 	 *
 	 * @covers ::register_block_bindings_source
 	 */
 	public function test_update_block_with_value_from_source_image_placeholder() {
-		$get_value_callback = function () {
-			return 'https://example.com/image.jpg';
+		$get_value_callback = function ( $source_args, $block_instance, $attribute_name ) {
+			if ( 'url' === $attribute_name ) {
+				return 'https://example.com/image.jpg';
+			}
+			if ( 'caption' === $attribute_name ) {
+				return 'Example Image';
+			}
 		};
 
 		register_block_bindings_source(
@@ -310,8 +318,8 @@ HTML;
 		);
 
 		$block_content = <<<HTML
-<!-- wp:image {"metadata":{"bindings":{"url":{"source":"test/source"}}}} -->
-<figure class="wp-block-image"><img alt=""/></figure>
+<!-- wp:image {"metadata":{"bindings":{"url":{"source":"test/source"},"caption":{"source":"test/source"}}}} -->
+<figure class="wp-block-image"><img alt=""/><figcaption class="wp-element-caption"></figcaption></figure>
 <!-- /wp:image -->
 HTML;
 		$parsed_blocks = parse_blocks( $block_content );
@@ -324,7 +332,12 @@ HTML;
 			"The 'url' attribute should be updated with the value returned by the source."
 		);
 		$this->assertSame(
-			'<figure class="wp-block-image"><img src="https://example.com/image.jpg" alt=""/></figure>',
+			'Example Image',
+			$block->attributes['caption'],
+			"The 'caption' attribute should be updated with the value returned by the source."
+		);
+		$this->assertSame(
+			'<figure class="wp-block-image"><img src="https://example.com/image.jpg" alt=""/><figcaption class="wp-element-caption">Example Image</figcaption></figure>',
 			trim( $result ),
 			'The block content should be updated with the value returned by the source.'
 		);
