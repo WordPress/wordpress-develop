@@ -239,6 +239,7 @@ require ABSPATH . WPINC . '/bookmark-template.php';
 require ABSPATH . WPINC . '/kses.php';
 require ABSPATH . WPINC . '/cron.php';
 require ABSPATH . WPINC . '/deprecated.php';
+require ABSPATH . WPINC . '/js-interop.php';
 require ABSPATH . WPINC . '/script-loader.php';
 require ABSPATH . WPINC . '/taxonomy.php';
 require ABSPATH . WPINC . '/class-wp-taxonomy.php';
