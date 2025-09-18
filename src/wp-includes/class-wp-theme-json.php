@@ -39,7 +39,7 @@ class WP_Theme_JSON {
 	protected static $blocks_metadata = array();
 
 	/**
-	 * Holds sanitize input cache so we don't
+	 * Holds cache of sanitized input so we don't
 	 * process it more than once.
 	 *
 	 * @since 6.9.0
