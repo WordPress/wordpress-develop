@@ -4629,7 +4629,8 @@ class WP_Theme_JSON {
 
 	/**
 	 * Clears the cache of sanitize input data.
-	 * used when json is added/upated later in the flow control
+	 *
+	 * This is used when JSON is added/updated later in the flow control.
 	 *
 	 * @since 6.9.0
 	 */
