@@ -1579,11 +1579,11 @@ function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = fals
 
 	// Build args dynamically depending on placeholders in _edit_link.
 	$format = $post_type_object->_edit_link;
-	$args   = [];
+	$args   = array();
 
 	$placeholders = substr_count( $format, '%s' ) + substr_count( $format, '%d' );
 
-	$args = ( 2 === $placeholders ) ? [ $post->post_type, $post->ID ] : $args = [ $post->ID ];
+	$args = ( 2 === $placeholders ) ? array( $post->post_type, $post->ID ) : $args = array( $post->ID );
 
 	$delete_link = add_query_arg(
 		'action',
