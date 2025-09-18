@@ -1577,7 +1577,19 @@ function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = fals
 
 	$action = ( $force_delete || ! EMPTY_TRASH_DAYS ) ? 'delete' : 'trash';
 
-	$delete_link = add_query_arg( 'action', $action, admin_url( sprintf( $post_type_object->_edit_link, $post->ID ) ) );
+	// Build args dynamically depending on placeholders in _edit_link.
+	$format = $post_type_object->_edit_link;
+	$args   = [];
+
+	$placeholders = substr_count( $format, '%s' ) + substr_count( $format, '%d' );
+
+	$args = ( 2 === $placeholders ) ? [ $post->post_type, $post->ID ] : $args = [ $post->ID ];
+
+	$delete_link = add_query_arg(
+		'action',
+		$action,
+		admin_url( vsprintf( $format, $args ) )
+	);
 
 	/**
 	 * Filters the post delete link.
@@ -1588,7 +1600,12 @@ function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = fals
 	 * @param int    $post_id      Post ID.
 	 * @param bool   $force_delete Whether to bypass the Trash and force deletion. Default false.
 	 */
-	return apply_filters( 'get_delete_post_link', wp_nonce_url( $delete_link, "$action-post_{$post->ID}" ), $post->ID, $force_delete );
+	return apply_filters(
+		'get_delete_post_link',
+		wp_nonce_url( $delete_link, "$action-post_{$post->ID}" ),
+		$post->ID,
+		$force_delete
+	);
 }
 
 /**
