@@ -952,7 +952,6 @@ class WP_Theme_JSON {
 
 		$input_cache_key = md5( wp_json_encode( compact( 'input', 'valid_block_names', 'valid_element_names', 'valid_variations' ) ) );
 		if ( isset( self::$sanitize_input_cache[ $input_cache_key ] ) ) {
-
 			return self::$sanitize_input_cache[ $input_cache_key ];
 		}
 		$output = array();
