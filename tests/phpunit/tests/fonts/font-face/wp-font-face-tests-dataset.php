@@ -17,7 +17,7 @@ trait WP_Font_Face_Tests_Datasets {
 	 */
 	public function data_should_print_given_fonts() {
 		return array(
-			'single truetype format font'    => array(
+			'single truetype format font'              => array(
 				'fonts'    => array(
 					'Inter' =>
 						array(
@@ -38,7 +38,7 @@ trait WP_Font_Face_Tests_Datasets {
 CSS
 			,
 			),
-			'multiple truetype format fonts' => array(
+			'multiple truetype format fonts'           => array(
 				'fonts'    => array(
 					'Inter' =>
 						array(
@@ -70,7 +70,7 @@ CSS
 CSS
 			,
 			),
-			'single woff2 format font'       => array(
+			'single woff2 format font'                 => array(
 				'fonts'    => array(
 					'DM Sans' =>
 						array(
@@ -91,7 +91,7 @@ CSS
 CSS
 			,
 			),
-			'multiple woff2 format fonts'    => array(
+			'multiple woff2 format fonts'              => array(
 				'fonts'                  => array(
 					'DM Sans'       =>
 						array(
@@ -193,6 +193,85 @@ CSS
 @font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:400;font-display:block;src:url('https://example.org/assets/fonts/ibm-plex-mono/IBMPlexMono-Regular.woff2') format('woff2');font-stretch:normal;}
 @font-face{font-family:"IBM Plex Mono";font-style:italic;font-weight:400;font-display:block;src:url('https://example.org/assets/fonts/ibm-plex-mono/IBMPlexMono-Italic.woff2') format('woff2');font-stretch:normal;}
 @font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:700;font-display:block;src:url('https://example.org/assets/fonts/ibm-plex-mono/IBMPlexMono-Bold.woff2') format('woff2');font-stretch:normal;}
+CSS
+			,
+				'indexed array as input' => array(
+					'fonts'    => array(
+						array(
+							array(
+								'font-family'  => 'Piazzolla',
+								'src'          => array( 'https://example.org/fonts/piazzolla400.ttf' ),
+								'font-style'   => 'normal',
+								'font-weight'  => '400',
+								'font-stretch' => 'normal',
+							),
+							array(
+								'font-family'  => 'Piazzolla',
+								'src'          => array( 'https://example.org/fonts/piazzolla500.ttf' ),
+								'font-style'   => 'normal',
+								'font-weight'  => '400',
+								'font-stretch' => 'normal',
+							),
+						),
+						array(
+							array(
+								'font-family'  => 'Lobster',
+								'src'          => array( 'https://example.org/fonts/lobster400.ttf' ),
+								'font-style'   => 'normal',
+								'font-weight'  => '400',
+								'font-stretch' => 'normal',
+							),
+							array(
+								'font-family'  => 'Lobster',
+								'src'          => array( 'https://example.org/fonts/lobster500.ttf' ),
+								'font-style'   => 'normal',
+								'font-weight'  => '500',
+								'font-stretch' => 'normal',
+							),
+						),
+					),
+					'expected' => <<<CSS
+@font-face{font-family:"Piazzolla";font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/piazzolla400.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"Piazzolla";font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/piazzolla500.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"Lobster";font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/fonts/lobster400.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"Lobster";font-style:normal;font-weight:500;font-display:fallback;src:url('https://example.org/fonts/lobster500.ttf') format('truetype');font-stretch:normal;}
+CSS
+					,
+				),
+			),
+
+			"Fonts with `'` character (ticket #63568)" => array(
+				'fonts'                  => array(
+					"O'Reilly Sans"   =>
+						array(
+							array(
+								'src'          =>
+									array(
+										'https://example.org/assets/fonts/oreilly-sans/oreilly-sans.woff2',
+									),
+								'font-family'  => "O'Reilly Sans",
+								'font-stretch' => 'normal',
+								'font-style'   => 'normal',
+								'font-weight'  => '400',
+							),
+						),
+					"Suisse BP Int'l" =>
+						array(
+							array(
+								'src'          =>
+									array(
+										'https://example.org/assets/fonts/suisse-bp-intl/suisse-bp-intl.woff2',
+									),
+								'font-family'  => "Suisse BP Int'l",
+								'font-stretch' => 'normal',
+								'font-style'   => 'normal',
+								'font-weight'  => '400',
+							),
+						),
+				),
+				'expected'               => <<<CSS
+@font-face{font-family:"O'Reilly Sans";font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/assets/fonts/oreilly-sans/oreilly-sans.woff2') format('woff2');font-stretch:normal;}
+@font-face{font-family:"Suisse BP Int'l";font-style:normal;font-weight:400;font-display:fallback;src:url('https://example.org/assets/fonts/suisse-bp-intl/suisse-bp-intl.woff2') format('woff2');font-stretch:normal;}
 CSS
 			,
 				'indexed array as input' => array(
