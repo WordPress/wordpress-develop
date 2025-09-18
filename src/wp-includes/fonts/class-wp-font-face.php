@@ -358,17 +358,7 @@ class WP_Font_Face {
 	private function build_font_face_css( array $font_face ) {
 		$css = '';
 
-		/*
-		 * Wrap font-family in quotes if it contains spaces
-		 * and is not already wrapped in quotes.
-		 */
-		if (
-			str_contains( $font_face['font-family'], ' ' ) &&
-			! str_contains( $font_face['font-family'], '"' ) &&
-			! str_contains( $font_face['font-family'], "'" )
-		) {
-			$font_face['font-family'] = '"' . $font_face['font-family'] . '"';
-		}
+		$font_face['font-family'] = $this->normalize_css_font_face( $font_face['font-family'] );
 
 		foreach ( $font_face as $key => $value ) {
 			// Compile the "src" parameter.
