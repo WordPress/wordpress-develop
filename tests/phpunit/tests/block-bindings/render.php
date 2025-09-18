@@ -102,7 +102,7 @@ HTML
 				,
 				'<div class="wp-block-button"><a class="wp-block-button__link wp-element-button">test source value</a></div>',
 			),
-			'image block' => array(
+			'image block'     => array(
 				'caption',
 				<<<HTML
 <!-- wp:image {"id":66,"sizeSlug":"large","linkDestination":"none"} -->
@@ -110,7 +110,7 @@ HTML
 <!-- /wp:image -->
 HTML
 			,
-			'<figure class="wp-block-image size-large"><img src="breakfast.jpg" alt="" class="wp-image-1"/><figcaption class="wp-element-caption">test source value</figcaption></figure>'
+				'<figure class="wp-block-image size-large"><img src="breakfast.jpg" alt="" class="wp-image-1"/><figcaption class="wp-element-caption">test source value</figcaption></figure>',
 			),
 			'test block'      => array(
 				'myAttribute',
