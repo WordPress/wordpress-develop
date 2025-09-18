@@ -390,6 +390,57 @@ class WP_Font_Face {
 	}
 
 	/**
+	 * Normalizes a font-face name for use in CSS.
+	 *
+	 * Add quotes to the font-face name and escape problematic characters.
+	 *
+	 * @see https://www.w3.org/TR/css-fonts-4/#font-family-desc
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $font_face The font-face name to normalize.
+	 * @return string The normalized font-face name.
+	 */
+	private function normalize_css_font_face( string $font_face ): string {
+		$font_face = trim( $font_face, " \t\r\f\n" );
+
+		if (
+			strlen( $font_face ) > 1 &&
+			( '"' === $font_face[0] && '"' === $font_face[ strlen( $font_face ) - 1 ] ) ||
+			( "'" === $font_face[0] && "'" === $font_face[ strlen( $font_face ) - 1 ] )
+		) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Font font-family should not be wrapped in quotes; they will be added automatically.' ),
+				'6.9.0'
+			);
+			$font_face = substr( $font_face, 1, -1 );
+		}
+
+		return '"' . strtr(
+			$font_face,
+			array(
+				/*
+				* Normalize preprocessed whitespace.
+				* https://www.w3.org/TR/css-syntax-3/#input-preprocessing
+				*/
+				"\r"   => '\\A ',
+				"\f"   => '\\A ',
+				"\r\n" => '\\A ',
+
+				/*
+				* CSS unicode escaping for problematic characters.
+				* https://www.w3.org/TR/css-syntax-3/#escaping
+				*/
+				"\n"   => '\\A ',
+				'\\'   => '\\5C ',
+				','    => '\\2C ',
+				'"'    => '\\22 ',
+			)
+		) . '"';
+	}
+
+	/**
 	 * Compiles the `src` into valid CSS.
 	 *
 	 * @since 6.4.0
