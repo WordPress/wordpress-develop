@@ -216,6 +216,10 @@ class WP {
 
 			$this->request = $requested_path;
 
+			$this->matched_rule = '';
+			$query              = '';
+			$matches            = array( '' );
+
 			// Look for matches.
 			$request_match = $requested_path;
 			if ( empty( $request_match ) ) {
