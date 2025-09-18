@@ -303,6 +303,13 @@ class WP_Script_Modules {
 		$script_modules = $this->get_marked_for_enqueue();
 		foreach ( $script_modules as $id => $script_module ) {
 			if ( ! in_array( $id, $this->done, true ) && ! $script_module['in_footer'] ) {
+				// If any dependency is set to be printed in footer, skip printing this module in head.
+				$dependencies = $this->get_dependencies( array( $id ) );
+				foreach ( $dependencies as $dependency ) {
+					if ( $dependency['enqueue'] && $dependency['in_footer'] ) {
+						continue 2;
+					}
+				}
 				$this->done[] = $id;
 				$this->print_script_module( $id, $script_module );
 			}
