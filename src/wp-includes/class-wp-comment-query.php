@@ -797,7 +797,6 @@ class WP_Comment_Query {
 		// Auto-exclude private comment types unless explicitly requested.
 		if ( ! $explicitly_requesting_private ) {
 			$raw_types['NOT IN'] = array_merge( $raw_types['NOT IN'], $private_comment_types );
-			// Remove duplicates
 			$raw_types['NOT IN'] = array_unique( $raw_types['NOT IN'] );
 		}
 
