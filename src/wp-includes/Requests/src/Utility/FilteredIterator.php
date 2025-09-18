@@ -56,7 +56,10 @@ final class FilteredIterator extends ArrayIterator {
 	 */
 	#[ReturnTypeWillChange]
 	public function __unserialize($data) {
-		unset($this->callback);
+		// check if this->callback is set and unset it to prevent code injection
+		if (isset($this->callback)) {
+			unset($this->callback);
+		}
 	}
 	// phpcs:enable
 
