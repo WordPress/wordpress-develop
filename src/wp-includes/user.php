@@ -1287,9 +1287,9 @@ function update_user_meta( $user_id, $meta_key, $meta_value, $prev_value = '' ) 
 /**
  * Queue user meta for lazy-loading.
  *
- * @since 6.8.0
+ * @since 6.9.0
  *
- * @param array $user_ids List of user IDs.
+ * @param int[] $user_ids List of user IDs.
  */
 function wp_lazyload_user_meta( array $user_ids ) {
 	if ( empty( $user_ids ) ) {
