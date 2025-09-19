@@ -358,7 +358,7 @@ class WP_Font_Face {
 	private function build_font_face_css( array $font_face ) {
 		$css = '';
 
-		$font_face['font-family'] = $this->normalize_css_font_face( $font_face['font-family'] );
+		$font_face['font-family'] = $this->normalize_css_font_family( $font_face['font-family'] );
 
 		foreach ( $font_face as $key => $value ) {
 			// Compile the "src" parameter.
@@ -388,27 +388,27 @@ class WP_Font_Face {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string $font_face The font-face name to normalize.
+	 * @param string $font_family The font-face name to normalize.
 	 * @return string The normalized font-face name.
 	 */
-	private function normalize_css_font_face( string $font_face ): string {
-		$font_face = trim( $font_face, " \t\r\f\n" );
+	protected function normalize_css_font_family( string $font_family ): string {
+		$font_family = trim( $font_family, " \t\r\f\n" );
 
 		if (
-			strlen( $font_face ) > 1 &&
-			( '"' === $font_face[0] && '"' === $font_face[ strlen( $font_face ) - 1 ] ) ||
-			( "'" === $font_face[0] && "'" === $font_face[ strlen( $font_face ) - 1 ] )
+			strlen( $font_family ) > 1 &&
+			( '"' === $font_family[0] && '"' === $font_family[ strlen( $font_family ) - 1 ] ) ||
+			( "'" === $font_family[0] && "'" === $font_family[ strlen( $font_family ) - 1 ] )
 		) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Font font-family should not be wrapped in quotes; they will be added automatically.' ),
 				'6.9.0'
 			);
-			$font_face = substr( $font_face, 1, -1 );
+			$font_family = substr( $font_family, 1, -1 );
 		}
 
 		return '"' . strtr(
-			$font_face,
+			$font_family,
 			array(
 				/*
 				* Normalize preprocessed whitespace.
