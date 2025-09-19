@@ -136,12 +136,6 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
-      - name: Create a Docker override file
-        if: ${{ contains( fromJSON('["8.3", "8.4"]'), inputs.php ) }}
-        env:
-          PHP_VERSION: ${{ inputs.php }}
-        run: cp "tools/local-env/php-$PHP_VERSION-docker-compose.override.yml" docker-compose.override.yml
-
       - name: Set up Node.js
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
@@ -234,7 +228,7 @@ jobs:
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (Xdebug) tests
-        if: ${{ inputs.php != '8.4' && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
+        if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
 
