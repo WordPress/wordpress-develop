@@ -401,7 +401,7 @@ class WP_Font_Face {
 		) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Font font-family should not be wrapped in quotes; they will be added automatically.' ),
+				__( 'Font family should not be wrapped in quotes; they will be added automatically.' ),
 				'6.9.0'
 			);
 			return $font_family;
