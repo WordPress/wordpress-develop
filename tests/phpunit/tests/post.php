@@ -257,7 +257,9 @@ class Tests_Post extends WP_UnitTestCase {
 			)
 		);
 
-		$filter_query = function ( $query, $post_type ) use ( $parent_post_id ) {
+		$filter_args  = array();
+		$filter_query = function ( $query, $post_type ) use ( $parent_post_id, &$filter_args ) {
+			$filter_args = func_get_args();
 			global $wpdb;
 			return $wpdb->prepare(
 				"
@@ -271,9 +273,11 @@ class Tests_Post extends WP_UnitTestCase {
 		};
 
 		add_filter( 'wp_count_posts_query', $filter_query, 10, 2 );
+
 		$count = wp_count_posts( $post_type );
-		remove_filter( 'wp_count_posts_query', $filter_query, 10 );
 		$this->assertEquals( 2, $count->publish );
+		$this->assertStringContainsString( 'SELECT post_status', $filter_args[0] );
+		$this->assertSame( $post_type, $filter_args[1] );
 
 		_unregister_post_type( $post_type );
 	}
@@ -306,32 +310,32 @@ class Tests_Post extends WP_UnitTestCase {
 		return $counts;
 	}
 
-		/**
-		 * @covers ::wp_count_posts
-		 */
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_insert_invalidation() {
 		$post_ids       = self::factory()->post->create_many( 3 );
 		$initial_counts = wp_count_posts();
 
-		$key       = array_rand( $post_ids );
-			$_post = get_post( $post_ids[ $key ], ARRAY_A );
+		$key   = array_rand( $post_ids );
+		$_post = get_post( $post_ids[ $key ], ARRAY_A );
 
-			$_post['post_status'] = 'draft';
-			wp_insert_post( $_post );
+		$_post['post_status'] = 'draft';
+		wp_insert_post( $_post );
 
-			$post = get_post( $post_ids[ $key ] );
-			$this->assertSame( 'draft', $post->post_status );
-			$this->assertNotEquals( 'publish', $post->post_status );
+		$post = get_post( $post_ids[ $key ] );
+		$this->assertSame( 'draft', $post->post_status );
+		$this->assertNotEquals( 'publish', $post->post_status );
 
-			$after_draft_counts = wp_count_posts();
-			$this->assertEquals( 1, $after_draft_counts->draft );
-			$this->assertEquals( 2, $after_draft_counts->publish );
-			$this->assertNotEquals( $initial_counts->publish, $after_draft_counts->publish );
+		$after_draft_counts = wp_count_posts();
+		$this->assertEquals( 1, $after_draft_counts->draft );
+		$this->assertEquals( 2, $after_draft_counts->publish );
+		$this->assertNotEquals( $initial_counts->publish, $after_draft_counts->publish );
 	}
 
-		/**
-		 * @covers ::wp_count_posts
-		 */
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_trash_invalidation() {
 		$post_ids       = self::factory()->post->create_many( 3 );
 		$initial_counts = wp_count_posts();
@@ -350,10 +354,10 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertNotEquals( $initial_counts->publish, $after_trash_counts->publish );
 	}
 
-		/**
-		 * @ticket 49685
-		 * @covers ::wp_count_posts
-		 */
+	/**
+	 * @ticket 49685
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_status_changes_visible() {
 		self::factory()->post->create_many( 3 );
 
@@ -367,9 +371,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( 0, $counts->test );
 	}
 
-		/**
-		 * @ticket 25566
-		 */
+	/**
+	 * @ticket 25566
+	 */
 	public function test_wp_tag_cloud_link_with_post_type() {
 		$post_type = 'new_post_type';
 		$tax       = 'new_tag';
@@ -405,9 +409,9 @@ class Tests_Post extends WP_UnitTestCase {
 		}
 	}
 
-		/**
-		 * @ticket 21212
-		 */
+	/**
+	 * @ticket 21212
+	 */
 	public function test_utf8mb3_post_saves_with_emoji() {
 		global $wpdb;
 
@@ -443,12 +447,12 @@ class Tests_Post extends WP_UnitTestCase {
 		}
 	}
 
-		/**
-		 * If a sticky post is updated via `wp_update_post()` by a user
-		 * without the `publish_posts` capability, it should stay sticky.
-		 *
-		 * @ticket 24153
-		 */
+	/**
+	 * If a sticky post is updated via `wp_update_post()` by a user
+	 * without the `publish_posts` capability, it should stay sticky.
+	 *
+	 * @ticket 24153
+	 */
 	public function test_user_without_publish_posts_cannot_affect_sticky() {
 		// Create a sticky post.
 		$post = self::factory()->post->create_and_get(
@@ -481,12 +485,12 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( 'Updated', $saved_post->post_content );
 	}
 
-		/**
-		 * If a sticky post is updated via `edit_post()` by a user
-		 * without the `publish_posts` capability, it should stay sticky.
-		 *
-		 * @ticket 24153
-		 */
+	/**
+	 * If a sticky post is updated via `edit_post()` by a user
+	 * without the `publish_posts` capability, it should stay sticky.
+	 *
+	 * @ticket 24153
+	 */
 	public function test_user_without_publish_posts_cannot_affect_sticky_with_edit_post() {
 		// Create a sticky post.
 		$post = self::factory()->post->create_and_get(
@@ -522,11 +526,11 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( 'Updated', $saved_post->post_content );
 	}
 
-		/**
-		 * Test that hooks are fired when post gets stuck and unstuck.
-		 *
-		 * @ticket 35600
-		 */
+	/**
+	 * Test that hooks are fired when post gets stuck and unstuck.
+	 *
+	 * @ticket 35600
+	 */
 	public function test_hooks_fire_when_post_gets_stuck_and_unstuck() {
 		$post_id = self::factory()->post->create();
 		$a1      = new MockAction();
@@ -574,13 +578,13 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( 0, get_post( $page_id )->post_parent );
 	}
 
-		/**
-		 * Test ensuring that the post_slug can be filtered with a custom value short circuiting the built in
-		 * function that tries to create a unique name based on the post name.
-		 *
-		 * @see wp_unique_post_slug()
-		 * @ticket 21112
-		 */
+	/**
+	 * Test ensuring that the post_slug can be filtered with a custom value short circuiting the built in
+	 * function that tries to create a unique name based on the post name.
+	 *
+	 * @see wp_unique_post_slug()
+	 * @ticket 21112
+	 */
 	public function test_pre_wp_unique_post_slug_filter() {
 		add_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
 
@@ -601,9 +605,9 @@ class Tests_Post extends WP_UnitTestCase {
 		return 'override-slug-' . $post_type;
 	}
 
-		/**
-		 * @ticket 52187
-		 */
+	/**
+	 * @ticket 52187
+	 */
 	public function test_wp_resolve_post_date() {
 		$post_date     = '2020-12-28 11:26:35';
 		$post_date_gmt = '2020-12-29 10:11:45';
@@ -642,11 +646,11 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertFalse( $resolved_post_date );
 	}
 
-		/**
-		 * Ensure sticking a post updates the `sticky_posts` option.
-		 *
-		 * @covers ::stick_post
-		 */
+	/**
+	 * Ensure sticking a post updates the `sticky_posts` option.
+	 *
+	 * @covers ::stick_post
+	 */
 	public function test_stick_post_updates_option() {
 		stick_post( 1 );
 		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
@@ -655,15 +659,15 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSameSets( array( 1, 2 ), get_option( 'sticky_posts' ) );
 	}
 
-		/**
-		 * Ensure sticking a post does not duplicate post IDs in the option.
-		 *
-		 * @ticket 52007
-		 * @covers ::stick_post
-		 * @dataProvider data_stick_post_does_not_duplicate_post_ids
-		 *
-		 * @param mixed $stick Value to pass to stick_post().
-		 */
+	/**
+	 * Ensure sticking a post does not duplicate post IDs in the option.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 * @dataProvider data_stick_post_does_not_duplicate_post_ids
+	 *
+	 * @param mixed $stick Value to pass to stick_post().
+	 */
 	public function test_stick_post_does_not_duplicate_post_ids( $stick ) {
 		update_option( 'sticky_posts', array( 1, 2 ) );
 
@@ -671,15 +675,15 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSameSets( array( 1, 2 ), get_option( 'sticky_posts' ) );
 	}
 
-		/**
-		 * Data provider for test_stick_post_does_not_duplicate_post_ids().
-		 *
-		 * @return array[] {
-		 *     Arguments passed to test.
-		 *
-		 *     @type mixed $stick Value to pass to stick_post().
-		 * }
-		 */
+	/**
+	 * Data provider for test_stick_post_does_not_duplicate_post_ids().
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type mixed $stick Value to pass to stick_post().
+	 * }
+	 */
 	public function data_stick_post_does_not_duplicate_post_ids() {
 		return array(
 			array( 1 ),
@@ -688,13 +692,13 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 	}
 
-		/**
-		 * Ensures sticking a post succeeds after deleting the 'sticky_posts' option.
-		 *
-		 * @ticket 52007
-		 * @ticket 55176
-		 * @covers ::stick_post
-		 */
+	/**
+	 * Ensures sticking a post succeeds after deleting the 'sticky_posts' option.
+	 *
+	 * @ticket 52007
+	 * @ticket 55176
+	 * @covers ::stick_post
+	 */
 	public function test_stick_post_after_delete_sticky_posts_option() {
 		delete_option( 'sticky_posts' );
 
@@ -702,16 +706,16 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
 	}
 
-		/**
-		 * Ensures sticking works with an unexpected option value.
-		 *
-		 * @ticket 52007
-		 * @ticket 55176
-		 * @covers ::stick_post
-		 * @dataProvider data_stick_post_with_unexpected_sticky_posts_option
-		 *
-		 * @param mixed $starting_option Starting value for sticky_posts option.
-		 */
+	/**
+	 * Ensures sticking works with an unexpected option value.
+	 *
+	 * @ticket 52007
+	 * @ticket 55176
+	 * @covers ::stick_post
+	 * @dataProvider data_stick_post_with_unexpected_sticky_posts_option
+	 *
+	 * @param mixed $starting_option Starting value for sticky_posts option.
+	 */
 	public function test_stick_post_with_unexpected_sticky_posts_option( $starting_option ) {
 		update_option( 'sticky_posts', $starting_option );
 
@@ -719,11 +723,11 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
 	}
 
-		/**
-		 * Data provider.
-		 *
-		 * @return array
-		 */
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
 	public function data_stick_post_with_unexpected_sticky_posts_option() {
 		return array(
 			'false'     => array( false ),
@@ -735,14 +739,14 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 	}
 
-		/**
-		 * Ensure sticking a post removes other duplicate post IDs from the option.
-		 *
-		 * @ticket 52007
-		 * @covers ::stick_post
-		 *
-		 * @param mixed $stick Value to pass to stick_post().
-		 */
+	/**
+	 * Ensure sticking a post removes other duplicate post IDs from the option.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 *
+	 * @param mixed $stick Value to pass to stick_post().
+	 */
 	public function test_stick_post_removes_duplicate_post_ids_when_adding_new_value() {
 		update_option( 'sticky_posts', array( 1, 1, 2, 2 ) );
 
@@ -750,11 +754,11 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSameSets( array( 1, 2, 3 ), get_option( 'sticky_posts' ) );
 	}
 
-		/**
-		 * Ensure unsticking a post updates the `sticky_posts` option.
-		 *
-		 * @covers ::unstick_post
-		 */
+	/**
+	 * Ensure unsticking a post updates the `sticky_posts` option.
+	 *
+	 * @covers ::unstick_post
+	 */
 	public function test_unstick_post_updates_option() {
 		update_option( 'sticky_posts', array( 1 ) );
 		unstick_post( 1 );
@@ -765,35 +769,35 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSameSets( array( 2 ), get_option( 'sticky_posts' ) );
 	}
 
-		/**
-		 * Ensure unsticking a post removes duplicate post IDs from the option.
-		 *
-		 * @ticket 52007
-		 * @covers ::unstick_post
-		 *
-		 * @dataProvider data_unstick_post_removes_duplicate_post_ids
-		 *
-		 * @param array $starting_option Original value of `sticky_posts` option.
-		 * @param mixed $unstick         Parameter passed to `unstick_post()`
-		 * @param array $expected
-		 */
+	/**
+	 * Ensure unsticking a post removes duplicate post IDs from the option.
+	 *
+	 * @ticket 52007
+	 * @covers ::unstick_post
+	 *
+	 * @dataProvider data_unstick_post_removes_duplicate_post_ids
+	 *
+	 * @param array $starting_option Original value of `sticky_posts` option.
+	 * @param mixed $unstick         Parameter passed to `unstick_post()`
+	 * @param array $expected
+	 */
 	public function test_unstick_post_removes_duplicate_post_ids( $starting_option, $unstick, $expected ) {
 		update_option( 'sticky_posts', $starting_option );
 		unstick_post( $unstick );
 		$this->assertSameSets( $expected, get_option( 'sticky_posts' ) );
 	}
 
-		/**
-		 * Data provider for test_unstick_post_removes_duplicate_post_ids().
-		 *
-		 * @return array[] {
-		 *     Arguments passed to test.
-		 *
-		 *     @type array $starting_option Original value of `sticky_posts` option.
-		 *     @type mixed $unstick         Parameter passed to `unstick_post()`
-		 *     @type array $expected
-		 * }
-		 */
+	/**
+	 * Data provider for test_unstick_post_removes_duplicate_post_ids().
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type array $starting_option Original value of `sticky_posts` option.
+	 *     @type mixed $unstick         Parameter passed to `unstick_post()`
+	 *     @type array $expected
+	 * }
+	 */
 	public function data_unstick_post_removes_duplicate_post_ids() {
 		return array(
 			array(
@@ -824,36 +828,36 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 	}
 
-		/**
-		 * Ensure sticking a duplicate post does not update the `sticky_posts` option.
-		 *
-		 * @ticket 52007
-		 * @covers ::stick_post
-		 */
+	/**
+	 * Ensure sticking a duplicate post does not update the `sticky_posts` option.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 */
 	public function test_stick_post_with_duplicate_post_id_does_not_update_option() {
 		update_option( 'sticky_posts', array( 1, 2, 2 ) );
 		stick_post( 2 );
 		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
 	}
 
-		/**
-		 * Ensure unsticking a non-sticky post does not update the `sticky_posts` option.
-		 *
-		 * @ticket 52007
-		 * @covers ::unstick_post
-		 */
+	/**
+	 * Ensure unsticking a non-sticky post does not update the `sticky_posts` option.
+	 *
+	 * @ticket 52007
+	 * @covers ::unstick_post
+	 */
 	public function test_unstick_post_with_non_sticky_post_id_does_not_update_option() {
 		update_option( 'sticky_posts', array( 1, 2, 2 ) );
 		unstick_post( 3 );
 		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
 	}
 
-		/**
-		 * Check if post supports block editor.
-		 *
-		 * @ticket 51819
-		 * @covers ::use_block_editor_for_post
-		 */
+	/**
+	 * Check if post supports block editor.
+	 *
+	 * @ticket 51819
+	 * @covers ::use_block_editor_for_post
+	 */
 	public function test_use_block_editor_for_post() {
 		$this->assertFalse( use_block_editor_for_post( -1 ) );
 		$bogus_post_id = self::factory()->post->create(
