@@ -59,7 +59,7 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 			'Generic collision'      => array( 'serif', '"serif"' ),
 			'Trims whitespace'       => array( '   A font name    ', '"A font name"' ),
 			'Name with \' character' => array( 'O\'Reilly Sans', '"O\'Reilly Sans"' ),
-			'Unrealistically tricky' => array( "BS\\Quot\"Apos'Semi;Comma,Newline\nLT<Oh😵My!", '"BS\\5C Quot\\22 Apos\'Semi;Comma\\2C Newline\\A LT<Oh😵My!"' ),
+			'Unrealistically tricky' => array( "BS\\Quot\"Apos'Semi;Comma,Newline\nLT<Oh😵My!", '"BS\\5C Quot\\22 Apos\'Semi;Comma\\2C Newline\\A LT\\3C Oh😵My!"' ),
 		);
 	}
 
