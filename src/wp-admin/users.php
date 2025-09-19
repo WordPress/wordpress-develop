@@ -246,7 +246,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		foreach ( $user_ids as $id ) {
 			if ( ! current_user_can( 'edit_user', $id ) ) {
-				wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
+				wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
 			}
 
 			if ( $id === $current_user->ID ) {
