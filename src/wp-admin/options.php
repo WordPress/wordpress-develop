@@ -251,13 +251,14 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 				/* translators: %s: The options page name. */
 				__( '<strong>Error:</strong> The %s options page is not in the allowed options list.' ),
 				'<code>' . esc_html( $option_page ) . '</code>'
-			)
+			),
+			400
 		);
 	}
 
 	if ( 'options' === $option_page ) {
 		if ( is_multisite() && ! current_user_can( 'manage_network_options' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to modify unregistered settings for this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to modify unregistered settings for this site.' ), 403 );
 		}
 		$options = isset( $_POST['page_options'] ) ? explode( ',', wp_unslash( $_POST['page_options'] ) ) : null;
 	} else {
