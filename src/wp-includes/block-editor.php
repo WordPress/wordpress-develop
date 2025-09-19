@@ -766,7 +766,7 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 		'wp-api-fetch',
 		sprintf(
 			'wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( %s ) );',
-			wp_json_encode( $preload_data )
+			wp_json_encode( $preload_data, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 		),
 		'after'
 	);
@@ -855,4 +855,22 @@ function get_classic_theme_supports_block_editor_settings() {
 	}
 
 	return $theme_settings;
+}
+
+/**
+ * Initialize site preview.
+ *
+ * This function sets IFRAME_REQUEST to true if the site preview parameter is set.
+ *
+ * @since 6.8.0
+ */
+function wp_initialize_site_preview_hooks() {
+	if (
+		! defined( 'IFRAME_REQUEST' ) &&
+		isset( $_GET['wp_site_preview'] ) &&
+		1 === (int) $_GET['wp_site_preview'] &&
+		current_user_can( 'edit_theme_options' )
+	) {
+		define( 'IFRAME_REQUEST', true );
+	}
 }

@@ -19,10 +19,10 @@
 function network_domain_check() {
 	global $wpdb;
 
-	$sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->site ) );
-	if ( $wpdb->get_var( $sql ) ) {
+	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->site ) ) ) ) {
 		return $wpdb->get_var( "SELECT domain FROM $wpdb->site ORDER BY id ASC LIMIT 1" );
 	}
+
 	return false;
 }
 
@@ -158,7 +158,7 @@ function network_step1( $errors = false ) {
 
 	$error_codes = array();
 	if ( is_wp_error( $errors ) ) {
-		$network_created_error_message = '<p><strong>' . __( 'Error: The network could not be created.' ) . '</strong></p>';
+		$network_created_error_message = '<p><strong>' . __( 'Error:' ) . '</strong> ' . __( 'The network could not be created.' ) . '</p>';
 		foreach ( $errors->get_error_messages() as $error ) {
 			$network_created_error_message .= "<p>$error</p>";
 		}
