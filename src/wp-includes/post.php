@@ -3401,8 +3401,9 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	}
 
 	if (
-		'readable' === $perm && is_user_logged_in()
-		&& ! current_user_can( get_post_type_object( $type )->cap->read_private_posts )
+		'readable' === $perm &&
+		is_user_logged_in() &&
+		! current_user_can( get_post_type_object( $type )->cap->read_private_posts )
 	) {
 		// Optimized query using UNION ALL for better performance. See #61097.
 		$query = $wpdb->prepare(
