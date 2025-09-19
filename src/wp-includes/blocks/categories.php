@@ -103,15 +103,12 @@ function build_dropdown_script_block_core_categories( $dropdown_id ) {
 	<script>
 	( function() {
 		var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' );
-		function onCatChange(e) {
-			if ( 'keyup' === e.type && 'Escape' !== e.key ) {
-				return;
-			}
+		function onCatChange() {
 			if ( dropdown.options[ dropdown.selectedIndex ].value !== -1 ) {
 				location.href = "<?php echo esc_url( home_url() ); ?>/?" + dropdown.name + '=' + dropdown.options[ dropdown.selectedIndex ].value;
 			}
 		}
-		dropdown.addEventListener( 'change', onCatChange(e) );
+		dropdown.onchange = onCatChange;
 	})();
 	</script>
 	<?php
