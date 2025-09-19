@@ -10,11 +10,11 @@
 require_once __DIR__ . '/admin.php';
 
 if ( ! is_multisite() ) {
-	wp_die( __( 'Multisite support is not enabled.' ) );
+	wp_die( __( 'Multisite support is not enabled.' ), 409 );
 }
 
 if ( ! current_user_can( 'read' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to access this page.' ) );
+	wp_die( __( 'Sorry, you are not allowed to access this page.' ), 403 );
 }
 
 $action = isset( $_POST['action'] ) ? $_POST['action'] : 'splash';
@@ -30,7 +30,7 @@ if ( 'updateblogsettings' === $action && isset( $_POST['primary_blog'] ) ) {
 		update_user_meta( $current_user->ID, 'primary_blog', (int) $_POST['primary_blog'] );
 		$updated = true;
 	} else {
-		wp_die( __( 'The primary site you chose does not exist.' ) );
+		wp_die( __( 'The primary site you chose does not exist.' ), 404 );
 	}
 }
 

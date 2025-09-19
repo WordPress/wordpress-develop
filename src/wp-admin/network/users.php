@@ -86,7 +86,8 @@ if ( isset( $_GET['action'] ) ) {
 											/* translators: %s: User login. */
 											__( 'Warning! User cannot be modified. The user %s is a network administrator.' ),
 											esc_html( $user->user_login )
-										)
+										),
+										403
 									);
 								}
 
