@@ -5469,23 +5469,29 @@ EOF;
 	}
 
 	/**
-	 * Test AVIF quality filters.
+	 * Test AVIF quality filters for both Imagick and GD when AVIF support is available.
 	 *
 	 * @ticket 61614
-	 *
-	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
-	 * See https://core.trac.wordpress.org/ticket/63932.
-	 * @requires PHP < 8.3
+	 * @dataProvider data_test_quality_with_avif_conversion_file_sizes
 	 */
-	public function test_quality_with_avif_conversion_file_sizes() {
+	public function test_quality_with_avif_conversion_file_sizes( $editor_class ) {
+
+		// Set the engine for this test.
+		add_filter(
+			'wp_image_editors',
+			function () use ( $editor_class ) {
+				return array( $editor_class );
+			}
+		);
+
 		$temp_dir = get_temp_dir();
 		$file     = $temp_dir . '/33772.jpg';
 		copy( DIR_TESTDATA . '/images/33772.jpg', $file );
 
 		$editor = wp_get_image_editor( $file );
-		// Only continue if the server supports AVIF.
+		// Only continue if the editor supports AVIF.
 		if ( ! $editor->supports_mime_type( 'image/avif' ) ) {
-			$this->markTestSkipped( 'AVIF is not supported by the selected image editor.' );
+			$this->markTestSkipped( sprintf( 'AVIF is not supported by the %s image editor.', $editor_class ) );
 		}
 
 		$attachment_id = self::factory()->attachment->create_object(
@@ -5515,6 +5521,18 @@ EOF;
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $smaller_avif_sizes['sizes'][ $size ]['filesize'] );
 		}
+	}
+
+	/**
+	 * Data provider for test_quality_with_avif_conversion_file_sizes.
+	 *
+	 * @return array[] Array of arrays, each containing an editor class name.
+	 */
+	public function data_test_quality_with_avif_conversion_file_sizes() {
+		return array(
+			'Imagick' => array( 'WP_Image_Editor_Imagick' ),
+			'GD'      => array( 'WP_Image_Editor_GD' ),
+		);
 	}
 
 	/**
