@@ -72,7 +72,7 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_quoted_font_family_normalization
 	 */
-	public function test_quoted_font_family_doing_it_wrong_normalization( string $font_name, string $expected ) {
+	public function test_quoted_font_family_doing_it_wrong_no_normalization( string $font_name, string $expected ) {
 		$normalizer = new class() extends WP_Font_Face {
 			public function test_normalization( string $font_name ): string {
 				return $this->normalize_css_font_family( $font_name );
@@ -83,9 +83,9 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 
 	public static function data_quoted_font_family_normalization() {
 		return array(
-			"Quoted with '"        => array( "'A font name'", '"A font name"' ),
-			'Quoted with "'        => array( '"A font name"', '"A font name"' ),
-			'Quoted still escaped' => array( '"O\'No (") Double quote in the middle"', '"O\'No (\22 ) Double quote in the middle"' ),
+			"Quoted with '"         => array( "'A font name'", "'A font name'" ),
+			'Quoted with "'         => array( '"A font name"', '"A font name"' ),
+			'Quoted is not escaped' => array( '"""', '"""' ),
 		);
 	}
 }

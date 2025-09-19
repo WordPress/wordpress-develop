@@ -404,7 +404,7 @@ class WP_Font_Face {
 				__( 'Font font-family should not be wrapped in quotes; they will be added automatically.' ),
 				'6.9.0'
 			);
-			$font_family = substr( $font_family, 1, -1 );
+			return $font_family;
 		}
 
 		return '"' . strtr(
