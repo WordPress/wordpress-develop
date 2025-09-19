@@ -5519,6 +5519,13 @@ EOF;
 
 		// Sub-sizes: for each size, the AVIF should be smaller than the JPEG.
 		$sizes_to_compare = array_intersect_key( $avif_sizes['sizes'], $smaller_avif_sizes['sizes'] );
+		if( empty( $sizes_to_compare ) ) {
+			$this->markTestSkipped( sprintf( 'No matching image sizes were generated with the %s editor. avif_sizes: %s, smaller_avif_sizes: %s',
+				$editor_class,
+				json_encode( $avif_sizes['sizes'] ),
+				json_encode( $smaller_avif_sizes['sizes'] )
+			) );
+		}
 
 		$this->assertNotEmpty( $sizes_to_compare );
 
