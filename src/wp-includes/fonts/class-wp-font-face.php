@@ -411,17 +411,17 @@ class WP_Font_Face {
 			$font_family,
 			array(
 				/*
-				* Normalize preprocessed whitespace.
-				* https://www.w3.org/TR/css-syntax-3/#input-preprocessing
-				*/
+				 * Normalize preprocessed whitespace.
+				 * https://www.w3.org/TR/css-syntax-3/#input-preprocessing
+				 */
 				"\r"   => '\\A ',
 				"\f"   => '\\A ',
 				"\r\n" => '\\A ',
 
 				/*
-				* CSS unicode escaping for problematic characters.
-				* https://www.w3.org/TR/css-syntax-3/#escaping
-				*/
+				 * CSS Unicode escaping for problematic characters.
+				 * https://www.w3.org/TR/css-syntax-3/#escaping
+				 */
 				"\n"   => '\\A ',
 				'\\'   => '\\5C ',
 				','    => '\\2C ',

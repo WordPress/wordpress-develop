@@ -64,7 +64,7 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure unexpected quoted font family names are normlized with a doing it wrong notice.
+	 * Ensure already-quoted font family names emit doing it wrong notice and skip normalization.
 	 *
 	 * @expectedIncorrectUsage WP_Font_Face::normalize_css_font_family
 	 *
