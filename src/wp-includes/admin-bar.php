@@ -377,7 +377,7 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 	$blogname = get_bloginfo( 'name' );
 
 	if ( ! $blogname ) {
-		$blogname = preg_replace( '#^(https?://)?(www.)?#', '', get_home_url() );
+		$blogname = preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
 	}
 
 	if ( is_network_admin() ) {
@@ -458,19 +458,21 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
  * @since 5.9.0
  * @since 6.3.0 Added `$_wp_current_template_id` global for editing of current template directly from the admin bar.
  * @since 6.6.0 Added the `canvas` query arg to the Site Editor link.
- * @since 6.8.0 Removed the query args to ensure that the link opens the starting screen of the Site Editor.
+ *
+ * @global string $_wp_current_template_id
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
+	global $_wp_current_template_id;
 
 	// Don't show if a block theme is not activated.
 	if ( ! wp_is_block_theme() ) {
 		return;
 	}
 
-	// Don't show for users who can't edit theme options.
-	if ( ! current_user_can( 'edit_theme_options' ) ) {
+	// Don't show for users who can't edit theme options or when in the admin.
+	if ( ! current_user_can( 'edit_theme_options' ) || is_admin() ) {
 		return;
 	}
 
@@ -478,7 +480,14 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 		array(
 			'id'    => 'site-editor',
 			'title' => __( 'Edit Site' ),
-			'href'  => admin_url( 'site-editor.php' ),
+			'href'  => add_query_arg(
+				array(
+					'postType' => 'wp_template',
+					'postId'   => $_wp_current_template_id,
+					'canvas'   => 'edit',
+				),
+				admin_url( 'site-editor.php' )
+			),
 		)
 	);
 }
@@ -689,7 +698,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 		$blogname = $blog->blogname;
 
 		if ( ! $blogname ) {
-			$blogname = preg_replace( '#^(https?://)?(www.)?#', '', get_home_url() );
+			$blogname = preg_replace( '#^(https?://)?(www\.)?#', '', get_home_url() );
 		}
 
 		$menu_id = 'blog-' . $blog->userblog_id;

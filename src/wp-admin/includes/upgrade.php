@@ -208,7 +208,7 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 
 		// First post.
 		$now             = current_time( 'mysql' );
-		$now_gmt         = current_time( 'mysql', 1 );
+		$now_gmt         = current_time( 'mysql', true );
 		$first_post_guid = get_option( 'home' ) . '/?p=1';
 
 		if ( is_multisite() ) {
@@ -881,6 +881,15 @@ function upgrade_all() {
 	if ( $wp_current_db_version < 58975 ) {
 		upgrade_670();
 	}
+
+	if ( $wp_current_db_version < 60421 ) {
+		upgrade_682();
+	}
+
+	if ( $wp_current_db_version < 60717 ) {
+		upgrade_690();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2409,6 +2418,7 @@ function upgrade_650() {
 		wp_set_option_autoload_values( $autoload );
 	}
 }
+
 /**
  * Executes changes made in WordPress 6.7.0.
  *
@@ -2439,6 +2449,67 @@ function upgrade_670() {
 		wp_set_options_autoload( $options, false );
 	}
 }
+
+/**
+ * Executes changes made in WordPress 6.8.2.
+ *
+ * @ignore
+ * @since 6.8.2
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_682() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 60421 ) {
+		// Upgrade Ping-O-Matic and Twingly to use HTTPS.
+		$ping_sites_value = get_option( 'ping_sites' );
+		$ping_sites_value = explode( "\n", $ping_sites_value );
+		$ping_sites_value = array_map(
+			function ( $url ) {
+				$url = trim( $url );
+				$url = sanitize_url( $url );
+				if (
+					str_ends_with( trailingslashit( $url ), '://rpc.pingomatic.com/' )
+					|| str_ends_with( trailingslashit( $url ), '://rpc.twingly.com/' )
+				) {
+					$url = set_url_scheme( $url, 'https' );
+				}
+				return $url;
+			},
+			$ping_sites_value
+		);
+		$ping_sites_value = array_filter( $ping_sites_value );
+		$ping_sites_value = implode( "\n", $ping_sites_value );
+		update_option( 'ping_sites', $ping_sites_value );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 6.9.0.
+ *
+ * @ignore
+ * @since 6.9.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_690() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 60717 ) {
+		// Switch Hello Dolly from file to directory format. See #53323
+		$active_plugins = (array) get_option( 'active_plugins', array() );
+		$old_plugin     = 'hello.php';
+		$new_plugin     = 'hello-dolly/hello.php';
+		$key            = array_search( $old_plugin, $active_plugins, true );
+
+		if ( $key ) {
+			$active_plugins[ $key ] = $new_plugin;
+			update_option( 'active_plugins', $active_plugins );
+		}
+	}
+}
+
 /**
  * Executes network-level upgrade routines.
  *
@@ -2891,8 +2962,10 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	// Create a tablename index for an array ($cqueries) of recognized query types.
 	foreach ( $queries as $qry ) {
 		if ( preg_match( '|CREATE TABLE ([^ ]*)|', $qry, $matches ) ) {
-			$cqueries[ trim( $matches[1], '`' ) ] = $qry;
-			$for_update[ $matches[1] ]            = 'Created table ' . $matches[1];
+			$table_name = trim( $matches[1], '`' );
+
+			$cqueries[ $table_name ]   = $qry;
+			$for_update[ $table_name ] = 'Created table ' . $matches[1];
 			continue;
 		}
 
@@ -3209,7 +3282,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					'fieldname' => $tableindex->Column_name,
 					'subpart'   => $tableindex->Sub_part,
 				);
-				$index_ary[ $keyname ]['unique']     = ( '0' === $tableindex->Non_unique ) ? true : false;
+				$index_ary[ $keyname ]['unique']     = ( '0' === (string) $tableindex->Non_unique ) ? true : false;
 				$index_ary[ $keyname ]['index_type'] = $tableindex->Index_type;
 			}
 
@@ -3670,7 +3743,7 @@ function pre_schema_upgrade() {
 	}
 
 	// Multisite schema upgrades.
-	if ( $wp_current_db_version < 25448 && is_multisite() && wp_should_upgrade_global_tables() ) {
+	if ( $wp_current_db_version < 60497 && is_multisite() && wp_should_upgrade_global_tables() ) {
 
 		// Upgrade versions prior to 3.7.
 		if ( $wp_current_db_version < 25179 ) {
@@ -3683,6 +3756,20 @@ function pre_schema_upgrade() {
 			// Convert archived from enum to tinyint.
 			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived varchar(1) NOT NULL default '0'" );
 			$wpdb->query( "ALTER TABLE $wpdb->blogs CHANGE COLUMN archived archived tinyint(2) NOT NULL default 0" );
+		}
+
+		// Upgrade versions prior to 6.9
+		if ( $wp_current_db_version < 60497 ) {
+			// Convert ID columns from signed to unsigned
+			$wpdb->query( "ALTER TABLE $wpdb->blogs MODIFY blog_id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->blogs MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->blogmeta MODIFY blog_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY ID bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->registration_log MODIFY blog_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->site MODIFY id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY meta_id bigint(20) unsigned NOT NULL auto_increment" );
+			$wpdb->query( "ALTER TABLE $wpdb->sitemeta MODIFY site_id bigint(20) unsigned NOT NULL default 0" );
+			$wpdb->query( "ALTER TABLE $wpdb->signups MODIFY signup_id bigint(20) unsigned NOT NULL auto_increment" );
 		}
 	}
 
