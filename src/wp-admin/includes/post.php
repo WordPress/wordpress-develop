@@ -283,9 +283,9 @@ function edit_post( $post_data = null ) {
 	$ptype = get_post_type_object( $post_data['post_type'] );
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		if ( 'page' === $post_data['post_type'] ) {
-			wp_die( __( 'Sorry, you are not allowed to edit this page.' ) );
+			wp_die( __( 'Sorry, you are not allowed to edit this page.' ), 403 );
 		} else {
-			wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
+			wp_die( __( 'Sorry, you are not allowed to edit this post.' ), 403 );
 		}
 	}
 
@@ -516,9 +516,9 @@ function bulk_edit_posts( $post_data = null ) {
 
 	if ( ! current_user_can( $ptype->cap->edit_posts ) ) {
 		if ( 'page' === $ptype->name ) {
-			wp_die( __( 'Sorry, you are not allowed to edit pages.' ) );
+			wp_die( __( 'Sorry, you are not allowed to edit pages.' ), 403 );
 		} else {
-			wp_die( __( 'Sorry, you are not allowed to edit posts.' ) );
+			wp_die( __( 'Sorry, you are not allowed to edit posts.' ), 403 );
 		}
 	}
 
@@ -2081,11 +2081,11 @@ function post_preview() {
 	$post = get_post( $post_id );
 
 	if ( ! $post ) {
-		wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
+		wp_die( __( 'Sorry, you are not allowed to edit this post.' ), 404 );
 	}
 
 	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
-		wp_die( __( 'Sorry, you are not allowed to edit this post.' ) );
+		wp_die( __( 'Sorry, you are not allowed to edit this post.' ), 403 );
 	}
 
 	$is_autosave = false;
