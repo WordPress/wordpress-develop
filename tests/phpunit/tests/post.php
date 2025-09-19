@@ -229,6 +229,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEquals( 5, $count->publish );
 		_unregister_post_type( $post_type );
 	}
+
 	/**
 	 * Tests the wp_count_posts_query filter
 	 *
