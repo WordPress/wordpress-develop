@@ -37,4 +37,55 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 		$this->expectOutputString( $expected_output );
 		$font_face->generate_and_print( $fonts );
 	}
+
+
+	/**
+	 * @ticket 63568
+	 *
+	 * @dataProvider data_font_family_normalization
+	 */
+	public function test_font_family_css_normalization( string $font_name, string $expected ) {
+		$normalizer = new class() extends WP_Font_Face {
+			public function test_normalization( string $font_name ): string {
+				return $this->normalize_css_font_family( $font_name );
+			}
+		};
+		$this->assertSame( $expected, $normalizer->test_normalization( $font_name ) );
+	}
+
+	public static function data_font_family_normalization() {
+		return array(
+			'Typical name'           => array( 'A font name', '"A font name"' ),
+			'Generic collision'      => array( 'serif', '"serif"' ),
+			'Trims whitespace'       => array( '   A font name    ', '"A font name"' ),
+			'Name with \' character' => array( 'O\'Reilly Sans', '"O\'Reilly Sans"' ),
+			'Unrealistically tricky' => array( "BS\\Quot\"Apos'Semi;Comma,Newline\nLT<Oh😵My!", '"BS\\5C Quot\\22 Apos\'Semi;Comma\\2C Newline\\A LT<Oh😵My!"' ),
+		);
+	}
+
+	/**
+	 * Ensure unexpected quoted font family names are normlized with a doing it wrong notice.
+	 *
+	 * @expectedIncorrectUsage WP_Font_Face::normalize_css_font_family
+	 *
+	 * @ticket 63568
+	 *
+	 * @dataProvider data_quoted_font_family_normalization
+	 */
+	public function test_quoted_font_family_doing_it_wrong_normalization( string $font_name, string $expected ) {
+		$normalizer = new class() extends WP_Font_Face {
+			public function test_normalization( string $font_name ): string {
+				return $this->normalize_css_font_family( $font_name );
+			}
+		};
+		$this->assertSame( $expected, $normalizer->test_normalization( $font_name ) );
+	}
+
+	public static function data_quoted_font_family_normalization() {
+		return array(
+			"Quoted with '"        => array( "'A font name'", '"A font name"' ),
+			'Quoted with "'        => array( '"A font name"', '"A font name"' ),
+			'Quoted still escaped' => array( '"O\'No (") Double quote in the middle"', '"O\'No (\22 ) Double quote in the middle"' ),
+		);
+	}
 }
