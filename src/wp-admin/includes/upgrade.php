@@ -880,11 +880,14 @@ function upgrade_all() {
 
 	if ( $wp_current_db_version < 58975 ) {
 		upgrade_670();
-		upgrade_690();
 	}
 
 	if ( $wp_current_db_version < 60421 ) {
 		upgrade_682();
+	}
+
+	if ( $wp_current_db_version < 60717 ) {
+		upgrade_690();
 	}
 
 	maybe_disable_link_manager();
@@ -2417,28 +2420,6 @@ function upgrade_650() {
 }
 
 /**
- * Executes changes made in WordPress 6.9.0.
- *
- * @ignore
- * @since 6.9.0
- *
- * @global int $wp_current_db_version The old (current) database version.
- */
-function upgrade_690() {
-	global $wp_current_db_version;
-
-	// Switch Hello Dolly from file to directory format. See #53323
-	$active_plugins = get_option( 'active_plugins' );
-	$old_plugin     = 'hello.php';
-	$new_plugin     = 'hello-dolly/hello.php';
-	$key            = array_search( $old_plugin, $active_plugins, true );
-
-	if ( $key ) {
-		$active_plugins[ $key ] = $new_plugin;
-		update_option( 'active_plugins', $active_plugins );
-	}
-}
-/**
  * Executes changes made in WordPress 6.7.0.
  *
  * @ignore
@@ -2501,6 +2482,31 @@ function upgrade_682() {
 		$ping_sites_value = array_filter( $ping_sites_value );
 		$ping_sites_value = implode( "\n", $ping_sites_value );
 		update_option( 'ping_sites', $ping_sites_value );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 6.9.0.
+ *
+ * @ignore
+ * @since 6.9.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_690() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 60717 ) {
+		// Switch Hello Dolly from file to directory format. See #53323
+		$active_plugins = (array) get_option( 'active_plugins', array() );
+		$old_plugin     = 'hello.php';
+		$new_plugin     = 'hello-dolly/hello.php';
+		$key            = array_search( $old_plugin, $active_plugins, true );
+
+		if ( $key ) {
+			$active_plugins[ $key ] = $new_plugin;
+			update_option( 'active_plugins', $active_plugins );
+		}
 	}
 }
 
