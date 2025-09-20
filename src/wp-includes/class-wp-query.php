@@ -3551,19 +3551,19 @@ class WP_Query {
 								 * @param int    $user_id        User ID of the post author.
 								 * @param string $post_status    Post status.
 								 */
-								$can_preview = apply_filters( 
-									'author_can_preview_protected_post', 
+								$can_preview = apply_filters(
+									'author_can_preview_protected_post',
 									true, 
-									$post_id, 
-									$current_user_id, 
-									$status 
+									$post_id,
+									$current_user_id,
+									$status
 								);
 								if ( $can_preview ) {
 									$this->is_preview = true;
 									if ( 'future' !== $status ) {
 										$this->posts[0]->post_date = current_time( 'mysql' );
 									}
-									
+
 									/**
 									 * Fires when an author previews their own protected post.
 									 *
@@ -3599,7 +3599,7 @@ class WP_Query {
 				} elseif ( ! $post_status_obj ) {
 					// Post status is not registered, assume it's not public.
 					$current_user_id = get_current_user_id();
-        			$is_post_author = $current_user_id && ( $current_user_id === (int) $this->posts[0]->post_author );
+					$is_post_author = $current_user_id && ( $current_user_id === (int) $this->posts[0]->post_author );
 
 					if ( ! current_user_can( $edit_cap, $this->posts[0]->ID ) && ! $is_post_author ) {
 						$this->posts = array();

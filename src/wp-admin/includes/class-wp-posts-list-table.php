@@ -1546,7 +1546,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 			if ( in_array( $post->post_status, array( 'pending', 'draft', 'future' ), true ) ) {
 
 				$can_preview = $can_read_post;
-        
 				// For protected post statuses, check if filter allows author preview
 				$current_user_id = get_current_user_id();
 				$is_post_author = $current_user_id && ( $current_user_id === (int) $post->post_author );
