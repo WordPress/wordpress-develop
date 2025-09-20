@@ -1180,7 +1180,7 @@ function get_post_ancestors( $post ) {
  * @param int|WP_Post $post    Optional. Post ID or post object. Defaults to global $post.
  * @param string      $context Optional. How to filter the field. Accepts 'raw', 'edit', 'db',
  *                             or 'display'. Default 'display'.
- * @return string The value of the post field on success, empty string on failure.
+ * @return int|string|int[] The value of the post field on success, empty string on failure.
  */
 function get_post_field( $field, $post = null, $context = 'display' ) {
 	$post = get_post( $post );
@@ -1483,9 +1483,9 @@ function register_post_status( $post_status, $args = array() ) {
  *
  * @since 3.0.0
  *
- * @global stdClass[] $wp_post_statuses List of post statuses.
- *
  * @see register_post_status()
+ *
+ * @global stdClass[] $wp_post_statuses List of post statuses.
  *
  * @param string $post_status The name of a registered post status.
  * @return stdClass|null A post status object.
@@ -1505,9 +1505,9 @@ function get_post_status_object( $post_status ) {
  *
  * @since 3.0.0
  *
- * @global stdClass[] $wp_post_statuses List of post statuses.
- *
  * @see register_post_status()
+ *
+ * @global stdClass[] $wp_post_statuses List of post statuses.
  *
  * @param array|string $args     Optional. Array or string of post status arguments to compare against
  *                               properties of the global `$wp_post_statuses objects`. Default empty array.
@@ -1587,9 +1587,9 @@ function get_post_type( $post = null ) {
  * @since 3.0.0
  * @since 4.6.0 Object returned is now an instance of `WP_Post_Type`.
  *
- * @global array $wp_post_types List of post types.
- *
  * @see register_post_type()
+ *
+ * @global array $wp_post_types List of post types.
  *
  * @param string $post_type The name of a registered post type.
  * @return WP_Post_Type|null WP_Post_Type object if it exists, null otherwise.
@@ -1609,9 +1609,9 @@ function get_post_type_object( $post_type ) {
  *
  * @since 2.9.0
  *
- * @global array $wp_post_types List of post types.
- *
  * @see register_post_type() for accepted arguments.
+ *
+ * @global array $wp_post_types List of post types.
  *
  * @param array|string $args     Optional. An array of key => value arguments to match against
  *                               the post type objects. Default empty array.
@@ -6104,8 +6104,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
 	$hash      = md5( $page_path . serialize( $post_type ) );
-	$cache_key = "get_page_by_path:$hash:$last_changed";
-	$cached    = wp_cache_get( $cache_key, 'post-queries' );
+	$cache_key = "get_page_by_path:$hash";
+	$cached    = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false !== $cached ) {
 		// Special case: '0' is a bad `$page_path`.
 		if ( '0' === $cached || 0 === $cached ) {
@@ -6175,7 +6175,7 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	}
 
 	// We cache misses as well as hits.
-	wp_cache_set( $cache_key, $found_id, 'post-queries' );
+	wp_cache_set_salted( $cache_key, $found_id, 'post-queries', $last_changed );
 
 	if ( $found_id ) {
 		return get_post( $found_id, $output );
@@ -8170,10 +8170,35 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
  * @param WP_Post $post       Post object.
  */
 function _update_term_count_on_transition_post_status( $new_status, $old_status, $post ) {
+	if ( $new_status === $old_status ) {
+		return;
+	}
+
 	// Update counts for the post's terms.
-	foreach ( (array) get_object_taxonomies( $post->post_type ) as $taxonomy ) {
-		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'tt_ids' ) );
-		wp_update_term_count( $tt_ids, $taxonomy );
+	foreach ( (array) get_object_taxonomies( $post->post_type, 'objects' ) as $taxonomy ) {
+		/** This filter is documented in wp-includes/taxonomy.php */
+		$counted_statuses = apply_filters( 'update_post_term_count_statuses', array( 'publish' ), $taxonomy );
+
+		/*
+		 * Do not recalculate term count if both the old and new status are not included in term counts.
+		 * This accounts for a transition such as draft -> pending.
+		 */
+		if ( ! in_array( $old_status, $counted_statuses, true ) && ! in_array( $new_status, $counted_statuses, true ) ) {
+			continue;
+		}
+
+		/*
+		 * Do not recalculate term count if both the old and new status are included in term counts.
+		 *
+		 * This accounts for transitioning between statuses which are both included in term counts. This can only occur
+		 * if the `update_post_term_count_statuses` filter is in use to count more than just the 'publish' status.
+		 */
+		if ( in_array( $old_status, $counted_statuses, true ) && in_array( $new_status, $counted_statuses, true ) ) {
+			continue;
+		}
+
+		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'tt_ids' ) );
+		wp_update_term_count( $tt_ids, $taxonomy->name );
 	}
 }
 
