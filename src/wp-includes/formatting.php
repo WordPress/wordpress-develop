@@ -6174,7 +6174,7 @@ function wp_staticize_emoji_for_email( $mail ) {
 	foreach ( $headers as $key => $header ) {
 		if ( is_string( $header ) &&
 			strpos( $header, ':' ) === false &&
-			! is_numeric( $key )
+			is_numeric( $key )
 		) {
 			continue;
 		}
