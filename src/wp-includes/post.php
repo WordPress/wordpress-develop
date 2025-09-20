@@ -3434,18 +3434,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 		);
 	}
 
-	$query .= ' GROUP BY post_status';
-
-	/**
-	 * Filters the query used to retrieve post counts for a post type.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param string $query The query to retrieve post counts.
-	 * @param string $type  The post type.
-	 */
-	$query = apply_filters( 'wp_count_posts_query', $query, $type );
-
+	$query  .= ' GROUP BY post_status';
 	$results = (array) $wpdb->get_results( $query, ARRAY_A );
 	$counts  = array_fill_keys( get_post_stati(), 0 );
 

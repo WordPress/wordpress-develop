@@ -231,58 +231,6 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the wp_count_posts_query filter
-	 *
-	 * @ticket 61097
-	 * @covers ::wp_count_posts
-	 */
-	public function test_wp_count_posts_query_filter() {
-		$post_type = rand_str( 20 );
-		register_post_type( $post_type );
-
-		$parent_post_id = self::factory()->post->create( array( 'post_type' => $post_type ) );
-
-		self::factory()->post->create_many(
-			2,
-			array(
-				'post_type' => $post_type,
-			)
-		);
-
-		self::factory()->post->create_many(
-			2,
-			array(
-				'post_type'   => $post_type,
-				'post_parent' => $parent_post_id,
-			)
-		);
-
-		$filter_args  = array();
-		$filter_query = function ( $query, $post_type ) use ( $parent_post_id, &$filter_args ) {
-			$filter_args = func_get_args();
-			global $wpdb;
-			return $wpdb->prepare(
-				"
-				SELECT post_status, COUNT(*) as num_posts 
-				FROM {$wpdb->posts} 
-				WHERE post_parent = %d AND post_type = %s
-				",
-				$parent_post_id,
-				$post_type
-			);
-		};
-
-		add_filter( 'wp_count_posts_query', $filter_query, 10, 2 );
-
-		$count = wp_count_posts( $post_type );
-		$this->assertEquals( 2, $count->publish );
-		$this->assertStringContainsString( 'SELECT post_status', $filter_args[0] );
-		$this->assertSame( $post_type, $filter_args[1] );
-
-		_unregister_post_type( $post_type );
-	}
-
-	/**
 	 * @covers ::wp_count_posts
 	 */
 	public function test_wp_count_posts_filtered() {
