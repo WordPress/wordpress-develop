@@ -3528,27 +3528,80 @@ class WP_Query {
 						// User must be logged in to view unpublished posts.
 						$this->posts = array();
 					} else {
+						// Get current user ID once.
+						$current_user_id = get_current_user_id();
+						$post_id = $this->posts[0]->ID;
+						$is_post_author = $current_user_id && ( $current_user_id === (int) $this->posts[0]->post_author );
+
 						if ( $post_status_obj->protected ) {
-							// User must have edit permissions on the draft to preview.
-							if ( ! current_user_can( $edit_cap, $this->posts[0]->ID ) ) {
-								$this->posts = array();
-							} else {
+							// For protected statuses, check edit permissions OR author status for previews
+							if ( current_user_can( $edit_cap, $post_id ) ) {
 								$this->is_preview = true;
 								if ( 'future' !== $status ) {
 									$this->posts[0]->post_date = current_time( 'mysql' );
 								}
+							} elseif ( $this->is_preview && $is_post_author ) {
+								/**
+								 * Filters whether an author can preview their own protected post.
+								 *
+								 * @since 6.9.0
+								 *
+								 * @param bool   $can_preview    Whether the author can preview. Default true.
+								 * @param int    $post_id        Post ID.
+								 * @param int    $user_id        User ID of the post author.
+								 * @param string $post_status    Post status.
+								 */
+								$can_preview = apply_filters( 
+									'author_can_preview_protected_post', 
+									true, 
+									$post_id, 
+									$current_user_id, 
+									$status 
+								);
+								if ( $can_preview ) {
+									$this->is_preview = true;
+									if ( 'future' !== $status ) {
+										$this->posts[0]->post_date = current_time( 'mysql' );
+									}
+									
+									/**
+									 * Fires when an author previews their own protected post.
+									 *
+									 * @since 6.5.0
+									 *
+									 * @param int    $post_id     Post ID being previewed.
+									 * @param int    $user_id     User ID of the author.
+									 * @param string $post_status Post status.
+									 */
+									do_action( 'author_preview_protected_post', $post_id, $current_user_id, $status );
+								} else {
+									$this->posts = array();
+								}
+							} else {
+								$this->posts = array();
 							}
 						} elseif ( $post_status_obj->private ) {
-							if ( ! current_user_can( $read_cap, $this->posts[0]->ID ) ) {
+							if ( ! current_user_can( $read_cap, $post_id ) && ! $is_post_author ) {
 								$this->posts = array();
 							}
 						} else {
-							$this->posts = array();
+							// For other non-public statuses (e.g., 'future', custom statuses)
+							if ( $this->is_preview && ( current_user_can( $read_cap, $post_id ) || $is_post_author ) ) {
+								$this->is_preview = true;
+								if ( 'future' !== $status ) {
+									$this->posts[0]->post_date = current_time( 'mysql' );
+								}
+							} else {
+								$this->posts = array();
+							}
 						}
 					}
 				} elseif ( ! $post_status_obj ) {
 					// Post status is not registered, assume it's not public.
-					if ( ! current_user_can( $edit_cap, $this->posts[0]->ID ) ) {
+					$current_user_id = get_current_user_id();
+        			$is_post_author = $current_user_id && ( $current_user_id === (int) $this->posts[0]->post_author );
+
+					if ( ! current_user_can( $edit_cap, $this->posts[0]->ID ) && ! $is_post_author ) {
 						$this->posts = array();
 					}
 				}
