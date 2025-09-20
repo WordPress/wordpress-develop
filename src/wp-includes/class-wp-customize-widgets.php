@@ -1807,13 +1807,14 @@ final class WP_Customize_Widgets {
 	 *
 	 * @since 4.5.0
 	 *
+	 * @see WP_Customize_Nav_Menus::filter_wp_nav_menu_args()
+	 *
 	 * @param array $params {
 	 *     Dynamic sidebar params.
 	 *
 	 *     @type array $args        Sidebar args.
 	 *     @type array $widget_args Widget args.
 	 * }
-	 * @see WP_Customize_Nav_Menus::filter_wp_nav_menu_args()
 	 *
 	 * @return array Params.
 	 */
