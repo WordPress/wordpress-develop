@@ -1549,26 +1549,26 @@ class WP_Posts_List_Table extends WP_List_Table {
 				// For protected post statuses, check if filter allows author preview
 				$current_user_id = get_current_user_id();
 				$is_post_author = $current_user_id && ( $current_user_id === (int) $post->post_author );
-				
+
 				if ( $is_post_author ) {
 					$post_status_obj = get_post_status_object( $post->post_status );
 					if ( $post_status_obj && $post_status_obj->protected ) {
 						/**
 						 * Filters whether an author can preview their own protected post in admin.
-						 * 
+						 *
 						 * @param bool   $can_preview Whether the author can preview. Default true.
 						 * @param int    $post_id     Post ID.
 						 * @param int    $user_id     User ID of the post author.
 						 * @param string $post_status Post status.
 						 */
-						$author_can_preview = apply_filters( 
+						$author_can_preview = apply_filters(
 							'author_can_preview_protected_post', 
-							true, 
-							$post->ID, 
-							$current_user_id, 
-							$post->post_status 
+							true,
+							$post->ID,
+							$current_user_id,
+							$post->post_status
 						);
-						
+
 						// If filter disabled author preview, and user only has read access as author
 						// (not edit access), then disable preview
 						if ( ! $author_can_preview && ! current_user_can( 'edit_post', $post->ID ) ) {
