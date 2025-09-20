@@ -1562,7 +1562,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						 * @param string $post_status Post status.
 						 */
 						$author_can_preview = apply_filters(
-							'author_can_preview_protected_post', 
+							'author_can_preview_protected_post',
 							true,
 							$post->ID,
 							$current_user_id,

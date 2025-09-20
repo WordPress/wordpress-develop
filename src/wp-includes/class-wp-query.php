@@ -3553,7 +3553,7 @@ class WP_Query {
 								 */
 								$can_preview = apply_filters(
 									'author_can_preview_protected_post',
-									true, 
+									true,
 									$post_id,
 									$current_user_id,
 									$status
