@@ -220,11 +220,8 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		$method     = $reflection->getMethod( 'get_timestamp_as_date' );
 		$method->setAccessible( true );
 
-		$original_date_format = get_option( 'date_format' );
-		$original_time_format = get_option( 'time_format' );
-
-		update_option( 'date_format', 'Y-m-d' );
-		update_option( 'time_format', 'H:i:s' );
+		$date_format = __( 'Y/m/d' );
+		$time_format = __( 'g:i a' );
 
 		$current_time = time();
 
@@ -238,14 +235,11 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		$old_time = $current_time - 2 * DAY_IN_SECONDS;
 		$result   = $method->invoke( $table, $old_time );
 
-		$date_part = date_i18n( 'Y-m-d', $old_time );
-		$time_part = date_i18n( 'H:i:s', $old_time );
+		$date_part = date_i18n( $date_format, $old_time );
+		$time_part = date_i18n( $time_format, $old_time );
 
 		$this->assertStringContainsString( $date_part, $result );
 		$this->assertStringContainsString( 'at', $result );
 		$this->assertStringContainsString( $time_part, $result );
-
-		update_option( 'date_format', $original_date_format );
-		update_option( 'time_format', $original_time_format );
 	}
 }
