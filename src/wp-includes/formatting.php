@@ -6172,14 +6172,19 @@ function wp_staticize_emoji_for_email( $mail ) {
 	}
 
 	foreach ( $headers as $key => $header ) {
-		if ( is_string( $header ) && strpos($header, ':') === false ) {
-			if ( is_numeric ( $key ) ) {
+		if ( is_string( $header ) && strpos( $header, ':' ) === false ) {
+			if ( is_numeric( $key ) ) {
 				continue;
 			}
 		}
 
 		// Explode them out.
-		list( $name, $content ) = ( is_numeric ( $key ) ) ? explode( ':', trim( $header ), 2 ) : array ( $key, $header );
+		list( $name, $content ) = ( is_numeric( $key ) ) ? explode( ':', trim( $header ), 2 ) : array( $key, $header );
+
+		// Skip because Content-Type must be an string.
+		if ( ! is_string( $name ) || ! is_string( $content ) ) {
+			continue;
+		}
 
 		// Cleanup crew.
 		$name    = trim( $name );

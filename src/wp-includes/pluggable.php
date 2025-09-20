@@ -307,7 +307,9 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			if ( ! empty( $tempheaders ) ) {
 				// Iterate through the raw headers.
 				foreach ( (array) $tempheaders as $key => $header ) {
-					if ( strpos($header, ':') === false ) {
+					if ( is_array( $header ) ) {
+						$header = implode( ',', $header ) . ',';
+					} elseif ( strpos( $header, ':' ) === false ) {
 						if ( false !== stripos( $header, 'boundary=' ) ) {
 							$parts    = preg_split( '/boundary=/i', trim( $header ) );
 							$boundary = trim( str_replace( array( "'", '"' ), '', $parts[1] ) );
@@ -317,7 +319,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 						}
 					}
 					// Explode them out.
-					list( $name, $content ) = ( is_numeric ( $key ) ) ? explode( ':', trim( $header ), 2 ) : array ( $key, $header );
+					list( $name, $content ) = ( is_numeric( $key ) ) ? explode( ':', trim( $header ), 2 ) : array( $key, $header );
 
 					// Cleanup crew.
 					$name    = trim( $name );
@@ -360,7 +362,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 								$content_type = trim( $content );
 							}
 							break;
-												case 'cc':
+						case 'cc':
 							$cc = array_merge(
 								(array) $cc,
 								( is_array( $content ) ) ? $content : explode( ',', $content )
