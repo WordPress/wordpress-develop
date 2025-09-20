@@ -686,7 +686,7 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 	$users = array_unique( array_filter( array_map( 'absint', (array) $users ) ) );
 	sort( $users );
 
-	$userlist    = implode( '_', $users );
+	$userlist    = implode( ',', $users );
 	$cache_key   = "count_many_users_posts_{$post_type}_{$public_only}_{$userlist}_" . get_current_user_id();
 	$cache_group = $public_only ? 'count_many_users_posts_public' : 'count_many_users_posts';
 	$count       = wp_cache_get( $cache_key, $cache_group );
