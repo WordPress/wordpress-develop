@@ -610,6 +610,9 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 63405
 	 */
 	public function test_count_many_users_posts_salted_cache() {
+		// Clear any existing cache
+		wp_cache_flush();
+
 		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		$editor_id = self::factory()->user->create( array( 'role' => 'editor' ) );
 

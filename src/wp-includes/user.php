@@ -687,7 +687,7 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 	sort( $users );
 
 	$userlist    = implode( ',', $users );
-	$cache_key   = 'count_many_users_posts:' . md5( implode( ':', array( $post_type, $public_only ? 'public' : 'public|private', $userlist ) ) );
+	$cache_key   = 'count_many_users_posts:' . md5( implode( ':', array( $post_type, $public_only ? 'public' : 'public|private', $userlist, get_current_user_id() ) ) );
 	$cache_salts = array( wp_cache_get_last_changed( 'posts' ), wp_cache_get_last_changed( 'users' ) );
 	$count       = wp_cache_get_salted( $cache_key, 'user-queries', $cache_salts );
 
