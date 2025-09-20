@@ -308,7 +308,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 				// Iterate through the raw headers.
 				foreach ( (array) $tempheaders as $key => $header ) {
 					if ( is_array( $header ) ) {
-						$header = implode( ',', $header ) . ',';
+						$header = implode( ',', $header );
 					} elseif ( strpos( $header, ':' ) === false ) {
 						if ( false !== stripos( $header, 'boundary=' ) ) {
 							$parts    = preg_split( '/boundary=/i', trim( $header ) );
