@@ -6,8 +6,8 @@
  */
 class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
-	private $png_cdn = 'https://s.w.org/images/core/emoji/15.1.0/72x72/';
-	private $svn_cdn = 'https://s.w.org/images/core/emoji/15.1.0/svg/';
+	private $png_cdn = 'https://s.w.org/images/core/emoji/16.0.1/72x72/';
+	private $svn_cdn = 'https://s.w.org/images/core/emoji/16.0.1/svg/';
 
 	/**
 	 * @ticket 36525
