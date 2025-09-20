@@ -687,9 +687,9 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 	sort( $users );
 
 	$userlist    = implode( ',', $users );
-	$cache_key   = "count_many_users_posts_{$post_type}_{$public_only}_{$userlist}_" . get_current_user_id();
-	$cache_group = $public_only ? 'count_many_users_posts_public' : 'count_many_users_posts';
-	$count       = wp_cache_get( $cache_key, $cache_group );
+	$cache_key   = 'count_many_users_posts:' . md5( implode( ':', array( $post_type, $public_only ? 'public' : 'public|private', $userlist ) ) );
+	$cache_salts = array( wp_cache_get_last_changed( 'posts' ), wp_cache_get_last_changed( 'users' ) );
+	$count       = wp_cache_get_salted( $cache_key, 'user-queries', $cache_salts );
 
 	if ( false === $count ) {
 		$where  = get_posts_by_author_sql( $post_type, true, null, $public_only );
@@ -700,7 +700,7 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 			$count[ $row[0] ] = $row[1];
 		}
 
-		wp_cache_add( $cache_key, $count, $cache_group, HOUR_IN_SECONDS );
+		wp_cache_set_salted( $cache_key, $count, 'user-queries', $cache_salts, HOUR_IN_SECONDS );
 	}
 
 	return $count;
