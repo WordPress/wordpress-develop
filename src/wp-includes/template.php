@@ -153,7 +153,13 @@ function get_archive_template() {
 	$templates = array();
 
 	if ( count( $post_types ) === 1 ) {
-		$post_type   = reset( $post_types );
+		$post_type = reset( $post_types );
+
+		// Look for post type template with hyphens.
+		if ( false !== strpos( $post_type, '_' ) ) {
+			$templates[] = 'archive-' . str_replace( '_', '-', $post_type ) . '.php';
+		}
+
 		$templates[] = "archive-{$post_type}.php";
 	}
 	$templates[] = 'archive.php';
@@ -357,6 +363,12 @@ function get_taxonomy_template() {
 		}
 
 		$templates[] = "taxonomy-$taxonomy-{$term->slug}.php";
+
+		// Look for taxonomy template with hyphens.
+		if ( false !== strpos( $taxonomy, '_' ) ) {
+			$templates[] = 'taxonomy-' . str_replace( '_', '-', $taxonomy ) . '.php';
+		}
+
 		$templates[] = "taxonomy-$taxonomy.php";
 	}
 	$templates[] = 'taxonomy.php';
@@ -563,6 +575,12 @@ function get_single_template() {
 		}
 
 		$templates[] = "single-{$object->post_type}-{$object->post_name}.php";
+
+		// Look for post type template with hyphens.
+		if ( false !== strpos( $object->post_type, '_' ) ) {
+			$templates[] = 'single-' . str_replace( '_', '-', $object->post_type ) . '.php';
+		}
+
 		$templates[] = "single-{$object->post_type}.php";
 	}
 
