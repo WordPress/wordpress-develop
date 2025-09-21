@@ -38,7 +38,7 @@
  */
 function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
-	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+	if ( ! is_numeric( $timestamp ) || $timestamp < 0 ) {
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
@@ -233,7 +233,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
  */
 function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
-	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+	if ( ! is_numeric( $timestamp ) || $timestamp < 0 ) {
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
@@ -339,7 +339,7 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
  */
 function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
-	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+	if ( ! is_numeric( $timestamp ) || $timestamp < 0 ) {
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
