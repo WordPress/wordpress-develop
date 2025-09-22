@@ -717,46 +717,16 @@ fieldset label,
 /* Caps lock warning */
 .wp-pwd .caps-warning {
 	display: none;
-	position: absolute;
-	background: #FFFDD6;
-	border: 1px solid #ddd;
-	border-radius: 3px;
-	color: #1E1E20;
-	font-size: 13px;
+	position: relative;
+	background: #f5e6ab;
 	padding: 6px 10px;
-	top: calc(100% - 25px);
-	left: 24px;
-	white-space: nowrap;
-	z-index: 10;
-	box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.wp-pwd .caps-warning::before {
-	content: '';
-	position: absolute;
-	bottom: 100%;
-	left: 15px;
-	margin-left: -8px;
-	border-width: 8px;
-	border-style: solid;
-	border-color: transparent transparent #ddd transparent;
-}
-
-.wp-pwd .caps-warning::after {
-	content: '';
-	position: absolute;
-	bottom: 100%;
-	left: 15px;
-	margin-left: -7px;
-	border-width: 7px;
-	border-style: solid;
-	border-color: transparent transparent #FFFDD6 transparent;
+	top: -8px;
 }
 
 .wp-pwd .caps-icon {
 	display: inline-flex;
     justify-content: center;
-    background-color: #FFF972;
+    background-color: #fcf9e8;
     width: 20px;
     height: 20px;
     border-radius: 3px;

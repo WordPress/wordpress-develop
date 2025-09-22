@@ -354,6 +354,10 @@
 
 			// Skip CapsLock key itself.
 			if ( ev.key === 'CapsLock' ) {
+				if (capsLockOn) {
+					capsLockOn = false;
+					$capsWarning.hide();
+				}
 				return;
 			}
 
