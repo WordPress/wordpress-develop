@@ -18,11 +18,11 @@
 	},
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^6.14.0",
-		"@wordpress/eslint-plugin": "^17.4.0",
+		"@wordpress/eslint-plugin": "^22.17.0",
 		"@wordpress/stylelint-config": "^21.30.0",
 		"autoprefixer": "^10.4.20",
 		"chokidar-cli": "^3.0.0",
-		"eslint": "^8.55.0",
+		"eslint": "^9.36.0",
 		"minimist": "^1.2.8",
 		"npm-run-all": "^4.1.5",
 		"postcss": "^8.4.49",
