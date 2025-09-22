@@ -1291,7 +1291,7 @@ class WP_Query {
 		if ( ! empty( $q['category__not_in'] ) ) {
 			$q['category__not_in'] = array_map( 'absint', array_unique( (array) $q['category__not_in'] ) );
 			sort( $q['category__not_in'] );
-			$tax_query[]           = array(
+			$tax_query[] = array(
 				'taxonomy'         => 'category',
 				'terms'            => $q['category__not_in'],
 				'operator'         => 'NOT IN',
@@ -1360,7 +1360,7 @@ class WP_Query {
 		if ( ! empty( $q['tag__not_in'] ) ) {
 			$q['tag__not_in'] = array_map( 'absint', array_unique( (array) $q['tag__not_in'] ) );
 			sort( $q['tag__not_in'] );
-			$tax_query[]      = array(
+			$tax_query[] = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag__not_in'],
 				'operator' => 'NOT IN',
@@ -2067,6 +2067,15 @@ class WP_Query {
 			case 'id=>parent':
 				$fields = "{$wpdb->posts}.ID, {$wpdb->posts}.post_parent";
 				break;
+			case '':
+				/*
+				 * Set the default to 'all'.
+				 *
+				 * This is used in `WP_Query::the_post` to determine if the
+				 * entire post object has been queried.
+				 */
+				$q['fields'] = 'all';
+				// Falls through.
 			default:
 				$fields = "{$wpdb->posts}.*";
 		}
@@ -2873,13 +2882,16 @@ class WP_Query {
 			$comments_request = "SELECT $distinct {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
 
 			$key          = md5( $comments_request );
-			$last_changed = wp_cache_get_last_changed( 'comment' ) . ':' . wp_cache_get_last_changed( 'posts' );
+			$last_changed = array(
+				wp_cache_get_last_changed( 'comment' ),
+				wp_cache_get_last_changed( 'posts' ),
+			);
 
-			$cache_key   = "comment_feed:$key:$last_changed";
-			$comment_ids = wp_cache_get( $cache_key, 'comment-queries' );
+			$cache_key   = "comment_feed:$key";
+			$comment_ids = wp_cache_get_salted( $cache_key, 'comment-queries', $last_changed );
 			if ( false === $comment_ids ) {
 				$comment_ids = $wpdb->get_col( $comments_request );
-				wp_cache_add( $cache_key, $comment_ids, 'comment-queries' );
+				wp_cache_set_salted( $cache_key, $comment_ids, 'comment-queries', $last_changed );
 			}
 			_prime_comment_caches( $comment_ids );
 
@@ -3237,15 +3249,21 @@ class WP_Query {
 			$id_query_is_cacheable = false;
 		}
 
+		$last_changed = (array) wp_cache_get_last_changed( 'posts' );
+		if ( ! empty( $this->tax_query->queries ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'terms' );
+		}
+
 		if ( $q['cache_results'] && $id_query_is_cacheable ) {
 			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
 			$cache_key   = $this->generate_cache_key( $q, $new_request );
 
 			$cache_found = false;
 			if ( null === $this->posts ) {
-				$cached_results = wp_cache_get( $cache_key, 'post-queries', false, $cache_found );
+				$cached_results = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 
 				if ( $cached_results ) {
+					$cache_found = true;
 					/** @var int[] */
 					$post_ids = array_map( 'intval', $cached_results['posts'] );
 
@@ -3303,7 +3321,7 @@ class WP_Query {
 					'max_num_pages' => $this->max_num_pages,
 				);
 
-				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
+				wp_cache_set_salted( $cache_key, $cache_value, 'post-queries', $last_changed );
 			}
 
 			return $this->posts;
@@ -3341,7 +3359,7 @@ class WP_Query {
 					'max_num_pages' => $this->max_num_pages,
 				);
 
-				wp_cache_set( $cache_key, $cache_value, 'post-queries' );
+				wp_cache_set_salted( $cache_key, $cache_value, 'post-queries', $last_changed );
 			}
 
 			return $post_parents;
@@ -3439,7 +3457,7 @@ class WP_Query {
 				'max_num_pages' => $this->max_num_pages,
 			);
 
-			wp_cache_set( $cache_key, $cache_value, 'post-queries' );
+			wp_cache_set_salted( $cache_key, $cache_value, 'post-queries', $last_changed );
 		}
 
 		if ( ! $q['suppress_filters'] ) {
@@ -3477,11 +3495,11 @@ class WP_Query {
 			$comment_key          = md5( $comments_request );
 			$comment_last_changed = wp_cache_get_last_changed( 'comment' );
 
-			$comment_cache_key = "comment_feed:$comment_key:$comment_last_changed";
-			$comment_ids       = wp_cache_get( $comment_cache_key, 'comment-queries' );
+			$comment_cache_key = "comment_feed:$comment_key";
+			$comment_ids       = wp_cache_get_salted( $comment_cache_key, 'comment-queries', $comment_last_changed );
 			if ( false === $comment_ids ) {
 				$comment_ids = $wpdb->get_col( $comments_request );
-				wp_cache_add( $comment_cache_key, $comment_ids, 'comment-queries' );
+				wp_cache_set_salted( $comment_cache_key, $comment_ids, 'comment-queries', $comment_last_changed );
 			}
 			_prime_comment_caches( $comment_ids );
 
@@ -3739,28 +3757,30 @@ class WP_Query {
 		global $post;
 
 		if ( ! $this->in_the_loop ) {
-			// Get post IDs to prime incomplete post objects.
-			$post_ids = array_reduce(
-				$this->posts,
-				function ( $carry, $post ) {
-					if ( is_numeric( $post ) && $post > 0 ) {
-						// Query for post ID.
-						$carry[] = $post;
-					}
+			if ( 'all' === $this->query_vars['fields'] ) {
+				// Full post objects queried.
+				$post_objects = $this->posts;
+			} else {
+				if ( 'ids' === $this->query_vars['fields'] ) {
+					// Post IDs queried.
+					$post_ids = $this->posts;
+				} else {
+					// Only partial objects queried, need to prime the cache for the loop.
+					$post_ids = array_reduce(
+						$this->posts,
+						function ( $carry, $post ) {
+							if ( isset( $post->ID ) ) {
+								$carry[] = $post->ID;
+							}
 
-					if ( is_object( $post ) && isset( $post->ID ) ) {
-						// Query for object, either WP_Post or stdClass.
-						$carry[] = $post->ID;
-					}
-
-					return $carry;
-				},
-				array()
-			);
-			if ( $post_ids ) {
+							return $carry;
+						},
+						array()
+					);
+				}
 				_prime_post_caches( $post_ids, $this->query_vars['update_post_term_cache'], $this->query_vars['update_post_meta_cache'] );
+				$post_objects = array_map( 'get_post', $post_ids );
 			}
-			$post_objects = array_map( 'get_post', $post_ids );
 			update_post_author_caches( $post_objects );
 		}
 
@@ -3781,12 +3801,19 @@ class WP_Query {
 		$post = $this->next_post();
 
 		// Ensure a full post object is available.
-		if ( $post instanceof stdClass ) {
-			// stdClass indicates that a partial post object was queried.
-			$post = get_post( $post->ID );
-		} elseif ( is_numeric( $post ) ) {
-			// Numeric indicates that only post IDs were queried.
-			$post = get_post( $post );
+		if ( 'all' !== $this->query_vars['fields'] ) {
+			if ( 'ids' === $this->query_vars['fields'] ) {
+				// Post IDs queried.
+				$post = get_post( $post );
+			} elseif ( isset( $post->ID ) ) {
+				/*
+				 * Partial objecct queried.
+				 *
+				 * The post object was queried with a partial set of
+				 * fields, populate the entire object for the loop.
+				 */
+				$post = get_post( $post->ID );
+			}
 		}
 
 		// Set up the global post object for the loop.
@@ -4987,7 +5014,7 @@ class WP_Query {
 		 *
 		 * These arrays are sorted in the query generator for the purposes of the
 		 * WHERE clause but the arguments are not modified as they can be used for
-		 * the orderby clase.
+		 * the orderby clause.
 		 *
 		 * Their use in the orderby clause will generate a different SQL query so
 		 * they can be sorted for the cache key generation.
@@ -5044,12 +5071,7 @@ class WP_Query {
 		$sql = $wpdb->remove_placeholder_escape( $sql );
 		$key = md5( serialize( $args ) . $sql );
 
-		$last_changed = wp_cache_get_last_changed( 'posts' );
-		if ( ! empty( $this->tax_query->queries ) ) {
-			$last_changed .= wp_cache_get_last_changed( 'terms' );
-		}
-
-		$this->query_cache_key = "wp_query:$key:$last_changed";
+		$this->query_cache_key = "wp_query:$key";
 		return $this->query_cache_key;
 	}
 

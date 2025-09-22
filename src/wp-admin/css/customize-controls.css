@@ -842,11 +842,16 @@ h3.customize-section-title {
 	color: #3c434a;
 	text-align: left;
 	cursor: pointer;
-	transition:
-		color .15s ease-in-out,
-		border-color .15s ease-in-out,
-		background .15s ease-in-out;
 	box-sizing: content-box;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.customize-controls-close {
+		transition:
+			color .15s ease-in-out,
+			border-color .15s ease-in-out,
+			background .15s ease-in-out;	
+	}
 }
 
 .customize-panel-back,
@@ -1434,6 +1439,21 @@ p.customize-section-description {
 	width: auto;
 	height: auto;
 	white-space: normal;
+}
+
+.customize-control .attachment-media-view .upload-button {
+	width: 100%;
+	padding: 9px 0;
+}
+
+.customize-control .attachment-media-view .upload-button.control-focus {
+	width: auto;
+	padding: 0 10px;
+}
+
+.customize-control.customize-control-header .actions .upload-button.button.new {
+	width: 100%;
+	padding: 9px 0;
 }
 
 .customize-control .attachment-media-view .thumbnail,
@@ -2983,6 +3003,10 @@ body.adding-widget .add-new-widget:before,
 		line-height: 2;
 		font-size: 14px;
 		vertical-align: middle;
+	}
+
+	.customize-control .attachment-media-view .upload-button {
+		padding: 5px 0;
 	}
 
 	#customize-control-changeset_status .customize-inside-control-row {

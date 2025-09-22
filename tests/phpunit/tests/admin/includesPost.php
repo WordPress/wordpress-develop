@@ -535,6 +535,20 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_default_post_to_edit() calls wp_die() if wp_insert_post() returns a WP_Error.
+	 *
+	 * @ticket 37441
+	 *
+	 * @covers ::get_default_post_to_edit
+	 */
+	public function test_get_default_post_to_edit_with_wp_insert_post_error() {
+		add_filter( 'wp_insert_post_empty_content', '__return_true' );
+
+		$this->expectException( 'WPDieException' );
+		get_default_post_to_edit( 'post', true );
+	}
+
+	/**
 	 * @ticket 38293
 	 */
 	public function test_user_cant_delete_protected_meta() {
