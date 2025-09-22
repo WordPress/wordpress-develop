@@ -196,6 +196,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * read private posts.
 	 *
 	 * @ticket 61097
+	 *
 	 * @covers ::wp_count_posts
 	 */
 	public function test_wp_count_posts_readable_excludes_unreadable_private_posts() {
@@ -222,8 +223,7 @@ class Tests_Post extends WP_UnitTestCase {
 			)
 		);
 
-		$current_user_id = self::$user_ids['author'];
-		wp_set_current_user( $current_user_id );
+		wp_set_current_user( self::$user_ids['author'] );
 
 		$count = wp_count_posts( $post_type, 'readable' );
 		$this->assertEquals( 5, $count->publish );
