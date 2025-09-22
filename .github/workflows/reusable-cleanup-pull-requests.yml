@@ -46,7 +46,7 @@ jobs:
       - name: Find pull requests
         id: linked-prs
         if: ${{ steps.trac-tickets.outputs.fixed_list != '' && steps.git-svn-id.outputs.svn_revision_number != '' }}
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const fixedList = "${{ steps.trac-tickets.outputs.fixed_list }}".split(' ').filter(Boolean);
@@ -82,7 +82,7 @@ jobs:
 
       - name: Comment and close pull requests
         if: ${{ steps.trac-tickets.outputs.fixed_list != '' && steps.git-svn-id.outputs.svn_revision_number != '' }}
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const prNumbers = ${{ steps.linked-prs.outputs.result }};
