@@ -179,4 +179,6 @@ function get_block_bindings_supported_attributes( $block_type ) {
 		"block_bindings_supported_attributes_{$block_type}",
 		$supported_block_attributes
 	);
+
+	return $supported_block_attributes;
 }
