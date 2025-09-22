@@ -11,7 +11,7 @@
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'manage_network_themes' ) ) {
-	wp_die(__('Sorry, you are not allowed to manage network themes.'), 403);
+	wp_die(__('Sorry, you are not allowed to manage network themes.'), 403 );
 }
 
 $wp_list_table = _get_list_table( 'WP_MS_Themes_List_Table' );
@@ -99,7 +99,7 @@ if ( $action ) {
 			exit;
 		case 'delete-selected':
 			if ( ! current_user_can( 'delete_themes' ) ) {
-				wp_die(__('Sorry, you are not allowed to delete themes for this site.'), 403);
+				wp_die(__('Sorry, you are not allowed to delete themes for this site.'), 403 );
 			}
 
 			check_admin_referer( 'bulk-themes' );
@@ -237,7 +237,7 @@ if ( $action ) {
 		case 'enable-auto-update-selected':
 		case 'disable-auto-update-selected':
 			if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
-				wp_die(__('Sorry, you are not allowed to change themes automatic update settings.'), 403);
+				wp_die(__('Sorry, you are not allowed to change themes automatic update settings.'), 403 );
 			}
 
 			if ( 'enable-auto-update' === $action || 'disable-auto-update' === $action ) {
