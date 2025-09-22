@@ -138,7 +138,7 @@ function get_block_bindings_source( string $source_name ) {
  * @param string $block_type The block type whose supported attributes are being retrieved.
  * @return array The list of block attributes that are supported by block bindings.gi
  */
-function get_block_bindings_supported_attributes( $block_type) {
+function get_block_bindings_supported_attributes( $block_type ) {
 	$block_bindings_supported_attributes = array(
 		'core/paragraph' => array( 'content' ),
 		'core/heading'   => array( 'content' ),
