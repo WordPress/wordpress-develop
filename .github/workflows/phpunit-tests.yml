@@ -30,8 +30,10 @@ on:
       - 'Gruntfile.js'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
-      # This files affect the phpunit tests. Changes could affect the outcome.
+      # These files affect the phpunit tests. Changes could affect the outcome.
       - 'tests/phpunit/**'
+      - 'tests/phpunit/multisite.xml'
+      - 'phpunit.xml.dist'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpunit-tests.yml'
       - '.github/workflows/reusable-phpunit-tests-*.yml'
