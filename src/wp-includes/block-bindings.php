@@ -136,7 +136,7 @@ function get_block_bindings_source( string $source_name ) {
  * @since 6.9.0
  *
  * @param string $block_type The block type whose supported attributes are being retrieved.
- * @return array The list of block attributes that are supported by block bindings.gi
+ * @return array The list of block attributes that are supported by block bindings.
  */
 function get_block_bindings_supported_attributes( $block_type ) {
 	$block_bindings_supported_attributes = array(
