@@ -859,8 +859,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $prepared_args ) ) {
 				return $prepared_args;
 			}
-
-			if ( isset( $prepared_args['comment_content'] ) && empty( $prepared_args['comment_content'] ) ) {
+			$is_block_comment = isset( $prepared_args['type'] ) && 'block_comment' === $prepared_args['type'];
+			if ( ! $is_block_comment && isset( $prepared_args['comment_content'] ) && empty( $prepared_args['comment_content'] ) ) {
 				return new WP_Error(
 					'rest_comment_content_invalid',
 					__( 'Invalid comment content.' ),
