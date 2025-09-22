@@ -516,7 +516,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_template_output_buffer_html',
-			function ( string $buffer ): string {
+			static function ( string $buffer ): string {
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				while ( $p->next_tag() ) {
 					echo $p->get_tag() . PHP_EOL;
@@ -535,6 +535,17 @@ class Tests_Template extends WP_UnitTestCase {
 					}
 				}
 				return $p->get_updated_html();
+			}
+		);
+
+		add_filter(
+			'wp_template_output_buffer',
+			function ( string $buffer ): string {
+				$this->assertStringNotContainsString( 'Hello', $buffer );
+				if ( str_starts_with( ltrim( $buffer ), '<!DOCTYPE html>' ) ) {
+					$buffer .= "\n<!-- Output buffer was processed! -->\n";
+				}
+				return $buffer;
 			}
 		);
 
@@ -580,12 +591,14 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<title>Saludo</title>', $action_args[0] );
 		$this->assertStringContainsString( '<h1>¡Hola, mundo!</h1>', $action_args[0] );
 		$this->assertStringContainsString( '</html>', $action_args[0] );
+		$this->assertStringContainsString( '<!-- Output buffer was processed! -->', $action_args[0] );
 		$this->assertIsString( $action_args[1] );
 		$this->assertStringContainsString( '<!DOCTYPE html>', $action_args[1] );
 		$this->assertStringContainsString( '<html lang="en">', $action_args[1] );
 		$this->assertStringContainsString( '<title>Greeting</title>', $action_args[1] );
 		$this->assertStringContainsString( '<h1>Hello World!</h1>', $action_args[1] );
 		$this->assertStringContainsString( '</html>', $action_args[1] );
+		$this->assertStringNotContainsString( '<!-- Output buffer was processed! -->', $action_args[1] );
 	}
 
 	/**

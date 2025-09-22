@@ -904,6 +904,20 @@ function wp_finalize_template_output_buffer( string $output, int $phase ): strin
 	}
 
 	/**
+	 * Filters the template output buffer prior to sending to the client.
+	 *
+	 * This filter applies to HTML and non-HTML template output alike. For example, a "template" could return JSON. Use
+	 * the {@see 'wp_template_output_buffer_html'}  filter specifically for filtering HTML output, which is the normal
+	 * case. Notice: It is highly discouraged to use regular expressions to do any kind of replacement on the output.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $output Output buffer.
+	 * @return string Filtered output buffer.
+	 */
+	$filtered_output = (string) apply_filters( 'wp_template_output_buffer', $filtered_output );
+
+	/**
 	 * Fires after the output buffer has been filtered prior to sending to the client.
 	 *
 	 * This is useful for caching plugins to capture the page output for storage.
