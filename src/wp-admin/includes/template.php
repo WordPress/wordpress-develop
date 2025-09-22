@@ -2265,6 +2265,8 @@ function _post_states( $post, $display = true ) {
 		}
 	}
 
+	$post_states_string = apply_filters( 'post_states_string', $post_states_string, $post );
+	
 	if ( $display ) {
 		echo $post_states_string;
 	}
