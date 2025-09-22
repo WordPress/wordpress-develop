@@ -494,6 +494,110 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertSame( $new_theme->get_stylesheet_directory() . '/index.php', locate_template( $template_names ), 'Incorrect index template found in theme after switch.' );
 	}
 
+	/**
+	 * Tests that wp_start_template_output_buffer() starts the expected output buffer and that the expected hooks fire.
+	 *
+	 * @ticket 43258
+	 * @covers ::wp_start_template_output_buffer
+	 */
+	public function test_wp_start_template_output_buffer(): void {
+		// Start a wrapper output buffer so that we can flush the inner buffer.
+		ob_start();
+
+		$action_args = null;
+		add_action(
+			'wp_final_template_output_buffer',
+			function () use ( &$action_args ): void {
+				$action_args = func_get_args();
+			},
+			10,
+			PHP_INT_MAX
+		);
+
+		add_filter(
+			'wp_template_output_buffer_html',
+			function ( string $buffer ): string {
+				$p = WP_HTML_Processor::create_full_parser( $buffer );
+				while ( $p->next_tag() ) {
+					echo $p->get_tag() . PHP_EOL;
+					switch ( $p->get_tag() ) {
+						case 'HTML':
+							$p->set_attribute( 'lang', 'es' );
+							break;
+						case 'TITLE':
+							$p->set_modifiable_text( 'Saludo' );
+							break;
+						case 'H1':
+							if ( $p->next_token() && '#text' === $p->get_token_name() ) {
+								$p->set_modifiable_text( '¡Hola, mundo!' );
+							}
+							break;
+					}
+				}
+				return $p->get_updated_html();
+			}
+		);
+
+		$initial_ob_level = ob_get_level();
+		$this->assertTrue( wp_start_template_output_buffer() );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
+
+		?>
+		<!DOCTYPE html>
+		<html lang="en">
+			<head>
+				<title>Greeting</title>
+			</head>
+			<?php
+			$this->assertFalse(
+				@ob_flush(), // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				'Expected output buffer to not be incrementally flushable.'
+			);
+			?>
+			<body>
+				<h1>Hello World!</h1>
+			</body>
+		</html>
+		<?php
+
+		$ob_status = ob_get_status();
+		$this->assertSame( 'wp_finalize_template_output_buffer', $ob_status['name'], 'Expected name to be WP function.' );
+		$this->assertSame( 1, $ob_status['type'], 'Expected type to be user supplied handler.' );
+		$this->assertSame( 0, $ob_status['chunk_size'], 'Expected unlimited chunk size.' );
+
+		ob_end_flush(); // End the buffer started by wp_start_template_output_buffer().
+		$this->assertSame( $initial_ob_level, ob_get_level() );
+		$this->assertSame( 1, did_action( 'wp_final_template_output_buffer' ) );
+
+		// Obtain the output via the wrapper output buffer.
+		$output = ob_get_clean();
+		$this->assertIsString( $output );
+		$this->assertIsArray( $action_args );
+		$this->assertCount( 2, $action_args );
+		$this->assertIsString( $action_args[0] );
+		$this->assertStringContainsString( '<!DOCTYPE html>', $action_args[0] );
+		$this->assertStringContainsString( '<html lang="es">', $action_args[0] );
+		$this->assertStringContainsString( '<title>Saludo</title>', $action_args[0] );
+		$this->assertStringContainsString( '<h1>¡Hola, mundo!</h1>', $action_args[0] );
+		$this->assertStringContainsString( '</html>', $action_args[0] );
+		$this->assertIsString( $action_args[1] );
+		$this->assertStringContainsString( '<!DOCTYPE html>', $action_args[1] );
+		$this->assertStringContainsString( '<html lang="en">', $action_args[1] );
+		$this->assertStringContainsString( '<title>Greeting</title>', $action_args[1] );
+		$this->assertStringContainsString( '<h1>Hello World!</h1>', $action_args[1] );
+		$this->assertStringContainsString( '</html>', $action_args[1] );
+	}
+
+	/**
+	 * Tests wp_finalize_template_output_buffer().
+	 *
+	 * @ticket 43258
+	 * @covers ::wp_finalize_template_output_buffer
+	 */
+	public function test_wp_finalize_template_output_buffer(): void {
+		$this->markTestIncomplete();
+	}
+
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
 		$this->go_to( $url );
 		$hierarchy = $this->get_template_hierarchy();

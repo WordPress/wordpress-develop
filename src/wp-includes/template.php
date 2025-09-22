@@ -823,3 +823,97 @@ function load_template( $_template_file, $load_once = true, $args = array() ) {
 	 */
 	do_action( 'wp_after_load_template', $_template_file, $load_once, $args );
 }
+
+/**
+ * Starts the template output buffer.
+ *
+ * This function is called immediately before the template is included.
+ *
+ * @since 6.9.0
+ *
+ * @return bool Whether the output buffer successfully started.
+ */
+function wp_start_template_output_buffer(): bool {
+	return ob_start(
+		'wp_finalize_template_output_buffer',
+		0, // Unlimited buffer size so that entire output is passed to the filter.
+		/*
+		 * Instead of the default PHP_OUTPUT_HANDLER_STDFLAGS (cleanable, flushable, and removable) being used for flags,
+		 * the PHP_OUTPUT_HANDLER_FLUSHABLE flag must be omitted. If the buffer were flushable, then each time that
+		 * ob_flush() is called, it would send a fragment of the output into the output buffer callback. When buffering the
+		 * entire response as an HTML document, this would result in broken HTML processing.
+		 *
+		 * If this ends up being problematic, then PHP_OUTPUT_HANDLER_FLUSHABLE could be added to the $flags and the
+		 * output buffer callback could check if the phase is PHP_OUTPUT_HANDLER_FLUSH and abort any subsequent
+		 * processing while also emitting a _doing_it_wrong().
+		 *
+		 * The output buffer needs to be removable because WordPress calls wp_ob_end_flush_all() and then calls
+		 * wp_cache_close(). If the buffers are not all flushed before wp_cache_close() is closed, then some output buffer
+		 * handlers (e.g. for caching plugins) may fail to be able to store the page output in the object cache.
+		 * See <https://github.com/WordPress/performance/pull/1317#issuecomment-2271955356>.
+		 */
+		PHP_OUTPUT_HANDLER_STDFLAGS ^ PHP_OUTPUT_HANDLER_FLUSHABLE
+	);
+}
+
+/**
+ * Finalizes the output buffer for the included template.
+ *
+ * @since 6.9.0
+ *
+ * @see wp_start_template_output_buffer()
+ *
+ * @param string $output Output buffer.
+ * @param int    $phase  Phase.
+ * @return string Finalized output buffer.
+ */
+function wp_finalize_template_output_buffer( string $output, int $phase ): string {
+	// When the output is being cleaned (e.g. pending template is replaced with error page), do not send it through the filter.
+	if ( ( $phase & PHP_OUTPUT_HANDLER_CLEAN ) !== 0 ) {
+		return $output;
+	}
+
+	// Detect if the response is an HTML content type.
+	$is_html_content_type = false;
+	$headers_list         = array_merge(
+		array( 'Content-Type: ' . ini_get( 'default_mimetype' ) ),
+		headers_list()
+	);
+	foreach ( $headers_list as $header ) {
+		$header_parts = preg_split( '/\s*[:;]\s*/', strtolower( $header ) );
+		if ( is_array( $header_parts ) && count( $header_parts ) >= 2 && 'content-type' === $header_parts[0] ) {
+			$is_html_content_type = in_array( $header_parts[1], array( 'text/html', 'application/xhtml+xml' ), true );
+		}
+	}
+	// TODO: Also check if str_starts_with( ltrim( $buffer ), '<' )? Or check if str_contains( '<html' ) in case a PHP warning output an error before the HTML tag.
+
+	$filtered_output = $output;
+	if ( $is_html_content_type ) {
+		/**
+		 * Filters the HTML template output buffer prior to sending to the client.
+		 *
+		 * This filter only applies to HTML output, so it is safe for processing with the HTML API.
+		 * Notice: It is highly discouraged to use regular expressions to do any kind of replacement on the output.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string $output Output buffer HTML.
+		 * @return string Filtered output buffer HTML.
+		 */
+		$filtered_output = (string) apply_filters( 'wp_template_output_buffer_html', $filtered_output );
+	}
+
+	/**
+	 * Fires after the output buffer has been filtered prior to sending to the client.
+	 *
+	 * This is useful for caching plugins to capture the page output for storage.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $filtered_output Output buffer after filters.
+	 * @param string $output          Output buffer before filters.
+	 */
+	do_action( 'wp_final_template_output_buffer', $filtered_output, $output );
+
+	return $output;
+}

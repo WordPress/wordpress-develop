@@ -1,73 +1,5 @@
 <?php
 
-ob_start(
-	static function ( string $output, ?int $phase ): string {
-		// When the output is being cleaned (e.g. pending template is replaced with error page), do not send it through the filter.
-		if ( ( $phase & PHP_OUTPUT_HANDLER_CLEAN ) !== 0 ) {
-			return $output;
-		}
-
-		// Detect if the response is an HTML content type.
-		$is_html_content_type = false;
-		$headers_list         = array_merge(
-			array( 'Content-Type: ' . ini_get( 'default_mimetype' ) ),
-			headers_list()
-		);
-		foreach ( $headers_list as $header ) {
-			$header_parts = preg_split( '/\s*[:;]\s*/', strtolower( $header ) );
-			if ( is_array( $header_parts ) && count( $header_parts ) >= 2 && 'content-type' === $header_parts[0] ) {
-				$is_html_content_type = in_array( $header_parts[1], array( 'text/html', 'application/xhtml+xml' ), true );
-			}
-		}
-		// TODO: Also check if str_starts_with( ltrim( $buffer ), '<' )? Or check if str_contains( '<html' ) in case a PHP warning output an error before the HTML tag.
-
-		if ( $is_html_content_type ) {
-			/**
-			 * Filters the HTML output buffer prior to sending to the client.
-			 *
-			 * The output buffer is started before the `template_redirect` action is triggered, allowing templates rendered
-			 * at that action to also have their output filtered.
-			 *
-			 * @since n.e.x.t
-			 *
-			 * @param string $output Output buffer HTML.
-			 * @return string Filtered output buffer HTML.
-			 */
-			$output = (string) apply_filters( 'wp_output_buffer_html', $output );
-		}
-
-		/**
-		 * Fires after the output buffer has been filtered prior to sending to the client.
-		 *
-		 * This is useful for caching plugins to capture the page output for storage.
-		 *
-		 * @since n.e.x.t
-		 *
-		 * @param string $output Output buffer.
-		 */
-		do_action( 'wp_final_output_buffer', $output );
-
-		return $output;
-	},
-	0, // Unlimited buffer size so that entire output is passed to the filter.
-	/*
-	 * Instead of the default PHP_OUTPUT_HANDLER_STDFLAGS (cleanable, flushable, and removable) being used for flags,
-	 * the PHP_OUTPUT_HANDLER_FLUSHABLE flag must be omitted. If the buffer were flushable, then each time that
-	 * ob_flush() is called, it would send a fragment of the output into the output buffer callback. When buffering the
-	 * entire response as an HTML document, this would result in broken HTML processing.
-	 *
-	 * If this ends up being problematic, then PHP_OUTPUT_HANDLER_FLUSHABLE could be added to the $flags and the
-	 * output buffer callback could check if the phase is PHP_OUTPUT_HANDLER_FLUSH and abort any subsequent
-	 * processing while also emitting a _doing_it_wrong().
-	 *
-	 * The output buffer needs to be removable because WordPress calls wp_ob_end_flush_all() and then calls
-	 * wp_cache_close(). If the buffers are not all flushed before wp_cache_close() is closed, then some output buffer
-	 * handlers (e.g. for caching plugins) may fail to be able to store the page output in the object cache.
-	 * See <https://github.com/WordPress/performance/pull/1317#issuecomment-2271955356>.
-	 */
-	PHP_OUTPUT_HANDLER_STDFLAGS ^ PHP_OUTPUT_HANDLER_FLUSHABLE
-);
-
 /**
  * Loads the correct template based on the visitor's URL
  *
@@ -182,6 +114,15 @@ if ( wp_using_themes() ) {
 	 */
 	$template = apply_filters( 'template_include', $template );
 	if ( $template ) {
+		/**
+		 * Fires before including the template.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string $template The path of the template about to be included.
+		 */
+		do_action( 'wp_before_include_template', $template );
+
 		include $template;
 	} elseif ( current_user_can( 'switch_themes' ) ) {
 		$theme = wp_get_theme();
