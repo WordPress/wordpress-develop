@@ -236,6 +236,7 @@ jobs:
         run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__ --log-junit "phpunit-results-xdebug.xml"
 
       - name: Extract skipped tests from JUnit XML
+        if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         id: extract-skipped
         env:
           PHP_VERSION: ${{ inputs.php }}
