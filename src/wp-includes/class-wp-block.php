@@ -112,6 +112,7 @@ class WP_Block {
 		'core/image'     => array( 'id', 'url', 'title', 'alt' ),
 		'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
 		'core/post-date' => array( 'datetime' ),
+		'core/pullquote' => array( 'value', 'citation' ),
 	);
 
 	/**
