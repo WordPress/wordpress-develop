@@ -3001,7 +3001,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::query
 	 */
 	public function test_orderby_date_modified_gmt_should_order_by_comment_ID_in_case_of_tie_ASC() {
-		$now      = current_time( 'mysql', 1 );
+		$now      = current_time( 'mysql', true );
 		$comments = self::factory()->comment->create_many(
 			5,
 			array(
@@ -3028,7 +3028,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::query
 	 */
 	public function test_orderby_date_modified_gmt_should_order_by_comment_ID_in_case_of_tie_DESC() {
-		$now      = current_time( 'mysql', 1 );
+		$now      = current_time( 'mysql', true );
 		$comments = self::factory()->comment->create_many(
 			5,
 			array(

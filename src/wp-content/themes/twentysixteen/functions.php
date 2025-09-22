@@ -2,7 +2,7 @@
 /**
  * Twenty Sixteen functions and definitions
  *
- * Set up the theme and provides some helper functions, which are used in the
+ * Sets up the theme and provides some helper functions, which are used in the
  * theme as custom template tags. Others are attached to action and filter
  * hooks in WordPress to change core functionality.
  *
@@ -251,7 +251,7 @@ function twentysixteen_content_width() {
 add_action( 'after_setup_theme', 'twentysixteen_content_width', 0 );
 
 /**
- * Add preconnect for Google Fonts.
+ * Adds preconnect for Google Fonts.
  *
  * @since Twenty Sixteen 1.6
  * @deprecated Twenty Sixteen 2.9 Disabled filter because, by default, fonts are self-hosted.
@@ -320,7 +320,7 @@ add_action( 'widgets_init', 'twentysixteen_widgets_init' );
 
 if ( ! function_exists( 'twentysixteen_fonts_url' ) ) :
 	/**
-	 * Register fonts for Twenty Sixteen.
+	 * Registers fonts for Twenty Sixteen.
 	 *
 	 * Create your own twentysixteen_fonts_url() function to override in a child theme.
 	 *
@@ -391,7 +391,7 @@ function twentysixteen_scripts() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20201208' );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentysixteen-style', get_stylesheet_uri(), array(), '20241112' );
+	wp_enqueue_style( 'twentysixteen-style', get_stylesheet_uri(), array(), '20250715' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentysixteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentysixteen-style' ), '20240817' );
@@ -446,13 +446,13 @@ function twentysixteen_scripts() {
 add_action( 'wp_enqueue_scripts', 'twentysixteen_scripts' );
 
 /**
- * Enqueue styles for the block-based editor.
+ * Enqueues styles for the block-based editor.
  *
  * @since Twenty Sixteen 1.6
  */
 function twentysixteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20240817' );
+	wp_enqueue_style( 'twentysixteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20250715' );
 	// Add custom fonts.
 	$font_version = ( 0 === strpos( (string) twentysixteen_fonts_url(), get_template_directory_uri() . '/' ) ) ? '20230328' : null;
 	wp_enqueue_style( 'twentysixteen-fonts', twentysixteen_fonts_url(), array(), $font_version );
@@ -530,7 +530,7 @@ require get_template_directory() . '/inc/template-tags.php';
 
 
 /**
- * Register block patterns and pattern categories.
+ * Registers block patterns and pattern categories.
  *
  * @since Twenty Sixteen 3.4
  */
@@ -546,7 +546,7 @@ add_action( 'init', 'twentysixteen_register_block_patterns' );
 require get_template_directory() . '/inc/customizer.php';
 
 /**
- * Add custom image sizes attribute to enhance responsive image functionality
+ * Adds custom image sizes attribute to enhance responsive image functionality
  * for content images
  *
  * @since Twenty Sixteen 1.0
@@ -580,7 +580,7 @@ function twentysixteen_content_image_sizes_attr( $sizes, $size ) {
 add_filter( 'wp_calculate_image_sizes', 'twentysixteen_content_image_sizes_attr', 10, 2 );
 
 /**
- * Add custom image sizes attribute to enhance responsive image functionality
+ * Adds custom image sizes attribute to enhance responsive image functionality
  * for post thumbnails
  *
  * @since Twenty Sixteen 1.0

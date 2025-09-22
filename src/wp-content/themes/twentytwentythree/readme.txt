@@ -1,7 +1,7 @@
 === Twenty Twenty-Three ===
 Contributors: wordpressdotorg
 Requires at least: 6.1
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 5.6
 Stable tag: 1.6
 License: GPLv2 or later
@@ -52,7 +52,7 @@ https://wordpress.org/documentation/article/twenty-twenty-three-changelog/#Versi
 
 == Copyright ==
 
-Twenty Twenty-Three WordPress Theme, (C) 2022-2024 WordPress.org and contributors.
+Twenty Twenty-Three WordPress Theme, (C) 2022-2025 WordPress.org and contributors.
 Twenty Twenty-Three is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify

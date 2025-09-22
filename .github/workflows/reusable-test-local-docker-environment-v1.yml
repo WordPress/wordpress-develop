@@ -1,0 +1,167 @@
+##
+# A reusable workflow that ensures the local Docker environment is working properly.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
+##
+name: Test local Docker environment
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to test'
+        required: false
+        type: 'string'
+        default: 'ubuntu-24.04'
+      php:
+        description: 'The version of PHP to use, in the format of X.Y'
+        required: false
+        type: 'string'
+        default: 'latest'
+      db-type:
+        description: 'Database type. Valid types are mysql and mariadb'
+        required: false
+        type: 'string'
+        default: 'mysql'
+      db-version:
+        description: 'Database version'
+        required: false
+        type: 'string'
+        default: '8.4'
+      memcached:
+        description: 'Whether to enable memcached'
+        required: false
+        type: 'boolean'
+        default: false
+      tests-domain:
+        description: 'The domain to use for the tests'
+        required: false
+        type: 'string'
+        default: 'example.org'
+
+env:
+  LOCAL_PHP: ${{ inputs.php == 'latest' && 'latest' || format( '{0}-fpm', inputs.php ) }}
+  LOCAL_DB_TYPE: ${{ inputs.db-type }}
+  LOCAL_DB_VERSION: ${{ inputs.db-version }}
+  LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
+  LOCAL_WP_TESTS_DOMAIN: ${{ inputs.tests-domain }}
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Tests the local Docker environment.
+  #
+  # Performs the following steps:
+  # - Sets environment variables.
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Sets up PHP.
+  # - Installs Composer dependencies.
+  # - Installs npm dependencies
+  # - Logs general debug information about the runner.
+  # - Logs Docker debug information (about the Docker installation within the runner).
+  # - Starts the WordPress Docker container.
+  # - Logs the running Docker containers.
+  # - Logs debug information about what's installed within the WordPress Docker containers.
+  # - Install WordPress within the Docker container.
+  # - Restarts the Docker environment.
+  # - Runs a WP CLI command.
+  # - Tests the logs command.
+  # - Tests the reset command.
+  # - Ensures version-controlled files are not modified or deleted.
+  local-docker-environment-tests:
+    name: PHP ${{ inputs.php }} / ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.memcached && ' with memcached' || '' }}${{ 'example.org' != inputs.tests-domain && format( ' {0}', inputs.tests-domain ) || '' }}
+    permissions:
+      contents: read
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      ##
+      # This allows Composer dependencies to be installed using a single step.
+      #
+      # Since tests are currently run within the Docker containers where the PHP version varies,
+      # the same PHP version needs to be configured for the action runner machine so that the correct
+      # dependency versions are installed and cached.
+      ##
+      - name: Set up PHP
+        uses: shivammathur/setup-php@20529878ed81ef8e78ddf08b480401e6101a850f # v2.35.3
+        with:
+          php-version: '${{ inputs.php }}'
+          coverage: none
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@3cf229dc2919194e9e36783941438d17239e8520 # v3.1.1
+        with:
+          custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          composer --version
+          locale -a
+
+      - name: Docker debug information
+        run: |
+          docker -v
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: WordPress Docker container debug information
+        run: |
+          docker compose run --rm mysql "${LOCAL_DB_TYPE}" --version
+          docker compose run --rm php php --version
+          docker compose run --rm php php -m
+          docker compose run --rm php php -i
+          docker compose run --rm php locale -a
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Restart Docker environment
+        run: npm run env:restart
+
+      - name: Test a CLI command
+        run: npm run env:cli option get siteurl
+
+      - name: Test logs command
+        run: npm run env:logs
+
+      - name: Reset the Docker environment
+        run: npm run env:reset
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

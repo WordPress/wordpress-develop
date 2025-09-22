@@ -23,6 +23,8 @@ on:
       - '**.php'
       # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
       # This file configures JSHint. Changes could affect the outcome.
@@ -48,23 +50,23 @@ permissions: {}
 jobs:
   # Runs the PHP coding standards checks.
   phpcs:
-    name: PHP coding standards
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-php.yml@trunk
+    name: Coding standards
+    uses: ./.github/workflows/reusable-coding-standards-php.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
 
   # Runs the JavaScript coding standards checks.
   jshint:
-    name: JavaScript coding standards
-    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-javascript.yml@trunk
+    name: Coding standards
+    uses: ./.github/workflows/reusable-coding-standards-javascript.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
 
   slack-notifications:
     name: Slack Notifications
-    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
+    uses: ./.github/workflows/slack-notifications.yml
     permissions:
       actions: read
       contents: read
@@ -80,7 +82,7 @@ jobs:
 
   failed-workflow:
     name: Failed workflow tasks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: write
     needs: [ phpcs, jshint, slack-notifications ]
@@ -107,6 +109,6 @@ jobs:
               workflow_id: 'failed-workflow.yml',
               ref: 'trunk',
               inputs: {
-                run_id: '${{ github.run_id }}'
+                run_id: `${context.runId}`,
               }
             });

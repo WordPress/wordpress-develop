@@ -5,6 +5,11 @@
  * @package WordPress
  */
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die( '-1' );
+}
+
 require ABSPATH . WPINC . '/option.php';
 
 /**
@@ -65,12 +70,12 @@ function mysql2date( $format, $date, $translate = true ) {
  * @since 1.0.0
  * @since 5.3.0 Now returns an integer if `$type` is 'U'. Previously a string was returned.
  *
- * @param string   $type Type of time to retrieve. Accepts 'mysql', 'timestamp', 'U',
- *                       or PHP date format string (e.g. 'Y-m-d').
- * @param int|bool $gmt  Optional. Whether to use GMT timezone. Default false.
+ * @param string $type Type of time to retrieve. Accepts 'mysql', 'timestamp', 'U',
+ *                     or PHP date format string (e.g. 'Y-m-d').
+ * @param bool   $gmt  Optional. Whether to use GMT timezone. Default false.
  * @return int|string Integer if `$type` is 'timestamp' or 'U', string otherwise.
  */
-function current_time( $type, $gmt = 0 ) {
+function current_time( $type, $gmt = false ) {
 	// Don't use non-GMT timestamp, unless you know the difference and really need to.
 	if ( 'timestamp' === $type || 'U' === $type ) {
 		return $gmt ? time() : time() + (int) ( (float) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
@@ -211,7 +216,6 @@ function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
 	 * @param int    $timestamp A sum of Unix timestamp and timezone offset in seconds.
 	 *                          Might be without offset if input omitted timestamp but requested GMT.
 	 * @param bool   $gmt       Whether to use GMT timezone. Only applies if timestamp was not provided.
-	 *                          Default false.
 	 */
 	$date = apply_filters( 'date_i18n', $date, $format, $timestamp, $gmt );
 
@@ -230,10 +234,10 @@ function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
- * @param string       $format    PHP date format.
- * @param int          $timestamp Optional. Unix timestamp. Defaults to current time.
- * @param DateTimeZone $timezone  Optional. Timezone to output result in. Defaults to timezone
- *                                from site settings.
+ * @param string            $format    PHP date format.
+ * @param int|null          $timestamp Optional. Unix timestamp. Defaults to current time.
+ * @param DateTimeZone|null $timezone  Optional. Timezone to output result in. Defaults to timezone
+ *                                     from site settings.
  * @return string|false The date, translated if locale specifies it. False on invalid timestamp input.
  */
 function wp_date( $format, $timestamp = null, $timezone = null ) {
@@ -756,17 +760,17 @@ function is_serialized_string( $data ) {
 }
 
 /**
- * Retrieves post title from XMLRPC XML.
+ * Retrieves post title from XML-RPC XML.
  *
- * If the title element is not part of the XML, then the default post title from
- * the $post_default_title will be used instead.
+ * If the `title` element is not found in the XML, the default post title
+ * from the `$post_default_title` global will be used instead.
  *
  * @since 0.71
  *
  * @global string $post_default_title Default XML-RPC post title.
  *
- * @param string $content XMLRPC XML Request content
- * @return string Post title
+ * @param string $content XML-RPC XML Request content.
+ * @return string Post title.
  */
 function xmlrpc_getposttitle( $content ) {
 	global $post_default_title;
@@ -779,18 +783,20 @@ function xmlrpc_getposttitle( $content ) {
 }
 
 /**
- * Retrieves the post category or categories from XMLRPC XML.
+ * Retrieves the post category or categories from XML-RPC XML.
  *
- * If the category element is not found, then the default post category will be
- * used. The return type then would be what $post_default_category. If the
- * category is found, then it will always be an array.
+ * If the `category` element is not found in the XML, the default post category
+ * from the `$post_default_category` global will be used instead.
+ * The return type will then be a string.
+ *
+ * If the `category` element is found, the return type will be an array.
  *
  * @since 0.71
  *
  * @global string $post_default_category Default XML-RPC post category.
  *
- * @param string $content XMLRPC XML Request content
- * @return string|array List of categories or category name.
+ * @param string $content XML-RPC XML Request content.
+ * @return string[]|string An array of category names or default category name.
  */
 function xmlrpc_getpostcategory( $content ) {
 	global $post_default_category;
@@ -804,12 +810,12 @@ function xmlrpc_getpostcategory( $content ) {
 }
 
 /**
- * XMLRPC XML content without title and category elements.
+ * XML-RPC XML content without title and category elements.
  *
  * @since 0.71
  *
  * @param string $content XML-RPC XML Request content.
- * @return string XMLRPC XML Request content without title and category elements.
+ * @return string XML-RPC XML Request content without title and category elements.
  */
 function xmlrpc_removepostdata( $content ) {
 	$content = preg_replace( '/<title>(.+?)<\/title>/si', '', $content );
@@ -1020,10 +1026,10 @@ function is_new_day() {
 }
 
 /**
- * Builds URL query based on an associative and, or indexed array.
+ * Builds a URL query based on an associative or indexed array.
  *
- * This is a convenient function for easily building url queries. It sets the
- * separator to '&' and uses _http_build_query() function.
+ * This is a convenient function for easily building URL queries.
+ * It sets the separator to '&' and uses the _http_build_query() function.
  *
  * @since 2.3.0
  *
@@ -1484,18 +1490,18 @@ function status_header( $code, $description = '' ) {
  * Gets the HTTP header information to prevent caching.
  *
  * The several different headers cover the different ways cache prevention
- * is handled by different browsers.
+ * is handled by different browsers or intermediate caches such as proxy servers.
  *
  * @since 2.8.0
  * @since 6.3.0 The `Cache-Control` header for logged in users now includes the
  *              `no-store` and `private` directives.
+ * @since 6.8.0 The `Cache-Control` header now includes the `no-store` and `private`
+ *              directives regardless of whether a user is logged in.
  *
  * @return array The associative array of header names and field values.
  */
 function wp_get_nocache_headers() {
-	$cache_control = ( function_exists( 'is_user_logged_in' ) && is_user_logged_in() )
-		? 'no-cache, must-revalidate, max-age=0, no-store, private'
-		: 'no-cache, must-revalidate, max-age=0';
+	$cache_control = 'no-cache, must-revalidate, max-age=0, no-store, private';
 
 	$headers = array(
 		'Expires'       => 'Wed, 11 Jan 1984 05:00:00 GMT',
@@ -1710,7 +1716,7 @@ function do_robots() {
 	do_action( 'do_robotstxt' );
 
 	$output = "User-agent: *\n";
-	$public = get_option( 'blog_public' );
+	$public = (bool) get_option( 'blog_public' );
 
 	$site_url = parse_url( site_url() );
 	$path     = ( ! empty( $site_url['path'] ) ) ? $site_url['path'] : '';
@@ -2203,12 +2209,14 @@ function wp_normalize_path( $path ) {
 /**
  * Determines a writable directory for temporary files.
  *
- * Function's preference is the return value of sys_get_temp_dir(),
- * followed by your PHP temporary upload directory, followed by WP_CONTENT_DIR,
- * before finally defaulting to /tmp/
+ * Function's preference is the return value of `sys_get_temp_dir()`,
+ * followed by the `upload_tmp_dir` value from `php.ini`, followed by `WP_CONTENT_DIR`,
+ * before finally defaulting to `/tmp/`.
+ *
+ * Note that `sys_get_temp_dir()` honors the `TMPDIR` environment variable.
  *
  * In the event that this function does not find a writable location,
- * It may be overridden by the WP_TEMP_DIR constant in your wp-config.php file.
+ * it may be overridden by the `WP_TEMP_DIR` constant in your `wp-config.php` file.
  *
  * @since 2.5.0
  *
@@ -3001,14 +3009,13 @@ function wp_ext2type( $ext ) {
 }
 
 /**
- * Returns first matched extension for the mime-type,
- * as mapped from wp_get_mime_types().
+ * Returns the first matched extension for the mime type, as mapped from wp_get_mime_types().
  *
  * @since 5.8.1
  *
- * @param string $mime_type
- *
- * @return string|false
+ * @param string $mime_type The mime type to search.
+ * @return string|false The first matching file extension, or false if no extensions are found
+ *                      for the given mime type.
  */
 function wp_get_default_extension_for_mime_type( $mime_type ) {
 	$extensions = explode( '|', array_search( $mime_type, wp_get_mime_types(), true ) );
@@ -3119,13 +3126,13 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			$mime_to_ext = apply_filters(
 				'getimagesize_mimes_to_exts',
 				array(
-					'image/jpeg' => 'jpg',
-					'image/png'  => 'png',
-					'image/gif'  => 'gif',
-					'image/bmp'  => 'bmp',
-					'image/tiff' => 'tif',
-					'image/webp' => 'webp',
-					'image/avif' => 'avif',
+					'image/jpeg'          => 'jpg',
+					'image/png'           => 'png',
+					'image/gif'           => 'gif',
+					'image/bmp'           => 'bmp',
+					'image/tiff'          => 'tif',
+					'image/webp'          => 'webp',
+					'image/avif'          => 'avif',
 
 					/*
 					 * In theory there are/should be file extensions that correspond to the
@@ -3133,8 +3140,8 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					 * with any of the mime types commonly have a .heic file extension.
 					 * Seems keeping the status quo here is best for compatibility.
 					 */
-					'image/heic' => 'heic',
-					'image/heif' => 'heic',
+					'image/heic'          => 'heic',
+					'image/heif'          => 'heic',
 					'image/heic-sequence' => 'heic',
 					'image/heif-sequence' => 'heic',
 				)
@@ -3167,7 +3174,10 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	if ( $type && ! $real_mime && extension_loaded( 'fileinfo' ) ) {
 		$finfo     = finfo_open( FILEINFO_MIME_TYPE );
 		$real_mime = finfo_file( $finfo, $file );
-		finfo_close( $finfo );
+
+		if ( PHP_VERSION_ID < 80100 ) { // finfo_close() has no effect as of PHP 8.1.
+			finfo_close( $finfo );
+		}
 
 		$google_docs_types = array(
 			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -3396,7 +3406,10 @@ function wp_get_image_mime( $file ) {
 				if ( extension_loaded( 'fileinfo' ) ) {
 					$fileinfo  = finfo_open( FILEINFO_MIME_TYPE );
 					$mime_type = finfo_file( $fileinfo, $file );
-					finfo_close( $fileinfo );
+
+					if ( PHP_VERSION_ID < 80100 ) { // finfo_close() has no effect as of PHP 8.1.
+						finfo_close( $fileinfo );
+					}
 
 					if ( wp_is_heic_image_mime_type( $mime_type ) ) {
 						$mime = $mime_type;
@@ -3667,7 +3680,7 @@ function get_allowed_mime_types( $user = null ) {
  */
 function wp_nonce_ays( $action ) {
 	// Default title and response code.
-	$title         = __( 'Something went wrong.' );
+	$title         = __( 'An error occurred.' );
 	$response_code = 403;
 
 	if ( 'log-out' === $action ) {
@@ -4162,7 +4175,7 @@ function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
 /**
  * Kills WordPress execution and displays XML response with an error message.
  *
- * This is the handler for wp_die() when processing XMLRPC requests.
+ * This is the handler for wp_die() when processing XML-RPC requests.
  *
  * @since 3.2.0
  * @access private
@@ -5193,6 +5206,8 @@ function _wp_array_set( &$input_array, $path, $value = null ) {
  *
  * Changes to this function should follow updates in the client
  * with the same logic.
+ *
+ * @since 5.8.0
  *
  * @link https://github.com/lodash/lodash/blob/4.17/dist/lodash.js#L14369
  * @link https://github.com/lodash/lodash/blob/4.17/dist/lodash.js#L278
@@ -6268,7 +6283,7 @@ function validate_file( $file, $allowed_files = array() ) {
  *
  * @since 2.6.0
  *
- * @param string|bool $force Optional. Whether to force SSL in admin screens. Default null.
+ * @param string|bool|null $force Optional. Whether to force SSL in admin screens. Default null.
  * @return bool True if forced, false if not forced.
  */
 function force_ssl_admin( $force = null ) {
@@ -6276,7 +6291,7 @@ function force_ssl_admin( $force = null ) {
 
 	if ( ! is_null( $force ) ) {
 		$old_forced = $forced;
-		$forced     = $force;
+		$forced     = (bool) $force;
 		return $old_forced;
 	}
 
@@ -6931,312 +6946,6 @@ function get_file_data( $file, $default_headers, $context = '' ) {
 }
 
 /**
- * Parses the plugin contents to retrieve plugin's metadata.
- *
- * All plugin headers must be on their own line. Plugin description must not have
- * any newlines, otherwise only parts of the description will be displayed.
- * The below is formatted for printing.
- *
- *     /*
- *     Plugin Name: Name of the plugin.
- *     Plugin URI: The home page of the plugin.
- *     Description: Plugin description.
- *     Author: Plugin author's name.
- *     Author URI: Link to the author's website.
- *     Version: Plugin version.
- *     Text Domain: Optional. Unique identifier, should be same as the one used in
- *          load_plugin_textdomain().
- *     Domain Path: Optional. Only useful if the translations are located in a
- *          folder above the plugin's base path. For example, if .mo files are
- *          located in the locale folder then Domain Path will be "/locale/" and
- *          must have the first slash. Defaults to the base folder the plugin is
- *          located in.
- *     Network: Optional. Specify "Network: true" to require that a plugin is activated
- *          across all sites in an installation. This will prevent a plugin from being
- *          activated on a single site when Multisite is enabled.
- *     Requires at least: Optional. Specify the minimum required WordPress version.
- *     Requires PHP: Optional. Specify the minimum required PHP version.
- *     * / # Remove the space to close comment.
- *
- * The first 8 KB of the file will be pulled in and if the plugin data is not
- * within that first 8 KB, then the plugin author should correct their plugin
- * and move the plugin data headers to the top.
- *
- * The plugin file is assumed to have permissions to allow for scripts to read
- * the file. This is not checked however and the file is only opened for
- * reading.
- *
- * @since 1.5.0
- * @since 5.3.0 Added support for `Requires at least` and `Requires PHP` headers.
- * @since 5.8.0 Added support for `Update URI` header.
- * @since 6.5.0 Added support for `Requires Plugins` header.
- *
- * @param string $plugin_file Absolute path to the main plugin file.
- * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
- *                            Default true.
- * @param bool   $translate   Optional. If the returned data should be translated. Default true.
- * @return array {
- *     Plugin data. Values will be empty if not supplied by the plugin.
- *
- *     @type string $Name            Name of the plugin. Should be unique.
- *     @type string $PluginURI       Plugin URI.
- *     @type string $Version         Plugin version.
- *     @type string $Description     Plugin description.
- *     @type string $Author          Plugin author's name.
- *     @type string $AuthorURI       Plugin author's website address (if set).
- *     @type string $TextDomain      Plugin textdomain.
- *     @type string $DomainPath      Plugin's relative directory path to .mo files.
- *     @type bool   $Network         Whether the plugin can only be activated network-wide.
- *     @type string $RequiresWP      Minimum required version of WordPress.
- *     @type string $RequiresPHP     Minimum required version of PHP.
- *     @type string $UpdateURI       ID of the plugin for update purposes, should be a URI.
- *     @type string $RequiresPlugins Comma separated list of dot org plugin slugs.
- *     @type string $Title           Title of the plugin and link to the plugin's site (if set).
- *     @type string $AuthorName      Plugin author's name.
- * }
- */
-function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
-
-	$default_headers = array(
-		'Name'            => 'Plugin Name',
-		'PluginURI'       => 'Plugin URI',
-		'Version'         => 'Version',
-		'Description'     => 'Description',
-		'Author'          => 'Author',
-		'AuthorURI'       => 'Author URI',
-		'TextDomain'      => 'Text Domain',
-		'DomainPath'      => 'Domain Path',
-		'Network'         => 'Network',
-		'RequiresWP'      => 'Requires at least',
-		'RequiresPHP'     => 'Requires PHP',
-		'UpdateURI'       => 'Update URI',
-		'RequiresPlugins' => 'Requires Plugins',
-		// Site Wide Only is deprecated in favor of Network.
-		'_sitewide'       => 'Site Wide Only',
-	);
-
-	$plugin_data = get_file_data( $plugin_file, $default_headers, 'plugin' );
-
-	// Site Wide Only is the old header for Network.
-	if ( ! $plugin_data['Network'] && $plugin_data['_sitewide'] ) {
-		/* translators: 1: Site Wide Only: true, 2: Network: true */
-		_deprecated_argument( __FUNCTION__, '3.0.0', sprintf( __( 'The %1$s plugin header is deprecated. Use %2$s instead.' ), '<code>Site Wide Only: true</code>', '<code>Network: true</code>' ) );
-		$plugin_data['Network'] = $plugin_data['_sitewide'];
-	}
-	$plugin_data['Network'] = ( 'true' === strtolower( $plugin_data['Network'] ) );
-	unset( $plugin_data['_sitewide'] );
-
-	// If no text domain is defined fall back to the plugin slug.
-	if ( ! $plugin_data['TextDomain'] ) {
-		$plugin_slug = dirname( plugin_basename( $plugin_file ) );
-		if ( '.' !== $plugin_slug && ! str_contains( $plugin_slug, '/' ) ) {
-			$plugin_data['TextDomain'] = $plugin_slug;
-		}
-	}
-
-	if ( $markup || $translate ) {
-		$plugin_data = _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup, $translate );
-	} else {
-		$plugin_data['Title']      = $plugin_data['Name'];
-		$plugin_data['AuthorName'] = $plugin_data['Author'];
-	}
-
-	return $plugin_data;
-}
-
-/**
- * Sanitizes plugin data, optionally adds markup, optionally translates.
- *
- * @since 2.7.0
- *
- * @see get_plugin_data()
- *
- * @access private
- *
- * @param string $plugin_file Path to the main plugin file.
- * @param array  $plugin_data An array of plugin data. See get_plugin_data().
- * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
- *                            Default true.
- * @param bool   $translate   Optional. If the returned data should be translated. Default true.
- * @return array Plugin data. Values will be empty if not supplied by the plugin.
- *               See get_plugin_data() for the list of possible values.
- */
-function _get_plugin_data_markup_translate( $plugin_file, $plugin_data, $markup = true, $translate = true ) {
-
-	// Sanitize the plugin filename to a WP_PLUGIN_DIR relative path.
-	$plugin_file = plugin_basename( $plugin_file );
-
-	// Translate fields.
-	if ( $translate ) {
-		$textdomain = $plugin_data['TextDomain'];
-		if ( $textdomain ) {
-			if ( ! is_textdomain_loaded( $textdomain ) ) {
-				if ( $plugin_data['DomainPath'] ) {
-					load_plugin_textdomain( $textdomain, false, dirname( $plugin_file ) . $plugin_data['DomainPath'] );
-				} else {
-					load_plugin_textdomain( $textdomain, false, dirname( $plugin_file ) );
-				}
-			}
-		} elseif ( 'hello.php' === basename( $plugin_file ) ) {
-			$textdomain = 'default';
-		}
-		if ( $textdomain ) {
-			foreach ( array( 'Name', 'PluginURI', 'Description', 'Author', 'AuthorURI', 'Version' ) as $field ) {
-				if ( ! empty( $plugin_data[ $field ] ) ) {
-					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-					$plugin_data[ $field ] = translate( $plugin_data[ $field ], $textdomain );
-				}
-			}
-		}
-	}
-
-	// Sanitize fields.
-	$allowed_tags_in_links = array(
-		'abbr'    => array( 'title' => true ),
-		'acronym' => array( 'title' => true ),
-		'code'    => true,
-		'em'      => true,
-		'strong'  => true,
-	);
-
-	$allowed_tags      = $allowed_tags_in_links;
-	$allowed_tags['a'] = array(
-		'href'  => true,
-		'title' => true,
-	);
-
-	/*
-	 * Name is marked up inside <a> tags. Don't allow these.
-	 * Author is too, but some plugins have used <a> here (omitting Author URI).
-	 */
-	$plugin_data['Name']   = wp_kses( $plugin_data['Name'], $allowed_tags_in_links );
-	$plugin_data['Author'] = wp_kses( $plugin_data['Author'], $allowed_tags );
-
-	$plugin_data['Description'] = wp_kses( $plugin_data['Description'], $allowed_tags );
-	$plugin_data['Version']     = wp_kses( $plugin_data['Version'], $allowed_tags );
-
-	$plugin_data['PluginURI'] = esc_url( $plugin_data['PluginURI'] );
-	$plugin_data['AuthorURI'] = esc_url( $plugin_data['AuthorURI'] );
-
-	$plugin_data['Title']      = $plugin_data['Name'];
-	$plugin_data['AuthorName'] = $plugin_data['Author'];
-
-	// Apply markup.
-	if ( $markup ) {
-		if ( $plugin_data['PluginURI'] && $plugin_data['Name'] ) {
-			$plugin_data['Title'] = '<a href="' . $plugin_data['PluginURI'] . '">' . $plugin_data['Name'] . '</a>';
-		}
-
-		if ( $plugin_data['AuthorURI'] && $plugin_data['Author'] ) {
-			$plugin_data['Author'] = '<a href="' . $plugin_data['AuthorURI'] . '">' . $plugin_data['Author'] . '</a>';
-		}
-
-		$plugin_data['Description'] = wptexturize( $plugin_data['Description'] );
-
-		if ( $plugin_data['Author'] ) {
-			$plugin_data['Description'] .= sprintf(
-			/* translators: %s: Plugin author. */
-				' <cite>' . __( 'By %s.' ) . '</cite>',
-				$plugin_data['Author']
-			);
-		}
-	}
-
-	return $plugin_data;
-}
-
-/**
- * Determines whether a plugin is active.
- *
- * Only plugins installed in the plugins/ folder can be active.
- *
- * Plugins in the mu-plugins/ folder can't be "activated," so this function will
- * return false for those plugins.
- *
- * For more information on this and similar theme functions, check out
- * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
- * Conditional Tags} article in the Theme Developer Handbook.
- *
- * @since 2.5.0
- *
- * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return bool True, if in the active plugins list. False, not in the list.
- */
-function is_plugin_active( $plugin ) {
-	return in_array( $plugin, (array) get_option( 'active_plugins', array() ), true ) || is_plugin_active_for_network( $plugin );
-}
-
-/**
- * Determines whether the plugin is inactive.
- *
- * Reverse of is_plugin_active(). Used as a callback.
- *
- * For more information on this and similar theme functions, check out
- * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
- * Conditional Tags} article in the Theme Developer Handbook.
- *
- * @since 3.1.0
- *
- * @see is_plugin_active()
- *
- * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return bool True if inactive. False if active.
- */
-function is_plugin_inactive( $plugin ) {
-	return ! is_plugin_active( $plugin );
-}
-
-/**
- * Determines whether the plugin is active for the entire network.
- *
- * Only plugins installed in the plugins/ folder can be active.
- *
- * Plugins in the mu-plugins/ folder can't be "activated," so this function will
- * return false for those plugins.
- *
- * For more information on this and similar theme functions, check out
- * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
- * Conditional Tags} article in the Theme Developer Handbook.
- *
- * @since 3.0.0
- *
- * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return bool True if active for the network, otherwise false.
- */
-function is_plugin_active_for_network( $plugin ) {
-	if ( ! is_multisite() ) {
-		return false;
-	}
-
-	$plugins = get_site_option( 'active_sitewide_plugins' );
-	if ( isset( $plugins[ $plugin ] ) ) {
-		return true;
-	}
-
-	return false;
-}
-
-/**
- * Checks for "Network: true" in the plugin header to see if this should
- * be activated only as a network wide plugin. The plugin would also work
- * when Multisite is not enabled.
- *
- * Checks for "Site Wide Only: true" for backward compatibility.
- *
- * @since 3.0.0
- *
- * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return bool True if plugin is network only, false otherwise.
- */
-function is_network_only_plugin( $plugin ) {
-	$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
-	if ( $plugin_data ) {
-		return $plugin_data['Network'];
-	}
-	return false;
-}
-
-/**
  * Returns true.
  *
  * Useful for returning true to filters easily.
@@ -7439,10 +7148,38 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
  *
  * @since 3.1.3
  *
- * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors
  */
 function send_frame_options_header() {
-	header( 'X-Frame-Options: SAMEORIGIN' );
+	if ( ! headers_sent() ) {
+		header( 'X-Frame-Options: SAMEORIGIN' );
+		header( "Content-Security-Policy: frame-ancestors 'self';" );
+	}
+}
+
+/**
+ * Sends a referrer policy header so referrers are not sent externally from administration screens.
+ *
+ * @since 4.9.0
+ * @since 6.8.0 This function was moved from `wp-admin/includes/misc.php` to `wp-includes/functions.php`.
+ */
+function wp_admin_headers() {
+	$policy = 'strict-origin-when-cross-origin';
+
+	/**
+	 * Filters the admin referrer policy header value.
+	 *
+	 * @since 4.9.0
+	 * @since 4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
+	 *
+	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
+	 *
+	 * @param string $policy The admin referrer policy header value. Default 'strict-origin-when-cross-origin'.
+	 */
+	$policy = apply_filters( 'admin_referrer_policy', $policy );
+
+	header( sprintf( 'Referrer-Policy: %s', $policy ) );
 }
 
 /**
@@ -8308,6 +8045,38 @@ function wp_unique_prefixed_id( $prefix = '' ) {
 }
 
 /**
+ * Generates a unique ID based on the structure and values of a given array.
+ *
+ * This function serializes the array into a JSON string and generates a hash
+ * that serves as a unique identifier. Optionally, a prefix can be added to
+ * the generated ID for context or categorization.
+ *
+ * @since 6.8.0
+ *
+ * @param array  $data   The input array to generate an ID from.
+ * @param string $prefix Optional. A prefix to prepend to the generated ID. Default empty string.
+ * @return string The generated unique ID for the array.
+ */
+function wp_unique_id_from_values( array $data, string $prefix = '' ): string {
+	if ( empty( $data ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: The parameter name. */
+				__( 'The %s parameter must not be empty.' ),
+				'$data'
+			),
+			'6.8.0'
+		);
+	}
+
+	$serialized = wp_json_encode( $data );
+	$hash       = substr( md5( $serialized ), 0, 8 );
+
+	return $prefix . $hash;
+}
+
+/**
  * Gets last changed date for the specified cache group.
  *
  * @since 4.7.0
@@ -8347,9 +8116,9 @@ function wp_cache_set_last_changed( $group ) {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string    $group         The cache group name.
-	 * @param int       $time          The new last changed time.
-	 * @param int|false $previous_time The previous last changed time. False if not previously set.
+	 * @param string       $group         The cache group name.
+	 * @param string       $time          The new last changed time (msec sec).
+	 * @param string|false $previous_time The previous last changed time. False if not previously set.
 	 */
 	do_action( 'wp_cache_set_last_changed', $group, $time, $previous_time );
 
@@ -8368,8 +8137,8 @@ function wp_cache_set_last_changed( $group ) {
 function wp_site_admin_email_change_notification( $old_email, $new_email, $option_name ) {
 	$send = true;
 
-	// Don't send the notification to the default 'admin_email' value.
-	if ( 'you@example.com' === $old_email ) {
+	// Don't send the notification for an empty email address or the default 'admin_email' value.
+	if ( empty( $old_email ) || 'you@example.com' === $old_email ) {
 		$send = false;
 	}
 
@@ -8426,10 +8195,10 @@ All at ###SITENAME###
 	 *     @type string $subject The subject of the email.
 	 *     @type string $message The content of the email.
 	 *         The following strings have a special meaning and will get replaced dynamically:
-	 *         - ###OLD_EMAIL### The old site admin email address.
-	 *         - ###NEW_EMAIL### The new site admin email address.
-	 *         - ###SITENAME###  The name of the site.
-	 *         - ###SITEURL###   The URL to the site.
+	 *          - `###OLD_EMAIL###` The old site admin email address.
+	 *          - `###NEW_EMAIL###` The new site admin email address.
+	 *          - `###SITENAME###`  The name of the site.
+	 *          - `###SITEURL###`   The URL to the site.
 	 *     @type string $headers Headers.
 	 * }
 	 * @param string $old_email The old site admin email address.
@@ -9390,4 +9159,64 @@ function wp_is_heic_image_mime_type( $mime_type ) {
 	);
 
 	return in_array( $mime_type, $heic_mime_types, true );
+}
+
+/**
+ * Returns a cryptographically secure hash of a message using a fast generic hash function.
+ *
+ * Use the wp_verify_fast_hash() function to verify the hash.
+ *
+ * This function does not salt the value prior to being hashed, therefore input to this function must originate from
+ * a random generator with sufficiently high entropy, preferably greater than 128 bits. This function is used internally
+ * in WordPress to hash security keys and application passwords which are generated with high entropy.
+ *
+ * Important:
+ *
+ *  - This function must not be used for hashing user-generated passwords. Use wp_hash_password() for that.
+ *  - This function must not be used for hashing other low-entropy input. Use wp_hash() for that.
+ *
+ * The BLAKE2b algorithm is used by Sodium to hash the message.
+ *
+ * @since 6.8.0
+ *
+ * @throws TypeError Thrown by Sodium if the message is not a string.
+ *
+ * @param string $message The message to hash.
+ * @return string The hash of the message.
+ */
+function wp_fast_hash(
+	#[\SensitiveParameter]
+	string $message
+): string {
+	$hashed = sodium_crypto_generichash( $message, 'wp_fast_hash_6.8+', 30 );
+	return '$generic$' . sodium_bin2base64( $hashed, SODIUM_BASE64_VARIANT_URLSAFE_NO_PADDING );
+}
+
+/**
+ * Checks whether a plaintext message matches the hashed value. Used to verify values hashed via wp_fast_hash().
+ *
+ * The function uses Sodium to hash the message and compare it to the hashed value. If the hash is not a generic hash,
+ * the hash is treated as a phpass portable hash in order to provide backward compatibility for passwords and security
+ * keys which were hashed using phpass prior to WordPress 6.8.0.
+ *
+ * @since 6.8.0
+ *
+ * @throws TypeError Thrown by Sodium if the message is not a string.
+ *
+ * @param string $message The plaintext message.
+ * @param string $hash    Hash of the message to check against.
+ * @return bool Whether the message matches the hashed message.
+ */
+function wp_verify_fast_hash(
+	#[\SensitiveParameter]
+	string $message,
+	string $hash
+): bool {
+	if ( ! str_starts_with( $hash, '$generic$' ) ) {
+		// Back-compat for old phpass hashes.
+		require_once ABSPATH . WPINC . '/class-phpass.php';
+		return ( new PasswordHash( 8, true ) )->CheckPassword( $message, $hash );
+	}
+
+	return hash_equals( $hash, wp_fast_hash( $message ) );
 }

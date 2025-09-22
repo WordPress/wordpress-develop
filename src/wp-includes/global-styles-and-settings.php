@@ -142,7 +142,7 @@ function wp_get_global_styles( $path = array(), $context = array() ) {
  * @since 6.6.0 Resolves relative paths in theme.json styles to theme absolute paths.
  *
  * @param array $types Optional. Types of styles to load.
- *                     It accepts as values 'variables', 'presets', 'styles', 'base-layout-styles'.
+ *                     See {@see 'WP_Theme_JSON::get_stylesheet'} for all valid types.
  *                     If empty, it'll load the following:
  *                     - for themes without theme.json: 'variables', 'presets', 'base-layout-styles'.
  *                     - for themes with theme.json: 'variables', 'presets', 'styles'.
@@ -298,7 +298,7 @@ function wp_add_global_styles_for_blocks() {
 			$block_css = $tree->get_styles_for_block( $metadata );
 		}
 
-		if ( ! wp_should_load_separate_core_block_assets() ) {
+		if ( ! wp_should_load_block_assets_on_demand() ) {
 			wp_add_inline_style( 'global-styles', $block_css );
 			continue;
 		}
@@ -306,13 +306,14 @@ function wp_add_global_styles_for_blocks() {
 		$stylesheet_handle = 'global-styles';
 
 		/*
-		 * When `wp_should_load_separate_core_block_assets()` is true, block styles are
+		 * When `wp_should_load_block_assets_on_demand()` is true, block styles are
 		 * enqueued for each block on the page in class WP_Block's render function.
 		 * This means there will be a handle in the styles queue for each of those blocks.
 		 * Block-specific global styles should be attached to the global-styles handle, but
 		 * only for blocks on the page, thus we check if the block's handle is in the queue
 		 * before adding the inline style.
 		 * This conditional loading only applies to core blocks.
+		 * TODO: Explore how this could be expanded to third-party blocks as well.
 		 */
 		if ( isset( $metadata['name'] ) ) {
 			if ( str_starts_with( $metadata['name'], 'core/' ) ) {
@@ -482,7 +483,6 @@ function wp_get_theme_data_template_parts() {
 	$cache_key      = 'wp_get_theme_data_template_parts';
 	$can_use_cached = ! wp_is_development_mode( 'theme' );
 
-	$metadata = false;
 	if ( $can_use_cached ) {
 		$metadata = wp_cache_get( $cache_key, $cache_group );
 		if ( false !== $metadata ) {
@@ -490,11 +490,9 @@ function wp_get_theme_data_template_parts() {
 		}
 	}
 
-	if ( false === $metadata ) {
-		$metadata = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
-		if ( $can_use_cached ) {
-			wp_cache_set( $cache_key, $metadata, $cache_group );
-		}
+	$metadata = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_template_parts();
+	if ( $can_use_cached ) {
+		wp_cache_set( $cache_key, $metadata, $cache_group );
 	}
 
 	return $metadata;

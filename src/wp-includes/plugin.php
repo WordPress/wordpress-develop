@@ -359,7 +359,7 @@ function remove_all_filters( $hook_name, $priority = false ) {
  *
  * @global string[] $wp_current_filter Stores the list of current filters with the current one last
  *
- * @return string Hook name of the current filter.
+ * @return string|false Hook name of the current filter, false if no filter is running.
  */
 function current_filter() {
 	global $wp_current_filter;
@@ -632,7 +632,7 @@ function remove_all_actions( $hook_name, $priority = false ) {
  *
  * @since 3.9.0
  *
- * @return string Hook name of the current action.
+ * @return string|false Hook name of the current action, false if no action is running.
  */
 function current_action() {
 	return current_filter();
@@ -984,7 +984,8 @@ function _wp_call_all_hook( $args ) {
  *                                         or may not exist.
  * @param int                   $priority  Unused. The order in which the functions
  *                                         associated with a particular action are executed.
- * @return string Unique function ID for usage as array key.
+ * @return string|null Unique function ID for usage as array key.
+ *                     Null if a valid `$callback` is not passed.
  */
 function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
 	if ( is_string( $callback ) ) {
@@ -1005,4 +1006,6 @@ function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
 		// Static calling.
 		return $callback[0] . '::' . $callback[1];
 	}
+
+	return null;
 }

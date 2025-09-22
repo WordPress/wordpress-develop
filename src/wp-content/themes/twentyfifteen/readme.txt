@@ -1,9 +1,9 @@
 === Twenty Fifteen ===
 Contributors: wordpressdotorg
 Requires at least: 4.1
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 5.2.4
-Version: 3.9
+Version: 4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, two-columns, left-sidebar, accessibility-ready, custom-background, custom-colors, custom-header, custom-logo, custom-menu, editor-style, featured-images, microformats, post-formats, rtl-language-support, sticky-post, threaded-comments, translation-ready, block-patterns
@@ -23,7 +23,7 @@ For more information about Twenty Fifteen please go to https://wordpress.org/doc
 
 == Installation ==
 
-1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
+1. In your admin panel, go to Appearance -> Themes and click the 'Add' button.
 2. Type in Twenty Fifteen in the search form and press the 'Enter' key on your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
 4. Go to https://wordpress.org/documentation/article/twenty-fifteen/ for a guide on how to customize this theme.
@@ -31,7 +31,7 @@ For more information about Twenty Fifteen please go to https://wordpress.org/doc
 
 == Copyright ==
 
-Twenty Fifteen WordPress Theme, Copyright 2014-2024 WordPress.org, Automattic Inc., and contributors.
+Twenty Fifteen WordPress Theme, Copyright 2014-2025 WordPress.org, Automattic Inc., and contributors.
 Twenty Fifteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -76,6 +76,11 @@ Source: https://stocksnap.io/photo/purple-yellow-ACF0693B9C
         https://stocksnap.io/photo/sunset-pier-77F43EA43C
 
 == Changelog ==
+
+= 4.0 =
+* Released: April 15, 2025
+
+https://wordpress.org/documentation/article/twenty-fifteen-changelog/#Version_4.0
 
 = 3.9 =
 * Released: November 12, 2024

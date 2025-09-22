@@ -303,7 +303,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		while ( $context_processor->next_tag() ) {
-			$context_processor->set_bookmark( 'final_node' );
+			if ( ! $context_processor->is_virtual() ) {
+				$context_processor->set_bookmark( 'final_node' );
+			}
 		}
 
 		if (
@@ -747,7 +749,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * WP_HTML_Tag_Processor instead.
 	 *
 	 * @since 6.5.0 Added for internal support; do not use.
-	 * @since 6.7.1 Refactored so subclasses may extend.
+	 * @since 6.7.2 Refactored so subclasses may extend.
 	 *
 	 * @return bool Whether a token was parsed.
 	 */
@@ -768,7 +770,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * this method similarly to how {@see WP_HTML_Tag_Processor::next_token()}
 	 * calls the {@see WP_HTML_Tag_Processor::base_class_next_token()} method.
 	 *
-	 * @since 6.7.1 Added for internal support.
+	 * @since 6.7.2 Added for internal support.
 	 *
 	 * @access private
 	 *
@@ -1141,11 +1143,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Breadcrumbs start at the outermost parent and descend toward the matched element.
 	 * They always include the entire path from the root HTML node to the matched element.
 	 *
-	 * @todo It could be more efficient to expose a generator-based version of this function
-	 *       to avoid creating the array copy on tag iteration. If this is done, it would likely
-	 *       be more useful to walk up the stack when yielding instead of starting at the top.
-	 *
-	 * Example
+	 * Example:
 	 *
 	 *     $processor = WP_HTML_Processor::create_fragment( '<p><strong><em><img></em></strong></p>' );
 	 *     $processor->next_tag( 'IMG' );
@@ -1153,9 +1151,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @return string[]|null Array of tag names representing path to matched node, if matched, otherwise NULL.
+	 * @return string[] Array of tag names representing path to matched node.
 	 */
-	public function get_breadcrumbs(): ?array {
+	public function get_breadcrumbs(): array {
 		return $this->breadcrumbs;
 	}
 
@@ -1306,10 +1304,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see static::serialize()
 	 *
 	 * @since 6.7.0
+	 * @since 6.9.0 Converted from protected to public method.
 	 *
 	 * @return string Serialization of token, or empty string if no serialization exists.
 	 */
-	protected function serialize_token(): string {
+	public function serialize_token(): string {
 		$html       = '';
 		$token_type = $this->get_token_type();
 
@@ -1471,7 +1470,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				$doctype = $this->get_doctype_info();
-				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatability_mode ) {
+				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatibility_mode ) {
 					$this->compat_mode = WP_HTML_Tag_Processor::QUIRKS_MODE;
 				}
 
@@ -1762,6 +1761,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+META':
 				$this->insert_html_element( $this->state->current_token );
 
+				// All following conditions depend on "tentative" encoding confidence.
+				if ( 'tentative' !== $this->state->encoding_confidence ) {
+					return true;
+				}
+
 				/*
 				 * > If the active speculative HTML parser is null, then:
 				 * >   - If the element has a charset attribute, and getting an encoding from
@@ -1769,7 +1773,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * >     tentative, then change the encoding to the resulting encoding.
 				 */
 				$charset = $this->get_attribute( 'charset' );
-				if ( is_string( $charset ) && 'tentative' === $this->state->encoding_confidence ) {
+				if ( is_string( $charset ) ) {
 					$this->bail( 'Cannot yet process META tags with charset to determine encoding.' );
 				}
 
@@ -1786,8 +1790,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if (
 					is_string( $http_equiv ) &&
 					is_string( $content ) &&
-					0 === strcasecmp( $http_equiv, 'Content-Type' ) &&
-					'tentative' === $this->state->encoding_confidence
+					0 === strcasecmp( $http_equiv, 'Content-Type' )
 				) {
 					$this->bail( 'Cannot yet process META tags with http-equiv Content-Type to determine encoding.' );
 				}
@@ -2318,7 +2321,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 */
 
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY;
-				return true;
+				/*
+				 * The BODY element is not removed from the stack of open elements.
+				 * Only internal state has changed, this does not qualify as a "step"
+				 * in terms of advancing through the document to another token.
+				 * Nothing has been pushed or popped.
+				 * Proceed to parse the next item.
+				 */
+				return $this->step();
 
 			/*
 			 * > An end tag whose tag name is "html"
@@ -4391,7 +4401,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY;
-				return true;
+				/*
+				 * The HTML element is not removed from the stack of open elements.
+				 * Only internal state has changed, this does not qualify as a "step"
+				 * in terms of advancing through the document to another token.
+				 * Nothing has been pushed or popped.
+				 * Proceed to parse the next item.
+				 */
+				return $this->step();
 		}
 
 		/*
@@ -4586,7 +4603,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-HTML':
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET;
-				return true;
+				/*
+				 * The HTML element is not removed from the stack of open elements.
+				 * Only internal state has changed, this does not qualify as a "step"
+				 * in terms of advancing through the document to another token.
+				 * Nothing has been pushed or popped.
+				 * Proceed to parse the next item.
+				 */
+				return $this->step();
 
 			/*
 			 * > A start tag whose tag name is "noframes"
@@ -5652,12 +5676,25 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * reaching for it, as inappropriate use could lead to broken
 	 * HTML structure or unwanted processing overhead.
 	 *
+	 * Bookmarks cannot be set on tokens that do no appear in the original
+	 * HTML text. For example, the HTML `<table><td>` stops at tags `TABLE`,
+	 * `TBODY`, `TR`, and `TD`. The `TBODY` and `TR` tags do not appear in
+	 * the original HTML and cannot be used as bookmarks.
+	 *
 	 * @since 6.4.0
 	 *
 	 * @param string $bookmark_name Identifies this particular bookmark.
 	 * @return bool Whether the bookmark was successfully created.
 	 */
 	public function set_bookmark( $bookmark_name ): bool {
+		if ( $this->is_virtual() ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Cannot set bookmarks on tokens that do no appear in the original HTML text.' ),
+				'6.8.0'
+			);
+			return false;
+		}
 		return parent::set_bookmark( "_{$bookmark_name}" );
 	}
 
