@@ -1826,7 +1826,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		} else {
 			$from = "From: \"$comment->comment_author\" <$wp_email>";
 			if ( '' !== $comment->comment_author_email ) {
-				$reply_to = "Reply-To: $comment->comment_author <$comment->comment_author_email>";
+				$reply_to = "Reply-To: \"$comment->comment_author\" <$comment->comment_author_email>";
 			}
 		}
 
