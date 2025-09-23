@@ -303,16 +303,11 @@ add_action( 'wp_enqueue_scripts', 'twentynineteen_scripts' );
  */
 function twentynineteen_skip_link_focus_fix() {
 	// The following is minified via `terser --compress --mangle -- js/skip-link-focus-fix.js`.
-	$js = '/(trident|msie)/i.test(navigator.userAgent) && document.getElementById && window.addEventListener && window.addEventListener("hashchange", function() {
-			var t, e = location.hash.substring(1);
-			/^[A-z0-9_-]+$/.test(e) && (t = document.getElementById(e)) && (/^(?:a|select|input|button|textarea)$/i.test(t.tagName) || (t.tabIndex = -1), t.focus());
-		}, false);';
-
-	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
-        wp_print_inline_script_tag( $js . "\n//# sourceURL=" . __FUNCTION__ );
-    } else {
-        printf( "<script>%s</script>\n", $js );
-    }
+	?>
+	<script>
+	/(trident|msie)/i.test(navigator.userAgent)&&document.getElementById&&window.addEventListener&&window.addEventListener("hashchange",function(){var t,e=location.hash.substring(1);/^[A-z0-9_-]+$/.test(e)&&(t=document.getElementById(e))&&(/^(?:a|select|input|button|textarea)$/i.test(t.tagName)||(t.tabIndex=-1),t.focus())},!1);
+	</script>
+	<?php
 }
 
 /**

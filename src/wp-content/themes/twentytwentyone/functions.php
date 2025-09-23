@@ -493,32 +493,19 @@ add_action( 'enqueue_block_editor_assets', 'twentytwentyone_block_editor_script'
  * @link https://git.io/vWdr2
  */
 function twenty_twenty_one_skip_link_focus_fix() {
-	$script = '';
-
-	$source_url_comment = '';
 
 	// If SCRIPT_DEBUG is defined and true, print the unminified file.
 	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-		$js_path = get_template_directory() . '/assets/js/skip-link-focus-fix.js';
-
-		if ( file_exists( $js_path ) ) {
-			$script = file_get_contents( $js_path );
-		}
-
-		$source_url_comment = "\n//# sourceURL=" . trailingslashit( get_template_directory() ) . '/assets/js/skip-link-focus-fix.js';
+		echo '<script>';
+		include get_template_directory() . '/assets/js/skip-link-focus-fix.js';
+		echo '</script>';
 	} else {
 		// The following is minified via `npx terser --compress --mangle -- assets/js/skip-link-focus-fix.js`.
-		$script = '/(trident|msie)/i.test(navigator.userAgent)&&document.getElementById&&window.addEventListener&&window.addEventListener("hashchange",(function(){var t,e=location.hash.substring(1);/^[A-z0-9_-]+$/.test(e)&&(t=document.getElementById(e))&&(/^(?:a|select|input|button|textarea)$/i.test(t.tagName)||(t.tabIndex=-1),t.focus())}),!1);';
-
-		$source_url_comment = "\n//# sourceURL=" . __FUNCTION__;
-	}
-
-	if ( $script ) {
-		if ( function_exists( 'wp_print_inline_script_tag' ) ) {
-			wp_print_inline_script_tag( $script . $source_url_comment ) ;
-		} else {
-			printf( "<script>%s</script>\n", $script );
-		}
+		?>
+		<script>
+		/(trident|msie)/i.test(navigator.userAgent)&&document.getElementById&&window.addEventListener&&window.addEventListener("hashchange",(function(){var t,e=location.hash.substring(1);/^[A-z0-9_-]+$/.test(e)&&(t=document.getElementById(e))&&(/^(?:a|select|input|button|textarea)$/i.test(t.tagName)||(t.tabIndex=-1),t.focus())}),!1);
+		</script>
+		<?php
 	}
 }
 
