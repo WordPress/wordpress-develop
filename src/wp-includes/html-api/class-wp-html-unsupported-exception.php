@@ -113,3 +113,8 @@ class WP_HTML_Unsupported_Exception extends Exception {
 		$this->active_formatting_elements = $active_formatting_elements;
 	}
 }
+
+// @todo file for the class
+// phpcs:ignore Generic.Files.OneObjectStructurePerFile.MultipleFound
+class WP_HTML_Stack_Exception extends Exception {
+}

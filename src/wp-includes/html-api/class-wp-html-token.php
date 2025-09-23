@@ -86,6 +86,13 @@ class WP_HTML_Token {
 	public $on_destroy = null;
 
 	/**
+	 * The token can be locked to prevent it from being removed from a stack.
+	 *
+	 * @var bool
+	 */
+	public $locked = false;
+
+	/**
 	 * Constructor - creates a reference to a token in some external HTML string.
 	 *
 	 * @since 6.4.0

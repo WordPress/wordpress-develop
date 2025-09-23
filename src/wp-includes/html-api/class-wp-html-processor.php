@@ -279,24 +279,44 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * form is provided because a context element may have attributes that
 	 * impact the parse, such as with a SCRIPT tag and its `type` attribute.
 	 *
-	 * ## Current HTML Support
+	 * Example:
 	 *
-	 *  - The only supported context is `<body>`, which is the default value.
-	 *  - The only supported document encoding is `UTF-8`, which is the default value.
+	 *     // Usually, snippets of HTML ought to be processed in the default `<body>` context:
+	 *     $processor = WP_HTML_Processor::create_fragment( '<p>Hi</p>' );
+	 *
+	 *     // Some fragments should be processed in the correct context like this SVG:
+	 *     $processor = WP_HTML_Processor::create_fragment( '<rect width="10" height="10" />', '<svg>' );
+	 *
+	 *     // This fragment with TD tags should be processed in a TR context:
+	 *     $processor = WP_HTML_Processor::create_fragment(
+	 *         '<td>1<td>2<td>3',
+	 *         '<table><tbody><tr>'
+	 *     );
+	 *
+	 * In order to create a fragment processor at the correct location, the
+	 * provided fragment will be processed as part of a full HTML document.
+	 * The processor will search for the last opener tag in the document and
+	 * create a fragment processor at that location. The document will be
+	 * forced into "no-quirks" mode by including the HTML5 doctype.
+	 *
+	 * For advanced usage and precise control over the context element, use
+	 * `WP_HTML_Processor::create_full_processor()` and
+	 * `WP_HTML_Processor::create_fragment_at_current_node()`.
+	 *
+	 * UTF-8 is the only allowed encoding. If working with a document that
+	 * isn't UTF-8, first convert the document to UTF-8, then pass in the
+	 * converted HTML.
 	 *
 	 * @since 6.4.0
 	 * @since 6.6.0 Returns `static` instead of `self` so it can create subclass instances.
+	 * @since 6.8.0 Can create fragments with any context element.
 	 *
 	 * @param string $html     Input HTML fragment to process.
-	 * @param string $context  Context element for the fragment, must be default of `<body>`.
+	 * @param string $context  Context element for the fragment. Defaults to `<body>`.
 	 * @param string $encoding Text encoding of the document; must be default of 'UTF-8'.
 	 * @return static|null The created processor if successful, otherwise null.
 	 */
 	public static function create_fragment( $html, $context = '<body>', $encoding = 'UTF-8' ) {
-		if ( '<body>' !== $context || 'UTF-8' !== $encoding ) {
-			return null;
-		}
-
 		$context_processor = static::create_full_parser( "<!DOCTYPE html>{$context}", $encoding );
 		if ( null === $context_processor ) {
 			return null;
@@ -457,7 +477,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @param string $html Input HTML fragment to process.
 	 * @return static|null The created processor if successful, otherwise null.
 	 */
-	private function create_fragment_at_current_node( string $html ) {
+	public function create_fragment_at_current_node( string $html ) {
 		if ( $this->get_token_type() !== '#tag' || $this->is_tag_closer() ) {
 			_doing_it_wrong(
 				__METHOD__,
@@ -508,43 +528,54 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$fragment_processor->compat_mode = $this->compat_mode;
 
 		// @todo Create "fake" bookmarks for non-existent but implied nodes.
-		$fragment_processor->bookmarks['root-node'] = new WP_HTML_Span( 0, 0 );
-		$root_node                                  = new WP_HTML_Token(
-			'root-node',
-			'HTML',
-			false
-		);
-		$fragment_processor->state->stack_of_open_elements->push( $root_node );
+		$fragment_processor->bookmarks['root-node']    = new WP_HTML_Span( 0, 0 );
+		$fragment_processor->bookmarks['context-node'] = new WP_HTML_Span( 0, 0 );
 
-		$fragment_processor->bookmarks['context-node']   = new WP_HTML_Span( 0, 0 );
-		$fragment_processor->context_node                = clone $this->current_element->token;
-		$fragment_processor->context_node->bookmark_name = 'context-node';
-		$fragment_processor->context_node->on_destroy    = null;
+		foreach ( $this->state->stack_of_open_elements->walk_down() as $item ) {
+			$fragment_item = clone $item;
+			if ( $fragment_item->bookmark_name === $this->current_element->token->bookmark_name ) {
+				$fragment_item->bookmark_name     = 'context-node';
+				$fragment_processor->context_node = $fragment_item;
+			} else {
+				$fragment_item->bookmark_name = null;
+			}
+			$fragment_item->on_destroy = null;
+			$fragment_item->locked     = true;
+			$fragment_processor->state->stack_of_open_elements->push( $fragment_item );
+		}
 
-		$fragment_processor->breadcrumbs = array( 'HTML', $fragment_processor->context_node->node_name );
+		foreach ( $this->state->active_formatting_elements->walk_down() as $item ) {
+			$fragment_item                = clone $item;
+			$fragment_item->bookmark_name = null;
+			$fragment_item->on_destroy    = null;
+			$fragment_item->locked        = true;
+
+			$fragment_processor->state->active_formatting_elements->push( $fragment_item );
+		}
 
 		if ( 'TEMPLATE' === $fragment_processor->context_node->node_name ) {
 			$fragment_processor->state->stack_of_template_insertion_modes[] = WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE;
 		}
 
+		// @todo should there be a seek to the context element here?
 		$fragment_processor->reset_insertion_mode_appropriately();
 
-		/*
-		 * > Set the parser's form element pointer to the nearest node to the context element that
-		 * > is a form element (going straight up the ancestor chain, and including the element
-		 * > itself, if it is a form element), if any. (If there is no such form element, the
-		 * > form element pointer keeps its initial value, null.)
-		 */
-		foreach ( $this->state->stack_of_open_elements->walk_up() as $element ) {
-			if ( 'FORM' === $element->node_name && 'html' === $element->namespace ) {
-				$fragment_processor->state->form_element                = clone $element;
-				$fragment_processor->state->form_element->bookmark_name = null;
-				$fragment_processor->state->form_element->on_destroy    = null;
-				break;
-			}
+		// Set the form element pointer.
+		if ( null !== $this->state->form_element ) {
+			$fragment_processor->state->form_element                = clone $this->state->form_element;
+			$fragment_processor->state->form_element->bookmark_name = null;
+			$fragment_processor->state->form_element->on_destroy    = null;
+			$fragment_processor->state->form_element->locked        = true;
 		}
 
 		$fragment_processor->state->encoding_confidence = 'irrelevant';
+
+		// Consume activitity from the context stack and clear parsing state.
+		while ( array() !== $fragment_processor->element_queue ) {
+			$fragment_processor->next_token();
+		}
+		$fragment_processor->current_element      = null;
+		$fragment_processor->state->current_token = null;
 
 		/*
 		 * Update the parsing namespace near the end of the process.
@@ -552,7 +583,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		 * elements does not change the parsing namespace.
 		 */
 		$fragment_processor->change_parsing_namespace(
-			$this->current_element->token->integration_node_type ? 'html' : $namespace
+			$fragment_processor->context_node->integration_node_type ? 'html' : $namespace
 		);
 
 		return $fragment_processor;
@@ -801,8 +832,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$this->current_element = array_shift( $this->element_queue );
 		if ( ! isset( $this->current_element ) ) {
 			// There are no tokens left, so close all remaining open elements.
-			while ( $this->state->stack_of_open_elements->pop() ) {
-				continue;
+			try {
+				while ( $this->state->stack_of_open_elements->pop() ) {
+					continue;
+				}
+			} catch ( WP_HTML_Stack_Exception $e ) {
+				// A fragment processor would reach a context stack and throw here.
 			}
 
 			return empty( $this->element_queue ) ? false : $this->next_visitable_token();
@@ -1053,80 +1088,84 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		);
 
 		try {
-			if ( ! $parse_in_current_insertion_mode ) {
-				return $this->step_in_foreign_content();
-			}
+			try {
+				if ( ! $parse_in_current_insertion_mode ) {
+					return $this->step_in_foreign_content();
+				}
 
-			switch ( $this->state->insertion_mode ) {
-				case WP_HTML_Processor_State::INSERTION_MODE_INITIAL:
-					return $this->step_initial();
+				switch ( $this->state->insertion_mode ) {
+					case WP_HTML_Processor_State::INSERTION_MODE_INITIAL:
+						return $this->step_initial();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML:
-					return $this->step_before_html();
+					case WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HTML:
+						return $this->step_before_html();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD:
-					return $this->step_before_head();
+					case WP_HTML_Processor_State::INSERTION_MODE_BEFORE_HEAD:
+						return $this->step_before_head();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD:
-					return $this->step_in_head();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD:
+						return $this->step_in_head();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD_NOSCRIPT:
-					return $this->step_in_head_noscript();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_HEAD_NOSCRIPT:
+						return $this->step_in_head_noscript();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD:
-					return $this->step_after_head();
+					case WP_HTML_Processor_State::INSERTION_MODE_AFTER_HEAD:
+						return $this->step_after_head();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_BODY:
-					return $this->step_in_body();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_BODY:
+						return $this->step_in_body();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
-					return $this->step_in_table();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE:
+						return $this->step_in_table();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_TEXT:
-					return $this->step_in_table_text();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_TEXT:
+						return $this->step_in_table_text();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
-					return $this->step_in_caption();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_CAPTION:
+						return $this->step_in_caption();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP:
-					return $this->step_in_column_group();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_COLUMN_GROUP:
+						return $this->step_in_column_group();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
-					return $this->step_in_table_body();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_TABLE_BODY:
+						return $this->step_in_table_body();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_ROW:
-					return $this->step_in_row();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_ROW:
+						return $this->step_in_row();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
-					return $this->step_in_cell();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_CELL:
+						return $this->step_in_cell();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT:
-					return $this->step_in_select();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT:
+						return $this->step_in_select();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE:
-					return $this->step_in_select_in_table();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_SELECT_IN_TABLE:
+						return $this->step_in_select_in_table();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE:
-					return $this->step_in_template();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_TEMPLATE:
+						return $this->step_in_template();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY:
-					return $this->step_after_body();
+					case WP_HTML_Processor_State::INSERTION_MODE_AFTER_BODY:
+						return $this->step_after_body();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET:
-					return $this->step_in_frameset();
+					case WP_HTML_Processor_State::INSERTION_MODE_IN_FRAMESET:
+						return $this->step_in_frameset();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET:
-					return $this->step_after_frameset();
+					case WP_HTML_Processor_State::INSERTION_MODE_AFTER_FRAMESET:
+						return $this->step_after_frameset();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY:
-					return $this->step_after_after_body();
+					case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_BODY:
+						return $this->step_after_after_body();
 
-				case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET:
-					return $this->step_after_after_frameset();
+					case WP_HTML_Processor_State::INSERTION_MODE_AFTER_AFTER_FRAMESET:
+						return $this->step_after_after_frameset();
 
-				// This should be unreachable but PHP doesn't have total type checking on switch.
-				default:
-					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
+					// This should be unreachable but PHP doesn't have total type checking on switch.
+					default:
+						$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
+				}
+			} catch ( WP_HTML_Stack_Exception $e ) {
+				$this->bail( $e->getMessage() );
 			}
 		} catch ( WP_HTML_Unsupported_Exception $e ) {
 			/*
@@ -2598,6 +2637,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case '-FORM':
 				if ( ! $this->state->stack_of_open_elements->contains( 'TEMPLATE' ) ) {
+					if ( null !== $this->state->form_element && $this->state->form_element->locked ) {
+						$this->bail( 'Cannot pop locked FORM element.' );
+					}
 					$node                      = $this->state->form_element;
 					$this->state->form_element = null;
 
@@ -5516,10 +5558,16 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 * When moving backward, stateful stacks should be cleared.
 			 */
 			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+				if ( $item->locked ) {
+					break;
+				}
 				$this->state->stack_of_open_elements->remove_node( $item );
 			}
 
 			foreach ( $this->state->active_formatting_elements->walk_up() as $item ) {
+				if ( $item->locked ) {
+					break;
+				}
 				$this->state->active_formatting_elements->remove_node( $item );
 			}
 
@@ -5530,11 +5578,21 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			$this->state->frameset_ok                       = true;
 			$this->state->stack_of_template_insertion_modes = array();
-			$this->state->head_element                      = null;
-			$this->state->form_element                      = null;
 			$this->state->current_token                     = null;
 			$this->current_element                          = null;
 			$this->element_queue                            = array();
+			$this->breadcrumbs                              = array();
+
+			/*
+			 * Clear existing form element and head element pointers if they are not locked.
+			 * Locked pointers are not allowed to be touched.
+			 */
+			if ( null !== $this->state->head_element && ! $this->state->head_element->locked ) {
+				$this->state->head_element = null;
+			}
+			if ( null !== $this->state->form_element && ! $this->state->form_element->locked ) {
+				$this->state->form_element = null;
+			}
 
 			/*
 			 * The absence of a context node indicates a full parse.
@@ -5543,26 +5601,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			if ( null === $this->context_node ) {
 				$this->change_parsing_namespace( 'html' );
 				$this->state->insertion_mode = WP_HTML_Processor_State::INSERTION_MODE_INITIAL;
-				$this->breadcrumbs           = array();
 
 				$this->bookmarks['initial'] = new WP_HTML_Span( 0, 0 );
 				parent::seek( 'initial' );
 				unset( $this->bookmarks['initial'] );
 			} else {
-
-				/*
-				 * Push the root-node (HTML) back onto the stack of open elements.
-				 *
-				 * Fragment parsers require this extra bit of setup.
-				 * It's handled in full parsers by advancing the processor state.
-				 */
-				$this->state->stack_of_open_elements->push(
-					new WP_HTML_Token(
-						'root-node',
-						'HTML',
-						false
-					)
-				);
+				// Restore breadcrumbs based on the stack of open elements
+				foreach ( $this->state->stack_of_open_elements->walk_down() as $item ) {
+					$this->breadcrumbs[] = $item->node_name;
+				}
 
 				$this->change_parsing_namespace(
 					$this->context_node->integration_node_type
@@ -5575,7 +5622,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				$this->reset_insertion_mode_appropriately();
-				$this->breadcrumbs = array_slice( $this->breadcrumbs, 0, 2 );
 				parent::seek( $this->context_node->bookmark_name );
 			}
 		}
