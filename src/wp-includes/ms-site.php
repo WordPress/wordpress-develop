@@ -866,7 +866,7 @@ function wp_uninitialize_site( $site_id ) {
 				if ( @is_dir( $dir . DIRECTORY_SEPARATOR . $file ) ) {
 					$stack[] = $dir . DIRECTORY_SEPARATOR . $file;
 				} elseif ( @is_file( $dir . DIRECTORY_SEPARATOR . $file ) ) {
-					@unlink( $dir . DIRECTORY_SEPARATOR . $file );
+					wp_delete_file( $dir . DIRECTORY_SEPARATOR . $file );
 				}
 
 				$file = @readdir( $dh );

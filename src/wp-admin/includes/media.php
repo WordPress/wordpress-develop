@@ -1061,7 +1061,7 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return_type =
 
 		// If error storing permanently, unlink.
 		if ( is_wp_error( $id ) ) {
-			@unlink( $file_array['tmp_name'] );
+			wp_delete_file( $file_array['tmp_name'] );
 			return $id;
 		}
 

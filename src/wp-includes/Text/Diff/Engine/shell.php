@@ -48,8 +48,8 @@ class Text_Diff_Engine_shell {
         fwrite($fp, implode("\n", $to_lines));
         fclose($fp);
         $diff = shell_exec($this->_diffCommand . ' ' . $from_file . ' ' . $to_file);
-        unlink($from_file);
-        unlink($to_file);
+        wp_delete_file($from_file);
+        wp_delete_file($to_file);
 
         if (is_null($diff)) {
             // No changes were made

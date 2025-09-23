@@ -118,7 +118,7 @@ class File implements Base
     public function unlink()
     {
         if (file_exists($this->name)) {
-            return unlink($this->name);
+            return wp_delete_file($this->name);
         }
         return false;
     }

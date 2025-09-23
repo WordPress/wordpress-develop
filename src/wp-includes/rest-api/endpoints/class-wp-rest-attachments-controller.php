@@ -1192,7 +1192,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$sideloaded = wp_handle_sideload( $file_data, $overrides, $time );
 
 		if ( isset( $sideloaded['error'] ) ) {
-			@unlink( $tmpfname );
+			wp_delete_file( $tmpfname );
 
 			return new WP_Error(
 				'rest_upload_sideload_error',

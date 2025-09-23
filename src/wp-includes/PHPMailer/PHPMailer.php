@@ -3179,16 +3179,16 @@ class PHPMailer
                     );
                 }
 
-                @unlink($file);
+                wp_delete_file($file);
                 if ($sign) {
                     $body = file_get_contents($signed);
-                    @unlink($signed);
+                    wp_delete_file($signed);
                     //The message returned by openssl contains both headers and body, so need to split them up
                     $parts = explode("\n\n", $body, 2);
                     $this->MIMEHeader .= $parts[0] . static::$LE . static::$LE;
                     $body = $parts[1];
                 } else {
-                    @unlink($signed);
+                    wp_delete_file($signed);
                     throw new Exception($this->lang('signing') . openssl_error_string());
                 }
             } catch (Exception $exc) {

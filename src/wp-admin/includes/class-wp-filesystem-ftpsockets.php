@@ -143,7 +143,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		$temphandle = fopen( $tempfile, 'w+' );
 
 		if ( ! $temphandle ) {
-			unlink( $tempfile );
+			wp_delete_file( $tempfile );
 			return false;
 		}
 
@@ -151,7 +151,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		if ( ! $this->ftp->fget( $temphandle, $file ) ) {
 			fclose( $temphandle );
-			unlink( $tempfile );
+			wp_delete_file( $tempfile );
 
 			reset_mbstring_encoding();
 
@@ -168,7 +168,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		}
 
 		fclose( $temphandle );
-		unlink( $tempfile );
+		wp_delete_file( $tempfile );
 
 		return $contents;
 	}
@@ -201,7 +201,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		$temphandle = @fopen( $tempfile, 'w+' );
 
 		if ( ! $temphandle ) {
-			unlink( $tempfile );
+			wp_delete_file( $tempfile );
 			return false;
 		}
 
@@ -212,7 +212,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		if ( false === $bytes_written || strlen( $contents ) !== $bytes_written ) {
 			fclose( $temphandle );
-			unlink( $tempfile );
+			wp_delete_file( $tempfile );
 
 			reset_mbstring_encoding();
 
@@ -226,7 +226,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		reset_mbstring_encoding();
 
 		fclose( $temphandle );
-		unlink( $tempfile );
+		wp_delete_file( $tempfile );
 
 		$this->chmod( $file, $mode );
 

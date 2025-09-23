@@ -2268,7 +2268,7 @@
         if (($v_result = $this->privWriteCentralFileHeader($v_header_list[$i])) != 1) {
           fclose($v_zip_temp_fd);
           $this->privCloseFd();
-          @unlink($v_zip_temp_name);
+          wp_delete_file($v_zip_temp_name);
           $this->privSwapBackMagicQuotes();
 
           // ----- Return
@@ -2323,7 +2323,7 @@
 
     // ----- Delete the zip file
     // TBC : I should test the result ...
-    @unlink($this->zipname);
+    wp_delete_file($this->zipname);
 
     // ----- Rename the temporary file
     // TBC : I should test the result ...
@@ -2900,7 +2900,7 @@
     @fclose($v_file_compressed);
 
     // ----- Unlink the temporary file
-    @unlink($v_gzip_temp_name);
+    wp_delete_file($v_gzip_temp_name);
 
     // ----- Return
     return $v_result;
@@ -4037,7 +4037,7 @@
     @gzclose($v_src_file);
 
     // ----- Delete the temporary file
-    @unlink($v_gzip_temp_name);
+    wp_delete_file($v_gzip_temp_name);
 
     // ----- Return
     return $v_result;
@@ -4877,7 +4877,7 @@
                 // ----- Close the zip file
                 $this->privCloseFd();
                 $v_temp_zip->privCloseFd();
-                @unlink($v_zip_temp_name);
+                wp_delete_file($v_zip_temp_name);
 
                 // ----- Error log
                 PclZip::privErrorLog(PCLZIP_ERR_INVALID_ARCHIVE_ZIP, 'Invalid archive size');
@@ -4892,7 +4892,7 @@
                 // ----- Close the zip file
                 $this->privCloseFd();
                 $v_temp_zip->privCloseFd();
-                @unlink($v_zip_temp_name);
+                wp_delete_file($v_zip_temp_name);
 
                 // ----- Return
                 return $v_result;
@@ -4910,7 +4910,7 @@
                 // ----- Close the zip file
                 $this->privCloseFd();
                 $v_temp_zip->privCloseFd();
-                @unlink($v_zip_temp_name);
+                wp_delete_file($v_zip_temp_name);
 
                 // ----- Return
                 return $v_result;
@@ -4921,7 +4921,7 @@
                 // ----- Close the zip file
                 $this->privCloseFd();
                 $v_temp_zip->privCloseFd();
-                @unlink($v_zip_temp_name);
+                wp_delete_file($v_zip_temp_name);
 
                 // ----- Return
                 return $v_result;
@@ -4937,7 +4937,7 @@
             if (($v_result = $v_temp_zip->privWriteCentralFileHeader($v_header_list[$i])) != 1) {
                 $v_temp_zip->privCloseFd();
                 $this->privCloseFd();
-                @unlink($v_zip_temp_name);
+                wp_delete_file($v_zip_temp_name);
 
                 // ----- Return
                 return $v_result;
@@ -4963,7 +4963,7 @@
             unset($v_header_list);
             $v_temp_zip->privCloseFd();
             $this->privCloseFd();
-            @unlink($v_zip_temp_name);
+            wp_delete_file($v_zip_temp_name);
 
             // ----- Return
             return $v_result;
@@ -4975,7 +4975,7 @@
 
         // ----- Delete the zip file
         // TBC : I should test the result ...
-        @unlink($this->zipname);
+        wp_delete_file($this->zipname);
 
         // ----- Rename the temporary file
         // TBC : I should test the result ...
@@ -5239,7 +5239,7 @@
 
     // ----- Delete the zip file
     // TBC : I should test the result ...
-    @unlink($this->zipname);
+    wp_delete_file($this->zipname);
 
     // ----- Rename the temporary file
     // TBC : I should test the result ...
@@ -5662,7 +5662,7 @@
       if (!@copy($p_src, $p_dest)) {
         $v_result = 0;
       }
-      else if (!@unlink($p_src)) {
+      else if (!wp_delete_file($p_src)) {
         $v_result = 0;
       }
     }

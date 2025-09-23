@@ -567,10 +567,10 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	}
 
 	// Remove the JSON file.
-	unlink( $json_report_pathname );
+	wp_delete_file( $json_report_pathname );
 
 	// Remove the HTML file.
-	unlink( $html_report_pathname );
+	wp_delete_file( $html_report_pathname );
 
 	if ( $error ) {
 		wp_send_json_error( $error );

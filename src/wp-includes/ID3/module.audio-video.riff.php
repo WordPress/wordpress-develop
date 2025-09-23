@@ -1977,7 +1977,7 @@ class getid3_riff extends getid3_handler
 			$info['tags']     = $getid3_temp->info['tags'];
 			$info['comments'] = $getid3_temp->info['comments'];
 			unset($getid3_riff, $getid3_temp);
-			unlink($tempfile);
+			wp_delete_file($tempfile);
 		}
 		return false;
 	}

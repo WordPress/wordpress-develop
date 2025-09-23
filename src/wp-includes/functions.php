@@ -2308,7 +2308,7 @@ function win_is_writable( $path ) {
 	fclose( $f );
 
 	if ( $should_delete_tmp_file ) {
-		unlink( $path );
+		wp_delete_file( $path );
 	}
 
 	return true;
@@ -8446,7 +8446,7 @@ function wp_privacy_delete_old_export_files() {
 		$file_age_in_seconds = time() - filemtime( $export_file );
 
 		if ( $expiration < $file_age_in_seconds ) {
-			unlink( $export_file );
+			wp_delete_file( $export_file );
 		}
 	}
 }

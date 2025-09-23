@@ -150,7 +150,7 @@ class File_Upload_Upgrader {
 			wp_delete_attachment( $this->id );
 
 		} elseif ( file_exists( $this->package ) ) {
-			return @unlink( $this->package );
+			return wp_delete_file( $this->package );
 		}
 
 		return true;
