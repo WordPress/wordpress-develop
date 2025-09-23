@@ -85,5 +85,11 @@
 	<rule ref="PHPCompatibility.FunctionUse.NewFunctions.sodium_unpadFound">
 		<exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
 	</rule>
+	<rule ref="PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__serializeFound">
+		<exclude-pattern>/sodium_compat/src/PHP52/SplFixedArray\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound">
+		<exclude-pattern>/sodium_compat/src/PHP52/SplFixedArray\.php$</exclude-pattern>
+	</rule>
 
 </ruleset>

@@ -150,7 +150,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
-		$expected .= "/*# sourceURL=inline:handle-inline-css */\n";
+		$expected .= "/*# sourceURL=handle-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -167,7 +167,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 24813
 	 */
 	public function test_inline_styles_concat() {
-
 		global $wp_styles;
 
 		$wp_styles->do_concat    = true;
@@ -180,7 +179,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
-		$expected .= "/*# sourceURL=inline:handle-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -276,7 +274,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style1\n";
 		$expected .= "$style2\n";
-		$expected .= "/*# sourceURL=inline:handle-inline-css */\n";
+		$expected .= "/*# sourceURL=handle-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -302,7 +300,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
-		$expected .= "/*# sourceURL=inline:handle-inline-css */\n";
+		$expected .= "/*# sourceURL=handle-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -336,7 +334,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 <link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' type='text/css' media='all' />
 <style id='handle-inline-css' type='text/css'>
 a { color: blue; }
-/*# sourceURL=inline:handle-inline-css */
+/*# sourceURL=handle-inline-css */
 </style>
 <![endif]-->
 
@@ -368,7 +366,7 @@ CSS;
 		$expected .= "<link rel='stylesheet' id='handle-two-css' href='http://example.com?ver=1' type='text/css' media='all' />\n";
 		$expected .= "<style id='handle-three-inline-css' type='text/css'>\n";
 		$expected .= "$style\n";
-		$expected .= "/*# sourceURL=inline:handle-three-inline-css */\n";
+		$expected .= "/*# sourceURL=handle-three-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_register_style( 'handle-one', 'http://example.com', array(), 1 );
@@ -651,11 +649,44 @@ CSS;
 <link rel='stylesheet' href="/example.css?ver=0.0" id="# test/</style> #-css" media="all" type="text/css">
 <style id="# test/</style> #-inline-css" type="text/css">
 custom-el { content: "ok"; }
-/*# sourceURL=inline:%23%20test%2F%3C%2Fstyle%3E%20%23-inline-css */
+/*# sourceURL=%23%20test%2F%3C%2Fstyle%3E%20%23-inline-css */
 </style>
 
 HTML;
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
+	}
+
+	/**
+	 * @ticket 63887
+	 */
+	public function test_source_url_with_concat() {
+		global $wp_styles, $wp_version;
+		add_theme_support( 'html5', array( 'style' ) );
+
+		$wp_styles->do_concat    = true;
+		$wp_styles->default_dirs = array( '/wp-admin/' );
+
+		wp_enqueue_style( 'one', '/wp-admin/1.css' );
+		wp_enqueue_style( 'two', '/wp-admin/2.css' );
+		wp_add_inline_style( 'one', 'h1 { background: blue; }' );
+		wp_add_inline_style( 'two', 'h2 { color: green; }' );
+
+		wp_print_styles();
+		$printed = get_echo( '_print_styles' );
+
+		$expected = <<<HTML
+<link
+	rel="stylesheet"
+	href="/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=one,two&ver={$wp_version}"
+	media="all"
+>
+<style>
+h1 { background: blue; }h2 { color: green; }
+/*# sourceURL=css-inline-concat-one%2Ctwo */
+</style>
+HTML;
+
+		$this->assertEqualHTML( $expected, $printed );
 	}
 }

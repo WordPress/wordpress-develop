@@ -1047,7 +1047,10 @@ function wp_default_scripts( $scripts ) {
 	did_action( 'init' ) && $scripts->localize( 'wp-plupload', 'pluploadL10n', $uploader_l10n );
 
 	$scripts->add( 'comment-reply', "/wp-includes/js/comment-reply$suffix.js", array(), false, 1 );
-	did_action( 'init' ) && $scripts->add_data( 'comment-reply', 'strategy', 'async' );
+	if ( did_action( 'init' ) ) {
+		$scripts->add_data( 'comment-reply', 'strategy', 'async' );
+		$scripts->add_data( 'comment-reply', 'fetchpriority', 'low' ); // In Chrome this is automatically low due to the async strategy, but in Firefox and Safari the priority is normal/medium.
+	}
 
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
@@ -2209,6 +2212,7 @@ function _print_scripts() {
 			echo "\n<script{$type_attr}>\n";
 			echo "/* <![CDATA[ */\n"; // Not needed in HTML 5.
 			echo $wp_scripts->print_code;
+			echo sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
 			echo "/* ]]> */\n";
 			echo "</script>\n";
 		}
@@ -2391,8 +2395,9 @@ function _print_styles() {
 		$dir = $wp_styles->text_direction;
 		$ver = $wp_styles->default_version;
 
-		$concat       = str_split( $concat, 128 );
-		$concatenated = '';
+		$concat_source_url = 'css-inline-concat-' . $concat;
+		$concat            = str_split( $concat, 128 );
+		$concatenated      = '';
 
 		foreach ( $concat as $key => $chunk ) {
 			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
@@ -2404,6 +2409,7 @@ function _print_styles() {
 		if ( ! empty( $wp_styles->print_code ) ) {
 			echo "<style{$type_attr}>\n";
 			echo $wp_styles->print_code;
+			echo sprintf( "\n/*# sourceURL=%s */", rawurlencode( $concat_source_url ) );
 			echo "\n</style>\n";
 		}
 	}

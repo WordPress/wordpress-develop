@@ -337,10 +337,12 @@ class WP_Styles extends WP_Dependencies {
 			return false;
 		}
 
-		$output[] = sprintf(
-			'/*# sourceURL=inline:%s */',
-			rawurlencode( "{$handle}-inline-css" )
-		);
+		if ( ! $this->do_concat ) {
+			$output[] = sprintf(
+				'/*# sourceURL=%s */',
+				rawurlencode( "{$handle}-inline-css" )
+			);
+		}
 
 		$output = implode( "\n", $output );
 

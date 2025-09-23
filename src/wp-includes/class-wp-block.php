@@ -304,6 +304,20 @@ class WP_Block {
 		/**
 		 * Filters the supported block attributes for block bindings.
 		 *
+		 * @since 6.9.0
+		 *
+		 * @param string[] $supported_block_attributes The block's attributes that are supported by block bindings.
+		 * @param string   $block_type                 The block type whose attributes are being filtered.
+		 */
+		$supported_block_attributes = apply_filters(
+			'block_bindings_supported_attributes',
+			$supported_block_attributes,
+			$block_type
+		);
+
+		/**
+		 * Filters the supported block attributes for block bindings.
+		 *
 		 * The dynamic portion of the hook name, `$block_type`, refers to the block type
 		 * whose attributes are being filtered.
 		 *
@@ -490,8 +504,8 @@ class WP_Block {
 				}
 
 				$this->set_bookmark( '_wp_block_bindings_tag_closer' );
-				$tag_closer  = $this->bookmarks['__wp_block_bindings_tag_closer'];
-				$end         = $tag_closer->start;
+				$tag_closer = $this->bookmarks['__wp_block_bindings_tag_closer'];
+				$end        = $tag_closer->start;
 				$this->release_bookmark( '_wp_block_bindings_tag_closer' );
 
 				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
