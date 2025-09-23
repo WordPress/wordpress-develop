@@ -797,7 +797,13 @@ function twentyfifteen_color_scheme_css_template() {
 	$css = twentyfifteen_get_color_scheme_css( $colors );
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
-		wp_print_inline_script_tag( $css . "\n//# sourceURL=" . __FUNCTION__, array( 'type' => 'text/html', 'id' => 'tmpl-twentyfifteen-color-scheme' ) );
+		wp_print_inline_script_tag(
+			$css . "\n//# sourceURL=" . __FUNCTION__,
+			array(
+				'type' => 'text/html',
+				'id' => 'tmpl-twentyfifteen-color-scheme' 
+			)
+		);
 	} else {
 		printf(
 			"<script %s>\n%s\n\t</script>\n",
