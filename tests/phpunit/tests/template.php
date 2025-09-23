@@ -63,8 +63,14 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @var string
+	 */
+	protected $original_default_mimetype;
+
 	public function set_up() {
 		parent::set_up();
+		$this->original_default_mimetype = ini_get( 'default_mimetype' );
 		register_post_type(
 			'cpt',
 			array(
@@ -83,6 +89,7 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		ini_set( 'default_mimetype', $this->original_default_mimetype );
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );
@@ -495,13 +502,14 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_start_template_output_buffer() starts the expected output buffer and that the expected hooks fire.
+	 * Tests that wp_start_template_output_buffer() starts the expected output buffer and that the expected hooks fire for
+	 * an HTML document and that the response is not incrementally flushable.
 	 *
 	 * @ticket 43258
 	 * @covers ::wp_start_template_output_buffer
 	 * @covers ::wp_finalize_template_output_buffers
 	 */
-	public function test_wp_start_template_output_buffer(): void {
+	public function test_wp_start_template_output_buffer_for_html(): void {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
@@ -515,9 +523,12 @@ class Tests_Template extends WP_UnitTestCase {
 			PHP_INT_MAX
 		);
 
+		$called_html_filter = false;
 		add_filter(
 			'wp_template_output_buffer_html',
-			static function ( string $buffer ): string {
+			static function ( string $buffer ) use ( &$called_html_filter ): string {
+				$called_html_filter = true;
+
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				while ( $p->next_tag() ) {
 					echo $p->get_tag() . PHP_EOL;
@@ -539,9 +550,11 @@ class Tests_Template extends WP_UnitTestCase {
 			}
 		);
 
+		$called_filter = false;
 		add_filter(
 			'wp_template_output_buffer',
-			function ( string $buffer ): string {
+			function ( string $buffer ) use ( &$called_filter ): string {
+				$called_filter = true;
 				$this->assertStringNotContainsString( 'Hello', $buffer );
 				if ( str_starts_with( ltrim( $buffer ), '<!DOCTYPE html>' ) ) {
 					$buffer .= "\n<!-- Output buffer was processed! -->\n";
@@ -579,6 +592,9 @@ class Tests_Template extends WP_UnitTestCase {
 
 		ob_end_flush(); // End the buffer started by wp_start_template_output_buffer().
 		$this->assertSame( $initial_ob_level, ob_get_level() );
+
+		$this->assertTrue( $called_html_filter );
+		$this->assertTrue( $called_filter );
 		$this->assertSame( 1, did_action( 'wp_final_template_output_buffer' ) );
 
 		// Obtain the output via the wrapper output buffer.
@@ -603,7 +619,7 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_start_template_output_buffer() starts the expected output buffer and that the expected hooks fire.
+	 * Tests that wp_start_template_output_buffer() starts the expected output buffer but cleaning prevents any processing.
 	 *
 	 * @ticket 43258
 	 * @covers ::wp_start_template_output_buffer
@@ -613,9 +629,12 @@ class Tests_Template extends WP_UnitTestCase {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
+		$called_html_filter = false;
 		add_filter(
 			'wp_template_output_buffer_html',
-			static function ( string $buffer ): string {
+			static function ( string $buffer ) use ( &$called_html_filter ): string {
+				$called_html_filter = true;
+
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				if ( $p->next_tag( array( 'tag_name' => 'TITLE' ) ) ) {
 					$p->set_modifiable_text( 'Processed' );
@@ -624,9 +643,12 @@ class Tests_Template extends WP_UnitTestCase {
 			}
 		);
 
+		$called_filter = false;
 		add_filter(
 			'wp_template_output_buffer',
-			function ( string $buffer ): string {
+			function ( string $buffer ) use ( &$called_filter ): string {
+				$called_filter = true;
+
 				$buffer .= "\n<!-- Output buffer was processed! -->\n";
 				return $buffer;
 			}
@@ -659,6 +681,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$this->assertSame( $initial_ob_level, ob_get_level() );
 
+		$this->assertFalse( $called_html_filter );
+		$this->assertFalse( $called_filter );
 		$this->assertSame( 0, did_action( 'wp_final_template_output_buffer' ) );
 
 		// Obtain the output via the wrapper output buffer.
@@ -671,13 +695,87 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests wp_finalize_template_output_buffer().
+	 * Tests that wp_start_template_output_buffer() starts the expected output buffer and that the expected hooks fire for JSON response.
 	 *
 	 * @ticket 43258
-	 * @covers ::wp_finalize_template_output_buffer
+	 * @covers ::wp_start_template_output_buffer
+	 * @covers ::wp_finalize_template_output_buffers
 	 */
-	public function test_wp_finalize_template_output_buffer(): void {
-		$this->markTestIncomplete();
+	public function test_wp_start_template_output_buffer_for_json(): void {
+		// Start a wrapper output buffer so that we can flush the inner buffer.
+		ob_start();
+
+		$action_args = null;
+		add_action(
+			'wp_final_template_output_buffer',
+			function () use ( &$action_args ): void {
+				$action_args = func_get_args();
+			},
+			10,
+			PHP_INT_MAX
+		);
+
+		$called_html_filter = false;
+		add_filter(
+			'wp_template_output_buffer_html',
+			static function ( string $buffer ) use ( &$called_html_filter ): string {
+				$called_html_filter = true;
+				return $buffer;
+			}
+		);
+
+		$called_filter = false;
+		add_filter(
+			'wp_template_output_buffer',
+			function ( string $buffer ) use ( &$called_filter ): string {
+				$called_filter = true;
+
+				$data                    = json_decode( $buffer, true );
+				$data['data']['message'] = '¡Hola, mundo!';
+				return json_encode( $data );
+			}
+		);
+
+		$initial_ob_level = ob_get_level();
+		$this->assertTrue( wp_start_template_output_buffer() );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
+
+		ini_set( 'default_mimetype', 'application/json' ); // Since sending a header won't work.
+		echo wp_json_encode(
+			array(
+				'success' => true,
+				'data'    => array(
+					'message' => 'Hello, world!',
+					'fish'    => '<o><', // Something that looks like HTML.
+				),
+			)
+		);
+
+		$ob_status = ob_get_status();
+		$this->assertSame( 'wp_finalize_template_output_buffer', $ob_status['name'], 'Expected name to be WP function.' );
+		$this->assertSame( 1, $ob_status['type'], 'Expected type to be user supplied handler.' );
+		$this->assertSame( 0, $ob_status['chunk_size'], 'Expected unlimited chunk size.' );
+
+		ob_end_flush(); // End the buffer started by wp_start_template_output_buffer().
+		$this->assertSame( $initial_ob_level, ob_get_level() );
+
+		$this->assertFalse( $called_html_filter );
+		$this->assertTrue( $called_filter );
+		$this->assertSame( 1, did_action( 'wp_final_template_output_buffer' ) );
+
+		// Obtain the output via the wrapper output buffer.
+		$output = ob_get_clean();
+		$this->assertIsString( $output );
+		$this->assertIsArray( $action_args );
+		$this->assertCount( 2, $action_args );
+		$this->assertIsString( $action_args[0] );
+		$this->assertIsString( $action_args[1] );
+
+		$filtered_data = json_decode( $action_args[0], true );
+		$original_data = json_decode( $action_args[1], true );
+
+		$this->assertSame( 'Hello, world!', $original_data['data']['message'] );
+		$this->assertSame( '¡Hola, mundo!', $filtered_data['data']['message'] );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
