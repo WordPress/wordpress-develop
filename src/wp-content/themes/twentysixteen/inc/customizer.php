@@ -857,8 +857,8 @@ function twentysixteen_color_scheme_css_template() {
 			$css . "\n//# sourceURL=" . __FUNCTION__,
 			array(
 				'type' => 'text/html',
-				'id' => 'tmpl-twentysixteen-color-scheme'
-			) 
+				'id'   => 'tmpl-twentysixteen-color-scheme',
+			)
 		);
 	} else {
 		printf(

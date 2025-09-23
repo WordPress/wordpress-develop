@@ -415,10 +415,10 @@ function twentyfifteen_javascript_detection() {
 	$js = "(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);";
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
-        wp_print_inline_script_tag( $js . "\n//# sourceURL=" . __FUNCTION__ );
-    } else {
-        printf( "<script>%s</script>\n", $js );
-    }
+		wp_print_inline_script_tag( $js . "\n//# sourceURL=" . __FUNCTION__ );
+	} else {
+		printf( "<script>%s</script>\n", $js );
+	}
 }
 add_action( 'wp_head', 'twentyfifteen_javascript_detection', 0 );
 
