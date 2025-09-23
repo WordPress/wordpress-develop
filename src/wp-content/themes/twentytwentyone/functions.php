@@ -495,18 +495,30 @@ add_action( 'enqueue_block_editor_assets', 'twentytwentyone_block_editor_script'
 function twenty_twenty_one_skip_link_focus_fix() {
 	$script = '';
 
+	$source_url_comment = '';
+
 	// If SCRIPT_DEBUG is defined and true, print the unminified file.
 	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
 		$js_path = get_template_directory() . '/assets/js/skip-link-focus-fix.js';
+
 		if ( file_exists( $js_path ) ) {
 			$script = file_get_contents( $js_path );
 		}
+
+		$source_url_comment = "\n//# sourceURL=" . trailingslashit( get_template_directory() ) . '/assets/js/skip-link-focus-fix.js';
 	} else {
 		// The following is minified via `npx terser --compress --mangle -- assets/js/skip-link-focus-fix.js`.
 		$script = '/(trident|msie)/i.test(navigator.userAgent)&&document.getElementById&&window.addEventListener&&window.addEventListener("hashchange",(function(){var t,e=location.hash.substring(1);/^[A-z0-9_-]+$/.test(e)&&(t=document.getElementById(e))&&(/^(?:a|select|input|button|textarea)$/i.test(t.tagName)||(t.tabIndex=-1),t.focus())}),!1);';
+
+		$source_url_comment = "\n//# sourceURL=" . __FUNCTION__;
 	}
+
 	if ( $script ) {
-		wp_print_inline_script_tag( $script );
+		if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+			wp_print_inline_script_tag( $script . $source_url_comment ) ;
+		} else {
+			printf( "<script>%s</script>\n", $script );
+		}
 	}
 }
 
@@ -637,7 +649,11 @@ function twentytwentyone_add_ie_class() {
 		}
 	";
 
-	wp_print_inline_script_tag( $script );
+	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+        wp_print_inline_script_tag( $script . "\n//# sourceURL=" . __FUNCTION__ );
+    } else {
+        printf( "<script>%s</script>\n", $script );
+    }
 }
 add_action( 'wp_footer', 'twentytwentyone_add_ie_class' );
 
@@ -686,106 +702,5 @@ if ( ! function_exists( 'wp_sanitize_script_attributes' ) ) {
 		}
 
 		return $attributes_string;
-	}
-}
-
-if ( ! function_exists( 'wp_get_inline_script_tag' ) ) {
-	/**
-	 * Constructs an inline script tag.
-	 *
-	 * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
-	 * Automatically injects type attribute if needed.
-	 *
-	 * Added for backward compatibility to support pre-5.7.0 WordPress versions.
-	 *
-	 * @since 5.7.0
-	 *
-	 * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
-	 * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
-	 * @return string String containing inline JavaScript code wrapped around `<script>` tag.
-	 */
-	function wp_get_inline_script_tag( $data, $attributes = array() ) {
-		$is_html5 = current_theme_supports( 'html5', 'script' ) || is_admin();
-		if ( ! isset( $attributes['type'] ) && ! $is_html5 ) {
-			// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
-			$attributes = array_merge(
-				array( 'type' => 'text/javascript' ),
-				$attributes
-			);
-		}
-
-		/*
-		 * XHTML extracts the contents of the SCRIPT element and then the XML parser
-		 * decodes character references and other syntax elements. This can lead to
-		 * misinterpretation of the script contents or invalid XHTML documents.
-		 *
-		 * Wrapping the contents in a CDATA section instructs the XML parser not to
-		 * transform the contents of the SCRIPT element before passing them to the
-		 * JavaScript engine.
-		 *
-		 * Example:
-		 *
-		 *     <script>console.log('&hellip;');</script>
-		 *
-		 *     In an HTML document this would print "&hellip;" to the console,
-		 *     but in an XHTML document it would print "…" to the console.
-		 *
-		 *     <script>console.log('An image is <img> in HTML');</script>
-		 *
-		 *     In an HTML document this would print "An image is <img> in HTML",
-		 *     but it's an invalid XHTML document because it interprets the `<img>`
-		 *     as an empty tag missing its closing `/`.
-		 *
-		 * @see https://www.w3.org/TR/xhtml1/#h-4.8
-		 */
-		if (
-			! $is_html5 &&
-			(
-				! isset( $attributes['type'] ) ||
-				'module' === $attributes['type'] ||
-				str_contains( $attributes['type'], 'javascript' ) ||
-				str_contains( $attributes['type'], 'ecmascript' ) ||
-				str_contains( $attributes['type'], 'jscript' ) ||
-				str_contains( $attributes['type'], 'livescript' )
-			)
-		) {
-			/*
-			 * If the string `]]>` exists within the JavaScript it would break
-			 * out of any wrapping CDATA section added here, so to start, it's
-			 * necessary to escape that sequence which requires splitting the
-			 * content into two CDATA sections wherever it's found.
-			 *
-			 * Note: it's only necessary to escape the closing `]]>` because
-			 * an additional `<![CDATA[` leaves the contents unchanged.
-			 */
-			$data = str_replace( ']]>', ']]]]><![CDATA[>', $data );
-
-			// Wrap the entire escaped script inside a CDATA section.
-			$data = sprintf( "/* <![CDATA[ */\n%s\n/* ]]> */", $data );
-		}
-
-		$data = "\n" . trim( $data, "\n\r " ) . "\n";
-
-		/** This filter is documented in wp-includes/script-loader.php */
-		$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
-
-		return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $data );
-	}
-}
-
-if ( ! function_exists( 'wp_print_inline_script_tag' ) ) {
-	/**
-	 * Prints an inline script tag.
-	 *
-	 * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
-	 * Automatically injects type attribute if needed.
-	 *
-	 * @since 5.7.0
-	 *
-	 * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
-	 * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
-	 */
-	function wp_print_inline_script_tag( $data, $attributes = array() ) {
-		echo wp_get_inline_script_tag( $data, $attributes );
 	}
 }

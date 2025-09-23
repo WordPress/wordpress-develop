@@ -661,7 +661,13 @@ add_filter( 'walker_nav_menu_start_el', 'twentytwenty_nav_menu_social_icons', 10
  */
 function twentytwenty_no_js_class() {
 
-	wp_print_inline_script_tag( "document.documentElement.className = document.documentElement.className.replace( 'no-js', 'js' );" );
+	$js = "document.documentElement.className = document.documentElement.className.replace( 'no-js', 'js' );";
+
+	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+        wp_print_inline_script_tag( $js . "\n//# sourceURL=" . __FUNCTION__ );
+    } else {
+        printf( "<script>%s</script>\n", $js );
+    }
 }
 
 add_action( 'wp_head', 'twentytwenty_no_js_class' );
