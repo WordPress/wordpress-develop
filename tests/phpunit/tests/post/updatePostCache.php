@@ -173,6 +173,6 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 
 		// Meta should still be accessible after post update.
 		$meta_after = get_post_meta( $post_id, 'foo', true );
-		$this->assertSame( 'bar', $meta_after, 'Meta value should still persist after post update.' );
+		$this->assertSame( 'bar', $meta_after, 'Meta value should still persist after cache invalidation.' );
 	}
 }
