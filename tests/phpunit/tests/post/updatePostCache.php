@@ -138,4 +138,41 @@ class Tests_Post_UpdatePostCache extends WP_UnitTestCase {
 			'The filter is not set to "raw"'
 		);
 	}
+
+	/**
+	 * Test that post meta cache persists when post is updated.
+	 *
+	 * @ticket 63167
+	 */
+	public function test_post_meta_cache_is_invalidated_after_post_update() {
+		// Create a post and assign meta.
+		$post_id = self::factory()->post->create();
+		update_post_meta( $post_id, 'foo', 'bar' );
+
+		// Prime the cache by fetching meta.
+		$meta = get_post_meta( $post_id, 'foo', true );
+		$this->assertSame( 'bar', $meta, 'Meta should return the stored value.' );
+
+		// Confirm that meta is cached.
+		$cache_key = (string) $post_id;
+		$cache     = wp_cache_get( $cache_key, 'post_meta' );
+		$this->assertNotEmpty( $cache, 'Meta cache should be primed.' );
+		$this->assertSame( 'bar', $cache['foo'][0], 'Cached value should match.' );
+
+		// Update the post (this should trigger clean_post_cache()).
+		wp_update_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Updated title',
+			)
+		);
+
+		// After update, the post_meta cache should persist.
+		$cache_after = wp_cache_get( $cache_key, 'post_meta' );
+		$this->assertNotEmpty( $cache_after, 'Meta cache should persist after post update.' );
+
+		// Meta should still be accessible after post update.
+		$meta_after = get_post_meta( $post_id, 'foo', true );
+		$this->assertSame( 'bar', $meta_after, 'Meta value should still persist after post update.' );
+	}
 }
