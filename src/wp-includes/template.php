@@ -884,11 +884,9 @@ function wp_finalize_template_output_buffer( string $output, int $phase ): strin
 		if (
 			is_array( $header_parts ) &&
 			count( $header_parts ) >= 2 &&
-			'content-type' === $header_parts[0] &&
-			in_array( $header_parts[1], array( 'text/html', 'application/xhtml+xml' ), true )
+			'content-type' === $header_parts[0]
 		) {
-			$is_html_content_type = true;
-			break;
+			$is_html_content_type = in_array( $header_parts[1], array( 'text/html', 'application/xhtml+xml' ), true );
 		}
 	}
 
