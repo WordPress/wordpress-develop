@@ -295,7 +295,7 @@ HTML;
 	 * Furthermore tests if the caption attribute is correctly processed.
 	 *
 	 * @ticket 60282
-	 * @ticket XXXXX
+	 * @ticket 64031
 	 *
 	 * @covers ::register_block_bindings_source
 	 */
