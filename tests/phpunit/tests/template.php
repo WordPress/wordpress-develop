@@ -602,7 +602,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertIsString( $output );
 		$this->assertIsArray( $action_args );
 		$this->assertCount( 2, $action_args );
-		$this->assertIsString( $action_args[0] );
+		$this->assertSame( $action_args[0], $output );
 		$this->assertStringContainsString( '<!DOCTYPE html>', $action_args[0] );
 		$this->assertStringContainsString( '<html lang="es">', $action_args[0] );
 		$this->assertStringContainsString( '<title>Saludo</title>', $action_args[0] );
@@ -768,7 +768,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertIsString( $output );
 		$this->assertIsArray( $action_args );
 		$this->assertCount( 2, $action_args );
-		$this->assertIsString( $action_args[0] );
+		$this->assertSame( $action_args[0], $output );
 		$this->assertIsString( $action_args[1] );
 
 		$filtered_data = json_decode( $action_args[0], true );

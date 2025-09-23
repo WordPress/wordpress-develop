@@ -937,5 +937,5 @@ function wp_finalize_template_output_buffer( string $output, int $phase ): strin
 	 */
 	do_action( 'wp_final_template_output_buffer', $filtered_output, $output );
 
-	return $output;
+	return $filtered_output;
 }
