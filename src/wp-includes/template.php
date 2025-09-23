@@ -881,11 +881,21 @@ function wp_finalize_template_output_buffer( string $output, int $phase ): strin
 	);
 	foreach ( $headers_list as $header ) {
 		$header_parts = preg_split( '/\s*[:;]\s*/', strtolower( $header ) );
-		if ( is_array( $header_parts ) && count( $header_parts ) >= 2 && 'content-type' === $header_parts[0] ) {
-			$is_html_content_type = in_array( $header_parts[1], array( 'text/html', 'application/xhtml+xml' ), true );
+		if (
+			is_array( $header_parts ) &&
+			count( $header_parts ) >= 2 &&
+			'content-type' === $header_parts[0] &&
+			in_array( $header_parts[1], array( 'text/html', 'application/xhtml+xml' ), true )
+		) {
+			$is_html_content_type = true;
+			break;
 		}
 	}
-	// TODO: Also check if str_starts_with( ltrim( $buffer ), '<' )? Or check if str_contains( '<html' ) in case a PHP warning output an error before the HTML tag.
+
+	// If the content type is HTML, require that there be at least one tag.
+	if ( $is_html_content_type ) {
+		$is_html_content_type = ( new WP_HTML_Tag_Processor( $output ) )->next_tag();
+	}
 
 	$filtered_output = $output;
 	if ( $is_html_content_type ) {
