@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Loads the correct template based on the visitor's URL
  *
