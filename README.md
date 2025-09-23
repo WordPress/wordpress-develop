@@ -141,6 +141,183 @@ The development environment can be reset. This will destroy the database and att
 npm run env:reset
 ```
 
+## Getting Started for Windows Users
+
+WordPress is built with PHP, MySQL, and JavaScript, and uses Node.js for JavaScript tooling.  
+You will need:
+
+- [Node.js](https://nodejs.org/en/download/) (version 20.x recommended)
+- [npm](https://www.npmjs.com/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) (or compatible container environment)
+
+Clone the repository and set up your environment:
+
+```bash
+git clone https://github.com/WordPress/wordpress-develop.git
+cd wordpress-develop
+npm install
+npm run build:dev
+npm run env:start
+npm run env:install
+```
+
+Your WordPress site will be available at [http://localhost:8889](http://localhost:8889).  
+Configuration options are in the `.env` file at the project root.
+
+---
+
+## Windows Users
+
+If you are on Windows, you may encounter warnings or errors when running setup commands.
+
+### Common Issues & Solutions
+
+#### 1. **Unknown npm config warnings**
+
+You may see warnings like:
+
+```
+npm WARN Unknown user config "disturl"
+npm WARN Unknown user config "chromedriver-cdnurl"
+# ...other similar warnings
+```
+
+These are harmless and caused by globally set npm configs.  
+To remove them, run the following in your terminal:
+
+```powershell
+npm config delete disturl
+npm config delete chromedriver-cdnurl
+npm config delete electron-mirror
+# Repeat for other warnings as needed
+```
+
+#### 2. **ENOENT: package.json not found**
+
+Error example:
+
+```
+npm ERR! enoent Could not read package.json
+```
+
+**Solution:**  
+Make sure you are in the repository root directory before running any npm commands:
+
+```powershell
+cd D:\contributions\wordpress-develop
+npm install
+npm run build:dev
+npm run env:start
+```
+
+#### 3. **Windows Convenience Script**
+
+To simplify setup, you can use a helper PowerShell script:
+
+Create a file named `start-windows.ps1` in your repo root with the following content:
+
+```powershell
+# start-windows.ps1
+Write-Host "Starting WordPress development environment on Windows..." -ForegroundColor Cyan
+
+if (!(Test-Path "package.json")) {
+    Write-Error "package.json not found! Ensure you are in the repository root."
+    exit
+}
+
+Write-Host "Installing dependencies..." -ForegroundColor Green
+npm install
+
+Write-Host "Building dev files..." -ForegroundColor Green
+npm run build:dev
+
+Write-Host "Starting development environment..." -ForegroundColor Green
+npm run env:start
+```
+
+Run it in PowerShell (as Administrator):
+
+```powershell
+.\start-windows.ps1
+```
+
+This script helps avoid ENOENT errors and npm warnings, streamlining setup for Windows developers.
+
+---
+
+## Development Commands
+
+Ensure your container environment (e.g., Docker Desktop) is running before using these commands.
+
+### First-Time Setup
+
+```bash
+git clone https://github.com/WordPress/wordpress-develop.git
+cd wordpress-develop
+npm install
+npm run build:dev
+npm run env:start
+npm run env:install
+```
+
+### Watching for Changes
+
+```bash
+npm run dev
+# Stop with Ctrl + C
+```
+
+### Running WP-CLI Commands
+
+```bash
+npm run env:cli -- <command>
+# Example:
+npm run env:cli -- help
+```
+
+---
+
+## Testing
+
+Run the PHP and end-to-end test suites:
+
+```bash
+npm run test:php
+npm run test:e2e
+```
+
+Run specific tests:
+
+```bash
+npm run test:php -- --filter <test-name>
+npm run test:php -- --group <group-name-or-ticket>
+```
+
+---
+
+## Code Coverage
+
+Generate a code coverage report (requires xDebug):
+
+```bash
+npm run test:coverage
+```
+
+Reports are generated in HTML, PHP, and text formats in the `coverage` folder.
+
+---
+
+## Restart / Stop / Reset Environment
+
+```bash
+npm run env:restart    # Restart environment
+npm run env:stop       # Stop environment
+npm run env:start      # Start environment
+npm run env:reset      # Reset (destroys DB and images)
+```
+
+---
+
 ### Apple Silicon machines and old MySQL/MariaDB versions
 
 Older MySQL and MariaDB container images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
