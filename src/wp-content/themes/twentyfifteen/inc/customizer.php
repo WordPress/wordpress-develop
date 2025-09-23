@@ -780,29 +780,29 @@ CSS;
  */
 function twentyfifteen_color_scheme_css_template() {
 	$colors = array(
-			'background_color'            => '{{ data.background_color }}',
-			'header_background_color'     => '{{ data.header_background_color }}',
-			'box_background_color'        => '{{ data.box_background_color }}',
-			'textcolor'                   => '{{ data.textcolor }}',
-			'secondary_textcolor'         => '{{ data.secondary_textcolor }}',
-			'border_color'                => '{{ data.border_color }}',
-			'border_focus_color'          => '{{ data.border_focus_color }}',
-			'sidebar_textcolor'           => '{{ data.sidebar_textcolor }}',
-			'sidebar_border_color'        => '{{ data.sidebar_border_color }}',
-			'sidebar_border_focus_color'  => '{{ data.sidebar_border_focus_color }}',
-			'secondary_sidebar_textcolor' => '{{ data.secondary_sidebar_textcolor }}',
-			'meta_box_background_color'   => '{{ data.meta_box_background_color }}',
+		'background_color'            => '{{ data.background_color }}',
+		'header_background_color'     => '{{ data.header_background_color }}',
+		'box_background_color'        => '{{ data.box_background_color }}',
+		'textcolor'                   => '{{ data.textcolor }}',
+		'secondary_textcolor'         => '{{ data.secondary_textcolor }}',
+		'border_color'                => '{{ data.border_color }}',
+		'border_focus_color'          => '{{ data.border_focus_color }}',
+		'sidebar_textcolor'           => '{{ data.sidebar_textcolor }}',
+		'sidebar_border_color'        => '{{ data.sidebar_border_color }}',
+		'sidebar_border_focus_color'  => '{{ data.sidebar_border_focus_color }}',
+		'secondary_sidebar_textcolor' => '{{ data.secondary_sidebar_textcolor }}',
+		'meta_box_background_color'   => '{{ data.meta_box_background_color }}',
 	);
 
 	$css = twentyfifteen_get_color_scheme_css( $colors );
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
-			wp_print_inline_script_tag( $css . "\n//# sourceURL=" . __FUNCTION__, array( 'type' => 'text/html', 'id' => 'tmpl-twentyfifteen-color-scheme' ) );
+		wp_print_inline_script_tag( $css . "\n//# sourceURL=" . __FUNCTION__, array( 'type' => 'text/html', 'id' => 'tmpl-twentyfifteen-color-scheme' ) );
 	} else {
 		printf(
-				"<script %s>\n%s\n\t</script>\n",
-				'type="text/html" id="tmpl-twentyfifteen-color-scheme"',
-				$css
+			"<script %s>\n%s\n\t</script>\n",
+			'type="text/html" id="tmpl-twentyfifteen-color-scheme"',
+			$css
 		);
 	}
 }
