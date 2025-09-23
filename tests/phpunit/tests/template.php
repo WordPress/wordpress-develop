@@ -499,6 +499,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @ticket 43258
 	 * @covers ::wp_start_template_output_buffer
+	 * @covers ::wp_finalize_template_output_buffers
 	 */
 	public function test_wp_start_template_output_buffer(): void {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
@@ -599,6 +600,74 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<h1>Hello World!</h1>', $action_args[1] );
 		$this->assertStringContainsString( '</html>', $action_args[1] );
 		$this->assertStringNotContainsString( '<!-- Output buffer was processed! -->', $action_args[1] );
+	}
+
+	/**
+	 * Tests that wp_start_template_output_buffer() starts the expected output buffer and that the expected hooks fire.
+	 *
+	 * @ticket 43258
+	 * @covers ::wp_start_template_output_buffer
+	 * @covers ::wp_finalize_template_output_buffers
+	 */
+	public function test_wp_start_template_output_buffer_cleaned(): void {
+		// Start a wrapper output buffer so that we can flush the inner buffer.
+		ob_start();
+
+		add_filter(
+			'wp_template_output_buffer_html',
+			static function ( string $buffer ): string {
+				$p = WP_HTML_Processor::create_full_parser( $buffer );
+				if ( $p->next_tag( array( 'tag_name' => 'TITLE' ) ) ) {
+					$p->set_modifiable_text( 'Processed' );
+				}
+				return $p->get_updated_html();
+			}
+		);
+
+		add_filter(
+			'wp_template_output_buffer',
+			function ( string $buffer ): string {
+				$buffer .= "\n<!-- Output buffer was processed! -->\n";
+				return $buffer;
+			}
+		);
+
+		$initial_ob_level = ob_get_level();
+		$this->assertTrue( wp_start_template_output_buffer() );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
+
+		?>
+		<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<title>Unprocessed</title>
+			</head>
+			<body>
+				<h1>Hello World!</h1>
+				<!-- ... -->
+		<?php ob_end_clean(); // Clean and end the buffer started by wp_start_template_output_buffer(). ?>
+		<!DOCTYPE html>
+		<html lang="en">
+			<head>
+				<title>Output Buffer Not Processed</title>
+			</head>
+			<body>
+				<h1>Template rendering aborted!!!</h1>
+			</body>
+		</html>
+		<?php
+
+		$this->assertSame( $initial_ob_level, ob_get_level() );
+
+		$this->assertSame( 0, did_action( 'wp_final_template_output_buffer' ) );
+
+		// Obtain the output via the wrapper output buffer.
+		$output = ob_get_clean();
+		$this->assertIsString( $output );
+		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output );
+		$this->assertStringNotContainsString( '<title>Processed</title>', $output );
+		$this->assertStringNotContainsString( '<!-- Output buffer was processed! -->', $output );
+		$this->assertStringContainsString( '<title>Output Buffer Not Processed</title>', $output );
 	}
 
 	/**
