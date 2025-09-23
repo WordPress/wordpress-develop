@@ -133,3 +133,62 @@ else :
 		return _wp_scrub_utf8_fallback( $text );
 	}
 endif;
+
+/**
+ * Iterate through a string returning lengths of valid or invalid byte spans.
+ *
+ * This is not likely an often-needed function, but it can be used to build
+ * interesting views of a string containing invalid bytes, or to operate on
+ * the valid portions of a UTF-8 string while preserving the existing spans
+ * of invalid bytes.
+ *
+ * This is convenience wrapper around {@see _wp_scan_utf8()}. For non-allocating
+ * and non-yielding functionality consider calling that function directly.
+ *
+ * Example:
+ *
+ *     $text = "test\x90wp\E2\x80\xC0test";
+ *
+ *     $chunks = iterator_to_array( wp_utf8_chunks( $text ) );
+ *     array( 'test', "\x90", 'wp', "\xE2\x80", "\xC0", 'test' ) === $chunks;
+ *
+ *     $is_valid = false;
+ *     foreach ( wp_utf8_chunks( $text, $is_valid ) as $chunk ) {
+ *         if ( $is_valid ) {
+ *             echo $chunk;
+ *         } else {
+ *             $bytes = implode( ' ', array_map( 'bin2hex', str_split( $chunk ) ) );
+ *             echo "({$bytes})";
+ *         }
+ *     }
+ *     // test(90)wp(e2 80)(c0)test
+ *
+ * @param string    $text     Iterate through this string.
+ * @param bool|null $is_valid Optional. If passed, set to whether the currently yielded
+ *                            chunk is a valid span of UTF-8 bytes.
+ * @return Generator Spans of valid or invalid UTF-8 text; check `$is_valid` to determine
+ *                   whether the yielded span is valid.
+ */
+function wp_utf8_chunks( string $text, ?bool &$is_valid = null ): Generator {
+	$at                = 0;
+	$was_at            = 0;
+	$end               = strlen( $text );
+	$invalid_length    = 0;
+
+	while ( $at < $end ) {
+		_wp_scan_utf8( $text, $at, $invalid_length );
+
+		if ( $at > $was_at ) {
+			$is_valid = true;
+			yield substr( $text, $was_at, $at - $was_at );
+		}
+
+		if ( $invalid_length > 0 ) {
+			$is_valid = false;
+			yield substr( $text, $at, $invalid_length );
+		}
+
+		$at    += $invalid_length;
+		$was_at = $at;
+	}
+}
