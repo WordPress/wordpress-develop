@@ -247,6 +247,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'author_exclude' => 'author__not_in',
 			'exclude'        => 'post__not_in',
 			'include'        => 'post__in',
+			'ignore_sticky'  => 'ignore_sticky_posts',
 			'menu_order'     => 'menu_order',
 			'offset'         => 'offset',
 			'order'          => 'order',
@@ -337,6 +338,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/*
+		 * Honor the original REST API `post__in` behavior. Don't prepend sticky posts
+		 * when `post__in` has been specified.
+		 */
+		if ( ! empty( $args['post__in'] ) ) {
+			unset( $args['ignore_sticky_posts'] );
+		}
+
 		if (
 			isset( $registered['search_semantics'], $request['search_semantics'] )
 			&& 'exact' === $request['search_semantics']
@@ -346,8 +355,70 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$args = $this->prepare_tax_query( $args, $request );
 
+		if ( isset( $registered['format'], $request['format'] ) ) {
+			$formats = $request['format'];
+			/*
+			 * The relation needs to be set to `OR` since the request can contain
+			 * two separate conditions. The user may be querying for items that have
+			 * either the `standard` format or a specific format.
+			 */
+			$formats_query = array( 'relation' => 'OR' );
+
+			/*
+			 * The default post format, `standard`, is not stored in the database.
+			 * If `standard` is part of the request, the query needs to exclude all post items that
+			 * have a format assigned.
+			 */
+			if ( in_array( 'standard', $formats, true ) ) {
+				$formats_query[] = array(
+					'taxonomy' => 'post_format',
+					'field'    => 'slug',
+					'operator' => 'NOT EXISTS',
+				);
+				// Remove the `standard` format, since it cannot be queried.
+				unset( $formats[ array_search( 'standard', $formats, true ) ] );
+			}
+
+			// Add any remaining formats to the formats query.
+			if ( ! empty( $formats ) ) {
+				// Add the `post-format-` prefix.
+				$terms = array_map(
+					static function ( $format ) {
+						return "post-format-$format";
+					},
+					$formats
+				);
+
+				$formats_query[] = array(
+					'taxonomy' => 'post_format',
+					'field'    => 'slug',
+					'terms'    => $terms,
+					'operator' => 'IN',
+				);
+			}
+
+			// Enable filtering by both post formats and other taxonomies by combining them with `AND`.
+			if ( isset( $args['tax_query'] ) ) {
+				$args['tax_query'][] = array(
+					'relation' => 'AND',
+					$formats_query,
+				);
+			} else {
+				$args['tax_query'] = $formats_query;
+			}
+		}
+
 		// Force the post_type argument, since it's not a user input variable.
 		$args['post_type'] = $this->post_type;
+
+		$is_head_request = $request->is_method( 'HEAD' );
+		if ( $is_head_request ) {
+			// Force the 'fields' argument. For HEAD requests, only post IDs are required to calculate pagination.
+			$args['fields'] = 'ids';
+			// Disable priming post meta for HEAD requests to improve performance.
+			$args['update_post_term_cache'] = false;
+			$args['update_post_meta_cache'] = false;
+		}
 
 		/**
 		 * Filters WP_Query arguments when querying posts via the REST API.
@@ -381,22 +452,24 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'post_password_required', array( $this, 'check_password_required' ), 10, 2 );
 		}
 
-		$posts = array();
+		if ( ! $is_head_request ) {
+			$posts = array();
 
-		update_post_author_caches( $query_result );
-		update_post_parent_caches( $query_result );
+			update_post_author_caches( $query_result );
+			update_post_parent_caches( $query_result );
 
-		if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
-			update_post_thumbnail_cache( $posts_query );
-		}
-
-		foreach ( $query_result as $post ) {
-			if ( ! $this->check_read_permission( $post ) ) {
-				continue;
+			if ( post_type_supports( $this->post_type, 'thumbnail' ) ) {
+				update_post_thumbnail_cache( $posts_query );
 			}
 
-			$data    = $this->prepare_item_for_response( $post, $request );
-			$posts[] = $this->prepare_response_for_collection( $data );
+			foreach ( $query_result as $post ) {
+				if ( ! $this->check_read_permission( $post ) ) {
+					continue;
+				}
+
+				$data    = $this->prepare_item_for_response( $post, $request );
+				$posts[] = $this->prepare_response_for_collection( $data );
+			}
 		}
 
 		// Reset filter.
@@ -404,7 +477,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			remove_filter( 'post_password_required', array( $this, 'check_password_required' ) );
 		}
 
-		$page        = (int) $query_args['paged'];
+		$page        = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
 		$total_posts = $posts_query->found_posts;
 
 		if ( $total_posts < 1 && $page > 1 ) {
@@ -426,7 +499,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$response = rest_ensure_response( $posts );
+		$response = $is_head_request ? new WP_REST_Response( array() ) : rest_ensure_response( $posts );
 
 		$response->header( 'X-WP-Total', (int) $total_posts );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
@@ -1596,6 +1669,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				return $result;
 			}
 		}
+
+		return null;
 	}
 
 	/**
@@ -1768,6 +1843,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
+
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+			return apply_filters( "rest_prepare_{$this->post_type}", new WP_REST_Response( array() ), $post, $request );
+		}
 
 		$fields = $this->get_fields_for_response( $request );
 
@@ -2989,6 +3070,24 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$query_params['sticky'] = array(
 				'description' => __( 'Limit result set to items that are sticky.' ),
 				'type'        => 'boolean',
+			);
+
+			$query_params['ignore_sticky'] = array(
+				'description' => __( 'Whether to ignore sticky posts or not.' ),
+				'type'        => 'boolean',
+				'default'     => true,
+			);
+		}
+
+		if ( post_type_supports( $this->post_type, 'post-formats' ) ) {
+			$query_params['format'] = array(
+				'description' => __( 'Limit result set to items assigned one or more given formats.' ),
+				'type'        => 'array',
+				'uniqueItems' => true,
+				'items'       => array(
+					'enum' => array_values( get_post_format_slugs() ),
+					'type' => 'string',
+				),
 			);
 		}
 

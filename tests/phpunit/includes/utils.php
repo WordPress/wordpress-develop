@@ -304,15 +304,17 @@ class TestXMLParser {
 	public function parse( $in ) {
 		$parse = xml_parse( $this->xml, $in, true );
 		if ( ! $parse ) {
-			trigger_error(
+			throw new Exception(
 				sprintf(
 					'XML error: %s at line %d',
 					xml_error_string( xml_get_error_code( $this->xml ) ),
 					xml_get_current_line_number( $this->xml )
-				),
-				E_USER_ERROR
+				)
 			);
-			xml_parser_free( $this->xml );
+
+			if ( PHP_VERSION_ID < 80000 ) { // xml_parser_free() has no effect as of PHP 8.0.
+				xml_parser_free( $this->xml );
+			}
 		}
 		return true;
 	}

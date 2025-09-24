@@ -189,20 +189,6 @@ final class WP_Block_Bindings_Registry {
 
 		$this->sources[ $source_name ] = $source;
 
-		// Adds `uses_context` defined by block bindings sources.
-		add_filter(
-			'get_block_type_uses_context',
-			function ( $uses_context, $block_type ) use ( $source ) {
-				if ( ! in_array( $block_type->name, $this->supported_blocks, true ) || empty( $source->uses_context ) ) {
-					return $uses_context;
-				}
-				// Use array_values to reset the array keys.
-				return array_values( array_unique( array_merge( $uses_context, $source->uses_context ) ) );
-			},
-			10,
-			2
-		);
-
 		return $source;
 	}
 
@@ -271,11 +257,13 @@ final class WP_Block_Bindings_Registry {
 	}
 
 	/**
-	 * Wakeup magic method.
+	 * Unserialize magic method.
 	 *
-	 * @since 6.5.0
+	 * @since 6.9.0
+	 *
+	 * @param array $data Data to unserialize.
 	 */
-	public function __wakeup() {
+	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
 		if ( ! $this->sources ) {
 			return;
 		}
@@ -287,6 +275,15 @@ final class WP_Block_Bindings_Registry {
 				throw new UnexpectedValueException();
 			}
 		}
+	}
+
+	/**
+	 * Wakeup magic method.
+	 *
+	 * @since 6.5.0
+	 */
+	public function __wakeup() {
+		$this->__unserialize( array() );
 	}
 
 	/**

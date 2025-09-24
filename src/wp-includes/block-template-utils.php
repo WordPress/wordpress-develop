@@ -206,6 +206,23 @@ function get_default_block_template_types() {
 		),
 	);
 
+	// Add a title and description to post format templates.
+	$post_formats = get_post_format_strings();
+	foreach ( $post_formats as $post_format_slug => $post_format_name ) {
+		$default_template_types[ 'taxonomy-post_format-post-format-' . $post_format_slug ] = array(
+			'title'       => sprintf(
+				/* translators: %s: Post format name. */
+				_x( 'Post Format: %s', 'Template name' ),
+				$post_format_name
+			),
+			'description' => sprintf(
+				/* translators: %s: Post format name. */
+				__( 'Displays the %s post format archive.' ),
+				$post_format_name
+			),
+		);
+	}
+
 	/**
 	 * Filters the list of default template types.
 	 *
@@ -327,11 +344,8 @@ function _get_block_template_file( $template_type, $slug ) {
 				return _add_block_template_part_area_info( $new_template_item );
 			}
 
-			if ( 'wp_template' === $template_type ) {
-				return _add_block_template_info( $new_template_item );
-			}
-
-			return $new_template_item;
+			// If it's not a `wp_template_part`, it must be a `wp_template`.
+			return _add_block_template_info( $new_template_item );
 		}
 	}
 
@@ -423,7 +437,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 
 			if ( 'wp_template_part' === $template_type ) {
 				$candidate = _add_block_template_part_area_info( $new_template_item );
-				if ( ! isset( $area ) || ( isset( $area ) && $area === $candidate['area'] ) ) {
+				if ( ! isset( $area ) || $area === $candidate['area'] ) {
 					$template_files[ $template_slug ] = $candidate;
 				}
 			}
@@ -615,17 +629,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 		$template->area = $template_file['area'];
 	}
 
-	$hooked_blocks        = get_hooked_blocks();
-	$has_hooked_blocks    = ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' );
-	$before_block_visitor = '_inject_theme_attribute_in_template_part_block';
-	$after_block_visitor  = null;
-
-	if ( $has_hooked_blocks ) {
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
-	}
-
-	if ( 'wp_template_part' === $template->type && $has_hooked_blocks ) {
+	if ( 'wp_template_part' === $template->type ) {
 		/*
 		 * In order for hooked blocks to be inserted at positions first_child and last_child in a template part,
 		 * we need to wrap its content a mock template part block and traverse it.
@@ -635,13 +639,17 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 			array(),
 			$template->content
 		);
-		$content           = traverse_and_serialize_blocks( parse_blocks( $content ), $before_block_visitor, $after_block_visitor );
+		$content           = apply_block_hooks_to_content(
+			$content,
+			$template,
+			'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+		);
 		$template->content = remove_serialized_parent_block( $content );
 	} else {
-		$template->content = traverse_and_serialize_blocks(
-			parse_blocks( $template->content ),
-			$before_block_visitor,
-			$after_block_visitor
+		$template->content = apply_block_hooks_to_content(
+			$template->content,
+			$template,
+			'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
 		);
 	}
 
@@ -1036,32 +1044,31 @@ function _build_block_template_result_from_post( $post ) {
 		}
 	}
 
-	$hooked_blocks = get_hooked_blocks();
-	if ( ! empty( $hooked_blocks ) || has_filter( 'hooked_block_types' ) ) {
-		$before_block_visitor = make_before_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
-		$after_block_visitor  = make_after_block_visitor( $hooked_blocks, $template, 'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata' );
-		if ( 'wp_template_part' === $template->type ) {
-			$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
-			$attributes                     = ! empty( $existing_ignored_hooked_blocks ) ? array( 'metadata' => array( 'ignoredHookedBlocks' => json_decode( $existing_ignored_hooked_blocks, true ) ) ) : array();
+	if ( 'wp_template_part' === $template->type ) {
+		$existing_ignored_hooked_blocks = get_post_meta( $post->ID, '_wp_ignored_hooked_blocks', true );
+		$attributes                     = ! empty( $existing_ignored_hooked_blocks ) ? array( 'metadata' => array( 'ignoredHookedBlocks' => json_decode( $existing_ignored_hooked_blocks, true ) ) ) : array();
 
-			/*
-			 * In order for hooked blocks to be inserted at positions first_child and last_child in a template part,
-			 * we need to wrap its content a mock template part block and traverse it.
-			 */
-			$content           = get_comment_delimited_block_content(
-				'core/template-part',
-				$attributes,
-				$template->content
-			);
-			$content           = traverse_and_serialize_blocks( parse_blocks( $content ), $before_block_visitor, $after_block_visitor );
-			$template->content = remove_serialized_parent_block( $content );
-		} else {
-			$template->content = traverse_and_serialize_blocks(
-				parse_blocks( $template->content ),
-				$before_block_visitor,
-				$after_block_visitor
-			);
-		}
+		/*
+		 * In order for hooked blocks to be inserted at positions first_child and last_child in a template part,
+		 * we need to wrap its content a mock template part block and traverse it.
+		 */
+		$content           = get_comment_delimited_block_content(
+			'core/template-part',
+			$attributes,
+			$template->content
+		);
+		$content           = apply_block_hooks_to_content(
+			$content,
+			$template,
+			'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+		);
+		$template->content = remove_serialized_parent_block( $content );
+	} else {
+		$template->content = apply_block_hooks_to_content(
+			$template->content,
+			$template,
+			'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+		);
 	}
 
 	return $template;
@@ -1175,9 +1182,35 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		 * over the theme-provided ones, so we skip querying and building them.
 		 */
 		$query['slug__not_in'] = wp_list_pluck( $query_result, 'slug' );
-		$template_files        = _get_block_templates_files( $template_type, $query );
+		/*
+		 * We need to unset the post_type query param because some templates
+		 * would be excluded otherwise, like `page.html` when looking for
+		 * `page` templates. We need all templates so we can exclude duplicates
+		 * from plugin-registered templates.
+		 * See: https://github.com/WordPress/gutenberg/issues/65584
+		 */
+		$template_files_query = $query;
+		unset( $template_files_query['post_type'] );
+		$template_files = _get_block_templates_files( $template_type, $template_files_query );
 		foreach ( $template_files as $template_file ) {
-			$query_result[] = _build_block_template_result_from_file( $template_file, $template_type );
+			// If the query doesn't specify a post type, or it does and the template matches the post type, add it.
+			if (
+				! isset( $query['post_type'] ) ||
+				(
+					isset( $template_file['postTypes'] ) &&
+					in_array( $query['post_type'], $template_file['postTypes'], true )
+				)
+			) {
+				$query_result[] = _build_block_template_result_from_file( $template_file, $template_type );
+			} elseif ( ! isset( $template_file['postTypes'] ) ) {
+				// The custom templates with no associated post types are available for all post types as long
+				// as they are not default templates.
+				$candidate              = _build_block_template_result_from_file( $template_file, $template_type );
+				$default_template_types = get_default_block_template_types();
+				if ( ! isset( $default_template_types[ $candidate->slug ] ) ) {
+					$query_result[] = $candidate;
+				}
+			}
 		}
 
 		if ( 'wp_template' === $template_type ) {
@@ -1194,7 +1227,20 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 					return true;
 				}
 			);
-			$query_result                  = array_merge( $query_result, $matching_registered_templates );
+
+			$matching_registered_templates = array_map(
+				function ( $template ) {
+					$template->content = apply_block_hooks_to_content(
+						$template->content,
+						$template,
+						'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+					);
+					return $template;
+				},
+				$matching_registered_templates
+			);
+
+			$query_result = array_merge( $query_result, $matching_registered_templates );
 		}
 	}
 
@@ -1290,9 +1336,10 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 }
 
 /**
- * Retrieves a unified template object based on a theme file.
+ * Retrieves a unified template object based on a theme file or plugin registration.
  *
  * This is a fallback of get_block_template(), used when no templates are found in the database.
+ * Also checks for templates registered via the Template Registration API.
  *
  * @since 5.9.0
  *
@@ -1337,6 +1384,14 @@ function get_block_file_template( $id, $template_type = 'wp_template' ) {
 	}
 
 	$block_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $slug );
+
+	if ( $block_template ) {
+		$block_template->content = apply_block_hooks_to_content(
+			$block_template->content,
+			$block_template,
+			'insert_hooked_blocks_and_set_ignored_hooked_blocks_metadata'
+		);
+	}
 
 	/**
 	 * Filters the block template object after it has been (potentially) fetched from the theme file.
@@ -1411,12 +1466,10 @@ function wp_is_theme_directory_ignored( $path ) {
  * @since 5.9.0
  * @since 6.0.0 Adds the whole theme to the export archive.
  *
- * @global string $wp_version The WordPress version string.
- *
  * @return WP_Error|string Path of the ZIP file or error on failure.
  */
 function wp_generate_block_templates_export_file() {
-	global $wp_version;
+	$wp_version = wp_get_wp_version();
 
 	if ( ! class_exists( 'ZipArchive' ) ) {
 		return new WP_Error( 'missing_zip_package', __( 'Zip Export not supported.' ) );

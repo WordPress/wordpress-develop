@@ -1196,7 +1196,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	protected function get_reflective_method( $method_name ) {
 		$class  = new ReflectionClass( WP_REST_URL_Details_Controller::class );
 		$method = $class->getMethod( $method_name );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 		return $method;
 	}
 }

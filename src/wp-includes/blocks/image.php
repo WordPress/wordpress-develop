@@ -24,7 +24,7 @@ function render_block_core_image( $attributes, $content, $block ) {
 
 	$p = new WP_HTML_Tag_Processor( $content );
 
-	if ( ! $p->next_tag( 'img' ) || null === $p->get_attribute( 'src' ) ) {
+	if ( ! $p->next_tag( 'img' ) || ! $p->get_attribute( 'src' ) ) {
 		return '';
 	}
 
@@ -70,19 +70,7 @@ function render_block_core_image( $attributes, $content, $block ) {
 		isset( $lightbox_settings['enabled'] ) &&
 		true === $lightbox_settings['enabled']
 	) {
-		$suffix = wp_scripts_get_suffix();
-		if ( defined( 'IS_GUTENBERG_PLUGIN' ) && IS_GUTENBERG_PLUGIN ) {
-			$module_url = gutenberg_url( '/build-module/block-library/image/view.min.js' );
-		}
-
-		wp_register_script_module(
-			'@wordpress/block-library/image',
-			isset( $module_url ) ? $module_url : includes_url( "blocks/image/view{$suffix}.js" ),
-			array( '@wordpress/interactivity' ),
-			defined( 'GUTENBERG_VERSION' ) ? GUTENBERG_VERSION : get_bloginfo( 'version' )
-		);
-
-		wp_enqueue_script_module( '@wordpress/block-library/image' );
+		wp_enqueue_script_module( '@wordpress/block-library/image/view' );
 
 		/*
 		 * This render needs to happen in a filter with priority 15 to ensure that
@@ -161,18 +149,14 @@ function block_core_image_render_lightbox( $block_content, $block ) {
 		return $block_content;
 	}
 
-	$alt              = $p->get_attribute( 'alt' );
-	$img_uploaded_src = $p->get_attribute( 'src' );
-	$img_class_names  = $p->get_attribute( 'class' );
-	$img_styles       = $p->get_attribute( 'style' );
-	$img_width        = 'none';
-	$img_height       = 'none';
-	$aria_label       = __( 'Enlarge image' );
-
-	if ( $alt ) {
-		/* translators: %s: Image alt text. */
-		$aria_label = sprintf( __( 'Enlarge image: %s' ), $alt );
-	}
+	$alt               = $p->get_attribute( 'alt' );
+	$img_uploaded_src  = $p->get_attribute( 'src' );
+	$img_class_names   = $p->get_attribute( 'class' );
+	$img_styles        = $p->get_attribute( 'style' );
+	$img_width         = 'none';
+	$img_height        = 'none';
+	$aria_label        = __( 'Enlarge' );
+	$dialog_aria_label = __( 'Enlarged image' );
 
 	if ( isset( $block['attrs']['id'] ) ) {
 		$img_uploaded_src = wp_get_attachment_url( $block['attrs']['id'] );
@@ -202,7 +186,7 @@ function block_core_image_render_lightbox( $block_content, $block ) {
 					'targetWidth'      => $img_width,
 					'targetHeight'     => $img_height,
 					'scaleAttr'        => $block['attrs']['scale'] ?? false,
-					'ariaLabel'        => $aria_label,
+					'ariaLabel'        => $dialog_aria_label,
 					'alt'              => $alt,
 				),
 			),
@@ -302,6 +286,7 @@ function block_core_image_print_lightbox_overlay() {
 			data-wp-on-async--click="actions.hideLightbox"
 			data-wp-on-async-window--resize="callbacks.setOverlayStyles"
 			data-wp-on-async-window--scroll="actions.handleScroll"
+			data-wp-bind--style="state.overlayStyles"
 			tabindex="-1"
 			>
 				<button type="button" aria-label="$close_button_label" style="fill: $close_button_color" class="close-button">
@@ -318,7 +303,6 @@ function block_core_image_print_lightbox_overlay() {
 					</figure>
 				</div>
 				<div class="scrim" style="background-color: $background_color" aria-hidden="true"></div>
-				<style data-wp-text="state.overlayStyles"></style>
 		</div>
 HTML;
 }

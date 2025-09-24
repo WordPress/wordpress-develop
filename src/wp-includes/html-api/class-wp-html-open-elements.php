@@ -520,11 +520,6 @@ class WP_HTML_Open_Elements {
 			return false;
 		}
 
-		if ( 'context-node' === $item->bookmark_name ) {
-			$this->stack[] = $item;
-			return false;
-		}
-
 		$this->after_element_pop( $item );
 		return true;
 	}
@@ -585,10 +580,6 @@ class WP_HTML_Open_Elements {
 	 * @return bool Whether the node was found and removed from the stack of open elements.
 	 */
 	public function remove_node( WP_HTML_Token $token ): bool {
-		if ( 'context-node' === $token->bookmark_name ) {
-			return false;
-		}
-
 		foreach ( $this->walk_up() as $position_from_end => $item ) {
 			if ( $token->bookmark_name !== $item->bookmark_name ) {
 				continue;
@@ -851,11 +842,22 @@ class WP_HTML_Open_Elements {
 	}
 
 	/**
+	 * Unserialize magic method.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $data Data to unserialize.
+	 */
+	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
+		throw new \LogicException( __CLASS__ . ' should never be unserialized' );
+	}
+
+	/**
 	 * Wakeup magic method.
 	 *
 	 * @since 6.6.0
 	 */
 	public function __wakeup() {
-		throw new \LogicException( __CLASS__ . ' should never be unserialized' );
+		$this->__unserialize( array() );
 	}
 }

@@ -162,7 +162,7 @@
 			if ( wpLink.isMCE() ) {
 				wpLink.mceRefresh( url, text );
 			} else {
-				// For the Text editor the "Link text" field is always shown.
+				// For the Code editor the "Link text" field is always shown.
 				if ( ! inputs.wrap.hasClass( 'has-text-field' ) ) {
 					inputs.wrap.addClass( 'has-text-field' );
 				}
@@ -323,7 +323,7 @@
 			var html = '<a href="' + attrs.href + '"';
 
 			if ( attrs.target ) {
-				html += ' rel="noopener" target="' + attrs.target + '"';
+				html += ' target="' + attrs.target + '"';
 			}
 
 			return html + '>';

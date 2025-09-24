@@ -248,9 +248,9 @@ if ( isset( $_GET['updated'] ) ) {
 			</tr>
 
 			<tr id="addnewusers">
-				<th scope="row"><?php _e( 'Add New Users' ); ?></th>
+				<th scope="row"><?php _e( 'Add Users' ); ?></th>
 				<td>
-					<label><input name="add_new_users" type="checkbox" id="add_new_users" value="1"<?php checked( get_site_option( 'add_new_users' ) ); ?> /> <?php _e( 'Allow site administrators to add new users to their site via the "Users &rarr; Add New" page' ); ?></label>
+					<label><input name="add_new_users" type="checkbox" id="add_new_users" value="1"<?php checked( get_site_option( 'add_new_users' ) ); ?> /> <?php _e( 'Allow site administrators to add new users to their site via the "Users &rarr; Add User" page' ); ?></label>
 				</td>
 			</tr>
 
@@ -405,7 +405,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><?php _e( 'Site upload space' ); ?></th>
 				<td>
-					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?>/>
+					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?> />
 						<?php
 						printf(
 							/* translators: %s: Number of megabytes to limit uploads to. */

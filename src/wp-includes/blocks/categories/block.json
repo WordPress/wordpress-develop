@@ -34,7 +34,7 @@
 		},
 		"label": {
 			"type": "string",
-			"__experimentalRole": "content"
+			"role": "content"
 		},
 		"showLabel": {
 			"type": "boolean",
@@ -64,6 +64,15 @@
 			"__experimentalLetterSpacing": true,
 			"__experimentalDefaultControls": {
 				"fontSize": true
+			}
+		},
+		"color": {
+			"gradients": true,
+			"link": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true,
+				"link": true
 			}
 		},
 		"interactivity": {
