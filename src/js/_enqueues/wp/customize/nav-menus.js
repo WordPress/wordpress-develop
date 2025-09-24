@@ -223,6 +223,9 @@
 
 			this.$el.on( 'input', '#custom-menu-item-name.invalid, #custom-menu-item-url.invalid', function() {
 				$( this ).removeClass( 'invalid' );
+				var errorMessageId = $( this ).attr( 'aria-describedby' );
+				$( '#' + errorMessageId ).hide();
+				$( this ).removeAttr( 'aria-invalid' ).removeAttr( 'aria-describedby' );
 			});
 
 			// Load available items if it looks like we'll need them.
@@ -546,8 +549,11 @@
 			var menuItem,
 				itemName = $( '#custom-menu-item-name' ),
 				itemUrl = $( '#custom-menu-item-url' ),
+				urlErrorMessage = $( '#custom-url-error' ),
+				nameErrorMessage = $( '#custom-name-error' ),
 				url = itemUrl.val().trim(),
-				urlRegex;
+				urlRegex,
+				errorText;
 
 			if ( ! this.currentMenuControl ) {
 				return;
@@ -566,14 +572,36 @@
 			 * so this pattern does not need to be complete.
 			 */
 			urlRegex = /^((\w+:)?\/\/\w.*|\w+:(?!\/\/$)|\/|\?|#)/;
-
-			if ( '' === itemName.val() ) {
-				itemName.addClass( 'invalid' );
-				return;
-			} else if ( ! urlRegex.test( url ) ) {
-				itemUrl.addClass( 'invalid' );
+			if ( ! urlRegex.test( url ) || '' === itemName.val() ) {
+				if ( ! urlRegex.test( url ) ) {
+					itemUrl.addClass( 'invalid' )
+						.attr( 'aria-invalid', 'true' )
+						.attr( 'aria-describedby', 'custom-url-error' );
+					urlErrorMessage.show();
+					errorText = urlErrorMessage.text();
+					// Announce error message via screen reader
+					wp.a11y.speak( errorText, 'assertive' );
+				}
+				if ( '' === itemName.val() ) {
+					itemName.addClass( 'invalid' )
+						.attr( 'aria-invalid', 'true' )
+						.attr( 'aria-describedby', 'custom-name-error' );
+					nameErrorMessage.show();
+					errorText = ( '' === errorText ) ? nameErrorMessage.text() : errorText + nameErrorMessage.text();
+					// Announce error message via screen reader
+					wp.a11y.speak( errorText, 'assertive' );
+				}
 				return;
 			}
+
+			urlErrorMessage.hide();
+			nameErrorMessage.hide();
+			itemName.removeClass( 'invalid' )
+				.removeAttr( 'aria-invalid', 'true' )
+				.removeAttr( 'aria-describedby', 'custom-name-error' );
+			itemUrl.removeClass( 'invalid' )
+				.removeAttr( 'aria-invalid', 'true' )
+				.removeAttr( 'aria-describedby', 'custom-name-error' );
 
 			menuItem = {
 				'title': itemName.val(),
@@ -633,6 +661,7 @@
 				itemType = dataContainer.data( 'type' ),
 				itemObject = dataContainer.data( 'object' ),
 				itemTypeLabel = dataContainer.data( 'type_label' ),
+				inputError = container.find('.create-item-error'),
 				promise;
 
 			if ( ! this.currentMenuControl ) {
@@ -643,13 +672,18 @@
 			if ( 'post_type' !== itemType ) {
 				return;
 			}
-
 			if ( '' === itemName.val().trim() ) {
-				itemName.addClass( 'invalid' );
-				itemName.focus();
+				container.addClass( 'form-invalid' );
+				itemName.attr('aria-invalid', 'true');
+				itemName.attr('aria-describedby', inputError.attr('id'));
+				inputError.slideDown( 'fast' );
+				wp.a11y.speak( inputError.text() );
 				return;
 			} else {
-				itemName.removeClass( 'invalid' );
+				container.removeClass( 'form-invalid' );
+				itemName.attr('aria-invalid', 'false');
+				itemName.removeAttr('aria-describedby');
+				inputError.hide();
 				container.find( '.accordion-section-title' ).addClass( 'loading' );
 			}
 

@@ -188,7 +188,7 @@ final class WP_Block_Patterns_Registry {
 	 * @since 5.5.0
 	 *
 	 * @param string $pattern_name Block pattern name including namespace.
-	 * @return array Registered pattern properties.
+	 * @return array|null Registered pattern properties or `null` if the pattern is not registered.
 	 */
 	public function get_registered( $pattern_name ) {
 		if ( ! $this->is_registered( $pattern_name ) ) {
@@ -245,7 +245,14 @@ final class WP_Block_Patterns_Registry {
 		return isset( $this->registered_patterns[ $pattern_name ] );
 	}
 
-	public function __wakeup() {
+	/**
+	 * Unserialize magic method.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $data Data to unserialize.
+	 */
+	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
 		if ( ! $this->registered_patterns ) {
 			return;
 		}
@@ -258,6 +265,15 @@ final class WP_Block_Patterns_Registry {
 			}
 		}
 		$this->registered_patterns_outside_init = array();
+	}
+
+	/**
+	 * Wakeup magic method.
+	 *
+	 * @since 6.4.0
+	 */
+	public function __wakeup() {
+		$this->__unserialize( array() );
 	}
 
 	/**

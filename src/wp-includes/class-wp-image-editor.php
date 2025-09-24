@@ -66,7 +66,6 @@ abstract class WP_Image_Editor {
 	 * Loads image from $this->file into editor.
 	 *
 	 * @since 3.5.0
-	 * @abstract
 	 *
 	 * @return true|WP_Error True if loaded; WP_Error on failure.
 	 */
@@ -77,7 +76,6 @@ abstract class WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 * @since 6.0.0 The `$filesize` value was added to the returned array.
-	 * @abstract
 	 *
 	 * @param string $destfilename Optional. Destination filename. Default null.
 	 * @param string $mime_type    Optional. The mime-type. Default null.
@@ -102,7 +100,6 @@ abstract class WP_Image_Editor {
 	 * maintain aspect ratio according to the provided dimension.
 	 *
 	 * @since 3.5.0
-	 * @abstract
 	 *
 	 * @param int|null   $max_w Image width.
 	 * @param int|null   $max_h Image height.
@@ -122,7 +119,6 @@ abstract class WP_Image_Editor {
 	 * Resize multiple images from a single source.
 	 *
 	 * @since 3.5.0
-	 * @abstract
 	 *
 	 * @param array $sizes {
 	 *     An array of image size arrays. Default sizes are 'small', 'medium', 'large'.
@@ -141,7 +137,6 @@ abstract class WP_Image_Editor {
 	 * Crops Image.
 	 *
 	 * @since 3.5.0
-	 * @abstract
 	 *
 	 * @param int  $src_x   The start x position to crop from.
 	 * @param int  $src_y   The start y position to crop from.
@@ -158,7 +153,6 @@ abstract class WP_Image_Editor {
 	 * Rotates current image counter-clockwise by $angle.
 	 *
 	 * @since 3.5.0
-	 * @abstract
 	 *
 	 * @param float $angle
 	 * @return true|WP_Error
@@ -169,7 +163,6 @@ abstract class WP_Image_Editor {
 	 * Flips current image.
 	 *
 	 * @since 3.5.0
-	 * @abstract
 	 *
 	 * @param bool $horz Flip along Horizontal Axis
 	 * @param bool $vert Flip along Vertical Axis
@@ -181,7 +174,6 @@ abstract class WP_Image_Editor {
 	 * Streams current image to browser.
 	 *
 	 * @since 3.5.0
-	 * @abstract
 	 *
 	 * @param string $mime_type The mime type of the image.
 	 * @return true|WP_Error True on success, WP_Error object on failure.
@@ -433,6 +425,7 @@ abstract class WP_Image_Editor {
 	 * Builds an output filename based on current file, and adding proper suffix
 	 *
 	 * @since 3.5.0
+	 * @since 6.8.0 Passing an empty string as $suffix will now omit the suffix from the generated filename.
 	 *
 	 * @param string $suffix
 	 * @param string $dest_path
@@ -440,9 +433,11 @@ abstract class WP_Image_Editor {
 	 * @return string filename
 	 */
 	public function generate_filename( $suffix = null, $dest_path = null, $extension = null ) {
-		// $suffix will be appended to the destination filename, just before the extension.
-		if ( ! $suffix ) {
-			$suffix = $this->get_suffix();
+		// If not empty the $suffix will be appended to the destination filename, just before the extension.
+		if ( $suffix ) {
+			$suffix = '-' . $suffix;
+		} elseif ( '' !== $suffix ) {
+			$suffix = '-' . $this->get_suffix();
 		}
 
 		$dir = pathinfo( $this->file, PATHINFO_DIRNAME );
@@ -462,7 +457,7 @@ abstract class WP_Image_Editor {
 			}
 		}
 
-		return trailingslashit( $dir ) . "{$name}-{$suffix}.{$new_ext}";
+		return trailingslashit( $dir ) . "{$name}{$suffix}.{$new_ext}";
 	}
 
 	/**

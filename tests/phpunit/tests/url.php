@@ -7,6 +7,17 @@
  */
 class Tests_URL extends WP_UnitTestCase {
 
+	/**
+	 * Author user ID.
+	 *
+	 * @var int $author_id
+	 */
+	public static $author_id;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$author_id = $factory->user->create( array( 'role' => 'author' ) );
+	}
+
 	public function set_up() {
 		parent::set_up();
 		$GLOBALS['pagenow'] = '';
@@ -386,7 +397,7 @@ class Tests_URL extends WP_UnitTestCase {
 	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_should_return_private_posts_belonging_to_the_current_user() {
-		$u       = self::factory()->user->create( array( 'role' => 'author' ) );
+		$u       = self::$author_id;
 		$old_uid = get_current_user_id();
 		wp_set_current_user( $u );
 
@@ -425,7 +436,7 @@ class Tests_URL extends WP_UnitTestCase {
 	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_should_return_private_posts_belonging_to_other_users_if_the_current_user_can_read_private_posts() {
-		$u1      = self::factory()->user->create( array( 'role' => 'author' ) );
+		$u1      = self::$author_id;
 		$u2      = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$old_uid = get_current_user_id();
 		wp_set_current_user( $u2 );
@@ -465,7 +476,7 @@ class Tests_URL extends WP_UnitTestCase {
 	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_should_not_return_private_posts_belonging_to_other_users_if_the_current_user_cannot_read_private_posts() {
-		$u1      = self::factory()->user->create( array( 'role' => 'author' ) );
+		$u1      = self::$author_id;
 		$u2      = self::factory()->user->create( array( 'role' => 'author' ) );
 		$old_uid = get_current_user_id();
 		wp_set_current_user( $u2 );
