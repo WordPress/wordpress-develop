@@ -789,6 +789,9 @@ final class WP_Theme implements ArrayAccess {
 	 * @param array $data Data to unserialize.
 	 */
 	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
+		$this->parent  = $data[ "\0" . __CLASS__ . "\0" . 'parent' ];
+		$this->headers = $data[ "\0" . __CLASS__ . "\0" . 'headers' ];
+
 		if ( $this->parent && ! $this->parent instanceof self ) {
 			throw new UnexpectedValueException();
 		}

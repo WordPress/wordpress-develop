@@ -253,6 +253,8 @@ final class WP_Block_Patterns_Registry {
 	 * @param array $data Data to unserialize.
 	 */
 	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
+		$this->registered_patterns = $data[ "\0" . __CLASS__ . "\0" . 'registered_patterns' ];
+
 		if ( ! $this->registered_patterns ) {
 			return;
 		}

@@ -176,6 +176,8 @@ final class WP_Block_Type_Registry {
 	 * @param array $data Data to unserialize.
 	 */
 	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
+		$this->registered_block_types = $data[ "\0" . __CLASS__ . "\0" . 'registered_block_types' ];
+
 		if ( ! $this->registered_block_types ) {
 			return;
 		}
