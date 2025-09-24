@@ -105,7 +105,7 @@ $tagline_description = sprintf(
 	wp_enqueue_media();
 	wp_enqueue_script( 'site-icon' );
 
-	$classes_for_upload_button = 'upload-button button-add-media button-add-site-icon';
+	$classes_for_upload_button = 'upload-button button-hero button';
 	$classes_for_update_button = 'button';
 	$classes_for_wrapper       = '';
 
@@ -184,7 +184,6 @@ $tagline_description = sprintf(
 	<div class="site-icon-action-buttons">
 		<button type="button"
 			id="choose-from-library-button"
-			type="button"
 			class="<?php echo esc_attr( $classes_for_button ); ?>"
 			data-alt-classes="<?php echo esc_attr( $classes_for_button_on_change ); ?>"
 			data-size="512"
