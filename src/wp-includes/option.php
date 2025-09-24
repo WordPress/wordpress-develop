@@ -2045,7 +2045,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param mixed  $pre_option  The value to return instead of the network option value. This differs
+	 * @param mixed  $pre         The value to return instead of the network option value. This differs
 	 *                            from `$default`, which is used as the fallback value in the event
 	 *                            the option doesn't exist elsewhere in get_network_option().
 	 *                            Default false (to skip past the short-circuit).
@@ -2054,7 +2054,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 * @param mixed  $default     The fallback value to return if the option does not exist.
 	 *                            Default false.
 	 */
-	$pre = apply_filters( 'pre_site_option', $pre_option, $option, $network_id, $default );
+	$pre = apply_filters( 'pre_site_option', $pre, $option, $network_id, $default );
 
 	if ( false !== $pre ) {
 		return $pre;
