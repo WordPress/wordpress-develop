@@ -493,20 +493,18 @@ class WP_Block {
 
 				$depth = $this->get_current_depth();
 
-				$this->set_bookmark( '_wp_block_bindings_tag_opener' );
+				$this->set_bookmark( '_wp_block_bindings' );
 				// The bookmark names are prefixed with `_` so the key below has an extra `_`.
-				$tag_opener = $this->bookmarks['__wp_block_bindings_tag_opener'];
+				$tag_opener = $this->bookmarks['__wp_block_bindings'];
 				$start      = $tag_opener->start + $tag_opener->length;
-				$this->release_bookmark( '_wp_block_bindings_tag_opener' );
 
 				// Find matching tag closer.
 				while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
 				}
 
-				$this->set_bookmark( '_wp_block_bindings_tag_closer' );
-				$tag_closer = $this->bookmarks['__wp_block_bindings_tag_closer'];
+				$this->set_bookmark( '_wp_block_bindings' );
+				$tag_closer = $this->bookmarks['__wp_block_bindings'];
 				$end        = $tag_closer->start;
-				$this->release_bookmark( '_wp_block_bindings_tag_closer' );
 
 				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
 					$start,
