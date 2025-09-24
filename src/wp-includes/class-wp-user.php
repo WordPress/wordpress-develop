@@ -36,9 +36,9 @@
  * @property string $rich_editing
  * @property string $syntax_highlighting
  * @property string $use_ssl
- * @property array $caps
- * @property array $roles
- * @property array $allcaps
+ * @property array<string, bool> $caps
+ * @property string[] $roles
+ * @property array<string, bool> $allcaps
  */
 #[AllowDynamicProperties]
 class WP_User {
@@ -62,8 +62,8 @@ class WP_User {
 	 * Capabilities that the individual user has been granted outside of those inherited from their role.
 	 *
 	 * @since 2.0.0
-	 * @var bool[] Array of key/value pairs where keys represent a capability name
-	 *             and boolean values represent whether the user has that capability.
+	 * @var array<string, bool> Array of key/value pairs where keys represent a capability name
+	 *                          and boolean values represent whether the user has that capability.
 	 */
 	protected $caps = array();
 
@@ -87,8 +87,8 @@ class WP_User {
 	 * All capabilities the user has, including individual and role based.
 	 *
 	 * @since 2.0.0
-	 * @var bool[] Array of key/value pairs where keys represent a capability name
-	 *             and boolean values represent whether the user has that capability.
+	 * @var array<string, bool> Array of key/value pairs where keys represent a capability name
+	 *                          and boolean values represent whether the user has that capability.
 	 */
 	protected $allcaps = array();
 
@@ -112,7 +112,7 @@ class WP_User {
 	/**
 	 * Flag for if capability is loaded.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 * @var bool
 	 */
 	private $loaded_caps = false;
@@ -535,6 +535,7 @@ class WP_User {
 
 		$wp_roles = wp_roles();
 
+		// Edge-case: In case someone calls this method before lazy initialization, we need to initialize on demand.
 		if ( ! $this->loaded_caps ) {
 			$this->caps = $this->get_caps_data();
 		}
@@ -943,7 +944,7 @@ class WP_User {
 	/**
 	 * Loads capability data if it has not been loaded yet.
 	 *
-	 * @since 6.8.0
+	 * @since 6.9.0
 	 */
 	private function load_capability_data() {
 		if ( $this->loaded_caps ) {
