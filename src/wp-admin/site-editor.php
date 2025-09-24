@@ -31,7 +31,7 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
  */
 function _wp_get_site_editor_redirection_url() {
 	global $pagenow;
-	if ( 'site-editor.php' !== $pagenow || isset( $_REQUEST['p'] ) || ! $_SERVER['QUERY_STRING'] ) {
+	if ( 'site-editor.php' !== $pagenow || isset( $_REQUEST['p'] ) || empty( $_SERVER['QUERY_STRING'] ) ) {
 		return false;
 	}
 
@@ -139,7 +139,15 @@ foreach ( get_default_block_template_types() as $slug => $template_type ) {
 	$indexed_template_types[] = $template_type;
 }
 
-$block_editor_context = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
+$context_settings = array( 'name' => 'core/edit-site' );
+
+if ( ! empty( $_GET['postId'] ) && is_numeric( $_GET['postId'] ) ) {
+	$context_settings['post'] = get_post( (int) $_GET['postId'] );
+} elseif ( isset( $_GET['p'] ) && preg_match( '/^\/page\/(\d+)$/', $_GET['p'], $matches ) ) {
+	$context_settings['post'] = get_post( (int) $matches[1] );
+}
+
+$block_editor_context = new WP_Block_Editor_Context( $context_settings );
 $custom_settings      = array(
 	'siteUrl'                   => site_url(),
 	'postsPerPage'              => get_option( 'posts_per_page' ),
@@ -199,7 +207,47 @@ $preload_paths = array(
 		),
 		'GET',
 	),
+	'/wp/v2/settings',
+	array( '/wp/v2/settings', 'OPTIONS' ),
+	// Used by getBlockPatternCategories in useBlockEditorSettings.
+	'/wp/v2/block-patterns/categories',
+	// @see packages/core-data/src/entities.js
+	'/?_fields=' . implode(
+		',',
+		array(
+			'description',
+			'gmt_offset',
+			'home',
+			'name',
+			'site_icon',
+			'site_icon_url',
+			'site_logo',
+			'timezone_string',
+			'url',
+			'page_for_posts',
+			'page_on_front',
+			'show_on_front',
+		)
+	),
 );
+
+if ( $block_editor_context->post ) {
+	$route_for_post = rest_get_route_for_post( $block_editor_context->post );
+	if ( $route_for_post ) {
+		$preload_paths[] = add_query_arg( 'context', 'edit', $route_for_post );
+		if ( 'page' === $block_editor_context->post->post_type ) {
+			$preload_paths[] = add_query_arg(
+				'slug',
+				// @see https://github.com/WordPress/gutenberg/blob/e093fefd041eb6cc4a4e7f67b92ab54fd75c8858/packages/core-data/src/private-selectors.ts#L244-L254
+				empty( $block_editor_context->post->post_name ) ? 'page' : 'page-' . $block_editor_context->post->post_name,
+				'/wp/v2/templates/lookup'
+			);
+		}
+	}
+} else {
+	$preload_paths[] = '/wp/v2/templates/lookup?slug=front-page';
+	$preload_paths[] = '/wp/v2/templates/lookup?slug=home';
+}
 
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
 
@@ -209,14 +257,14 @@ wp_add_inline_script(
 		'wp.domReady( function() {
 			wp.editSite.initializeEditor( "site-editor", %s );
 		} );',
-		wp_json_encode( $editor_settings )
+		wp_json_encode( $editor_settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 	)
 );
 
 // Preload server-registered block schemas.
 wp_add_inline_script(
 	'wp-blocks',
-	'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . ');'
+	'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ');'
 );
 
 // Preload server-registered block bindings sources.
@@ -230,7 +278,7 @@ if ( ! empty( $registered_sources ) ) {
 			'usesContext' => $source->uses_context,
 		);
 	}
-	$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources ) );
+	$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
 	wp_add_inline_script(
 		'wp-blocks',
 		$script
@@ -239,7 +287,7 @@ if ( ! empty( $registered_sources ) ) {
 
 wp_add_inline_script(
 	'wp-blocks',
-	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( isset( $editor_settings['blockCategories'] ) ? $editor_settings['blockCategories'] : array() ) ),
+	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( isset( $editor_settings['blockCategories'] ) ? $editor_settings['blockCategories'] : array(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ),
 	'after'
 );
 
