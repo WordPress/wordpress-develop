@@ -496,11 +496,11 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$custom_settings
 	);
 
-	$editor_settings['blockBindingsSupportedAttributes'] = array();
+	$editor_settings['__experimentalBlockBindingsSupportedAttributes'] = array();
 	foreach ( array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() ) as $block_type ) {
 		$supported_block_attributes = get_block_bindings_supported_attributes( $block_type );
 		if ( ! empty( $supported_block_attributes ) ) {
-			$editor_settings['blockBindingsSupportedAttributes'][ $block_type ] = $supported_block_attributes;
+			$editor_settings['__experimentalBlockBindingsSupportedAttributes'][ $block_type ] = $supported_block_attributes;
 		}
 	}
 
