@@ -264,6 +264,8 @@ final class WP_Block_Bindings_Registry {
 	 * @param array $data Data to unserialize.
 	 */
 	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
+		$this->sources = $data[ "\0" . __CLASS__ . "\0" . 'sources' ];
+
 		if ( ! $this->sources ) {
 			return;
 		}
