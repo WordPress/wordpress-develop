@@ -10,7 +10,7 @@
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'activate_plugins' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to manage plugins for this site.' ) , 403 );
+	wp_die(__('Sorry, you are not allowed to manage plugins for this site.'), 403);
 }
 
 $wp_list_table = _get_list_table( 'WP_Plugins_List_Table' );

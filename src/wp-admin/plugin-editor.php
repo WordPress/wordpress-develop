@@ -125,7 +125,7 @@ if ( ! is_file( $real_file ) ) {
 		$ext = strtolower( $matches[1] );
 		// If extension is not in the acceptable list, skip it.
 		if ( ! in_array( $ext, $editable_extensions, true ) ) {
-			wp_die( sprintf( '<p>%s</p>', __( 'Files of this type are not editable.' ) ), 415 );
+			wp_die( sprintf( '<p>%s</p>', __( 'Files of this type are not editable.' ) ), 403 );
 		}
 	}
 }
