@@ -626,127 +626,78 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		}
 	}
 
-	public function address_provider() {
-		return array(
-			'single encoded name'                  => array(
-				'content'  => '=?UTF-8?B?Sm9obg==?= <john@example.com>',
-				'expected' => array(
-					array( 'john@example.com', 'John' ),
-				),
-			),
-			'multiple names with one encoded name' => array(
-				'content'  => '=?UTF-8?B?Sm9obg==?= <john@example.com>, Jane <jane@example.com>',
-				'expected' => array(
-					array( 'john@example.com', 'John' ),
-					array( 'jane@example.com', 'Jane' ),
-				),
-			),
-			'multiple encoded names'               => array(
-				'content'  => '=?UTF-8?B?Sm9obg==?= <john@example.com>, =?UTF-8?B?SmFuZQ==?= <jane@example.com>',
-				'expected' => array(
-					array( 'john@example.com', 'John' ),
-					array( 'jane@example.com', 'Jane' ),
-				),
-			),
-		);
-	}
-
 	/**
+	 * Test that wp_mail() can handle complex multiple header addresses.
+	 *
+	 * @requires extension imap
 	 * @ticket 62940
-	 * @dataProvider address_provider
+	 * @dataProvider data_wp_mail_complex_multiple_header_addresses
 	 */
-	public function test_wp_mail_single_line_utf8_header( $content, $expected ) {
-		$headers = array( 'Cc', 'Bcc', 'Reply-To' );
+	public function test_wp_mail_complex_multiple_header_addresses( $header, $expected ) {
 
-		foreach ( $headers as $header ) {
-			$mail_header = sprintf( '%s: %s', $header, $content );
-			wp_mail( 'test@example.com', 'subject', 'message', $mail_header );
+		$type_list = array( 'To', 'Cc', 'Bcc' );
+
+		foreach ( $type_list as $type ) {
+			if ( 'To' === $type ) {
+				wp_mail( $header, 'subject', 'message' );
+			} else {
+				wp_mail( 'john@example.com', 'subject', 'message', $type . ': ' . $header );
+			}
+
 			$mailer = tests_retrieve_phpmailer_instance();
 
-			switch ( $header ) {
+			// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			switch ( $type ) {
 				case 'Cc':
 					$this->assertSame( $expected, $mailer->getCcAddresses() );
 					break;
-
 				case 'Bcc':
 					$this->assertSame( $expected, $mailer->getBccAddresses() );
 					break;
-
-				case 'Reply-To':
-					// Reply-To returns associative array, so modify expected data accordingly.
-					$expected_reply_to = array();
-					foreach ( $expected as $addr ) {
-						$expected_reply_to[ $addr[0] ] = $addr;
-					}
-					$this->assertSame( $expected_reply_to, $mailer->getReplyToAddresses() );
+				case 'To':
+					$this->assertSame( $expected, $mailer->getToAddresses() );
 					break;
-
 				default:
-					$this->fail( "Unknown header type: {$header}" );
-					break;
+					$this->fail( 'Invalid header type: ' . $header[0] );
 			}
-			reset_phpmailer_instance();
+			// phpcs:enable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		}
 	}
 
 	/**
-	 * @ticket 62940
-	 * @dataProvider address_provider
+	 * Data provider for test_wp_mail_complex_multiple_header_addresses.
+	 * @return array
 	 */
-	public function test_wp_mail_single_line_utf8_header_multiple_to( $content, $expected ) {
-		wp_mail( $content, 'subject', 'message' );
-		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertSame( $expected, $mailer->getToAddresses() );
-	}
-
-	/**
-	 * @ticket 62940
-	 */
-	public function test_wp_mail_encoded_from() {
-		$header   = 'From: =?UTF-8?B?VGVzdA==?= <test@example.com>';
-		$expected = array( 'test@example.com', 'Test' );
-		wp_mail( 'john@example.com', 'subject', 'message', $header );
-		$mailer = tests_retrieve_phpmailer_instance();
-
-		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		$this->assertSame( $expected, array( $mailer->From, $mailer->FromName ) );
-	}
-
-	public function addr_list_provider() {
+	public function data_wp_mail_complex_multiple_header_addresses() {
 		return array(
-			'comma in quoted name'          => array(
-				'type'     => 'From',
-				'header'   => 'From: "John, Doe" <johndoe@example.com>',
-				'expected' => array( 'johndoe@example.com', 'John, Doe' ),
+			'multiple simple addresses'            => array(
+				'header'   => 'test@example.com, joe.doe@example.com',
+				'expected' => array(
+					array( 'test@example.com', '' ),
+					array( 'joe.doe@example.com', '' ),
+				),
 			),
-			'angled bracket in quoted name' => array(
-				'type'     => 'From',
-				'header'   => 'From: "John<Doe" <johndoe@example.com>',
-				'expected' => array( 'johndoe@example.com', 'John<Doe' ),
+			'multiple simple addresses with name'  => array(
+				'header'   => 'test <test@example.com>, joe.doe@example.com',
+				'expected' => array(
+					array( 'test@example.com', 'test' ),
+					array( 'joe.doe@example.com', '' ),
+				),
+			),
+			'single with multiple aspect address'  => array(
+				'header'   => '"Joe, Doe" <joe.doe@example.com>"',
+				'expected' => array(
+					array( 'joe.doe@example.com', 'Joe, Doe' ),
+				),
+			),
+
+			'multiple complex addresses with name' => array(
+				'header'   => 'test <test@example.com>, "Joe, Doe" <joe.doe@example.com>"',
+				'expected' => array(
+					array( 'test@example.com', 'test' ),
+					array( 'joe.doe@example.com', 'Joe, Doe' ),
+				),
 			),
 		);
-	}
-
-
-	/**
-	 * @ticket 62940
-	 * @dataProvider addr_list_provider
-	 * @requires extension imap
-	 */
-	public function test_wp_mail_headers_with_imap_extension( $type, $header, $expected ) {
-		wp_mail( 'test@example.com', 'Subject', 'Message', $header );
-		$mailer = tests_retrieve_phpmailer_instance();
-
-		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		switch ( $type ) {
-			case 'From':
-				$this->assertSame( $expected, array( $mailer->From, $mailer->FromName ) );
-				break;
-
-			default:
-				$this->fail( "Unknown header type: {$type}" );
-				break;
-		}
-		// phpcs:enable
 	}
 }

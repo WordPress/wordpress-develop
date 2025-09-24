@@ -292,9 +292,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 					$parsed_headers[ $name ] = $content;
 				}
 
-				/**
-				 * Set the charset from Content-Type, if present.
-				 */
+				// Content-Type must be set before parsing the rest of the headers.
+				// TODO: Maybe this could be abstracted to a function get_content_type_from_headers() to also use in wp_staticize_emoji_for_email()
 				if ( isset( $parsed_headers['content-type'] ) ) {
 					$content = $parsed_headers['content-type'];
 					if ( str_contains( $content, ';' ) ) {
@@ -316,7 +315,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 					switch ( $name ) {
 						case 'from':
 							if ( ! empty( $content ) ) {
-								$addresses = $phpmailer->parseAddresses( $content, null, $charset );
+								$imap_exists = function_exists( 'imap_rfc822_parse_headers' );
+								$addresses   = $phpmailer->parseAddresses( $content, true, $charset );
 								if ( ! empty( $addresses[0]['name'] ) ) {
 									$from_name = $addresses[0]['name'];
 								}
@@ -326,13 +326,13 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							}
 							break;
 						case 'cc':
-							$cc = array_merge( (array) $cc, $phpmailer->parseAddresses( $content, null, $charset ) );
+							$cc = array_merge( (array) $cc, $phpmailer->parseAddresses( $content, true, $charset ) );
 							break;
 						case 'bcc':
-							$bcc = array_merge( (array) $bcc, $phpmailer->parseAddresses( $content, null, $charset ) );
+							$bcc = array_merge( (array) $bcc, $phpmailer->parseAddresses( $content, true, $charset ) );
 							break;
 						case 'reply-to':
-							$reply_to = array_merge( (array) $reply_to, $phpmailer->parseAddresses( $content, null, $charset ) );
+							$reply_to = array_merge( (array) $reply_to, $phpmailer->parseAddresses( $content, true, $charset ) );
 							break;
 						default:
 							// Add it to our grand headers array.
@@ -348,10 +348,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			$to = $atts['to'];
 		}
 
-		$raw_to = array();
 		if ( ! is_array( $to ) ) {
-			$raw_to = explode( ',', $to );
-			$to     = $phpmailer->parseAddresses( $to, null, $charset );
+			$to = $phpmailer->parseAddresses( $to, true, $charset );
 		}
 
 		if ( isset( $atts['subject'] ) ) {
@@ -485,9 +483,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		// Set to use PHP's mail().
 		$phpmailer->isMail();
 
-		// Set Content-Type and Charset.
-
-		// If we don't have a Content-Type from the input headers.
+		// If we still don't have a Content-Type from headers or blogging in the default charset.
 		if ( ! isset( $content_type ) ) {
 			$content_type = 'text/plain';
 		}
@@ -601,8 +597,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
 
 		$mail_data = array_merge(
-			array( 'to' => $raw_to ),
-			compact( 'subject', 'message', 'headers', 'attachments' )
+			compact( 'to', 'subject', 'message', 'headers', 'attachments' )
 		);
 
 		// Send!
