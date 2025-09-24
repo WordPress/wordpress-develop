@@ -2054,7 +2054,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 * @param mixed  $default     The fallback value to return if the option does not exist.
 	 *                            Default false.
 	 */
-	$pre = apply_filters( 'pre_site_option', $pre, $option, $network_id, $default );
+	$pre = apply_filters( 'pre_site_option', $pre_option, $option, $network_id, $default );
 
 	if ( false !== $pre ) {
 		return $pre;
