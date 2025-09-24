@@ -491,7 +491,8 @@ class WP_Block {
 					return false;
 				}
 
-				$depth = $this->get_current_depth();
+				$depth    = $this->get_current_depth();
+				$tag_name = $this->get_tag();
 
 				$this->set_bookmark( '_wp_block_bindings' );
 				// The bookmark names are prefixed with `_` so the key below has an extra `_`.
@@ -500,6 +501,10 @@ class WP_Block {
 
 				// Find matching tag closer.
 				while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
+				}
+
+				if ( ! $this->is_tag_closer() || $tag_name !== $this->get_tag() ) {
+					return false;
 				}
 
 				$this->set_bookmark( '_wp_block_bindings' );
