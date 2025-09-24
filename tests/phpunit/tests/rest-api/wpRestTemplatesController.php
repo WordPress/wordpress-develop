@@ -176,6 +176,50 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @ticket 56481
+	 *
+	 * @covers WP_REST_Templates_Controller::get_items
+	 */
+	public function test_get_items_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/templates' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'HEAD', $path );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/templates/default//my_template' ),
+			'get_items request' => array( '/wp/v2/templates' ),
+		);
+	}
+
+	/**
 	 * @covers WP_REST_Templates_Controller::get_items
 	 */
 	public function test_get_items_editor() {
@@ -268,6 +312,20 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @ticket 56481
+	 *
+	 * @covers WP_REST_Templates_Controller::get_item
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_response
+	 */
+	public function test_get_item_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/templates/default//my_template' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
 	 * @covers WP_REST_Templates_Controller::get_item
 	 */
 	public function test_get_item_editor() {
@@ -310,7 +368,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	public function test_get_item_subscriber() {
 		wp_set_current_user( self::$subscriber_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
-		$response = rest_get_server()->dispatch( $request );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_templates', $response, 403 );
 	}
@@ -1084,7 +1141,9 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
 
 		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
-		$prepare_item_for_database->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$prepare_item_for_database->setAccessible( true );
+		}
 
 		$body_params = array(
 			'title'   => 'Untitled Template Part',
@@ -1136,7 +1195,9 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$endpoint = new WP_REST_Templates_Controller( 'wp_template_part' );
 
 		$prepare_item_for_database = new ReflectionMethod( $endpoint, 'prepare_item_for_database' );
-		$prepare_item_for_database->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$prepare_item_for_database->setAccessible( true );
+		}
 
 		$id          = get_stylesheet() . '//' . 'my_template_part';
 		$body_params = array(

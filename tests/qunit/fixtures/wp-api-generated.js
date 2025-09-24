@@ -12,6 +12,9 @@ mockedApiResponse.Schema = {
     "home": "http://example.org",
     "gmt_offset": "0",
     "timezone_string": "",
+    "page_for_posts": 0,
+    "page_on_front": 0,
+    "show_on_front": "posts",
     "namespaces": [
         "oembed/1.0",
         "wp/v2",
@@ -625,6 +628,12 @@ mockedApiResponse.Schema = {
                         "sticky": {
                             "description": "Limit result set to items that are sticky.",
                             "type": "boolean",
+                            "required": false
+                        },
+                        "ignore_sticky": {
+                            "description": "Whether to ignore sticky posts or not.",
+                            "type": "boolean",
+                            "default": true,
                             "required": false
                         },
                         "format": {
@@ -6887,7 +6896,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/global-styles/(?P<id>[\\/\\d+]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -6905,8 +6914,8 @@ mockedApiResponse.Schema = {
                     },
                     "args": {
                         "id": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "ID of global styles config.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -9595,6 +9604,22 @@ mockedApiResponse.Schema = {
                                 }
                             },
                             "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "email",
+                                    "name",
+                                    "id",
+                                    "username",
+                                    "slug"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
                         }
                     }
                 },
@@ -10028,7 +10053,18 @@ mockedApiResponse.Schema = {
                         "app_id": {
                             "description": "A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
                             "type": "string",
-                            "format": "uuid",
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        ""
+                                    ]
+                                }
+                            ],
                             "required": false
                         },
                         "name": {
@@ -10112,7 +10148,18 @@ mockedApiResponse.Schema = {
                         "app_id": {
                             "description": "A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
                             "type": "string",
-                            "format": "uuid",
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        ""
+                                    ]
+                                }
+                            ],
                             "required": false
                         },
                         "name": {

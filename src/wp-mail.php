@@ -17,7 +17,7 @@ if ( ! apply_filters( 'enable_post_by_email_configuration', true ) ) {
 
 $mailserver_url = get_option( 'mailserver_url' );
 
-if ( 'mail.example.com' === $mailserver_url || empty( $mailserver_url ) ) {
+if ( empty( $mailserver_url ) || 'mail.example.com' === $mailserver_url ) {
 	wp_die( __( 'This action has been disabled by the administrator.' ), 403 );
 }
 
@@ -39,7 +39,15 @@ if ( ! defined( 'WP_MAIL_INTERVAL' ) ) {
 $last_checked = get_transient( 'mailserver_last_checked' );
 
 if ( $last_checked ) {
-	wp_die( __( 'Slow down cowboy, no need to check for new mails so often!' ) );
+	wp_die(
+		sprintf(
+			// translators: %s human readable rate limit.
+			__( 'Email checks are rate limited to once every %s.' ),
+			human_time_diff( time() - WP_MAIL_INTERVAL, time() )
+		),
+		__( 'Slow down, no need to check for new mails so often!' ),
+		429
+	);
 }
 
 set_transient( 'mailserver_last_checked', true, WP_MAIL_INTERVAL );
