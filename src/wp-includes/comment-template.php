@@ -1130,7 +1130,6 @@ function get_comment_timestamp( $comment = null, $source = 'local' ) {
 	return $datetime->getTimestamp();
 }
 
-
 /**
  * Displays the text of the current comment.
  *
