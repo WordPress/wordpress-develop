@@ -419,12 +419,18 @@ window.columns = {
 	 */
 	saveManageColumnsState : function() {
 		var hidden = this.hidden();
-		$.post(ajaxurl, {
-			action: 'hidden-columns',
-			hidden: hidden,
-			screenoptionnonce: $('#screenoptionnonce').val(),
-			page: pagenow
-		});
+		$.post(
+			ajaxurl,
+			{
+				action: 'hidden-columns',
+				hidden: hidden,
+				screenoptionnonce: $('#screenoptionnonce').val(),
+				page: pagenow
+			},
+			function() {
+				wp.a11y.speak( __( 'Screen Options updated.' ) );
+			}
+		);
 	},
 
 	/**
@@ -1321,8 +1327,8 @@ $( function() {
 
 		// Observe submissions from posts lists for 'bulk_action' or users lists for 'new_role'.
 		var bulkFieldRelations = {
-			'bulk_action' : 'action',
-			'changeit' : 'new_role'
+			'bulk_action' : window.bulkActionObserverIds.bulk_action,
+			'changeit' : window.bulkActionObserverIds.changeit
 		};
 		if ( ! Object.keys( bulkFieldRelations ).includes( submitterName ) ) {
 			return;

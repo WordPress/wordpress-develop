@@ -578,7 +578,7 @@ class WP_Theme_JSON {
 	/**
 	 * Defines which pseudo selectors are enabled for which elements.
 	 *
-	 * The order of the selectors should be: link, any-link, visited, hover, focus, active.
+	 * The order of the selectors should be: link, any-link, visited, hover, focus, focus-visible, active.
 	 * This is to ensure the user action (hover, focus and active) styles have a higher
 	 * specificity than the visited styles, which in turn have a higher specificity than
 	 * the unvisited styles.
@@ -588,11 +588,12 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.1.0
 	 * @since 6.2.0 Added support for ':link' and ':any-link'.
+	 * @since 6.8.0 Added support for ':focus-visible'.
 	 * @var array
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':active' ),
-		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':active' ),
+		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
 	);
 
 	/**
@@ -2780,6 +2781,7 @@ class WP_Theme_JSON {
 			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
 				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
 					$node_path = array( 'styles', 'blocks', $name, 'elements', $element );
+
 					if ( $include_node_paths_only ) {
 						$nodes[] = array(
 							'path' => $node_path,
@@ -2797,12 +2799,6 @@ class WP_Theme_JSON {
 						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
 								$node_path = array( 'styles', 'blocks', $name, 'elements', $element );
-								if ( $include_node_paths_only ) {
-									$nodes[] = array(
-										'path' => $node_path,
-									);
-									continue;
-								}
 
 								$nodes[] = array(
 									'path'     => $node_path,
@@ -2905,7 +2901,11 @@ class WP_Theme_JSON {
 			array_filter(
 				$element_pseudo_allowed,
 				static function ( $pseudo_selector ) use ( $selector ) {
-					return str_contains( $selector, $pseudo_selector );
+					/*
+					 * Check if the pseudo selector is in the current selector,
+					 * ensuring it is not followed by a dash (e.g., :focus should not match :focus-visible).
+					 */
+					return preg_match( '/' . preg_quote( $pseudo_selector, '/' ) . '(?!-)/', $selector ) === 1;
 				}
 			)
 		);
