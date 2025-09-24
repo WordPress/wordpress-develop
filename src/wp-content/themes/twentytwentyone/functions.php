@@ -637,10 +637,10 @@ function twentytwentyone_add_ie_class() {
 	";
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
-        wp_print_inline_script_tag( $script . "\n//# sourceURL=" . __FUNCTION__ );
-    } else {
-        printf( "<script>%s</script>\n", $script );
-    }
+		wp_print_inline_script_tag( $script . "\n//# sourceURL=" . __FUNCTION__ );
+	} else {
+		printf( "<script>%s</script>\n", $script );
+	}
 }
 add_action( 'wp_footer', 'twentytwentyone_add_ie_class' );
 
