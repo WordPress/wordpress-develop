@@ -55,6 +55,15 @@
           'fontSize' => true
         )
       ),
+      'color' => array(
+        'gradients' => true,
+        'link' => true,
+        '__experimentalDefaultControls' => array(
+          'background' => true,
+          'text' => true,
+          'link' => true
+        )
+      ),
       'interactivity' => array(
         'clientNavigation' => true
       )
@@ -608,6 +617,15 @@
         '__experimentalLetterSpacing' => true,
         '__experimentalDefaultControls' => array(
           'fontSize' => true
+        )
+      ),
+      'color' => array(
+        'gradients' => true,
+        'link' => true,
+        '__experimentalDefaultControls' => array(
+          'background' => true,
+          'text' => true,
+          'link' => true
         )
       ),
       'interactivity' => array(
@@ -5658,9 +5676,9 @@
       ),
       'color' => array(
         'gradients' => true,
-        'text' => true,
         '__experimentalDefaultControls' => array(
-          'background' => true
+          'background' => true,
+          'text' => true
         )
       ),
       'typography' => array(
@@ -5687,6 +5705,9 @@
           'width' => true,
           'style' => true
         )
+      ),
+      'interactivity' => array(
+        'clientNavigation' => true
       )
     ),
     'style' => 'wp-block-query-total'
@@ -5921,6 +5942,20 @@
       'html' => false,
       'interactivity' => array(
         'clientNavigation' => true
+      ),
+      '__experimentalBorder' => array(
+        'radius' => true,
+        'color' => true,
+        'width' => true,
+        'style' => true
+      ),
+      'spacing' => array(
+        'margin' => true,
+        'padding' => true,
+        '__experimentalDefaultControls' => array(
+          'padding' => false,
+          'margin' => false
+        )
       ),
       'color' => array(
         'background' => true,
