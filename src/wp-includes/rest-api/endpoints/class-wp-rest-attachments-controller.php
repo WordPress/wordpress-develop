@@ -971,6 +971,27 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return array Links for the given attachment.
+	 */
+	protected function prepare_links( $post ) {
+		$links = parent::prepare_links( $post );
+
+		if ( ! empty( $post->post_parent ) ) {
+			$links['post'] = array(
+				'href'       => rest_url( rest_get_route_for_post( $post->post_parent ) ),
+				'embeddable' => true,
+			);
+		}
+
+		return $links;
+	}
+
+	/**
 	 * Retrieves the attachment's schema, conforming to JSON Schema.
 	 *
 	 * @since 4.7.0
