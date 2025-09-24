@@ -300,9 +300,10 @@ class WP_Script_Modules {
 	 * @since 6.9.0
 	 */
 	public function print_head_enqueued_script_modules() {
-		$script_modules = $this->get_marked_for_enqueue();
-		foreach ( $script_modules as $id => $script_module ) {
-			if ( ! in_array( $id, $this->done, true ) && ! $script_module['in_footer'] ) {
+		$script_modules            = $this->get_marked_for_enqueue();
+		$sorted_script_modules_ids = $this->get_sorted_dependencies( array_keys( $script_modules ) );
+		foreach ( $sorted_script_modules_ids as $id ) {
+			if ( ! in_array( $id, $this->done, true ) && isset( $script_modules[ $id ] ) && ! $script_modules[ $id ]['in_footer'] ) {
 				// If any dependency is set to be printed in footer, skip printing this module in head.
 				$dependencies = $this->get_dependencies( array( $id ) );
 				foreach ( $dependencies as $dependency ) {
@@ -311,7 +312,7 @@ class WP_Script_Modules {
 					}
 				}
 				$this->done[] = $id;
-				$this->print_script_module( $id, $script_module );
+				$this->print_script_module( $id, $script_modules[ $id ] );
 			}
 		}
 	}
@@ -322,11 +323,12 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_enqueued_script_modules() {
-		$script_modules = $this->get_marked_for_enqueue();
-		foreach ( $script_modules as $id => $script_module ) {
+		$script_modules            = $this->get_marked_for_enqueue();
+		$sorted_script_modules_ids = $this->get_sorted_dependencies( array_keys( $script_modules ) );
+		foreach ( $sorted_script_modules_ids as $id ) {
 			if ( ! in_array( $id, $this->done, true ) ) {
 				$this->done[] = $id;
-				$this->print_script_module( $id, $script_module );
+				$this->print_script_module( $id, $script_modules[ $id ] );
 			}
 		}
 	}
@@ -458,6 +460,52 @@ class WP_Script_Modules {
 			},
 			array()
 		);
+	}
+
+	/**
+	 * Sorts the given script module identifiers based on their dependencies.
+	 *
+	 * It will return a list of script module identifiers sorted in the order
+	 * they should be printed, so that dependencies are printed before the script
+	 * modules that depend on them.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string[] $ids The identifiers of the script modules to sort.
+	 * @return string[] Sorted list of script module identifiers.
+	 */
+	private function get_sorted_dependencies( array $ids ): array {
+		$sorted = array();
+		$sorter = function ( array $ids, bool $recursion = false ) use ( &$sorter, &$sorted ) {
+			foreach ( $ids as $id ) {
+				if ( in_array( $id, $this->done, true ) || in_array( $id, $sorted, true ) ) { // Already done.
+					continue;
+				}
+
+				$keep_going = true;
+				if ( ! isset( $this->registered[ $id ] ) ) {
+					$keep_going = false; // Item doesn't exist.
+				} elseif ( array_diff( array_column( $this->registered[ $id ]['dependencies'], 'id' ), array_keys( $this->registered ) ) ) {
+					$keep_going = false; // Item requires dependencies that don't exist.
+				} elseif ( ! $sorter( array_column( $this->registered[ $id ]['dependencies'], 'id' ), true ) ) {
+					$keep_going = false; // Item requires dependencies that don't exist.
+				}
+
+				if ( ! $keep_going ) { // Either item or its dependencies don't exist.
+					if ( $recursion ) {
+						return false; // Abort this branch.
+					} else {
+						continue; // We're at the top level. Move on to the next one.
+					}
+				}
+
+				$sorted[] = $id;
+			}
+			return true;
+		};
+		$sorter( $ids );
+
+		return array_unique( $sorted );
 	}
 
 	/**
