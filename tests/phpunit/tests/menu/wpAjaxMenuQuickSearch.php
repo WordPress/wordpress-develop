@@ -3,7 +3,7 @@
 /**
  * @group menu
  */
-class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
+class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 
 	/**
 	 * Test search returns results for pages.
@@ -120,5 +120,37 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 		$this->assertNotEmpty( $output );
 		$results = explode( "\n", trim( $output ) );
 		$this->assertCount( 1, $results );
+	}
+
+	/**
+	 * Test that search displays results for post types with numeric slugs
+	 *
+	 * @ticket 63633
+	 */
+	public function test_search_returns_post_types_with_numeric_slugs() {
+		register_post_type( 'wptests_123' );
+
+		self::factory()->post->create(
+			array(
+				'post_title'   => 'Post Title 123',
+				'post_type'    => 'wptests_123',
+				'post_status'  => 'publish',
+				'post_content' => 'FOO',
+			)
+		);
+
+		$request = array(
+			'type' => 'quick-search-posttype-wptests_123',
+			'q'    => 'FOO',
+		);
+
+		$output = get_echo( '_wp_ajax_menu_quick_search', array( $request ) );
+		$this->assertNotEmpty( $output );
+
+		$results = explode( "\n", trim( $output ) );
+		$this->assertCount( 1, $results );
+
+		$results_json = array_map( 'json_decode', $results );
+		$this->assertEquals( 'wptests_123', $results_json[0]->post_type );
 	}
 }

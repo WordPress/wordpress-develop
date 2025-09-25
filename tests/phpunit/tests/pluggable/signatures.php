@@ -44,10 +44,9 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 
 			$this->assertSame( $name, $param_ref->getName(), $msg );
 
-			$i++;
+			++$i;
 
 		}
-
 	}
 
 	/**
@@ -66,7 +65,6 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			$this->assertTrue( function_exists( $function ), $msg );
 			$this->assertContains( $function, $defined, $msg );
 		}
-
 	}
 
 	/**
@@ -113,7 +111,6 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 		}
 
 		return $data;
-
 	}
 
 	/**
@@ -140,6 +137,7 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 				'message',
 				'headers'     => '',
 				'attachments' => array(),
+				'embeds'      => array(),
 			),
 			'wp_authenticate'                 => array( 'username', 'password' ),
 			'wp_logout'                       => array(),
@@ -212,10 +210,15 @@ class Tests_Pluggable_Signatures extends WP_UnitTestCase {
 			'wp_hash'                         => array(
 				'data',
 				'scheme' => 'auth',
+				'algo'   => 'md5',
 			),
 			'wp_hash_password'                => array( 'password' ),
 			'wp_check_password'               => array(
 				'password',
+				'hash',
+				'user_id' => '',
+			),
+			'wp_password_needs_rehash'        => array(
 				'hash',
 				'user_id' => '',
 			),

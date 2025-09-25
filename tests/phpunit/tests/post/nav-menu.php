@@ -57,7 +57,6 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		// After falling back, the markup should not include whitespace around <li>'s.
 		$this->assertDoesNotMatchRegularExpression( '/\s<li.*>|<\/li>\s/U', $menu );
 		$this->assertMatchesRegularExpression( '/><li.*>|<\/li></U', $menu );
-
 	}
 
 	/**
@@ -215,7 +214,6 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$custom_item = wp_filter_object_list( $menu_items, array( 'db_id' => $custom_item_id ) );
 		$custom_item = array_pop( $custom_item );
 		$this->assertSame( 'WordPress.org', $custom_item->title );
-
 	}
 
 	public function test_wp_get_nav_menu_items_with_taxonomy_term() {
@@ -342,13 +340,13 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		add_filter( 'update_post_metadata_cache', array( $action, 'filter' ), 10, 2 );
 
 		$start_num_queries = get_num_queries();
-		wp_get_nav_menu_items( $this->menu_id );
+		wp_get_nav_menu_items( $this->menu_id, array( 'nopaging' => false ) );
 		$queries_made = get_num_queries() - $start_num_queries;
-		$this->assertSame( 6, $queries_made, 'Only does 6 database queries when running wp_get_nav_menu_items.' );
+		$this->assertSame( 7, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
 
 		$args = $action->get_args();
 		$this->assertSameSets( $menu_nav_ids, $args[0][1], '_prime_post_caches() was not executed.' );
-		$this->assertSameSets( $post_ids, $args[1][1], '_prime_post_caches() was not executed.' );
+		$this->assertSameSets( $post_ids, $args[2][1], '_prime_post_caches() was not executed.' );
 	}
 
 	/**
@@ -383,10 +381,10 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		add_filter( 'update_post_metadata_cache', array( $action_posts, 'filter' ), 10, 2 );
 
 		$start_num_queries = get_num_queries();
-		wp_get_nav_menu_items( $this->menu_id );
+		wp_get_nav_menu_items( $this->menu_id, array( 'nopaging' => false ) );
 		get_term_meta( $term_ids[0] );
 		$queries_made = get_num_queries() - $start_num_queries;
-		$this->assertSame( 6, $queries_made, 'Only does 6 database queries when running wp_get_nav_menu_items.' );
+		$this->assertSame( 7, $queries_made, 'Only does 7 database queries when running wp_get_nav_menu_items.' );
 
 		$args       = $action_terms->get_args();
 		$first      = reset( $args );
@@ -763,11 +761,10 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		remove_filter( 'nav_menu_item_title', array( $this, 'confirm_third_param_args_object' ), 10, 3 );
 
 		remove_filter( 'walker_nav_menu_start_el', array( $this, 'confirm_forth_param_args_object' ), 10, 4 );
-
 	}
 
 	/**
-	 * Run tests required to confrim Walker_Nav_Menu receives an $args object.
+	 * Run tests required to confirm Walker_Nav_Menu receives an $args object.
 	 */
 	public function confirm_nav_menu_item_args_object( $args ) {
 		$this->assertIsObject( $args );
@@ -1209,6 +1206,35 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 
 		$category_item = get_post( $category_item_id );
 		$this->assertEmpty( $category_item->post_title );
+	}
+
+	/**
+	 * Tests `wp_update_nav_menu_item()` with a non-existing taxonomy.
+	 *
+	 * When inserting a term from a non-existing taxonomy as a nav item,
+	 * the `post_title` property should be empty, and the function
+	 * should not throw a fatal error for `wp_specialchars_decode()`.
+	 *
+	 * @ticket 61799
+	 */
+	public function test_wp_update_nav_menu_item_with_invalid_taxonomy() {
+		register_taxonomy( 'invalid', 'post' );
+		$term = self::factory()->term->create_and_get( array( 'taxonomy' => 'invalid' ) );
+		unregister_taxonomy( 'invalid' );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'taxonomy',
+				'menu-item-object'    => 'invalid',
+				'menu-item-object-id' => $term->term_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+
+		$menu_item = get_post( $menu_item_id );
+		$this->assertEmpty( $menu_item->post_title );
 	}
 
 	/**

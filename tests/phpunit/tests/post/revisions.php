@@ -230,6 +230,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertCount( 1, $revisions );
 		$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $post_id ) );
 
+		$this->assertNotEmpty( $revisions );
+
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
@@ -736,7 +738,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 					)
 				);
 
-				$latest_revision_id++;
+				++$latest_revision_id;
 			}
 		}
 
@@ -784,7 +786,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 					)
 				);
 
-				$latest_revision_id++;
+				++$latest_revision_id;
 			}
 		}
 
@@ -883,7 +885,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_revisions_to_keep',
-			static function() {
+			static function () {
 				return 1;
 			}
 		);

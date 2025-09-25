@@ -1,0 +1,157 @@
+##
+# A reusable workflow that tests the WordPress Core build process.
+##
+name: Test the WordPress Build Process
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to run tests on'
+        required: false
+        type: 'string'
+        default: 'ubuntu-24.04'
+      directory:
+        description: 'Directory to run WordPress from. Valid values are `src` or `build`'
+        required: false
+        type: 'string'
+        default: 'src'
+      test-emoji:
+        description: 'Whether to run the precommit:emoji Grunt script.'
+        required: false
+        type: 'boolean'
+        default: true
+      test-certificates:
+        description: 'Whether to run the certificate related Grunt scripts.'
+        required: false
+        type: 'boolean'
+        default: false
+      save-build:
+        description: 'Whether to save a ZIP of built WordPress as an artifact.'
+        required: false
+        type: 'boolean'
+        default: false
+      prepare-playground:
+        description: 'Whether to prepare the artifacts needed for Playground testing.'
+        required: false
+        type: 'boolean'
+        default: false
+
+env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Verifies that installing npm dependencies and building WordPress works as expected.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs npm dependencies.
+  # - Builds WordPress to run from the desired location (src or build).
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Creates a ZIP of the built WordPress files (when building to the build directory).
+  # - Cleans up after building WordPress.
+  # - Ensures version-controlled files are not modified or deleted.
+  # - Uploads the ZIP as a GitHub Actions artifact (when building to the build directory).
+  # - Saves the pull request number to a text file.
+  # - Uploads the pull request number as an artifact.
+  build-process-tests:
+    name: ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
+    permissions:
+      contents: read
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      # This date is used to ensure that the PHPCS cache is cleared at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        if: ${{ inputs.test-certificates }}
+        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> "$GITHUB_OUTPUT"
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        if: ${{ inputs.test-certificates }}
+        uses: ramsey/composer-install@3cf229dc2919194e9e36783941438d17239e8520 # v3.1.1
+        with:
+          custom-cache-suffix: ${{ steps.get-date.outputs.date }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Run Emoji precommit task
+        if: ${{ inputs.test-emoji }}
+        run: npm run grunt precommit:emoji
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure certificates files are updated
+        if: ${{ inputs.test-certificates }}
+        run: npm run grunt copy:certificates && npm run grunt build:certificates
+
+      - name: Build WordPress to run from ${{ inputs.directory }}
+        run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
+
+      - name: Ensure version-controlled files are not modified or deleted during building
+        run: git diff --exit-code
+
+      - name: Create ZIP of built files
+        if: ${{ inputs.directory == 'build' && contains( inputs.os, 'ubuntu-' ) }}
+        run: zip -r wordpress.zip build/.
+
+      - name: Clean after building to run from ${{ inputs.directory }}
+        run: npm run grunt ${{ inputs.directory == 'src' && 'clean -- --dev' || 'clean' }}
+
+      - name: Ensure version-controlled files are not modified or deleted during cleaning
+        run: git diff --exit-code
+
+      - name: Upload ZIP as a GitHub Actions artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ inputs.save-build || inputs.prepare-playground }}
+        with:
+          name: wordpress-build-${{ github.event_name == 'pull_request' && github.event.number || github.sha }}
+          path: wordpress.zip
+          if-no-files-found: error
+
+      - name: Save PR number
+        if: ${{ inputs.prepare-playground }}
+        run: |
+          mkdir -p ./pr-number
+          echo "${EVENT_NUMBER}" > ./pr-number/NR
+        env:
+          EVENT_NUMBER: ${{ github.event.number }}
+
+      # Uploads the PR number as an artifact for the Pull Request Commenting workflow to download and then
+      # leave a comment detailing how to test the PR within WordPress Playground.
+      - name: Upload PR number as artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ inputs.prepare-playground && github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request' }}
+        with:
+          name: pr-number
+          path: pr-number/

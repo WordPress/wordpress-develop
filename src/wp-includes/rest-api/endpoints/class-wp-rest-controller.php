@@ -625,7 +625,7 @@ abstract class WP_REST_Controller {
 		// Return the list of all requested fields which appear in the schema.
 		return array_reduce(
 			$requested_fields,
-			static function( $response_fields, $field ) use ( $fields ) {
+			static function ( $response_fields, $field ) use ( $fields ) {
 				if ( in_array( $field, $fields, true ) ) {
 					$response_fields[] = $field;
 					return $response_fields;
@@ -662,11 +662,11 @@ abstract class WP_REST_Controller {
 	/**
 	 * Sanitizes the slug value.
 	 *
-	 * @since 4.7.0
-	 *
-	 * @internal We can't use sanitize_title() directly, as the second
+	 * {@internal We can't use sanitize_title() directly, as the second
 	 * parameter is the fallback title, which would end up being set to the
-	 * request object.
+	 * request object.}
+	 *
+	 * @since 4.7.0
 	 *
 	 * @see https://github.com/WP-API/WP-API/issues/1585
 	 *

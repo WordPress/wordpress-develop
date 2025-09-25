@@ -28,7 +28,7 @@ module.exports = function(grunt) {
 			'wp-content/themes/index.php',
 			'wp-content/themes/twenty*/**',
 			'wp-content/plugins/index.php',
-			'wp-content/plugins/hello.php',
+			'wp-content/plugins/hello-dolly/**',
 			'wp-content/plugins/akismet/**',
 			'!wp-content/themes/twenty*/node_modules/**',
 		],
@@ -56,6 +56,7 @@ module.exports = function(grunt) {
 			'wp-includes/css/dist',
 			'wp-includes/blocks/**/*.css',
 			'!wp-includes/assets/script-loader-packages.min.php',
+			'!wp-includes/assets/script-modules-packages.min.php',
 		],
 
 		// Prepend `dir` to `file`, and keep `!` in place.
@@ -82,11 +83,45 @@ module.exports = function(grunt) {
 	// First do `npm install` if package.json has changed.
 	installChanged.watchPackage();
 
-	// Load tasks.
-	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
-
 	// Load legacy utils.
 	grunt.util = require('grunt-legacy-util');
+
+	var gruntDependencies = {
+		'contrib': [
+			'clean',
+			'concat',
+			'copy',
+			'cssmin',
+			'jshint',
+			'qunit',
+			'uglify',
+			'watch'
+		],
+		'standard': [
+			'banner',
+			'file-append',
+			'jsdoc',
+			'patch-wordpress',
+			'replace-lts',
+			'rtlcss',
+			'sass',
+			'webpack'
+		]
+	};
+
+	// Load grunt-* tasks.
+	function loadGruntTasks( dependency ) {
+		var contrib = key === 'contrib' ? 'contrib-' : '';
+		grunt.loadNpmTasks( 'grunt-' + contrib + dependency );
+	}
+
+	for ( var key in gruntDependencies ) {
+		if ( ! gruntDependencies.hasOwnProperty( key ) ) {
+			continue;
+		}
+
+		gruntDependencies[key].forEach( loadGruntTasks );
+	}
 
 	// Load PostCSS tasks.
 	grunt.loadNpmTasks('@lodder/grunt-postcss');
@@ -171,6 +206,10 @@ module.exports = function(grunt) {
 			'webpack-assets': webpackFiles.map( function( file ) {
 				return setFilePath( WORKING_DIR, file );
 			} ),
+			'interactivity-assets': [
+				WORKING_DIR + 'wp-includes/js/dist/interactivity.asset.php',
+				WORKING_DIR + 'wp-includes/js/dist/interactivity.min.asset.php',
+			],
 			dynamic: {
 				dot: true,
 				expand: true,
@@ -206,6 +245,8 @@ module.exports = function(grunt) {
 						src: buildFiles.concat( [
 							'!wp-includes/assets/**', // Assets is extracted into separate copy tasks.
 							'!js/**', // JavaScript is extracted into separate copy tasks.
+							'!wp-includes/certificates/cacert.pem*', // Exclude raw root certificate files that are combined into ca-bundle.crt.
+							'!wp-includes/certificates/legacy-1024bit.pem',
 							'!.{svn,git}', // Exclude version control folders.
 							'!wp-includes/version.php', // Exclude version.php.
 							'!**/*.map', // The build doesn't need .map files.
@@ -328,6 +369,7 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-admin/js/tags-suggest.js' ]: [ './src/js/_enqueues/admin/tags-suggest.js' ],
 					[ WORKING_DIR + 'wp-admin/js/tags.js' ]: [ './src/js/_enqueues/admin/tags.js' ],
 					[ WORKING_DIR + 'wp-admin/js/site-health.js' ]: [ './src/js/_enqueues/admin/site-health.js' ],
+					[ WORKING_DIR + 'wp-admin/js/site-icon.js' ]: [ './src/js/_enqueues/admin/site-icon.js' ],
 					[ WORKING_DIR + 'wp-admin/js/privacy-tools.js' ]: [ './src/js/_enqueues/admin/privacy-tools.js' ],
 					[ WORKING_DIR + 'wp-admin/js/theme-plugin-editor.js' ]: [ './src/js/_enqueues/wp/theme-plugin-editor.js' ],
 					[ WORKING_DIR + 'wp-admin/js/theme.js' ]: [ './src/js/_enqueues/wp/theme.js' ],
@@ -450,6 +492,32 @@ module.exports = function(grunt) {
 						} );
 					}
 				}
+			},
+			'workflow-references-local-to-remote': {
+				options: {
+					processContent: function( src ) {
+						return src.replace( /uses: \.\/\.github\/workflows\/([^\.]+)\.yml/g, function( match, $1 ) {
+							return 'uses: WordPress/wordpress-develop/.github/workflows/' + $1 + '.yml@trunk';
+						} );
+					}
+				},
+				src: '.github/workflows/*.yml',
+				dest: './'
+			},
+			'workflow-references-remote-to-local': {
+				options: {
+					processContent: function( src ) {
+						return src.replace( /uses: WordPress\/wordpress-develop\/\.github\/workflows\/([^\.]+)\.yml@trunk/g, function( match, $1 ) {
+							return 'uses: ./.github/workflows/' + $1 + '.yml';
+						} );
+					}
+				},
+				src: '.github/workflows/*.yml',
+				dest: './'
+			},
+			certificates: {
+				src: 'vendor/composer/ca-bundle/res/cacert.pem',
+				dest: SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
 			}
 		},
 		sass: {
@@ -740,7 +808,14 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
+				parse: {
+					module: false
+				},
+				compress: {
+					module: false
+				},
 				output: {
+					module: false,
 					ascii_only: true
 				}
 			},
@@ -763,7 +838,6 @@ module.exports = function(grunt) {
 					'!**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
-					'!wp-includes/js/swfobject.js',
 				]
 			},
 			'jquery-ui': {
@@ -831,6 +905,16 @@ module.exports = function(grunt) {
 					WORKING_DIR + 'wp-includes/js/wp-emoji.min.js'
 				],
 				dest: WORKING_DIR + 'wp-includes/js/wp-emoji-release.min.js'
+			},
+			certificates: {
+				options: {
+					separator: '\n\n'
+				},
+				src: [
+					SOURCE_DIR + 'wp-includes/certificates/legacy-1024bit.pem',
+					SOURCE_DIR + 'wp-includes/certificates/cacert.pem'
+				],
+				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			}
 		},
 		patch:{
@@ -1029,6 +1113,7 @@ module.exports = function(grunt) {
 				cwd: SOURCE_DIR,
 				src: [
 					'wp-{admin,includes}/images/**/*.{png,jpg,gif,jpeg}',
+					'wp-content/themes/**/*.{png,jpg,gif,jpeg}',
 					'wp-includes/js/tinymce/skins/wordpress/images/*.{png,jpg,gif,jpeg}'
 				],
 				dest: SOURCE_DIR
@@ -1041,19 +1126,34 @@ module.exports = function(grunt) {
 						{
 							match: /\/\/ START: emoji arrays[\S\s]*\/\/ END: emoji arrays/g,
 							replacement: function() {
-								var regex, files,
+								var regex, files, ghCli,
 									partials, partialsSet,
-									entities, emojiArray;
+									entities, emojiArray,
+									apiResponse, query;
 
 								grunt.log.writeln( 'Fetching list of Twemoji files...' );
 
-								// Fetch a list of the files that Twemoji supplies.
-								files = spawn( 'svn', [ 'ls', 'https://github.com/twitter/twemoji.git/trunk/assets/svg' ] );
-								if ( 0 !== files.status ) {
-									grunt.fatal( 'Unable to fetch Twemoji file list' );
+								// Ensure that the GitHub CLI is installed.
+								ghCli = spawn( 'gh', [ '--version' ] );
+								if ( 0 !== ghCli.status ) {
+									grunt.fatal( 'Emoji precommit script requires GitHub CLI. See https://cli.github.com/.' );
 								}
 
-								entities = files.stdout.toString();
+								// Fetch a list of the files that Twemoji supplies.
+								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "v16.0.1:assets/svg") {... on Tree {entries {name}}}}}';
+								files = spawn( 'gh', [ 'api', 'graphql', '-f', query] );
+
+								if ( 0 !== files.status ) {
+									grunt.fatal( files.stderr.toString() );
+								}
+
+								try {
+									apiResponse = JSON.parse( files.stdout.toString() );
+								} catch ( e ) {
+									grunt.fatal( 'Unable to parse Twemoji file list' );
+								}
+								entities = apiResponse.data.repository.object.entries;
+								entities = entities.reduce( function( accumulator, val ) { return accumulator + val.name + '\n'; }, '' );
 
 								// Tidy up the file list.
 								entities = entities.replace( /\.svg/g, '' );
@@ -1130,6 +1230,7 @@ module.exports = function(grunt) {
 						flatten: true,
 						src: [
 							BUILD_DIR + 'wp-includes/js/dist/block-editor.js',
+							BUILD_DIR + 'wp-includes/js/dist/commands.js',
 						],
 						dest: BUILD_DIR + 'wp-includes/js/dist/'
 					}
@@ -1458,6 +1559,7 @@ module.exports = function(grunt) {
 		'clean:webpack-assets',
 		'webpack:prod',
 		'webpack:dev',
+		'clean:interactivity-assets',
 	] );
 
 	grunt.registerTask( 'build:js', [
@@ -1482,12 +1584,108 @@ module.exports = function(grunt) {
 		'usebanner'
 	] );
 
+	grunt.registerTask( 'certificates:upgrade-package', 'Upgrades the package responsible for supplying the certificate authority certificate store bundled with WordPress.', function() {
+		var done = this.async();
+		var flags = this.flags;
+		var spawn = require( 'child_process' ).spawnSync;
+		var fs = require( 'fs' );
+
+		// Ensure that `composer update` has been run and the dependency is installed.
+		if ( ! fs.existsSync( 'vendor' ) || ! fs.existsSync( 'vendor/composer' ) || ! fs.existsSync( 'vendor/composer/ca-bundle' ) ) {
+			grunt.log.error( 'composer/ca-bundle dependency is missing. Please run `composer update` before attempting to upgrade the certificate bundle.' );
+			done( false );
+			return;
+		}
+
+		/*
+		 * Because the `composer/ca-bundle` is pinned to an exact version to ensure upgrades are applied intentionally,
+		 * the `composer update` command will not upgrade the dependency. Instead, `composer require` must be called,
+		 * but the specific version being upgraded to must be known and passed to the command.
+		 */
+		var outdatedResult = spawn( 'composer', [ 'outdated', 'composer/ca-bundle', '--format=json' ] );
+
+		if ( outdatedResult.status !== 0 ) {
+			grunt.log.error( 'Failed to get the package information for composer/ca-bundle.' );
+			done( false );
+			return;
+		}
+
+		var packageInfo;
+		try {
+			var stdout = outdatedResult.stdout.toString().trim();
+			if ( ! stdout ) {
+				grunt.log.writeln( 'The latest version is already installed.' );
+				done( true );
+				return;
+			}
+			packageInfo = JSON.parse( stdout );
+		} catch ( e ) {
+			grunt.log.error( 'Failed to parse the package information for composer/ca-bundle.' );
+			done( false );
+			return;
+		}
+
+		// Check for the version information needed to perform the necessary comparisons.
+		if ( ! packageInfo.versions || ! packageInfo.versions[0] || ! packageInfo.latest ) {
+			grunt.log.error( 'Could not determine version information for composer/ca-bundle.' );
+			done( false );
+			return;
+		}
+
+		var currentVersion = packageInfo.versions[0];
+		var latestVersion = packageInfo.latest;
+
+		// Compare versions to ensure we actually need to update
+		if ( currentVersion === latestVersion ) {
+			grunt.log.writeln( 'The latest version is already installed: ' + latestVersion + '.' );
+			done( true );
+			return;
+		}
+
+		grunt.log.writeln( 'Installed version: ' + currentVersion );
+		grunt.log.writeln( 'New version found: ' + latestVersion );
+
+		// Upgrade to the latest version and change the pinned version in composer.json.
+		var args = [ 'require', 'composer/ca-bundle:' + latestVersion, '--dev' ];
+
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: args,
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			if ( flags.error && error ) {
+				done( false );
+			} else {
+				grunt.log.writeln( 'Successfully updated composer/ca-bundle to ' + latestVersion );
+				done( true );
+			}
+		} );
+	} );
+
+	grunt.registerTask( 'build:certificates', [
+		'concat:certificates'
+	] );
+
+	grunt.registerTask( 'certificates:upgrade', [
+		'certificates:upgrade-package',
+		'copy:certificates',
+		'build:certificates'
+	] );
+
 	grunt.registerTask( 'build:files', [
 		'clean:files',
 		'copy:files',
 		'copy:block-json',
 		'copy:version',
 	] );
+
+	grunt.registerTask( 'replace:workflow-references-local-to-remote', [
+		'copy:workflow-references-local-to-remote',
+	]);
+
+	grunt.registerTask( 'replace:workflow-references-remote-to-local', [
+		'copy:workflow-references-remote-to-local',
+	]);
 
 	/**
 	 * Build verification tasks.
@@ -1553,14 +1751,19 @@ module.exports = function(grunt) {
 	} );
 
 	/**
-	 * Build assertions for the lack of source maps in JavaScript files.
+	 * Compiled JavaScript files may link to sourcemaps. In some cases,
+	 * the source map may not be available, which can cause 404 errors when
+	 * browsers try to download the sourcemap from the referenced URLs.
+	 * Ensure that sourcemap links are not included in JavaScript files.
 	 *
 	 * @ticket 24994
 	 * @ticket 46218
+	 * @ticket 60348
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
 		const ignoredFiles = [
-			'build/wp-includes/js/dist/components.js'
+			'build/wp-includes/js/dist/components.js',
+			'build/wp-includes/js/dist/data.js',
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.
@@ -1583,10 +1786,10 @@ module.exports = function(grunt) {
 					encoding: 'utf8',
 				} );
 				// `data:` URLs are allowed:
-				const match = contents.match( /sourceMappingURL=((?!data:).)/ );
+				const doesNotHaveSourceMap = ! /^\/\/# sourceMappingURL=((?!data:).)/m.test(contents);
 
 				assert(
-					match === null,
+					doesNotHaveSourceMap,
 					`The ${ file } file must not contain a sourceMappingURL.`
 				);
 			} );
@@ -1597,9 +1800,11 @@ module.exports = function(grunt) {
 			grunt.task.run( [
 				'build:js',
 				'build:css',
+				'build:certificates'
 			] );
 		} else {
 			grunt.task.run( [
+				'build:certificates',
 				'build:files',
 				'build:js',
 				'build:css',
@@ -1798,8 +2003,10 @@ module.exports = function(grunt) {
 			// Clean up only those files that were deleted.
 			grunt.config( [ 'clean', 'dynamic', 'src' ], src );
 		} else {
-			// Otherwise copy over only the changed file.
-			grunt.config( [ 'copy', 'dynamic', 'src' ], src );
+			if ( ! grunt.option( 'dev' ) ) {
+				// Otherwise copy over only the changed file.
+				grunt.config(['copy', 'dynamic', 'src'], src);
+			}
 
 			// For javascript also minify and validate the changed file.
 			if ( target === 'js-enqueues' ) {

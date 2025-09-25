@@ -9,7 +9,7 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
-wp_reset_vars( array( 'action' ) );
+$action = ! empty( $_REQUEST['action'] ) ? sanitize_text_field( $_REQUEST['action'] ) : '';
 
 $tabs = array(
 	/* translators: Tab heading for Site Health Status page. */
@@ -105,13 +105,23 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php
 	if ( isset( $_GET['https_updated'] ) ) {
 		if ( $_GET['https_updated'] ) {
-			?>
-			<div id="message" class="notice notice-success is-dismissible"><p><?php _e( 'Site URLs switched to HTTPS.' ); ?></p></div>
-			<?php
+			wp_admin_notice(
+				__( 'Site URLs switched to HTTPS.' ),
+				array(
+					'type'        => 'success',
+					'id'          => 'message',
+					'dismissible' => true,
+				)
+			);
 		} else {
-			?>
-			<div id="message" class="notice notice-error is-dismissible"><p><?php _e( 'Site URLs could not be switched to HTTPS.' ); ?></p></div>
-			<?php
+			wp_admin_notice(
+				__( 'Site URLs could not be switched to HTTPS.' ),
+				array(
+					'type'        => 'error',
+					'id'          => 'message',
+					'dismissible' => true,
+				)
+			);
 		}
 	}
 	?>
@@ -212,11 +222,14 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 	return;
 } else {
+	wp_admin_notice(
+		__( 'The Site Health check requires JavaScript.' ),
+		array(
+			'type'               => 'error',
+			'additional_classes' => array( 'hide-if-js' ),
+		)
+	);
 	?>
-
-<div class="notice notice-error hide-if-js">
-	<p><?php _e( 'The Site Health check requires JavaScript.' ); ?></p>
-</div>
 
 <div class="health-check-body health-check-status-tab hide-if-no-js">
 	<div class="site-status-all-clear hide">
@@ -248,7 +261,7 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 				?>
 			</h3>
 
-			<p><?php _e( 'Critical issues are items that may have a high impact on your sites performance or security, and resolving these issues should be prioritized.' ); ?></p>
+			<p><?php _e( 'Critical issues are items that may have a high impact on your site&#8217;s performance or security. Resolving these issues should be prioritized.' ); ?></p>
 
 			<div id="health-check-site-status-critical" class="health-check-accordion issues"></div>
 		</div>
@@ -261,7 +274,7 @@ if ( isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ) {
 				?>
 			</h3>
 
-			<p><?php _e( 'Recommended items are considered beneficial to your site, although not as important to prioritize as a critical issue, they may include improvements to things such as; Performance, user experience, and more.' ); ?></p>
+			<p><?php _e( 'Recommended items are considered beneficial to your site, although not as important to prioritize as a critical issue. They may include improvements in areas such as security, performance, and user experience.' ); ?></p>
 
 			<div id="health-check-site-status-recommended" class="health-check-accordion issues"></div>
 		</div>

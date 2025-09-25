@@ -1,0 +1,71 @@
+##
+# A reusable workflow that runs JavaScript tests.
+##
+name: JavaScript tests
+
+on:
+  workflow_call:
+    inputs:
+      disable-apparmor:
+        description: 'Whether to disable AppArmor.'
+        required: false
+        type: 'boolean'
+        default: false
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Runs the QUnit test suite.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up Node.js.
+  # - Logs debug information about the GitHub Action runner.
+  # - Installs npm dependencies.
+  # - Run the WordPress QUnit tests.
+  # - Ensures version-controlled files are not modified or deleted.
+  test-js:
+    name: Run QUnit tests
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          git --version
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      # Older branches using outdated versions of Puppeteer fail on newer versions of the `ubuntu-24` image.
+      # This disables AppArmor in order to work around those failures.
+      #
+      # See https://issues.chromium.org/issues/373753919
+      # and https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
+      - name: Disable AppArmor
+        if: ${{ inputs.disable-apparmor }}
+        run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+
+      - name: Run QUnit tests
+        run: npm run grunt qunit:compiled
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

@@ -10,7 +10,7 @@
 if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
 
 	/**
-	 * Generate CSS.
+	 * Generates CSS.
 	 *
 	 * @since Twenty Twenty 1.0
 	 *
@@ -42,15 +42,14 @@ if ( ! function_exists( 'twentytwenty_generate_css' ) ) {
 		}
 
 		return $return;
-
 	}
 }
 
 if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 
 	/**
-	 * Get CSS Built from Customizer Options.
-	 * Build CSS reflecting colors, fonts and other options set in the Customizer, and return them for output.
+	 * Gets CSS Built from Customizer Options.
+	 * Builds CSS reflecting colors, fonts and other options set in the Customizer, and returns them for output.
 	 *
 	 * @since Twenty Twenty 1.0
 	 *
@@ -145,7 +144,7 @@ if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 
 			// Text color.
 			if ( $body && $body !== $body_default ) {
-				twentytwenty_generate_css( 'body .editor-styles-wrapper, .editor-post-title__block .editor-post-title__input, .editor-post-title__block .editor-post-title__input:focus', 'color', $body );
+				twentytwenty_generate_css( 'html .editor-styles-wrapper, .editor-post-title__block .editor-post-title__input, .editor-post-title__block .editor-post-title__input:focus', 'color', $body );
 			}
 
 			// Secondary color.
@@ -190,6 +189,5 @@ if ( ! function_exists( 'twentytwenty_get_customizer_css' ) ) {
 
 		// Return the results.
 		return ob_get_clean();
-
 	}
 }

@@ -27,7 +27,7 @@ class Tests_Formatting_HumanTimeDiff extends WP_UnitTestCase {
 				'Test a difference of 37 seconds.',
 			),
 			array(
-				'5 mins',
+				'5 minutes',
 				new DateTime( '2016-01-01 12:05:00' ),
 				'Test a difference of 5 minutes.',
 			),

@@ -1,6 +1,6 @@
 <?php
 /**
- * Test WP_User Query, in wp-includes/user.php
+ * Test WP_User_Query, in wp-includes/class-wp-user-query.php.
  *
  * @group user
  *
@@ -388,7 +388,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$this->assertSameSets( $expected, $found, 'Find author in returned values' );
 
-		wp_delete_user( $user_id );
+		self::delete_user( $user_id );
 
 		$q2 = new WP_User_Query(
 			array(
@@ -421,7 +421,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$q1       = new WP_User_Query( $args );
 		$found1   = $q1->get_results();
-		$callback = static function( $user ) {
+		$callback = static function ( $user ) {
 			return (array) $user;
 		};
 
@@ -771,7 +771,9 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 		$request_without_placeholder = $wpdb->remove_placeholder_escape( $query1->request );
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request_with_placeholder );
 		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_without_placeholder );

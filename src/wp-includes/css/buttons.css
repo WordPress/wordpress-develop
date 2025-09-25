@@ -185,6 +185,11 @@ TABLE OF CONTENTS:
 	transform: none !important;
 }
 
+.wp-core-ui .button[aria-disabled="true"],
+.wp-core-ui .button-secondary[aria-disabled="true"] {
+	cursor: default;
+}
+
 /* Buttons that look like links, for a cross of good semantics with the visual */
 .wp-core-ui .button-link {
 	margin: 0;
@@ -210,11 +215,9 @@ TABLE OF CONTENTS:
 
 .wp-core-ui .button-link:focus {
 	color: #043959;
-	box-shadow:
-		0 0 0 1px #4f94d4,
-		0 0 2px 1px rgba(79, 148, 212, 0.8);
+	box-shadow: 0 0 0 2px #2271b1;
 	/* Only visible in Windows High Contrast mode */
-	outline: 1px solid transparent;
+	outline: 2px solid transparent;
 }
 
 .wp-core-ui .button-link-delete {
@@ -280,6 +283,10 @@ TABLE OF CONTENTS:
 	border-color: #dcdcde !important;
 	box-shadow: none !important;
 	text-shadow: none !important;
+	cursor: default;
+}
+
+.wp-core-ui .button-primary[aria-disabled="true"] {
 	cursor: default;
 }
 
@@ -383,6 +390,10 @@ TABLE OF CONTENTS:
 		min-height: 30px;
 		margin: 0;
 		vertical-align: inherit;
+	}
+
+	.wp-customizer .theme-overlay .theme-actions .button {
+		margin-bottom: 5px;
 	}
 
 	.media-modal-content .media-toolbar-primary .media-button {

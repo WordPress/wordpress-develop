@@ -128,7 +128,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( $data['post_content'], $post->post_content );
 		$this->assertSame( $data['post_title'], $post->post_title );
 		$this->assertSame( $data['post_status'], $post->post_status );
-		$this->assertEquals( $data['post_author'], $post->post_author );
+		$this->assertSame( (string) $data['post_author'], $post->post_author );
 
 		// Test cache state.
 		$post_cache = wp_cache_get( $post_id, 'posts' );
@@ -304,7 +304,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		// There should be a publish_future_post hook scheduled on the future date.
 		$this->assertFalse( $this->next_schedule_for_post( 'publish_future_post', $post_id ) );
-
 	}
 
 	/**
@@ -650,7 +649,6 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_Error', wp_insert_post( $post, true ) );
 		$this->assertInstanceOf( 'WP_Error', wp_update_post( $post, true ) );
-
 	}
 
 	/**
@@ -677,7 +675,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertGreaterThan( 0, $post_id );
 
 		$post = get_post( $post_id );
-		$this->assertEquals( self::$user_ids['editor'], $post->post_author );
+		$this->assertSame( (string) self::$user_ids['editor'], $post->post_author );
 		$this->assertSame( $title, $post->post_title );
 	}
 
@@ -789,7 +787,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 	public function test_wp_insert_post_author_zero() {
 		$post_id = self::factory()->post->create( array( 'post_author' => 0 ) );
 
-		$this->assertEquals( 0, get_post( $post_id )->post_author );
+		$this->assertSame( '0', get_post( $post_id )->post_author );
 	}
 
 	/**
@@ -800,7 +798,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create( array( 'post_author' => null ) );
 
-		$this->assertEquals( self::$user_ids['editor'], get_post( $post_id )->post_author );
+		$this->assertSame( (string) self::$user_ids['editor'], get_post( $post_id )->post_author );
 	}
 
 	/**
@@ -918,7 +916,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		// Validate that the post has had the default category assigned again.
 		$this->assertCount( 1, $assigned_terms );
-		$this->assertEquals( get_option( 'default_category' ), $assigned_terms[0]->term_id );
+		$this->assertSame( (int) get_option( 'default_category' ), $assigned_terms[0]->term_id );
 	}
 
 	/**

@@ -169,6 +169,36 @@ final class WP_Block_Type_Registry {
 	}
 
 	/**
+	 * Unserialize magic method.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param array $data Data to unserialize.
+	 */
+	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
+		if ( ! $this->registered_block_types ) {
+			return;
+		}
+		if ( ! is_array( $this->registered_block_types ) ) {
+			throw new UnexpectedValueException();
+		}
+		foreach ( $this->registered_block_types as $value ) {
+			if ( ! $value instanceof WP_Block_Type ) {
+				throw new UnexpectedValueException();
+			}
+		}
+	}
+
+	/**
+	 * Wakeup magic method.
+	 *
+	 * @since 6.4.0
+	 */
+	public function __wakeup() {
+		$this->__unserialize( array() );
+	}
+
+	/**
 	 * Utility method to retrieve the main instance of the class.
 	 *
 	 * The instance will be created if it does not exist yet.

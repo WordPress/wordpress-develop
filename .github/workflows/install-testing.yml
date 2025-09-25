@@ -1,0 +1,187 @@
+# Confirms that installing WordPress using WP-CLI works successfully.
+#
+# This workflow is not meant to test wordpress-develop checkouts, but rather tagged versions officially available on WordPress.org.
+name: Installation Tests
+
+on:
+  push:
+    branches:
+      - trunk
+    # Always test the workflow after it's updated.
+    paths:
+      - '.github/workflows/install-testing.yml'
+      - '.version-support-*.json'
+      - '.github/workflows/reusable-support-json-reader-v1.yml'
+  pull_request:
+    # Always test the workflow when changes are suggested.
+    paths:
+      - '.version-support-*.json'
+      - '.github/workflows/install-testing.yml'
+      - '.github/workflows/reusable-support-json-reader-v1.yml'
+
+  schedule:
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+    inputs:
+      wp-version:
+        description: 'The version to test installing. Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
+        type: string
+        default: 'nightly'
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ inputs.wp-version || github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Determines the supported values for PHP and database versions based on the WordPress version being tested.
+  build-test-matrix:
+    name: Build Test Matrix
+    uses: ./.github/workflows/reusable-support-json-reader-v1.yml
+    permissions:
+      contents: read
+    secrets: inherit
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    with:
+      wp-version: ${{ inputs.wp-version }}
+
+  # Test the WordPress installation process through WP-CLI.
+  #
+  # Performs the following steps:
+  # - Sets up PHP.
+  # - Downloads the specified version of WordPress.
+  # - Creates a `wp-config.php` file.
+  # - Installs WordPress.
+  install-tests-mysql:
+    name: WP ${{ inputs.wp-version || 'nightly' }} / PHP ${{ matrix.php }} / ${{ 'mariadb' == matrix.db-type && 'MariaDB' || 'MySQL' }} ${{ matrix.db-version }}${{ matrix.multisite && ' multisite' || '' }}
+    permissions:
+      contents: read
+    runs-on: ${{ matrix.os }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    timeout-minutes: 10
+    needs: [ build-test-matrix ]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04 ]
+        php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
+        db-type: [ 'mysql' ]
+        db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
+        multisite: [ false, true ]
+        memcached: [ false ]
+
+        # Exclude some PHP and MySQL versions that cannot currently be tested with Docker containers.
+        exclude:
+          # There are no local WordPress Docker environment containers for PHP <= 5.3.
+          - php: '5.2'
+          - php: '5.3'
+          # MySQL containers <= 5.5 do not exist or fail to start properly.
+          - db-version: '5.0'
+          - db-version: '5.1'
+          - db-version: '5.5'
+          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '8.4'
+          - php: '7.3'
+            db-version: '8.4'
+          # Only test the latest innovation release.
+          - db-version: '9.0'
+          - db-version: '9.1'
+          - db-version: '9.2'
+          - db-version: '9.3'
+          # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
+          - php: '7.2'
+            db-version: '9.4'
+          - php: '7.3'
+            db-version: '9.4'
+
+    services:
+      database:
+        image: ${{ matrix.db-type }}:${{ matrix.db-version }}
+        ports:
+          - 3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval="30s"
+          --health-timeout="10s"
+          --health-retries="5"
+          -e MYSQL_ROOT_PASSWORD="root"
+          -e MYSQL_DATABASE="test_db"
+          --entrypoint sh ${{ matrix.db-type }}:${{ matrix.db-version }}
+          -c "exec docker-entrypoint.sh mysqld${{ matrix.db-type == 'mysql' && contains( fromJSON('["7.2", "7.3"]'), matrix.php ) && ' --default-authentication-plugin=mysql_native_password' || '' }}"
+
+    steps:
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@20529878ed81ef8e78ddf08b480401e6101a850f # v2.35.3
+        with:
+          php-version: '${{ matrix.php }}'
+          coverage: none
+          tools: ${{ contains( fromJSON('["5.4", "5.5"]'), matrix.php ) && 'wp-cli:2.4.0' || 'wp-cli' }}
+
+      - name: Download WordPress
+        run: wp core download --version="${WP_VERSION}"
+        env:
+          WP_VERSION: ${{ inputs.wp-version || 'nightly' }}
+
+      - name: Create wp-config.php file
+        run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost="127.0.0.1:${DB_PORT}"
+        env:
+          DB_PORT: ${{ job.services.database.ports['3306'] }}
+
+      - name: Install WordPress
+        run: wp core ${{ matrix.multisite && 'multisite-install' || 'install' }} --url=http://localhost/ --title="Upgrade Test" --admin_user=admin --admin_password=password --admin_email=me@example.org --skip-email
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: ./.github/workflows/slack-notifications.yml
+    permissions:
+      actions: read
+      contents: read
+    needs: [ install-tests-mysql ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
+
+  failed-workflow:
+    name: Failed workflow tasks
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    needs: [ slack-notifications ]
+    if: |
+      always() &&
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event_name != 'pull_request' &&
+      github.run_attempt < 2 &&
+      (
+        contains( needs.*.result, 'cancelled' ) ||
+        contains( needs.*.result, 'failure' )
+      )
+
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'failed-workflow.yml',
+              ref: 'trunk',
+              inputs: {
+                run_id: `${context.runId}`,
+              }
+            });

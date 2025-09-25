@@ -98,7 +98,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	public function test_filter_header_image( $header_image, $expected ) {
 		add_filter(
 			'get_header_image',
-			static function() use ( $header_image ) {
+			static function () use ( $header_image ) {
 				return $header_image;
 			}
 		);
@@ -190,7 +190,7 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_min_priority_img_pixels',
-			static function() {
+			static function () {
 				return 2500; // 50*50=2500
 			}
 		);
@@ -504,7 +504,9 @@ class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 	private function set_customize_previewing( $value ) {
 		$class    = new ReflectionClass( 'WP_Customize_Manager' );
 		$property = $class->getProperty( 'previewing' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $this->customize_manager, $value );
 	}
 }

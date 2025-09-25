@@ -120,7 +120,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 			options.can.save = !! options.nonces.update;
 		}
 
-		if ( this.controller.state().get('allowLocalEdits') ) {
+		if ( this.controller.state().get('allowLocalEdits') && ! options.uploading ) {
 			options.allowLocalEdits = true;
 		}
 
@@ -197,6 +197,11 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 			method = 'between';
 		} else if ( event.ctrlKey || event.metaKey ) {
 			method = 'toggle';
+		}
+
+		// Avoid toggles when the command or control key is pressed with the enter key to prevent deselecting the last selected attachment.
+		if ( ( event.metaKey || event.ctrlKey ) && ( 13 === event.keyCode || 10 === event.keyCode ) ) {
+			return;
 		}
 
 		this.toggleSelection({

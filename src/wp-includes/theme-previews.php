@@ -49,7 +49,7 @@ function wp_attach_theme_preview_middleware() {
 		'wp-api-fetch',
 		sprintf(
 			'wp.apiFetch.use( wp.apiFetch.createThemePreviewMiddleware( %s ) );',
-			wp_json_encode( sanitize_text_field( wp_unslash( $_GET['wp_theme_preview'] ) ) )
+			wp_json_encode( sanitize_text_field( wp_unslash( $_GET['wp_theme_preview'] ) ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 		),
 		'after'
 	);
@@ -61,24 +61,33 @@ function wp_attach_theme_preview_middleware() {
  * Sets the JavaScript global WP_BLOCK_THEME_ACTIVATE_NONCE containing the nonce
  * required to activate a theme. For use within the site editor.
  *
- * @see https://github.com/WordPress/gutenberg/pull/41836.
+ * @see https://github.com/WordPress/gutenberg/pull/41836
  *
  * @since 6.3.0
- * @private
+ * @access private
  */
 function wp_block_theme_activate_nonce() {
 	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
 	?>
 	<script type="text/javascript">
-		window.WP_BLOCK_THEME_ACTIVATE_NONCE = <?php echo wp_json_encode( wp_create_nonce( $nonce_handle ) ); ?>;
+		window.WP_BLOCK_THEME_ACTIVATE_NONCE = <?php echo wp_json_encode( wp_create_nonce( $nonce_handle ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 	</script>
 	<?php
 }
 
-// Attaches filters to enable theme previews in the Site Editor.
-if ( ! empty( $_GET['wp_theme_preview'] ) ) {
-	add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
-	add_filter( 'template', 'wp_get_theme_preview_path' );
-	add_action( 'init', 'wp_attach_theme_preview_middleware' );
-	add_action( 'admin_head', 'wp_block_theme_activate_nonce' );
+/**
+ * Add filters and actions to enable Block Theme Previews in the Site Editor.
+ *
+ * The filters and actions should be added after `pluggable.php` is included as they may
+ * trigger code that uses `current_user_can()` which requires functionality from `pluggable.php`.
+ *
+ * @since 6.3.2
+ */
+function wp_initialize_theme_preview_hooks() {
+	if ( ! empty( $_GET['wp_theme_preview'] ) ) {
+		add_filter( 'stylesheet', 'wp_get_theme_preview_path' );
+		add_filter( 'template', 'wp_get_theme_preview_path' );
+		add_action( 'init', 'wp_attach_theme_preview_middleware' );
+		add_action( 'admin_head', 'wp_block_theme_activate_nonce' );
+	}
 }

@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.5/theme.json",
 	"version": 2,
 	"customTemplates": [
 		{
@@ -278,7 +278,7 @@
 				},
 				{
 					"fluid": {
-						"min": "4rem",
+						"min": "6.1rem",
 						"max": "10rem"
 					},
 					"size": "10rem",
@@ -730,7 +730,7 @@
 		{
 			"area": "uncategorized",
 			"name": "comments",
-			"title": "Comments"
+			"title": "Comments Template Part"
 		},
 		{
 			"area": "uncategorized",

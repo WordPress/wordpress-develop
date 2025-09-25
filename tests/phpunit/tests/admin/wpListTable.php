@@ -70,11 +70,15 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$list_table = _get_list_table( $list_class );
 
 		$column_headers = new ReflectionProperty( $list_table, '_column_headers' );
-		$column_headers->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$column_headers->setAccessible( true );
+		}
 		$column_headers->setValue( $list_table, $headers );
 
 		$column_info = new ReflectionMethod( $list_table, 'get_column_info' );
-		$column_info->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$column_info->setAccessible( true );
+		}
 
 		$this->assertSame( $expected, $column_info->invoke( $list_table ), 'The actual columns did not match the expected columns' );
 		$this->assertSame( $expected_hook_count, $hook->get_call_count(), 'The hook was not called the expected number of times' );
@@ -141,7 +145,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the "get_views_links()" method.
+	 * Tests the `WP_List_Table::get_views_links()` method.
 	 *
 	 * @ticket 42066
 	 *
@@ -160,7 +164,9 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 */
 	public function test_get_views_links( $link_data, $expected ) {
 		$get_views_links = new ReflectionMethod( $this->list_table, 'get_views_links' );
-		$get_views_links->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_views_links->setAccessible( true );
+		}
 
 		$actual = $get_views_links->invokeArgs( $this->list_table, array( $link_data ) );
 
@@ -255,7 +261,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that "get_views_links()" throws a _doing_it_wrong().
+	 * Tests that `WP_List_Table::get_views_links()` throws a `_doing_it_wrong()`.
 	 *
 	 * @ticket 42066
 	 *
@@ -275,7 +281,9 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 */
 	public function test_get_views_links_doing_it_wrong( $link_data ) {
 		$get_views_links = new ReflectionMethod( $this->list_table, 'get_views_links' );
-		$get_views_links->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_views_links->setAccessible( true );
+		}
 		$get_views_links->invokeArgs( $this->list_table, array( $link_data ) );
 	}
 
@@ -389,6 +397,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_getting_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_List_Table::__get(): ' .
 			'The property `undeclared_property` is not declared. Getting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -418,6 +427,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_setting_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_List_Table::__set(): ' .
 			'The property `undeclared_property` is not declared. Setting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -450,6 +460,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_isset_of_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_List_Table::__isset(): ' .
 			'The property `undeclared_property` is not declared. Checking `isset()` on a dynamic property ' .
 			'is deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -477,6 +488,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	public function test_should_throw_deprecation_when_unset_of_dynamic_property() {
 		$this->expectDeprecation();
 		$this->expectDeprecationMessage(
+			'WP_List_Table::__unset(): ' .
 			'A property `undeclared_property` is not declared. Unsetting a dynamic property is ' .
 			'deprecated since version 6.4.0! Instead, declare the property on the class.'
 		);
@@ -516,5 +528,68 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 				'expected'      => null,
 			),
 		);
+	}
+
+	/**
+	 * Tests that `WP_List_Table::search_box()` works correctly with an `orderby` array with multiple values.
+	 *
+	 * @ticket 59494
+	 *
+	 * @covers WP_List_Table::search_box()
+	 */
+	public function test_search_box_working_with_array_of_orderby_multiple_values() {
+		$_REQUEST['s']       = 'search term';
+		$_REQUEST['orderby'] = array(
+			'menu_order' => 'ASC',
+			'title'      => 'ASC',
+		);
+
+		$actual = get_echo( array( $this->list_table, 'search_box' ), array( 'Search Posts', 'post' ) );
+
+		$expected_html1 = '<input type="hidden" name="orderby[menu_order]" value="ASC" />';
+		$expected_html2 = '<input type="hidden" name="orderby[title]" value="ASC" />';
+
+		$this->assertStringContainsString( $expected_html1, $actual );
+		$this->assertStringContainsString( $expected_html2, $actual );
+	}
+
+	/**
+	 * Tests that `WP_List_Table::search_box()` works correctly with an `orderby` array with a single value.
+	 *
+	 * @ticket 59494
+	 *
+	 * @covers WP_List_Table::search_box()
+	 */
+	public function test_search_box_working_with_array_of_orderby_single_value() {
+		// Test with one 'orderby' element.
+		$_REQUEST['s']       = 'search term';
+		$_REQUEST['orderby'] = array(
+			'title' => 'ASC',
+		);
+
+		$actual = get_echo( array( $this->list_table, 'search_box' ), array( 'Search Posts', 'post' ) );
+
+		$expected_html = '<input type="hidden" name="orderby[title]" value="ASC" />';
+
+		$this->assertStringContainsString( $expected_html, $actual );
+	}
+
+	/**
+	 * Tests that `WP_List_Table::search_box()` works correctly with `orderby` set to a string.
+	 *
+	 * @ticket 59494
+	 *
+	 * @covers WP_List_Table::search_box()
+	 */
+	public function test_search_box_works_with_orderby_string() {
+		// Test with one 'orderby' element.
+		$_REQUEST['s']       = 'search term';
+		$_REQUEST['orderby'] = 'title';
+
+		$actual = get_echo( array( $this->list_table, 'search_box' ), array( 'Search Posts', 'post' ) );
+
+		$expected_html = '<input type="hidden" name="orderby" value="title" />';
+
+		$this->assertStringContainsString( $expected_html, $actual );
 	}
 }

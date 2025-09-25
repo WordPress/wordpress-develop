@@ -47,6 +47,7 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 	public function test_capable_user() {
 		$results = $this->myxmlrpcserver->wp_getPages( array( 1, 'administrator', 'administrator' ) );
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		foreach ( $results as $result ) {
 			$page = get_post( $result['page_id'] );
@@ -87,5 +88,4 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 
 		remove_filter( 'map_meta_cap', array( $this, 'remove_editor_edit_page_cap' ), 10, 4 );
 	}
-
 }

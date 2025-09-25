@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @group admin
  * @group upgrade
  *
  * @covers WP_Automatic_Updater
@@ -29,7 +30,9 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 		self::$updater = new WP_Automatic_Updater();
 
 		self::$send_plugin_theme_email = new ReflectionMethod( self::$updater, 'send_plugin_theme_email' );
-		self::$send_plugin_theme_email->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$send_plugin_theme_email->setAccessible( true );
+		}
 	}
 
 	public function set_up() {
@@ -54,7 +57,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	public function test_send_plugin_theme_email_should_append_plugin_urls( $urls, $successful, $failed ) {
 		add_filter(
 			'wp_mail',
-			function( $args ) use ( $urls ) {
+			function ( $args ) use ( $urls ) {
 				foreach ( $urls as $url ) {
 					$this->assertStringContainsString(
 						$url,
@@ -322,7 +325,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	public function test_send_plugin_theme_email_should_not_append_plugin_urls( $urls, $successful, $failed ) {
 		add_filter(
 			'wp_mail',
-			function( $args ) use ( $urls ) {
+			function ( $args ) use ( $urls ) {
 				foreach ( $urls as $url ) {
 					$this->assertStringNotContainsString(
 						$url,
@@ -610,7 +613,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 
 		$open_basedir_backup = ini_get( 'open_basedir' );
 		// Allow access to the directory one level above the repository.
-		ini_set( 'open_basedir', wp_normalize_path( $abspath_grandparent ) );
+		ini_set( 'open_basedir', sys_get_temp_dir() . PATH_SEPARATOR . wp_normalize_path( $abspath_grandparent ) );
 
 		// Checking an allowed directory should succeed.
 		$actual = self::$updater->is_allowed_dir( wp_normalize_path( ABSPATH ) );
@@ -645,7 +648,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 
 		$open_basedir_backup = ini_get( 'open_basedir' );
 		// Allow access to the directory one level above the repository.
-		ini_set( 'open_basedir', wp_normalize_path( $abspath_grandparent ) );
+		ini_set( 'open_basedir', sys_get_temp_dir() . PATH_SEPARATOR . wp_normalize_path( $abspath_grandparent ) );
 
 		// Checking a directory not within the allowed path should trigger an `open_basedir` warning.
 		$actual = self::$updater->is_allowed_dir( '/.git' );

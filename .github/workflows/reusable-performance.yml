@@ -1,0 +1,360 @@
+##
+# A reusable workflow that runs the performance test suite.
+##
+name: Run performance Tests
+
+on:
+  workflow_call:
+    inputs:
+      LOCAL_DIR:
+        description: 'Where to run WordPress from.'
+        required: false
+        type: 'string'
+        default: 'build'
+      BASE_TAG:
+        description: 'The version being used for baseline measurements.'
+        required: false
+        type: 'string'
+        default: '6.7.0'
+      php-version:
+        description: 'The PHP version to use.'
+        required: false
+        type: 'string'
+        default: 'latest'
+      memcached:
+        description: 'Whether to enable memcached.'
+        required: false
+        type: 'boolean'
+        default: false
+      multisite:
+        description: 'Whether to use Multisite.'
+        required: false
+        type: 'boolean'
+        default: false
+    secrets:
+      CODEVITALS_PROJECT_TOKEN:
+        description: 'The authorization token for https://www.codevitals.run/project/wordpress.'
+        required: false
+
+env:
+  PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
+
+  # Prevent wp-scripts from downloading extra Playwright browsers,
+  # since Chromium will be installed in its dedicated step already.
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: true
+
+  # Performance testing should be performed in an environment reflecting a standard production environment.
+  LOCAL_WP_DEBUG: false
+  LOCAL_SCRIPT_DEBUG: false
+  LOCAL_SAVEQUERIES: false
+  LOCAL_WP_DEVELOPMENT_MODE: "''"
+
+  # This workflow takes two sets of measurements — one for the current commit,
+  # and another against a consistent version that is used as a baseline measurement.
+  # This is done to isolate variance in measurements caused by the GitHub runners
+  # from differences caused by code changes between commits. The BASE_TAG value here
+  # represents the version being used for baseline measurements. It should only be
+  # changed if we want to normalize results against a different baseline.
+  BASE_TAG: ${{ inputs.BASE_TAG }}
+  LOCAL_DIR: ${{ inputs.LOCAL_DIR }}
+  TARGET_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || '' }}
+  TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+
+  LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
+  LOCAL_PHP: ${{ inputs.php-version }}${{ 'latest' != inputs.php-version && '-fpm' || '' }}
+  LOCAL_MULTISITE: ${{ inputs.multisite }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Performs the following steps:
+  # - Configure environment variables.
+  # - Checkout repository.
+  # - Determine the target SHA value (on `workflow_dispatch` only).
+  # - Set up Node.js.
+  # - Log debug information.
+  # - Install npm dependencies.
+  # - Install Playwright browsers.
+  # - Build WordPress.
+  # - Start Docker environment.
+  # - Install object cache drop-in.
+  # - Log running Docker containers.
+  # - Docker debug information.
+  # - Install WordPress.
+  # - Enable themes on Multisite.
+  # - Install WordPress Importer plugin.
+  # - Import mock data.
+  # - Deactivate WordPress Importer plugin.
+  # - Update permalink structure.
+  # - Install additional languages.
+  # - Disable external HTTP requests.
+  # - Disable cron.
+  # - List defined constants.
+  # - Install MU plugin.
+  # - Run performance tests (current commit).
+  # - Download previous build artifact (target branch or previous commit).
+  # - Download artifact.
+  # - Unzip the build.
+  # - Run any database upgrades.
+  # - Flush cache.
+  # - Delete expired transients.
+  # - Run performance tests (previous/target commit).
+  # - Set the environment to the baseline version.
+  # - Run any database upgrades.
+  # - Flush cache.
+  # - Delete expired transients.
+  # - Run baseline performance tests.
+  # - Archive artifacts.
+  # - Compare results.
+  # - Add workflow summary.
+  # - Set the base sha.
+  # - Set commit details.
+  # - Publish performance results.
+  # - Ensure version-controlled files are not modified or deleted.
+  performance:
+    name: ${{ inputs.multisite && 'Multisite' || 'Single site' }} / ${{ inputs.memcached && 'Memcached' || 'Default' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    if: ${{ ! contains( github.event.before, '00000000' ) }}
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
+
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          fetch-depth: ${{ github.event_name == 'workflow_dispatch' && '2' || '1' }}
+          persist-credentials: false
+
+      # The `workflow_dispatch` event is the only one missing the needed SHA to target.
+      - name: Retrieve previous commit SHA (if necessary)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: echo "TARGET_SHA=$(git rev-parse HEAD^1)" >> "$GITHUB_ENV"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          locale -a
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Start Docker environment
+        run: npm run env:start
+
+      - name: Install object cache drop-in
+        if: ${{ inputs.memcached }}
+        run: cp src/wp-content/object-cache.php build/wp-content/object-cache.php
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker compose run --rm mysql mysql --version
+          docker compose run --rm php php --version
+          docker compose run --rm php php -m
+          docker compose run --rm php php -i
+          docker compose run --rm php locale -a
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Enable themes on Multisite
+        if: ${{ inputs.multisite }}
+        run: |
+          npm run env:cli -- theme enable twentytwentyone --network --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- theme enable twentytwentythree --network --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- theme enable twentytwentyfour --network --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- theme enable twentytwentyfive --network --path="/var/www/${LOCAL_DIR}"
+
+      - name: Install WordPress Importer plugin
+        run: npm run env:cli -- plugin install wordpress-importer --activate --path="/var/www/${LOCAL_DIR}"
+
+      - name: Import mock data
+        run: |
+          curl -O https://raw.githubusercontent.com/WordPress/theme-test-data/b9752e0533a5acbb876951a8cbb5bcc69a56474c/themeunittestdata.wordpress.xml
+          npm run env:cli -- import themeunittestdata.wordpress.xml --authors=create --path="/var/www/${LOCAL_DIR}"
+          rm themeunittestdata.wordpress.xml
+
+      - name: Deactivate WordPress Importer plugin
+        run: npm run env:cli -- plugin deactivate wordpress-importer --path="/var/www/${LOCAL_DIR}"
+
+      - name: Update permalink structure
+        run: npm run env:cli -- rewrite structure '/%year%/%monthnum%/%postname%/' --path="/var/www/${LOCAL_DIR}"
+
+      - name: Install additional languages
+        run: |
+          npm run env:cli -- language core install de_DE --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language plugin install de_DE --all --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- language theme install de_DE --all --path="/var/www/${LOCAL_DIR}"
+
+      # Prevent background update checks from impacting test stability.
+      - name: Disable external HTTP requests
+        run: npm run env:cli -- config set WP_HTTP_BLOCK_EXTERNAL true --raw --type=constant --path="/var/www/${LOCAL_DIR}"
+
+      # Prevent background tasks from impacting test stability.
+      - name: Disable cron
+        run: npm run env:cli -- config set DISABLE_WP_CRON true --raw --type=constant --path="/var/www/${LOCAL_DIR}"
+
+      - name: List defined constants
+        run: npm run env:cli -- config list --path="/var/www/${LOCAL_DIR}"
+
+      - name: Install MU plugin
+        run: |
+          mkdir "./${LOCAL_DIR}/wp-content/mu-plugins"
+          cp ./tests/performance/wp-content/mu-plugins/server-timing.php "./${LOCAL_DIR}/wp-content/mu-plugins/server-timing.php"
+
+      - name: Run performance tests (current commit)
+        run: npm run test:performance
+
+      - name: Download previous build artifact (target branch or previous commit)
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        id: get-previous-build
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'wordpress-build-' + process.env.TARGET_SHA,
+            });
+
+            const matchArtifact = artifacts.data.artifacts[0];
+
+            if ( ! matchArtifact ) {
+              core.setFailed( 'No artifact found!' );
+              return false;
+            }
+
+            const download = await github.rest.actions.downloadArtifact( {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: matchArtifact.id,
+              archive_format: 'zip',
+            } );
+
+            const fs = require( 'fs' );
+            fs.writeFileSync( process.env.GITHUB_WORKSPACE + '/before.zip', Buffer.from( download.data ) )
+
+            return true;
+
+      - name: Unzip the build
+        if: ${{ steps.get-previous-build.outputs.result }}
+        run: |
+          unzip "${GITHUB_WORKSPACE}/before.zip"
+          unzip -o "${GITHUB_WORKSPACE}/wordpress.zip"
+
+      - name: Run any database upgrades
+        if: ${{ steps.get-previous-build.outputs.result }}
+        run: npm run env:cli -- core update-db --path="/var/www/${LOCAL_DIR}"
+
+      - name: Flush cache
+        if: ${{ steps.get-previous-build.outputs.result }}
+        run: npm run env:cli -- cache flush --path="/var/www/${LOCAL_DIR}"
+
+      - name: Delete expired transients
+        if: ${{ steps.get-previous-build.outputs.result }}
+        run: npm run env:cli -- transient delete --expired --path="/var/www/${LOCAL_DIR}"
+
+      - name: Run target performance tests (previous/target commit)
+        if: ${{ steps.get-previous-build.outputs.result }}
+        env:
+          TEST_RESULTS_PREFIX: before
+        run: npm run test:performance
+
+      - name: Set the environment to the baseline version
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        run: |
+          VERSION="${BASE_TAG}"
+          VERSION="${VERSION%.0}"
+          npm run env:cli -- core update --version="$VERSION" --force --path="/var/www/${LOCAL_DIR}"
+          npm run env:cli -- core version --path="/var/www/${LOCAL_DIR}"
+
+      - name: Run any database upgrades
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        run: npm run env:cli -- core update-db --path="/var/www/${LOCAL_DIR}"
+
+      - name: Flush cache
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        run: npm run env:cli -- cache flush --path="/var/www/${LOCAL_DIR}"
+
+      - name: Delete expired transients
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        run: npm run env:cli -- transient delete --expired --path="/var/www/${LOCAL_DIR}"
+
+      - name: Run baseline performance tests
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' }}
+        env:
+          TEST_RESULTS_PREFIX: base
+        run: npm run test:performance
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: performance-artifacts${{ inputs.multisite && '-multisite' || '' }}${{ inputs.memcached && '-memcached' || '' }}-${{ github.run_id }}
+          path: artifacts
+          if-no-files-found: ignore
+          include-hidden-files: true
+
+      - name: Compare results
+        run: node ./tests/performance/compare-results.js "${RUNNER_TEMP}/summary.md"
+
+      - name: Add workflow summary
+        run: cat "${RUNNER_TEMP}/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set the base sha
+        # Only needed when publishing results.
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached && ! inputs.multisite }}
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        id: base-sha
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const baseRef = await github.rest.git.getRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'tags/' + process.env.BASE_TAG,
+            });
+            return baseRef.data.object.sha;
+
+      - name: Publish performance results
+        # Only publish results on pushes to trunk.
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/trunk' && ! inputs.memcached && ! inputs.multisite }}
+        env:
+          BASE_SHA: ${{ steps.base-sha.outputs.result }}
+          CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
+          HOST_NAME: "www.codevitals.run"
+        run: |
+          if [ -z "$CODEVITALS_PROJECT_TOKEN" ]; then
+            echo "Performance results could not be published. 'CODEVITALS_PROJECT_TOKEN' is not set"
+            exit 1
+          fi
+          COMMITTED_AT="$(git show -s "$GITHUB_SHA" --format='%cI')"
+          node ./tests/performance/log-results.js "$CODEVITALS_PROJECT_TOKEN" trunk "$GITHUB_SHA" "$BASE_SHA" "$COMMITTED_AT" "$HOST_NAME"
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

@@ -139,12 +139,12 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 			'editor-color-palette',
 			array(
 				array(
-					'name'  => 'default' === get_theme_mod( 'primary_color' ) ? __( 'Blue', 'twentynineteen' ) : null,
+					'name'  => 'default' === get_theme_mod( 'primary_color', 'default' ) ? __( 'Blue', 'twentynineteen' ) : null,
 					'slug'  => 'primary',
 					'color' => twentynineteen_hsl_hex( 'default' === get_theme_mod( 'primary_color' ) ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 33 ),
 				),
 				array(
-					'name'  => 'default' === get_theme_mod( 'primary_color' ) ? __( 'Dark Blue', 'twentynineteen' ) : null,
+					'name'  => 'default' === get_theme_mod( 'primary_color', 'default' ) ? __( 'Dark Blue', 'twentynineteen' ) : null,
 					'slug'  => 'secondary',
 					'color' => twentynineteen_hsl_hex( 'default' === get_theme_mod( 'primary_color' ) ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 23 ),
 				),
@@ -190,7 +190,7 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 endif;
 
 /**
- * Register widget area.
+ * Registers widget area.
  *
  * @link https://developer.wordpress.org/themes/functionality/sidebars/#registering-a-sidebar
  */
@@ -207,7 +207,6 @@ function twentynineteen_widgets_init() {
 			'after_title'   => '</h2>',
 		)
 	);
-
 }
 add_action( 'widgets_init', 'twentynineteen_widgets_init' );
 
@@ -236,7 +235,7 @@ function twentynineteen_excerpt_more( $link ) {
 add_filter( 'excerpt_more', 'twentynineteen_excerpt_more' );
 
 /**
- * Set the content width in pixels, based on the theme's design and stylesheet.
+ * Sets the content width in pixels, based on the theme's design and stylesheet.
  *
  * Priority 0 to make it available to lower priority callbacks.
  *
@@ -251,7 +250,9 @@ function twentynineteen_content_width() {
 add_action( 'after_setup_theme', 'twentynineteen_content_width', 0 );
 
 /**
- * Enqueue scripts and styles.
+ * Enqueues scripts and styles.
+ *
+ * @since Twenty Nineteen 1.0
  */
 function twentynineteen_scripts() {
 	wp_enqueue_style( 'twentynineteen-style', get_stylesheet_uri(), array(), wp_get_theme()->get( 'Version' ) );
@@ -259,8 +260,26 @@ function twentynineteen_scripts() {
 	wp_style_add_data( 'twentynineteen-style', 'rtl', 'replace' );
 
 	if ( has_nav_menu( 'menu-1' ) ) {
-		wp_enqueue_script( 'twentynineteen-priority-menu', get_theme_file_uri( '/js/priority-menu.js' ), array(), '20200129', true );
-		wp_enqueue_script( 'twentynineteen-touch-navigation', get_theme_file_uri( '/js/touch-keyboard-navigation.js' ), array(), '20230621', true );
+		wp_enqueue_script(
+			'twentynineteen-priority-menu',
+			get_theme_file_uri( '/js/priority-menu.js' ),
+			array(),
+			'20200129',
+			array(
+				'in_footer' => false, // Because involves header.
+				'strategy'  => 'defer',
+			)
+		);
+		wp_enqueue_script(
+			'twentynineteen-touch-navigation',
+			get_theme_file_uri( '/js/touch-keyboard-navigation.js' ),
+			array(),
+			'20230621',
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
+		);
 	}
 
 	wp_enqueue_style( 'twentynineteen-print-style', get_template_directory_uri() . '/print.css', array(), wp_get_theme()->get( 'Version' ), 'print' );
@@ -272,7 +291,7 @@ function twentynineteen_scripts() {
 add_action( 'wp_enqueue_scripts', 'twentynineteen_scripts' );
 
 /**
- * Fix skip link focus in IE11.
+ * Fixes skip link focus in IE11.
  *
  * This does not enqueue the script because it is tiny and because it is only for IE11,
  * thus it does not warrant having an entire dedicated blocking script being loaded.
@@ -292,7 +311,7 @@ function twentynineteen_skip_link_focus_fix() {
 }
 
 /**
- * Enqueue supplemental block editor styles.
+ * Enqueues supplemental block editor styles.
  */
 function twentynineteen_editor_customizer_styles() {
 
@@ -307,7 +326,7 @@ function twentynineteen_editor_customizer_styles() {
 add_action( 'enqueue_block_editor_assets', 'twentynineteen_editor_customizer_styles' );
 
 /**
- * Display custom color CSS in customizer and on frontend.
+ * Displays custom color CSS in customizer and on frontend.
  */
 function twentynineteen_colors_css_wrap() {
 
@@ -367,6 +386,12 @@ require get_template_directory() . '/inc/template-tags.php';
 require get_template_directory() . '/inc/customizer.php';
 
 /**
- * Block Patterns.
+ * Registers block patterns and pattern categories.
+ *
+ * @since Twenty Nineteen 3.0
  */
-require get_template_directory() . '/inc/block-patterns.php';
+function twentynineteen_register_block_patterns() {
+	require get_template_directory() . '/inc/block-patterns.php';
+}
+
+add_action( 'init', 'twentynineteen_register_block_patterns' );

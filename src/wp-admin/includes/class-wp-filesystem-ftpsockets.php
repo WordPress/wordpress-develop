@@ -77,7 +77,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 			return false;
 		}
 
-		$this->ftp->setTimeout( FS_CONNECT_TIMEOUT );
+		$this->ftp->SetTimeout( FS_CONNECT_TIMEOUT );
 
 		if ( ! $this->ftp->SetServer( $this->options['hostname'], $this->options['port'] ) ) {
 			$this->errors->add(
@@ -120,7 +120,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		$this->ftp->SetType( FTP_BINARY );
 		$this->ftp->Passive( true );
-		$this->ftp->setTimeout( FS_TIMEOUT );
+		$this->ftp->SetTimeout( FS_TIMEOUT );
 
 		return true;
 	}
@@ -625,7 +625,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @return array|false {
 	 *     Array of arrays containing file information. False if unable to list directory contents.
 	 *
-	 *     @type array $0... {
+	 *     @type array ...$0 {
 	 *         Array of file information. Note that some elements may not be available on all filesystems.
 	 *
 	 *         @type string           $name        Name of the file or directory.

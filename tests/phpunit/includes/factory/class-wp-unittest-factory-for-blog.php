@@ -73,8 +73,6 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param int   $blog_id ID of the site to update.
 	 * @param array $fields  The fields to update.
-	 *
-	 * @return void
 	 */
 	public function update_object( $blog_id, $fields ) {}
 

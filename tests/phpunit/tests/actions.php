@@ -75,7 +75,6 @@ class Tests_Actions extends WP_UnitTestCase {
 		do_action( $hook_name );
 		$this->assertSame( 1, $a->get_call_count() );
 		$this->assertSame( array( $hook_name ), $a->get_hook_names() );
-
 	}
 
 	/**
@@ -230,35 +229,133 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertSame( array( $val ), array_pop( $argsvar ) );
 	}
 
-	public function test_action_priority() {
-		$a         = new MockAction();
+	/**
+	 * @ticket 60193
+	 *
+	 * @dataProvider data_priority_callback_order_with_integers
+	 * @dataProvider data_priority_callback_order_with_unhappy_path_nonintegers
+	 *
+	 * @covers ::do_action
+	 *
+	 * @param array $priorities {
+	 *     Indexed array of the priorities for the MockAction callbacks.
+	 *
+	 *     @type mixed $0 Priority for 'action' callback.
+	 *     @type mixed $1 Priority for 'action2' callback.
+	 * }
+	 * @param array  $expected_call_order  An array of callback names in expected call order.
+	 * @param string $expected_deprecation Optional. Deprecation message. Default ''.
+	 */
+	public function test_priority_callback_order( $priorities, $expected_call_order, $expected_deprecation = '' ) {
+		$mock      = new MockAction();
 		$hook_name = __FUNCTION__;
 
-		add_action( $hook_name, array( &$a, 'action' ), 10 );
-		add_action( $hook_name, array( &$a, 'action2' ), 9 );
+		if ( $expected_deprecation && PHP_VERSION_ID >= 80100 ) {
+			$this->expectDeprecation();
+			$this->expectDeprecationMessage( $expected_deprecation );
+		}
+
+		add_action( $hook_name, array( $mock, 'action' ), $priorities[0] );
+		add_action( $hook_name, array( $mock, 'action2' ), $priorities[1] );
 		do_action( $hook_name );
 
-		// Two events, one per action.
-		$this->assertSame( 2, $a->get_call_count() );
+		$this->assertSame( 2, $mock->get_call_count(), 'The number of call counts does not match' );
 
-		$expected = array(
-			// 'action2' is called first because it has priority 9.
-			array(
-				'action'    => 'action2',
-				'hook_name' => $hook_name,
-				'tag'       => $hook_name, // Back compat.
-				'args'      => array( '' ),
+		$actual_call_order = wp_list_pluck( $mock->get_events(), 'action' );
+		$this->assertSame( $expected_call_order, $actual_call_order, 'The action callback order does not match the expected order' );
+	}
+
+	/**
+	 * Happy path data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_priority_callback_order_with_integers() {
+		return array(
+			'int DESC' => array(
+				'priorities'          => array( 10, 9 ),
+				'expected_call_order' => array( 'action2', 'action' ),
 			),
-			// 'action' is called second.
-			array(
-				'action'    => 'action',
-				'hook_name' => $hook_name,
-				'tag'       => $hook_name, // Back compat.
-				'args'      => array( '' ),
+			'int ASC'  => array(
+				'priorities'          => array( 9, 10 ),
+				'expected_call_order' => array( 'action', 'action2' ),
 			),
 		);
+	}
 
-		$this->assertSame( $expected, $a->get_events() );
+	/**
+	 * Unhappy path data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_priority_callback_order_with_unhappy_path_nonintegers() {
+		return array(
+			// Numbers as strings and floats.
+			'int as string DESC'               => array(
+				'priorities'          => array( '10', '9' ),
+				'expected_call_order' => array( 'action2', 'action' ),
+			),
+			'int as string ASC'                => array(
+				'priorities'          => array( '9', '10' ),
+				'expected_call_order' => array( 'action', 'action2' ),
+			),
+			'float DESC'                       => array(
+				'priorities'           => array( 10.0, 9.5 ),
+				'expected_call_order'  => array( 'action2', 'action' ),
+				'expected_deprecation' => 'Implicit conversion from float 9.5 to int loses precision',
+			),
+			'float ASC'                        => array(
+				'priorities'           => array( 9.5, 10.0 ),
+				'expected_call_order'  => array( 'action', 'action2' ),
+				'expected_deprecation' => 'Implicit conversion from float 9.5 to int loses precision',
+			),
+			'float as string DESC'             => array(
+				'priorities'          => array( '10.0', '9.5' ),
+				'expected_call_order' => array( 'action2', 'action' ),
+			),
+			'float as string ASC'              => array(
+				'priorities'          => array( '9.5', '10.0' ),
+				'expected_call_order' => array( 'action', 'action2' ),
+			),
+
+			// Non-numeric.
+			'null'                             => array(
+				'priorities'          => array( null, null ),
+				'expected_call_order' => array( 'action', 'action2' ),
+			),
+			'bool DESC'                        => array(
+				'priorities'          => array( true, false ),
+				'expected_call_order' => array( 'action2', 'action' ),
+			),
+			'bool ASC'                         => array(
+				'priorities'          => array( false, true ),
+				'expected_call_order' => array( 'action', 'action2' ),
+			),
+			'non-numerical string DESC'        => array(
+				'priorities'          => array( 'test1', 'test2' ),
+				'expected_call_order' => array( 'action', 'action2' ),
+			),
+			'non-numerical string ASC'         => array(
+				'priorities'          => array( 'test1', 'test2' ),
+				'expected_call_order' => array( 'action', 'action2' ),
+			),
+			'int, non-numerical string DESC'   => array(
+				'priorities'          => array( 10, 'test' ),
+				'expected_call_order' => array( 'action2', 'action' ),
+			),
+			'int, non-numerical string ASC'    => array(
+				'priorities'          => array( 'test', 10 ),
+				'expected_call_order' => array( 'action', 'action2' ),
+			),
+			'float, non-numerical string DESC' => array(
+				'priorities'          => array( 10.0, 'test' ),
+				'expected_call_order' => array( 'action2', 'action' ),
+			),
+			'float, non-numerical string ASC'  => array(
+				'priorities'          => array( 'test', 10.0 ),
+				'expected_call_order' => array( 'action', 'action2' ),
+			),
+		);
 	}
 
 	/**
@@ -282,7 +379,6 @@ class Tests_Actions extends WP_UnitTestCase {
 		// $hook_name1's count hasn't changed, $hook_name2 should be correct.
 		$this->assertSame( 1, did_action( $hook_name1 ) );
 		$this->assertSame( $count, did_action( $hook_name2 ) );
-
 	}
 
 	/**
@@ -309,7 +405,6 @@ class Tests_Actions extends WP_UnitTestCase {
 
 		remove_action( 'all', array( &$a, 'action' ) );
 		$this->assertFalse( has_filter( 'all', array( &$a, 'action' ) ) );
-
 	}
 
 	/**
@@ -390,7 +485,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 */
 	public function test_action_closure() {
 		$hook_name = __FUNCTION__;
-		$closure   = static function( $a, $b ) {
+		$closure   = static function ( $a, $b ) {
 			$GLOBALS[ $a ] = $b;
 		};
 		add_action( $hook_name, $closure, 10, 2 );
@@ -403,7 +498,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertSame( $GLOBALS[ $context[0] ], $context[1] );
 
 		$hook_name2 = __FUNCTION__ . '_2';
-		$closure2   = static function() {
+		$closure2   = static function () {
 			$GLOBALS['closure_no_args'] = true;
 		};
 		add_action( $hook_name2, $closure2 );
@@ -518,7 +613,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	/**
 	 * @ticket 17817
 	 *
-	 * This specificaly addresses the concern raised at
+	 * This specifically addresses the concern raised at
 	 * https://core.trac.wordpress.org/ticket/17817#comment:52
 	 *
 	 * @covers ::remove_filter

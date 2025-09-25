@@ -78,9 +78,9 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 		self::factory()->comment->create_post_comments( $post->ID, 6, array( 'comment_parent' => $comments[0] ) );
 		$comments = get_comments( array( 'post_id' => $post->ID ) );
 
-		$this->assertEquals( 3, get_comment_pages_count( $comments, 10, false ) );
-		$this->assertEquals( 2, get_comment_pages_count( $comments, 10, true ) );
-		$this->assertEquals( 4, get_comment_pages_count( $comments, 4, true ) );
+		$this->assertSame( 3, get_comment_pages_count( $comments, 10, false ) );
+		$this->assertSame( 2, get_comment_pages_count( $comments, 10, true ) );
+		$this->assertSame( 4, get_comment_pages_count( $comments, 4, true ) );
 	}
 
 	/**
@@ -101,17 +101,17 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 
 		update_option( 'thread_comments', false );
 
-		$this->assertEquals( 3, get_comment_pages_count( $comments, 10, false ) );
-		$this->assertEquals( 2, get_comment_pages_count( $comments, 10, true ) );
-		$this->assertEquals( 3, get_comment_pages_count( $comments, 10, null ) );
-		$this->assertEquals( 3, get_comment_pages_count( $comments, 10 ) );
+		$this->assertSame( 3, get_comment_pages_count( $comments, 10, false ) );
+		$this->assertSame( 2, get_comment_pages_count( $comments, 10, true ) );
+		$this->assertSame( 3, get_comment_pages_count( $comments, 10, null ) );
+		$this->assertSame( 3, get_comment_pages_count( $comments, 10 ) );
 
 		update_option( 'thread_comments', true );
 
-		$this->assertEquals( 3, get_comment_pages_count( $comments, 10, false ) );
-		$this->assertEquals( 2, get_comment_pages_count( $comments, 10, true ) );
-		$this->assertEquals( 2, get_comment_pages_count( $comments, 10, null ) );
-		$this->assertEquals( 2, get_comment_pages_count( $comments, 10 ) );
+		$this->assertSame( 3, get_comment_pages_count( $comments, 10, false ) );
+		$this->assertSame( 2, get_comment_pages_count( $comments, 10, true ) );
+		$this->assertSame( 2, get_comment_pages_count( $comments, 10, null ) );
+		$this->assertSame( 2, get_comment_pages_count( $comments, 10 ) );
 	}
 
 	/**
@@ -140,8 +140,8 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 
 		update_option( 'comments_per_page', 25 );
 
-		$this->assertEquals( 3, get_comment_pages_count() );
-		$this->assertEquals( 2, get_comment_pages_count( null, 20 ) );
+		$this->assertSame( 3, get_comment_pages_count() );
+		$this->assertSame( 2, get_comment_pages_count( null, 20 ) );
 
 		$wp_query = new WP_Query(
 			array(
@@ -151,16 +151,16 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 1, get_comment_pages_count() );
-		$this->assertEquals( 5, get_comment_pages_count( null, 5 ) );
+		$this->assertSame( 1, get_comment_pages_count() );
+		$this->assertSame( 5, get_comment_pages_count( null, 5 ) );
 
 		$wp_query->query_vars['comments_per_page'] = null;
 
 		update_option( 'comments_per_page', 5 );
 
-		$this->assertEquals( 5, get_comment_pages_count() );
-		$this->assertEquals( 3, get_comment_pages_count( null, 11 ) );
-		$this->assertEquals( 5, get_comment_pages_count( null, 0 ) );
+		$this->assertSame( 5, get_comment_pages_count() );
+		$this->assertSame( 3, get_comment_pages_count( null, 11 ) );
+		$this->assertSame( 5, get_comment_pages_count( null, 0 ) );
 	}
 
 	/**

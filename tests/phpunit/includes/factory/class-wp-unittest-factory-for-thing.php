@@ -155,7 +155,7 @@ abstract class WP_UnitTest_Factory_For_Thing {
 	 * @param array|null  $callbacks              Optional. Array with callbacks to apply on the fields.
 	 *                                            Default null.
 	 *
-	 * @return array|WP_Error Combined array on success. WP_Error when default value is incorrent.
+	 * @return array|WP_Error Combined array on success. WP_Error when default value is incorrect.
 	 */
 	public function generate_args( $args = array(), $generation_definitions = null, &$callbacks = null ) {
 		$callbacks = array();
@@ -246,5 +246,4 @@ abstract class WP_UnitTest_Factory_For_Thing {
 
 		return $value;
 	}
-
 }

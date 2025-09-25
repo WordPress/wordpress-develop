@@ -72,5 +72,4 @@ class Tests_Comment_IsAvatarCommentType extends WP_UnitTestCase {
 		$types[] = 'review';
 		return $types;
 	}
-
 }

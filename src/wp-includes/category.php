@@ -85,8 +85,9 @@ function get_categories( $args = '' ) {
  *                             correspond to a WP_Term object, an associative array, or a numeric array,
  *                             respectively. Default OBJECT.
  * @param string     $filter   Optional. How to sanitize category fields. Default 'raw'.
- * @return object|array|WP_Error|null Category data in type defined by $output parameter.
- *                                    WP_Error if $category is empty, null if it does not exist.
+ * @return WP_Term|array|WP_Error|null Category data in type defined by $output parameter.
+ *                                     Returns a WP_Term object with backwards compatible property aliases filled in.
+ *                                     WP_Error if $category is empty, null if it does not exist.
  */
 function get_category( $category, $output = OBJECT, $filter = 'raw' ) {
 	$category = get_term( $category, 'category', $output, $filter );
@@ -307,7 +308,7 @@ function get_tags( $args = '' ) {
 		 *
 		 * @param WP_Term[]|int|WP_Error $tags Array of 'post_tag' term objects, a count thereof,
 		 *                                     or WP_Error if any of the taxonomies do not exist.
-		 * @param array                  $args An array of arguments. @see get_terms()
+		 * @param array                  $args An array of arguments. See {@see get_terms()}.
 		 */
 		$tags = apply_filters( 'get_tags', $tags, $args );
 	}

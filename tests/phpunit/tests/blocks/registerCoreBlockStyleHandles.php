@@ -95,7 +95,7 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 
 			$this->assertArrayHasKey( $style_handle, $wp_styles->registered, 'The key should exist, as this style should be registered' );
 			if ( false === $wp_styles->registered[ $style_handle ]->src ) {
-				$this->assertEmpty( $wp_styles->registered[ $style_handle ]->extra, 'If source is false, not style path should be set' );
+				$this->assertEmpty( $wp_styles->registered[ $style_handle ]->extra, 'If source is false, style path should not be set' );
 			} else {
 				$this->assertStringContainsString( $this->includes_url, $wp_styles->registered[ $style_handle ]->src, 'Source of style should contain the includes url' );
 				$this->assertNotEmpty( $wp_styles->registered[ $style_handle ]->extra, 'The path of the style should exist' );
@@ -123,12 +123,46 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( $style_handle, $wp_styles->registered, 'The key should exist, as this style should be registered' );
 		if ( false === $wp_styles->registered[ $style_handle ]->src ) {
-			$this->assertEmpty( $wp_styles->registered[ $style_handle ]->extra, 'If source is false, not style path should be set' );
+			$this->assertEmpty( $wp_styles->registered[ $style_handle ]->extra, 'If source is false, style path should not be set' );
 		} else {
 			$this->assertStringContainsString( $this->includes_url, $wp_styles->registered[ $style_handle ]->src, 'Source of style should contain the includes url' );
 			$this->assertNotEmpty( $wp_styles->registered[ $style_handle ]->extra, 'The path of the style should exist' );
 			$this->assertArrayHasKey( 'path', $wp_styles->registered[ $style_handle ]->extra, 'The path key of the style should exist in extra array' );
 			$this->assertNotEmpty( $wp_styles->registered[ $style_handle ]->extra['path'], 'The path key of the style should not be empty' );
+		}
+	}
+
+	/**
+	 * @ticket 59715
+	 *
+	 * @dataProvider data_block_data
+	 *
+	 * @param string $name The block name.
+	 */
+	public function test_register_core_block_style_handles_should_load_rtl_stylesheets_for_rtl_text_direction( $name ) {
+		global $wp_locale;
+
+		$orig_text_dir             = $wp_locale->text_direction;
+		$wp_locale->text_direction = 'rtl';
+
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		register_core_block_style_handles();
+
+		$wp_styles = $GLOBALS['wp_styles'];
+
+		$style_handle = "wp-block-{$name}-theme";
+
+		$wp_locale->text_direction = $orig_text_dir;
+
+		$this->assertArrayHasKey( $style_handle, $wp_styles->registered, 'The key should exist, as this style should be registered' );
+		if ( false === $wp_styles->registered[ $style_handle ]->src ) {
+			$this->assertEmpty( $wp_styles->registered[ $style_handle ]->extra, 'If source is false, style path should not be set' );
+		} else {
+			$this->assertStringContainsString( $this->includes_url, $wp_styles->registered[ $style_handle ]->src, 'Source of style should contain the includes url' );
+			$this->assertNotEmpty( $wp_styles->registered[ $style_handle ]->extra, 'The path of the style should exist' );
+			$this->assertArrayHasKey( 'path', $wp_styles->registered[ $style_handle ]->extra, 'The path key of the style should exist in extra array' );
+			$this->assertNotEmpty( $wp_styles->registered[ $style_handle ]->extra['path'], 'The path key of the style should not be empty' );
+			$this->assertArrayHasKey( 'rtl', $wp_styles->registered[ $style_handle ]->extra, 'The rtl key of the style should exist in extra array' );
 		}
 	}
 

@@ -208,6 +208,48 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 		$this->check_get_taxonomy_term_response( $response, $nav_menu_id );
 	}
 
+
+	/**
+	 * @ticket 54304
+	 * @covers ::get_items
+	 */
+	public function test_get_items_filter() {
+		add_filter( 'rest_menu_read_access', '__return_true' );
+		wp_update_nav_menu_object(
+			0,
+			array(
+				'description' => 'Test get',
+				'menu-name'   => 'test Name get',
+			)
+		);
+		$request = new WP_REST_Request( 'GET', '/wp/v2/menus' );
+		$request->set_param( 'per_page', self::$per_page );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_get_taxonomy_terms_response( $response );
+	}
+
+	/**
+	 * @ticket 54304
+	 * @covers ::get_item
+	 */
+	public function test_get_item_filter() {
+		add_filter( 'rest_menu_read_access', '__return_true' );
+		$nav_menu_id = wp_update_nav_menu_object(
+			0,
+			array(
+				'description' => 'Test menu',
+				'menu-name'   => 'test Name',
+			)
+		);
+
+		$this->register_nav_menu_locations( array( 'primary' ) );
+		set_theme_mod( 'nav_menu_locations', array( 'primary' => $nav_menu_id ) );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/menus/' . $nav_menu_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_get_taxonomy_term_response( $response, $nav_menu_id );
+	}
+
 	/**
 	 * @ticket 40878
 	 * @covers ::create_item
@@ -338,7 +380,7 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 7, count( $properties ) );
+		$this->assertCount( 7, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'meta', $properties );
@@ -573,7 +615,7 @@ class Tests_REST_WpRestMenusController extends WP_Test_REST_Controller_Testcase 
 			'hide_empty' => false,
 		);
 		$tags = get_terms( self::TAXONOMY, $args );
-		$this->assertSame( count( $tags ), count( $data ) );
+		$this->assertCount( count( $tags ), $data );
 		$this->assertSame( $tags[0]->term_id, $data[0]['id'] );
 		$this->assertSame( $tags[0]->name, $data[0]['name'] );
 		$this->assertSame( $tags[0]->slug, $data[0]['slug'] );

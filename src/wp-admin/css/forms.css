@@ -22,10 +22,6 @@ textarea {
 	resize: vertical;
 }
 
-label {
-	cursor: pointer;
-}
-
 input,
 select {
 	margin: 0 1px;
@@ -231,11 +227,6 @@ textarea[readonly] {
 
 ::-moz-placeholder {
 	color: #646970;
-	opacity: 1;
-}
-
-:-ms-input-placeholder {
-	color: #646970;
 }
 
 .form-invalid .form-required,
@@ -287,8 +278,10 @@ textarea.disabled {
 
 input[type="file"]:disabled,
 input[type="file"].disabled,
+input[type="file"][aria-disabled="true"],
 input[type="range"]:disabled,
-input[type="range"].disabled {
+input[type="range"].disabled,
+input[type="range"][aria-disabled="true"] {
 	background: none;
 	box-shadow: none;
 	cursor: default;
@@ -296,13 +289,16 @@ input[type="range"].disabled {
 
 input[type="checkbox"]:disabled,
 input[type="checkbox"].disabled,
+input[type="checkbox"][aria-disabled="true"],
 input[type="radio"]:disabled,
 input[type="radio"].disabled,
+input[type="radio"][aria-disabled="true"],
 input[type="checkbox"]:disabled:checked:before,
 input[type="checkbox"].disabled:checked:before,
 input[type="radio"]:disabled:checked:before,
 input[type="radio"].disabled:checked:before {
 	opacity: 0.7;
+	cursor: default;
 }
 
 /*------------------------------------------------------------------------------
@@ -354,6 +350,10 @@ input[type="radio"].disabled:checked:before {
 	text-shadow: 0 1px 0 #fff;
 	cursor: default;
 	transform: none;
+}
+
+.wp-core-ui select[aria-disabled="true"] {
+	cursor: default;
 }
 
 /* Reset Firefox inner outline that appears on :focus. */
@@ -674,6 +674,13 @@ fieldset label,
 	border-color: #68de7c;
 }
 
+#pass1:focus,
+#pass1-text:focus {
+	box-shadow: 0 0 0 2px #2271b1;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
+}
+
 .pw-weak {
 	display: none;
 }
@@ -708,8 +715,13 @@ fieldset label,
 }
 
 p.search-box {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	column-gap: 0.5rem;
+	position: relative;
 	float: right;
-	margin: 0;
+	margin: 11px 0;
 }
 
 .network-admin.themes-php p.search-box {
@@ -921,11 +933,14 @@ table.form-table td .updated p {
 }
 
 .color-palette {
+	display: table;
 	width: 100%;
 	border-spacing: 0;
 	border-collapse: collapse;
 }
+.color-palette .color-palette-shade,
 .color-palette td {
+	display: table-cell;
 	height: 20px;
 	padding: 0;
 	border: none;
@@ -956,6 +971,7 @@ table.form-table td .updated p {
 }
 
 .application-password-display input.code {
+	margin-bottom: 6px;
 	width: 19em;
 }
 
@@ -1450,28 +1466,6 @@ table.form-table td .updated p {
 	margin: 0;
 }
 
-.email-personal-data::before {
-	display: inline-block;
-	font: normal 20px/1 dashicons;
-	margin: 3px 5px 0 -2px;
-	speak: never;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	vertical-align: top;
-}
-
-.email-personal-data--sending::before {
-	color: #d63638;
-	content: "\f463";
-	animation: rotation 2s infinite linear;
-}
-
-.email-personal-data--sent::before {
-	color: #68de7c;
-	content: "\f147";
-}
-
-
 /* =Media Queries
 -------------------------------------------------------------- */
 
@@ -1545,10 +1539,6 @@ table.form-table td .updated p {
 		line-height: 0.76190476;
 	}
 
-	.wp-upload-form input[type="submit"] {
-		margin-top: 10px;
-	}
-
 	.wp-core-ui select,
 	.wp-admin .form-table select {
 		min-height: 40px;
@@ -1589,12 +1579,15 @@ table.form-table td .updated p {
 		margin-bottom: 0;
 	}
 
+	.form-table .color-palette .color-palette-shade,
 	.form-table .color-palette td {
 		display: table-cell;
 		width: 15px;
+		height: 30px;
+		padding: 0;
 	}
 
-	.form-table table.color-palette {
+	.form-table .color-palette {
 		margin-right: 10px;
 	}
 
@@ -1706,6 +1699,11 @@ table.form-table td .updated p {
 
 	.form-table label {
 		font-size: 14px;
+	}
+
+	.form-table td > label:first-child {
+		display: inline-block;
+		margin-top: 0.35em;
 	}
 
 	.background-position-control .button-group > label {

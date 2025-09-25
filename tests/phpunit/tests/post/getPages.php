@@ -6,6 +6,42 @@
  * @covers ::get_pages
  */
 class Tests_Post_GetPages extends WP_UnitTestCase {
+
+	/**
+	 * ID of the first author.
+	 *
+	 * @var int
+	 */
+	public static $author_id_1;
+
+	/**
+	 * ID of the second author.
+	 *
+	 * @var int
+	 */
+	public static $author_id_2;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$author_id_1 = $factory->user->create(
+			array(
+				'user_login' => 'author1',
+				'role'       => 'author',
+			)
+		);
+
+		self::$author_id_2 = $factory->user->create(
+			array(
+				'user_login' => 'author2',
+				'role'       => 'author',
+			)
+		);
+	}
+
 	/**
 	 * @ticket 23167
 	 */
@@ -274,25 +310,21 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		add_post_meta( $posts[1], 'some-meta-key', '' );
 		add_post_meta( $posts[2], 'some-meta-key', '1' );
 
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				get_pages(
-					array(
-						'meta_key'   => 'some-meta-key',
-						'meta_value' => '0',
-					)
+			get_pages(
+				array(
+					'meta_key'   => 'some-meta-key',
+					'meta_value' => '0',
 				)
 			)
 		);
-		$this->assertSame(
+		$this->assertCount(
 			1,
-			count(
-				get_pages(
-					array(
-						'meta_key'   => 'some-meta-key',
-						'meta_value' => '1',
-					)
+			get_pages(
+				array(
+					'meta_key'   => 'some-meta-key',
+					'meta_value' => '1',
 				)
 			)
 		);
@@ -344,7 +376,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// Filter the query to return the wptests_pt post type.
 		add_filter(
 			'get_pages_query_args',
-			static function( $query_args, $parsed_args ) use ( &$query_args_values, &$parsed_args_values ) {
+			static function ( $query_args, $parsed_args ) use ( &$query_args_values, &$parsed_args_values ) {
 				$query_args['post_type'] = 'wptests_pt';
 				$query_args_values       = $query_args;
 				$parsed_args_values      = $parsed_args;
@@ -905,7 +937,6 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// How it should work.
 		$found_pages = wp_list_filter( $pages, array( 'post_parent' => $page_1 ) );
 		$this->assertSameSets( array( $page_3, $page_5 ), wp_list_pluck( $found_pages, 'ID' ) );
-
 	}
 
 	/**
@@ -968,12 +999,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 12821
 	 */
 	public function test_get_pages_author() {
-		$author_1 = self::factory()->user->create(
-			array(
-				'user_login' => 'author1',
-				'role'       => 'author',
-			)
-		);
+		$author_1 = self::$author_id_1;
 		$posts    = self::factory()->post->create_many(
 			2,
 			array(
@@ -994,12 +1020,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 12821
 	 */
 	public function test_get_pages_multiple_authors() {
-		$author_1 = self::factory()->user->create(
-			array(
-				'user_login' => 'author1',
-				'role'       => 'author',
-			)
-		);
+		$author_1 = self::$author_id_1;
 		$post_1   = self::factory()->post->create(
 			array(
 				'post_title'  => 'Page 1',
@@ -1009,12 +1030,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			)
 		);
 
-		$author_2 = self::factory()->user->create(
-			array(
-				'user_login' => 'author2',
-				'role'       => 'author',
-			)
-		);
+		$author_2 = self::$author_id_2;
 		$post_2   = self::factory()->post->create(
 			array(
 				'post_title'  => 'Page 2',
@@ -1036,12 +1052,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 	 * @ticket 12821
 	 */
 	public function test_get_pages_multiple_authors_by_user_login() {
-		$author_1 = self::factory()->user->create(
-			array(
-				'user_login' => 'author1',
-				'role'       => 'author',
-			)
-		);
+		$author_1 = self::$author_id_1;
 		$post_1   = self::factory()->post->create(
 			array(
 				'post_title'  => 'Page 1',
@@ -1051,12 +1062,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			)
 		);
 
-		$author_2 = self::factory()->user->create(
-			array(
-				'user_login' => 'author2',
-				'role'       => 'author',
-			)
-		);
+		$author_2 = self::$author_id_2;
 		$post_2   = self::factory()->post->create(
 			array(
 				'post_title'  => 'Page 2',
@@ -1179,6 +1185,37 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			"ORDER BY $wpdb->posts.post_date ASC",
 			$wpdb->last_query,
 			'Check that ORDER is post date.'
+		);
+	}
+
+	/**
+	 * Tests that the legacy `post_modified_gmt` orderby values are translated to the proper `WP_Query` values.
+	 *
+	 * @ticket 59226
+	 */
+	public function test_get_pages_order_by_post_modified_gmt() {
+		global $wpdb;
+
+		get_pages(
+			array(
+				'sort_column' => 'post_modified_gmt',
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_modified ASC",
+			$wpdb->last_query,
+			'Check that ORDER is post modified when using post_modified_gmt.'
+		);
+
+		get_pages(
+			array(
+				'sort_column' => 'modified_gmt',
+			)
+		);
+		$this->assertStringContainsString(
+			"ORDER BY $wpdb->posts.post_modified ASC",
+			$wpdb->last_query,
+			'Check that ORDER is post modified when using modified_gmt.'
 		);
 	}
 }

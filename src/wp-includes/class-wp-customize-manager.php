@@ -100,7 +100,7 @@ final class WP_Customize_Manager {
 	 * @since 4.5.0
 	 * @var array
 	 */
-	protected $components = array( 'widgets', 'nav_menus' );
+	protected $components = array( 'nav_menus' );
 
 	/**
 	 * Registered instances of WP_Customize_Section.
@@ -286,6 +286,11 @@ final class WP_Customize_Manager {
 			$args['messenger_channel'] = sanitize_key( wp_unslash( $_REQUEST['customize_messenger_channel'] ) );
 		}
 
+		// Do not load 'widgets' component if a block theme is activated.
+		if ( ! wp_is_block_theme() ) {
+			$this->components[] = 'widgets';
+		}
+
 		$this->original_stylesheet = get_stylesheet();
 		$this->theme               = wp_get_theme( 0 === validate_file( $args['theme'] ) ? $args['theme'] : null );
 		$this->messenger_channel   = $args['messenger_channel'];
@@ -449,7 +454,7 @@ final class WP_Customize_Manager {
 		}
 
 		if ( ! $message ) {
-			$message = __( 'Something went wrong.' );
+			$message = __( 'An error occurred while customizing. Please refresh the page and try again.' );
 		}
 
 		if ( $this->messenger_channel ) {
@@ -464,15 +469,17 @@ final class WP_Customize_Manager {
 				),
 				'error'         => $ajax_message,
 			);
+			$message .= ob_get_clean();
+			ob_start();
 			?>
 			<script>
 			( function( api, settings ) {
 				var preview = new api.Messenger( settings.messengerArgs );
 				preview.send( 'iframe-loading-error', settings.error );
-			} )( wp.customize, <?php echo wp_json_encode( $settings ); ?> );
+			} )( wp.customize, <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 			</script>
 			<?php
-			$message .= ob_get_clean();
+			$message .= wp_get_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 		}
 
 		wp_die( $message );
@@ -1077,7 +1084,7 @@ final class WP_Customize_Manager {
 				continue;
 			}
 			if ( update_post_meta( $autosave_autodraft_post->ID, '_customize_restore_dismissed', true ) ) {
-				$dismissed++;
+				++$dismissed;
 			}
 		}
 		return $dismissed;
@@ -1479,7 +1486,7 @@ final class WP_Customize_Manager {
 
 			if ( ! $nav_menu_term_id ) {
 				while ( isset( $changeset_data[ sprintf( 'nav_menu[%d]', $placeholder_id ) ] ) ) {
-					$placeholder_id--;
+					--$placeholder_id;
 				}
 				$nav_menu_term_id    = $placeholder_id;
 				$nav_menu_setting_id = sprintf( 'nav_menu[%d]', $placeholder_id );
@@ -1909,6 +1916,7 @@ final class WP_Customize_Manager {
 		if ( ! headers_sent() ) {
 			nocache_headers();
 			header( 'X-Robots: noindex, nofollow, noarchive' );
+			header( 'X-Robots-Tag: noindex, nofollow, noarchive' );
 		}
 		add_filter( 'wp_robots', 'wp_robots_no_robots' );
 		add_filter( 'wp_headers', array( $this, 'filter_iframe_security_headers' ) );
@@ -2082,29 +2090,22 @@ final class WP_Customize_Manager {
 		if ( ! $this->messenger_channel ) {
 			return;
 		}
+		ob_start();
 		?>
 		<script>
 		( function() {
-			var urlParser, oldQueryParams, newQueryParams, i;
 			if ( parent !== window ) {
 				return;
 			}
-			urlParser = document.createElement( 'a' );
-			urlParser.href = location.href;
-			oldQueryParams = urlParser.search.substr( 1 ).split( /&/ );
-			newQueryParams = [];
-			for ( i = 0; i < oldQueryParams.length; i += 1 ) {
-				if ( ! /^customize_messenger_channel=/.test( oldQueryParams[ i ] ) ) {
-					newQueryParams.push( oldQueryParams[ i ] );
-				}
-			}
-			urlParser.search = newQueryParams.join( '&' );
-			if ( urlParser.search !== location.search ) {
-				location.replace( urlParser.href );
+			const url = new URL( location.href );
+			if ( url.searchParams.has( 'customize_messenger_channel' ) ) {
+				url.searchParams.delete( 'customize_messenger_channel' );
+				location.replace( url );
 			}
 		} )();
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -2160,8 +2161,9 @@ final class WP_Customize_Manager {
 				'keepAliveSend'    => 1000,
 			),
 			'theme'             => array(
-				'stylesheet' => $this->get_stylesheet(),
-				'active'     => $this->is_theme_active(),
+				'stylesheet'   => $this->get_stylesheet(),
+				'active'       => $this->is_theme_active(),
+				'isBlockTheme' => wp_is_block_theme(),
 			),
 			'url'               => array(
 				'self'          => $self_url,
@@ -2200,9 +2202,10 @@ final class WP_Customize_Manager {
 			}
 		}
 
+		ob_start();
 		?>
-		<script type="text/javascript">
-			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
+		<script>
+			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 			_wpCustomizeSettings.values = {};
 			(function( v ) {
 				<?php
@@ -2215,8 +2218,8 @@ final class WP_Customize_Manager {
 					if ( $setting->check_capabilities() ) {
 						printf(
 							"v[%s] = %s;\n",
-							wp_json_encode( $id ),
-							wp_json_encode( $setting->js_value() )
+							wp_json_encode( $id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+							wp_json_encode( $setting->js_value(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 						);
 					}
 				}
@@ -2224,6 +2227,7 @@ final class WP_Customize_Manager {
 			})( _wpCustomizeSettings.values );
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -3081,25 +3085,26 @@ final class WP_Customize_Manager {
 			return false;
 		}
 
+		$previous_status = $post->post_status;
+
 		/** This filter is documented in wp-includes/post.php */
-		$check = apply_filters( 'pre_trash_post', null, $post );
+		$check = apply_filters( 'pre_trash_post', null, $post, $previous_status );
 		if ( null !== $check ) {
 			return $check;
 		}
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( 'wp_trash_post', $post_id );
+		do_action( 'wp_trash_post', $post_id, $previous_status );
 
-		add_post_meta( $post_id, '_wp_trash_meta_status', $post->post_status );
+		add_post_meta( $post_id, '_wp_trash_meta_status', $previous_status );
 		add_post_meta( $post_id, '_wp_trash_meta_time', time() );
 
-		$old_status = $post->post_status;
 		$new_status = 'trash';
 		$wpdb->update( $wpdb->posts, array( 'post_status' => $new_status ), array( 'ID' => $post->ID ) );
 		clean_post_cache( $post->ID );
 
 		$post->post_status = $new_status;
-		wp_transition_post_status( $new_status, $old_status, $post );
+		wp_transition_post_status( $new_status, $previous_status, $post );
 
 		/** This action is documented in wp-includes/post.php */
 		do_action( "edit_post_{$post->post_type}", $post->ID, $post );
@@ -3121,7 +3126,7 @@ final class WP_Customize_Manager {
 		wp_trash_post_comments( $post_id );
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( 'trashed_post', $post_id );
+		do_action( 'trashed_post', $post_id, $previous_status );
 
 		return $post;
 	}
@@ -3161,27 +3166,25 @@ final class WP_Customize_Manager {
 			return;
 		}
 
-		if ( $changeset_post_id ) {
-			if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
-				wp_send_json_error(
-					array(
-						'code'    => 'changeset_trash_unauthorized',
-						'message' => __( 'Unable to trash changes.' ),
-					)
-				);
-			}
+		if ( ! current_user_can( get_post_type_object( 'customize_changeset' )->cap->delete_post, $changeset_post_id ) ) {
+			wp_send_json_error(
+				array(
+					'code'    => 'changeset_trash_unauthorized',
+					'message' => __( 'Unable to trash changes.' ),
+				)
+			);
+		}
 
-			$lock_user = (int) wp_check_post_lock( $changeset_post_id );
+		$lock_user = (int) wp_check_post_lock( $changeset_post_id );
 
-			if ( $lock_user && get_current_user_id() !== $lock_user ) {
-				wp_send_json_error(
-					array(
-						'code'     => 'changeset_locked',
-						'message'  => __( 'Changeset is being edited by other user.' ),
-						'lockUser' => $this->get_lock_user_data( $lock_user ),
-					)
-				);
-			}
+		if ( $lock_user && get_current_user_id() !== $lock_user ) {
+			wp_send_json_error(
+				array(
+					'code'     => 'changeset_locked',
+					'message'  => __( 'Changeset is being edited by other user.' ),
+					'lockUser' => $this->get_lock_user_data( $lock_user ),
+				)
+			);
 		}
 
 		if ( 'trash' === get_post_status( $changeset_post_id ) ) {
@@ -3330,11 +3333,16 @@ final class WP_Customize_Manager {
 			return null;
 		}
 
-		return array(
-			'id'     => $lock_user->ID,
-			'name'   => $lock_user->display_name,
-			'avatar' => get_avatar_url( $lock_user->ID, array( 'size' => 128 ) ),
+		$user_details = array(
+			'id'   => $lock_user->ID,
+			'name' => $lock_user->display_name,
 		);
+
+		if ( get_option( 'show_avatars' ) ) {
+			$user_details['avatar'] = get_avatar_url( $lock_user->ID, array( 'size' => 128 ) );
+		}
+
+		return $user_details;
 	}
 
 	/**
@@ -4303,8 +4311,10 @@ final class WP_Customize_Manager {
 
 		<script type="text/html" id="tmpl-customize-changeset-locked-notification">
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
-				<div class="notification-message customize-changeset-locked-message">
-					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
+				<div class="notification-message customize-changeset-locked-message {{ data.lockUser.avatar ? 'has-avatar' : '' }}">
+					<# if ( data.lockUser.avatar ) { #>
+						<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
+					<# } #>
 					<p class="currently-editing">
 						<# if ( data.message ) { #>
 							{{{ data.message }}}
@@ -4975,9 +4985,10 @@ final class WP_Customize_Manager {
 			}
 		}
 
+		ob_start();
 		?>
-		<script type="text/javascript">
-			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
+		<script>
+			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 			_wpCustomizeSettings.initialClientTimestamp = _.now();
 			_wpCustomizeSettings.controls = {};
 			_wpCustomizeSettings.settings = {};
@@ -4989,8 +5000,8 @@ final class WP_Customize_Manager {
 				if ( $setting->check_capabilities() ) {
 					printf(
 						"s[%s] = %s;\n",
-						wp_json_encode( $setting->id ),
-						wp_json_encode( $setting->json() )
+						wp_json_encode( $setting->id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+						wp_json_encode( $setting->json(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 					);
 				}
 			}
@@ -5002,8 +5013,8 @@ final class WP_Customize_Manager {
 				if ( $control->check_capabilities() ) {
 					printf(
 						"c[%s] = %s;\n",
-						wp_json_encode( $control->id ),
-						wp_json_encode( $control->json() )
+						wp_json_encode( $control->id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+						wp_json_encode( $control->json(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 					);
 				}
 			}
@@ -5011,6 +5022,7 @@ final class WP_Customize_Manager {
 			?>
 		</script>
 		<?php
+		wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
 	}
 
 	/**
@@ -5197,10 +5209,10 @@ final class WP_Customize_Manager {
 				array(
 					'label'       => __( 'Site Icon' ),
 					'description' => sprintf(
-						'<p>' . __( 'Site Icons are what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. Upload one here!' ) . '</p>' .
-						/* translators: %s: Site icon size in pixels. */
-						'<p>' . __( 'Site Icons should be square and at least %s pixels.' ) . '</p>',
-						'<strong>512 &times; 512</strong>'
+						/* translators: 1: pixel value for icon size. 2: pixel value for icon size. */
+						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <code>%1$s by %2$s</code> pixels.' ) . '</p>',
+						512,
+						512
 					),
 					'section'     => 'title_tagline',
 					'priority'    => 60,
@@ -5695,7 +5707,7 @@ final class WP_Customize_Manager {
 		$section_description .= __( 'Add your own CSS code here to customize the appearance and layout of your site.' );
 		$section_description .= sprintf(
 			' <a href="%1$s" class="external-link" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span></a>',
-			esc_url( __( 'https://wordpress.org/documentation/article/css/' ) ),
+			esc_url( __( 'https://developer.wordpress.org/advanced-administration/wordpress/css/' ) ),
 			__( 'Learn more about CSS' ),
 			/* translators: Hidden accessibility text. */
 			__( '(opens in a new tab)' )
@@ -6136,8 +6148,7 @@ final class WP_Customize_Manager {
 	 * This method exists because the partial object and context data are passed
 	 * into a partial's render_callback so we cannot use get_custom_logo() as
 	 * the render_callback directly since it expects a blog ID as the first
-	 * argument. When WP no longer supports PHP 5.3, this method can be removed
-	 * in favor of an anonymous function.
+	 * argument.
 	 *
 	 * @see WP_Customize_Manager::register_controls()
 	 *

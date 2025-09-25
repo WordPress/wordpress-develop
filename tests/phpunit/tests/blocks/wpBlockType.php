@@ -80,6 +80,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/*
 	 * @ticket 55567
+	 * @ticket 59797
 	 * @covers WP_Block_Type::set_props
 	 */
 	public function test_core_attributes() {
@@ -87,7 +88,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 		$this->assertSameSetsWithIndex(
 			array(
-				'lock' => array( 'type' => 'object' ),
+				'lock'     => array( 'type' => 'object' ),
+				'metadata' => array( 'type' => 'object' ),
 			),
 			$block_type->attributes
 		);
@@ -95,6 +97,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 
 	/*
 	 * @ticket 55567
+	 * @ticket 59797
 	 * @covers WP_Block_Type::set_props
 	 */
 	public function test_core_attributes_matches_custom() {
@@ -102,8 +105,11 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 			'core/fake',
 			array(
 				'attributes' => array(
-					'lock' => array(
+					'lock'     => array(
 						'type' => 'string',
+					),
+					'metadata' => array(
+						'type' => 'number',
 					),
 				),
 			)
@@ -112,7 +118,8 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 		// Backward compatibility: Don't override attributes with the same name.
 		$this->assertSameSetsWithIndex(
 			array(
-				'lock' => array( 'type' => 'string' ),
+				'lock'     => array( 'type' => 'string' ),
+				'metadata' => array( 'type' => 'number' ),
 			),
 			$block_type->attributes
 		);
@@ -299,7 +306,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 	 * @ticket 45097
 	 */
 	public function test_has_block_with_invalid_content() {
-		// some content with invalid HMTL comments and a single valid block.
+		// some content with invalid HTML comments and a single valid block.
 		$invalid_content = 'before' .
 		'<!- - wp:core/weird-space --><!-- /wp:core/weird-space -->' .
 		'<!--wp:core/untrimmed-left --><!-- /wp:core/untrimmed -->' .
@@ -451,6 +458,198 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 			array( '<!-- wp:core/fake --><!-- /wp:core/fake -->', 1 ),
 			// Post content with an invalid block.
 			array( '<!- - wp:core/separator -->', 0 ),
+		);
+	}
+
+	/**
+	 * @ticket 59969
+	 */
+	public function test_variation_callback() {
+		$block_type = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'              => 'Test title',
+				'variation_callback' => array( $this, 'mock_variation_callback' ),
+			)
+		);
+
+		$this->assertSameSets( $this->mock_variation_callback(), $block_type->variations );
+	}
+
+	/**
+	 * @ticket 59969
+	 * @covers WP_Block_Type::get_variations
+	 */
+	public function test_get_variations() {
+		$block_type = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'              => 'Test title',
+				'variation_callback' => array( $this, 'mock_variation_callback' ),
+			)
+		);
+
+		$this->assertSameSets( $this->mock_variation_callback(), $block_type->get_variations() );
+	}
+
+	/**
+	 * @ticket 59969
+	 */
+	public function test_variations_precedence_over_callback() {
+		$test_variations = array( 'name' => 'test1' );
+
+		$block_type = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'              => 'Test title',
+				'variations'         => $test_variations,
+				'variation_callback' => array( $this, 'mock_variation_callback' ),
+			)
+		);
+
+		// If the variations are defined, the callback should not be used.
+		$this->assertSameSets( $test_variations, $block_type->variations );
+	}
+
+	/**
+	 * @ticket 59969
+	 */
+	public function test_variations_callback_are_lazy_loaded() {
+		$callback_called = false;
+
+		$block_type = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'              => 'Test title',
+				'variation_callback' => function () use ( &$callback_called ) {
+					$callback_called = true;
+					return $this->mock_variation_callback();
+				},
+			)
+		);
+
+		$this->assertSame( false, $callback_called, 'The callback should not be called before the variations are accessed.' );
+		$block_type->variations; // access the variations.
+		$this->assertSame( true, $callback_called, 'The callback should be called when the variations are accessed.' );
+	}
+
+	/**
+	 * @ticket 59969
+	 * @covers WP_Block_Type::get_variations
+	 */
+	public function test_variations_precedence_over_callback_post_registration() {
+		$test_variations = array( 'name' => 'test1' );
+		$callback_called = false;
+
+		$block_type             = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'              => 'Test title',
+				'variation_callback' => function () use ( &$callback_called ) {
+					$callback_called = true;
+					return $this->mock_variation_callback();
+				},
+			)
+		);
+		$block_type->variations = $test_variations;
+
+		// If the variations are defined after registration but before first access, the callback should not override it.
+		$this->assertSameSets( $test_variations, $block_type->get_variations(), 'Variations are same as variations set' );
+		$this->assertSame( false, $callback_called, 'The callback was never called.' );
+	}
+
+	/**
+	 * @ticket 59969
+	 * @covers WP_Block_Type::get_variations
+	 */
+	public function test_variations_callback_happens_only_once() {
+		$callback_count = 0;
+
+		$block_type = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'              => 'Test title',
+				'variation_callback' => function () use ( &$callback_count ) {
+					$callback_count++;
+					return $this->mock_variation_callback();
+				},
+			)
+		);
+
+		$this->assertSame( 0, $callback_count, 'The callback should not be called before the variations are accessed.' );
+		$block_type->get_variations(); // access the variations.
+		$this->assertSame( 1, $callback_count, 'The callback should be called when the variations are accessed.' );
+		$block_type->get_variations(); // access the variations again.
+		$this->assertSame( 1, $callback_count, 'The callback should not be called again.' );
+	}
+
+	/**
+	 * Test filter function for get_block_type_variations filter.
+	 *
+	 * @param array $variations Block variations before filter.
+	 * @param WP_Block_Type $block_type Block type.
+	 *
+	 * @return array Block variations after filter.
+	 */
+	public function filter_test_variations( $variations, $block_type ) {
+		return array( array( 'name' => 'test1' ) );
+	}
+
+	/**
+	 * @ticket 59969
+	 */
+	public function test_get_block_type_variations_filter_with_variation_callback() {
+		// Filter will override the variations obtained from the callback.
+		add_filter( 'get_block_type_variations', array( $this, 'filter_test_variations' ), 10, 2 );
+		$expected_variations = array( array( 'name' => 'test1' ) );
+
+		$callback_called = false;
+		$block_type      = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'              => 'Test title',
+				'variation_callback' => function () use ( &$callback_called ) {
+					$callback_called = true;
+					return $this->mock_variation_callback();
+				},
+			)
+		);
+
+		$obtained_variations = $block_type->variations; // access the variations.
+
+		$this->assertSame( true, $callback_called, 'The callback should be called when the variations are accessed.' );
+		$this->assertSameSets( $obtained_variations, $expected_variations, 'The variations obtained from the callback should be filtered.' );
+	}
+
+	/**
+	 * @ticket 59969
+	 */
+	public function test_get_block_type_variations_filter_variations() {
+		// Filter will override the variations set during registration.
+		add_filter( 'get_block_type_variations', array( $this, 'filter_test_variations' ), 10, 2 );
+		$expected_variations = array( array( 'name' => 'test1' ) );
+
+		$block_type = new WP_Block_Type(
+			'test/block',
+			array(
+				'title'      => 'Test title',
+				'variations' => $this->mock_variation_callback(),
+			)
+		);
+
+		$obtained_variations = $block_type->variations; // access the variations.
+		$this->assertSameSets( $obtained_variations, $expected_variations, 'The variations that was initially set should be filtered.' );
+	}
+
+	/**
+	 * Mock variation callback.
+	 *
+	 * @return array
+	 */
+	public function mock_variation_callback() {
+		return array(
+			array( 'name' => 'var1' ),
+			array( 'name' => 'var2' ),
 		);
 	}
 }

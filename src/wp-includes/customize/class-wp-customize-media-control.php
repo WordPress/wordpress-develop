@@ -93,13 +93,13 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 				 * Note that the default value must be a URL, NOT an attachment ID.
 				 */
 				$ext  = substr( $this->setting->default, -3 );
-				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp', 'webp' ), true ) ? 'image' : 'document';
+				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp', 'webp', 'avif' ), true ) ? 'image' : 'document';
 
 				$default_attachment = array(
 					'id'    => 1,
 					'url'   => $this->setting->default,
 					'type'  => $type,
-					'icon'  => wp_mime_type_icon( $type ),
+					'icon'  => wp_mime_type_icon( $type, '.svg' ),
 					'title' => wp_basename( $this->setting->default ),
 				);
 
@@ -196,7 +196,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 		<# } else { #>
 			<div class="attachment-media-view">
 				<# if ( data.canUpload ) { #>
-					<button type="button" class="upload-button button-add-media" {{{ describedByAttr }}}>{{ data.button_labels.select }}</button>
+					<button type="button" class="upload-button button" {{{ describedByAttr }}}>{{ data.button_labels.select }}</button>
 				<# } #>
 				<div class="actions">
 					<# if ( data.defaultAttachment ) { #>
@@ -245,7 +245,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 			case 'image':
 				return array(
 					'select'       => __( 'Select image' ),
-					'site_icon'    => __( 'Select site icon' ),
+					'site_icon'    => __( 'Select Site Icon' ),
 					'change'       => __( 'Change image' ),
 					'default'      => __( 'Default' ),
 					'remove'       => __( 'Remove' ),

@@ -52,6 +52,17 @@ class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Ensure sitemaps redirects work as expected with a more custom rewrite structure.
+	 *
+	 * @dataProvider data_sitemaps_canonical_pretty_redirects
+	 * @ticket 61931
+	 */
+	public function test_sitemaps_canonical_custom_pretty_redirects( $test_url, $expected ) {
+		$this->set_permalink_structure( '/%category%/%year%/%monthnum%/%postname%/' );
+		$this->assertCanonical( $test_url, $expected, 61931 );
+	}
+
+	/**
 	 * Data provider for test_sitemaps_canonical_pretty_redirects.
 	 *
 	 * @return array[] {
@@ -61,8 +72,12 @@ class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
 	 *     @type string $1 The expected canonical URL.
 	 * }
 	 */
-	public function data_sitemaps_canonical_pretty_redirects() {
+	public static function data_sitemaps_canonical_pretty_redirects() {
 		return array(
+			// sitemap.xml special case.
+			array( '/sitemap.xml', '/wp-sitemap.xml' ),
+			array( '/sitemap.xml/', '/wp-sitemap.xml' ),
+
 			// Ugly/incorrect versions redirect correctly.
 			array( '/?sitemap=index', '/wp-sitemap.xml' ),
 			array( '/wp-sitemap.xml/', '/wp-sitemap.xml' ),

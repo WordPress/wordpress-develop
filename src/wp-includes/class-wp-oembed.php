@@ -4,7 +4,7 @@
  *
  * Used internally by the WP_Embed class, but is designed to be generic.
  *
- * @link https://wordpress.org/documentation/article/embeds/
+ * @link https://developer.wordpress.org/advanced-administration/wordpress/oembed/
  * @link http://oembed.com/
  *
  * @package WordPress
@@ -75,7 +75,6 @@ class WP_oEmbed {
 			'#https?://(www\.)?twitter\.com/\w{1,15}/timelines/.*#i' => array( 'https://publish.twitter.com/oembed', true ),
 			'#https?://(www\.)?twitter\.com/i/moments/.*#i' => array( 'https://publish.twitter.com/oembed', true ),
 			'#https?://(www\.)?soundcloud\.com/.*#i'       => array( 'https://soundcloud.com/oembed', true ),
-			'#https?://(.+?\.)?slideshare\.net/.*#i'       => array( 'https://www.slideshare.net/api/oembed/2', true ),
 			'#https?://(open|play)\.spotify\.com/.*#i'     => array( 'https://embed.spotify.com/oembed/', true ),
 			'#https?://(.+\.)?imgur\.com/.*#i'             => array( 'https://api.imgur.com/oembed', true ),
 			'#https?://(www\.)?issuu\.com/.+/docs/.+#i'    => array( 'https://issuu.com/oembed_wp', true ),
@@ -90,7 +89,6 @@ class WP_oEmbed {
 			'#https?://videopress\.com/v/.*#'              => array( 'https://public-api.wordpress.com/oembed/?for=' . $host, true ),
 			'#https?://(www\.)?reddit\.com/r/[^/]+/comments/.*#i' => array( 'https://www.reddit.com/oembed', true ),
 			'#https?://(www\.)?speakerdeck\.com/.*#i'      => array( 'https://speakerdeck.com/oembed.{format}', true ),
-			'#https?://(www\.)?screencast\.com/.*#i'       => array( 'https://api.screencast.com/external/oembed', true ),
 			'#https?://([a-z0-9-]+\.)?amazon\.(com|com\.mx|com\.br|ca)/.*#i' => array( 'https://read.amazon.com/kp/api/oembed', true ),
 			'#https?://([a-z0-9-]+\.)?amazon\.(co\.uk|de|fr|it|es|in|nl|ru)/.*#i' => array( 'https://read.amazon.co.uk/kp/api/oembed', true ),
 			'#https?://([a-z0-9-]+\.)?amazon\.(co\.jp|com\.au)/.*#i' => array( 'https://read.amazon.com.au/kp/api/oembed', true ),
@@ -110,6 +108,8 @@ class WP_oEmbed {
 			'#https?://(www\.)?wolframcloud\.com/obj/.+#i' => array( 'https://www.wolframcloud.com/oembed', true ),
 			'#https?://pca\.st/.+#i'                       => array( 'https://pca.st/oembed.json', true ),
 			'#https?://((play|www)\.)?anghami\.com/.*#i'   => array( 'https://api.anghami.com/rest/v1/oembed.view', true ),
+			'#https?://bsky.app/profile/.*/post/.*#i'      => array( 'https://embed.bsky.app/oembed', true ),
+			'#https?://(www\.)?canva\.com/design/.*/view.*#i' => array( 'https://canva.com/_oembed', true ),
 		);
 
 		if ( ! empty( self::$early_providers['add'] ) ) {
@@ -147,7 +147,6 @@ class WP_oEmbed {
 		 * | SmugMug      | smugmug.com                               | 3.0.0   |
 		 * | YouTube      | youtu.be                                  | 3.0.0   |
 		 * | Twitter      | twitter.com                               | 3.4.0   |
-		 * | Slideshare   | slideshare.net                            | 3.5.0   |
 		 * | SoundCloud   | soundcloud.com                            | 3.5.0   |
 		 * | Dailymotion  | dai.ly                                    | 3.6.0   |
 		 * | Flickr       | flic.kr                                   | 3.6.0   |
@@ -190,6 +189,8 @@ class WP_oEmbed {
 		 * | Pocket Casts | pocketcasts.com                           | 6.1.0   |
 		 * | Crowdsignal  | crowdsignal.net                           | 6.2.0   |
 		 * | Anghami      | anghami.com                               | 6.3.0   |
+		 * | Bluesky      | bsky.app                                  | 6.6.0   |
+		 * | Canva        | canva.com                                 | 6.8.0   |
 		 *
 		 * No longer supported providers:
 		 *
@@ -213,6 +214,8 @@ class WP_oEmbed {
 		 * | Facebook     | facebook.com         | 4.7.0     | 5.5.2     |
 		 * | Meetup.com   | meetup.com           | 3.9.0     | 6.0.1     |
 		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.0.1     |
+		 * | SlideShare   | slideshare.net       | 3.5.0     | 6.6.0     |
+		 * | Screencast   | screencast.com       | 4.8.0     | 6.8.2     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
@@ -736,9 +739,9 @@ class WP_oEmbed {
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param string $return The returned oEmbed HTML.
-		 * @param object $data   A data object result from an oEmbed provider.
-		 * @param string $url    The URL of the content to be embedded.
+		 * @param string|false $return The returned oEmbed HTML, or false on failure.
+		 * @param object       $data   A data object result from an oEmbed provider.
+		 * @param string       $url    The URL of the content to be embedded.
 		 */
 		return apply_filters( 'oembed_dataparse', $return, $data, $url );
 	}
@@ -749,10 +752,10 @@ class WP_oEmbed {
 	 * @since 2.9.0 as strip_scribd_newlines()
 	 * @since 3.0.0
 	 *
-	 * @param string $html Existing HTML.
-	 * @param object $data Data object from WP_oEmbed::data2html()
-	 * @param string $url The original URL passed to oEmbed.
-	 * @return string Possibly modified $html
+	 * @param string|false $html Existing HTML.
+	 * @param object       $data Data object from WP_oEmbed::data2html()
+	 * @param string       $url The original URL passed to oEmbed.
+	 * @return string|false Possibly modified $html.
 	 */
 	public function _strip_newlines( $html, $data, $url ) {
 		if ( ! str_contains( $html, "\n" ) ) {

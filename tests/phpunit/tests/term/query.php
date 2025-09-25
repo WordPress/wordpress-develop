@@ -402,7 +402,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertNotEmpty( $terms );
 		foreach ( $terms as $term ) {
 			$this->assertInstanceOf( 'WP_Term', $term );
-			$this->assertObjectHasAttribute( 'object_id', $term );
+			$this->assertObjectHasProperty( 'object_id', $term );
 		}
 
 		// Run again to check the cached response.
@@ -410,7 +410,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertNotEmpty( $terms );
 		foreach ( $terms as $term ) {
 			$this->assertInstanceOf( 'WP_Term', $term );
-			$this->assertObjectHasAttribute( 'object_id', $term );
+			$this->assertObjectHasProperty( 'object_id', $term );
 		}
 	}
 
@@ -699,6 +699,106 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * If fields have filtered, cached results should work.
+	 *
+	 * @ticket 58116
+	 * @group cache
+	 */
+	public function test_query_filter_fields() {
+		$post_id = self::factory()->post->create();
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		wp_set_object_terms( $post_id, array( $term_id ), 'wptests_tax' );
+		$post_draft_id = self::factory()->post->create( array( 'post_type' => 'draft' ) );
+		wp_set_object_terms( $post_draft_id, array( $term_id ), 'wptests_tax' );
+
+		add_filter( 'terms_clauses', array( $this, 'filter_fields_terms_clauses' ), 10, 3 );
+
+		$args = array(
+			'taxonomy'    => 'wptests_tax',
+			'hide_empty'  => false,
+			'post_type'   => 'post',
+			'post_status' => 'publish',
+		);
+
+		$q1     = new WP_Term_Query();
+		$terms1 = $q1->query( $args );
+		$q2     = new WP_Term_Query();
+		$terms2 = $q2->query( $args );
+		$this->assertSameSets( wp_list_pluck( $terms1, 'term_id' ), wp_list_pluck( $terms2, 'term_id' ), 'Term IDs are expected to match' );
+		$this->assertSameSets( wp_list_pluck( $terms1, 'count' ), wp_list_pluck( $terms2, 'count' ), 'Term counts are expected to match' );
+	}
+
+	/**
+	 * Filter `terms_clauses` to change the field requested. The filter is from example code given in #58116.
+	 */
+	public function filter_fields_terms_clauses( $clauses, $taxonomies, $args ) {
+		global $wpdb;
+
+		// Set to query specific posts types if set.
+		if ( ! empty( $args['post_type'] ) ) {
+			$clauses['fields']  = 'DISTINCT t.term_id, tt.term_taxonomy_id, tt.taxonomy, tt.description, tt.parent, COUNT(p.post_type) AS count';
+			$clauses['join']   .= ' LEFT JOIN ' . $wpdb->term_relationships . ' AS r ON r.term_taxonomy_id = tt.term_taxonomy_id LEFT JOIN ' . $wpdb->posts . ' AS p ON p.ID = r.object_id';
+			$clauses['where']  .= " AND (p.post_type = '" . $args['post_type'] . "' OR p.post_type IS NULL)";
+			$clauses['orderby'] = 'GROUP BY t.term_id ' . $clauses['orderby'];
+		}
+
+		// Set to query posts with specific status.
+		if ( ! empty( $args['post_status'] ) ) {
+			$clauses['where'] .= " AND (p.post_status = '" . $args['post_status'] . "')";
+		}
+		return $clauses;
+	}
+
+	/**
+	 * If fields have filtered, cached results should work.
+	 *
+	 * @ticket 58116
+	 * @group cache
+	 */
+	public function test_query_filter_select_fields() {
+		$post_id = self::factory()->post->create();
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		wp_set_object_terms( $post_id, array( $term_id ), 'wptests_tax' );
+		$post_draft_id = self::factory()->post->create( array( 'post_type' => 'draft' ) );
+		wp_set_object_terms( $post_draft_id, array( $term_id ), 'wptests_tax' );
+
+		add_filter( 'get_terms_fields', array( $this, 'filter_get_terms_fields' ) );
+
+		$args = array(
+			'taxonomy'    => 'wptests_tax',
+			'hide_empty'  => false,
+			'post_type'   => 'post',
+			'post_status' => 'publish',
+		);
+
+		$q1     = new WP_Term_Query();
+		$terms1 = $q1->query( $args );
+		$q2     = new WP_Term_Query();
+		$terms2 = $q2->query( $args );
+		$this->assertSameSets( wp_list_pluck( $terms1, 'term_id' ), wp_list_pluck( $terms2, 'term_id' ), 'Term IDs are expected to match' );
+		$this->assertSameSets( wp_list_pluck( $terms1, 'parent' ), wp_list_pluck( $terms2, 'parent' ), 'Term parent are expected to match' );
+	}
+
+	/**
+	 * Filter `get_terms_fields` to change the field requested.
+	 */
+	public function filter_get_terms_fields( $select ) {
+		return array( 't.term_id', 'tt.parent' );
+	}
+
+	/**
 	 * The terms property should be an empty array for fields not as count and parent set.
 	 *
 	 * @ticket 42327
@@ -750,6 +850,53 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$expected = array( $terms[0], $terms[2] );
 
 		$this->assertSameSets( $expected, wp_list_pluck( $found, 'term_id' ) );
+	}
+
+	/**
+	 * Tests that a call to WP_Term_Query::get_terms() does not result in a PHP warning
+	 * when get_term() returns null for a child term.
+	 *
+	 * The warning that we should not see:
+	 * `Warning: Attempt to read property "count" on null`.
+	 *
+	 * @ticket 63877
+	 */
+	public function test_null_child_term_should_not_throw_warning() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $t1,
+			)
+		);
+
+		$this->term_id = $t2;
+
+		add_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => true,
+				'fields'     => 'ids',
+			)
+		);
+		remove_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+
+		$this->assertIsArray( $q->terms, 'The result should be an array.' );
+		$this->assertEmpty( $q->terms, 'The result should be empty.' );
 	}
 
 	public function filter_term_to_null( $term ) {
@@ -921,7 +1068,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$request    = $query1->request;
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
 
@@ -1022,5 +1171,20 @@ class Tests_Term_Query extends WP_UnitTestCase {
 				),
 			),
 		);
+	}
+
+	/**
+	 * @ticket 56841
+	 */
+	public function test_query_does_not_have_leading_whitespace() {
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => true,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
 	}
 }

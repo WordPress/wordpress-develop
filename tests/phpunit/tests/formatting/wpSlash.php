@@ -101,5 +101,4 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 		$this->assertSame( array( 'a' => $new ), wp_slash( array( 'a' => $old ) ) ); // Keyed array.
 		$this->assertSame( array( $new ), wp_slash( array( $old ) ) ); // Non-keyed.
 	}
-
 }

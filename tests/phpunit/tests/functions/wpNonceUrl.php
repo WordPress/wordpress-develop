@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @group functions.php
+ * @group functions
  *
  * @covers ::wp_nonce_url
  */
@@ -37,7 +37,7 @@ class Tests_Functions_WpNonceUrl extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_should_append_nonce_name_and_value().
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_should_append_nonce_name_and_value() {
 		return array(
@@ -124,7 +124,7 @@ class Tests_Functions_WpNonceUrl extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_should_handle_existing_query_args().
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public function data_should_handle_existing_query_args() {
 		return array(
