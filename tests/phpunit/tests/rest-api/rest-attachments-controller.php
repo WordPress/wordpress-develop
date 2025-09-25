@@ -1855,6 +1855,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertTrue( $links['author'][0]['attributes']['embeddable'] );
 	}
 
+	/**
+	 * @ticket 64034
+	 */
 	public function test_links_contain_parent() {
 		wp_set_current_user( self::$editor_id );
 
