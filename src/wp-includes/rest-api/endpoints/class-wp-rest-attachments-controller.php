@@ -564,7 +564,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		) {
 			return new WP_Error(
 				'rest_unknown_attachment',
-				__( 'Unable to get meta information for file.', 'gutenberg' ),
+				__( 'Unable to get meta information for file.' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -574,7 +574,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( ! in_array( $mime_type, $supported_types, true ) ) {
 			return new WP_Error(
 				'rest_cannot_edit_file_type',
-				__( 'This type of file cannot be edited.', 'gutenberg' ),
+				__( 'This type of file cannot be edited.' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -623,7 +623,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			if ( 0 === count( $modifiers ) ) {
 				return new WP_Error(
 					'rest_image_not_edited',
-					__( 'The image was not edited. Edit the image before applying the changes.', 'gutenberg' ),
+					__( 'The image was not edited. Edit the image before applying the changes.' ),
 					array( 'status' => 400 )
 				);
 			}
@@ -644,7 +644,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( is_wp_error( $image_editor ) ) {
 			return new WP_Error(
 				'rest_unknown_image_file_type',
-				__( 'Unable to edit this image.', 'gutenberg' ),
+				__( 'Unable to edit this image.' ),
 				array( 'status' => 500 )
 			);
 		}
@@ -662,7 +662,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					if ( is_wp_error( $result ) ) {
 						return new WP_Error(
 							'rest_image_flip_failed',
-							__( 'Unable to flip this image.', 'gutenberg' ),
+							__( 'Unable to flip this image.' ),
 							array( 'status' => 500 )
 						);
 					}
@@ -677,7 +677,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						if ( is_wp_error( $result ) ) {
 							return new WP_Error(
 								'rest_image_rotation_failed',
-								__( 'Unable to rotate this image.', 'gutenberg' ),
+								__( 'Unable to rotate this image.' ),
 								array( 'status' => 500 )
 							);
 						}
@@ -699,7 +699,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						if ( is_wp_error( $result ) ) {
 							return new WP_Error(
 								'rest_image_crop_failed',
-								__( 'Unable to crop this image.', 'gutenberg' ),
+								__( 'Unable to crop this image.' ),
 								array( 'status' => 500 )
 							);
 						}
@@ -1525,18 +1525,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	protected function get_edit_media_item_args() {
 		$args = array(
 			'src'       => array(
-				'description' => __( 'URL to the edited image file.', 'gutenberg' ),
+				'description' => __( 'URL to the edited image file.' ),
 				'type'        => 'string',
 				'format'      => 'uri',
 				'required'    => true,
 			),
 			// The `modifiers` param takes precedence over the older format.
 			'modifiers' => array(
-				'description' => __( 'Array of image edits.', 'gutenberg' ),
+				'description' => __( 'Array of image edits.' ),
 				'type'        => 'array',
 				'minItems'    => 1,
 				'items'       => array(
-					'description' => __( 'Image edit.', 'gutenberg' ),
+					'description' => __( 'Image edit.' ),
 					'type'        => 'object',
 					'required'    => array(
 						'type',
@@ -1544,22 +1544,22 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					),
 					'oneOf'       => array(
 						array(
-							'title'      => __( 'Flip', 'gutenberg' ),
+							'title'      => __( 'Flip' ),
 							'properties' => array(
 								'type' => array(
-									'description' => __( 'Flip type.', 'gutenberg' ),
+									'description' => __( 'Flip type.' ),
 									'type'        => 'string',
 									'enum'        => array( 'flip' ),
 								),
 								'args' => array(
-									'description' => __( 'Flip arguments.', 'gutenberg' ),
+									'description' => __( 'Flip arguments.' ),
 									'type'        => 'object',
 									'required'    => array(
 										'flip',
 									),
 									'properties'  => array(
 										'flip' => array(
-											'description' => __( 'Flip direction. [ horizontal, vertical ] 0 for no flip, 1 for flip.', 'gutenberg' ),
+											'description' => __( 'Flip direction. [ horizontal, vertical ] 0 for no flip, 1 for flip.' ),
 											'type'        => 'object',
 											'required'    => array(
 												'horizontal',
@@ -1567,11 +1567,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 											),
 											'properties'  => array(
 												'horizontal' => array(
-													'description' => __( 'Horizontal flip direction. 0 for no flip, 1 for flip.', 'gutenberg' ),
+													'description' => __( 'Horizontal flip direction. 0 for no flip, 1 for flip.' ),
 													'type' => 'number',
 												),
 												'vertical' => array(
-													'description' => __( 'Vertical flip direction. 0 for no flip, 1 for flip.', 'gutenberg' ),
+													'description' => __( 'Vertical flip direction. 0 for no flip, 1 for flip.' ),
 													'type' => 'number',
 												),
 											),
@@ -1581,22 +1581,22 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 							),
 						),
 						array(
-							'title'      => __( 'Rotation', 'gutenberg' ),
+							'title'      => __( 'Rotation' ),
 							'properties' => array(
 								'type' => array(
-									'description' => __( 'Rotation type.', 'gutenberg' ),
+									'description' => __( 'Rotation type.' ),
 									'type'        => 'string',
 									'enum'        => array( 'rotate' ),
 								),
 								'args' => array(
-									'description' => __( 'Rotation arguments.', 'gutenberg' ),
+									'description' => __( 'Rotation arguments.' ),
 									'type'        => 'object',
 									'required'    => array(
 										'angle',
 									),
 									'properties'  => array(
 										'angle' => array(
-											'description' => __( 'Angle to rotate clockwise in degrees.', 'gutenberg' ),
+											'description' => __( 'Angle to rotate clockwise in degrees.' ),
 											'type'        => 'number',
 										),
 									),
@@ -1604,15 +1604,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 							),
 						),
 						array(
-							'title'      => __( 'Crop', 'gutenberg' ),
+							'title'      => __( 'Crop' ),
 							'properties' => array(
 								'type' => array(
-									'description' => __( 'Crop type.', 'gutenberg' ),
+									'description' => __( 'Crop type.' ),
 									'type'        => 'string',
 									'enum'        => array( 'crop' ),
 								),
 								'args' => array(
-									'description' => __( 'Crop arguments.', 'gutenberg' ),
+									'description' => __( 'Crop arguments.' ),
 									'type'        => 'object',
 									'required'    => array(
 										'left',
@@ -1622,19 +1622,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 									),
 									'properties'  => array(
 										'left'   => array(
-											'description' => __( 'Horizontal position from the left to begin the crop as a percentage of the image width.', 'gutenberg' ),
+											'description' => __( 'Horizontal position from the left to begin the crop as a percentage of the image width.' ),
 											'type'        => 'number',
 										),
 										'top'    => array(
-											'description' => __( 'Vertical position from the top to begin the crop as a percentage of the image height.', 'gutenberg' ),
+											'description' => __( 'Vertical position from the top to begin the crop as a percentage of the image height.' ),
 											'type'        => 'number',
 										),
 										'width'  => array(
-											'description' => __( 'Width of the crop as a percentage of the image width.', 'gutenberg' ),
+											'description' => __( 'Width of the crop as a percentage of the image width.' ),
 											'type'        => 'number',
 										),
 										'height' => array(
-											'description' => __( 'Height of the crop as a percentage of the image height.', 'gutenberg' ),
+											'description' => __( 'Height of the crop as a percentage of the image height.' ),
 											'type'        => 'number',
 										),
 									),
@@ -1645,7 +1645,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				),
 			),
 			'rotation'  => array(
-				'description'      => __( 'The amount to rotate the image clockwise in degrees. DEPRECATED: Use `modifiers` instead.', 'gutenberg' ),
+				'description'      => __( 'The amount to rotate the image clockwise in degrees. DEPRECATED: Use `modifiers` instead.' ),
 				'type'             => 'integer',
 				'minimum'          => 0,
 				'exclusiveMinimum' => true,
@@ -1653,25 +1653,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'exclusiveMaximum' => true,
 			),
 			'x'         => array(
-				'description' => __( 'As a percentage of the image, the x position to start the crop from. DEPRECATED: Use `modifiers` instead.', 'gutenberg' ),
+				'description' => __( 'As a percentage of the image, the x position to start the crop from. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
 			'y'         => array(
-				'description' => __( 'As a percentage of the image, the y position to start the crop from. DEPRECATED: Use `modifiers` instead.', 'gutenberg' ),
+				'description' => __( 'As a percentage of the image, the y position to start the crop from. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
 			'width'     => array(
-				'description' => __( 'As a percentage of the image, the width to crop the image to. DEPRECATED: Use `modifiers` instead.', 'gutenberg' ),
+				'description' => __( 'As a percentage of the image, the width to crop the image to. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
 			'height'    => array(
-				'description' => __( 'As a percentage of the image, the height to crop the image to. DEPRECATED: Use `modifiers` instead.', 'gutenberg' ),
+				'description' => __( 'As a percentage of the image, the height to crop the image to. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
