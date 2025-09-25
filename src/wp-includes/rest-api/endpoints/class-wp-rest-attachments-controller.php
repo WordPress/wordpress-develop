@@ -543,6 +543,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Applies edits to a media item and creates a new attachment record.
 	 *
 	 * @since 5.5.0
+	 * @since 6.9.0 Adds flips capability and editable fields for the newly-created attachment post.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -563,7 +564,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		) {
 			return new WP_Error(
 				'rest_unknown_attachment',
-				__( 'Unable to get meta information for file.' ),
+				__( 'Unable to get meta information for file.', 'gutenberg' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -573,7 +574,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( ! in_array( $mime_type, $supported_types, true ) ) {
 			return new WP_Error(
 				'rest_cannot_edit_file_type',
-				__( 'This type of file cannot be edited.' ),
+				__( 'This type of file cannot be edited.', 'gutenberg' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -583,6 +584,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$modifiers = $request['modifiers'];
 		} else {
 			$modifiers = array();
+
+			if ( isset( $request['flip']['horizontal'] ) || isset( $request['flip']['vertical'] ) ) {
+				$flip_args = array(
+					'vertical'   => $request['flip']['vertical'] ?? 0,
+					'horizontal' => $request['flip']['horizontal'] ?? 0,
+				);
+
+				$modifiers[] = array(
+					'type' => 'flip',
+					'args' => array(
+						'flip' => $flip_args,
+					),
+				);
+			}
 
 			if ( ! empty( $request['rotation'] ) ) {
 				$modifiers[] = array(
@@ -608,7 +623,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			if ( 0 === count( $modifiers ) ) {
 				return new WP_Error(
 					'rest_image_not_edited',
-					__( 'The image was not edited. Edit the image before applying the changes.' ),
+					__( 'The image was not edited. Edit the image before applying the changes.', 'gutenberg' ),
 					array( 'status' => 400 )
 				);
 			}
@@ -629,7 +644,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( is_wp_error( $image_editor ) ) {
 			return new WP_Error(
 				'rest_unknown_image_file_type',
-				__( 'Unable to edit this image.' ),
+				__( 'Unable to edit this image.', 'gutenberg' ),
 				array( 'status' => 500 )
 			);
 		}
@@ -637,6 +652,21 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		foreach ( $modifiers as $modifier ) {
 			$args = $modifier['args'];
 			switch ( $modifier['type'] ) {
+				case 'flip':
+					/*
+					 * Flips the current image.
+					 * The vertical flip is the first argument (flip along horizontal axis), the horizontal flip is the second argument (flip along vertical axis).
+					 * See: WP_Image_Editor::flip()
+					 */
+					$result = $image_editor->flip( 0 !== (int) $args['flip']['vertical'], 0 !== (int) $args['flip']['horizontal'] );
+					if ( is_wp_error( $result ) ) {
+						return new WP_Error(
+							'rest_image_flip_failed',
+							__( 'Unable to flip this image.', 'gutenberg' ),
+							array( 'status' => 500 )
+						);
+					}
+					break;
 				case 'rotate':
 					// Rotation direction: clockwise vs. counterclockwise.
 					$rotate = 0 - $args['angle'];
@@ -647,7 +677,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						if ( is_wp_error( $result ) ) {
 							return new WP_Error(
 								'rest_image_rotation_failed',
-								__( 'Unable to rotate this image.' ),
+								__( 'Unable to rotate this image.', 'gutenberg' ),
 								array( 'status' => 500 )
 							);
 						}
@@ -669,7 +699,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						if ( is_wp_error( $result ) ) {
 							return new WP_Error(
 								'rest_image_crop_failed',
-								__( 'Unable to crop this image.' ),
+								__( 'Unable to crop this image.', 'gutenberg' ),
 								array( 'status' => 500 )
 							);
 						}
@@ -711,23 +741,30 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $saved;
 		}
 
-		// Create new attachment post.
-		$new_attachment_post = array(
-			'post_mime_type' => $saved['mime-type'],
-			'guid'           => $uploads['url'] . "/$filename",
-			'post_title'     => $image_name,
-			'post_content'   => '',
-		);
+		// Grab original attachment post so we can use it to set defaults.
+		$original_attachment_post = get_post( $attachment_id );
 
-		// Copy post_content, post_excerpt, and post_title from the edited image's attachment post.
-		$attachment_post = get_post( $attachment_id );
+		// Check request fields and assign default values.
+		$new_attachment_post                 = $this->prepare_item_for_database( $request );
+		$new_attachment_post->post_mime_type = $saved['mime-type'];
+		$new_attachment_post->guid           = $uploads['url'] . "/$filename";
 
-		if ( $attachment_post ) {
-			$new_attachment_post['post_content'] = $attachment_post->post_content;
-			$new_attachment_post['post_excerpt'] = $attachment_post->post_excerpt;
-			$new_attachment_post['post_title']   = $attachment_post->post_title;
-		}
+		// Unset ID so wp_insert_attachment generates a new ID.
+		unset( $new_attachment_post->ID );
 
+		// Set new attachment post title with fallbacks.
+		$new_attachment_post->post_title = $new_attachment_post->post_title ?? $original_attachment_post->post_title ?? $image_name;
+
+		// Set new attachment post caption (post_excerpt).
+		$new_attachment_post->post_excerpt = $new_attachment_post->post_excerpt ?? $original_attachment_post->post_excerpt ?? '';
+
+		// Set new attachment post description (post_content) with fallbacks.
+		$new_attachment_post->post_content = $new_attachment_post->post_content ?? $original_attachment_post->post_content ?? '';
+
+		// Set post parent if set in request, else the default of `0` (no parent).
+		$new_attachment_post->post_parent = $new_attachment_post->post_parent ?? 0;
+
+		// Insert the new attachment post.
 		$new_attachment_id = wp_insert_attachment( wp_slash( $new_attachment_post ), $saved['path'], 0, true );
 
 		if ( is_wp_error( $new_attachment_id ) ) {
@@ -740,8 +777,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $new_attachment_id;
 		}
 
-		// Copy the image alt text from the edited image.
-		$image_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+		// First, try to use the alt text from the request. If not set, copy the image alt text from the original attachment.
+		$image_alt = isset( $request['alt_text'] ) ? sanitize_text_field( $request['alt_text'] ) : get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
 
 		if ( ! empty( $image_alt ) ) {
 			// update_post_meta() expects slashed.
@@ -790,6 +827,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * @param int   $new_attachment_id Attachment post ID for the new image.
 		 * @param int   $attachment_id     Attachment post ID for the edited (parent) image.
 		 */
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		$new_image_meta = apply_filters( 'wp_edited_image_metadata', $new_image_meta, $new_attachment_id, $attachment_id );
 
 		wp_update_attachment_metadata( $new_attachment_id, $new_image_meta );
@@ -1480,23 +1518,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Gets the request args for the edit item route.
 	 *
 	 * @since 5.5.0
+	 * @since 6.9.0 Adds flips capability and editable fields for the newly-created attachment post.
 	 *
 	 * @return array
 	 */
 	protected function get_edit_media_item_args() {
-		return array(
+		$args = array(
 			'src'       => array(
-				'description' => __( 'URL to the edited image file.' ),
+				'description' => __( 'URL to the edited image file.', 'gutenberg' ),
 				'type'        => 'string',
 				'format'      => 'uri',
 				'required'    => true,
 			),
+			// The `modifiers` param takes precedence over the older format.
 			'modifiers' => array(
-				'description' => __( 'Array of image edits.' ),
+				'description' => __( 'Array of image edits.', 'gutenberg' ),
 				'type'        => 'array',
 				'minItems'    => 1,
 				'items'       => array(
-					'description' => __( 'Image edit.' ),
+					'description' => __( 'Image edit.', 'gutenberg' ),
 					'type'        => 'object',
 					'required'    => array(
 						'type',
@@ -1504,22 +1544,59 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					),
 					'oneOf'       => array(
 						array(
-							'title'      => __( 'Rotation' ),
+							'title'      => __( 'Flip', 'gutenberg' ),
 							'properties' => array(
 								'type' => array(
-									'description' => __( 'Rotation type.' ),
+									'description' => __( 'Flip type.', 'gutenberg' ),
+									'type'        => 'string',
+									'enum'        => array( 'flip' ),
+								),
+								'args' => array(
+									'description' => __( 'Flip arguments.', 'gutenberg' ),
+									'type'        => 'object',
+									'required'    => array(
+										'flip',
+									),
+									'properties'  => array(
+										'flip' => array(
+											'description' => __( 'Flip direction. [ horizontal, vertical ] 0 for no flip, 1 for flip.', 'gutenberg' ),
+											'type'        => 'object',
+											'required'    => array(
+												'horizontal',
+												'vertical',
+											),
+											'properties'  => array(
+												'horizontal' => array(
+													'description' => __( 'Horizontal flip direction. 0 for no flip, 1 for flip.', 'gutenberg' ),
+													'type' => 'number',
+												),
+												'vertical' => array(
+													'description' => __( 'Vertical flip direction. 0 for no flip, 1 for flip.', 'gutenberg' ),
+													'type' => 'number',
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+						array(
+							'title'      => __( 'Rotation', 'gutenberg' ),
+							'properties' => array(
+								'type' => array(
+									'description' => __( 'Rotation type.', 'gutenberg' ),
 									'type'        => 'string',
 									'enum'        => array( 'rotate' ),
 								),
 								'args' => array(
-									'description' => __( 'Rotation arguments.' ),
+									'description' => __( 'Rotation arguments.', 'gutenberg' ),
 									'type'        => 'object',
 									'required'    => array(
 										'angle',
 									),
 									'properties'  => array(
 										'angle' => array(
-											'description' => __( 'Angle to rotate clockwise in degrees.' ),
+											'description' => __( 'Angle to rotate clockwise in degrees.', 'gutenberg' ),
 											'type'        => 'number',
 										),
 									),
@@ -1527,15 +1604,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 							),
 						),
 						array(
-							'title'      => __( 'Crop' ),
+							'title'      => __( 'Crop', 'gutenberg' ),
 							'properties' => array(
 								'type' => array(
-									'description' => __( 'Crop type.' ),
+									'description' => __( 'Crop type.', 'gutenberg' ),
 									'type'        => 'string',
 									'enum'        => array( 'crop' ),
 								),
 								'args' => array(
-									'description' => __( 'Crop arguments.' ),
+									'description' => __( 'Crop arguments.', 'gutenberg' ),
 									'type'        => 'object',
 									'required'    => array(
 										'left',
@@ -1545,19 +1622,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 									),
 									'properties'  => array(
 										'left'   => array(
-											'description' => __( 'Horizontal position from the left to begin the crop as a percentage of the image width.' ),
+											'description' => __( 'Horizontal position from the left to begin the crop as a percentage of the image width.', 'gutenberg' ),
 											'type'        => 'number',
 										),
 										'top'    => array(
-											'description' => __( 'Vertical position from the top to begin the crop as a percentage of the image height.' ),
+											'description' => __( 'Vertical position from the top to begin the crop as a percentage of the image height.', 'gutenberg' ),
 											'type'        => 'number',
 										),
 										'width'  => array(
-											'description' => __( 'Width of the crop as a percentage of the image width.' ),
+											'description' => __( 'Width of the crop as a percentage of the image width.', 'gutenberg' ),
 											'type'        => 'number',
 										),
 										'height' => array(
-											'description' => __( 'Height of the crop as a percentage of the image height.' ),
+											'description' => __( 'Height of the crop as a percentage of the image height.', 'gutenberg' ),
 											'type'        => 'number',
 										),
 									),
@@ -1568,7 +1645,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				),
 			),
 			'rotation'  => array(
-				'description'      => __( 'The amount to rotate the image clockwise in degrees. DEPRECATED: Use `modifiers` instead.' ),
+				'description'      => __( 'The amount to rotate the image clockwise in degrees. DEPRECATED: Use `modifiers` instead.', 'gutenberg' ),
 				'type'             => 'integer',
 				'minimum'          => 0,
 				'exclusiveMinimum' => true,
@@ -1576,29 +1653,57 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'exclusiveMaximum' => true,
 			),
 			'x'         => array(
-				'description' => __( 'As a percentage of the image, the x position to start the crop from. DEPRECATED: Use `modifiers` instead.' ),
+				'description' => __( 'As a percentage of the image, the x position to start the crop from. DEPRECATED: Use `modifiers` instead.', 'gutenberg' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
 			'y'         => array(
-				'description' => __( 'As a percentage of the image, the y position to start the crop from. DEPRECATED: Use `modifiers` instead.' ),
+				'description' => __( 'As a percentage of the image, the y position to start the crop from. DEPRECATED: Use `modifiers` instead.', 'gutenberg' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
 			'width'     => array(
-				'description' => __( 'As a percentage of the image, the width to crop the image to. DEPRECATED: Use `modifiers` instead.' ),
+				'description' => __( 'As a percentage of the image, the width to crop the image to. DEPRECATED: Use `modifiers` instead.', 'gutenberg' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
 			'height'    => array(
-				'description' => __( 'As a percentage of the image, the height to crop the image to. DEPRECATED: Use `modifiers` instead.' ),
+				'description' => __( 'As a percentage of the image, the height to crop the image to. DEPRECATED: Use `modifiers` instead.', 'gutenberg' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
 		);
+
+		/*
+		 * Get the args based on the post schema. This calls `rest_get_endpoint_args_for_schema()`,
+		 * which also takes care of sanitization and validation.
+		 */
+		$update_item_args = $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE );
+
+		if ( isset( $update_item_args['caption'] ) ) {
+			$args['caption'] = $update_item_args['caption'];
+		}
+
+		if ( isset( $update_item_args['description'] ) ) {
+			$args['description'] = $update_item_args['description'];
+		}
+
+		if ( isset( $update_item_args['title'] ) ) {
+			$args['title'] = $update_item_args['title'];
+		}
+
+		if ( isset( $update_item_args['post'] ) ) {
+			$args['post'] = $update_item_args['post'];
+		}
+
+		if ( isset( $update_item_args['alt_text'] ) ) {
+			$args['alt_text'] = $update_item_args['alt_text'];
+		}
+
+		return $args;
 	}
 }
