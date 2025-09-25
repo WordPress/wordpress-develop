@@ -255,14 +255,19 @@
 		<exclude-pattern>/wp-tests-config-sample\.php</exclude-pattern>
 	</rule>
 
-	<!-- Exclude forbidding goto in the HTML Processor, which mimics algorithms that are written
-	     this way in the HTML specification, and these particular algorithms are complex and
-	     highly imperative. Avoiding the goto introduces a number of risks that could make it
-	     more difficult to maintain the relationship to the standard, lead to subtle differences
-	     in the parsing, and distance the code from its standard. -->
 	<rule ref="Generic.PHP.DiscourageGoto.Found">
+		<!-- Exclude forbidding goto in the HTML Processor, which mimics algorithms that are written
+			 this way in the HTML specification, and these particular algorithms are complex and
+			 highly imperative. Avoiding the goto introduces a number of risks that could make it
+			 more difficult to maintain the relationship to the standard, lead to subtle differences
+			 in the parsing, and distance the code from its standard. -->
 		<exclude-pattern>/wp-includes/html-api/class-wp-html-processor\.php</exclude-pattern>
 		<exclude-pattern>/wp-includes/html-api/class-wp-html-doctype-info\.php</exclude-pattern>
+
+		<!-- Goto is an effective way to handle errors in decoders which expect valid bytes
+		     without impacting the fast path while avoiding bloating the code with redundant
+		     and risky handling code. Exclude forbidding goto in UTF-8 fallback code. -->
+		<exclude-pattern>/wp-includes/compat-utf8\.php</exclude-pattern>
 	</rule>
 
 	<!-- Exclude sample config from modernization to prevent breaking CI workflows based on WP-CLI scaffold.
