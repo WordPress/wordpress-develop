@@ -20,7 +20,7 @@ if ( ! $tax ) {
 }
 
 if ( ! in_array( $tax->name, get_taxonomies( array( 'show_ui' => true ) ), true ) ) {
-	wp_die( __( 'Sorry, you are not allowed to edit terms in this taxonomy.' ) );
+	wp_die( __( 'Sorry, you are not allowed to edit terms in this taxonomy.' ), 403 );
 }
 
 if ( ! current_user_can( $tax->cap->manage_terms ) ) {
@@ -157,7 +157,7 @@ switch ( $wp_list_table->current_action() ) {
 		$term    = get_term( $term_id );
 
 		if ( ! $term instanceof WP_Term ) {
-			wp_die( __( 'You attempted to edit an item that does not exist. Perhaps it was deleted?' ), 403 );
+			wp_die( __( 'You attempted to edit an item that does not exist. Perhaps it was deleted?' ), 404 );
 		}
 
 		wp_redirect( sanitize_url( get_edit_term_link( $term_id, $taxonomy, $post_type ) ) );
