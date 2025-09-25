@@ -16,7 +16,7 @@ define( 'WP_INSTALLING_NETWORK', true );
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'setup_network' ) ) {
-	wp_die(__('Sorry, you are not allowed to manage options for this site.'), 403 );
+	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ), 403 );
 }
 
 if ( is_multisite() ) {
@@ -26,7 +26,7 @@ if ( is_multisite() ) {
 	}
 
 	if ( ! defined( 'MULTISITE' ) ) {
-		wp_die(__('The Network creation panel is not for WordPress MU networks.'), 400 );
+		wp_die( __( 'The Network creation panel is not for WordPress MU networks.' ), 400 );
 	}
 }
 

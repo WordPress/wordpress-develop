@@ -20,7 +20,7 @@ get_current_screen()->set_help_sidebar( get_site_screen_help_sidebar_content() )
 $id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
 
 if ( ! $id ) {
-	wp_die( __( 'Invalid site ID.' ) , 400 );
+	wp_die( __( 'Invalid site ID.' ), 400 );
 }
 
 $details = get_site( $id );
