@@ -1584,10 +1584,69 @@ module.exports = function(grunt) {
 		'usebanner'
 	] );
 
-	grunt.registerTask( 'certificates:update', 'Updates the Composer package responsible for root certificate updates.', function() {
+	grunt.registerTask( 'certificates:upgrade-package', 'Upgrades the package responsible for supplying the certificate authority certificate store bundled with WordPress.', function() {
 		var done = this.async();
 		var flags = this.flags;
-		var args = [ 'update' ];
+		var spawn = require( 'child_process' ).spawnSync;
+		var fs = require( 'fs' );
+
+		// Ensure that `composer update` has been run and the dependency is installed.
+		if ( ! fs.existsSync( 'vendor' ) || ! fs.existsSync( 'vendor/composer' ) || ! fs.existsSync( 'vendor/composer/ca-bundle' ) ) {
+			grunt.log.error( 'composer/ca-bundle dependency is missing. Please run `composer update` before attempting to upgrade the certificate bundle.' );
+			done( false );
+			return;
+		}
+
+		/*
+		 * Because the `composer/ca-bundle` is pinned to an exact version to ensure upgrades are applied intentionally,
+		 * the `composer update` command will not upgrade the dependency. Instead, `composer require` must be called,
+		 * but the specific version being upgraded to must be known and passed to the command.
+		 */
+		var outdatedResult = spawn( 'composer', [ 'outdated', 'composer/ca-bundle', '--format=json' ] );
+
+		if ( outdatedResult.status !== 0 ) {
+			grunt.log.error( 'Failed to get the package information for composer/ca-bundle.' );
+			done( false );
+			return;
+		}
+
+		var packageInfo;
+		try {
+			var stdout = outdatedResult.stdout.toString().trim();
+			if ( ! stdout ) {
+				grunt.log.writeln( 'The latest version is already installed.' );
+				done( true );
+				return;
+			}
+			packageInfo = JSON.parse( stdout );
+		} catch ( e ) {
+			grunt.log.error( 'Failed to parse the package information for composer/ca-bundle.' );
+			done( false );
+			return;
+		}
+
+		// Check for the version information needed to perform the necessary comparisons.
+		if ( ! packageInfo.versions || ! packageInfo.versions[0] || ! packageInfo.latest ) {
+			grunt.log.error( 'Could not determine version information for composer/ca-bundle.' );
+			done( false );
+			return;
+		}
+
+		var currentVersion = packageInfo.versions[0];
+		var latestVersion = packageInfo.latest;
+
+		// Compare versions to ensure we actually need to update
+		if ( currentVersion === latestVersion ) {
+			grunt.log.writeln( 'The latest version is already installed: ' + latestVersion + '.' );
+			done( true );
+			return;
+		}
+
+		grunt.log.writeln( 'Installed version: ' + currentVersion );
+		grunt.log.writeln( 'New version found: ' + latestVersion );
+
+		// Upgrade to the latest version and change the pinned version in composer.json.
+		var args = [ 'require', 'composer/ca-bundle:' + latestVersion, '--dev' ];
 
 		grunt.util.spawn( {
 			cmd: 'composer',
@@ -1597,6 +1656,7 @@ module.exports = function(grunt) {
 			if ( flags.error && error ) {
 				done( false );
 			} else {
+				grunt.log.writeln( 'Successfully updated composer/ca-bundle to ' + latestVersion );
 				done( true );
 			}
 		} );
@@ -1607,7 +1667,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'certificates:upgrade', [
-		'certificates:update',
+		'certificates:upgrade-package',
 		'copy:certificates',
 		'build:certificates'
 	] );
