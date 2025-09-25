@@ -567,6 +567,16 @@ module.exports = function(grunt) {
 				src: [
 					'wp-admin/css/colors/*/*.css'
 				]
+			},
+			themes: {
+				expand: true,
+				cwd: WORKING_DIR,
+				dest: WORKING_DIR,
+				ext: '.min.css',
+				src: [
+					'wp-content/themes/twentytwentytwo/style.css',
+					'wp-content/themes/twentytwentyfive/style.css',
+				]
 			}
 		},
 		rtlcss: {
@@ -1581,6 +1591,7 @@ module.exports = function(grunt) {
 		'rtl',
 		'cssmin:rtl',
 		'cssmin:colors',
+		'cssmin:themes',
 		'usebanner'
 	] );
 

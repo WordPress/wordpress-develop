@@ -45,9 +45,15 @@ if ( ! function_exists( 'twentytwentytwo_styles' ) ) :
 		$theme_version = wp_get_theme()->get( 'Version' );
 
 		$version_string = is_string( $theme_version ) ? $theme_version : false;
+
+		$src = 'style.min.css';
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG || strpos( wp_get_wp_version(), '-src' ) || ! file_exists( get_parent_theme_file_path( 'style.min.css' ) ) ) {
+			$src = 'style.css';
+		}
+
 		wp_register_style(
 			'twentytwentytwo-style',
-			get_template_directory_uri() . '/style.css',
+			get_parent_theme_file_uri( $src ),
 			array(),
 			$version_string
 		);

@@ -39,19 +39,24 @@ if ( ! function_exists( 'twentytwentyfive_editor_style' ) ) :
 endif;
 add_action( 'after_setup_theme', 'twentytwentyfive_editor_style' );
 
-// Enqueues style.css on the front.
+// Enqueues style.min.css or style.css on the front.
 if ( ! function_exists( 'twentytwentyfive_enqueue_styles' ) ) :
 	/**
-	 * Enqueues style.css on the front.
+	 * Enqueues style.min.css or style.css on the front.
 	 *
 	 * @since Twenty Twenty-Five 1.0
 	 *
 	 * @return void
 	 */
 	function twentytwentyfive_enqueue_styles() {
+		$src = 'style.min.css';
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG || strpos( wp_get_wp_version(), '-src' ) || ! file_exists( get_parent_theme_file_path( 'style.min.css' ) ) ) {
+			$src = 'style.css';
+		}
+
 		wp_enqueue_style(
 			'twentytwentyfive-style',
-			get_parent_theme_file_uri( 'style.css' ),
+			get_parent_theme_file_uri( $src ),
 			array(),
 			wp_get_theme()->get( 'Version' )
 		);
