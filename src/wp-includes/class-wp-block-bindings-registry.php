@@ -285,7 +285,17 @@ final class WP_Block_Bindings_Registry {
 	 * @since 6.5.0
 	 */
 	public function __wakeup() {
-		$this->__unserialize( array() );
+		if ( ! $this->sources ) {
+			return;
+		}
+		if ( ! is_array( $this->sources ) ) {
+			throw new UnexpectedValueException();
+		}
+		foreach ( $this->sources as $value ) {
+			if ( ! $value instanceof WP_Block_Bindings_Source ) {
+				throw new UnexpectedValueException();
+			}
+		}
 	}
 
 	/**
