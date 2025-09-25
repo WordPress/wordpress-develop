@@ -13,7 +13,7 @@ require_once __DIR__ . '/admin.php';
 require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ) ,403 );
+	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ), 403 );
 }
 
 // Used in the HTML title tag.
