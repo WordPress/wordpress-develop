@@ -416,6 +416,9 @@ img.wp-smiley,
 .gallery-columns-1 .gallery-icon img {
 	padding: 3%;
 }
+.is-style-rounded img {
+	border-radius: 50%;
+}
 
 /* Navigation */
 .site-content nav {
