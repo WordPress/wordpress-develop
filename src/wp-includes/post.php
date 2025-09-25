@@ -1301,15 +1301,18 @@ function get_post_status( $post = null ) {
 function get_post_statuses() {
 	$status = array();
 
-	$excluded_statuses = apply_filters( 'post_statuses_excluded_labels', array(
-		'trash',
-		'auto-draft',
-		'inherit',
-		'request-pending',
-		'request-confirmed',
-		'request-failed',
-		'request-completed',
-	));
+	$excluded_statuses = apply_filters(
+		'post_statuses_excluded_labels',
+		array(
+			'trash',
+			'auto-draft',
+			'inherit',
+			'request-pending',
+			'request-confirmed',
+			'request-failed',
+			'request-completed',
+		)
+	);
 
 	foreach ( get_post_stati() as $post_status_name => $value ) {
 		if ( ! array_key_exists( $post_status_name, $status ) && ! in_array( $post_status_name, $excluded_statuses, true ) ) {
