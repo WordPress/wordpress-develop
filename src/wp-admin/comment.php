@@ -381,7 +381,7 @@ switch ( $action ) {
 		exit;
 
 	default:
-		wp_die( __( 'Unknown action.', 400 ) );
+		wp_die( __( 'Unknown action.' ), 400 );
 
 } // End switch.
 
