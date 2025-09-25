@@ -827,7 +827,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * @param int   $new_attachment_id Attachment post ID for the new image.
 		 * @param int   $attachment_id     Attachment post ID for the edited (parent) image.
 		 */
-		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		$new_image_meta = apply_filters( 'wp_edited_image_metadata', $new_image_meta, $new_attachment_id, $attachment_id );
 
 		wp_update_attachment_metadata( $new_attachment_id, $new_image_meta );
