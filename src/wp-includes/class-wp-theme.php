@@ -812,7 +812,18 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.4.0
 	 */
 	public function __wakeup() {
-		$this->__unserialize( array() );
+		if ( $this->parent && ! $this->parent instanceof self ) {
+			throw new UnexpectedValueException();
+		}
+		if ( $this->headers && ! is_array( $this->headers ) ) {
+			throw new UnexpectedValueException();
+		}
+		foreach ( $this->headers as $value ) {
+			if ( ! is_string( $value ) ) {
+				throw new UnexpectedValueException();
+			}
+		}
+		$this->headers_sanitized = array();
 	}
 
 	/**
