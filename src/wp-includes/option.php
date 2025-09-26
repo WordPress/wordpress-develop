@@ -2043,18 +2043,18 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 * Returning a value other than false from the filter will short-circuit retrieval
 	 * and return that value instead.
 	 *
-	 * @param mixed  $pre         The value to return instead of the network option value. This differs
-	 *                            from `$default`, which is used as the fallback value in the event
-	 *                            the option doesn't exist elsewhere in get_network_option().
-	 *                            Default false (to skip past the short-circuit).
-	 * @param string $option      Name of the option.
-	 * @param int    $network_id ID of the network.
-	 * @param mixed  $default     The fallback value to return if the option does not exist.
-	 *                            Default false.
+	 * @param mixed  $pre         		The value to return instead of the network option value. This differs
+	 *                            		from `$default`, which is used as the fallback value in the event
+	 *                            		the option doesn't exist elsewhere in get_network_option().
+	 *                            		Default false (to skip past the short-circuit).
+	 * @param string $option      		Name of the option.
+	 * @param int    $network_id 		ID of the network.
+	 * @param mixed  $default_value     The fallback value to return if the option does not exist.
+	 *                            		Default false.
 	 *@since 6.9.0
 	 *
 	 */
-	$pre = apply_filters( 'pre_site_option', $pre, $option, $network_id, $default = false );
+	$pre = apply_filters( 'pre_site_option', $pre, $option, $network_id, $default_value );
 
 	if ( false !== $pre ) {
 		return $pre;
