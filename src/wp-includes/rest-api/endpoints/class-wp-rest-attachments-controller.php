@@ -587,8 +587,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 			if ( isset( $request['flip']['horizontal'] ) || isset( $request['flip']['vertical'] ) ) {
 				$flip_args = array(
-					'vertical'   => $request['flip']['vertical'] ?? 0,
-					'horizontal' => $request['flip']['horizontal'] ?? 0,
+					'vertical'   => isset( $request['flip']['vertical'] ) ? (bool) $request['flip']['vertical'] : false,
+					'horizontal' => isset( $request['flip']['horizontal'] ) ? (bool) $request['flip']['horizontal'] : false,
 				);
 
 				$modifiers[] = array(
@@ -658,7 +658,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					 * The vertical flip is the first argument (flip along horizontal axis), the horizontal flip is the second argument (flip along vertical axis).
 					 * See: WP_Image_Editor::flip()
 					 */
-					$result = $image_editor->flip( 0 !== (int) $args['flip']['vertical'], 0 !== (int) $args['flip']['horizontal'] );
+					$result = $image_editor->flip( $args['flip']['vertical'], $args['flip']['horizontal'] );
 					if ( is_wp_error( $result ) ) {
 						return new WP_Error(
 							'rest_image_flip_failed',
@@ -1558,7 +1558,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 									),
 									'properties'  => array(
 										'flip' => array(
-											'description' => __( 'Flip direction. [ horizontal, vertical ] 0 for no flip, 1 for flip.' ),
+											'description' => __( 'Flip direction. [ horizontal, vertical ]' ),
 											'type'        => 'object',
 											'required'    => array(
 												'horizontal',
@@ -1566,12 +1566,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 											),
 											'properties'  => array(
 												'horizontal' => array(
-													'description' => __( 'Horizontal flip direction. 0 for no flip, 1 for flip.' ),
-													'type' => 'number',
+													'description' => __( 'Whether to flip in the horizontal direction.' ),
+													'type' => 'boolean',
 												),
 												'vertical' => array(
-													'description' => __( 'Vertical flip direction. 0 for no flip, 1 for flip.' ),
-													'type' => 'number',
+													'description' => __( 'Whether to flip in the vertical direction.' ),
+													'type' => 'boolean',
 												),
 											),
 										),

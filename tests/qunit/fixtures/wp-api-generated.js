@@ -3445,7 +3445,7 @@ mockedApiResponse.Schema = {
                                                 ],
                                                 "properties": {
                                                     "flip": {
-                                                        "description": "Flip direction. [ horizontal, vertical ] 0 for no flip, 1 for flip.",
+                                                        "description": "Flip direction. [ horizontal, vertical ]",
                                                         "type": "object",
                                                         "required": [
                                                             "horizontal",
@@ -3453,12 +3453,12 @@ mockedApiResponse.Schema = {
                                                         ],
                                                         "properties": {
                                                             "horizontal": {
-                                                                "description": "Horizontal flip direction. 0 for no flip, 1 for flip.",
-                                                                "type": "number"
+                                                                "description": "Whether to flip in the horizontal direction.",
+                                                                "type": "boolean"
                                                             },
                                                             "vertical": {
-                                                                "description": "Vertical flip direction. 0 for no flip, 1 for flip.",
-                                                                "type": "number"
+                                                                "description": "Whether to flip in the vertical direction.",
+                                                                "type": "boolean"
                                                             }
                                                         }
                                                     }

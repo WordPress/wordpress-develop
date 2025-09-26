@@ -2751,8 +2751,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$params = array(
 			'flip' => array(
-				'vertical'   => 1,
-				'horizontal' => 1,
+				'vertical'   => true,
+				'horizontal' => true,
 			),
 			'src'  => wp_get_attachment_image_url( $attachment, 'full' ),
 		);
@@ -2768,12 +2768,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * Tests that the image is flipped correctly vertically.
+	 * Tests that the image is flipped correctly vertically only.
 	 *
 	 * @ticket 64035
 	 * @requires function imagejpeg
 	 */
-	public function test_edit_image_vertical_flip() {
+	public function test_edit_image_vertical_flip_with_horizontal_false() {
 		wp_set_current_user( self::$superadmin_id );
 		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
 
@@ -2782,7 +2782,38 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$params = array(
 			'flip' => array(
-				'vertical' => 1,
+				'vertical'   => true,
+				'horizontal' => false,
+			),
+			'src'  => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_flip_failed', $response, 500 );
+
+		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['flip'] );
+		// The controller converts the integer values to booleans: 0 !== (int) 1 = true.
+		$this->assertSame( array( true, false ), WP_Image_Editor_Mock::$spy['flip'][0], 'Vertical flip of the image is not identical.' );
+	}	
+
+	/**
+	 * Tests that the image is flipped correctly with only vertical flip in arguments.
+	 *
+	 * @ticket 64035
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_vertical_flip_only() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor();
+		WP_Image_Editor_Mock::$edit_return['flip'] = new WP_Error();
+
+		$params = array(
+			'flip' => array(
+				'vertical' => true,
 			),
 			'src'  => wp_get_attachment_image_url( $attachment, 'full' ),
 		);
