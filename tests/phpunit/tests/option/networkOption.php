@@ -420,4 +420,37 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$this->assertIsArray( $network_notoptions_cache_after, 'Multisite notoptions cache should be set.' );
 		$this->assertArrayHasKey( 'ticket_61730_notoption', $network_notoptions_cache_after, 'The option should be in the notoptions cache.' );
 	}
+
+	/**
+	 * Verifies that the global 'pre_site_option' filter short-circuits get_network_option().
+	 *
+	 * @ticket 56870
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::get_network_option
+	 */
+	public function test_pre_site_option_filter_short_circuits_get_network_option() {
+		$option      = 'ticket_56870_pre_site_option_short_circuit';
+		$network_id  = get_current_network_id();
+		$default_val = 'default-value';
+		$return_val  = 'filtered-value';
+
+		$callback = function( $pre, $opt, $net_id, $default ) use ( $option, $network_id, $return_val ) {
+			// Ensure the filter is invoked for the requested option and network, then short-circuit.
+			if ( $opt === $option && (int) $net_id === (int) $network_id ) {
+				return $return_val;
+			}
+			return $pre;
+		};
+
+		add_filter( 'pre_site_option', $callback, 10, 4 );
+		try {
+			// The global pre filter should short-circuit and return $return_val regardless of actual storage.
+			$this->assertSame( $return_val, get_network_option( $network_id, $option, $default_val ) );
+		} finally {
+			remove_filter( 'pre_site_option', $callback, 10 );
+		}
+	}
+
 }
