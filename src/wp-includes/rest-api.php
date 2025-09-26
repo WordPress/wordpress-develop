@@ -858,7 +858,7 @@ function rest_send_allow_header( $response, $server, $request ) {
 		return $response;
 	}
 
-	$routes = $server->get_routes();
+	$routes = $server->get_routes( '', $server::ROUTE_CONTEXT_LOADED_ONLY );
 
 	$allowed_methods = array();
 

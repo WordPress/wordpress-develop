@@ -64,6 +64,14 @@ class WP_REST_Server {
 	protected $namespaces = array();
 
 	/**
+	 * Lazily-loaded namespaces registered to the server.
+	 *
+	 * @since X.X.0
+	 * @var array
+	 */
+	protected $lazy_namespaces = array();
+
+	/**
 	 * Endpoints registered to the server.
 	 *
 	 * @since 4.4.0
@@ -94,6 +102,9 @@ class WP_REST_Server {
 	 * @var array
 	 */
 	protected $dispatching_requests = array();
+
+	public const ROUTE_CONTEXT_ALL = 'all';
+	public const ROUTE_CONTEXT_LOADED_ONLY = 'loaded_only';
 
 	/**
 	 * Instantiates the REST server.
@@ -885,6 +896,54 @@ class WP_REST_Server {
 	}
 
 	/**
+	 * Register a namespace for lazy loading
+	 *
+	 * @param string $route_namespace The namespace to register for lazy loading
+	 */
+	public function register_lazy_loaded_namespace( $route_namespace, ) {
+		if ( ! isset( $this->lazy_namespaces[ $route_namespace ] ) ) {
+			$this->lazy_namespaces[ $route_namespace ] = false;
+		} elseif( true === $this->lazy_namespaces[ $route_namespace ] ) {
+			_doing_it_wrong();
+		}
+	}
+
+	/**
+	 * Load a specific lazy namespace
+	 *
+	 * @param string $route_namespace
+	 *
+	 * @return bool True if loaded, false if not a lazy namespace
+	 */
+	protected function load_lazy_namespace( $route_namespace ) {
+		if ( ! isset( $this->lazy_namespaces[ $route_namespace ] ) ) {
+			return false;
+		}
+
+		if ( $this->lazy_namespaces[ $route_namespace ] ) {
+			return true; // Already loaded
+		}
+
+		$this->lazy_namespaces[ $route_namespace ] = true;
+
+		// Fire action for namespace loading
+		do_action( 'rest_lazy_load_namespace_' . $route_namespace );
+
+		return true;
+	}
+
+	/**
+	 * Load all lazy namespaces
+	 */
+	protected function load_all_lazy_namespaces() {
+		foreach ( $this->lazy_namespaces as $namespace => $has_loaded ) {
+			if ( ! $has_loaded ) {
+				$this->load_lazy_namespace( $namespace );
+			}
+		}
+	}
+
+	/**
 	 * Registers a route to the server.
 	 *
 	 * @since 4.4.0
@@ -953,7 +1012,16 @@ class WP_REST_Server {
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
 	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
 	 */
-	public function get_routes( $route_namespace = '' ) {
+	public function get_routes( $route_namespace = '', $context = self::ROUTE_CONTEXT_ALL ) {
+		if ( self::ROUTE_CONTEXT_LOADED_ONLY !== $context ) {
+			if ( $route_namespace ) {
+				// Load only the namespace requested
+				$this->load_lazy_namespace( $route_namespace );
+			} else {
+				$this->load_all_lazy_namespaces();
+			}
+		}
+
 		$endpoints = $this->endpoints;
 
 		if ( $route_namespace ) {
@@ -1032,6 +1100,7 @@ class WP_REST_Server {
 	 * @return string[] List of registered namespaces.
 	 */
 	public function get_namespaces() {
+		// @todo May need to make this use context to load all for backward compatibility
 		return array_keys( $this->namespaces );
 	}
 
@@ -1155,7 +1224,8 @@ class WP_REST_Server {
 
 		$with_namespace = array();
 
-		foreach ( $this->get_namespaces() as $namespace ) {
+		$all_registered_namespaces = array_keys( $this->namespaces + $this->lazy_namespaces );
+		foreach ( $all_registered_namespaces as $namespace ) {
 			if ( str_starts_with( trailingslashit( ltrim( $path, '/' ) ), $namespace ) ) {
 				$with_namespace[] = $this->get_routes( $namespace );
 			}
@@ -1164,7 +1234,8 @@ class WP_REST_Server {
 		if ( $with_namespace ) {
 			$routes = array_merge( ...$with_namespace );
 		} else {
-			$routes = $this->get_routes();
+			// Avoid loading all namespases as none match.
+			$routes = $this->get_routes( '', self::ROUTE_CONTEXT_LOADED_ONLY );
 		}
 
 		foreach ( $routes as $route => $handlers ) {
@@ -1357,6 +1428,9 @@ class WP_REST_Server {
 	 * @return WP_REST_Response The API root index data.
 	 */
 	public function get_index( $request ) {
+		// Pre-load all namespaces and endpoints.
+		$this->load_all_lazy_namespaces();
+
 		// General site data.
 		$available = array(
 			'name'            => get_option( 'blogname' ),
@@ -1370,7 +1444,7 @@ class WP_REST_Server {
 			'show_on_front'   => get_option( 'show_on_front' ),
 			'namespaces'      => array_keys( $this->namespaces ),
 			'authentication'  => array(),
-			'routes'          => $this->get_data_for_routes( $this->get_routes(), $request['context'] ),
+			'routes'          => $this->get_data_for_routes( $this->get_routes( '', self::ROUTE_CONTEXT_LOADED_ONLY ), $request['context'] ),
 		);
 
 		$response = new WP_REST_Response( $available );
@@ -1515,6 +1589,8 @@ class WP_REST_Server {
 	public function get_namespace_index( $request ) {
 		$namespace = $request['namespace'];
 
+		$this->load_lazy_namespace( $namespace );
+
 		if ( ! isset( $this->namespaces[ $namespace ] ) ) {
 			return new WP_Error(
 				'rest_invalid_namespace',
@@ -1524,7 +1600,8 @@ class WP_REST_Server {
 		}
 
 		$routes    = $this->namespaces[ $namespace ];
-		$endpoints = array_intersect_key( $this->get_routes(), $routes );
+		// @todo make sure this doesn't need to get matching child namespaes as well.
+		$endpoints = array_intersect_key( $this->get_routes( $namespace, self::ROUTE_CONTEXT_LOADED_ONLY ), $routes );
 
 		$data     = array(
 			'namespace' => $namespace,

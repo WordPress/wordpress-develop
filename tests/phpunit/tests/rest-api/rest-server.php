@@ -2611,6 +2611,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( array( 'GET', 'PUT' ), $link['targetHints']['allow'] );
 	}
 
+
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );
@@ -2683,5 +2685,430 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			array( 'alternate' ),
 			array( array( 'alternate' ) ),
 		);
+	}
+
+	/**
+	 * Verify route matching priority is based on the order of registration.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_route_priority_registration_order() {
+		// Register general route first
+		register_rest_route('priority-test/v1', '/items/(?P<id>[\\w-]+)', array(
+			array(
+				'methods' => 'GET',
+				'callback' => function($req) { return array('handler' => 'general', 'id' => $req['id']); },
+				'permission_callback' => '__return_true',
+			),
+		));
+		// Register specific route after general
+		register_rest_route('priority-test/v1', '/items/special', array(
+			array(
+				'methods' => 'GET',
+				'callback' => function() { return array('handler' => 'specific'); },
+				'permission_callback' => '__return_true',
+			),
+		));
+
+		// 'special' should match the general route (registered first)
+		$request = new WP_REST_Request('GET', '/priority-test/v1/items/special');
+		$response = rest_get_server()->dispatch($request);
+		$data = $response->get_data();
+		$this->assertEquals('general', $data['handler']);
+	}
+
+	/**
+	 * Verify route matching priority is based on the order of registration.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_route_priority_reverse_registration_order() {
+		// Register specific route first
+		register_rest_route('priority-test/v1', '/items/special', array(
+			array(
+				'methods' => 'GET',
+				'callback' => function() { return array('handler' => 'specific'); },
+				'permission_callback' => '__return_true',
+			),
+		));
+		// Register general route after specific
+		register_rest_route('priority-test/v1', '/items/(?P<id>[\\w-]+)', array(
+			array(
+				'methods' => 'GET',
+				'callback' => function($req) { return array('handler' => 'general', 'id' => $req['id']); },
+				'permission_callback' => '__return_true',
+			),
+		));
+
+		// 'special' should match the specific route (registered first)
+		$request = new WP_REST_Request('GET', '/priority-test/v1/items/special');
+		$response = rest_get_server()->dispatch($request);
+		$data = $response->get_data();
+		$this->assertEquals('specific', $data['handler']);
+	}
+
+
+	/**
+	 * @ticket 63946
+	 */
+	public function test_route_override_parameter_replaces_callback() {
+		// Register initial route.
+		register_rest_route('override-test/v1', '/thing', array(
+			'methods' => 'GET',
+			'callback' => function() { return array('version' => 'original'); },
+			'permission_callback' => '__return_true',
+		));
+		// Register again with override.
+		register_rest_route('override-test/v1', '/thing', array(
+			'methods' => 'GET',
+			'callback' => function() { return array('version' => 'override'); },
+			'permission_callback' => '__return_true',
+		), true);
+
+		$request = new WP_REST_Request('GET', '/override-test/v1/thing');
+		$response = rest_get_server()->dispatch($request);
+		$data = $response->get_data();
+		$this->assertEquals('override', $data['version']);
+	}
+
+	/**
+	 * Test basic lazy namespace registration.
+	 *
+	 * @ticket 63946
+	 * */
+	public function test_lazy_namespace_registration() {
+		$server = rest_get_server();
+
+		// Register a lazy namespace.
+		$server->register_lazy_loaded_namespace( 'lazy-test/v1' );
+
+		// @todo Determine whether lazy loaded namespaces need to be loaded with an external ::get_namespaces() call.
+		// Should not appear in regular namespaces yet.
+		$namespaces = $server->get_namespaces();
+		$this->assertNotContains( 'lazy-test/v1', $namespaces );
+	}
+
+	/**
+	 * Test lazy namespace loading via action hook.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_lazy_namespace_loading_via_action() {
+		$server = rest_get_server();
+		$server->register_lazy_loaded_namespace( 'lazy-action/v1' );
+
+		$action_called = false;
+		$action_namespace = '';
+
+		// Hook to simulate route registration.
+		add_action( 'rest_lazy_load_namespace_lazy-action/v1', function() use ( &$action_called, &$action_namespace ) {
+			$action_called = true;
+			$action_namespace = 'lazy-action/v1';
+
+			// Register actual routes when lazy loading.
+			register_rest_route( 'lazy-action/v1', '/test', array(
+				'methods'             => 'GET',
+				'callback'            => function() { return array( 'loaded' => true ); },
+				'permission_callback' => '__return_true',
+			) );
+		} );
+
+		// Trigger lazy loading by requesting routes.
+		$routes = $server->get_routes( 'lazy-action/v1' );
+
+		// Action should have been called.
+		$this->assertTrue( $action_called );
+		$this->assertEquals( 'lazy-action/v1', $action_namespace );
+
+		// Routes should now be available.
+		$this->assertArrayHasKey( '/lazy-action/v1/test', $routes );
+	}
+
+	/**
+	 * Test that lazy loading only happens once per namespace.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_lazy_namespace_loads_only_once() {
+		$server = rest_get_server();
+		$server->register_lazy_loaded_namespace( 'lazy-once/v1' );
+
+		$load_count = 0;
+
+		add_action( 'rest_lazy_load_namespace_lazy-once/v1', function() use ( &$load_count ) {
+			$load_count++;
+			register_rest_route( 'lazy-once/v1', '/test', array(
+				'methods'             => 'GET',
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+			) );
+		} );
+
+		// Call multiple times that should trigger loading.
+		$server->get_routes( 'lazy-once/v1' );
+		$server->get_routes( 'lazy-once/v1' );
+
+		// Should only load once.
+		$this->assertEquals( 1, $load_count );
+	}
+
+	/**
+	 * Test get_routes() with empty namespace loads all lazy namespaces.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_get_routes_empty_namespace_loads_all_lazy() {
+		$server = rest_get_server();
+
+		// Register multiple lazy namespaces.
+		$server->register_lazy_loaded_namespace( 'lazy-all-1/v1' );
+		$server->register_lazy_loaded_namespace( 'lazy-all-2/v1' );
+
+		$loaded_namespaces = array();
+
+		add_action( 'rest_lazy_load_namespace_lazy-all-1/v1', function() use ( &$loaded_namespaces ) {
+			$loaded_namespaces[] = 'lazy-all-1/v1';
+			register_rest_route( 'lazy-all-1/v1', '/test1', array(
+				'methods'             => 'GET',
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+			) );
+		} );
+
+		add_action( 'rest_lazy_load_namespace_lazy-all-2/v1', function() use ( &$loaded_namespaces ) {
+			$loaded_namespaces[] = 'lazy-all-2/v1';
+			register_rest_route( 'lazy-all-2/v1', '/test2', array(
+				'methods'             => 'GET',
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+			) );
+		} );
+
+		$routes = $server->get_routes();
+
+		// Both namespaces should have been loaded.
+		$this->assertContains( 'lazy-all-1/v1', $loaded_namespaces );
+		$this->assertContains( 'lazy-all-2/v1', $loaded_namespaces );
+		$this->assertArrayHasKey( '/lazy-all-1/v1/test1', $routes );
+		$this->assertArrayHasKey( '/lazy-all-2/v1/test2', $routes );
+	}
+
+	/**
+	 * Test route dispatch triggers lazy loading for matching namespace.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_route_dispatch_triggers_lazy_loading() {
+		$server = rest_get_server();
+		$server->register_lazy_loaded_namespace( 'lazy-dispatch/v1' );
+
+		$dispatched = false;
+
+		add_action( 'rest_lazy_load_namespace_lazy-dispatch/v1', function() use ( &$dispatched ) {
+			$dispatched = true;
+			register_rest_route( 'lazy-dispatch/v1', '/endpoint', array(
+				'methods'             => 'GET',
+				'callback'            => function() { return array( 'success' => true ); },
+				'permission_callback' => '__return_true',
+			) );
+		} );
+
+		// Make a request that should trigger lazy loading.
+		$request = new WP_REST_Request( 'GET', '/lazy-dispatch/v1/endpoint' );
+		$response = $server->dispatch( $request );
+
+		$this->assertTrue( $dispatched );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertTrue( $data['success'] );
+	}
+
+	/**
+	 * Test mixed regular and lazy namespaces work together.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_mixed_regular_and_lazy_namespaces() {
+		$server = rest_get_server();
+
+		// Register regular namespace.
+		register_rest_route( 'regular/v1', '/test', array(
+			'methods'             => 'GET',
+			'callback'            => function() { return array( 'type' => 'regular' ); },
+			'permission_callback' => '__return_true',
+		) );
+
+		// Register lazy namespace.
+		$server->register_lazy_loaded_namespace( 'lazy-mixed/v1' );
+
+		add_action( 'rest_lazy_load_namespace_lazy-mixed/v1', function() {
+			register_rest_route( 'lazy-mixed/v1', '/test', array(
+				'methods'             => 'GET',
+				'callback'            => function() { return array( 'type' => 'lazy' ); },
+				'permission_callback' => '__return_true',
+			) );
+		} );
+
+		// Test regular namespace works.
+		$request = new WP_REST_Request( 'GET', '/regular/v1/test' );
+		$response = $server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'regular', $data['type'] );
+
+		// Test lazy namespace works.
+		$request = new WP_REST_Request( 'GET', '/lazy-mixed/v1/test' );
+		$response = $server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'lazy', $data['type'] );
+	}
+
+	/**
+	 * Test same namespace registered both lazy and regular.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_same_namespace_lazy_and_regular() {
+		$server = rest_get_server();
+
+		// Register regular route first.
+		register_rest_route( 'shared/v1', '/regular', array(
+			'methods'             => 'GET',
+			'callback'            => function() { return array( 'source' => 'regular' ); },
+			'permission_callback' => '__return_true',
+		) );
+
+		// Register lazy namespace with same base.
+		$server->register_lazy_loaded_namespace( 'shared/v1' );
+
+		add_action( 'rest_lazy_load_namespace_shared/v1', function() {
+			register_rest_route( 'shared/v1', '/lazy', array(
+				'methods'             => 'GET',
+				'callback'            => function() { return array( 'source' => 'lazy' ); },
+				'permission_callback' => '__return_true',
+			) );
+		} );
+
+		// Both routes should work.
+		$request = new WP_REST_Request( 'GET', '/shared/v1/regular' );
+		$response = $server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'regular', $data['source'] );
+
+		$request = new WP_REST_Request( 'GET', '/shared/v1/lazy' );
+		$response = $server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'lazy', $data['source'] );
+	}
+
+	/**
+	 * Test root index loads all lazy namespaces.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_root_index_loads_all_lazy_namespaces() {
+		$server = rest_get_server();
+		$server->register_lazy_loaded_namespace( 'lazy-index/v1' );
+
+		$loaded = false;
+
+		add_action( 'rest_lazy_load_namespace_lazy-index/v1', function() use ( &$loaded ) {
+			$loaded = true;
+			register_rest_route( 'lazy-index/v1', '/test', array(
+				'methods'             => 'GET',
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+			) );
+		} );
+
+		// Request root index.
+		$request = new WP_REST_Request( 'GET', '/' );
+		$response = $server->dispatch( $request );
+
+		$this->assertTrue( $loaded );
+		$data = $response->get_data();
+		$this->assertContains( 'lazy-index/v1', $data['namespaces'] );
+	}
+
+	/**
+	 * Test namespace index triggers lazy loading.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_namespace_index_triggers_lazy_loading() {
+		$server = rest_get_server();
+		$server->register_lazy_loaded_namespace( 'lazy-ns-index/v1' );
+
+		$loaded = false;
+
+		add_action( 'rest_lazy_load_namespace_lazy-ns-index/v1', function() use ( &$loaded ) {
+			$loaded = true;
+			register_rest_route( 'lazy-ns-index/v1', '/test', array(
+				'methods'             => 'GET',
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+			) );
+		} );
+
+		// Request namespace index.
+		$request = new WP_REST_Request( 'GET', '/lazy-ns-index/v1' );
+		$response = $server->dispatch( $request );
+
+		$this->assertTrue( $loaded );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 'lazy-ns-index/v1', $data['namespace'] );
+		$this->assertArrayHasKey( '/lazy-ns-index/v1/test', $data['routes'] );
+	}
+
+	/**
+	 * Test lazy namespace doesn't load when not needed.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_lazy_namespace_no_unnecessary_loading() {
+		$server = rest_get_server();
+		$server->register_lazy_loaded_namespace( 'lazy-unused/v1' );
+
+		$loaded = false;
+
+		add_action( 'rest_lazy_load_namespace_lazy-unused/v1', function() use ( &$loaded ) {
+			$loaded = true;
+		} );
+
+		// Register and request a different namespace.
+		register_rest_route( 'other/v1', '/test', array(
+			'methods'             => 'GET',
+			'callback'            => '__return_true',
+			'permission_callback' => '__return_true',
+		) );
+
+		$request = new WP_REST_Request( 'GET', '/other/v1/test' );
+		$response = $server->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertFalse( $loaded, 'Lazy namespace should not load when not needed' );
+	}
+
+	/**
+	 * Test double registration of same lazy namespace.
+	 *
+	 * @ticket 63946
+	 */
+	public function test_double_lazy_namespace_registration() {
+		$server = rest_get_server();
+
+		// Register same namespace twice.
+		$server->register_lazy_loaded_namespace( 'lazy-double/v1' );
+		$server->register_lazy_loaded_namespace( 'lazy-double/v1' );
+
+		$times_loaded = 0;
+		add_action( 'rest_lazy_load_namespace_lazy-double/v1', function() use ( &$times_loaded ) {
+			++$times_loaded;
+		} );
+
+		$server->get_routes();
+
+		$this->assertEquals( 1, $times_loaded, 'A namespace registered multiple times should only trigger the load action once.' );
 	}
 }
