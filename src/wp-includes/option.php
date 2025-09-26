@@ -2054,7 +2054,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 *@since 6.9.0
 	 *
 	 */
-	$pre = apply_filters( 'pre_site_option', $pre, $option, $network_id, $default_value = false );
+	$pre = apply_filters( 'pre_site_option', $pre, $option, $network_id, $default_value );
 
 	if ( false !== $pre ) {
 		return $pre;
