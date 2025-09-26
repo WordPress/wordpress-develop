@@ -2796,7 +2796,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['flip'] );
 		// The controller converts the integer values to booleans: 0 !== (int) 1 = true.
 		$this->assertSame( array( true, false ), WP_Image_Editor_Mock::$spy['flip'][0], 'Vertical flip of the image is not identical.' );
-	}	
+	}
 
 	/**
 	 * Tests that the image is flipped correctly with only vertical flip in arguments.
