@@ -202,7 +202,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 *     @type string $post_state The post state to test.
 	 * }
 	 */
-	public function data_filter_post_states_string_should_enable_post_state_html_output_modification() {
+	public static function data_filter_post_states_string_should_enable_post_state_html_output_modification() {
 		return array(
 			array( 'publish' ),
 			array( 'future' ),
