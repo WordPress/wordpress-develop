@@ -436,7 +436,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$default_val = 'default-value';
 		$return_val  = 'filtered-value';
 
-		$callback = function( $pre, $opt, $net_id, $default ) use ( $option, $network_id, $return_val ) {
+		$callback = function ( $pre, $opt, $net_id, $default ) use ( $option, $network_id, $return_val ) {
 			// Ensure the filter is invoked for the requested option and network, then short-circuit.
 			if ( $opt === $option && (int) $net_id === (int) $network_id ) {
 				return $return_val;
@@ -452,5 +452,4 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 			remove_filter( 'pre_site_option', $callback, 10 );
 		}
 	}
-
 }
