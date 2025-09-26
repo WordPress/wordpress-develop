@@ -619,13 +619,13 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_start_template_output_buffer() starts the expected output buffer but cleaning prevents any processing.
+	 * Tests that wp_start_template_output_buffer() starts the expected output buffer but ending with cleaning prevents any processing.
 	 *
 	 * @ticket 43258
 	 * @covers ::wp_start_template_output_buffer
-	 * @covers ::wp_finalize_template_output_buffers
+	 * @covers ::wp_finalize_template_output_buffer
 	 */
-	public function test_wp_start_template_output_buffer_cleaned(): void {
+	public function test_wp_start_template_output_buffer_ended_cleaned(): void {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
@@ -695,11 +695,89 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that wp_start_template_output_buffer() starts the expected output buffer and cleaning allows the template to be replaced.
+	 *
+	 * @ticket 43258
+	 * @covers ::wp_start_template_output_buffer
+	 * @covers ::wp_finalize_template_output_buffer
+	 */
+	public function test_wp_start_template_output_buffer_cleaned_and_replaced(): void {
+		// Start a wrapper output buffer so that we can flush the inner buffer.
+		ob_start();
+
+		$called_html_filter = false;
+		add_filter(
+			'wp_template_output_buffer_html',
+			static function ( string $buffer ) use ( &$called_html_filter ): string {
+				$called_html_filter = true;
+
+				$p = WP_HTML_Processor::create_full_parser( $buffer );
+				if ( $p->next_tag( array( 'tag_name' => 'TITLE' ) ) ) {
+					$p->set_modifiable_text( 'Processed' );
+				}
+				return $p->get_updated_html();
+			}
+		);
+
+		$called_filter = false;
+		add_filter(
+			'wp_template_output_buffer',
+			function ( string $buffer ) use ( &$called_filter ): string {
+				$called_filter = true;
+
+				$buffer .= "\n<!-- Output buffer was processed! -->\n";
+				return $buffer;
+			}
+		);
+
+		$initial_ob_level = ob_get_level();
+		$this->assertTrue( wp_start_template_output_buffer() );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
+
+		?>
+		<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<title>Unprocessed</title>
+			</head>
+			<body>
+				<h1>Hello World!</h1>
+				<!-- ... -->
+		<?php ob_clean(); // Clean the buffer started by wp_start_template_output_buffer(), allowing the following document to replace the above.. ?>
+		<!DOCTYPE html>
+		<html lang="en">
+			<head>
+				<title>Template Replaced</title>
+			</head>
+			<body>
+				<h1>Template Replaced</h1>
+				<p>The original template called <code>ob_clean()</code> which allowed this template to take its place.</p>
+			</body>
+		</html>
+		<?php
+
+		ob_end_flush(); // End the buffer started by wp_start_template_output_buffer().
+		$this->assertSame( $initial_ob_level, ob_get_level() );
+
+		$this->assertTrue( $called_html_filter );
+		$this->assertTrue( $called_filter );
+		$this->assertSame( 1, did_action( 'wp_final_template_output_buffer' ) );
+
+		// Obtain the output via the wrapper output buffer.
+		$output = ob_get_clean();
+		$this->assertIsString( $output );
+		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output );
+		$this->assertStringContainsString( '<title>Processed</title>', $output );
+		$this->assertStringContainsString( '<!-- Output buffer was processed! -->', $output );
+		$this->assertStringContainsString( '<h1>Template Replaced</h1>', $output );
+	}
+
+	/**
 	 * Tests that wp_start_template_output_buffer() starts the expected output buffer and that the expected hooks fire for JSON response.
 	 *
 	 * @ticket 43258
 	 * @covers ::wp_start_template_output_buffer
-	 * @covers ::wp_finalize_template_output_buffers
+	 * @covers ::wp_finalize_template_output_buffer
 	 */
 	public function test_wp_start_template_output_buffer_for_json(): void {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
