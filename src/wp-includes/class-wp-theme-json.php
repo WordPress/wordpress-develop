@@ -950,7 +950,7 @@ class WP_Theme_JSON {
 	 */
 	protected static function sanitize( $input, $valid_block_names, $valid_element_names, $valid_variations ) {
 
-		$input_cache_key = md5( wp_json_encode( compact( 'input', 'valid_block_names', 'valid_element_names', 'valid_variations' ) ) );
+		$input_cache_key = md5( serialize( compact( 'input', 'valid_block_names', 'valid_element_names', 'valid_variations' ) ) );
 		if ( isset( self::$sanitize_input_cache[ $input_cache_key ] ) ) {
 			return self::$sanitize_input_cache[ $input_cache_key ];
 		}
