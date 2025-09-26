@@ -177,9 +177,8 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	public function test_filter_post_states_string_should_enable_post_state_html_output_modification( $post_state ) {
 		$post = get_post( self::$post_ids[ $post_state ] );
 
-		$random_string   = wp_generate_password( 12 );
 		$original_output = _post_states( $post, false );
-		$text_to_append  = '<span class="post-state">, ' . $random_string . '</span>';
+		$text_to_append  = '<span class="post-state">, Sample state</span>';
 
 		add_filter(
 			'post_states_string',
