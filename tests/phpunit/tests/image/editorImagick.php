@@ -708,7 +708,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 *
 	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
 	 * See https://core.trac.wordpress.org/ticket/63932.
-	 * @requires PHP < 8.3
+	 * @requires PHP < 8.1
 	 */
 	public function test_image_max_bit_depth() {
 		$file                 = DIR_TESTDATA . '/images/colors_hdr_p3.avif';
