@@ -169,6 +169,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 * Ensure the `post_states_string` filter works to modify post state output.
 	 *
 	 * @ticket 51403
+	 *
 	 * @dataProvider data_filter_post_states_string_should_enable_post_state_html_output_modification
 	 *
 	 * @param string $post_state The post state to test.
