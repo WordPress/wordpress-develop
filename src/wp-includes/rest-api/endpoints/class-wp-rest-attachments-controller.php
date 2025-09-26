@@ -70,6 +70,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * prepares for WP_Query.
 	 *
 	 * @since 4.7.0
+	 * @since 6.9.0 Added the `media_types` parameter to filter by multiple media types.
 	 *
 	 * @param array           $prepared_args Optional. Array of prepared arguments. Default empty array.
 	 * @param WP_REST_Request $request       Optional. Request to prepare items for.
