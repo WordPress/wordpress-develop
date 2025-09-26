@@ -182,7 +182,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 
 		add_filter(
 			'post_states_string',
-			function ( $post_states_string, $post ) use ( $text_to_append ) {
+			static function ( $post_states_string, $post ) use ( $text_to_append ) {
 				return $post_states_string . $text_to_append;
 			},
 			10,
