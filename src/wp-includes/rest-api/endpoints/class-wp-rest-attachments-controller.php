@@ -88,6 +88,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
 		}
 
+		if ( empty( $query_args['post_mime_type'] ) && ! empty( $request['media_types'] ) && is_array( $request['media_types'] ) ) {
+			$mime_types_query = array();
+
+			foreach ( $request['media_types'] as $media_type ) {
+				if ( isset( $media_types[ $media_type ] ) ) {
+					$mime_types_query[] = $media_type;
+				}
+			}
+
+			$query_args['post_mime_type'] = $mime_types_query;
+		}
+
 		if ( ! empty( $request['mime_type'] ) ) {
 			$parts = explode( '/', $request['mime_type'] );
 			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ], true ) ) {
@@ -1342,6 +1354,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Retrieves the query params for collections of attachments.
 	 *
 	 * @since 4.7.0
+	 * @since 6.6.0 Adds the `media_types` parameter to filter by multiple media types.
 	 *
 	 * @return array Query parameters for the attachment collection as an array.
 	 */
@@ -1349,13 +1362,23 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$params                            = parent::get_collection_params();
 		$params['status']['default']       = 'inherit';
 		$params['status']['items']['enum'] = array( 'inherit', 'private', 'trash' );
-		$media_types                       = $this->get_media_types();
+		$media_types                       = array_keys( $this->get_media_types() );
 
 		$params['media_type'] = array(
 			'default'     => null,
 			'description' => __( 'Limit result set to attachments of a particular media type.' ),
 			'type'        => 'string',
-			'enum'        => array_keys( $media_types ),
+			'enum'        => $media_types,
+		);
+
+		$params['media_types'] = array(
+			'default'     => null,
+			'description' => __( 'Limit result set to an array of media types.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'type' => 'string',
+				'enum' => $media_types,
+			),
 		);
 
 		$params['mime_type'] = array(

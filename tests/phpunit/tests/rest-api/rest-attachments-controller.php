@@ -38,6 +38,17 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	private static $test_svg_file;
 
 	/**
+	 * @var string The path to the test video.
+	 */
+	private static $test_video_file;
+
+	/**
+	 * @var string The path to the test audio.
+	 */
+	private static $test_audio_file;
+
+
+	/**
 	 * @var array The recorded posts query clauses.
 	 */
 	protected $posts_clauses;
@@ -85,6 +96,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		if ( file_exists( self::$test_avif_file ) ) {
 			unlink( self::$test_avif_file );
 		}
+		if ( file_exists( self::$test_video_file ) ) {
+			unlink( self::$test_video_file );
+		}
+		if ( file_exists( self::$test_audio_file ) ) {
+			unlink( self::$test_audio_file );
+		}
 
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$author_id );
@@ -124,6 +141,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		self::$test_svg_file = get_temp_dir() . 'video-play.svg';
 		if ( ! file_exists( self::$test_svg_file ) ) {
 			copy( $test_svg_file, self::$test_svg_file );
+		}
+
+		$test_video_file       = DIR_TESTDATA . '/uploads/small-video.mp4';
+		self::$test_video_file = get_temp_dir() . 'small-video.mp4';
+		if ( ! file_exists( self::$test_video_file ) ) {
+			copy( $test_video_file, self::$test_video_file );
+		}
+
+		$test_audio_file       = DIR_TESTDATA . '/uploads/small-audio.mp3';
+		self::$test_audio_file = get_temp_dir() . 'small-audio.mp3';
+		if ( ! file_exists( self::$test_audio_file ) ) {
+			copy( $test_audio_file, self::$test_audio_file );
 		}
 
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
@@ -242,6 +271,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'exclude',
 				'include',
 				'media_type',
+				'media_types',
 				'mime_type',
 				'modified_after',
 				'modified_before',
@@ -2826,5 +2856,106 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['flip'] );
 		// The controller converts the integer values to booleans: 0 !== (int) 1 = true.
 		$this->assertSame( array( true, false ), WP_Image_Editor_Mock::$spy['flip'][0], 'Vertical flip of the image is not identical.' );
+	}
+
+	/**
+	 * @ticket ??????
+	 */
+	public function test_get_items_with_media_types() {
+		$video_id = self::factory()->attachment->create_object(
+			self::$test_video_file,
+			0,
+			array(
+				'post_mime_type' => 'video/mp4',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$audio_id = self::factory()->attachment->create_object(
+			self::$test_audio_file,
+			0,
+			array(
+				'post_mime_type' => 'audio/mpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$image_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_types', array( 'audio', 'video' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
+		$this->assertContains( $video_id, wp_list_pluck( $response->get_data(), 'id' ), 'Video ID not found in response for [audio, video]' );
+		$this->assertContains( $audio_id, wp_list_pluck( $response->get_data(), 'id' ), 'Audio ID not found in response for [audio, video]' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_types', array( 'image' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+		$this->assertContains( $image_id, wp_list_pluck( $response->get_data(), 'id' ), 'Image ID not found in response for [image]' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_types', array( 'image', 'audio' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
+		$this->assertContains( $image_id, wp_list_pluck( $response->get_data(), 'id' ), 'Image ID not found in response for [image, audio]' );
+		$this->assertContains( $audio_id, wp_list_pluck( $response->get_data(), 'id' ), 'Audio ID not found in response for [image, audio]' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_types', array( 'image', 'video', 'audio' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 3, $response->get_data() );
+		$this->assertContains( $image_id, wp_list_pluck( $response->get_data(), 'id' ), 'Image ID not found in response for [image, video, audio]' );
+		$this->assertContains( $video_id, wp_list_pluck( $response->get_data(), 'id' ), 'Video ID not found in response for [image, video, audio]' );
+		$this->assertContains( $audio_id, wp_list_pluck( $response->get_data(), 'id' ), 'Audio ID not found in response for [image, video, audio]' );
+	}
+
+	/**
+	 * Test that the `media_type` parameter overrides the `media_types` parameter.
+	 *
+	 * @ticket ??????
+	 */
+	public function test_get_items_with_media_type_and_media_types() {
+		self::factory()->attachment->create_object(
+			self::$test_video_file,
+			0,
+			array(
+				'post_mime_type' => 'video/mp4',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		self::factory()->attachment->create_object(
+			self::$test_audio_file,
+			0,
+			array(
+				'post_mime_type' => 'audio/mpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$image_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_types', array( 'audio', 'video' ) );
+		$request->set_param( 'media_type', 'image' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+		$this->assertContains( $image_id, wp_list_pluck( $response->get_data(), 'id' ), 'Image ID not found in response' );
 	}
 }
