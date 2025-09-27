@@ -1196,17 +1196,34 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$t_time    = __( 'Unpublished' );
 			$time_diff = 0;
 		} else {
-			$t_time = sprintf(
-				/* translators: 1: Post date, 2: Post time. */
-				__( '%1$s at %2$s' ),
-				/* translators: Post date format. See https://www.php.net/manual/datetime.format.php */
-				get_the_time( __( 'Y/m/d' ), $post ),
-				/* translators: Post time format. See https://www.php.net/manual/datetime.format.php */
-				get_the_time( __( 'g:i a' ), $post )
-			);
-
-			$time      = get_post_timestamp( $post );
-			$time_diff = time() - $time;
+			// For published posts, show the publication date
+			// For non-published posts (drafts, scheduled, pending, etc.), show the last modified date
+			if ( 'publish' === $post->post_status ) {
+				$t_time = sprintf(
+					/* translators: 1: Post date, 2: Post time. */
+					__( '%1$s at %2$s' ),
+					/* translators: Post date format. See https://www.php.net/manual/datetime.format.php */
+					get_the_time( __( 'Y/m/d' ), $post ),
+					/* translators: Post time format. See https://www.php.net/manual/datetime.format.php */
+					get_the_time( __( 'g:i a' ), $post )
+				);
+	
+				$time      = get_post_timestamp( $post );
+				$time_diff = time() - $time;
+			} else {
+				// For non-published posts, show the last modified date
+				$t_time = sprintf(
+					/* translators: 1: Post modified date, 2: Post modified time. */
+					__( '%1$s at %2$s' ),
+					/* translators: Post modified date format. See https://www.php.net/manual/datetime.format.php */
+					get_the_modified_time( __( 'Y/m/d' ), $post ),
+					/* translators: Post modified time format. See https://www.php.net/manual/datetime.format.php */
+					get_the_modified_time( __( 'g:i a' ), $post )
+				);
+		
+				$time      = get_post_timestamp( $post, 'modified' );
+				$time_diff = time() - $time;
+			}
 		}
 
 		if ( 'publish' === $post->post_status ) {
