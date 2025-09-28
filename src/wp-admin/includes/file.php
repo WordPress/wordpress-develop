@@ -30,7 +30,7 @@ $wp_file_descriptions = array(
 	'category.php'          => __( 'Category Template' ),
 	'tag.php'               => __( 'Tag Template' ),
 	'home.php'              => __( 'Posts Page' ),
-	'search.php'            => __( 'Search Results' ),
+	'search.php'            => __( 'Search results' ),
 	'date.php'              => __( 'Date Template' ),
 	// Content.
 	'singular.php'          => __( 'Singular Template' ),

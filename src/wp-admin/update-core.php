@@ -498,7 +498,7 @@ function list_plugin_updates() {
 	<thead>
 	<tr>
 		<td class="manage-column check-column"><input type="checkbox" id="plugins-select-all" /></td>
-		<td class="manage-column"><label for="plugins-select-all"><?php _e( 'Select All' ); ?></label></td>
+		<td class="manage-column"><label for="plugins-select-all"><?php _e( 'Select all' ); ?></label></td>
 	</tr>
 	</thead>
 
@@ -622,7 +622,7 @@ function list_plugin_updates() {
 	<tfoot>
 	<tr>
 		<td class="manage-column check-column"><input type="checkbox" id="plugins-select-all-2" /></td>
-		<td class="manage-column"><label for="plugins-select-all-2"><?php _e( 'Select All' ); ?></label></td>
+		<td class="manage-column"><label for="plugins-select-all-2"><?php _e( 'Select all' ); ?></label></td>
 	</tr>
 	</tfoot>
 </table>
@@ -674,7 +674,7 @@ function list_theme_updates() {
 	<thead>
 	<tr>
 		<td class="manage-column check-column"><input type="checkbox" id="themes-select-all" /></td>
-		<td class="manage-column"><label for="themes-select-all"><?php _e( 'Select All' ); ?></label></td>
+		<td class="manage-column"><label for="themes-select-all"><?php _e( 'Select all' ); ?></label></td>
 	</tr>
 	</thead>
 
@@ -798,7 +798,7 @@ function list_theme_updates() {
 	<tfoot>
 	<tr>
 		<td class="manage-column check-column"><input type="checkbox" id="themes-select-all-2" /></td>
-		<td class="manage-column"><label for="themes-select-all-2"><?php _e( 'Select All' ); ?></label></td>
+		<td class="manage-column"><label for="themes-select-all-2"><?php _e( 'Select all' ); ?></label></td>
 	</tr>
 	</tfoot>
 </table>

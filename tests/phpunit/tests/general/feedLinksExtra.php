@@ -369,11 +369,11 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 				),
 			),
 			'search results'                               => array(
-				'title' => 'Test Blog &raquo; Search Results for &#8220;Search&#8221; Feed',
+				'title' => 'Test Blog &raquo; Search results for &#8220;Search&#8221; Feed',
 				'type'  => 'search',
 			),
 			'search results and a custom separator'        => array(
-				'title' => 'Test Blog // Search Results for &#8220;Search&#8221; Feed',
+				'title' => 'Test Blog // Search results for &#8220;Search&#8221; Feed',
 				'type'  => 'search',
 				'args'  => array(
 					'separator' => '//',

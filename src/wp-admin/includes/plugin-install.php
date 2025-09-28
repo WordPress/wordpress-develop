@@ -352,7 +352,7 @@ function install_plugins_upload() {
 			?>
 		</label>
 		<input type="file" id="pluginzip" name="pluginzip" accept=".zip" />
-		<?php submit_button( _x( 'Install Now', 'plugin' ), '', 'install-plugin-submit', false ); ?>
+		<?php submit_button( _x( 'Install now', 'plugin' ), '', 'install-plugin-submit', false ); ?>
 	</form>
 </div>
 	<?php
@@ -659,7 +659,7 @@ function install_plugin_information() {
 			<?php } if ( ! empty( $api->author ) ) { ?>
 				<li><strong><?php _e( 'Author:' ); ?></strong> <?php echo links_add_target( $api->author, '_blank' ); ?></li>
 			<?php } if ( ! empty( $api->last_updated ) ) { ?>
-				<li><strong><?php _e( 'Last Updated:' ); ?></strong>
+				<li><strong><?php _e( 'Last updated:' ); ?></strong>
 					<?php
 					/* translators: %s: Human-readable time difference. */
 					printf( __( '%s ago' ), human_time_diff( strtotime( $api->last_updated ) ) );
@@ -948,12 +948,12 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 							/* translators: %s: Plugin name and version. */
 							esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $name ) ),
 							esc_attr( $name ),
-							_x( 'Install Now', 'plugin' )
+							_x( 'Install now', 'plugin' )
 						);
 					} else {
 						$button = sprintf(
 							'<button type="button" class="install-now button button-disabled" disabled="disabled">%s</button>',
-							_x( 'Install Now', 'plugin' )
+							_x( 'Install now', 'plugin' )
 						);
 					}
 				}
@@ -970,12 +970,12 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 							/* translators: %s: Plugin name and version. */
 							esc_attr( sprintf( _x( 'Update %s now', 'plugin' ), $name ) ),
 							esc_attr( $name ),
-							_x( 'Update Now', 'plugin' )
+							_x( 'Update now', 'plugin' )
 						);
 					} else {
 						$button = sprintf(
 							'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-							_x( 'Update Now', 'plugin' )
+							_x( 'Update now', 'plugin' )
 						);
 					}
 				}

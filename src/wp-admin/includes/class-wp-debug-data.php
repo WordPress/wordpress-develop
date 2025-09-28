@@ -1191,7 +1191,7 @@ class WP_Debug_Data {
 		}
 
 		return array(
-			'label'  => __( 'Active Theme' ),
+			'label'  => __( 'Active theme' ),
 			'fields' => $fields,
 		);
 	}

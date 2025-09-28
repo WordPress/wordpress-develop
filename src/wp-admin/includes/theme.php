@@ -894,7 +894,7 @@ function customize_themes_print_templates() {
 					<# if ( data.hasUpdate ) { #>
 						<# if ( data.updateResponse.compatibleWP && data.updateResponse.compatiblePHP ) { #>
 							<div class="notice notice-warning notice-alt notice-large" data-slug="{{ data.id }}">
-								<h3 class="notice-title"><?php _e( 'Update Available' ); ?></h3>
+								<h3 class="notice-title"><?php _e( 'Update available' ); ?></h3>
 								{{{ data.update }}}
 							</div>
 						<# } else { #>
@@ -1073,9 +1073,9 @@ function customize_themes_print_templates() {
 						<# } #>
 					<# } else { #>
 						<# if ( data.compatibleWP && data.compatiblePHP ) { #>
-							<button type="button" class="button button-primary preview-theme" data-slug="{{ data.id }}"><?php _e( 'Live Preview' ); ?></button>
+							<button type="button" class="button button-primary preview-theme" data-slug="{{ data.id }}"><?php _e( 'Live preview' ); ?></button>
 						<# } else { #>
-							<button class="button button-primary disabled"><?php _e( 'Live Preview' ); ?></button>
+							<button class="button button-primary disabled"><?php _e( 'Live preview' ); ?></button>
 						<# } #>
 					<# } #>
 					</div>

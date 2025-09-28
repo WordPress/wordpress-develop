@@ -788,7 +788,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				esc_url( $unspam_url ),
 				"delete:the-comment-list:comment-{$comment->comment_ID}:66cc66:unspam=1",
 				esc_attr__( 'Restore this comment from the spam' ),
-				_x( 'Not Spam', 'comment' )
+				_x( 'Not spam', 'comment' )
 			);
 		}
 
@@ -808,7 +808,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				esc_url( $delete_url ),
 				"delete:the-comment-list:comment-{$comment->comment_ID}::delete=1",
 				esc_attr__( 'Delete this comment permanently' ),
-				__( 'Delete Permanently' )
+				__( 'Delete permanently' )
 			);
 		} else {
 			$actions['trash'] = sprintf(
@@ -837,7 +837,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				'edit',
 				'vim-q comment-inline',
 				esc_attr__( 'Quick edit this comment inline' ),
-				__( 'Quick&nbsp;Edit' )
+				__( 'Quick&nbsp;edit' )
 			);
 
 			$actions['reply'] = sprintf(

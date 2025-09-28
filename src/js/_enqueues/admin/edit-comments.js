@@ -613,7 +613,7 @@ window.setCommentsList = function() {
 			approvedDiff = -1;
 			pendingDiff = 1;
 
-		// User clicked "Delete Permanently".
+		// User clicked "Delete permanently".
 		} else if ( targetParent.is( 'span.delete' ) ) {
 			if ( spammed ) {
 				spamDiff = -1;

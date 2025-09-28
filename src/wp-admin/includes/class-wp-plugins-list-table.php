@@ -475,7 +475,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		);
 
 		if ( $this->show_autoupdates && ! in_array( $status, array( 'mustuse', 'dropins' ), true ) ) {
-			$columns['auto-updates'] = __( 'Automatic Updates' );
+			$columns['auto-updates'] = __( 'Automatic updates' );
 		}
 
 		return $columns;
@@ -523,8 +523,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				case 'recently_activated':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
-						'Recently Active <span class="count">(%s)</span>',
-						'Recently Active <span class="count">(%s)</span>',
+						'Recently active <span class="count">(%s)</span>',
+						'Recently active <span class="count">(%s)</span>',
 						$count
 					);
 					break;
@@ -539,8 +539,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				case 'mustuse':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
-						'Must-Use <span class="count">(%s)</span>',
-						'Must-Use <span class="count">(%s)</span>',
+						'Must-use <span class="count">(%s)</span>',
+						'Must-use <span class="count">(%s)</span>',
 						$count
 					);
 					break;
@@ -563,24 +563,24 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				case 'upgrade':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
-						'Update Available <span class="count">(%s)</span>',
-						'Update Available <span class="count">(%s)</span>',
+						'Update available <span class="count">(%s)</span>',
+						'Update available <span class="count">(%s)</span>',
 						$count
 					);
 					break;
 				case 'auto-update-enabled':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
-						'Auto-updates Enabled <span class="count">(%s)</span>',
-						'Auto-updates Enabled <span class="count">(%s)</span>',
+						'Auto-updates enabled <span class="count">(%s)</span>',
+						'Auto-updates enabled <span class="count">(%s)</span>',
 						$count
 					);
 					break;
 				case 'auto-update-disabled':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
-						'Auto-updates Disabled <span class="count">(%s)</span>',
-						'Auto-updates Disabled <span class="count">(%s)</span>',
+						'Auto-updates disabled <span class="count">(%s)</span>',
+						'Auto-updates disabled <span class="count">(%s)</span>',
 						$count
 					);
 					break;
@@ -608,11 +608,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$actions = array();
 
 		if ( 'active' !== $status ) {
-			$actions['activate-selected'] = $this->screen->in_admin( 'network' ) ? _x( 'Network Activate', 'plugin' ) : _x( 'Activate', 'plugin' );
+			$actions['activate-selected'] = $this->screen->in_admin( 'network' ) ? _x( 'Network activate', 'plugin' ) : _x( 'Activate', 'plugin' );
 		}
 
 		if ( 'inactive' !== $status && 'recent' !== $status ) {
-			$actions['deactivate-selected'] = $this->screen->in_admin( 'network' ) ? _x( 'Network Deactivate', 'plugin' ) : _x( 'Deactivate', 'plugin' );
+			$actions['deactivate-selected'] = $this->screen->in_admin( 'network' ) ? _x( 'Network deactivate', 'plugin' ) : _x( 'Deactivate', 'plugin' );
 		}
 
 		if ( ! is_multisite() || $this->screen->in_admin( 'network' ) ) {
@@ -626,10 +626,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 			if ( $this->show_autoupdates ) {
 				if ( 'auto-update-enabled' !== $status ) {
-					$actions['enable-auto-update-selected'] = __( 'Enable Auto-updates' );
+					$actions['enable-auto-update-selected'] = __( 'Enable auto-updates' );
 				}
 				if ( 'auto-update-disabled' !== $status ) {
-					$actions['disable-auto-update-selected'] = __( 'Disable Auto-updates' );
+					$actions['disable-auto-update-selected'] = __( 'Disable auto-updates' );
 				}
 			}
 		}
@@ -665,7 +665,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		echo '<div class="alignleft actions">';
 
 		if ( 'recently_activated' === $status ) {
-			submit_button( __( 'Clear List' ), '', 'clear-recent-list', false );
+			submit_button( __( 'Clear list' ), '', 'clear-recent-list', false );
 		} elseif ( 'top' === $which && 'mustuse' === $status ) {
 			echo '<p>' . sprintf(
 				/* translators: %s: mu-plugins directory name. */
@@ -824,8 +824,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 								wp_nonce_url( $deactivate_url, 'deactivate-plugin_' . $plugin_file ),
 								esc_attr( $plugin_id_attr ),
 								/* translators: %s: Plugin name. */
-								esc_attr( sprintf( _x( 'Network Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
-								_x( 'Network Deactivate', 'plugin' )
+								esc_attr( sprintf( _x( 'Network deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
+								_x( 'Network deactivate', 'plugin' )
 							);
 						}
 					}
@@ -833,7 +833,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					if ( current_user_can( 'manage_network_plugins' ) ) {
 						if ( $compatible_php && $compatible_wp ) {
 							if ( $has_unmet_dependencies ) {
-								$actions['activate'] = _x( 'Network Activate', 'plugin' ) .
+								$actions['activate'] = _x( 'Network activate', 'plugin' ) .
 									'<span class="screen-reader-text">' .
 									__( 'You cannot activate this plugin as it has unmet requirements.' ) .
 									'</span>';
@@ -849,8 +849,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 									wp_nonce_url( $activate_url, 'activate-plugin_' . $plugin_file ),
 									esc_attr( $plugin_id_attr ),
 									/* translators: %s: Plugin name. */
-									esc_attr( sprintf( _x( 'Network Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
-									_x( 'Network Activate', 'plugin' )
+									esc_attr( sprintf( _x( 'Network activate %s', 'plugin' ), $plugin_data['Name'] ) ),
+									_x( 'Network activate', 'plugin' )
 								);
 							}
 						} else {
@@ -888,11 +888,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			} else {
 				if ( $restrict_network_active ) {
 					$actions = array(
-						'network_active' => __( 'Network Active' ),
+						'network_active' => __( 'Network active' ),
 					);
 				} elseif ( $restrict_network_only ) {
 					$actions = array(
-						'network_only' => __( 'Network Only' ),
+						'network_only' => __( 'Network only' ),
 					);
 				} elseif ( $is_active ) {
 					if ( current_user_can( 'deactivate_plugin', $plugin_file ) ) {

@@ -147,7 +147,7 @@
 		paste: {
 			paste_text_desc: "Paste as Plain Text",
 			paste_word_desc: "Paste from Word",
-			selectall_desc: "Select All",
+			selectall_desc: "Select all",
 			plaintext_mode_sticky: "Paste is now in plain text mode. Click again to toggle back to regular paste mode. After you paste something you will be returned to regular paste mode.",
 			plaintext_mode: "Paste is now in plain text mode. Click again to toggle back to regular paste mode."
 		},

@@ -1141,7 +1141,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				'<a class="row-title" href="%s" aria-label="%s">%s%s</a>',
 				get_edit_post_link( $post->ID ),
 				/* translators: %s: Post title. */
-				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $title ) ),
+				esc_attr( sprintf( __( '&#8220;%s&#8221; (edit)' ), $title ) ),
 				$pad,
 				$title
 			);
@@ -1218,7 +1218,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				$status = __( 'Scheduled' );
 			}
 		} else {
-			$status = __( 'Last Modified' );
+			$status = __( 'Last modified' );
 		}
 
 		/**
@@ -1506,7 +1506,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
 					/* translators: %s: Post title. */
 					esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $title ) ),
-					__( 'Quick&nbsp;Edit' )
+					__( 'Quick&nbsp;edit' )
 				);
 			}
 		}
@@ -1536,7 +1536,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					get_delete_post_link( $post->ID, '', true ),
 					/* translators: %s: Post title. */
 					esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $title ) ),
-					__( 'Delete Permanently' )
+					__( 'Delete permanently' )
 				);
 			}
 		}
@@ -1585,7 +1585,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			 *
 			 * @param string[] $actions An array of row action links. Defaults are
 			 *                          'Edit', 'Quick Edit', 'Restore', 'Trash',
-			 *                          'Delete Permanently', 'Preview', and 'View'.
+			 *                          'Delete permanently', 'Preview', and 'View'.
 			 * @param WP_Post  $post    The post object.
 			 */
 			$actions = apply_filters( 'page_row_actions', $actions, $post );
@@ -1600,7 +1600,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			 *
 			 * @param string[] $actions An array of row action links. Defaults are
 			 *                          'Edit', 'Quick Edit', 'Restore', 'Trash',
-			 *                          'Delete Permanently', 'Preview', and 'View'.
+			 *                          'Delete permanently', 'Preview', and 'View'.
 			 * @param WP_Post  $post    The post object.
 			 */
 			$actions = apply_filters( 'post_row_actions', $actions, $post );
@@ -1684,7 +1684,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			<td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
 			<div class="inline-edit-wrapper" role="region" aria-labelledby="<?php echo $bulk ? 'bulk' : 'quick'; ?>-edit-legend">
 			<fieldset class="inline-edit-col-left">
-				<legend class="inline-edit-legend" id="<?php echo $bulk ? 'bulk' : 'quick'; ?>-edit-legend"><?php echo $bulk ? __( 'Bulk Edit' ) : __( 'Quick Edit' ); ?></legend>
+				<legend class="inline-edit-legend" id="<?php echo $bulk ? 'bulk' : 'quick'; ?>-edit-legend"><?php echo $bulk ? __( 'Bulk edit' ) : __( 'Quick edit' ); ?></legend>
 				<div class="inline-edit-col">
 
 				<?php if ( post_type_supports( $screen->post_type, 'title' ) ) : ?>
@@ -1744,7 +1744,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							);
 
 							if ( $bulk ) {
-								$users_opt['show_option_none'] = __( '&mdash; No Change &mdash;' );
+								$users_opt['show_option_none'] = __( '&mdash; No change &mdash;' );
 							}
 
 							/**
@@ -1841,13 +1841,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 								'post_type'         => $post_type_object->name,
 								'selected'          => $post->post_parent,
 								'name'              => 'post_parent',
-								'show_option_none'  => __( 'Main Page (no parent)' ),
+								'show_option_none'  => __( 'Main page (no parent)' ),
 								'option_none_value' => 0,
 								'sort_column'       => 'menu_order, post_title',
 							);
 
 							if ( $bulk ) {
-								$dropdown_args['show_option_no_change'] = __( '&mdash; No Change &mdash;' );
+								$dropdown_args['show_option_no_change'] = __( '&mdash; No change &mdash;' );
 								$dropdown_args['id']                    = 'bulk_edit_post_parent';
 							}
 
@@ -1887,7 +1887,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 						<span class="title"><?php _e( 'Template' ); ?></span>
 						<select name="page_template">
 							<?php if ( $bulk ) : ?>
-							<option value="-1"><?php _e( '&mdash; No Change &mdash;' ); ?></option>
+							<option value="-1"><?php _e( '&mdash; No change &mdash;' ); ?></option>
 							<?php endif; // $bulk ?>
 							<?php
 							/** This filter is documented in wp-admin/includes/meta-boxes.php */
@@ -1930,7 +1930,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							<label class="alignleft">
 								<span class="title"><?php _e( 'Comments' ); ?></span>
 								<select name="comment_status">
-									<option value=""><?php _e( '&mdash; No Change &mdash;' ); ?></option>
+									<option value=""><?php _e( '&mdash; No change &mdash;' ); ?></option>
 									<option value="open"><?php _e( 'Allow' ); ?></option>
 									<option value="closed"><?php _e( 'Do not allow' ); ?></option>
 								</select>
@@ -1943,7 +1943,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							<label class="alignright">
 								<span class="title"><?php _e( 'Pings' ); ?></span>
 								<select name="ping_status">
-									<option value=""><?php _e( '&mdash; No Change &mdash;' ); ?></option>
+									<option value=""><?php _e( '&mdash; No change &mdash;' ); ?></option>
 									<option value="open"><?php _e( 'Allow' ); ?></option>
 									<option value="closed"><?php _e( 'Do not allow' ); ?></option>
 								</select>
@@ -1961,7 +1961,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 							<label class="alignleft">
 								<input type="checkbox" name="comment_status" value="open" />
-								<span class="checkbox-title"><?php _e( 'Allow Comments' ); ?></span>
+								<span class="checkbox-title"><?php _e( 'Allow comments' ); ?></span>
 							</label>
 
 						<?php endif; ?>
@@ -1970,7 +1970,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 							<label class="alignleft">
 								<input type="checkbox" name="ping_status" value="open" />
-								<span class="checkbox-title"><?php _e( 'Allow Pings' ); ?></span>
+								<span class="checkbox-title"><?php _e( 'Allow pings' ); ?></span>
 							</label>
 
 						<?php endif; ?>
@@ -1989,9 +1989,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 								<?php
 								$inline_edit_statuses = array();
 								if ( $bulk ) {
-									$inline_edit_statuses['-1'] = __( '&mdash; No Change &mdash;' );
+									$inline_edit_statuses['-1'] = __( '&mdash; No change &mdash;' );
 								}
-								// Contributors only get "Unpublished" and "Pending Review".
+								// Contributors only get "Unpublished" and "Pending review".
 								if ( $can_publish ) {
 									$inline_edit_statuses['publish'] = __( 'Published' );
 									$inline_edit_statuses['future']  = __( 'Scheduled' );
@@ -2001,11 +2001,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 									}
 								}
 
-								$inline_edit_statuses['pending'] = __( 'Pending Review' );
+								$inline_edit_statuses['pending'] = __( 'Pending review' );
 								$inline_edit_statuses['draft']   = __( 'Draft' );
 
 								/**
-								 * Filters the statuses available in the Quick Edit and Bulk Edit UI.
+								 * Filters the statuses available in the Quick edit and Bulk Edit UI.
 								 *
 								 * @since 6.9.0
 								 *
@@ -2032,9 +2032,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 								<label class="alignright">
 									<span class="title"><?php _e( 'Sticky' ); ?></span>
 									<select name="sticky">
-										<option value="-1"><?php _e( '&mdash; No Change &mdash;' ); ?></option>
+										<option value="-1"><?php _e( '&mdash; No change &mdash;' ); ?></option>
 										<option value="sticky"><?php _e( 'Sticky' ); ?></option>
-										<option value="unsticky"><?php _e( 'Not Sticky' ); ?></option>
+										<option value="unsticky"><?php _e( 'Not sticky' ); ?></option>
 									</select>
 								</label>
 
@@ -2057,7 +2057,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<label class="alignleft">
 						<span class="title"><?php _ex( 'Format', 'post format' ); ?></span>
 						<select name="post_format">
-							<option value="-1"><?php _e( '&mdash; No Change &mdash;' ); ?></option>
+							<option value="-1"><?php _e( '&mdash; No change &mdash;' ); ?></option>
 							<option value="0"><?php echo get_post_format_string( 'standard' ); ?></option>
 							<?php if ( is_array( $post_formats[0] ) ) : ?>
 								<?php foreach ( $post_formats[0] as $format ) : ?>

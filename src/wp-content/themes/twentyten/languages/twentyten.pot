@@ -376,7 +376,7 @@ msgid "<span class=\"%1$s\">Tagged</span> %2$s"
 msgstr ""
 
 #: search.php:16
-msgid "Search Results for: %s"
+msgid "Search results for: %s"
 msgstr ""
 
 #: search.php:27

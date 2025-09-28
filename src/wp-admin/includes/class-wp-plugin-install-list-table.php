@@ -101,7 +101,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$tabs = array();
 
 		if ( 'search' === $tab ) {
-			$tabs['search'] = __( 'Search Results' );
+			$tabs['search'] = __( 'Search results' );
 		}
 
 		if ( 'beta' === $tab || str_contains( get_bloginfo( 'version' ), '-' ) ) {
@@ -118,7 +118,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			 * No longer a real tab. Here for filter compatibility.
 			 * Gets skipped in get_views().
 			 */
-			$tabs['upload'] = __( 'Upload Plugin' );
+			$tabs['upload'] = __( 'Upload plugin' );
 		}
 
 		$nonmenu_tabs = array( 'plugin-information' ); // Valid actions to perform which do not have a Menu item.
@@ -291,7 +291,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	public function no_items() {
 		if ( isset( $this->error ) ) {
 			$error_message  = '<p>' . $this->error->get_error_message() . '</p>';
-			$error_message .= '<p class="hide-if-no-js"><button class="button try-again">' . __( 'Try Again' ) . '</button></p>';
+			$error_message .= '<p class="hide-if-no-js"><button class="button try-again">' . __( 'Try again' ) . '</button></p>';
 			wp_admin_notice(
 				$error_message,
 				array(
@@ -597,7 +597,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			 * @since 2.7.0
 			 *
 			 * @param string[] $action_links An array of plugin action links.
-			 *                               Defaults are links to Details and Install Now.
+			 *                               Defaults are links to Details and Install now.
 			 * @param array    $plugin       An array of plugin data. See {@see plugins_api()}
 			 *                               for the list of possible values.
 			 */
@@ -704,7 +704,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					<span class="num-ratings" aria-hidden="true">(<?php echo number_format_i18n( $plugin['num_ratings'] ); ?>)</span>
 				</div>
 				<div class="column-updated">
-					<strong><?php _e( 'Last Updated:' ); ?></strong>
+					<strong><?php _e( 'Last updated:' ); ?></strong>
 					<?php
 						/* translators: %s: Human-readable time difference. */
 						printf( __( '%s ago' ), human_time_diff( $last_updated_timestamp ) );

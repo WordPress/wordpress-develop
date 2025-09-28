@@ -184,7 +184,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 	public function test_search_title() {
 		$this->go_to( '?s=test_title' );
 
-		$this->assertSame( sprintf( 'Search Results for &#8220;test_title&#8221; &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'Search results for &#8220;test_title&#8221; &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	public function test_author_title() {

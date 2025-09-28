@@ -707,7 +707,7 @@
 
 					$card.find( '.update-now' )
 						.attr( 'aria-label', false )
-						.text( __( 'Update Now' ) );
+						.text( __( 'Update now' ) );
 				}, 200 );
 			} );
 		}
@@ -969,7 +969,7 @@
 			buttonText = _x( 'Network Activate', 'plugin' );
 			ariaLabel  = sprintf(
 				/* translators: %s: Plugin name. */
-				_x( 'Network Activate %s', 'plugin' ),
+				_x( 'Network activate %s', 'plugin' ),
 				response.pluginName
 			);
 
@@ -1797,11 +1797,11 @@
 							'aria-label',
 							sprintf(
 								/* translators: %s: Theme name. */
-								_x( 'Network Activate %s', 'theme' ),
+								_x( 'Network activate %s', 'theme' ),
 								response.themeName
 							)
 						)
-						.text( __( 'Network Enable' ) );
+						.text( __( 'Network enable' ) );
 				} else {
 					$message
 						.attr(
@@ -1818,12 +1818,12 @@
 
 			if ( response.customizeUrl ) {
 
-				// Transform the 'Preview' button into a 'Live Preview' button.
+				// Transform the 'Preview' button into a 'Live preview' button.
 				$message.siblings( '.preview' ).replaceWith( function () {
 					return $( '<a>' )
 						.attr( 'href', response.customizeUrl )
 						.addClass( 'button load-customize' )
-						.text( __( 'Live Preview' ) );
+						.text( __( 'Live preview' ) );
 				} );
 			}
 		}, 1000 );
@@ -2634,7 +2634,7 @@
 
 					$message
 						.removeClass( 'updating-message' )
-						.text( _x( 'Install Now', 'plugin' ) );
+						.text( _x( 'Install now', 'plugin' ) );
 
 					wp.a11y.speak( __( 'Update canceled.' ) );
 				} );
@@ -3036,7 +3036,7 @@
 					.append( $( '<a />', {
 						'class': 'current',
 						'href': searchLocation,
-						'text': __( 'Search Results' )
+						'text': __( 'Search results' )
 					} ) );
 
 				$( '.wp-filter .filter-links .current' )
@@ -3180,7 +3180,7 @@
 		} );
 
 		/**
-		 * Trigger a search event when the "Try Again" button is clicked.
+		 * Trigger a search event when the "Try again" button is clicked.
 		 *
 		 * @since 4.9.0
 		 */

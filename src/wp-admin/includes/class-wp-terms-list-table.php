@@ -416,7 +416,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 				'<a class="row-title" href="%s" aria-label="%s">%s</a>',
 				esc_url( $edit_link ),
 				/* translators: %s: Taxonomy term name. */
-				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $tag->name ) ),
+				esc_attr( sprintf( __( '&#8220;%s&#8221; (edit)' ), $tag->name ) ),
 				$name
 			);
 		}

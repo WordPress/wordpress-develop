@@ -121,9 +121,9 @@ class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 
 		$this->assertTrue( $result );
 		$this->assertSame( self::$test_user->user_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertStringContainsString( 'Confirm Action: Erase Personal Data', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Confirm Action: Erase personal data', $mailer->get_sent()->subject );
 		$this->assertStringContainsString( 'action=confirmaction&request_id=', $mailer->get_sent()->body );
-		$this->assertStringContainsString( 'Erase Personal Data', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Erase personal data', $mailer->get_sent()->body );
 	}
 
 	/**
@@ -157,9 +157,9 @@ class Tests_User_wpSendUserRequest extends WP_UnitTestCase {
 
 		$this->assertTrue( $result );
 		$this->assertSame( self::$test_user->user_email, $mailer->get_recipient( 'to' )->address );
-		$this->assertStringContainsString( 'Confirm Action: Erase Personal Data', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( 'Confirm Action: Erase personal data', $mailer->get_sent()->subject );
 		$this->assertStringContainsString( 'action=confirmaction&request_id=', $mailer->get_sent()->body );
-		$this->assertStringContainsString( 'Erase Personal Data', $mailer->get_sent()->body );
+		$this->assertStringContainsString( 'Erase personal data', $mailer->get_sent()->body );
 	}
 
 	/**

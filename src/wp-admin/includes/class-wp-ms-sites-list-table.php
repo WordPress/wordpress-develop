@@ -365,7 +365,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		$sites_columns = array(
 			'cb'          => '<input type="checkbox" />',
 			'blogname'    => __( 'URL' ),
-			'lastupdated' => __( 'Last Updated' ),
+			'lastupdated' => __( 'Last updated' ),
 			'registered'  => _x( 'Registered', 'site' ),
 			'users'       => __( 'Users' ),
 		);
@@ -400,7 +400,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 
 		return array(
 			'blogname'    => array( 'blogname', false, $blogname_abbr, $blogname_orderby_text ),
-			'lastupdated' => array( 'lastupdated', true, __( 'Last Updated' ), __( 'Table ordered by Last Updated.' ) ),
+			'lastupdated' => array( 'lastupdated', true, __( 'Last updated' ), __( 'Table ordered by Last updated.' ) ),
 			'registered'  => array( 'blog_id', true, _x( 'Registered', 'site' ), __( 'Table ordered by Site Registered Date.' ), 'desc' ),
 		);
 	}
@@ -806,7 +806,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 							'unspamblog_' . $blog['blog_id']
 						)
 					),
-					_x( 'Not Spam', 'site' )
+					_x( 'Not spam', 'site' )
 				);
 			} else {
 				$actions['spam'] = sprintf(
@@ -846,8 +846,8 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		 *
 		 * The 'Edit', 'Dashboard', 'Delete Permanently', and 'Visit' links are displayed by
 		 * default for each site. The site's status determines whether to show the
-		 * 'Remove Deletion Flag' or 'Flag for Deletion' link, 'Unarchive' or 'Archive' links, and
-		 * 'Not Spam' or 'Spam' link for each site.
+		 * 'Remove deletion flag' or 'Flag for deletion' link, 'Unarchive' or 'Archive' links, and
+		 * 'Not spam' or 'Spam' link for each site.
 		 *
 		 * @since 3.1.0
 		 *

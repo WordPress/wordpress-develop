@@ -809,7 +809,7 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 				<input type="checkbox"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
 					id="<?php echo esc_attr( $tab_name ); ?>" class="select-all"
 				/>
-				<label for="<?php echo esc_attr( $tab_name ); ?>"><?php _e( 'Select All' ); ?></label>
+				<label for="<?php echo esc_attr( $tab_name ); ?>"><?php _e( 'Select all' ); ?></label>
 			</span>
 
 			<span class="add-to-menu">
@@ -1104,7 +1104,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $data_object, $box ) {
 				<input type="checkbox"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?>
 					id="<?php echo esc_attr( $tab_name ); ?>" class="select-all"
 				/>
-				<label for="<?php echo esc_attr( $tab_name ); ?>"><?php _e( 'Select All' ); ?></label>
+				<label for="<?php echo esc_attr( $tab_name ); ?>"><?php _e( 'Select all' ); ?></label>
 			</span>
 
 			<span class="add-to-menu">

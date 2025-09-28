@@ -131,9 +131,9 @@ $parent_file = 'themes.php';
 if ( current_user_can( 'switch_themes' ) ) {
 	$help_overview = '<p>' . __( 'This screen is used for managing your installed themes. Aside from the default theme(s) included with your WordPress installation, themes are designed and developed by third parties.' ) . '</p>' .
 		'<p>' . __( 'From this screen you can:' ) . '</p>' .
-		'<ul><li>' . __( 'Hover or tap to see Activate and Live Preview buttons' ) . '</li>' .
+		'<ul><li>' . __( 'Hover or tap to see Activate and "Live preview" buttons' ) . '</li>' .
 		'<li>' . __( 'Click on the theme to see the theme name, version, author, description, tags, and the Delete link' ) . '</li>' .
-		'<li>' . __( 'Click Customize for the active theme or Live Preview for any other theme to see a live preview' ) . '</li></ul>' .
+		'<li>' . __( 'Click Customize for the active theme or "Live preview" for any other theme to see a live preview' ) . '</li></ul>' .
 		'<p>' . __( 'The active theme is displayed highlighted as the first theme.' ) . '</p>' .
 		'<p>' . __( 'The search for installed themes will search for terms in their name, description, author, or tag.' ) . ' <span id="live-search-desc">' . __( 'The search results will be updated as you type.' ) . '</span></p>';
 
@@ -170,7 +170,7 @@ if ( current_user_can( 'install_themes' ) ) {
 // Help tab: Previewing and Customizing.
 if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
 	$help_customize =
-		'<p>' . __( 'Tap or hover on any theme then click the Live Preview button to see a live preview of that theme and change theme options in a separate, full-screen view. You can also find a Live Preview button at the bottom of the theme details screen. Any installed theme can be previewed and customized in this way.' ) . '</p>' .
+		'<p>' . __( 'Tap or hover on any theme then click the Live preview button to see a live preview of that theme and change theme options in a separate, full-screen view. You can also find a Live preview button at the bottom of the theme details screen. Any installed theme can be previewed and customized in this way.' ) . '</p>' .
 		'<p>' . __( 'The theme being previewed is fully interactive &mdash; navigate to different pages to see how the theme handles posts, archives, and other page templates. The settings may differ depending on what theme features the theme being previewed supports. To accept the new settings and activate the theme all in one step, click the Activate &amp; Publish button above the menu.' ) . '</p>' .
 		'<p>' . __( 'When previewing on smaller monitors, you can use the collapse icon at the bottom of the left-hand pane. This will hide the pane, giving you more room to preview your site in the new theme. To bring the pane back, click on the collapse icon again.' ) . '</p>';
 
@@ -628,12 +628,12 @@ foreach ( $themes as $theme ) :
 			// Only classic themes require the "customize" capability.
 			if ( current_user_can( 'edit_theme_options' ) && ( $theme['blockTheme'] || current_user_can( 'customize' ) ) ) {
 				/* translators: %s: Theme name. */
-				$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
+				$live_preview_aria_label = sprintf( _x( 'Live preview %s', 'theme' ), '{{ data.name }}' );
 				?>
 				<a class="button button-primary load-customize hide-if-no-customize"
 					href="<?php echo esc_url( $theme['actions']['customize'] ); ?>"
 					aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
-				><?php _e( 'Live Preview' ); ?></a>
+				><?php _e( 'Live preview' ); ?></a>
 			<?php } ?>
 		<?php } else { ?>
 			<?php
@@ -647,11 +647,11 @@ foreach ( $themes as $theme ) :
 			<?php
 			if ( ! $theme['blockTheme'] && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
 				/* translators: %s: Theme name. */
-				$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
+				$live_preview_aria_label = sprintf( _x( 'Live preview %s', 'theme' ), '{{ data.name }}' );
 				?>
 				<a class="button button-primary hide-if-no-customize disabled"
 					aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
-				><?php _e( 'Live Preview' ); ?></a>
+				><?php _e( 'Live preview' ); ?></a>
 			<?php } ?>
 		<?php } ?>
 
@@ -1019,12 +1019,12 @@ function wp_theme_auto_update_setting_template() {
 
 					<?php
 					/* translators: %s: Theme name. */
-					$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
+					$live_preview_aria_label = sprintf( _x( 'Live preview %s', 'theme' ), '{{ data.name }}' );
 					?>
 					<a class="button button-primary load-customize hide-if-no-customize"
 						href="{{{ data.actions.customize }}}"
 						aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
-					><?php _e( 'Live Preview' ); ?></a>
+					><?php _e( 'Live preview' ); ?></a>
 				<# } else { #>
 					<?php
 					/* translators: %s: Theme name. */
@@ -1037,11 +1037,11 @@ function wp_theme_auto_update_setting_template() {
 					<# if ( ! data.blockTheme ) { #>
 						<?php
 						/* translators: %s: Theme name. */
-						$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
+						$live_preview_aria_label = sprintf( _x( 'Live preview %s', 'theme' ), '{{ data.name }}' );
 						?>
 						<a class="button button-primary hide-if-no-customize disabled"
 							aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
-						><?php _e( 'Live Preview' ); ?></a>
+						><?php _e( 'Live preview' ); ?></a>
 					<# } #>
 				<# } #>
 			<# } #>
@@ -1156,7 +1156,7 @@ function wp_theme_auto_update_setting_template() {
 				<# if ( data.hasUpdate ) { #>
 					<# if ( data.updateResponse.compatibleWP && data.updateResponse.compatiblePHP ) { #>
 						<div class="notice notice-warning notice-alt notice-large">
-							<h3 class="notice-title"><?php _e( 'Update Available' ); ?></h3>
+							<h3 class="notice-title"><?php _e( 'Update available' ); ?></h3>
 							{{{ data.update }}}
 						</div>
 					<# } else { #>
@@ -1264,12 +1264,12 @@ function wp_theme_auto_update_setting_template() {
 					<# if ( ! data.blockTheme ) { #>
 						<?php
 						/* translators: %s: Theme name. */
-						$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
+						$live_preview_aria_label = sprintf( _x( 'Live preview %s', 'theme' ), '{{ data.name }}' );
 						?>
 						<a class="button button-primary load-customize hide-if-no-customize"
 							href="{{{ data.actions.customize }}}"
 							aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
-						><?php _e( 'Live Preview' ); ?></a>
+						><?php _e( 'Live preview' ); ?></a>
 					<# } #>
 
 					<# if ( data.actions.activate ) { #>
@@ -1286,11 +1286,11 @@ function wp_theme_auto_update_setting_template() {
 					<# if ( ! data.blockTheme ) { #>
 						<?php
 						/* translators: %s: Theme name. */
-						$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
+						$live_preview_aria_label = sprintf( _x( 'Live preview %s', 'theme' ), '{{ data.name }}' );
 						?>
 						<a class="button button-primary hide-if-no-customize disabled"
 							aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
-						><?php _e( 'Live Preview' ); ?></a>
+						><?php _e( 'Live preview' ); ?></a>
 					<# } #>
 
 					<# if ( data.actions.activate ) { #>

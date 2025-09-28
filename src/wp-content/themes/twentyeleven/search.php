@@ -1,6 +1,6 @@
 <?php
 /**
- * Template for displaying Search Results pages
+ * Template for displaying Search results pages
  *
  * @package WordPress
  * @subpackage Twenty_Eleven
@@ -18,7 +18,7 @@ get_header(); ?>
 					<h1 class="page-title">
 					<?php
 					/* translators: %s: Search query. */
-					printf( __( 'Search Results for: %s', 'twentyeleven' ), '<span>' . get_search_query() . '</span>' );
+					printf( __( 'Search results for: %s', 'twentyeleven' ), '<span>' . get_search_query() . '</span>' );
 					?>
 					</h1>
 				</header>
