@@ -295,7 +295,7 @@ if ( ! is_multisite() ) {
 	?>
 <tr>
 <th scope="row"><?php echo $membership_title; ?></th>
-<td> <fieldset><legend class="screen-reader-text"><span><?php echo $membership_title; ?></span></legend><label for="users_can_register">
+<td><fieldset><legend class="screen-reader-text"><span><?php echo $membership_title; ?></span></legend><label for="users_can_register">
 <input name="users_can_register" type="checkbox" id="users_can_register" value="1" <?php checked( '1', get_option( 'users_can_register' ) ); ?> />
 	<?php _e( 'Anyone can register' ); ?></label>
 </fieldset></td>
