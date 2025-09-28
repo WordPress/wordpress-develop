@@ -117,6 +117,13 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * If the post_id is 0, wp_delete_post should return false
+	 */
+	public function test_wp_delete_post_shortcircuit_on_post_id_zero() {
+		$this->assertFalse( wp_delete_post( 0, true ) );
+	}
+
+	/**
 	 * Test that wp_delete_post when the post_id has been already deleted.
 	 */
 	public function test_wp_delete_post_returns_false_for_invalid_post() {
