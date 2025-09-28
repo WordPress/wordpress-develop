@@ -176,6 +176,8 @@ final class WP_Block_Type_Registry {
 	 * @param array $data Data to unserialize.
 	 */
 	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
+		$this->registered_block_types = $data[ "\0" . __CLASS__ . "\0" . 'registered_block_types' ];
+
 		if ( ! $this->registered_block_types ) {
 			return;
 		}
@@ -195,7 +197,17 @@ final class WP_Block_Type_Registry {
 	 * @since 6.4.0
 	 */
 	public function __wakeup() {
-		$this->__unserialize( array() );
+		if ( ! $this->registered_block_types ) {
+			return;
+		}
+		if ( ! is_array( $this->registered_block_types ) ) {
+			throw new UnexpectedValueException();
+		}
+		foreach ( $this->registered_block_types as $value ) {
+			if ( ! $value instanceof WP_Block_Type ) {
+				throw new UnexpectedValueException();
+			}
+		}
 	}
 
 	/**

@@ -253,6 +253,8 @@ final class WP_Block_Patterns_Registry {
 	 * @param array $data Data to unserialize.
 	 */
 	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
+		$this->registered_patterns = $data[ "\0" . __CLASS__ . "\0" . 'registered_patterns' ];
+
 		if ( ! $this->registered_patterns ) {
 			return;
 		}
@@ -273,7 +275,18 @@ final class WP_Block_Patterns_Registry {
 	 * @since 6.4.0
 	 */
 	public function __wakeup() {
-		$this->__unserialize( array() );
+		if ( ! $this->registered_patterns ) {
+			return;
+		}
+		if ( ! is_array( $this->registered_patterns ) ) {
+			throw new UnexpectedValueException();
+		}
+		foreach ( $this->registered_patterns as $value ) {
+			if ( ! is_array( $value ) ) {
+				throw new UnexpectedValueException();
+			}
+		}
+		$this->registered_patterns_outside_init = array();
 	}
 
 	/**
