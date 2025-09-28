@@ -3753,6 +3753,10 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 
 	$post_id = (int) $post_id;
 
+	if ( 0 === $post_id ) {
+		return false;
+	}
+
 	$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d", $post_id ) );
 
 	if ( ! $post ) {
@@ -3777,7 +3781,7 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param WP_Post|false|null $delete       Whether to go forward with deletion.
+	 * @param WP_Post|false|null $check        Whether to go forward with deletion. Anything other than null will short-circuit deletion.
 	 * @param WP_Post            $post         Post object.
 	 * @param bool               $force_delete Whether to bypass the Trash.
 	 */
