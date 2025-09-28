@@ -321,6 +321,8 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 			array( 'page-show-on-front', 'Front Page' ),
 			array( 'page-for-posts', 'Posts Page' ),
 			array( 'page-for-privacy-policy', 'Privacy Policy Page' ),
+			array( 'customization-draft', 'Customization Draft' ),
+			array( 'trashed-customization-draft', 'Customization Draft' ),
 		);
 	}
 }
