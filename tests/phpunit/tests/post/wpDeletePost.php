@@ -118,6 +118,8 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 
 	/**
 	 * If the post_id is 0, wp_delete_post should return false
+	 *
+	 * @ticket 63975
 	 */
 	public function test_wp_delete_post_shortcircuit_on_post_id_zero() {
 		$this->assertFalse( wp_delete_post( 0, true ) );
