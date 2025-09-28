@@ -1207,7 +1207,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					/* translators: Post time format. See https://www.php.net/manual/datetime.format.php */
 					get_the_time( __( 'g:i a' ), $post )
 				);
-	
+
 				$time      = get_post_timestamp( $post );
 				$time_diff = time() - $time;
 			} else {
@@ -1220,7 +1220,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					/* translators: Post modified time format. See https://www.php.net/manual/datetime.format.php */
 					get_the_modified_time( __( 'g:i a' ), $post )
 				);
-		
+
 				$time      = get_post_timestamp( $post, 'modified' );
 				$time_diff = time() - $time;
 			}
