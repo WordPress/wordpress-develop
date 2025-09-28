@@ -115,4 +115,77 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	private function next_schedule_for_post( $hook, $post_id ) {
 		return wp_next_scheduled( 'publish_future_post', array( 0 => (int) $post_id ) );
 	}
+
+	/**
+	 * Test that wp_delete_post when the post_id has been already deleted.
+	 */
+	public function test_wp_delete_post_returns_false_for_invalid_post() {
+		xdebug_break();
+		$post_id = self::factory()->post->create();
+		wp_delete_post( $post_id, true );
+
+		$this->assertNull( wp_delete_post( $post_id, true ) );
+	}
+
+	/**
+	 * Shortcircuit wp_delete_post with pre_delete_post filter
+	 */
+	public function test_wp_delete_post_can_be_short_circuited() {
+		$post_id = self::factory()->post->create();
+		$filter  = function () {
+			return 'avoid_deletion';
+		};
+
+		add_filter( 'pre_delete_post', $filter, 10, 3 );
+		wp_delete_post( $post_id, true );
+		remove_filter( 'pre_delete_post', $filter, 10 );
+
+		$this->assertNotNull( get_post( $post_id ) );
+	}
+
+	/**
+	 * Check that wp_delete_post deletes associated comments
+	 */
+	public function test_wp_delete_post_deletes_associated_comments() {
+		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'comment',
+			)
+		);
+
+		wp_delete_post( $post_id, true );
+
+		$this->assertNull( get_comment( $comment_id ) );
+	}
+
+	/**
+	 * On deletion of a post, attachments should be reattached to the parent post
+	 */
+	public function test_wp_delete_post_reassigns_attachments_to_parent() {
+		$parent_post_id = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		$post_id        = self::factory()->post->create(
+			array(
+				'post_parent' => $parent_post_id,
+				'post_type'   => 'page',
+			)
+		);
+
+		$attachment_id = self::factory()->attachment->create(
+			array(
+				'post_parent' => $post_id,
+				'post_type'   => 'attachment',
+			)
+		);
+
+		wp_delete_post( $post_id, true );
+		clean_post_cache( $attachment_id );
+
+		$this->assertSame( $parent_post_id, get_post( $attachment_id )->post_parent );
+	}
 }
