@@ -16,7 +16,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 * Create shared fixtures.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash', 'private', 'delete' );
+		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash', 'private', 'delete', 'pending' );
 		foreach ( $post_statuses as $post_status ) {
 			$date          = '';
 			$actual_status = $post_status;
@@ -63,6 +63,89 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 				'post_date'   => $date,
 			)
 		);
+
+		// Password protected post
+		self::$post_ids['password-protected'] = $factory->post->create_object(
+			array(
+				'post_status'   => 'publish',
+				'post_name'     => 'password-protected',
+				'post_date'     => $date,
+				'post_content'  => 'This is a password protected post.',
+				'post_password' => wp_generate_password(),
+			)
+		);
+
+		// Customization draft post
+		self::$post_ids['customization-draft'] = $factory->post->create_object(
+			array(
+				'post_status'  => 'draft',
+				'post_name'    => 'customization-draft',
+				'post_date'    => $date,
+				'post_content' => 'This is a customization draft post.',
+				'meta_input'   => array(
+					'_customize_changeset_uuid' => wp_generate_uuid4(),
+				),
+			)
+		);
+
+		// Trashed customization draft post
+		self::$post_ids['trashed-customization-draft'] = $factory->post->create_object(
+			array(
+				'post_status'  => 'trash',
+				'post_name'    => 'trashed-customization-draft',
+				'post_date'    => $date,
+				'post_content' => 'This is a trashed customization draft post.',
+				'meta_input'   => array(
+					'_customize_changeset_uuid' => wp_generate_uuid4(),
+				),
+			)
+		);
+
+		// Sticky post
+		self::$post_ids['sticky'] = $factory->post->create_object(
+			array(
+				'post_status'  => 'publish',
+				'post_name'    => 'sticky-post',
+				'post_content' => 'This is a sticky post.',
+				'post_date'    => $date,
+			)
+		);
+
+		stick_post( self::$post_ids['sticky'] );
+
+		// Page Show on front
+		self::$post_ids['page-show-on-front'] = $factory->post->create_object(
+			array(
+				'post_status'  => 'publish',
+				'post_name'    => 'page-show-on-front',
+				'post_content' => 'This is the page set to show on front.',
+				'post_date'    => $date,
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', self::$post_ids['page-show-on-front'] );
+
+		// Page for posts
+		self::$post_ids['page-for-posts'] = $factory->post->create_object(
+			array(
+				'post_status'  => 'publish',
+				'post_name'    => 'page-for-posts',
+				'post_content' => 'This is the page for posts.',
+				'post_date'    => $date,
+			)
+		);
+		update_option( 'page_for_posts', self::$post_ids['page-for-posts'] );
+
+		// Page for privacy policy
+		self::$post_ids['page-for-privacy-policy'] = $factory->post->create_object(
+			array(
+				'post_status'  => 'publish',
+				'post_name'    => 'page-for-privacy-policy',
+				'post_content' => 'This is the page for privacy policy.',
+				'post_date'    => $date,
+			)
+		);
+		update_option( 'wp_page_for_privacy_policy', self::$post_ids['page-for-privacy-policy'] );
 
 		// Trash the trash post and attachment.
 		wp_trash_post( self::$post_ids['trash'] );
@@ -163,5 +246,157 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 			array( 'private-attachment', 'private', 'private' ),
 			array( 'delete-attachment', 'publish', 'publish' ),
 		);
+	}
+
+	/**
+	 * Ensure the `get_post_states` function don't return the current filtered post status in its result array.
+	 *
+	 * @ticket 64026
+	 *
+	 * @dataProvider data_filtered_post_status_shouldnt_be_included_in_post_state_array
+	 *
+	 * @param string $post_state The post state to test.
+	 */
+	public function test_filtered_post_status_shouldnt_be_included_in_post_state_array( $post_state ) {
+		$_REQUEST['post_status'] = $post_state;
+		$post                    = get_post( self::$post_ids[ $post_state ] );
+		$post_states             = get_post_states( $post );
+		$this->assertArrayNotHasKey( $post_state, $post_states );
+	}
+
+	/**
+	 * Data provider for test_filtered_post_status_shouldnt_be_included_in_post_state_array().
+	 *
+	 * @return array[] {
+	 *     @type string $post_state The post state to test.
+	 * }
+	 */
+	public static function data_filtered_post_status_shouldnt_be_included_in_post_state_array() {
+		return array(
+			array( 'pending' ),
+			array( 'draft' ),
+			array( 'private' ),
+		);
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `protected` index in results array if post is password protected.
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_protected_index_when_post_is_password_protected() {
+		$post        = get_post( self::$post_ids['password-protected'] );
+		$post_states = get_post_states( $post );
+		$this->assertArrayHasKey( 'protected', $post_states );
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `private` index in results array if post has private status
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_private_index_when_post_is_private() {
+		$post        = get_post( self::$post_ids['private'] );
+		$post_states = get_post_states( $post );
+		$this->assertArrayHasKey( 'private', $post_states );
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `draft` index in results array if post has draft status
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_draft_index_when_post_is_draft() {
+		$post        = get_post( self::$post_ids['draft'] );
+		$post_states = get_post_states( $post );
+		$this->assertArrayHasKey( 'draft', $post_states );
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `Customization Draft` value in results array if post has `_customize_changeset_uuid` meta and post_status is `draft`
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_customization_draft_when_post_has_customize_changeset_uuid_meta_and_has_draft_status() {
+		$post        = get_post( self::$post_ids['customization-draft'] );
+		$post_states = get_post_states( $post );
+		$this->assertContains( 'Customization Draft', $post_states );
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `Customization Draft` value in results array if post has `_customize_changeset_uuid` meta
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_customization_draft_when_post_has_customize_changeset_uuid_meta_and_is_trashed() {
+		$post        = get_post( self::$post_ids['trashed-customization-draft'] );
+		$post_states = get_post_states( $post );
+		$this->assertContains( 'Customization Draft', $post_states );
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `pending` index in results array if post has pending status
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_pending_index_when_post_is_pending() {
+		$post        = get_post( self::$post_ids['pending'] );
+		$post_states = get_post_states( $post );
+		$this->assertArrayHasKey( 'pending', $post_states );
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `sticky` index in results array if post is sticky
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_sticky_index_when_post_is_sticky() {
+		$post        = get_post( self::$post_ids['sticky'] );
+		$post_states = get_post_states( $post );
+		$this->assertArrayHasKey( 'sticky', $post_states );
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `scheduled` index in results array if post has future status
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_scheduled_index_when_post_is_scheduled() {
+		$post        = get_post( self::$post_ids['future'] );
+		$post_states = get_post_states( $post );
+		$this->assertArrayHasKey( 'scheduled', $post_states );
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `page_on_front` index in results array if post is set as page on front
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_page_on_front_index_when_post_is_page_on_front() {
+		$post        = get_post( self::$post_ids['page-show-on-front'] );
+		$post_states = get_post_states( $post );
+		$this->assertArrayHasKey( 'page_on_front', $post_states );
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `page_for_posts` index in results array if post is set as page for posts
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_page_for_posts_index_when_post_is_page_for_posts() {
+		$post        = get_post( self::$post_ids['page-for-posts'] );
+		$post_states = get_post_states( $post );
+		$this->assertArrayHasKey( 'page_for_posts', $post_states );
+	}
+
+	/**
+	 * Ensure the `get_post_states` function return a `page_for_posts` index in results array if post is set as page for posts
+	 *
+	 * @ticket 64026
+	 */
+	public function test_get_post_states_should_return_page_for_privacy_policy_index_when_post_is_page_for_privacy_policy() {
+		$post        = get_post( self::$post_ids['page-for-privacy-policy'] );
+		$post_states = get_post_states( $post );
+		$this->assertArrayHasKey( 'page_for_privacy_policy', $post_states );
 	}
 }
