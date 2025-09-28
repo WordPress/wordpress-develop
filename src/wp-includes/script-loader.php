@@ -1002,7 +1002,7 @@ function wp_default_scripts( $scripts ) {
 		'file_cancelled'            => __( 'File canceled.' ),
 		'upload_stopped'            => __( 'Upload stopped.' ),
 		'dismiss'                   => __( 'Dismiss' ),
-		'crunching'                 => __( 'Crunching&hellip;' ),
+		'processing'                => __( 'Processing&hellip;' ),
 		'deleted'                   => __( 'moved to the Trash.' ),
 		/* translators: %s: File name. */
 		'error_uploading'           => __( '&#8220;%s&#8221; has failed to upload.' ),
