@@ -3751,6 +3751,8 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	global $wpdb;
 
+	$post_id = (int) $post_id;
+
 	$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d", $post_id ) );
 
 	if ( ! $post ) {
@@ -8123,7 +8125,7 @@ function wp_delete_auto_drafts() {
 	$old_posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_status = 'auto-draft' AND DATE_SUB( NOW(), INTERVAL 7 DAY ) > post_date" );
 	foreach ( (array) $old_posts as $delete ) {
 		// Force delete.
-		wp_delete_post( (int) $delete, true );
+		wp_delete_post( $delete, true );
 	}
 }
 
