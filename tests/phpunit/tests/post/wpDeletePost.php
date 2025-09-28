@@ -120,7 +120,6 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	 * Test that wp_delete_post when the post_id has been already deleted.
 	 */
 	public function test_wp_delete_post_returns_false_for_invalid_post() {
-		xdebug_break();
 		$post_id = self::factory()->post->create();
 		wp_delete_post( $post_id, true );
 
