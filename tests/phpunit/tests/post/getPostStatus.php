@@ -285,18 +285,18 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 
 	public function test_post_states_function( $post_state, $expected_post_state_string ) {
 		$post = get_post( self::$post_ids[ $post_state ] );
-		if ( $post_state == 'sticky' ) {
+		if ( 'sticky' == $post_state ) {
 			stick_post( $post->ID );
 		}
-		if ( $post_state == 'page-show-on-front' ) {
+		if ( 'page-show-on-front' == $post_state ) {
 			update_option( 'show_on_front', 'page' );
 			update_option( 'page_on_front', $post->ID );
 		}
-		if ( $post_state == 'page-for-posts' ) {
+		if ( 'page-for-posts' == $post_state ) {
 			update_option( 'show_on_front', 'page' );
 			update_option( 'page_for_posts', $post->ID );
 		}
-		if ( $post_state == 'page-for-privacy-policy' ) {
+		if ( 'page-for-privacy-policy' == $post_state ) {
 			update_option( 'wp_page_for_privacy_policy', $post->ID );
 		}
 		$post_states = get_post_states( $post );
