@@ -273,7 +273,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 		);
 	}
 
-	/** 
+	/**
 	 * Ensure the `get_post_states` function don't return the current filtered post status in its result array.
 	 *
 	 * @ticket 64026
@@ -284,19 +284,19 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 */
 
 	public function test_post_states_function( $post_state, $expected_post_state_string ) {
-		$post        = get_post( self::$post_ids[ $post_state ] );
-		if ($post_state == 'sticky') {
-			stick_post($post->ID);
+		$post = get_post( self::$post_ids[ $post_state ] );
+		if ( $post_state == 'sticky' ) {
+			stick_post( $post->ID );
 		}
-		if ($post_state == 'page-show-on-front') {
+		if ( $post_state == 'page-show-on-front' ) {
 			update_option( 'show_on_front', 'page' );
 			update_option( 'page_on_front', $post->ID );
 		}
-		if ($post_state == 'page-for-posts') {
+		if ( $post_state == 'page-for-posts' ) {
 			update_option( 'show_on_front', 'page' );
 			update_option( 'page_for_posts', $post->ID );
 		}
-		if ($post_state == 'page-for-privacy-policy') {
+		if ( $post_state == 'page-for-privacy-policy' ) {
 			update_option( 'wp_page_for_privacy_policy', $post->ID );
 		}
 		$post_states = get_post_states( $post );
@@ -323,5 +323,4 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 			array( 'page-for-privacy-policy', 'Privacy Policy Page' ),
 		);
 	}
-
 }
