@@ -1196,9 +1196,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$t_time    = __( 'Unpublished' );
 			$time_diff = 0;
 		} else {
-			// For published posts, show the publication date
-			// For non-published posts (drafts, scheduled, pending, etc.), show the last modified date
-			if ( 'publish' === $post->post_status ) {
+			// For published and scheduled posts, show the publication date
+			// For non-published posts (drafts, pending, etc.), show the last modified date
+			if ( 'publish' === $post->post_status || 'future' === $post->post_status ) {
 				$t_time = sprintf(
 					/* translators: 1: Post date, 2: Post time. */
 					__( '%1$s at %2$s' ),
