@@ -109,7 +109,7 @@ class WP_Block {
 	private const BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES = array(
 		'core/paragraph' => array( 'content' ),
 		'core/heading'   => array( 'content' ),
-		'core/image'     => array( 'id', 'url', 'title', 'alt' ),
+		'core/image'     => array( 'id', 'url', 'title', 'alt', 'caption' ),
 		'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
 		'core/post-date' => array( 'datetime' ),
 	);
@@ -300,6 +300,20 @@ class WP_Block {
 		$supported_block_attributes =
 			self::BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES[ $block_type ] ??
 			array();
+
+		/**
+		 * Filters the supported block attributes for block bindings.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string[] $supported_block_attributes The block's attributes that are supported by block bindings.
+		 * @param string   $block_type                 The block type whose attributes are being filtered.
+		 */
+		$supported_block_attributes = apply_filters(
+			'block_bindings_supported_attributes',
+			$supported_block_attributes,
+			$block_type
+		);
 
 		/**
 		 * Filters the supported block attributes for block bindings.
