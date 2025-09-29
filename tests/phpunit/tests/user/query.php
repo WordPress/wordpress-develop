@@ -171,7 +171,10 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		$users = $query->get_results();
 		foreach ( $users as $user ) {
-			$user->roles;
+			$this->assertIsArray( $user->roles );
+			foreach ( $user->roles as $role ) {
+				$this->assertIsString( $role );
+			}
 		}
 
 		$args      = $filter->get_args();

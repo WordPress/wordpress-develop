@@ -109,7 +109,6 @@ class WP_User {
 	 */
 	private $site_id = 0;
 
-
 	/**
 	 * Flag for if capability is loaded.
 	 *
@@ -536,7 +535,7 @@ class WP_User {
 
 		$wp_roles = wp_roles();
 
-		// Edge-case: In case someone calls this method before lazy initialization, we need to initialize on demand.
+		// Edge case: In case someone calls this method before lazy initialization, we need to initialize on demand.
 		if ( ! $this->loaded_caps ) {
 			$this->caps = $this->get_caps_data();
 		}
