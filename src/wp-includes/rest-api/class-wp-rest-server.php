@@ -900,7 +900,7 @@ class WP_REST_Server {
 	 *
 	 * @param string $route_namespace The namespace to register for lazy loading
 	 */
-	public function register_lazy_loaded_namespace( $route_namespace, ) {
+	public function register_lazy_loaded_namespace( $route_namespace ) {
 		if ( ! isset( $this->lazy_namespaces[ $route_namespace ] ) ) {
 			$this->lazy_namespaces[ $route_namespace ] = false;
 		}
