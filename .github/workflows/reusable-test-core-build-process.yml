@@ -17,10 +17,15 @@ on:
         type: 'string'
         default: 'src'
       test-emoji:
-        description: 'Whether to run the grunt precommit:emoji script.'
+        description: 'Whether to run the precommit:emoji Grunt script.'
         required: false
         type: 'boolean'
         default: true
+      test-certificates:
+        description: 'Whether to run the certificate related Grunt scripts.'
+        required: false
+        type: 'boolean'
+        default: false
       save-build:
         description: 'Whether to save a ZIP of built WordPress as an artifact.'
         required: false
@@ -69,6 +74,21 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
+      # This date is used to ensure that the PHPCS cache is cleared at least once every week.
+      # http://man7.org/linux/man-pages/man1/date.1.html
+      - name: "Get last Monday's date"
+        id: get-date
+        if: ${{ inputs.test-certificates }}
+        run: echo "date=$(/bin/date -u --date='last Mon' "+%F")" >> "$GITHUB_OUTPUT"
+
+      # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
+      # passing a custom cache suffix ensures that the cache is flushed at least once per week.
+      - name: Install Composer dependencies
+        if: ${{ inputs.test-certificates }}
+        uses: ramsey/composer-install@3cf229dc2919194e9e36783941438d17239e8520 # v3.1.1
+        with:
+          custom-cache-suffix: ${{ steps.get-date.outputs.date }}
+
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -90,6 +110,10 @@ jobs:
         run: npm run grunt precommit:emoji
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure certificates files are updated
+        if: ${{ inputs.test-certificates }}
+        run: npm run grunt copy:certificates && npm run grunt build:certificates
 
       - name: Build WordPress to run from ${{ inputs.directory }}
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
