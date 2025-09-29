@@ -12419,8 +12419,16 @@ mockedApiResponse.Schema = {
                         },
                         "input": {
                             "description": "Input parameters for the ability execution.",
-                            "type": "object",
-                            "default": [],
+                            "type": [
+                                "integer",
+                                "number",
+                                "boolean",
+                                "string",
+                                "array",
+                                "object",
+                                "null"
+                            ],
+                            "default": null,
                             "required": false
                         }
                     }
