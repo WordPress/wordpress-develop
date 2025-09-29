@@ -8,9 +8,6 @@
  * @since 6.9.0
  */
 
-use SebastianBergmann\RecursionContext\InvalidArgumentException;
-use PHPUnit\Framework\ExpectationFailedException;
-
 /**
  * Class to Test wp_delete_post() function
  *
@@ -24,11 +21,7 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	 *
 	 * @var array{administrator: int, editor: int, contributor: int}
 	 */
-	protected static $user_ids = array(
-		'administrator' => null,
-		'editor'        => null,
-		'contributor'   => null,
-	);
+	protected static $user_ids;
 
 	/**
 	 * Set up before class.
@@ -112,8 +105,8 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	/**
 	 * Helper function: return the timestamp(s) of cron jobs for the specified hook and post.
 	 */
-	private function next_schedule_for_post( $hook, $post_id ) {
-		return wp_next_scheduled( 'publish_future_post', array( 0 => (int) $post_id ) );
+	private function next_schedule_for_post( $hook, int $post_id ) {
+		return wp_next_scheduled( $hook, array( 0 => (int) $post_id ) );
 	}
 
 	/**
