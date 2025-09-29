@@ -3041,12 +3041,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		// Both routes should work.
 		$request  = new WP_REST_Request( 'GET', '/shared/v1/regular' );
 		$response = $server->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertEquals( 'regular', $data['source'] );
 
 		$request  = new WP_REST_Request( 'GET', '/shared/v1/lazy' );
 		$response = $server->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertEquals( 'lazy', $data['source'] );
 	}
 
