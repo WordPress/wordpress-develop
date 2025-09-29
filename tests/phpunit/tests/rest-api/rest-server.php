@@ -2778,7 +2778,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$server = rest_get_server();
 		$server->register_lazy_loaded_namespace( 'lazy-action/v1' );
 
-		$action_called = false;
+		$action_called    = false;
 		$action_namespace = '';
 
 		// Hook to simulate route registration.
@@ -2934,7 +2934,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 
 		// Make a request that should trigger lazy loading.
-		$request = new WP_REST_Request( 'GET', '/lazy-dispatch/v1/endpoint' );
+		$request  = new WP_REST_Request( 'GET', '/lazy-dispatch/v1/endpoint' );
 		$response = $server->dispatch( $request );
 
 		$this->assertTrue( $dispatched );
@@ -2985,15 +2985,15 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 
 		// Test regular namespace works.
-		$request = new WP_REST_Request( 'GET', '/regular/v1/test' );
+		$request  = new WP_REST_Request( 'GET', '/regular/v1/test' );
 		$response = $server->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertEquals( 'regular', $data['type'] );
 
 		// Test lazy namespace works.
-		$request = new WP_REST_Request( 'GET', '/lazy-mixed/v1/test' );
+		$request  = new WP_REST_Request( 'GET', '/lazy-mixed/v1/test' );
 		$response = $server->dispatch( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 		$this->assertEquals( 'lazy', $data['type'] );
 	}
 
@@ -3039,12 +3039,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 
 		// Both routes should work.
-		$request = new WP_REST_Request( 'GET', '/shared/v1/regular' );
+		$request  = new WP_REST_Request( 'GET', '/shared/v1/regular' );
 		$response = $server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'regular', $data['source'] );
 
-		$request = new WP_REST_Request( 'GET', '/shared/v1/lazy' );
+		$request  = new WP_REST_Request( 'GET', '/shared/v1/lazy' );
 		$response = $server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'lazy', $data['source'] );
@@ -3078,7 +3078,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 
 		// Request root index.
-		$request = new WP_REST_Request( 'GET', '/' );
+		$request  = new WP_REST_Request( 'GET', '/' );
 		$response = $server->dispatch( $request );
 
 		$this->assertTrue( $loaded );
@@ -3114,7 +3114,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 
 		// Request namespace index.
-		$request = new WP_REST_Request( 'GET', '/lazy-ns-index/v1' );
+		$request  = new WP_REST_Request( 'GET', '/lazy-ns-index/v1' );
 		$response = $server->dispatch( $request );
 
 		$this->assertTrue( $loaded );
@@ -3154,7 +3154,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$request = new WP_REST_Request( 'GET', '/other/v1/test' );
+		$request  = new WP_REST_Request( 'GET', '/other/v1/test' );
 		$response = $server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
