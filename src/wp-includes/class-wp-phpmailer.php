@@ -24,7 +24,7 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 	 */
 	public function __construct( $exceptions = false ) {
 		parent::__construct( $exceptions );
-		$this->setLanguage();
+		static::setLanguage();
 	}
 
 	/**
@@ -34,10 +34,11 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 	 *
 	 * @param string $langcode  Optional. Unused. ISO 639-1 2-character language code. Default 'en'.
 	 * @param string $lang_path Optional. Unused. Path to the language file directory. Default empty string.
-	 * @return true Always returns true.
+	 * @return bool Always returns true.
 	 */
-	public function setLanguage( $langcode = 'en', $lang_path = '' ) {
-		$this->language = array(
+	public static function setLanguage( $langcode = 'en', $lang_path = '' ) {
+
+		static::$language = array(
 			'authenticate'         => __( 'SMTP Error: Could not authenticate.' ),
 			'buggy_php'            => sprintf(
 				/* translators: 1: mail.add_x_header. 2: php.ini */
@@ -89,6 +90,11 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 			/* translators: There is a space after the colon. */
 			'variable_set'         => __( 'Cannot set or reset variable: ' ),
 			'no_smtputf8'          => __( 'Server does not support SMTPUTF8 needed to send to Unicode addresses' ),
+			'imap_recommended'     => __(
+				'Using simplified address parser is not recommended. Install the PHP IMAP extension for full RFC822 parsing.'
+			),
+			/* translators: Don't translate $deprecatedArg. */
+			'deprecated_argument'  => __( 'Argument $deprecatedArg is deprecated' ),
 		);
 
 		return true;
