@@ -2640,7 +2640,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 				array(
 					'methods'             => 'GET',
 					'callback'            => function ( $req ) {
-						return array( 'handler' => 'general', 'id' => $req['id'] );
+						return array(
+							'handler' => 'general',
+							'id'      => $req['id']
+						);
 					},
 					'permission_callback' => '__return_true',
 				),
@@ -2696,7 +2699,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 				array(
 					'methods'             => 'GET',
 					'callback'            => function ( $req ) {
-						return array( 'handler' => 'general', 'id' => $req['id'] );
+						return array(
+							'handler' => 'general',
+							'id'      => $req['id']
+						);
 					},
 					'permission_callback' => '__return_true',
 				),
@@ -2822,7 +2828,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		add_action(
 			'rest_lazy_load_namespace_lazy-once/v1',
 			function () use ( &$load_count ) {
-				$load_count ++;
+				$load_count++;
 				register_rest_route(
 					'lazy-once/v1',
 					'/test',
