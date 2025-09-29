@@ -2642,7 +2642,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 					'callback'            => function ( $req ) {
 						return array(
 							'handler' => 'general',
-							'id'      => $req['id']
+							'id'      => $req['id'],
 						);
 					},
 					'permission_callback' => '__return_true',
@@ -2701,7 +2701,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 					'callback'            => function ( $req ) {
 						return array(
 							'handler' => 'general',
-							'id'      => $req['id']
+							'id'      => $req['id'],
 						);
 					},
 					'permission_callback' => '__return_true',
