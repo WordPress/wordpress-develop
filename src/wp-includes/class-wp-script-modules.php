@@ -306,6 +306,9 @@ class WP_Script_Modules {
 					$highest_priority_index,
 					array_search( $this->registered[ $id ]['fetchpriority'], $priorities, true )
 				);
+				if ( count( $priorities ) === $highest_priority_index + 1 ) {
+					break;
+				}
 			}
 		}
 
