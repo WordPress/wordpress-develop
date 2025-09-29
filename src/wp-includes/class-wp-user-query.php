@@ -884,15 +884,12 @@ class WP_User_Query {
 				$result->id = $result->ID;
 			}
 		} elseif ( 'all_with_meta' === $qv['fields'] || 'all' === $qv['fields'] ) {
-			$user_ids = array_map( 'intval', $this->results );
 			if ( function_exists( 'cache_users' ) ) {
-				cache_users( $user_ids );
+				cache_users( $this->results );
 			}
 
-			wp_lazyload_user_meta( $user_ids );
-
 			$r = array();
-			foreach ( $user_ids as $userid ) {
+			foreach ( $this->results as $userid ) {
 				if ( 'all_with_meta' === $qv['fields'] ) {
 					$r[ $userid ] = new WP_User( $userid, '', $qv['blog_id'] );
 				} else {
