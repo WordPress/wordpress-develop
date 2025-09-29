@@ -45,10 +45,11 @@ class WP_Script_Modules {
 	 * Holds the script module identifiers that have been printed.
 	 *
 	 * @since 6.9.0
+	 * @access private
 	 *
 	 * @var string[]
 	 */
-	private $done = array();
+	public $done = array();
 
 	/**
 	 * Registers the script module if no script module with that script module
@@ -326,7 +327,7 @@ class WP_Script_Modules {
 		$script_modules            = $this->get_marked_for_enqueue();
 		$sorted_script_modules_ids = $this->get_sorted_dependencies( array_keys( $script_modules ) );
 		foreach ( $sorted_script_modules_ids as $id ) {
-			if ( ! in_array( $id, $this->done, true ) ) {
+			if ( ! in_array( $id, $this->done, true ) && isset( $script_modules[ $id ] ) ) {
 				$this->done[] = $id;
 				$this->print_script_module( $id, $script_modules[ $id ] );
 			}

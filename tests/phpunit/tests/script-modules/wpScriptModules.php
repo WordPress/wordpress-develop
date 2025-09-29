@@ -58,7 +58,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	public function get_enqueued_script_modules(): array {
 		$modules = array();
 
-		$p = new WP_HTML_Tag_Processor( get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) ) );
+		$p = new WP_HTML_Tag_Processor( get_echo( array( $this->script_modules, 'print_head_enqueued_script_modules' ) ) );
 		while ( $p->next_tag( array( 'tag' => 'SCRIPT' ) ) ) {
 			$this->assertSame( 'module', $p->get_attribute( 'type' ) );
 			$this->assertIsString( $p->get_attribute( 'id' ) );
@@ -341,6 +341,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			}
 		}
 
+		wp_script_modules()->done = array(); // Reset the printed list so we can capture the output again.
 		$actual = array(
 			'preload_links' => $this->get_preloaded_script_modules(),
 			'script_tags'   => $this->get_enqueued_script_modules(),
@@ -382,6 +383,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			}
 		}
 
+		wp_script_modules()->done = array(); // Reset the printed list so we can capture the output again.
 		$actual = array(
 			'preload_links' => $this->get_preloaded_script_modules(),
 			'script_tags'   => $this->get_enqueued_script_modules(),
