@@ -2974,6 +2974,22 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "media_types": {
+                            "default": null,
+                            "description": "Limit result set to an array of media types.",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "image",
+                                    "video",
+                                    "text",
+                                    "application",
+                                    "audio"
+                                ]
+                            },
+                            "required": false
+                        },
                         "mime_type": {
                             "default": null,
                             "description": "Limit result set to attachments of a particular MIME type.",
