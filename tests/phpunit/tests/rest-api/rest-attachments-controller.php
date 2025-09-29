@@ -2715,6 +2715,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * Tests that the attachment fields caption, description, and title, post and alt_text are updated correctly.
+	 *
 	 * @ticket 64035
 	 * @requires function imagejpeg
 	 */
@@ -2859,7 +2860,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
-	 * @ticket ??????
+	 * Test that the `media_types` parameter filters the response by multiple media types.
+	 *
+	 * @ticket 64046
 	 */
 	public function test_get_items_with_media_types() {
 		$video_id = self::factory()->attachment->create_object(
@@ -2921,7 +2924,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * Test that the `media_type` parameter overrides the `media_types` parameter.
 	 *
-	 * @ticket ??????
+	 * @ticket 64046
 	 */
 	public function test_get_items_with_media_type_and_media_types() {
 		self::factory()->attachment->create_object(
