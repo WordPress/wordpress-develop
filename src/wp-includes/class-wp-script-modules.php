@@ -502,11 +502,11 @@ class WP_Script_Modules {
 	 * @return string[] Script module IDs.
 	 */
 	private function get_recursive_dependents( string $id ): array {
-		$get = function ( string $id, array $checked = array() ) use ( &$get ): ?array {
+		$get = function ( string $id, array $checked = array() ) use ( &$get ): array {
 
 			// If by chance an unregistered script module is checked or there is a recursive dependency, return early.
 			if ( ! isset( $this->registered[ $id ] ) || isset( $checked[ $id ] ) ) {
-				return null;
+				return array();
 			}
 
 			// Mark this script module as checked to guard against infinite recursion.
@@ -514,12 +514,11 @@ class WP_Script_Modules {
 
 			$dependents = array();
 			foreach ( $this->get_dependents( $id ) as $dependent ) {
-				$dependents[] = $dependent;
-
-				$recursive_dependents = $get( $dependent, $checked );
-				if ( is_array( $recursive_dependents ) ) {
-					$dependents = array_merge( $dependents, $recursive_dependents );
-				}
+				$dependents = array_merge(
+					$dependents,
+					array( $dependent ),
+					$get( $dependent, $checked )
+				);
 			}
 
 			return $dependents;
