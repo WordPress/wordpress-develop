@@ -2963,31 +2963,32 @@ mockedApiResponse.Schema = {
                         },
                         "media_type": {
                             "default": null,
-                            "description": "Limit result set to attachments of a particular media type.",
-                            "type": "string",
-                            "enum": [
-                                "image",
-                                "video",
-                                "text",
-                                "application",
-                                "audio"
+                            "description": "Limit result set to attachments of a particular media type or media types.",
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        "image",
+                                        "video",
+                                        "text",
+                                        "application",
+                                        "audio"
+                                    ]
+                                },
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "enum": [
+                                            "image",
+                                            "video",
+                                            "text",
+                                            "application",
+                                            "audio"
+                                        ]
+                                    }
+                                }
                             ],
-                            "required": false
-                        },
-                        "media_types": {
-                            "default": null,
-                            "description": "Limit result set to an array of media types.",
-                            "type": "array",
-                            "items": {
-                                "type": "string",
-                                "enum": [
-                                    "image",
-                                    "video",
-                                    "text",
-                                    "application",
-                                    "audio"
-                                ]
-                            },
                             "required": false
                         },
                         "mime_type": {
