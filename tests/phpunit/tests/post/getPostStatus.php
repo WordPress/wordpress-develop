@@ -164,4 +164,52 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 			array( 'delete-attachment', 'publish', 'publish' ),
 		);
 	}
+
+	/**
+	 * Ensure the `post_states_string` filter works to modify post state output.
+	 *
+	 * @ticket 51403
+	 *
+	 * @dataProvider data_filter_post_states_string_should_enable_post_state_html_output_modification
+	 *
+	 * @param string $post_state The post state to test.
+	 */
+	public function test_filter_post_states_string_should_enable_post_state_html_output_modification( $post_state ) {
+		$post = get_post( self::$post_ids[ $post_state ] );
+
+		$original_output = _post_states( $post, false );
+		$text_to_append  = '<span class="post-state">, Sample state</span>';
+
+		add_filter(
+			'post_states_string',
+			static function ( $post_states_string, $post ) use ( $text_to_append ) {
+				return $post_states_string . $text_to_append;
+			},
+			10,
+			2
+		);
+
+		$output = _post_states( $post, false );
+
+		$this->assertStringContainsString( $text_to_append, $output );
+		$this->assertStringContainsString( $original_output, $output );
+	}
+
+	/**
+	 * Data provider for test_filter_post_states_string_should_enable_post_state_html_output_modification().
+	 *
+	 * @return array[] {
+	 *     @type string $post_state The post state to test.
+	 * }
+	 */
+	public static function data_filter_post_states_string_should_enable_post_state_html_output_modification() {
+		return array(
+			array( 'publish' ),
+			array( 'future' ),
+			array( 'draft' ),
+			array( 'auto-draft' ),
+			array( 'trash' ),
+			array( 'private' ),
+		);
+	}
 }
