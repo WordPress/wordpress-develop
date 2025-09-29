@@ -293,7 +293,7 @@ class WP_Dependencies {
 			_deprecated_argument(
 				'WP_Dependencies->add_data()',
 				'6.9.0',
-				__( 'The conditional argument is no longer supported for inline scripts or styles.' )
+				__( 'IE conditional comments are ignored by all supported browsers.' )
 			);
 		}
 
