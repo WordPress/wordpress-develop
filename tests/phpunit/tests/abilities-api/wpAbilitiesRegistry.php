@@ -27,6 +27,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		$this->registry = new WP_Abilities_Registry();
 
+		remove_all_filters( 'register_ability_args' );
+
 		self::$test_ability_args = array(
 			'label'               => 'Add numbers',
 			'description'         => 'Calculates the result of adding two numbers.',
@@ -68,6 +70,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 */
 	public function tear_down(): void {
 		$this->registry = null;
+
+		remove_all_filters( 'register_ability_args' );
 
 		parent::tear_down();
 	}
@@ -112,6 +116,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Should reject ability registration without a label.
 	 *
 	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
@@ -127,6 +132,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Should reject ability registration with invalid label type.
 	 *
 	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
@@ -141,6 +147,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Should reject ability registration without a description.
 	 *
 	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
@@ -156,6 +163,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Should reject ability registration with invalid description type.
 	 *
 	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
@@ -170,6 +178,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Should reject ability registration without an execute callback.
 	 *
 	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
@@ -185,6 +194,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Should reject ability registration if the execute callback is not a callable.
 	 *
 	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
@@ -196,9 +206,26 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should reject ability registration without an execute callback.
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_missing_permission_callback() {
+		// Remove the permission_callback from the args.
+		unset( self::$test_ability_args['permission_callback'] );
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * Should reject ability registration if the permission callback is not a callable.
 	 *
 	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
@@ -213,6 +240,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Should reject ability registration if the input schema is not an array.
 	 *
 	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
@@ -227,6 +255,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Should reject ability registration if the output schema is not an array.
 	 *
 	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
@@ -241,6 +270,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Should reject ability registration with invalid meta type.
 	 *
 	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
@@ -400,5 +430,118 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 				'execute_callback' => null,
 			)
 		);
+	}
+
+	/**
+	 * Test register_ability_args filter modifies the args before ability instantiation.
+	 */
+	public function test_register_ability_args_filter_modifies_args() {
+		$was_filter_callback_fired = false;
+
+		// Define the filter.
+		add_filter(
+			'register_ability_args',
+			static function ( $args ) use ( &$was_filter_callback_fired ) {
+				$args['label']             = 'Modified label';
+				$original_execute_callback = $args['execute_callback'];
+				$args['execute_callback']  = static function ( array $input ) use ( &$was_filter_callback_fired, $original_execute_callback ) {
+					$was_filter_callback_fired = true;
+					return $original_execute_callback( $input );
+				};
+
+				return $args;
+			},
+			10
+		);
+
+		// Register the ability.
+		$ability = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+
+		// Check the label was modified by the filter.
+		$this->assertSame( 'Modified label', $ability->get_label() );
+
+		// Call the execute callback.
+		$result = $ability->execute(
+			array(
+				'a' => 1,
+				'b' => 2,
+			)
+		);
+
+		$this->assertTrue( $was_filter_callback_fired, 'The execute callback defined in the filter was not fired.' );
+		$this->assertSame( 3, $result, 'The original execute callback did not return the expected result.' );
+	}
+
+	/**
+	 * Test register_ability_args filter can block ability registration by returning invalid args.
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_args_filter_blocks_registration() {
+		// Define the filter.
+		add_filter(
+			'register_ability_args',
+			static function ( $args ) {
+				// Remove the label to make the args invalid.
+				unset( $args['label'] );
+				return $args;
+			},
+			10
+		);
+
+		// Register the ability.
+		$ability = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+
+		// Check the ability was not registered.
+		$this->assertNull( $ability, 'The ability was registered even though the args were made invalid by the filter.' );
+	}
+
+	/**
+	 * Test register_ability_args filter can block an invalid ability class from being used.
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_args_filter_blocks_invalid_ability_class() {
+		// Define the filter.
+		add_filter(
+			'register_ability_args',
+			static function ( $args ) {
+				// Set an invalid ability class.
+				$args['ability_class'] = 'NonExistentClass';
+				return $args;
+			},
+			10
+		);
+		// Register the ability.
+		$ability = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+
+		// Check the ability was not registered.
+		$this->assertNull( $ability, 'The ability was registered even though the ability class was made invalid by the filter.' );
+	}
+
+	/**
+	 * Tests register_ability_args filter is only applied to the specific ability being registered.
+	 */
+	public function test_register_ability_args_filter_only_applies_to_specific_ability() {
+		add_filter(
+			'register_ability_args',
+			static function ( $args, $name ) {
+				if ( self::$test_ability_name !== $name ) {
+					// Do not modify args for other abilities.
+					return $args;
+				}
+
+				$args['label'] = 'Modified label for specific ability';
+				return $args;
+			},
+			10,
+			2
+		);
+
+		// Register the first ability, which the filter should modify.
+		$filtered_ability = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+		$this->assertSame( 'Modified label for specific ability', $filtered_ability->get_label() );
+
+		$unfiltered_ability = $this->registry->register( 'test/another-ability', self::$test_ability_args );
+		$this->assertNotSame( $filtered_ability->get_label(), $unfiltered_ability->get_label(), 'The filter incorrectly modified the args for an ability it should not have.' );
 	}
 }

@@ -118,7 +118,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 				'execute_callback'    => static function ( array $input ) {
 					return $input['a'] + $input['b'];
 				},
-				'permission_callback' => static function ( array $input ) {
+				'permission_callback' => static function () {
 					return current_user_can( 'edit_posts' );
 				},
 				'meta'                => array(
@@ -160,7 +160,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 						'login' => $user->user_login,
 					);
 				},
-				'permission_callback' => static function ( array $input ) {
+				'permission_callback' => static function () {
 					return is_user_logged_in();
 				},
 				'meta'                => array(
@@ -263,7 +263,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 						'param2' => array( 'type' => 'integer' ),
 					),
 				),
-				'execute_callback'    => static function ( array $input ) {
+				'execute_callback'    => static function ( $input ) {
 					return $input;
 				},
 				'permission_callback' => '__return_true',
@@ -366,12 +366,11 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	/**
 	 * Test output validation against schema.
 	 * Note: When output validation fails in WP_Ability::execute(), it returns null,
-	 * which causes the REST controller to return 'rest_ability_execution_failed'.
+	 * which causes the REST controller to return 'ability_invalid_output'.
 	 */
 	public function test_output_validation(): void {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/invalid-output/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array() ) );
 
 		$response = $this->server->dispatch( $request );
 
@@ -453,7 +452,6 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	public function test_null_return_handling(): void {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/null-return/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array() ) );
 
 		$response = $this->server->dispatch( $request );
 
@@ -468,7 +466,6 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	public function test_wp_error_return_handling(): void {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/error-return/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array() ) );
 
 		$response = $this->server->dispatch( $request );
 
@@ -486,7 +483,6 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	public function test_execute_non_existent_ability(): void {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/abilities/non/existent/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array() ) );
 
 		$response = $this->server->dispatch( $request );
 
@@ -608,7 +604,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 					),
 					'required'   => array( 'status' ),
 				),
-				'execute_callback'    => static function ( $input ) {
+				'execute_callback'    => static function () {
 					// Return invalid output that doesn't match schema
 					return array( 'wrong_field' => 'value' );
 				},
@@ -619,7 +615,6 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/strict-output/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array( 'input' => array() ) ) );
 
 		$response = $this->server->dispatch( $request );
 
@@ -652,7 +647,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 					),
 					'required'   => array( 'required_field' ),
 				),
-				'execute_callback'    => static function ( $input ) {
+				'execute_callback'    => static function () {
 					return array( 'status' => 'success' );
 				},
 				'permission_callback' => '__return_true',
@@ -687,7 +682,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'No Type',
 				'description'         => 'Ability without type',
-				'execute_callback'    => static function ( $input ) {
+				'execute_callback'    => static function () {
 					return array( 'executed' => true );
 				},
 				'permission_callback' => '__return_true',
@@ -703,57 +698,23 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 		// Should work with POST
 		$post_request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/no-type/run' );
 		$post_request->set_header( 'Content-Type', 'application/json' );
-		$post_request->set_body( wp_json_encode( array( 'input' => array() ) ) );
 
 		$post_response = $this->server->dispatch( $post_request );
 		$this->assertEquals( 200, $post_response->get_status() );
 	}
 
 	/**
-	 * Test permission check with null permission callback.
-	 */
-	public function test_permission_check_passes_when_callback_not_set(): void {
-		// Register ability without permission callback.
-		wp_register_ability(
-			'test/no-permission-callback',
-			array(
-				'label'            => 'No Permission Callback',
-				'description'      => 'Ability without permission callback',
-				'execute_callback' => static function ( $input ) {
-					return array( 'executed' => true );
-				},
-				'meta'             => array( 'type' => 'tool' ),
-				// No permission_callback set
-			)
-		);
-
-		wp_set_current_user( 0 ); // Not logged in
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/no-permission-callback/run' );
-		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array( 'input' => array() ) ) );
-
-		$response = $this->server->dispatch( $request );
-
-		// Should succeed when no permission callback is set
-		$this->assertEquals( 200, $response->get_status() );
-
-		// Restore user for other tests
-		wp_set_current_user( self::$user_id );
-	}
-
-	/**
 	 * Test edge case with empty input for both GET and POST.
 	 */
 	public function test_empty_input_handling(): void {
-		// Register abilities for empty input testing
+		// Registers abilities for empty input testing.
 		wp_register_ability(
 			'test/resource-empty',
 			array(
 				'label'               => 'Resource Empty',
 				'description'         => 'Resource with empty input',
-				'execute_callback'    => static function ( $input ) {
-					return array( 'input_was_empty' => empty( $input ) );
+				'execute_callback'    => static function () {
+					return array( 'input_was_empty' => 0 === func_num_args() );
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array( 'type' => 'resource' ),
@@ -765,21 +726,21 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Tool Empty',
 				'description'         => 'Tool with empty input',
-				'execute_callback'    => static function ( $input ) {
-					return array( 'input_was_empty' => empty( $input ) );
+				'execute_callback'    => static function () {
+					return array( 'input_was_empty' => 0 === func_num_args() );
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array( 'type' => 'tool' ),
 			)
 		);
 
-		// Test GET with no input parameter
+		// Tests GET with no input parameter.
 		$get_request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/resource-empty/run' );
 		$get_response = $this->server->dispatch( $get_request );
 		$this->assertEquals( 200, $get_response->get_status() );
 		$this->assertTrue( $get_response->get_data()['input_was_empty'] );
 
-		// Test POST with no body
+		// Tests POST with no body.
 		$post_request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/tool-empty/run' );
 		$post_request->set_header( 'Content-Type', 'application/json' );
 		$post_request->set_body( '{}' ); // Empty JSON object
@@ -794,7 +755,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function malformed_json_provider(): array {
+	public function data_malformed_json_provider(): array {
 		return array(
 			'Missing value'              => array( '{"input": }' ),
 			'Trailing comma in array'    => array( '{"input": [1, 2, }' ),
@@ -810,7 +771,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	/**
 	 * Test malformed JSON in POST body.
 	 *
-	 * @dataProvider malformed_json_provider
+	 * @dataProvider data_malformed_json_provider
 	 * @param string $json Malformed JSON to test.
 	 */
 	public function test_malformed_json_post_body( string $json ): void {
@@ -835,6 +796,9 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Echo',
 				'description'         => 'Echoes input',
+				'input_schema'        => array(
+					'type' => 'object',
+				),
 				'execute_callback'    => static function ( $input ) {
 					return array( 'echo' => $input );
 				},
@@ -876,6 +840,9 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Echo Encoding',
 				'description'         => 'Echoes input with encoding',
+				'input_schema'        => array(
+					'type' => 'object',
+				),
 				'execute_callback'    => static function ( $input ) {
 					return array( 'echo' => $input );
 				},
@@ -914,7 +881,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function invalid_http_methods_provider(): array {
+	public function data_invalid_http_methods_provider(): array {
 		return array(
 			'PATCH'  => array( 'PATCH' ),
 			'PUT'    => array( 'PUT' ),
@@ -926,7 +893,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	/**
 	 * Test request with invalid HTTP methods.
 	 *
-	 * @dataProvider invalid_http_methods_provider
+	 * @dataProvider data_invalid_http_methods_provider
 	 * @param string $method HTTP method to test.
 	 */
 	public function test_invalid_http_methods( string $method ): void {

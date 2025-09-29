@@ -274,36 +274,60 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test HEAD method returns empty body with proper headers.
+	 */
+	public function test_head_request(): void {
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/abilities' );
+		$response = $this->server->dispatch( $request );
+
+		// Verify empty response body
+		$data = $response->get_data();
+		$this->assertEmpty( $data );
+
+		// Verify pagination headers are present
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'X-WP-Total', $headers );
+		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
+	}
+
+	/**
 	 * Test pagination links.
 	 */
 	public function test_pagination_links(): void {
-		// Test first page (should have 'next' link but no 'prev')
+		// Test first page (should have 'next' link header but no 'prev')
 		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
 		$request->set_param( 'per_page', 10 );
 		$request->set_param( 'page', 1 );
 		$response = $this->server->dispatch( $request );
 
-		$links = $response->get_links();
-		$this->assertArrayHasKey( 'next', $links );
-		$this->assertArrayNotHasKey( 'prev', $links );
+		$headers     = $response->get_headers();
+		$link_header = $headers['Link'] ?? '';
 
-		// Test middle page (should have both 'next' and 'prev' links)
+		// Parse Link header for rel="next" and rel="prev"
+		$this->assertStringContainsString( 'rel="next"', $link_header );
+		$this->assertStringNotContainsString( 'rel="prev"', $link_header );
+
+		// Test middle page (should have both 'next' and 'prev' link headers)
 		$request->set_param( 'page', 3 );
 		$response = $this->server->dispatch( $request );
 
-		$links = $response->get_links();
-		$this->assertArrayHasKey( 'next', $links );
-		$this->assertArrayHasKey( 'prev', $links );
+		$headers     = $response->get_headers();
+		$link_header = $headers['Link'] ?? '';
 
-		// Test last page (should have 'prev' link but no 'next')
+		$this->assertStringContainsString( 'rel="next"', $link_header );
+		$this->assertStringContainsString( 'rel="prev"', $link_header );
+
+		// Test last page (should have 'prev' link header but no 'next')
 		$total_abilities = count( wp_get_abilities() );
 		$last_page       = ceil( $total_abilities / 10 );
 		$request->set_param( 'page', $last_page );
 		$response = $this->server->dispatch( $request );
 
-		$links = $response->get_links();
-		$this->assertArrayNotHasKey( 'next', $links );
-		$this->assertArrayHasKey( 'prev', $links );
+		$headers     = $response->get_headers();
+		$link_header = $headers['Link'] ?? '';
+
+		$this->assertStringNotContainsString( 'rel="next"', $link_header );
+		$this->assertStringContainsString( 'rel="prev"', $link_header );
 	}
 
 	/**

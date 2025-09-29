@@ -94,10 +94,6 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 * @return \WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
-		// TODO: Add HEAD method support for performance optimization.
-		// Should return early with empty body but include X-WP-Total and X-WP-TotalPages headers.
-		// See: https://github.com/WordPress/wordpress-develop/blob/trunk/src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php#L316-L318
-
 		$abilities = wp_get_abilities();
 
 		// Handle pagination with explicit defaults.
@@ -109,15 +105,19 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 		$total_abilities = count( $abilities );
 		$max_pages       = ceil( $total_abilities / $per_page );
 
-		$abilities = array_slice( $abilities, $offset, $per_page );
+		if ( $request->is_method( 'HEAD' ) ) {
+			$response = new \WP_REST_Response( array() );
+		} else {
+			$abilities = array_slice( $abilities, $offset, $per_page );
 
-		$data = array();
-		foreach ( $abilities as $ability ) {
-			$item   = $this->prepare_item_for_response( $ability, $request );
-			$data[] = $this->prepare_response_for_collection( $item );
+			$data = array();
+			foreach ( $abilities as $ability ) {
+				$item   = $this->prepare_item_for_response( $ability, $request );
+				$data[] = $this->prepare_response_for_collection( $item );
+			}
+
+			$response = rest_ensure_response( $data );
 		}
-
-		$response = rest_ensure_response( $data );
 
 		$response->header( 'X-WP-Total', (string) $total_abilities );
 		$response->header( 'X-WP-TotalPages', (string) $max_pages );
@@ -128,13 +128,13 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
 			$prev_link = add_query_arg( 'page', $prev_page, $base );
-			$response->add_link( 'prev', $prev_link );
+			$response->link_header( 'prev', $prev_link );
 		}
 
 		if ( $page < $max_pages ) {
 			$next_page = $page + 1;
 			$next_link = add_query_arg( 'page', $next_page, $base );
-			$response->add_link( 'next', $next_link );
+			$response->link_header( 'next', $next_link );
 		}
 
 		return $response;

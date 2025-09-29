@@ -5,7 +5,7 @@
  * Defines functions for managing abilities in WordPress.
  *
  * @package WordPress
- * @subpackage Abilities API
+ * @subpackage Abilities_API
  * @since 0.1.0
  */
 
@@ -16,31 +16,31 @@ declare( strict_types = 1 );
  *
  * Note: Do not use before the {@see 'abilities_api_init'} hook.
  *
- * @see WP_Abilities_Registry::register()
- *
  * @since 0.1.0
  *
- * @param string              $name       The name of the ability. The name must be a string containing a namespace
- *                                        prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
- *                                        alphanumeric characters, dashes and the forward slash.
- * @param array<string,mixed> $properties An associative array of properties for the ability. This should include
- *                                        `label`, `description`, `input_schema`, `output_schema`, `execute_callback`,
- *                                        `permission_callback`, `meta`, and `ability_class`.
+ * @see WP_Abilities_Registry::register()
+ *
+ * @param string              $name The name of the ability. The name must be a string containing a namespace
+ *                                  prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
+ *                                  alphanumeric characters, dashes and the forward slash.
+ * @param array<string,mixed> $args An associative array of arguments for the ability. This should include
+ *                                  `label`, `description`, `input_schema`, `output_schema`, `execute_callback`,
+ *                                  `permission_callback`, `meta`, and `ability_class`.
  * @return ?\WP_Ability An instance of registered ability on success, null on failure.
  *
  * @phpstan-param array{
  *   label?: string,
  *   description?: string,
+ *   execute_callback?: callable( mixed $input= ): (mixed|\WP_Error),
+ *   permission_callback?: callable( mixed $input= ): (bool|\WP_Error),
  *   input_schema?: array<string,mixed>,
  *   output_schema?: array<string,mixed>,
- *   execute_callback?: callable( array<string,mixed> $input): (mixed|\WP_Error),
- *   permission_callback?: callable( array<string,mixed> $input ): (bool|\WP_Error),
  *   meta?: array<string,mixed>,
  *   ability_class?: class-string<\WP_Ability>,
  *   ...<string, mixed>
- * } $properties
+ * } $args
  */
-function wp_register_ability( string $name, array $properties = array() ): ?WP_Ability {
+function wp_register_ability( string $name, array $args ): ?WP_Ability {
 	if ( ! did_action( 'abilities_api_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
@@ -55,15 +55,15 @@ function wp_register_ability( string $name, array $properties = array() ): ?WP_A
 		return null;
 	}
 
-	return WP_Abilities_Registry::get_instance()->register( $name, $properties );
+	return WP_Abilities_Registry::get_instance()->register( $name, $args );
 }
 
 /**
  * Unregisters an ability using Abilities API.
  *
- * @see WP_Abilities_Registry::unregister()
- *
  * @since 0.1.0
+ *
+ * @see WP_Abilities_Registry::unregister()
  *
  * @param string $name The name of the registered ability, with its namespace.
  * @return ?\WP_Ability The unregistered ability instance on success, null on failure.
@@ -75,9 +75,9 @@ function wp_unregister_ability( string $name ): ?WP_Ability {
 /**
  * Retrieves a registered ability using Abilities API.
  *
- * @see WP_Abilities_Registry::get_registered()
- *
  * @since 0.1.0
+ *
+ * @see WP_Abilities_Registry::get_registered()
  *
  * @param string $name The name of the registered ability, with its namespace.
  * @return ?\WP_Ability The registered ability instance, or null if it is not registered.
@@ -89,9 +89,9 @@ function wp_get_ability( string $name ): ?WP_Ability {
 /**
  * Retrieves all registered abilities using Abilities API.
  *
- * @see WP_Abilities_Registry::get_all_registered()
- *
  * @since 0.1.0
+ *
+ * @see WP_Abilities_Registry::get_all_registered()
  *
  * @return \WP_Ability[] The array of registered abilities.
  */

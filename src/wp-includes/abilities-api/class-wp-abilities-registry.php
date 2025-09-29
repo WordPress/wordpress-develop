@@ -46,18 +46,17 @@ final class WP_Abilities_Registry {
 	 * @param string              $name The name of the ability. The name must be a string containing a namespace
 	 *                                  prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
 	 *                                  alphanumeric characters, dashes and the forward slash.
-	 * @param array<string,mixed> $args An associative array of arguments for the ability. This should include
-	 *                                  `label`, `description`, `input_schema`, `output_schema`,
-	 *                                  `execute_callback`, `permission_callback`, `meta`, and ability_class.
+	 * @param array<string,mixed> $args An associative array of arguments for the ability. See wp_register_ability() for
+	 *                                  details.
 	 * @return ?\WP_Ability The registered ability instance on success, null on failure.
 	 *
 	 * @phpstan-param array{
 	 *   label?: string,
 	 *   description?: string,
+	 *   execute_callback?: callable( mixed $input= ): (mixed|\WP_Error),
+	 *   permission_callback?: callable( mixed $input= ): (bool|\WP_Error),
 	 *   input_schema?: array<string,mixed>,
 	 *   output_schema?: array<string,mixed>,
-	 *   execute_callback?: callable( array<string,mixed> $input): (mixed|\WP_Error),
-	 *   permission_callback?: ?callable( array<string,mixed> $input ): (bool|\WP_Error),
 	 *   meta?: array<string,mixed>,
 	 *   ability_class?: class-string<\WP_Ability>,
 	 *   ...<string, mixed>
@@ -85,6 +84,16 @@ final class WP_Abilities_Registry {
 			return null;
 		}
 
+		/**
+		 * Filters the ability arguments before they are validated and used to instantiate the ability.
+		 *
+		 * @since 0.2.0
+		 *
+		 * @param array<string,mixed> $args The arguments used to instantiate the ability.
+		 * @param string              $name The name of the ability, with its namespace.
+		 */
+		$args = apply_filters( 'register_ability_args', $args, $name );
+
 		// The class is only used to instantiate the ability, and is not a property of the ability itself.
 		if ( isset( $args['ability_class'] ) && ! is_a( $args['ability_class'], WP_Ability::class, true ) ) {
 			_doing_it_wrong(
@@ -94,6 +103,8 @@ final class WP_Abilities_Registry {
 			);
 			return null;
 		}
+
+		/** @var class-string<\WP_Ability> */
 		$ability_class = $args['ability_class'] ?? WP_Ability::class;
 		unset( $args['ability_class'] );
 
