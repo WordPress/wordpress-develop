@@ -3748,7 +3748,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  *                           Default false.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
-function wp_delete_post( $post_id = 0, $force_delete = false ) {
+function wp_delete_post( $post_id, $force_delete = false ) {
 	global $wpdb;
 
 	$post_id = (int) $post_id;
