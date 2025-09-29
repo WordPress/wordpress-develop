@@ -2617,28 +2617,40 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 63946
 	 */
 	public function test_route_priority_registration_order() {
-		// Register general route first
-		register_rest_route('priority-test/v1', '/items/(?P<id>[\\w-]+)', array(
+		// Register general route first.
+		register_rest_route(
+			'priority-test/v1',
+			'/items/(?P<id>[\\w-]+)',
 			array(
-				'methods' => 'GET',
-				'callback' => function($req) { return array('handler' => 'general', 'id' => $req['id']); },
-				'permission_callback' => '__return_true',
-			),
-		));
-		// Register specific route after general
-		register_rest_route('priority-test/v1', '/items/special', array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => function ( $req ) {
+						return array( 'handler' => 'general', 'id' => $req['id'] );
+					},
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+		// Register specific route after general.
+		register_rest_route(
+			'priority-test/v1',
+			'/items/special',
 			array(
-				'methods' => 'GET',
-				'callback' => function() { return array('handler' => 'specific'); },
-				'permission_callback' => '__return_true',
-			),
-		));
+				array(
+					'methods'             => 'GET',
+					'callback'            => function () {
+						return array( 'handler' => 'specific' );
+					},
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
 
 		// 'special' should match the general route (registered first)
-		$request = new WP_REST_Request('GET', '/priority-test/v1/items/special');
-		$response = rest_get_server()->dispatch($request);
-		$data = $response->get_data();
-		$this->assertEquals('general', $data['handler']);
+		$request  = new WP_REST_Request( 'GET', '/priority-test/v1/items/special' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( 'general', $data['handler'] );
 	}
 
 	/**
@@ -2647,28 +2659,39 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * @ticket 63946
 	 */
 	public function test_route_priority_reverse_registration_order() {
-		// Register specific route first
-		register_rest_route('priority-test/v1', '/items/special', array(
+		// Register specific route first.
+		register_rest_route(
+			'priority-test/v1',
+			'/items/special',
 			array(
-				'methods' => 'GET',
-				'callback' => function() { return array('handler' => 'specific'); },
-				'permission_callback' => '__return_true',
-			),
-		));
-		// Register general route after specific
-		register_rest_route('priority-test/v1', '/items/(?P<id>[\\w-]+)', array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => function () {
+						return array( 'handler' => 'specific' );
+					},
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+		// Register general route after specific.
+		register_rest_route(
+			'priority-test/v1',
+			'/items/(?P<id>[\\w-]+)',
 			array(
-				'methods' => 'GET',
-				'callback' => function($req) { return array('handler' => 'general', 'id' => $req['id']); },
-				'permission_callback' => '__return_true',
-			),
-		));
+				array(
+					'methods'             => 'GET',
+					'callback'            => function ( $req ) {
+						return array( 'handler' => 'general', 'id' => $req['id'] );
+					},
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
 
-		// 'special' should match the specific route (registered first)
-		$request = new WP_REST_Request('GET', '/priority-test/v1/items/special');
-		$response = rest_get_server()->dispatch($request);
-		$data = $response->get_data();
-		$this->assertEquals('specific', $data['handler']);
+		$request  = new WP_REST_Request( 'GET', '/priority-test/v1/items/special' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( 'specific', $data['handler'] );
 	}
 
 
@@ -2702,10 +2725,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			true
 		);
 
-		$request = new WP_REST_Request('GET', '/override-test/v1/thing');
-		$response = rest_get_server()->dispatch($request);
-		$data = $response->get_data();
-		$this->assertEquals('override', $data['version']);
+		$request  = new WP_REST_Request( 'GET', '/override-test/v1/thing' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( 'override', $data['version'] );
 	}
 
 	/**
@@ -3017,7 +3040,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$loaded = false;
 
-		add_action( 'rest_lazy_load_namespace_lazy-index/v1',
+		add_action(
+			'rest_lazy_load_namespace_lazy-index/v1',
 			function () use ( &$loaded ) {
 				$loaded = true;
 				register_rest_route(
@@ -3132,7 +3156,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		add_action(
 			'rest_lazy_load_namespace_lazy-double/v1',
 			function () use ( &$times_loaded ) {
-				++ $times_loaded;
+				++$times_loaded;
 			}
 		);
 

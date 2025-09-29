@@ -1098,7 +1098,6 @@ class WP_REST_Server {
 	 * @return string[] List of registered namespaces.
 	 */
 	public function get_namespaces() {
-		// @todo May need to make this use context to load all for backward compatibility
 		return array_keys( $this->namespaces );
 	}
 
