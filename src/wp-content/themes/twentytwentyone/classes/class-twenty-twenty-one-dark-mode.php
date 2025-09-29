@@ -92,9 +92,9 @@ class Twenty_Twenty_One_Dark_Mode {
 		if ( ! $this->switch_should_render() ) {
 			return;
 		}
-		$url = get_template_directory_uri() . '/assets/css/style-dark-mode.css';
+		$url = twentytwentyone_get_stylesheet_path( '/assets/css/style-dark-mode.css' );
 		if ( is_rtl() ) {
-			$url = get_template_directory_uri() . '/assets/css/style-dark-mode-rtl.css';
+			$url = twentytwentyone_get_stylesheet_path( '/assets/css/style-dark-mode-rtl.css' );
 		}
 		wp_enqueue_style( 'tt1-dark-mode', $url, array( 'twenty-twenty-one-style' ), wp_get_theme()->get( 'Version' ) ); // @phpstan-ignore-line. Version is always a string.
 	}

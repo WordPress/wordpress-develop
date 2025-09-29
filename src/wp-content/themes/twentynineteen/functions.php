@@ -255,9 +255,11 @@ add_action( 'after_setup_theme', 'twentynineteen_content_width', 0 );
  * @since Twenty Nineteen 1.0
  */
 function twentynineteen_scripts() {
-	wp_enqueue_style( 'twentynineteen-style', get_stylesheet_uri(), array(), wp_get_theme()->get( 'Version' ) );
-
-	wp_style_add_data( 'twentynineteen-style', 'rtl', 'replace' );
+	$url = twentynineteen_get_stylesheet_path( 'style.css' );
+	if ( is_rtl() ) {
+		$url = twentynineteen_get_stylesheet_path( 'style-rtl.css' );
+	}
+	wp_enqueue_style( 'twentynineteen-style', $url, array(), wp_get_theme()->get( 'Version' ) );
 
 	if ( has_nav_menu( 'menu-1' ) ) {
 		wp_enqueue_script(
@@ -282,7 +284,7 @@ function twentynineteen_scripts() {
 		);
 	}
 
-	wp_enqueue_style( 'twentynineteen-print-style', get_template_directory_uri() . '/print.css', array(), wp_get_theme()->get( 'Version' ), 'print' );
+	wp_enqueue_style( 'twentynineteen-print-style', twentynineteen_get_stylesheet_path( 'print.css' ), array(), wp_get_theme()->get( 'Version' ), 'print' );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
@@ -395,3 +397,34 @@ function twentynineteen_register_block_patterns() {
 }
 
 add_action( 'init', 'twentynineteen_register_block_patterns' );
+
+/**
+ * Gets the path to a stylesheet file, minified if available and appropriate.
+ *
+ * @since Twenty Nineteen 3.2
+ *
+ * @param string $src_path Source path, relative to the theme root.
+ * @return string URL to stylesheet.
+ */
+function twentynineteen_get_stylesheet_path( $src_path ) {
+	$min_path = (string) preg_replace( '/(?=\.css$)/', '.min', $src_path );
+
+	$use_min = ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) && ! strpos( wp_get_wp_version(), '-src' );
+
+	if ( is_child_theme() ) {
+		if ( $use_min && file_exists( get_stylesheet_directory() . '/' . $min_path ) ) {
+			return get_stylesheet_directory_uri() . '/' . $min_path;
+		}
+
+		if ( file_exists( get_stylesheet_directory() . '/' . $src_path ) ) {
+			return get_stylesheet_directory_uri() . '/' . $src_path;
+		}
+	}
+
+	if ( $use_min && file_exists( get_template_directory() . '/' . $min_path ) ) {
+		return get_template_directory_uri() . '/' . $min_path;
+	}
+
+	return get_template_directory_uri() . '/' . $src_path;
+}
+

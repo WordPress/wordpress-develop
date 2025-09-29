@@ -574,7 +574,28 @@ module.exports = function(grunt) {
 				dest: WORKING_DIR,
 				ext: '.min.css',
 				src: [
+					// Minify Twenty Nineteen stylesheet.
+					'wp-content/themes/twentynineteen/style.css',
+					'wp-content/themes/twentynineteen/style-rtl.css',
+					'wp-content/themes/twentynineteen/print.css',
+
+					// Minify Twenty Twenty stylesheet.
+					'wp-content/themes/twentytwenty/style.css',
+					'wp-content/themes/twentytwenty/style-rtl.css',
+					'wp-content/themes/twentytwenty/print.css',
+					'wp-content/themes/twentytwenty/assets/css/font-inter.css',
+
+					// Minify Twenty Twenty-One stylesheets.
+					'wp-content/themes/twentytwentyone/style.css',
+					'wp-content/themes/twentytwentyone/style-rtl.css',
+					'wp-content/themes/twentytwentyone/assets/css/print.css',
+					'wp-content/themes/twentytwentyone/assets/css/style-dark-mode.css',
+					'wp-content/themes/twentytwentyone/assets/css/style-dark-mode-rtl.css',
+					
+					// Minify Twenty Twenty-Two stylesheet.
 					'wp-content/themes/twentytwentytwo/style.css',
+
+					// Minify Twenty Twenty-Five stylesheet.
 					'wp-content/themes/twentytwentyfive/style.css',
 				]
 			}
