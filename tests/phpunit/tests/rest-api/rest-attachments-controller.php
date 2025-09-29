@@ -47,7 +47,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	private static $test_audio_file;
 
-
 	/**
 	 * @var array The recorded posts query clauses.
 	 */
@@ -271,7 +270,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				'exclude',
 				'include',
 				'media_type',
-				'media_types',
 				'mime_type',
 				'modified_after',
 				'modified_before',
@@ -297,7 +295,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'audio',
 			'text',
 		);
-		$this->assertSameSets( $media_types, $data['endpoints'][0]['args']['media_type']['enum'] );
+		$this->assertSameSets( $media_types, $data['endpoints'][0]['args']['media_type']['oneOf'][0]['enum'] );
+		$this->assertSameSets( $media_types, $data['endpoints'][0]['args']['media_type']['oneOf'][1]['items']['enum'] );
 	}
 
 	public function test_registered_get_item_params() {
@@ -446,6 +445,109 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( $id1, $data[0]['id'] );
+	}
+
+	/**
+	 * Test that the `media_type` array parameter filters the response by multiple media types.
+	 *
+	 * @ticket 64046
+	 */
+	public function test_get_items_with_media_types() {
+		$video_id = self::factory()->attachment->create_object(
+			self::$test_video_file,
+			0,
+			array(
+				'post_mime_type' => 'video/mp4',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$audio_id = self::factory()->attachment->create_object(
+			self::$test_audio_file,
+			0,
+			array(
+				'post_mime_type' => 'audio/mpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$image_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_type', array( 'audio', 'video' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
+		$this->assertContains( $video_id, wp_list_pluck( $response->get_data(), 'id' ), 'Video ID not found in response for [audio, video]' );
+		$this->assertContains( $audio_id, wp_list_pluck( $response->get_data(), 'id' ), 'Audio ID not found in response for [audio, video]' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_type', array( 'image' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+		$this->assertContains( $image_id, wp_list_pluck( $response->get_data(), 'id' ), 'Image ID not found in response for [image]' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_type', array( 'image', 'audio' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
+		$this->assertContains( $image_id, wp_list_pluck( $response->get_data(), 'id' ), 'Image ID not found in response for [image, audio]' );
+		$this->assertContains( $audio_id, wp_list_pluck( $response->get_data(), 'id' ), 'Audio ID not found in response for [image, audio]' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_type', array( 'image', 'video', 'audio' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 3, $response->get_data() );
+		$this->assertContains( $image_id, wp_list_pluck( $response->get_data(), 'id' ), 'Image ID not found in response for [image, video, audio]' );
+		$this->assertContains( $video_id, wp_list_pluck( $response->get_data(), 'id' ), 'Video ID not found in response for [image, video, audio]' );
+		$this->assertContains( $audio_id, wp_list_pluck( $response->get_data(), 'id' ), 'Audio ID not found in response for [image, video, audio]' );
+	}
+
+	/**
+	 * Test that the `media_type` string parameter filters the response by a single media type even
+	 * where there are multiple media types.
+	 *
+	 * @ticket 64046
+	 */
+	public function test_get_items_with_media_type_and_media_types() {
+		self::factory()->attachment->create_object(
+			self::$test_video_file,
+			0,
+			array(
+				'post_mime_type' => 'video/mp4',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		self::factory()->attachment->create_object(
+			self::$test_audio_file,
+			0,
+			array(
+				'post_mime_type' => 'audio/mpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$image_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'media_type', 'image' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+		$this->assertContains( $image_id, wp_list_pluck( $response->get_data(), 'id' ), 'Image ID not found in response' );
 	}
 
 	public function test_get_items_mime_type() {

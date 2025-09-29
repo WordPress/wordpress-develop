@@ -70,7 +70,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * prepares for WP_Query.
 	 *
 	 * @since 4.7.0
-	 * @since 6.9.0 Added the `media_types` parameter to filter by multiple media types.
+	 * @since 6.9.0 Extends the `media_type` parameter to support filtering by multiple media types.
 	 *
 	 * @param array           $prepared_args Optional. Array of prepared arguments. Default empty array.
 	 * @param WP_REST_Request $request       Optional. Request to prepare items for.
@@ -85,20 +85,22 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$media_types = $this->get_media_types();
 
-		if ( ! empty( $request['media_type'] ) && isset( $media_types[ $request['media_type'] ] ) ) {
-			$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
-		}
+		if ( ! empty( $request['media_type'] ) ) {
+			if ( is_array( $request['media_type'] ) ) {
+				$mime_types_query = array();
 
-		if ( empty( $query_args['post_mime_type'] ) && ! empty( $request['media_types'] ) && is_array( $request['media_types'] ) ) {
-			$mime_types_query = array();
+				foreach ( $request['media_type'] as $request_media_type ) {
+					if ( isset( $media_types[ $request_media_type ] ) ) {
+						$mime_types_query = array_merge( $mime_types_query, $media_types[ $request_media_type ] );
+					}
+				}
 
-			foreach ( $request['media_types'] as $media_type ) {
-				if ( isset( $media_types[ $media_type ] ) ) {
-					$mime_types_query[] = $media_type;
+				$query_args['post_mime_type'] = $mime_types_query;
+			} else {
+				if ( isset( $media_types[ $request['media_type'] ] ) ) {
+					$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
 				}
 			}
-
-			$query_args['post_mime_type'] = $mime_types_query;
 		}
 
 		if ( ! empty( $request['mime_type'] ) ) {
@@ -1355,7 +1357,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Retrieves the query params for collections of attachments.
 	 *
 	 * @since 4.7.0
-	 * @since 6.9.0 Adds the `media_types` parameter to filter by multiple media types.
+	 * @since 6.9.0 Extends the `media_type` parameter to support filtering by multiple media types.
 	 *
 	 * @return array Query parameters for the attachment collection as an array.
 	 */
@@ -1367,18 +1369,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$params['media_type'] = array(
 			'default'     => null,
-			'description' => __( 'Limit result set to attachments of a particular media type.' ),
-			'type'        => 'string',
-			'enum'        => $media_types,
-		);
-
-		$params['media_types'] = array(
-			'default'     => null,
-			'description' => __( 'Limit result set to an array of media types.' ),
-			'type'        => 'array',
-			'items'       => array(
-				'type' => 'string',
-				'enum' => $media_types,
+			'description' => __( 'Limit result set to attachments of a particular media type or media types.' ),
+			'oneOf'       => array(
+				array(
+					'type' => 'string',
+					'enum' => $media_types,
+				),
+				array(
+					'type'  => 'array',
+					'items' => array(
+						'type' => 'string',
+						'enum' => $media_types,
+					),
+				),
 			),
 		);
 
