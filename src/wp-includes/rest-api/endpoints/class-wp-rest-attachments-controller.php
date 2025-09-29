@@ -971,7 +971,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Prepares links for the request.
+	 * Prepares attachment links for the request.
 	 *
 	 * @since 6.9.0
 	 *
