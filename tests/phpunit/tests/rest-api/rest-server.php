@@ -2677,17 +2677,30 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	public function test_route_override_parameter_replaces_callback() {
 		// Register initial route.
-		register_rest_route('override-test/v1', '/thing', array(
-			'methods' => 'GET',
-			'callback' => function() { return array('version' => 'original'); },
-			'permission_callback' => '__return_true',
-		));
+		register_rest_route(
+			'override-test/v1',
+			'/thing',
+			array(
+				'methods'             => 'GET',
+				'callback'            => function () {
+					return array( 'version' => 'original' );
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
 		// Register again with override.
-		register_rest_route('override-test/v1', '/thing', array(
-			'methods' => 'GET',
-			'callback' => function() { return array('version' => 'override'); },
-			'permission_callback' => '__return_true',
-		), true);
+		register_rest_route(
+			'override-test/v1',
+			'/thing',
+			array(
+				'methods'             => 'GET',
+				'callback'            => function () {
+					return array( 'version' => 'override' );
+				},
+				'permission_callback' => '__return_true',
+			),
+			true
+		);
 
 		$request = new WP_REST_Request('GET', '/override-test/v1/thing');
 		$response = rest_get_server()->dispatch($request);
@@ -2725,17 +2738,26 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$action_namespace = '';
 
 		// Hook to simulate route registration.
-		add_action( 'rest_lazy_load_namespace_lazy-action/v1', function() use ( &$action_called, &$action_namespace ) {
-			$action_called = true;
-			$action_namespace = 'lazy-action/v1';
+		add_action(
+			'rest_lazy_load_namespace_lazy-action/v1',
+			function () use ( &$action_called, &$action_namespace ) {
+				$action_called    = true;
+				$action_namespace = 'lazy-action/v1';
 
-			// Register actual routes when lazy loading.
-			register_rest_route( 'lazy-action/v1', '/test', array(
-				'methods'             => 'GET',
-				'callback'            => function() { return array( 'loaded' => true ); },
-				'permission_callback' => '__return_true',
-			) );
-		} );
+				// Register actual routes when lazy loading.
+				register_rest_route(
+					'lazy-action/v1',
+					'/test',
+					array(
+						'methods'             => 'GET',
+						'callback'            => function () {
+							return array( 'loaded' => true );
+						},
+						'permission_callback' => '__return_true',
+					)
+				);
+			}
+		);
 
 		// Trigger lazy loading by requesting routes.
 		$routes = $server->get_routes( 'lazy-action/v1' );
@@ -2759,14 +2781,21 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$load_count = 0;
 
-		add_action( 'rest_lazy_load_namespace_lazy-once/v1', function() use ( &$load_count ) {
-			$load_count++;
-			register_rest_route( 'lazy-once/v1', '/test', array(
-				'methods'             => 'GET',
-				'callback'            => '__return_true',
-				'permission_callback' => '__return_true',
-			) );
-		} );
+		add_action(
+			'rest_lazy_load_namespace_lazy-once/v1',
+			function () use ( &$load_count ) {
+				$load_count ++;
+				register_rest_route(
+					'lazy-once/v1',
+					'/test',
+					array(
+						'methods'             => 'GET',
+						'callback'            => '__return_true',
+						'permission_callback' => '__return_true',
+					)
+				);
+			}
+		);
 
 		// Call multiple times that should trigger loading.
 		$server->get_routes( 'lazy-once/v1' );
@@ -2790,23 +2819,37 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$loaded_namespaces = array();
 
-		add_action( 'rest_lazy_load_namespace_lazy-all-1/v1', function() use ( &$loaded_namespaces ) {
-			$loaded_namespaces[] = 'lazy-all-1/v1';
-			register_rest_route( 'lazy-all-1/v1', '/test1', array(
-				'methods'             => 'GET',
-				'callback'            => '__return_true',
-				'permission_callback' => '__return_true',
-			) );
-		} );
+		add_action(
+			'rest_lazy_load_namespace_lazy-all-1/v1',
+			function () use ( &$loaded_namespaces ) {
+				$loaded_namespaces[] = 'lazy-all-1/v1';
+				register_rest_route(
+					'lazy-all-1/v1',
+					'/test1',
+					array(
+						'methods'             => 'GET',
+						'callback'            => '__return_true',
+						'permission_callback' => '__return_true',
+					)
+				);
+			}
+		);
 
-		add_action( 'rest_lazy_load_namespace_lazy-all-2/v1', function() use ( &$loaded_namespaces ) {
-			$loaded_namespaces[] = 'lazy-all-2/v1';
-			register_rest_route( 'lazy-all-2/v1', '/test2', array(
-				'methods'             => 'GET',
-				'callback'            => '__return_true',
-				'permission_callback' => '__return_true',
-			) );
-		} );
+		add_action(
+			'rest_lazy_load_namespace_lazy-all-2/v1',
+			function () use ( &$loaded_namespaces ) {
+				$loaded_namespaces[] = 'lazy-all-2/v1';
+				register_rest_route(
+					'lazy-all-2/v1',
+					'/test2',
+					array(
+						'methods'             => 'GET',
+						'callback'            => '__return_true',
+						'permission_callback' => '__return_true',
+					)
+				);
+			}
+		);
 
 		$routes = $server->get_routes();
 
@@ -2828,14 +2871,23 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$dispatched = false;
 
-		add_action( 'rest_lazy_load_namespace_lazy-dispatch/v1', function() use ( &$dispatched ) {
-			$dispatched = true;
-			register_rest_route( 'lazy-dispatch/v1', '/endpoint', array(
-				'methods'             => 'GET',
-				'callback'            => function() { return array( 'success' => true ); },
-				'permission_callback' => '__return_true',
-			) );
-		} );
+		add_action(
+			'rest_lazy_load_namespace_lazy-dispatch/v1',
+			function () use ( &$dispatched ) {
+				$dispatched = true;
+				register_rest_route(
+					'lazy-dispatch/v1',
+					'/endpoint',
+					array(
+						'methods'             => 'GET',
+						'callback'            => function () {
+							return array( 'success' => true );
+						},
+						'permission_callback' => '__return_true',
+					)
+				);
+			}
+		);
 
 		// Make a request that should trigger lazy loading.
 		$request = new WP_REST_Request( 'GET', '/lazy-dispatch/v1/endpoint' );
@@ -2856,22 +2908,37 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$server = rest_get_server();
 
 		// Register regular namespace.
-		register_rest_route( 'regular/v1', '/test', array(
-			'methods'             => 'GET',
-			'callback'            => function() { return array( 'type' => 'regular' ); },
-			'permission_callback' => '__return_true',
-		) );
+		register_rest_route(
+			'regular/v1',
+			'/test',
+			array(
+				'methods'             => 'GET',
+				'callback'            => function () {
+					return array( 'type' => 'regular' );
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
 
 		// Register lazy namespace.
 		$server->register_lazy_loaded_namespace( 'lazy-mixed/v1' );
 
-		add_action( 'rest_lazy_load_namespace_lazy-mixed/v1', function() {
-			register_rest_route( 'lazy-mixed/v1', '/test', array(
-				'methods'             => 'GET',
-				'callback'            => function() { return array( 'type' => 'lazy' ); },
-				'permission_callback' => '__return_true',
-			) );
-		} );
+		add_action(
+			'rest_lazy_load_namespace_lazy-mixed/v1',
+			function () {
+				register_rest_route(
+					'lazy-mixed/v1',
+					'/test',
+					array(
+						'methods'             => 'GET',
+						'callback'            => function () {
+							return array( 'type' => 'lazy' );
+						},
+						'permission_callback' => '__return_true',
+					)
+				);
+			}
+		);
 
 		// Test regular namespace works.
 		$request = new WP_REST_Request( 'GET', '/regular/v1/test' );
@@ -2895,22 +2962,37 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$server = rest_get_server();
 
 		// Register regular route first.
-		register_rest_route( 'shared/v1', '/regular', array(
-			'methods'             => 'GET',
-			'callback'            => function() { return array( 'source' => 'regular' ); },
-			'permission_callback' => '__return_true',
-		) );
+		register_rest_route(
+			'shared/v1',
+			'/regular',
+			array(
+				'methods'             => 'GET',
+				'callback'            => function () {
+					return array( 'source' => 'regular' );
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
 
 		// Register lazy namespace with same base.
 		$server->register_lazy_loaded_namespace( 'shared/v1' );
 
-		add_action( 'rest_lazy_load_namespace_shared/v1', function() {
-			register_rest_route( 'shared/v1', '/lazy', array(
-				'methods'             => 'GET',
-				'callback'            => function() { return array( 'source' => 'lazy' ); },
-				'permission_callback' => '__return_true',
-			) );
-		} );
+		add_action(
+			'rest_lazy_load_namespace_shared/v1',
+			function () {
+				register_rest_route(
+					'shared/v1',
+					'/lazy',
+					array(
+						'methods'             => 'GET',
+						'callback'            => function () {
+							return array( 'source' => 'lazy' );
+						},
+						'permission_callback' => '__return_true',
+					)
+				);
+			}
+		);
 
 		// Both routes should work.
 		$request = new WP_REST_Request( 'GET', '/shared/v1/regular' );
@@ -2935,14 +3017,20 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$loaded = false;
 
-		add_action( 'rest_lazy_load_namespace_lazy-index/v1', function() use ( &$loaded ) {
-			$loaded = true;
-			register_rest_route( 'lazy-index/v1', '/test', array(
-				'methods'             => 'GET',
-				'callback'            => '__return_true',
-				'permission_callback' => '__return_true',
-			) );
-		} );
+		add_action( 'rest_lazy_load_namespace_lazy-index/v1',
+			function () use ( &$loaded ) {
+				$loaded = true;
+				register_rest_route(
+					'lazy-index/v1',
+					'/test',
+					array(
+						'methods'             => 'GET',
+						'callback'            => '__return_true',
+						'permission_callback' => '__return_true',
+					)
+				);
+			}
+		);
 
 		// Request root index.
 		$request = new WP_REST_Request( 'GET', '/' );
@@ -2964,14 +3052,21 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$loaded = false;
 
-		add_action( 'rest_lazy_load_namespace_lazy-ns-index/v1', function() use ( &$loaded ) {
-			$loaded = true;
-			register_rest_route( 'lazy-ns-index/v1', '/test', array(
-				'methods'             => 'GET',
-				'callback'            => '__return_true',
-				'permission_callback' => '__return_true',
-			) );
-		} );
+		add_action(
+			'rest_lazy_load_namespace_lazy-ns-index/v1',
+			function () use ( &$loaded ) {
+				$loaded = true;
+				register_rest_route(
+					'lazy-ns-index/v1',
+					'/test',
+					array(
+						'methods'             => 'GET',
+						'callback'            => '__return_true',
+						'permission_callback' => '__return_true',
+					)
+				);
+			}
+		);
 
 		// Request namespace index.
 		$request = new WP_REST_Request( 'GET', '/lazy-ns-index/v1' );
@@ -2996,16 +3091,23 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$loaded = false;
 
-		add_action( 'rest_lazy_load_namespace_lazy-unused/v1', function() use ( &$loaded ) {
-			$loaded = true;
-		} );
+		add_action(
+			'rest_lazy_load_namespace_lazy-unused/v1',
+			function () use ( &$loaded ) {
+				$loaded = true;
+			}
+		);
 
 		// Register and request a different namespace.
-		register_rest_route( 'other/v1', '/test', array(
-			'methods'             => 'GET',
-			'callback'            => '__return_true',
-			'permission_callback' => '__return_true',
-		) );
+		register_rest_route(
+			'other/v1',
+			'/test',
+			array(
+				'methods'             => 'GET',
+				'callback'            => '__return_true',
+				'permission_callback' => '__return_true',
+			)
+		);
 
 		$request = new WP_REST_Request( 'GET', '/other/v1/test' );
 		$response = $server->dispatch( $request );
@@ -3027,9 +3129,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$server->register_lazy_loaded_namespace( 'lazy-double/v1' );
 
 		$times_loaded = 0;
-		add_action( 'rest_lazy_load_namespace_lazy-double/v1', function() use ( &$times_loaded ) {
-			++$times_loaded;
-		} );
+		add_action(
+			'rest_lazy_load_namespace_lazy-double/v1',
+			function () use ( &$times_loaded ) {
+				++ $times_loaded;
+			}
+		);
 
 		$server->get_routes();
 
