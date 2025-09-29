@@ -22,7 +22,7 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	/**
 	 * User IDs for the test.
 	 *
-	 * @var array{administrator: null, editor: null, contributor: null}
+	 * @var array{administrator: int, editor: int, contributor: int}
 	 */
 	protected static $user_ids = array(
 		'administrator' => null,
@@ -141,7 +141,7 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	public function test_wp_delete_post_can_be_short_circuited() {
 		$post_id = self::factory()->post->create();
 		$filter  = function () {
-			return 'avoid_deletion';
+			return false;
 		};
 
 		add_filter( 'pre_delete_post', $filter, 10, 3 );

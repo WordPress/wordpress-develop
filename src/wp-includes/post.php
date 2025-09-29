@@ -3743,7 +3743,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  * @see wp_delete_attachment()
  * @see wp_trash_post()
  *
- * @param int  $post_id      Optional. Post ID. Default 0.
+ * @param int  $post_id      Post ID.
  * @param bool $force_delete Optional. Whether to bypass Trash and force deletion.
  *                           Default false.
  * @return WP_Post|false|null Post data on success, false or null on failure.
@@ -3753,7 +3753,8 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 
 	$post_id = (int) $post_id;
 
-	if ( 0 === $post_id ) {
+	if ( $post_id <= 0 ) {
+		_doing_it_wrong( __FUNCTION__, __( 'The post ID must be greater than 0.' ), '6.9.0' );
 		return false;
 	}
 
