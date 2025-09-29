@@ -156,6 +156,94 @@ function register_rest_route( $route_namespace, $route, $args = array(), $overri
 }
 
 /**
+ * Registers a REST API namespace for lazy loading.
+ *
+ * This function registers a namespace that will only load its routes when that namespace is actually requested,
+ * improving performance by avoiding the loading of unused REST endpoints.
+ *
+ * Note: Do not use before the {@see 'rest_api_init'} hook.
+ *
+ * @param string $route_namespace Namespace to register for lazy loading.
+ *                                Should be unique to your package/plugin and
+ *                                include a version (e.g., 'my-plugin/v1').
+ *
+ * @return bool True on success, false on failure.
+ *
+ * @since X.X.0
+ *
+ * @example
+ * // Register a lazy-loaded namespace for a plugin
+ * add_action( 'rest_api_init', function() {
+ *     register_rest_namespace( 'my-plugin/v1' );
+ * } );
+ *
+ * // Then register the actual routes when the namespace loads
+ * add_action( 'rest_lazy_load_namespace_my-plugin/v1', function() {
+ *     register_rest_route( 'my-plugin/v1', '/posts', array(
+ *         'methods'             => 'GET',
+ *         'callback'            => 'my_plugin_get_posts',
+ *         'permission_callback' => '__return_true',
+ *     ) );
+ * } );
+ */
+function register_rest_namespace( $route_namespace ) {
+	if ( empty( $route_namespace ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+			/* translators: %s: The namespace that was passed. */
+				__( 'Namespaces must be specified. Instead there seems to be an empty namespace \'%s\'.' ),
+				'<code>' . $route_namespace . '</code>'
+			),
+			'X.X.0'
+		);
+
+		return false;
+	}
+
+	if ( ! is_string( $route_namespace ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			__( 'Namespace must be a string.' ),
+			'X.X.0'
+		);
+
+		return false;
+	}
+
+	$clean_namespace = trim( $route_namespace, '/' );
+
+	if ( $clean_namespace !== $route_namespace ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+			/* translators: %s: The namespace that was passed. */
+				__( 'Namespace must not start or end with a slash. Instead namespace \'%s\' seems to contain a slash.' ),
+				'<code>' . $route_namespace . '</code>'
+			),
+			'X.X.0'
+		);
+	}
+
+	if ( ! did_action( 'rest_api_init' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+			/* translators: 1: rest_api_init, 2: The namespace that was passed. */
+				__( 'REST API namespaces must be registered on the %1$s action. Instead namespace \'%2$s\' was not registered on this action.' ),
+				'<code>rest_api_init</code>',
+				'<code>' . $route_namespace . '</code>'
+			),
+			'X.X.0'
+		);
+	}
+
+	rest_get_server()->register_lazy_loaded_namespace( $clean_namespace );
+
+	return true;
+}
+
+/**
  * Registers a new field on an existing WordPress object type.
  *
  * @since 4.7.0

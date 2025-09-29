@@ -2611,82 +2611,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( array( 'GET', 'PUT' ), $link['targetHints']['allow'] );
 	}
 
-
-
-	public function _validate_as_integer_123( $value, $request, $key ) {
-		if ( ! is_int( $value ) ) {
-			return new WP_Error( 'some-error', 'This is not valid!' );
-		}
-
-		return true;
-	}
-
-	public function _validate_as_string_foo( $value, $request, $key ) {
-		if ( ! is_string( $value ) ) {
-			return new WP_Error( 'some-error', 'This is not valid!' );
-		}
-
-		return true;
-	}
-
-	/**
-	 * @return array {
-	 *     @type array {
-	 *         @type bool $has_logged_in_user Are we registering a user for the test.
-	 *         @type bool $has_nonce          Is the nonce passed.
-	 *     }
-	 * }
-	 */
-	public function data_rest_send_refreshed_nonce() {
-		return array(
-			array( true, true ),
-			array( true, false ),
-			array( false, true ),
-			array( false, false ),
-		);
-	}
-
-	/**
-	 * Helper to setup a users and auth cookie global for the
-	 * rest_send_refreshed_nonce related tests.
-	 */
-	protected function helper_setup_user_for_rest_send_refreshed_nonce_tests() {
-		$author = self::factory()->user->create( array( 'role' => 'author' ) );
-		wp_set_current_user( $author );
-
-		global $wp_rest_auth_cookie;
-
-		$wp_rest_auth_cookie = true;
-	}
-
-	/**
-	 * Helper to make the request and get the headers for the
-	 * rest_send_refreshed_nonce related tests.
-	 *
-	 * @return array
-	 */
-	protected function helper_make_request_and_return_headers_for_rest_send_refreshed_nonce_tests() {
-		$request = new WP_REST_Request( 'GET', '/', array() );
-		$result  = rest_get_server()->serve_request( '/' );
-
-		return rest_get_server()->sent_headers;
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array
-	 */
-	public function data_envelope_params() {
-		return array(
-			array( '1' ),
-			array( 'true' ),
-			array( false ),
-			array( 'alternate' ),
-			array( array( 'alternate' ) ),
-		);
-	}
-
 	/**
 	 * Verify route matching priority is based on the order of registration.
 	 *
@@ -3110,5 +3034,79 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$server->get_routes();
 
 		$this->assertEquals( 1, $times_loaded, 'A namespace registered multiple times should only trigger the load action once.' );
+	}
+
+	public function _validate_as_integer_123( $value, $request, $key ) {
+		if ( ! is_int( $value ) ) {
+			return new WP_Error( 'some-error', 'This is not valid!' );
+		}
+
+		return true;
+	}
+
+	public function _validate_as_string_foo( $value, $request, $key ) {
+		if ( ! is_string( $value ) ) {
+			return new WP_Error( 'some-error', 'This is not valid!' );
+		}
+
+		return true;
+	}
+
+	/**
+	 * @return array {
+	 *     @type array {
+	 *         @type bool $has_logged_in_user Are we registering a user for the test.
+	 *         @type bool $has_nonce          Is the nonce passed.
+	 *     }
+	 * }
+	 */
+	public function data_rest_send_refreshed_nonce() {
+		return array(
+			array( true, true ),
+			array( true, false ),
+			array( false, true ),
+			array( false, false ),
+		);
+	}
+
+	/**
+	 * Helper to setup a users and auth cookie global for the
+	 * rest_send_refreshed_nonce related tests.
+	 */
+	protected function helper_setup_user_for_rest_send_refreshed_nonce_tests() {
+		$author = self::factory()->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $author );
+
+		global $wp_rest_auth_cookie;
+
+		$wp_rest_auth_cookie = true;
+	}
+
+	/**
+	 * Helper to make the request and get the headers for the
+	 * rest_send_refreshed_nonce related tests.
+	 *
+	 * @return array
+	 */
+	protected function helper_make_request_and_return_headers_for_rest_send_refreshed_nonce_tests() {
+		$request = new WP_REST_Request( 'GET', '/', array() );
+		$result  = rest_get_server()->serve_request( '/' );
+
+		return rest_get_server()->sent_headers;
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_envelope_params() {
+		return array(
+			array( '1' ),
+			array( 'true' ),
+			array( false ),
+			array( 'alternate' ),
+			array( array( 'alternate' ) ),
+		);
 	}
 }

@@ -903,8 +903,6 @@ class WP_REST_Server {
 	public function register_lazy_loaded_namespace( $route_namespace, ) {
 		if ( ! isset( $this->lazy_namespaces[ $route_namespace ] ) ) {
 			$this->lazy_namespaces[ $route_namespace ] = false;
-		} elseif( true === $this->lazy_namespaces[ $route_namespace ] ) {
-			_doing_it_wrong();
 		}
 	}
 
