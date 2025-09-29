@@ -918,184 +918,6 @@ function seems_utf8( $str ) {
 }
 
 /**
- * Determines if a given byte string represents a valid UTF-8 encoding.
- *
- * Note that it’s unlikely for non-UTF-8 data to validate as UTF-8, but
- * it is still possible. Many texts are simultaneously valid UTF-8,
- * valid US-ASCII, and valid ISO-8859-1 (`latin1`).
- *
- * Example:
- *
- *     true === wp_is_valid_utf8( '' );
- *     true === wp_is_valid_utf8( 'just a test' );
- *     true === wp_is_valid_utf8( "\xE2\x9C\x8F" );    // Pencil, U+270F.
- *     true === wp_is_valid_utf8( "\u{270F}" );        // Pencil, U+270F.
- *     true === wp_is_valid_utf8( '✏' );              // Pencil, U+270F.
- *
- *     false === wp_is_valid_utf8( "just \xC0 test" ); // Invalid bytes.
- *     false === wp_is_valid_utf8( "\xE2\x9C" );       // Invalid/incomplete sequences.
- *     false === wp_is_valid_utf8( "\xC1\xBF" );       // Overlong sequences.
- *     false === wp_is_valid_utf8( "\xED\xB0\x80" );   // Surrogate halves.
- *     false === wp_is_valid_utf8( "B\xFCch" );        // ISO-8859-1 high-bytes.
- *                                                     // E.g. The “ü” in ISO-8859-1 is a single byte 0xFC,
- *                                                     // but in UTF-8 is the two-byte sequence 0xC3 0xBC.
- *
- * A “valid” string consists of “well-formed UTF-8 code unit sequence[s],” meaning
- * that the bytes conform to the UTF-8 encoding scheme, all characters use the minimal
- * byte sequence required by UTF-8, and that no sequence encodes a UTF-16 surrogate
- * code point or any character above the representable range.
- *
- * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G32860
- *
- * @see _wp_is_valid_utf8_fallback
- *
- * @since 6.9.0
- *
- * @param string $bytes String which might contain text encoded as UTF-8.
- * @return bool Whether the provided bytes can decode as valid UTF-8.
- */
-function wp_is_valid_utf8( string $bytes ): bool {
-	/*
-	 * Since PHP 8.3.0 the UTF-8 validity is cached internally
-	 * on string objects, making this a direct property lookup.
-	 *
-	 * This is to be preferred exclusively once PHP 8.3.0 is
-	 * the minimum supported version, because even when the
-	 * status isn’t cached, it uses highly-optimized code to
-	 * validate the byte stream.
-	 */
-	return function_exists( 'mb_check_encoding' )
-		? mb_check_encoding( $bytes, 'UTF-8' )
-		: _wp_is_valid_utf8_fallback( $bytes );
-}
-
-/**
- * Fallback mechanism for safely validating UTF-8 bytes.
- *
- * By implementing a raw method here the code will behave in the same way on
- * all installed systems, regardless of what extensions are installed.
- *
- * @see wp_is_valid_utf8
- *
- * @since 6.9.0
- * @access private
- *
- * @param string $bytes String which might contain text encoded as UTF-8.
- * @return bool Whether the provided bytes can decode as valid UTF-8.
- */
-function _wp_is_valid_utf8_fallback( string $bytes ): bool {
-	$end = strlen( $bytes );
-
-	for ( $i = 0; $i < $end; $i++ ) {
-		/*
-		 * Quickly skip past US-ASCII bytes, all of which are valid UTF-8.
-		 *
-		 * This optimization step improves the speed from 10x to 100x
-		 * depending on whether the JIT has optimized the function.
-		 */
-		$i += strspn(
-			$bytes,
-			"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" .
-			"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f" .
-			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f",
-			$i
-		);
-		if ( $i >= $end ) {
-			break;
-		}
-
-		/**
-		 * The above fast-track handled all single-byte UTF-8 characters. What
-		 * follows MUST be a multibyte sequence otherwise there’s invalid UTF-8.
-		 *
-		 * Therefore everything past here is checking those multibyte sequences.
-		 * Because it’s possible that there are truncated characters, the use of
-		 * the null-coalescing operator with "\xC0" is a convenience for skipping
-		 * length checks on every continuation bytes. This works because 0xC0 is
-		 * always invalid in a UTF-8 string, meaning that if the string has been
-		 * truncated, it will find 0xC0 and reject as invalid UTF-8.
-		 *
-		 *  > [The following table] lists all of the byte sequences that are well-formed
-		 * > in UTF-8. A range of byte values such as A0..BF indicates that any byte
-		 * > from A0 to BF (inclusive) is well-formed in that position. Any byte value
-		 * > outside of the ranges listed is ill-formed.
-		 *
-		 * > Table 3-7. Well-Formed UTF-8 Byte Sequences
-		 *  ╭─────────────────────┬────────────┬──────────────┬─────────────┬──────────────╮
-		 *  │ Code Points         │ First Byte │ Second Byte  │ Third Byte  │ Fourth Byte  │
-		 *  ├─────────────────────┼────────────┼──────────────┼─────────────┼──────────────┤
-		 *  │ U+0000..U+007F      │ 00..7F     │              │             │              │
-		 *  │ U+0080..U+07FF      │ C2..DF     │ 80..BF       │             │              │
-		 *  │ U+0800..U+0FFF      │ E0         │ A0..BF       │ 80..BF      │              │
-		 *  │ U+1000..U+CFFF      │ E1..EC     │ 80..BF       │ 80..BF      │              │
-		 *  │ U+D000..U+D7FF      │ ED         │ 80..9F       │ 80..BF      │              │
-		 *  │ U+E000..U+FFFF      │ EE..EF     │ 80..BF       │ 80..BF      │              │
-		 *  │ U+10000..U+3FFFF    │ F0         │ 90..BF       │ 80..BF      │ 80..BF       │
-		 *  │ U+40000..U+FFFFF    │ F1..F3     │ 80..BF       │ 80..BF      │ 80..BF       │
-		 *  │ U+100000..U+10FFFF  │ F4         │ 80..8F       │ 80..BF      │ 80..BF       │
-		 *  ╰─────────────────────┴────────────┴──────────────┴─────────────┴──────────────╯
-		 *
-		 * Notice that all valid third and forth bytes are in the range 80..BF. This
-		 * validator takes advantage of that to only check the range of those bytes once.
-		 *
-		 * @see https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
-		 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
-		 */
-
-		$b1 = ord( $bytes[ $i ] );
-		$b2 = ord( $bytes[ $i + 1 ] ?? "\xC0" );
-
-		// Valid two-byte code points.
-
-		if ( $b1 >= 0xC2 && $b1 <= 0xDF && $b2 >= 0x80 && $b2 <= 0xBF ) {
-			$i++;
-			continue;
-		}
-
-		$b3 = ord( $bytes[ $i + 2 ] ?? "\xC0" );
-
-		// Valid three-byte code points.
-
-		if ( $b3 < 0x80 || $b3 > 0xBF ) {
-			return false;
-		}
-
-		if (
-			( 0xE0 === $b1 && $b2 >= 0xA0 && $b2 <= 0xBF ) ||
-			( $b1 >= 0xE1 && $b1 <= 0xEC && $b2 >= 0x80 && $b2 <= 0xBF ) ||
-			( 0xED === $b1 && $b2 >= 0x80 && $b2 <= 0x9F ) ||
-			( $b1 >= 0xEE && $b1 <= 0xEF && $b2 >= 0x80 && $b2 <= 0xBF )
-		) {
-			$i += 2;
-			continue;
-		}
-
-		$b4 = ord( $bytes[ $i + 3 ] ?? "\xC0" );
-
-		// Valid four-byte code points.
-
-		if ( $b4 < 0x80 || $b4 > 0xBF ) {
-			return false;
-		}
-
-		if (
-			( 0xF0 === $b1 && $b2 >= 0x90 && $b2 <= 0xBF ) ||
-			( $b1 >= 0xF1 && $b1 <= 0xF3 && $b2 >= 0x80 && $b2 <= 0xBF ) ||
-			( 0xF4 === $b1 && $b2 >= 0x80 && $b2 <= 0x8F )
-		) {
-			$i += 3;
-			continue;
-		}
-
-		// Any other sequence is invalid.
-		return false;
-	}
-
-	// Reaching the end implies validating every byte.
-	return true;
-}
-
-/**
  * Converts a number of special characters into their HTML entities.
  *
  * Specifically deals with: `&`, `<`, `>`, `"`, and `'`.
@@ -1267,10 +1089,39 @@ function wp_specialchars_decode( $text, $quote_style = ENT_NOQUOTES ) {
 /**
  * Checks for invalid UTF8 in a string.
  *
- * @since 2.8.0
+ * Note! This function only performs its work if the `blog_charset` is set
+ * to UTF-8. For all other values it returns the input text unchanged.
  *
- * @param string $text   The text which is to be checked.
- * @param bool   $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
+ * Note! Unless requested, this returns an empty string if the input contains
+ * any sequences of invalid UTF-8. To replace invalid byte sequences, pass
+ * `true` as the optional `$strip` parameter.
+ *
+ * Consider using {@see wp_scrub_utf8()} instead which does not depend on
+ * the value of `blog_charset`.
+ *
+ * Example:
+ *
+ *     // The `blog_charset` is `latin1`, so this returns the input unchanged.
+ *     $every_possible_input === wp_check_invalid_utf8( $every_possible_input );
+ *
+ *     // Valid strings come through unchanged.
+ *     'test' === wp_check_invalid_utf8( 'test' );
+ *
+ *     $invalid = "the byte \xC0 is never allowed in a UTF-8 string.";
+ *
+ *     // Invalid strings are rejected outright.
+ *     '' === wp_check_invalid_utf8( $invalid );
+ *
+ *     // “Stripping” invalid sequences produces the replacement character instead.
+ *     "the byte \u{FFFD} is never allowed in a UTF-8 string." === wp_check_invalid_utf8( $invalid, true );
+ *     'the byte � is never allowed in a UTF-8 string.' === wp_check_invalid_utf8( $invalid, true );
+ *
+ * @since 2.8.0
+ * @since 6.9.0 Stripping replaces invalid byte sequences with the Unicode replacement character U+FFFD (�).
+ *
+ * @param string $text   String which is expected to be encoded as UTF-8 unless `blog_charset` is another encoding.
+ * @param bool   $strip  Optional. Whether to replace invalid sequences of bytes with the Unicode replacement
+ *                       character (U+FFFD `�`). Default `false` returns an empty string for invalid UTF-8 inputs.
  * @return string The checked text.
  */
 function wp_check_invalid_utf8( $text, $strip = false ) {
@@ -1285,32 +1136,14 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
 	if ( ! isset( $is_utf8 ) ) {
 		$is_utf8 = is_utf8_charset();
 	}
-	if ( ! $is_utf8 ) {
+
+	if ( ! $is_utf8 || wp_is_valid_utf8( $text ) ) {
 		return $text;
 	}
 
-	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
-	static $utf8_pcre = null;
-	if ( ! isset( $utf8_pcre ) ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
-	}
-	// We can't demand utf8 in the PCRE installation, so just return the string in those cases.
-	if ( ! $utf8_pcre ) {
-		return $text;
-	}
-
-	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- preg_match fails when it encounters invalid UTF8 in $text.
-	if ( 1 === @preg_match( '/^./us', $text ) ) {
-		return $text;
-	}
-
-	// Attempt to strip the bad chars if requested (not recommended).
-	if ( $strip && function_exists( 'iconv' ) ) {
-		return iconv( 'utf-8', 'utf-8', $text );
-	}
-
-	return '';
+	return $strip
+		? wp_scrub_utf8( $text )
+		: '';
 }
 
 /**
