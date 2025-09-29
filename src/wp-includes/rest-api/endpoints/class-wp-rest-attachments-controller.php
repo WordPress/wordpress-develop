@@ -1355,7 +1355,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Retrieves the query params for collections of attachments.
 	 *
 	 * @since 4.7.0
-	 * @since 6.6.0 Adds the `media_types` parameter to filter by multiple media types.
+	 * @since 6.9.0 Adds the `media_types` parameter to filter by multiple media types.
 	 *
 	 * @return array Query parameters for the attachment collection as an array.
 	 */
