@@ -342,7 +342,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		}
 
 		wp_script_modules()->done = array(); // Reset the printed list so we can capture the output again.
-		$actual = array(
+		$actual                   = array(
 			'preload_links' => $this->get_preloaded_script_modules(),
 			'script_tags'   => $this->get_enqueued_script_modules(),
 			'import_map'    => $this->get_import_map(),
@@ -384,7 +384,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		}
 
 		wp_script_modules()->done = array(); // Reset the printed list so we can capture the output again.
-		$actual = array(
+		$actual                   = array(
 			'preload_links' => $this->get_preloaded_script_modules(),
 			'script_tags'   => $this->get_enqueued_script_modules(),
 			'import_map'    => $this->get_import_map(),
