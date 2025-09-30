@@ -26,7 +26,6 @@
 		"@wordpress/scripts": "^30.7.0",
 		"autoprefixer": "^10.4.20",
 		"concurrently": "^9.1.0",
-		"cssnano": "^7.1.1",
 		"postcss": "^8.4.49",
 		"postcss-cli": "^11.0.0",
 		"rtlcss": "^4.3.0",
@@ -48,7 +47,7 @@
 		"map": false
 	},
 	"scripts": {
-		"build": "npm run build:vendor-prefixes && npm run build:rtl && npm run build:minify",
+		"build": "npm run build:vendor-prefixes && npm run build:rtl",
 		"build:rtl": "concurrently \"npm run build:rtl-style\" \"npm run build:rtl-esb\" \"npm run build:rtl-esc\"",
 		"build:rtl-style": "rtlcss style.css style-rtl.css",
 		"build:rtl-esb": "rtlcss assets/css/editor-style-block.css assets/css/editor-style-block-rtl.css",
@@ -57,11 +56,6 @@
 		"build:vendor-prefixes-style": "postcss -r --no-map style.css assets/css/editor-style-block.css assets/css/editor-style-classic.css",
 		"build:vendor-prefixes-esb": "postcss -r --no-map assets/css/editor-style-block.css ",
 		"build:vendor-prefixes-esc": "postcss -r --no-map assets/css/editor-style-classic.css",
-		"build:minify": "concurrently \"npm run build:minify-style\" \"npm run build:minify-rtl-style\" \"npm run build:minify-print\" \"npm run build:minify-font-inter\"",
-		"build:minify-style": "postcss style.css --use cssnano -o style.min.css --no-map",
-		"build:minify-rtl-style": "postcss style-rtl.css --use cssnano -o style-rtl.min.css --no-map",
-		"build:minify-print": "postcss print.css --use cssnano -o print.min.css --no-map",
-		"build:minify-font-inter": "postcss assets/css/font-inter.css --use cssnano -o assets/css/font-inter.min.css --no-map",
 		"lint:css": "wp-scripts lint-style 'style.css' 'assets/**/*.css'",
 		"lint:js": "wp-scripts lint-js 'assets/**/*.js'",
 		"lint:pkg-json": "wp-scripts lint-pkg-json"

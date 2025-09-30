@@ -401,15 +401,14 @@ function twenty_twenty_one_scripts() {
 		wp_enqueue_style( 'twenty-twenty-one-style', get_template_directory_uri() . '/assets/css/ie.css', array(), wp_get_theme()->get( 'Version' ) );
 	} else {
 		// If not IE, use the standard stylesheet.
-		$url = twentytwentyone_get_stylesheet_path( 'style.css' );
-		if ( is_rtl() ) {
-			$url = twentytwentyone_get_stylesheet_path( 'style-rtl.css' );
-		}
-		wp_enqueue_style( 'twenty-twenty-one-style', $url, array(), wp_get_theme()->get( 'Version' ) );
+		wp_enqueue_style( 'twenty-twenty-one-style', get_template_directory_uri() . '/style.css', array(), wp_get_theme()->get( 'Version' ) );
 	}
 
+	// RTL styles.
+	wp_style_add_data( 'twenty-twenty-one-style', 'rtl', 'replace' );
+
 	// Print styles.
-	wp_enqueue_style( 'twenty-twenty-one-print-style', twentytwentyone_get_stylesheet_path( '/assets/css/print.css' ), array(), wp_get_theme()->get( 'Version' ), 'print' );
+	wp_enqueue_style( 'twenty-twenty-one-print-style', get_template_directory_uri() . '/assets/css/print.css', array(), wp_get_theme()->get( 'Version' ), 'print' );
 
 	// Threaded comment reply styles.
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -654,21 +653,3 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 		return __( ', ', 'twentytwentyone' );
 	}
 endif;
-
-/**
- * Gets the path to a stylesheet file, minified if available and appropriate.
- *
- * @since Twenty Twenty-One 2.7
- *
- * @param string $src_path Source path, relative to the theme root.
- * @return string URL to stylesheet.
- */
-function twentytwentyone_get_stylesheet_path( $src_path ) {
-	$min_path = (string) preg_replace( '/(?=\.css$)/', '.min', $src_path );
-
-	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG || strpos( wp_get_wp_version(), '-src' ) || ! file_exists( get_parent_theme_file_path( $min_path ) ) ) {
-		return get_parent_theme_file_uri( $src_path );
-	}
-
-	return get_parent_theme_file_uri( $min_path );
-}

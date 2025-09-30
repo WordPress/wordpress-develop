@@ -14,7 +14,6 @@
     "@wordpress/browserslist-config": "^6.14.0",
     "autoprefixer": "^10.4.20",
     "chokidar-cli": "^3.0.0",
-    "cssnano": "^7.1.1",
     "node-sass": "^9.0.0",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.49",
@@ -44,10 +43,7 @@
     "build:style-editor-customizer": "node-sass style-editor-customizer.scss style-editor-customizer.css --output-style expanded && postcss -r style-editor-customizer.css",
     "build:rtl": "rtlcss style.css style-rtl.css",
     "build:print": "node-sass print.scss print.css --output-style expanded && postcss -r print.css",
-    "build:minify-style": "postcss style.css --use cssnano -o style.min.css --no-map",
-    "build:minify-rtl": "postcss style-rtl.css --use cssnano -o style-rtl.min.css --no-map",
-    "build:minify-print": "postcss print.css --use cssnano -o print.min.css --no-map",
-    "build": "run-s \"build:*\"",
+    "build": "run-p \"build:*\"",
     "watch": "chokidar \"**/*.scss\" -c \"npm run build\" --initial"
   }
 }

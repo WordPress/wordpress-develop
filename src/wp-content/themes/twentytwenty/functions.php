@@ -196,14 +196,11 @@ function twentytwenty_register_styles() {
 
 	$theme_version = wp_get_theme()->get( 'Version' );
 
-	$url = twentytwenty_get_stylesheet_path( 'style.css' );
-	if ( is_rtl() ) {
-		$url = twentytwenty_get_stylesheet_path( 'style-rtl.css' );
-	}
-	wp_enqueue_style( 'twentytwenty-style', $url, array(), $theme_version );
+	wp_enqueue_style( 'twentytwenty-style', get_stylesheet_uri(), array(), $theme_version );
+	wp_style_add_data( 'twentytwenty-style', 'rtl', 'replace' );
 
 	// Enqueue the CSS file for the variable font, Inter.
-	wp_enqueue_style( 'twentytwenty-fonts', twentytwenty_get_stylesheet_path( 'assets/css/font-inter.css' ), array(), $theme_version, 'all' );
+	wp_enqueue_style( 'twentytwenty-fonts', get_theme_file_uri( '/assets/css/font-inter.css' ), array(), $theme_version, 'all' );
 
 	// Add output of Customizer settings as inline style.
 	$customizer_css = twentytwenty_get_customizer_css( 'front-end' );
@@ -212,7 +209,7 @@ function twentytwenty_register_styles() {
 	}
 
 	// Add print CSS.
-	wp_enqueue_style( 'twentytwenty-print-style', twentytwenty_get_stylesheet_path( 'print.css' ), null, $theme_version, 'print' );
+	wp_enqueue_style( 'twentytwenty-print-style', get_template_directory_uri() . '/print.css', null, $theme_version, 'print' );
 }
 
 add_action( 'wp_enqueue_scripts', 'twentytwenty_register_styles' );
@@ -825,34 +822,4 @@ function twentytwenty_get_elements_array() {
 	 * @param array Array of elements.
 	 */
 	return apply_filters( 'twentytwenty_get_elements_array', $elements );
-}
-
-/**
- * Gets the path to a stylesheet file, minified if available and appropriate.
- *
- * @since Twenty Twenty 2.10
- *
- * @param string $src_path Source path, relative to the theme root.
- * @return string URL to stylesheet.
- */
-function twentytwenty_get_stylesheet_path( $src_path ) {
-	$min_path = (string) preg_replace( '/(?=\.css$)/', '.min', $src_path );
-
-	$use_min = ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) && ! strpos( wp_get_wp_version(), '-src' );
-
-	if ( is_child_theme() ) {
-		if ( $use_min && file_exists( get_stylesheet_directory() . '/' . $min_path ) ) {
-			return get_stylesheet_directory_uri() . '/' . $min_path;
-		}
-
-		if ( file_exists( get_stylesheet_directory() . '/' . $src_path ) ) {
-			return get_stylesheet_directory_uri() . '/' . $src_path;
-		}
-	}
-
-	if ( $use_min && file_exists( get_template_directory() . '/' . $min_path ) ) {
-		return get_template_directory_uri() . '/' . $min_path;
-	}
-
-	return get_template_directory_uri() . '/' . $src_path;
 }
