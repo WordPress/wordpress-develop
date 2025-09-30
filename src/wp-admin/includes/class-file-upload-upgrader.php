@@ -117,7 +117,7 @@ class File_Upload_Upgrader {
 			$this->id   = (int) $_GET[ $urlholder ];
 			$attachment = get_post( $this->id );
 			if ( empty( $attachment ) ) {
-				wp_die( __( 'Please select a file' ), 120 );
+				wp_die(__('Please select a file'), 400);
 			}
 
 			$this->filename = $attachment->post_title;
