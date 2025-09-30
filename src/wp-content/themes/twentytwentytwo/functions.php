@@ -46,10 +46,8 @@ if ( ! function_exists( 'twentytwentytwo_styles' ) ) :
 
 		$version_string = is_string( $theme_version ) ? $theme_version : false;
 
-		$src = 'style.min.css';
-		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG || strpos( wp_get_wp_version(), '-src' ) || ! file_exists( get_parent_theme_file_path( 'style.min.css' ) ) ) {
-			$src = 'style.css';
-		}
+		$suffix = SCRIPT_DEBUG ? '' : '.min';
+		$src    = 'style' . $suffix . '.css';
 
 		wp_register_style(
 			'twentytwentytwo-style',

@@ -49,10 +49,8 @@ if ( ! function_exists( 'twentytwentyfive_enqueue_styles' ) ) :
 	 * @return void
 	 */
 	function twentytwentyfive_enqueue_styles() {
-		$src = 'style.min.css';
-		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG || strpos( wp_get_wp_version(), '-src' ) || ! file_exists( get_parent_theme_file_path( 'style.min.css' ) ) ) {
-			$src = 'style.css';
-		}
+		$suffix = SCRIPT_DEBUG ? '' : '.min';
+		$src    = 'style' . $suffix . '.css';
 
 		wp_enqueue_style(
 			'twentytwentyfive-style',
