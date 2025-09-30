@@ -1602,6 +1602,73 @@ EOF;
 	}
 
 	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_with_width_height() {
+		$mock_action = new MockAction();
+		add_filter( 'wp_get_attachment_image_attributes', array( $mock_action, 'filter' ) );
+		wp_get_attachment_image( self::$large_id );
+		$args = $mock_action->get_args();
+		$this->assertArrayHasKey( '0', $args, 'First argument should be an array.' );
+		$this->assertArrayHasKey( '0', $args[0], 'First argument should be an array.' );
+		$this->assertArrayHasKey( 'width', $args[0][0], 'Width should be set.' );
+		$this->assertArrayHasKey( 'height', $args[0][0], 'Height should be set.' );
+	}
+
+	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_change_width_height() {
+		add_filter(
+			'wp_get_attachment_image_attributes',
+			static function ( $args ) {
+				$args['width']  = '999';
+				$args['height'] = '999';
+				return $args;
+			}
+		);
+		$output = wp_get_attachment_image( self::$large_id );
+		$this->assertStringContainsString( 'width="999"', $output, 'Width should be changed.' );
+		$this->assertStringContainsString( 'height="999"', $output, 'Height should be changed.' );
+	}
+
+	/**
+	 * @ticket 14110
+	 */
+	public function test_wp_get_attachment_image_filter_unset_width_height() {
+		add_filter(
+			'wp_get_attachment_image_attributes',
+			static function ( $args ) {
+				unset( $args['width'], $args['height'] );
+				return $args;
+			}
+		);
+		$output = wp_get_attachment_image( self::$large_id );
+		$this->assertStringContainsString( 'width="150"', $output, 'Width should not be changed.' );
+		$this->assertStringContainsString( 'height="150"', $output, 'Height should not be changed.' );
+	}
+
+	/**
+	 * Test that `wp_get_attachment_image` doesn't overwrite an already valid user-provided width and height.
+	 *
+	 * @ticket 63714
+	 */
+	public function test_wp_get_attachment_image_not_overwrite_user_provided_width_height() {
+		$img = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				'width'  => 999,
+				'height' => 999,
+			)
+		);
+
+		$this->assertStringContainsString( 'width="999"', $img, 'User-provided width should not be changed.' );
+		$this->assertStringContainsString( 'height="999"', $img, 'User-provided height should not be changed.' );
+	}
+
+	/**
 	 * Test that `wp_get_attachment_image()` returns a proper alt value.
 	 *
 	 * @ticket 34635
@@ -5407,6 +5474,9 @@ EOF;
 
 		// Sub-sizes: for each size, the JPEGs should be smaller than the WebP.
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
+
+		$this->assertNotEmpty( $sizes_to_compare );
+
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
 		}
@@ -5416,6 +5486,10 @@ EOF;
 	 * Test AVIF quality filters.
 	 *
 	 * @ticket 61614
+	 *
+	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
+	 * See https://core.trac.wordpress.org/ticket/63932.
+	 * @requires PHP < 8.3
 	 */
 	public function test_quality_with_avif_conversion_file_sizes() {
 		$temp_dir = get_temp_dir();
@@ -5449,6 +5523,8 @@ EOF;
 
 		// Sub-sizes: for each size, the AVIF should be smaller than the JPEG.
 		$sizes_to_compare = array_intersect_key( $avif_sizes['sizes'], $smaller_avif_sizes['sizes'] );
+
+		$this->assertNotEmpty( $sizes_to_compare );
 
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $smaller_avif_sizes['sizes'][ $size ]['filesize'] );

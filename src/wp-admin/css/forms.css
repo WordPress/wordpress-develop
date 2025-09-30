@@ -175,7 +175,7 @@ input[type="radio"]:checked::before {
 
 input[type="checkbox"]:checked::before {
 	/* Use the "Yes" SVG Dashicon */
-	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%233582c4%27%2F%3E%3C%2Fsvg%3E");
+	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%233582c4%27%2F%3E%3C%2Fsvg%3E") / '';
 	margin: -0.1875rem 0 0 -0.25rem;
 	height: 1.3125rem;
 	width: 1.3125rem;
@@ -227,11 +227,6 @@ textarea[readonly] {
 
 ::-moz-placeholder {
 	color: #646970;
-	opacity: 1;
-}
-
-:-ms-input-placeholder {
-	color: #646970;
 }
 
 .form-invalid .form-required,
@@ -245,7 +240,7 @@ textarea[readonly] {
 }
 
 .form-table .form-required.form-invalid td:after {
-	content: "\f534";
+	content: "\f534" / '';
 	font: normal 20px/1 dashicons;
 	color: #d63638;
 	margin-left: -25px;
@@ -258,7 +253,7 @@ textarea[readonly] {
 }
 
 .form-table .form-required.user-pass1-wrap.form-invalid .password-input-wrapper:after {
-	content: "\f534";
+	content: "\f534" / '';
 	font: normal 20px/1 dashicons;
 	color: #d63638;
 	margin: 0 6px 0 -29px;
@@ -794,32 +789,6 @@ ul#add-to-blog-users {
 	outline: 2px solid transparent;
 }
 
-.button-add-site-icon {
-	width: 100%;
-	cursor: pointer;
-	text-align: center;
-	border: 1px dashed #c3c4c7;
-	box-sizing: border-box;
-	padding: 9px 0;
-	line-height: 1.6;
-	max-width: 270px;
-	border-radius: 4px;
-	background: #f0f0f1;
-}
-
-.button-add-site-icon:focus,
-.button-add-site-icon:hover {
-	background: #fff;
-}
-
-.button-add-site-icon:focus {
-	background-color: #fff;
-	border-color: #3582c4;
-	border-style: solid;
-	box-shadow: 0 0 0 1px #3582c4;
-	outline: 2px solid transparent;
-}
-
 /*------------------------------------------------------------------------------
   15.0 - Comments Screen
 ------------------------------------------------------------------------------*/
@@ -1121,7 +1090,7 @@ table.form-table td .updated p {
 .pressthis-bookmarklet span:before {
 	color: #787c82;
 	font: normal 20px/1 dashicons;
-	content: "\f157";
+	content: "\f157" / '';
 	position: relative;
 	display: inline-block;
 	top: 4px;
@@ -1497,28 +1466,6 @@ table.form-table td .updated p {
 	margin: 0;
 }
 
-.email-personal-data::before {
-	display: inline-block;
-	font: normal 20px/1 dashicons;
-	margin: 3px 5px 0 -2px;
-	speak: never;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	vertical-align: top;
-}
-
-.email-personal-data--sending::before {
-	color: #d63638;
-	content: "\f463";
-	animation: rotation 2s infinite linear;
-}
-
-.email-personal-data--sent::before {
-	color: #68de7c;
-	content: "\f147";
-}
-
-
 /* =Media Queries
 -------------------------------------------------------------- */
 
@@ -1590,10 +1537,6 @@ table.form-table td .updated p {
 		height: 0.5625rem;
 		margin: 0.4375rem;
 		line-height: 0.76190476;
-	}
-
-	.wp-upload-form input[type="submit"] {
-		margin-top: 10px;
 	}
 
 	.wp-core-ui select,

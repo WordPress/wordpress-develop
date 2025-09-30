@@ -136,6 +136,21 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$this->start_transaction();
 		$this->expectDeprecated();
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
+		add_filter( 'wp_hash_password_options', array( $this, 'wp_hash_password_options' ), 1, 2 );
+	}
+
+	/**
+	 * Sets the bcrypt cost option for password hashing during tests.
+	 *
+	 * @param array      $options   The options for password hashing.
+	 * @param string|int $algorithm The algorithm to use for hashing. This is a string in PHP 7.4+ and an integer in PHP 7.3 and earlier.
+	 */
+	public function wp_hash_password_options( array $options, $algorithm ): array {
+		if ( PASSWORD_BCRYPT === $algorithm ) {
+			$options['cost'] = 5;
+		}
+
+		return $options;
 	}
 
 	/**
