@@ -109,10 +109,13 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'br'         => array(),
 		'button'     => array(
-			'disabled' => true,
-			'name'     => true,
-			'type'     => true,
-			'value'    => true,
+			'disabled'            => true,
+			'name'                => true,
+			'type'                => true,
+			'value'               => true,
+			'popovertarget'       => true,
+			'popovertargetaction' => true,
+			'aria-haspopup'       => true,
 		),
 		'caption'    => array(
 			'align' => true,
@@ -150,7 +153,13 @@ if ( ! CUSTOM_TAGS ) {
 			'open' => true,
 		),
 		'div'        => array(
-			'align' => true,
+			'align'   => true,
+			'popover' => true,
+		),
+		'dialog'     => array(
+			'closedby' => true,
+			'open'     => true,
+			'popover'  => true,
 		),
 		'dl'         => array(),
 		'dt'         => array(),
@@ -383,7 +392,9 @@ if ( ! CUSTOM_TAGS ) {
 		'tt'         => array(),
 		'u'          => array(),
 		'ul'         => array(
-			'type' => true,
+			'type'    => true,
+			'popover' => true,
+			'role'    => true,
 		),
 		'ol'         => array(
 			'start'    => true,
@@ -1980,14 +1991,45 @@ function wp_kses_normalize_entities( $content, $context = 'html' ) {
 	// Disarm all entities by converting & to &amp;
 	$content = str_replace( '&', '&amp;', $content );
 
-	// Change back the allowed entities in our list of allowed entities.
+	/*
+	 * Decode any character references that are now double-encoded.
+	 *
+	 * It's important that the following normalizations happen in the correct order.
+	 *
+	 * At this point, all `&` have been transformed to `&amp;`. Double-encoded named character
+	 * references like `&amp;amp;` will be decoded back to their single-encoded form `&amp;`.
+	 *
+	 * First, numeric (decimal and hexadecimal) character references must be handled so that
+	 * `&amp;#09;` becomes `&#9;`. If the named character references were handled first, there
+	 * would be no way to know whether the double-encoded character reference had been produced
+	 * in this function or was the original input.
+	 *
+	 * Consider the two examples, first with named entity decoding followed by numeric
+	 * entity decoding. We'll use U+002E FULL STOP (.) in our example, this table follows the
+	 * string processing from left to right:
+	 *
+	 * | Input        | &-encoded        | Named ref double-decoded  | Numeric ref double-decoded |
+	 * | ------------ | ---------------- | ------------------------- | -------------------------- |
+	 * | `&#x2E;`     | `&amp;#x2E;`     | `&amp;#x2E;`              | `&#x2E;`                   |
+	 * | `&amp;#x2E;` | `&amp;amp;#x2E;` | `&amp;#x2E;`              | `&#x2E;`                   |
+	 *
+	 * Notice in the example above that different inputs result in the same result. The second case
+	 * was not normalized and produced HTML that is semantically different from the input.
+	 *
+	 * | Input        | &-encoded        |  Numeric ref double-decoded | Named ref double-decoded |
+	 * | ------------ | ---------------- | --------------------------- | ------------------------ |
+	 * | `&#x2E;`     | `&amp;#x2E;`     | `&#x2E;`                    | `&#x2E;`                 |
+	 * | `&amp;#x2E;` | `&amp;amp;#x2E;` | `&amp;amp;#x2E;`            | `&amp;#x2E;`             |
+	 *
+	 * Here, each input is normalized to an appropriate output.
+	 */
+	$content = preg_replace_callback( '/&amp;#(0*[0-9]{1,7});/', 'wp_kses_normalize_entities2', $content );
+	$content = preg_replace_callback( '/&amp;#[Xx](0*[0-9A-Fa-f]{1,6});/', 'wp_kses_normalize_entities3', $content );
 	if ( 'xml' === $context ) {
 		$content = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_xml_named_entities', $content );
 	} else {
 		$content = preg_replace_callback( '/&amp;([A-Za-z]{2,8}[0-9]{0,2});/', 'wp_kses_named_entities', $content );
 	}
-	$content = preg_replace_callback( '/&amp;#(0*[0-9]{1,7});/', 'wp_kses_normalize_entities2', $content );
-	$content = preg_replace_callback( '/&amp;#[Xx](0*[0-9A-Fa-f]{1,6});/', 'wp_kses_normalize_entities3', $content );
 
 	return $content;
 }
@@ -2409,6 +2451,7 @@ function kses_init() {
  * @since 6.4.0 Added support for `writing-mode`.
  * @since 6.5.0 Added support for `background-repeat`.
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
+ * @since 6.9.0 Added support for `white-space`.
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2501,6 +2544,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'text-decoration',
 			'text-indent',
 			'text-transform',
+			'white-space',
 
 			'height',
 			'min-height',
