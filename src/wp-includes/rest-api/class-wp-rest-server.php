@@ -937,7 +937,28 @@ class WP_REST_Server {
 
 		$this->lazy_namespaces[ $route_namespace ] = true;
 
-		// Fire action for namespace loading
+		/**
+		 * Fires when a lazy-loaded REST API namespace is being loaded.
+		 *
+		 * This action is triggered when a lazy-loaded namespace needs to have its
+		 * routes registered. Plugins should hook into this action to register
+		 * their routes for the specific namespace being loaded.
+		 *
+		 * The dynamic portion of the hook name, `$route_namespace`, refers to
+		 * the namespace being loaded (e.g., 'my-plugin/v1').
+		 *
+		 * @since X.X.0
+		 *
+		 * @example
+		 * // Register routes when your namespace loads
+		 * add_action( 'rest_lazy_load_namespace_my-plugin/v1', function() {
+		 *     register_rest_route( 'my-plugin/v1', '/posts', array(
+		 *         'methods'             => 'GET',
+		 *         'callback'            => 'my_plugin_get_posts',
+		 *         'permission_callback' => '__return_true',
+		 *     ) );
+		 * } );
+		 */
 		do_action( 'rest_lazy_load_namespace_' . $route_namespace );
 
 		return true;
