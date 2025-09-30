@@ -103,7 +103,20 @@ class WP_REST_Server {
 	 */
 	protected $dispatching_requests = array();
 
+	/**
+	 * Route context constant: Load all namespaces including lazy-loaded ones.
+	 *
+	 * @since X.X.0
+	 * @var string
+	 */
 	public const ROUTE_CONTEXT_ALL = 'all';
+
+	/**
+	 * Route context constant: Only return routes from already-loaded namespaces.
+	 *
+	 * @since X.X.0
+	 * @var string
+	 */
 	public const ROUTE_CONTEXT_LOADED_ONLY = 'loaded_only';
 
 	/**
@@ -1003,15 +1016,20 @@ class WP_REST_Server {
 	 * Note that the path regexes (array keys) must have @ escaped, as this is
 	 * used as the delimiter with preg_match()
 	 *
-	 * @since 4.4.0
-	 * @since 5.4.0 Added `$route_namespace` parameter.
-	 *
 	 * @param string $route_namespace Optionally, only return routes in the given namespace.
+	 * @param string $route_context   Optional. Route loading context. Accepts:
+	 *                                  - 'all' (default): Load all namespaces including lazy-loaded ones
+	 *                                  - 'loaded_only': Only return routes from already-loaded namespaces
+	 *
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
 	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
+	 *
+	 * @since 4.4.0
+	 * @since 5.4.0 Added `$route_namespace` parameter.
+	 * @since X.X.0 Added `$route_context` parameter.
 	 */
-	public function get_routes( $route_namespace = '', $context = self::ROUTE_CONTEXT_ALL ) {
-		if ( self::ROUTE_CONTEXT_LOADED_ONLY !== $context ) {
+	public function get_routes( $route_namespace = '', $route_context = self::ROUTE_CONTEXT_ALL ) {
+		if ( self::ROUTE_CONTEXT_LOADED_ONLY !== $route_context ) {
 			if ( $route_namespace ) {
 				// Load only the namespace requested
 				$this->load_lazy_namespace( $route_namespace );
@@ -1597,7 +1615,6 @@ class WP_REST_Server {
 		}
 
 		$routes    = $this->namespaces[ $namespace ];
-		// @todo make sure this doesn't need to get matching child namespaes as well.
 		$endpoints = array_intersect_key( $this->get_routes( $namespace, self::ROUTE_CONTEXT_LOADED_ONLY ), $routes );
 
 		$data     = array(
