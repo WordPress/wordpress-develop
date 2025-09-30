@@ -112,10 +112,7 @@ class WP_Script_Modules {
 				}
 			}
 
-			$in_footer = false;
-			if ( isset( $args['in_footer'] ) ) {
-				$in_footer = (bool) $args['in_footer'];
-			}
+			$in_footer = isset( $args['in_footer'] ) && (bool) $args['in_footer'];
 
 			$fetchpriority = 'auto';
 			if ( isset( $args['fetchpriority'] ) ) {
