@@ -1891,6 +1891,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertCount( 1, $links['author'] );
 		$this->assertSame( rest_url( '/wp/v2/posts/' . $post ), $links['post'][0]['href'] );
+		$this->assertSame( 'post', $links['post'][0]['attributes']['post_type'] );
+		$this->assertSame( $post, $links['post'][0]['attributes']['id'] );
 		$this->assertTrue( $links['post'][0]['attributes']['embeddable'] );
 	}
 

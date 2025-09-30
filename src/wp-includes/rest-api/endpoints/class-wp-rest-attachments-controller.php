@@ -982,10 +982,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$links = parent::prepare_links( $post );
 
 		if ( ! empty( $post->post_parent ) ) {
-			$links['post'] = array(
-				'href'       => rest_url( rest_get_route_for_post( $post->post_parent ) ),
-				'embeddable' => true,
-			);
+			$post = get_post( $post->post_parent );
+
+			if ( ! empty( $post ) ) {
+				$links['post'] = array(
+					'href'       => rest_url( rest_get_route_for_post( $post ) ),
+					'embeddable' => true,
+					'post_type'  => $post->post_type,
+					'id'         => $post->ID,
+				);
+			}
 		}
 
 		return $links;
