@@ -51,7 +51,8 @@ if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
 			/* translators: %s: wp-config-sample.php */
 			__( 'Sorry, I need a %s file to work from. Please re-upload this file to your WordPress installation.' ),
 			'<code>wp-config-sample.php</code>'
-		)
+		),
+		404
 	);
 }
 
@@ -301,12 +302,12 @@ switch ( $step ) {
 		$tryagain_link = '</p><p class="step"><a href="' . $step_1 . '" onclick="javascript:history.go(-1);return false;" class="button button-large">' . __( 'Try Again' ) . '</a>';
 
 		if ( empty( $prefix ) ) {
-			wp_die( __( '<strong>Error:</strong> "Table Prefix" must not be empty.' ) . $tryagain_link );
+			wp_die( __( '<strong>Error:</strong> "Table Prefix" must not be empty.' ) . $tryagain_link, 400 );
 		}
 
 		// Validate $prefix: it can only contain letters, numbers and underscores.
 		if ( preg_match( '|[^a-z0-9_]|i', $prefix ) ) {
-			wp_die( __( '<strong>Error:</strong> "Table Prefix" can only contain numbers, letters, and underscores.' ) . $tryagain_link );
+			wp_die( __( '<strong>Error:</strong> "Table Prefix" can only contain numbers, letters, and underscores.' ) . $tryagain_link, 400 );
 		}
 
 		// Test the DB connection.
@@ -331,7 +332,7 @@ switch ( $step ) {
 		$wpdb->db_connect();
 
 		if ( ! empty( $wpdb->error ) ) {
-			wp_die( $wpdb->error->get_error_message() . $tryagain_link );
+			wp_die( $wpdb->error->get_error_message() . $tryagain_link, 500 );
 		}
 
 		$errors = $wpdb->suppress_errors();
@@ -340,7 +341,7 @@ switch ( $step ) {
 
 		if ( ! $wpdb->last_error ) {
 			// MySQL was able to parse the prefix as a value, which we don't want. Bail.
-			wp_die( __( '<strong>Error:</strong> "Table Prefix" is invalid.' ) );
+			wp_die( __( '<strong>Error:</strong> "Table Prefix" is invalid.' ), 400 );
 		}
 
 		// Generate keys and salts using secure CSPRNG; fallback to API if enabled; further fallback to original wp_generate_password().
