@@ -39,10 +39,10 @@ if ( ! function_exists( 'twentytwentyfive_editor_style' ) ) :
 endif;
 add_action( 'after_setup_theme', 'twentytwentyfive_editor_style' );
 
-// Enqueues style.min.css or style.css on the front.
+// Enqueues the theme stylesheet on the front.
 if ( ! function_exists( 'twentytwentyfive_enqueue_styles' ) ) :
 	/**
-	 * Enqueues style.min.css or style.css on the front.
+	 * Enqueues the theme stylesheet on the front.
 	 *
 	 * @since Twenty Twenty-Five 1.0
 	 *
