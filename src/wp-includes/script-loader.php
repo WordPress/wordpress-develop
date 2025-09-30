@@ -159,7 +159,8 @@ function wp_default_packages_vendor( $scripts ) {
 						'LLL'  => __( 'F j, Y g:i a' ),
 						'LLLL' => null,
 					),
-				)
+				),
+				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
 			)
 		),
 		'after'
@@ -384,7 +385,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 				var preferencesStore = wp.preferences.store;
 				wp.data.dispatch( preferencesStore ).setPersistenceLayer( persistenceLayer );
 			} ) ();',
-			wp_json_encode( $preload_data ),
+			wp_json_encode( $preload_data, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
 			$user_id
 		)
 	);
@@ -477,7 +478,8 @@ function wp_default_packages_inline_scripts( $scripts ) {
 						'string'          => $timezone_string,
 						'abbr'            => $timezone_abbr,
 					),
-				)
+				),
+				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
 			)
 		),
 		'after'
@@ -640,7 +642,7 @@ function wp_tinymce_inline_scripts() {
 
 	$script = 'window.wpEditorL10n = {
 		tinymce: {
-			baseURL: ' . wp_json_encode( includes_url( 'js/tinymce' ) ) . ',
+			baseURL: ' . wp_json_encode( includes_url( 'js/tinymce' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ',
 			suffix: ' . ( SCRIPT_DEBUG ? '""' : '".min"' ) . ',
 			settings: ' . $init_obj . ',
 		}
@@ -1045,7 +1047,10 @@ function wp_default_scripts( $scripts ) {
 	did_action( 'init' ) && $scripts->localize( 'wp-plupload', 'pluploadL10n', $uploader_l10n );
 
 	$scripts->add( 'comment-reply', "/wp-includes/js/comment-reply$suffix.js", array(), false, 1 );
-	did_action( 'init' ) && $scripts->add_data( 'comment-reply', 'strategy', 'async' );
+	if ( did_action( 'init' ) ) {
+		$scripts->add_data( 'comment-reply', 'strategy', 'async' );
+		$scripts->add_data( 'comment-reply', 'fetchpriority', 'low' ); // In Chrome this is automatically low due to the async strategy, but in Firefox and Safari the priority is normal/medium.
+	}
 
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
 	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', 'lt IE 8' );
@@ -1155,7 +1160,8 @@ function wp_default_scripts( $scripts ) {
 						'mejs.welsh'               => __( 'Welsh' ),
 						'mejs.yiddish'             => __( 'Yiddish' ),
 					),
-				)
+				),
+				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
 			)
 		),
 		'before'
@@ -1999,7 +2005,8 @@ function wp_localize_jquery_ui_datepicker() {
 			'dateFormat'      => $datepicker_date_format,
 			'firstDay'        => absint( get_option( 'start_of_week' ) ),
 			'isRTL'           => $wp_locale->is_rtl(),
-		)
+		),
+		JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
 	);
 
 	wp_add_inline_script( 'jquery-ui-datepicker', "jQuery(function(jQuery){jQuery.datepicker.setDefaults({$datepicker_defaults});});" );
@@ -2205,6 +2212,7 @@ function _print_scripts() {
 			echo "\n<script{$type_attr}>\n";
 			echo "/* <![CDATA[ */\n"; // Not needed in HTML 5.
 			echo $wp_scripts->print_code;
+			echo sprintf( "\n//# sourceURL=%s\n", rawurlencode( 'js-inline-concat-' . $concat ) );
 			echo "/* ]]> */\n";
 			echo "</script>\n";
 		}
@@ -2387,8 +2395,9 @@ function _print_styles() {
 		$dir = $wp_styles->text_direction;
 		$ver = $wp_styles->default_version;
 
-		$concat       = str_split( $concat, 128 );
-		$concatenated = '';
+		$concat_source_url = 'css-inline-concat-' . $concat;
+		$concat            = str_split( $concat, 128 );
+		$concatenated      = '';
 
 		foreach ( $concat as $key => $chunk ) {
 			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
@@ -2400,6 +2409,7 @@ function _print_styles() {
 		if ( ! empty( $wp_styles->print_code ) ) {
 			echo "<style{$type_attr}>\n";
 			echo $wp_styles->print_code;
+			echo sprintf( "\n/*# sourceURL=%s */", rawurlencode( $concat_source_url ) );
 			echo "\n</style>\n";
 		}
 	}
@@ -2809,7 +2819,7 @@ function enqueue_editor_block_styles_assets() {
 			$register_script_lines[] = sprintf(
 				'	wp.blocks.registerBlockStyle( \'%s\', %s );',
 				$block_name,
-				wp_json_encode( $block_style )
+				wp_json_encode( $block_style, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			);
 		}
 	}
