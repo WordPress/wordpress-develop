@@ -91,8 +91,8 @@ class WP_PHPMailer extends PHPMailer\PHPMailer\PHPMailer {
 			'no_smtputf8'          => __( 'Server does not support SMTPUTF8 needed to send to Unicode addresses' ),
 			'imap_recommended'     => __( 'Using simplified address parser is not recommended. Install the PHP IMAP extension for full RFC822 parsing.' ),
 			'deprecated_argument'  => sprintf(
-				/* translators: 1: $useimap */
-				__( 'Argument %1$s is deprecated' ),
+				/* translators: %s: $useimap */
+				__( 'Argument %s is deprecated' ),
 				'$useimap'
 			),
 		);
