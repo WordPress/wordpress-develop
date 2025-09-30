@@ -30,7 +30,9 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 		self::$updater = new WP_Automatic_Updater();
 
 		self::$send_plugin_theme_email = new ReflectionMethod( self::$updater, 'send_plugin_theme_email' );
-		self::$send_plugin_theme_email->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$send_plugin_theme_email->setAccessible( true );
+		}
 	}
 
 	public function set_up() {
