@@ -268,7 +268,7 @@ th .comment-grey-bubble {
 }
 
 th .comment-grey-bubble:before {
-	content: "\f101" / "";
+	content: "\f101" / '';
 	font: normal 20px/.5 dashicons;
 	display: inline-block;
 	padding: 0;
@@ -488,11 +488,11 @@ table.media .column-title .filename {
 }
 
 .sorting-indicator.asc:before {
-	content: "\f142" / "";
+	content: "\f142" / '';
 }
 
 .sorting-indicator.desc:before {
-	content: "\f140" / "";
+	content: "\f140" / '';
 }
 
 th.sorted.desc .sorting-indicator.desc:before {
@@ -552,7 +552,7 @@ th.sorted.desc:hover .sorting-indicator.asc:before {
 	display: block;
 	padding: 1px 2px 1px 0;
 	color: #3c434a; /* same as table headers sort arrows */
-	content: "\f140" / "";
+	content: "\f140" / '';
 	font: normal 20px/1 dashicons;
 	line-height: 1;
 	-webkit-font-smoothing: antialiased;
@@ -560,7 +560,7 @@ th.sorted.desc:hover .sorting-indicator.asc:before {
 }
 
 .wp-list-table .is-expanded .toggle-row:before {
-	content: "\f142" / "";
+	content: "\f142" / '';
 }
 
 .check-column {
@@ -600,7 +600,7 @@ th.sorted.desc:hover .sorting-indicator.asc:before {
 
 .locked-indicator-icon:before {
 	color: #8c8f94;
-	content: "\f160" / "";
+	content: "\f160" / '';
 	display: inline-block;
 	font: normal 20px/1 dashicons;
 	vertical-align: middle;
