@@ -341,8 +341,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			}
 		}
 
-		wp_script_modules()->done = array(); // Reset the printed list so we can capture the output again.
-		$actual                   = array(
+		$this->set_printed_script_modules( $this->script_modules );
+		$actual = array(
 			'preload_links' => $this->get_preloaded_script_modules(),
 			'script_tags'   => $this->get_enqueued_script_modules(),
 			'import_map'    => $this->get_import_map(),
@@ -383,8 +383,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			}
 		}
 
-		wp_script_modules()->done = array(); // Reset the printed list so we can capture the output again.
-		$actual                   = array(
+		$this->set_printed_script_modules( $this->script_modules );
+		$actual = array(
 			'preload_links' => $this->get_preloaded_script_modules(),
 			'script_tags'   => $this->get_enqueued_script_modules(),
 			'import_map'    => $this->get_import_map(),
@@ -1358,6 +1358,21 @@ HTML;
 			$registered_property->setAccessible( true );
 		}
 		return $registered_property->getValue( $script_modules );
+	}
+
+	/**
+	 * Sets the done property storing the already printed script modules.
+	 *
+	 * @param WP_Script_Modules $script_modules The script modules instance.
+	 * @param array<string>     $done           Optional. The done array to set. Default empty array.
+	 */
+	private function set_printed_script_modules( WP_Script_Modules $script_modules, array $done = array() ) {
+		$reflection_class = new ReflectionClass( $script_modules );
+		$done_property    = $reflection_class->getProperty( 'done' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$done_property->setAccessible( true );
+		}
+		$done_property->setValue( $script_modules, $done );
 	}
 
 	/**

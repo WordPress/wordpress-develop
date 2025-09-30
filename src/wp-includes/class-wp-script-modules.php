@@ -45,11 +45,9 @@ class WP_Script_Modules {
 	 * Holds the script module identifiers that have been printed.
 	 *
 	 * @since 6.9.0
-	 * @access private
-	 *
 	 * @var string[]
 	 */
-	public $done = array();
+	private $done = array();
 
 	/**
 	 * Registers the script module if no script module with that script module
