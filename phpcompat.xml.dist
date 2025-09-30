@@ -76,8 +76,21 @@
 	#############################################################################
 	-->
 
+	<rule ref="PHPCompatibility.IniDirectives.RemovedIniDirectives.safe_modeDeprecatedRemoved">
+		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
+	</rule>
 	<rule ref="PHPCompatibility.IniDirectives.RemovedIniDirectives.mbstring_func_overloadDeprecated">
+		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
 		<exclude-pattern>/PHPMailer/PHPMailer\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.get_magic_quotes_runtimeDeprecated">
+		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionUse.RemovedFunctions.get_magic_quotes_gpcDeprecated">
+		<exclude-pattern>/ID3/getid3\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.Lists.AssignmentOrder.Affected">
+		<exclude-pattern>/ID3/module.audio-video.quicktime\.php$</exclude-pattern>
 	</rule>
 	<rule ref="PHPCompatibility.Constants.RemovedConstants.intl_idna_variant_2003Deprecated">
 		<exclude-pattern>/PHPMailer/PHPMailer\.php$</exclude-pattern>
