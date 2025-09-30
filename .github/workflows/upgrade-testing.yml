@@ -91,7 +91,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || '6.6' }}
       multisite: ${{ matrix.multisite }}
 
   # Tests 6.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 7 & 8.
