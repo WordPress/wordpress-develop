@@ -21,15 +21,6 @@ Use it to make something cool, have fun, and share what you've learned
 with others.
 */
 
-/*
- * NOTICE: 
- * This file is served minified to improve performance. In order to see edits 
- * to this file on the frontend, either enable the `SCRIPT_DEBUG` constant or 
- * run `npm run build` to regenerate `style.min.css`. Alternatively, if you do
- * not want to use minified version, then remove the `style.min.css` version from 
- * being enqueued in `functions.php`.
- */
-
 /*--------------------------------------------------------------
 >>> TABLE OF CONTENTS:
 ----------------------------------------------------------------
