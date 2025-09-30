@@ -623,11 +623,11 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
 	$query = "SELECT COUNT(*) FROM $wpdb->posts $where";
 
 	$last_changed = wp_cache_get_last_changed( 'posts' );
-	$cache_key    = 'count_user_posts:' . md5( $query ) . ':' . $last_changed;
-	$count        = wp_cache_get( $cache_key, 'post-queries' );
+	$cache_key    = 'count_user_posts:' . md5( $query );
+	$count        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false === $count ) {
 		$count = $wpdb->get_var( $query );
-		wp_cache_set( $cache_key, $count, 'post-queries' );
+		wp_cache_set_salted( $cache_key, $count, 'post-queries', $last_changed );
 	}
 
 	/**
@@ -2221,6 +2221,18 @@ function wp_insert_user( $userdata ) {
 		$user_pass = ! empty( $userdata['user_pass'] ) ? $userdata['user_pass'] : $old_user_data->user_pass;
 	} else {
 		$update = false;
+
+		if ( empty( $userdata['user_pass'] ) ) {
+			wp_trigger_error(
+				__FUNCTION__,
+				__( 'The user_pass field is required when creating a new user. The user will need to reset their password before logging in.' ),
+				E_USER_WARNING
+			);
+
+			// Set the password as an empty string to force the password reset flow.
+			$userdata['user_pass'] = '';
+		}
+
 		// Hash the password.
 		$user_pass = wp_hash_password( $userdata['user_pass'] );
 	}
@@ -2503,7 +2515,7 @@ function wp_insert_user( $userdata ) {
 
 	if ( ! $update ) {
 		/** This action is documented in wp-includes/pluggable.php */
-		do_action( 'wp_set_password', $userdata['user_pass'], $user_id, $userdata );
+		do_action( 'wp_set_password', $userdata['user_pass'], $user_id, $user );
 	}
 
 	/**

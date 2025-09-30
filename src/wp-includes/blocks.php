@@ -175,11 +175,21 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$module_version      = isset( $module_asset['version'] ) ? $module_asset['version'] : $block_version;
 
+	// Blocks using the Interactivity API are server-side rendered, so they are by design not in the critical rendering path and should be deprioritized.
+	$args = array();
+	if (
+		( isset( $metadata['supports']['interactivity'] ) && true === $metadata['supports']['interactivity'] ) ||
+		( isset( $metadata['supports']['interactivity']['interactive'] ) && true === $metadata['supports']['interactivity']['interactive'] )
+	) {
+		$args['fetchpriority'] = 'low';
+	}
+
 	wp_register_script_module(
 		$module_id,
 		$module_uri,
 		$module_dependencies,
-		$module_version
+		$module_version,
+		$args
 	);
 
 	return $module_id;
@@ -928,7 +938,7 @@ function get_hooked_blocks() {
  */
 function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
 	$anchor_block_type  = $parsed_anchor_block['blockName'];
-	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+	$hooked_block_types = isset( $anchor_block_type, $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
 		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
 		: array();
 
@@ -1019,7 +1029,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
  */
 function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
 	$anchor_block_type  = $parsed_anchor_block['blockName'];
-	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+	$hooked_block_types = isset( $anchor_block_type, $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
 		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
 		: array();
 
@@ -1602,14 +1612,18 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  */
 function serialize_block_attributes( $block_attributes ) {
 	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-	$encoded_attributes = preg_replace( '/--/', '\\u002d\\u002d', $encoded_attributes );
-	$encoded_attributes = preg_replace( '/</', '\\u003c', $encoded_attributes );
-	$encoded_attributes = preg_replace( '/>/', '\\u003e', $encoded_attributes );
-	$encoded_attributes = preg_replace( '/&/', '\\u0026', $encoded_attributes );
-	// Regex: /\\"/
-	$encoded_attributes = preg_replace( '/\\\\"/', '\\u0022', $encoded_attributes );
 
-	return $encoded_attributes;
+	return strtr(
+		$encoded_attributes,
+		array(
+			'\\\\' => '\\u005c',
+			'--'   => '\\u002d\\u002d',
+			'<'    => '\\u003c',
+			'>'    => '\\u003e',
+			'&'    => '\\u0026',
+			'\\"'  => '\\u0022',
+		)
+	);
 }
 
 /**
