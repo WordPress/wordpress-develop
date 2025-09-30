@@ -824,12 +824,15 @@ function image_get_intermediate_size( $post_id, $size = 'thumbnail' ) {
 			}
 
 			$data = array_shift( $candidates );
+		} elseif ( ! empty( $imagedata['sizes']['thumbnail'] )
+			&& $size[0] <= $imagedata['sizes']['thumbnail']['width']
+			&& $size[1] <= $imagedata['sizes']['thumbnail']['width']
+		) {
 			/*
-			* When the size requested is smaller than the thumbnail dimensions, we
-			* fall back to the thumbnail size to maintain backward compatibility with
-			* pre 4.6 versions of WordPress.
-			*/
-		} elseif ( ! empty( $imagedata['sizes']['thumbnail'] ) && $imagedata['sizes']['thumbnail']['width'] >= $size[0] && $imagedata['sizes']['thumbnail']['width'] >= $size[1] ) {
+			 * When the size requested is smaller than the thumbnail dimensions, we
+			 * fall back to the thumbnail size to maintain backward compatibility with
+			 * pre-4.6 versions of WordPress.
+			 */
 			$data = $imagedata['sizes']['thumbnail'];
 		} else {
 			return false;
@@ -2147,12 +2150,12 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param string|false|null $value      The `decoding` attribute value. Returning a falsey value
-		 *                                      will result in the attribute being omitted for the image.
-		 *                                      Otherwise, it may be: 'async', 'sync', or 'auto'. Defaults to false.
-		 * @param string            $image      The HTML `img` tag to be filtered.
-		 * @param string            $context    Additional context about how the function was called
-		 *                                      or where the img tag is.
+		 * @param string|false|null $value   The `decoding` attribute value. Returning a falsey value
+		 *                                   will result in the attribute being omitted for the image.
+		 *                                   Otherwise, it may be: 'async', 'sync', or 'auto'. Defaults to false.
+		 * @param string            $image   The HTML `img` tag to be filtered.
+		 * @param string            $context Additional context about how the function was called
+		 *                                   or where the img tag is.
 		 */
 		$filtered_decoding_attr = apply_filters(
 			'wp_img_tag_add_decoding_attr',
