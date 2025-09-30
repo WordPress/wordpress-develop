@@ -3227,34 +3227,81 @@ function _split_str_by_whitespace( $text, $goal ) {
  * @return string HTML A element with the added rel attribute.
  */
 function wp_rel_callback( $matches, $rel ) {
-	$text = $matches[1];
-	$atts = wp_kses_hair( $matches[1], wp_allowed_protocols() );
+	_deprecated_function(
+		__FUNCTION__,
+		'{WP_VERSION}',
+		'wp_include_in_all_a_rel()'
+	);
+	return wp_include_in_all_a_rel( $matches[0], $rel );
+}
 
-	if ( ! empty( $atts['href'] ) && wp_is_internal_link( $atts['href']['value'] ) ) {
-		$rel = trim( str_replace( 'nofollow', '', $rel ) );
+/**
+ * Ensures that all A elements in the given HTML contain
+ * the provided and unique “rel” keywords.
+ *
+ * Example:
+ *
+ *     `<a rel="nofollow">` === wp_include_in_all_a_rel( '<a>', 'nofollow' );
+ *     `<a rel="nofollow">` === wp_include_in_all_a_rel( '<a rel="nofollow">', 'nofollow' );
+ *     `<a rel="pingback nofollow">` === wp_include_in_all_a_rel( '<a rel="pingback">', 'nofollow' );
+ *     `<a rel="a b c">` === wp_include_in_all_a_rel( '<a rel="a a a">`, 'a a a b b c' );
+ *
+ * @since {WP_VERSION}
+ *
+ * @param string $html                         Add the given `rel` keywords to every `A` tag in this HTML.
+ * @param string $space_separated_rel_keywords Each of these keywords will be present in the final HTML.
+ * @return string Modified HTML with all `A` tags containing the given `rel` keywords.
+ */
+function wp_include_in_all_a_rel( $html, $space_separated_rel_keywords ) {
+	if ( empty( $html ) || empty( $space_separated_rel_keywords ) ) {
+		return $html;
 	}
 
-	if ( ! empty( $atts['rel'] ) ) {
-		$parts     = array_map( 'trim', explode( ' ', $atts['rel']['value'] ) );
-		$rel_array = array_map( 'trim', explode( ' ', $rel ) );
-		$parts     = array_unique( array_merge( $parts, $rel_array ) );
-		$rel       = implode( ' ', $parts );
-		unset( $atts['rel'] );
+	/*
+	 * It’s not necessary to add the `nofollow` guard to internal links;
+	 * these are used to only check and remove `nofollow` when adding it.
+	 */
+	$without_nofollow = $space_separated_rel_keywords;
+	$adding_no_follow = false;
 
-		$html = '';
-		foreach ( $atts as $name => $value ) {
-			if ( isset( $value['vless'] ) && 'y' === $value['vless'] ) {
-				$html .= $name . ' ';
+	/*
+	 * Although this could falsely match on longer tokens like `nofollowers`,
+	 * it’s safe to check generously since the parsing will ensure that only
+	 * `nofollow` is removed; only a bit of unnecessary processing will occur.
+	 */
+	if ( str_contains( $without_nofollow, 'nofollow' ) ) {
+		$tokens           = WP_HTML_Attribute::from_unordered_set_of_space_separated_tokens( $without_nofollow );
+		$without_nofollow = '';
+
+		foreach ( $tokens as $token ) {
+			if ( 'nofollow' === $token ) {
+				$adding_no_follow = true;
 			} else {
-				$html .= "{$name}=\"" . esc_attr( $value['value'] ) . '" ';
+				$without_nofollow .= " {$token}";
 			}
 		}
-		$text = trim( $html );
 	}
 
-	$rel_attr = $rel ? ' rel="' . esc_attr( $rel ) . '"' : '';
+	// Update the `rel` attributes in every `A` element.
+	$processor = new WP_HTML_Tag_Processor( $html );
+	while ( $processor->next_tag( 'A' ) ) {
+		$rel = $processor->get_attribute( 'rel' );
+		$rel = is_string( $rel ) ? $rel : '';
 
-	return "<a {$text}{$rel_attr}>";
+		$href          = $adding_no_follow ? $processor->get_attribute( 'href' ) : null;
+		$skip_nofollow = is_string( $href ) && wp_is_internal_link( $href );
+
+		$combined = $skip_nofollow
+			? "{$rel} {$without_nofollow}"
+			: "{$rel} {$space_separated_rel_keywords}";
+
+		$tokens  = WP_HTML_Attribute::from_unordered_set_of_space_separated_tokens( $combined );
+		$new_rel = empty( $tokens ) ? false : implode( ' ', $tokens );
+
+		$processor->set_attribute( 'rel', $new_rel );
+	}
+
+	return $processor->get_updated_html();
 }
 
 /**
@@ -3268,13 +3315,7 @@ function wp_rel_callback( $matches, $rel ) {
 function wp_rel_nofollow( $text ) {
 	// This is a pre-save filter, so text is already escaped.
 	$text = stripslashes( $text );
-	$text = preg_replace_callback(
-		'|<a (.+?)>|i',
-		static function ( $matches ) {
-			return wp_rel_callback( $matches, 'nofollow' );
-		},
-		$text
-	);
+	$text = wp_include_in_all_a_rel( $text, 'nofollow' );
 	return wp_slash( $text );
 }
 
@@ -3288,6 +3329,11 @@ function wp_rel_nofollow( $text ) {
  * @return string HTML A Element with `rel="nofollow"`.
  */
 function wp_rel_nofollow_callback( $matches ) {
+	_deprecated_function(
+		__FUNCTION__,
+		'{WP_VERSION}',
+		'wp_include_in_all_a_rel()'
+	);
 	return wp_rel_callback( $matches, 'nofollow' );
 }
 
@@ -3302,13 +3348,7 @@ function wp_rel_nofollow_callback( $matches ) {
 function wp_rel_ugc( $text ) {
 	// This is a pre-save filter, so text is already escaped.
 	$text = stripslashes( $text );
-	$text = preg_replace_callback(
-		'|<a (.+?)>|i',
-		static function ( $matches ) {
-			return wp_rel_callback( $matches, 'nofollow ugc' );
-		},
-		$text
-	);
+	$text = wp_include_in_all_a_rel( $text, 'nofollow ugc' );
 	return wp_slash( $text );
 }
 
