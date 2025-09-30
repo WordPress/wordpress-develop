@@ -138,7 +138,9 @@ if ( ! CUSTOM_TAGS ) {
 			'valign'  => true,
 			'width'   => true,
 		),
-		'data'       => array(),
+		'data'       => array(
+			'value' => true,
+		),
 		'del'        => array(
 			'datetime' => true,
 		),
