@@ -148,10 +148,6 @@ if ( ! CUSTOM_TAGS ) {
 			'align' => true,
 			'open'  => true,
 		),
-		'dialog'     => array(
-			'closedby' => true,
-			'open' => true,
-		),
 		'div'        => array(
 			'align'   => true,
 			'popover' => true,
