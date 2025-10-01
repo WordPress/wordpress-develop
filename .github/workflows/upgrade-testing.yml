@@ -65,6 +65,8 @@ jobs:
     runs-on: 'ubuntu-24.04'
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     timeout-minutes: 5
+    outputs:
+      matrix_exclusions: ${{ steps.set-exclusions.outputs.matrix_exclusions }}
 
     steps:
       - name: Set exclusions output
