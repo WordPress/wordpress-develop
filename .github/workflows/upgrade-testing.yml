@@ -28,6 +28,7 @@ on:
 
 env:
   CURRENTLY_SUPPORTED_BRANCH: '6.8'
+  OLDEST_SECURITY_BRANCH: '4.7'
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
@@ -81,12 +82,13 @@ jobs:
             {"php":"7.2","db-version":"8.4"},
             {"php":"7.3","db-version":"8.4"},
             {"php":"7.2","db-version":"9.4"},
-            {"php":"7.3","db-version":"9.4"}
+            {"php":"7.3","db-version":"9.4"},
           ]'
 
-          if [[ "$NEW_VERSION" == "latest" ]] || \
+          if [[ -z "$NEW_VERSION" ]] || \
+             [[ "$NEW_VERSION" == "latest" ]] || \
              [[ "$NEW_VERSION" == "nightly" ]] || \
-             [[ -z "$NEW_VERSION" ]]; then
+             [[ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]]; then
             COMPACTED=$(echo "$DEFAULT_EXCLUSIONS" | tr -d '\n' | tr -d ' ')
             echo "matrix_exclusions=$COMPACTED" >> "$GITHUB_OUTPUT"
             exit 0
