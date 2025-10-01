@@ -247,12 +247,12 @@ if ( ! CUSTOM_TAGS ) {
 			'type' => true,
 		),
 		'meter'      => array(
-			'min' => true,
-			'max' => true,
-			'low' => true,
-			'high' => true,
+			'min'     => true,
+			'max'     => true,
+			'low'     => true,
+			'high'    => true,
 			'optimum' => true,
-			'value' => true,
+			'value'   => true,
 		),
 		'nav'        => array(
 			'align' => true,
@@ -274,7 +274,7 @@ if ( ! CUSTOM_TAGS ) {
 			'width' => true,
 		),
 		'progress'   => array(
-			'max' => true,
+			'max'   => true,
 			'value' => true,
 		),
 		'q'          => array(
