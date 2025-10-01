@@ -150,7 +150,7 @@ jobs:
           wp core update develop.zip
 
       - name: Upgrade to WordPress ${{ inputs.new-version }}
-        if: ${{ inputs.new-version != 'develop' }}
+        if: ${{ inputs.new-version != 'develop' && steps.version_check.outputs.valid == 'true' }}
         run: |
           wp core update ${{ 'latest' != inputs.new-version && '--version="${WP_VERSION}"' || '' }}
         env:
