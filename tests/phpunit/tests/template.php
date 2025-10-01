@@ -527,7 +527,7 @@ class Tests_Template extends WP_UnitTestCase {
 		add_filter(
 			'wp_template_output_buffer_html',
 			static function ( string $buffer ) use ( &$html_filter_args ): string {
-				$html_filter_args   = func_get_args();
+				$html_filter_args = func_get_args();
 
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				while ( $p->next_tag() ) {
