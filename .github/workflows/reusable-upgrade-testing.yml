@@ -42,43 +42,6 @@ on:
 permissions: {}
 
 jobs:
-  # Checks that a valid version range is being tested.
-  #
-  # Upgrade testing should not occur when the original version is greater than or equal to the new version.
-  check-version:
-    name: Check for a valid test scenario
-    runs-on: ${{ inputs.os }}
-    permissions:
-      contents: read
-    timeout-minutes: 5
-
-    steps:
-      - name: Compare versions
-        id: compare
-        run: |
-          old="${{ inputs.old_version }}"
-          new="${{ inputs.new_version }}"
-
-          # Normalize versions to X.Y.Z format (add .0 if needed)
-          normalize() {
-            local ver=$1
-            if [[ $ver =~ ^[0-9]+\.[0-9]+$ ]]; then
-              echo "${ver}.0"
-            else
-              echo "$ver"
-            fi
-          }
-
-          old_norm=$(normalize "$old")
-          new_norm=$(normalize "$new")
-
-          # Compare using sort -V (version sort)
-          if printf '%s\n%s\n' "$old_norm" "$new_norm" | sort -V -C; then
-            echo "result=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "result=false" >> "$GITHUB_OUTPUT"
-          fi
-
   # Runs upgrade tests on a build of WordPress.
   #
   # Performs the following steps:
@@ -95,8 +58,6 @@ jobs:
   # - Checks the version of WordPress after the upgrade.
   upgrade-tests:
     name: ${{ inputs.wp }} to ${{ inputs.new-version }} / PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
-    needs: [ check-version ]
-    if: ${{ needs.check-version.outputs.should_run == 'true' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -118,39 +79,63 @@ jobs:
           -c "exec docker-entrypoint.sh mysqld${{ inputs.db-type == 'mysql' && contains( fromJSON('["7.2", "7.3"]'), inputs.php ) && ' --default-authentication-plugin=mysql_native_password' || '' }}"
 
     steps:
+      - name: Compare versions
+        id: version_check
+        env:
+          OLD_VERSION: ${{ inputs.wp }}
+          NEW_VERSION: ${{ inputs.new-version }}
+        run: |
+          # Add .0 if version is X.Y format
+          [[ $OLD_VERSION =~ ^[0-9]+\.[0-9]+$ ]] && OLD_VERSION+=".0"
+          [[ $NEW_VERSION =~ ^[0-9]+\.[0-9]+$ ]] && NEW_VERSION+=".0"
+
+          if printf '%s\n%s\n' "$OLD_VERSION" "$NEW_VERSION" | sort -V -C; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up PHP ${{ inputs.php }}
         uses: shivammathur/setup-php@20529878ed81ef8e78ddf08b480401e6101a850f # v2.35.3
+        if: ${{ steps.version_check.outputs.valid == 'true' }}
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
           tools: wp-cli
 
       - name: Download WordPress ${{ inputs.wp }}
+        if: ${{ steps.version_check.outputs.valid == 'true' }}
         run: wp core download --version="${WP_VERSION}"
         env:
           WP_VERSION: ${{ inputs.wp }}
 
       - name: Create wp-config.php file
+        if: ${{ steps.version_check.outputs.valid == 'true' }}
         run: wp config create --dbname=test_db --dbuser=root --dbpass=root --dbhost="127.0.0.1:${DB_PORT}"
         env:
           DB_PORT: ${{ job.services.database.ports['3306'] }}
 
       - name: Install WordPress
+        if: ${{ steps.version_check.outputs.valid == 'true' }}
         run: |
           wp core ${{ inputs.multisite && 'multisite-install' || 'install' }} \
           --url=http://localhost/ --title="Upgrade Test" --admin_user=admin \
           --admin_password=password --admin_email=me@example.org --skip-email
 
       - name: Pre-upgrade version check
+        if: ${{ steps.version_check.outputs.valid == 'true' }}
         run: wp core version
 
       - name: Update to the latest minor version
+        if: ${{ steps.version_check.outputs.valid == 'true' }}
         run: wp core update --minor
 
       - name: Update the database after the minor update
+        if: ${{ steps.version_check.outputs.valid == 'true' }}
         run: wp core update-db ${{ inputs.multisite && '--network' || '' }}
 
       - name: Post-upgrade version check after the minor update
+        if: ${{ steps.version_check.outputs.valid == 'true' }}
         run: wp core version
 
       - name: Download build artifact for the current branch
@@ -172,7 +157,9 @@ jobs:
           WP_VERSION: ${{ inputs.new-version }}
 
       - name: Update the database
+        if: ${{ steps.version_check.outputs.valid == 'true' }}
         run: wp core update-db ${{ inputs.multisite && '--network' || '' }}
 
       - name: Post-upgrade version check
+        if: ${{ steps.version_check.outputs.valid == 'true' }}
         run: wp core version
