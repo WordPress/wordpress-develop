@@ -905,10 +905,11 @@ function wp_finalize_template_output_buffer( string $output, int $phase ): strin
 		 *
 		 * @since 6.9.0
 		 *
-		 * @param string $output Output buffer HTML.
+		 * @param string $filtered_output Filtered output buffer.
+		 * @param string $output          Original output buffer.
 		 * @return string Filtered output buffer HTML.
 		 */
-		$filtered_output = (string) apply_filters( 'wp_template_output_buffer_html', $filtered_output );
+		$filtered_output = (string) apply_filters( 'wp_template_output_buffer_html', $filtered_output, $output );
 	}
 
 	/**
@@ -920,10 +921,11 @@ function wp_finalize_template_output_buffer( string $output, int $phase ): strin
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string $output Output buffer.
+	 * @param string $filtered_output Filtered output buffer.
+	 * @param string $output          Original output buffer.
 	 * @return string Filtered output buffer.
 	 */
-	$filtered_output = (string) apply_filters( 'wp_template_output_buffer', $filtered_output );
+	$filtered_output = (string) apply_filters( 'wp_template_output_buffer', $filtered_output, $output );
 
 	/**
 	 * Fires after the output buffer has been filtered prior to sending to the client.
@@ -932,8 +934,8 @@ function wp_finalize_template_output_buffer( string $output, int $phase ): strin
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string $filtered_output Output buffer after filters.
-	 * @param string $output          Output buffer before filters.
+	 * @param string $filtered_output Filtered output buffer.
+	 * @param string $output          Original output buffer.
 	 */
 	do_action( 'wp_final_template_output_buffer', $filtered_output, $output );
 
