@@ -262,6 +262,7 @@ function wp_admin_bar_sidebar_toggle( $wp_admin_bar ) {
 function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 	$user_id      = get_current_user_id();
 	$current_user = wp_get_current_user();
+	$display_name = wp_html_excerpt( $current_user->display_name, 40, '&hellip;' );
 
 	if ( ! $user_id ) {
 		return;
@@ -277,7 +278,7 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 
 	$avatar = get_avatar( $user_id, 26 );
 	/* translators: %s: Current user's display name. */
-	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . $current_user->display_name . '</span>' );
+	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . $display_name . '</span>' );
 	$class = empty( $avatar ) ? '' : 'with-avatar';
 
 	$wp_admin_bar->add_node(
@@ -289,7 +290,7 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 			'meta'   => array(
 				'class'      => $class,
 				/* translators: %s: Current user's display name. */
-				'menu_title' => sprintf( __( 'Howdy, %s' ), $current_user->display_name ),
+				'menu_title' => sprintf( __( 'Howdy, %s' ), $display_name ),
 				'tabindex'   => ( false !== $profile_url ) ? '' : 0,
 			),
 		)
@@ -306,6 +307,7 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 	$user_id      = get_current_user_id();
 	$current_user = wp_get_current_user();
+	$display_name = wp_html_excerpt( $current_user->display_name, 40, '&hellip;' );
 
 	if ( ! $user_id ) {
 		return;
@@ -327,7 +329,7 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 	);
 
 	$user_info  = get_avatar( $user_id, 64 );
-	$user_info .= "<span class='display-name'>{$current_user->display_name}</span>";
+	$user_info .= "<span class='display-name'>{$display_name}</span>";
 
 	if ( $current_user->display_name !== $current_user->user_login ) {
 		$user_info .= "<span class='username'>{$current_user->user_login}</span>";
