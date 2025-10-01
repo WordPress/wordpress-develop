@@ -260,8 +260,7 @@ function wp_admin_bar_sidebar_toggle( $wp_admin_bar ) {
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
 function wp_admin_bar_my_account_item( $wp_admin_bar ) {
-	$user_id      = get_current_user_id();
-	$current_user = wp_get_current_user();
+	$user_id = get_current_user_id();
 
 	if ( ! $user_id ) {
 		return;
@@ -275,10 +274,11 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 		$profile_url = false;
 	}
 
-	$avatar = get_avatar( $user_id, 26 );
+	$avatar       = get_avatar( $user_id, 26 );
+	$current_user = wp_get_current_user();
+
 	/* translators: %s: Current user's display name. */
 	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . $current_user->display_name . '</span>' );
-	$class = empty( $avatar ) ? '' : 'with-avatar';
 
 	$wp_admin_bar->add_node(
 		array(
@@ -287,9 +287,8 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 			'title'  => $howdy . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(
-				'class'      => $class,
-				/* translators: %s: Current user's display name. */
-				'menu_title' => sprintf( __( 'Howdy, %s' ), $current_user->display_name ),
+				'class'      => ( false === $avatar ) ? '' : 'with-avatar',
+				'menu_title' => wp_strip_all_tags( $howdy ),
 				'tabindex'   => ( false !== $profile_url ) ? '' : 0,
 			),
 		)
