@@ -304,7 +304,7 @@ class WP_Script_Modules {
 		$script_modules            = $this->get_marked_for_enqueue();
 		$sorted_script_modules_ids = $this->get_sorted_dependencies( array_keys( $script_modules ) );
 		foreach ( $sorted_script_modules_ids as $id ) {
-			if ( ! in_array( $id, $this->done, true ) && isset( $script_modules[ $id ] ) && ! $script_modules[ $id ]['in_footer'] ) {
+			if ( isset( $script_modules[ $id ] ) && ! $script_modules[ $id ]['in_footer'] ) {
 				// If any dependency is set to be printed in footer, skip printing this module in head.
 				$dependencies = $this->get_dependencies( array( $id ) );
 				foreach ( $dependencies as $dependency ) {
@@ -327,7 +327,7 @@ class WP_Script_Modules {
 		$script_modules            = $this->get_marked_for_enqueue();
 		$sorted_script_modules_ids = $this->get_sorted_dependencies( array_keys( $script_modules ) );
 		foreach ( $sorted_script_modules_ids as $id ) {
-			if ( ! in_array( $id, $this->done, true ) && isset( $script_modules[ $id ] ) ) {
+			if ( isset( $script_modules[ $id ] ) ) {
 				$this->done[] = $id;
 				$this->print_script_module( $id, $script_modules[ $id ] );
 			}
