@@ -108,4 +108,3 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when blockVisibility support is not opted in.' );
 	}
 }
-
