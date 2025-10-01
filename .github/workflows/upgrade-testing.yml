@@ -85,7 +85,8 @@ jobs:
           if [[ "$NEW_VERSION" == "latest" ]] || \
              [[ "$NEW_VERSION" == "nightly" ]] || \
              [[ -z "$NEW_VERSION" ]]; then
-            echo matrix_exclusions="$DEFAULT_EXCLUSIONS" >> "$GITHUB_OUTPUT"
+            COMPACTED=$(echo "$DEFAULT_EXCLUSIONS" | tr -d '\n' | tr -d ' ')
+            echo "matrix_exclusions=$COMPACTED" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
