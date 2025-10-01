@@ -12,9 +12,9 @@
  * @since 6.9.0
  * @access private
  *
- * @param  string $block_content Rendered block content.
- * @param  array  $block         Block object.
- * @return string                Filtered block content.
+ * @param string $block_content Rendered block content.
+ * @param array  $block         Block object.
+ * @return string Filtered block content.
  */
 function wp_render_block_visibility_support( $block_content, $block ) {
 	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
