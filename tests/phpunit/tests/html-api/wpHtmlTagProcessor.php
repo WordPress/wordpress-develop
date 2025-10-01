@@ -76,11 +76,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * @ticket 63854
 	 *
 	 * @covers WP_HTML_Tag_Processor::__construct
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::__construct
 	 */
 	public function test_constructor_validates_html_parameter() {
-		// Expect the _doing_it_wrong call.
-		$this->setExpectedIncorrectUsage( 'WP_HTML_Tag_Processor::__construct' );
-
 		// Test that passing null triggers _doing_it_wrong and sets HTML to empty string.
 		$processor = new WP_HTML_Tag_Processor( null );
 
