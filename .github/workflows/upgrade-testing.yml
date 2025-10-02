@@ -167,7 +167,7 @@ jobs:
         wp: [ '${{ inputs.new-version }}' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-matrix-for-input-version.outputs.matrix_exclusions ) || '[]' }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
