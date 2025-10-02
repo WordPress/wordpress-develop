@@ -771,9 +771,9 @@ class WP_User {
 	 */
 	public function remove_all_caps() {
 		global $wpdb;
+		$this->caps = null;
 		delete_user_meta( $this->ID, $this->cap_key );
 		delete_user_meta( $this->ID, $wpdb->get_blog_prefix() . 'user_level' );
-		$this->caps = null;
 		$this->load_capability_data();
 	}
 
