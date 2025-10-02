@@ -1663,6 +1663,8 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.css', array(), '0.9.15' );
 	$styles->add( 'colors-fresh', false, array( 'wp-admin', 'buttons' ) ); // Old handle.
 	$styles->add( 'open-sans', $open_sans_font_url ); // No longer used in core as of 4.6.
+	$styles->add( 'wp-embed-template-ie', false );
+	$styles->add_data( 'wp-embed-template-ie', 'conditional', '_required-conditional-dependency_' );
 
 	// Noto Serif is no longer used by core, but may be relied upon by themes and plugins.
 	$fonts_url = '';
