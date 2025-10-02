@@ -252,7 +252,7 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 				__( '<strong>Error:</strong> The %s options page is not in the allowed options list.' ),
 				'<code>' . esc_html( $option_page ) . '</code>'
 			),
-			400
+			403
 		);
 	}
 
