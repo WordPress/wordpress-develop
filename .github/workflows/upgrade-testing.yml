@@ -81,6 +81,10 @@ permissions: {}
 # example, if the value of inputs.new-version is 6.4.4, the jobs testing versions 6.5 and higher will be skipped because
 # that would be a downgrade test.
 jobs:
+  # Generates a list of combinations to exclude in for each test matrix based on the version of WordPress being tested.
+  #
+  # When a major version is being tested (6.4 or 6.4.0), no upgrade would occur, so that version is excluded.
+  # When a minor version is being tested (6.4.1, 6.4.2, etc), the corresponding major version (6.4) is tested.
   generate-exclusions:
     name: Create combination exclusion list
     runs-on: 'ubuntu-24.04'
