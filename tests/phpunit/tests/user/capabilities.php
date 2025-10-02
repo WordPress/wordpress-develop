@@ -993,6 +993,33 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test adding capabilities, roles, and allcaps manually to a user.
+	 *
+	 * @ticket 58001
+	 * @dataProvider data_add_user_properties_manually
+	 */
+	public function test_add_user_properties_manually( $property_name, $property_value ) {
+		$id                     = self::factory()->user->create();
+		$user                   = new WP_User( $id );
+		$user->{$property_name} = $property_value;
+
+		$this->assertSameSets( $property_value, $user->{$property_name} );
+	}
+
+	/**
+	 * Data provider for test_add_user_properties_manually.
+	 *
+	 * @return array<string, array{0:string,1:array}>
+	 */
+	public function data_add_user_properties_manually() {
+		return array(
+			'caps'    => array( 'caps', array( 'foo' => true ) ),
+			'roles'   => array( 'roles', array( 'foo' => true ) ),
+			'allcaps' => array( 'allcaps', array( 'foo' => true ) ),
+		);
+	}
+
+	/**
 	 * Test add_role with implied capabilities grant successfully grants capabilities.
 	 *
 	 * @ticket 43421

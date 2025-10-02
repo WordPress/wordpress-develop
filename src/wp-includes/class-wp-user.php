@@ -63,10 +63,10 @@ class WP_User {
 	 * Capabilities that the individual user has been granted outside of those inherited from their role.
 	 *
 	 * @since 2.0.0
-	 * @var array<string, bool> Array of key/value pairs where keys represent a capability name
+	 * @var array<string, bool>|null Array of key/value pairs where keys represent a capability name
 	 *                          and boolean values represent whether the user has that capability.
 	 */
-	protected $caps = array();
+	protected $caps = null;
 
 	/**
 	 * User metadata option name.
@@ -108,14 +108,6 @@ class WP_User {
 	 * @var int
 	 */
 	private $site_id = 0;
-
-	/**
-	 * Flag for if capability is loaded.
-	 *
-	 * @since 6.9.0
-	 * @var bool
-	 */
-	private $loaded_caps = false;
 
 	/**
 	 * @since 3.3.0
@@ -300,7 +292,7 @@ class WP_User {
 		}
 
 		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
-			return isset( $this->$key );
+			return true;
 		}
 
 		if ( isset( $this->data->$key ) ) {
@@ -380,6 +372,13 @@ class WP_User {
 				)
 			);
 			$this->ID = $value;
+			return;
+		}
+
+		// Ensure capability data is loaded before setting related properties.
+		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
+			$this->load_capability_data();
+			$this->$key = $value;
 			return;
 		}
 
@@ -536,7 +535,7 @@ class WP_User {
 		$wp_roles = wp_roles();
 
 		// Edge case: In case someone calls this method before lazy initialization, we need to initialize on demand.
-		if ( ! $this->loaded_caps ) {
+		if ( ! isset( $this->caps ) ) {
 			$this->caps = $this->get_caps_data();
 		}
 
@@ -774,7 +773,7 @@ class WP_User {
 		global $wpdb;
 		delete_user_meta( $this->ID, $this->cap_key );
 		delete_user_meta( $this->ID, $wpdb->get_blog_prefix() . 'user_level' );
-		$this->loaded_caps = false;
+		$this->caps = null;
 		$this->load_capability_data();
 	}
 
@@ -908,8 +907,8 @@ class WP_User {
 			$this->site_id = get_current_blog_id();
 		}
 
-		$this->cap_key     = $wpdb->get_blog_prefix( $this->site_id ) . 'capabilities';
-		$this->loaded_caps = false;
+		$this->cap_key = $wpdb->get_blog_prefix( $this->site_id ) . 'capabilities';
+		$this->caps    = null;
 	}
 
 	/**
@@ -947,11 +946,10 @@ class WP_User {
 	 * @since 6.9.0
 	 */
 	private function load_capability_data() {
-		if ( $this->loaded_caps ) {
+		if ( isset( $this->caps ) ) {
 			return;
 		}
 		$this->caps = $this->get_caps_data();
 		$this->get_role_caps();
-		$this->loaded_caps = true;
 	}
 }
