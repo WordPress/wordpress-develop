@@ -96,7 +96,7 @@ jobs:
 
           # Determine if this is a major release.
           MAJOR_RELEASE=false
-          if [[ "$MAJOR_RELEASE" =~ ^[0-9]+\.[0-9]+\.[1-9][0-9]*$ ]]; then
+          if [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[1-9][0-9]*$ ]]; then
             MAJOR_RELEASE=true
           fi
 
@@ -107,14 +107,14 @@ jobs:
 
           while [[ "$TEST_VERSION" != "$CURRENT_VERSION" ]]; do
             # Only test the current version when a minor version has been specified.
-            if [[ "$TEST_VERSION" == "$INPUT_VERSION" && "$MAJOR_RELEASE" == "false" ]]; then
-              continue
+            if [[ "$TEST_VERSION" != "$INPUT_VERSION" || "$MAJOR_RELEASE" == "true" ]]; then
+              GENERATED_EXCLUSIONS+='{"wp":"'"$TEST_VERSION"'"},'
             fi
 
             GENERATED_EXCLUSIONS+='{"wp":"'"$TEST_VERSION"'"},'
 
             # Increment to next version.
-            TEST_VERSION="$(echo "$TEST_VERSION" | cut -d. -f1).$(echo $(echo "$TEST_VERSION" | cut -d. -f2) + 1)"
+            TEST_VERSION="$(echo "$TEST_VERSION" | cut -d. -f1).$(($(echo "$TEST_VERSION" | cut -d. -f2) + 1))"
           done
 
           # Add the current version and close the array.
