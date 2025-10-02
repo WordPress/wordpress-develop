@@ -74,7 +74,7 @@ jobs:
         id: set-exclusions
         shell: bash
         env:
-          NEW_VERSION: ${{ inputs.new-version && inputs.new-version || '5.9' }}
+          NEW_VERSION: ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
         run: |
           # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
           # MySQL 9.0+ will also not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
