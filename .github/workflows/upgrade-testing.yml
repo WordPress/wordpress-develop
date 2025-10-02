@@ -84,6 +84,14 @@ jobs:
             {"php":"7.3","db-version":"8.4"},
             {"php":"7.2","db-version":"9.4"},
             {"php":"7.3","db-version":"9.4"},
+            {"db-version":"5.0"},
+            {"db-version":"5.1"},
+            {"db-version":"5.5"},
+            {"db-version":"9.0"},
+            {"db-version":"9.1"},
+            {"db-version":"9.2"},
+            {"db-version":"9.3"},
+            {"db-version":"9.4"},
           ]'
 
           # The defaults are sufficient when not testing a specific version.
