@@ -172,7 +172,7 @@ jobs:
         php: ${{ fromJSON( needs.generate-matrix-for-input-version.outputs.php-versions ) }}
         db-type: [ 'mysql' ]
         db-version: ${{ fromJSON( needs.generate-matrix-for-input-version.outputs.mysql-versions ) }}
-        wp: [ '${{ inputs.new-version }}' ]
+        wp: [ '6.1.4' ]
         multisite: [ false, true ]
 
         exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
