@@ -220,7 +220,7 @@ class WP_Block_Scanner {
 	 * @param string $source_text Input document potentially containing block content.
 	 * @return ?self Created block scanner, if successfully created.
 	 */
-	public static function create( string $source_text ): mixed {
+	public static function create( string $source_text ) {
 		return new self( $source_text );
 	}
 
