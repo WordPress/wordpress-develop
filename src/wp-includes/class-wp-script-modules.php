@@ -343,12 +343,21 @@ class WP_Script_Modules {
 	 * @return array Array with an `imports` key mapping to an array of script module identifiers and their respective
 	 *               URLs, including the version query.
 	 */
-	private function get_import_map(): array {
+	public function get_import_map(): array {
 		$imports = array();
 		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ) ) as $id => $script_module ) {
 			$imports[ $id ] = $this->get_src( $id );
 		}
-		return array( 'imports' => $imports );
+		$import_map = array( 'imports' => $imports );
+
+		/**
+		 * Filters the import map before it is returned.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param array $import_map The import map array containing script module identifiers and their URLs.
+		 */
+		return apply_filters( 'script_modules_import_map', $import_map );
 	}
 
 	/**
@@ -358,7 +367,7 @@ class WP_Script_Modules {
 	 *
 	 * @return array<string, array> Script modules marked for enqueue, keyed by script module identifier.
 	 */
-	private function get_marked_for_enqueue(): array {
+	public function get_marked_for_enqueue(): array {
 		$enqueued = array();
 		foreach ( $this->registered as $id => $script_module ) {
 			if ( true === $script_module['enqueue'] ) {
@@ -580,5 +589,30 @@ class WP_Script_Modules {
 			. '<div id="a11y-speak-assertive" class="a11y-speak-region" aria-live="assertive" aria-relevant="additions text" aria-atomic="true"></div>'
 			. '<div id="a11y-speak-polite" class="a11y-speak-region" aria-live="polite" aria-relevant="additions text" aria-atomic="true"></div>'
 			. '</div>';
+	}
+
+	/**
+	 * Checks if a script module is marked for enqueue.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $id The script module identifier.
+	 * @return bool True if the script module is marked for enqueue, false otherwise.
+	 */
+	public function is_marked_for_enqueue( string $id ): bool {
+		return isset( $this->registered[ $id ] ) && true === $this->registered[ $id ]['enqueue'];
+	}
+
+	/**
+	 * Checks if a script module will be included in the import map.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $id The script module identifier.
+	 * @return bool True if the script module will be included in the import map, false otherwise.
+	 */
+	public function is_marked_for_import( string $id ): bool {
+		$import_map = $this->get_import_map();
+		return isset( $import_map['imports'][ $id ] );
 	}
 }

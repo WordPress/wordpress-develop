@@ -1371,4 +1371,39 @@ HTML;
 			'string'   => array( 'string' ),
 		);
 	}
+
+	/**
+	 * Tests that is_marked_for_enqueue() correctly identifies enqueued modules.
+	 *
+	 * @ticket 60597
+	 *
+	 * @covers ::is_marked_for_enqueue
+	 */
+	public function test_is_marked_for_enqueue() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->register( 'bar', '/bar.js' );
+		$this->script_modules->enqueue( 'foo' );
+
+		$this->assertTrue( $this->script_modules->is_marked_for_enqueue( 'foo' ) );
+		$this->assertFalse( $this->script_modules->is_marked_for_enqueue( 'bar' ) );
+		$this->assertFalse( $this->script_modules->is_marked_for_enqueue( 'nonexistent' ) );
+	}
+
+	/**
+	 * Tests that is_marked_for_import() correctly identifies modules in the import map.
+	 *
+	 * @ticket 60597
+	 *
+	 * @covers ::is_marked_for_import
+	 */
+	public function test_is_marked_for_import() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->register( 'bar', '/bar.js', array( 'foo' ) );
+		$this->script_modules->register( 'baz', '/baz.js', array( 'bar' ) );
+		$this->script_modules->enqueue( 'baz' );
+
+		$this->assertTrue( $this->script_modules->is_marked_for_import( 'foo' ) );
+		$this->assertTrue( $this->script_modules->is_marked_for_import( 'bar' ) );
+		$this->assertFalse( $this->script_modules->is_marked_for_import( 'nonexistent' ) );
+	}
 }
