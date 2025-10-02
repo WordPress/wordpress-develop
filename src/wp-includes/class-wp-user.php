@@ -37,7 +37,7 @@
  * @property string $rich_editing
  * @property string $syntax_highlighting
  * @property string $use_ssl
- * @property array<string, bool> $caps
+ * @property array<string, bool>|null $caps
  * @property string[] $roles
  * @property array<string, bool> $allcaps
  */
