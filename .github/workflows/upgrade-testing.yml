@@ -74,7 +74,7 @@ jobs:
         id: set-exclusions
         shell: bash
         env:
-          NEW_VERSION: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+          NEW_VERSION: ${{ inputs.new-version && inputs.new-version || '5.9' }}
         run: |
           # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
           # MySQL 9.0+ will also not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
@@ -86,8 +86,7 @@ jobs:
           ]'
 
           # The defaults are sufficient when not testing a specific version.
-          if [[ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]] || \
-             [[ -z "$NEW_VERSION" ]] || \
+          if [[ -z "$NEW_VERSION" ]] || \
              [[ "$NEW_VERSION" == "latest" ]] || \
              [[ "$NEW_VERSION" == "nightly" ]]; then
             echo "matrix_exclusions=$(echo "$DEFAULT_EXCLUSIONS" | tr -d '\n' | tr -d ' ')" >> "$GITHUB_OUTPUT"
@@ -140,7 +139,7 @@ jobs:
         wp: [ '6.7', '6.8' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || fromJSON( '[]' ) }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -168,7 +167,7 @@ jobs:
         wp: [ '6.0', '6.3', '6.4', '6.5' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || fromJSON( '[]' ) }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -196,7 +195,7 @@ jobs:
         wp: [ '5.0', '5.1', '5.3', '5.4', '5.5', '5.6', '5.9' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || fromJSON( '[]' ) }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -228,7 +227,7 @@ jobs:
         wp: [ '5.3', '5.4', '5.5', '5.6', '5.9' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || fromJSON( '[]' ) }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -261,7 +260,7 @@ jobs:
         wp: [ '4.7' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || fromJSON( '[]' ) }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
