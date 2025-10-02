@@ -293,7 +293,6 @@ class WP_Scripts extends WP_Dependencies {
 
 		$obj = $this->registered[ $handle ];
 		if ( $obj->extra['conditional'] ?? false ) {
-
 			return false;
 		}
 
