@@ -104,13 +104,14 @@ jobs:
           CURRENT_VERSION=$(echo "$CURRENTLY_SUPPORTED_BRANCH" | grep -oE '[0-9]+\.[0-9]+')
           TEST_VERSION="$INPUT_VERSION"
 
+          # Create an exclusion list.
+          GENERATED_EXCLUSIONS=''
+
           while [[ "$TEST_VERSION" != "$CURRENT_VERSION" ]]; do
             # Only test the current version when a minor version has been specified.
             if [[ "$TEST_VERSION" != "$INPUT_VERSION" || "$MAJOR_RELEASE" == "true" ]]; then
               GENERATED_EXCLUSIONS+='{"wp":"'"$TEST_VERSION"'"},'
             fi
-
-            GENERATED_EXCLUSIONS+='{"wp":"'"$TEST_VERSION"'"},'
 
             # Increment to next version.
             TEST_VERSION="$(echo "$TEST_VERSION" | cut -d. -f1).$(($(echo "$TEST_VERSION" | cut -d. -f2) + 1))"
