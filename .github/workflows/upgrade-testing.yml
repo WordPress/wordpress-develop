@@ -68,7 +68,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       matrix_exclusions: ${{ steps.set-exclusions.outputs.matrix_exclusions }}
-      major_version: ${{ steps.set-exclusions.outputs.major_version }}
+      version: ${{ steps.set-exclusions.outputs.major_version }}
 
     steps:
       - name: Set exclusions output
@@ -106,7 +106,7 @@ jobs:
           TEST_VERSION="$INPUT_VERSION"
 
           # Save the major version number as an output.
-          echo "major_version=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "version=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
 
           # Create an exclusion list.
           GENERATED_EXCLUSIONS=''
@@ -148,7 +148,7 @@ jobs:
       contents: read
     if: ${{ true || github.repository == 'WordPress/wordpress-develop' && github.event_name == 'workflow_dispatch' && ! contains( fromJSON('["6.7", "6.8"]'), inputs.new-version ) }}
     with:
-      wp-version: ${{ needs.generate-exclusions.outputs.major_version }}
+      wp-version: ${{ needs.generate-exclusions.outputs.version }}
 
   upgrade-tests-input-version:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || '6.1.4' }}
@@ -161,13 +161,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-24.04' ]
-        php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
+        php: ${{ fromJSON( needs.generate-matrix-for-input-version.outputs.php-versions ) }}
         db-type: [ 'mysql' ]
-        db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
+        db-version: ${{ fromJSON( needs.generate-matrix-for-input-version.outputs.mysql-versions ) }}
         wp: [ '${{ inputs.new-version }}' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
+        exclude: ${{ fromJSON( needs.generate-matrix-for-input-version.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
