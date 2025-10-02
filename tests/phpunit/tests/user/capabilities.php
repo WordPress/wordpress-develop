@@ -998,12 +998,16 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 58001
 	 * @dataProvider data_add_user_properties_manually
 	 */
-	public function test_add_user_properties_manually( $property_name, $property_value ) {
+	public function test_add_user_properties_manually( $property_name, $property_value, $check_null ) {
 		$id                     = self::factory()->user->create();
 		$user                   = new WP_User( $id );
 		$user->{$property_name} = $property_value;
 
-		$this->assertSameSets( $property_value, $user->{$property_name} );
+		$this->assertSameSets( $property_value, $user->{$property_name}, "User property {$property_name} was not set correctly." );
+		unset( $user->{$property_name} );
+		if ( $check_null ) {
+			$this->assertNull( $user->{$property_name}, "User property {$property_name} should be null after unsetting it." );
+		}
 	}
 
 	/**
@@ -1013,9 +1017,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 */
 	public function data_add_user_properties_manually() {
 		return array(
-			'caps'    => array( 'caps', array( 'foo' => true ) ),
-			'roles'   => array( 'roles', array( 'foo' => true ) ),
-			'allcaps' => array( 'allcaps', array( 'foo' => true ) ),
+			'caps'    => array( 'caps', array( 'foo' => true ), false ),
+			'roles'   => array( 'roles', array( 'foo' => true ), true ),
+			'allcaps' => array( 'allcaps', array( 'foo' => true ), true ),
 		);
 	}
 

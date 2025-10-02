@@ -405,6 +405,10 @@ class WP_User {
 			);
 		}
 
+		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
+			$this->$key = null;
+		}
+
 		if ( isset( $this->data->$key ) ) {
 			unset( $this->data->$key );
 		}
