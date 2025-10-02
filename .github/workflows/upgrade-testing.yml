@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       new-version:
-        description: 'The version to test installing. Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
+        description: 'The version to test upgrading to. Accepts both major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
         type: string
         default: 'latest'
 
@@ -85,14 +85,42 @@ jobs:
             {"php":"7.3","db-version":"9.4"},
           ]'
 
-          if [[ -z "$NEW_VERSION" ]] || \
+          # The defaults are sufficient when not testing a specific version.
+          if [[ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]] || \
+             [[ -z "$NEW_VERSION" ]] || \
              [[ "$NEW_VERSION" == "latest" ]] || \
-             [[ "$NEW_VERSION" == "nightly" ]] || \
-             [[ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]]; then
-            COMPACTED=$(echo "$DEFAULT_EXCLUSIONS" | tr -d '\n' | tr -d ' ')
-            echo "matrix_exclusions=$COMPACTED" >> "$GITHUB_OUTPUT"
+             [[ "$NEW_VERSION" == "nightly" ]]; then
+            echo "matrix_exclusions=$(echo "$DEFAULT_EXCLUSIONS" | tr -d '\n' | tr -d ' ')" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          # Determine if this is a major release.
+          MAJOR_RELEASE=false
+          if [[ "$MAJOR_RELEASE" =~ ^[0-9]+\.[0-9]+\.[1-9][0-9]*$ ]]; then
+            MAJOR_RELEASE=true
+          fi
+
+          # Strip any preceding "v" and drop any ".0" values for major releases.
+          INPUT_VERSION=$(echo "$NEW_VERSION" | grep -oE '[0-9]+\.[0-9]+')
+          CURRENT_VERSION=$(echo "$CURRENTLY_SUPPORTED_BRANCH" | grep -oE '[0-9]+\.[0-9]+')
+          TEST_VERSION="$INPUT_VERSION"
+
+          while [[ "$TEST_VERSION" != "$CURRENT_VERSION" ]]; do
+            # Only test the current version when a minor version has been specified.
+            if [[ "$TEST_VERSION" == "$INPUT_VERSION" && "$MAJOR_RELEASE" == "false" ]]; then
+              continue
+            fi
+
+            GENERATED_EXCLUSIONS+='{"wp":"'"$TEST_VERSION"'"},'
+
+            # Increment to next version.
+            TEST_VERSION="$(echo "$TEST_VERSION" | cut -d. -f1).$(echo $(echo "$TEST_VERSION" | cut -d. -f2) + 1)"
+          done
+
+          # Add the current version and close the array.
+          GENERATED_EXCLUSIONS+='{"wp":"'"$TEST_VERSION"'"}]'
+
+          echo "matrix_exclusions=$(echo "${DEFAULT_EXCLUSIONS%]}${GENERATED_EXCLUSIONS}" | tr -d '\n' | tr -d ' ')" >> "$GITHUB_OUTPUT"
 
   # Tests the full list of PHP/MySQL combinations for the two most recent versions of WordPress.
   upgrade-tests-recent-releases:
