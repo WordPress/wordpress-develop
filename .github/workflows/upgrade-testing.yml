@@ -68,6 +68,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       matrix_exclusions: ${{ steps.set-exclusions.outputs.matrix_exclusions }}
+      major_version: ${{ steps.set-exclusions.outputs.major_version }}
 
     steps:
       - name: Set exclusions output
@@ -104,6 +105,9 @@ jobs:
           CURRENT_VERSION=$(echo "$CURRENTLY_SUPPORTED_BRANCH" | grep -oE '[0-9]+\.[0-9]+')
           TEST_VERSION="$INPUT_VERSION"
 
+          # Save the major version number as an output.
+          echo "major_version=$(echo "$INPUT_VERSION" | cut -d. -f1)" >> "$GITHUB_OUTPUT"
+
           # Create an exclusion list.
           GENERATED_EXCLUSIONS=''
 
@@ -139,11 +143,12 @@ jobs:
   generate-matrix-for-input-version:
     name: Build Test Matrix for Input Version
     uses: ./.github/workflows/reusable-support-json-reader-v1.yml
+    needs: [ 'generate-exclusions' ]
     permissions:
       contents: read
     if: ${{ true || github.repository == 'WordPress/wordpress-develop' && github.event_name == 'workflow_dispatch' && ! contains( fromJSON('["6.7", "6.8"]'), inputs.new-version ) }}
     with:
-      wp-version: ${{ inputs.new-version }}
+      wp-version: ${{ needs.generate-exclusions.outputs.major_version }}
 
   upgrade-tests-input-version:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || '6.1.4' }}
