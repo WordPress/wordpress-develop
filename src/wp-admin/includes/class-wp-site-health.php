@@ -2386,7 +2386,7 @@ class WP_Site_Health {
 		$description  = '<p>' . __( 'Page cache enhances the speed and performance of your site by saving and serving static pages instead of calling for a page every time a user visits.' ) . '</p>';
 		$description .= '<p>' . __( 'Page cache is detected by looking for an active page cache plugin as well as making three requests to the homepage and looking for one or more of the following HTTP client caching response headers:' ) . '</p>';
 		$description .= '<code>' . implode( '</code>, <code>', array_keys( $this->get_page_cache_headers() ) ) . '.</code>';
-		$description .= '<p>' . __( 'When a page cache is detected, Speculative Loading will use a default eagerness of moderate instead of conservative.' ) . '</p>';
+		$description .= '<p>' . $this->get_speculative_loading_cache_description() . '</p>';
 
 		$result = array(
 			'badge'       => array(
@@ -2520,8 +2520,9 @@ class WP_Site_Health {
 			),
 			'label'       => __( 'A persistent object cache is being used' ),
 			'description' => sprintf(
-				'<p>%s</p>',
-				__( 'A persistent object cache makes your site&#8217;s database more efficient, resulting in faster load times because WordPress can retrieve your site&#8217;s content and settings much more quickly.' )
+				'<p>%s</p><p>%s</p>',
+				__( 'A persistent object cache makes your site&#8217;s database more efficient, resulting in faster load times because WordPress can retrieve your site&#8217;s content and settings much more quickly.' ),
+				$this->get_speculative_loading_cache_description()
 			),
 			'actions'     => sprintf(
 				'<p><a href="%s" target="_blank">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
@@ -2585,6 +2586,32 @@ class WP_Site_Health {
 		);
 
 		return $result;
+	}
+
+	/**
+	 * Gets the description of speculative loading used in the page cache and persistent object cache tests.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @see self::get_test_persistent_object_cache()
+	 * @see self::get_test_page_cache()
+	 * @see wp_get_speculation_rules_configuration()
+	 *
+	 * @return string Description.
+	 */
+	private function get_speculative_loading_cache_description() {
+		return sprintf(
+			/* translators: 1: Link to the Speculative Loading dev note. 2: Additional link attributes. 3: Accessibility text. */
+			__( 'When a page cache is detected and a persistent object cache is enabled, <a href="%1$s" %2$s>Speculative Loading%3$s</a> will accelerate cross-site navigations by using a default <code>eagerness</code> of <code>moderate</code> instead of <code>conservative</code>.' ),
+			/* translators: Localized Speculative Loading dev note, if one exists. */
+			esc_url( __( 'https://make.wordpress.org/core/2025/03/06/speculative-loading-in-6-8/' ) ),
+			'target="_blank"',
+			sprintf(
+				'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
+				/* translators: Hidden accessibility text. */
+				__( '(opens in a new tab)' )
+			)
+		);
 	}
 
 	/**
