@@ -51,8 +51,7 @@ if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
 			/* translators: %s: wp-config-sample.php */
 			__( 'Sorry, I need a %s file to work from. Please re-upload this file to your WordPress installation.' ),
 			'<code>wp-config-sample.php</code>'
-		),
-		404
+		)
 	);
 }
 
