@@ -74,7 +74,7 @@ jobs:
         id: set-exclusions
         shell: bash
         env:
-          NEW_VERSION: ${{ inputs.new-version && inputs.new-version || 'v4.9.22' }}
+          NEW_VERSION: ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
         run: |
           # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
           # MySQL 9.0+ will also not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
@@ -134,7 +134,7 @@ jobs:
 
   # Tests the full list of PHP/MySQL combinations for the two most recent versions of WordPress.
   upgrade-tests-recent-releases:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     needs: [ 'generate-exclusions' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -157,12 +157,12 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
       multisite: ${{ matrix.multisite }}
 
   # Tests 6.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 7 & 8.
   upgrade-tests-wp-6x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     needs: [ 'generate-exclusions' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -185,12 +185,12 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
       multisite: ${{ matrix.multisite }}
 
   # Tests 5.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 7.
   upgrade-tests-wp-5x-php-7x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     needs: [ 'generate-exclusions' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -213,7 +213,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
       multisite: ${{ matrix.multisite }}
 
   # Tests 5.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 8.
@@ -222,7 +222,7 @@ jobs:
   # - Use of __autoload().
   # - array/string offset with curly braces.
   upgrade-tests-wp-5x-php-8x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     needs: [ 'generate-exclusions' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -245,7 +245,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
       multisite: ${{ matrix.multisite }}
 
   # The oldest version of WordPress receiving security updates should always be tested against
@@ -255,7 +255,7 @@ jobs:
   # - Use of __autoload().
   # - array/string offset with curly braces.
   upgrade-tests-oldest-wp-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     needs: [ 'generate-exclusions' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
@@ -278,7 +278,7 @@ jobs:
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || '6.4.1' }}
       multisite: ${{ matrix.multisite }}
 
   slack-notifications:
