@@ -140,7 +140,7 @@ jobs:
         wp: [ '6.7', '6.8' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || fromJSON( '[]' ) }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -168,7 +168,7 @@ jobs:
         wp: [ '6.0', '6.3', '6.4', '6.5' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || fromJSON( '[]' ) }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -196,7 +196,7 @@ jobs:
         wp: [ '5.0', '5.1', '5.3', '5.4', '5.5', '5.6', '5.9' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || fromJSON( '[]' ) }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -228,7 +228,7 @@ jobs:
         wp: [ '5.3', '5.4', '5.5', '5.6', '5.9' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || fromJSON( '[]' ) }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -261,7 +261,7 @@ jobs:
         wp: [ '4.7' ]
         multisite: [ false, true ]
 
-        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || fromJSON( '[]' ) }}
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
