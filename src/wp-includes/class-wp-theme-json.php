@@ -1539,7 +1539,7 @@ class WP_Theme_JSON {
 		foreach ( $this->theme_json['customTemplates'] as $item ) {
 			if ( isset( $item['name'] ) ) {
 				$custom_templates[ $item['name'] ] = array(
-					'title'     => $item['title'] ?? : '',
+					'title'     => $item['title'] ?? '',
 					'postTypes' => $item['postTypes'] ?? array( 'page' ),
 				);
 			}
