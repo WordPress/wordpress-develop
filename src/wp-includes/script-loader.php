@@ -1054,6 +1054,7 @@ function wp_default_scripts( $scripts ) {
 
 	// Not used in core, obsolete. Registered for backward compatibility.
 	$scripts->add( 'json2', "/wp-includes/js/json2$suffix.js", array(), '2015-05-03' );
+	did_action( 'init' ) && $scripts->add_data( 'json2', 'conditional', '_required-conditional-dependency_' );
 
 	$scripts->add( 'underscore', "/wp-includes/js/underscore$dev_suffix.js", array(), '1.13.7', 1 );
 	$scripts->add( 'backbone', "/wp-includes/js/backbone$dev_suffix.js", array( 'underscore', 'jquery' ), '1.6.0', 1 );

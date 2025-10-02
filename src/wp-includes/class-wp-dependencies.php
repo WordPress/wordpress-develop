@@ -289,7 +289,7 @@ class WP_Dependencies {
 		if ( ! isset( $this->registered[ $handle ] ) ) {
 			return false;
 		}
-		if ( 'conditional' === $key ) {
+		if ( 'conditional' === $key && '_required-conditional-dependency_' !== $value ) {
 			_deprecated_argument(
 				'WP_Dependencies->add_data()',
 				'6.9.0',
