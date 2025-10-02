@@ -63,7 +63,7 @@ permissions: {}
 jobs:
   generate-exclusions:
     name: Generate test exclusions
-    runs-on: 'ubuntu-22.04'
+    runs-on: 'ubuntu-24.04'
     if: ${{ true || github.repository == 'WordPress/wordpress-develop' }}
     timeout-minutes: 5
     outputs:
@@ -131,6 +131,46 @@ jobs:
           GENERATED_EXCLUSIONS+='{"wp":"'"$TEST_VERSION"'"}]'
 
           echo "matrix_exclusions=$(echo "${DEFAULT_EXCLUSIONS%]}${GENERATED_EXCLUSIONS}" | tr -d '\n' | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+  # The full list of combinations for a specified version should always be tested.
+  #
+  # Since all supported combinations are already tested for the WordPress versions listed in the upgrade-tests-recent-releases
+  # job, those versions should be excluded here to avoid duplicate testing.
+  generate-matrix-for-input-version:
+    name: Build Test Matrix for Input Version
+    uses: ./.github/workflows/reusable-support-json-reader-v1.yml
+    permissions:
+      contents: read
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'workflow_dispatch' && ! contains( fromJSON('["6.7", "6.8"]'), inputs.new-version ) }}
+    with:
+      wp-version: ${{ inputs.new-version }}
+
+  upgrade-tests-input-version:
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || '6.0.0' }}
+    uses: ./.github/workflows/reusable-upgrade-testing.yml
+    needs: [ 'generate-matrix-for-input-version' ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'ubuntu-24.04' ]
+        php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
+        db-type: [ 'mysql' ]
+        db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
+        wp: [ '${{ inputs.new-version }}' ]
+        multisite: [ false, true ]
+
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
+    with:
+      os: ${{ matrix.os }}
+      php: ${{ matrix.php }}
+      db-type: ${{ matrix.db-type }}
+      db-version: ${{ matrix.db-version }}
+      wp: ${{ matrix.wp }}
+      new-version: ${{ inputs.new-version && inputs.new-version || '6.0.0' }}
+      multisite: ${{ matrix.multisite }}
 
   # Tests the full list of PHP/MySQL combinations for the two most recent versions of WordPress.
   upgrade-tests-recent-releases:
