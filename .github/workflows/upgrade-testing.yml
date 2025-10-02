@@ -141,7 +141,7 @@ jobs:
     uses: ./.github/workflows/reusable-support-json-reader-v1.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'workflow_dispatch' && ! contains( fromJSON('["6.7", "6.8"]'), inputs.new-version ) }}
+    if: ${{ true || github.repository == 'WordPress/wordpress-develop' && github.event_name == 'workflow_dispatch' && ! contains( fromJSON('["6.7", "6.8"]'), inputs.new-version ) }}
     with:
       wp-version: ${{ inputs.new-version }}
 
