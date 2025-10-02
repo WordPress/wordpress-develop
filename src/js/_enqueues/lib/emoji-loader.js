@@ -157,7 +157,7 @@ function emojiSetsRenderIdentically( context, set1, set2 ) {
 		).data
 	);
 
-	return rendered1.every( function ( rendered2Data, index ) {
+	return rendered1.every( ( rendered2Data, index ) => {
 		return rendered2Data === rendered2[ index ];
 	} );
 }
@@ -330,7 +330,7 @@ function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentica
 	context.font = '600 32px Arial';
 
 	const supports = {};
-	tests.forEach( function ( test ) {
+	tests.forEach( ( test ) => {
 		supports[ test ] = browserSupportsEmoji( context, test, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint );
 	} );
 	return supports;
@@ -360,14 +360,14 @@ settings.supports = {
 };
 
 // Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
-const domReadyPromise = new Promise( function ( resolve ) {
+const domReadyPromise = new Promise( ( resolve ) => {
 	document.addEventListener( 'DOMContentLoaded', resolve, {
 		once: true
 	} );
 } );
 
 // Obtain the emoji support from the browser, asynchronously when possible.
-new Promise( function ( resolve ) {
+new Promise( ( resolve ) => {
 	let supportTests = getSessionSupportTests();
 	if ( supportTests ) {
 		resolve( supportTests );
@@ -392,7 +392,7 @@ new Promise( function ( resolve ) {
 				type: 'text/javascript'
 			} );
 			const worker = new Worker( URL.createObjectURL( blob ), { name: 'wpTestEmojiSupports' } );
-			worker.onmessage = function ( event ) {
+			worker.onmessage = ( event ) => {
 				supportTests = event.data;
 				setSessionSupportTests( supportTests );
 				worker.terminate();
@@ -407,7 +407,7 @@ new Promise( function ( resolve ) {
 	resolve( supportTests );
 } )
 	// Once the browser emoji support has been obtained from the session, finalize the settings.
-	.then( function ( supportTests ) {
+	.then( ( supportTests ) => {
 		/*
 		 * Tests the browser support for flag emojis and other emojis, and adjusts the
 		 * support settings accordingly.
@@ -431,14 +431,14 @@ new Promise( function ( resolve ) {
 
 		// Sets DOMReady to false and assigns a ready function to settings.
 		settings.DOMReady = false;
-		settings.readyCallback = function () {
+		settings.readyCallback = () => {
 			settings.DOMReady = true;
 		};
 	} )
-	.then( function () {
+	.then( () => {
 		return domReadyPromise;
 	} )
-	.then( function () {
+	.then( () => {
 		// When the browser can not render everything we need to load a polyfill.
 		if ( ! settings.supports.everything ) {
 			settings.readyCallback();
