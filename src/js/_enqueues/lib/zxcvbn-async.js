@@ -16,7 +16,9 @@
     var first, s;
     s = document.createElement('script');
     s.src = _zxcvbnSettings.src;
-    s.type = 'text/javascript';
+    if ( _zxcvbnSettings.typeAttr ) {
+      s.type = _zxcvbnSettings.typeAttr;
+    }
     s.async = true;
     first = document.getElementsByTagName('script')[0];
     return first.parentNode.insertBefore(s, first);

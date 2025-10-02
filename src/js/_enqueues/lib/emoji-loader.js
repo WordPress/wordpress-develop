@@ -354,6 +354,9 @@
 		var script = document.createElement( 'script' );
 		script.src = src;
 		script.defer = true;
+		if ( settings.typeAttr ) {
+			script.type = settings.typeAttr;
+		}
 		document.head.appendChild( script );
 	}
 

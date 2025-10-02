@@ -1210,6 +1210,7 @@ function wp_default_scripts( $scripts ) {
 		'_zxcvbnSettings',
 		array(
 			'src' => empty( $guessed_url ) ? includes_url( '/js/zxcvbn.min.js' ) : $scripts->base_url . '/wp-includes/js/zxcvbn.min.js',
+			'typeAttr' => current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"',
 		)
 	);
 
