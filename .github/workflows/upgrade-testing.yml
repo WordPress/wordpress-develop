@@ -106,7 +106,7 @@ jobs:
           TEST_VERSION="$INPUT_VERSION"
 
           # Save the major version number as an output.
-          echo "major_version=$(echo "$INPUT_VERSION" | cut -d. -f1)" >> "$GITHUB_OUTPUT"
+          echo "major_version=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
 
           # Create an exclusion list.
           GENERATED_EXCLUSIONS=''
