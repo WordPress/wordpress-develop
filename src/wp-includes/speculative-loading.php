@@ -61,6 +61,28 @@ function wp_get_speculation_rules_configuration(): ?array {
 	// Sanitize the configuration and replace 'auto' with current defaults.
 	$default_mode      = 'prefetch';
 	$default_eagerness = 'conservative';
+
+	// Default to moderate eagerness on production when page caching is detected.
+	if ( 'production' === wp_get_environment_type() ) {
+		$page_cache_detail = get_transient( 'health_check_page_cache_detail' );
+		if (
+			is_array( $page_cache_detail ) &&
+			(
+				(
+					isset( $page_cache_detail['advanced_cache_present'] ) &&
+					$page_cache_detail['advanced_cache_present']
+				) ||
+				(
+					isset( $page_cache_detail['caching_response_headers'] ) &&
+					is_array( $page_cache_detail['caching_response_headers'] ) &&
+					count( $page_cache_detail['caching_response_headers'] ) > 0
+				)
+			)
+		) {
+			$default_eagerness = 'moderate';
+		}
+	}
+
 	if ( ! is_array( $config ) ) {
 		return array(
 			'mode'      => $default_mode,
