@@ -114,7 +114,17 @@ jobs:
             fi
 
             # Increment to next version.
-            TEST_VERSION="$(echo "$TEST_VERSION" | cut -d. -f1).$(($(echo "$TEST_VERSION" | cut -d. -f2) + 1))"
+            MAJOR=$(echo "$TEST_VERSION" | cut -d. -f1)
+            MINOR=$(echo "$TEST_VERSION" | cut -d. -f2)
+            MINOR=$((MINOR + 1))
+
+            # Roll over to next major version if minor reaches 10
+            if [[ $MINOR -eq 10 ]]; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+            fi
+
+            TEST_VERSION="$MAJOR.$MINOR"
           done
 
           # Add the current version and close the array.
