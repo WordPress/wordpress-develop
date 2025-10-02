@@ -287,7 +287,7 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 			'title'  => $howdy . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(
-				'class'      => ( false === $avatar ) ? '' : 'with-avatar',
+				'class'      => empty( $avatar ) ? '' : 'with-avatar',
 				'menu_title' => wp_strip_all_tags( $howdy ),
 				'tabindex'   => ( false !== $profile_url ) ? '' : 0,
 			),
