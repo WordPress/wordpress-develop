@@ -153,7 +153,6 @@ jobs:
   upgrade-tests-input-version:
     name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || '6.1.4' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
-    needs: [ 'generate-matrix-for-input-version' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     needs: [ 'generate-exclusions', 'generate-matrix-for-input-version' ]
     permissions:
