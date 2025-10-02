@@ -63,8 +63,8 @@ permissions: {}
 jobs:
   generate-exclusions:
     name: Generate test exclusions
-    runs-on: 'ubuntu-24.04'
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    runs-on: 'ubuntu-22.04'
+    if: ${{ true || github.repository == 'WordPress/wordpress-develop' }}
     timeout-minutes: 5
     outputs:
       matrix_exclusions: ${{ steps.set-exclusions.outputs.matrix_exclusions }}
@@ -74,7 +74,7 @@ jobs:
         id: set-exclusions
         shell: bash
         env:
-          NEW_VERSION: ${{ inputs.new-version && inputs.new-version || '6.0.0' }}
+          NEW_VERSION: ${{ inputs.new-version && inputs.new-version || '5.5.10' }}
         run: |
           # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
           # MySQL 9.0+ will also not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
