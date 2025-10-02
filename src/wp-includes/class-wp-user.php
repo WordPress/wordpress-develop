@@ -64,7 +64,7 @@ class WP_User {
 	 *
 	 * @since 2.0.0
 	 * @var array<string, bool>|null Array of key/value pairs where keys represent a capability name
-	 *                          and boolean values represent whether the user has that capability.
+	 *                               and boolean values represent whether the user has that capability.
 	 */
 	protected $caps = null;
 
