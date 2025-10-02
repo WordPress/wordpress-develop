@@ -155,6 +155,7 @@ jobs:
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     needs: [ 'generate-matrix-for-input-version' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    needs: [ 'generate-exclusions', 'generate-matrix-for-input-version' ]
     permissions:
       contents: read
     strategy:
