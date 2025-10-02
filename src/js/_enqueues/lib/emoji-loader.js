@@ -31,8 +31,8 @@ window._wpemojiSettings = settings;
  * @property {?boolean} emoji
  */
 
-var sessionStorageKey = 'wpEmojiSettingsSupports';
-var tests = [ 'flag', 'emoji' ];
+const sessionStorageKey = 'wpEmojiSettingsSupports';
+const tests = [ 'flag', 'emoji' ];
 
 /**
  * Checks whether the browser supports offloading to a Worker.
@@ -72,7 +72,7 @@ function supportsWorkerOffloading() {
 function getSessionSupportTests() {
 	try {
 		/** @type {SessionSupportTests} */
-		var item = JSON.parse(
+		const item = JSON.parse(
 			sessionStorage.getItem( sessionStorageKey )
 		);
 		if (
@@ -99,7 +99,7 @@ function getSessionSupportTests() {
 function setSessionSupportTests( supportTests ) {
 	try {
 		/** @type {SessionSupportTests} */
-		var item = {
+		const item = {
 			supportTests: supportTests,
 			timestamp: new Date().valueOf()
 		};
@@ -136,7 +136,7 @@ function emojiSetsRenderIdentically( context, set1, set2 ) {
 	// Cleanup from previous test.
 	context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 	context.fillText( set1, 0, 0 );
-	var rendered1 = new Uint32Array(
+	const rendered1 = new Uint32Array(
 		context.getImageData(
 			0,
 			0,
@@ -148,7 +148,7 @@ function emojiSetsRenderIdentically( context, set1, set2 ) {
 	// Cleanup from previous test.
 	context.clearRect( 0, 0, context.canvas.width, context.canvas.height );
 	context.fillText( set2, 0, 0 );
-	var rendered2 = new Uint32Array(
+	const rendered2 = new Uint32Array(
 		context.getImageData(
 			0,
 			0,
@@ -187,8 +187,8 @@ function emojiRendersEmptyCenterPoint( context, emoji ) {
 	context.fillText( emoji, 0, 0 );
 
 	// Test if the center point (16, 16) is empty (0,0,0,0).
-	var centerPoint = context.getImageData(16, 16, 1, 1);
-	for ( var i = 0; i < centerPoint.data.length; i++ ) {
+	const centerPoint = context.getImageData(16, 16, 1, 1);
+	for ( let i = 0; i < centerPoint.data.length; i++ ) {
 		if ( centerPoint.data[ i ] !== 0 ) {
 			// Stop checking the moment it's known not to be empty.
 			return false;
@@ -216,7 +216,7 @@ function emojiRendersEmptyCenterPoint( context, emoji ) {
  * @return {boolean} True if the browser can render emoji, false if it cannot.
  */
 function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint ) {
-	var isIdentical;
+	let isIdentical;
 
 	switch ( type ) {
 		case 'flag':
@@ -284,7 +284,7 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
 			 * or switch to using the emojiSetsRenderIdentically function and testing with a zero-width
 			 * joiner vs a zero-width space.
 			 */
-			var notSupported = emojiRendersEmptyCenterPoint( context, '\uD83E\uDEDF' );
+			const notSupported = emojiRendersEmptyCenterPoint( context, '\uD83E\uDEDF' );
 			return ! notSupported;
 	}
 
@@ -309,7 +309,7 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
  * @return {SupportTests} Support tests.
  */
 function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint ) {
-	var canvas;
+	let canvas;
 	if (
 		typeof WorkerGlobalScope !== 'undefined' &&
 		self instanceof WorkerGlobalScope
@@ -319,7 +319,7 @@ function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentica
 		canvas = document.createElement( 'canvas' );
 	}
 
-	var context = canvas.getContext( '2d', { willReadFrequently: true } );
+	const context = canvas.getContext( '2d', { willReadFrequently: true } );
 
 	/*
 	 * Chrome on OS X added native emoji rendering in M41. Unfortunately,
@@ -329,7 +329,7 @@ function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentica
 	context.textBaseline = 'top';
 	context.font = '600 32px Arial';
 
-	var supports = {};
+	const supports = {};
 	tests.forEach( function ( test ) {
 		supports[ test ] = browserSupportsEmoji( context, test, emojiSetsRenderIdentically, emojiRendersEmptyCenterPoint );
 	} );
@@ -348,7 +348,7 @@ function testEmojiSupports( tests, browserSupportsEmoji, emojiSetsRenderIdentica
  * @return {void}
  */
 function addScript( src ) {
-	var script = document.createElement( 'script' );
+	const script = document.createElement( 'script' );
 	script.src = src;
 	script.defer = true;
 	document.head.appendChild( script );
@@ -360,7 +360,7 @@ settings.supports = {
 };
 
 // Create a promise for DOMContentLoaded since the worker logic may finish after the event has fired.
-var domReadyPromise = new Promise( function ( resolve ) {
+const domReadyPromise = new Promise( function ( resolve ) {
 	document.addEventListener( 'DOMContentLoaded', resolve, {
 		once: true
 	} );
@@ -368,7 +368,7 @@ var domReadyPromise = new Promise( function ( resolve ) {
 
 // Obtain the emoji support from the browser, asynchronously when possible.
 new Promise( function ( resolve ) {
-	var supportTests = getSessionSupportTests();
+	let supportTests = getSessionSupportTests();
 	if ( supportTests ) {
 		resolve( supportTests );
 		return;
@@ -377,7 +377,7 @@ new Promise( function ( resolve ) {
 	if ( supportsWorkerOffloading() ) {
 		try {
 			// Note that the functions are being passed as arguments due to minification.
-			var workerScript =
+			const workerScript =
 				'postMessage(' +
 				testEmojiSupports.toString() +
 				'(' +
@@ -388,10 +388,10 @@ new Promise( function ( resolve ) {
 					emojiRendersEmptyCenterPoint.toString()
 				].join( ',' ) +
 				'));';
-			var blob = new Blob( [ workerScript ], {
+			const blob = new Blob( [ workerScript ], {
 				type: 'text/javascript'
 			} );
-			var worker = new Worker( URL.createObjectURL( blob ), { name: 'wpTestEmojiSupports' } );
+			const worker = new Worker( URL.createObjectURL( blob ), { name: 'wpTestEmojiSupports' } );
 			worker.onmessage = function ( event ) {
 				supportTests = event.data;
 				setSessionSupportTests( supportTests );
@@ -412,7 +412,7 @@ new Promise( function ( resolve ) {
 		 * Tests the browser support for flag emojis and other emojis, and adjusts the
 		 * support settings accordingly.
 		 */
-		for ( var test in supportTests ) {
+		for ( const test in supportTests ) {
 			settings.supports[ test ] = supportTests[ test ];
 
 			settings.supports.everything =
@@ -443,7 +443,7 @@ new Promise( function ( resolve ) {
 		if ( ! settings.supports.everything ) {
 			settings.readyCallback();
 
-			var src = settings.source || {};
+			const src = settings.source || {};
 
 			if ( src.concatemoji ) {
 				addScript( src.concatemoji );
