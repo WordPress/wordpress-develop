@@ -95,7 +95,7 @@ jobs:
 
           # Determine if this is a major release.
           MAJOR_RELEASE=false
-          if [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[1-9][0-9]*$ ]]; then
+          if [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.0$ ]]; then
             MAJOR_RELEASE=true
           fi
 
