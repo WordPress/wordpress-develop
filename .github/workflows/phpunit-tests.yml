@@ -218,7 +218,7 @@ jobs:
           - db-type: 'mariadb'
             db-version: '9.4'
           - db-type: 'mysql'
-            db-vetsion: '12.0.2'
+            db-version: '12.0.2'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
