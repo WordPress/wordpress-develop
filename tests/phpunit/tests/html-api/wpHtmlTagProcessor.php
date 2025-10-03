@@ -841,7 +841,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @param string $attribute_value A value with potential XSS exploit.
 	 */
-	public function test_set_attribute_prevents_xss( $attribute_value ) {
+	public function test_set_attribute_prevents_xss( $attribute_value, $escaped_attribute_value = null ) {
 		$processor = new WP_HTML_Tag_Processor( '<div></div>' );
 		$processor->next_tag();
 		$processor->set_attribute( 'test', $attribute_value );
@@ -861,7 +861,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		preg_match( '~^<div test=(.*)></div>$~', $processor->get_updated_html(), $match );
 		list( , $actual_value ) = $match;
 
-		$this->assertSame( '"' . esc_attr( $attribute_value ) . '"', $actual_value, 'Entities were not properly escaped in the attribute value' );
+		$this->assertSame( '"' . $escaped_attribute_value . '"', $actual_value, 'Entities were not properly escaped in the attribute value' );
 	}
 
 	/**
@@ -871,15 +871,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_set_attribute_prevents_xss() {
 		return array(
-			array( '"' ),
-			array( '&quot;' ),
-			array( '&' ),
-			array( '&amp;' ),
-			array( '&euro;' ),
-			array( "'" ),
-			array( '<>' ),
-			array( '&quot";' ),
-			array( '" onclick="alert(\'1\');"><span onclick=""></span><script>alert("1")</script>' ),
+			array( '"', '&quot;' ),
+			array( '&quot;', '&amp;quot;' ),
+			array( '&', '&amp;' ),
+			array( '&amp;', '&amp;amp;' ),
+			array( '&euro;', '&amp;euro;' ),
+			array( "'", '&apos;' ),
+			array( '<>', '&lt;&gt;' ),
+			array( '&quot";', '&amp;quot&quot;;' ),
+			array(
+				'" onclick="alert(\'1\');"><span onclick=""></span><script>alert("1")</script>',
+				'&quot; onclick=&quot;alert(&apos;1&apos;);&quot;&gt;&lt;span onclick=&quot;&quot;&gt;&lt;/span&gt;&lt;script&gt;alert(&quot;1&quot;)&lt;/script&gt;',
+			),
 		);
 	}
 
