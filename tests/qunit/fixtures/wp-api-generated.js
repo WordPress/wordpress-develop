@@ -2964,10 +2964,7 @@ mockedApiResponse.Schema = {
                         "media_type": {
                             "default": null,
                             "description": "Limit result set to attachments of a particular media type or media types.",
-                            "type": [
-                                "string",
-                                "array"
-                            ],
+                            "type": "array",
                             "items": {
                                 "type": "string",
                                 "enum": [
@@ -2983,10 +2980,7 @@ mockedApiResponse.Schema = {
                         "mime_type": {
                             "default": null,
                             "description": "Limit result set to attachments of a particular MIME type or MIME types.",
-                            "type": [
-                                "string",
-                                "array"
-                            ],
+                            "type": "array",
                             "items": {
                                 "type": "string"
                             },

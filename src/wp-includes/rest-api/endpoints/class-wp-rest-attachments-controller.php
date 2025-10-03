@@ -86,24 +86,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$all_mime_types = array();
 		$media_types    = $this->get_media_types();
 
-		if ( ! empty( $request['media_type'] ) ) {
-			$media_type_input = is_array( $request['media_type'] )
-				? $request['media_type']
-				: explode( ',', $request['media_type'] );
-
-			foreach ( array_map( 'trim', $media_type_input ) as $type ) {
+		if ( ! empty( $request['media_type'] ) && is_array( $request['media_type'] ) ) {
+			foreach ( $request['media_type'] as $type ) {
 				if ( isset( $media_types[ $type ] ) ) {
 					$all_mime_types = array_merge( $all_mime_types, $media_types[ $type ] );
 				}
 			}
 		}
 
-		if ( ! empty( $request['mime_type'] ) ) {
-			$mime_type_input = is_array( $request['mime_type'] )
-				? $request['mime_type']
-				: explode( ',', $request['mime_type'] );
-
-			foreach ( array_map( 'trim', $mime_type_input ) as $mime_type ) {
+		if ( ! empty( $request['mime_type'] ) && is_array( $request['mime_type'] ) ) {
+			foreach ( $request['mime_type'] as $mime_type ) {
 				$parts = explode( '/', $mime_type );
 				if ( isset( $media_types[ $parts[0] ] ) && in_array( $mime_type, $media_types[ $parts[0] ], true ) ) {
 					$all_mime_types[] = $mime_type;
@@ -1375,7 +1367,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$params['media_type'] = array(
 			'default'     => null,
 			'description' => __( 'Limit result set to attachments of a particular media type or media types.' ),
-			'type'        => array( 'string', 'array' ),
+			'type'        => 'array',
 			'items'       => array(
 				'type' => 'string',
 				'enum' => $media_types,
@@ -1385,9 +1377,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$params['mime_type'] = array(
 			'default'     => null,
 			'description' => __( 'Limit result set to attachments of a particular MIME type or MIME types.' ),
-			'type'        => array( 'string', 'array' ),
+			'type'        => 'array',
 			'items'       => array(
 				'type' => 'string',
+				'enum' => get_allowed_mime_types(),
 			),
 		);
 

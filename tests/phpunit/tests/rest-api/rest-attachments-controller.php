@@ -522,11 +522,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// Test invalid media type mixed with valid ones.
 		$request->set_param( 'media_type', 'image,invalid,video' );
 		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$this->assertCount( 2, $data, 'Response count for multiple media types with comma-separated string is not 2' );
-		$ids = wp_list_pluck( $data, 'id' );
-		$this->assertContains( $image_id, $ids, 'Image ID not found in response for multiple media types with comma-separated string and invalid media type' );
-		$this->assertContains( $video_id, $ids, 'Video ID not found in response for multiple media types with comma-separated string and invalid media type' );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	/**
@@ -559,14 +555,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			)
 		);
 
-		$rtf_id = self::factory()->attachment->create_object(
-			self::$test_rtf_file,
-			0,
-			array(
-				'post_mime_type' => 'application/rtf',
-			)
-		);
-
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 
 		// Test single MIME type
@@ -595,18 +583,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertContains( $jpeg_id, $ids, 'JPEG ID not found in response for multiple MIME types with array format' );
 		$this->assertContains( $mp4_id, $ids, 'MP4 ID not found in response for multiple MIME types with array format' );
 
-		// Test multiple media types with multiple MIME types.
-		$request->set_param( 'media_type', 'image,video' );
-		$request->set_param( 'mime_type', 'application/rtf' );
+		// Test invalid mime type mixed with valid ones.
+		$request->set_param( 'mime_type', array( 'video/mp4', 'cat/gif' ) );
 		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-
-		$this->assertCount( 4, $data, 'Response count for multiple media types with multiple MIME types is not 4' );
-		$ids = wp_list_pluck( $data, 'id' );
-		$this->assertContains( $jpeg_id, $ids, 'JPEG ID not found in response for multiple media types with multiple MIME types' );
-		$this->assertContains( $png_id, $ids, 'PNG ID not found in response for multiple media types with multiple MIME types' );
-		$this->assertContains( $mp4_id, $ids, 'MP4 ID not found in response for multiple media types with multiple MIME types' );
-		$this->assertContains( $rtf_id, $ids, 'RTF ID not found in response for multiple media types with multiple MIME types' );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	/**
@@ -646,6 +626,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			0,
 			array(
 				'post_mime_type' => 'video/mp4',
+			)
+		);
+
+		$rtf_id = self::factory()->attachment->create_object(
+			self::$test_rtf_file,
+			0,
+			array(
+				'post_mime_type' => 'application/rtf',
 			)
 		);
 
@@ -691,16 +679,17 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// Test combination of multiple media types and multiple mime type parameters.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'media_type', 'audio,video' );
-		$request->set_param( 'mime_type', array( 'image/jpeg', 'image/png' ) );
+		$request->set_param( 'mime_type', array( 'image/jpeg', 'image/png', 'application/rtf' ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
 
-		$this->assertCount( 4, $data, 'Response count for combination of multiple media type and multiple mime type parameters is not 3' );
+		$this->assertCount( 5, $data, 'Response count for combination of multiple media type and multiple mime type parameters is not 3' );
 		$this->assertContains( $audio_id, $ids, 'Audio ID not found in response' );
 		$this->assertContains( $jpeg_id, $ids, 'JPEG ID not found in response' );
 		$this->assertContains( $video_id, $ids, 'Video ID not found in response' );
 		$this->assertContains( $png_id, $ids, 'PNG ID not found in response' );
+		$this->assertContains( $rtf_id, $ids, 'RTF ID not found in response' );
 	}
 
 	public function test_get_items_mime_type() {
