@@ -2394,4 +2394,255 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * Test that wp_kses_hair() parses attributes correctly.
+	 *
+	 * @ticket 63724
+	 *
+	 * @dataProvider data_test_wp_kses_hair
+	 *
+	 * @param string $attribute Attribute to test.
+	 * @param array  $expected  Expected result.
+	 */
+	public function test_wp_kses_hair( $attribute, $expected ) {
+		$this->assertSame( $expected, wp_kses_hair( $attribute, wp_allowed_protocols() ) );
+	}
+
+	/**
+	 * Data provider for data_test_wp_kses_hair.
+	 *
+	 * @return array
+	 */
+	public function data_test_wp_kses_hair() {
+		return array(
+			array(
+				'',
+				array(),
+			),
+			array(
+				'     ',
+				array(),
+			),
+			array(
+				'title="foo"',
+				array(
+					'title' => array(
+						'name'  => 'title',
+						'value' => 'foo',
+						'whole' => 'title="foo"',
+						'vless' => 'n',
+					),
+				),
+			),
+			array(
+				'title="Numbers: 10 < 20 and 30 > 20"',
+				array(
+					'title' => array(
+						'name'  => 'title',
+						'value' => 'Numbers: 10 &lt; 20 and 30 &gt; 20',
+						'whole' => 'title="Numbers: 10 &lt; 20 and 30 &gt; 20"',
+						'vless' => 'n',
+					),
+				),
+			),
+			array(
+				'min=123',
+				array(
+					'min' => array(
+						'name'  => 'min',
+						'value' => '123',
+						'whole' => 'min="123"',
+						'vless' => 'n',
+					),
+				),
+			),
+			array(
+				'disabled',
+				array(
+					'disabled' => array(
+						'name'  => 'disabled',
+						'value' => '',
+						'whole' => 'disabled',
+						'vless' => 'y',
+					),
+				),
+			),
+			array(
+				'onclick=alert(1)',
+				array(
+					'onclick' => array(
+						'name'  => 'onclick',
+						'value' => 'alert(1)',
+						'whole' => 'onclick="alert(1)"',
+						'vless' => 'n',
+					),
+				),
+			),
+			array(
+				'title="hello & hi" href="#" id="my_id" ',
+				array(
+					'title' => array(
+						'name'  => 'title',
+						'value' => 'hello &amp; hi',
+						'whole' => 'title="hello &amp; hi"',
+						'vless' => 'n',
+					),
+					'href'  => array(
+						'name'  => 'href',
+						'value' => '#',
+						'whole' => 'href="#"',
+						'vless' => 'n',
+					),
+					'id'    => array(
+						'name'  => 'id',
+						'value' => 'my_id',
+						'whole' => 'id="my_id"',
+						'vless' => 'n',
+					),
+				),
+			),
+			array(
+				'title="hello"disabled href="mailto:info@test.com" id=\'my_id\'',
+				array(
+					'title'    => array(
+						'name'  => 'title',
+						'value' => 'hello',
+						'whole' => 'title="hello"',
+						'vless' => 'n',
+					),
+					'disabled' => array(
+						'name'  => 'disabled',
+						'value' => '',
+						'whole' => 'disabled',
+						'vless' => 'y',
+					),
+					'href'     => array(
+						'name'  => 'href',
+						'value' => 'mailto:info@test.com',
+						'whole' => 'href="mailto:info@test.com"',
+						'vless' => 'n',
+					),
+					'id'       => array(
+						'name'  => 'id',
+						'value' => 'my_id',
+						'whole' => 'id="my_id"',
+						'vless' => 'n',
+					),
+				),
+			),
+			array(
+				'abcd=abcd"abcd"',
+				array(
+					'abcd' => array(
+						'name'  => 'abcd',
+						'value' => 'abcd&quot;abcd&quot;',
+						'whole' => 'abcd="abcd&quot;abcd&quot;"',
+						'vless' => 'n',
+					),
+				),
+			),
+			array(
+				"array[1]='z'z'z'z",
+				array(
+					'array[1]' => array(
+						'name'  => 'array[1]',
+						'value' => 'z',
+						'whole' => 'array[1]="z"',
+						'vless' => 'n',
+					),
+					"z'z'z"    => array(
+						'name'  => "z'z'z",
+						'value' => '',
+						'whole' => "z'z'z",
+						'vless' => 'y',
+					),
+				),
+			),
+			// Using a digit in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op3-timer-seconds="0"',
+				array(
+					'href'                   => array(
+						'name'  => 'href',
+						'value' => 'https://example.com/[shortcode attr=&apos;value&apos;]',
+						'whole' => 'href="https://example.com/[shortcode attr=&apos;value&apos;]"',
+						'vless' => 'n',
+					),
+					'data-op3-timer-seconds' => array(
+						'name'  => 'data-op3-timer-seconds',
+						'value' => '0',
+						'whole' => 'data-op3-timer-seconds="0"',
+						'vless' => 'n',
+					),
+				),
+			),
+			// Using an underscore in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op_timer-seconds="0"',
+				array(
+					'href'                  => array(
+						'name'  => 'href',
+						'value' => 'https://example.com/[shortcode attr=&apos;value&apos;]',
+						'whole' => 'href="https://example.com/[shortcode attr=&apos;value&apos;]"',
+						'vless' => 'n',
+					),
+					'data-op_timer-seconds' => array(
+						'name'  => 'data-op_timer-seconds',
+						'value' => '0',
+						'whole' => 'data-op_timer-seconds="0"',
+						'vless' => 'n',
+					),
+				),
+			),
+			// Using a period in attribute name should work.
+			array(
+				'href="https://example.com/[shortcode attr=\'value\']" data-op.timer-seconds="0"',
+				array(
+					'href'                  => array(
+						'name'  => 'href',
+						'value' => 'https://example.com/[shortcode attr=&apos;value&apos;]',
+						'whole' => 'href="https://example.com/[shortcode attr=&apos;value&apos;]"',
+						'vless' => 'n',
+					),
+					'data-op.timer-seconds' => array(
+						'name'  => 'data-op.timer-seconds',
+						'value' => '0',
+						'whole' => 'data-op.timer-seconds="0"',
+						'vless' => 'n',
+					),
+				),
+			),
+			// Using a digit at the beginning of attribute name should work.
+			array(
+				'href="http&#58;//example.org/" 3data-op-timer-seconds="0"',
+				array(
+					'href'                   => array(
+						'name'  => 'href',
+						'value' => 'http://example.org/',
+						'whole' => 'href="http://example.org/"',
+						'vless' => 'n',
+					),
+					'3data-op-timer-seconds' => array(
+						'name'  => '3data-op-timer-seconds',
+						'value' => '0',
+						'whole' => '3data-op-timer-seconds="0"',
+						'vless' => 'n',
+					),
+				),
+			),
+			// Use invalid protocol in href attribute.
+			array(
+				'href="javascript:alert(1)"',
+				array(
+					'href' => array(
+						'name'  => 'href',
+						'value' => 'alert(1)',
+						'whole' => 'href="alert(1)"',
+						'vless' => 'n',
+					),
+				),
+			),
+		);
+	}
 }
