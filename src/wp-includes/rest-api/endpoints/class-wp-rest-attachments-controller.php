@@ -114,7 +114,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Map to proper WP_Query orderby param - this needs to happen AFTER parent class
-		if ( isset( $query_args['orderby'] ) && isset( $request['orderby'] ) ) {
+		if ( isset( $query_args['orderby'], $request['orderby'] ) ) {
 			$orderby_mappings = array(
 				'mime_type' => 'post_mime_type',
 			);
