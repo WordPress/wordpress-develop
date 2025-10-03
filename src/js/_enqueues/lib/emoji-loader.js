@@ -359,15 +359,6 @@ settings.supports = {
 	everythingExceptFlag: true
 };
 
-// Since this is part of an async module, the emoji test worker script can start running before the document has fully
-// loaded and yet it may finish executing after the DOMContentLoaded event. So this promise is created here to ensure
-// the readyCallback is always called at or after DCL.
-const domReadyPromise = new Promise( ( resolve ) => {
-	document.addEventListener( 'DOMContentLoaded', resolve, {
-		once: true
-	} );
-} );
-
 // Obtain the emoji support from the browser, asynchronously when possible.
 new Promise( ( resolve ) => {
 	let supportTests = getSessionSupportTests();
@@ -436,9 +427,6 @@ new Promise( ( resolve ) => {
 		settings.readyCallback = () => {
 			settings.DOMReady = true;
 		};
-	} )
-	.then( () => {
-		return domReadyPromise;
 	} )
 	.then( () => {
 		// When the browser can not render everything we need to load a polyfill.

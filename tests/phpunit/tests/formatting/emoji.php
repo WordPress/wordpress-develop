@@ -42,7 +42,6 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_tag() );
 		$this->assertSame( 'SCRIPT', $processor->get_tag() );
 		$this->assertSame( 'module', $processor->get_attribute( 'type' ) );
-		$this->assertTrue( (bool) $processor->get_attribute( 'async' ) );
 		$this->assertNull( $processor->get_attribute( 'src' ) );
 		$this->assertFalse( $processor->next_tag() );
 	}

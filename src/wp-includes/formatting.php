@@ -5990,8 +5990,7 @@ function _print_emoji_detection_script() {
 		rtrim( file_get_contents( ABSPATH . WPINC . $emoji_loader_script_path ) ) . "\n" .
 		'//# sourceURL=' . includes_url( $emoji_loader_script_path ),
 		array(
-			'type'  => 'module',
-			'async' => true,
+			'type' => 'module',
 		)
 	);
 }
