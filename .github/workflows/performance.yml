@@ -101,7 +101,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        memcached: [ false ]
+        memcached: [ false, true ]
         multisite: [ true, false ]
         subject: ${{ fromJson( needs.determine-matrix.outputs.subjects ) }}
     with:
@@ -119,7 +119,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        memcached: [ false ]
+        memcached: [ false, true ]
         multisite: [ true, false ]
         # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
         label: [ Compare ]

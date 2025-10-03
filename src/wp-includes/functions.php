@@ -2209,12 +2209,14 @@ function wp_normalize_path( $path ) {
 /**
  * Determines a writable directory for temporary files.
  *
- * Function's preference is the return value of sys_get_temp_dir(),
- * followed by your PHP temporary upload directory, followed by WP_CONTENT_DIR,
- * before finally defaulting to /tmp/
+ * Function's preference is the return value of `sys_get_temp_dir()`,
+ * followed by the `upload_tmp_dir` value from `php.ini`, followed by `WP_CONTENT_DIR`,
+ * before finally defaulting to `/tmp/`.
+ *
+ * Note that `sys_get_temp_dir()` honors the `TMPDIR` environment variable.
  *
  * In the event that this function does not find a writable location,
- * It may be overridden by the WP_TEMP_DIR constant in your wp-config.php file.
+ * it may be overridden by the `WP_TEMP_DIR` constant in your `wp-config.php` file.
  *
  * @since 2.5.0
  *
@@ -3172,7 +3174,10 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	if ( $type && ! $real_mime && extension_loaded( 'fileinfo' ) ) {
 		$finfo     = finfo_open( FILEINFO_MIME_TYPE );
 		$real_mime = finfo_file( $finfo, $file );
-		finfo_close( $finfo );
+
+		if ( PHP_VERSION_ID < 80100 ) { // finfo_close() has no effect as of PHP 8.1.
+			finfo_close( $finfo );
+		}
 
 		$google_docs_types = array(
 			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -3401,7 +3406,10 @@ function wp_get_image_mime( $file ) {
 				if ( extension_loaded( 'fileinfo' ) ) {
 					$fileinfo  = finfo_open( FILEINFO_MIME_TYPE );
 					$mime_type = finfo_file( $fileinfo, $file );
-					finfo_close( $fileinfo );
+
+					if ( PHP_VERSION_ID < 80100 ) { // finfo_close() has no effect as of PHP 8.1.
+						finfo_close( $fileinfo );
+					}
 
 					if ( wp_is_heic_image_mime_type( $mime_type ) ) {
 						$mime = $mime_type;
@@ -5093,7 +5101,7 @@ function _wp_array_get( $input_array, $path, $default_value = null ) {
 			 * We check with `isset()` first, as it is a lot faster
 			 * than `array_key_exists()`.
 			 */
-			if ( isset( $input_array[ $path_element ] ) ) {
+			if ( isset( $path_element, $input_array[ $path_element ] ) ) {
 				$input_array = $input_array[ $path_element ];
 				continue;
 			}
@@ -5102,7 +5110,7 @@ function _wp_array_get( $input_array, $path, $default_value = null ) {
 			 * If `isset()` returns false, we check with `array_key_exists()`,
 			 * which also checks for `null` values.
 			 */
-			if ( array_key_exists( $path_element, $input_array ) ) {
+			if ( isset( $path_element ) && array_key_exists( $path_element, $input_array ) ) {
 				$input_array = $input_array[ $path_element ];
 				continue;
 			}
