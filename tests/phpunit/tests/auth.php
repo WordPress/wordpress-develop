@@ -183,23 +183,20 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * wp_hash_password function
 	 *
 	 * @ticket 24973
+	 * @dataProvider data_passwords_with_whitespace
 	 */
-	public function test_wp_hash_password_trimming() {
+	public function test_wp_hash_password_trimming( $password_with_whitespace, $expected_password ) {
+		$this->assertTrue( wp_check_password( $expected_password, wp_hash_password( $password_with_whitespace ) ) );
+	}
 
-		$password = ' pass with leading whitespace';
-		$this->assertTrue( wp_check_password( 'pass with leading whitespace', wp_hash_password( $password ) ) );
-
-		$password = 'pass with trailing whitespace ';
-		$this->assertTrue( wp_check_password( 'pass with trailing whitespace', wp_hash_password( $password ) ) );
-
-		$password = ' pass with whitespace ';
-		$this->assertTrue( wp_check_password( 'pass with whitespace', wp_hash_password( $password ) ) );
-
-		$password = "pass with new line \n";
-		$this->assertTrue( wp_check_password( 'pass with new line', wp_hash_password( $password ) ) );
-
-		$password = "pass with vertical tab o_O\x0B";
-		$this->assertTrue( wp_check_password( 'pass with vertical tab o_O', wp_hash_password( $password ) ) );
+	public function data_passwords_with_whitespace() {
+		return array(
+			'leading whitespace'  => array( ' pass with leading whitespace', 'pass with leading whitespace' ),
+			'trailing whitespace' => array( 'pass with trailing whitespace ', 'pass with trailing whitespace' ),
+			'both whitespace'     => array( ' pass with whitespace ', 'pass with whitespace' ),
+			'new line'            => array( "pass with new line \n", 'pass with new line' ),
+			'vertical tab'        => array( "pass with vertical tab o_O\x0B", 'pass with vertical tab o_O' ),
+		);
 	}
 
 	/**
