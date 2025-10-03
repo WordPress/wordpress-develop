@@ -14,7 +14,7 @@ require_once dirname( __DIR__ ) . '/admin.php';
 
 // Do not remove this check. It is required by individual network admin pages.
 if ( ! is_multisite() ) {
-	wp_die( __( 'Multisite support is not enabled.' ), 409 );
+	wp_die( __( 'Multisite support is not enabled.' ), 501 );
 }
 
 $redirect_network_admin_request = ( 0 !== strcasecmp( $current_blog->domain, $current_site->domain ) || 0 !== strcasecmp( $current_blog->path, $current_site->path ) );
