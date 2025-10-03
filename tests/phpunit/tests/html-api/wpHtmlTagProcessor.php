@@ -906,6 +906,21 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that attribute values that appear to contain HTML character references are correctly
+	 * encoded and preserve the original value.
+	 *
+	 * @ticket 64054
+	 */
+	public function test_set_attribute_encodes_html_character_references() {
+		$original  = 'HTML character references: &lt; &gt; &amp;';
+		$processor = new WP_HTML_Tag_Processor( '<span>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-attr', $original );
+		$this->assertSame( $original, $processor->get_attribute( 'data-attr' ) );
+		$this->assertEqualHTML( '<span data-attr="HTML character references: &amp;lt; &amp;gt; &amp;amp;">', $processor->get_updated_html() );
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::get_attribute
