@@ -1038,11 +1038,13 @@ endif;
 
 if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 	/**
-	 * Sets the authentication cookies based on user ID.
+	 * Sets the authentication cookies for a given user ID.
 	 *
-	 * The $remember parameter increases the time that the cookie will be kept. The
-	 * default the cookie is kept without remembering is two days. When $remember is
-	 * set, the cookies will be kept for 14 days or two weeks.
+	 * The `$remember` parameter controls cookie persistence:
+	 * - If true, the cookie is persistent (default 14 days, filterable via `auth_cookie_expiration`).
+	 * - If false, the cookie is a browser session cookie (expires when the browser closes).
+	 *   Internally, `auth_cookie_expiration` is still applied (default 2 days),
+	 *   but the HTTP cookie `$expire` is set to 0, so it won’t persist beyond the session.
 	 *
 	 * @since 2.5.0
 	 * @since 4.3.0 Added the `$token` parameter.
