@@ -71,6 +71,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 4.7.0
 	 * @since 6.9.0 Extends the `media_type` and `mime_type` request arguments to support array values.
+	 * @since 6.9.0 Extends the `orderby` request argument to support `mime_type`.
 	 *
 	 * @param array           $prepared_args Optional. Array of prepared arguments. Default empty array.
 	 * @param WP_REST_Request $request       Optional. Request to prepare items for.
@@ -110,6 +111,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Filter query clauses to include filenames.
 		if ( isset( $query_args['s'] ) ) {
 			add_filter( 'wp_allow_query_attachment_by_filename', '__return_true' );
+		}
+
+		// Map to proper WP_Query orderby param - this needs to happen AFTER parent class
+		if ( isset( $query_args['orderby'] ) && isset( $request['orderby'] ) ) {
+			$orderby_mappings = array(
+				'mime_type' => 'post_mime_type',
+			);
+
+			if ( isset( $orderby_mappings[ $request['orderby'] ] ) ) {
+				$query_args['orderby'] = $orderby_mappings[ $request['orderby'] ];
+			}
 		}
 
 		return $query_args;

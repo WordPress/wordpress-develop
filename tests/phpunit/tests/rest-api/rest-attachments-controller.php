@@ -3122,22 +3122,44 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			)
 		);
 
+		$avif_id = self::factory()->attachment->create_object(
+			self::$test_avif_file,
+			0,
+			array(
+				'post_mime_type' => 'video/avif',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$svg_id = self::factory()->attachment->create_object(
+			self::$test_svg_file,
+			0,
+			array(
+				'post_mime_type' => 'image/svg+xml',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( '_fields', 'id,mime_type' );
 
 		// Check ordering. Default ORDER is DESC.
 		$request->set_param( 'orderby', 'mime_type' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertCount( 2, $data, 'Response count for orderby DESC mime_type is not 2' );
-		$this->assertSame( $png_id, $data[0]['id'], 'PNG ID not found in response for orderby DESC mime_type' );
-		$this->assertSame( $jpeg_id, $data[1]['id'], 'JPEG ID not found in response for orderby DESC mime_type' );
+		$this->assertCount( 4, $data, 'Response count for orderby DESC mime_type is not 4' );
+		// Check that ordering is working by verifying the mime types are in order
+		$mime_types    = array_column( $data, 'mime_type' );
+		$expected_desc = array( 'video/avif', 'image/svg+xml', 'image/png', 'image/jpeg' );
+		$this->assertSame( $expected_desc, $mime_types, 'MIME types not in expected DESC order' );
 
 		// ASC order.
 		$request->set_param( 'order', 'asc' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertCount( 2, $data, 'Response count for orderby ASC mime_type is not 2' );
-		$this->assertSame( $jpeg_id, $data[0]['id'], 'JPEG ID not found in response for orderby ASC mime_type' );
-		$this->assertSame( $png_id, $data[1]['id'], 'PNG ID not found in response for orderby ASC mime_type' );
+
+		$mime_types   = array_column( $data, 'mime_type' );
+		$expected_asc = array( 'image/jpeg', 'image/png', 'image/svg+xml', 'video/avif' );
+		$this->assertSame( $expected_asc, $mime_types, 'MIME types not in expected ASC order' );
 	}
 }
