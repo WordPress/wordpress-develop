@@ -1355,6 +1355,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 4.7.0
 	 * @since 6.9.0 Extends the `media_type` and `mime_type` request arguments to support array values.
+	 * @since 6.9.0 Extends the `orderby` request argument to support `mime_type`.
 	 *
 	 * @return array Query parameters for the attachment collection as an array.
 	 */
@@ -1382,6 +1383,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'type' => 'string',
 			),
 		);
+
+		$params['orderby']['enum'][] = 'mime_type';
 
 		return $params;
 	}

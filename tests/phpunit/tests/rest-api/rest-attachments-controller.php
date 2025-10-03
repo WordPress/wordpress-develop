@@ -3097,4 +3097,47 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// The controller converts the integer values to booleans: 0 !== (int) 1 = true.
 		$this->assertSame( array( true, false ), WP_Image_Editor_Mock::$spy['flip'][0], 'Vertical flip of the image is not identical.' );
 	}
+
+	/**
+	 * Test that the `orderby` parameter works with the `mime_type` parameter.
+	 *
+	 * @ticket 64073
+	 */
+	public function test_get_items_orderby_mime_type() {
+		$jpeg_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$png_id = self::factory()->attachment->create_object(
+			self::$test_file2,
+			0,
+			array(
+				'post_mime_type' => 'image/png',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+
+		// Check ordering. Default ORDER is DESC.
+		$request->set_param( 'orderby', 'mime_type' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertCount( 2, $data, 'Response count for orderby DESC mime_type is not 2' );
+		$this->assertSame( $png_id, $data[0]['id'], 'PNG ID not found in response for orderby DESC mime_type' );
+		$this->assertSame( $jpeg_id, $data[1]['id'], 'JPEG ID not found in response for orderby DESC mime_type' );
+
+		// ASC order.
+		$request->set_param( 'order', 'asc' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertCount( 2, $data, 'Response count for orderby ASC mime_type is not 2' );
+		$this->assertSame( $jpeg_id, $data[0]['id'], 'JPEG ID not found in response for orderby ASC mime_type' );
+		$this->assertSame( $png_id, $data[1]['id'], 'PNG ID not found in response for orderby ASC mime_type' );
+	}
 }
