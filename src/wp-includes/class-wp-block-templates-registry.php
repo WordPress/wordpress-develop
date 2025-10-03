@@ -221,14 +221,15 @@ final class WP_Block_Templates_Registry {
 	 */
 	public function unregister( $template_name ) {
 		if ( ! $this->is_registered( $template_name ) ) {
+			/* translators: %s: Template name. */
+			$error_message = sprintf( __( 'Template "%s" is not registered.' ), $template_name );
+
 			_doing_it_wrong(
 				__METHOD__,
-				/* translators: %s: Template name. */
-				sprintf( __( 'Template "%s" is not registered.' ), $template_name ),
+				$error_message,
 				'6.7.0'
 			);
-			/* translators: %s: Template name. */
-			return new WP_Error( 'template_not_registered', __( 'Template "%s" is not registered.' ) );
+			return new WP_Error( 'template_not_registered', $error_message );
 		}
 
 		$unregistered_template = $this->registered_templates[ $template_name ];
