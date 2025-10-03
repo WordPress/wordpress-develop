@@ -132,23 +132,26 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23494
+	 * @dataProvider data_passwords_for_trimming
 	 */
-	public function test_password_trimming() {
-		$passwords_to_test = array(
-			'a password with no trailing or leading spaces',
-			'a password with trailing spaces ',
-			' a password with leading spaces',
-			' a password with trailing and leading spaces ',
+	public function test_password_trimming( $password_to_test ) {
+		wp_set_password( $password_to_test, $this->user->ID );
+		$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
+
+		$this->assertNotWPError( $authed_user );
+		$this->assertInstanceOf( 'WP_User', $authed_user );
+		$this->assertSame( $this->user->ID, $authed_user->ID );
+	}
+
+	public function data_passwords_for_trimming() {
+		return array(
+			'no spaces'                => array( 'a password with no trailing or leading spaces' ),
+			'trailing space'           => array( 'a password with trailing spaces ' ),
+			'leading space'            => array( ' a password with leading spaces' ),
+			'leading and trailing'     => array( ' a password with trailing and leading spaces ' ),
+			'multiple leading spaces'  => array( '    a password with multiple leading spaces' ),
+			'multiple trailing spaces' => array( 'a password with multiple trailing spaces    ' ),
 		);
-
-		foreach ( $passwords_to_test as $password_to_test ) {
-			wp_set_password( $password_to_test, $this->user->ID );
-			$authed_user = wp_authenticate( $this->user->user_login, $password_to_test );
-
-			$this->assertNotWPError( $authed_user );
-			$this->assertInstanceOf( 'WP_User', $authed_user );
-			$this->assertSame( $this->user->ID, $authed_user->ID );
-		}
 	}
 
 	/**
