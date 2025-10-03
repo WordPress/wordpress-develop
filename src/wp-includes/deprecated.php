@@ -6474,6 +6474,7 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
  *
  * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
  * @see https://core.trac.wordpress.org/ticket/62413
+ * @see https://core.trac.wordpress.org/ticket/62731
  */
 function wp_print_auto_sizes_contain_css_fix() {
 	_deprecated_function( __FUNCTION__, '6.9.0', 'wp_enqueue_img_auto_sizes_contain_css_fix' );

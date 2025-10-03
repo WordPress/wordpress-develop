@@ -2090,8 +2090,16 @@ function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ): bool {
  *
  * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
  * @see https://core.trac.wordpress.org/ticket/62413
+ * @see https://core.trac.wordpress.org/ticket/62731
  */
 function wp_enqueue_img_auto_sizes_contain_css_fix(): void {
+	// Back-compat for plugins that disable functionality by unhooking this action.
+	$priority = has_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix' );
+	if ( false === $priority ) {
+		return;
+	}
+	remove_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', $priority );
+
 	/** This filter is documented in wp-includes/media.php */
 	$add_auto_sizes = apply_filters( 'wp_img_tag_add_auto_sizes', true );
 	if ( ! $add_auto_sizes ) {

@@ -6597,22 +6597,42 @@ EOF;
 	 */
 	public function data_provider_data_provider_to_test_wp_enqueue_img_auto_sizes_contain_css_fix(): array {
 		return array(
-			'default'      => array(
+			'default'                     => array(
 				'set_up'   => null,
 				'expected' => true,
 			),
-			'filtered_off' => array(
+			'filtered_off'                => array(
 				'set_up'   => static function (): void {
 					add_filter( 'wp_img_tag_add_auto_sizes', '__return_false' );
 				},
 				'expected' => false,
 			),
-			'filtered_on'  => array(
+			'filtered_on'                 => array(
 				'set_up'   => static function (): void {
 					add_filter( 'wp_img_tag_add_auto_sizes', '__return_false' );
 					add_filter( 'wp_img_tag_add_auto_sizes', '__return_true', 100 );
 				},
 				'expected' => true,
+			),
+			'deprecated_function_removed' => array(
+				'set_up'   => static function (): void {
+					remove_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', 1 );
+				},
+				'expected' => false,
+			),
+			'new_function_removed'        => array(
+				'set_up'              => static function (): void {
+					remove_action( 'wp_head', 'wp_enqueue_img_auto_sizes_contain_css_fix', 0 );
+				},
+				'expected'            => false,
+				'expected_deprecated' => 'wp_print_auto_sizes_contain_css_fix',
+			),
+			'both_functions_removed'      => array(
+				'set_up'   => static function (): void {
+					remove_action( 'wp_head', 'wp_enqueue_img_auto_sizes_contain_css_fix', 0 );
+					remove_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', 1 );
+				},
+				'expected' => false,
 			),
 		);
 	}
@@ -6625,38 +6645,50 @@ EOF;
 	 *
 	 * @dataProvider data_provider_data_provider_to_test_wp_enqueue_img_auto_sizes_contain_css_fix
 	 */
-	public function test_wp_enqueue_img_auto_sizes_contain_css_fix( ?Closure $set_up, bool $expected ): void {
+	public function test_wp_enqueue_img_auto_sizes_contain_css_fix( ?Closure $set_up, bool $expected, ?string $expected_deprecated = null ): void {
 		if ( $set_up ) {
 			$set_up();
 		}
-		remove_action( 'wp_print_styles', 'print_emoji_styles' ); // To avoid deprecation warning.
+		if ( isset( $expected_deprecated ) ) {
+			$this->setExpectedDeprecated( $expected_deprecated );
+		}
 
 		$this->assertCount( 0, wp_styles()->queue );
+		wp_enqueue_style( 'very-early-enqueued', home_url( '/very-early-enqueued.css' ) );
 
-		wp_enqueue_style( 'wp-block-library' );
-		$this->assertSame( array( 'wp-block-library' ), wp_styles()->queue );
-
-		wp_enqueue_img_auto_sizes_contain_css_fix();
-		$printed_styles           = get_echo( 'wp_print_styles' );
-		$p                        = new WP_HTML_Tag_Processor( $printed_styles );
+		$wp_head_output           = get_echo( 'wp_head' );
+		$html_processor           = new WP_HTML_Tag_Processor( $wp_head_output );
 		$found_style_text_content = null;
-		while ( $p->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
-			if ( $p->get_attribute( 'id' ) === 'wp-img-auto-sizes-contain-inline-css' ) {
-				$found_style_text_content = $p->get_modifiable_text();
+		while ( $html_processor->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
+			if ( $html_processor->get_attribute( 'id' ) === 'wp-img-auto-sizes-contain-inline-css' ) {
+				$found_style_text_content = $html_processor->get_modifiable_text();
 				break;
 			}
 		}
 
+		$always_enqueued_last = array(
+			'very-early-enqueued',
+			'wp-emoji-styles',
+			'wp-block-library',
+			'classic-theme-styles',
+			'global-styles',
+		);
+
 		if ( $expected ) {
 			$this->assertSame(
-				array( 'wp-img-auto-sizes-contain', 'wp-block-library' ),
+				array_merge(
+					array(
+						'wp-img-auto-sizes-contain',
+					),
+					$always_enqueued_last
+				),
 				wp_styles()->queue
 			);
 			$this->assertIsString( $found_style_text_content );
 			$this->assertStringContainsString( 'contain-intrinsic-size', $found_style_text_content );
 		} else {
 			$this->assertSame(
-				array( 'wp-block-library' ),
+				$always_enqueued_last,
 				wp_styles()->queue
 			);
 			$this->assertNull( $found_style_text_content );
