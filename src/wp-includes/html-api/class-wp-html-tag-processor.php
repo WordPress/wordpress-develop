@@ -3957,7 +3957,7 @@ class WP_HTML_Tag_Processor {
 			 */
 			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes(), true )
 				? esc_url( $value )
-				: esc_attr( $value );
+				: htmlspecialchars( $value, ENT_QUOTES | ENT_HTML5 );
 
 			// If the escaping functions wiped out the update, reject it and indicate it was rejected.
 			if ( '' === $escaped_new_value && '' !== $value ) {
