@@ -249,7 +249,7 @@ final class WP_Block_Bindings_Registry {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string| $source_name The name of the source.
+	 * @param string|null $source_name The name of the source.
 	 * @return bool `true` if the block bindings source is registered, `false` otherwise.
 	 */
 	public function is_registered( $source_name ) {
