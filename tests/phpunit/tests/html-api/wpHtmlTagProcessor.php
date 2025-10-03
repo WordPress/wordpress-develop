@@ -2801,9 +2801,10 @@ HTML;
 		$processor->next_tag();
 		$processor->add_class( 'secondTag' );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$expected,
 			$processor->get_updated_html(),
+			'<body>',
 			'Did not properly update attributes and classnames given malformed input'
 		);
 	}
