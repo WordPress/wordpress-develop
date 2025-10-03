@@ -2108,7 +2108,7 @@ function wp_enqueue_img_auto_sizes_contain_css_fix(): void {
 
 	$handle = 'wp-img-auto-sizes-contain';
 	wp_register_style( $handle, false );
-	wp_add_inline_style( $handle, 'img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }' );
+	wp_add_inline_style( $handle, 'img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}' );
 
 	// Make sure inline style is printed first since it was previously printed at wp_head priority 1 and this preserves the CSS cascade.
 	array_unshift( wp_styles()->queue, $handle );
