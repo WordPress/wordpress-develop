@@ -1848,10 +1848,52 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertArrayHasKey( 'self', $links );
 		$this->assertArrayHasKey( 'author', $links );
+		$this->assertArrayNotHasKey( 'post', $links );
 
 		$this->assertCount( 1, $links['author'] );
 		$this->assertArrayHasKey( 'embeddable', $links['author'][0]['attributes'] );
 		$this->assertTrue( $links['author'][0]['attributes']['embeddable'] );
+	}
+
+	/**
+	 * @ticket 64034
+	 */
+	public function test_links_contain_parent() {
+		wp_set_current_user( self::$editor_id );
+
+		$post       = self::factory()->post->create(
+			array(
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'post_title'  => 'Test Post',
+			)
+		);
+		$attachment = self::factory()->attachment->create_object(
+			array(
+				'file'           => self::$test_file,
+				'post_author'    => self::$editor_id,
+				'post_parent'    => $post,
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		$this->assertGreaterThan( 0, $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertArrayHasKey( 'author', $links );
+		$this->assertArrayHasKey( 'post', $links );
+
+		$this->assertCount( 1, $links['author'] );
+		$this->assertSame( rest_url( '/wp/v2/posts/' . $post ), $links['post'][0]['href'] );
+		$this->assertSame( 'post', $links['post'][0]['attributes']['post_type'] );
+		$this->assertSame( $post, $links['post'][0]['attributes']['id'] );
+		$this->assertTrue( $links['post'][0]['attributes']['embeddable'] );
 	}
 
 	public function test_publish_action_ldo_not_registered() {
