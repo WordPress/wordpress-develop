@@ -70,7 +70,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * prepares for WP_Query.
 	 *
 	 * @since 4.7.0
-	 * @since 6.9.0 Extends the `media_type` parameter to support filtering by multiple media types.
+	 * @since 6.9.0 Extends the `media_type` and `mime_type` request arguments to support array values.
 	 *
 	 * @param array           $prepared_args Optional. Array of prepared arguments. Default empty array.
 	 * @param WP_REST_Request $request       Optional. Request to prepare items for.
@@ -83,31 +83,36 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$query_args['post_status'] = 'inherit';
 		}
 
-		$media_types = $this->get_media_types();
+		$all_mime_types = array();
+		$media_types    = $this->get_media_types();
 
 		if ( ! empty( $request['media_type'] ) ) {
-			if ( is_array( $request['media_type'] ) ) {
-				$mime_types_query = array();
+			$media_type_input = is_array( $request['media_type'] )
+				? $request['media_type']
+				: explode( ',', $request['media_type'] );
 
-				foreach ( $request['media_type'] as $request_media_type ) {
-					if ( isset( $media_types[ $request_media_type ] ) ) {
-						$mime_types_query = array_merge( $mime_types_query, $media_types[ $request_media_type ] );
-					}
-				}
-
-				$query_args['post_mime_type'] = $mime_types_query;
-			} else {
-				if ( isset( $media_types[ $request['media_type'] ] ) ) {
-					$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
+			foreach ( array_map( 'trim', $media_type_input ) as $type ) {
+				if ( isset( $media_types[ $type ] ) ) {
+					$all_mime_types = array_merge( $all_mime_types, $media_types[ $type ] );
 				}
 			}
 		}
 
 		if ( ! empty( $request['mime_type'] ) ) {
-			$parts = explode( '/', $request['mime_type'] );
-			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ], true ) ) {
-				$query_args['post_mime_type'] = $request['mime_type'];
+			$mime_type_input = is_array( $request['mime_type'] )
+				? $request['mime_type']
+				: explode( ',', $request['mime_type'] );
+
+			foreach ( array_map( 'trim', $mime_type_input ) as $mime_type ) {
+				$parts = explode( '/', $mime_type );
+				if ( isset( $media_types[ $parts[0] ] ) && in_array( $mime_type, $media_types[ $parts[0] ], true ) ) {
+					$all_mime_types[] = $mime_type;
+				}
 			}
+		}
+
+		if ( ! empty( $all_mime_types ) ) {
+			$query_args['post_mime_type'] = array_values( array_unique( $all_mime_types ) );
 		}
 
 		// Filter query clauses to include filenames.
@@ -1357,7 +1362,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Retrieves the query params for collections of attachments.
 	 *
 	 * @since 4.7.0
-	 * @since 6.9.0 Extends the `media_type` parameter to support filtering by multiple media types.
+	 * @since 6.9.0 Extends the `media_type` and `mime_type` request arguments to support array values.
 	 *
 	 * @return array Query parameters for the attachment collection as an array.
 	 */
@@ -1370,25 +1375,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$params['media_type'] = array(
 			'default'     => null,
 			'description' => __( 'Limit result set to attachments of a particular media type or media types.' ),
-			'oneOf'       => array(
-				array(
-					'type' => 'string',
-					'enum' => $media_types,
-				),
-				array(
-					'type'  => 'array',
-					'items' => array(
-						'type' => 'string',
-						'enum' => $media_types,
-					),
-				),
+			'type'        => array( 'string', 'array' ),
+			'items'       => array(
+				'type' => 'string',
+				'enum' => $media_types,
 			),
 		);
 
 		$params['mime_type'] = array(
 			'default'     => null,
-			'description' => __( 'Limit result set to attachments of a particular MIME type.' ),
-			'type'        => 'string',
+			'description' => __( 'Limit result set to attachments of a particular MIME type or MIME types.' ),
+			'type'        => array( 'string', 'array' ),
+			'items'       => array(
+				'type' => 'string',
+			),
 		);
 
 		return $params;
