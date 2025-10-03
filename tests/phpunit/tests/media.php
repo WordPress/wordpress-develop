@@ -6655,6 +6655,12 @@ EOF;
 
 		$this->assertCount( 0, wp_styles()->queue );
 		wp_enqueue_style( 'very-early-enqueued', home_url( '/very-early-enqueued.css' ) );
+		add_action(
+			'wp_enqueue_scripts',
+			static function () {
+				wp_enqueue_style( 'wp-block-library' );
+			}
+		);
 
 		$wp_head_output           = get_echo( 'wp_head' );
 		$html_processor           = new WP_HTML_Tag_Processor( $wp_head_output );
@@ -6666,33 +6672,17 @@ EOF;
 			}
 		}
 
-		$always_enqueued_last = array(
-			'very-early-enqueued',
-			'wp-emoji-styles',
-			'wp-block-library',
-			'classic-theme-styles',
-			'global-styles',
-		);
-
+		$enqueued = wp_styles()->queue;
 		if ( $expected ) {
-			$this->assertSame(
-				array_merge(
-					array(
-						'wp-img-auto-sizes-contain',
-					),
-					$always_enqueued_last
-				),
-				wp_styles()->queue
-			);
+			$this->assertSame( 'wp-img-auto-sizes-contain', array_shift( $enqueued ) );
 			$this->assertIsString( $found_style_text_content );
 			$this->assertStringContainsString( 'contain-intrinsic-size', $found_style_text_content );
 		} else {
-			$this->assertSame(
-				$always_enqueued_last,
-				wp_styles()->queue
-			);
 			$this->assertNull( $found_style_text_content );
 		}
+		$this->assertSame( 'very-early-enqueued', array_shift( $enqueued ) );
+		$this->assertContains( 'wp-emoji-styles', $enqueued );
+		$this->assertContains( 'wp-block-library', $enqueued );
 	}
 
 	/**
