@@ -110,7 +110,6 @@ function build_dropdown_script_block_core_categories( $dropdown_id ) {
 		}
 		dropdown.onchange = onCatChange;
 	})();
-	//# sourceURL=<?php echo rawurlencode( __FUNCTION__ ); ?>
 	</script>
 	<?php
 	return wp_get_inline_script_tag( str_replace( array( '<script>', '</script>' ), '', ob_get_clean() ) );
