@@ -427,8 +427,7 @@ new Promise( ( resolve ) => {
 		settings.readyCallback = () => {
 			settings.DOMReady = true;
 		};
-	} )
-	.then( () => {
+
 		// When the browser can not render everything we need to load a polyfill.
 		if ( ! settings.supports.everything ) {
 			settings.readyCallback();
