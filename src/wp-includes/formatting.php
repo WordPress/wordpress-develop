@@ -5977,11 +5977,21 @@ function _print_emoji_detection_script() {
 		);
 	}
 
+	wp_print_inline_script_tag(
+		wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+		array(
+			'id'   => 'wp-emoji-settings',
+			'type' => 'application/json',
+		)
+	);
+
 	$emoji_loader_script_path = '/js/wp-emoji-loader' . wp_scripts_get_suffix() . '.js';
 	wp_print_inline_script_tag(
-		sprintf( 'window._wpemojiSettings = %s;', wp_json_encode( $settings ) ) . "\n" .
-			file_get_contents( ABSPATH . WPINC . $emoji_loader_script_path ) . "\n" .
-			'//# sourceURL=' . includes_url( $emoji_loader_script_path )
+		rtrim( file_get_contents( ABSPATH . WPINC . $emoji_loader_script_path ) ) . "\n" .
+		'//# sourceURL=' . includes_url( $emoji_loader_script_path ),
+		array(
+			'type' => 'module',
+		)
 	);
 }
 
