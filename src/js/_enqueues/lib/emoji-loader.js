@@ -18,7 +18,7 @@ const settings = /** @type {WPEmojiSettings} */ (
 	JSON.parse( document.getElementById( 'wp-emoji-settings' ).textContent )
 );
 
-// For compatibility with other scripts that read from this global.
+// For compatibility with other scripts that read from this global, in particular wp-emoji.js.
 window._wpemojiSettings = settings;
 
 /**
