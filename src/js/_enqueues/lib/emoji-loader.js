@@ -12,8 +12,6 @@
  * @property {?string} source.concatemoji
  * @property {?string} source.twemoji
  * @property {?string} source.wpemoji
- * @property {?boolean} DOMReady
- * @property {?Function} readyCallback
  */
 
 const settings = /** @type {WPEmojiSettings} */ (
@@ -422,16 +420,8 @@ new Promise( ( resolve ) => {
 			settings.supports.everythingExceptFlag &&
 			! settings.supports.flag;
 
-		// Sets DOMReady to false and assigns a ready function to settings.
-		settings.DOMReady = false;
-		settings.readyCallback = () => {
-			settings.DOMReady = true;
-		};
-
 		// When the browser can not render everything we need to load a polyfill.
 		if ( ! settings.supports.everything ) {
-			settings.readyCallback();
-
 			const src = settings.source || {};
 
 			if ( src.concatemoji ) {
