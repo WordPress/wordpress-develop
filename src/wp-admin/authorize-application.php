@@ -13,6 +13,8 @@ $error        = null;
 $new_password = '';
 $user         = wp_get_current_user();
 
+die();
+
 // This is the no-js fallback script. Generally this will all be handled by `auth-app.js`.
 if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['action'] ) {
 	check_admin_referer( 'authorize_application_password' );
@@ -156,27 +158,27 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				?>
 				<p>
 					<?php
+					/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
+					$message = _n(
+						'This will grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
+						'This will grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
+						$blogs_count
+					);
+
+					if ( is_super_admin() ) {
 						/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
 						$message = _n(
-							'This will grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
-							'This will grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
+							'This will grant access to <a href="%1$s">the %2$s site on the network as you have Super Admin rights</a>.',
+							'This will grant access to <a href="%1$s">all %2$s sites on the network as you have Super Admin rights</a>.',
 							$blogs_count
 						);
+					}
 
-						if ( is_super_admin() ) {
-							/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
-							$message = _n(
-								'This will grant access to <a href="%1$s">the %2$s site on the network as you have Super Admin rights</a>.',
-								'This will grant access to <a href="%1$s">all %2$s sites on the network as you have Super Admin rights</a>.',
-								$blogs_count
-							);
-						}
-
-						printf(
-							$message,
-							admin_url( 'my-sites.php' ),
-							number_format_i18n( $blogs_count )
-						);
+					printf(
+						$message,
+						admin_url( 'my-sites.php' ),
+						number_format_i18n( $blogs_count )
+					);
 					?>
 				</p>
 				<?php
@@ -258,24 +260,24 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				?>
 				<p class="description" id="description-approve">
 					<?php
-						if ( $success_url ) {
-							printf(
-								/* translators: %s: The URL the user is being redirected to. */
-								__( 'You will be sent to %s' ),
-								'<strong><code>' . esc_html(
-									add_query_arg(
-										array(
-											'site_url'   => site_url(),
-											'user_login' => $user->user_login,
-											'password'   => '[------]',
-										),
-										$success_url
-									)
-								) . '</code></strong>'
-							);
-						} else {
-							_e( 'You will be given a password to manually enter into the application in question.' );
-						}
+					if ( $success_url ) {
+						printf(
+							/* translators: %s: The URL the user is being redirected to. */
+							__( 'You will be sent to %s' ),
+							'<strong><code>' . esc_html(
+								add_query_arg(
+									array(
+										'site_url'   => site_url(),
+										'user_login' => $user->user_login,
+										'password'   => '[------]',
+									),
+									$success_url
+								)
+							) . '</code></strong>'
+						);
+					} else {
+						_e( 'You will be given a password to manually enter into the application in question.' );
+					}
 					?>
 				</p>
 
