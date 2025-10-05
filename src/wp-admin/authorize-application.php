@@ -11,29 +11,21 @@ require_once __DIR__ . '/admin.php';
 
 $error        = null;
 $new_password = '';
+$user         = wp_get_current_user();
 
 // This is the no-js fallback script. Generally this will all be handled by `auth-app.js`.
 if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['action'] ) {
 	check_admin_referer( 'authorize_application_password' );
 
-	$success_url = $_POST['success_url'];
-	$reject_url  = $_POST['reject_url'];
-	$app_name    = $_POST['app_name'];
-	$app_id      = $_POST['app_id'];
-	$redirect    = '';
-
+	$redirect = '';
 	if ( isset( $_POST['reject'] ) ) {
-		if ( $reject_url ) {
-			$redirect = $reject_url;
-		} else {
-			$redirect = admin_url();
-		}
+		$redirect = $_POST['reject_url'] ?? admin_url();
 	} elseif ( isset( $_POST['approve'] ) ) {
 		$created = WP_Application_Passwords::create_new_application_password(
-			get_current_user_id(),
+			$user->ID,
 			array(
-				'name'   => $app_name,
-				'app_id' => $app_id,
+				'name'   => $_POST['app_name'],
+				'app_id' => $_POST['app_id'],
 			)
 		);
 
@@ -42,14 +34,14 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 		} else {
 			list( $new_password ) = $created;
 
-			if ( $success_url ) {
+			if ( $_POST['success_url'] ) {
 				$redirect = add_query_arg(
 					array(
 						'site_url'   => urlencode( site_url() ),
-						'user_login' => urlencode( wp_get_current_user()->user_login ),
+						'user_login' => urlencode( $user->user_login ),
 						'password'   => urlencode( $new_password ),
 					),
-					$success_url
+					$_POST['success_url']
 				);
 			}
 		}
@@ -62,9 +54,6 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 	}
 }
 
-// Used in the HTML title tag.
-$title = __( 'Authorize Application' );
-
 $app_name    = ! empty( $_REQUEST['app_name'] ) ? $_REQUEST['app_name'] : '';
 $app_id      = ! empty( $_REQUEST['app_id'] ) ? $_REQUEST['app_id'] : '';
 $success_url = ! empty( $_REQUEST['success_url'] ) ? $_REQUEST['success_url'] : null;
@@ -76,8 +65,6 @@ if ( ! empty( $_REQUEST['reject_url'] ) ) {
 } else {
 	$reject_url = null;
 }
-
-$user = wp_get_current_user();
 
 $request  = compact( 'app_name', 'app_id', 'success_url', 'reject_url' );
 $is_valid = wp_is_authorize_application_password_request_valid( $request, $user );
@@ -132,11 +119,9 @@ wp_localize_script(
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
-
 ?>
 <div class="wrap">
-	<h1><?php echo esc_html( $title ); ?></h1>
-
+	<h1><?php esc_html_e( 'Authorize Application' ); ?></h1>
 	<?php
 	if ( is_wp_error( $error ) ) {
 		wp_admin_notice(
@@ -147,7 +132,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		);
 	}
 	?>
-
 	<div class="card auth-app-card">
 		<h2 class="title"><?php _e( 'An application would like to connect to your account.' ); ?></h2>
 		<?php if ( $app_name ) : ?>
@@ -163,7 +147,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<?php else : ?>
 			<p><?php _e( 'Would you like to give this application access to your account? You should only do this if you trust the application in question.' ); ?></p>
 		<?php endif; ?>
-
 		<?php
 		if ( is_multisite() ) {
 			$blogs       = get_blogs_of_user( $user->ID, true );
@@ -173,35 +156,33 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				?>
 				<p>
 					<?php
-					/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
-					$message = _n(
-						'This will grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
-						'This will grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
-						$blogs_count
-					);
-
-					if ( is_super_admin() ) {
 						/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
 						$message = _n(
-							'This will grant access to <a href="%1$s">the %2$s site on the network as you have Super Admin rights</a>.',
-							'This will grant access to <a href="%1$s">all %2$s sites on the network as you have Super Admin rights</a>.',
+							'This will grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
+							'This will grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
 							$blogs_count
 						);
-					}
 
-					printf(
-						$message,
-						admin_url( 'my-sites.php' ),
-						number_format_i18n( $blogs_count )
-					);
+						if ( is_super_admin() ) {
+							/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
+							$message = _n(
+								'This will grant access to <a href="%1$s">the %2$s site on the network as you have Super Admin rights</a>.',
+								'This will grant access to <a href="%1$s">all %2$s sites on the network as you have Super Admin rights</a>.',
+								$blogs_count
+							);
+						}
+
+						printf(
+							$message,
+							admin_url( 'my-sites.php' ),
+							number_format_i18n( $blogs_count )
+						);
 					?>
 				</p>
 				<?php
 			}
 		}
-		?>
 
-		<?php
 		if ( $new_password ) :
 			$message = '<p class="application-password-display">
 				<label for="new-application-password-value">' . sprintf(
@@ -264,9 +245,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				 * @param WP_User $user The user authorizing the application.
 				 */
 				do_action( 'wp_authorize_application_password_form', $request, $user );
-				?>
 
-				<?php
 				submit_button(
 					__( 'Yes, I approve of this connection' ),
 					'primary',
@@ -279,37 +258,37 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				?>
 				<p class="description" id="description-approve">
 					<?php
-					if ( $success_url ) {
-						printf(
-							/* translators: %s: The URL the user is being redirected to. */
-							__( 'You will be sent to %s' ),
-							'<strong><code>' . esc_html(
-								add_query_arg(
-									array(
-										'site_url'   => site_url(),
-										'user_login' => $user->user_login,
-										'password'   => '[------]',
-									),
-									$success_url
-								)
-							) . '</code></strong>'
-						);
-					} else {
-						_e( 'You will be given a password to manually enter into the application in question.' );
-					}
+						if ( $success_url ) {
+							printf(
+								/* translators: %s: The URL the user is being redirected to. */
+								__( 'You will be sent to %s' ),
+								'<strong><code>' . esc_html(
+									add_query_arg(
+										array(
+											'site_url'   => site_url(),
+											'user_login' => $user->user_login,
+											'password'   => '[------]',
+										),
+										$success_url
+									)
+								) . '</code></strong>'
+							);
+						} else {
+							_e( 'You will be given a password to manually enter into the application in question.' );
+						}
 					?>
 				</p>
 
 				<?php
-				submit_button(
-					__( 'No, I do not approve of this connection' ),
-					'secondary',
-					'reject',
-					false,
-					array(
-						'aria-describedby' => 'description-reject',
-					)
-				);
+					submit_button(
+						__( 'No, I do not approve of this connection' ),
+						'secondary',
+						'reject',
+						false,
+						array(
+							'aria-describedby' => 'description-reject',
+						)
+					);
 				?>
 				<p class="description" id="description-reject">
 					<?php
