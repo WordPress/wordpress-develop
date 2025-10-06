@@ -1887,13 +1887,13 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertArrayHasKey( 'self', $links );
 		$this->assertArrayHasKey( 'author', $links );
-		$this->assertArrayHasKey( 'post', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/post', $links );
 
 		$this->assertCount( 1, $links['author'] );
-		$this->assertSame( rest_url( '/wp/v2/posts/' . $post ), $links['post'][0]['href'] );
-		$this->assertSame( 'post', $links['post'][0]['attributes']['post_type'] );
-		$this->assertSame( $post, $links['post'][0]['attributes']['id'] );
-		$this->assertTrue( $links['post'][0]['attributes']['embeddable'] );
+		$this->assertSame( rest_url( '/wp/v2/posts/' . $post ), $links['https://api.w.org/post'][0]['href'] );
+		$this->assertSame( 'post', $links['https://api.w.org/post'][0]['attributes']['post_type'] );
+		$this->assertSame( $post, $links['https://api.w.org/post'][0]['attributes']['id'] );
+		$this->assertTrue( $links['https://api.w.org/post'][0]['attributes']['embeddable'] );
 	}
 
 	public function test_publish_action_ldo_not_registered() {
