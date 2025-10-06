@@ -20,7 +20,7 @@ Twenty Twenty-Two is distributed under the terms of the GNU GPL.
 /*
  * IMPORTANT: This file is not normally served directly on the frontend, unless SCRIPT_DEBUG is enabled. For normal page
  * loads, the `style.min.css` file will be served instead of `style.css` for improved performance. Because of this, if
- * you make and changes to this file in the Theme File Editor, you will not normally see those changes reflected on the
+ * you make any changes to this file in the Theme File Editor, you will not normally see those changes reflected on the
  * frontend. You would need to navigate to the theme directory in a terminal and run `npm install && npm run build`.
  * Because of this, it is not recommended that you use the Theme File Editor to modify this stylesheet. Instead, you
  * should add the necessary style overrides via "Additional CSS" in the Site Editor. If neither of these are an option,
