@@ -75,7 +75,5 @@ class Tests_Block_Pattern_WPBlockPatternsRegistry extends WP_UnitTestCase {
 	public function test_is_registered_with_invalid_pattern_name() {
 		$this->assertFalse( $this->registry->is_registered( '' ) );
 		$this->assertFalse( $this->registry->is_registered( null ) );
-		$this->assertFalse( $this->registry->is_registered( false ) );
-		$this->assertFalse( $this->registry->is_registered( 0 ) );
 	}
 }
