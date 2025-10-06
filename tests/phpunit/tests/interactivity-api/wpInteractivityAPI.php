@@ -41,7 +41,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	private function set_internal_namespace_stack( ...$stack ) {
 		$interactivity   = new ReflectionClass( $this->interactivity );
 		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$namespace_stack->setAccessible( true );
+		}
 		$namespace_stack->setValue( $this->interactivity, $stack );
 	}
 
@@ -55,7 +57,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	private function set_internal_context_stack( ...$stack ) {
 		$interactivity = new ReflectionClass( $this->interactivity );
 		$context_stack = $interactivity->getProperty( 'context_stack' );
-		$context_stack->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$context_stack->setAccessible( true );
+		}
 		$context_stack->setValue( $this->interactivity, $stack );
 	}
 
@@ -586,7 +590,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	public function test_extract_directive_value() {
 		$extract_directive_value = new ReflectionMethod( $this->interactivity, 'extract_directive_value' );
-		$extract_directive_value->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$extract_directive_value->setAccessible( true );
+		}
 
 		$result = $extract_directive_value->invoke( $this->interactivity, 'state.foo', 'myPlugin' );
 		$this->assertSame( array( 'myPlugin', 'state.foo' ), $result );
@@ -649,7 +655,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	public function test_extract_directive_value_empty_values() {
 		$extract_directive_value = new ReflectionMethod( $this->interactivity, 'extract_directive_value' );
-		$extract_directive_value->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$extract_directive_value->setAccessible( true );
+		}
 
 		$result = $extract_directive_value->invoke( $this->interactivity, '', 'myPlugin' );
 		$this->assertSame( array( 'myPlugin', null ), $result );
@@ -683,7 +691,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	public function test_extract_directive_value_invalid_json() {
 		$extract_directive_value = new ReflectionMethod( $this->interactivity, 'extract_directive_value' );
-		$extract_directive_value->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$extract_directive_value->setAccessible( true );
+		}
 
 		// Invalid JSON due to missing quotes. Returns the original value.
 		$result = $extract_directive_value->invoke( $this->interactivity, '{ isOpen: false }', 'myPlugin' );
@@ -704,7 +714,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	public function test_extract_prefix_and_suffix() {
 		$extract_prefix_and_suffix = new ReflectionMethod( $this->interactivity, 'extract_prefix_and_suffix' );
-		$extract_prefix_and_suffix->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$extract_prefix_and_suffix->setAccessible( true );
+		}
 
 		$result = $extract_prefix_and_suffix->invoke( $this->interactivity, 'data-wp-interactive' );
 		$this->assertSame( array( 'data-wp-interactive' ), $result );
@@ -978,7 +990,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$wp_interactivity      = $this->interactivity;
 
 		$evaluate = new ReflectionMethod( $this->interactivity, 'evaluate' );
-		$evaluate->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$evaluate->setAccessible( true );
+		}
 
 		$result = $evaluate->invokeArgs( $this->interactivity, array( $directive_value ) );
 
@@ -1393,7 +1407,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	public function test_kebab_to_camel_case() {
 		$method = new ReflectionMethod( $this->interactivity, 'kebab_to_camel_case' );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 
 		$this->assertSame( '', $method->invoke( $this->interactivity, '' ) );
 		$this->assertSame( 'item', $method->invoke( $this->interactivity, 'item' ) );
