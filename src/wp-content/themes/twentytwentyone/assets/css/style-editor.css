@@ -1941,10 +1941,6 @@ pre.wp-block-preformatted {
 	padding: var(--form--border-width);
 }
 
-.wp-block-search.wp-block-search__button-inside .wp-block-search__input {
-	border: none;
-}
-
 .wp-block-search.wp-block-search__button-inside.wp-block-search__text-button .wp-block-search__button:hover,
 .wp-block-search.wp-block-search__button-inside.wp-block-search__icon-button .wp-block-search__button:hover {
 	color: var(--global--color-dark-gray);

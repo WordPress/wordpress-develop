@@ -1905,10 +1905,6 @@ pre.wp-block-preformatted {
 	padding: 3px;
 }
 
-.wp-block-search.wp-block-search__button-inside .wp-block-search__input {
-	border: none;
-}
-
 .wp-block-search.wp-block-search__button-inside.wp-block-search__text-button .wp-block-search__button:hover,
 .wp-block-search.wp-block-search__button-inside.wp-block-search__icon-button .wp-block-search__button:hover,
 .is-dark-theme .wp-block-search.wp-block-search__button-inside.wp-block-search__text-button .wp-block-search__button,
