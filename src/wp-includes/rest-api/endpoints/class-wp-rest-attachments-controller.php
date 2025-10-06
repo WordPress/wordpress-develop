@@ -985,7 +985,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$post = get_post( $post->post_parent );
 
 			if ( ! empty( $post ) ) {
-				$links['https://api.w.org/post'] = array(
+				$links['https://api.w.org/attached-to'] = array(
 					'href'       => rest_url( rest_get_route_for_post( $post ) ),
 					'embeddable' => true,
 					'post_type'  => $post->post_type,
