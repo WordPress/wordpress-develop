@@ -59,7 +59,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			'True for publicly queryable types' => array(
+			'True for publicly queryable types'      => array(
 				array(
 					'publicly_queryable' => true,
 					'_builtin'           => false,
@@ -67,7 +67,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				true,
 			),
-			'False for built-in non-public types' => array(
+			'False for built-in non-public types'    => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => true,
@@ -75,7 +75,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			'False for non-built-in public types' => array(
+			'False for non-built-in public types'    => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => false,
@@ -83,7 +83,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			'True for built-in public types' => array(
+			'True for built-in public types'         => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => true,
@@ -139,6 +139,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 			array( false, false ),
 			array( true, false ),
 			array( 20, false ),
+			array( null, false ),
 			array( '', false ),
 		);
 	}
