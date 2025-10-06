@@ -2,6 +2,8 @@
  * @output wp-includes/js/wp-sanitize.js
  */
 
+/* eslint-env es6 */
+
 ( function () {
 
 	window.wp = window.wp || {};
@@ -21,7 +23,7 @@
 		 * @return  Stripped text.
 		 */
 		stripTags: function( text ) {
-			var _text = text || '';
+			let _text = text || '';
 
 			 // Do the search-replace until there is nothing to be replaced.
 			 do {
@@ -47,7 +49,7 @@
 		 * @return Sanitized text. False on failure.
 		 */
 		stripTagsAndEncodeText: function( text ) {
-			var _text = wp.sanitize.stripTags( text ),
+			let _text = wp.sanitize.stripTags( text ),
 				textarea = document.createElement( 'textarea' );
 
 			try {
