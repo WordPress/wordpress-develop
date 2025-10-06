@@ -2,6 +2,8 @@
 
 /**
  * @group post
+ *
+ * @covers is_post_status_viewable
  */
 class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 
@@ -21,6 +23,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	 * This may include emulations of built in (_builtin) statuses.
 	 *
 	 * @ticket 49380
+	 *
 	 * @dataProvider data_custom_post_statuses
 	 *
 	 * @param array $cps_args Registration arguments.
@@ -46,10 +49,9 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	 *     bool  Expected result.
 	 * }
 	 */
-	public function data_custom_post_statuses() {
+	public static function data_custom_post_statuses() {
 		return array(
-			// 0. False for non-publicly queryable types.
-			array(
+			'False for non-publicly queryable types' => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => false,
@@ -57,8 +59,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			// 1. True for publicly queryable types.
-			array(
+			'True for publicly queryable types' => array(
 				array(
 					'publicly_queryable' => true,
 					'_builtin'           => false,
@@ -66,8 +67,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				true,
 			),
-			// 2. False for built-in non-public types.
-			array(
+			'False for built-in non-public types' => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => true,
@@ -75,8 +75,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			// 3. False for non-built-in public types.
-			array(
+			'False for non-built-in public types' =>array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => false,
@@ -84,8 +83,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			// 4. True for built-in public types.
-			array(
+			'True for built-in public types' => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => true,
@@ -99,8 +97,9 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	/**
 	 * Test built-in and unregistered post status.
 	 *
-	 * @dataProvider data_built_unregistered_in_status_types
 	 * @ticket 49380
+	 *
+	 * @dataProvider data_built_unregistered_in_status_types
 	 *
 	 * @param mixed $status   Post status to check.
 	 * @param bool  $expected Expected viewable status.
@@ -120,7 +119,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	 *     @type bool  $expected Expected viewable status.
 	 * }
 	 */
-	public function data_built_unregistered_in_status_types() {
+	public static function data_built_unregistered_in_status_types() {
 		return array(
 			array( 'publish', true ),
 			array( 'future', false ),
