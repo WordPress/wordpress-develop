@@ -3445,7 +3445,7 @@ mockedApiResponse.Schema = {
                                                 ],
                                                 "properties": {
                                                     "flip": {
-                                                        "description": "Flip direction. [ horizontal, vertical ]",
+                                                        "description": "Flip direction.",
                                                         "type": "object",
                                                         "required": [
                                                             "horizontal",
