@@ -45,7 +45,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        # Test highest and lowest supported version of each major.
+        php: [ '7.2', '7.4', '8.0', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4' ]
         tests-domain: [ 'example.org' ]
@@ -116,7 +117,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        # Test highest and lowest supported version of each major.
+        php: [ '7.2', '7.4', '8.0', '8.4' ]
         db-type: [ 'mariadb' ]
         db-version: [ '10.4', '10.6', '10.11', '11.2' ]
         multisite: [ false, true ]
