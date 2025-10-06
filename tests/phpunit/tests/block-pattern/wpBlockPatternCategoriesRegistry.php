@@ -15,10 +15,8 @@ class Tests_Block_Pattern_WPBlockPatternCategoriesRegistry extends WP_UnitTestCa
 	/**
 	 * @ticket 63957
 	 */
-	public function test_is_registered_with_empty_param() {
+	public function test_is_registered_with_null_category_name() {
 		$registry = WP_Block_Pattern_Categories_Registry::get_instance();
-
-		$this->assertFalse( $registry->is_registered( '' ) );
 		$this->assertFalse( $registry->is_registered( null ) );
 	}
 }

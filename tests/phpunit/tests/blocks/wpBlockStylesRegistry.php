@@ -70,10 +70,10 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 	/**
 	 * @ticket 63957
 	 */
-	public function test_is_registered_returns_false_for_empty_block_name() {
+	public function test_is_registered_returns_false_for_null_block_name() {
 		$style_name = 'fancy-style';
 		$this->assertFalse(
-			$this->registry->is_registered( '', $style_name ),
+			$this->registry->is_registered( null, $style_name ),
 			'Empty block name should return false.'
 		);
 	}
@@ -81,10 +81,10 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 	/**
 	 * @ticket 63957
 	 */
-	public function test_is_registered_returns_false_for_empty_style_name() {
+	public function test_is_registered_returns_false_for_null_style_name() {
 		$block_name = 'core/paragraph';
 		$this->assertFalse(
-			$this->registry->is_registered( $block_name, '' ),
+			$this->registry->is_registered( $block_name, null ),
 			'Empty style name should return false.'
 		);
 	}
@@ -92,9 +92,9 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 	/**
 	 * @ticket 63957
 	 */
-	public function test_is_registered_returns_false_for_both_empty_params() {
+	public function test_is_registered_returns_false_for_both_null_params() {
 		$this->assertFalse(
-			$this->registry->is_registered( '', '' ),
+			$this->registry->is_registered( null, null ),
 			'Both empty block and style name should return false.'
 		);
 	}

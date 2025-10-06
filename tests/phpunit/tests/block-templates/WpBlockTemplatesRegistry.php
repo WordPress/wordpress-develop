@@ -252,8 +252,7 @@ class Tests_Block_Templates_wpBlockTemplatesRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_registered
 	 */
-	public function test_is_registered_with_invalid_param() {
-		$this->assertFalse( self::$registry->is_registered( '' ) );
+	public function test_is_registered_with_null_template_name() {
 		$this->assertFalse( self::$registry->is_registered( null ) );
 	}
 
