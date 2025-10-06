@@ -25,9 +25,9 @@
 		stripTags: function( text ) {
 			let _text = text || '';
 
-			 // Do the search-replace until there is nothing to be replaced.
-			 do {
-                // Keep pre-replace text for comparison.
+			// Do the search-replace until there is nothing to be replaced.
+			do {
+				// Keep pre-replace text for comparison.
 				text = _text;
 
 				// Do the replacement.
