@@ -2,6 +2,8 @@
  * @output wp-includes/js/wp-emoji-loader.js
  */
 
+/* eslint-env es6 */
+
 // Note: This is loaded as a script module, so there is no need for an IIFE to prevent pollution of the global scope.
 
 /**
