@@ -75,7 +75,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			'False for non-built-in public types' =>array(
+			'False for non-built-in public types' => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => false,
