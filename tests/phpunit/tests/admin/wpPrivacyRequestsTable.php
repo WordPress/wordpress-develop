@@ -222,7 +222,9 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 
 		$reflection = new ReflectionClass( $table );
 		$method     = $reflection->getMethod( 'get_timestamp_as_date' );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 
 		$date_format = __( 'Y/m/d' );
 		$time_format = __( 'g:i a' );
