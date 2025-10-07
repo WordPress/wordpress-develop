@@ -79,7 +79,7 @@ class File_Upload_Upgrader {
 							self_admin_url( 'plugin-install.php' ),
 							__( 'Return to the Plugin Installer' )
 						);
-						wp_die( __( 'Incompatible Archive.' ) . '<br />' . $plugins_page, 422 );
+						wp_die( __( 'Incompatible Archive.' ) . '<br />' . $plugins_page, 415 );
 					}
 
 					if ( 'themezip' === $form ) {
@@ -88,7 +88,7 @@ class File_Upload_Upgrader {
 							self_admin_url( 'theme-install.php' ),
 							__( 'Return to the Theme Installer' )
 						);
-						wp_die( __( 'Incompatible Archive.' ) . '<br />' . $themes_page, 422 );
+						wp_die( __( 'Incompatible Archive.' ) . '<br />' . $themes_page, 415 );
 					}
 				}
 			}
