@@ -616,7 +616,7 @@ CSS;
 	 * @see self::test_wp_maybe_inline_styles()
 	 * @return array<string, array{additional_inline_style: string|null, styles_inline_size_limit: int|null}>
 	 */
-	public function data_provider_test_wp_maybe_inline_styles(): array {
+	public static function data_provider_test_wp_maybe_inline_styles(): array {
 		return array(
 			'regular_limit_without_additional_inline_styles' => array(
 				'additional_inline_style'  => null,
