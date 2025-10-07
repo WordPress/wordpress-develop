@@ -854,7 +854,7 @@ function twentysixteen_color_scheme_css_template() {
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
 		wp_print_inline_script_tag(
-			$css . "\n//# sourceURL=" . __FUNCTION__,
+			$css . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ),
 			array(
 				'type' => 'text/html',
 				'id'   => 'tmpl-twentysixteen-color-scheme',

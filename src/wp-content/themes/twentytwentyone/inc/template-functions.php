@@ -77,9 +77,9 @@ function twenty_twenty_one_supports_js() {
 	$js = "document.body.classList.remove('no-js');";
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
-		wp_print_inline_script_tag( $js . "\n//# sourceURL=" . __FUNCTION__ );
+		wp_print_inline_script_tag( $js . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
 	} else {
-		printf( "<script>%s</script>\n", $js );
+		echo "<script>$js</script>\n";
 	}
 }
 add_action( 'wp_footer', 'twenty_twenty_one_supports_js' );
