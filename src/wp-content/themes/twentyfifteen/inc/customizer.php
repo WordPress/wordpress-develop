@@ -794,18 +794,18 @@ function twentyfifteen_color_scheme_css_template() {
 		'meta_box_background_color'   => '{{ data.meta_box_background_color }}',
 	);
 
-	$css = twentyfifteen_get_color_scheme_css( $colors );
+	$css_template = twentyfifteen_get_color_scheme_css( $colors );
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
 		wp_print_inline_script_tag(
-			$css . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ),
+			$css_template,
 			array(
 				'type' => 'text/html',
 				'id'   => 'tmpl-twentyfifteen-color-scheme',
 			)
 		);
 	} else {
-		echo '<script type=\"text/html\" id=\"tmpl-twentyfifteen-color-scheme">' . $css . '</script>';
+		echo '<script type=\"text/html\" id=\"tmpl-twentyfifteen-color-scheme">' . $css_template . '</script>';
 	}
 }
 add_action( 'customize_controls_print_footer_scripts', 'twentyfifteen_color_scheme_css_template' );

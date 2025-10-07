@@ -850,18 +850,18 @@ function twentysixteen_color_scheme_css_template() {
 		'border_color'          => '{{ data.border_color }}',
 	);
 
-	$css = twentysixteen_get_color_scheme_css( $colors );
+	$css_template = twentysixteen_get_color_scheme_css( $colors );
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
 		wp_print_inline_script_tag(
-			$css . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ),
+			$css_template,
 			array(
 				'type' => 'text/html',
 				'id'   => 'tmpl-twentysixteen-color-scheme',
 			)
 		);
 	} else {
-		echo '<script type="text/html" id="tmpl-twentysixteen-color-scheme">' . $css . '</script>';
+		echo '<script type="text/html" id="tmpl-twentysixteen-color-scheme">' . $css_template . '</script>';
 	}
 }
 add_action( 'customize_controls_print_footer_scripts', 'twentysixteen_color_scheme_css_template' );
