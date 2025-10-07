@@ -331,73 +331,46 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36356
+	 * @ticket 62124
 	 *
 	 * @dataProvider data_get_component_from_parsed_url_array
 	 *
+	 * @expectedDeprecated _get_component_from_parsed_url_array
+	 *
 	 * @covers ::wp_parse_url
-	 * @covers ::_get_component_from_parsed_url_array
 	 */
 	public function test_get_component_from_parsed_url_array( $url, $component, $expected ) {
 		$parts  = wp_parse_url( $url );
 		$actual = _get_component_from_parsed_url_array( $parts, $component );
-		$this->assertSame( $expected, $actual );
+		$this->assertNull( $actual );
 	}
 
 	public function data_get_component_from_parsed_url_array() {
 		// 0: A URL, 1: PHP URL constant, 2: The expected result.
 		return array(
-			array(
-				'http://example.com/',
-				-1,
-				array(
-					'scheme' => 'http',
-					'host'   => 'example.com',
-					'path'   => '/',
-				),
-			),
-			array(
-				'http://example.com/',
-				-1,
-				array(
-					'scheme' => 'http',
-					'host'   => 'example.com',
-					'path'   => '/',
-				),
-			),
-			array( 'http://example.com/', PHP_URL_HOST, 'example.com' ),
-			array( 'http://example.com/', PHP_URL_USER, null ),
-			array( 'http:///example.com', -1, false ),          // Malformed.
-			array( 'http:///example.com', PHP_URL_HOST, null ), // Malformed.
+			array( null, null, null ),
 		);
 	}
 
 	/**
 	 * @ticket 36356
+	 * @ticket 62124
 	 *
 	 * @dataProvider data_wp_translate_php_url_constant_to_key
 	 *
-	 * @covers ::_wp_translate_php_url_constant_to_key
+	 * @expectedDeprecated _wp_translate_php_url_constant_to_key
+	 *
+	 * @coversNothing
 	 */
 	public function test_wp_translate_php_url_constant_to_key( $input, $expected ) {
 		$actual = _wp_translate_php_url_constant_to_key( $input );
-		$this->assertSame( $expected, $actual );
+		$this->assertNull( $actual );
 	}
 
 	public function data_wp_translate_php_url_constant_to_key() {
 		// 0: PHP URL constant, 1: The expected result.
 		return array(
-			array( PHP_URL_SCHEME, 'scheme' ),
-			array( PHP_URL_HOST, 'host' ),
-			array( PHP_URL_PORT, 'port' ),
-			array( PHP_URL_USER, 'user' ),
-			array( PHP_URL_PASS, 'pass' ),
-			array( PHP_URL_PATH, 'path' ),
-			array( PHP_URL_QUERY, 'query' ),
-			array( PHP_URL_FRAGMENT, 'fragment' ),
-
-			// Test with non-PHP_URL_CONSTANT parameter.
-			array( 'something', false ),
-			array( ABSPATH, false ),
+			array( null, null ),
 		);
 	}
 
