@@ -660,7 +660,6 @@ add_filter( 'walker_nav_menu_start_el', 'twentytwenty_nav_menu_social_icons', 10
  * @since Twenty Twenty 1.0
  */
 function twentytwenty_no_js_class() {
-
 	$js = "document.documentElement.className = document.documentElement.className.replace( 'no-js', 'js' );";
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
