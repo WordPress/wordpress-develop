@@ -805,7 +805,7 @@ function twentyfifteen_color_scheme_css_template() {
 			)
 		);
 	} else {
-		echo '<script type=\"text/html\" id=\"tmpl-twentyfifteen-color-scheme">' . $css_template . '</script>';
+		echo '<script type="text/html" id="tmpl-twentyfifteen-color-scheme">' . $css_template . '</script>';
 	}
 }
 add_action( 'customize_controls_print_footer_scripts', 'twentyfifteen_color_scheme_css_template' );
