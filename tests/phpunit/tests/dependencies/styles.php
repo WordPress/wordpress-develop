@@ -524,21 +524,84 @@ CSS;
 
 	/**
 	 * @ticket 58394
+	 * @ticket 63887
 	 *
 	 * @covers ::wp_maybe_inline_styles
+	 * @covers ::wp_add_inline_style
+	 * @covers ::wp_print_styles
+	 * @covers WP_Styles::do_items
+	 * @covers WP_Styles::do_item
+	 * @covers WP_Styles::print_inline_style
+	 *
+	 * @dataProvider data_provider_test_wp_maybe_inline_styles
 	 */
-	public function test_wp_maybe_inline_styles() {
-		wp_register_style( 'test-handle', '/' . WPINC . '/css/classic-themes.css' );
-		wp_style_add_data( 'test-handle', 'path', ABSPATH . WPINC . '/css/classic-themes.css' );
-
-		wp_enqueue_style( 'test-handle' );
+	public function test_wp_maybe_inline_styles( ?string $additional_inline_style ) {
+		// TODO: Add test case for limit.
+		$rel_path = 'css/classic-themes.css';
+		$src_url  = includes_url( $rel_path );
+		$src_path = ABSPATH . WPINC . '/' . $rel_path;
+		$css      = file_get_contents( $src_path );
+		$handle   = 'test-handle';
+		wp_register_style( $handle, $src_url );
+		wp_style_add_data( $handle, 'path', $src_path );
+		if ( isset( $additional_inline_style ) ) {
+			wp_add_inline_style( $handle, $additional_inline_style );
+		}
+		wp_enqueue_style( $handle );
 
 		wp_maybe_inline_styles();
 
-		$this->assertFalse( $GLOBALS['wp_styles']->registered['test-handle']->src, 'Source of style should be reset to false' );
+		$this->assertFalse( $GLOBALS['wp_styles']->registered[ $handle ]->src, 'Source of style should be reset to false' );
 
-		$css = file_get_contents( ABSPATH . WPINC . '/css/classic-themes.css' );
-		$this->assertSameSets( $GLOBALS['wp_styles']->registered['test-handle']->extra['after'], array( $css ), 'Source of style should set to after property' );
+		$expected_after   = array();
+		$expected_after[] = $css;
+		if ( isset( $additional_inline_style ) ) {
+			$expected_after[] = $additional_inline_style;
+		}
+		$this->assertSameSets( $GLOBALS['wp_styles']->registered[ $handle ]->extra['after'], $expected_after, 'Source of style should set to after property' );
+		$this->assertArrayHasKey( 'inlined_src', $GLOBALS['wp_styles']->registered[ $handle ]->extra );
+		$this->assertSame( $src_url, $GLOBALS['wp_styles']->registered[ $handle ]->extra['inlined_src'] );
+
+		$printed_styles = get_echo( 'wp_print_styles', array( $handle ) );
+		$processor      = new WP_HTML_Tag_Processor( $printed_styles );
+
+		$this->assertTrue( $processor->next_tag() );
+		$this->assertSame( 'STYLE', $processor->get_tag() );
+		$this->assertSame( $handle . '-inline-css', $processor->get_attribute( 'id' ) );
+		$this->assertSame( 'text/css', $processor->get_attribute( 'type' ) );
+		$styles = array(
+			$css,
+		);
+
+		if ( isset( $additional_inline_style ) ) {
+			$styles[]   = $additional_inline_style;
+			$source_url = $handle . '-inline-css';
+		} else {
+			$source_url = $src_url;
+		}
+		$styles[] = "/*# sourceURL=$source_url */";
+
+		$expected_text = "\n" . implode( "\n", $styles ) . "\n";
+		$this->assertSame( $expected_text, $processor->get_modifiable_text() );
+
+		$this->assertFalse( $processor->next_tag() );
+	}
+
+	/**
+	 * Data provider for test_wp_maybe_inline_styles.
+	 *
+	 * @see self::test_wp_maybe_inline_styles()
+	 * @return array<string, array{additional_inline_style: string|null}>
+	 */
+	public function data_provider_test_wp_maybe_inline_styles(): array {
+		return array(
+			'without_additional_inline_styles' => array(
+				'additional_inline_style' => null,
+			),
+			'with_additional_inline_styles'    => array(
+				'additional_inline_style' => '/* additional inline style */',
+			),
+		);
 	}
 
 	/**
