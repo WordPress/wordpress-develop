@@ -73,6 +73,23 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63854
+	 *
+	 * @covers WP_HTML_Tag_Processor::__construct
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::__construct
+	 */
+	public function test_constructor_validates_html_parameter() {
+		// Test that passing null triggers _doing_it_wrong and sets HTML to empty string.
+		$processor = new WP_HTML_Tag_Processor( null );
+
+		// Verify that the HTML was set to an empty string.
+		$this->assertSame( '', $processor->get_updated_html(), 'HTML should be set to empty string when null is passed' );
+
+		// Verify that next_token() works without errors (indicating the processor is in a valid state).
+		$this->assertFalse( $processor->next_token(), 'next_token() should work without errors when HTML is empty string' );
+	}
+
+	/**
 	 * Data provider. HTML tags which might have a self-closing flag, and an indicator if they do.
 	 *
 	 * @return array[]
