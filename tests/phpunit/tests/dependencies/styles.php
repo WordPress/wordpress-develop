@@ -535,14 +535,22 @@ CSS;
 	 *
 	 * @dataProvider data_provider_test_wp_maybe_inline_styles
 	 */
-	public function test_wp_maybe_inline_styles( ?string $additional_inline_style ) {
-		// TODO: Add test case for limit.
+	public function test_wp_maybe_inline_styles( ?string $additional_inline_style, ?int $styles_inline_size_limit ) {
 		$rel_path = 'css/classic-themes.css';
 		$src_url  = includes_url( $rel_path );
 		$src_path = ABSPATH . WPINC . '/' . $rel_path;
 		$css      = file_get_contents( $src_path );
 		$handle   = 'test-handle';
-		wp_register_style( $handle, $src_url );
+
+		if ( isset( $styles_inline_size_limit ) ) {
+			add_filter(
+				'styles_inline_size_limit',
+				static function () use ( $styles_inline_size_limit ): int {
+					return $styles_inline_size_limit;
+				}
+			);
+		}
+		wp_register_style( $handle, $src_url, array(), null );
 		wp_style_add_data( $handle, 'path', $src_path );
 		if ( isset( $additional_inline_style ) ) {
 			wp_add_inline_style( $handle, $additional_inline_style );
@@ -551,38 +559,53 @@ CSS;
 
 		wp_maybe_inline_styles();
 
-		$this->assertFalse( $GLOBALS['wp_styles']->registered[ $handle ]->src, 'Source of style should be reset to false' );
+		$expected_after = array();
+		if ( ! isset( $styles_inline_size_limit ) || strlen( $css ) <= $styles_inline_size_limit ) {
+			$expected_after[] = $css;
+			$this->assertFalse( wp_styles()->registered[ $handle ]->src, 'Source of style should be reset to false' );
+			$this->assertArrayHasKey( 'inlined_src', wp_styles()->registered[ $handle ]->extra );
+			$this->assertSame( $src_url, wp_styles()->registered[ $handle ]->extra['inlined_src'] );
+		} else {
+			$this->assertArrayNotHasKey( 'inlined_src', wp_styles()->registered[ $handle ]->extra );
+		}
 
-		$expected_after   = array();
-		$expected_after[] = $css;
 		if ( isset( $additional_inline_style ) ) {
 			$expected_after[] = $additional_inline_style;
 		}
-		$this->assertSameSets( $GLOBALS['wp_styles']->registered[ $handle ]->extra['after'], $expected_after, 'Source of style should set to after property' );
-		$this->assertArrayHasKey( 'inlined_src', $GLOBALS['wp_styles']->registered[ $handle ]->extra );
-		$this->assertSame( $src_url, $GLOBALS['wp_styles']->registered[ $handle ]->extra['inlined_src'] );
+
+		$after = wp_styles()->get_data( $handle, 'after' );
+		if ( false === $after ) {
+			$after = array();
+		}
+		$this->assertSameSets( $after, $expected_after, 'Source of style should set to after property' );
 
 		$printed_styles = get_echo( 'wp_print_styles', array( $handle ) );
 		$processor      = new WP_HTML_Tag_Processor( $printed_styles );
 
-		$this->assertTrue( $processor->next_tag() );
-		$this->assertSame( 'STYLE', $processor->get_tag() );
-		$this->assertSame( $handle . '-inline-css', $processor->get_attribute( 'id' ) );
-		$this->assertSame( 'text/css', $processor->get_attribute( 'type' ) );
-		$styles = array(
-			$css,
-		);
-
-		if ( isset( $additional_inline_style ) ) {
-			$styles[]   = $additional_inline_style;
-			$source_url = $handle . '-inline-css';
-		} else {
-			$source_url = $src_url;
+		if ( isset( $styles_inline_size_limit ) && strlen( $css ) > $styles_inline_size_limit ) {
+			$this->assertTrue( $processor->next_tag() );
+			$this->assertSame( 'LINK', $processor->get_tag() );
+			$this->assertSame( 'stylesheet', $processor->get_attribute( 'rel' ) );
+			$this->assertSame( $src_url, $processor->get_attribute( 'href' ) );
 		}
-		$styles[] = "/*# sourceURL=$source_url */";
 
-		$expected_text = "\n" . implode( "\n", $styles ) . "\n";
-		$this->assertSame( $expected_text, $processor->get_modifiable_text() );
+		if ( count( $expected_after ) > 0 ) {
+			$this->assertTrue( $processor->next_tag() );
+			$this->assertSame( 'STYLE', $processor->get_tag() );
+			$this->assertSame( $handle . '-inline-css', $processor->get_attribute( 'id' ) );
+			$this->assertSame( 'text/css', $processor->get_attribute( 'type' ) );
+
+			$expected_inline_styles = $expected_after;
+			if ( isset( $additional_inline_style ) ) {
+				$source_url = $handle . '-inline-css';
+			} else {
+				$source_url = $src_url;
+			}
+			$expected_inline_styles[] = "/*# sourceURL=$source_url */";
+
+			$expected_text = "\n" . implode( "\n", $expected_inline_styles ) . "\n";
+			$this->assertSame( $expected_text, $processor->get_modifiable_text() );
+		}
 
 		$this->assertFalse( $processor->next_tag() );
 	}
@@ -591,15 +614,25 @@ CSS;
 	 * Data provider for test_wp_maybe_inline_styles.
 	 *
 	 * @see self::test_wp_maybe_inline_styles()
-	 * @return array<string, array{additional_inline_style: string|null}>
+	 * @return array<string, array{additional_inline_style: string|null, styles_inline_size_limit: int|null}>
 	 */
 	public function data_provider_test_wp_maybe_inline_styles(): array {
 		return array(
-			'without_additional_inline_styles' => array(
-				'additional_inline_style' => null,
+			'regular_limit_without_additional_inline_styles' => array(
+				'additional_inline_style'  => null,
+				'styles_inline_size_limit' => null,
 			),
-			'with_additional_inline_styles'    => array(
-				'additional_inline_style' => '/* additional inline style */',
+			'regular_limit_with_additional_inline_style' => array(
+				'additional_inline_style'  => '/* additional inline style */',
+				'styles_inline_size_limit' => null,
+			),
+			'zero_limit_without_additional_inline_style' => array(
+				'additional_inline_style'  => null,
+				'styles_inline_size_limit' => 0,
+			),
+			'zero_limit_with_additional_inline_style'    => array(
+				'additional_inline_style'  => '/* additional inline style */',
+				'styles_inline_size_limit' => 0,
 			),
 		);
 	}
