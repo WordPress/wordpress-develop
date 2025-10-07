@@ -776,6 +776,7 @@ CSS;
  * preview.
  *
  * @since Twenty Fifteen 1.0
+ * @since Twenty Fifteen 4.1 Added `wp_print_inline_script_tag()` support.
  */
 function twentyfifteen_color_scheme_css_template() {
 	$colors = array(
@@ -792,10 +793,19 @@ function twentyfifteen_color_scheme_css_template() {
 		'secondary_sidebar_textcolor' => '{{ data.secondary_sidebar_textcolor }}',
 		'meta_box_background_color'   => '{{ data.meta_box_background_color }}',
 	);
-	?>
-	<script type="text/html" id="tmpl-twentyfifteen-color-scheme">
-		<?php echo twentyfifteen_get_color_scheme_css( $colors ); ?>
-	</script>
-	<?php
+
+	$css = twentyfifteen_get_color_scheme_css( $colors );
+
+	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+		wp_print_inline_script_tag(
+			$css . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ),
+			array(
+				'type' => 'text/html',
+				'id'   => 'tmpl-twentyfifteen-color-scheme',
+			)
+		);
+	} else {
+		echo '<script type=\"text/html\" id=\"tmpl-twentyfifteen-color-scheme">' . $css . '</script>';
+	}
 }
 add_action( 'customize_controls_print_footer_scripts', 'twentyfifteen_color_scheme_css_template' );

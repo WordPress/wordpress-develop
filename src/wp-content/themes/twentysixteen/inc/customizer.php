@@ -838,6 +838,7 @@ CSS;
  * Customizer preview.
  *
  * @since Twenty Sixteen 1.0
+ * @since Twenty Sixteen 4.1 Added `wp_print_inline_script_tag()` support.
  */
 function twentysixteen_color_scheme_css_template() {
 	$colors = array(
@@ -848,11 +849,20 @@ function twentysixteen_color_scheme_css_template() {
 		'secondary_text_color'  => '{{ data.secondary_text_color }}',
 		'border_color'          => '{{ data.border_color }}',
 	);
-	?>
-	<script type="text/html" id="tmpl-twentysixteen-color-scheme">
-		<?php echo twentysixteen_get_color_scheme_css( $colors ); ?>
-	</script>
-	<?php
+
+	$css = twentysixteen_get_color_scheme_css( $colors );
+
+	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+		wp_print_inline_script_tag(
+			$css . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ),
+			array(
+				'type' => 'text/html',
+				'id'   => 'tmpl-twentysixteen-color-scheme',
+			)
+		);
+	} else {
+		echo '<script type="text/html" id="tmpl-twentysixteen-color-scheme">' . $css . '</script>';
+	}
 }
 add_action( 'customize_controls_print_footer_scripts', 'twentysixteen_color_scheme_css_template' );
 
