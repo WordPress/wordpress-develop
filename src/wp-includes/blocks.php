@@ -1869,8 +1869,12 @@ function resolve_pattern_blocks( $blocks ) {
 				++$i;
 				continue;
 			}
-
 			$blocks_to_insert   = parse_blocks( $pattern['content'] );
+
+			// Add the pattern name to make this a pattern instance in the editor.
+			if( count( $blocks_to_insert ) === 2 ) { // should be 1 but we seem to have an empty block always
+				$blocks_to_insert[0]['attrs']['metadata'] = [ 'patternName' => $slug, 'name' => $pattern['title'] ];
+			}
 			$seen_refs[ $slug ] = true;
 			$prev_inner_content = $inner_content;
 			$inner_content      = null;
