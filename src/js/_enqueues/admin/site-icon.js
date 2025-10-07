@@ -118,8 +118,13 @@
 			var attachment = frame.state().get( 'selection' ).first();
 
 			if (
-				attachment.attributes.height === $el.data( 'size' ) &&
-				$el.data( 'size' ) === attachment.attributes.width
+			    (
+			        (attachment.attributes.width === attachment.attributes.height) ||
+			        (
+			            attachment.attributes.width === $el.data('size') &&
+			            attachment.attributes.height === $el.data('size')
+			        )
+			    )
 			) {
 				switchToUpdate( attachment.attributes );
 				frame.close();
