@@ -363,17 +363,13 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * @return void
 	 */
 	public function the_script() {
-		$rel_path = 'assets/js/dark-mode-toggler.js';
-		$path     = trailingslashit( get_template_directory() ) . $rel_path;
-
+		$path = 'assets/js/dark-mode-toggler.js';
+		$js   = rtrim( trailingslashit( get_template_directory() ) . $path );
+		$js  .= "\n//# sourceURL=" . trailingslashit( get_template_directory_uri() ) . $path;
 		if ( function_exists( 'wp_print_inline_script_tag' ) ) {
-			$url = trailingslashit( get_template_directory_uri() ) . $rel_path;
-			wp_print_inline_script_tag(
-				file_get_contents( $path ) .
-				"\n//# sourceURL=" . $url
-			);
+			wp_print_inline_script_tag( $js );
 		} else {
-			printf( "<script>%s</script>\n", file_get_contents( $path ) );
+			printf( "<script>%s</script>\n", $js );
 		}
 	}
 

@@ -74,10 +74,11 @@ add_action( 'wp_head', 'twenty_twenty_one_pingback_header' );
  * @return void
  */
 function twenty_twenty_one_supports_js() {
-	$js = "document.body.classList.remove('no-js');";
+	$js  = "document.body.classList.remove('no-js');";
+	$js .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
-		wp_print_inline_script_tag( $js . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
+		wp_print_inline_script_tag( $js );
 	} else {
 		echo "<script>$js</script>\n";
 	}

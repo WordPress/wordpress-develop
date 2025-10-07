@@ -630,14 +630,15 @@ function twentytwentyone_the_html_classes() {
  * @return void
  */
 function twentytwentyone_add_ie_class() {
-	$script = "
+	$script  = "
 		if ( -1 !== navigator.userAgent.indexOf('MSIE') || -1 !== navigator.appVersion.indexOf('Trident/') ) {
 			document.body.classList.add('is-IE');
 		}
 	";
+	$script .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
 
 	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
-		wp_print_inline_script_tag( $script . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
+		wp_print_inline_script_tag( $script );
 	} else {
 		echo "<script>$script</script>\n";
 	}
