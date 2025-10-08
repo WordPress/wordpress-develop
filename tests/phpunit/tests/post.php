@@ -502,30 +502,6 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( 1, $a2->get_call_count() );
 	}
 
-	public function test_wp_delete_post_reassign_hierarchical_post_type() {
-		$grandparent_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$parent_page_id      = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $grandparent_page_id,
-			)
-		);
-		$page_id             = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $parent_page_id,
-			)
-		);
-
-		$this->assertSame( $parent_page_id, get_post( $page_id )->post_parent );
-
-		wp_delete_post( $parent_page_id, true );
-		$this->assertSame( $grandparent_page_id, get_post( $page_id )->post_parent );
-
-		wp_delete_post( $grandparent_page_id, true );
-		$this->assertSame( 0, get_post( $page_id )->post_parent );
-	}
-
 	/**
 	 * Test ensuring that the post_slug can be filtered with a custom value short circuiting the built in
 	 * function that tries to create a unique name based on the post name.

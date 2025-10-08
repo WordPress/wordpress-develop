@@ -3428,6 +3428,45 @@ mockedApiResponse.Schema = {
                                 ],
                                 "oneOf": [
                                     {
+                                        "title": "Flip",
+                                        "properties": {
+                                            "type": {
+                                                "description": "Flip type.",
+                                                "type": "string",
+                                                "enum": [
+                                                    "flip"
+                                                ]
+                                            },
+                                            "args": {
+                                                "description": "Flip arguments.",
+                                                "type": "object",
+                                                "required": [
+                                                    "flip"
+                                                ],
+                                                "properties": {
+                                                    "flip": {
+                                                        "description": "Flip direction.",
+                                                        "type": "object",
+                                                        "required": [
+                                                            "horizontal",
+                                                            "vertical"
+                                                        ],
+                                                        "properties": {
+                                                            "horizontal": {
+                                                                "description": "Whether to flip in the horizontal direction.",
+                                                                "type": "boolean"
+                                                            },
+                                                            "vertical": {
+                                                                "description": "Whether to flip in the vertical direction.",
+                                                                "type": "boolean"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
                                         "title": "Rotation",
                                         "properties": {
                                             "type": {
@@ -3531,6 +3570,87 @@ mockedApiResponse.Schema = {
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100,
+                            "required": false
+                        },
+                        "caption": {
+                            "description": "The attachment caption.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Caption for the attachment, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML caption for the attachment, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "description": {
+                            "description": "The attachment description.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Description for the attachment, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML description for the attachment, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "post": {
+                            "description": "The ID for the associated post of the attachment.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "alt_text": {
+                            "description": "Alternative text to display when attachment is not displayed.",
+                            "type": "string",
                             "required": false
                         }
                     }
