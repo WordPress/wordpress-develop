@@ -3748,7 +3748,7 @@ function _wp_customize_loader_settings() {
 		),
 	);
 
-	$script = 'var _wpCustomizeLoaderSettings = ' . wp_json_encode( $settings ) . ';';
+	$script = 'var _wpCustomizeLoaderSettings = ' . wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';';
 
 	$wp_scripts = wp_scripts();
 	$data       = $wp_scripts->get_data( 'customize-loader', 'data' );
@@ -3815,7 +3815,7 @@ function wp_customize_support_script() {
 		}());
 	</script>
 	<?php
-	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
 }
 
 /**
