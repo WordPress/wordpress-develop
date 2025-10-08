@@ -3757,7 +3757,16 @@ class WP_HTML_Tag_Processor {
 			$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 				$this->text_starts_at,
 				$this->text_length,
-				htmlspecialchars( $plaintext_content, ENT_QUOTES | ENT_HTML5 )
+				strtr(
+					$plaintext_content,
+					array(
+						'<' => '&lt;',
+						'>' => '&gt;',
+						'&' => '&amp;',
+						'"' => '&quot;',
+						"'" => '&apos;',
+					)
+				)
 			);
 
 			return true;
@@ -3957,7 +3966,16 @@ class WP_HTML_Tag_Processor {
 			 */
 			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes(), true )
 				? esc_url( $value )
-				: htmlspecialchars( $value, ENT_QUOTES | ENT_HTML5 );
+				: strtr(
+					$value,
+					array(
+						'<' => '&lt;',
+						'>' => '&gt;',
+						'&' => '&amp;',
+						'"' => '&quot;',
+						"'" => '&apos;',
+					)
+				);
 
 			// If the escaping functions wiped out the update, reject it and indicate it was rejected.
 			if ( '' === $escaped_new_value && '' !== $value ) {
