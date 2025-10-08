@@ -1094,30 +1094,30 @@ JS;
 			$fetchpriority = 'auto';
 		}
 
-		static $priority_mapping = array(
-			'low'  => 0,
-			'auto' => 1,
-			'high' => 2,
+		static $priorities   = array(
+			'low',
+			'auto',
+			'high',
 		);
+		$high_priority_index = count( $priorities ) - 1;
 
-		$highest_priority_index = $priority_mapping[ $fetchpriority ];
-
-		foreach ( $this->get_dependents( $handle ) as $dependent_handle ) {
-			$dependent_priority = $this->get_highest_fetchpriority_with_dependents( $dependent_handle, $checked );
-			if ( is_string( $dependent_priority ) ) {
-				$highest_priority_index = max(
-					$highest_priority_index,
-					$priority_mapping[ $dependent_priority ]
-				);
+		$highest_priority_index = (int) array_search( $fetchpriority, $priorities, true );
+		if ( $highest_priority_index !== $high_priority_index ) {
+			foreach ( $this->get_dependents( $handle ) as $dependent_handle ) {
+				$dependent_priority = $this->get_highest_fetchpriority_with_dependents( $dependent_handle, $checked );
+				if ( is_string( $dependent_priority ) ) {
+					$highest_priority_index = max(
+						$highest_priority_index,
+						(int) array_search( $dependent_priority, $priorities, true )
+					);
+					if ( $highest_priority_index === $high_priority_index ) {
+						break;
+					}
+				}
 			}
 		}
 
-		$highest_priority = array_search( $highest_priority_index, $priority_mapping, true );
-		if ( is_string( $highest_priority ) ) {
-			return $highest_priority;
-		}
-
-		return null;
+		return $priorities[ $highest_priority_index ];
 	}
 
 	/**

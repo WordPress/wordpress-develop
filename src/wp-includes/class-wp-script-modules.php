@@ -293,11 +293,12 @@ class WP_Script_Modules {
 	 * @return string Highest fetch priority for the provided script module IDs.
 	 */
 	private function get_highest_fetchpriority( array $ids ): string {
-		static $priorities = array(
+		static $priorities   = array(
 			'low',
 			'auto',
 			'high',
 		);
+		$high_priority_index = count( $priorities ) - 1;
 
 		$highest_priority_index = 0;
 		foreach ( $ids as $id ) {
@@ -306,7 +307,7 @@ class WP_Script_Modules {
 					$highest_priority_index,
 					array_search( $this->registered[ $id ]['fetchpriority'], $priorities, true )
 				);
-				if ( count( $priorities ) === $highest_priority_index + 1 ) {
+				if ( $high_priority_index === $highest_priority_index ) {
 					break;
 				}
 			}
