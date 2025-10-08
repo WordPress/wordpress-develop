@@ -996,7 +996,12 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * Test adding capabilities, roles, and allcaps manually to a user.
 	 *
 	 * @ticket 58001
+	 *
 	 * @dataProvider data_add_user_properties_manually
+	 *
+	 * @param string $property_name  The property name to set.
+	 * @param array  $property_value The property value to set.
+	 * @param bool   $check_null     Whether to check that the property is null after unsetting it.
 	 */
 	public function test_add_user_properties_manually( $property_name, $property_value, $check_null ) {
 		$id                     = self::factory()->user->create();
