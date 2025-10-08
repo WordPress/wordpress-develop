@@ -2682,4 +2682,149 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 		$this->assertTrue( $result );
 	}
+
+	/**
+	 * Tests that the attachment fields caption, description, and title, post and alt_text are updated correctly.
+	 * @ticket 64035
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_updates_attachment_fields() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		// In order to test the edit endpoint editable fields, we need to create a new attachment.
+		$params = array(
+			'src'         => wp_get_attachment_image_url( $attachment, 'full' ),
+			'modifiers'   => array(
+				array(
+					'type' => 'crop',
+					'args' => array(
+						'left'   => 10,
+						'top'    => 10,
+						'width'  => 80,
+						'height' => 80,
+					),
+				),
+			),
+			'caption'     => 'Test Caption',
+			'description' => 'Test Description',
+			'title'       => 'Test Title',
+			'post'        => 1,
+			'alt_text'    => 'Test Alt Text',
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+
+		// The edit endpoint creates a new attachment, so we expect a 201 status.
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data              = $response->get_data();
+		$new_attachment_id = $data['id'];
+
+		$updated_attachment = get_post( $new_attachment_id );
+
+		$this->assertSame( 'Test Title', $updated_attachment->post_title, 'Title of the updated attachment is not identical.' );
+
+		$this->assertSame( 'Test Caption', $updated_attachment->post_excerpt, 'Caption of the updated attachment is not identical.' );
+
+		$this->assertSame( 'Test Description', $updated_attachment->post_content, 'Description of the updated attachment is not identical.' );
+
+		$this->assertSame( 1, $updated_attachment->post_parent, 'Post parent of the updated attachment is not identical.' );
+
+		$this->assertSame( 'Test Alt Text', get_post_meta( $new_attachment_id, '_wp_attachment_image_alt', true ), 'Alt text of the updated attachment is not identical.' );
+	}
+
+	/**
+	 * Tests that the image is flipped correctly vertically and horizontally.
+	 *
+	 * @ticket 64035
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_vertical_and_horizontal_flip() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor();
+		WP_Image_Editor_Mock::$edit_return['flip'] = new WP_Error();
+
+		$params = array(
+			'flip' => array(
+				'vertical'   => true,
+				'horizontal' => true,
+			),
+			'src'  => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_flip_failed', $response, 500 );
+
+		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['flip'] );
+		// The controller converts the integer values to booleans: 0 !== (int) 1 = true.
+		$this->assertSame( array( true, true ), WP_Image_Editor_Mock::$spy['flip'][0], 'Vertical and horizontal flip of the image is not identical.' );
+	}
+
+	/**
+	 * Tests that the image is flipped correctly vertically only.
+	 *
+	 * @ticket 64035
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_vertical_flip_with_horizontal_false() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor();
+		WP_Image_Editor_Mock::$edit_return['flip'] = new WP_Error();
+
+		$params = array(
+			'flip' => array(
+				'vertical'   => true,
+				'horizontal' => false,
+			),
+			'src'  => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_flip_failed', $response, 500 );
+
+		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['flip'] );
+		// The controller converts the integer values to booleans: 0 !== (int) 1 = true.
+		$this->assertSame( array( true, false ), WP_Image_Editor_Mock::$spy['flip'][0], 'Vertical flip of the image is not identical.' );
+	}
+
+	/**
+	 * Tests that the image is flipped correctly with only vertical flip in arguments.
+	 *
+	 * @ticket 64035
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_vertical_flip_only() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->setup_mock_editor();
+		WP_Image_Editor_Mock::$edit_return['flip'] = new WP_Error();
+
+		$params = array(
+			'flip' => array(
+				'vertical' => true,
+			),
+			'src'  => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_image_flip_failed', $response, 500 );
+
+		$this->assertCount( 1, WP_Image_Editor_Mock::$spy['flip'] );
+		// The controller converts the integer values to booleans: 0 !== (int) 1 = true.
+		$this->assertSame( array( true, false ), WP_Image_Editor_Mock::$spy['flip'][0], 'Vertical flip of the image is not identical.' );
+	}
 }
