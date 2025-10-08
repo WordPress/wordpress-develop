@@ -227,6 +227,24 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
+      - name: Set up Node.js for themes needing minification
+        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: src/wp-content/themes/${{ matrix.theme }}/package-lock.json
+
+      - name: Install npm dependencies
+        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        run: npm ci
+        working-directory: src/wp-content/themes/${{ matrix.theme }}
+
+      - name: Build theme assets
+        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        run: npm run build
+        working-directory: src/wp-content/themes/${{ matrix.theme }}
+
       - name: Upload theme ZIP as an artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
