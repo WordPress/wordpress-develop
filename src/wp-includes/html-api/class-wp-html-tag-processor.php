@@ -3884,7 +3884,8 @@ class WP_HTML_Tag_Processor {
 	 *  - When `true` is passed as the value, then only the attribute name is added to the tag.
 	 *  - When `false` is passed, the attribute gets removed if it existed before.
 	 *
-	 * For string attributes, the value is escaped using the `esc_attr` function.
+	 * HTML escaping will be performed for string attribute values. The input value should
+	 * not be unescaped.
 	 *
 	 * @since 6.2.0
 	 * @since 6.2.1 Fix: Only create a single update for multiple calls with case-variant attribute names.
