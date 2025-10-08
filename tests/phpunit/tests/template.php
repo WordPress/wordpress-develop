@@ -494,6 +494,45 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertSame( $new_theme->get_stylesheet_directory() . '/index.php', locate_template( $template_names ), 'Incorrect index template found in theme after switch.' );
 	}
 
+	/**
+	 * Tests that `locate_template()` uses the current theme even after switching the theme.
+	 *
+	 * @dataProvider data_locate_template_only_loads_theme_files
+	 *
+	 * @ticket 58905
+	 *
+	 * @covers ::locate_template
+	 *
+	 * @param string $template_name  Template name to locate.
+	 * @param bool   $located_empty  Whether the located template should be empty.
+	 */
+	public function test_locate_template_only_loads_theme_files( $template_name, $located_empty ) {
+		$located_return = locate_template( $template_name );
+		$this->assertSame( empty( $located_return ), $located_empty );
+	}
+
+	/**
+	 * Data provider for `test_locate_template_only_loads_theme_files()`.
+	 *
+	 * @return array
+	 */
+	public function data_locate_template_only_loads_theme_files() {
+		return array(
+			'file that is in theme compat so will always return' => array(
+				'header.php',
+				false,
+			),
+			'something that does not exist'    => array(
+				'the_limit_according_to_cady_heron.php',
+				true,
+			),
+			'file that is not in a theme path' => array(
+				WP_PLUGIN_DIR . '/hello.php',
+				true,
+			),
+		);
+	}
+
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
 		$this->go_to( $url );
 		$hierarchy = $this->get_template_hierarchy();
