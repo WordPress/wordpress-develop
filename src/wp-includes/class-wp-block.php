@@ -593,6 +593,41 @@ class WP_Block {
 			$post = $global_post;
 		}
 
+		if ( ( ! empty( $this->block_type->script_handles ) ) ) {
+			foreach ( $this->block_type->script_handles as $script_handle ) {
+				wp_enqueue_script( $script_handle );
+			}
+		}
+
+		if ( ! empty( $this->block_type->view_script_handles ) ) {
+			foreach ( $this->block_type->view_script_handles as $view_script_handle ) {
+				wp_enqueue_script( $view_script_handle );
+			}
+		}
+
+		if ( ! empty( $this->block_type->view_script_module_ids ) ) {
+			foreach ( $this->block_type->view_script_module_ids as $view_script_module_id ) {
+				wp_enqueue_script_module( $view_script_module_id );
+			}
+		}
+
+		/*
+		 * For Core blocks, these styles are only enqueued if `wp_should_load_separate_core_block_assets()` returns
+		 * true. Otherwise these `wp_enqueue_style()` calls will not have any effect, as the Core blocks are relying on
+		 * the combined 'wp-block-library' stylesheet instead, which is unconditionally enqueued.
+		 */
+		if ( ( ! empty( $this->block_type->style_handles ) ) ) {
+			foreach ( $this->block_type->style_handles as $style_handle ) {
+				wp_enqueue_style( $style_handle );
+			}
+		}
+
+		if ( ( ! empty( $this->block_type->view_style_handles ) ) ) {
+			foreach ( $this->block_type->view_style_handles as $view_style_handle ) {
+				wp_enqueue_style( $view_style_handle );
+			}
+		}
+
 		/**
 		 * Filters the content of a single block.
 		 *
@@ -624,68 +659,6 @@ class WP_Block {
 			// The root interactive block has finished rendering. Time to process directives.
 			$block_content          = wp_interactivity_process_directives( $block_content );
 			$root_interactive_block = null;
-		}
-
-		/*
-		 * Proceed with enqueueing scripts and styles only if the block rendered any tags. A block may commonly not
-		 * render anything. Some examples:
-		 *
-		 *  - Featured Image block on a post without a featured image.
-		 *  - Comments block on a post with comments disabled.
-		 *  - An arbitrary block which has a `render_block` filter that returns an empty string (or an HTML comment).
-		 *
-		 * In all these cases, adding scripts and styles will be a waste since they will not be used on the page.
-		 */
-		if ( trim( $block_content ) === '' ) {
-			$enqueue = false;
-		} else {
-			$processor = new WP_HTML_Tag_Processor( $block_content );
-			$enqueue   = $processor->next_tag();
-		}
-
-		/**
-		 * Filters whether to enqueue assets for a block which has no rendered content.
-		 *
-		 * @since 6.9.0
-		 *
-		 * @param bool   $enqueue    Whether to enqueue assets.
-		 * @param string $block_name Block name.
-		 */
-		if ( (bool) apply_filters( 'enqueue_empty_block_content_assets', $enqueue, $this->name ) ) {
-			if ( ( ! empty( $this->block_type->script_handles ) ) ) {
-				foreach ( $this->block_type->script_handles as $script_handle ) {
-					wp_enqueue_script( $script_handle );
-				}
-			}
-
-			if ( ! empty( $this->block_type->view_script_handles ) ) {
-				foreach ( $this->block_type->view_script_handles as $view_script_handle ) {
-					wp_enqueue_script( $view_script_handle );
-				}
-			}
-
-			if ( ! empty( $this->block_type->view_script_module_ids ) ) {
-				foreach ( $this->block_type->view_script_module_ids as $view_script_module_id ) {
-					wp_enqueue_script_module( $view_script_module_id );
-				}
-			}
-
-			/*
-			 * For Core blocks, these styles are only enqueued if `wp_should_load_separate_core_block_assets()` returns
-			 * true. Otherwise these `wp_enqueue_style()` calls will not have any effect, as the Core blocks are relying on
-			 * the combined 'wp-block-library' stylesheet instead, which is unconditionally enqueued.
-			 */
-			if ( ( ! empty( $this->block_type->style_handles ) ) ) {
-				foreach ( $this->block_type->style_handles as $style_handle ) {
-					wp_enqueue_style( $style_handle );
-				}
-			}
-
-			if ( ( ! empty( $this->block_type->view_style_handles ) ) ) {
-				foreach ( $this->block_type->view_style_handles as $view_style_handle ) {
-					wp_enqueue_style( $view_style_handle );
-				}
-			}
 		}
 
 		return $block_content;
