@@ -3880,12 +3880,21 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
-	 * For boolean attributes special handling is provided:
+	 * This function handles all necessary HTML encoding. Provide normal, unescaped string values.
+	 * The HTML API will encode the strings appropriately so that the borwser interprets them to
+	 * as then intended value.
+	 *
+	 * Example:
+	 *
+	 *     // Renders “Eggs & Milk” in a browser, encoded as `Eggs &amp; Milk`.
+	 *     $processor->set_attribute( 'title', 'Eggs & Milk' );
+	 *
+	 *     // Renders “Eggs &amp; Milk” in a browser, encoded as `Eggs &amp;amp; Milk`.
+	 *     $processor->set_attribute( 'title', 'Eggs &amp; Milk' );
+	 *
+	 * Special handling is provided for boolean attribute values:
 	 *  - When `true` is passed as the value, then only the attribute name is added to the tag.
 	 *  - When `false` is passed, the attribute gets removed if it existed before.
-	 *
-	 * HTML escaping will be performed for string attribute values. The input value should
-	 * not be unescaped.
 	 *
 	 * @since 6.2.0
 	 * @since 6.2.1 Fix: Only create a single update for multiple calls with case-variant attribute names.
@@ -3960,8 +3969,8 @@ class WP_HTML_Tag_Processor {
 		} else {
 			$comparable_name = strtolower( $name );
 
-			/*
-			 * Escape URL attributes.
+			/**
+			 * Escape attribute values appropriately.
 			 *
 			 * @see https://html.spec.whatwg.org/#attributes-3
 			 */
