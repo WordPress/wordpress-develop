@@ -1632,7 +1632,7 @@ HTML;
 		$register_and_enqueue( 'm', '/m.js', array( 'j', 'l' ), '1.0.0' );
 		$register_and_enqueue( 'k', '/k.js', array( 'j' ), '1.0.0' );
 		$register_and_enqueue( 'l', '/l.js', array( 'k' ), '1.0.0' );
-		$register_and_enqueue( 'j', '/j.js', array(), '1.0.0', );
+		$register_and_enqueue( 'j', '/j.js', array(), '1.0.0' );
 
 		$actual = array(
 			'preload_links' => $this->get_preloaded_script_modules(),
