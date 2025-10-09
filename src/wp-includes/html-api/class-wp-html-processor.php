@@ -5292,7 +5292,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * This function handles all necessary HTML encoding. Provide normal, unescaped string values.
 	 * The HTML API will encode the strings appropriately so that the browser will interpret them
-	 * as then intended value.
+	 * as the intended value.
 	 *
 	 * Example:
 	 *

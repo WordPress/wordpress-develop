@@ -3746,10 +3746,22 @@ class WP_HTML_Tag_Processor {
 	 *         $processor->set_modifiable_text( str_replace( ':)', '🙂', $chunk ) );
 	 *     }
 	 *
+	 * This function handles all necessary HTML encoding. Provide normal, unescaped string values.
+	 * The HTML API will encode the strings appropriately so that the browser will interpret them
+	 * as the intended value.
+	 *
+	 * Example:
+	 *
+	 *     // Renders as “Eggs & Milk” in a browser, encoded as `<p>Eggs &amp; Milk</p>`.
+	 *     $processor->set_modifiable_text( 'Eggs & Milk' );
+	 *
+	 *     // Renders as “Eggs &amp; Milk” in a browser, encoded as `<p>Eggs &amp;amp; Milk</p>`.
+	 *     $processor->set_modifiable_text( 'Eggs &amp; Milk' );
+	 *
 	 * @since 6.7.0
+	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
 	 *
 	 * @param string $plaintext_content New text content to represent in the matched token.
-	 *
 	 * @return bool Whether the text was able to update.
 	 */
 	public function set_modifiable_text( string $plaintext_content ): bool {
@@ -3882,7 +3894,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * This function handles all necessary HTML encoding. Provide normal, unescaped string values.
 	 * The HTML API will encode the strings appropriately so that the browser will interpret them
-	 * as then intended value.
+	 * as the intended value.
 	 *
 	 * Example:
 	 *
