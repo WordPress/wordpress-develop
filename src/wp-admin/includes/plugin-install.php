@@ -1066,7 +1066,7 @@ function wp_get_plugin_preview_button( $data ) {
 	if ( 'latest_installed' === $status['status'] || 'newer_installed' === $status['status'] ) {
 		return '';
 	}
-	
+
 	$button = sprintf(
 		'<a class="preview-btn button" href="%s" target="_blank" aria-label="%s" role="button">%s</a>',
 		esc_url( $data->preview_link ),
