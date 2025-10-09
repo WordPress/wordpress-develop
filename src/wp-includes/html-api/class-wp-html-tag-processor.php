@@ -3881,16 +3881,22 @@ class WP_HTML_Tag_Processor {
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
 	 * This function handles all necessary HTML encoding. Provide normal, unescaped string values.
-	 * The HTML API will encode the strings appropriately so that the borwser interprets them to
+	 * The HTML API will encode the strings appropriately so that the browser will interpret them
 	 * as then intended value.
 	 *
 	 * Example:
 	 *
-	 *     // Renders “Eggs & Milk” in a browser, encoded as `Eggs &amp; Milk`.
+	 *     // Renders “Eggs & Milk” in a browser, encoded as `<abbr title="Eggs &amp; Milk">`.
 	 *     $processor->set_attribute( 'title', 'Eggs & Milk' );
 	 *
-	 *     // Renders “Eggs &amp; Milk” in a browser, encoded as `Eggs &amp;amp; Milk`.
+	 *     // Renders “Eggs &amp; Milk” in a browser, encoded as `<abbr title="Eggs &amp;amp; Milk">`.
 	 *     $processor->set_attribute( 'title', 'Eggs &amp; Milk' );
+	 *
+	 *     // Renders `true` as `<abbr title>`.
+	 *     $processor->set_attribute( 'title', true );
+	 *
+	 *     // Renders without the attribute for `false` as `<abbr>`.
+	 *     $processor->set_attribute( 'title', false );
 	 *
 	 * Special handling is provided for boolean attribute values:
 	 *  - When `true` is passed as the value, then only the attribute name is added to the tag.
@@ -3898,6 +3904,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @since 6.2.0
 	 * @since 6.2.1 Fix: Only create a single update for multiple calls with case-variant attribute names.
+	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
 	 *
 	 * @param string      $name  The attribute name to target.
 	 * @param string|bool $value The new attribute value.
