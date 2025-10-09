@@ -1330,4 +1330,15 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertWPError( $unscheduled );
 		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
 	}
+
+	/**
+	 * @ticket 63858
+	 *
+	 * @covers ::wp_cron
+	 */
+	public function test_wp_cron() {
+		remove_all_actions( 'shutdown' );
+		wp_cron();
+		$this->assertSame( 10, has_action( 'shutdown', '_wp_cron' ) );
+	}
 }
