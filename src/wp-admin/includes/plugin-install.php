@@ -880,6 +880,10 @@ function install_plugin_information() {
 			$button = str_replace( 'class="', 'id="plugin_install_from_iframe" class="', $button );
 		}
 
+		if ( ! empty( $api->preview_link ) ) {
+			$button .= wp_get_plugin_preview_button( $api );
+		}
+
 		echo wp_kses_post( $button );
 	}
 	echo "</div>\n";
@@ -1033,6 +1037,43 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
 				break;
 		}
 	}
+
+	return $button;
+}
+
+/**
+ * Generates the markup for the "Live Preview" button on the plugin list.
+ *
+ * This button links to the plugin's live preview, if available. The button
+ * is only displayed when the plugin is not already installed.
+ *
+ * @since x.x.x
+ *
+ * @param array|object $data           {
+ *     An array or object of plugin data. Can be retrieved from the API.
+ *
+ *     @type string $preview_link The plugin preview link.
+ *     @type string $name         The plugin name.
+ * }
+ * @return string HTML markup for the Live Preview button. Returns an empty string
+ *                if the plugin is already installed.
+ */
+function wp_get_plugin_preview_button( $data ) {
+	$data   = (object) $data;
+
+	$status = install_plugin_install_status( $data );
+
+	if ( 'latest_installed' === $status['status'] || 'newer_installed' === $status['status'] ) {
+		return '';
+	}
+	
+	$button = sprintf(
+		'<a class="preview-btn button" href="%s" target="_blank" aria-label="%s" role="button">%s</a>',
+		esc_url( $data->preview_link ),
+		/* translators: %s: Plugin name. */
+		esc_attr( sprintf( _x( 'Preview %s', 'plugin' ), $data->name ) ),
+		_x( 'Live Preview', 'plugin' )
+	);
 
 	return $button;
 }

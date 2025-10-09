@@ -154,6 +154,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			'per_page' => $per_page,
 			// Send the locale to the API so it can provide context-sensitive results.
 			'locale'   => get_user_locale(),
+			// Always get the preview link if it's available.
+			'fields'   => 'preview_link',
 		);
 
 		switch ( $tab ) {
@@ -566,6 +568,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			$action_links = array();
 
 			$action_links[] = wp_get_plugin_action_button( $name, $plugin, $compatible_php, $compatible_wp );
+
+			if ( ! empty( $plugin['preview_link'] ) ) {
+				$action_links[] = wp_get_plugin_preview_button( $plugin );
+			}
 
 			$details_link = self_admin_url(
 				'plugin-install.php?tab=plugin-information&amp;plugin=' . $plugin['slug'] .
