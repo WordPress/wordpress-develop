@@ -985,17 +985,12 @@ function spawn_cron( $gmt_time = 0 ) {
  * @since 2.1.0
  * @since 5.1.0 Return value added to indicate success or failure.
  * @since 5.7.0 Functionality moved to _wp_cron() to which this becomes a wrapper.
+ * @since 6.9.0 The `_wp_cron()` function is moved to the shutdown action to prevent the async loopback request from increasing TTFB.
  *
- * @return false|int|void On success an integer indicating number of events spawned (0 indicates no
- *                        events needed to be spawned), false if spawning fails for one or more events or
- *                        void if the function registered _wp_cron() to run on the action.
+ * @return void The function registered _wp_cron() to run on the shutdown action.
  */
 function wp_cron() {
-	if ( did_action( 'wp_loaded' ) ) {
-		return _wp_cron();
-	}
-
-	add_action( 'wp_loaded', '_wp_cron', 20 );
+	add_action( 'shutdown', '_wp_cron' );
 }
 
 /**
