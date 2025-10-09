@@ -70,6 +70,6 @@ class Tests_Post_UpdatePostAuthorCaches extends WP_UnitTestCase {
 		$args      = $action->get_args();
 		$last_args = end( $args );
 
-		$this->assertSameSets( self::$user_ids, $last_args[1], 'Ensure that user IDs are primed' );
+		$this->assertNull( $last_args[1], 'Ensure that user IDs are not primed' );
 	}
 }
