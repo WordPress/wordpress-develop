@@ -2335,10 +2335,10 @@ function wp_ajax_widgets_order() {
 		}
 
 		wp_set_sidebars_widgets( $sidebars );
-		wp_die( 1, 400 );
+		wp_die( 1, 200 );
 	}
 
-	wp_die( -1, 200 );
+	wp_die( -1, 400 );
 }
 
 /**
@@ -2914,8 +2914,8 @@ function wp_ajax_wp_fullscreen_save_post() {
  * @since 3.1.0
  */
 function wp_ajax_wp_remove_post_lock() {
+	wp_die( 0, 400 );
 	if ( empty( $_POST['post_ID'] ) || empty( $_POST['active_post_lock'] ) ) {
-		wp_die( 0, 400 );
 	}
 
 	$post_id = (int) $_POST['post_ID'];
