@@ -368,24 +368,79 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 * @return array
 	 */
 	public function data_provider_test_render_enqueues_scripts_and_styles(): array {
+		$block_markup = '
+			<!-- wp:static -->
+			<div class="static">
+				<!-- wp:static-child -->
+				<div class="static-child">First child</div>
+				<!-- /wp:static-child -->
+				<!-- wp:dynamic /-->
+				<!-- wp:static-child -->
+				<div class="static-child">Last child</div>
+				<!-- /wp:static-child -->
+			</div>
+			<!-- /wp:static -->
+		';
+
+		// TODO: Add case where a dynamic block renders other blocks?
 		return array(
-			'all_printed'                     => array(
+			'all_printed'                             => array(
 				'set_up'                  => null,
-				'expected_rendered_block' => '<div class="static"><p class="dynamic">Hello World!</p></div>',
-				'expected_styles'         => array( 'static-view-style', 'dynamic-view-style' ),
-				'expected_scripts'        => array( 'static-view-script', 'dynamic-view-script' ),
-				'expected_script_modules' => array( 'static-view-script-module', 'dynamic-view-script-module' ),
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => '
+					<div class="static">
+						<div class="static-child">First child</div>
+						<p class="dynamic">Hello World!</p>
+						<div class="static-child">Last child</div>
+					</div>
+				',
+				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
 			),
-			'dynamic_hidden_scripts_omitted'  => array(
+			'all_printed_with_extra_asset_via_filter' => array(
+				'set_up'                  => static function () {
+					add_filter(
+						'render_block_core/dynamic',
+						static function ( $content ) {
+							wp_enqueue_style( 'dynamic-extra', home_url( '/dynamic-extra.css' ), array(), null );
+							$processor = new WP_HTML_Tag_Processor( $content );
+							if ( $processor->next_tag() ) {
+								$processor->add_class( 'filtered' );
+								$content = $processor->get_updated_html();
+							}
+							return $content;
+						}
+					);
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => '
+					<div class="static">
+						<div class="static-child">First child</div>
+						<p class="dynamic filtered">Hello World!</p>
+						<div class="static-child">Last child</div>
+					</div>
+				',
+				'expected_styles'         => array( 'static-view-style', 'dynamic-extra', 'static-child-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
+			),
+			'dynamic_hidden_assets_omitted'           => array(
 				'set_up'                  => static function () {
 					add_filter( 'render_block_core/dynamic', '__return_empty_string' );
 				},
-				'expected_rendered_block' => '<div class="static"></div>',
-				'expected_styles'         => array( 'static-view-style' ),
-				'expected_scripts'        => array( 'static-view-script' ),
-				'expected_script_modules' => array( 'static-view-script-module' ),
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => '
+					<div class="static">
+						<div class="static-child">First child</div>
+						<div class="static-child">Last child</div>
+					</div>
+				',
+				'expected_styles'         => array( 'static-view-style', 'static-child-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module' ),
 			),
-			'dynamic_hidden_scripts_included' => array(
+			'dynamic_hidden_assets_included'          => array(
 				'set_up'                  => static function () {
 					add_filter( 'render_block_core/dynamic', '__return_empty_string' );
 					add_filter(
@@ -400,39 +455,93 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 						2
 					);
 				},
-				'expected_rendered_block' => '<div class="static"></div>',
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => '
+					<div class="static">
+						<div class="static-child">First child</div>
+						<div class="static-child">Last child</div>
+					</div>
+				',
+				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
+			),
+			'static_hidden_assets_omitted'            => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block_core/static', '__return_empty_string' );
+					add_filter(
+						'render_block_core/dynamic',
+						static function ( $content ) {
+							wp_enqueue_style( 'dynamic-extra', home_url( '/dynamic-extra.css' ), array(), null );
+							return $content;
+						}
+					);
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => '',
+				'expected_styles'         => array(),
+				'expected_scripts'        => array(),
+				'expected_script_modules' => array(),
+			),
+			'static_child_hidden_assets_omitted'      => array(
+				'set_up'                  => static function () {
+					add_filter( 'render_block_core/static-child', '__return_empty_string' );
+				},
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => '
+					<div class="static">
+						<p class="dynamic">Hello World!</p>
+					</div>
+				',
 				'expected_styles'         => array( 'static-view-style', 'dynamic-view-style' ),
 				'expected_scripts'        => array( 'static-view-script', 'dynamic-view-script' ),
 				'expected_script_modules' => array( 'static-view-script-module', 'dynamic-view-script-module' ),
 			),
-			'static_hidden_scripts_omitted'   => array(
+			'last_static_child_hidden_assets_omitted' => array(
 				'set_up'                  => static function () {
-					add_filter( 'render_block_core/static', '__return_empty_string' );
+					add_filter(
+						'render_block_core/static-child',
+						static function ( $content ) {
+							if ( str_contains( $content, 'Last child' ) ) {
+								$content = '';
+							}
+							return $content;
+						},
+						10,
+						3
+					);
 				},
-				'expected_rendered_block' => '',
-				// TODO: This test is currently failing. Since the inner dynamic block is rendered, it is getting its assets enqueued even though the parent static block is not rendered. When the parent is not rendered, then the nested assets really shouldn't be enqueued.
-				'expected_styles'         => array(),
-				'expected_scripts'        => array(),
-				'expected_script_modules' => array(),
+				'block_markup'            => $block_markup,
+				'expected_rendered_block' => '
+					<div class="static">
+						<div class="static-child">First child</div>
+						<p class="dynamic">Hello World!</p>
+					</div>
+				',
+				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
 			),
-			'all_hidden_scripts_omitted'      => array(
+			'all_hidden_assets_omitted'               => array(
 				'set_up'                  => static function () {
 					add_filter( 'render_block', '__return_empty_string' );
 				},
+				'block_markup'            => $block_markup,
 				'expected_rendered_block' => '',
 				'expected_styles'         => array(),
 				'expected_scripts'        => array(),
 				'expected_script_modules' => array(),
 			),
-			'all_hidden_scripts_included'     => array(
+			'all_hidden_assets_included'              => array(
 				'set_up'                  => static function () {
 					add_filter( 'render_block', '__return_empty_string' );
 					add_filter( 'enqueue_empty_block_content_assets', '__return_true' );
 				},
+				'block_markup'            => $block_markup,
 				'expected_rendered_block' => '',
-				'expected_styles'         => array( 'static-view-style', 'dynamic-view-style' ),
-				'expected_scripts'        => array( 'static-view-script', 'dynamic-view-script' ),
-				'expected_script_modules' => array( 'static-view-script-module', 'dynamic-view-script-module' ),
+				'expected_styles'         => array( 'static-view-style', 'static-child-view-style', 'dynamic-view-style' ),
+				'expected_scripts'        => array( 'static-view-script', 'static-child-view-script', 'dynamic-view-script' ),
+				'expected_script_modules' => array( 'static-view-script-module', 'static-child-view-script-module', 'dynamic-view-script-module' ),
 			),
 		);
 	}
@@ -444,11 +553,12 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 	 * @dataProvider data_provider_test_render_enqueues_scripts_and_styles
 	 *
 	 * @param Closure|null $set_up
+	 * @param string       $block_markup
 	 * @param string[]     $expected_styles
 	 * @param string[]     $expected_scripts
 	 * @param string[]     $expected_script_modules
 	 */
-	public function test_render_enqueues_scripts_and_styles( ?Closure $set_up, string $expected_rendered_block, array $expected_styles, array $expected_scripts, array $expected_script_modules ) {
+	public function test_render_enqueues_scripts_and_styles( ?Closure $set_up, string $block_markup, string $expected_rendered_block, array $expected_styles, array $expected_scripts, array $expected_script_modules ) {
 		if ( $set_up instanceof Closure ) {
 			$set_up();
 		}
@@ -461,6 +571,18 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'view_style_handles'     => array( 'static-view-style' ),
 				'view_script_handles'    => array( 'static-view-script' ),
 				'view_script_module_ids' => array( 'static-view-script-module' ),
+			)
+		);
+
+		wp_register_style( 'static-child-view-style', home_url( '/static-child-view-style.css' ) );
+		wp_register_script( 'static-child-view-script', home_url( '/static-child-view-script.js' ) );
+		wp_register_script_module( 'static-child-view-script-module', home_url( '/static-child-view-script-module.js' ) );
+		$this->registry->register(
+			'core/static-child',
+			array(
+				'view_style_handles'     => array( 'static-child-view-style' ),
+				'view_script_handles'    => array( 'static-child-view-script' ),
+				'view_script_module_ids' => array( 'static-child-view-script-module' ),
 			)
 		);
 
@@ -479,7 +601,8 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 			)
 		);
 
-		$parsed_blocks  = parse_blocks( '<!-- wp:static --><div class="static"><!-- wp:dynamic /--></div><!-- /wp:static -->' );
+		// TODO: Why not use do_blocks() instead?
+		$parsed_blocks  = parse_blocks( trim( $block_markup ) );
 		$parsed_block   = $parsed_blocks[0];
 		$context        = array();
 		$block          = new WP_Block( $parsed_block, $context, $this->registry );
@@ -487,7 +610,9 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$this->assertEqualHTML(
 			$expected_rendered_block,
-			$rendered_block
+			$rendered_block,
+			'<body>',
+			"Snapshot:\n$rendered_block"
 		);
 
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
