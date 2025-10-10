@@ -834,6 +834,21 @@ function load_template( $_template_file, $load_once = true, $args = array() ) {
  * @return bool Whether the output buffer successfully started.
  */
 function wp_start_template_optimization_output_buffer(): bool {
+	/**
+	 * Filters whether the template will be output-buffered for optimization.
+	 *
+	 * By default, an output buffer is only started if a {@see 'wp_template_optimization_output_buffer'} filter has been
+	 * added. For this default to apply, a filter must be added by the time the template is included at the
+	 * {@see 'wp_before_include_template'} action. This allows template responses to be streamed as much as possible
+	 * when no template optimizations are registered to apply. This filter allows a site to opt in to adding such
+	 * template optimization filters during the rendering of the template.
+	 *
+	 * @since 6.9.0
+	 */
+	if ( ! apply_filters( 'wp_template_output_buffered_for_optimization', has_filter( 'wp_template_optimization_output_buffer' ) ) ) {
+		return false;
+	}
+
 	return ob_start(
 		'wp_finalize_template_optimization_output_buffer',
 		0, // Unlimited buffer size so that entire output is passed to the filter.
