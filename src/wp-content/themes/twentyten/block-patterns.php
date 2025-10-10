@@ -44,7 +44,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'title'         => esc_html__( 'Highlighted Quote', 'twentyten' ),
 			'categories'    => array( 'twentyten' ),
 			'viewportWidth' => 700,
-			'content'       => '<!-- wp:cover {"overlayColor":"light-gray"} --><div class="wp-block-cover has-light-gray-background-color has-background-dim"><div class="wp-block-cover__inner-container"><!-- wp:pullquote {"textColor":"black","className":"is-style-solid-color"} --><figure class="wp-block-pullquote is-style-solid-color"><blockquote class="has-text-color has-black-color"><p><em>' . esc_html__( '"Take time off&hellip; The world will not fall apart without you."', 'twentyten' ) . '</em></p><cite>' . esc_html__( '— Malebo Sephodi', 'twentyten' ) . '</cite></blockquote></figure><!-- /wp:pullquote --></div></div><!-- /wp:cover -->',
+			'content'       => '<!-- wp:cover {"overlayColor":"light-gray"} --><div class="wp-block-cover has-light-gray-background-color has-background-dim"><div class="wp-block-cover__inner-container"><!-- wp:quote {"className":"is-style-large is-style-plain"} --><blockquote class="wp-block-quote is-style-large is-style-plain"><p><em>' . esc_html__( '"Take time off&hellip; The world will not fall apart without you."', 'twentyten' ) . '</em></p><cite>' . esc_html__( '— Malebo Sephodi', 'twentyten' ) . '</cite></blockquote><!-- /wp:quote --></div></div><!-- /wp:cover -->',
 		)
 	);
 
