@@ -1323,15 +1323,17 @@ class Tests_Query_Results extends WP_UnitTestCase {
 				'order'       => 'desc',
 			)
 		);
-		
+
 		$this->assertCount( 5, $all_attachments_desc );
 
-		$this->assertSame( array(
-			self::$video1_mp4,
-			self::$image3_png,
-			self::$image1_jpg,
-			self::$image2_jpg,
-			self::$audio1_mp3 ),
+		$this->assertSame(
+			array(
+				self::$video1_mp4,
+				self::$image3_png,
+				self::$image1_jpg,
+				self::$image2_jpg,
+				self::$audio1_mp3,
+			),
 			wp_list_pluck( $all_attachments_desc, 'ID' ),
 			'Order by post_mime_type order desc returns incorrect order'
 		);
@@ -1345,12 +1347,14 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( array(
-			self::$audio1_mp3,
-			self::$image1_jpg,
-			self::$image2_jpg,
-			self::$image3_png,
-			self::$video1_mp4 ),
+		$this->assertSame(
+			array(
+				self::$audio1_mp3,
+				self::$image1_jpg,
+				self::$image2_jpg,
+				self::$image3_png,
+				self::$video1_mp4,
+			),
 			wp_list_pluck( $all_attachments_asc, 'ID' ),
 			'Order by post_mime_type order asc returns incorrect order'
 		);
