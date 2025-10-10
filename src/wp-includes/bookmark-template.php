@@ -234,11 +234,11 @@ function wp_list_bookmarks( $args = '' ) {
 
 	$output = '';
 
-	if ( ! is_array( $parsed_args['class'] ) ) {
-		$parsed_args['class'] = explode( ' ', $parsed_args['class'] );
+	if ( is_string( $parsed_args['class'] ) ) {
+		$parsed_args['class'] = iterator_to_array( WP_HTML_Tag_Processor::parse_class_list( $parsed_args['class'] ) );
 	}
 	$parsed_args['class'] = array_map( 'sanitize_html_class', $parsed_args['class'] );
-	$parsed_args['class'] = trim( implode( ' ', $parsed_args['class'] ) );
+	$parsed_args['class'] = implode( ' ', $parsed_args['class'] );
 
 	if ( $parsed_args['categorize'] ) {
 		$cats = get_terms(

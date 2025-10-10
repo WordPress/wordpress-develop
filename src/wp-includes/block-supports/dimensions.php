@@ -143,7 +143,7 @@ function wp_render_dimensions_support( $block_content, $block ) {
 			$tags->set_attribute( 'style', $updated_style );
 
 			if ( ! empty( $styles['classnames'] ) ) {
-				foreach ( explode( ' ', $styles['classnames'] ) as $class_name ) {
+				foreach ( WP_HTML_Tag_Processor::parse_class_list( $styles['classnames'] ) as $class_name ) {
 					if (
 						str_contains( $class_name, 'aspect-ratio' ) &&
 						! isset( $block_attributes['style']['dimensions']['aspectRatio'] )

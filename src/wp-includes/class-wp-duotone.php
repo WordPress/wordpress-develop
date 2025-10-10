@@ -1180,8 +1180,7 @@ class WP_Duotone {
 		$tags->set_bookmark( 'wrapper-div' );
 		$tags->next_tag();
 
-		$inner_classnames = explode( ' ', $tags->get_attribute( 'class' ) );
-		foreach ( $inner_classnames as $classname ) {
+		foreach ( WP_HTML_Tag_Processor::parse_class_list( $tags->get_attribute( 'class' ) ) as $classname ) {
 			if ( 0 === strpos( $classname, 'wp-duotone' ) ) {
 				$tags->remove_class( $classname );
 				$tags->seek( 'wrapper-div' );
