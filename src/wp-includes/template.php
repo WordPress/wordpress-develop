@@ -890,11 +890,6 @@ function wp_finalize_template_output_buffer( string $output, int $phase ): strin
 		}
 	}
 
-	// If the content type is HTML, require that there be at least one tag.
-	if ( $is_html_content_type ) {
-		$is_html_content_type = ( new WP_HTML_Tag_Processor( $output ) )->next_tag();
-	}
-
 	$filtered_output = $output;
 	if ( $is_html_content_type ) {
 		/**
