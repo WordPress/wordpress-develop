@@ -50,7 +50,7 @@ class _WP_Dependency {
 	 * Used for cache-busting.
 	 *
 	 * @since 2.6.0
-	 * @var bool|string
+	 * @var bool|string|int
 	 */
 	public $ver = false;
 
