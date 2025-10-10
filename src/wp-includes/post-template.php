@@ -496,18 +496,15 @@ function get_post_class( $css_class = '', $post = null ) {
 
 	$classes = array();
 
-	if ( $css_class ) {
-		if ( ! is_array( $css_class ) ) {
-			$css_class = preg_split( '#\s+#', $css_class );
-		}
-		$classes = array_map( 'esc_attr', $css_class );
-	} else {
+	if ( is_string( $css_class ) ) {
+		$classes = iterator_to_array( WP_HTML_Tag_Processor::parse_class_list( $css_class ) );
+	} elseif ( ! is_array( $css_class ) ) {
 		// Ensure that we always coerce class to being an array.
-		$css_class = array();
+		$classes = array();
 	}
 
 	if ( ! $post ) {
-		return $classes;
+		return array_values( array_unique( array_map( 'esc_attr', $classes ) ) );
 	}
 
 	$classes[] = 'post-' . $post->ID;
@@ -593,8 +590,6 @@ function get_post_class( $css_class = '', $post = null ) {
 		}
 	}
 
-	$classes = array_map( 'esc_attr', $classes );
-
 	/**
 	 * Filters the list of CSS class names for the current post.
 	 *
@@ -606,10 +601,9 @@ function get_post_class( $css_class = '', $post = null ) {
 	 */
 	$classes = apply_filters( 'post_class', $classes, $css_class, $post->ID );
 
-	$classes = array_unique( $classes );
-	$classes = array_values( $classes );
+	$classes = array_map( 'esc_attr', $classes );
 
-	return $classes;
+	return array_values( array_unique( $classes ) );
 }
 
 /**
