@@ -1059,7 +1059,7 @@ function wp_get_plugin_action_button( $name, $data, $compatible_php, $compatible
  *                if the plugin is already installed.
  */
 function wp_get_plugin_preview_button( $data ) {
-	$data   = (object) $data;
+	$data = (object) $data;
 
 	$status = install_plugin_install_status( $data );
 
