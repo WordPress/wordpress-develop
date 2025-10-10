@@ -109,10 +109,13 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'br'         => array(),
 		'button'     => array(
-			'disabled' => true,
-			'name'     => true,
-			'type'     => true,
-			'value'    => true,
+			'disabled'            => true,
+			'name'                => true,
+			'type'                => true,
+			'value'               => true,
+			'popovertarget'       => true,
+			'popovertargetaction' => true,
+			'aria-haspopup'       => true,
 		),
 		'caption'    => array(
 			'align' => true,
@@ -135,6 +138,9 @@ if ( ! CUSTOM_TAGS ) {
 			'valign'  => true,
 			'width'   => true,
 		),
+		'data'       => array(
+			'value' => true,
+		),
 		'del'        => array(
 			'datetime' => true,
 		),
@@ -145,7 +151,13 @@ if ( ! CUSTOM_TAGS ) {
 			'open'  => true,
 		),
 		'div'        => array(
-			'align' => true,
+			'align'   => true,
+			'popover' => true,
+		),
+		'dialog'     => array(
+			'closedby' => true,
+			'open'     => true,
+			'popover'  => true,
 		),
 		'dl'         => array(),
 		'dt'         => array(),
@@ -234,6 +246,14 @@ if ( ! CUSTOM_TAGS ) {
 		'menu'       => array(
 			'type' => true,
 		),
+		'meter'      => array(
+			'high'    => true,
+			'low'     => true,
+			'max'     => true,
+			'min'     => true,
+			'optimum' => true,
+			'value'   => true,
+		),
 		'nav'        => array(
 			'align' => true,
 		),
@@ -253,6 +273,10 @@ if ( ! CUSTOM_TAGS ) {
 		'pre'        => array(
 			'width' => true,
 		),
+		'progress'   => array(
+			'max'   => true,
+			'value' => true,
+		),
 		'q'          => array(
 			'cite' => true,
 		),
@@ -263,6 +287,7 @@ if ( ! CUSTOM_TAGS ) {
 		'ruby'       => array(),
 		's'          => array(),
 		'samp'       => array(),
+		'search'     => array(),
 		'span'       => array(
 			'align' => true,
 		),
@@ -344,6 +369,9 @@ if ( ! CUSTOM_TAGS ) {
 			'charoff' => true,
 			'valign'  => true,
 		),
+		'time'       => array(
+			'datetime' => true,
+		),
 		'title'      => array(),
 		'tr'         => array(
 			'align'   => true,
@@ -362,7 +390,9 @@ if ( ! CUSTOM_TAGS ) {
 		'tt'         => array(),
 		'u'          => array(),
 		'ul'         => array(
-			'type' => true,
+			'type'    => true,
+			'popover' => true,
+			'role'    => true,
 		),
 		'ol'         => array(
 			'start'    => true,
@@ -382,6 +412,7 @@ if ( ! CUSTOM_TAGS ) {
 			'src'         => true,
 			'width'       => true,
 		),
+		'wbr'        => array(),
 	);
 
 	/**
@@ -2418,6 +2449,7 @@ function kses_init() {
  * @since 6.4.0 Added support for `writing-mode`.
  * @since 6.5.0 Added support for `background-repeat`.
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
+ * @since 6.9.0 Added support for `white-space`.
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2510,6 +2542,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'text-decoration',
 			'text-indent',
 			'text-transform',
+			'white-space',
 
 			'height',
 			'min-height',
