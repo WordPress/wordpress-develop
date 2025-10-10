@@ -513,21 +513,11 @@ class Tests_Template extends WP_UnitTestCase {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
-		$action_args = null;
-		add_action(
-			'wp_final_template_output_buffer',
-			function () use ( &$action_args ): void {
-				$action_args = func_get_args();
-			},
-			10,
-			PHP_INT_MAX
-		);
-
-		$html_filter_args = null;
+		$filter_args = null;
 		add_filter(
 			'wp_template_output_buffer_html',
-			static function ( string $buffer ) use ( &$html_filter_args ): string {
-				$html_filter_args = func_get_args();
+			static function ( string $buffer ) use ( &$filter_args ): string {
+				$filter_args = func_get_args();
 
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				while ( $p->next_tag() ) {
@@ -547,21 +537,6 @@ class Tests_Template extends WP_UnitTestCase {
 					}
 				}
 				return $p->get_updated_html();
-			},
-			10,
-			PHP_INT_MAX
-		);
-
-		$filter_args = null;
-		add_filter(
-			'wp_template_output_buffer',
-			function ( string $buffer ) use ( &$filter_args ): string {
-				$filter_args = func_get_args();
-				$this->assertStringNotContainsString( 'Hello', $buffer );
-				if ( str_starts_with( ltrim( $buffer ), '<!DOCTYPE html>' ) ) {
-					$buffer .= "\n<!-- Output buffer was processed! -->\n";
-				}
-				return $buffer;
 			},
 			10,
 			PHP_INT_MAX
@@ -597,40 +572,27 @@ class Tests_Template extends WP_UnitTestCase {
 		ob_end_flush(); // End the buffer started by wp_start_template_output_buffer().
 		$this->assertSame( $initial_ob_level, ob_get_level() );
 
-		$this->assertIsArray( $html_filter_args, 'Expected the wp_template_output_buffer_html filter to have applied.' );
-		$this->assertCount( 2, $html_filter_args, 'Expected two args to be supplied to the wp_template_output_buffer_html filter.' );
-		$this->assertIsString( $html_filter_args[0], 'Expected the $filtered_output param to the wp_template_output_buffer_html filter to be a string.' );
-		$this->assertIsString( $html_filter_args[1], 'Expected the $output param to the wp_template_output_buffer_html filter to be a string.' );
-		$this->assertSame( $html_filter_args[1], $html_filter_args[0], 'Expected the initial $filtered_output to match $output in the wp_template_output_buffer_html filter.' );
+		$this->assertIsArray( $filter_args, 'Expected the wp_template_output_buffer_html filter to have applied.' );
+		$this->assertCount( 2, $filter_args, 'Expected two args to be supplied to the wp_template_output_buffer_html filter.' );
+		$this->assertIsString( $filter_args[0], 'Expected the $filtered_output param to the wp_template_output_buffer_html filter to be a string.' );
+		$this->assertIsString( $filter_args[1], 'Expected the $output param to the wp_template_output_buffer_html filter to be a string.' );
+		$this->assertSame( $filter_args[1], $filter_args[0], 'Expected the initial $filtered_output to match $output in the wp_template_output_buffer_html filter.' );
+		$original_output = $filter_args[0];
+		$this->assertStringContainsString( '<!DOCTYPE html>', $original_output );
+		$this->assertStringContainsString( '<html lang="en">', $original_output );
+		$this->assertStringContainsString( '<title>Greeting</title>', $original_output );
+		$this->assertStringContainsString( '<h1>Hello World!</h1>', $original_output );
+		$this->assertStringContainsString( '</html>', $original_output );
 
-		$this->assertIsArray( $filter_args, 'Expected the wp_template_output_buffer filter to have applied.' );
-		$this->assertCount( 2, $filter_args, 'Expected two args to be supplied to the wp_template_output_buffer filter.' );
-		$this->assertIsString( $filter_args[0], 'Expected the $filtered_output param to the wp_template_output_buffer filter to be a string.' );
-		$this->assertIsString( $filter_args[1], 'Expected the $output param to the wp_template_output_buffer filter to be a string.' );
-		$this->assertNotSame( $filter_args[1], $filter_args[0], 'Expected the $output and $filtered_output args to not match when applying the wp_template_output_buffer filter since the first latter was modified by a wp_template_output_buffer_html filter.' );
-		$this->assertSame( $filter_args[1], $html_filter_args[1], 'Expected the $output param to match between the wp_template_output_buffer and wp_template_output_buffer_html filters.' );
+		$processed_output = ob_get_clean(); // Obtain the output via the wrapper output buffer.
+		$this->assertIsString( $processed_output );
+		$this->assertNotEquals( $original_output, $processed_output );
 
-		$output = ob_get_clean(); // Obtain the output via the wrapper output buffer.
-		$this->assertIsString( $output );
-		$this->assertSame( 1, did_action( 'wp_final_template_output_buffer' ) );
-		$this->assertIsArray( $action_args, 'Expected the wp_final_template_output_buffer callback to have executed.' );
-		$this->assertCount( 2, $action_args, 'Expected two params to be passed to the wp_final_template_output_buffer action.' );
-		$this->assertSame( $action_args[1], $html_filter_args[1], 'Expected the $output param to match between the wp_template_output_buffer_html filter and the wp_final_template_output_buffer action.' );
-		$this->assertNotSame( $action_args[1], $action_args[0], 'Expected the $output and $filtered_output args to not match when applying the wp_final_template_output_buffer action.' );
-		$this->assertSame( $action_args[0], $output, 'Expected the filtered output buffer passed as the first param to the wp_final_template_output_buffer action to match the output buffer.' );
-		$this->assertStringContainsString( '<!DOCTYPE html>', $action_args[0] );
-		$this->assertStringContainsString( '<html lang="es">', $action_args[0] );
-		$this->assertStringContainsString( '<title>Saludo</title>', $action_args[0] );
-		$this->assertStringContainsString( '<h1>¡Hola, mundo!</h1>', $action_args[0] );
-		$this->assertStringContainsString( '</html>', $action_args[0] );
-		$this->assertStringContainsString( '<!-- Output buffer was processed! -->', $action_args[0] );
-		$this->assertIsString( $action_args[1] );
-		$this->assertStringContainsString( '<!DOCTYPE html>', $action_args[1] );
-		$this->assertStringContainsString( '<html lang="en">', $action_args[1] );
-		$this->assertStringContainsString( '<title>Greeting</title>', $action_args[1] );
-		$this->assertStringContainsString( '<h1>Hello World!</h1>', $action_args[1] );
-		$this->assertStringContainsString( '</html>', $action_args[1] );
-		$this->assertStringNotContainsString( '<!-- Output buffer was processed! -->', $action_args[1] );
+		$this->assertStringContainsString( '<!DOCTYPE html>', $processed_output );
+		$this->assertStringContainsString( '<html lang="es">', $processed_output );
+		$this->assertStringContainsString( '<title>Saludo</title>', $processed_output );
+		$this->assertStringContainsString( '<h1>¡Hola, mundo!</h1>', $processed_output );
+		$this->assertStringContainsString( '</html>', $processed_output );
 	}
 
 	/**
@@ -644,28 +606,17 @@ class Tests_Template extends WP_UnitTestCase {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
-		$called_html_filter = false;
+		$applied_filter = false;
 		add_filter(
 			'wp_template_output_buffer_html',
-			static function ( string $buffer ) use ( &$called_html_filter ): string {
-				$called_html_filter = true;
+			static function ( string $buffer ) use ( &$applied_filter ): string {
+				$applied_filter = true;
 
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				if ( $p->next_tag( array( 'tag_name' => 'TITLE' ) ) ) {
 					$p->set_modifiable_text( 'Processed' );
 				}
 				return $p->get_updated_html();
-			}
-		);
-
-		$called_filter = false;
-		add_filter(
-			'wp_template_output_buffer',
-			function ( string $buffer ) use ( &$called_filter ): string {
-				$called_filter = true;
-
-				$buffer .= "\n<!-- Output buffer was processed! -->\n";
-				return $buffer;
 			}
 		);
 
@@ -696,8 +647,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$this->assertSame( $initial_ob_level, ob_get_level() );
 
-		$this->assertFalse( $called_html_filter );
-		$this->assertFalse( $called_filter );
+		$this->assertFalse( $applied_filter );
 		$this->assertSame( 0, did_action( 'wp_final_template_output_buffer' ) );
 
 		// Obtain the output via the wrapper output buffer.
@@ -705,7 +655,6 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertIsString( $output );
 		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output );
 		$this->assertStringNotContainsString( '<title>Processed</title>', $output );
-		$this->assertStringNotContainsString( '<!-- Output buffer was processed! -->', $output );
 		$this->assertStringContainsString( '<title>Output Buffer Not Processed</title>', $output );
 	}
 
@@ -731,17 +680,6 @@ class Tests_Template extends WP_UnitTestCase {
 					$p->set_modifiable_text( 'Processed' );
 				}
 				return $p->get_updated_html();
-			}
-		);
-
-		$called_filter = false;
-		add_filter(
-			'wp_template_output_buffer',
-			function ( string $buffer ) use ( &$called_filter ): string {
-				$called_filter = true;
-
-				$buffer .= "\n<!-- Output buffer was processed! -->\n";
-				return $buffer;
 			}
 		);
 
@@ -775,15 +713,12 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertSame( $initial_ob_level, ob_get_level() );
 
 		$this->assertTrue( $called_html_filter );
-		$this->assertTrue( $called_filter );
-		$this->assertSame( 1, did_action( 'wp_final_template_output_buffer' ) );
 
 		// Obtain the output via the wrapper output buffer.
 		$output = ob_get_clean();
 		$this->assertIsString( $output );
 		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output );
 		$this->assertStringContainsString( '<title>Processed</title>', $output );
-		$this->assertStringContainsString( '<!-- Output buffer was processed! -->', $output );
 		$this->assertStringContainsString( '<h1>Template Replaced</h1>', $output );
 	}
 
@@ -798,43 +733,15 @@ class Tests_Template extends WP_UnitTestCase {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
-		$action_args = null;
-		add_action(
-			'wp_final_template_output_buffer',
-			function () use ( &$action_args ): void {
-				$action_args = func_get_args();
-			},
-			10,
-			PHP_INT_MAX
-		);
-
-		$called_html_filter = false;
-		add_filter(
-			'wp_template_output_buffer_html',
-			static function ( string $buffer ) use ( &$called_html_filter ): string {
-				$called_html_filter = true;
-				return $buffer;
-			}
-		);
-
-		$called_filter = false;
-		add_filter(
-			'wp_template_output_buffer',
-			function ( string $buffer ) use ( &$called_filter ): string {
-				$called_filter = true;
-
-				$data                    = json_decode( $buffer, true );
-				$data['data']['message'] = '¡Hola, mundo!';
-				return json_encode( $data );
-			}
-		);
+		$mock_filter_callback = new MockAction();
+		add_filter( 'wp_template_output_buffer_html', array( $mock_filter_callback, 'filter' ) );
 
 		$initial_ob_level = ob_get_level();
 		$this->assertTrue( wp_start_template_output_buffer() );
 		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
 
 		ini_set( 'default_mimetype', 'application/json' ); // Since sending a header won't work.
-		echo wp_json_encode(
+		$json = wp_json_encode(
 			array(
 				'success' => true,
 				'data'    => array(
@@ -843,6 +750,7 @@ class Tests_Template extends WP_UnitTestCase {
 				),
 			)
 		);
+		echo $json;
 
 		$ob_status = ob_get_status();
 		$this->assertSame( 'wp_finalize_template_output_buffer', $ob_status['name'], 'Expected name to be WP function.' );
@@ -852,23 +760,12 @@ class Tests_Template extends WP_UnitTestCase {
 		ob_end_flush(); // End the buffer started by wp_start_template_output_buffer().
 		$this->assertSame( $initial_ob_level, ob_get_level() );
 
-		$this->assertFalse( $called_html_filter );
-		$this->assertTrue( $called_filter );
-		$this->assertSame( 1, did_action( 'wp_final_template_output_buffer' ) );
+		$this->assertSame( 0, $mock_filter_callback->get_call_count() );
 
 		// Obtain the output via the wrapper output buffer.
 		$output = ob_get_clean();
 		$this->assertIsString( $output );
-		$this->assertIsArray( $action_args );
-		$this->assertCount( 2, $action_args );
-		$this->assertSame( $action_args[0], $output );
-		$this->assertIsString( $action_args[1] );
-
-		$filtered_data = json_decode( $action_args[0], true );
-		$original_data = json_decode( $action_args[1], true );
-
-		$this->assertSame( 'Hello, world!', $original_data['data']['message'] );
-		$this->assertSame( '¡Hola, mundo!', $filtered_data['data']['message'] );
+		$this->assertSame( $json, $output );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {

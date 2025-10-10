@@ -890,49 +890,24 @@ function wp_finalize_template_output_buffer( string $output, int $phase ): strin
 		}
 	}
 
-	$filtered_output = $output;
-	if ( $is_html_content_type ) {
-		/**
-		 * Filters the HTML template output buffer prior to sending to the client.
-		 *
-		 * This filter only applies to HTML output, so it is safe for processing with the HTML API.
-		 * Notice: It is highly discouraged to use regular expressions to do any kind of replacement on the output.
-		 *
-		 * @since 6.9.0
-		 *
-		 * @param string $filtered_output Filtered output buffer.
-		 * @param string $output          Original output buffer.
-		 * @return string Filtered output buffer HTML.
-		 */
-		$filtered_output = (string) apply_filters( 'wp_template_output_buffer_html', $filtered_output, $output );
+	// If the content type is not HTML, short-circuit since it is not relevant optimization.
+	if ( ! $is_html_content_type ) {
+		return $output;
 	}
 
+	$filtered_output = $output;
+
 	/**
-	 * Filters the template output buffer prior to sending to the client.
+	 * Filters the HTML template output buffer prior to sending to the client.
 	 *
-	 * This filter applies to HTML and non-HTML template output alike. For example, a "template" could return JSON. Use
-	 * the {@see 'wp_template_output_buffer_html'}  filter specifically for filtering HTML output, which is the normal
-	 * case. Notice: It is highly discouraged to use regular expressions to do any kind of replacement on the output.
+	 * This filter only applies to HTML output, so it is safe for processing with the HTML API.
+	 * Notice: It is highly discouraged to use regular expressions to do any kind of replacement on the output.
 	 *
 	 * @since 6.9.0
 	 *
 	 * @param string $filtered_output Filtered output buffer.
 	 * @param string $output          Original output buffer.
-	 * @return string Filtered output buffer.
+	 * @return string Filtered output buffer HTML.
 	 */
-	$filtered_output = (string) apply_filters( 'wp_template_output_buffer', $filtered_output, $output );
-
-	/**
-	 * Fires after the output buffer has been filtered prior to sending to the client.
-	 *
-	 * This is useful for caching plugins to capture the page output for storage.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param string $filtered_output Filtered output buffer.
-	 * @param string $output          Original output buffer.
-	 */
-	do_action( 'wp_final_template_output_buffer', $filtered_output, $output );
-
-	return $filtered_output;
+	return (string) apply_filters( 'wp_template_output_buffer_html', $filtered_output, $output );
 }
