@@ -114,7 +114,7 @@ if ( wp_using_themes() ) {
 	$template = apply_filters( 'template_include', $template );
 	if ( $template ) {
 		/**
-		 * Fires before including the template.
+		 * Fires immediately before including the template.
 		 *
 		 * @since 6.9.0
 		 *
