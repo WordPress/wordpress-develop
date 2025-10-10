@@ -1336,9 +1336,21 @@ class Tests_Cron extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_cron
 	 */
-	public function test_wp_cron() {
+	public function test_wp_cron_before_shutdown() {
 		remove_all_actions( 'shutdown' );
 		wp_cron();
 		$this->assertSame( 10, has_action( 'shutdown', '_wp_cron' ) );
+	}
+
+	/**
+	 * @ticket 63858
+	 *
+	 * @covers ::wp_cron
+	 */
+	public function test_wp_cron_already_at_shutdown() {
+		remove_all_actions( 'shutdown' );
+		add_action( 'shutdown', 'wp_cron' );
+		do_action( 'shutdown' );
+		$this->assertFalse( has_action( 'shutdown', '_wp_cron' ), 'Expected wp_cron() to not add _wp_cron() to rub at shutdown.' );
 	}
 }

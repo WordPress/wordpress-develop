@@ -987,7 +987,11 @@ function spawn_cron( $gmt_time = 0 ) {
  * @since 6.9.0 The _wp_cron() callback is moved from wp_loaded to the shutdown action; the function always returns void.
  */
 function wp_cron(): void {
-	add_action( 'shutdown', '_wp_cron' );
+	if ( doing_action( 'shutdown' ) ) {
+		_wp_cron();
+	} else {
+		add_action( 'shutdown', '_wp_cron' );
+	}
 }
 
 /**
