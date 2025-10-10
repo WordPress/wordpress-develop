@@ -73,6 +73,23 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63854
+	 *
+	 * @covers WP_HTML_Tag_Processor::__construct
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::__construct
+	 */
+	public function test_constructor_validates_html_parameter() {
+		// Test that passing null triggers _doing_it_wrong and sets HTML to empty string.
+		$processor = new WP_HTML_Tag_Processor( null );
+
+		// Verify that the HTML was set to an empty string.
+		$this->assertSame( '', $processor->get_updated_html(), 'HTML should be set to empty string when null is passed' );
+
+		// Verify that next_token() works without errors (indicating the processor is in a valid state).
+		$this->assertFalse( $processor->next_token(), 'next_token() should work without errors when HTML is empty string' );
+	}
+
+	/**
 	 * Data provider. HTML tags which might have a self-closing flag, and an indicator if they do.
 	 *
 	 * @return array[]
@@ -1982,6 +1999,81 @@ HTML;
 	}
 
 	/**
+	 * Test that script tags are parsed correctly.
+	 *
+	 * Script tag parsing is very complicated, see the following resources for more details:
+	 *
+	 * - https://html.spec.whatwg.org/multipage/parsing.html#script-data-state
+	 * - https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+	 *
+	 * @ticket 63738
+	 *
+	 * @dataProvider data_script_tag
+	 */
+	public function test_script_tag_parsing( string $input, bool $closes ) {
+		$processor = new WP_HTML_Tag_Processor( $input );
+
+		if ( $closes ) {
+			$this->assertTrue( $processor->next_token(), 'Expected to find complete script tag.' );
+			$this->assertSame( 'SCRIPT', $processor->get_tag() );
+			return;
+		}
+
+		$this->assertFalse( $processor->next_token(), 'Expected to fail next_token().' );
+		$this->assertTrue( $processor->paused_at_incomplete_token(), 'Expected an incomplete SCRIPT tag token.' );
+	}
+
+	/**
+	 * Data provider.
+	 */
+	public static function data_script_tag(): Generator {
+			yield 'Basic script tag'                              => array( '<script></script>', true );
+			yield 'Script tag with </script> close'               => array( '<script></script>', true );
+			yield 'Script tag with </script/> close'              => array( '<script></script/>', true );
+			yield 'Script tag with </script > close'              => array( '<script></script >', true );
+			yield 'Script tag with </script\n> close'             => array( "<script></script\n>", true );
+			yield 'Script tag with </script\t> close'             => array( "<script></script\t>", true );
+			yield 'Script tag with </script\f> close'             => array( "<script></script\f>", true );
+			yield 'Script tag with </script\r> close'             => array( "<script></script\r>", true );
+			yield 'Script with type attribute'                    => array( '<script type="text/javascript"></script>', true );
+			yield 'Script data escaped'                           => array( '<script><!--</script>', true );
+			yield 'Script data double-escaped exit (comment)'     => array( '<script><!--<script>--></script>', true );
+			yield 'Script data double-escaped exit (closed ">")'  => array( '<script><!--<script></script></script>', true );
+			yield 'Script data double-escaped exit (closed "/")'  => array( '<script><!--<script></script/</script>', true );
+			yield 'Script data double-escaped exit (closed " ")'  => array( '<script><!--<script></script </script>', true );
+			yield 'Script data double-escaped exit (closed "\n")' => array( "<script><!--<script></script\n</script>", true );
+			yield 'Script data double-escaped exit (closed "\t")' => array( "<script><!--<script></script\t</script>", true );
+			yield 'Script data double-escaped exit (closed "\f")' => array( "<script><!--<script></script\f</script>", true );
+			yield 'Script data double-escaped exit (closed "\r")' => array( "<script><!--<script></script\r</script>", true );
+			yield 'Script data no double-escape'                  => array( '<script><!-- --><script></script>', true );
+			yield 'Script data no double-escape (short comment)'  => array( '<script><!--><script></script>', true );
+			yield 'Script data almost double-escaped'             => array( '<script><!--<script</script>', true );
+			yield 'Script data with complex JavaScript'           => array(
+				'<script>
+					var x = 10;
+					x--;
+					x < 0 ? x += 100 : x = (x + 1) - 1;
+				</script>',
+				true,
+			);
+
+			yield 'Script tag with self-close flag (ignored)'     => array( '<script />', false );
+			yield 'Script data double-escaped'                    => array( '<script><!--<script></script>', false );
+			yield 'Unclosed script in escaped state'              => array( '<script><!--------------', false );
+			yield 'Unclosed script in double escaped state'       => array( '<script><!--<script ', false );
+			yield 'Document end in closer start'                  => array( '<script></', false );
+			yield 'Document end in script closer'                 => array( '<script></script', false );
+			yield 'Document end in script closer with attributes' => array( '<script></script attr="val"', false );
+			yield 'Script tag double-escaped with <script>'       => array( '<script><!--<script></script>', false );
+			yield 'Script tag double-escaped with <script/'       => array( '<script><!--<script/</script>', false );
+			yield 'Script tag double-escaped with <script '       => array( '<script><!--<script </script>', false );
+			yield 'Script tag double-escaped with <script\n'      => array( "<script><!--<script\n</script>", false );
+			yield 'Script tag double-escaped with <script\t'      => array( "<script><!--<script\t</script>", false );
+			yield 'Script tag double-escaped with <script\f'      => array( "<script><!--<script\f</script>", false );
+			yield 'Script tag double-escaped with <script\r'      => array( "<script><!--<script\r</script>", false );
+	}
+
+	/**
 	 * Invalid tag names are comments on tag closers.
 	 *
 	 * @ticket 58007
@@ -2980,8 +3072,70 @@ HTML
 		$doctype = $processor->get_doctype_info();
 		$this->assertNotNull( $doctype );
 		$this->assertSame( 'html', $doctype->name );
-		$this->assertSame( 'no-quirks', $doctype->indicated_compatability_mode );
+		$this->assertSame( 'no-quirks', $doctype->indicated_compatibility_mode );
 		$this->assertNull( $doctype->public_identifier );
 		$this->assertNull( $doctype->system_identifier );
+	}
+
+	/**
+	 * @ticket 62522
+	 *
+	 * @dataProvider data_alphabet_by_characters_lowercase
+	 */
+	public function test_recognizes_lowercase_tag_name( string $char ) {
+		/*
+		 * The spacing in the HTML string is important to the problematic
+		 * codepath in ticket #62522.
+		 */
+		$html      = " <{$char}> </{$char}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), "Failed to find open tag in '{$html}'." );
+		$this->assertTrue(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			"Failed to find close tag in '{$html}'."
+		);
+	}
+
+	/**
+	 * @ticket 62522
+	 *
+	 * @dataProvider data_alphabet_by_characters_uppercase
+	 */
+	public function test_recognizes_uppercase_tag_name( string $char ) {
+		/*
+		 * The spacing in the HTML string is important to the problematic
+		 * codepath in ticket #62522.
+		 */
+		$html      = " <{$char}> </{$char}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), "Failed to find open tag in '{$html}'." );
+		$this->assertTrue(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			"Failed to find close tag in '{$html}'."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator<array>
+	 */
+	public static function data_alphabet_by_characters_lowercase() {
+		$char = 'a';
+		while ( $char <= 'z' ) {
+			yield $char => array( $char );
+			$char = chr( ord( $char ) + 1 );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator<array>
+	 */
+	public static function data_alphabet_by_characters_uppercase() {
+		foreach ( self::data_alphabet_by_characters_lowercase() as $data ) {
+			yield strtoupper( $data[0] ) => array( strtoupper( $data[0] ) );
+		}
 	}
 }

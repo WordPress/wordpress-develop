@@ -1,0 +1,114 @@
+##
+# A reusable workflow that compares and publishes the performance tests.
+##
+name: Compare and publish performance Tests
+
+on:
+  workflow_call:
+    inputs:
+      BASE_TAG:
+        description: 'The version being used for baseline measurements.'
+        required: true
+        type: string
+      memcached:
+        description: 'Whether to enable memcached.'
+        required: false
+        type: boolean
+        default: false
+      multisite:
+        description: 'Whether to use Multisite.'
+        required: false
+        type: boolean
+        default: false
+      publish:
+        description: 'Whether to publish the results to Code Vitals.'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      CODEVITALS_PROJECT_TOKEN:
+        description: 'The authorization token for https://www.codevitals.run/project/wordpress.'
+        required: false
+
+env:
+  BASE_TAG: ${{ inputs.BASE_TAG }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Performs the following steps:
+  # - Checkout repository.
+  # - Set up Node.js.
+  # - Download the relevant performance test artifacts.
+  # - List the downloaded files for debugging.
+  # - Compare results.
+  # - Add workflow summary.
+  # - Determine the sha of the baseline tag if necessary.
+  # - Publish performance results if necessary.
+  compare:
+    name: ${{ inputs.multisite && 'Multisite' || 'Single Site' }} ${{ inputs.memcached && 'Memcached' || 'Default' }} ${{ inputs.publish && '(Publishes)' || '' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          fetch-depth: ${{ github.event_name == 'workflow_dispatch' && '2' || '1' }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Download artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          pattern: performance-${{ inputs.multisite && 'multisite' || 'single' }}-${{ inputs.memcached && 'memcached' || 'default' }}-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: List files
+        run: tree artifacts
+
+      - name: Compare results
+        run: node ./tests/performance/compare-results.js "${RUNNER_TEMP}/summary.md"
+
+      - name: Add workflow summary
+        run: cat "${RUNNER_TEMP}/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set the base sha
+        # Only needed when publishing results.
+        if: ${{ inputs.publish }}
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        id: base-sha
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          result-encoding: string
+          script: |
+            const baseRef = await github.rest.git.getRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'tags/' + process.env.BASE_TAG,
+            });
+            return baseRef.data.object.sha;
+
+      - name: Publish performance results
+        if: ${{ inputs.publish }}
+        env:
+          BASE_SHA: ${{ steps.base-sha.outputs.result }}
+          CODEVITALS_PROJECT_TOKEN: ${{ secrets.CODEVITALS_PROJECT_TOKEN }}
+          HOST_NAME: www.codevitals.run
+        run: |
+          if [ -z "$CODEVITALS_PROJECT_TOKEN" ]; then
+            echo "Performance results could not be published. 'CODEVITALS_PROJECT_TOKEN' is not set"
+            exit 1
+          fi
+          COMMITTED_AT="$(git show -s "$GITHUB_SHA" --format='%cI')"
+          node ./tests/performance/log-results.js "$CODEVITALS_PROJECT_TOKEN" trunk "$GITHUB_SHA" "$BASE_SHA" "$COMMITTED_AT" "$HOST_NAME"

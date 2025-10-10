@@ -1,5 +1,5 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.7/theme.json",
 	"version": 3,
 	"title": "Morning",
 	"settings": {
@@ -69,21 +69,6 @@
 				}
 			},
 			"core/post-author-name": {
-				"color": {
-					"text": "var:preset|color|contrast"
-				},
-				"elements": {
-					"link": {
-						"color": {
-							"text": "var:preset|color|contrast"
-						}
-					}
-				}
-			},
-			"core/post-terms": {
-				"color": {
-					"text": "var:preset|color|contrast"
-				},
 				"elements": {
 					"link": {
 						"color": {
@@ -114,9 +99,6 @@
 				}
 			},
 			"core/quote": {
-				"color": {
-					"text": "var:preset|color|contrast"
-				},
 				"elements": {
 					"cite": {
 						"color": {
@@ -146,7 +128,7 @@
 			},
 			"link": {
 				"color": {
-					"text": "var:preset|color|contrast"
+					"text": "currentColor"
 				}
 			}
 		},
@@ -200,7 +182,7 @@
 				"elements": {
 					"heading": {
 						"color": {
-							"text": "var:preset|color|base"
+							"text": "currentColor"
 						}
 					},
 					"button": {
@@ -210,13 +192,14 @@
 						},
 						":hover": {
 							"color": {
-								"background": "color-mix(in srgb, var(--wp--preset--color--accent-1) 85%, transparent)"
+								"background": "color-mix(in srgb, var(--wp--preset--color--accent-1) 85%, transparent)",
+								"text": "var:preset|color|contrast"
 						}
 					}
 					},
 					"link": {
 						"color": {
-							"text": "var:preset|color|base"
+							"text": "currentColor"
 						}
 					}
 				}
@@ -241,7 +224,7 @@
 					},
 					"link": {
 						"color": {
-							"text": "var:preset|color|base"
+							"text": "currentColor"
 						}
 					}
 				}

@@ -1145,6 +1145,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
 
+		$this->assertNotEmpty( $extensions );
+
 		foreach ( $extensions as $type => $extension_list ) {
 			foreach ( $extension_list as $extension ) {
 				$this->assertSame( $type, wp_ext2type( $extension ) );
@@ -1282,7 +1284,11 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
 		}
 
-		$this->assertSame( $expected, wp_get_image_mime( $file ) );
+		if ( is_array( $expected ) ) {
+			$this->assertContains( wp_get_image_mime( $file ), $expected );
+		} else {
+			$this->assertSame( $expected, wp_get_image_mime( $file ) );
+		}
 	}
 
 	/**
@@ -1358,7 +1364,8 @@ class Tests_Functions extends WP_UnitTestCase {
 			// HEIC.
 			array(
 				DIR_TESTDATA . '/images/test-image.heic',
-				'image/heic',
+				// In PHP 8.5, it returns 'image/heif'. Before that, it returns 'image/heic'.
+				array( 'image/heic', 'image/heif' ),
 			),
 		);
 
@@ -1564,10 +1571,10 @@ class Tests_Functions extends WP_UnitTestCase {
 		}
 
 		$expected = array(
-			50,
-			50,
+			1180,
+			1180,
 			IMAGETYPE_HEIC,
-			'width="50" height="50"',
+			'width="1180" height="1180"',
 			'mime' => 'image/heic',
 		);
 		$result   = wp_getimagesize( $file );

@@ -161,6 +161,11 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 			return $raw_patterns;
 		}
 
+		if ( $request->is_method( 'HEAD' ) ) {
+			// Return early as this handler doesn't add any response headers.
+			return new WP_REST_Response( array() );
+		}
+
 		$response = array();
 
 		if ( $raw_patterns ) {
@@ -369,7 +374,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 		return apply_filters( 'rest_pattern_directory_collection_params', $query_params );
 	}
 
-	/*
+	/**
 	 * Include a hash of the query args, so that different requests are stored in
 	 * separate caches.
 	 *

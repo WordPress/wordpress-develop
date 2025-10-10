@@ -245,15 +245,31 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_missing_parent() {
+	public function test_get_items_missing_parent( $method ) {
 		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/revisions' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/global-styles/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, 404 );
+	}
+
+	/**
+	 * Data provider intended to provide HTTP method names for testing GET and HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_readable_http_methods() {
+		return array(
+			'GET request'  => array( 'GET' ),
+			'HEAD request' => array( 'HEAD' ),
+		);
 	}
 
 	/**
@@ -311,6 +327,50 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
+	 * @ticket 56481
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::prepare_item_for_response
+	 */
+	public function test_get_items_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_head_request_with_specified_fields_returns_success_response
+	 * @ticket 56481
+	 *
+	 * @param string $path The path to test.
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', sprintf( $path, self::$global_styles_id, $this->revision_1_id ) );
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * Data provider intended to provide paths for testing HEAD requests.
+	 *
+	 * @return array
+	 */
+	public static function data_head_request_with_specified_fields_returns_success_response() {
+		return array(
+			'get_item request'  => array( '/wp/v2/global-styles/%d/revisions/%d' ),
+			'get_items request' => array( '/wp/v2/global-styles/%d/revisions' ),
+		);
+	}
+
+	/**
 	 * @ticket 59810
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_item
@@ -327,16 +387,34 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
+	 * @ticket 56481
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_item
+	 * @covers WP_REST_Global_Styles_Controller::prepare_item_for_response
+	 */
+	public function test_get_item_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions/' . $this->revision_1_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 59810
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_revision
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_item_invalid_revision_id_should_error() {
+	public function test_get_item_invalid_revision_id_should_error( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$expected_error  = 'rest_post_invalid_id';
 		$expected_status = 404;
-		$request         = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions/20000001' );
+		$request         = new WP_REST_Request( $method, '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions/20000001' );
 		$response        = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( $expected_error, $response, $expected_status );
@@ -419,14 +497,18 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
 	 * @ticket 60131
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_item_permissions_check
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_item_permissions_check() {
+	public function test_get_item_permissions_check( $method ) {
 		wp_set_current_user( self::$author_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
@@ -435,13 +517,15 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	/**
 	 * Tests the pagination header of the first page.
 	 *
-	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_pagination_header_of_the_first_page
-	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_pagination_header_of_the_first_page() {
+	public function test_get_items_pagination_header_of_the_first_page( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$rest_route  = '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions';
@@ -449,7 +533,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$total_pages = (int) ceil( $this->total_revisions / $per_page );
 		$page        = 1;  // First page.
 
-		$request = new WP_REST_Request( 'GET', $rest_route );
+		$request = new WP_REST_Request( $method, $rest_route );
 		$request->set_query_params(
 			array(
 				'per_page' => $per_page,
@@ -476,11 +560,15 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 *
 	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_pagination_header_of_the_last_page
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_pagination_header_of_the_last_page() {
+	public function test_get_items_pagination_header_of_the_last_page( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$rest_route  = '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions';
@@ -488,7 +576,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$total_pages = (int) ceil( $this->total_revisions / $per_page );
 		$page        = 2;  // Last page.
 
-		$request = new WP_REST_Request( 'GET', $rest_route );
+		$request = new WP_REST_Request( $method, $rest_route );
 		$request->set_query_params(
 			array(
 				'per_page' => $per_page,
@@ -514,18 +602,22 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 *
 	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_invalid_per_page_should_error
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_invalid_per_page_should_error() {
+	public function test_get_items_invalid_per_page_should_error( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$per_page        = -1; // Invalid number.
 		$expected_error  = 'rest_invalid_param';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$request->set_param( 'per_page', $per_page );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( $expected_error, $response, $expected_status );
@@ -536,11 +628,15 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 *
 	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_out_of_bounds_page_should_error
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_out_of_bounds_page_should_error() {
+	public function test_get_items_out_of_bounds_page_should_error( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$per_page        = 2;
@@ -549,7 +645,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$expected_error  = 'rest_revision_invalid_page_number';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'per_page' => $per_page,
@@ -565,11 +661,15 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 *
 	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_invalid_max_pages_should_error
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_invalid_max_pages_should_error() {
+	public function test_get_items_invalid_max_pages_should_error( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$per_page        = 2;
@@ -577,7 +677,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$expected_error  = 'rest_revision_invalid_page_number';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'per_page' => $per_page,
@@ -689,11 +789,15 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 *
 	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_total_revisions_offset_should_return_empty_data
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_total_revisions_offset_should_return_empty_data() {
+	public function test_get_items_total_revisions_offset_should_return_empty_data( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$per_page        = 2;
@@ -701,7 +805,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$expected_error  = 'rest_revision_invalid_offset_number';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'offset'   => $offset,
@@ -717,11 +821,15 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 *
 	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_out_of_bound_offset_should_error
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_out_of_bound_offset_should_error() {
+	public function test_get_items_out_of_bound_offset_should_error( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$per_page        = 2;
@@ -729,7 +837,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$expected_error  = 'rest_revision_invalid_offset_number';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'offset'   => $offset,
@@ -745,11 +853,15 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 *
 	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_impossible_high_number_offset_should_error
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_impossible_high_number_offset_should_error() {
+	public function test_get_items_impossible_high_number_offset_should_error( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$per_page        = 2;
@@ -757,7 +869,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$expected_error  = 'rest_revision_invalid_offset_number';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'offset'   => $offset,
@@ -773,11 +885,15 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	 *
 	 * Duplicate of WP_Test_REST_Revisions_Controller::test_get_items_invalid_offset_should_error
 	 *
+	 * @dataProvider data_readable_http_methods
 	 * @ticket 58524
+	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 *
+	 * @param string $method The HTTP method to use.
 	 */
-	public function test_get_items_invalid_offset_should_error() {
+	public function test_get_items_invalid_offset_should_error( $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$per_page        = 2;
@@ -785,7 +901,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		$expected_error  = 'rest_invalid_param';
 		$expected_status = 400;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request = new WP_REST_Request( $method, '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
 		$request->set_query_params(
 			array(
 				'offset'   => $offset,
@@ -824,6 +940,47 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertCount( $expected_count, $response->get_data() );
+	}
+
+
+	/**
+	 * Tests for the pagination.
+	 *
+	 * @ticket 62292
+	 *
+	 * @covers WP_REST_Global_Styles_Controller::get_items
+	 */
+	public function test_get_global_styles_revisions_pagination() {
+		wp_set_current_user( self::$admin_id );
+
+		// Test offset.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_param( 'offset', 1 );
+		$request->set_param( 'per_page', 1 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertSame( 3, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 3, $response->get_headers()['X-WP-TotalPages'] );
+
+		// Test paged.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_param( 'page', 2 );
+		$request->set_param( 'per_page', 2 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertSame( 3, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 2, $response->get_headers()['X-WP-TotalPages'] );
+
+		// Test out of bounds.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions' );
+		$request->set_param( 'page', 4 );
+		$request->set_param( 'per_page', 6 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_revision_invalid_page_number', $response, 400 );
 	}
 
 	/**

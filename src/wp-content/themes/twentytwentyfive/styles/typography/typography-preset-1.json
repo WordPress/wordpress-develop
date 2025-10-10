@@ -1,10 +1,162 @@
 {
 	"version": 3,
-	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"$schema": "https://schemas.wp.org/wp/6.7/theme.json",
 	"title": "Beiruti & Literata",
 	"slug": "typography-preset-1",
 	"settings": {
 		"typography": {
+			"fontFamilies": [
+				{
+					"name": "Beiruti",
+					"slug": "beiruti",
+					"fontFamily": "Beiruti, sans-serif",
+					"fontFace": [
+						{
+							"fontFamily": "Beiruti",
+							"fontStyle": "normal",
+							"fontWeight": "200 900",
+							"src": [
+								"file:./assets/fonts/beiruti/Beiruti-VariableFont_wght.woff2"
+							]
+						}
+					]
+				},
+				{
+					"name": "Literata",
+					"slug": "literata",
+					"fontFamily": "Literata, serif",
+					"fontFace": [
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-ExtraLight.woff2"
+							],
+							"fontWeight": "200",
+							"fontStyle": "normal",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-ExtraLightItalic.woff2"
+							],
+							"fontWeight": "200",
+							"fontStyle": "italic",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-Light.woff2"
+							],
+							"fontWeight": "300",
+							"fontStyle": "normal",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-LightItalic.woff2"
+							],
+							"fontWeight": "300",
+							"fontStyle": "italic",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-Regular.woff2"
+							],
+							"fontWeight": "400",
+							"fontStyle": "normal",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-RegularItalic.woff2"
+							],
+							"fontWeight": "400",
+							"fontStyle": "italic",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-Medium.woff2"
+							],
+							"fontWeight": "500",
+							"fontStyle": "normal",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-MediumItalic.woff2"
+							],
+							"fontWeight": "500",
+							"fontStyle": "italic",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-SemiBold.woff2"
+							],
+							"fontWeight": "600",
+							"fontStyle": "normal",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-SemiBoldItalic.woff2"
+							],
+							"fontWeight": "600",
+							"fontStyle": "italic",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-Bold.woff2"
+							],
+							"fontWeight": "700",
+							"fontStyle": "normal",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-BoldItalic.woff2"
+							],
+							"fontWeight": "700",
+							"fontStyle": "italic",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-ExtraBold.woff2"
+							],
+							"fontWeight": "800",
+							"fontStyle": "normal",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-ExtraBoldItalic.woff2"
+							],
+							"fontWeight": "800",
+							"fontStyle": "italic",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-Black.woff2"
+							],
+							"fontWeight": "900",
+							"fontStyle": "normal",
+							"fontFamily": "Literata"
+						},
+						{
+							"src": [
+								"file:./assets/fonts/literata/Literata72pt-BlackItalic.woff2"
+							],
+							"fontWeight": "900",
+							"fontStyle": "italic",
+							"fontFamily": "Literata"
+						}
+					]
+				}
+			],
 			"fontSizes": [
 				{
 					"fluid": false,
@@ -14,8 +166,8 @@
 				},
 				{
 					"fluid": {
-						"max": "1.3rem",
-						"min": "1.2rem"
+						"max": "1.2rem",
+						"min": "1rem"
 					},
 					"name": "Medium",
 					"size": "1rem",
@@ -23,29 +175,29 @@
 				},
 				{
 					"fluid": {
-						"max": "1.6rem",
-						"min": "1.3rem"
+						"max": "1.8rem",
+						"min": "1.6rem"
 					},
 					"name": "Large",
-					"size": "1.38rem",
+					"size": "1.6rem",
 					"slug": "large"
 				},
 				{
 					"fluid": {
-						"max": "2rem",
-						"min": "1.75rem"
+						"max": "2.2rem",
+						"min": "1.8em"
 					},
 					"name": "Extra Large",
-					"size": "1.75rem",
+					"size": "1.8rem",
 					"slug": "x-large"
 				},
 				{
 					"fluid": {
-						"max": "3.625rem",
-						"min": "2.625rem"
+						"max": "2.8rem",
+						"min": "2rem"
 					},
 					"name": "Extra Extra Large",
-					"size": "2.625rem",
+					"size": "2rem",
 					"slug": "xx-large"
 				}
 			]
@@ -55,22 +207,13 @@
 		"typography": {
 			"fontFamily": "var:preset|font-family|literata",
 			"fontSize": "var:preset|font-size|medium",
-			"fontStyle": "normal",
-			"fontWeight": "300",
-			"letterSpacing": "-0.22px",
-			"lineHeight": "1.5"
+			"letterSpacing": "-0.01em",
+			"lineHeight": "1.6"
 		},
 		"blocks": {
 			"core/button": {
 				"typography": {
 					"fontFamily": "var:preset|font-family|beiruti"
-				}
-			},
-			"core/code": {
-				"typography": {
-					"fontSize": "var:preset|font-size|medium",
-					"fontStyle": "normal",
-					"fontWeight": "300"
 				}
 			},
 			"core/list": {
@@ -83,34 +226,9 @@
 					"fontSize": "var:preset|font-size|medium"
 				}
 			},
-			"core/post-author": {
-				"typography": {
-					"fontFamily": "var:preset|font-family|beiruti"
-				}
-			},
-			"core/post-author-name": {
-				"typography": {
-					"fontFamily": "var:preset|font-family|beiruti"
-				}
-			},
-			"core/post-date": {
-				"typography": {
-					"fontFamily": "var:preset|font-family|beiruti",
-					"fontSize": "var:preset|font-size|medium"
-				}
-			},
 			"core/post-terms": {
 				"typography": {
-					"fontFamily": "var:preset|font-family|beiruti",
-					"fontSize": "var:preset|font-size|medium",
 					"fontWeight": "300"
-				}
-			},
-			"core/post-title": {
-				"typography": {
-					"fontSize": "var:preset|font-size|xx-large",
-					"fontWeight": "500",
-					"letterSpacing": "-1px"
 				}
 			},
 			"core/pullquote": {
@@ -120,12 +238,12 @@
 					"lineHeight": "1"
 				}
 			},
-			"core/query-pagination": {
+			"core/quote": {
 				"typography": {
-					"fontWeight": "300"
+					"fontSize": "var:preset|font-size|medium"
 				}
 			},
-			"core/quote": {
+			"core/query-pagination": {
 				"typography": {
 					"fontWeight": "300"
 				}
@@ -145,11 +263,6 @@
 			}
 		},
 		"elements": {
-			"h3": {
-				"typography": {
-					"fontSize": "1.8rem"
-				}
-			},
 			"h4": {
 				"typography": {
 					"fontSize": "var:preset|font-size|large"
@@ -157,7 +270,8 @@
 			},
 			"h5": {
 				"typography": {
-					"fontSize": "var:preset|font-size|medium"
+					"fontSize": "var:preset|font-size|medium",
+					"letterSpacing": "0px"
 				}
 			},
 			"h6": {
@@ -169,7 +283,8 @@
 				"typography": {
 					"fontFamily": "var:preset|font-family|beiruti",
 					"fontWeight": "500",
-					"letterSpacing": "-1px"
+					"letterSpacing": "-0.02em",
+					"lineHeight": "1.02"
 				}
 			}
 		}

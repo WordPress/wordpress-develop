@@ -267,7 +267,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 					</div>
 				</fieldset>
 				<div class="imgedit-crop-apply imgedit-menu container">
-					<button class="button-primary" type="button" onclick="imageEdit.handleCropToolClick( <?php echo "$post_id, '$nonce'"; ?>, this );" class="imgedit-crop-apply button"><?php esc_html_e( 'Apply Crop' ); ?></button> <button type="button" onclick="imageEdit.handleCropToolClick( <?php echo "$post_id, '$nonce'"; ?>, this );" class="imgedit-crop-clear button" disabled="disabled"><?php esc_html_e( 'Clear Crop' ); ?></button>
+					<button class="button button-primary" type="button" onclick="imageEdit.handleCropToolClick( <?php echo "$post_id, '$nonce'"; ?>, this );" class="imgedit-crop-apply button"><?php esc_html_e( 'Apply Crop' ); ?></button> <button type="button" onclick="imageEdit.handleCropToolClick( <?php echo "$post_id, '$nonce'"; ?>, this );" class="imgedit-crop-clear button" disabled="disabled"><?php esc_html_e( 'Clear Crop' ); ?></button>
 				</div>
 			</div>
 		</div>
@@ -293,7 +293,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 		</div>
 		<div class="imgedit-thumbnail-preview-group">
 			<figure class="imgedit-thumbnail-preview">
-				<img src="<?php echo $thumb['url']; ?>" width="<?php echo $thumb_img[0]; ?>" height="<?php echo $thumb_img[1]; ?>" class="imgedit-size-preview" alt="" draggable="false" />
+				<img src="<?php echo esc_url( $thumb['url'] ); ?>" width="<?php echo esc_attr( $thumb_img[0] ); ?>" height="<?php echo esc_attr( $thumb_img[1] ); ?>" class="imgedit-size-preview" alt="" draggable="false" />
 				<figcaption class="imgedit-thumbnail-preview-caption"><?php _e( 'Current thumbnail' ); ?></figcaption>
 			</figure>
 			<div id="imgedit-save-target-<?php echo $post_id; ?>" class="imgedit-save-target">
@@ -534,8 +534,8 @@ function _image_get_preview_ratio( $w, $h ) {
  * @see WP_Image_Editor::rotate()
  *
  * @ignore
- * @param resource|GdImage  $img   Image resource.
- * @param float|int         $angle Image rotation angle, in degrees.
+ * @param resource|GdImage $img   Image resource.
+ * @param float|int        $angle Image rotation angle, in degrees.
  * @return resource|GdImage|false GD image resource or GdImage instance, false otherwise.
  */
 function _rotate_image_resource( $img, $angle ) {
@@ -545,7 +545,10 @@ function _rotate_image_resource( $img, $angle ) {
 		$rotated = imagerotate( $img, $angle, 0 );
 
 		if ( is_gd_image( $rotated ) ) {
-			imagedestroy( $img );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $img );
+			}
+
 			$img = $rotated;
 		}
 	}
@@ -580,7 +583,10 @@ function _flip_image_resource( $img, $horz, $vert ) {
 		$sh = $horz ? -$h : $h;
 
 		if ( imagecopyresampled( $dst, $img, 0, 0, $sx, $sy, $w, $h, $sw, $sh ) ) {
-			imagedestroy( $img );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $img );
+			}
+
 			$img = $dst;
 		}
 	}
@@ -606,7 +612,10 @@ function _crop_image_resource( $img, $x, $y, $w, $h ) {
 
 	if ( is_gd_image( $dst ) ) {
 		if ( imagecopy( $dst, $img, 0, 0, $x, $y, $w, $h ) ) {
-			imagedestroy( $img );
+			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
+				imagedestroy( $img );
+			}
+
 			$img = $dst;
 		}
 	}
@@ -826,9 +835,10 @@ function wp_restore_image( $post_id ) {
 				}
 			} elseif ( isset( $meta['width'], $meta['height'] ) ) {
 				$backup_sizes[ "full-$suffix" ] = array(
-					'width'  => $meta['width'],
-					'height' => $meta['height'],
-					'file'   => $parts['basename'],
+					'width'    => $meta['width'],
+					'height'   => $meta['height'],
+					'filesize' => $meta['filesize'],
+					'file'     => $parts['basename'],
 				);
 			}
 		}
@@ -839,6 +849,14 @@ function wp_restore_image( $post_id ) {
 		$meta['file']   = _wp_relative_upload_path( $restored_file );
 		$meta['width']  = $data['width'];
 		$meta['height'] = $data['height'];
+		if ( isset( $data['filesize'] ) ) {
+			/*
+			 * Restore the original filesize if it was backed up.
+			 *
+			 * See https://core.trac.wordpress.org/ticket/59684.
+			 */
+			$meta['filesize'] = $data['filesize'];
+		}
 	}
 
 	foreach ( $default_sizes as $default_size ) {
@@ -997,8 +1015,9 @@ function wp_save_image( $post_id ) {
 		}
 	}
 
+	$saved_image = wp_save_image_file( $new_path, $img, $post->post_mime_type, $post_id );
 	// Save the full-size file, also needed to create sub-sizes.
-	if ( ! wp_save_image_file( $new_path, $img, $post->post_mime_type, $post_id ) ) {
+	if ( ! $saved_image ) {
 		$return->error = esc_js( __( 'Unable to save the image.' ) );
 		return $return;
 	}
@@ -1018,9 +1037,10 @@ function wp_save_image( $post_id ) {
 
 		if ( $tag ) {
 			$backup_sizes[ $tag ] = array(
-				'width'  => $meta['width'],
-				'height' => $meta['height'],
-				'file'   => $basename,
+				'width'    => $meta['width'],
+				'height'   => $meta['height'],
+				'filesize' => $meta['filesize'],
+				'file'     => $basename,
 			);
 		}
 
@@ -1028,9 +1048,10 @@ function wp_save_image( $post_id ) {
 
 		$meta['file'] = _wp_relative_upload_path( $new_path );
 
-		$size           = $img->get_size();
-		$meta['width']  = $size['width'];
-		$meta['height'] = $size['height'];
+		$size             = $img->get_size();
+		$meta['width']    = $size['width'];
+		$meta['height']   = $size['height'];
+		$meta['filesize'] = $saved_image['filesize'];
 
 		if ( $success && ( 'nothumb' === $target || 'all' === $target ) ) {
 			$sizes = get_intermediate_image_sizes();

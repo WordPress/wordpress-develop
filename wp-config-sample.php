@@ -32,7 +32,7 @@ define( 'DB_PASSWORD', 'password_here' );
 define( 'DB_HOST', 'localhost' );
 
 /** Database charset to use in creating database tables. */
-define( 'DB_CHARSET', 'utf8' );
+define( 'DB_CHARSET', 'utf8mb4' );
 
 /** The database collate type. Don't change this if in doubt. */
 define( 'DB_COLLATE', '' );
@@ -65,7 +65,7 @@ define( 'NONCE_SALT',       'put your unique phrase here' );
  * You can have multiple installations in one database if you give each
  * a unique prefix. Only numbers, letters, and underscores please!
  *
- * At the installation time, DB tables names with $table_prefix are created.
+ * At the installation time, database tables are created with the specified prefix.
  * Changing this value after WordPress is installed will make your site think
  * it has not been installed.
  *

@@ -327,10 +327,14 @@ class Tests_Block_Template extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, get_block_theme_folders( $theme ), 'Incorrect block theme folders were retrieved.' );
 		$reflection = new ReflectionMethod( $wp_theme, 'cache_get' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 		$theme_cache  = $reflection->invoke( $wp_theme, 'theme' );
 		$cached_value = $theme_cache['block_template_folders'];
-		$reflection->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( false );
+		}
 
 		$this->assertSame( $expected, $cached_value, 'The cached value is incorrect.' );
 	}
@@ -443,13 +447,13 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	public function test_get_block_templates_from_registry() {
 		$template_name = 'test-plugin//test-template';
 
-		wp_register_block_template( $template_name );
+		register_block_template( $template_name );
 
 		$templates = get_block_templates();
 
 		$this->assertArrayHasKey( $template_name, $templates );
 
-		wp_unregister_block_template( $template_name );
+		unregister_block_template( $template_name );
 	}
 
 	/**
@@ -465,13 +469,13 @@ class Tests_Block_Template extends WP_UnitTestCase {
 			'title' => 'Test Template',
 		);
 
-		wp_register_block_template( $template_name, $args );
+		register_block_template( $template_name, $args );
 
 		$template = get_block_template( 'block-theme//test-template' );
 
 		$this->assertSame( 'Test Template', $template->title );
 
-		wp_unregister_block_template( $template_name );
+		unregister_block_template( $template_name );
 	}
 
 	/**

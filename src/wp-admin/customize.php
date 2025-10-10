@@ -62,7 +62,7 @@ if ( $wp_customize->changeset_post_id() ) {
 		?>
 		<?php wp_print_scripts( array( 'wp-util' ) ); ?>
 		<script>
-			wp.ajax.post( 'customize_save', <?php echo wp_json_encode( $request_args ); ?> );
+			wp.ajax.post( 'customize_save', <?php echo wp_json_encode( $request_args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 		</script>
 		<?php
 		$script = ob_get_clean();
@@ -76,16 +76,16 @@ if ( $wp_customize->changeset_post_id() ) {
 
 	if ( in_array( get_post_status( $changeset_post->ID ), array( 'publish', 'trash' ), true ) ) {
 		wp_die(
-			'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
-			'<p>' . __( 'This changeset cannot be further modified.' ) . '</p>' .
+			'<h1>' . __( 'An error occurred while saving your changeset.' ) . '</h1>' .
+			'<p>' . __( 'Please try again or start a new changeset. This changeset cannot be further modified.' ) . '</p>' .
 			'<p><a href="' . esc_url( remove_query_arg( 'changeset_uuid' ) ) . '">' . __( 'Customize New Changes' ) . '</a></p>',
 			403
 		);
 	}
 }
 
-$url       = ! empty( $_REQUEST['url'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['url'] ) ) : '';
-$return    = ! empty( $_REQUEST['return'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['return'] ) ) : '';
+$url       = ! empty( $_REQUEST['url'] ) ? esc_url_raw( wp_unslash( $_REQUEST['url'] ) ) : '';
+$return    = ! empty( $_REQUEST['return'] ) ? esc_url_raw( wp_unslash( $_REQUEST['return'] ) ) : '';
 $autofocus = ! empty( $_REQUEST['autofocus'] ) && is_array( $_REQUEST['autofocus'] )
 	? array_map( 'sanitize_text_field', wp_unslash( $_REQUEST['autofocus'] ) )
 	: array();
@@ -99,6 +99,12 @@ if ( ! empty( $return ) ) {
 if ( ! empty( $autofocus ) ) {
 	$wp_customize->set_autofocus( $autofocus );
 }
+
+// Let's roll.
+header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
+
+wp_user_settings();
+_wp_admin_html_begin();
 
 $registered             = $wp_scripts->registered;
 $wp_scripts             = new WP_Scripts();
@@ -126,12 +132,6 @@ wp_enqueue_style( 'customize-controls' );
  */
 do_action( 'customize_controls_enqueue_scripts' );
 
-// Let's roll.
-header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
-
-wp_user_settings();
-_wp_admin_html_begin();
-
 $body_class = 'wp-core-ui wp-customizer js';
 
 if ( wp_is_mobile() ) :
@@ -158,7 +158,7 @@ $admin_title = sprintf( $wp_customize->get_document_title_template(), __( 'Loadi
 <title><?php echo esc_html( $admin_title ); ?></title>
 
 <script type="text/javascript">
-var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php', 'relative' ) ); ?>,
+var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php', 'relative' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>,
 	pagenow = 'customize';
 </script>
 
@@ -233,12 +233,12 @@ do_action( 'customize_controls_head' );
 			<div class="wp-full-overlay-sidebar-content" tabindex="-1">
 				<div id="customize-info" class="accordion-section customize-info" data-block-theme="<?php echo (int) wp_is_block_theme(); ?>">
 					<div class="accordion-section-title">
-						<span class="preview-notice">
+						<h2 class="preview-notice">
 						<?php
 							/* translators: %s: The site/panel title in the Customizer. */
 							printf( __( 'You are customizing %s' ), '<strong class="panel-title site-title">' . get_bloginfo( 'name', 'display' ) . '</strong>' );
 						?>
-						</span>
+						</h2>
 						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text">
 							<?php
 							/* translators: Hidden accessibility text. */
@@ -268,7 +268,7 @@ do_action( 'customize_controls_head' );
 
 		<div id="customize-footer-actions" class="wp-full-overlay-footer">
 			<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php echo esc_attr_x( 'Hide Controls', 'label for hide controls button without length constraints' ); ?>">
-				<span class="collapse-sidebar-arrow"></span>
+				<span class="collapse-sidebar-arrow" aria-hidden="true"></span>
 				<span class="collapse-sidebar-label"><?php _ex( 'Hide Controls', 'short (~12 characters) label for hide controls button' ); ?></span>
 			</button>
 			<?php $previewable_devices = $wp_customize->get_previewable_devices(); ?>

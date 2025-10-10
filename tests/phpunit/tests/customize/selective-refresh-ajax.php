@@ -29,6 +29,22 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	public $selective_refresh;
 
 	/**
+	 * Shared user ID for the tests.
+	 *
+	 * @var int
+	 */
+	public static $user_id = 0;
+
+	/**
+	 * Set up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$user_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	/**
 	 * Set up the test fixture.
 	 */
 	public function set_up() {
@@ -79,7 +95,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 		$this->assertSame( 'expected_customize_preview', $output['data'] );
 
 		// Check expected_customize_preview.
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$user_id );
 		$_REQUEST['nonce'] = wp_create_nonce( 'preview-customize_' . $this->wp_customize->theme()->get_stylesheet() );
 		ob_start();
 		try {
@@ -121,7 +137,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * Set the current user to be an admin, add the preview nonce, and set the query var.
 	 */
 	private function setup_valid_render_partials_request_environment() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$user_id );
 		$_REQUEST['nonce'] = wp_create_nonce( 'preview-customize_' . $this->wp_customize->theme()->get_stylesheet() );
 		$_POST[ WP_Customize_Selective_Refresh::RENDER_QUERY_VAR ] = '1';
 		$this->do_customize_boot_actions();
@@ -171,7 +187,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 */
 	public function test_handle_render_partials_request_for_non_rendering_partial() {
 		$this->setup_valid_render_partials_request_environment();
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$user_id );
 		$this->wp_customize->add_setting( 'home' );
 		$this->wp_customize->selective_refresh->add_partial( 'foo', array( 'settings' => array( 'home' ) ) );
 		$context_data = array();
@@ -208,7 +224,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 */
 	public function test_handle_rendering_disallowed_partial() {
 		$this->setup_valid_render_partials_request_environment();
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$user_id );
 		$this->wp_customize->add_setting(
 			'secret_message',
 			array(
@@ -244,7 +260,7 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 */
 	public function test_handle_rendering_partial_with_missing_settings() {
 		$this->setup_valid_render_partials_request_environment();
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$user_id );
 		$this->wp_customize->selective_refresh->add_partial( 'bar', array( 'settings' => 'bar' ) );
 
 		$context_data      = array();
