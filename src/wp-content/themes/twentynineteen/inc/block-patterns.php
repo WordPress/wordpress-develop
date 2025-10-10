@@ -185,15 +185,39 @@ if ( function_exists( 'register_block_pattern' ) ) {
 					'<!-- wp:heading -->',
 					'<h2>' . esc_html__( 'What We Do', 'twentynineteen' ) . '</h2>',
 					'<!-- /wp:heading -->',
-					'<!-- wp:pullquote {"align":"wide","className":"is-style-solid-color"} -->',
-					'<figure class="wp-block-pullquote alignwide is-style-solid-color"><blockquote><p>' . esc_html__( 'Redefine brands', 'twentynineteen' ) . '</p><cite>' . esc_html__( 'We help startups define (or refine) a clear brand identity.', 'twentynineteen' ) . '</cite></blockquote></figure>',
-					'<!-- /wp:pullquote -->',
-					'<!-- wp:pullquote {"mainColor":"dark-gray","customTextColor":"#ffffff","align":"wide","className":"is-style-solid-color"} -->',
-					'<figure class="wp-block-pullquote alignwide has-background has-dark-gray-background-color is-style-solid-color"><blockquote class="has-text-color" style="color:#ffffff"><p>' . esc_html__( 'Activate new customers', 'twentynineteen' ) . '</p><cite>' . esc_html__( 'We help businesses grow.', 'twentynineteen' ) . '</cite></blockquote></figure>',
-					'<!-- /wp:pullquote -->',
-					'<!-- wp:pullquote {"customMainColor":"#f7f7f7","customTextColor":"#111111","align":"wide","className":"is-style-solid-color"} -->',
-					'<figure class="wp-block-pullquote alignwide has-background is-style-solid-color" style="background-color:#f7f7f7"><blockquote class="has-text-color" style="color:#111111"><p>' . esc_html__( 'Spark interest on social media', 'twentynineteen' ) . '</p><cite>' . esc_html__( 'We help companies communicate with their customers.', 'twentynineteen' ) . '</cite></blockquote></figure>',
-					'<!-- /wp:pullquote -->',
+
+					// Section 1: Redefine brands.
+					'<!-- wp:cover {"overlayColor":"primary","align":"wide"} -->',
+					'<div class="wp-block-cover alignwide has-primary-background-color has-background-dim"><div class="wp-block-cover__inner-container"><!-- wp:heading {"level":3,"textColor":"white"} -->',
+					'<h3 class="has-white-color has-text-color">' . esc_html__( 'Redefine brands', 'twentynineteen' ) . '</h3>',
+					'<!-- /wp:heading -->',
+
+					'<!-- wp:paragraph {"textColor":"white"} -->',
+					'<p class="has-white-color has-text-color">' . esc_html__( 'We help startups define (or refine) a clear brand identity.', 'twentynineteen' ) . '</p>',
+					'<!-- /wp:paragraph --></div></div>',
+					'<!-- /wp:cover -->',
+
+					// Section 2: Activate new customers.
+					'<!-- wp:cover {"overlayColor":"dark-gray","align":"wide"} -->',
+					'<div class="wp-block-cover alignwide has-dark-gray-background-color has-background-dim"><div class="wp-block-cover__inner-container"><!-- wp:heading {"level":3,"textColor":"white"} -->',
+					'<h3 class="has-white-color has-text-color">' . esc_html__( 'Activate new customers', 'twentynineteen' ) . '</h3>',
+					'<!-- /wp:heading -->',
+
+					'<!-- wp:paragraph {"textColor":"white"} -->',
+					'<p class="has-white-color has-text-color">' . esc_html__( 'We help businesses grow.', 'twentynineteen' ) . '</p>',
+					'<!-- /wp:paragraph --></div></div>',
+					'<!-- /wp:cover -->',
+
+					// Section 3: Spark interest on social media.
+					'<!-- wp:cover {"customOverlayColor":"#f7f7f7","align":"wide"} -->',
+					'<div class="wp-block-cover alignwide has-background-dim" style="background-color:#f7f7f7"><div class="wp-block-cover__inner-container"><!-- wp:heading {"level":3,"textColor":"dark-gray"} -->',
+					'<h3 class="has-dark-gray-color has-text-color">' . esc_html__( 'Spark interest on social media', 'twentynineteen' ) . '</h3>',
+					'<!-- /wp:heading -->',
+
+					'<!-- wp:paragraph {"textColor":"dark-gray"} -->',
+					'<p class="has-dark-gray-color has-text-color">' . esc_html__( 'We help companies communicate with their customers.', 'twentynineteen' ) . '</p>',
+					'<!-- /wp:paragraph --></div></div>',
+					'<!-- /wp:cover -->',
 				)
 			),
 		)
