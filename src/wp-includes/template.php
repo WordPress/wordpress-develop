@@ -889,20 +889,21 @@ function wp_finalize_template_optimization_output_buffer( string $output, int $p
 	}
 
 	// Detect if the response is an HTML content type.
-	$is_html_content_type = false;
-	$headers_list         = array_merge(
-		array( 'Content-Type: ' . ini_get( 'default_mimetype' ) ),
-		headers_list()
-	);
-	foreach ( $headers_list as $header ) {
+	$is_html_content_type = null;
+	$html_content_types   = array( 'text/html', 'application/xhtml+xml' );
+	foreach ( headers_list() as $header ) {
 		$header_parts = preg_split( '/\s*[:;]\s*/', strtolower( $header ) );
 		if (
 			is_array( $header_parts ) &&
 			count( $header_parts ) >= 2 &&
 			'content-type' === $header_parts[0]
 		) {
-			$is_html_content_type = in_array( $header_parts[1], array( 'text/html', 'application/xhtml+xml' ), true );
+			$is_html_content_type = in_array( $header_parts[1], $html_content_types, true );
+			break; // PHP only sends the first Content-Type header in the list.
 		}
+	}
+	if ( null === $is_html_content_type ) {
+		$is_html_content_type = in_array( ini_get( 'default_mimetype' ), $html_content_types, true );
 	}
 
 	// If the content type is not HTML, short-circuit since it is not relevant optimization.
