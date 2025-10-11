@@ -513,6 +513,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$level = ob_get_level();
 		$this->assertFalse( wp_should_output_buffer_template_for_enhancement() );
 		$this->assertFalse( wp_start_template_enhancement_output_buffer() );
+		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ) );
 		$this->assertSame( $level, ob_get_level() );
 	}
 
@@ -529,6 +530,7 @@ class Tests_Template extends WP_UnitTestCase {
 		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true' );
 		$this->assertTrue( wp_should_output_buffer_template_for_enhancement() );
 		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ) );
 		$this->assertSame( $level + 1, ob_get_level() );
 		ob_end_clean();
 	}
@@ -551,6 +553,7 @@ class Tests_Template extends WP_UnitTestCase {
 		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_false' );
 		$this->assertFalse( wp_should_output_buffer_template_for_enhancement() );
 		$this->assertFalse( wp_start_template_enhancement_output_buffer() );
+		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ) );
 		$this->assertSame( $level, ob_get_level() );
 	}
 
@@ -597,6 +600,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$initial_ob_level = ob_get_level();
 		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ) );
 		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
 
 		?>
@@ -675,6 +679,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$initial_ob_level = ob_get_level();
 		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ) );
 		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
 
 		?>
@@ -738,6 +743,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$initial_ob_level = ob_get_level();
 		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ) );
 		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
 
 		?>
@@ -791,6 +797,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$initial_ob_level = ob_get_level();
 		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ) );
 		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
 
 		ini_set( 'default_mimetype', 'application/json' ); // Since sending a header won't work.
