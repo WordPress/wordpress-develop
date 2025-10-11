@@ -505,11 +505,13 @@ class Tests_Template extends WP_UnitTestCase {
 	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer when no filters are present.
 	 *
 	 * @ticket 43258
+	 * @covers ::wp_should_output_buffer_template_for_enhancement
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 */
 	public function test_wp_start_template_enhancement_output_buffer_without_filters_and_no_override(): void {
 		remove_all_filters( 'wp_template_enhancement_output_buffer' );
 		$level = ob_get_level();
+		$this->assertFalse( wp_should_output_buffer_template_for_enhancement() );
 		$this->assertFalse( wp_start_template_enhancement_output_buffer() );
 		$this->assertSame( $level, ob_get_level() );
 	}
@@ -518,12 +520,14 @@ class Tests_Template extends WP_UnitTestCase {
 	 * Tests that wp_start_template_enhancement_output_buffer() does start a buffer when no filters are present but there is an override.
 	 *
 	 * @ticket 43258
+	 * @covers ::wp_should_output_buffer_template_for_enhancement
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 */
 	public function test_wp_start_template_enhancement_output_buffer_begins_without_filters_but_overridden(): void {
 		remove_all_filters( 'wp_template_enhancement_output_buffer' );
 		$level = ob_get_level();
-		add_filter( 'wp_template_output_buffered_for_enhancement', '__return_true' );
+		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true' );
+		$this->assertTrue( wp_should_output_buffer_template_for_enhancement() );
 		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
 		$this->assertSame( $level + 1, ob_get_level() );
 		ob_end_clean();
@@ -533,6 +537,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer even when there are filters present due to override.
 	 *
 	 * @ticket 43258
+	 * @covers ::wp_should_output_buffer_template_for_enhancement
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 */
 	public function test_wp_start_template_enhancement_output_buffer_begins_with_filters_but_blocked(): void {
@@ -543,7 +548,8 @@ class Tests_Template extends WP_UnitTestCase {
 			}
 		);
 		$level = ob_get_level();
-		add_filter( 'wp_template_output_buffered_for_enhancement', '__return_false' );
+		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_false' );
+		$this->assertFalse( wp_should_output_buffer_template_for_enhancement() );
 		$this->assertFalse( wp_start_template_enhancement_output_buffer() );
 		$this->assertSame( $level, ob_get_level() );
 	}

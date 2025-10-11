@@ -825,17 +825,19 @@ function load_template( $_template_file, $load_once = true, $args = array() ) {
 }
 
 /**
- * Starts the template enhancement output buffer.
+ * Checks whether the template should be output buffered for enhancement.
  *
- * This function is called immediately before the template is included.
+ * By default, an output buffer is only started if a {@see 'wp_template_enhancement_output_buffer'} filter has been
+ * added be the time a template is included at the {@see 'wp_before_include_template'} action. This allows template
+ * responses to be streamed as much as possible when no template enhancements are registered to apply.
  *
  * @since 6.9.0
  *
- * @return bool Whether the output buffer successfully started.
+ * @return bool Whether the template should be output-buffered for enhancement.
  */
-function wp_start_template_enhancement_output_buffer(): bool {
+function wp_should_output_buffer_template_for_enhancement(): bool {
 	/**
-	 * Filters whether the template will be output-buffered for enhancement.
+	 * Filters whether the template should be output-buffered for enhancement.
 	 *
 	 * By default, an output buffer is only started if a {@see 'wp_template_enhancement_output_buffer'} filter has been
 	 * added. For this default to apply, a filter must be added by the time the template is included at the
@@ -847,11 +849,24 @@ function wp_start_template_enhancement_output_buffer(): bool {
 	 *
 	 * @param bool $use_output_buffer Whether an output buffer is started.
 	 */
-	if ( ! apply_filters( 'wp_template_output_buffered_for_enhancement', has_filter( 'wp_template_enhancement_output_buffer' ) ) ) {
+	return (bool) apply_filters( 'wp_should_output_buffer_template_for_enhancement', has_filter( 'wp_template_enhancement_output_buffer' ) );
+}
+
+/**
+ * Starts the template enhancement output buffer.
+ *
+ * This function is called immediately before the template is included.
+ *
+ * @since 6.9.0
+ *
+ * @return bool Whether the output buffer successfully started.
+ */
+function wp_start_template_enhancement_output_buffer(): bool {
+	if ( ! wp_should_output_buffer_template_for_enhancement() ) {
 		return false;
 	}
 
-	return ob_start(
+	$started = ob_start(
 		'wp_finalize_template_enhancement_output_buffer',
 		0, // Unlimited buffer size so that entire output is passed to the filter.
 		/*
@@ -874,6 +889,17 @@ function wp_start_template_enhancement_output_buffer(): bool {
 		 */
 		PHP_OUTPUT_HANDLER_STDFLAGS ^ PHP_OUTPUT_HANDLER_FLUSHABLE
 	);
+
+	if ( $started ) {
+		/**
+		 * Fires when the template enhancement output buffer has started.
+		 *
+		 * @since 6.9.0
+		 */
+		do_action( 'wp_template_enhancement_output_buffer_started' );
+	}
+
+	return $started;
 }
 
 /**
