@@ -920,8 +920,8 @@ function wp_finalize_template_optimization_output_buffer( string $output, int $p
 	 *
 	 * This filter only applies the HTML output of an included template. This filter is a progressive enhancement
 	 * intended for optimizing markup to improve frontend page load performance. Sites must not depend on this filter
-	 * applying they may opt to stream the responses instead. Callbacks for this filter are highly discouraged from
-	 * using regular expressions to do any kind of replacement on the output. Use the HTML API (either
+	 * applying since they may opt to stream the responses instead. Callbacks for this filter are highly discouraged
+	 * from using regular expressions to do any kind of replacement on the output. Use the HTML API (either
 	 * `WP_HTML_Tag_Processor` or `WP_HTML_Processor`), or else use PHP's DOM API, especially as of PHP 8.4 which fully
 	 * supports HTML5.
 	 *
