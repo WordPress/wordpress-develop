@@ -855,10 +855,13 @@ function wp_start_template_optimization_output_buffer(): bool {
 		'wp_finalize_template_optimization_output_buffer',
 		0, // Unlimited buffer size so that entire output is passed to the filter.
 		/*
-		 * Instead of the default PHP_OUTPUT_HANDLER_STDFLAGS (cleanable, flushable, and removable) being used for flags,
-		 * the PHP_OUTPUT_HANDLER_FLUSHABLE flag must be omitted. If the buffer were flushable, then each time that
-		 * ob_flush() is called, it would send a fragment of the output into the output buffer callback. When buffering the
-		 * entire response as an HTML document, this would result in broken HTML processing.
+		 * Instead of the default PHP_OUTPUT_HANDLER_STDFLAGS (cleanable, flushable, and removable) being used for
+		 * flags, the PHP_OUTPUT_HANDLER_FLUSHABLE flag must be omitted. If the buffer were flushable, then each time
+		 * that ob_flush() is called, a fragment of the output would be sent into the output buffer callback. This
+		 * output buffer is intended to capture the entire response for processing, as indicated by the chunk size of 0.
+		 * So the buffer does not allow flushing to ensure the entire buffer can be processed, such as for optimizing an
+		 * entire HTML document, where markup in the HEAD may need to be adjusted based on markup that appears late in
+		 * the BODY.
 		 *
 		 * If this ends up being problematic, then PHP_OUTPUT_HANDLER_FLUSHABLE could be added to the $flags and the
 		 * output buffer callback could check if the phase is PHP_OUTPUT_HANDLER_FLUSH and abort any subsequent
