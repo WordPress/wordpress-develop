@@ -502,67 +502,67 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_start_template_optimization_output_buffer() does not start a buffer when no filters are present.
+	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer when no filters are present.
 	 *
 	 * @ticket 43258
-	 * @covers ::wp_start_template_optimization_output_buffer
+	 * @covers ::wp_start_template_enhancement_output_buffer
 	 */
-	public function test_wp_start_template_optimization_output_buffer_without_filters_and_no_override(): void {
-		remove_all_filters( 'wp_template_optimization_output_buffer' );
+	public function test_wp_start_template_enhancement_output_buffer_without_filters_and_no_override(): void {
+		remove_all_filters( 'wp_template_enhancement_output_buffer' );
 		$level = ob_get_level();
-		$this->assertFalse( wp_start_template_optimization_output_buffer() );
+		$this->assertFalse( wp_start_template_enhancement_output_buffer() );
 		$this->assertSame( $level, ob_get_level() );
 	}
 
 	/**
-	 * Tests that wp_start_template_optimization_output_buffer() does start a buffer when no filters are present but there is an override.
+	 * Tests that wp_start_template_enhancement_output_buffer() does start a buffer when no filters are present but there is an override.
 	 *
 	 * @ticket 43258
-	 * @covers ::wp_start_template_optimization_output_buffer
+	 * @covers ::wp_start_template_enhancement_output_buffer
 	 */
-	public function test_wp_start_template_optimization_output_buffer_begins_without_filters_but_overridden(): void {
-		remove_all_filters( 'wp_template_optimization_output_buffer' );
+	public function test_wp_start_template_enhancement_output_buffer_begins_without_filters_but_overridden(): void {
+		remove_all_filters( 'wp_template_enhancement_output_buffer' );
 		$level = ob_get_level();
-		add_filter( 'wp_template_output_buffered_for_optimization', '__return_true' );
-		$this->assertTrue( wp_start_template_optimization_output_buffer() );
+		add_filter( 'wp_template_output_buffered_for_enhancement', '__return_true' );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
 		$this->assertSame( $level + 1, ob_get_level() );
 		ob_end_clean();
 	}
 
 	/**
-	 * Tests that wp_start_template_optimization_output_buffer() does not start a buffer even when there are filters present due to override.
+	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer even when there are filters present due to override.
 	 *
 	 * @ticket 43258
-	 * @covers ::wp_start_template_optimization_output_buffer
+	 * @covers ::wp_start_template_enhancement_output_buffer
 	 */
-	public function test_wp_start_template_optimization_output_buffer_begins_with_filters_but_blocked(): void {
+	public function test_wp_start_template_enhancement_output_buffer_begins_with_filters_but_blocked(): void {
 		add_filter(
-			'wp_template_optimization_output_buffer',
+			'wp_template_enhancement_output_buffer',
 			static function () {
 				return '<html>Hey!</html>';
 			}
 		);
 		$level = ob_get_level();
-		add_filter( 'wp_template_output_buffered_for_optimization', '__return_false' );
-		$this->assertFalse( wp_start_template_optimization_output_buffer() );
+		add_filter( 'wp_template_output_buffered_for_enhancement', '__return_false' );
+		$this->assertFalse( wp_start_template_enhancement_output_buffer() );
 		$this->assertSame( $level, ob_get_level() );
 	}
 
 	/**
-	 * Tests that wp_start_template_optimization_output_buffer() starts the expected output buffer and that the expected hooks fire for
+	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer and that the expected hooks fire for
 	 * an HTML document and that the response is not incrementally flushable.
 	 *
 	 * @ticket 43258
-	 * @covers ::wp_start_template_optimization_output_buffer
-	 * @covers ::wp_finalize_template_optimization_output_buffer
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_finalize_template_enhancement_output_buffer
 	 */
-	public function test_wp_start_template_optimization_output_buffer_for_html(): void {
+	public function test_wp_start_template_enhancement_output_buffer_for_html(): void {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
 		$filter_args = null;
 		add_filter(
-			'wp_template_optimization_output_buffer',
+			'wp_template_enhancement_output_buffer',
 			static function ( string $buffer ) use ( &$filter_args ): string {
 				$filter_args = func_get_args();
 
@@ -590,7 +590,7 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$initial_ob_level = ob_get_level();
-		$this->assertTrue( wp_start_template_optimization_output_buffer() );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
 		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
 
 		?>
@@ -612,18 +612,18 @@ class Tests_Template extends WP_UnitTestCase {
 		<?php
 
 		$ob_status = ob_get_status();
-		$this->assertSame( 'wp_finalize_template_optimization_output_buffer', $ob_status['name'], 'Expected name to be WP function.' );
+		$this->assertSame( 'wp_finalize_template_enhancement_output_buffer', $ob_status['name'], 'Expected name to be WP function.' );
 		$this->assertSame( 1, $ob_status['type'], 'Expected type to be user supplied handler.' );
 		$this->assertSame( 0, $ob_status['chunk_size'], 'Expected unlimited chunk size.' );
 
-		ob_end_flush(); // End the buffer started by wp_start_template_optimization_output_buffer().
+		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
 		$this->assertSame( $initial_ob_level, ob_get_level() );
 
-		$this->assertIsArray( $filter_args, 'Expected the wp_template_optimization_output_buffer filter to have applied.' );
-		$this->assertCount( 2, $filter_args, 'Expected two args to be supplied to the wp_template_optimization_output_buffer filter.' );
-		$this->assertIsString( $filter_args[0], 'Expected the $filtered_output param to the wp_template_optimization_output_buffer filter to be a string.' );
-		$this->assertIsString( $filter_args[1], 'Expected the $output param to the wp_template_optimization_output_buffer filter to be a string.' );
-		$this->assertSame( $filter_args[1], $filter_args[0], 'Expected the initial $filtered_output to match $output in the wp_template_optimization_output_buffer filter.' );
+		$this->assertIsArray( $filter_args, 'Expected the wp_template_enhancement_output_buffer filter to have applied.' );
+		$this->assertCount( 2, $filter_args, 'Expected two args to be supplied to the wp_template_enhancement_output_buffer filter.' );
+		$this->assertIsString( $filter_args[0], 'Expected the $filtered_output param to the wp_template_enhancement_output_buffer filter to be a string.' );
+		$this->assertIsString( $filter_args[1], 'Expected the $output param to the wp_template_enhancement_output_buffer filter to be a string.' );
+		$this->assertSame( $filter_args[1], $filter_args[0], 'Expected the initial $filtered_output to match $output in the wp_template_enhancement_output_buffer filter.' );
 		$original_output = $filter_args[0];
 		$this->assertStringContainsString( '<!DOCTYPE html>', $original_output );
 		$this->assertStringContainsString( '<html lang="en">', $original_output );
@@ -643,19 +643,19 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_start_template_optimization_output_buffer() starts the expected output buffer but ending with cleaning prevents any processing.
+	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer but ending with cleaning prevents any processing.
 	 *
 	 * @ticket 43258
-	 * @covers ::wp_start_template_optimization_output_buffer
-	 * @covers ::wp_finalize_template_optimization_output_buffer
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_finalize_template_enhancement_output_buffer
 	 */
-	public function test_wp_start_template_optimization_output_buffer_ended_cleaned(): void {
+	public function test_wp_start_template_enhancement_output_buffer_ended_cleaned(): void {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
 		$applied_filter = false;
 		add_filter(
-			'wp_template_optimization_output_buffer',
+			'wp_template_enhancement_output_buffer',
 			static function ( string $buffer ) use ( &$applied_filter ): string {
 				$applied_filter = true;
 
@@ -668,7 +668,7 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$initial_ob_level = ob_get_level();
-		$this->assertTrue( wp_start_template_optimization_output_buffer() );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
 		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
 
 		?>
@@ -680,7 +680,7 @@ class Tests_Template extends WP_UnitTestCase {
 			<body>
 				<h1>Hello World!</h1>
 				<!-- ... -->
-		<?php ob_end_clean(); // Clean and end the buffer started by wp_start_template_optimization_output_buffer(). ?>
+		<?php ob_end_clean(); // Clean and end the buffer started by wp_start_template_enhancement_output_buffer(). ?>
 		<!DOCTYPE html>
 		<html lang="en">
 			<head>
@@ -706,19 +706,19 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_start_template_optimization_output_buffer() starts the expected output buffer and cleaning allows the template to be replaced.
+	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer and cleaning allows the template to be replaced.
 	 *
 	 * @ticket 43258
-	 * @covers ::wp_start_template_optimization_output_buffer
-	 * @covers ::wp_finalize_template_optimization_output_buffer
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_finalize_template_enhancement_output_buffer
 	 */
-	public function test_wp_start_template_optimization_output_buffer_cleaned_and_replaced(): void {
+	public function test_wp_start_template_enhancement_output_buffer_cleaned_and_replaced(): void {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
 		$called_html_filter = false;
 		add_filter(
-			'wp_template_optimization_output_buffer',
+			'wp_template_enhancement_output_buffer',
 			static function ( string $buffer ) use ( &$called_html_filter ): string {
 				$called_html_filter = true;
 
@@ -731,7 +731,7 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$initial_ob_level = ob_get_level();
-		$this->assertTrue( wp_start_template_optimization_output_buffer() );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
 		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
 
 		?>
@@ -743,7 +743,7 @@ class Tests_Template extends WP_UnitTestCase {
 			<body>
 				<h1>Hello World!</h1>
 				<!-- ... -->
-		<?php ob_clean(); // Clean the buffer started by wp_start_template_optimization_output_buffer(), allowing the following document to replace the above.. ?>
+		<?php ob_clean(); // Clean the buffer started by wp_start_template_enhancement_output_buffer(), allowing the following document to replace the above.. ?>
 		<!DOCTYPE html>
 		<html lang="en">
 			<head>
@@ -756,7 +756,7 @@ class Tests_Template extends WP_UnitTestCase {
 		</html>
 		<?php
 
-		ob_end_flush(); // End the buffer started by wp_start_template_optimization_output_buffer().
+		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
 		$this->assertSame( $initial_ob_level, ob_get_level() );
 
 		$this->assertTrue( $called_html_filter );
@@ -770,21 +770,21 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_start_template_optimization_output_buffer() starts the expected output buffer and that the output buffer is not processed.
+	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer and that the output buffer is not processed.
 	 *
 	 * @ticket 43258
-	 * @covers ::wp_start_template_optimization_output_buffer
-	 * @covers ::wp_finalize_template_optimization_output_buffer
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_finalize_template_enhancement_output_buffer
 	 */
-	public function test_wp_start_template_optimization_output_buffer_for_json(): void {
+	public function test_wp_start_template_enhancement_output_buffer_for_json(): void {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
 		$mock_filter_callback = new MockAction();
-		add_filter( 'wp_template_optimization_output_buffer', array( $mock_filter_callback, 'filter' ) );
+		add_filter( 'wp_template_enhancement_output_buffer', array( $mock_filter_callback, 'filter' ) );
 
 		$initial_ob_level = ob_get_level();
-		$this->assertTrue( wp_start_template_optimization_output_buffer() );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
 		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
 
 		ini_set( 'default_mimetype', 'application/json' ); // Since sending a header won't work.
@@ -800,11 +800,11 @@ class Tests_Template extends WP_UnitTestCase {
 		echo $json;
 
 		$ob_status = ob_get_status();
-		$this->assertSame( 'wp_finalize_template_optimization_output_buffer', $ob_status['name'], 'Expected name to be WP function.' );
+		$this->assertSame( 'wp_finalize_template_enhancement_output_buffer', $ob_status['name'], 'Expected name to be WP function.' );
 		$this->assertSame( 1, $ob_status['type'], 'Expected type to be user supplied handler.' );
 		$this->assertSame( 0, $ob_status['chunk_size'], 'Expected unlimited chunk size.' );
 
-		ob_end_flush(); // End the buffer started by wp_start_template_optimization_output_buffer().
+		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
 		$this->assertSame( $initial_ob_level, ob_get_level() );
 
 		$this->assertSame( 0, $mock_filter_callback->get_call_count() );

@@ -825,7 +825,7 @@ function load_template( $_template_file, $load_once = true, $args = array() ) {
 }
 
 /**
- * Starts the template optimization output buffer.
+ * Starts the template enhancement output buffer.
  *
  * This function is called immediately before the template is included.
  *
@@ -833,26 +833,26 @@ function load_template( $_template_file, $load_once = true, $args = array() ) {
  *
  * @return bool Whether the output buffer successfully started.
  */
-function wp_start_template_optimization_output_buffer(): bool {
+function wp_start_template_enhancement_output_buffer(): bool {
 	/**
-	 * Filters whether the template will be output-buffered for optimization.
+	 * Filters whether the template will be output-buffered for enhancement.
 	 *
-	 * By default, an output buffer is only started if a {@see 'wp_template_optimization_output_buffer'} filter has been
+	 * By default, an output buffer is only started if a {@see 'wp_template_enhancement_output_buffer'} filter has been
 	 * added. For this default to apply, a filter must be added by the time the template is included at the
 	 * {@see 'wp_before_include_template'} action. This allows template responses to be streamed as much as possible
-	 * when no template optimizations are registered to apply. This filter allows a site to opt in to adding such
-	 * template optimization filters during the rendering of the template.
+	 * when no template enhancements are registered to apply. This filter allows a site to opt in to adding such
+	 * template enhancement filters during the rendering of the template.
 	 *
 	 * @since 6.9.0
 	 *
 	 * @param bool $use_output_buffer Whether an output buffer is started.
 	 */
-	if ( ! apply_filters( 'wp_template_output_buffered_for_optimization', has_filter( 'wp_template_optimization_output_buffer' ) ) ) {
+	if ( ! apply_filters( 'wp_template_output_buffered_for_enhancement', has_filter( 'wp_template_enhancement_output_buffer' ) ) ) {
 		return false;
 	}
 
 	return ob_start(
-		'wp_finalize_template_optimization_output_buffer',
+		'wp_finalize_template_enhancement_output_buffer',
 		0, // Unlimited buffer size so that entire output is passed to the filter.
 		/*
 		 * Instead of the default PHP_OUTPUT_HANDLER_STDFLAGS (cleanable, flushable, and removable) being used for
@@ -877,17 +877,17 @@ function wp_start_template_optimization_output_buffer(): bool {
 }
 
 /**
- * Finalizes the template optimization output buffer.
+ * Finalizes the template enhancement output buffer.
  *
  * @since 6.9.0
  *
- * @see wp_start_template_optimization_output_buffer()
+ * @see wp_start_template_enhancement_output_buffer()
  *
  * @param string $output Output buffer.
  * @param int    $phase  Phase.
  * @return string Finalized output buffer.
  */
-function wp_finalize_template_optimization_output_buffer( string $output, int $phase ): string {
+function wp_finalize_template_enhancement_output_buffer( string $output, int $phase ): string {
 	// When the output is being cleaned (e.g. pending template is replaced with error page), do not send it through the filter.
 	if ( ( $phase & PHP_OUTPUT_HANDLER_CLEAN ) !== 0 ) {
 		return $output;
@@ -911,7 +911,7 @@ function wp_finalize_template_optimization_output_buffer( string $output, int $p
 		$is_html_content_type = in_array( ini_get( 'default_mimetype' ), $html_content_types, true );
 	}
 
-	// If the content type is not HTML, short-circuit since it is not relevant optimization.
+	// If the content type is not HTML, short-circuit since it is not relevant for enhancement.
 	if ( ! $is_html_content_type ) {
 		return $output;
 	}
@@ -919,20 +919,20 @@ function wp_finalize_template_optimization_output_buffer( string $output, int $p
 	$filtered_output = $output;
 
 	/**
-	 * Filters the template optimization output buffer prior to sending to the client.
+	 * Filters the template enhancement output buffer prior to sending to the client.
 	 *
 	 * This filter only applies the HTML output of an included template. This filter is a progressive enhancement
-	 * intended for optimizing markup to improve frontend page load performance. Sites must not depend on this filter
-	 * applying since they may opt to stream the responses instead. Callbacks for this filter are highly discouraged
-	 * from using regular expressions to do any kind of replacement on the output. Use the HTML API (either
-	 * `WP_HTML_Tag_Processor` or `WP_HTML_Processor`), or else use {@see DOM\HtmlDocument} as of PHP 8.4 which fully
-	 * supports HTML5.
+	 * intended for applications such as optimizing markup to improve frontend page load performance. Sites must not
+	 * depend on this filter applying since they may opt to stream the responses instead. Callbacks for this filter are
+	 * highly discouraged from using regular expressions to do any kind of replacement on the output. Use the HTML API
+	 * (either `WP_HTML_Tag_Processor` or `WP_HTML_Processor`), or else use {@see DOM\HtmlDocument} as of PHP 8.4 which
+	 * fully supports HTML5.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string $filtered_output HTML template optimization output buffer.
+	 * @param string $filtered_output HTML template enhancement output buffer.
 	 * @param string $output          Original HTML template output buffer.
-	 * @return string HTML template optimization output buffer.
+	 * @return string HTML template enhancement output buffer.
 	 */
-	return (string) apply_filters( 'wp_template_optimization_output_buffer', $filtered_output, $output );
+	return (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
 }
