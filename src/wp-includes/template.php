@@ -844,6 +844,8 @@ function wp_start_template_optimization_output_buffer(): bool {
 	 * template optimization filters during the rendering of the template.
 	 *
 	 * @since 6.9.0
+	 *
+	 * @param bool $use_output_buffer Whether an output buffer is started.
 	 */
 	if ( ! apply_filters( 'wp_template_output_buffered_for_optimization', has_filter( 'wp_template_optimization_output_buffer' ) ) ) {
 		return false;
