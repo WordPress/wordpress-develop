@@ -4550,6 +4550,106 @@ function wp_ajax_install_plugin() {
 }
 
 /**
+ * Handles uploading a plugin via AJAX.
+ *
+ * @since 6.9.0
+ *
+ * @see Plugin_Upgrader
+ *
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ */
+function wp_ajax_upload_plugin() {
+	check_ajax_referer( 'upload-plugin' );
+
+	if ( ! current_user_can( 'upload_plugins' ) ) {
+		wp_send_json_error( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
+	}
+
+	if ( isset( $_FILES['pluginzip']['name'] ) && ! str_ends_with( strtolower( $_FILES['pluginzip']['name'] ), '.zip' ) ) {
+		wp_send_json_error( __( 'Only .zip archives may be uploaded.' ) );
+	}
+
+	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+	$file_upload = new File_Upload_Upgrader( 'pluginzip', 'package' );
+
+	$nonce = 'upload-plugin';
+	$type  = 'upload'; // Install plugin type, From Web or an Upload.
+
+	$overwrite = isset( $_GET['overwrite'] ) ? sanitize_text_field( $_GET['overwrite'] ) : '';
+	$overwrite = in_array( $overwrite, array( 'update-plugin', 'downgrade-plugin' ), true ) ? $overwrite : '';
+
+	$skin = new WP_Ajax_Upgrader_Skin( compact( 'type', 'nonce', 'overwrite' ) );
+
+	$upgrader = new Plugin_Upgrader( $skin );
+	$result   = $upgrader->install( $file_upload->package, array( 'overwrite_package' => $overwrite ) );
+
+	$status = array();
+	$plugin = $skin->upgrader->new_plugin_data;
+
+	$can_override = $skin->can_override_plugin();
+
+	if ( $can_override ) {
+		$status['successCode']       = 'can_override';
+		$status['comparisonMessage'] = $can_override;
+		$status['plugin']            = $plugin;
+		$status['attachment_id']     = $file_upload->id;
+		wp_send_json_success( $status );
+	}
+	if ( is_wp_error( $result ) ) {
+		$file_upload->cleanup();
+		wp_send_json_error( $result->get_error_message(), 400 );
+	} elseif ( is_wp_error( $skin->result ) ) {
+		$status['errorCode']    = $skin->result->get_error_code();
+		$status['errorMessage'] = $skin->result->get_error_message();
+		$file_upload->cleanup();
+		wp_send_json_error( $status, 400 );
+	} elseif ( $skin->get_errors()->has_errors() ) {
+		$status['errorMessage'] = $skin->get_error_messages();
+		$file_upload->cleanup();
+		wp_send_json_error( $status, 400 );
+	}
+	$status = array(
+		'successCode' => 'can_activate',
+		'plugin'      => $plugin,
+		'path'        => $skin->upgrader->plugin_info(),
+	);
+
+	wp_send_json_success( $status );
+}
+
+/**
+ * Cancel plugin overwrite via AJAX.
+ *
+ * @since 6.9.0
+ *
+ * @see Plugin_Upgrader
+ *
+ * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+ */
+function wp_ajax_cancel_plugin_overwrite() {
+	check_admin_referer( 'plugin-upload-cancel-overwrite' );
+
+	if ( ! current_user_can( 'upload_plugins' ) ) {
+		wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
+	}
+	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+
+	// Make sure the attachment still exists, or File_Upload_Upgrader will call wp_die()
+	// that shows a generic "Please select a file" error.
+	if ( ! empty( $_GET['package'] ) ) {
+		$attachment_id = (int) $_GET['package'];
+
+		if ( get_post( $attachment_id ) ) {
+			$file_upload = new File_Upload_Upgrader( 'pluginzip', 'package' );
+			$file_upload->cleanup();
+		}
+	}
+
+	wp_send_json_success();
+}
+
+/**
  * Handles activating a plugin via AJAX.
  *
  * @since 6.5.0
