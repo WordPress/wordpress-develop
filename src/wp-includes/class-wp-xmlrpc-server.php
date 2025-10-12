@@ -1466,10 +1466,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			if ( get_post_type( $post_data['ID'] ) !== $post_data['post_type'] ) {
 				return new IXR_Error( 401, __( 'The post type may not be changed.' ) );
 			}
-		} else {
-			if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) ) {
+		} elseif ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) ) {
 				return new IXR_Error( 401, __( 'Sorry, you are not allowed to post on this site.' ) );
-			}
 		}
 
 		switch ( $post_data['post_status'] ) {
@@ -6071,10 +6069,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			// Empty value deletes, non-empty value adds/updates.
 			if ( empty( $content_struct['wp_post_thumbnail'] ) ) {
 				delete_post_thumbnail( $post_id );
-			} else {
-				if ( set_post_thumbnail( $post_id, $content_struct['wp_post_thumbnail'] ) === false ) {
+			} elseif ( set_post_thumbnail( $post_id, $content_struct['wp_post_thumbnail'] ) === false ) {
 					return new IXR_Error( 404, __( 'Invalid attachment ID.' ) );
-				}
 			}
 			unset( $content_struct['wp_post_thumbnail'] );
 		}
