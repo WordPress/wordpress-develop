@@ -1339,7 +1339,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	public function test_wp_cron_before_shutdown() {
 		remove_all_actions( 'shutdown' );
 		wp_cron();
-		$this->assertSame( 10, has_action( 'shutdown', '_wp_cron' ) );
+		$this->assertSame( 10, has_action( 'shutdown', '_wp_cron' ), 'Expected _wp_cron() to be scheduled for shutdown.' );
 	}
 
 	/**
@@ -1351,6 +1351,6 @@ class Tests_Cron extends WP_UnitTestCase {
 		remove_all_actions( 'shutdown' );
 		add_action( 'shutdown', 'wp_cron' );
 		do_action( 'shutdown' );
-		$this->assertFalse( has_action( 'shutdown', '_wp_cron' ), 'Expected wp_cron() to not add _wp_cron() to rub at shutdown.' );
+		$this->assertFalse( has_action( 'shutdown', '_wp_cron' ), 'Expected wp_cron() to not add _wp_cron() to run at shutdown.' );
 	}
 }

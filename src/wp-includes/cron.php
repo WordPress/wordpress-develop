@@ -974,11 +974,11 @@ function spawn_cron( $gmt_time = 0 ) {
 /**
  * Registers _wp_cron() to run on the {@see 'shutdown'} action.
  *
- * The {@see spawn_cron()} function attempts to make a non-blocking loopback request to `wp-cron.php` (when alternative
- * cron is not being used). However, the {@see wp_remote_post()} function does not always respect the `timeout` and
+ * The spawn_cron() function attempts to make a non-blocking loopback request to `wp-cron.php` (when alternative
+ * cron is not being used). However, the wp_remote_post() function does not always respect the `timeout` and
  * `blocking` parameters. A timeout of `0.01` may end up taking 1 second. When this runs at the {@see 'wp_loaded'}
  * action, it increases the Time To First Byte (TTFB) since the HTML cannot be sent while waiting for the cron request
- * to initiate. Moving the spawning of cron to the {@see 'shutdown'} allows for the server to flush the HTML document to
+ * to initiate. Moving the spawning of cron to the {@see 'shutdown'} hook allows for the server to flush the HTML document to
  * the browser while waiting for the request.
  *
  * @since 2.1.0
