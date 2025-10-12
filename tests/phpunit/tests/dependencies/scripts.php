@@ -1201,7 +1201,7 @@ HTML
 	 */
 	public function test_defer_with_async_dependent() {
 		// case with one async dependent.
-		wp_register_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_enqueue_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script(
 			'dependent-script-d4-1',
 			'/dependent-script-d4-1.js',
@@ -1232,8 +1232,9 @@ HTML
 				'fetchpriority' => 'high',
 			)
 		);
+		// Note: All of these scripts have fetchpriority=high because the leaf dependent script has that fetch priority.
 		$output    = get_echo( 'wp_print_scripts' );
-		$expected  = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js' defer='defer' data-wp-strategy='defer'></script>\n";
+		$expected  = "<script type='text/javascript' src='/main-script-d4.js'        id='main-script-d4-js'        defer='defer' data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer='defer' data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer='defer' data-wp-strategy='async' fetchpriority='high' data-wp-fetchpriority='low'></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer='defer' data-wp-strategy='defer' fetchpriority='high'></script>\n";

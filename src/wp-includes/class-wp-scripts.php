@@ -440,23 +440,23 @@ class WP_Scripts extends WP_Dependencies {
 			$attr['data-wp-strategy'] = $intended_strategy;
 		}
 
-		if ( isset( $obj->extra['fetchpriority'] ) ) {
-			$original_fetchpriority = $obj->extra['fetchpriority'];
-			if ( ! $this->is_valid_fetchpriority( $original_fetchpriority ) ) {
-				$original_fetchpriority = 'auto';
-			}
-			$actual_fetchpriority = $this->get_highest_fetchpriority_with_dependents( $handle );
-			if ( null === $actual_fetchpriority ) {
-				// If null, it's likely this script was not explicitly enqueued, so in this case use the original priority.
-				$actual_fetchpriority = $original_fetchpriority;
-			}
-			if ( is_string( $actual_fetchpriority ) && 'auto' !== $actual_fetchpriority ) {
-				$attr['fetchpriority'] = $actual_fetchpriority;
-			}
-			if ( $original_fetchpriority !== $actual_fetchpriority ) {
-				$attr['data-wp-fetchpriority'] = $original_fetchpriority;
-			}
+		// Determine fetchpriority.
+		$original_fetchpriority = isset( $obj->extra['fetchpriority'] ) ? $obj->extra['fetchpriority'] : null;
+		if ( null === $original_fetchpriority || ! $this->is_valid_fetchpriority( $original_fetchpriority ) ) {
+			$original_fetchpriority = 'auto';
 		}
+		$actual_fetchpriority = $this->get_highest_fetchpriority_with_dependents( $handle );
+		if ( null === $actual_fetchpriority ) {
+			// If null, it's likely this script was not explicitly enqueued, so in this case use the original priority.
+			$actual_fetchpriority = $original_fetchpriority;
+		}
+		if ( is_string( $actual_fetchpriority ) && 'auto' !== $actual_fetchpriority ) {
+			$attr['fetchpriority'] = $actual_fetchpriority;
+		}
+		if ( $original_fetchpriority !== $actual_fetchpriority ) {
+			$attr['data-wp-fetchpriority'] = $original_fetchpriority;
+		}
+
 		$tag  = $translations . $ie_conditional_prefix . $before_script;
 		$tag .= wp_get_script_tag( $attr );
 		$tag .= $after_script . $ie_conditional_suffix;
