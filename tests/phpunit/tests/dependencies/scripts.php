@@ -1435,6 +1435,59 @@ HTML
 	}
 
 	/**
+	 * Tests that printing a script without enqueueing has the same output as when it is enqueued.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::do_items
+	 * @covers ::wp_default_scripts
+	 *
+	 * @dataProvider data_provider_enqueue_or_not_to_enqueue
+	 */
+	public function test_printing_default_script_comment_reply_enqueued_or_not_enqueued( bool $enqueue ) {
+		$wp_scripts = wp_scripts();
+		wp_default_scripts( $wp_scripts );
+
+		$this->assertArrayHasKey( 'comment-reply', $wp_scripts->registered );
+		$wp_scripts->registered['comment-reply']->ver = null;
+		$this->assertArrayHasKey( 'fetchpriority', $wp_scripts->registered['comment-reply']->extra );
+		$this->assertSame( 'low', $wp_scripts->registered['comment-reply']->extra['fetchpriority'] );
+		$this->assertArrayHasKey( 'strategy', $wp_scripts->registered['comment-reply']->extra );
+		$this->assertSame( 'async', $wp_scripts->registered['comment-reply']->extra['strategy'] );
+		if ( $enqueue ) {
+			wp_enqueue_script( 'comment-reply' );
+			$markup = get_echo( array( $wp_scripts, 'do_items' ), array( false ) );
+		} else {
+			$markup = get_echo( array( $wp_scripts, 'do_items' ), array( array( 'comment-reply' ) ) );
+		}
+
+		$this->assertEqualHTML(
+			sprintf(
+				'<script type="text/javascript" src="%s" id="comment-reply-js" async="async" data-wp-strategy="async" fetchpriority="low"></script>',
+				includes_url( 'js/comment-reply.js' )
+			),
+			$markup
+		);
+	}
+
+	/**
+	 * Data provider for test_default_scripts_comment_reply_not_enqueued.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_enqueue_or_not_to_enqueue(): array {
+		return array(
+			'not_enqueued' => array(
+				false,
+			),
+			'enqueued'     => array(
+				true,
+			),
+		);
+	}
+
+	/**
 	 * Tests that scripts registered as defer become blocking when their dependents chain are all blocking.
 	 *
 	 * @ticket 12009

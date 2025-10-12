@@ -446,6 +446,10 @@ class WP_Scripts extends WP_Dependencies {
 				$original_fetchpriority = 'auto';
 			}
 			$actual_fetchpriority = $this->get_highest_fetchpriority_with_dependents( $handle );
+			if ( null === $actual_fetchpriority ) {
+				// If null, it's likely this script was not explicitly enqueued, so in this case use the original priority.
+				$actual_fetchpriority = $original_fetchpriority;
+			}
 			if ( is_string( $actual_fetchpriority ) && 'auto' !== $actual_fetchpriority ) {
 				$attr['fetchpriority'] = $actual_fetchpriority;
 			}
