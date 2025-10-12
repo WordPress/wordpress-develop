@@ -376,7 +376,7 @@ function get_inline_data( $post ) {
 		}
 	}
 
-	if ( ! $post_type_object->hierarchical ) {
+	if ( post_type_supports( $post->post_type, 'sticky' ) ) {
 		echo '<div class="sticky">' . ( is_sticky( $post->ID ) ? 'sticky' : '' ) . '</div>';
 	}
 

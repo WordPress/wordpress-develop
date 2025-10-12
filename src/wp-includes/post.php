@@ -43,6 +43,7 @@ function create_initial_post_types() {
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
 		)
 	);
+	add_post_type_support( 'post', 'sticky' );
 
 	register_post_type(
 		'page',
@@ -2858,6 +2859,13 @@ function is_sticky( $post_id = 0 ) {
 		$post_id = get_the_ID();
 	}
 
+	$post = get_post( $post_id );
+
+	// Check if the post type supports stickiness.
+	if ( ! post_type_supports( $post->post_type, 'sticky' ) ) {
+		return false;
+	}
+
 	$stickies = get_option( 'sticky_posts' );
 
 	if ( is_array( $stickies ) ) {
@@ -3263,7 +3271,15 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
  * @param int $post_id Post ID.
  */
 function stick_post( $post_id ) {
-	$post_id  = (int) $post_id;
+	$post_id = (int) $post_id;
+
+	$post = get_post( $post_id );
+
+	// Check if the post type supports stickiness.
+	if ( ! post_type_supports( $post->post_type, 'sticky' ) ) {
+		return;
+	}
+
 	$stickies = get_option( 'sticky_posts' );
 	$updated  = false;
 
@@ -3300,7 +3316,13 @@ function stick_post( $post_id ) {
  * @param int $post_id Post ID.
  */
 function unstick_post( $post_id ) {
-	$post_id  = (int) $post_id;
+	$post_id = (int) $post_id;
+	$post    = get_post( $post_id );
+
+	// Check if the post type supports stickiness.
+	if ( ! post_type_supports( $post->post_type, 'sticky' ) ) {
+		return;
+	}
 	$stickies = get_option( 'sticky_posts' );
 
 	if ( ! is_array( $stickies ) ) {

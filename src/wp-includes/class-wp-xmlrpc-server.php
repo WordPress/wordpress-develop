@@ -939,7 +939,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			'menu_order'        => (int) $post['menu_order'],
 			'comment_status'    => $post['comment_status'],
 			'ping_status'       => $post['ping_status'],
-			'sticky'            => ( 'post' === $post['post_type'] && is_sticky( $post['ID'] ) ),
+			'sticky'            => ( post_type_supports( $post['post_type'], 'sticky' ) && is_sticky( $post['ID'] ) ),
 		);
 
 		// Thumbnail.
@@ -6363,7 +6363,7 @@ class wp_xmlrpc_server extends IXR_Server {
 				'wp_post_format'         => $post_format,
 				'date_modified'          => $post_modified,
 				'date_modified_gmt'      => $post_modified_gmt,
-				'sticky'                 => ( 'post' === $entry['post_type'] && is_sticky( $entry['ID'] ) ),
+				'sticky'                 => ( post_type_supports( $entry['post_type'], 'sticky' ) && is_sticky( $entry['ID'] ) ),
 				'wp_post_thumbnail'      => get_post_thumbnail_id( $entry['ID'] ),
 			);
 		}
