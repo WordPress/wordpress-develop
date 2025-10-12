@@ -16,7 +16,7 @@ if ( ! defined( 'IFRAME_REQUEST' ) && isset( $_GET['tab'] ) && ( 'plugin-informa
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'install_plugins' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
+	wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ), 403 );
 }
 
 if ( is_multisite() && ! is_network_admin() ) {

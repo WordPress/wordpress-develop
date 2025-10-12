@@ -10,7 +10,7 @@
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'activate_plugins' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to manage plugins for this site.' ) );
+	wp_die( __( 'Sorry, you are not allowed to manage plugins for this site.' ), 403 );
 }
 
 $wp_list_table = _get_list_table( 'WP_Plugins_List_Table' );
@@ -47,7 +47,7 @@ if ( $action ) {
 	switch ( $action ) {
 		case 'activate':
 			if ( ! current_user_can( 'activate_plugin', $plugin ) ) {
-				wp_die( __( 'Sorry, you are not allowed to activate this plugin.' ) );
+				wp_die( __( 'Sorry, you are not allowed to activate this plugin.' ), 403 );
 			}
 
 			if ( is_multisite() && ! is_network_admin() && is_network_only_plugin( $plugin ) ) {
@@ -91,7 +91,7 @@ if ( $action ) {
 
 		case 'activate-selected':
 			if ( ! current_user_can( 'activate_plugins' ) ) {
-				wp_die( __( 'Sorry, you are not allowed to activate plugins for this site.' ) );
+				wp_die( __( 'Sorry, you are not allowed to activate plugins for this site.' ), 403 );
 			}
 
 			check_admin_referer( 'bulk-plugins' );
@@ -175,7 +175,7 @@ if ( $action ) {
 
 		case 'error_scrape':
 			if ( ! current_user_can( 'activate_plugin', $plugin ) ) {
-				wp_die( __( 'Sorry, you are not allowed to activate this plugin.' ) );
+				wp_die( __( 'Sorry, you are not allowed to activate this plugin.' ), 403 );
 			}
 
 			check_admin_referer( 'plugin-activation-error_' . $plugin );
@@ -198,7 +198,7 @@ if ( $action ) {
 
 		case 'deactivate':
 			if ( ! current_user_can( 'deactivate_plugin', $plugin ) ) {
-				wp_die( __( 'Sorry, you are not allowed to deactivate this plugin.' ) );
+				wp_die( __( 'Sorry, you are not allowed to deactivate this plugin.' ), 403 );
 			}
 
 			check_admin_referer( 'deactivate-plugin_' . $plugin );
@@ -225,7 +225,7 @@ if ( $action ) {
 
 		case 'deactivate-selected':
 			if ( ! current_user_can( 'deactivate_plugins' ) ) {
-				wp_die( __( 'Sorry, you are not allowed to deactivate plugins for this site.' ) );
+				wp_die( __( 'Sorry, you are not allowed to deactivate plugins for this site.' ), 403 );
 			}
 
 			check_admin_referer( 'bulk-plugins' );
@@ -268,7 +268,7 @@ if ( $action ) {
 
 		case 'delete-selected':
 			if ( ! current_user_can( 'delete_plugins' ) ) {
-				wp_die( __( 'Sorry, you are not allowed to delete plugins for this site.' ) );
+				wp_die( __( 'Sorry, you are not allowed to delete plugins for this site.' ), 403 );
 			}
 
 			check_admin_referer( 'bulk-plugins' );
@@ -448,7 +448,7 @@ if ( $action ) {
 			}
 
 			if ( ! current_user_can( 'resume_plugin', $plugin ) ) {
-				wp_die( __( 'Sorry, you are not allowed to resume this plugin.' ) );
+				wp_die( __( 'Sorry, you are not allowed to resume this plugin.' ), 403 );
 			}
 
 			check_admin_referer( 'resume-plugin_' . $plugin );
@@ -466,7 +466,7 @@ if ( $action ) {
 		case 'enable-auto-update-selected':
 		case 'disable-auto-update-selected':
 			if ( ! current_user_can( 'update_plugins' ) || ! wp_is_auto_update_enabled_for_type( 'plugin' ) ) {
-				wp_die( __( 'Sorry, you are not allowed to manage plugins automatic updates.' ) );
+				wp_die( __( 'Sorry, you are not allowed to manage plugins automatic updates.' ), 403 );
 			}
 
 			if ( is_multisite() && ! is_network_admin() ) {

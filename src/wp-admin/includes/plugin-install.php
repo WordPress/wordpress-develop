@@ -533,7 +533,7 @@ function install_plugin_information() {
 	);
 
 	if ( is_wp_error( $api ) ) {
-		wp_die( $api );
+		wp_die( $api, 503 );
 	}
 
 	$plugins_allowedtags = array(
