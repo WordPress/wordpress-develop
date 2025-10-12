@@ -511,10 +511,10 @@ class Tests_Template extends WP_UnitTestCase {
 	public function test_wp_start_template_enhancement_output_buffer_without_filters_and_no_override(): void {
 		remove_all_filters( 'wp_template_enhancement_output_buffer' );
 		$level = ob_get_level();
-		$this->assertFalse( wp_should_output_buffer_template_for_enhancement() );
-		$this->assertFalse( wp_start_template_enhancement_output_buffer() );
-		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ) );
-		$this->assertSame( $level, ob_get_level() );
+		$this->assertFalse( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return false when there are no wp_template_enhancement_output_buffer filters added.' );
+		$this->assertFalse( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return false because the output buffer should not be started.' );
+		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to not have fired.' );
+		$this->assertSame( $level, ob_get_level(), 'Expected the initial output buffer level to be unchanged.' );
 	}
 
 	/**
@@ -528,10 +528,10 @@ class Tests_Template extends WP_UnitTestCase {
 		remove_all_filters( 'wp_template_enhancement_output_buffer' );
 		$level = ob_get_level();
 		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true' );
-		$this->assertTrue( wp_should_output_buffer_template_for_enhancement() );
-		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
-		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ) );
-		$this->assertSame( $level + 1, ob_get_level() );
+		$this->assertTrue( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return true when overridden with the wp_should_output_buffer_template_for_enhancement filter.' );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true because the output buffer should be started due to the override.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented.' );
 		ob_end_clean();
 	}
 
@@ -551,10 +551,10 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 		$level = ob_get_level();
 		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_false' );
-		$this->assertFalse( wp_should_output_buffer_template_for_enhancement() );
-		$this->assertFalse( wp_start_template_enhancement_output_buffer() );
-		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ) );
-		$this->assertSame( $level, ob_get_level() );
+		$this->assertFalse( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return false since wp_should_output_buffer_template_for_enhancement was filtered to be false even though there is a wp_template_enhancement_output_buffer filter added.' );
+		$this->assertFalse( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return false because the output buffer should not be started.' );
+		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to not have fired.' );
+		$this->assertSame( $level, ob_get_level(), 'Expected the initial output buffer level to be unchanged.' );
 	}
 
 	/**
@@ -599,9 +599,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$initial_ob_level = ob_get_level();
-		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
-		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ) );
-		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented' );
 
 		?>
 		<!DOCTYPE html>
@@ -627,7 +627,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertSame( 0, $ob_status['chunk_size'], 'Expected unlimited chunk size.' );
 
 		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
-		$this->assertSame( $initial_ob_level, ob_get_level() );
+		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
 
 		$this->assertIsArray( $filter_args, 'Expected the wp_template_enhancement_output_buffer filter to have applied.' );
 		$this->assertCount( 2, $filter_args, 'Expected two args to be supplied to the wp_template_enhancement_output_buffer filter.' );
@@ -635,21 +635,21 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertIsString( $filter_args[1], 'Expected the $output param to the wp_template_enhancement_output_buffer filter to be a string.' );
 		$this->assertSame( $filter_args[1], $filter_args[0], 'Expected the initial $filtered_output to match $output in the wp_template_enhancement_output_buffer filter.' );
 		$original_output = $filter_args[0];
-		$this->assertStringContainsString( '<!DOCTYPE html>', $original_output );
-		$this->assertStringContainsString( '<html lang="en">', $original_output );
-		$this->assertStringContainsString( '<title>Greeting</title>', $original_output );
-		$this->assertStringContainsString( '<h1>Hello World!</h1>', $original_output );
-		$this->assertStringContainsString( '</html>', $original_output );
+		$this->assertStringContainsString( '<!DOCTYPE html>', $original_output, 'Expected original output to contain string.' );
+		$this->assertStringContainsString( '<html lang="en">', $original_output, 'Expected original output to contain string.' );
+		$this->assertStringContainsString( '<title>Greeting</title>', $original_output, 'Expected original output to contain string.' );
+		$this->assertStringContainsString( '<h1>Hello World!</h1>', $original_output, 'Expected original output to contain string.' );
+		$this->assertStringContainsString( '</html>', $original_output, 'Expected original output to contain string.' );
 
 		$processed_output = ob_get_clean(); // Obtain the output via the wrapper output buffer.
 		$this->assertIsString( $processed_output );
 		$this->assertNotEquals( $original_output, $processed_output );
 
-		$this->assertStringContainsString( '<!DOCTYPE html>', $processed_output );
-		$this->assertStringContainsString( '<html lang="es">', $processed_output );
-		$this->assertStringContainsString( '<title>Saludo</title>', $processed_output );
-		$this->assertStringContainsString( '<h1>¡Hola, mundo!</h1>', $processed_output );
-		$this->assertStringContainsString( '</html>', $processed_output );
+		$this->assertStringContainsString( '<!DOCTYPE html>', $processed_output, 'Expected processed output to contain string.' );
+		$this->assertStringContainsString( '<html lang="es">', $processed_output, 'Expected processed output to contain string.' );
+		$this->assertStringContainsString( '<title>Saludo</title>', $processed_output, 'Expected processed output to contain string.' );
+		$this->assertStringContainsString( '<h1>¡Hola, mundo!</h1>', $processed_output, 'Expected processed output to contain string.' );
+		$this->assertStringContainsString( '</html>', $processed_output, 'Expected processed output to contain string.' );
 	}
 
 	/**
@@ -678,9 +678,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$initial_ob_level = ob_get_level();
-		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
-		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ) );
-		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented' );
 
 		?>
 		<!DOCTYPE html>
@@ -703,17 +703,17 @@ class Tests_Template extends WP_UnitTestCase {
 		</html>
 		<?php
 
-		$this->assertSame( $initial_ob_level, ob_get_level() );
+		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
 
-		$this->assertFalse( $applied_filter );
-		$this->assertSame( 0, did_action( 'wp_final_template_output_buffer' ) );
+		$this->assertFalse( $applied_filter, 'Expected the wp_template_enhancement_output_buffer filter to not have applied.' );
+		$this->assertSame( 0, did_action( 'wp_final_template_output_buffer' ), 'Expected the wp_final_template_output_buffer action to not have fired.' );
 
 		// Obtain the output via the wrapper output buffer.
 		$output = ob_get_clean();
-		$this->assertIsString( $output );
-		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output );
-		$this->assertStringNotContainsString( '<title>Processed</title>', $output );
-		$this->assertStringContainsString( '<title>Output Buffer Not Processed</title>', $output );
+		$this->assertIsString( $output, 'Expected ob_get_clean() to return a string.' );
+		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output, 'Expected output buffer to not have string since the template was overridden.' );
+		$this->assertStringNotContainsString( '<title>Processed</title>', $output, 'Expected output buffer to not have string since the filter did not apply.' );
+		$this->assertStringContainsString( '<title>Output Buffer Not Processed</title>', $output, 'Expected output buffer to have string since the output buffer was ended with cleaning.' );
 	}
 
 	/**
@@ -727,11 +727,11 @@ class Tests_Template extends WP_UnitTestCase {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
-		$called_html_filter = false;
+		$called_filter = false;
 		add_filter(
 			'wp_template_enhancement_output_buffer',
-			static function ( string $buffer ) use ( &$called_html_filter ): string {
-				$called_html_filter = true;
+			static function ( string $buffer ) use ( &$called_filter ): string {
+				$called_filter = true;
 
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				if ( $p->next_tag( array( 'tag_name' => 'TITLE' ) ) ) {
@@ -742,9 +742,9 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$initial_ob_level = ob_get_level();
-		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
-		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ) );
-		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented.' );
 
 		?>
 		<!DOCTYPE html>
@@ -769,16 +769,16 @@ class Tests_Template extends WP_UnitTestCase {
 		<?php
 
 		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
-		$this->assertSame( $initial_ob_level, ob_get_level() );
+		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
 
-		$this->assertTrue( $called_html_filter );
+		$this->assertTrue( $called_filter, 'Expected the wp_template_enhancement_output_buffer filter to have applied.' );
 
 		// Obtain the output via the wrapper output buffer.
 		$output = ob_get_clean();
-		$this->assertIsString( $output );
-		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output );
-		$this->assertStringContainsString( '<title>Processed</title>', $output );
-		$this->assertStringContainsString( '<h1>Template Replaced</h1>', $output );
+		$this->assertIsString( $output, 'Expected ob_get_clean() to return a string.' );
+		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output, 'Expected output buffer to not have string due to template override.' );
+		$this->assertStringContainsString( '<title>Processed</title>', $output, 'Expected output buffer to have string due to filtering.' );
+		$this->assertStringContainsString( '<h1>Template Replaced</h1>', $output, 'Expected output buffer to have string due to replaced template.' );
 	}
 
 	/**
@@ -796,9 +796,9 @@ class Tests_Template extends WP_UnitTestCase {
 		add_filter( 'wp_template_enhancement_output_buffer', array( $mock_filter_callback, 'filter' ) );
 
 		$initial_ob_level = ob_get_level();
-		$this->assertTrue( wp_start_template_enhancement_output_buffer() );
-		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ) );
-		$this->assertSame( $initial_ob_level + 1, ob_get_level() );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented.' );
 
 		ini_set( 'default_mimetype', 'application/json' ); // Since sending a header won't work.
 		$json = wp_json_encode(
@@ -818,14 +818,14 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertSame( 0, $ob_status['chunk_size'], 'Expected unlimited chunk size.' );
 
 		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
-		$this->assertSame( $initial_ob_level, ob_get_level() );
+		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
 
-		$this->assertSame( 0, $mock_filter_callback->get_call_count() );
+		$this->assertSame( 0, $mock_filter_callback->get_call_count(), 'Expected the wp_template_enhancement_output_buffer filter to not have applied.' );
 
 		// Obtain the output via the wrapper output buffer.
 		$output = ob_get_clean();
-		$this->assertIsString( $output );
-		$this->assertSame( $json, $output );
+		$this->assertIsString( $output, 'Expected ob_get_clean() to return a string.' );
+		$this->assertSame( $json, $output, 'Expected output to not be processed.' );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
