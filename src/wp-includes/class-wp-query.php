@@ -3674,8 +3674,8 @@ class WP_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param array  $query_vars      Query variables.
-	 * @param string $limits LIMIT clauses of the query.
+	 * @param array  $query_vars Query variables.
+	 * @param string $limits     LIMIT clauses of the query.
 	 */
 	private function set_found_posts( $query_vars, $limits ) {
 		global $wpdb;
