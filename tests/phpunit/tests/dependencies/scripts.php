@@ -1201,7 +1201,7 @@ HTML
 	 */
 	public function test_defer_with_async_dependent() {
 		// case with one async dependent.
-		wp_enqueue_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
+		wp_register_script( 'main-script-d4', '/main-script-d4.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script(
 			'dependent-script-d4-1',
 			'/dependent-script-d4-1.js',
