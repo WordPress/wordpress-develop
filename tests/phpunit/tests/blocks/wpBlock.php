@@ -612,7 +612,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 			$expected_rendered_block,
 			$rendered_block,
 			'<body>',
-			"Snapshot:\n$rendered_block"
+			"Rendered block does not contain expected HTML:\n$rendered_block"
 		);
 
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
