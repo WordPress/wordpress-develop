@@ -625,7 +625,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				$actual_styles[] = $matches[1];
 			}
 		}
-		$this->assertSameSets( $expected_styles, $actual_styles );
+		$this->assertSameSets( $expected_styles, $actual_styles, 'Enqueued styles do not meet expectations' );
 
 		$actual_scripts  = array();
 		$printed_scripts = get_echo( 'wp_print_scripts' );
