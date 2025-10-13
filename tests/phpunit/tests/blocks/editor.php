@@ -35,8 +35,8 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		global $wp_scripts, $wp_styles;
 		$this->original_wp_scripts = $wp_scripts;
 		$this->original_wp_styles  = $wp_styles;
-		$wp_scripts = null;
-		$wp_styles = null;
+		$wp_scripts                = null;
+		$wp_styles                 = null;
 		wp_scripts();
 		wp_styles();
 	}
