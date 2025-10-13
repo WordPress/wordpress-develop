@@ -807,7 +807,9 @@ function media_upload_form_handler() {
 				unset( $post['errors'] );
 			}
 
-			if ( $post != $_post ) {
+			// The == operator (equal, not identical) was used intentionally.
+			// See http://php.net/manual/en/language.operators.array.php
+			if ( $post != $_post ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 				wp_update_post( $post );
 			}
 
