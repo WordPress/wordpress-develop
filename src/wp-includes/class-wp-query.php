@@ -1112,8 +1112,7 @@ class WP_Query {
 
 		if ( ! empty( $qv['post_type'] ) ) {
 			if ( is_array( $qv['post_type'] ) ) {
-				$qv['post_type'] = array_map( 'sanitize_key', array_unique( $qv['post_type'] ) );
-				sort( $qv['post_type'] );
+				$qv['post_type'] = array_map( 'sanitize_key', $qv['post_type'] );
 			} else {
 				$qv['post_type'] = sanitize_key( $qv['post_type'] );
 			}
@@ -1121,8 +1120,7 @@ class WP_Query {
 
 		if ( ! empty( $qv['post_status'] ) ) {
 			if ( is_array( $qv['post_status'] ) ) {
-				$qv['post_status'] = array_map( 'sanitize_key', array_unique( $qv['post_status'] ) );
-				sort( $qv['post_status'] );
+				$qv['post_status'] = array_map( 'sanitize_key', $qv['post_status'] );
 			} else {
 				$qv['post_status'] = preg_replace( '|[^a-z0-9_,-]|', '', $qv['post_status'] );
 			}
@@ -1236,8 +1234,7 @@ class WP_Query {
 
 			$cat_array = preg_split( '/[,\s]+/', urldecode( $q['cat'] ) );
 			$cat_array = array_map( 'intval', $cat_array );
-			sort( $cat_array );
-			$q['cat'] = implode( ',', $cat_array );
+			$q['cat']  = implode( ',', $cat_array );
 
 			foreach ( $cat_array as $cat ) {
 				if ( $cat > 0 ) {
@@ -1279,8 +1276,7 @@ class WP_Query {
 
 		if ( ! empty( $q['category__in'] ) ) {
 			$q['category__in'] = array_map( 'absint', array_unique( (array) $q['category__in'] ) );
-			sort( $q['category__in'] );
-			$tax_query[] = array(
+			$tax_query[]       = array(
 				'taxonomy'         => 'category',
 				'terms'            => $q['category__in'],
 				'field'            => 'term_id',
@@ -1290,8 +1286,7 @@ class WP_Query {
 
 		if ( ! empty( $q['category__not_in'] ) ) {
 			$q['category__not_in'] = array_map( 'absint', array_unique( (array) $q['category__not_in'] ) );
-			sort( $q['category__not_in'] );
-			$tax_query[] = array(
+			$tax_query[]           = array(
 				'taxonomy'         => 'category',
 				'terms'            => $q['category__not_in'],
 				'operator'         => 'NOT IN',
@@ -1301,8 +1296,7 @@ class WP_Query {
 
 		if ( ! empty( $q['category__and'] ) ) {
 			$q['category__and'] = array_map( 'absint', array_unique( (array) $q['category__and'] ) );
-			sort( $q['category__and'] );
-			$tax_query[] = array(
+			$tax_query[]        = array(
 				'taxonomy'         => 'category',
 				'terms'            => $q['category__and'],
 				'field'            => 'term_id',
@@ -1325,7 +1319,6 @@ class WP_Query {
 				foreach ( (array) $tags as $tag ) {
 					$tag                 = sanitize_term_field( 'slug', $tag, 0, 'post_tag', 'db' );
 					$q['tag_slug__in'][] = $tag;
-					sort( $q['tag_slug__in'] );
 				}
 			} elseif ( preg_match( '/[+\r\n\t ]+/', $q['tag'] ) || ! empty( $q['cat'] ) ) {
 				$tags = preg_split( '/[+\r\n\t ]+/', $q['tag'] );
@@ -1336,7 +1329,6 @@ class WP_Query {
 			} else {
 				$q['tag']            = sanitize_term_field( 'slug', $q['tag'], 0, 'post_tag', 'db' );
 				$q['tag_slug__in'][] = $q['tag'];
-				sort( $q['tag_slug__in'] );
 			}
 		}
 
@@ -1350,8 +1342,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag__in'] ) ) {
 			$q['tag__in'] = array_map( 'absint', array_unique( (array) $q['tag__in'] ) );
-			sort( $q['tag__in'] );
-			$tax_query[] = array(
+			$tax_query[]  = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag__in'],
 			);
@@ -1359,8 +1350,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag__not_in'] ) ) {
 			$q['tag__not_in'] = array_map( 'absint', array_unique( (array) $q['tag__not_in'] ) );
-			sort( $q['tag__not_in'] );
-			$tax_query[] = array(
+			$tax_query[]      = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag__not_in'],
 				'operator' => 'NOT IN',
@@ -1369,8 +1359,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag__and'] ) ) {
 			$q['tag__and'] = array_map( 'absint', array_unique( (array) $q['tag__and'] ) );
-			sort( $q['tag__and'] );
-			$tax_query[] = array(
+			$tax_query[]   = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag__and'],
 				'operator' => 'AND',
@@ -1379,8 +1368,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag_slug__in'] ) ) {
 			$q['tag_slug__in'] = array_map( 'sanitize_title_for_query', array_unique( (array) $q['tag_slug__in'] ) );
-			sort( $q['tag_slug__in'] );
-			$tax_query[] = array(
+			$tax_query[]       = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag_slug__in'],
 				'field'    => 'slug',
@@ -1389,8 +1377,7 @@ class WP_Query {
 
 		if ( ! empty( $q['tag_slug__and'] ) ) {
 			$q['tag_slug__and'] = array_map( 'sanitize_title_for_query', array_unique( (array) $q['tag_slug__and'] ) );
-			sort( $q['tag_slug__and'] );
-			$tax_query[] = array(
+			$tax_query[]        = array(
 				'taxonomy' => 'post_tag',
 				'terms'    => $q['tag_slug__and'],
 				'field'    => 'slug',
@@ -2002,6 +1989,9 @@ class WP_Query {
 			} else {
 				$q['post_type'] = '';
 			}
+		} elseif ( is_array( $q['post_type'] ) ) {
+			$q['post_type'] = array_unique( $q['post_type'] );
+			sort( $q['post_type'] );
 		}
 		$post_type = $q['post_type'];
 		if ( empty( $q['posts_per_page'] ) ) {
@@ -2293,6 +2283,37 @@ class WP_Query {
 
 		// Taxonomies.
 		if ( ! $this->is_singular ) {
+			// Standardize prior to re-parsing the tax query.
+			$sortable_arrays = array(
+				'cat',
+				'category__in',
+				'category__not_in',
+				'category__and',
+				'tag_slug__in',
+				'tag__in',
+				'tag__not_in',
+				'tag__and',
+				'tag_slug__and',
+			);
+
+			foreach ( $sortable_arrays as $key ) {
+				if ( isset( $q[ $key ] ) && is_array( $q[ $key ] ) ) {
+					$q[ $key ] = array_unique( $q[ $key ] );
+					sort( $q[ $key ] );
+				}
+			}
+
+			$sortable_comma_separated_integers = array(
+				'cat',
+			);
+
+			foreach ( $sortable_comma_separated_integers as $key ) {
+				if ( isset( $q[ $key ] ) && is_string( $q[ $key ] ) ) {
+					$q[ $key ] = array_unique( array_map( 'intval', explode( ',', $q[ $key ] ) ) );
+					sort( $q[ $key ] );
+				}
+			}
+
 			$this->parse_tax_query( $q );
 
 			$clauses = $this->tax_query->get_sql( $wpdb->posts, 'ID' );
@@ -2640,6 +2661,10 @@ class WP_Query {
 		if ( $skip_post_status ) {
 			$where .= $post_type_where;
 		} elseif ( ! empty( $q['post_status'] ) ) {
+			if ( is_array( $q['post_status'] ) ) {
+				$q['post_status'] = array_unique( $q['post_status'] );
+				sort( $q['post_status'] );
+			}
 
 			$where .= $post_type_where;
 
