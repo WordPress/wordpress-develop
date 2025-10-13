@@ -683,7 +683,7 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 	}
 
 	// Cleanup the users array. Remove duplicates and sort for consistent ordering.
-	$users = array_unique( array_filter( array_map( 'absint', (array) $users ) ) );
+	$users = array_unique( array_filter( array_map( 'absint', $users ) ) );
 	sort( $users );
 
 	$userlist    = implode( ',', $users );
