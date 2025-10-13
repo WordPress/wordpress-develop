@@ -635,7 +635,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				$actual_scripts[] = $matches[1];
 			}
 		}
-		$this->assertSameSets( $expected_scripts, $actual_scripts );
+		$this->assertSameSets( $expected_scripts, $actual_scripts, 'Enqueued scripts do not meet expectations' );
 
 		$actual_script_modules  = array();
 		$printed_script_modules = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
