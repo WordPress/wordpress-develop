@@ -574,6 +574,7 @@ class WP_Query {
 			'error',
 			'm',
 			'p',
+			'post_ancestor',
 			'post_parent',
 			'subpost',
 			'subpost_id',
@@ -753,6 +754,8 @@ class WP_Query {
 	 *     @type string          $pagename               Page slug.
 	 *     @type string          $perm                   Show posts if user has the appropriate capability.
 	 *     @type string          $ping_status            Ping status.
+	 *     @type int             $post_ancestor          Page ID to retrieve descendant pages for. Note: this will get
+	 *                                                   all descendants, not just the direct children.
 	 *     @type int[]           $post__in               An array of post IDs to retrieve, sticky posts will be included.
 	 *     @type int[]           $post__not_in           An array of post IDs not to retrieve. Note: a string of comma-
 	 *                                                   separated IDs will NOT work.
@@ -2252,19 +2255,22 @@ class WP_Query {
 			$where       .= " AND {$wpdb->posts}.ID NOT IN ($post__not_in)";
 		}
 
-		if ( is_numeric( $q['post_parent'] ) ) {
-			$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_parent = %d ", $q['post_parent'] );
-		} elseif ( $q['post_parent__in'] ) {
-			// Duplicate array before sorting to allow for the orderby clause.
-			$post_parent__in_for_where = $q['post_parent__in'];
-			$post_parent__in_for_where = array_unique( array_map( 'absint', $post_parent__in_for_where ) );
-			sort( $post_parent__in_for_where );
-			$post_parent__in = implode( ',', array_map( 'absint', $post_parent__in_for_where ) );
-			$where          .= " AND {$wpdb->posts}.post_parent IN ($post_parent__in)";
-		} elseif ( $q['post_parent__not_in'] ) {
-			sort( $q['post_parent__not_in'] );
-			$post_parent__not_in = implode( ',', array_map( 'absint', $q['post_parent__not_in'] ) );
-			$where              .= " AND {$wpdb->posts}.post_parent NOT IN ($post_parent__not_in)";
+		// If post_ancestor is specified, ignore all parameters referring to the parent.
+		if ( ! is_numeric( $q['post_ancestor'] ) ) {
+			if ( is_numeric( $q['post_parent'] ) ) {
+				$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_parent = %d ", $q['post_parent'] );
+			} elseif ( $q['post_parent__in'] ) {
+				// Duplicate array before sorting to allow for the orderby clause.
+				$post_parent__in_for_where = $q['post_parent__in'];
+				$post_parent__in_for_where = array_unique( array_map( 'absint', $post_parent__in_for_where ) );
+				sort( $post_parent__in_for_where );
+				$post_parent__in = implode( ',', array_map( 'absint', $post_parent__in_for_where ) );
+				$where          .= " AND {$wpdb->posts}.post_parent IN ($post_parent__in)";
+			} elseif ( $q['post_parent__not_in'] ) {
+				sort( $q['post_parent__not_in'] );
+				$post_parent__not_in = implode( ',', array_map( 'absint', $q['post_parent__not_in'] ) );
+				$where              .= " AND {$wpdb->posts}.post_parent NOT IN ($post_parent__not_in)";
+			}
 		}
 
 		if ( $q['page_id'] ) {
@@ -2795,7 +2801,7 @@ class WP_Query {
 		}
 
 		// Paging.
-		if ( empty( $q['nopaging'] ) && ! $this->is_singular ) {
+		if ( empty( $q['post_ancestor'] ) && empty( $q['nopaging'] ) && ! $this->is_singular ) {
 			$page = absint( $q['paged'] );
 			if ( ! $page ) {
 				$page = 1;
@@ -3440,10 +3446,18 @@ class WP_Query {
 			}
 		}
 
-		// Convert to WP_Post objects.
 		if ( $this->posts ) {
+			// Convert to WP_Post objects.
 			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
+
+			// if ancestor property is present, filter posts so that only posts with the specified ancestor are returned
+			if ( is_numeric( $q['post_ancestor'] ) && $q['post_ancestor'] > 0 ) {
+				$this->posts       = get_page_children( $q['post_ancestor'], $this->posts );
+				$this->found_posts = count( $this->posts );
+
+				$this->posts = array_slice( $this->posts, 0, $q['posts_per_page'] );
+			}
 		}
 
 		$unfiltered_posts = $this->posts;

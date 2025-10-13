@@ -2795,6 +2795,9 @@ function build_query_vars_from_query_block( $block, $page ) {
 		if ( ! empty( $block->context['query']['search'] ) ) {
 			$query['s'] = $block->context['query']['search'];
 		}
+		if ( ! empty( $block->context['query']['ancestor'] ) && is_post_type_hierarchical( $query['post_type'] ) ) {
+			$query['post_ancestor'] = intval( $block->context['query']['ancestor'] );
+		}
 		if ( ! empty( $block->context['query']['parents'] ) && is_post_type_hierarchical( $query['post_type'] ) ) {
 			$query['post_parent__in'] = array_unique( array_map( 'intval', $block->context['query']['parents'] ) );
 		}

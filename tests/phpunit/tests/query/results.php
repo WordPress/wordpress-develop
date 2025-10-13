@@ -20,6 +20,10 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	public static $child_two;
 	public static $child_three;
 	public static $child_four;
+	public static $grand_child_one;
+	public static $grand_child_two;
+	public static $grand_child_three;
+	public static $grand_child_four;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$cat_a           = $factory->term->create(
@@ -239,59 +243,91 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		self::$parent_one   = $factory->post->create(
+		self::$parent_one        = $factory->post->create(
 			array(
 				'post_title' => 'parent-one',
 				'post_date'  => '2007-01-01 00:00:00',
 			)
 		);
-		self::$post_ids[]   = self::$parent_one;
-		self::$parent_two   = $factory->post->create(
+		self::$post_ids[]        = self::$parent_one;
+		self::$parent_two        = $factory->post->create(
 			array(
 				'post_title' => 'parent-two',
 				'post_date'  => '2007-01-01 00:00:00',
 			)
 		);
-		self::$post_ids[]   = self::$parent_two;
-		self::$parent_three = $factory->post->create(
+		self::$post_ids[]        = self::$parent_two;
+		self::$parent_three      = $factory->post->create(
 			array(
 				'post_title' => 'parent-three',
 				'post_date'  => '2007-01-01 00:00:00',
 			)
 		);
-		self::$post_ids[]   = self::$parent_three;
-		self::$child_one    = $factory->post->create(
+		self::$post_ids[]        = self::$parent_three;
+		self::$child_one         = $factory->post->create(
 			array(
 				'post_title'  => 'child-one',
 				'post_parent' => self::$parent_one,
 				'post_date'   => '2007-01-01 00:00:01',
 			)
 		);
-		self::$post_ids[]   = self::$child_one;
-		self::$child_two    = $factory->post->create(
+		self::$post_ids[]        = self::$child_one;
+		self::$child_two         = $factory->post->create(
 			array(
 				'post_title'  => 'child-two',
 				'post_parent' => self::$parent_one,
 				'post_date'   => '2007-01-01 00:00:02',
 			)
 		);
-		self::$post_ids[]   = self::$child_two;
-		self::$child_three  = $factory->post->create(
+		self::$post_ids[]        = self::$child_two;
+		self::$child_three       = $factory->post->create(
 			array(
 				'post_title'  => 'child-three',
 				'post_parent' => self::$parent_two,
 				'post_date'   => '2007-01-01 00:00:03',
 			)
 		);
-		self::$post_ids[]   = self::$child_three;
-		self::$child_four   = $factory->post->create(
+		self::$post_ids[]        = self::$child_three;
+		self::$child_four        = $factory->post->create(
 			array(
 				'post_title'  => 'child-four',
 				'post_parent' => self::$parent_two,
 				'post_date'   => '2007-01-01 00:00:04',
 			)
 		);
-		self::$post_ids[]   = self::$child_four;
+		self::$post_ids[]        = self::$child_four;
+		self::$grand_child_one   = $factory->post->create(
+			array(
+				'post_title'  => 'grand-child-one',
+				'post_parent' => self::$child_one,
+				'post_date'   => '2007-01-01 00:00:01',
+			)
+		);
+		self::$post_ids[]        = self::$grand_child_one;
+		self::$grand_child_two   = $factory->post->create(
+			array(
+				'post_title'  => 'grand-child-two',
+				'post_parent' => self::$child_one,
+				'post_date'   => '2007-01-01 00:00:02',
+			)
+		);
+		self::$post_ids[]        = self::$grand_child_two;
+		self::$grand_child_three = $factory->post->create(
+			array(
+				'post_title'  => 'grand-child-three',
+				'post_parent' => self::$child_two,
+				'post_date'   => '2007-01-01 00:00:03',
+			)
+		);
+		self::$post_ids[]        = self::$grand_child_three;
+		self::$grand_child_four  = $factory->post->create(
+			array(
+				'post_title'  => 'grand-child-four',
+				'post_parent' => self::$child_two,
+				'post_date'   => '2007-01-01 00:00:04',
+			)
+		);
+		self::$post_ids[]        = self::$grand_child_four;
 	}
 
 	public function set_up() {
@@ -522,6 +558,55 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$this->assertCount( 4, $posts );
 		$this->assertTrue( $this->q->is_paged() );
 		$this->assertSame( $expected, wp_list_pluck( $posts, 'post_name' ) );
+	}
+
+	/**
+	 * @ticket 62953
+	 */
+	public function test_query_post_ancestor() {
+		$posts = $this->q->query(
+			array(
+				'post_ancestor'  => self::$parent_one,
+				'orderby'        => 'date',
+				'order'          => 'asc',
+				'posts_per_page' => -1,
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'child-one',
+				'grand-child-one',
+				'grand-child-two',
+				'child-two',
+				'grand-child-three',
+				'grand-child-four',
+			),
+			wp_list_pluck( $posts, 'post_title' )
+		);
+
+		// check that parent params are ignored if post_ancestor is specified
+		$posts = $this->q->query(
+			array(
+				'post_ancestor'   => self::$parent_one,
+				'post_parent__in' => array( self::$parent_one ),
+				'orderby'         => 'date',
+				'order'           => 'asc',
+				'posts_per_page'  => -1,
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'child-one',
+				'grand-child-one',
+				'grand-child-two',
+				'child-two',
+				'grand-child-three',
+				'grand-child-four',
+			),
+			wp_list_pluck( $posts, 'post_title' )
+		);
 	}
 
 	/**

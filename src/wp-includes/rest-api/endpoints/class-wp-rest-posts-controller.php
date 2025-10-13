@@ -253,6 +253,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'order'          => 'order',
 			'orderby'        => 'orderby',
 			'page'           => 'paged',
+			'ancestor'       => 'post_ancestor',
 			'parent'         => 'post_parent__in',
 			'parent_exclude' => 'post_parent__not_in',
 			'search'         => 's',
@@ -3021,6 +3022,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post_type = get_post_type_object( $this->post_type );
+
+		if ( $post_type->hierarchical ) {
+			$query_params['ancestor'] = array(
+				'description' => __( 'Limit result set to items that are descendants of a particular ancestor ID.' ),
+				'type'        => 'integer',
+			);
+		}
 
 		if ( $post_type->hierarchical || 'attachment' === $this->post_type ) {
 			$query_params['parent']         = array(

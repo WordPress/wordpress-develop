@@ -67,6 +67,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame(
 			array(
 				'after',
+				'ancestor',
 				'author',
 				'author_exclude',
 				'before',
@@ -111,6 +112,47 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
 		$this->assertSame( $id1, $data[0]['id'] );
+	}
+
+	public function test_get_items_ancestor_query() {
+		$id1 = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'page',
+			)
+		);
+		$id2 = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'page',
+				'post_parent' => $id1,
+			)
+		);
+		$id3 = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'page',
+				'post_parent' => $id2,
+			)
+		);
+
+		// No ancestor.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertCount( 3, $data );
+
+		// Filter to ancestor.
+		$request->set_param( 'ancestor', $id1 );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertCount( 2, $data );
+		$this->assertSameSets( array( $id2, $id3 ), wp_list_pluck( $data, 'id' ) );
+
+		// Invalid 'ancestor' should error.
+		$request->set_param( 'ancestor', 'some-slug' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_get_items_parent_query() {
