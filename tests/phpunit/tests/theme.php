@@ -364,18 +364,30 @@ class Tests_Theme extends WP_UnitTestCase {
 		$this->assertSame( 1, preg_match( '/^Version: (\d+\.\d+(?:\.\d+)?)$/m', file_get_contents( $path_to_style_css ), $matches ), 'Expected Version in style.css' );
 		$style_version = $matches[1];
 
+		// Version in style.css does not use patch versions, so supply one of 0.
+		$version_with_patch = $matches[1];
+		if ( 1 === substr_count( $version_with_patch, '.' ) ) {
+			$version_with_patch .= '.0';
+		}
+
 		$package_files         = array( 'package.json', 'package-lock.json' );
 		$present_package_files = array();
 		foreach ( $package_files as $package_file ) {
 			$path_to_package_json = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/' . $package_file;
 			if ( file_exists( $path_to_package_json ) ) {
 				$present_package_files[] = $package_file;
-				$package_json            = json_decode( file_get_contents( $path_to_package_json ), true );
-				$this->assertIsArray( $package_json, "Expected $package_file to be an array." );
-				$this->assertArrayHasKey( 'name', $package_json, "Expected name key in $package_file." );
-				$this->assertSame( $theme, $package_json['name'], "Expected name field to be the theme slug in $package_file." );
-				$this->assertArrayHasKey( 'version', $package_json, "Expected version key in $package_file." );
-				$this->assertSame( $style_version . '.0', $package_json['version'], "Expected version from style.css to match version in $package_file." );
+
+				$data = json_decode( file_get_contents( $path_to_package_json ), true );
+				$this->assertIsArray( $data, "Expected $package_file to be an array." );
+				$this->assertArrayHasKey( 'name', $data, "Expected name key in $package_file." );
+				$this->assertSame( $theme, $data['name'], "Expected name field to be the theme slug in $package_file." );
+				$this->assertArrayHasKey( 'version', $data, "Expected version key in $package_file." );
+				$this->assertSame( $version_with_patch, $data['version'], "Expected version from style.css to match version in $package_file." );
+
+				if ( 'package-lock.json' === $package_file && isset( $data['packages'][''] ) ) {
+					$this->assertArrayHasKey( 'version', $data['packages'][''], "Expected version key in packages[''] in package-lock.json." );
+					$this->assertSame( $version_with_patch, $data['packages']['']['version'], "Expected version from style.css to match packages[''].version in package-lock.json." );
+				}
 			}
 		}
 		if ( count( $present_package_files ) > 0 ) {
