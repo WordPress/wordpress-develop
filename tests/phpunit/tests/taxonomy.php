@@ -1124,4 +1124,34 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertContains( $tax1, $taxonomies );
 		$this->assertContains( $tax2, $taxonomies );
 	}
+
+	/**
+	 * Test taxonomy query with zero (0) term slug.
+	 *
+	 * @ticket 46350
+	 */
+	public function test_taxonomy_query_with_zero_term() {
+		register_taxonomy( 'test_tax', 'post' );
+
+		$term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'test_tax',
+				'name'     => '0',
+			)
+		);
+
+		$posts = self::factory()->post->create_many( 3 );
+
+		wp_set_object_terms( $posts[0], $term_id, 'test_tax' );
+		wp_set_object_terms( $posts[1], $term_id, 'test_tax' );
+
+		$query = new WP_Query(
+			array(
+				'test_tax' => '0',
+				'fields'   => 'ids',
+			)
+		);
+
+		$this->assertCount( 2, $query->posts, 'Posts with the "0" term should be returned.' );
+	}
 }
