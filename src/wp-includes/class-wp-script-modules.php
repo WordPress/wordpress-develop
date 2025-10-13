@@ -76,6 +76,7 @@ class WP_Script_Modules {
 	 *     Optional. An array of additional args. Default empty array.
 	 *
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+	 *     @type bool               $load_on_client_navigation Whether the script module should be loaded on client navigation. Default false. Optional.
 	 * }
 	 */
 	public function register( string $id, string $src, array $deps = array(), $version = false, array $args = array() ) {
@@ -120,11 +121,12 @@ class WP_Script_Modules {
 			}
 
 			$this->registered[ $id ] = array(
-				'src'           => $src,
-				'version'       => $version,
-				'enqueue'       => isset( $this->enqueued_before_registered[ $id ] ),
-				'dependencies'  => $dependencies,
-				'fetchpriority' => $fetchpriority,
+				'src'                       => $src,
+				'version'                   => $version,
+				'enqueue'                   => isset( $this->enqueued_before_registered[ $id ] ),
+				'dependencies'              => $dependencies,
+				'fetchpriority'             => $fetchpriority,
+				'load_on_client_navigation' => isset( $args['load_on_client_navigation'] ) ? $args['load_on_client_navigation'] : false,
 			);
 		}
 	}
@@ -210,6 +212,7 @@ class WP_Script_Modules {
 	 *     Optional. An array of additional args. Default empty array.
 	 *
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
+	 *     @type bool $load_on_client_navigation Whether the script module should be loaded on client navigation. Default false. Optional.
 	 * }
 	 */
 	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false, array $args = array() ) {
@@ -291,6 +294,9 @@ class WP_Script_Modules {
 			if ( 'auto' !== $script_module['fetchpriority'] ) {
 				$args['fetchpriority'] = $script_module['fetchpriority'];
 			}
+			if ( isset( $script_module['load_on_client_navigation'] ) && true === $script_module['load_on_client_navigation'] ) {
+				$args['data-wp-router-options'] = wp_json_encode( array( 'loadOnClientNavigation' => true ) );
+			}
 			wp_print_script_tag( $args );
 		}
 	}
@@ -307,11 +313,18 @@ class WP_Script_Modules {
 		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ), array( 'static' ) ) as $id => $script_module ) {
 			// Don't preload if it's marked for enqueue.
 			if ( true !== $script_module['enqueue'] ) {
+				$attrs = '';
+				if ( 'auto' !== $script_module['fetchpriority'] ) {
+					$attrs .= sprintf( ' fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) );
+				}
+				if ( isset( $script_module['load_on_client_navigation'] ) && true === $script_module['load_on_client_navigation'] ) {
+					$attrs .= sprintf( ' data-wp-router-options="%s"', esc_attr( wp_json_encode( array( 'loadOnClientNavigation' => true ) ) ) );
+				}
 				echo sprintf(
 					'<link rel="modulepreload" href="%s" id="%s"%s>',
 					esc_url( $this->get_src( $id ) ),
 					esc_attr( $id . '-js-modulepreload' ),
-					'auto' !== $script_module['fetchpriority'] ? sprintf( ' fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) ) : ''
+					$attrs
 				);
 			}
 		}
