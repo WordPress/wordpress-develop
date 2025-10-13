@@ -18,19 +18,19 @@
  * to search only in post_title column for a better UX
  */
 function wp_ajax_nopriv_menu_quick_search($args) {
-  if (isset($_POST['action']) && $_POST['action'] === 'menu-quick-search') {
-    add_filter('posts_search', function ($search, $query) {
-      global $wpdb;
+	if (isset($_POST['action']) && $_POST['action'] === 'menu-quick-search') {
+		add_filter('posts_search', function ($search, $query) {
+			global $wpdb;
 
-      if (!empty($search) && isset($query->query_vars['s'])) {
-        $search = $wpdb->prepare(" AND {$wpdb->posts}.post_title LIKE %s ", '%' . $wpdb->esc_like($query->query_vars['s']) . '%');
-      }
+			if (!empty($search) && isset($query->query_vars['s'])) {
+				$search = $wpdb->prepare(" AND {$wpdb->posts}.post_title LIKE %s ", '%' . $wpdb->esc_like($query->query_vars['s']) . '%');
+			}
 
-      return $search;
-    }, 10, 2);
-  }
+			return $search;
+		}, 10, 2);
+	}
 
-  return $args;
+	return $args;
 }
 add_action('wp_ajax_menu-quick-search', 'wp_ajax_nopriv_menu_quick_search');
 
