@@ -993,6 +993,42 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test adding capabilities, roles, and allcaps manually to a user.
+	 *
+	 * @ticket 58001
+	 *
+	 * @dataProvider data_add_user_properties_manually
+	 *
+	 * @param string $property_name  The property name to set.
+	 * @param array  $property_value The property value to set.
+	 * @param bool   $check_null     Whether to check that the property is null after unsetting it.
+	 */
+	public function test_add_user_properties_manually( $property_name, $property_value, $check_null ) {
+		$id                     = self::factory()->user->create();
+		$user                   = new WP_User( $id );
+		$user->{$property_name} = $property_value;
+
+		$this->assertSameSets( $property_value, $user->{$property_name}, "User property {$property_name} was not set correctly." );
+		unset( $user->{$property_name} );
+		if ( $check_null ) {
+			$this->assertNull( $user->{$property_name}, "User property {$property_name} should be null after unsetting it." );
+		}
+	}
+
+	/**
+	 * Data provider for test_add_user_properties_manually.
+	 *
+	 * @return array<string, array{0:string,1:array}>
+	 */
+	public function data_add_user_properties_manually() {
+		return array(
+			'caps'    => array( 'caps', array( 'foo' => true ), false ),
+			'roles'   => array( 'roles', array( 'foo' => true ), true ),
+			'allcaps' => array( 'allcaps', array( 'foo' => true ), true ),
+		);
+	}
+
+	/**
 	 * Test add_role with implied capabilities grant successfully grants capabilities.
 	 *
 	 * @ticket 43421
@@ -1098,6 +1134,41 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		remove_role( $role_name );
 		$this->flush_roles();
 		$this->assertFalse( $wp_roles->is_role( $role_name ) );
+	}
+
+	/**
+	 * @ticket 58001
+	 */
+	public function test_get_role_caps() {
+		$id_1   = self::$users['contributor']->ID;
+		$user_1 = new WP_User( $id_1 );
+
+		$role_caps = $user_1->get_role_caps();
+		$this->assertIsArray( $role_caps, 'User role capabilities should be an array' );
+		$this->assertArrayHasKey( 'edit_posts', $role_caps, 'User role capabilities should contain the edit_posts capability' );
+	}
+
+	/**
+	 * @ticket 58001
+	 */
+	public function test_user_lazy_capabilities() {
+		$id_1   = self::$users['contributor']->ID;
+		$user_1 = new WP_User( $id_1 );
+
+		$this->assertTrue( isset( $user_1->roles ), 'User roles should be set' );
+		$this->assertTrue( isset( $user_1->allcaps ), 'User all capabilities should be set' );
+		$this->assertTrue( isset( $user_1->caps ), 'User capabilities should be set' );
+		$this->assertIsArray( $user_1->roles, 'User roles should be an array' );
+		$this->assertSame( array( 'contributor' ), $user_1->roles, 'User roles should match' );
+		$this->assertIsArray( $user_1->allcaps, 'User allcaps should be an array' );
+		$this->assertIsArray( $user_1->caps, 'User caps should be an array' );
+
+		$caps = $this->getAllCapsAndRoles();
+		foreach ( $caps as $cap => $roles ) {
+			if ( in_array( 'contributor', $roles, true ) ) {
+				$this->assertTrue( $user_1->has_cap( $cap ), "User should have the {$cap} capability" );
+			}
+		}
 	}
 
 	/**
@@ -1830,11 +1901,47 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( current_user_can( 'edit_user', $other_user->ID ) );
 	}
 
-	public function test_user_can_edit_self() {
-		foreach ( self::$users as $role => $user ) {
-			wp_set_current_user( $user->ID );
-			$this->assertTrue( current_user_can( 'edit_user', $user->ID ), "User with role {$role} should have the capability to edit their own profile" );
+	/**
+	 * Test if a user can edit their own profile based on their role.
+	 *
+	 * @ticket 63684
+	 *
+	 * @dataProvider data_user_can_edit_self
+	 *
+	 * @param string $role          The role of the user.
+	 * @param bool   $can_edit_self Whether the user can edit their own profile.
+	 */
+	public function test_user_can_edit_self( $role, $can_edit_self = true ) {
+		$user = self::$users[ $role ];
+		wp_set_current_user( $user->ID );
+
+		if ( $can_edit_self ) {
+			$this->assertTrue(
+				current_user_can( 'edit_user', $user->ID ),
+				"User with role '{$role}' should have the capability to edit their own profile"
+			);
+		} else {
+			$this->assertFalse(
+				current_user_can( 'edit_user', $user->ID ),
+				"User with role '{$role}' should not have the capability to edit their own profile"
+			);
 		}
+	}
+
+	/**
+	 * Data provider for test_user_can_edit_self.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public static function data_user_can_edit_self() {
+		return array(
+			'anonymous'     => array( 'anonymous', false ),
+			'administrator' => array( 'administrator', true ),
+			'editor'        => array( 'editor', true ),
+			'author'        => array( 'author', true ),
+			'contributor'   => array( 'contributor', true ),
+			'subscriber'    => array( 'subscriber', true ),
+		);
 	}
 
 	public function test_only_admins_and_super_admins_can_remove_users() {
@@ -2505,5 +2612,56 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				"Role: {$role} in template editing"
 			);
 		}
+	}
+
+	/**
+	 * Ensure that caps are updated correctly when using `update_option()` to save roles.
+	 *
+	 * Compares the efficiency and accuracy of updating role capabilities when `WP_Roles`
+	 * uses the database vs when the updates are done via `update_option()`.
+	 *
+	 * This method of updating roles is used in `populate_roles()` to reduce the number of
+	 * queries by approximately 300.
+	 *
+	 * @ticket 37687
+	 */
+	public function test_role_capabilities_updated_correctly_via_update_option() {
+		global $wp_roles;
+		$emcee_role = 'emcee';
+		$wp_roles->add_role( $emcee_role, 'Emcee', array( 'level_1' => true ) );
+		$this->flush_roles();
+
+		$expected_caps = array(
+			'level_1'             => true,
+			'attend_kit_kat_klub' => true,
+			'win_tony_award'      => true,
+		);
+
+		$start_queries = get_num_queries();
+		$wp_roles->add_cap( $emcee_role, 'attend_kit_kat_klub' );
+		$wp_roles->add_cap( $emcee_role, 'win_tony_award' );
+		$emcee_queries = get_num_queries() - $start_queries;
+		$this->flush_roles();
+		$emcee_caps = $wp_roles->get_role( $emcee_role )->capabilities;
+
+		$wp_roles->use_db = false;
+		$sally_role       = 'sally';
+		$wp_roles->add_role( $sally_role, 'Sally Bowles', array( 'level_1' => true ) );
+		$start_queries = get_num_queries();
+		$wp_roles->add_cap( $sally_role, 'attend_kit_kat_klub' );
+		$wp_roles->add_cap( $sally_role, 'win_tony_award' );
+
+		update_option( $wp_roles->role_key, $wp_roles->roles, true );
+		$sally_queries    = get_num_queries() - $start_queries;
+		$wp_roles->use_db = true;
+
+		// Restore the default value.
+		$this->flush_roles();
+		$sally_caps = $wp_roles->get_role( $sally_role )->capabilities;
+
+		$this->assertSameSetsWithIndex( $expected_caps, $emcee_caps, 'Emcee role should include the three expected capabilities.' );
+		$this->assertSameSetsWithIndex( $expected_caps, $sally_caps, 'Sally role should include the three expected capabilities.' );
+		$this->assertSameSetsWithIndex( $emcee_caps, $sally_caps, 'Emcee and Sally roles should have the same capabilities after update.' );
+		$this->assertLessThan( $emcee_queries, $sally_queries, 'Updating roles via update_option should be more efficient than WP_Roles using the database.' );
 	}
 }
