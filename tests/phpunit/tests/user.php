@@ -628,6 +628,75 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure equivalent arguments hit the same cache in count_many_users_posts().
+	 *
+	 * @ticket 63405
+	 *
+	 * @dataProvider data_count_many_users_posts_cached_for_equivalent_arguments
+	 *
+	 * @param array $first_args  First set of arguments to pass to count_many_users_posts().
+	 * @param array $second_args Second set of arguments to pass to count_many_users_posts().
+	 */
+	public function test_count_many_users_posts_cached_for_equivalent_arguments( $first_args, $second_args ) {
+		// Replace placeholder user IDs with real ones.
+		$first_args[0]  = array_map(
+			static function ( $user ) {
+				return self::$user_ids[ $user ];
+			},
+			$first_args[0]
+		);
+		$second_args[0] = array_map(
+			static function ( $user ) {
+				return self::$user_ids[ $user ];
+			},
+			$second_args[0]
+		);
+
+		// Warm the cache with the first set of arguments.
+		count_many_users_posts( ...$first_args );
+
+		// Ensure the cache is hit for the second set of equivalent arguments.
+		$start_queries = get_num_queries();
+		count_many_users_posts( ...$second_args );
+		$end_queries = get_num_queries();
+		$this->assertSame( $end_queries - $start_queries, 0, 'No database queries expected for second call to count_many_users_posts() with equivalent arguments' );
+	}
+
+	/**
+	 * Data provider for test_count_many_users_posts_cached_for_equivalent_arguments().
+	 *
+	 * @return array[] Data provider.
+	 */
+	public function data_count_many_users_posts_cached_for_equivalent_arguments() {
+		return array(
+			'single post string vs array'  => array(
+				array( array( 0 ), 'post' ),
+				array( array( 0 ), array( 'post' ) ),
+			),
+			'duplicate post type in array' => array(
+				array( array( 0 ), array( 'post', 'post' ) ),
+				array( array( 0 ), array( 'post' ) ),
+			),
+			'different post type order'    => array(
+				array( array( 0 ), array( 'post', 'page' ) ),
+				array( array( 0 ), array( 'page', 'post' ) ),
+			),
+			'duplicate user IDs in array'  => array(
+				array( array( 0, 1, 1 ), 'post' ),
+				array( array( 0, 1 ), 'post' ),
+			),
+			'different user order'         => array(
+				array( array( 0, 1 ), 'post' ),
+				array( array( 1, 0 ), 'post' ),
+			),
+			'integer vs string user IDs'   => array(
+				array( array( 0, 1 ), 'post' ),
+				array( array( '0', '1' ), 'post' ),
+			),
+		);
+	}
+
+	/**
 	 * Tests salted cache functionality for count_many_users_posts().
 	 *
 	 * @ticket 63405
