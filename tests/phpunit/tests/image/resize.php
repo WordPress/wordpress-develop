@@ -1,7 +1,10 @@
 <?php
 
 /**
- * Base class for testing image resize functionality.
+ * @group image
+ * @group media
+ * @group upload
+ * @group resize
  */
 require_once __DIR__ . '/base.php';
 

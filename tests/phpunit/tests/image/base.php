@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Base class for testing image manipulation functionality.
+ * @group image
  */
 abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 
