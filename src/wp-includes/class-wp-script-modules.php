@@ -345,7 +345,7 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_script_module_preloads() {
-		foreach ( $this->get_dependencies( $this->queue, array( 'static' ) ) as $id => $script_module ) {
+		foreach ( $this->get_dependencies( array_unique( $this->queue ), array( 'static' ) ) as $id => $script_module ) {
 			// Don't preload if it's marked for enqueue.
 			if ( ! in_array( $id, $this->queue, true ) ) {
 				$enqueued_dependents   = array_intersect( $this->get_recursive_dependents( $id ), $this->queue );
