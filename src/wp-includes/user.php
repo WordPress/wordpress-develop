@@ -702,7 +702,7 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 			$count[ $row[0] ] = $row[1];
 		}
 
-		wp_cache_set_salted( $cache_key, $count, 'user-queries', $cache_salts, HOUR_IN_SECONDS );
+		wp_cache_set_salted( $cache_key, $count, 'post-queries', $cache_salts, HOUR_IN_SECONDS );
 	}
 
 	return $count;
