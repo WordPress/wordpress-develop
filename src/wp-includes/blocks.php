@@ -1869,10 +1869,10 @@ function resolve_pattern_blocks( $blocks ) {
 				++$i;
 				continue;
 			}
-			$blocks_to_insert   = parse_blocks( $pattern['content'] );
+			$blocks_to_insert   = parse_blocks( trim( $pattern['content'] ) );
 
-			// Add the pattern name to make this a pattern instance in the editor.
-			if( count( $blocks_to_insert ) === 2 ) { // should be 1 but we seem to have an empty block always
+			// For single-root patterns, add the pattern name to make this a pattern instance in the editor.
+			if( count( $blocks_to_insert ) === 1 ) {
 				$blocks_to_insert[0]['attrs']['metadata'] = [ 'patternName' => $slug, 'name' => $pattern['title'] ];
 			}
 			$seen_refs[ $slug ] = true;
