@@ -4570,7 +4570,6 @@ function wp_ajax_upload_plugin() {
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 	$file_upload = new File_Upload_Upgrader( 'pluginzip', 'package' );
 
 	$nonce = 'upload-plugin';
@@ -4587,7 +4586,7 @@ function wp_ajax_upload_plugin() {
 	$status = array();
 	$plugin = $skin->upgrader->new_plugin_data;
 
-	$can_override = $skin->can_override_plugin();
+	$can_override = $skin->can_overwrite_plugin();
 
 	if ( $can_override ) {
 		$status['successCode']       = 'can_override';

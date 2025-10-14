@@ -102,13 +102,13 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	}
 
 	/**
-	 * Checks if the plugin can be overwritten and outputs the HTML for overwriting a plugin on upload.
+	 * Checks if the plugin can be overwritten and outputs an array of changes for overwriting a plugin on upload.
 	 *
 	 * @since 6.9.0
 	 *
 	 * @return bool|array Whether the plugin can be overwritten and an array of changes returned.
 	 */
-	public function can_override_plugin() {
+	public function can_overwrite_plugin() {
 		if ( ! is_wp_error( $this->result ) || 'folder_exists' !== $this->result->get_error_code() ) {
 			return false;
 		}
@@ -135,10 +135,9 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 
 		$rows = array(
 			'Downgrade' => version_compare( $current_plugin_data['Version'], $new_plugin_data['Version'], '>' ),
-			'Plugin'    => array( __( 'Old' ), __( 'New' ) ),
 		);
 
-		$fields = array( __( 'Name' ), __( 'Version' ), __( 'Author' ), __( 'RequiresWP' ), __( 'RequiresPHP' ) );
+		$fields = array( 'Name', 'Version', 'Author', 'RequiresWP', 'RequiresPHP' );
 
 		$is_same_plugin = true; // Let's consider only these rows.
 

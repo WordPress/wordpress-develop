@@ -107,7 +107,7 @@ function pluginUploadSuccess( fileObj, serverData ) {
 			);
 		}
 		action_selector.append(
-			`<li><button class="button activate-button cancel-overwrite" data-file="${fileObj.id}" data-attachment="${ data.attachment_id }"> ${ plugin_upload_intl.cancel } </button></li>`
+			`<li><button class="button activate-button cancel-overwrite" data-file="${ fileObj.id }" data-attachment="${ data.attachment_id }"> ${ plugin_upload_intl.cancel } </button></li>`
 		);
 		action_selector.append(
 			`<li><a href="#TB_inline?&inlineId=plugin-modal-window-${ fileObj.id }&width=700" class="thickbox" data-title="${ data.plugin.Name } ${ data.plugin.Version }">${ plugin_upload_intl.more_details }</a></li>`
@@ -132,7 +132,7 @@ function pluginUploadSuccess( fileObj, serverData ) {
 			} );
 	} else {
 		action_selector.append(
-			`<li><button class="button activate-button activate-plugin button-primary" data-name="${data.plugin.Name}" data-path="${data.path}"> ${ plugin_upload_intl.activate } </button></li>`
+			`<li><button class="button activate-button activate-plugin button-primary" data-name="${ data.plugin.Name }" data-path="${ data.path }"> ${ plugin_upload_intl.activate } </button></li>`
 		);
 
 		jQuery( '.button.activate-plugin' )
@@ -141,7 +141,7 @@ function pluginUploadSuccess( fileObj, serverData ) {
 				const button = jQuery( this );
 				const path = button.data( 'path' );
 				const name = button.data( 'name' );
-				activatePlugin( path,name, button );
+				activatePlugin( path, name, button );
 			} );
 	}
 }
@@ -176,9 +176,10 @@ function overwritePlugin( attachment_id, button ) {
  	const formData = new FormData();
 	formData.append( '_wpnonce', upload_plugin_nonce );
 	formData.append( 'action', 'upload-plugin' );
-	button.prop( 'disabled', true );
+ 	button.prop( 'disabled', true );
 	button.text( plugin_upload_intl.processing + '...' );
-
+	const cancel_overwrite_button = button.parent().parent().find( '.cancel-overwrite' );
+	cancel_overwrite_button.prop( 'disabled', true );
 	jQuery.ajax( {
 		type: 'POST',
 		url: ajaxurl + '?package=' + attachment_id + '&overwrite=update-plugin',
@@ -186,23 +187,25 @@ function overwritePlugin( attachment_id, button ) {
 		processData: false, // Important: tell jQuery not to process the data.
 		contentType: false, // Important: tell jQuery not to set contentType.
 
-		success: function (  ) {
+		success: function () {
 			button.text( plugin_upload_intl.updated );
 		},
-		error: function (  ) {
+		error: function () {
 			button.prop( 'disabled', false );
+			cancel_overwrite_button.prop( 'disabled', false );
 			button.text( plugin_upload_intl.activation_failed );
 		},
 	} );
 }
 
-function cancelOverwritePlugin( file_id ,attachment_id, button ) {
- 	const formData = new FormData();
+function cancelOverwritePlugin( file_id, attachment_id, button ) {
+	const formData = new FormData();
 	formData.append( '_wpnonce', cancel_overwrite_nonce );
 	formData.append( 'action', 'cancel-plugin-overwrite' );
 	button.prop( 'disabled', true );
 	button.text( plugin_upload_intl.processing + '...' );
-
+	const overwrite_button = button.parent().parent().find( '.overwrite-plugin' );
+	overwrite_button.prop( 'disabled', true );
 	jQuery.ajax( {
 		type: 'POST',
 		url: ajaxurl + '?package=' + attachment_id,
@@ -210,13 +213,13 @@ function cancelOverwritePlugin( file_id ,attachment_id, button ) {
 		processData: false, // Important: tell jQuery not to process the data.
 		contentType: false, // Important: tell jQuery not to set contentType.
 
-		success: function (  ) {
+		success: function () {
 			// Remove element from the dom.
-			 jQuery( '#plugin-item-' + file_id ).remove();
-
+			jQuery( '#plugin-item-' + file_id ).remove();
 		},
-		error: function (  ) {
+		error: function () {
 			button.prop( 'disabled', false );
+			overwrite_button.prop( 'disabled', false );
 			button.text( plugin_upload_intl.cancel_failed );
 		},
 	} );
@@ -237,10 +240,10 @@ function activatePlugin( path, name, button ) {
 		processData: false, // Important: tell jQuery not to process the data
 		contentType: false, // Important: tell jQuery not to set contentType
 
-		success: function (  ) {
+		success: function () {
 			button.text( plugin_upload_intl.activated );
 		},
-		error: function (  ) {
+		error: function () {
 			button.prop( 'disabled', false );
 			button.text( plugin_upload_intl.failed );
 		},
