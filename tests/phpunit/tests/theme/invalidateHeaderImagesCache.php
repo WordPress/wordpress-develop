@@ -49,7 +49,11 @@ class Tests_Theme_invalidateHeaderImagesCache extends WP_UnitTestCase {
 			),
 		);
 
-		$num_queries = get_num_queries() + 4;
+		$extra_queries = 4;
+		if( wp_using_ext_object_cache() ){
+			$extra_queries = 2;
+		}
+		$num_queries = get_num_queries() + $extra_queries;
 
 		$this->assertSame( $expected, get_uploaded_header_images() );
 
@@ -98,7 +102,11 @@ class Tests_Theme_invalidateHeaderImagesCache extends WP_UnitTestCase {
 			),
 		);
 
-		$num_queries = get_num_queries() + 4;
+		$extra_queries = 4;
+		if( wp_using_ext_object_cache() ){
+			$extra_queries = 2;
+		}
+		$num_queries = get_num_queries() + $extra_queries;
 
 		$this->assertSame( $expected, get_uploaded_header_images() );
 
