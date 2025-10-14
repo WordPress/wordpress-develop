@@ -296,7 +296,7 @@ class WP_Script_Modules {
 				$args['fetchpriority'] = $script_module['fetchpriority'];
 			}
 			if ( isset( $script_module['load_on_client_navigation'] ) && true === $script_module['load_on_client_navigation'] ) {
-				$args['data-wp-router-options'] = wp_json_encode( array( 'loadOnClientNavigation' => true ) );
+				$args['data-wp-router-options'] = '{ "loadOnClientNavigation": true }';
 			}
 			wp_print_script_tag( $args );
 		}
