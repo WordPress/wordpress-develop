@@ -73,7 +73,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 				'fetchpriority' => is_string( $fetchpriority ) ? $fetchpriority : 'auto',
 			);
 			if ( is_string( $router_options ) ) {
-				$modules[ $id ]['router_options'] = json_decode( $router_options, true );
+				$modules[ $id ]['data-wp-router-options'] = json_decode( $router_options, true );
 			}
 		}
 
@@ -1400,14 +1400,14 @@ HTML;
 
 		$this->assertCount( 3, $enqueued_script_modules );
 
-		// Default should not have router_options attribute.
-		$this->assertArrayNotHasKey( 'router_options', $enqueued_script_modules['default'] );
+		// Default should not have data-wp-router-options attribute.
+		$this->assertArrayNotHasKey( 'data-wp-router-options', $enqueued_script_modules['default'] );
 
-		// True should have router_options attribute with loadOnClientNavigation set to true.
-		$this->assertArrayHasKey( 'router_options', $enqueued_script_modules['with-true'] );
-		$this->assertSame( array( 'loadOnClientNavigation' => true ), $enqueued_script_modules['with-true']['router_options'] );
+		// True should have data-wp-router-options attribute with loadOnClientNavigation set to true.
+		$this->assertArrayHasKey( 'data-wp-router-options', $enqueued_script_modules['with-true'] );
+		$this->assertSame( array( 'loadOnClientNavigation' => true ), $enqueued_script_modules['with-true']['data-wp-router-options'] );
 
-		// False should not have router_options attribute.
-		$this->assertArrayNotHasKey( 'router_options', $enqueued_script_modules['with-false'] );
+		// False should not have data-wp-router-options attribute.
+		$this->assertArrayNotHasKey( 'data-wp-router-options', $enqueued_script_modules['with-false'] );
 	}
 }
