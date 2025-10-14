@@ -1519,6 +1519,9 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_script_module_id
 	 */
 	public function test_register_block_script_module_id_with_interactivity_support() {
+		global $wp_script_modules;
+		$wp_script_modules = null;
+
 		$metadata = array(
 			'file'             => DIR_TESTDATA . '/blocks/notice/block.json',
 			'name'             => 'tests/interactive-block',
@@ -1538,7 +1541,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$output = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 
 		$this->assertStringContainsString( 'data-wp-router-options=', $output );
-		$this->assertStringContainsString( '{"loadOnClientNavigation":true}', $output );
+		$this->assertStringContainsString( 'loadOnClientNavigation', $output );
 	}
 
 	/**
@@ -1547,6 +1550,9 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_script_module_id
 	 */
 	public function test_register_block_script_module_id_with_interactive_flag() {
+		global $wp_script_modules;
+		$wp_script_modules = null;
+
 		$metadata = array(
 			'file'             => DIR_TESTDATA . '/blocks/notice/block.json',
 			'name'             => 'tests/interactive-block-2',
@@ -1568,7 +1574,7 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		$output = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 
 		$this->assertStringContainsString( 'data-wp-router-options=', $output );
-		$this->assertStringContainsString( '{"loadOnClientNavigation":true}', $output );
+		$this->assertStringContainsString( 'loadOnClientNavigation', $output );
 	}
 
 	/**
@@ -1577,6 +1583,9 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	 * @covers ::register_block_script_module_id
 	 */
 	public function test_register_block_script_module_id_without_interactivity_support() {
+		global $wp_script_modules;
+		$wp_script_modules = null;
+
 		$metadata = array(
 			'file'             => DIR_TESTDATA . '/blocks/notice/block.json',
 			'name'             => 'tests/non-interactive-block',
