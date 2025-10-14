@@ -2354,3 +2354,58 @@ $( function( $ ) {
 	// Expose public methods.
 	return pub;
 })();
+
+/**
+ * Disable the submit button until all users radio buttons are checked.
+ */
+(function($){
+	const usersForm = document.querySelector( '.users-php .delete-and-reassign-users-form' );
+
+	// Check if the form contains any radio buttons.
+	if ( ! usersForm.querySelector( 'input[type="radio"]' ) ) {
+		return;
+	}
+
+	const submitBtn = usersForm.querySelector( 'input[type="submit"]' );
+
+	// Disable the submit button until all users radio buttons are checked.
+	submitBtn.disabled = true;
+
+	// Listen for changes on any radio input in the form.
+	usersForm.addEventListener('change', function(e) {
+ 		if ( ! usersForm.checkValidity() ) {
+			submitBtn.disabled = true;
+			return;
+		}
+
+		// Check all radio groups for validity.
+		let allValid = true;
+		const radioGroups = usersForm.querySelectorAll( 'fieldset' );
+		radioGroups.forEach( function( fieldset ) {
+			const radios = fieldset.querySelectorAll( 'input[type="radio"]' );
+			let checkedRadio = null;
+			radios.forEach( function( radio ) {
+				if ( radio.checked ) {
+					checkedRadio = radio;
+				}
+			});
+
+			if ( checkedRadio && checkedRadio.value === 'reassign' ) {
+				const select = fieldset.querySelector( 'select' );
+				if ( select && select.value === '-1' ) {
+					allValid = false;
+				}
+			}
+		});
+
+		submitBtn.disabled = !allValid;
+	});
+
+	usersForm.querySelectorAll( 'select' ).forEach( function( selectElement ) {
+		selectElement.addEventListener( 'change', function( e ) {
+			const radio = e.target.closest( 'li' ).querySelector( 'input[type="radio"]' );
+			radio.checked = e.target.value !== '-1';
+		});
+	});
+
+})(jQuery);
