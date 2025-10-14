@@ -734,6 +734,47 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure different post types use different caches in count_many_users_posts().
+	 *
+	 * @ticket 63405
+	 */
+	public function test_different_post_types_use_different_caches() {
+		$user_id = self::$user_ids[0];
+
+		// Create one post and two pages for the user.
+		self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+				'post_type'   => 'post',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+				'post_type'   => 'page',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+				'post_type'   => 'page',
+			)
+		);
+
+		$start_queries = get_num_queries();
+		$count1        = count_many_users_posts( array( $user_id ), 'post', false );
+		$end_queries   = get_num_queries();
+		$this->assertSame( $end_queries - $start_queries, 1, 'Expected to hit database for first call to count_many_users_posts() with post type "post".' );
+		$this->assertSame( '1', $count1[ $user_id ], 'Expected to have one post for user with post type "post".' );
+
+		$start_queries = get_num_queries();
+		$count2        = count_many_users_posts( array( $user_id ), 'page', false );
+		$end_queries   = get_num_queries();
+		$this->assertSame( $end_queries - $start_queries, 1, 'Expected to hit database for first call to count_many_users_posts() with post type "page".' );
+		$this->assertSame( '2', $count2[ $user_id ], 'Expected to have two pages for user with post type "page".' );
+	}
+
+	/**
 	 * Tests salted cache functionality for count_many_users_posts().
 	 *
 	 * @ticket 63405
