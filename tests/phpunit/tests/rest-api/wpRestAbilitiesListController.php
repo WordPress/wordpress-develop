@@ -50,6 +50,13 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 		do_action( 'rest_api_init' );
 
+		// Register test categories during the hook
+		add_action(
+			'abilities_api_categories_init',
+			array( $this, 'register_test_categories' )
+		);
+		do_action( 'abilities_api_categories_init' );
+
 		// Initialize abilities API
 		do_action( 'abilities_api_init' );
 
@@ -73,6 +80,15 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 			wp_unregister_ability( $ability->get_name() );
 		}
 
+		// Clean up test categories
+		foreach ( array( 'math', 'system', 'general' ) as $slug ) {
+			if ( ! WP_Abilities_Category_Registry::get_instance()->is_registered( $slug ) ) {
+				continue;
+			}
+
+			wp_unregister_ability_category( $slug );
+		}
+
 		// Reset REST server
 		global $wp_rest_server;
 		$wp_rest_server = null;
@@ -81,15 +97,45 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Register test categories for testing.
+	 */
+	public function register_test_categories(): void {
+		wp_register_ability_category(
+			'math',
+			array(
+				'label'       => 'Math',
+				'description' => 'Mathematical operations and calculations.',
+			)
+		);
+
+		wp_register_ability_category(
+			'system',
+			array(
+				'label'       => 'System',
+				'description' => 'System information and operations.',
+			)
+		);
+
+		wp_register_ability_category(
+			'general',
+			array(
+				'label'       => 'General',
+				'description' => 'General purpose abilities.',
+			)
+		);
+	}
+
+	/**
 	 * Register test abilities for testing.
 	 */
 	private function register_test_abilities(): void {
-		// Register a tool ability
+		// Register a regular ability.
 		wp_register_ability(
 			'test/calculator',
 			array(
 				'label'               => 'Calculator',
 				'description'         => 'Performs basic calculations',
+				'category'            => 'math',
 				'input_schema'        => array(
 					'type'       => 'object',
 					'properties' => array(
@@ -122,18 +168,18 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 					return current_user_can( 'read' );
 				},
 				'meta'                => array(
-					'type'     => 'tool',
-					'category' => 'math',
+					'show_in_rest' => true,
 				),
 			)
 		);
 
-		// Register a resource ability
+		// Register a read-only ability.
 		wp_register_ability(
 			'test/system-info',
 			array(
 				'label'               => 'System Info',
 				'description'         => 'Returns system information',
+				'category'            => 'system',
 				'input_schema'        => array(
 					'type'       => 'object',
 					'properties' => array(
@@ -165,9 +211,26 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 					return current_user_can( 'read' );
 				},
 				'meta'                => array(
-					'type'     => 'resource',
-					'category' => 'system',
+					'annotations'  => array(
+						'readonly' => true,
+					),
+					'category'     => 'system',
+					'show_in_rest' => true,
 				),
+			)
+		);
+
+		// Ability that does not show in REST.
+		wp_register_ability(
+			'test/not-show-in-rest',
+			array(
+				'label'               => 'Hidden from REST',
+				'description'         => 'It does not show in REST.',
+				'category'            => 'general',
+				'execute_callback'    => static function (): int {
+					return 0;
+				},
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -178,10 +241,14 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 				array(
 					'label'               => "Test Ability {$i}",
 					'description'         => "Test ability number {$i}",
+					'category'            => 'general',
 					'execute_callback'    => static function () use ( $i ) {
 						return "Result from ability {$i}";
 					},
 					'permission_callback' => '__return_true',
+					'meta'                => array(
+						'show_in_rest' => true,
+					),
 				)
 			);
 		}
@@ -205,6 +272,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$ability_names = wp_list_pluck( $data, 'name' );
 		$this->assertContains( 'test/calculator', $ability_names );
 		$this->assertContains( 'test/system-info', $ability_names );
+		$this->assertNotContains( 'test/not-show-in-rest', $ability_names );
 	}
 
 	/**
@@ -223,7 +291,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'input_schema', $data );
 		$this->assertArrayHasKey( 'output_schema', $data );
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertEquals( 'tool', $data['meta']['type'] );
+		$this->assertTrue( $data['meta']['show_in_rest'] );
 	}
 
 	/**
@@ -233,6 +301,19 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 */
 	public function test_get_item_not_found(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/non/existent' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 404, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
+	}
+
+	/**
+	 * Test getting an ability that does not show in REST returns 404.
+	 */
+	public function test_get_item_not_show_in_rest(): void {
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/not-show-in-rest' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 404, $response->get_status() );
@@ -268,7 +349,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'X-WP-Total', $headers );
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 
-		$total_abilities = count( wp_get_abilities() );
+		$total_abilities = count( wp_get_abilities() ) - 1; // Exclude the one that doesn't show in REST.
 		$this->assertEquals( $total_abilities, (int) $headers['X-WP-Total'] );
 		$this->assertEquals( ceil( $total_abilities / 10 ), (int) $headers['X-WP-TotalPages'] );
 	}
@@ -419,12 +500,27 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'properties', $schema );
 
 		$properties = $schema['properties'];
+
+		// Assert the count of properties to catch when new keys are added
+		$this->assertCount( 7, $properties, 'Schema should have exactly 7 properties. If this fails, update this test to include the new property.' );
+
+		// Check all expected properties exist
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'label', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'input_schema', $properties );
 		$this->assertArrayHasKey( 'output_schema', $properties );
 		$this->assertArrayHasKey( 'meta', $properties );
+		$this->assertArrayHasKey( 'category', $properties );
+
+		// Test category property details
+		$category_property = $properties['category'];
+		$this->assertEquals( 'string', $category_property['type'] );
+		$this->assertTrue( $category_property['readonly'] );
+
+		// Check that category is in required fields
+		$this->assertArrayHasKey( 'required', $schema );
+		$this->assertContains( 'category', $schema['required'] );
 	}
 
 	/**
@@ -437,10 +533,14 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Test Hyphen Ability',
 				'description'         => 'Test ability with hyphen',
+				'category'            => 'general',
 				'execute_callback'    => static function ( $input ) {
 					return array( 'success' => true );
 				},
 				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
 			)
 		);
 
@@ -536,5 +636,65 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		// Check that reasonable defaults were used
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
+	}
+
+	/**
+	 * Test filtering abilities by category.
+	 */
+	public function test_filter_by_category(): void {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$request->set_param( 'category', 'math' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+
+		// Should only have math category abilities
+		foreach ( $data as $ability ) {
+			$this->assertEquals( 'math', $ability['category'], 'All abilities should be in math category' );
+		}
+
+		// Should at least contain the calculator
+		$ability_names = wp_list_pluck( $data, 'name' );
+		$this->assertContains( 'test/calculator', $ability_names );
+		$this->assertNotContains( 'test/system-info', $ability_names, 'System info should not be in math category' );
+	}
+
+	/**
+	 * Test filtering by non-existent category returns empty results.
+	 */
+	public function test_filter_by_nonexistent_category(): void {
+		// Ensure category doesn't exist - test should fail if it does.
+		$this->assertFalse(
+			WP_Abilities_Category_Registry::get_instance()->is_registered( 'nonexistent' ),
+			'The nonexistent category should not be registered - test isolation may be broken'
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$request->set_param( 'category', 'nonexistent' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertIsArray( $data );
+		$this->assertEmpty( $data, 'Should return empty array for non-existent category' );
+	}
+
+	/**
+	 * Test that category field is present in response.
+	 */
+	public function test_category_field_in_response(): void {
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'category', $data );
+		$this->assertEquals( 'math', $data['category'] );
+		$this->assertIsString( $data['category'], 'Category should be a string' );
 	}
 }
