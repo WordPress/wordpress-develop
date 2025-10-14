@@ -649,6 +649,7 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
  * Gets the number of posts written by a list of users.
  *
  * @since 3.0.0
+ * @since 6.9.0 The results are now cached.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
