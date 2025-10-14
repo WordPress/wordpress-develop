@@ -1598,6 +1598,43 @@ HTML;
 	}
 
 	/**
+	 * Tests that default script modules are printed as expected.
+	 *
+	 * @covers ::wp_default_script_modules
+	 * @covers ::print_script_module_preloads
+	 * @covers ::print_enqueued_script_modules
+	 */
+	public function test_default_script_modules() {
+		wp_default_script_modules();
+		wp_enqueue_script_module( '@wordpress/a11y' );
+		wp_enqueue_script_module( '@wordpress/block-library/navigation/view' );
+
+		$actual  = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) ) . "\n";
+		$actual .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$clean_url = static function ( string $url ): string {
+			$url = preg_replace( '#^https?://[^/]+#', '', $url );
+			return remove_query_arg( 'ver', $url );
+		};
+		while ( $processor->next_tag() ) {
+			if ( 'LINK' === $processor->get_tag() && is_string( $processor->get_attribute( 'href' ) ) ) {
+				$processor->set_attribute( 'href', $clean_url( $processor->get_attribute( 'href' ) ) );
+			} elseif ( 'SCRIPT' === $processor->get_tag() && is_string( $processor->get_attribute( 'src' ) ) ) {
+				$processor->set_attribute( 'src', $clean_url( $processor->get_attribute( 'src' ) ) );
+			}
+		}
+		$actual = $processor->get_updated_html();
+
+		$expected = '
+			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="low">
+			<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>
+			<script type="module" src="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-module" fetchpriority="low"></script>
+		';
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+	}
+
+	/**
 	 * Tests that directly manipulating the queue works as expected.
 	 *
 	 * @ticket 63676

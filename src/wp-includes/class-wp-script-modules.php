@@ -434,13 +434,15 @@ class WP_Script_Modules {
 			$ids,
 			function ( $dependency_script_modules, $id ) use ( $import_types ) {
 				$dependencies = array();
-				foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
-					if (
-						in_array( $dependency['import'], $import_types, true ) &&
-						isset( $this->registered[ $dependency['id'] ] ) &&
-						! isset( $dependency_script_modules[ $dependency['id'] ] )
-					) {
-						$dependencies[ $dependency['id'] ] = $this->registered[ $dependency['id'] ];
+				if ( isset( $this->registered[ $id ] ) ) {
+					foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
+						if (
+							in_array( $dependency['import'], $import_types, true ) &&
+							isset( $this->registered[ $dependency['id'] ] ) &&
+							! isset( $dependency_script_modules[ $dependency['id'] ] )
+						) {
+							$dependencies[ $dependency['id'] ] = $this->registered[ $dependency['id'] ];
+						}
 					}
 				}
 				return array_merge( $dependency_script_modules, $dependencies, $this->get_dependencies( array_keys( $dependencies ), $import_types ) );
