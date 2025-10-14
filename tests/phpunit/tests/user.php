@@ -605,6 +605,29 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure the second and subsequent calls to count_many_users_posts() are cached.
+	 *
+	 * @ticket 63405
+	 */
+	public function test_count_many_users_posts_is_cached() {
+		$user_1 = self::$user_ids[0];
+		$user_2 = self::$user_ids[1];
+
+		// Create posts for both users.
+		self::factory()->post->create( array( 'post_author' => $user_1 ) );
+		self::factory()->post->create( array( 'post_author' => $user_2 ) );
+
+		// Warm the cache.
+		count_many_users_posts( array( $user_1, $user_2 ), 'post', false );
+
+		// Ensure cache is hit for second call.
+		$start_queries = get_num_queries();
+		count_many_users_posts( array( $user_1, $user_2 ), 'post', false );
+		$end_queries = get_num_queries();
+		$this->assertSame( $end_queries - $start_queries, 0, 'No database queries expected for second call to count_many_users_posts()' );
+	}
+
+	/**
 	 * Tests salted cache functionality for count_many_users_posts().
 	 *
 	 * @ticket 63405
