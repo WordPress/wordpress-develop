@@ -30,9 +30,29 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
+		// Register category during the hook.
+		add_action(
+			'abilities_api_categories_init',
+			function () {
+				if ( ! WP_Abilities_Category_Registry::get_instance()->is_registered( 'math' ) ) {
+					wp_register_ability_category(
+						'math',
+						array(
+							'label'       => 'Math',
+							'description' => 'Mathematical operations and calculations.',
+						)
+					);
+				}
+			}
+		);
+
+		// Fire the hook to allow category registration.
+		do_action( 'abilities_api_categories_init' );
+
 		self::$test_ability_args = array(
 			'label'               => 'Add numbers',
 			'description'         => 'Calculates the result of adding two numbers.',
+			'category'            => 'math',
 			'input_schema'        => array(
 				'type'                 => 'object',
 				'properties'           => array(
@@ -61,7 +81,11 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 				return true;
 			},
 			'meta'                => array(
-				'category' => 'math',
+				'annotations'  => array(
+					'readonly'    => true,
+					'destructive' => false,
+				),
+				'show_in_rest' => true,
 			),
 		);
 	}
@@ -76,6 +100,12 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			}
 
 			wp_unregister_ability( $ability->get_name() );
+		}
+
+		// Clean up registered categories.
+		$category_registry = WP_Abilities_Category_Registry::get_instance();
+		if ( $category_registry->is_registered( 'math' ) ) {
+			wp_unregister_ability_category( 'math' );
 		}
 
 		parent::tear_down();
@@ -126,13 +156,28 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
+		$expected_annotations = array_merge(
+			self::$test_ability_args['meta']['annotations'],
+			array(
+				'instructions' => '',
+				'idempotent'   => false,
+			)
+		);
+		$expected_meta        = array_merge(
+			self::$test_ability_args['meta'],
+			array(
+				'annotations'  => $expected_annotations,
+				'show_in_rest' => true,
+			)
+		);
+
 		$this->assertInstanceOf( WP_Ability::class, $result );
 		$this->assertSame( self::$test_ability_name, $result->get_name() );
 		$this->assertSame( self::$test_ability_args['label'], $result->get_label() );
 		$this->assertSame( self::$test_ability_args['description'], $result->get_description() );
 		$this->assertSame( self::$test_ability_args['input_schema'], $result->get_input_schema() );
 		$this->assertSame( self::$test_ability_args['output_schema'], $result->get_output_schema() );
-		$this->assertSame( self::$test_ability_args['meta'], $result->get_meta() );
+		$this->assertEquals( $expected_meta, $result->get_meta() );
 		$this->assertTrue(
 			$result->check_permissions(
 				array(
@@ -450,5 +495,29 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_get_abilities();
 		$this->assertEquals( $expected, $result );
+	}
+
+	/**
+	 * Tests registering an ability with non-existent category.
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_nonexistent_category(): void {
+		do_action( 'abilities_api_init' );
+
+		// Ensure category doesn't exist - test should fail if it does.
+		$this->assertFalse(
+			WP_Abilities_Category_Registry::get_instance()->is_registered( 'nonexistent' ),
+			'The nonexistent category should not be registered - test isolation may be broken'
+		);
+
+		$args = array_merge(
+			self::$test_ability_args,
+			array( 'category' => 'nonexistent' )
+		);
+
+		$result = wp_register_ability( self::$test_ability_name, $args );
+
+		$this->assertNull( $result, 'Should return null when category does not exist' );
 	}
 }

@@ -61,6 +61,13 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 
 		do_action( 'rest_api_init' );
 
+		// Register test categories during the hook
+		add_action(
+			'abilities_api_categories_init',
+			array( $this, 'register_test_categories' )
+		);
+		do_action( 'abilities_api_categories_init' );
+
 		do_action( 'abilities_api_init' );
 
 		$this->register_test_abilities();
@@ -81,6 +88,14 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			wp_unregister_ability( $ability->get_name() );
 		}
 
+		// Clean up registered categories.
+		$category_registry = WP_Abilities_Category_Registry::get_instance();
+		foreach ( array( 'math', 'system', 'general' ) as $category ) {
+			if ( $category_registry->is_registered( $category ) ) {
+				wp_unregister_ability_category( $category );
+			}
+		}
+
 		global $wp_rest_server;
 		$wp_rest_server = null;
 
@@ -88,15 +103,45 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Register test categories for testing.
+	 */
+	public function register_test_categories(): void {
+		wp_register_ability_category(
+			'math',
+			array(
+				'label'       => 'Math',
+				'description' => 'Mathematical operations and calculations.',
+			)
+		);
+
+		wp_register_ability_category(
+			'system',
+			array(
+				'label'       => 'System',
+				'description' => 'System information and operations.',
+			)
+		);
+
+		wp_register_ability_category(
+			'general',
+			array(
+				'label'       => 'General',
+				'description' => 'General purpose abilities.',
+			)
+		);
+	}
+
+	/**
 	 * Register test abilities for testing.
 	 */
 	private function register_test_abilities(): void {
-		// Tool ability (POST only)
+		// Regular ability (POST only).
 		wp_register_ability(
 			'test/calculator',
 			array(
 				'label'               => 'Calculator',
 				'description'         => 'Performs calculations',
+				'category'            => 'math',
 				'input_schema'        => array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -122,17 +167,18 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 					return current_user_can( 'edit_posts' );
 				},
 				'meta'                => array(
-					'type' => 'tool',
+					'show_in_rest' => true,
 				),
 			)
 		);
 
-		// Resource ability (GET only)
+		// Read-only ability (GET method).
 		wp_register_ability(
 			'test/user-info',
 			array(
 				'label'               => 'User Info',
 				'description'         => 'Gets user information',
+				'category'            => 'system',
 				'input_schema'        => array(
 					'type'       => 'object',
 					'properties' => array(
@@ -164,7 +210,10 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 					return is_user_logged_in();
 				},
 				'meta'                => array(
-					'type' => 'resource',
+					'annotations'  => array(
+						'readonly' => true,
+					),
+					'show_in_rest' => true,
 				),
 			)
 		);
@@ -175,6 +224,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Restricted Action',
 				'description'         => 'Requires specific input for permission',
+				'category'            => 'general',
 				'input_schema'        => array(
 					'type'       => 'object',
 					'properties' => array(
@@ -194,8 +244,22 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 					return isset( $input['secret'] ) && 'valid_secret' === $input['secret'];
 				},
 				'meta'                => array(
-					'type' => 'tool',
+					'show_in_rest' => true,
 				),
+			)
+		);
+
+		// Ability that does not show in REST.
+		wp_register_ability(
+			'test/not-show-in-rest',
+			array(
+				'label'               => 'Hidden from REST',
+				'description'         => 'It does not show in REST.',
+				'category'            => 'general',
+				'execute_callback'    => static function (): int {
+					return 0;
+				},
+				'permission_callback' => '__return_true',
 			)
 		);
 
@@ -205,12 +269,13 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Null Return',
 				'description'         => 'Returns null',
+				'category'            => 'general',
 				'execute_callback'    => static function () {
 					return null;
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array(
-					'type' => 'tool',
+					'show_in_rest' => true,
 				),
 			)
 		);
@@ -221,12 +286,13 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Error Return',
 				'description'         => 'Returns error',
+				'category'            => 'general',
 				'execute_callback'    => static function () {
 					return new \WP_Error( 'test_error', 'This is a test error' );
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array(
-					'type' => 'tool',
+					'show_in_rest' => true,
 				),
 			)
 		);
@@ -237,6 +303,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Invalid Output',
 				'description'         => 'Returns invalid output',
+				'category'            => 'general',
 				'output_schema'       => array(
 					'type' => 'number',
 				),
@@ -245,17 +312,18 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array(
-					'type' => 'tool',
+					'show_in_rest' => true,
 				),
 			)
 		);
 
-		// Resource ability for query params testing
+		// Read-only ability for query params testing.
 		wp_register_ability(
 			'test/query-params',
 			array(
 				'label'               => 'Query Params Test',
 				'description'         => 'Tests query parameter handling',
+				'category'            => 'general',
 				'input_schema'        => array(
 					'type'       => 'object',
 					'properties' => array(
@@ -268,16 +336,19 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array(
-					'type' => 'resource',
+					'annotations'  => array(
+						'readonly' => true,
+					),
+					'show_in_rest' => true,
 				),
 			)
 		);
 	}
 
 	/**
-	 * Test executing a tool ability with POST.
+	 * Test executing a regular ability with POST.
 	 */
-	public function test_execute_tool_ability_post(): void {
+	public function test_execute_regular_ability_post(): void {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/calculator/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body(
@@ -298,9 +369,9 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test executing a resource ability with GET.
+	 * Test executing a read-only ability with GET.
 	 */
-	public function test_execute_resource_ability_get(): void {
+	public function test_execute_readonly_ability_get(): void {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/user-info/run' );
 		$request->set_query_params(
 			array(
@@ -318,20 +389,21 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test HTTP method validation for tool abilities.
+	 * Test HTTP method validation for regular abilities.
 	 */
-	public function test_tool_ability_requires_post(): void {
+	public function test_regular_ability_requires_post(): void {
 		wp_register_ability(
 			'test/open-tool',
 			array(
 				'label'               => 'Open Tool',
 				'description'         => 'Tool with no permission requirements',
+				'category'            => 'general',
 				'execute_callback'    => static function () {
 					return 'success';
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array(
-					'type' => 'tool',
+					'show_in_rest' => true,
 				),
 			)
 		);
@@ -342,14 +414,14 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 		$this->assertSame( 405, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_invalid_method', $data['code'] );
-		$this->assertSame( 'Tool abilities require POST method.', $data['message'] );
+		$this->assertSame( 'Abilities that perform updates require POST method.', $data['message'] );
 	}
 
 	/**
-	 * Test HTTP method validation for resource abilities.
+	 * Test HTTP method validation for read-only abilities.
 	 */
-	public function test_resource_ability_requires_get(): void {
-		// Try POST on a resource ability (should fail)
+	public function test_readonly_ability_requires_get(): void {
+		// Try POST on a read-only ability (should fail).
 		$request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/user-info/run' );
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body( wp_json_encode( array( 'user_id' => 1 ) ) );
@@ -359,7 +431,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 		$this->assertSame( 405, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_invalid_method', $data['code'] );
-		$this->assertSame( 'Resource abilities require GET method.', $data['message'] );
+		$this->assertSame( 'Read-only abilities require GET method.', $data['message'] );
 	}
 
 
@@ -444,6 +516,21 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( 'Success: test data', $response->get_data() );
+	}
+
+	/**
+	 * Test handling an ability that does not show in REST.
+	 */
+	public function test_do_not_show_in_rest(): void {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/not-show-in-rest/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 404, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
+		$this->assertEquals( 'Ability not found.', $data['message'] );
 	}
 
 	/**
@@ -594,6 +681,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Strict Output',
 				'description'         => 'Ability with strict output schema',
+				'category'            => 'general',
 				'output_schema'       => array(
 					'type'       => 'object',
 					'properties' => array(
@@ -609,7 +697,9 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 					return array( 'wrong_field' => 'value' );
 				},
 				'permission_callback' => '__return_true',
-				'meta'                => array( 'type' => 'tool' ),
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
 			)
 		);
 
@@ -638,6 +728,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Strict Input',
 				'description'         => 'Ability with strict input schema',
+				'category'            => 'general',
 				'input_schema'        => array(
 					'type'       => 'object',
 					'properties' => array(
@@ -651,7 +742,9 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 					return array( 'status' => 'success' );
 				},
 				'permission_callback' => '__return_true',
-				'meta'                => array( 'type' => 'tool' ),
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
 			)
 		);
 
@@ -673,30 +766,33 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test ability type not set defaults to tool.
+	 * Test ability without annotations defaults to POST method.
 	 */
-	public function test_ability_without_type_defaults_to_tool(): void {
-		// Register ability without type in meta.
+	public function test_ability_without_annotations_defaults_to_post_method(): void {
+		// Register ability without annotations.
 		wp_register_ability(
-			'test/no-type',
+			'test/no-annotations',
 			array(
-				'label'               => 'No Type',
-				'description'         => 'Ability without type',
+				'label'               => 'No Annotations',
+				'description'         => 'Ability without annotations.',
+				'category'            => 'general',
 				'execute_callback'    => static function () {
 					return array( 'executed' => true );
 				},
 				'permission_callback' => '__return_true',
-				'meta'                => array(), // No type specified
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
 			)
 		);
 
-		// Should require POST (default tool behavior)
-		$get_request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/no-type/run' );
+		// Should require POST (default behavior).
+		$get_request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/no-annotations/run' );
 		$get_response = $this->server->dispatch( $get_request );
 		$this->assertEquals( 405, $get_response->get_status() );
 
-		// Should work with POST
-		$post_request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/no-type/run' );
+		// Should work with POST.
+		$post_request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/no-annotations/run' );
 		$post_request->set_header( 'Content-Type', 'application/json' );
 
 		$post_response = $this->server->dispatch( $post_request );
@@ -704,44 +800,53 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test edge case with empty input for both GET and POST.
+	 * Test edge case with empty input for both GET and POST methods.
 	 */
 	public function test_empty_input_handling(): void {
 		// Registers abilities for empty input testing.
 		wp_register_ability(
-			'test/resource-empty',
+			'test/read-only-empty',
 			array(
-				'label'               => 'Resource Empty',
-				'description'         => 'Resource with empty input',
+				'label'               => 'Read-only Empty',
+				'description'         => 'Read-only with empty input.',
+				'category'            => 'general',
 				'execute_callback'    => static function () {
 					return array( 'input_was_empty' => 0 === func_num_args() );
 				},
 				'permission_callback' => '__return_true',
-				'meta'                => array( 'type' => 'resource' ),
+				'meta'                => array(
+					'annotations'  => array(
+						'readonly' => true,
+					),
+					'show_in_rest' => true,
+				),
 			)
 		);
 
 		wp_register_ability(
-			'test/tool-empty',
+			'test/regular-empty',
 			array(
-				'label'               => 'Tool Empty',
-				'description'         => 'Tool with empty input',
+				'label'               => 'Regular Empty',
+				'description'         => 'Regular with empty input.',
+				'category'            => 'general',
 				'execute_callback'    => static function () {
 					return array( 'input_was_empty' => 0 === func_num_args() );
 				},
 				'permission_callback' => '__return_true',
-				'meta'                => array( 'type' => 'tool' ),
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
 			)
 		);
 
 		// Tests GET with no input parameter.
-		$get_request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/resource-empty/run' );
+		$get_request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/read-only-empty/run' );
 		$get_response = $this->server->dispatch( $get_request );
 		$this->assertEquals( 200, $get_response->get_status() );
 		$this->assertTrue( $get_response->get_data()['input_was_empty'] );
 
 		// Tests POST with no body.
-		$post_request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/tool-empty/run' );
+		$post_request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/regular-empty/run' );
 		$post_request->set_header( 'Content-Type', 'application/json' );
 		$post_request->set_body( '{}' ); // Empty JSON object
 
@@ -796,6 +901,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Echo',
 				'description'         => 'Echoes input',
+				'category'            => 'general',
 				'input_schema'        => array(
 					'type' => 'object',
 				),
@@ -803,7 +909,9 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 					return array( 'echo' => $input );
 				},
 				'permission_callback' => '__return_true',
-				'meta'                => array( 'type' => 'tool' ),
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
 			)
 		);
 
@@ -840,6 +948,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Echo Encoding',
 				'description'         => 'Echoes input with encoding',
+				'category'            => 'general',
 				'input_schema'        => array(
 					'type' => 'object',
 				),
@@ -847,7 +956,9 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 					return array( 'echo' => $input );
 				},
 				'permission_callback' => '__return_true',
-				'meta'                => array( 'type' => 'tool' ),
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
 			)
 		);
 
@@ -903,22 +1014,25 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			array(
 				'label'               => 'Method Test',
 				'description'         => 'Test ability for HTTP method validation',
+				'category'            => 'general',
 				'execute_callback'    => static function () {
 					return array( 'success' => true );
 				},
 				'permission_callback' => '__return_true', // No permission requirements
-				'meta'                => array( 'type' => 'tool' ),
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
 			)
 		);
 
 		$request  = new WP_REST_Request( $method, '/wp/v2/abilities/test/method-test/run' );
 		$response = $this->server->dispatch( $request );
 
-		// Tool abilities should only accept POST, so these should return 405.
+		// Regular abilities should only accept POST, so these should return 405.
 		$this->assertSame( 405, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_invalid_method', $data['code'] );
-		$this->assertSame( 'Tool abilities require POST method.', $data['message'] );
+		$this->assertSame( 'Abilities that perform updates require POST method.', $data['message'] );
 	}
 
 	/**

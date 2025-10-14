@@ -12471,6 +12471,11 @@ mockedApiResponse.Schema = {
                             "minimum": 1,
                             "maximum": 100,
                             "required": false
+                        },
+                        "category": {
+                            "description": "Limit results to abilities in specific category.",
+                            "type": "string",
+                            "required": false
                         }
                     }
                 }

@@ -54,8 +54,8 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 					),
 				),
 
-				// TODO: We register ALLMETHODS because at route registration time, we don't know
-				// which abilities exist or their types (resource vs tool). This is due to WordPress
+				// TODO: We register ALLMETHODS because at route registration time, we don't know which abilities
+				// exist or their annotations (`destructive`, `idempotent`, `readonly`). This is due to WordPress
 				// load order - routes are registered early, before plugins have registered their abilities.
 				// This approach works but could be improved with lazy route registration or a different
 				// architecture that allows type-specific routes after abilities are registered.
@@ -90,23 +90,23 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Check if the HTTP method matches the ability type.
-		$meta   = $ability->get_meta();
-		$type   = isset( $meta['type'] ) ? $meta['type'] : 'tool';
-		$method = $request->get_method();
+		// Check if the HTTP method matches the ability annotations.
+		$annotations = $ability->get_meta_item( 'annotations' );
+		$is_readonly = ! empty( $annotations['readonly'] );
+		$method      = $request->get_method();
 
-		if ( 'resource' === $type && 'GET' !== $method ) {
+		if ( $is_readonly && 'GET' !== $method ) {
 			return new \WP_Error(
 				'rest_ability_invalid_method',
-				__( 'Resource abilities require GET method.' ),
+				__( 'Read-only abilities require GET method.' ),
 				array( 'status' => 405 )
 			);
 		}
 
-		if ( 'tool' === $type && 'POST' !== $method ) {
+		if ( ! $is_readonly && 'POST' !== $method ) {
 			return new \WP_Error(
 				'rest_ability_invalid_method',
-				__( 'Tool abilities require POST method.' ),
+				__( 'Abilities that perform updates require POST method.' ),
 				array( 'status' => 405 )
 			);
 		}
@@ -154,7 +154,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 */
 	public function run_ability_permissions_check( $request ) {
 		$ability = wp_get_ability( $request->get_param( 'name' ) );
-		if ( ! $ability ) {
+		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
 			return new \WP_Error(
 				'rest_ability_not_found',
 				__( 'Ability not found.' ),

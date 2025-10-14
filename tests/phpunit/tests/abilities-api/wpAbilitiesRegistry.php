@@ -29,9 +29,29 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		remove_all_filters( 'register_ability_args' );
 
+		// Register category during the hook.
+		add_action(
+			'abilities_api_categories_init',
+			function () {
+				if ( ! WP_Abilities_Category_Registry::get_instance()->is_registered( 'math' ) ) {
+					wp_register_ability_category(
+						'math',
+						array(
+							'label'       => 'Math',
+							'description' => 'Mathematical operations and calculations.',
+						)
+					);
+				}
+			}
+		);
+
+		// Fire the hook to allow category registration.
+		do_action( 'abilities_api_categories_init' );
+
 		self::$test_ability_args = array(
 			'label'               => 'Add numbers',
 			'description'         => 'Calculates the result of adding two numbers.',
+			'category'            => 'math',
 			'input_schema'        => array(
 				'type'                 => 'object',
 				'properties'           => array(
@@ -60,7 +80,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 				return true;
 			},
 			'meta'                => array(
-				'category' => 'math',
+				'foo' => 'bar',
 			),
 		);
 	}
@@ -72,6 +92,12 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->registry = null;
 
 		remove_all_filters( 'register_ability_args' );
+
+		// Clean up registered categories.
+		$category_registry = WP_Abilities_Category_Registry::get_instance();
+		if ( $category_registry->is_registered( 'math' ) ) {
+			wp_unregister_ability_category( 'math' );
+		}
 
 		parent::tear_down();
 	}
@@ -266,6 +292,22 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->assertNull( $result );
 	}
 
+
+	/**
+	 * Should reject ability registration with invalid `annotations` type.
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_annotations_type() {
+		self::$test_ability_args['meta']['annotations'] = false;
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
 	/**
 	 * Should reject ability registration with invalid meta type.
 	 *
@@ -276,6 +318,21 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_invalid_meta_type() {
 		self::$test_ability_args['meta'] = false;
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should reject ability registration with invalid show in REST type.
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_show_in_rest_type() {
+		self::$test_ability_args['meta']['show_in_rest'] = 5;
 
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );

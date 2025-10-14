@@ -18,21 +18,237 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
+		// Register category during the hook.
+		add_action(
+			'abilities_api_categories_init',
+			function () {
+				if ( ! WP_Abilities_Category_Registry::get_instance()->is_registered( 'math' ) ) {
+					wp_register_ability_category(
+						'math',
+						array(
+							'label'       => 'Math',
+							'description' => 'Mathematical operations and calculations.',
+						)
+					);
+				}
+			}
+		);
+
+		// Fire the hook to allow category registration.
+		do_action( 'abilities_api_categories_init' );
+
 		self::$test_ability_properties = array(
 			'label'               => 'Calculator',
 			'description'         => 'Calculates the result of math operations.',
+			'category'            => 'math',
 			'output_schema'       => array(
 				'type'        => 'number',
 				'description' => 'The result of performing a math operation.',
 				'required'    => true,
 			),
+			'execute_callback'    => static function (): int {
+				return 0;
+			},
 			'permission_callback' => static function (): bool {
 				return true;
 			},
 			'meta'                => array(
-				'category' => 'math',
+				'annotations' => array(
+					'readonly'    => true,
+					'destructive' => false,
+				),
 			),
 		);
+	}
+
+	/**
+	 * Tear down after each test.
+	 */
+	public function tear_down(): void {
+		// Clean up registered categories.
+		$category_registry = WP_Abilities_Category_Registry::get_instance();
+		if ( $category_registry->is_registered( 'math' ) ) {
+			wp_unregister_ability_category( 'math' );
+		}
+
+		parent::tear_down();
+	}
+
+	/*
+	 * Tests that getting non-existing metadata item returns default value.
+	 */
+	public function test_meta_get_non_existing_item_returns_default() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$this->assertNull(
+			$ability->get_meta_item( 'non_existing' ),
+			'Non-existing metadata item should return null.'
+		);
+	}
+
+	/**
+	 * Tests that getting non-existing metadata item with custom default returns that default.
+	 */
+	public function test_meta_get_non_existing_item_with_custom_default() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$this->assertSame(
+			'default_value',
+			$ability->get_meta_item( 'non_existing', 'default_value' ),
+			'Non-existing metadata item should return custom default value.'
+		);
+	}
+
+	/**
+	 * Tests getting all annotations when selective overrides are applied.
+	 */
+	public function test_get_merged_annotations_from_meta() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$this->assertEquals(
+			array_merge(
+				self::$test_ability_properties['meta']['annotations'],
+				array(
+					'instructions' => '',
+					'idempotent'   => false,
+				)
+			),
+			$ability->get_meta_item( 'annotations' )
+		);
+	}
+
+	/**
+	 * Tests getting default annotations when not provided.
+	 */
+	public function test_get_default_annotations_from_meta() {
+		$args = self::$test_ability_properties;
+		unset( $args['meta']['annotations'] );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame(
+			array(
+				'instructions' => '',
+				'readonly'     => false,
+				'destructive'  => true,
+				'idempotent'   => false,
+			),
+			$ability->get_meta_item( 'annotations' )
+		);
+	}
+
+	/**
+	 * Tests getting all annotations when values overridden.
+	 */
+	public function test_get_overridden_annotations_from_meta() {
+		$annotations = array(
+			'instructions' => 'Enjoy responsibly.',
+			'readonly'     => true,
+			'destructive'  => false,
+			'idempotent'   => false,
+		);
+		$args        = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'annotations' => $annotations,
+				),
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame( $annotations, $ability->get_meta_item( 'annotations' ) );
+	}
+
+	/**
+	 * Tests that invalid `annotations` value throws an exception.
+	 */
+	public function test_annotations_from_meta_throws_exception() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'annotations' => 5,
+				),
+			)
+		);
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability meta should provide a valid `annotations` array.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Tests that `show_in_rest` metadata defaults to false when not provided.
+	 */
+	public function test_meta_show_in_rest_defaults_to_false() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$this->assertFalse(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'`show_in_rest` metadata should default to false.'
+		);
+	}
+
+	/**
+	 * Tests that `show_in_rest` metadata can be set to true.
+	 */
+	public function test_meta_show_in_rest_can_be_set_to_true() {
+		$args    = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertTrue(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'`show_in_rest` metadata should be true.'
+		);
+	}
+
+	/**
+	 * Tests that `show_in_rest` can be set to false.
+	 */
+	public function test_show_in_rest_can_be_set_to_false() {
+		$args    = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'show_in_rest' => false,
+				),
+			)
+		);
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertFalse(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'`show_in_rest` metadata should be false.'
+		);
+	}
+
+	/**
+	 * Tests that invalid `show_in_rest` value throws an exception.
+	 */
+	public function test_show_in_rest_throws_exception() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'show_in_rest' => 5,
+				),
+			)
+		);
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability meta should provide a valid `show_in_rest` boolean.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
 	}
 
 	/**
@@ -164,6 +380,74 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 
 		$this->assertSame( $result, $ability->execute( $input ) );
+	}
+
+	/**
+	 * A static method to be used as a callback in tests.
+	 *
+	 * @param string $input An input string.
+	 * @return int The length of the input string.
+	 */
+	public static function my_static_execute_callback( string $input ): int {
+		return strlen( $input );
+	}
+
+	/**
+	 * An instance method to be used as a callback in tests.
+	 *
+	 * @param string $input An input string.
+	 * @return int The length of the input string.
+	 */
+	public function my_instance_execute_callback( string $input ): int {
+		return strlen( $input );
+	}
+
+	/**
+	 * Data provider for testing different types of execute callbacks.
+	 */
+	public function data_execute_callback() {
+		return array(
+			'function name string'       => array(
+				'strlen',
+			),
+			'closure'                    => array(
+				static function ( string $input ): int {
+					return strlen( $input );
+				},
+			),
+			'static class method string' => array(
+				'Tests_Abilities_API_WpAbility::my_static_execute_callback',
+			),
+			'static class method array'  => array(
+				array( 'Tests_Abilities_API_WpAbility', 'my_static_execute_callback' ),
+			),
+			'object method'              => array(
+				array( $this, 'my_instance_execute_callback' ),
+			),
+		);
+	}
+
+	/**
+	 * Tests the execution of the ability with different types of callbacks.
+	 *
+	 * @dataProvider data_execute_callback
+	 */
+	public function test_execute_with_different_callbacks( $execute_callback ) {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'string',
+					'description' => 'Test input string.',
+					'required'    => true,
+				),
+				'execute_callback' => $execute_callback,
+			)
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame( 6, $ability->execute( 'hello!' ) );
 	}
 
 	/**
@@ -345,9 +629,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			array(
 				'permission_callback' => static function (): bool {
 					return false;
-				},
-				'execute_callback'    => static function (): int {
-					return 42;
 				},
 			)
 		);
