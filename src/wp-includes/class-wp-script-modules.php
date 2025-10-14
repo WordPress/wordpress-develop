@@ -313,18 +313,11 @@ class WP_Script_Modules {
 		foreach ( $this->get_dependencies( array_keys( $this->get_marked_for_enqueue() ), array( 'static' ) ) as $id => $script_module ) {
 			// Don't preload if it's marked for enqueue.
 			if ( true !== $script_module['enqueue'] ) {
-				$attrs = '';
-				if ( 'auto' !== $script_module['fetchpriority'] ) {
-					$attrs .= sprintf( ' fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) );
-				}
-				if ( isset( $script_module['load_on_client_navigation'] ) && true === $script_module['load_on_client_navigation'] ) {
-					$attrs .= sprintf( ' data-wp-router-options="%s"', esc_attr( wp_json_encode( array( 'loadOnClientNavigation' => true ) ) ) );
-				}
 				echo sprintf(
 					'<link rel="modulepreload" href="%s" id="%s"%s>',
 					esc_url( $this->get_src( $id ) ),
 					esc_attr( $id . '-js-modulepreload' ),
-					$attrs
+					'auto' !== $script_module['fetchpriority'] ? sprintf( ' fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) ) : ''
 				);
 			}
 		}

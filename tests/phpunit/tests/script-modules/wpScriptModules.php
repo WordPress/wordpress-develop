@@ -1414,34 +1414,4 @@ HTML;
 		// False should not have router_options attribute.
 		$this->assertArrayNotHasKey( 'router_options', $enqueued_script_modules['with-false'] );
 	}
-
-	/**
-	 * Tests that load_on_client_navigation attribute is handled correctly for preloaded dependencies.
-	 *
-	 * @covers WP_Script_Modules::register
-	 * @covers WP_Script_Modules::enqueue
-	 * @covers WP_Script_Modules::print_script_module_preloads
-	 */
-	public function test_load_on_client_navigation_for_preloaded_dependencies() {
-		// Dependency with load_on_client_navigation set to true.
-		$this->script_modules->register( 'dep-with-true', '/dep-with-true.js', array(), false, array( 'load_on_client_navigation' => true ) );
-
-		// Dependency with load_on_client_navigation set to false.
-		$this->script_modules->register( 'dep-with-false', '/dep-with-false.js', array(), false, array( 'load_on_client_navigation' => false ) );
-
-		// Enqueue a module with both dependencies.
-		$this->script_modules->register( 'foo', '/foo.js', array( 'dep-with-true', 'dep-with-false' ) );
-		$this->script_modules->enqueue( 'foo' );
-
-		$preloaded_script_modules = $this->get_preloaded_script_modules();
-
-		$this->assertCount( 2, $preloaded_script_modules );
-
-		// Dependency with true should have router_options attribute.
-		$this->assertArrayHasKey( 'router_options', $preloaded_script_modules['dep-with-true'] );
-		$this->assertSame( array( 'loadOnClientNavigation' => true ), $preloaded_script_modules['dep-with-true']['router_options'] );
-
-		// Dependency with false should not have router_options attribute.
-		$this->assertArrayNotHasKey( 'router_options', $preloaded_script_modules['dep-with-false'] );
-	}
 }

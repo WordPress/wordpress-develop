@@ -108,7 +108,7 @@ function wp_register_script_module( string $id, string $src, array $deps = array
  *     Optional. An array of additional args. Default empty array.
  *
  *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
- *     @type bool $load_on_client_navigation Signal whether the script module should be loaded on client navigation. Optional
+ *     @type bool $load_on_client_navigation Whether the script module should be loaded on client navigation. Optional.
  * }
  */
 function wp_enqueue_script_module( string $id, string $src = '', array $deps = array(), $version = false, array $args = array() ) {
