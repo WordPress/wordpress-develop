@@ -187,8 +187,8 @@ if ( function_exists( 'register_block_pattern' ) ) {
 					'<!-- /wp:heading -->',
 
 					// Section 1: Redefine brands.
-					'<!-- wp:cover {"overlayColor":"primary","align":"wide"} -->',
-					'<div class="wp-block-cover alignwide has-primary-background-color has-background-dim"><div class="wp-block-cover__inner-container"><!-- wp:heading {"level":3,"textColor":"white"} -->',
+					'<!-- wp:cover {"overlayColor":"primary","minHeight":220,"align":"wide"} -->',
+					'<div class="wp-block-cover alignwide has-primary-background-color has-background-dim" style="min-height:220px"><div class="wp-block-cover__inner-container"><!-- wp:heading {"level":3,"textColor":"white"} -->',
 					'<h3 class="has-white-color has-text-color">' . esc_html__( 'Redefine brands', 'twentynineteen' ) . '</h3>',
 					'<!-- /wp:heading -->',
 
@@ -198,8 +198,8 @@ if ( function_exists( 'register_block_pattern' ) ) {
 					'<!-- /wp:cover -->',
 
 					// Section 2: Activate new customers.
-					'<!-- wp:cover {"overlayColor":"dark-gray","align":"wide"} -->',
-					'<div class="wp-block-cover alignwide has-dark-gray-background-color has-background-dim"><div class="wp-block-cover__inner-container"><!-- wp:heading {"level":3,"textColor":"white"} -->',
+					'<!-- wp:cover {"overlayColor":"dark-gray","minHeight":220,"align":"wide"} -->',
+					'<div class="wp-block-cover alignwide has-dark-gray-background-color has-background-dim" style="min-height:220px"><div class="wp-block-cover__inner-container"><!-- wp:heading {"level":3,"textColor":"white"} -->',
 					'<h3 class="has-white-color has-text-color">' . esc_html__( 'Activate new customers', 'twentynineteen' ) . '</h3>',
 					'<!-- /wp:heading -->',
 
@@ -209,8 +209,8 @@ if ( function_exists( 'register_block_pattern' ) ) {
 					'<!-- /wp:cover -->',
 
 					// Section 3: Spark interest on social media.
-					'<!-- wp:cover {"customOverlayColor":"#f7f7f7","align":"wide"} -->',
-					'<div class="wp-block-cover alignwide has-background-dim" style="background-color:#f7f7f7"><div class="wp-block-cover__inner-container"><!-- wp:heading {"level":3,"textColor":"dark-gray"} -->',
+					'<!-- wp:cover {"customOverlayColor":"#f7f7f7","minHeight":220,"align":"wide"} -->',
+					'<div class="wp-block-cover alignwide has-background-dim" style="background-color:#f7f7f7;min-height:220px"><div class="wp-block-cover__inner-container"><!-- wp:heading {"level":3,"textColor":"dark-gray"} -->',
 					'<h3 class="has-dark-gray-color has-text-color">' . esc_html__( 'Spark interest on social media', 'twentynineteen' ) . '</h3>',
 					'<!-- /wp:heading -->',
 
