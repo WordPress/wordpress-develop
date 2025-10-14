@@ -2081,25 +2081,37 @@ function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ): bool {
 }
 
 /**
- * Prints a CSS rule to fix potential visual issues with images using `sizes=auto`.
+ * Enqueues a CSS rule to fix potential visual issues with images using `sizes=auto`.
  *
  * This rule overrides the similar rule in the default user agent stylesheet, to avoid images that use e.g.
  * `width: auto` or `width: fit-content` to appear smaller.
  *
- * @since 6.7.1
+ * @since 6.9.0
+ *
  * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
  * @see https://core.trac.wordpress.org/ticket/62413
+ * @see https://core.trac.wordpress.org/ticket/62731
  */
-function wp_print_auto_sizes_contain_css_fix() {
+function wp_enqueue_img_auto_sizes_contain_css_fix(): void {
+	// Back-compat for plugins that disable functionality by unhooking this action.
+	$priority = has_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix' );
+	if ( false === $priority ) {
+		return;
+	}
+	remove_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', $priority );
+
 	/** This filter is documented in wp-includes/media.php */
 	$add_auto_sizes = apply_filters( 'wp_img_tag_add_auto_sizes', true );
 	if ( ! $add_auto_sizes ) {
 		return;
 	}
 
-	?>
-	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
-	<?php
+	$handle = 'wp-img-auto-sizes-contain';
+	wp_register_style( $handle, false );
+	wp_add_inline_style( $handle, 'img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}' );
+
+	// Make sure inline style is printed first since it was previously printed at wp_head priority 1 and this preserves the CSS cascade.
+	array_unshift( wp_styles()->queue, $handle );
 }
 
 /**
@@ -2150,12 +2162,12 @@ function wp_img_tag_add_loading_optimization_attrs( $image, $context ) {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param string|false|null $value      The `decoding` attribute value. Returning a falsey value
-		 *                                      will result in the attribute being omitted for the image.
-		 *                                      Otherwise, it may be: 'async', 'sync', or 'auto'. Defaults to false.
-		 * @param string            $image      The HTML `img` tag to be filtered.
-		 * @param string            $context    Additional context about how the function was called
-		 *                                      or where the img tag is.
+		 * @param string|false|null $value   The `decoding` attribute value. Returning a falsey value
+		 *                                   will result in the attribute being omitted for the image.
+		 *                                   Otherwise, it may be: 'async', 'sync', or 'auto'. Defaults to false.
+		 * @param string            $image   The HTML `img` tag to be filtered.
+		 * @param string            $context Additional context about how the function was called
+		 *                                   or where the img tag is.
 		 */
 		$filtered_decoding_attr = apply_filters(
 			'wp_img_tag_add_decoding_attr',

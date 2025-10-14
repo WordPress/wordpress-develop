@@ -99,22 +99,6 @@ class WP_Block {
 	public $inner_content = array();
 
 	/**
-	 * List of supported block attributes for block bindings.
-	 *
-	 * @since 6.9.0
-	 * @var array
-	 *
-	 * @see WP_Block::process_block_bindings()
-	 */
-	private const BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES = array(
-		'core/paragraph' => array( 'content' ),
-		'core/heading'   => array( 'content' ),
-		'core/image'     => array( 'id', 'url', 'title', 'alt' ),
-		'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
-		'core/post-date' => array( 'datetime' ),
-	);
-
-	/**
 	 * Constructor.
 	 *
 	 * Populates object properties from the provided block instance argument.
@@ -297,24 +281,7 @@ class WP_Block {
 		$block_type                 = $this->name;
 		$parsed_block               = $this->parsed_block;
 		$computed_attributes        = array();
-		$supported_block_attributes =
-			self::BLOCK_BINDINGS_SUPPORTED_ATTRIBUTES[ $block_type ] ??
-			array();
-
-		/**
-		 * Filters the supported block attributes for block bindings.
-		 *
-		 * The dynamic portion of the hook name, `$block_type`, refers to the block type
-		 * whose attributes are being filtered.
-		 *
-		 * @since 6.9.0
-		 *
-		 * @param string[] $supported_block_attributes The block's attributes that are supported by block bindings.
-		 */
-		$supported_block_attributes = apply_filters(
-			"block_bindings_supported_attributes_{$block_type}",
-			$supported_block_attributes
-		);
+		$supported_block_attributes = get_block_bindings_supported_attributes( $block_type );
 
 		// If the block doesn't have the bindings property, isn't one of the supported
 		// block types, or the bindings property is not an array, return the block content.
@@ -490,8 +457,8 @@ class WP_Block {
 				}
 
 				$this->set_bookmark( '_wp_block_bindings_tag_closer' );
-				$tag_closer  = $this->bookmarks['__wp_block_bindings_tag_closer'];
-				$end         = $tag_closer->start;
+				$tag_closer = $this->bookmarks['__wp_block_bindings_tag_closer'];
+				$end        = $tag_closer->start;
 				$this->release_bookmark( '_wp_block_bindings_tag_closer' );
 
 				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
@@ -524,6 +491,14 @@ class WP_Block {
 	 */
 	public function render( $options = array() ) {
 		global $post;
+
+		// Capture the current assets queues and then clear out to capture the diff of what was introduced by rendering.
+		$before_styles_queue         = wp_styles()->queue;
+		$before_scripts_queue        = wp_scripts()->queue;
+		$before_script_modules_queue = wp_script_modules()->queue;
+		wp_styles()->queue           = array();
+		wp_scripts()->queue          = array();
+		wp_script_modules()->queue   = array();
 
 		/*
 		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
@@ -692,6 +667,44 @@ class WP_Block {
 			// The root interactive block has finished rendering. Time to process directives.
 			$block_content          = wp_interactivity_process_directives( $block_content );
 			$root_interactive_block = null;
+		}
+
+		// Capture the new assets enqueued during rendering, and restore the queues the state prior to rendering.
+		$new_styles_queue          = wp_styles()->queue;
+		$new_scripts_queue         = wp_scripts()->queue;
+		$new_script_modules_queue  = wp_script_modules()->queue;
+		wp_styles()->queue         = $before_styles_queue;
+		wp_scripts()->queue        = $before_scripts_queue;
+		wp_script_modules()->queue = $before_script_modules_queue;
+		$has_new_styles            = count( $new_styles_queue ) > 0;
+		$has_new_scripts           = count( $new_scripts_queue ) > 0;
+		$has_new_script_modules    = count( $new_script_modules_queue ) > 0;
+
+		// Merge the newly enqueued assets with the existing assets if the rendered block is not empty.
+		if (
+			( $has_new_styles || $has_new_scripts || $has_new_script_modules ) &&
+			(
+				trim( $block_content ) !== '' ||
+				/**
+				 * Filters whether to enqueue assets for a block which has no rendered content.
+				 *
+				 * @since 6.9.0
+				 *
+				 * @param bool   $enqueue    Whether to enqueue assets.
+				 * @param string $block_name Block name.
+				 */
+				(bool) apply_filters( 'enqueue_empty_block_content_assets', false, $this->name )
+			)
+		) {
+			if ( $has_new_styles ) {
+				wp_styles()->queue = array_unique( array_merge( wp_styles()->queue, $new_styles_queue ) );
+			}
+			if ( $has_new_scripts ) {
+				wp_scripts()->queue = array_unique( array_merge( wp_scripts()->queue, $new_scripts_queue ) );
+			}
+			if ( $has_new_script_modules ) {
+				wp_script_modules()->queue = array_unique( array_merge( wp_script_modules()->queue, $new_script_modules_queue ) );
+			}
 		}
 
 		return $block_content;
