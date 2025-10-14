@@ -687,6 +687,10 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 	$users = array_unique( array_filter( array_map( 'intval', $users ) ) );
 	sort( $users );
 
+	// Cleanup the post type argument. Remove duplicates and sort for consistent ordering.
+	$post_type = array_unique( (array) $post_type );
+	sort( $post_type );
+
 	$userlist    = implode( ',', $users );
 	$where       = get_posts_by_author_sql( $post_type, true, null, $public_only );
 	$query       = "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author";
