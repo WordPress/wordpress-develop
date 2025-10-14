@@ -116,14 +116,10 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 			$id              = preg_replace( '/-js-modulepreload$/', '', $p->get_attribute( 'id' ) );
 			$fetchpriority   = $p->get_attribute( 'fetchpriority' );
-			$router_options  = $p->get_attribute( 'data-wp-router-options' );
 			$preloads[ $id ] = array(
 				'url'           => $p->get_attribute( 'href' ),
 				'fetchpriority' => is_string( $fetchpriority ) ? $fetchpriority : 'auto',
 			);
-			if ( is_string( $router_options ) ) {
-				$preloads[ $id ]['router_options'] = json_decode( $router_options, true );
-			}
 		}
 
 		return $preloads;
