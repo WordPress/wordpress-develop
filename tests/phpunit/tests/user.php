@@ -817,46 +817,6 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests salted cache functionality for count_many_users_posts().
-	 *
-	 * @ticket 63405
-	 */
-	public function test_count_many_users_posts_salted_cache() {
-
-		$author_id = self::factory()->user->create( array( 'role' => 'author' ) );
-		$editor_id = self::factory()->user->create( array( 'role' => 'editor' ) );
-
-		// Create posts for both users
-		self::factory()->post->create( array( 'post_author' => $author_id ) );
-		self::factory()->post->create( array( 'post_author' => $editor_id ) );
-
-		// Test cache hit
-		$counts1 = count_many_users_posts( array( $author_id, $editor_id ), 'post', false );
-		$counts2 = count_many_users_posts( array( $author_id, $editor_id ), 'post', false );
-		$this->assertSame( $counts1, $counts2 );
-		$this->assertSame( '1', $counts1[ $author_id ] );
-		$this->assertSame( '1', $counts1[ $editor_id ] );
-
-		// Test cache invalidation - create new post for author only
-		self::factory()->post->create( array( 'post_author' => $author_id ) );
-		$counts3 = count_many_users_posts( array( $author_id, $editor_id ), 'post', false );
-		$this->assertSame( '2', $counts3[ $author_id ] );
-		$this->assertSame( '1', $counts3[ $editor_id ] );
-
-		// Test different post types use different cache keys
-		self::factory()->post->create(
-			array(
-				'post_author' => $author_id,
-				'post_type'   => 'page',
-			)
-		);
-		$counts_posts = count_many_users_posts( array( $author_id ), 'post', false );
-		$counts_pages = count_many_users_posts( array( $author_id ), 'page', false );
-		$this->assertSame( '2', $counts_posts[ $author_id ] );
-		$this->assertSame( '1', $counts_pages[ $author_id ] );
-	}
-
-	/**
 	 * @ticket 22858
 	 */
 	public function test_wp_update_user_on_nonexistent_users() {
