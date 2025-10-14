@@ -304,7 +304,7 @@ if ( ! is_multisite() ) {
 <tr>
 <th scope="row"><label for="default_role"><?php _e( 'New User Default Role' ); ?></label></th>
 <td>
-<?php
+	<?php
 	/**
 	 * Filters the roles to be excluded from the default_role option.
 	 *
