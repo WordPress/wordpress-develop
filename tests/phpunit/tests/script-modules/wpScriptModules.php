@@ -1377,37 +1377,87 @@ HTML;
 	}
 
 	/**
-	 * Tests that load_on_client_navigation attribute is handled correctly for enqueued script modules.
+	 * Tests that load_on_client_navigation defaults to false when registering a script module.
+	 *
+	 * @covers WP_Script_Modules::register
+	 */
+	public function test_load_on_client_navigation_defaults_to_false_for_registered_modules() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
+		$this->assertSame( false, $registered_modules['foo']['load_on_client_navigation'] );
+	}
+
+	/**
+	 * Tests that load_on_client_navigation can be set to true when registering a script module.
+	 *
+	 * @covers WP_Script_Modules::register
+	 */
+	public function test_load_on_client_navigation_true_for_registered_modules() {
+		$this->script_modules->register( 'foo', '/foo.js', array(), false, array( 'load_on_client_navigation' => true ) );
+		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
+		$this->assertSame( true, $registered_modules['foo']['load_on_client_navigation'] );
+	}
+
+	/**
+	 * Tests that load_on_client_navigation can be set to false when registering a script module.
+	 *
+	 * @covers WP_Script_Modules::register
+	 */
+	public function test_load_on_client_navigation_false_for_registered_modules() {
+		$this->script_modules->register( 'foo', '/foo.js', array(), false, array( 'load_on_client_navigation' => false ) );
+		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
+		$this->assertSame( false, $registered_modules['foo']['load_on_client_navigation'] );
+	}
+
+	/**
+	 * Tests that load_on_client_navigation attribute is not added by default for enqueued script modules.
 	 *
 	 * @covers WP_Script_Modules::register
 	 * @covers WP_Script_Modules::enqueue
 	 * @covers WP_Script_Modules::print_enqueued_script_modules
 	 */
-	public function test_load_on_client_navigation_for_enqueued_modules() {
-		// Default (no load_on_client_navigation set).
-		$this->script_modules->register( 'default', '/default.js' );
-		$this->script_modules->enqueue( 'default' );
-
-		// With load_on_client_navigation set to true.
-		$this->script_modules->register( 'with-true', '/with-true.js', array(), false, array( 'load_on_client_navigation' => true ) );
-		$this->script_modules->enqueue( 'with-true' );
-
-		// With load_on_client_navigation set to false.
-		$this->script_modules->register( 'with-false', '/with-false.js', array(), false, array( 'load_on_client_navigation' => false ) );
-		$this->script_modules->enqueue( 'with-false' );
+	public function test_load_on_client_navigation_default_for_enqueued_modules() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->enqueue( 'foo' );
 
 		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
-		$this->assertCount( 3, $enqueued_script_modules );
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertArrayNotHasKey( 'data-wp-router-options', $enqueued_script_modules['foo'] );
+	}
 
-		// Default should not have data-wp-router-options attribute.
-		$this->assertArrayNotHasKey( 'data-wp-router-options', $enqueued_script_modules['default'] );
+	/**
+	 * Tests that load_on_client_navigation attribute is added when set to true for enqueued script modules.
+	 *
+	 * @covers WP_Script_Modules::register
+	 * @covers WP_Script_Modules::enqueue
+	 * @covers WP_Script_Modules::print_enqueued_script_modules
+	 */
+	public function test_load_on_client_navigation_true_for_enqueued_modules() {
+		$this->script_modules->register( 'foo', '/foo.js', array(), false, array( 'load_on_client_navigation' => true ) );
+		$this->script_modules->enqueue( 'foo' );
 
-		// True should have data-wp-router-options attribute with loadOnClientNavigation set to true.
-		$this->assertArrayHasKey( 'data-wp-router-options', $enqueued_script_modules['with-true'] );
-		$this->assertSame( array( 'loadOnClientNavigation' => true ), $enqueued_script_modules['with-true']['data-wp-router-options'] );
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
 
-		// False should not have data-wp-router-options attribute.
-		$this->assertArrayNotHasKey( 'data-wp-router-options', $enqueued_script_modules['with-false'] );
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertArrayHasKey( 'data-wp-router-options', $enqueued_script_modules['foo'] );
+		$this->assertSame( array( 'loadOnClientNavigation' => true ), $enqueued_script_modules['foo']['data-wp-router-options'] );
+	}
+
+	/**
+	 * Tests that load_on_client_navigation attribute is not added when set to false for enqueued script modules.
+	 *
+	 * @covers WP_Script_Modules::register
+	 * @covers WP_Script_Modules::enqueue
+	 * @covers WP_Script_Modules::print_enqueued_script_modules
+	 */
+	public function test_load_on_client_navigation_false_for_enqueued_modules() {
+		$this->script_modules->register( 'foo', '/foo.js', array(), false, array( 'load_on_client_navigation' => false ) );
+		$this->script_modules->enqueue( 'foo' );
+
+		$enqueued_script_modules = $this->get_enqueued_script_modules();
+
+		$this->assertCount( 1, $enqueued_script_modules );
+		$this->assertArrayNotHasKey( 'data-wp-router-options', $enqueued_script_modules['foo'] );
 	}
 }

@@ -1512,4 +1512,87 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$this->assertNotFalse( register_block_type_from_metadata( $windows_like_path ) );
 	}
+
+	/**
+	 * Tests that load_on_client_navigation is set to true for blocks with interactivity support.
+	 *
+	 * @covers ::register_block_script_module_id
+	 */
+	public function test_register_block_script_module_id_with_interactivity_support() {
+		$metadata = array(
+			'file'             => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'             => 'tests/interactive-block',
+			'viewScriptModule' => 'file:./block.js',
+			'supports'         => array(
+				'interactivity' => true,
+			),
+		);
+
+		$result = register_block_script_module_id( $metadata, 'viewScriptModule' );
+
+		$this->assertSame( 'tests-interactive-block-view-script-module', $result );
+
+		// Enqueue and verify the script module has the data-wp-router-options attribute.
+		wp_enqueue_script_module( 'tests-interactive-block-view-script-module' );
+
+		$output = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$this->assertStringContainsString( 'data-wp-router-options=', $output );
+		$this->assertStringContainsString( '{"loadOnClientNavigation":true}', $output );
+	}
+
+	/**
+	 * Tests that load_on_client_navigation is set to true for blocks with interactive flag.
+	 *
+	 * @covers ::register_block_script_module_id
+	 */
+	public function test_register_block_script_module_id_with_interactive_flag() {
+		$metadata = array(
+			'file'             => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'             => 'tests/interactive-block-2',
+			'viewScriptModule' => 'file:./block.js',
+			'supports'         => array(
+				'interactivity' => array(
+					'interactive' => true,
+				),
+			),
+		);
+
+		$result = register_block_script_module_id( $metadata, 'viewScriptModule' );
+
+		$this->assertSame( 'tests-interactive-block-2-view-script-module', $result );
+
+		// Enqueue and verify the script module has the data-wp-router-options attribute.
+		wp_enqueue_script_module( 'tests-interactive-block-2-view-script-module' );
+
+		$output = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$this->assertStringContainsString( 'data-wp-router-options=', $output );
+		$this->assertStringContainsString( '{"loadOnClientNavigation":true}', $output );
+	}
+
+	/**
+	 * Tests that load_on_client_navigation is not set for blocks without interactivity support.
+	 *
+	 * @covers ::register_block_script_module_id
+	 */
+	public function test_register_block_script_module_id_without_interactivity_support() {
+		$metadata = array(
+			'file'             => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'             => 'tests/non-interactive-block',
+			'viewScriptModule' => 'file:./block.js',
+		);
+
+		$result = register_block_script_module_id( $metadata, 'viewScriptModule' );
+
+		$this->assertSame( 'tests-non-interactive-block-view-script-module', $result );
+
+		// Enqueue and verify the script module does not have the data-wp-router-options attribute.
+		wp_enqueue_script_module( 'tests-non-interactive-block-view-script-module' );
+
+		$output = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$this->assertStringContainsString( 'tests-non-interactive-block-view-script-module', $output );
+		$this->assertStringNotContainsString( 'data-wp-router-options=', $output );
+	}
 }

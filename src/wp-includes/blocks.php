@@ -181,7 +181,8 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 		( isset( $metadata['supports']['interactivity'] ) && true === $metadata['supports']['interactivity'] ) ||
 		( isset( $metadata['supports']['interactivity']['interactive'] ) && true === $metadata['supports']['interactivity']['interactive'] )
 	) {
-		$args['fetchpriority'] = 'low';
+		$args['fetchpriority']             = 'low';
+		$args['load_on_client_navigation'] = true;
 	}
 
 	wp_register_script_module(
