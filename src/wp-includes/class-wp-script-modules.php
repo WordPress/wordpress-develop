@@ -361,7 +361,7 @@ class WP_Script_Modules {
 				if ( $highest_fetchpriority !== $script_module['fetchpriority'] && 'auto' !== $script_module['fetchpriority'] ) {
 					printf( ' data-wp-fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) );
 				}
-				echo '>';
+				echo ">\n";
 			}
 		}
 	}

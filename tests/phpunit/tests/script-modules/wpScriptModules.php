@@ -1601,18 +1601,66 @@ HTML;
 	 * Tests that default script modules are printed as expected.
 	 *
 	 * @covers ::wp_default_script_modules
-	 * @covers ::print_script_module_preloads
-	 * @covers ::print_enqueued_script_modules
+	 * @covers WP_Script_Modules::print_script_module_preloads
+	 * @covers WP_Script_Modules::print_enqueued_script_modules
 	 */
 	public function test_default_script_modules() {
 		wp_default_script_modules();
 		wp_enqueue_script_module( '@wordpress/a11y' );
 		wp_enqueue_script_module( '@wordpress/block-library/navigation/view' );
 
-		$actual  = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) ) . "\n";
+		$actual  = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
 		$actual .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 
-		$processor = new WP_HTML_Tag_Processor( $actual );
+		$actual = $this->normalize_markup_for_snapshot( $actual );
+
+		$expected = '
+			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="low">
+			<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>
+			<script type="module" src="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-module" fetchpriority="low"></script>
+		';
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+	}
+
+	/**
+	 * Tests that a dependent with high priority for default script modules with a low fetch priority are printed as expected.
+	 *
+	 * @covers ::wp_default_script_modules
+	 * @covers WP_Script_Modules::print_script_module_preloads
+	 * @covers WP_Script_Modules::print_enqueued_script_modules
+	 */
+	public function test_dependent_of_default_script_modules() {
+		wp_default_script_modules();
+		wp_enqueue_script_module(
+			'super-important',
+			'/super-important-module.js',
+			array( '@wordpress/a11y', '@wordpress/block-library/navigation/view' ),
+			null,
+			array( 'fetchpriority' => 'high' )
+		);
+
+		$actual  = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
+		$actual .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$actual = $this->normalize_markup_for_snapshot( $actual );
+
+		$expected = '
+			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+			<script type="module" src="/super-important-module.js" id="super-important-js-module" fetchpriority="high"></script>
+		';
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+	}
+
+	/**
+	 * Normalizes markup for snapshot.
+	 *
+	 * @param string $markup Markup.
+	 * @return string Normalized markup.
+	 */
+	private function normalize_markup_for_snapshot( string $markup ): string {
+		$processor = new WP_HTML_Tag_Processor( $markup );
 		$clean_url = static function ( string $url ): string {
 			$url = preg_replace( '#^https?://[^/]+#', '', $url );
 			return remove_query_arg( 'ver', $url );
@@ -1624,14 +1672,7 @@ HTML;
 				$processor->set_attribute( 'src', $clean_url( $processor->get_attribute( 'src' ) ) );
 			}
 		}
-		$actual = $processor->get_updated_html();
-
-		$expected = '
-			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="low">
-			<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>
-			<script type="module" src="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-module" fetchpriority="low"></script>
-		';
-		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+		return $processor->get_updated_html();
 	}
 
 	/**
