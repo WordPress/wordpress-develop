@@ -50,7 +50,7 @@ class Tests_Theme_invalidateHeaderImagesCache extends WP_UnitTestCase {
 		);
 
 		$extra_queries = 4;
-		if( wp_using_ext_object_cache() ){
+		if ( wp_using_ext_object_cache() ) {
 			$extra_queries = 2;
 		}
 		$num_queries = get_num_queries() + $extra_queries;
@@ -103,7 +103,7 @@ class Tests_Theme_invalidateHeaderImagesCache extends WP_UnitTestCase {
 		);
 
 		$extra_queries = 4;
-		if( wp_using_ext_object_cache() ){
+		if ( wp_using_ext_object_cache() ) {
 			$extra_queries = 2;
 		}
 		$num_queries = get_num_queries() + $extra_queries;
