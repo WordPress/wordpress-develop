@@ -109,7 +109,7 @@ final class WP_Interactivity_API {
 	 * Cache for data-wp-each template blueprints.
 	 *
 	 * @since 6.9.0
-	 * @var   array
+	 * @var array
 	 */
 	private static $template_blueprints = array();
 
@@ -1161,7 +1161,7 @@ HTML;
 	}
 
 	/**
-	 * Processes the data-wp-each directive using a pre-computation and caching strategy.
+	 * Processes the data-wp-each directive using a pre-computed traversal blueprint.
 	 *
 	 * @param WP_HTML_Tag_Processor $p       The WP_HTML_Tag_Processor instance.
 	 * @param array                 $context The context.
@@ -1171,10 +1171,10 @@ HTML;
 			return;
 		}
 
-		$directive_value                = $p->get_attribute( 'data-wp-each' );
+		$directive_value = $p->get_attribute( 'data-wp-each' );
 		list( $item_name, $array_name ) = explode( ' in ', $directive_value );
-		$item_name                      = trim( $item_name );
-		$array_name                     = trim( $array_name );
+		$item_name  = trim( $item_name );
+		$array_name = trim( $array_name );
 
 		$template_html = '';
 		if ( $p->next_tag(
@@ -1195,41 +1195,43 @@ HTML;
 
 		$cache_key = md5( $template_html );
 
-		// 1. Pre-computation: Parse the template once and create a "blueprint" of bookmarks.
+		// 1. Blueprint Generation: Parse the template once to create a full traversal map.
 		if ( ! isset( self::$template_blueprints[ $cache_key ] ) ) {
-			self::$template_blueprints[ $cache_key ] = array();
-			$blueprint_p                             = new WP_HTML_Tag_Processor( $template_html );
-			$bookmark_counter                        = 0;
+			$traversal_p   = new WP_HTML_Tag_Processor( $template_html );
+			$bookmarks     = array();
+			$bookmark_id   = 0;
 
-			while ( $blueprint_p->next_tag() ) {
-				// Find any tag that has one or more `data-wp-` directives.
-				if ( ! empty( $blueprint_p->get_attribute_names_with_prefix( 'data-wp-' ) ) ) {
-					$bookmark_name = 'directive_tag_' . $bookmark_counter++;
-					$blueprint_p->set_bookmark( $bookmark_name );
-					self::$template_blueprints[ $cache_key ][] = $bookmark_name;
-				}
+			// By visiting every tag (including closers), we create a complete, ordered
+			// map of the entire template structure.
+			while ( $traversal_p->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+				$bookmark_name = 'bookmark_' . $bookmark_id++;
+				$traversal_p->set_bookmark( $bookmark_name );
+				$bookmarks[] = $bookmark_name;
 			}
+			self::$template_blueprints[ $cache_key ] = $bookmarks;
 		}
 
-		$bookmarks = self::$template_blueprints[ $cache_key ];
-		$html      = '';
+		$traversal_bookmarks = self::$template_blueprints[ $cache_key ];
+		$html                = '';
 
-		// 2. Optimized Loop: Jump directly to bookmarked tags and process them.
+		// 2. Optimized Loop: Replay the traversal for each item without re-parsing.
 		foreach ( $this->get_context_value( $array_name, $context ) as $item_context ) {
 			$item_p = new WP_HTML_Tag_Processor( $template_html );
-
-			// Recreate the same inner context as the original function.
-			$inner_context   = array(
+			$inner_context = array(
 				$item_name => $item_context,
 				'context'  => $item_context,
 			);
 			$current_context = array_merge( $context, $inner_context );
 
-			// Instead of scanning all tags, iterate through our pre-computed bookmarks.
-			foreach ( $bookmarks as $bookmark_name ) {
+			// Instead of scanning with `next_tag()`, we jump through our pre-computed traversal.
+			foreach ( $traversal_bookmarks as $bookmark_name ) {
 				$item_p->seek( $bookmark_name );
-				// Call the original, robust `process_directives` function on the targeted tag.
-				$this->process_directives( $item_p, $current_context );
+
+				// Only call the expensive directive processing logic if directives actually exist on the current tag.
+				// This preserves the full traversal for state management but optimizes the work done at each step.
+				if ( ! empty( $item_p->get_attribute_names_with_prefix( 'data-wp-' ) ) ) {
+					$this->process_directives( $item_p, $current_context );
+				}
 			}
 
 			$html .= $item_p->get_updated_html();
