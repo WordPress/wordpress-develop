@@ -1872,8 +1872,11 @@ function resolve_pattern_blocks( $blocks ) {
 			$blocks_to_insert   = parse_blocks( trim( $pattern['content'] ) );
 
 			// For single-root patterns, add the pattern name to make this a pattern instance in the editor.
-			if( count( $blocks_to_insert ) === 1 ) {
-				$blocks_to_insert[0]['attrs']['metadata'] = [ 'patternName' => $slug, 'name' => $pattern['title'] ];
+			if ( count( $blocks_to_insert ) === 1 ) {
+				$blocks_to_insert[0]['attrs']['metadata'] = array(
+					'patternName' => $slug,
+					'name'        => $pattern['title'],
+				);
 			}
 			$seen_refs[ $slug ] = true;
 			$prev_inner_content = $inner_content;
