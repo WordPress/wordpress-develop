@@ -95,10 +95,6 @@ wp-tests-config.php
 /src/wp-content/themes/twentytwentytwo/*.min.css
 /src/wp-content/themes/twentytwentyfive/*.min.css
 
-# Minified files in bundled themes
-/src/wp-content/themes/twentytwentytwo/*.min.css
-/src/wp-content/themes/twentytwentyfive/*.min.css
-
 # Operating system specific files
 .DS_Store
 
