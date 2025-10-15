@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *                           Defaults to false, true if $extra_stats is set.
  */
 function wp_version_check( $extra_stats = array(), $force_check = false ) {
-	global $wpdb, $wp_local_package;
+	global $wpdb, $wp_local_package, $table_prefix;
 
 	if ( wp_installing() ) {
 		return;
@@ -113,6 +113,22 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		),
 		'image_support'      => array(),
 	);
+
+	// Check for default tables using the MyISAM engine.
+	$table_names   = implode( "','", $wpdb->tables() );
+	$myisam_tables = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
+			"SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') AND ENGINE = %s;",
+			DB_NAME,
+			'MyISAM'
+		)
+	);
+
+	// Only report when a site has MyISAM tables to save bytes.
+	if ( $myisam_tables > 0 ) {
+		$query['myisam_table_count'] = $myisam_tables;
+	}
 
 	if ( function_exists( 'gd_info' ) ) {
 		$gd_info = gd_info();
