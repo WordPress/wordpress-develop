@@ -3647,6 +3647,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		return $post_id;
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_cannot_read_note_without_post_type_support() {
 		register_post_type(
 			'no-notes',
@@ -3673,6 +3676,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		_unregister_post_type( 'no-notes' );
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_create_note_require_login() {
 		wp_set_current_user( 0 );
 
@@ -3685,6 +3691,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_login_required', $response, 401 );
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_cannot_create_note_without_post_type_support() {
 		register_post_type(
 			'no-note',
@@ -3717,6 +3726,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		_unregister_post_type( 'no-note' );
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_create_note_draft_post() {
 		wp_set_current_user( self::$editor_id );
 		$draft_id = self::factory()->post->create(
@@ -3745,6 +3757,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'note', $new_comment->comment_type );
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_create_note_status() {
 		wp_set_current_user( self::$author_id );
 		$post_id = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
@@ -3772,6 +3787,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 'note', $new_comment->comment_type );
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_cannot_create_with_non_valid_comment_type() {
 		wp_set_current_user( self::$admin_id );
 
@@ -3792,6 +3810,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_create_assigns_default_type() {
 		wp_set_current_user( self::$editor_id );
 		$post_id = self::factory()->post->create();
@@ -3818,6 +3839,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @dataProvider data_note_status_provider
+	 * @ticket 64096
 	 */
 	public function test_create_empty_note_with_resolution_meta( $status ) {
 		wp_set_current_user( self::$editor_id );
@@ -3842,6 +3864,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 201, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_cannot_create_empty_note_without_resolution_meta() {
 		wp_set_current_user( self::$editor_id );
 		$post_id = self::factory()->post->create();
@@ -3861,6 +3886,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_content_invalid', $response, 400 );
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_cannot_create_empty_note_with_invalid_resolution_meta() {
 		wp_set_current_user( self::$editor_id );
 		$post_id = self::factory()->post->create();
@@ -3883,6 +3911,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_content_invalid', $response, 400 );
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_create_duplicate_note() {
 		wp_set_current_user( self::$editor_id );
 		$post_id = self::factory()->post->create();
@@ -3907,6 +3938,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @dataProvider data_note_get_items_permissions_data_provider
+	 * @ticket 64096
 	 */
 	public function test_note_get_items_permissions_edit_context( $role, $post_author_role, $can_read ) {
 		wp_set_current_user( self::$user_ids[ $role ] );
@@ -3930,6 +3962,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_delete_post( $post_id, true );
 	}
 
+	/**
+	 * @ticket 64096
+	 */
 	public function test_note_get_items_permissions_mixed_post_authors() {
 		$author_post_id = $this->create_test_post_with_note( 'author' );
 		$editor_post_id = $this->create_test_post_with_note( 'editor' );
@@ -3952,6 +3987,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @dataProvider data_note_get_items_permissions_data_provider
+	 * @ticket 64096
 	 */
 	public function test_note_get_item_permissions_edit_context( $role, $post_author_role, $can_read ) {
 		wp_set_current_user( self::$user_ids[ $role ] );
