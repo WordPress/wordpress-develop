@@ -39,6 +39,7 @@ function create_initial_post_types() {
 			'delete_with_user'      => true,
 			'supports'              => array(
 				'title',
+				'editor' => array( 'notes' => true ),
 				'author',
 				'thumbnail',
 				'excerpt',
@@ -47,7 +48,6 @@ function create_initial_post_types() {
 				'comments',
 				'revisions',
 				'post-formats',
-				array( 'editor' => array( 'notes' => true ) ),
 			),
 			'show_in_rest'          => true,
 			'rest_base'             => 'posts',
@@ -75,13 +75,13 @@ function create_initial_post_types() {
 			'delete_with_user'      => true,
 			'supports'              => array(
 				'title',
+				'editor' => array( 'notes' => true ),
 				'author',
 				'thumbnail',
 				'page-attributes',
 				'custom-fields',
 				'comments',
 				'revisions',
-				array( 'editor' => array( 'notes' => true ) ),
 			),
 			'show_in_rest'          => true,
 			'rest_base'             => 'pages',
@@ -2354,21 +2354,18 @@ function post_type_supports( $post_type, $feature ) {
 		$parts       = explode( '/', $feature, 2 );
 		$feature     = $parts[0];
 		$sub_feature = $parts[1];
-		$supports    = get_all_post_type_supports( $post_type );
 
-		if ( ! isset( $supports[ $parent_feature ] ) ) {
+		if ( ! isset( $_wp_post_type_features[ $post_type ][ $feature ] ) ) {
 			return false;
 		}
-		if ( ! is_array( $supports[ $parent_feature ] ) ) {
-			return false;
-		}
-		foreach ( $supports[ $parent_feature ] as $item ) {
-			if ( is_array( $item ) && isset( $item[ $sub_feature ] ) && true === $item[ $sub_feature ] ) {
-				return true;
-			}
+
+		$feature_value = $_wp_post_type_features[ $post_type ][ $feature ];
+
+		if ( is_array( $feature_value ) && isset( $feature_value[0] ) && is_array( $feature_value[0] ) ) {
+			return ! empty( $feature_value[0][ $sub_feature ] );
 		}
 
-		return true;
+		return false;
 	}
 
 	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
