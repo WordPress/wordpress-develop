@@ -406,7 +406,7 @@
 				} else if ( 'Posts' === modelType ) {
 					expectedMetas = '{"meta_key":"meta_value","footnotes":""}';
 				} else if ( 'Comments' === modelType ) {
-					expectedMetas = '{"meta_key":"meta_value"},"_wp_note_status":null';
+					expectedMetas = '{"_wp_note_status":null,"meta_key":"meta_value"}';
 				}
 
 					// Verify the meta object returned correctly from `getMetas()`.
