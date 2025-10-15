@@ -1892,6 +1892,7 @@ class WP_Query {
 	 * database query.
 	 *
 	 * @since 1.5.0
+	 * @since x.x.x Adds deterministic ordering to prevent duplicate records across pages.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -2513,12 +2514,45 @@ class WP_Query {
 			if ( isset( $query_vars['orderby'] ) && ( is_array( $query_vars['orderby'] ) || false === $query_vars['orderby'] ) ) {
 				$orderby = '';
 			} else {
-				$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'];
+				/*
+				 * Ensure deterministic ordering to prevent duplicate records across pages.
+				 * When multiple posts have the same value for a field, add ID as secondary sort to guarantee consistent ordering.
+				 * Note: this is to circumvent a bug that is currently being tracked in https://core.trac.wordpress.org/ticket/44349.
+				 */
+				$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'] . ', ' . "{$wpdb->posts}.ID " . $query_vars['order'];
 			}
 		} elseif ( 'none' === $query_vars['orderby'] ) {
 			$orderby = '';
 		} else {
-			$orderby_array = array();
+			/*
+			 * Ensure deterministic ordering to prevent duplicate records across pages.
+			 * When multiple posts have the same value for a field, add ID as secondary sort to guarantee consistent ordering.
+			 * Note: this is to circumvent a bug that is currently being tracked in https://core.trac.wordpress.org/ticket/44349.
+			 */
+			$fields_requiring_deterministic_orderby = array(
+				'post_name',
+				'post_author',
+				'post_date', 
+				'post_title',
+				'post_modified',
+				'post_mime_type',
+				'post_parent',
+				'post_type',
+				'name',
+				'author',
+				'date',
+				'title',
+				'modified',
+				'parent',
+				'type',
+				'menu_order',
+				'comment_count',
+			);
+
+			$orderby_array               = array();
+			$needs_deterministic_orderby = false;
+			$has_id_orderby              = false;
+
 			if ( is_array( $query_vars['orderby'] ) ) {
 				foreach ( $query_vars['orderby'] as $_orderby => $order ) {
 					$orderby = wp_slash( urldecode( $_orderby ) );
@@ -2529,7 +2563,20 @@ class WP_Query {
 					}
 
 					$orderby_array[] = $parsed . ' ' . $this->parse_order( $order );
+
+					// Check if this field needs deterministic ordering
+					if ( in_array( $_orderby, $fields_requiring_deterministic_orderby, true ) ) {
+						$needs_deterministic_orderby = true;
+					} elseif ( 'ID' === $_orderby ) {
+						$has_id_orderby = true;
+					}
 				}
+
+				// Add ID as tie-breaker if needed and not already present
+				if ( $needs_deterministic_orderby && ! $has_id_orderby ) {
+					$orderby_array[] = "{$wpdb->posts}.ID " . $query_vars['order'];
+				}
+
 				$orderby = implode( ', ', $orderby_array );
 
 			} else {
@@ -2544,11 +2591,21 @@ class WP_Query {
 					}
 
 					$orderby_array[] = $parsed;
+
+					// Check if this field needs deterministic ordering
+					if ( in_array( $orderby, $fields_requiring_deterministic_orderby, true ) ) {
+						$needs_deterministic_orderby = true;
+					} elseif ( 'ID' === $orderby ) {
+						$has_id_orderby = true;
+					}
 				}
 				$orderby = implode( ' ' . $query_vars['order'] . ', ', $orderby_array );
 
 				if ( empty( $orderby ) ) {
-					$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'];
+					$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'] . ', ' . "{$wpdb->posts}.ID " . $query_vars['order'];
+				} elseif ( $needs_deterministic_orderby && ! $has_id_orderby ) {
+					// Add ID as tie-breaker for deterministic ordering
+					$orderby .= ", {$wpdb->posts}.ID " . $query_vars['order'];
 				} elseif ( ! empty( $query_vars['order'] ) ) {
 					$orderby .= " {$query_vars['order']}";
 				}
