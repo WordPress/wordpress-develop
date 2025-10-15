@@ -734,6 +734,15 @@ class wpdb {
 	public $error = null;
 
 	/**
+	 * Tables names cache for multisite.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @var array<string, array<string, string>>
+	 */
+	private $tables_names_blog_cache = array();
+
+	/**
 	 * Connects to the database server and selects a database.
 	 *
 	 * Does the actual setting up
@@ -1042,7 +1051,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param int $blog_id
+	 * @param int $blog_id blog id.
 	 * @param int $network_id Optional. Network ID. Default 0.
 	 * @return int Previous blog ID.
 	 */
@@ -1055,13 +1064,29 @@ class wpdb {
 		$this->blogid = $blog_id;
 
 		$this->prefix = $this->get_blog_prefix();
+		$key_cache    = $this->blogid . '~' . $this->siteid;
 
-		foreach ( $this->tables( 'blog' ) as $table => $prefixed_table ) {
-			$this->$table = $prefixed_table;
-		}
+		if ( ! array_key_exists( $key_cache, $this->tables_names_blog_cache ) ) {
 
-		foreach ( $this->tables( 'old' ) as $table => $prefixed_table ) {
-			$this->$table = $prefixed_table;
+			$temp = array();
+
+			foreach ( $this->tables( 'blog' ) as $table => $prefixed_table ) {
+				$temp[ $table ] = $prefixed_table;
+				$this->$table   = $prefixed_table;
+			}
+
+			foreach ( $this->tables( 'old' ) as $table => $prefixed_table ) {
+				$temp[ $table ] = $prefixed_table;
+				$this->$table   = $prefixed_table;
+			}
+
+			$this->tables_names_blog_cache[ $key_cache ] = $temp;
+
+		} else {
+
+			foreach ( $this->tables_names_blog_cache[ $key_cache ] as $table => $prefixed_table ) {
+				$this->$table = $prefixed_table;
+			}
 		}
 
 		return $old_blog_id;
