@@ -1,8 +1,8 @@
 <?php
 /**
- * 
+ *
  * Load Block Styles on Command in Classic Themes
- * 
+ *
  * Delaying the output of CSS until after the content is loaded, this way we know what blocks will be on the page, and only load the needed CSS.
  *
  * @package WordPress
@@ -10,9 +10,9 @@
  * @since 6.9
  */
 function always_load_block_styles_on_demand_init() {
-    if ( wp_is_block_theme() || ! function_exists( 'wp_should_output_buffer_template_for_enhancement' ) ) {
-        return;
-    }
+	if ( wp_is_block_theme() || ! function_exists( 'wp_should_output_buffer_template_for_enhancement' ) ) {
+		return;
+	}
 	/*
 	 * Make sure that wp_should_output_buffer_template_for_enhancement() returns true even if there aren't any
 	 * `wp_template_enhancement_output_buffer` filters added, but do so at priority zero so that applications which
@@ -32,7 +32,7 @@ function always_load_block_styles_on_demand_init() {
 	add_filter( 'should_load_block_assets_on_demand', '__return_true' );
 
 	// Add hooks which require the presence of the output buffer. Ideally the above two filters could be added here, but they run too early.
-	add_action( 'wp_template_enhancement_output_buffer_started','add_hooks_for_output_buffer' );
+	add_action( 'wp_template_enhancement_output_buffer_started', 'add_hooks_for_output_buffer' );
 }
 
 add_action( 'after_setup_theme', 'always_load_block_styles_on_demand_init' );
