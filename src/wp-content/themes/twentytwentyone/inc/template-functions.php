@@ -367,26 +367,25 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
 		$content = get_the_content();
 	}
 
-	$processor      = WP_Block_Processor::create( $content );
-	$visit_freeform = in_array( $block_name, array( 'freeform', 'core/freeform', 'core/*' ), true );
-	$freeform_flag  = $visit_freeform ? 'visit-html' : 'skip-html';
+	$processor      = new WP_Block_Processor( $content );
 	$instance_count = 0;
 
 	if ( str_ends_with( $block_name, '*' ) ) {
 		// Scan for blocks whose block type matches the prefix.
 		$prefix = rtrim( $block_name, '*' );
 
-		while ( $instance_count < $instances && $processor->next_delimiter( $freeform_flag ) ) {
-			if ( str_starts_with( $processor->get_block_type(), $prefix ) ) {
+		while ( $instance_count < $instances && $processor->next_block( '*' ) ) {
+			$matched_block_type = $processor->get_printable_block_type();
+			if ( str_starts_with( $matched_block_type, $prefix ) ) {
 				$blocks_content .= render_block( $processor->extract_block() );
+				++$instance_count;
 			}
 		}
 	} else {
 		// Scan for blocks of the exact block type.
-		while ( $instance_count < $instances && $processor->next_delimiter( $freeform_flag ) ) {
-			if ( $processor->is_block_type( $block_name ) ) {
-				$blocks_content .= render_block( $processor->extract_block() );
-			}
+		while ( $instance_count < $instances && $processor->next_block( $block_name ) ) {
+			$blocks_content .= render_block( $processor->extract_block() );
+			++$instance_count;
 		}
 	}
 
