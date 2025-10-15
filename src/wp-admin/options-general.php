@@ -473,7 +473,7 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 	 *
 	 * @param string[] $default_date_formats Array of default date formats.
 	 */
-	$date_formats = array_unique( apply_filters( 'date_formats', array( __( 'F j, Y' ), 'Y-m-d', 'm/d/Y', 'd/m/Y', 'd.m.Y' ) ) );
+	$date_formats = array_unique( apply_filters( 'date_formats', array( __( 'F j, Y' ), 'F j, Y', 'Y-m-d', 'm/d/Y', 'd/m/Y', 'd.m.Y' ) ) );
 
 	$custom = true;
 
@@ -483,7 +483,11 @@ foreach ( $date_formats as $format ) {
 		echo " checked='checked'";
 		$custom = false;
 	}
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
+	$lan_default = '';
+	if ( $format === __( 'F j, Y' ) ){
+		$lan_default = __( ' ( Site language default )' );
+	}
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . '</code>' . esc_html( $lan_default ). "</label><br />\n";
 }
 
 	echo '<label><input type="radio" name="date_format" id="date_format_custom_radio" value="\c\u\s\t\o\m"';
@@ -518,7 +522,7 @@ foreach ( $date_formats as $format ) {
 	 *
 	 * @param string[] $default_time_formats Array of default time formats.
 	 */
-	$time_formats = array_unique( apply_filters( 'time_formats', array( __( 'g:i a' ), 'g:i A', 'H:i' ) ) );
+	$time_formats = array_unique( apply_filters( 'time_formats', array( __( 'g:i a' ), 'g:i a', 'g:i A', 'H:i' ) ) );
 
 	$custom = true;
 
@@ -528,7 +532,11 @@ foreach ( $time_formats as $format ) {
 		echo " checked='checked'";
 		$custom = false;
 	}
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
+		$lan_default = '';
+	if ( $format === __( 'g:i a' ) ){
+		$lan_default = __( ' ( Site language default )' );
+	}
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . '</code>' . esc_html( $lan_default ). "</label><br />\n";
 }
 
 	echo '<label><input type="radio" name="time_format" id="time_format_custom_radio" value="\c\u\s\t\o\m"';
