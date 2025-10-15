@@ -316,7 +316,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * Tests that derived state props invoked during directive evaluation are
 	 * serialized correctly.
 	 *
-	 * @ticket XXX
+	 * @ticket 63898
 	 */
 	public function test_invoked_derived_state_props_are_serialized() {
 		$returns_whatever = function () {
