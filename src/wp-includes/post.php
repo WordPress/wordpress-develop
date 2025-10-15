@@ -2337,9 +2337,6 @@ function get_all_post_type_supports( $post_type ) {
  * Checks a post type's support for a given feature.
  *
  * @since 3.0.0
- * @since 6.9.0 Added support for sub-features.
- *               To check a sub-feature, pass a slash-delimited feature string
- *               like 'editor/notes'.
  *
  * @global array $_wp_post_type_features
  *
