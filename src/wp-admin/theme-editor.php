@@ -247,6 +247,7 @@ if ( preg_match( '/\.css$/', $file ) ) {
 			$message,
 			array(
 				'type' => 'warning',
+				'id'   => 'wp-css-min-warning',
 			)
 		);
 	}
