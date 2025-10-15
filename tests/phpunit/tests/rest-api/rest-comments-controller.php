@@ -1680,7 +1680,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_invalid_comment_type', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_create_comment_invalid_email() {
@@ -2697,7 +2697,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_comment_invalid_type', $response, 404 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_update_comment_with_raw_property() {
@@ -3286,9 +3286,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertSame( 0, $properties['parent']['default'] );
 		$this->assertSame( 0, $properties['post']['default'] );
+		$this->assertSame( array( 'comment', 'note' ), $properties['type']['enum'] );
 
 		$this->assertTrue( $properties['link']['readonly'] );
-		$this->assertTrue( $properties['type']['readonly'] );
 	}
 
 	public function test_get_item_schema_show_avatar() {
