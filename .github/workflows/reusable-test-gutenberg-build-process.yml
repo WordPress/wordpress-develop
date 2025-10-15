@@ -18,6 +18,7 @@ on:
         default: 'src'
 
 env:
+  GUTENBERG_BUILD_DIRECTORY: /tmp/gutenberg-build
   GUTENBERG_DIRECTORY: ${{ inputs.directory == 'build' && 'build' || 'src' }}/wp-content/plugins/gutenberg
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
   NODE_OPTIONS: '--max-old-space-size=8192'
@@ -58,7 +59,7 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           repository: 'WordPress/gutenberg'
-          path: ${{ env.GUTENBERG_DIRECTORY }}
+          path: ${{ env.GUTENBERG_BUILD_DIRECTORY }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
@@ -69,7 +70,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            ${{ env.GUTENBERG_DIRECTORY }}/package-lock.json
+            ${{ env.GUTENBERG_BUILD_DIRECTORY }}/package-lock.json
 
       - name: Log debug information
         run: |
@@ -83,18 +84,19 @@ jobs:
 
       - name: Install Gutenberg Dependencies
         run: npm ci
-        working-directory: ${{ env.GUTENBERG_DIRECTORY }}
+        working-directory: ${{ env.GUTENBERG_BUILD_DIRECTORY }}
 
       - name: Build Gutenberg
         run: npm run build
-        working-directory: ${{ env.GUTENBERG_DIRECTORY }}
+        working-directory: ${{ env.GUTENBERG_BUILD_DIRECTORY }}
+
+      - name: Move Gutenberg to WordPress plugins directory
+        run: |
+          mkdir -p ${{ env.GUTENBERG_DIRECTORY }}
+          cp -a ${{ env.GUTENBERG_BUILD_DIRECTORY }}/. ${{ env.GUTENBERG_DIRECTORY }}/
 
       - name: Build WordPress to run from ${{ inputs.directory }}
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
-
-      - name: Run Gutenberg build script after building Core to run from ${{ inputs.directory }}
-        run: npm run build
-        working-directory: ${{ env.GUTENBERG_DIRECTORY }}
 
       - name: Ensure version-controlled files are not modified or deleted during building
         run: git diff --exit-code
