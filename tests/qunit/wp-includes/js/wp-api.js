@@ -398,12 +398,12 @@
 
 				theModels.fetch().done( function() {
 
-				// Get the main endpoint.
-				var endpoint = theModels.at(0);
-				var expectedMetas = '{"meta_key":"meta_value"}';
-				if ( 'Tags' === modelType ) {
-					expectedMetas = '{"test_single":"","test_multi":[],"meta_key":"meta_value","test_tag_meta":""}';
-				}
+					// Get the main endpoint.
+					var endpoint = theModels.at(0);
+					var expectedMetas = '{"meta_key":"meta_value"}';
+					if ( 'Tags' === modelType ) {
+						expectedMetas = '{"test_single":"","test_multi":[],"meta_key":"meta_value","test_tag_meta":""}';
+					}
 
 					// Verify the meta object returned correctly from `getMetas()`.
 					assert.equal( JSON.stringify( endpoint.getMetas() ), expectedMetas, 'Full meta key/values object should be readable.' );
