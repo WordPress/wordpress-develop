@@ -914,8 +914,8 @@ final class WP_Interactivity_API {
 			$all_bind_directives = $p->get_attribute_names_with_prefix( 'data-wp-bind--' );
 
 			foreach ( $all_bind_directives as $attribute_name ) {
-				$bound_attribute = $this->parse_directive_name( $attribute_name )['suffix'];
-				if ( empty( $bound_attribute ) ) {
+				['suffix' => $bound_attribute, 'unique_id' => $unique_id] = $this->parse_directive_name( $attribute_name );
+				if ( empty( $bound_attribute ) || null !== $unique_id ) {
 					return;
 				}
 
