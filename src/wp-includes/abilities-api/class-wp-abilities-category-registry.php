@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Abilities API
- * @since 0.3.0
+ * @since 6.9.0
  */
 
 declare( strict_types = 1 );
@@ -14,14 +14,14 @@ declare( strict_types = 1 );
 /**
  * Manages the registration and lookup of ability categories.
  *
- * @since 0.3.0
+ * @since 6.9.0
  * @access private
  */
 final class WP_Abilities_Category_Registry {
 	/**
 	 * The singleton instance of the registry.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @var ?self
 	 */
 	private static $instance = null;
@@ -29,7 +29,7 @@ final class WP_Abilities_Category_Registry {
 	/**
 	 * Holds the registered categories.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @var \WP_Ability_Category[]
 	 */
 	private $registered_categories = array();
@@ -39,7 +39,7 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_register_ability_category()` function.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @see wp_register_ability_category()
 	 *
@@ -66,7 +66,7 @@ final class WP_Abilities_Category_Registry {
 					'<code>abilities_api_categories_init</code>',
 					'<code>' . esc_html( $slug ) . '</code>'
 				),
-				'0.3.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -76,7 +76,7 @@ final class WP_Abilities_Category_Registry {
 				__METHOD__,
 				/* translators: %s: Category slug. */
 				esc_html( sprintf( __( 'Category "%s" is already registered.' ), $slug ) ),
-				'0.3.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -85,7 +85,7 @@ final class WP_Abilities_Category_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				esc_html__( 'Category slug must contain only lowercase alphanumeric characters and dashes.' ),
-				'0.3.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -93,7 +93,7 @@ final class WP_Abilities_Category_Registry {
 		/**
 		 * Filters the category arguments before they are validated and used to instantiate the category.
 		 *
-		 * @since 0.3.0
+		 * @since 6.9.0
 		 *
 		 * @param array<string,mixed> $args The arguments used to instantiate the category.
 		 * @param string              $slug The slug of the category.
@@ -107,7 +107,7 @@ final class WP_Abilities_Category_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				esc_html( $e->getMessage() ),
-				'0.3.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -121,7 +121,7 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_unregister_ability_category()` function.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @see wp_unregister_ability_category()
 	 *
@@ -134,7 +134,7 @@ final class WP_Abilities_Category_Registry {
 				__METHOD__,
 				/* translators: %s: Ability category slug. */
 				sprintf( esc_html__( 'Ability category "%s" not found.' ), esc_attr( $slug ) ),
-				'0.3.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -150,7 +150,7 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_get_ability_categories()` function.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @see wp_get_ability_categories()
 	 *
@@ -163,7 +163,7 @@ final class WP_Abilities_Category_Registry {
 	/**
 	 * Checks if a category is registered.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @param string $slug The slug of the category.
 	 * @return bool True if the category is registered, false otherwise.
@@ -177,7 +177,7 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_get_ability_category()` function.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @see wp_get_ability_category()
 	 *
@@ -190,7 +190,7 @@ final class WP_Abilities_Category_Registry {
 				__METHOD__,
 				/* translators: %s: Ability category slug. */
 				sprintf( esc_html__( 'Ability category "%s" not found.' ), esc_attr( $slug ) ),
-				'0.3.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -202,7 +202,7 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * The instance will be created if it does not exist yet.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @return \WP_Abilities_Category_Registry The main registry instance.
 	 */
@@ -215,7 +215,7 @@ final class WP_Abilities_Category_Registry {
 			 *
 			 * Categories should be registered on this action to ensure they're available when needed.
 			 *
-			 * @since 0.3.0
+			 * @since 6.9.0
 			 *
 			 * @param \WP_Abilities_Category_Registry $instance Categories registry object.
 			 */
@@ -228,7 +228,7 @@ final class WP_Abilities_Category_Registry {
 	/**
 	 * Wakeup magic method.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @throws \LogicException If the registry is unserialized. This is a security hardening measure to prevent unserialization of the registry.
 	 */
 	public function __wakeup(): void {
@@ -238,7 +238,7 @@ final class WP_Abilities_Category_Registry {
 	/**
 	 * Serialization magic method.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @throws \LogicException If the registry is serialized. This is a security hardening measure to prevent serialization of the registry.
 	 */
 	public function __sleep(): array {

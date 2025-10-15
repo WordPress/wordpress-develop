@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Abilities API
- * @since 0.1.0
+ * @since 6.9.0
  */
 
 declare( strict_types = 1 );
@@ -14,7 +14,7 @@ declare( strict_types = 1 );
 /**
  * Encapsulates the properties and methods related to a specific ability in the registry.
  *
- * @since 0.1.0
+ * @since 6.9.0
  *
  * @see WP_Abilities_Registry
  */
@@ -23,7 +23,7 @@ class WP_Ability {
 	/**
 	 * The default value for the `show_in_rest` meta.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @var bool
 	 */
 	protected const DEFAULT_SHOW_IN_REST = false;
@@ -32,7 +32,7 @@ class WP_Ability {
 	 * The default ability annotations.
 	 * They are not guaranteed to provide a faithful description of ability behavior.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @var array<string,(bool|string)>
 	 */
 	protected static $default_annotations = array(
@@ -56,7 +56,7 @@ class WP_Ability {
 	 * The name of the ability, with its namespace.
 	 * Example: `my-plugin/my-ability`.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $name;
@@ -64,7 +64,7 @@ class WP_Ability {
 	/**
 	 * The human-readable ability label.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $label;
@@ -72,7 +72,7 @@ class WP_Ability {
 	/**
 	 * The detailed ability description.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $description;
@@ -80,7 +80,7 @@ class WP_Ability {
 	/**
 	 * The optional ability input schema.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var array<string,mixed>
 	 */
 	protected $input_schema = array();
@@ -88,7 +88,7 @@ class WP_Ability {
 	/**
 	 * The optional ability output schema.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var array<string,mixed>
 	 */
 	protected $output_schema = array();
@@ -96,7 +96,7 @@ class WP_Ability {
 	/**
 	 * The ability execute callback.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var callable( mixed $input= ): (mixed|\WP_Error)
 	 */
 	protected $execute_callback;
@@ -104,7 +104,7 @@ class WP_Ability {
 	/**
 	 * The optional ability permission callback.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var callable( mixed $input= ): (bool|\WP_Error)
 	 */
 	protected $permission_callback;
@@ -112,7 +112,7 @@ class WP_Ability {
 	/**
 	 * The optional ability metadata.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var array<string,mixed>
 	 */
 	protected $meta;
@@ -120,7 +120,7 @@ class WP_Ability {
 	/**
 	 * The ability category (required).
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $category;
@@ -132,7 +132,7 @@ class WP_Ability {
 	 *
 	 * @access private
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -157,7 +157,7 @@ class WP_Ability {
 						'<code>' . esc_html( $this->name ) . '</code>',
 						'<code>' . esc_html( self::class ) . '</code>'
 					),
-					'0.1.0'
+					'6.9.0'
 				);
 				continue;
 			}
@@ -172,7 +172,7 @@ class WP_Ability {
 	 * Errors are thrown as exceptions instead of \WP_Errors to allow for simpler handling and overloading. They are then
 	 * caught and converted to a WP_Error when by WP_Abilities_Registry::register().
 	 *
-	 * @since 0.2.0
+	 * @since 6.9.0
 	 *
 	 * @see WP_Abilities_Registry::register()
 	 *
@@ -279,7 +279,7 @@ class WP_Ability {
 	 * Retrieves the name of the ability, with its namespace.
 	 * Example: `my-plugin/my-ability`.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return string The ability name, with its namespace.
 	 */
@@ -290,7 +290,7 @@ class WP_Ability {
 	/**
 	 * Retrieves the human-readable label for the ability.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return string The human-readable ability label.
 	 */
@@ -301,7 +301,7 @@ class WP_Ability {
 	/**
 	 * Retrieves the detailed description for the ability.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return string The detailed description for the ability.
 	 */
@@ -312,7 +312,7 @@ class WP_Ability {
 	/**
 	 * Retrieves the input schema for the ability.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return array<string,mixed> The input schema for the ability.
 	 */
@@ -323,7 +323,7 @@ class WP_Ability {
 	/**
 	 * Retrieves the output schema for the ability.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return array<string,mixed> The output schema for the ability.
 	 */
@@ -334,7 +334,7 @@ class WP_Ability {
 	/**
 	 * Retrieves the metadata for the ability.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return array<string,mixed> The metadata for the ability.
 	 */
@@ -345,7 +345,7 @@ class WP_Ability {
 	/**
 	 * Retrieves the category for the ability.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @return string The category for the ability.
 	 */
@@ -356,7 +356,7 @@ class WP_Ability {
 	/**
 	 * Retrieves a specific metadata item for the ability.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @param string $key           The metadata key to retrieve.
 	 * @param mixed  $default_value Optional. The default value to return if the metadata item is not found. Default `null`.
@@ -369,7 +369,7 @@ class WP_Ability {
 	/**
 	 * Validates input data against the input schema.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param mixed $input Optional. The input data to validate. Default `null`.
 	 * @return true|\WP_Error Returns true if valid or the WP_Error object if validation fails.
@@ -410,7 +410,7 @@ class WP_Ability {
 	/**
 	 * Invokes a callable, ensuring the input is passed through only if the input schema is defined.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @param callable $callback The callable to invoke.
 	 * @param mixed    $input    Optional. The input data for the ability. Default `null`.
@@ -430,7 +430,7 @@ class WP_Ability {
 	 *
 	 * The input is validated against the input schema before it is passed to to permission callback.
 	 *
-	 * @since 0.2.0
+	 * @since 6.9.0
 	 *
 	 * @param mixed $input Optional. The input data for permission checking. Default `null`.
 	 * @return bool|\WP_Error Whether the ability has the necessary permission.
@@ -452,20 +452,20 @@ class WP_Ability {
 	 * @deprecated 0.2.0 Use check_permissions() instead.
 	 * @see WP_Ability::check_permissions()
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param mixed $input Optional. The input data for permission checking. Default `null`.
 	 * @return bool|\WP_Error Whether the ability has the necessary permission.
 	 */
 	public function has_permission( $input = null ) {
-		_deprecated_function( __METHOD__, '0.2.0', 'WP_Ability::check_permissions()' );
+		_deprecated_function( __METHOD__, '6.9.0' );
 		return $this->check_permissions( $input );
 	}
 
 	/**
 	 * Executes the ability callback.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|\WP_Error The result of the ability execution, or WP_Error on failure.
@@ -485,7 +485,7 @@ class WP_Ability {
 	/**
 	 * Validates output data against the output schema.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param mixed $output The output data to validate.
 	 * @return true|\WP_Error Returns true if valid, or a WP_Error object if validation fails.
@@ -516,7 +516,7 @@ class WP_Ability {
 	 * Executes the ability after input validation and running a permission check.
 	 * Before returning the return value, it also validates the output.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
 	 * @return mixed|\WP_Error The result of the ability execution, or WP_Error on failure.
@@ -532,7 +532,7 @@ class WP_Ability {
 				_doing_it_wrong(
 					__METHOD__,
 					esc_html( $has_permissions->get_error_message() ),
-					'0.1.0'
+					'6.9.0'
 				);
 			}
 
@@ -546,7 +546,7 @@ class WP_Ability {
 		/**
 		 * Fires before an ability gets executed.
 		 *
-		 * @since 0.2.0
+		 * @since 6.9.0
 		 *
 		 * @param string $ability_name The name of the ability.
 		 * @param mixed  $input        The input data for the ability.
@@ -566,7 +566,7 @@ class WP_Ability {
 		/**
 		 * Fires immediately after an ability finished executing.
 		 *
-		 * @since 0.2.0
+		 * @since 6.9.0
 		 *
 		 * @param string $ability_name The name of the ability.
 		 * @param mixed  $input        The input data for the ability.
@@ -580,7 +580,7 @@ class WP_Ability {
 	/**
 	 * Wakeup magic method.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 */
 	public function __wakeup(): void {
 		throw new \LogicException( self::class . ' should never be unserialized.' );

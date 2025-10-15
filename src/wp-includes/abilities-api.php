@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Abilities_API
- * @since 0.1.0
+ * @since 6.9.0
  */
 
 declare( strict_types = 1 );
@@ -16,7 +16,7 @@ declare( strict_types = 1 );
  *
  * Note: Do not use before the {@see 'abilities_api_init'} hook.
  *
- * @since 0.1.0
+ * @since 6.9.0
  *
  * @see WP_Abilities_Registry::register()
  *
@@ -55,7 +55,7 @@ function wp_register_ability( string $name, array $args ): ?WP_Ability {
 				'<code>abilities_api_init</code>',
 				'<code>' . esc_html( $name ) . '</code>'
 			),
-			'0.1.0'
+			'6.9.0'
 		);
 		return null;
 	}
@@ -66,7 +66,7 @@ function wp_register_ability( string $name, array $args ): ?WP_Ability {
 /**
  * Unregisters an ability using Abilities API.
  *
- * @since 0.1.0
+ * @since 6.9.0
  *
  * @see WP_Abilities_Registry::unregister()
  *
@@ -80,7 +80,7 @@ function wp_unregister_ability( string $name ): ?WP_Ability {
 /**
  * Retrieves a registered ability using Abilities API.
  *
- * @since 0.1.0
+ * @since 6.9.0
  *
  * @see WP_Abilities_Registry::get_registered()
  *
@@ -94,7 +94,7 @@ function wp_get_ability( string $name ): ?WP_Ability {
 /**
  * Retrieves all registered abilities using Abilities API.
  *
- * @since 0.1.0
+ * @since 6.9.0
  *
  * @see WP_Abilities_Registry::get_all_registered()
  *
@@ -107,7 +107,7 @@ function wp_get_abilities(): array {
 /**
  * Registers a new ability category.
  *
- * @since 0.3.0
+ * @since 6.9.0
  *
  * @see WP_Abilities_Category_Registry::register()
  *
@@ -131,7 +131,7 @@ function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_
 /**
  * Unregisters an ability category.
  *
- * @since 0.3.0
+ * @since 6.9.0
  *
  * @see WP_Abilities_Category_Registry::unregister()
  *
@@ -145,7 +145,7 @@ function wp_unregister_ability_category( string $slug ): ?WP_Ability_Category {
 /**
  * Retrieves a registered ability category.
  *
- * @since 0.3.0
+ * @since 6.9.0
  *
  * @see WP_Abilities_Category_Registry::get_registered()
  *
@@ -159,7 +159,7 @@ function wp_get_ability_category( string $slug ): ?WP_Ability_Category {
 /**
  * Retrieves all registered ability categories.
  *
- * @since 0.3.0
+ * @since 6.9.0
  *
  * @see WP_Abilities_Category_Registry::get_all_registered()
  *

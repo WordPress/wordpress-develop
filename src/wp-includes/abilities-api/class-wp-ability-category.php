@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Abilities API
- * @since 0.3.0
+ * @since 6.9.0
  */
 
 declare( strict_types = 1 );
@@ -14,7 +14,7 @@ declare( strict_types = 1 );
 /**
  * Encapsulates the properties and methods related to a specific ability category.
  *
- * @since 0.3.0
+ * @since 6.9.0
  *
  * @see WP_Abilities_Category_Registry
  */
@@ -23,7 +23,7 @@ final class WP_Ability_Category {
 	/**
 	 * The unique slug for the category.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $slug;
@@ -31,7 +31,7 @@ final class WP_Ability_Category {
 	/**
 	 * The human-readable category label.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $label;
@@ -39,7 +39,7 @@ final class WP_Ability_Category {
 	/**
 	 * The detailed category description.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $description;
@@ -47,7 +47,7 @@ final class WP_Ability_Category {
 	/**
 	 * The optional category metadata.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @var array<string,mixed>
 	 */
 	protected $meta = array();
@@ -59,7 +59,7 @@ final class WP_Ability_Category {
 	 *
 	 * @access private
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @see wp_register_ability_category()
 	 *
@@ -88,7 +88,7 @@ final class WP_Ability_Category {
 						'<code>' . esc_html( $this->slug ) . '</code>',
 						'<code>' . esc_html( self::class ) . '</code>'
 					),
-					'0.3.0'
+					'6.9.0'
 				);
 				continue;
 			}
@@ -100,7 +100,7 @@ final class WP_Ability_Category {
 	/**
 	 * Prepares and validates the properties used to instantiate the category.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @param array<string,mixed> $args An associative array of arguments used to instantiate the class.
 	 * @return array<string,mixed> The validated and prepared properties.
@@ -140,7 +140,7 @@ final class WP_Ability_Category {
 	/**
 	 * Retrieves the slug of the category.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @return string The category slug.
 	 */
@@ -151,7 +151,7 @@ final class WP_Ability_Category {
 	/**
 	 * Retrieves the human-readable label for the category.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @return string The human-readable category label.
 	 */
@@ -162,7 +162,7 @@ final class WP_Ability_Category {
 	/**
 	 * Retrieves the detailed description for the category.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @return string The detailed description for the category.
 	 */
@@ -173,7 +173,7 @@ final class WP_Ability_Category {
 	/**
 	 * Retrieves the metadata for the category.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 *
 	 * @return array<string,mixed> The metadata for the category.
 	 */
@@ -184,7 +184,7 @@ final class WP_Ability_Category {
 	/**
 	 * Wakeup magic method.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @throws \LogicException If the category is unserialized. This is a security hardening measure to prevent unserialization of the category.
 	 */
 	public function __wakeup(): void {
@@ -194,7 +194,7 @@ final class WP_Ability_Category {
 	/**
 	 * Serialization magic method.
 	 *
-	 * @since 0.3.0
+	 * @since 6.9.0
 	 * @throws \LogicException If the category is serialized. This is a security hardening measure to prevent serialization of the category.
 	 */
 	public function __sleep(): array {

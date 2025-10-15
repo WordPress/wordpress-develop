@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Abilities_API
- * @since 0.1.0
+ * @since 6.9.0
  */
 
 declare( strict_types = 1 );
@@ -12,7 +12,7 @@ declare( strict_types = 1 );
 /**
  * Core controller used to execute abilities via the REST API.
  *
- * @since 0.1.0
+ * @since 6.9.0
  *
  * @see WP_REST_Controller
  */
@@ -21,7 +21,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	/**
 	 * REST API namespace.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $namespace = 'wp/v2';
@@ -29,7 +29,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	/**
 	 * REST API base route.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $rest_base = 'abilities';
@@ -37,7 +37,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Registers the routes for ability execution.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @see register_rest_route()
 	 */
@@ -74,7 +74,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Executes an ability with HTTP method validation.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
 	 * @return \WP_REST_Response|\WP_Error Response object on success, or WP_Error object on failure.
@@ -117,7 +117,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Executes an ability.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
 	 * @return \WP_REST_Response|\WP_Error Response object on success, or WP_Error object on failure.
@@ -147,7 +147,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has permission to execute a specific ability.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
 	 * @return true|\WP_Error True if the request has execution permission, WP_Error object otherwise.
@@ -177,7 +177,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Extracts input parameters from the request.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param \WP_REST_Request<array<string,mixed>> $request The request object.
 	 * @return mixed|null The input parameters.
@@ -197,7 +197,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the arguments for ability execution endpoint.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return array<string, mixed> Arguments for the run endpoint.
 	 */
@@ -214,7 +214,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the schema for ability execution endpoint.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return array<string, mixed> Schema for the run endpoint.
 	 */

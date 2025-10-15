@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Abilities_API
- * @since 0.1.0
+ * @since 6.9.0
  */
 
 declare( strict_types = 1 );
@@ -12,7 +12,7 @@ declare( strict_types = 1 );
 /**
  * Core controller used to access abilities via the REST API.
  *
- * @since 0.1.0
+ * @since 6.9.0
  *
  * @see WP_REST_Controller
  */
@@ -21,7 +21,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	/**
 	 * Default number of items per page for pagination.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var int
 	 */
 	public const DEFAULT_PER_PAGE = 50;
@@ -29,7 +29,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	/**
 	 * REST API namespace.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $namespace = 'wp/v2';
@@ -37,7 +37,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	/**
 	 * REST API base route.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var string
 	 */
 	protected $rest_base = 'abilities';
@@ -45,7 +45,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	/**
 	 * Registers the routes for abilities.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @see register_rest_route()
 	 */
@@ -88,7 +88,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves all abilities.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
 	 * @return \WP_REST_Response Response object on success.
@@ -161,7 +161,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves a specific ability.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
 	 * @return \WP_REST_Response|\WP_Error Response object on success, or WP_Error object on failure.
@@ -183,7 +183,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to read abilities.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
 	 * @return bool True if the request has read access.
@@ -195,7 +195,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	/**
 	 * Prepares an ability for response.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param \WP_Ability                           $ability The ability object.
 	 * @param \WP_REST_Request<array<string,mixed>> $request Request object.
@@ -242,7 +242,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the ability's schema, conforming to JSON Schema.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return array<string, mixed> Item schema data.
 	 */
@@ -304,7 +304,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the query params for collections.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return array<string, mixed> Collection parameters.
 	 */
