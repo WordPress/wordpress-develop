@@ -926,13 +926,13 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	$is_html_content_type = null;
 	$html_content_types   = array( 'text/html', 'application/xhtml+xml' );
 	foreach ( headers_list() as $header ) {
-		$header_parts = preg_split( '/\s*[:;]\s*/', strtolower( $header ) );
+		$header_parts = explode( ':', strtolower( $header ), 2 );
 		if (
-			is_array( $header_parts ) &&
-			count( $header_parts ) >= 2 &&
-			'content-type' === $header_parts[0]
+			count( $header_parts ) === 2 &&
+			'content-type' === trim( $header_parts[0] )
 		) {
-			$is_html_content_type = in_array( $header_parts[1], $html_content_types, true );
+			$content_type         = trim( strtok( $header_parts[1], ';' ) );
+			$is_html_content_type = in_array( $content_type, $html_content_types, true );
 			break; // PHP only sends the first Content-Type header in the list.
 		}
 	}
