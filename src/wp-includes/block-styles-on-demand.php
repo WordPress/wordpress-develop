@@ -3,13 +3,12 @@
  * 
  * Load Block Styles on Command in Classic Themes
  * 
- * Delaying the output of CSS until after the content is loaded, thos way we know what blocks will be on the page, and only load the needed CSS.
+ * Delaying the output of CSS until after the content is loaded, this way we know what blocks will be on the page, and only load the needed CSS.
  *
  * @package WordPress
  * @subpackage Theme_Compat
  * @since 6.9
  */
-
 function always_load_block_styles_on_demand_init() {
     if ( wp_is_block_theme() || ! function_exists( 'wp_should_output_buffer_template_for_enhancement' ) ) {
         return;
@@ -58,7 +57,7 @@ function add_hooks_for_output_buffer(): void {
 		8
 	);
 
-	// Replace logic that prints scripts and styles in the footer,
+	// Replace logic that prints scripts and styles in the footer.
 	$late_styles = '';
 	remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 	add_action(
