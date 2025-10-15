@@ -2532,7 +2532,7 @@ class WP_Query {
 			$fields_requiring_deterministic_orderby = array(
 				'post_name',
 				'post_author',
-				'post_date', 
+				'post_date',
 				'post_title',
 				'post_modified',
 				'post_mime_type',
