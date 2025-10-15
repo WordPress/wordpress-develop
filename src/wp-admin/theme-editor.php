@@ -228,7 +228,7 @@ if ( preg_match( '/\.css$/', $file ) ) {
 		);
 	} elseif ( wp_is_block_theme() && current_user_can( 'edit_theme_options' ) ) {
 		$message = '<p><strong>' . __( 'Did you know?' ) . '</strong></p><p>' . sprintf(
-			/* translators: %s: Link to Additional CSS section in the Site Editor. */
+			/* translators: %s: Link to add custom CSS section in either the Customizer (classic themes) or Site Editor (block themes). */
 			__( 'There is no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
 			esc_url( admin_url( 'site-editor.php?p=%2Fstyles&section=%2Fcss' ) )
 		) . '</p>';
