@@ -403,10 +403,6 @@
 				var expectedMetas = '{"meta_key":"meta_value"}';
 				if ( 'Tags' === modelType ) {
 					expectedMetas = '{"test_single":"","test_multi":[],"meta_key":"meta_value","test_tag_meta":""}';
-				} else if ( 'Posts' === modelType ) {
-					expectedMetas = '{"meta_key":"meta_value","footnotes":""}';
-				} else if ( 'Comments' === modelType ) {
-					expectedMetas = '{"_wp_note_status":null,"meta_key":"meta_value"}';
 				}
 
 					// Verify the meta object returned correctly from `getMetas()`.
