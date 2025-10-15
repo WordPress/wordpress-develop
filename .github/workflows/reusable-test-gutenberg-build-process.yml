@@ -18,7 +18,8 @@ on:
         default: 'src'
 
 env:
-  GUTENBERG_BUILD_DIRECTORY: /tmp/gutenberg-build
+  GUTENBERG_CHECKOUT_DIRECTORY: gutenberg-checkout
+  GUTENBERG_BUILD_DIRECTORY: /tmp/gutenberg-built
   GUTENBERG_DIRECTORY: ${{ inputs.directory == 'build' && 'build' || 'src' }}/wp-content/plugins/gutenberg
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
   NODE_OPTIONS: '--max-old-space-size=8192'
@@ -31,15 +32,18 @@ jobs:
   # Verifies that installing npm dependencies and building the Gutenberg plugin works as expected.
   #
   # Performs the following steps:
-  # - Checks out the repository.
-  # - Checks out the Gutenberg plugin into the plugins directory.
-  # - Sets up Node.js.
+  # - Checks out the Gutenberg plugin to a temporary directory.
+  # - Sets up Node.js for Gutenberg.
+  # - Installs Gutenberg npm dependencies.
+  # - Builds Gutenberg.
+  # - Moves built Gutenberg to a temporary location.
+  # - Removes the Gutenberg checkout to avoid npm conflicts.
+  # - Checks out the wordpress-develop repository.
+  # - Sets up Node.js for WordPress.
   # - Logs debug information about the GitHub Action runner.
   # - Installs Core npm dependencies.
-  # - Installs Gutenberg npm dependencies.
-  # - Runs the Gutenberg build process.
+  # - Moves built Gutenberg to the plugins directory.
   # - Builds WordPress to run from the relevant location (src or build).
-  # - Builds Gutenberg.
   # - Ensures version-controlled files are not modified or deleted.
   build-process-tests:
     name: ${{ contains( inputs.os, 'macos-' ) && 'MacOS' || contains( inputs.os, 'windows-' ) && 'Windows' || 'Linux' }}
@@ -49,28 +53,49 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
-          persist-credentials: false
-
       - name: Checkout Gutenberg plugin
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           repository: 'WordPress/gutenberg'
-          path: ${{ env.GUTENBERG_BUILD_DIRECTORY }}
+          path: ${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
+          node-version-file: '${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}/.nvmrc'
+          cache: npm
+          cache-dependency-path: ${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}/package-lock.json
+
+      - name: Install Gutenberg Dependencies
+        run: npm ci
+        working-directory: ${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}
+
+      - name: Build Gutenberg
+        run: npm run build
+        working-directory: ${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}
+
+      - name: Move built Gutenberg to temporary location
+        run: |
+          mkdir -p ${{ env.GUTENBERG_BUILD_DIRECTORY }}
+          cp -a ${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}/. ${{ env.GUTENBERG_BUILD_DIRECTORY }}/
+
+      - name: Remove Gutenberg checkout
+        run: rm -rf ${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}
+
+      - name: Checkout wordpress-develop repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Set up Node.js for WordPress
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
           node-version-file: '.nvmrc'
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            ${{ env.GUTENBERG_BUILD_DIRECTORY }}/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Log debug information
         run: |
@@ -82,15 +107,7 @@ jobs:
       - name: Install Core Dependencies
         run: npm ci
 
-      - name: Install Gutenberg Dependencies
-        run: npm ci
-        working-directory: ${{ env.GUTENBERG_BUILD_DIRECTORY }}
-
-      - name: Build Gutenberg
-        run: npm run build
-        working-directory: ${{ env.GUTENBERG_BUILD_DIRECTORY }}
-
-      - name: Move Gutenberg to WordPress plugins directory
+      - name: Move built Gutenberg to WordPress plugins directory
         run: |
           mkdir -p ${{ env.GUTENBERG_DIRECTORY }}
           cp -a ${{ env.GUTENBERG_BUILD_DIRECTORY }}/. ${{ env.GUTENBERG_DIRECTORY }}/
