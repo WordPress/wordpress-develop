@@ -248,7 +248,7 @@ function twentysixteen_customize_register( $wp_customize ) {
 add_action( 'customize_register', 'twentysixteen_customize_register', 11 );
 
 /**
- * Render the site title for the selective refresh partial.
+ * Renders the site title for the selective refresh partial.
  *
  * @since Twenty Sixteen 1.2
  *
@@ -261,7 +261,7 @@ function twentysixteen_customize_partial_blogname() {
 }
 
 /**
- * Render the site tagline for the selective refresh partial.
+ * Renders the site tagline for the selective refresh partial.
  *
  * @since Twenty Sixteen 1.2
  *
@@ -838,6 +838,7 @@ CSS;
  * Customizer preview.
  *
  * @since Twenty Sixteen 1.0
+ * @since Twenty Sixteen 4.1 Added `wp_print_inline_script_tag()` support.
  */
 function twentysixteen_color_scheme_css_template() {
 	$colors = array(
@@ -848,11 +849,20 @@ function twentysixteen_color_scheme_css_template() {
 		'secondary_text_color'  => '{{ data.secondary_text_color }}',
 		'border_color'          => '{{ data.border_color }}',
 	);
-	?>
-	<script type="text/html" id="tmpl-twentysixteen-color-scheme">
-		<?php echo twentysixteen_get_color_scheme_css( $colors ); ?>
-	</script>
-	<?php
+
+	$css_template = twentysixteen_get_color_scheme_css( $colors );
+
+	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+		wp_print_inline_script_tag(
+			$css_template,
+			array(
+				'type' => 'text/html',
+				'id'   => 'tmpl-twentysixteen-color-scheme',
+			)
+		);
+	} else {
+		echo '<script type="text/html" id="tmpl-twentysixteen-color-scheme">' . $css_template . '</script>';
+	}
 }
 add_action( 'customize_controls_print_footer_scripts', 'twentysixteen_color_scheme_css_template' );
 
