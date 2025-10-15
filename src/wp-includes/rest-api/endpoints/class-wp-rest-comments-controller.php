@@ -123,10 +123,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
+		$is_note         = ! empty( $request['type'] ) && 'note' === $request['type'];
+		$is_edit_context = ! empty( $request['context'] ) && 'edit' === $request['context'];
 
 		if ( ! empty( $request['post'] ) ) {
 			foreach ( (array) $request['post'] as $post_id ) {
 				$post = get_post( $post_id );
+
+				if ( $post && $is_note && ! $this->check_post_type_supports_notes( $post->post_type ) ) {
+					return new WP_Error(
+						'rest_comment_not_supported_post_type',
+						__( 'Sorry, this post type does not support notes.' ),
+						array( 'status' => 403 )
+					);
+				}
 
 				if ( ! empty( $post_id ) && $post && ! $this->check_read_post_permission( $post, $request ) ) {
 					return new WP_Error(
@@ -144,7 +154,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
+		// Re-map edit context capabilities when requesting `note` for a post.
+		if ( $is_edit_context && $is_note && ! empty( $request['post'] ) ) {
+			foreach ( (array) $request['post'] as $post_id ) {
+				if ( ! current_user_can( 'edit_post', $post_id ) ) {
+					return new WP_Error(
+						'rest_forbidden_context',
+						__( 'Sorry, you are not allowed to edit comments.' ),
+						array( 'status' => rest_authorization_required_code() )
+					);
+				}
+			}
+		} elseif ( $is_edit_context && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to edit comments.' ),
@@ -394,7 +415,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $comment;
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
+		// Re-map edit context capabilities when requesting `note` type.
+		$edit_cap = 'note' === $comment->comment_type ? array( 'edit_comment', $comment->comment_ID ) : array( 'moderate_comments' );
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( ...$edit_cap ) ) {
 			return new WP_Error(
 				'rest_forbidden_context',
 				__( 'Sorry, you are not allowed to edit comments.' ),
@@ -452,6 +475,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has access to create items, error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
+		$is_note = ! empty( $request['type'] ) && 'note' === $request['type'];
+
+		if ( ! is_user_logged_in() && $is_note ) {
+			return new WP_Error(
+				'rest_comment_login_required',
+				__( 'Sorry, you must be logged in to comment.' ),
+				array( 'status' => 401 )
+			);
+		}
+
 		if ( ! is_user_logged_in() ) {
 			if ( get_option( 'comment_registration' ) ) {
 				return new WP_Error(
@@ -505,7 +538,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( isset( $request['status'] ) && ! current_user_can( 'moderate_comments' ) ) {
+		$edit_cap = $is_note ? array( 'edit_post', (int) $request['post'] ) : array( 'moderate_comments' );
+		if ( isset( $request['status'] ) && ! current_user_can( ...$edit_cap ) ) {
 			return new WP_Error(
 				'rest_comment_invalid_status',
 				/* translators: %s: Request parameter. */
@@ -532,7 +566,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( 'draft' === $post->post_status ) {
+		if ( $is_note && ! $this->check_post_type_supports_notes( $post->post_type ) ) {
+			return new WP_Error(
+				'rest_comment_not_supported_post_type',
+				__( 'Sorry, this post type does not support notes.' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( 'draft' === $post->post_status && ! $is_note ) {
 			return new WP_Error(
 				'rest_comment_draft_post',
 				__( 'Sorry, you are not allowed to create a comment on this post.' ),
@@ -556,7 +598,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! comments_open( $post->ID ) ) {
+		if ( ! comments_open( $post->ID ) && ! $is_note ) {
 			return new WP_Error(
 				'rest_comment_closed',
 				__( 'Sorry, comments are closed for this item.' ),
@@ -584,24 +626,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Do not allow comments to be created with a non-default type.
-		if ( ! empty( $request['type'] ) && 'comment' !== $request['type'] ) {
-			return new WP_Error(
-				'rest_invalid_comment_type',
-				__( 'Cannot create a comment with that type.' ),
-				array( 'status' => 400 )
-			);
-		}
-
 		$prepared_comment = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $prepared_comment ) ) {
 			return $prepared_comment;
 		}
 
-		$prepared_comment['comment_type'] = 'comment';
+		$prepared_comment['comment_type'] = $request['type'];
 
 		if ( ! isset( $prepared_comment['comment_content'] ) ) {
 			$prepared_comment['comment_content'] = '';
+		}
+
+		// Include note metadata into check_is_comment_content_allowed.
+		if ( isset( $request['meta']['_wp_note_status'] ) ) {
+			$prepared_comment['meta']['_wp_note_status'] = $request['meta']['_wp_note_status'];
 		}
 
 		if ( ! $this->check_is_comment_content_allowed( $prepared_comment ) ) {
@@ -1518,8 +1556,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'type'              => array(
 					'description' => __( 'Type of the comment.' ),
 					'type'        => 'string',
+					'enum'        => array( 'comment', 'note' ),
+					'default'     => 'comment',
 					'context'     => array( 'view', 'edit', 'embed' ),
-					'readonly'    => true,
 				),
 			),
 		);
@@ -1895,6 +1934,28 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Check if post type supports block comments.
+	 *
+	 * @param string $post_type Post type name.
+	 * @return bool True if post type supports block comments, false otherwise.
+	 */
+	private function check_post_type_supports_notes( $post_type ) {
+		$supports = get_all_post_type_supports( $post_type );
+		if ( ! isset( $supports['editor'] ) ) {
+			return false;
+		}
+		if ( ! is_array( $supports['editor'] ) ) {
+			return false;
+		}
+		foreach ( $supports['editor'] as $item ) {
+			if ( is_array( $item ) && isset( $item['notes'] ) && true === $item['notes'] ) {
+				return true;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * If empty comments are not allowed, checks if the provided comment content is not empty.
 	 *
 	 * @since 5.6.0
@@ -1919,6 +1980,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$allow_empty = apply_filters( 'allow_empty_comment', false, $check );
 
 		if ( $allow_empty ) {
+			return true;
+		}
+
+		// Allow empty block comments only when resolution metadata is valid.
+		if (
+			isset( $check['comment_type'] ) &&
+			'note' === $check['comment_type'] &&
+			isset( $check['meta']['_wp_note_status'] ) &&
+			in_array( $check['meta']['_wp_note_status'], array( 'resolved', 'reopen' ), true )
+		) {
 			return true;
 		}
 
