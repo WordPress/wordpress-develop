@@ -2006,6 +2006,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 }
