@@ -339,17 +339,8 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 			if ( $scale_down ) {
 				$saved = $editor->save( $editor->generate_filename( 'scaled' ) );
 			} elseif ( $convert ) {
-				/*
-				 * Generate a new file name for the converted image.
-				 *
-				 * As the image file name will be unique due to the changed file extension,
-				 * it does not need a suffix to be unique. However, the generate_filename method
-				 * does not allow for an empty suffix, so the "-converted" suffix is required to
-				 * be added and subsequently removed.
-				 */
-				$converted_file_name = $editor->generate_filename( 'converted' );
-				$converted_file_name = preg_replace( '/(-converted\.)([a-z0-9]+)$/i', '.$2', $converted_file_name );
-				$saved               = $editor->save( $converted_file_name );
+				// Pass an empty string to avoid adding a suffix to converted file names.
+				$saved = $editor->save( $editor->generate_filename( '' ) );
 			} else {
 				$saved = $editor->save();
 			}
@@ -976,7 +967,7 @@ function wp_read_image_metadata( $file ) {
 			}
 
 			// If both user comments and description are present.
-			if ( empty( $meta['caption'] ) && $exif_description && $exif_usercomment ) {
+			if ( empty( $meta['caption'] ) && $exif_usercomment ) {
 				if ( ! empty( $meta['title'] ) && $exif_description === $meta['title'] ) {
 					$caption = $exif_usercomment;
 				} else {
@@ -1048,13 +1039,13 @@ function wp_read_image_metadata( $file ) {
 	}
 
 	foreach ( array( 'title', 'caption', 'credit', 'copyright', 'camera', 'iso' ) as $key ) {
-		if ( $meta[ $key ] && ! seems_utf8( $meta[ $key ] ) ) {
+		if ( $meta[ $key ] && ! wp_is_valid_utf8( $meta[ $key ] ) ) {
 			$meta[ $key ] = utf8_encode( $meta[ $key ] );
 		}
 	}
 
 	foreach ( $meta['keywords'] as $key => $keyword ) {
-		if ( ! seems_utf8( $keyword ) ) {
+		if ( ! wp_is_valid_utf8( $keyword ) ) {
 			$meta['keywords'][ $key ] = utf8_encode( $keyword );
 		}
 	}

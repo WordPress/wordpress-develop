@@ -121,9 +121,11 @@ $edit_error     = null;
 $posted_content = null;
 
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
-	$r = wp_edit_theme_plugin_file( wp_unslash( $_POST ) );
-	if ( is_wp_error( $r ) ) {
-		$edit_error = $r;
+	$edit_result = wp_edit_theme_plugin_file( wp_unslash( $_POST ) );
+
+	if ( is_wp_error( $edit_result ) ) {
+		$edit_error = $edit_result;
+
 		if ( check_ajax_referer( 'edit-theme_' . $stylesheet . '_' . $relative_file, 'nonce', false ) && isset( $_POST['newcontent'] ) ) {
 			$posted_content = wp_unslash( $_POST['newcontent'] );
 		}
@@ -146,7 +148,7 @@ $settings = array(
 	'codeEditor' => wp_enqueue_code_editor( compact( 'file' ) ),
 );
 wp_enqueue_script( 'wp-theme-plugin-editor' );
-wp_add_inline_script( 'wp-theme-plugin-editor', sprintf( 'jQuery( function( $ ) { wp.themePluginEditor.init( $( "#template" ), %s ); } )', wp_json_encode( $settings ) ) );
+wp_add_inline_script( 'wp-theme-plugin-editor', sprintf( 'jQuery( function( $ ) { wp.themePluginEditor.init( $( "#template" ), %s ); } )', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) );
 wp_add_inline_script( 'wp-theme-plugin-editor', 'wp.themePluginEditor.themeOrPlugin = "theme";' );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -182,12 +184,7 @@ if ( ! empty( $posted_content ) ) {
 	$content = esc_textarea( $content );
 }
 
-$file_description = get_file_description( $relative_file );
-$file_show        = array_search( $file, array_filter( $allowed_files ), true );
-$description      = esc_html( $file_description );
-if ( $file_description !== $file_show ) {
-	$description .= ' <span>(' . esc_html( $file_show ) . ')</span>';
-}
+$file_show = array_search( $file, array_filter( $allowed_files ), true );
 ?>
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
@@ -235,12 +232,22 @@ if ( preg_match( '/\.css$/', $file ) && ! wp_is_block_theme() && current_user_ca
 <div class="alignleft">
 <h2>
 	<?php
-	echo $theme->display( 'Name' );
-	if ( $description ) {
-		echo ': ' . $description;
+	if ( wp_get_theme()->get( 'Name' ) === $theme->display( 'Name' ) ) {
+		/* translators: %s: Theme name. */
+		printf( __( 'Editing %s (active)' ), '<strong>' . $theme->display( 'Name' ) . '</strong>' );
+	} else {
+		/* translators: %s: Theme name. */
+		printf( __( 'Editing %s (inactive)' ), '<strong>' . $theme->display( 'Name' ) . '</strong>' );
 	}
 	?>
 </h2>
+<?php
+printf(
+	/* translators: %s: File path. */
+	' <span><strong>' . __( 'File: %s' ) . '</strong></span>',
+	esc_html( $file_show )
+);
+?>
 </div>
 <div class="alignright">
 	<form action="theme-editor.php" method="get">
