@@ -2439,7 +2439,7 @@ function wp_ajax_save_widget() {
 	}
 
 	if ( ! empty( $_POST['add_new'] ) ) {
-		wp_die( '', 400 );
+		wp_die( '' );
 	}
 
 	$form = $wp_registered_widget_controls[ $widget_id ];
