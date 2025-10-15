@@ -363,3 +363,7 @@ function _unhook_font_registration() {
 	remove_action( 'init', '_wp_register_default_font_collections' );
 }
 tests_add_filter( 'init', '_unhook_font_registration', 1000 );
+
+function _wp_phpmailer( $phpmailer ) {
+ 	return new MockPHPMailer();
+}
