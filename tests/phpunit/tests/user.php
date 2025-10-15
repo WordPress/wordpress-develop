@@ -607,7 +607,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Ensure the second and subsequent calls to count_many_users_posts() are cached.
 	 *
-	 * @ticket 63405
+	 * @ticket 63045
 	 */
 	public function test_count_many_users_posts_is_cached() {
 		$user_1 = self::$user_ids[0];
@@ -630,7 +630,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Ensure equivalent arguments hit the same cache in count_many_users_posts().
 	 *
-	 * @ticket 63405
+	 * @ticket 63045
 	 *
 	 * @dataProvider data_count_many_users_posts_cached_for_equivalent_arguments
 	 *
@@ -699,7 +699,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Test cache invalidation for count_many_users_posts().
 	 *
-	 * @ticket 63405
+	 * @ticket 63045
 	 */
 	public function test_count_many_users_posts_cache_invalidation() {
 		$user_1 = self::$user_ids[0];
@@ -736,7 +736,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Ensure different post types use different caches in count_many_users_posts().
 	 *
-	 * @ticket 63405
+	 * @ticket 63045
 	 */
 	public function test_different_post_types_use_different_caches() {
 		$user_id = self::$user_ids[0];
@@ -777,7 +777,7 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * Ensure different users use different caches in count_many_users_posts().
 	 *
-	 * @ticket 63405
+	 * @ticket 63045
 	 */
 	public function test_different_users_use_different_caches() {
 		$user_1 = self::$user_ids[0];
