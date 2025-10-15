@@ -1000,7 +1000,8 @@ final class WP_Interactivity_API {
 
 			foreach ( $all_style_attributes as $attribute_name ) {
 				$style_property = $this->parse_directive_name( $attribute_name )['suffix'];
-				if ( empty( $style_property ) ) {
+				['suffix' => $style_property, 'unique_id' => $unique_id] = $this->parse_directive_name( $attribute_name );
+				if ( empty( $style_property ) || null !== $unique_id ) {
 					continue;
 				}
 
