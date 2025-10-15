@@ -47,7 +47,11 @@ Ensure your container environment is running before using these commands.
 
 #### To start the development environment for the first time
 
-Clone the current repository using `git clone https://github.com/WordPress/wordpress-develop.git`. Then in your terminal move to the repository folder `cd wordpress-develop` and run the following commands:
+Goto https://github.com/WordPress/wordpress-develop and fork the repository to your own GitHub account. 
+
+Then clone the forked repository to your computer using `git clone https://github.com/<your-username>/wordpress-develop.git`.
+
+Then in your terminal move to the repository folder `cd wordpress-develop` and run the following commands:
 
 ```
 npm install
