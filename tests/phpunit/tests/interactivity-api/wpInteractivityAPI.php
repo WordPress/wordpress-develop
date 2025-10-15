@@ -708,24 +708,81 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * Tests the ability to extract prefix and suffix from a directive attribute
 	 * name.
 	 *
-	 * @ticket 60356
+	 * @ticket 99999
 	 *
-	 * @covers ::extract_prefix_and_suffix
+	 * @covers ::parse_directive_name
 	 */
-	public function test_extract_prefix_and_suffix() {
-		$extract_prefix_and_suffix = new ReflectionMethod( $this->interactivity, 'extract_prefix_and_suffix' );
+	public function test_parse_directive_name() {
+		$parse_directive_name = new ReflectionMethod( $this->interactivity, 'parse_directive_name' );
 		if ( PHP_VERSION_ID < 80100 ) {
-			$extract_prefix_and_suffix->setAccessible( true );
+			$parse_directive_name->setAccessible( true );
 		}
 
-		$result = $extract_prefix_and_suffix->invoke( $this->interactivity, 'data-wp-interactive' );
-		$this->assertSame( array( 'data-wp-interactive' ), $result );
+		// Should parse directives without suffix or unique ID.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
 
-		$result = $extract_prefix_and_suffix->invoke( $this->interactivity, 'data-wp-bind--src' );
-		$this->assertSame( array( 'data-wp-bind', 'src' ), $result );
+		// Should parse directives with suffix only.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test--one' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( 'one', $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
 
-		$result = $extract_prefix_and_suffix->invoke( $this->interactivity, 'data-wp-foo--and--bar' );
-		$this->assertSame( array( 'data-wp-foo', 'and--bar' ), $result );
+		// Should parse directives with unique ID only.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test---unique-id' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertSame( 'unique-id', $result['unique_id'] );
+
+		// Should parse directives with suffix and unique ID.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test--suffix---unique-id' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( 'suffix', $result['suffix'] );
+		$this->assertSame( 'unique-id', $result['unique_id'] );
+
+		// Should handle empty suffix (just two dashes).
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test--' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
+
+		// Should handle empty unique ID (just three dashes).
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test---' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
+
+		// Should handle only dashes (4 or more dashes).
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test----' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( '--', $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
+
+		// Should handle suffix starting with 4 or more dashes but containing valid characters.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test------custom-suffix' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( '----custom-suffix', $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
+
+		// Should handle complex pattern with multiple dashes.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test--complex--suffix---complex--unique---id' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( 'complex--suffix', $result['suffix'] );
+		$this->assertSame( 'complex--unique---id', $result['unique_id'] );
+
+		// Should handle suffix with dashes followed by unique ID.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test----suffix---unique-id' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( '--suffix', $result['suffix'] );
+		$this->assertSame( 'unique-id', $result['unique_id'] );
+
+		// Should handle unique IDs followed by suffix in wrong order.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test---unique-id--wrong-suffix' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertSame( 'unique-id--wrong-suffix', $result['unique_id'] );
 	}
 
 	/**
