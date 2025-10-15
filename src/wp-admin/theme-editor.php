@@ -240,6 +240,18 @@ if ( preg_match( '/\.css$/', $file ) ) {
 			)
 		);
 	}
+	if ( file_exists( preg_replace( '/\.css$/', '.min.css', $file ) ) ) {
+		$message = '<p><strong>' . __( 'There is a minified version of this stylesheet.' ) . '</strong></p><p>' . sprintf(
+			/* translators: %s: Link to Custom CSS section in the Customizer. */
+			__( 'It is likely that this unminified stylesheet will not be served to visitors.' )
+		) . '</p>';
+		wp_admin_notice(
+			$message,
+			array(
+				'type' => 'warning',
+			)
+		);
+	}
 }
 ?>
 
