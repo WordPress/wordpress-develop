@@ -5,7 +5,7 @@
  * @package WordPress
  * @subpackage REST API
  *
- * @group restapi1
+ * @group restapi
  */
 class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $superadmin_id;
@@ -42,23 +42,23 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
-		self::$superadmin_id = $factory->user->create(
+		self::$superadmin_id  = $factory->user->create(
 			array(
 				'role'       => 'administrator',
 				'user_login' => 'superadmin',
 			)
 		);
-		self::$admin_id      = $factory->user->create(
+		self::$admin_id       = $factory->user->create(
 			array(
 				'role' => 'administrator',
 			)
 		);
-		self::$editor_id     = $factory->user->create(
+		self::$editor_id      = $factory->user->create(
 			array(
 				'role' => 'editor',
 			)
 		);
-		self::$moderator_id  = $factory->user->create(
+		self::$moderator_id   = $factory->user->create(
 			array(
 				'role' => 'comment_moderator',
 			)
@@ -68,12 +68,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'role' => 'contributor',
 			)
 		);
-		self::$subscriber_id = $factory->user->create(
+		self::$subscriber_id  = $factory->user->create(
 			array(
 				'role' => 'subscriber',
 			)
 		);
-		self::$author_id     = $factory->user->create(
+		self::$author_id      = $factory->user->create(
 			array(
 				'role'         => 'author',
 				'display_name' => 'Sea Captain',
@@ -121,6 +121,16 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			)
 		);
 
+		self::$user_ids = array(
+			'superadmin'    => self::$superadmin_id,
+			'administrator' => self::$admin_id,
+			'editor'        => self::$editor_id,
+			'moderator'     => self::$moderator_id,
+			'contributor'   => self::$contributor_id,
+			'subscriber'    => self::$subscriber_id,
+			'author'        => self::$author_id,
+		);
+
 		// Set up comments for pagination tests.
 		for ( $i = 0; $i < self::$total_comments - 1; $i++ ) {
 			self::$comment_ids[] = $factory->comment->create(
@@ -163,16 +173,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		if ( is_multisite() ) {
 			update_site_option( 'site_admins', array( 'superadmin' ) );
 		}
-
-		self::$user_ids = array(
-			'superadmin' => self::$superadmin_id,
-			'administrator' => self::$admin_id,
-			'editor' => self::$editor_id,
-			'moderator' => self::$moderator_id,
-			'contributor' => self::$contributor_id,
-			'subscriber' => self::$subscriber_id,
-			'author' => self::$author_id,
-		);
 	}
 
 	public function test_register_routes() {
@@ -3991,13 +3991,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function data_note_get_items_permissions_data_provider() {
 		return array(
-			'Administrator can see note on other posts' => array( 'administrator', 'author', true ),
-			'Editor can see note on other posts'        => array( 'editor', 'contributor', true ),
-			'Author cannot see note on other posts'     => array( 'author', 'editor', false ),
+			'Administrator can see note on other posts'  => array( 'administrator', 'author', true ),
+			'Editor can see note on other posts'         => array( 'editor', 'contributor', true ),
+			'Author cannot see note on other posts'      => array( 'author', 'editor', false ),
 			'Contributor cannot see note on other posts' => array( 'contributor', 'author', false ),
-			'Subscriber cannot see note'                => array( 'subscriber', 'author', false ),
-			'Author can see note on own post'           => array( 'author', 'author', true ),
-			'Contributor can see note on own post'      => array( 'contributor', 'contributor', true ),
+			'Subscriber cannot see note'                 => array( 'subscriber', 'author', false ),
+			'Author can see note on own post'            => array( 'author', 'author', true ),
+			'Contributor can see note on own post'       => array( 'contributor', 'contributor', true ),
 		);
 	}
 
