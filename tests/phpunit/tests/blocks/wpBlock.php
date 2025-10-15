@@ -569,7 +569,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 				'expected_scripts'        => array( 'static-view-script', 'admin-bar' ),
 				'expected_script_modules' => array( 'static-view-script-module' ),
 			),
-			'enqueues_in_wp_head_block'      => array(
+			'enqueues_in_wp_head_block'               => array(
 				'set_up'                  => static function () {
 					remove_all_actions( 'wp_head' );
 					remove_all_actions( 'wp_enqueue_scripts' );
