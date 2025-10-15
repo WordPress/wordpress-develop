@@ -497,7 +497,7 @@ class WP_Block {
 		// Capture the current assets queues.
 		$before_styles_queue         = wp_styles()->queue;
 		$before_scripts_queue        = wp_scripts()->queue;
-		$before_script_modules_queue = wp_script_modules()->queue;
+		$before_script_modules_queue = wp_script_modules()->get_queue();
 
 		/*
 		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
@@ -671,7 +671,7 @@ class WP_Block {
 		// Capture the new assets enqueued during rendering, and restore the queues the state prior to rendering.
 		$after_styles_queue         = wp_styles()->queue;
 		$after_scripts_queue        = wp_scripts()->queue;
-		$after_script_modules_queue = wp_script_modules()->queue;
+		$after_script_modules_queue = wp_script_modules()->get_queue();
 
 		/*
 		 * As a very special case, a dynamic block may in fact include a call to wp_head() in which all of its enqueued

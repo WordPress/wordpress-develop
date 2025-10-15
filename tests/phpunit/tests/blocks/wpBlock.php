@@ -676,7 +676,7 @@ class Tests_Blocks_wpBlock extends WP_UnitTestCase {
 
 		$this->assertSameSets( $expected_styles, wp_styles()->queue, 'Enqueued styles do not meet expectations' );
 		$this->assertSameSets( $expected_scripts, wp_scripts()->queue, 'Enqueued scripts do not meet expectations' );
-		$this->assertSameSets( $expected_script_modules, wp_script_modules()->queue, 'Enqueued script modules do not meet expectations' );
+		$this->assertSameSets( $expected_script_modules, wp_script_modules()->get_queue(), 'Enqueued script modules do not meet expectations' );
 
 		$this->assertEqualHTML(
 			$expected_rendered_block,
