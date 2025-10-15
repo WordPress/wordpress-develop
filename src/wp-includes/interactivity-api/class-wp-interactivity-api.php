@@ -1220,11 +1220,19 @@ HTML;
 	 */
 	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack ) {
 		if ( 'enter' === $mode && 'TEMPLATE' === $p->get_tag() ) {
-			$attribute_name   = $p->get_attribute_names_with_prefix( 'data-wp-each' )[0];
-			$extracted_suffix = $this->parse_directive_name( $attribute_name )['suffix'];
-			$item_name        = isset( $extracted_suffix ) ? $this->kebab_to_camel_case( $extracted_suffix ) : 'item';
-			$attribute_value  = $p->get_attribute( $attribute_name );
-			$result           = $this->evaluate( $attribute_value );
+			$each_directives = $p->get_attribute_names_with_prefix( 'data-wp-each' );
+			if ( count( $each_directives ) > 1 ) {
+				// There should be only one `data-wp-each` directive per template tag.
+				return;
+			}
+			$attribute_name = $each_directives[0];
+			['suffix' => $extracted_suffix, 'unique_id' => $unique_id] = $this->parse_directive_name( $attribute_name );
+			if ( null !== $unique_id ) {
+				return;
+			}
+			$item_name       = isset( $extracted_suffix ) ? $this->kebab_to_camel_case( $extracted_suffix ) : 'item';
+			$attribute_value = $p->get_attribute( $attribute_name );
+			$result          = $this->evaluate( $attribute_value );
 
 			// Gets the content between the template tags and leaves the cursor in the closer tag.
 			$inner_content = $p->get_content_between_balanced_template_tags();
