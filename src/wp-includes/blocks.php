@@ -2396,6 +2396,8 @@ function render_block( $parsed_block ) {
  * }
  */
 function parse_blocks( $content ) {
+	$content = wp_replace_bits( $content );
+
 	/**
 	 * Filter to allow plugins to replace the server-side block parser.
 	 *
