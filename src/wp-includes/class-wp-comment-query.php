@@ -939,6 +939,16 @@ class WP_Comment_Query {
 		 */
 		$clauses = apply_filters_ref_array( 'comments_clauses', array( compact( $pieces ), &$this ) );
 
+		// Exclude notes from admin comment queries.
+		if ( is_admin() && isset( $this->query_vars['type'] ) && '' === $this->query_vars['type'] ) {
+			global $wpdb;
+			if ( isset( $clauses['where'] ) && ! empty( $clauses['where'] ) ) {
+				$clauses['where'] .= " AND {$wpdb->comments}.comment_type != 'note'";
+			} else {
+				$clauses['where'] = "{$wpdb->comments}.comment_type != 'note'";
+			}
+		}
+
 		$fields  = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
 		$join    = isset( $clauses['join'] ) ? $clauses['join'] : '';
 		$where   = isset( $clauses['where'] ) ? $clauses['where'] : '';
