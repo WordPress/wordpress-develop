@@ -448,4 +448,31 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 		list($p) = $this->process_directives( $html );
 		$this->assertNull( $p->get_attribute( 'style' ) );
 	}
+
+	/**
+	 * Tests it can use CSS variables.
+	 *
+	 * @ticket 99999
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_style_can_use_CSS_variables() {
+		$html    = '<div data-wp-style----text-color="myPlugin::state.green">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( '--text-color:green;', $p->get_attribute( 'style' ) );
+	}
+
+	/**
+	 * Tests it ignores unique IDs.
+	 *
+	 * @ticket 99999
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_style_ignores_unique_ids() {
+		$this->interactivity->state( 'myPlugin', array( 'text' => '' ) );
+		$html    = '<div data-wp-style--color---unique-id="myPlugin::state.green">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'style' ) );
+	}
 }
