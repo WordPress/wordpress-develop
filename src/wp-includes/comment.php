@@ -726,6 +726,11 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 	 */
 	$dupe_id = apply_filters( 'duplicate_comment_id', $dupe_id, $commentdata );
 
+	// Allow duplicate notes for resolution purposes.
+	if ( $dupe_id && isset( $commentdata['comment_type'] ) && 'note' === $commentdata['comment_type'] ) {
+		$dupe_id = false;
+	}
+
 	if ( $dupe_id ) {
 		/**
 		 * Fires immediately after a duplicate comment is detected.
