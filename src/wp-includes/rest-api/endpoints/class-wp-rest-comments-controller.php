@@ -1962,7 +1962,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		// Allow empty block comments only when resolution metadata is valid.
+		// Allow empty notes only when resolution metadata is valid.
 		if (
 			isset( $check['comment_type'] ) &&
 			'note' === $check['comment_type'] &&
@@ -1980,10 +1980,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check if post type supports block comments.
+	 * Check if post type supports notes.
 	 *
 	 * @param string $post_type Post type name.
-	 * @return bool True if post type supports block comments, false otherwise.
+	 * @return bool True if post type supports notes, false otherwise.
 	 */
 	private function check_post_type_supports_notes( $post_type ) {
 		$supports = get_all_post_type_supports( $post_type );
