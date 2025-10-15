@@ -573,6 +573,8 @@ class Tests_User extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21431
+	 *
+	 * @covers ::count_many_users_posts
 	 */
 	public function test_count_many_users_posts() {
 		$user_id_b = self::factory()->user->create( array( 'role' => 'author' ) );
@@ -608,6 +610,8 @@ class Tests_User extends WP_UnitTestCase {
 	 * Ensure the second and subsequent calls to count_many_users_posts() are cached.
 	 *
 	 * @ticket 63045
+	 *
+	 * @covers ::count_many_users_posts
 	 */
 	public function test_count_many_users_posts_is_cached() {
 		$user_1 = self::$user_ids[0];
@@ -618,19 +622,22 @@ class Tests_User extends WP_UnitTestCase {
 		self::factory()->post->create( array( 'post_author' => $user_2 ) );
 
 		// Warm the cache.
-		count_many_users_posts( array( $user_1, $user_2 ), 'post', false );
+		$count1 = count_many_users_posts( array( $user_1, $user_2 ), 'post', false );
 
 		// Ensure cache is hit for second call.
 		$start_queries = get_num_queries();
-		count_many_users_posts( array( $user_1, $user_2 ), 'post', false );
-		$end_queries = get_num_queries();
-		$this->assertSame( $end_queries - $start_queries, 0, 'No database queries expected for second call to count_many_users_posts()' );
+		$count2        = count_many_users_posts( array( $user_1, $user_2 ), 'post', false );
+		$end_queries   = get_num_queries();
+		$this->assertSame( 0, $end_queries - $start_queries, 'No database queries expected for second call to count_many_users_posts()' );
+		$this->assertSameSetsWithIndex( $count1, $count2, 'Expected same results from both calls to count_many_users_posts()' );
 	}
 
 	/**
 	 * Ensure equivalent arguments hit the same cache in count_many_users_posts().
 	 *
 	 * @ticket 63045
+	 *
+	 * @covers ::count_many_users_posts
 	 *
 	 * @dataProvider data_count_many_users_posts_cached_for_equivalent_arguments
 	 *
@@ -653,13 +660,14 @@ class Tests_User extends WP_UnitTestCase {
 		);
 
 		// Warm the cache with the first set of arguments.
-		count_many_users_posts( ...$first_args );
+		$count1 = count_many_users_posts( ...$first_args );
 
 		// Ensure the cache is hit for the second set of equivalent arguments.
 		$start_queries = get_num_queries();
-		count_many_users_posts( ...$second_args );
-		$end_queries = get_num_queries();
-		$this->assertSame( $end_queries - $start_queries, 0, 'No database queries expected for second call to count_many_users_posts() with equivalent arguments' );
+		$count2        = count_many_users_posts( ...$second_args );
+		$end_queries   = get_num_queries();
+		$this->assertSame( 0, $end_queries - $start_queries, 'No database queries expected for second call to count_many_users_posts() with equivalent arguments' );
+		$this->assertSameSetsWithIndex( $count1, $count2, 'Expected same results from both calls to count_many_users_posts()' );
 	}
 
 	/**
@@ -700,6 +708,8 @@ class Tests_User extends WP_UnitTestCase {
 	 * Test cache invalidation for count_many_users_posts().
 	 *
 	 * @ticket 63045
+	 *
+	 * @covers ::count_many_users_posts
 	 */
 	public function test_count_many_users_posts_cache_invalidation() {
 		$user_1 = self::$user_ids[0];
@@ -737,6 +747,8 @@ class Tests_User extends WP_UnitTestCase {
 	 * Ensure different post types use different caches in count_many_users_posts().
 	 *
 	 * @ticket 63045
+	 *
+	 * @covers ::count_many_users_posts
 	 */
 	public function test_different_post_types_use_different_caches() {
 		$user_id = self::$user_ids[0];
@@ -764,13 +776,13 @@ class Tests_User extends WP_UnitTestCase {
 		$start_queries = get_num_queries();
 		$count1        = count_many_users_posts( array( $user_id ), 'post', false );
 		$end_queries   = get_num_queries();
-		$this->assertSame( $end_queries - $start_queries, 1, 'Expected to hit database for first call to count_many_users_posts() with post type "post".' );
+		$this->assertSame( 1, $end_queries - $start_queries, 'Expected to hit database for first call to count_many_users_posts() with post type "post".' );
 		$this->assertSame( '1', $count1[ $user_id ], 'Expected to have one post for user with post type "post".' );
 
 		$start_queries = get_num_queries();
 		$count2        = count_many_users_posts( array( $user_id ), 'page', false );
 		$end_queries   = get_num_queries();
-		$this->assertSame( $end_queries - $start_queries, 1, 'Expected to hit database for first call to count_many_users_posts() with post type "page".' );
+		$this->assertSame( 1, $end_queries - $start_queries, 'Expected to hit database for first call to count_many_users_posts() with post type "page".' );
 		$this->assertSame( '2', $count2[ $user_id ], 'Expected to have two pages for user with post type "page".' );
 	}
 
@@ -778,6 +790,8 @@ class Tests_User extends WP_UnitTestCase {
 	 * Ensure different users use different caches in count_many_users_posts().
 	 *
 	 * @ticket 63045
+	 *
+	 * @covers ::count_many_users_posts
 	 */
 	public function test_different_users_use_different_caches() {
 		$user_1 = self::$user_ids[0];
@@ -806,13 +820,13 @@ class Tests_User extends WP_UnitTestCase {
 		$start_queries = get_num_queries();
 		$count1        = count_many_users_posts( array( $user_1 ), 'post', false );
 		$end_queries   = get_num_queries();
-		$this->assertSame( $end_queries - $start_queries, 1, 'Expected to hit database for first call to count_many_users_posts() with user 1.' );
+		$this->assertSame( 1, $end_queries - $start_queries, 'Expected to hit database for first call to count_many_users_posts() with user 1.' );
 		$this->assertSame( '1', $count1[ $user_1 ], 'Expected to have one post for user 1 with post type "post".' );
 
 		$start_queries = get_num_queries();
 		$count2        = count_many_users_posts( array( $user_2 ), 'post', false );
 		$end_queries   = get_num_queries();
-		$this->assertSame( $end_queries - $start_queries, 1, 'Expected to hit database for first call to count_many_users_posts() with user 2.' );
+		$this->assertSame( 1, $end_queries - $start_queries, 'Expected to hit database for first call to count_many_users_posts() with user 2.' );
 		$this->assertSame( '2', $count2[ $user_2 ], 'Expected to have two posts for user 2 with post type "post".' );
 	}
 
