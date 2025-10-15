@@ -851,30 +851,58 @@ final class WP_Interactivity_API {
 			return;
 		}
 
-		$attribute_value = $p->get_attribute( 'data-wp-context' );
-		$namespace_value = end( $this->namespace_stack );
+		$all_context_attributes = $p->get_attribute_names_with_prefix( 'data-wp-context' );
+		// Filter out entries with a suffix and ensure it is only 'data-wp-context'.
+		$all_context_attributes = array_filter(
+			$all_context_attributes,
+			function ( $attribute_name ) {
+				$params = $this->parse_directive_name( $attribute_name );
+				return null === $params['suffix'] && 'context' === $params['prefix'];
+			}
+		);
+		usort(
+			$all_context_attributes,
+			function ( $a, $b ) {
+				$a_parsed = $this->parse_directive_name( $a );
+				$b_parsed = $this->parse_directive_name( $b );
 
-		// Separates the namespace from the context JSON object.
-		list( $namespace_value, $decoded_json ) = is_string( $attribute_value ) && ! empty( $attribute_value )
-			? $this->extract_directive_value( $attribute_value, $namespace_value )
-			: array( $namespace_value, null );
+				$a_id = $a_parsed['unique_id'] ?? '';
+				$b_id = $b_parsed['unique_id'] ?? '';
 
-		/*
-		 * If there is a namespace, it adds a new context to the stack merging the
-		 * previous context with the new one.
-		 */
-		if ( is_string( $namespace_value ) ) {
-			$this->context_stack[] = array_replace_recursive(
-				end( $this->context_stack ) !== false ? end( $this->context_stack ) : array(),
-				array( $namespace_value => is_array( $decoded_json ) ? $decoded_json : array() )
-			);
-		} else {
+				return $b_id <=> $a_id;
+			}
+		);
+
+		foreach ( $all_context_attributes as $attribute_name ) {
+			$params = $this->parse_directive_name( $attribute_name );
+			if ( 'context' !== $params['prefix'] || null !== $params['suffix'] ) {
+				continue;
+			}
+			$attribute_value = $p->get_attribute( $attribute_name );
+			$namespace_value = end( $this->namespace_stack );
+
+			// Separates the namespace from the context JSON object.
+			list( $namespace_value, $decoded_json ) = is_string( $attribute_value ) && ! empty( $attribute_value )
+				? $this->extract_directive_value( $attribute_value, $namespace_value )
+				: array( $namespace_value, null );
+
 			/*
-			 * If there is no namespace, it pushes the current context to the stack.
-			 * It needs to do so because the function pops out the current context
-			 * from the stack whenever it finds a `data-wp-context`'s closing tag.
+			 * If there is a namespace, it adds a new context to the stack merging the
+			 * previous context with the new one.
 			 */
-			$this->context_stack[] = end( $this->context_stack );
+			if ( is_string( $namespace_value ) ) {
+				$this->context_stack[] = array_replace_recursive(
+					end( $this->context_stack ) !== false ? end( $this->context_stack ) : array(),
+					array( $namespace_value => is_array( $decoded_json ) ? $decoded_json : array() )
+				);
+			} else {
+				/*
+				 * If there is no namespace, it pushes the current context to the stack.
+				 * It needs to do so because the function pops out the current context
+				 * from the stack whenever it finds a `data-wp-context`'s closing tag.
+				 */
+				$this->context_stack[] = end( $this->context_stack );
+			}
 		}
 	}
 

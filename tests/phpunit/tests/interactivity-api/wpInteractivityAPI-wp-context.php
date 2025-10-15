@@ -537,8 +537,8 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 				data-wp-context=\'{ "prop": "parent", "parent": true }\'
 			>
 				<div
-					data-wp-context=\'{ "prop": "default", "default": true }\'
 					data-wp-context---id1=\'{ "prop": "id1", "id1": true }\'
+					data-wp-context=\'{ "prop": "default", "default": true }\'
 					data-wp-context---id2=\'other-namespace::{ "prop": true }\'
 				>
 					<span
