@@ -77,11 +77,13 @@ jobs:
         working-directory: ${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}
 
       - name: Move built Gutenberg to temporary location
+        shell: bash
         run: |
           mkdir -p ${{ env.GUTENBERG_BUILD_DIRECTORY }}
-          cp -a ${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}/. ${{ env.GUTENBERG_BUILD_DIRECTORY }}/
+          cp -rL ${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}/. ${{ env.GUTENBERG_BUILD_DIRECTORY }}/
 
       - name: Remove Gutenberg checkout
+        shell: bash
         run: rm -rf ${{ env.GUTENBERG_CHECKOUT_DIRECTORY }}
 
       - name: Checkout wordpress-develop repository
@@ -108,9 +110,10 @@ jobs:
         run: npm ci
 
       - name: Move built Gutenberg to WordPress plugins directory
+        shell: bash
         run: |
           mkdir -p ${{ env.GUTENBERG_DIRECTORY }}
-          cp -a ${{ env.GUTENBERG_BUILD_DIRECTORY }}/. ${{ env.GUTENBERG_DIRECTORY }}/
+          cp -rL ${{ env.GUTENBERG_BUILD_DIRECTORY }}/. ${{ env.GUTENBERG_DIRECTORY }}/
 
       - name: Build WordPress to run from ${{ inputs.directory }}
         run: npm run ${{ inputs.directory == 'src' && 'build:dev' || 'build' }}
