@@ -630,7 +630,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! empty( $request['type'] ) && ! in_array( $request['type'], array( 'comment', 'note' ), true ) ) {
 			return new WP_Error(
 				'rest_invalid_comment_type',
-				__( 'Cannot create a comment with that type.', 'gutenberg' ),
+				__( 'Cannot create a comment with that type.' ),
 				array( 'status' => 400 )
 			);
 		}
