@@ -105,6 +105,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should reject ability name without a namespace.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
@@ -116,6 +118,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should reject ability name with invalid characters.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
@@ -129,6 +133,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should reject ability name with uppercase characters.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
@@ -140,6 +146,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should reject ability registration without a label.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
@@ -157,6 +165,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should reject ability registration with invalid label type.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
@@ -171,6 +181,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should reject ability registration without a description.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
@@ -188,6 +200,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should reject ability registration with invalid description type.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
@@ -202,6 +216,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should reject ability registration without an execute callback.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
@@ -219,6 +235,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should reject ability registration if the execute callback is not a callable.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
@@ -233,6 +251,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should reject ability registration without an execute callback.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
@@ -250,6 +270,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should reject ability registration if the permission callback is not a callable.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
@@ -265,6 +287,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should reject ability registration if the input schema is not an array.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
@@ -279,6 +303,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should reject ability registration if the output schema is not an array.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
@@ -296,6 +322,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should reject ability registration with invalid `annotations` type.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
@@ -310,6 +338,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should reject ability registration with invalid meta type.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
@@ -326,6 +356,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should reject ability registration with invalid show in REST type.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
@@ -340,6 +372,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should reject registration for already registered ability.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
@@ -356,6 +390,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should successfully register a new ability.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::register
 	 */
 	public function test_register_new_ability() {
@@ -370,6 +406,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should return false for ability that's not registered.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::is_registered
 	 */
 	public function test_is_registered_for_unknown_ability() {
@@ -379,6 +417,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should return true if ability is registered.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Abilities_Registry::is_registered
@@ -395,6 +435,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should not find ability that's not registered.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::get_registered
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
@@ -406,6 +448,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should find registered ability by name.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Abilities_Registry::get_registered
@@ -422,6 +466,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Unregistering should fail if a ability is not registered.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Abilities_Registry::unregister
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::unregister
@@ -433,6 +479,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should unregister ability by name.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Abilities_Registry::unregister
@@ -450,6 +498,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Should retrieve all registered abilities.
+	 *
+	 * @ticket 64098
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Abilities_Registry::get_all_registered
@@ -474,6 +524,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Direct instantiation of WP_Ability with invalid properties should throw an exception.
 	 *
+	 * @ticket 64098
+	 *
 	 * @covers WP_Ability::__construct
 	 * @covers WP_Ability::prepare_properties
 	 */
@@ -491,6 +543,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Test register_ability_args filter modifies the args before ability instantiation.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_register_ability_args_filter_modifies_args() {
 		$was_filter_callback_fired = false;
@@ -532,6 +586,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Test register_ability_args filter can block ability registration by returning invalid args.
 	 *
+	 * @ticket 64098
+	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_args_filter_blocks_registration() {
@@ -555,6 +611,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Test register_ability_args filter can block an invalid ability class from being used.
+	 *
+	 * @ticket 64098
+	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_args_filter_blocks_invalid_ability_class() {
@@ -577,6 +636,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 	/**
 	 * Tests register_ability_args filter is only applied to the specific ability being registered.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_register_ability_args_filter_only_applies_to_specific_ability() {
 		add_filter(

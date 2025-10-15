@@ -114,6 +114,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	/**
 	 * Tests registering an ability with invalid name.
 	 *
+	 * @ticket 64098
+	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_invalid_name(): void {
@@ -126,6 +128,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests registering an ability when `abilities_api_init` hook is not fired.
+	 *
+	 * @ticket 64098
 	 *
 	 * @expectedIncorrectUsage wp_register_ability
 	 */
@@ -150,6 +154,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests registering a valid ability.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_register_valid_ability(): void {
 		do_action( 'abilities_api_init' );
@@ -199,6 +205,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests executing an ability with no permissions.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_register_ability_no_permissions(): void {
 		do_action( 'abilities_api_init' );
@@ -232,6 +240,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests registering an ability with a custom ability class.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_register_ability_custom_ability_class(): void {
 		do_action( 'abilities_api_init' );
@@ -272,6 +282,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests executing an ability with input not matching schema.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_execute_ability_no_input_schema_match(): void {
 		do_action( 'abilities_api_init' );
@@ -299,6 +311,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests executing an ability with output not matching schema.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_execute_ability_no_output_schema_match(): void {
 		do_action( 'abilities_api_init' );
@@ -328,6 +342,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests permission callback receiving input not matching schema.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_permission_callback_no_input_schema_match(): void {
 		do_action( 'abilities_api_init' );
@@ -356,6 +372,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	/**
 	 * Tests that deprecated has_permission() method still works.
 	 *
+	 * @ticket 64098
+	 *
 	 * @expectedDeprecated WP_Ability::has_permission
 	 */
 	public function test_has_permission_deprecated_coverage(): void {
@@ -376,6 +394,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests permission callback receiving input for contextual permission checks.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_permission_callback_receives_input(): void {
 		do_action( 'abilities_api_init' );
@@ -426,6 +446,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests unregistering existing ability.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_unregister_existing_ability() {
 		do_action( 'abilities_api_init' );
@@ -442,6 +464,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests retrieving existing ability.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_get_existing_ability() {
 		$name     = self::$test_ability_name;
@@ -471,6 +495,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests retrieving all registered abilities.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_get_all_registered_abilities() {
 		do_action( 'abilities_api_init' );
@@ -499,6 +525,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 	/**
 	 * Tests registering an ability with non-existent category.
+	 *
+	 * @ticket 64098
 	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */

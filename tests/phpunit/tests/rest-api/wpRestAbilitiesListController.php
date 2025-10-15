@@ -4,6 +4,7 @@
  * Tests for the REST list controller for abilities endpoint.
  *
  * @covers WP_REST_Abilities_List_Controller
+ *
  * @group abilities-api
  * @group rest-api
  */
@@ -256,6 +257,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test listing all abilities.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_get_items(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
@@ -277,6 +280,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test getting a specific ability.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_get_item(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
@@ -297,6 +302,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	/**
 	 * Test getting a non-existent ability returns 404.
 	 *
+	 * @ticket 64098
+	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
 	 */
 	public function test_get_item_not_found(): void {
@@ -311,6 +318,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test getting an ability that does not show in REST returns 404.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_get_item_not_show_in_rest(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/not-show-in-rest' );
@@ -324,6 +333,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test permission check for listing abilities.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_get_items_permission_denied(): void {
 		// Test with non-logged-in user
@@ -337,6 +348,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test pagination headers.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_pagination_headers(): void {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
@@ -356,6 +369,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test HEAD method returns empty body with proper headers.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_head_request(): void {
 		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/abilities' );
@@ -373,6 +388,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test pagination links.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_pagination_links(): void {
 		// Test first page (should have 'next' link header but no 'prev')
@@ -413,6 +430,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test collection parameters.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_collection_params(): void {
 		// Test per_page parameter
@@ -444,6 +463,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test response links for individual abilities.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_ability_response_links(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
@@ -467,6 +488,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test context parameter.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_context_parameter(): void {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
@@ -486,6 +509,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test schema retrieval.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_get_schema(): void {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/abilities' );
@@ -525,6 +550,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test ability name with valid special characters.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_ability_name_with_valid_special_characters(): void {
 		// Register ability with hyphen (valid)
@@ -555,7 +582,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: string}>
 	 */
-	public function invalid_ability_names_provider(): array {
+	public function data_invalid_ability_names_provider(): array {
 		return array(
 			'@ symbol'          => array( 'test@ability' ),
 			'space'             => array( 'test ability' ),
@@ -571,7 +598,10 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	/**
 	 * Test ability names with invalid special characters.
 	 *
-	 * @dataProvider invalid_ability_names_provider
+	 * @ticket 64098
+	 *
+	 * @dataProvider data_invalid_ability_names_provider
+	 *
 	 * @param string $name Invalid ability name to test.
 	 */
 	public function test_ability_name_with_invalid_special_characters( string $name ): void {
@@ -581,9 +611,11 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$this->assertEquals( 404, $response->get_status() );
 	}
 
-
 	/**
 	 * Test extremely long ability names.
+	 *
+	 * @ticket 64098
+	 *
 	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
 	 */
 	public function test_extremely_long_ability_names(): void {
@@ -602,7 +634,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array<string, mixed>}>
 	 */
-	public function invalid_pagination_params_provider(): array {
+	public function data_invalid_pagination_params_provider(): array {
 		return array(
 			'Zero page'            => array( array( 'page' => 0 ) ),
 			'Negative page'        => array( array( 'page' => -1 ) ),
@@ -617,7 +649,10 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	/**
 	 * Test pagination parameters with invalid values.
 	 *
-	 * @dataProvider invalid_pagination_params_provider
+	 * @ticket 64098
+	 *
+	 * @dataProvider data_invalid_pagination_params_provider
+	 *
 	 * @param array<string, mixed> $params Invalid pagination parameters.
 	 */
 	public function test_invalid_pagination_parameters( array $params ): void {
@@ -640,6 +675,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test filtering abilities by category.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_filter_by_category(): void {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
@@ -664,6 +701,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test filtering by non-existent category returns empty results.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_filter_by_nonexistent_category(): void {
 		// Ensure category doesn't exist - test should fail if it does.
@@ -685,6 +724,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 	/**
 	 * Test that category field is present in response.
+	 *
+	 * @ticket 64098
 	 */
 	public function test_category_field_in_response(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );

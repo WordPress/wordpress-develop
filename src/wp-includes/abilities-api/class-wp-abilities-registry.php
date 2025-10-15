@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Abilities API
- * @since 0.1.0
+ * @since 6.9.0
  */
 
 declare( strict_types = 1 );
@@ -14,14 +14,14 @@ declare( strict_types = 1 );
 /**
  * Manages the registration and lookup of abilities.
  *
- * @since 0.1.0
+ * @since 6.9.0
  * @access private
  */
 final class WP_Abilities_Registry {
 	/**
 	 * The singleton instance of the registry.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var ?self
 	 */
 	private static $instance = null;
@@ -29,7 +29,7 @@ final class WP_Abilities_Registry {
 	/**
 	 * Holds the registered abilities.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @var \WP_Ability[]
 	 */
 	private $registered_abilities = array();
@@ -39,7 +39,7 @@ final class WP_Abilities_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_register_ability()` function.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -74,7 +74,7 @@ final class WP_Abilities_Registry {
 				esc_html__(
 					'Ability name must be a string containing a namespace prefix, i.e. "my-plugin/my-ability". It can only contain lowercase alphanumeric characters, dashes and the forward slash.'
 				),
-				'0.1.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -84,7 +84,7 @@ final class WP_Abilities_Registry {
 				__METHOD__,
 				/* translators: %s: Ability name. */
 				esc_html( sprintf( __( 'Ability "%s" is already registered.' ), $name ) ),
-				'0.1.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -92,7 +92,7 @@ final class WP_Abilities_Registry {
 		/**
 		 * Filters the ability arguments before they are validated and used to instantiate the ability.
 		 *
-		 * @since 0.2.0
+		 * @since 6.9.0
 		 *
 		 * @param array<string,mixed> $args The arguments used to instantiate the ability.
 		 * @param string              $name The name of the ability, with its namespace.
@@ -111,7 +111,7 @@ final class WP_Abilities_Registry {
 						esc_attr( $args['category'] ),
 						esc_attr( $name )
 					),
-					'0.3.0'
+					'6.9.0'
 				);
 				return null;
 			}
@@ -122,7 +122,7 @@ final class WP_Abilities_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				esc_html__( 'The ability args should provide a valid `ability_class` that extends WP_Ability.' ),
-				'0.1.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -138,7 +138,7 @@ final class WP_Abilities_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				esc_html( $e->getMessage() ),
-				'0.1.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -152,7 +152,7 @@ final class WP_Abilities_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_unregister_ability()` function.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @see wp_unregister_ability()
 	 *
@@ -165,7 +165,7 @@ final class WP_Abilities_Registry {
 				__METHOD__,
 				/* translators: %s: Ability name. */
 				sprintf( esc_html__( 'Ability "%s" not found.' ), esc_attr( $name ) ),
-				'0.1.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -181,7 +181,7 @@ final class WP_Abilities_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_get_abilities()` function.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @see wp_get_abilities()
 	 *
@@ -194,7 +194,7 @@ final class WP_Abilities_Registry {
 	/**
 	 * Checks if an ability is registered.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @param string $name The name of the registered ability, with its namespace.
 	 * @return bool True if the ability is registered, false otherwise.
@@ -208,7 +208,7 @@ final class WP_Abilities_Registry {
 	 *
 	 * Do not use this method directly. Instead, use the `wp_get_ability()` function.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @see wp_get_ability()
 	 *
@@ -221,7 +221,7 @@ final class WP_Abilities_Registry {
 				__METHOD__,
 				/* translators: %s: Ability name. */
 				sprintf( esc_html__( 'Ability "%s" not found.' ), esc_attr( $name ) ),
-				'0.1.0'
+				'6.9.0'
 			);
 			return null;
 		}
@@ -233,7 +233,7 @@ final class WP_Abilities_Registry {
 	 *
 	 * The instance will be created if it does not exist yet.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 *
 	 * @return \WP_Abilities_Registry The main registry instance.
 	 */
@@ -251,7 +251,7 @@ final class WP_Abilities_Registry {
 			 * Abilities should be created and register their hooks on this action rather
 			 * than another action to ensure they're only loaded when needed.
 			 *
-			 * @since 0.1.0
+			 * @since 6.9.0
 			 *
 			 * @param \WP_Abilities_Registry $instance Abilities registry object.
 			 */
@@ -264,7 +264,7 @@ final class WP_Abilities_Registry {
 	/**
 	 * Wakeup magic method.
 	 *
-	 * @since 0.1.0
+	 * @since 6.9.0
 	 * @throws \UnexpectedValueException If any of the registered abilities is not an instance of WP_Ability.
 	 */
 	public function __wakeup(): void {
