@@ -2337,6 +2337,9 @@ function get_all_post_type_supports( $post_type ) {
  * Checks a post type's support for a given feature.
  *
  * @since 3.0.0
+ * @since 6.9.0 Added support for sub-features.
+ *               To check a sub-feature, pass a slash-delimited feature string
+ *               like 'editor/notes'.
  *
  * @global array $_wp_post_type_features
  *
@@ -2346,6 +2349,27 @@ function get_all_post_type_supports( $post_type ) {
  */
 function post_type_supports( $post_type, $feature ) {
 	global $_wp_post_type_features;
+
+	if ( str_contains( $feature, '/' ) ) {
+		$parts       = explode( '/', $feature, 2 );
+		$feature     = $parts[0];
+		$sub_feature = $parts[1];
+		$supports    = get_all_post_type_supports( $post_type );
+
+		if ( ! isset( $supports[ $parent_feature ] ) ) {
+			return false;
+		}
+		if ( ! is_array( $supports[ $parent_feature ] ) ) {
+			return false;
+		}
+		foreach ( $supports[ $parent_feature ] as $item ) {
+			if ( is_array( $item ) && isset( $item[ $sub_feature ] ) && true === $item[ $sub_feature ] ) {
+				return true;
+			}
+		}
+
+		return true;
+	}
 
 	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
 }
