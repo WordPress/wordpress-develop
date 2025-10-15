@@ -482,7 +482,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	 * Tests that unregister_block_template() returns a WP_Error when trying to unregister a non-registered template,
 	 * and that the error message includes the template name.
 	 *
-	 * @ticket n.e.x.t
+	 * @ticket 64072
 	 *
 	 * @covers ::unregister_block_template
 	 */
