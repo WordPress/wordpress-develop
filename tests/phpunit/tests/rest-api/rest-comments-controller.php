@@ -2508,7 +2508,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 
-		// Sending a request with empty comment is not fine.
+		// Sending a request with empty comment content is also fine.
 		$request->set_param( 'author_email', 'yetanother@email.com' );
 		$request->set_param( 'content', '' );
 		add_filter( 'allow_empty_comment', '__return_true' );
