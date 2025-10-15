@@ -471,7 +471,7 @@ final class WP_Interactivity_API {
 						) ) {
 							continue;
 						}
-						list( $directive_prefix ) = $this->extract_prefix_and_suffix( $attribute_name );
+						$directive_prefix = 'data-wp-' . $this->parse_directive_name( $attribute_name )['prefix'];
 						if ( array_key_exists( $directive_prefix, self::$directive_processors ) ) {
 							$directives_prefixes[] = $directive_prefix;
 						}
@@ -914,7 +914,7 @@ final class WP_Interactivity_API {
 			$all_bind_directives = $p->get_attribute_names_with_prefix( 'data-wp-bind--' );
 
 			foreach ( $all_bind_directives as $attribute_name ) {
-				list( , $bound_attribute ) = $this->extract_prefix_and_suffix( $attribute_name );
+				$bound_attribute = $this->parse_directive_name( $attribute_name )['suffix'];
 				if ( empty( $bound_attribute ) ) {
 					return;
 				}
@@ -966,7 +966,7 @@ final class WP_Interactivity_API {
 			$all_class_directives = $p->get_attribute_names_with_prefix( 'data-wp-class--' );
 
 			foreach ( $all_class_directives as $attribute_name ) {
-				list( , $class_name ) = $this->extract_prefix_and_suffix( $attribute_name );
+				$class_name = $this->parse_directive_name( $attribute_name )['suffix'];
 				if ( empty( $class_name ) ) {
 					return;
 				}
@@ -999,7 +999,7 @@ final class WP_Interactivity_API {
 			$all_style_attributes = $p->get_attribute_names_with_prefix( 'data-wp-style--' );
 
 			foreach ( $all_style_attributes as $attribute_name ) {
-				list( , $style_property ) = $this->extract_prefix_and_suffix( $attribute_name );
+				$style_property = $this->parse_directive_name( $attribute_name )['suffix'];
 				if ( empty( $style_property ) ) {
 					continue;
 				}
@@ -1217,8 +1217,8 @@ HTML;
 	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack ) {
 		if ( 'enter' === $mode && 'TEMPLATE' === $p->get_tag() ) {
 			$attribute_name   = $p->get_attribute_names_with_prefix( 'data-wp-each' )[0];
-			$extracted_suffix = $this->extract_prefix_and_suffix( $attribute_name );
-			$item_name        = isset( $extracted_suffix[1] ) ? $this->kebab_to_camel_case( $extracted_suffix[1] ) : 'item';
+			$extracted_suffix = $this->parse_directive_name( $attribute_name )['suffix'];
+			$item_name        = isset( $extracted_suffix ) ? $this->kebab_to_camel_case( $extracted_suffix ) : 'item';
 			$attribute_value  = $p->get_attribute( $attribute_name );
 			$result           = $this->evaluate( $attribute_value );
 
