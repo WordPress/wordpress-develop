@@ -2042,7 +2042,7 @@ function get_network_option( $network_id, $option, $default_value = false ) {
 	 *
 	 * Returning a value other than false from the filter will short-circuit retrieval
 	 * and return that value instead.
-	 * 
+	 *
 	 * @since 6.9.0
 	 *
 	 * @param mixed  $pre             The value to return instead of the network option value. This differs
