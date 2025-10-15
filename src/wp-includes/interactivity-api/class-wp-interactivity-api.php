@@ -671,25 +671,74 @@ final class WP_Interactivity_API {
 	}
 
 	/**
-	 * Extracts the directive attribute name to separate and return the directive
-	 * prefix and an optional suffix.
+	 * Parse the directive name to extract the following parts:
+	 * - Prefix: The main directive name without "data-wp-".
+	 * - Suffix: An optional suffix used during directive processing, extracted after the first double hyphen "--".
+	 * - Unique ID: An optional unique identifier, extracted after the first triple hyphen "---".
 	 *
-	 * The suffix is the string after the first double hyphen and the prefix is
-	 * everything that comes before the suffix.
+	 * This function has an equivalent version for the client side.
+	 * See `parseDirectiveName` in https://github.com/WordPress/gutenberg/blob/trunk/packages/interactivity/src/vdom.ts.:
 	 *
-	 * Example:
+	 * See examples in the function unit tests `test_parse_directive_name`.
 	 *
-	 *     extract_prefix_and_suffix( 'data-wp-interactive' )   => array( 'data-wp-interactive', null )
-	 *     extract_prefix_and_suffix( 'data-wp-bind--src' )     => array( 'data-wp-bind', 'src' )
-	 *     extract_prefix_and_suffix( 'data-wp-foo--and--bar' ) => array( 'data-wp-foo', 'and--bar' )
-	 *
-	 * @since 6.5.0
+	 * @since 6.9.0
 	 *
 	 * @param string $directive_name The directive attribute name.
-	 * @return array An array containing the directive prefix and optional suffix.
+	 * @return array An array containing the directive prefix, optional suffix, and optional unique ID.
 	 */
-	private function extract_prefix_and_suffix( string $directive_name ): array {
-		return explode( '--', $directive_name, 2 );
+	private function parse_directive_name( string $directive_name ): ?array {
+		// Remove the first 8 characters (assumes "data-wp-" prefix)
+		$name = substr( $directive_name, 8 );
+
+		// Check for invalid characters (anything not a-z, 0-9, -, or _)
+		if ( preg_match( '/[^a-z0-9\-_]/i', $name ) ) {
+			return null;
+		}
+
+		// Find the first occurrence of '--' to separate the prefix
+		$suffix_index = strpos( $name, '--' );
+
+		if ( false === $suffix_index ) {
+			return array(
+				'prefix'    => $name,
+				'suffix'    => null,
+				'unique_id' => null,
+			);
+		}
+
+		$prefix    = substr( $name, 0, $suffix_index );
+		$remaining = substr( $name, $suffix_index );
+
+		// If remaining starts with '---' but not '----', it's a unique_id
+		if ( '---' === substr( $remaining, 0, 3 ) && '-' !== ( $remaining[3] ?? '' ) ) {
+			return array(
+				'prefix'    => $prefix,
+				'suffix'    => null,
+				'unique_id' => '---' !== $remaining ? substr( $remaining, 3 ) : null,
+			);
+		}
+
+		// Otherwise, remove the first two dashes for a potential suffix
+		$suffix = substr( $remaining, 2 );
+
+		// Look for '---' in the suffix for a unique_id
+		$unique_id_index = strpos( $suffix, '---' );
+
+		if ( false !== $unique_id_index && '-' !== ( $suffix[ $unique_id_index + 3 ] ?? '' ) ) {
+			$unique_id = substr( $suffix, $unique_id_index + 3 );
+			$suffix    = substr( $suffix, 0, $unique_id_index );
+			return array(
+				'prefix'    => $prefix,
+				'suffix'    => empty( $suffix ) ? null : $suffix,
+				'unique_id' => empty( $unique_id ) ? null : $unique_id,
+			);
+		}
+
+		return array(
+			'prefix'    => $prefix,
+			'suffix'    => empty( $suffix ) ? null : $suffix,
+			'unique_id' => null,
+		);
 	}
 
 	/**
