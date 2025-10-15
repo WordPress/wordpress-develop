@@ -171,4 +171,18 @@ class Tests_Interactivity_API_WpInteractivityAPIWPText extends WP_UnitTestCase {
 		$new_html = $this->interactivity->process_directives( $html );
 		$this->assertSame( $html, $new_html );
 	}
+
+	/**
+	 * Tests first `data-wp-text` works even when suffixes and unique-ids are included.
+	 *
+	 * @ticket 99999
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_text_works_even_when_suffixes_and_unique_ids_are_included() {
+		$original = '<span data-wp-text--suffix="myPlugin::state.text" data-wp-text---unique-id="myPlugin::state.text" data-wp-text="myPlugin::state.text">Text</span>';
+		$expected = '<span data-wp-text--suffix="myPlugin::state.text" data-wp-text---unique-id="myPlugin::state.text" data-wp-text="myPlugin::state.text">Updated</span>';
+		$new_html = $this->interactivity->process_directives( $original );
+		$this->assertSame( $expected, $new_html );
+	}
 }

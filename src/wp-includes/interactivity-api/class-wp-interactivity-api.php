@@ -1089,7 +1089,10 @@ final class WP_Interactivity_API {
 	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode ) {
 			$attribute_value = $p->get_attribute( 'data-wp-text' );
-			$result          = $this->evaluate( $attribute_value );
+			if ( empty( $attribute_value ) ) {
+				return;
+			}
+			$result = $this->evaluate( $attribute_value );
 
 			/*
 			 * Follows the same logic as Preact in the client and only changes the
