@@ -626,12 +626,21 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
+		// Do not allow comments to be created with a non-core type.
+		if ( ! empty( $request['type'] ) && ! in_array( $request['type'], array( 'comment', 'note' ), true ) ) {
+			return new WP_Error(
+				'rest_invalid_comment_type',
+				__( 'Cannot create a comment with that type.', 'gutenberg' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$prepared_comment = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $prepared_comment ) ) {
 			return $prepared_comment;
 		}
 
-		$prepared_comment['comment_type'] = $request['type'];
+		$prepared_comment['comment_type'] = empty( $request['type'] ) ? 'comment' : $request['type'];
 
 		if ( ! isset( $prepared_comment['comment_content'] ) ) {
 			$prepared_comment['comment_content'] = '';
@@ -1556,9 +1565,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'type'              => array(
 					'description' => __( 'Type of the comment.' ),
 					'type'        => 'string',
-					'enum'        => array( 'comment', 'note' ),
-					'default'     => 'comment',
 					'context'     => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
 				),
 			),
 		);
