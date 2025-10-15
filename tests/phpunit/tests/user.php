@@ -675,7 +675,7 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_count_many_users_posts_cached_for_equivalent_arguments() {
+	public function data_count_many_users_posts_cached_for_equivalent_arguments(): array {
 		return array(
 			'single post string vs array'  => array(
 				array( array( 0 ), 'post' ),
