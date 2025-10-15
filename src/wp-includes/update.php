@@ -127,7 +127,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	// Only report when a site has MyISAM tables to save bytes.
 	if ( $myisam_tables > 0 ) {
-		$query['myisam_table_count'] = $myisam_tables;
+		$query['myisam_count'] = $myisam_tables;
 	}
 
 	if ( function_exists( 'gd_info' ) ) {
