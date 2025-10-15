@@ -130,7 +130,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			foreach ( (array) $request['post'] as $post_id ) {
 				$post = get_post( $post_id );
 
-				if ( $post && $is_note && ! post_type_supports( $post->post_type, 'editor/notes' ) ) {
+				if ( $post && $is_note && ! $this->check_post_type_supports_notes( $post->post_type ) ) {
 					return new WP_Error(
 						'rest_comment_not_supported_post_type',
 						__( 'Sorry, this post type does not support notes.' ),
@@ -566,7 +566,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( $is_note && ! post_type_supports( $post->post_type, 'editor/notes' ) ) {
+		if ( $is_note && ! $this->check_post_type_supports_notes( $post->post_type ) ) {
 			return new WP_Error(
 				'rest_comment_not_supported_post_type',
 				__( 'Sorry, this post type does not support notes.' ),
@@ -1977,5 +1977,27 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * comment_content. See wp_handle_comment_submission().
 		 */
 		return '' !== $check['comment_content'];
+	}
+
+	/**
+	 * Check if post type supports block comments.
+	 *
+	 * @param string $post_type Post type name.
+	 * @return bool True if post type supports block comments, false otherwise.
+	 */
+	private function check_post_type_supports_notes( $post_type ) {
+		$supports = get_all_post_type_supports( $post_type );
+		if ( ! isset( $supports['editor'] ) ) {
+			return false;
+		}
+		if ( ! is_array( $supports['editor'] ) ) {
+			return false;
+		}
+		foreach ( $supports['editor'] as $item ) {
+			if ( is_array( $item ) && isset( $item['notes'] ) && true === $item['notes'] ) {
+				return true;
+			}
+		}
+		return true;
 	}
 }

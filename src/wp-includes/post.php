@@ -2350,27 +2350,8 @@ function get_all_post_type_supports( $post_type ) {
 function post_type_supports( $post_type, $feature ) {
 	global $_wp_post_type_features;
 
-	if ( str_contains( $feature, '/' ) ) {
-		$parts       = explode( '/', $feature, 2 );
-		$feature     = $parts[0];
-		$sub_feature = $parts[1];
-
-		if ( ! isset( $_wp_post_type_features[ $post_type ][ $feature ] ) ) {
-			return false;
-		}
-
-		$feature_value = $_wp_post_type_features[ $post_type ][ $feature ];
-
-		if ( is_array( $feature_value ) && isset( $feature_value[0] ) && is_array( $feature_value[0] ) ) {
-			return ! empty( $feature_value[0][ $sub_feature ] );
-		}
-
-		return false;
-	}
-
 	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
 }
-
 /**
  * Retrieves a list of post type names that support a specific feature.
  *
