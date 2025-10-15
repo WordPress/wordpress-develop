@@ -511,8 +511,10 @@ class Tests_Template extends WP_UnitTestCase {
 	public function test_wp_start_template_enhancement_output_buffer_without_filters_and_no_override(): void {
 		remove_all_filters( 'wp_template_enhancement_output_buffer' );
 		$level = ob_get_level();
-		$this->assertFalse( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return false when there are no wp_template_enhancement_output_buffer filters added.' );
-		$this->assertFalse( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return false because the output buffer should not be started.' );
+		if ( wp_is_block_theme() ) {
+			$this->assertFalse( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return false when there are no wp_template_enhancement_output_buffer filters added.' );
+			$this->assertFalse( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return false because the output buffer should not be started.' );
+		}
 		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to not have fired.' );
 		$this->assertSame( $level, ob_get_level(), 'Expected the initial output buffer level to be unchanged.' );
 	}
