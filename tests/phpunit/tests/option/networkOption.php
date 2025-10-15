@@ -445,11 +445,8 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		};
 
 		add_filter( 'pre_site_option', $callback, 10, 4 );
-		try {
-			// The global pre filter should short-circuit and return $return_val regardless of actual storage.
-			$this->assertSame( $return_val, get_network_option( $network_id, $option, $default_val ) );
-		} finally {
-			remove_filter( 'pre_site_option', $callback, 10 );
-		}
+		
+		// The global pre filter should short-circuit and return $return_val regardless of actual storage.
+		$this->assertSame( $return_val, get_network_option( $network_id, $option, $default_val ) );
 	}
 }
