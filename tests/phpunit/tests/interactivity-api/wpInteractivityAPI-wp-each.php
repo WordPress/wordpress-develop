@@ -684,4 +684,36 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 		$new      = $this->interactivity->process_directives( $original );
 		$this->assertSame( $expected, $new );
 	}
+
+	/**
+	 * Tests it doesn't support multiple directives.
+	 *
+	 * @ticket 99999
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_each_doesnt_support_multiple_directives() {
+		$original = '' .
+			'<div data-wp-interactive="directive-each">' .
+				'<template data-wp-each="myPlugin::state.list" data-wp-each--item="myPlugin::state.list">' .
+					'<span data-wp-text="myPlugin::context.item"></span>' .
+				'</template>' .
+				'<template data-wp-each---unique-id="myPlugin::state.list">' .
+					'<span data-wp-text="myPlugin::context.item"></span>' .
+				'</template>' .
+				'<div data-wp-bind--id="myPlugin::state.after">Text</div>' .
+			'</div>';
+		$expected = '' .
+			'<div data-wp-interactive="directive-each">' .
+				'<template data-wp-each="myPlugin::state.list" data-wp-each--item="myPlugin::state.list">' .
+					'<span data-wp-text="myPlugin::context.item"></span>' .
+				'</template>' .
+				'<template data-wp-each---unique-id="myPlugin::state.list">' .
+					'<span data-wp-text="myPlugin::context.item"></span>' .
+				'</template>' .
+				'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>' .
+			'</div>';
+		$new      = $this->interactivity->process_directives( $original );
+		$this->assertSame( $expected, $new );
+	}
 }
