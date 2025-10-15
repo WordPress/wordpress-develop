@@ -5302,14 +5302,10 @@ function get_post_galleries( $post, $html = true, $max_galleries = PHP_INT_MAX )
 		}
 	}
 
-	$processor = WP_Block_Processor::create( $post->post_content );
+	$processor = new WP_Block_Processor( $post->post_content );
 	$found     = 0;
 
-	while ( $processor->next_delimiter() ) {
-		if ( ! $processor->opens_block( 'gallery' ) ) {
-			continue;
-		}
-
+	while ( $processor->next_block( 'gallery' ) ) {
 		/*
 		 * It’s not clear yet whether this will have inner blocks.
 		 * Until then, start computing for both paths, then bail
@@ -5321,15 +5317,12 @@ function get_post_galleries( $post, $html = true, $max_galleries = PHP_INT_MAX )
 
 		$html_chunks = array();
 		$top_chunks  = array();
-		while ( $processor->next_delimiter( 'visit-html' ) && $processor->get_depth() >= $gallery_depth ) {
-			if ( $processor->opens_block( 'freeform' ) ) {
-				$opener = $processor->get_span();
-				$processor->next_delimiter( 'visit-html' );
-				$closer = $processor->get_span();
-
-				$chunk = substr( $post->post_content, $opener->start, $closer->start - $opener->start );
+		while ( $processor->next_token() && $processor->get_depth() > $gallery_depth ) {
+			if ( $processor->is_html() ) {
+				$chunk_span    = $processor->get_span();
+				$chunk         = substr( $post->post_content, $chunk_span->start, $chunk_span->length );
 				$html_chunks[] = $chunk;
-				if ( $gallery_depth === $processor->get_depth() ) {
+				if ( $gallery_depth === $processor->get_depth() - 1 ) {
 					$top_chunks[] = $chunk;
 				}
 			} else {
@@ -5342,13 +5335,10 @@ function get_post_galleries( $post, $html = true, $max_galleries = PHP_INT_MAX )
 		if ( $has_inner_blocks && $html ) {
 
 			// Get the rest of the innerHTML of the Gallery’s direct children.
-			while ( $processor->next_delimiter( 'visit-html' ) && $processor->get_depth() >= $gallery_depth ) {
-				if ( $processor->opens_block( 'freeform' ) ) {
-					$opener = $processor->get_span();
-					$processor->next_delimiter( 'visit-html' );
-					$closer = $processor->get_span();
-
-					$html_chunks[] = substr( $post->post_content, $opener->start, $closer->start - $opener->start );
+			while ( $processor->next_token() && $processor->get_depth() > $gallery_depth ) {
+				if ( $processor->is_html() && $processor->get_depth() === $gallery_depth + 2 ) {
+					$chunk_span    = $processor->get_span();
+					$html_chunks[] = substr( $post->post_content, $chunk_span->start, $chunk_span->length );
 				}
 			}
 
@@ -5382,9 +5372,9 @@ function get_post_galleries( $post, $html = true, $max_galleries = PHP_INT_MAX )
 				}
 			}
 
-			while ( $processor->next_delimiter() && $processor->get_depth() >= $gallery_depth ) {
+			while ( $processor->next_block() && $processor->get_depth() > $gallery_depth ) {
 				// Examine only the direct children of the gallery block.
-				if ( $processor->get_depth() === $gallery_depth && $processor->opens_block() ) {
+				if ( $processor->get_depth() === $gallery_depth + 1 ) {
 					$attrs = $processor->allocate_and_return_parsed_attributes();
 					$id    = $attrs['id'] ?? null;
 					if ( isset( $id ) ) {
