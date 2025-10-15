@@ -329,7 +329,6 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 		$this->assertNull( $p->get_attribute( 'class' ) );
 	}
 
-
 	/**
 	 * Tests that classes with several dashes can be used.
 	 *
