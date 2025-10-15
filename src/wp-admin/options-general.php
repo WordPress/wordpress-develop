@@ -484,10 +484,10 @@ foreach ( $date_formats as $format ) {
 		$custom = false;
 	}
 	$lan_default = '';
-	if ( $format === __( 'F j, Y' ) ){
+	if ( __( 'F j, Y' ) === $format ) {
 		$lan_default = __( ' ( Site language default )' );
 	}
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . '</code>' . esc_html( $lan_default ). "</label><br />\n";
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . '</code>' . esc_html( $lan_default ) . "</label><br />\n";
 }
 
 	echo '<label><input type="radio" name="date_format" id="date_format_custom_radio" value="\c\u\s\t\o\m"';
@@ -533,7 +533,7 @@ foreach ( $time_formats as $format ) {
 		$custom = false;
 	}
 		$lan_default = '';
-	if ( $format === __( 'g:i a' ) ){
+	if ( __( 'g:i a' ) === $format ) {
 		$lan_default = __( ' ( Site language default )' );
 	}
 	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . '</code>' . esc_html( $lan_default ). "</label><br />\n";
