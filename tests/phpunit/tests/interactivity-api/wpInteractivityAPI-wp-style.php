@@ -470,7 +470,6 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	 * @covers ::process_directives
 	 */
 	public function test_wp_style_ignores_unique_ids() {
-		$this->interactivity->state( 'myPlugin', array( 'text' => '' ) );
 		$html    = '<div data-wp-style--color---unique-id="myPlugin::state.green">Text</div>';
 		list($p) = $this->process_directives( $html );
 		$this->assertNull( $p->get_attribute( 'style' ) );

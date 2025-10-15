@@ -154,4 +154,21 @@ class Tests_Interactivity_API_WpInteractivityAPIWPText extends WP_UnitTestCase {
 		$new_html = $this->interactivity->process_directives( $html );
 		$this->assertSame( '<div data-wp-text="myPlugin::state.text">&lt;span&gt;Updated&lt;/span&gt;</div>', $new_html );
 	}
+
+	/**
+	 * Tests it ignores suffixes and unique-ids.
+	 *
+	 * @ticket 99999
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_text_ignores_suffixes_and_unique_ids() {
+		$html     = '<span data-wp-text--suffix="myPlugin::state.text">Text</span>';
+		$new_html = $this->interactivity->process_directives( $html );
+		$this->assertSame( $html, $new_html );
+
+		$html     = '<span data-wp-text---unique-id="myPlugin::state.text">Text</span>';
+		$new_html = $this->interactivity->process_directives( $html );
+		$this->assertSame( $html, $new_html );
+	}
 }
