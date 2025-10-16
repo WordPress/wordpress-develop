@@ -2001,7 +2001,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return false;
 		}
 		foreach ( $supports['editor'] as $item ) {
-			if ( is_array( $item ) && isset( $item['notes'] ) && true === $item['notes'] ) {
+			if ( ! empty( $item['notes'] ) ) {
 				return true;
 			}
 		}
