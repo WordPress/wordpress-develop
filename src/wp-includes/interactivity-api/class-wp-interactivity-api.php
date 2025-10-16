@@ -558,14 +558,13 @@ final class WP_Interactivity_API {
 	 * @param string|true $directive_value The directive attribute value string or `true` when it's a boolean attribute.
 	 * @return mixed|null The result of the evaluation. Null if the reference path doesn't exist or the namespace is falsy.
 	 */
-	private function evaluate( $directive_value ) {
-		$default_namespace = end( $this->namespace_stack );
-		$context           = end( $this->context_stack );
+	private function evaluate( $entry ) {
+		$context                               = end( $this->context_stack );
+		['namespace' => $ns, 'value' => $path] = $entry;
 
-		list( $ns, $path ) = $this->extract_directive_value( $directive_value, $default_namespace );
 		if ( ! $ns || ! $path ) {
 			/* translators: %s: The directive value referenced. */
-			$message = sprintf( __( 'Namespace or reference path cannot be empty. Directive value referenced: %s' ), $directive_value );
+			$message = sprintf( __( 'Namespace or reference path cannot be empty. Directive value referenced: %s' ), $entry['value'] );
 			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			return null;
 		}
@@ -952,22 +951,19 @@ final class WP_Interactivity_API {
 	 */
 	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode ) {
-			$all_bind_directives = $p->get_attribute_names_with_prefix( 'data-wp-bind--' );
-
-			foreach ( $all_bind_directives as $attribute_name ) {
-				['suffix' => $bound_attribute, 'unique_id' => $unique_id] = $this->parse_directive_name( $attribute_name );
-				if ( empty( $bound_attribute ) || null !== $unique_id ) {
-					return;
+			$entries = $this->get_directive_entries( $p, 'bind' );
+			foreach ( $entries as $entry ) {
+				if ( empty( $entry['suffix'] ) || null !== $entry['unique_id'] ) {
+						return;
 				}
 
-				$attribute_value = $p->get_attribute( $attribute_name );
-				$result          = $this->evaluate( $attribute_value );
+				$result = $this->evaluate( $entry );
 
 				if (
 					null !== $result &&
 					(
 						false !== $result ||
-						( strlen( $bound_attribute ) > 5 && '-' === $bound_attribute[4] )
+						( strlen( $entry['suffix'] ) > 5 && '-' === $entry['suffix'][4] )
 					)
 				) {
 					/*
@@ -979,13 +975,13 @@ final class WP_Interactivity_API {
 					 */
 					if (
 						is_bool( $result ) &&
-						( strlen( $bound_attribute ) > 5 && '-' === $bound_attribute[4] )
+						( strlen( $entry['suffix'] ) > 5 && '-' === $entry['suffix'][4] )
 					) {
 						$result = $result ? 'true' : 'false';
 					}
-					$p->set_attribute( $bound_attribute, $result );
+					$p->set_attribute( $entry['suffix'], $result );
 				} else {
-					$p->remove_attribute( $bound_attribute );
+					$p->remove_attribute( $entry['suffix'] );
 				}
 			}
 		}
@@ -1005,9 +1001,8 @@ final class WP_Interactivity_API {
 	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode ) {
 			$all_class_directives = $p->get_attribute_names_with_prefix( 'data-wp-class--' );
-
-			foreach ( $all_class_directives as $attribute_name ) {
-				$entry = $this->parse_directive_name( $attribute_name );
+			$entries              = $this->get_directive_entries( $p, 'class' );
+			foreach ( $entries as $entry ) {
 				if ( empty( $entry['suffix'] ) ) {
 					continue;
 				}
@@ -1019,8 +1014,7 @@ final class WP_Interactivity_API {
 					return;
 				}
 
-				$attribute_value = $p->get_attribute( $attribute_name );
-				$result          = $this->evaluate( $attribute_value );
+				$result = $this->evaluate( $entry );
 
 				if ( $result ) {
 					$p->add_class( $class_name );
@@ -1044,19 +1038,16 @@ final class WP_Interactivity_API {
 	 */
 	private function data_wp_style_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode ) {
-			$all_style_attributes = $p->get_attribute_names_with_prefix( 'data-wp-style--' );
-
-			foreach ( $all_style_attributes as $attribute_name ) {
-				$style_property = $this->parse_directive_name( $attribute_name )['suffix'];
-				['suffix' => $style_property, 'unique_id' => $unique_id] = $this->parse_directive_name( $attribute_name );
-				if ( empty( $style_property ) || null !== $unique_id ) {
+			$entries = $this->get_directive_entries( $p, 'style' );
+			foreach ( $entries as $entry ) {
+				$style_property = $entry['suffix'];
+				if ( empty( $style_property ) || null !== $entry['unique_id'] ) {
 					continue;
 				}
 
-				$directive_attribute_value = $p->get_attribute( $attribute_name );
-				$style_property_value      = $this->evaluate( $directive_attribute_value );
-				$style_attribute_value     = $p->get_attribute( 'style' );
-				$style_attribute_value     = ( $style_attribute_value && ! is_bool( $style_attribute_value ) ) ? $style_attribute_value : '';
+				$style_property_value  = $this->evaluate( $entry );
+				$style_attribute_value = $p->get_attribute( 'style' );
+				$style_attribute_value = ( $style_attribute_value && ! is_bool( $style_attribute_value ) ) ? $style_attribute_value : '';
 
 				/*
 				 * Checks first if the style property is not falsy and the style
@@ -1136,11 +1127,19 @@ final class WP_Interactivity_API {
 	 */
 	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
 		if ( 'enter' === $mode ) {
-			$attribute_value = $p->get_attribute( 'data-wp-text' );
-			if ( empty( $attribute_value ) ) {
+			$entries     = $this->get_directive_entries( $p, 'text' );
+			$valid_entry = null;
+			// Get the first valid `data-wp-text` entry without suffix or unique ID.
+			foreach ( $entries as $entry ) {
+				if ( null === $entry['suffix'] && null === $entry['unique_id'] && ! empty( $entry['value'] ) ) {
+					$valid_entry = $entry;
+					break;
+				}
+			}
+			if ( empty( $entry ) ) {
 				return;
 			}
-			$result = $this->evaluate( $attribute_value );
+			$result = $this->evaluate( $entry );
 
 			/*
 			 * Follows the same logic as Preact in the client and only changes the
@@ -1268,19 +1267,17 @@ HTML;
 	 */
 	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack ) {
 		if ( 'enter' === $mode && 'TEMPLATE' === $p->get_tag() ) {
-			$each_directives = $p->get_attribute_names_with_prefix( 'data-wp-each' );
-			if ( count( $each_directives ) > 1 ) {
+			$entries = $this->get_directive_entries( $p, 'each' );
+			if ( count( $entries ) > 1 || empty( $entries ) ) {
 				// There should be only one `data-wp-each` directive per template tag.
 				return;
 			}
-			$attribute_name = $each_directives[0];
-			['suffix' => $extracted_suffix, 'unique_id' => $unique_id] = $this->parse_directive_name( $attribute_name );
-			if ( null !== $unique_id ) {
+			$entry = $entries[0];
+			if ( null !== $entry['unique_id'] ) {
 				return;
 			}
-			$item_name       = isset( $extracted_suffix ) ? $this->kebab_to_camel_case( $extracted_suffix ) : 'item';
-			$attribute_value = $p->get_attribute( $attribute_name );
-			$result          = $this->evaluate( $attribute_value );
+			$item_name = isset( $entry['suffix'] ) ? $this->kebab_to_camel_case( $entry['suffix'] ) : 'item';
+			$result    = $this->evaluate( $entry );
 
 			// Gets the content between the template tags and leaves the cursor in the closer tag.
 			$inner_content = $p->get_content_between_balanced_template_tags();
@@ -1313,19 +1310,13 @@ HTML;
 				return;
 			}
 
-			// Extracts the namespace from the directive attribute value.
-			$namespace_value         = end( $this->namespace_stack );
-			list( $namespace_value ) = is_string( $attribute_value ) && ! empty( $attribute_value )
-				? $this->extract_directive_value( $attribute_value, $namespace_value )
-				: array( $namespace_value, null );
-
 			// Processes the inner content for each item of the array.
 			$processed_content = '';
 			foreach ( $result as $item ) {
 				// Creates a new context that includes the current item of the array.
 				$this->context_stack[] = array_replace_recursive(
 					end( $this->context_stack ) !== false ? end( $this->context_stack ) : array(),
-					array( $namespace_value => array( $item_name => $item ) )
+					array( $entry['namespace'] => array( $item_name => $item ) )
 				);
 
 				// Processes the inner content with the new context.
