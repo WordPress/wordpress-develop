@@ -974,7 +974,14 @@ final class WP_Interactivity_API {
 			$all_class_directives = $p->get_attribute_names_with_prefix( 'data-wp-class--' );
 
 			foreach ( $all_class_directives as $attribute_name ) {
-				$class_name = $this->parse_directive_name( $attribute_name )['suffix'];
+				$entry = $this->parse_directive_name( $attribute_name );
+				if ( empty( $entry['suffix'] ) ) {
+					continue;
+				}
+				$class_name = isset( $entry['unique_id'] ) && $entry['unique_id']
+					? "{$entry['suffix']}---{$entry['unique_id']}"
+					: $entry['suffix'];
+
 				if ( empty( $class_name ) ) {
 					return;
 				}
