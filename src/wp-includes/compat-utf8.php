@@ -299,6 +299,9 @@ function _wp_scrub_utf8_fallback( string $bytes ): string {
  * to the maximal subpart rule. This function is a fallback method
  * for calling `mb_strlen( $text, 'UTF-8' )`.
  *
+ * When negative values are provided for the byte offsets or length,
+ * this will always report zero code points.
+ *
  * Example:
  *
  *     4  === _wp_utf8_codepoint_count( 'text' );
@@ -309,31 +312,26 @@ function _wp_scrub_utf8_fallback( string $bytes ): string {
  * @since 6.9.0
  *
  * @param string $text            Count code points in this string.
- * @param ?int   $byte_offset     Start counting after this many bytes in `$text`.
+ * @param ?int   $byte_offset     Start counting after this many bytes in `$text`. Must be positive.
  * @param ?int   $max_byte_length Optional. Stop counting after having scanned past this many bytes.
- *                                Default is to scan until the end of the string.
+ *                                Default is to scan until the end of the string. Must be positive.
  * @return int How many code points were found.
  */
 function _wp_utf8_codepoint_count( string $text, ?int $byte_offset = 0, ?int $max_byte_length = PHP_INT_MAX ): int {
-	$count             = 0;
-	$at                = $byte_offset;
-	$end               = strlen( $text );
-	$invalid_length    = 0;
-
-	// @todo This offset/length is probably wrong.
-	// @todo Check when one call to _wp_scan_utf8 returns more bytes in the span past length.
-	while ( $at < $end && ( $at - $byte_offset ) <= $max_byte_length ) {
-		$count += _wp_scan_utf8( $text, $at, $invalid_length );
-		$count += $invalid_length > 0 ? 1 : 0;
-		$at    += $invalid_length;
+	if ( $byte_offset < 0 ) {
+		return 0;
 	}
 
-	// Easy to happen with ASCII runs.
-	$overdraft = $max_byte_length - ( $at - $byte_offset );
-	if ( $overdraft > 0 ) {
-		$fake_end = $at - $overdraft;
-		_wp_scan_utf8( $text, $fake_end, $invalid_length );
-		// @todo Track prev $at?
+	$count           = 0;
+	$at              = $byte_offset;
+	$end             = strlen( $text );
+	$invalid_length  = 0;
+	$max_byte_length = min( $end - $at, $max_byte_length );
+
+	while ( $at < $end && ( $at - $byte_offset ) < $max_byte_length ) {
+		$count += _wp_scan_utf8( $text, $at, $invalid_length, $max_byte_length - ( $at - $byte_offset ) );
+		$count += $invalid_length > 0 ? 1 : 0;
+		$at    += $invalid_length;
 	}
 
 	return $count;
