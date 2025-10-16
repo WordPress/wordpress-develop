@@ -168,14 +168,13 @@ input[type="radio"]:checked::before {
 	display: inline-block;
 	vertical-align: middle;
 	width: 1rem;
-	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
 
 input[type="checkbox"]:checked::before {
 	/* Use the "Yes" SVG Dashicon */
-	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%233582c4%27%2F%3E%3C%2Fsvg%3E");
+	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%233582c4%27%2F%3E%3C%2Fsvg%3E") / '';
 	margin: -0.1875rem 0 0 -0.25rem;
 	height: 1.3125rem;
 	width: 1.3125rem;
@@ -240,7 +239,7 @@ textarea[readonly] {
 }
 
 .form-table .form-required.form-invalid td:after {
-	content: "\f534";
+	content: "\f534" / '';
 	font: normal 20px/1 dashicons;
 	color: #d63638;
 	margin-left: -25px;
@@ -253,7 +252,7 @@ textarea[readonly] {
 }
 
 .form-table .form-required.user-pass1-wrap.form-invalid .password-input-wrapper:after {
-	content: "\f534";
+	content: "\f534" / '';
 	font: normal 20px/1 dashicons;
 	color: #d63638;
 	margin: 0 6px 0 -29px;
@@ -1090,7 +1089,7 @@ table.form-table td .updated p {
 .pressthis-bookmarklet span:before {
 	color: #787c82;
 	font: normal 20px/1 dashicons;
-	content: "\f157";
+	content: "\f157" / '';
 	position: relative;
 	display: inline-block;
 	top: 4px;
@@ -1452,6 +1451,11 @@ table.form-table td .updated p {
 .status-label.status-request-failed {
 	color: #d63638;
 	font-weight: 600;
+}
+
+.privacy_requests .status-date {
+	display: block;
+	font-weight: 400;
 }
 
 .wp-privacy-request-form {
