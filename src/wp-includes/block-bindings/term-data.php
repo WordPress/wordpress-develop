@@ -35,7 +35,7 @@ function _block_bindings_term_data_get_value( array $source_args, $block_instanc
 	);
 
 	if ( $is_navigation_block ) {
-		// Navigation blocks: read from block attributes
+		// Navigation blocks: read from block attributes.
 		$term_id = $block_instance->attributes['id'] ?? null;
 		$type    = $block_instance->attributes['type'] ?? '';
 		// Map UI shorthand to taxonomy slug when using attributes.
