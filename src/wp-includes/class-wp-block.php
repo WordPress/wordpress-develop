@@ -684,7 +684,7 @@ class WP_Block {
 		$has_new_scripts        = ( $before_scripts_queue !== $after_scripts_queue );
 		$has_new_script_modules = ( $before_script_modules_queue !== $after_script_modules_queue );
 
-		// Dequeue the newly enqueued assets with the existing assets if the rendered block was empty.
+		// Dequeue the newly enqueued assets with the existing assets if the rendered block was empty & wp_head did not fire.
 		if (
 			! $just_did_wp_head &&
 			( $has_new_styles || $has_new_scripts || $has_new_script_modules ) &&
