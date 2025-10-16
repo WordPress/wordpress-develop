@@ -451,7 +451,11 @@ final class WP_Interactivity_API {
 
 					// Checks if there is a server directive processor registered for each directive.
 					foreach ( $p->get_attribute_names_with_prefix( 'data-wp-' ) as $attribute_name ) {
-						$directive_prefix = 'data-wp-' . $this->parse_directive_name( $attribute_name )['prefix'];
+						$entry = $this->parse_directive_name( $attribute_name );
+						if ( empty( $entry ) ) {
+							continue;
+						}
+						$directive_prefix = 'data-wp-' . $entry['prefix'];
 						if ( array_key_exists( $directive_prefix, self::$directive_processors ) ) {
 							$directives_prefixes[] = $directive_prefix;
 						}
