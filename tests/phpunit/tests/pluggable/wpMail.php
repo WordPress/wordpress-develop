@@ -625,4 +625,128 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
 	}
+
+	public function address_provider() {
+		return array(
+			'single encoded name'                  => array(
+				'content'  => '=?UTF-8?B?Sm9obg==?= <john@example.com>',
+				'expected' => array(
+					array( 'john@example.com', 'John' ),
+				),
+			),
+			'multiple names with one encoded name' => array(
+				'content'  => '=?UTF-8?B?Sm9obg==?= <john@example.com>, Jane <jane@example.com>',
+				'expected' => array(
+					array( 'john@example.com', 'John' ),
+					array( 'jane@example.com', 'Jane' ),
+				),
+			),
+			'multiple encoded names'               => array(
+				'content'  => '=?UTF-8?B?Sm9obg==?= <john@example.com>, =?UTF-8?B?SmFuZQ==?= <jane@example.com>',
+				'expected' => array(
+					array( 'john@example.com', 'John' ),
+					array( 'jane@example.com', 'Jane' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 62940
+	 * @dataProvider address_provider
+	 */
+	public function test_wp_mail_single_line_utf8_header( $content, $expected ) {
+		$headers = array( 'Cc', 'Bcc', 'Reply-To' );
+
+		foreach ( $headers as $header ) {
+			$mail_header = sprintf( '%s: %s', $header, $content );
+			wp_mail( 'test@example.com', 'subject', 'message', $mail_header );
+			$mailer = tests_retrieve_phpmailer_instance();
+
+			switch ( $header ) {
+				case 'Cc':
+					$this->assertSame( $expected, $mailer->getCcAddresses() );
+					break;
+
+				case 'Bcc':
+					$this->assertSame( $expected, $mailer->getBccAddresses() );
+					break;
+
+				case 'Reply-To':
+					// Reply-To returns associative array, so modify expected data accordingly.
+					$expected_reply_to = array();
+					foreach ( $expected as $addr ) {
+						$expected_reply_to[ $addr[0] ] = $addr;
+					}
+					$this->assertSame( $expected_reply_to, $mailer->getReplyToAddresses() );
+					break;
+
+				default:
+					$this->fail( "Unknown header type: {$header}" );
+					break;
+			}
+			reset_phpmailer_instance();
+		}
+	}
+
+	/**
+	 * @ticket 62940
+	 * @dataProvider address_provider
+	 */
+	public function test_wp_mail_single_line_utf8_header_multiple_to( $content, $expected ) {
+		wp_mail( $content, 'subject', 'message' );
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertSame( $expected, $mailer->getToAddresses() );
+	}
+
+	/**
+	 * @ticket 62940
+	 */
+	public function test_wp_mail_encoded_from() {
+		$header   = 'From: =?UTF-8?B?VGVzdA==?= <test@example.com>';
+		$expected = array( 'test@example.com', 'Test' );
+		wp_mail( 'john@example.com', 'subject', 'message', $header );
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$this->assertSame( $expected, array( $mailer->From, $mailer->FromName ) );
+	}
+
+	public function addr_list_provider() {
+		return array(
+			'comma in quoted name'          => array(
+				'type'     => 'From',
+				'header'   => 'From: "John, Doe" <johndoe@example.com>',
+				'expected' => array( 'johndoe@example.com', 'John, Doe' ),
+			),
+			'angled bracket in quoted name' => array(
+				'type'     => 'From',
+				'header'   => 'From: "John<Doe" <johndoe@example.com>',
+				'expected' => array( 'johndoe@example.com', 'John<Doe' ),
+			),
+		);
+	}
+
+
+	/**
+	 * @ticket 62940
+	 * @dataProvider addr_list_provider
+	 * @requires extension imap
+	 */
+	public function test_wp_mail_headers_with_imap_extension( $type, $header, $expected ) {
+		wp_mail( 'test@example.com', 'Subject', 'Message', $header );
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		switch ( $type ) {
+			case 'From':
+				$this->assertSame( $expected, array( $mailer->From, $mailer->FromName ) );
+				break;
+
+			default:
+				$this->fail( "Unknown header type: {$type}" );
+				break;
+		}
+		// phpcs:enable
+	}
 }
