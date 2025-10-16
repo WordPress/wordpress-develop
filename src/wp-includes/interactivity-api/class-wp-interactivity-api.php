@@ -903,7 +903,7 @@ final class WP_Interactivity_API {
 
 		$entries = $this->get_directive_entries( $p, 'context' );
 		// It processes the entries in reverse order to build the context stack correctly.
-		foreach ( array_reverse( $entries ) as $entry ) {
+		foreach ( $entries as $entry ) {
 			if ( null !== $entry['suffix'] ) {
 				continue;
 			}

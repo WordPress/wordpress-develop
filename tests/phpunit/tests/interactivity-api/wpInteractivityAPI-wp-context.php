@@ -553,7 +553,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 			</div>
 		';
 		list($p) = $this->process_directives( $html );
-		$this->assertSame( 'default', $p->get_attribute( 'data-test-prop' ) );
+		$this->assertSame( 'id1', $p->get_attribute( 'data-test-prop' ) );
 		foreach ( array( 'parent', 'default', 'id1', 'other' ) as $attribute ) {
 			$attr_name = "data-test-$attribute";
 			$this->assertSame(
