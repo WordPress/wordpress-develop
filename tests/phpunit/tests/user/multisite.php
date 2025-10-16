@@ -369,12 +369,13 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 
 		switch_to_blog( $site_id );
 		$user = get_user_by( 'id', $user_id );
+		$this->assertContains( 'subscriber', $user->roles, 'User should have subscriber role' );
 		restore_current_blog();
 
 		wp_delete_site( $site_id );
 		wpmu_delete_user( $user_id );
 
-		$this->assertContains( 'subscriber', $user->roles );
+		$this->assertContains( 'subscriber', $user->roles, 'User should still have subscriber role' );
 	}
 
 	/**
