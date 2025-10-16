@@ -577,7 +577,6 @@ class Tests_Template extends WP_UnitTestCase {
 
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				while ( $p->next_tag() ) {
-					echo $p->get_tag() . PHP_EOL;
 					switch ( $p->get_tag() ) {
 						case 'HTML':
 							$p->set_attribute( 'lang', 'es' );
