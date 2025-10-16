@@ -492,7 +492,7 @@ class WP_Block {
 	public function render( $options = array() ) {
 		global $post;
 
-		$before_wp_head_count = did_action( 'wp_head' );
+		$before_wp_enqueue_scripts_count = did_action( 'wp_enqueue_scripts' );
 
 		// Capture the current assets queues.
 		$before_styles_queue         = wp_styles()->queue;
@@ -674,19 +674,19 @@ class WP_Block {
 		$after_script_modules_queue = wp_script_modules()->get_queue();
 
 		/*
-		 * As a very special case, a dynamic block may in fact include a call to wp_head() in which all of its enqueued
-		 * assets are targeting wp_footer. In this case, nothing would be printed, but this shouldn't indicate that
-		 * the just-enqueued assets should be dequeued due to it being an empty block.
+		 * As a very special case, a dynamic block may in fact include a call to wp_head() (and thus wp_enqueue_scripts()),
+		 * in which all of its enqueued assets are targeting wp_footer. In this case, nothing would be printed, but this
+		 * shouldn't indicate that the just-enqueued assets should be dequeued due to it being an empty block.
 		 */
-		$just_did_wp_head = ( did_action( 'wp_head' ) !== $before_wp_head_count );
+		$just_did_wp_enqueue_scripts = ( did_action( 'wp_enqueue_scripts' ) !== $before_wp_enqueue_scripts_count );
 
 		$has_new_styles         = ( $before_styles_queue !== $after_styles_queue );
 		$has_new_scripts        = ( $before_scripts_queue !== $after_scripts_queue );
 		$has_new_script_modules = ( $before_script_modules_queue !== $after_script_modules_queue );
 
-		// Dequeue the newly enqueued assets with the existing assets if the rendered block was empty & wp_head did not fire.
+		// Dequeue the newly enqueued assets with the existing assets if the rendered block was empty & wp_enqueue_scripts did not fire.
 		if (
-			! $just_did_wp_head &&
+			! $just_did_wp_enqueue_scripts &&
 			( $has_new_styles || $has_new_scripts || $has_new_script_modules ) &&
 			(
 				trim( $block_content ) === '' &&
