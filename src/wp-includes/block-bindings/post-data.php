@@ -35,10 +35,10 @@ function _block_bindings_post_data_get_value( array $source_args, $block_instanc
 	);
 
 	if ( $is_navigation_block ) {
-		// Navigation blocks: read from block attributes
+		// Navigation blocks: read from block attributes.
 		$post_id = $block_instance->attributes['id'] ?? null;
 	} else {
-		// All other blocks: use context
+		// All other blocks: use context.
 		$post_id = $block_instance->context['postId'] ?? null;
 	}
 
