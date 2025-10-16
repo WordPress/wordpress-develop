@@ -675,7 +675,7 @@ class WP {
 		}
 
 		if ( $wp_query->is_author() ) {
-			$GLOBALS['authordata'] = get_userdata( get_queried_object_id() );
+			$GLOBALS['authordata'] = get_authordata( get_queried_object_id() );
 		}
 	}
 

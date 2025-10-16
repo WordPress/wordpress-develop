@@ -1975,6 +1975,25 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 }
 
 /**
+ * Retrieves user info by user ID. Set short init to only load User data not capabilities / roles
+ *
+ * @since 6.9.0
+ *
+ * @param int $user_id User ID
+ * @return WP_User|false WP_User object on success, false on failure.
+ */
+function get_authordata( $user_id ) {
+	$userdata = WP_User::get_data_by( 'id', $user_id );
+	if ( ! $userdata ) {
+		return false;
+	}
+
+	$user = new WP_User();
+	$user->init( $userdata, 0, true );
+	return $user;
+}
+
+/**
  * Updates all user caches.
  *
  * @since 3.0.0
