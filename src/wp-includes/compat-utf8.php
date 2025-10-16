@@ -310,6 +310,7 @@ function _wp_scrub_utf8_fallback( string $bytes ): string {
  *     13 === _wp_utf8_codepoint_count( "test\x90wp\xE2\x80\xC0test" );
  *
  * @since 6.9.0
+ * @access private
  *
  * @param string $text            Count code points in this string.
  * @param ?int   $byte_offset     Start counting after this many bytes in `$text`. Must be positive.
