@@ -17,7 +17,7 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 	/**
 	 * Category registry instance.
 	 *
-	 * @var \WP_Abilities_Category_Registry
+	 * @var WP_Abilities_Category_Registry
 	 */
 	private $registry;
 

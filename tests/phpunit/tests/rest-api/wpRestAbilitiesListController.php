@@ -13,7 +13,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	/**
 	 * REST Server instance.
 	 *
-	 * @var \WP_REST_Server
+	 * @var WP_REST_Server
 	 */
 	protected $server;
 
@@ -47,10 +47,6 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 			'abilities_api_categories_init',
 			array( __CLASS__, 'register_test_categories' )
 		);
-
-		// Initialize Abilities API.
-		do_action( 'abilities_api_init' );
-
 	}
 
 	/**
@@ -78,6 +74,8 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 		do_action( 'rest_api_init' );
 
+		// Initialize Abilities API.
+		do_action( 'abilities_api_init' );
 		$this->register_test_abilities();
 
 		// Set default user for tests
