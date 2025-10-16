@@ -708,7 +708,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * Tests the ability to extract prefix and suffix from a directive attribute
 	 * name.
 	 *
-	 * @ticket 99999
+	 * @ticket 64106
 	 *
 	 * @covers ::parse_directive_name
 	 */
@@ -788,7 +788,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	/**
 	 * Tests the ability to get the valid entries of a specific directive in an HTML element.
 	 *
-	 * @ticket 99999
+	 * @ticket 64106
 	 *
 	 * @covers ::get_directive_entries
 	 */

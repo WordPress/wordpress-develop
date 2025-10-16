@@ -158,7 +158,7 @@ class Tests_WP_Interactivity_API_WP_Text extends WP_UnitTestCase {
 	/**
 	 * Tests it ignores suffixes and unique-ids.
 	 *
-	 * @ticket 99999
+	 * @ticket 64106
 	 *
 	 * @covers ::process_directives
 	 */
@@ -175,7 +175,7 @@ class Tests_WP_Interactivity_API_WP_Text extends WP_UnitTestCase {
 	/**
 	 * Tests first `data-wp-text` works even when suffixes and unique-ids are included.
 	 *
-	 * @ticket 99999
+	 * @ticket 64106
 	 *
 	 * @covers ::process_directives
 	 */

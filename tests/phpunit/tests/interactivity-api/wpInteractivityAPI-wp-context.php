@@ -526,7 +526,7 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 	/**
 	 * Tests supports multiple context directives in the same element.
 	 *
-	 * @ticket 99999
+	 * @ticket 64106
 	 *
 	 * @covers ::process_directives
 	 */

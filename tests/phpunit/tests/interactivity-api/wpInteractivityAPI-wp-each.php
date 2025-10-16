@@ -688,7 +688,7 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 	/**
 	 * Tests it doesn't support multiple directives.
 	 *
-	 * @ticket 99999
+	 * @ticket 64106
 	 *
 	 * @covers ::process_directives
 	 */

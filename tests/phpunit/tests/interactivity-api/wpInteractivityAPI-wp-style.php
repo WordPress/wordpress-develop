@@ -452,7 +452,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests it can use CSS variables.
 	 *
-	 * @ticket 99999
+	 * @ticket 64106
 	 *
 	 * @covers ::process_directives
 	 */
@@ -465,7 +465,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 	/**
 	 * Tests it ignores unique IDs.
 	 *
-	 * @ticket 99999
+	 * @ticket 64106
 	 *
 	 * @covers ::process_directives
 	 */

@@ -332,7 +332,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 	/**
 	 * Tests that classes with several dashes can be used.
 	 *
-	 * @ticket 99999
+	 * @ticket 64106
 	 *
 	 * @covers ::process_directives
 	 */

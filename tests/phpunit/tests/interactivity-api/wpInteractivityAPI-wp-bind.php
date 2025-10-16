@@ -402,7 +402,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	/**
 	 * Tests ignores unique IDs in bind directive.
 	 *
-	 * @ticket 99999
+	 * @ticket 64106
 	 *
 	 * @covers ::process_directives
 	 */
