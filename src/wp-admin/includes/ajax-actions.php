@@ -21,7 +21,7 @@ function wp_ajax_nopriv_menu_quick_search( $args ) {
 	if ( isset( $_POST['action'] ) && 'menu-quick-search' === $_POST['action'] ) {
 		add_filter(
 			'posts_search',
-			function( $search, $query ) {
+			function ( $search, $query ) {
 				global $wpdb;
 
 				if ( ! empty( $search ) && isset( $query->query_vars['s'] ) ) {
