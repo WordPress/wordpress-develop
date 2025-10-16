@@ -14,6 +14,8 @@ on:
       - 'src/wp-content/themes/twentynineteen/**'
       - 'src/wp-content/themes/twentytwenty/**'
       - 'src/wp-content/themes/twentytwentyone/**'
+      - 'src/wp-content/themes/twentytwentytwo/**'
+      - 'src/wp-content/themes/twentytwentyfive/**'
       # Changes to this workflow file should always verify success.
       - '.github/workflows/test-and-zip-default-themes.yml'
   pull_request:
@@ -29,6 +31,8 @@ on:
       - 'src/wp-content/themes/twentynineteen/**'
       - 'src/wp-content/themes/twentytwenty/**'
       - 'src/wp-content/themes/twentytwentyone/**'
+      - 'src/wp-content/themes/twentytwentytwo/**'
+      - 'src/wp-content/themes/twentytwentyfive/**'
       # Changes to this workflow file should always verify success.
       - '.github/workflows/test-and-zip-default-themes.yml'
   workflow_dispatch:
@@ -120,6 +124,8 @@ jobs:
       fail-fast: false
       matrix:
         theme: [
+            'twentytwentyfive',
+            'twentytwentytwo',
             'twentytwentyone',
             'twentytwenty',
             'twentynineteen',
@@ -221,11 +227,31 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
+      - name: Set up Node.js for themes needing minification
+        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+          cache-dependency-path: src/wp-content/themes/${{ matrix.theme }}/package-lock.json
+
+      - name: Install npm dependencies
+        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        run: npm ci
+        working-directory: src/wp-content/themes/${{ matrix.theme }}
+
+      - name: Build theme assets
+        if: matrix.theme == 'twentytwentytwo' || matrix.theme == 'twentytwentyfive'
+        run: npm run build
+        working-directory: src/wp-content/themes/${{ matrix.theme }}
+
       - name: Upload theme ZIP as an artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ${{ matrix.theme }}
-          path: src/wp-content/themes/${{ matrix.theme }}
+          path: |
+            src/wp-content/themes/${{ matrix.theme }}
+            !src/wp-content/themes/${{ matrix.theme }}/node_modules
           if-no-files-found: error
           include-hidden-files: true
 

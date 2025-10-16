@@ -249,21 +249,19 @@ final class WP_Block_Bindings_Registry {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $source_name The name of the source.
+	 * @param string|null $source_name The name of the source.
 	 * @return bool `true` if the block bindings source is registered, `false` otherwise.
 	 */
 	public function is_registered( $source_name ) {
-		return isset( $this->sources[ $source_name ] );
+		return isset( $source_name, $this->sources[ $source_name ] );
 	}
 
 	/**
-	 * Unserialize magic method.
+	 * Wakeup magic method.
 	 *
-	 * @since 6.9.0
-	 *
-	 * @param array $data Data to unserialize.
+	 * @since 6.5.0
 	 */
-	public function __unserialize( $data ) { // phpcs:ignore PHPCompatibility.FunctionNameRestrictions.NewMagicMethods.__unserializeFound
+	public function __wakeup() {
 		if ( ! $this->sources ) {
 			return;
 		}
@@ -275,15 +273,6 @@ final class WP_Block_Bindings_Registry {
 				throw new UnexpectedValueException();
 			}
 		}
-	}
-
-	/**
-	 * Wakeup magic method.
-	 *
-	 * @since 6.5.0
-	 */
-	public function __wakeup() {
-		$this->__unserialize( array() );
 	}
 
 	/**

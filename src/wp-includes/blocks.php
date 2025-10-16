@@ -938,7 +938,7 @@ function get_hooked_blocks() {
  */
 function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
 	$anchor_block_type  = $parsed_anchor_block['blockName'];
-	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+	$hooked_block_types = isset( $anchor_block_type, $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
 		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
 		: array();
 
@@ -1029,7 +1029,7 @@ function insert_hooked_blocks( &$parsed_anchor_block, $relative_position, $hooke
  */
 function set_ignored_hooked_blocks_metadata( &$parsed_anchor_block, $relative_position, $hooked_blocks, $context ) {
 	$anchor_block_type  = $parsed_anchor_block['blockName'];
-	$hooked_block_types = isset( $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
+	$hooked_block_types = isset( $anchor_block_type, $hooked_blocks[ $anchor_block_type ][ $relative_position ] )
 		? $hooked_blocks[ $anchor_block_type ][ $relative_position ]
 		: array();
 
@@ -2375,6 +2375,17 @@ function render_block( $parsed_block ) {
 
 /**
  * Parses blocks out of a content string.
+ *
+ * Given an HTML document, this function fully-parses block content, producing
+ * a tree of blocks and their contents, as well as top-level non-block content,
+ * which will appear as a block with no `blockName`.
+ *
+ * This function can be memory heavy for certain documents, particularly those
+ * with deeply-nested blocks or blocks with extensive attribute values. Further,
+ * this function must parse an entire document in one atomic operation.
+ *
+ * If the entire parsed document is not necessary, consider using {@see WP_Block_Processor}
+ * instead, as it provides a streaming and low-overhead interface for finding blocks.
  *
  * @since 5.0.0
  *
