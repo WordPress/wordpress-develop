@@ -209,4 +209,41 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $this->get_mocked_class_instance()->get_views() );
 	}
+
+	/**
+	 * Test the get_timestamp_as_date method formats timestamps correctly.
+	 *
+	 * @ticket 44267
+	 *
+	 * @covers WP_Privacy_Requests_Table::get_timestamp_as_date
+	 */
+	public function test_get_timestamp_as_date() {
+		$table = $this->get_mocked_class_instance();
+
+		$reflection = new ReflectionClass( $table );
+		$method     = $reflection->getMethod( 'get_timestamp_as_date' );
+		$method->setAccessible( true );
+
+		$date_format = __( 'Y/m/d' );
+		$time_format = __( 'g:i a' );
+
+		$current_time = time();
+
+		$this->assertSame( '', $method->invoke( $table, '' ) );
+
+		// Test recent timestamp (less than 24 hours ago).
+		$recent_time = $current_time - HOUR_IN_SECONDS;
+		$result      = $method->invoke( $table, $recent_time );
+		$this->assertStringContainsString( 'ago', $result );
+
+		$old_time = $current_time - 2 * DAY_IN_SECONDS;
+		$result   = $method->invoke( $table, $old_time );
+
+		$date_part = date_i18n( $date_format, $old_time );
+		$time_part = date_i18n( $time_format, $old_time );
+
+		$this->assertStringContainsString( $date_part, $result );
+		$this->assertStringContainsString( 'at', $result );
+		$this->assertStringContainsString( $time_part, $result );
+	}
 }
