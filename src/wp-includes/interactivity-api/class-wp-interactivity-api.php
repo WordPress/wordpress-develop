@@ -564,7 +564,7 @@ final class WP_Interactivity_API {
 
 		if ( ! $ns || ! $path ) {
 			/* translators: %s: The directive value referenced. */
-			$message = sprintf( __( 'Namespace or reference path cannot be empty. Directive value referenced: %s' ), $entry['value'] );
+			$message = sprintf( __( 'Namespace or reference path cannot be empty. Directive value referenced: %s' ), $entry );
 			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			return null;
 		}
