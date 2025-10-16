@@ -64,8 +64,8 @@ function wp_script_modules(): WP_Script_Modules {
  * @param array             $args    {
  *     Optional. An array of additional args. Default empty array.
  *
- *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
- *     @type bool               $load_on_client_navigation Whether the script module should be loaded on client
+ *     @type 'auto'|'low'|'high' $fetchpriority             Fetch priority. Default 'auto'. Optional.
+ *     @type bool                $load_on_client_navigation Whether the script module should be loaded on client
  *                                                         navigation. Default false. Optional.
  * }
  */
