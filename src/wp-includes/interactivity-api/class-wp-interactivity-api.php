@@ -1126,7 +1126,7 @@ final class WP_Interactivity_API {
 					break;
 				}
 			}
-			if ( empty( $entry ) ) {
+			if ( empty( $valid_entry ) ) {
 				return;
 			}
 			$result = $this->evaluate( $entry );

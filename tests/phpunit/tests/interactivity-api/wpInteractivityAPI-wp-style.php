@@ -190,7 +190,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 				data-wp-style--background="myPlugin::state.green"
 			>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertSame( 'color:green;background:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'background:green;color:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**

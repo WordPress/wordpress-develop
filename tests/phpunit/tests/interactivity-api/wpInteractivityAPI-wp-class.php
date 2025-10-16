@@ -76,7 +76,7 @@ class Tests_WP_Interactivity_API_WP_Class extends WP_UnitTestCase {
 				data-wp-class--other-class="myPlugin::state.true"
 			>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertSame( 'some-class other-class', $p->get_attribute( 'class' ) );
+		$this->assertSame( 'other-class some-class', $p->get_attribute( 'class' ) );
 	}
 
 	/**
