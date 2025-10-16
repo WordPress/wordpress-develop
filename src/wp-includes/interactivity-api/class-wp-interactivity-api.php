@@ -554,8 +554,9 @@ final class WP_Interactivity_API {
 	 * @since 6.6.0 The function now adds a warning when the namespace is null, falsy, or the directive value is empty.
 	 * @since 6.6.0 Removed `default_namespace` and `context` arguments.
 	 * @since 6.6.0 Add support for derived state.
+	 * @since 6.9.0 Recieve $entry as an argument instead of the directive value string.
 	 *
-	 * @param string|true $directive_value The directive attribute value string or `true` when it's a boolean attribute.
+	 * @param array $entry An array containing a whole directive entry with its namespace, value, suffix, or unique ID.
 	 * @return mixed|null The result of the evaluation. Null if the reference path doesn't exist or the namespace is falsy.
 	 */
 	private function evaluate( $entry ) {
