@@ -945,6 +945,8 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		return $output;
 	}
 
+	$filtered_output = $output;
+
 	/**
 	 * Filters the template enhancement output buffer prior to sending to the client.
 	 *
@@ -960,5 +962,5 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	 * @param string $filtered_output HTML template enhancement output buffer.
 	 * @param string $output          Original HTML template output buffer.
 	 */
-	return (string) apply_filters( 'wp_template_enhancement_output_buffer', $output, $output );
+	return (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
 }
