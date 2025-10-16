@@ -1033,10 +1033,10 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	/**
 	 * Invokes the private `evaluate` method of WP_Interactivity_API class.
 	 *
-	 * @param string $directive_value   The directive attribute value to evaluate.
+	 * @param string $entry The entry array containing namespace, value, suffix, and unique ID.
 	 * @return mixed The result of the evaluate method.
 	 */
-	private function evaluate( $directive_value ) {
+	private function evaluate( $entry ) {
 		/*
 		 * The global WP_Interactivity_API instance is momentarily replaced to
 		 * make global functions like `wp_interactivity_state` and
@@ -1051,7 +1051,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 			$evaluate->setAccessible( true );
 		}
 
-		$result = $evaluate->invokeArgs( $this->interactivity, array( $directive_value ) );
+		$result = $evaluate->invokeArgs( $this->interactivity, array( $entry ) );
 
 		// Restore the original WP_Interactivity_API instance.
 		$wp_interactivity = $wp_interactivity_prev;
@@ -1097,24 +1097,55 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				'otherPlugin' => array( 'key' => 'otherPlugin-context' ),
 			)
 		);
-		$this->set_internal_namespace_stack( 'myPlugin' );
+		$default_ns = 'myPlugin';
+		$this->set_internal_namespace_stack( $default_ns );
 
-		$result = $this->evaluate( 'state.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'state.key',
+			)
+		);
 		$this->assertSame( 'myPlugin-state', $result );
 
-		$result = $this->evaluate( 'context.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'context.key',
+			)
+		);
 		$this->assertSame( 'myPlugin-context', $result );
 
-		$result = $this->evaluate( 'otherPlugin::state.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'state.key',
+			)
+		);
 		$this->assertSame( 'otherPlugin-state', $result );
 
-		$result = $this->evaluate( 'otherPlugin::context.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'context.key',
+			)
+		);
 		$this->assertSame( 'otherPlugin-context', $result );
 
-		$result = $this->evaluate( 'state.obj.prop' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'state.obj.prop',
+			)
+		);
 		$this->assertSame( 'object property', $result );
 
-		$result = $this->evaluate( 'state.arrAccess.1' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'state.arrAccess.1',
+			)
+		);
 		$this->assertSame( '1', $result );
 	}
 
@@ -1135,18 +1166,39 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				'otherPlugin' => array( 'key' => 'otherPlugin-context' ),
 			)
 		);
-		$this->set_internal_namespace_stack( 'myPlugin' );
+		$default_ns = 'myPlugin';
+		$this->set_internal_namespace_stack( $default_ns );
 
-		$result = $this->evaluate( '!state.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => '!state.key',
+			)
+		);
 		$this->assertFalse( $result );
 
-		$result = $this->evaluate( '!context.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => '!context.key',
+			)
+		);
 		$this->assertFalse( $result );
 
-		$result = $this->evaluate( 'otherPlugin::!state.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => '!state.key',
+			)
+		);
 		$this->assertFalse( $result );
 
-		$result = $this->evaluate( 'otherPlugin::!context.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => '!context.key',
+			)
+		);
 		$this->assertFalse( $result );
 	}
 
@@ -1167,18 +1219,39 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				'otherPlugin' => array(),
 			)
 		);
-		$this->set_internal_namespace_stack( 'myPlugin' );
+		$default_ns = 'myPlugin';
+		$this->set_internal_namespace_stack( $default_ns );
 
-		$result = $this->evaluate( '!state.missing' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => '!state.missing',
+			)
+		);
 		$this->assertTrue( $result );
 
-		$result = $this->evaluate( '!context.missing' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => '!context.missing',
+			)
+		);
 		$this->assertTrue( $result );
 
-		$result = $this->evaluate( 'otherPlugin::!state.deeply.nested.missing' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => '!state.deeply.nested.missing',
+			)
+		);
 		$this->assertTrue( $result );
 
-		$result = $this->evaluate( 'otherPlugin::!context.deeply.nested.missing' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => '!context.deeply.nested.missing',
+			)
+		);
 		$this->assertTrue( $result );
 	}
 
@@ -1198,24 +1271,55 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				'otherPlugin' => array( 'key' => 'otherPlugin-context' ),
 			)
 		);
-		$this->set_internal_namespace_stack( 'myPlugin' );
+		$default_ns = 'myPlugin';
+		$this->set_internal_namespace_stack( $default_ns );
 
-		$result = $this->evaluate( 'state.nonExistentKey' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'state.nonExistentKey',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'context.nonExistentKey' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'context.nonExistentKey',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'otherPlugin::state.nonExistentKey' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'state.nonExistentKey',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'otherPlugin::context.nonExistentKey' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'context.nonExistentKey',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( ' state.key' ); // Extra space.
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => ' state.key',  // Extra space.
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'otherPlugin:: state.key' ); // Extra space.
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => ' state.key',  // Extra space.
+			)
+		);
 		$this->assertNull( $result );
 	}
 
@@ -1249,18 +1353,39 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->set_internal_namespace_stack( 'myPlugin' );
+		$default_ns = 'myPlugin';
+		$this->set_internal_namespace_stack( $default_ns );
 
-		$result = $this->evaluate( 'state.nested.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'state.nested.key',
+			)
+		);
 		$this->assertSame( 'myPlugin-state-nested', $result );
 
-		$result = $this->evaluate( 'context.nested.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'context.nested.key',
+			)
+		);
 		$this->assertSame( 'myPlugin-context-nested', $result );
 
-		$result = $this->evaluate( 'otherPlugin::state.nested.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'state.nested.key',
+			)
+		);
 		$this->assertSame( 'otherPlugin-state-nested', $result );
 
-		$result = $this->evaluate( 'otherPlugin::context.nested.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'context.nested.key',
+			)
+		);
 		$this->assertSame( 'otherPlugin-context-nested', $result );
 	}
 
@@ -1276,13 +1401,28 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->set_internal_context_stack( array() );
 		$this->set_internal_namespace_stack();
 
-		$result = $this->evaluate( 'path', 'null' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'null',
+				'value'     => 'path',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'path', '' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => '',
+				'value'     => 'path',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'path', '{}' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => '{}',
+				'value'     => 'path',
+			)
+		);
 		$this->assertNull( $result );
 	}
 
@@ -1320,7 +1460,12 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		);
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
-		$result = $this->evaluate( 'state.derived' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'state.derived',
+			)
+		);
 		$this->assertSame( "Derived state: myPlugin-state\nDerived context: myPlugin-context", $result );
 	}
 
@@ -1363,7 +1508,12 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		);
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
-		$result = $this->evaluate( 'state.derived' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'state.derived',
+			)
+		);
 		$this->assertSame( "Derived state: otherPlugin-state\nDerived context: otherPlugin-context", $result );
 	}
 
@@ -1406,7 +1556,12 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		);
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
-		$result = $this->evaluate( 'otherPlugin::state.derived' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'state.derived',
+			)
+		);
 		$this->assertSame( "Derived state: otherPlugin-state\nDerived context: otherPlugin-context", $result );
 	}
 
@@ -1430,7 +1585,12 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->set_internal_context_stack();
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
-		$result = $this->evaluate( 'state.derivedThatThrows' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'state.derivedThatThrows',
+			)
+		);
 		$this->assertNull( $result );
 	}
 
@@ -1453,7 +1613,12 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->set_internal_context_stack();
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
-		$result = $this->evaluate( 'state.derivedState.property' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'state.derivedState.property',
+			)
+		);
 		$this->assertSame( 'value', $result );
 	}
 
