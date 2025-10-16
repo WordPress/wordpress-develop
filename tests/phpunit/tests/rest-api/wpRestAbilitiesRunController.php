@@ -48,6 +48,32 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 				'role' => 'subscriber',
 			)
 		);
+
+		// Register test categories during the hook.
+		add_action(
+			'abilities_api_categories_init',
+			array( __CLASS__, 'register_test_categories' )
+		);
+		do_action( 'abilities_api_categories_init' );
+		remove_action(
+			'abilities_api_categories_init',
+			array( __CLASS__, 'register_test_categories' )
+		);
+
+		// Initialize Abilities API.
+		do_action( 'abilities_api_init' );
+	}
+
+	/**
+	 * Tear down after class.
+	 */
+	public static function tear_down_after_class(): void {
+		// Clean up test categories.
+		foreach ( array( 'math', 'system', 'general' ) as $slug ) {
+			wp_unregister_ability_category( $slug );
+		}
+
+		parent::tear_down_after_class();
 	}
 
 	/**
@@ -62,15 +88,6 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 
 		do_action( 'rest_api_init' );
 
-		// Register test categories during the hook
-		add_action(
-			'abilities_api_categories_init',
-			array( $this, 'register_test_categories' )
-		);
-		do_action( 'abilities_api_categories_init' );
-
-		do_action( 'abilities_api_init' );
-
 		$this->register_test_abilities();
 
 		// Set default user for tests
@@ -81,20 +98,13 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	 * Tear down after each test.
 	 */
 	public function tear_down(): void {
+		// Clean up test abilities.
 		foreach ( wp_get_abilities() as $ability ) {
 			if ( ! str_starts_with( $ability->get_name(), 'test/' ) ) {
 				continue;
 			}
 
 			wp_unregister_ability( $ability->get_name() );
-		}
-
-		// Clean up registered categories.
-		$category_registry = WP_Abilities_Category_Registry::get_instance();
-		foreach ( array( 'math', 'system', 'general' ) as $category ) {
-			if ( $category_registry->is_registered( $category ) ) {
-				wp_unregister_ability_category( $category );
-			}
 		}
 
 		global $wp_rest_server;
@@ -106,7 +116,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	/**
 	 * Register test categories for testing.
 	 */
-	public function register_test_categories(): void {
+	public static function register_test_categories(): void {
 		wp_register_ability_category(
 			'math',
 			array(

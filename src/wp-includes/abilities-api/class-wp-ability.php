@@ -152,10 +152,10 @@ class WP_Ability {
 					__METHOD__,
 					sprintf(
 						/* translators: %s: Property name. */
-						esc_html__( 'Property "%1$s" is not a valid property for ability "%2$s". Please check the %3$s class for allowed properties.' ),
+						__( 'Property "%1$s" is not a valid property for ability "%2$s". Please check the %3$s class for allowed properties.' ),
 						'<code>' . esc_html( $property_name ) . '</code>',
 						'<code>' . esc_html( $this->name ) . '</code>',
-						'<code>' . esc_html( self::class ) . '</code>'
+						'<code>' . self::class . '</code>'
 					),
 					'6.9.0'
 				);
@@ -200,62 +200,62 @@ class WP_Ability {
 		// Required args must be present and of the correct type.
 		if ( empty( $args['label'] ) || ! is_string( $args['label'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The ability properties must contain a `label` string.' )
+				__( 'The ability properties must contain a `label` string.' )
 			);
 		}
 
 		if ( empty( $args['description'] ) || ! is_string( $args['description'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The ability properties must contain a `description` string.' )
+				__( 'The ability properties must contain a `description` string.' )
 			);
 		}
 
 		if ( empty( $args['category'] ) || ! is_string( $args['category'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The ability properties must contain a `category` string.' )
+				__( 'The ability properties must contain a `category` string.' )
 			);
 		}
 
 		if ( empty( $args['execute_callback'] ) || ! is_callable( $args['execute_callback'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The ability properties must contain a valid `execute_callback` function.' )
+				__( 'The ability properties must contain a valid `execute_callback` function.' )
 			);
 		}
 
 		if ( empty( $args['permission_callback'] ) || ! is_callable( $args['permission_callback'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The ability properties must provide a valid `permission_callback` function.' )
+				__( 'The ability properties must provide a valid `permission_callback` function.' )
 			);
 		}
 
 		// Optional args only need to be of the correct type if they are present.
 		if ( isset( $args['input_schema'] ) && ! is_array( $args['input_schema'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The ability properties should provide a valid `input_schema` definition.' )
+				__( 'The ability properties should provide a valid `input_schema` definition.' )
 			);
 		}
 
 		if ( isset( $args['output_schema'] ) && ! is_array( $args['output_schema'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The ability properties should provide a valid `output_schema` definition.' )
+				__( 'The ability properties should provide a valid `output_schema` definition.' )
 			);
 		}
 
 		if ( isset( $args['meta'] ) && ! is_array( $args['meta'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The ability properties should provide a valid `meta` array.' )
+				__( 'The ability properties should provide a valid `meta` array.' )
 			);
 		}
 
 		if ( isset( $args['meta']['annotations'] ) && ! is_array( $args['meta']['annotations'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The ability meta should provide a valid `annotations` array.' )
+				__( 'The ability meta should provide a valid `annotations` array.' )
 			);
 		}
 
 		if ( isset( $args['meta']['show_in_rest'] ) && ! is_bool( $args['meta']['show_in_rest'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The ability meta should provide a valid `show_in_rest` boolean.' )
+				__( 'The ability meta should provide a valid `show_in_rest` boolean.' )
 			);
 		}
 
@@ -444,23 +444,6 @@ class WP_Ability {
 		return $this->invoke_callback( $this->permission_callback, $input );
 	}
 
-	/**
-	 * Checks whether the ability has the necessary permissions (deprecated).
-	 *
-	 * The input is validated against the input schema before it is passed to to permission callback.
-	 *
-	 * @deprecated 0.2.0 Use check_permissions() instead.
-	 * @see WP_Ability::check_permissions()
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param mixed $input Optional. The input data for permission checking. Default `null`.
-	 * @return bool|\WP_Error Whether the ability has the necessary permission.
-	 */
-	public function has_permission( $input = null ) {
-		_deprecated_function( __METHOD__, '6.9.0' );
-		return $this->check_permissions( $input );
-	}
 
 	/**
 	 * Executes the ability callback.
@@ -544,7 +527,7 @@ class WP_Ability {
 		}
 
 		/**
-		 * Fires before an ability gets executed.
+		 * Fires before an ability gets executed and after permission check.
 		 *
 		 * @since 6.9.0
 		 *
@@ -583,6 +566,6 @@ class WP_Ability {
 	 * @since 6.9.0
 	 */
 	public function __wakeup(): void {
-		throw new \LogicException( self::class . ' should never be unserialized.' );
+		throw new \LogicException( __CLASS__ . ' should never be unserialized.' );
 	}
 }

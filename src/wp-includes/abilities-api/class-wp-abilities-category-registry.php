@@ -22,7 +22,7 @@ final class WP_Abilities_Category_Registry {
 	 * The singleton instance of the registry.
 	 *
 	 * @since 6.9.0
-	 * @var ?self
+	 * @var self|null
 	 */
 	private static $instance = null;
 
@@ -47,7 +47,7 @@ final class WP_Abilities_Category_Registry {
 	 *                                  alphanumeric characters and dashes.
 	 * @param array<string,mixed> $args An associative array of arguments for the category. See wp_register_ability_category() for
 	 *                                  details.
-	 * @return ?\WP_Ability_Category The registered category instance on success, null on failure.
+	 * @return WP_Ability_Category|null The registered category instance on success, null on failure.
 	 *
  * @phpstan-param array{
  *   label: string,
@@ -62,7 +62,7 @@ final class WP_Abilities_Category_Registry {
 				__METHOD__,
 				sprintf(
 					/* translators: 1: abilities_api_categories_init, 2: category slug. */
-					esc_html__( 'Categories must be registered during the %1$s action. The category %2$s was not registered.' ),
+					__( 'Categories must be registered during the %1$s action. The category %2$s was not registered.' ),
 					'<code>abilities_api_categories_init</code>',
 					'<code>' . esc_html( $slug ) . '</code>'
 				),
@@ -75,7 +75,7 @@ final class WP_Abilities_Category_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: %s: Category slug. */
-				esc_html( sprintf( __( 'Category "%s" is already registered.' ), $slug ) ),
+				sprintf( __( 'Category "%s" is already registered.' ), esc_html( $slug ) ),
 				'6.9.0'
 			);
 			return null;
@@ -84,7 +84,7 @@ final class WP_Abilities_Category_Registry {
 		if ( ! preg_match( '/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				esc_html__( 'Category slug must contain only lowercase alphanumeric characters and dashes.' ),
+				__( 'Category slug must contain only lowercase alphanumeric characters and dashes.' ),
 				'6.9.0'
 			);
 			return null;
@@ -106,7 +106,7 @@ final class WP_Abilities_Category_Registry {
 		} catch ( \InvalidArgumentException $e ) {
 			_doing_it_wrong(
 				__METHOD__,
-				esc_html( $e->getMessage() ),
+				$e->getMessage(),
 				'6.9.0'
 			);
 			return null;
@@ -126,14 +126,14 @@ final class WP_Abilities_Category_Registry {
 	 * @see wp_unregister_ability_category()
 	 *
 	 * @param string $slug The slug of the registered category.
-	 * @return ?\WP_Ability_Category The unregistered category instance on success, null on failure.
+	 * @return WP_Ability_Category|null The unregistered category instance on success, null on failure.
 	 */
 	public function unregister( string $slug ): ?WP_Ability_Category {
 		if ( ! $this->is_registered( $slug ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: %s: Ability category slug. */
-				sprintf( esc_html__( 'Ability category "%s" not found.' ), esc_attr( $slug ) ),
+				sprintf( __( 'Ability category "%s" not found.' ), esc_html( $slug ) ),
 				'6.9.0'
 			);
 			return null;
@@ -182,14 +182,14 @@ final class WP_Abilities_Category_Registry {
 	 * @see wp_get_ability_category()
 	 *
 	 * @param string $slug The slug of the registered category.
-	 * @return ?\WP_Ability_Category The registered category instance, or null if it is not registered.
+	 * @return WP_Ability_Category|null The registered category instance, or null if it is not registered.
 	 */
 	public function get_registered( string $slug ): ?WP_Ability_Category {
 		if ( ! $this->is_registered( $slug ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				/* translators: %s: Ability category slug. */
-				sprintf( esc_html__( 'Ability category "%s" not found.' ), esc_attr( $slug ) ),
+				sprintf( __( 'Ability category "%s" not found.' ), esc_html( $slug ) ),
 				'6.9.0'
 			);
 			return null;
@@ -232,7 +232,7 @@ final class WP_Abilities_Category_Registry {
 	 * @throws \LogicException If the registry is unserialized. This is a security hardening measure to prevent unserialization of the registry.
 	 */
 	public function __wakeup(): void {
-		throw new \LogicException( self::class . ' must not be unserialized.' );
+		throw new \LogicException( __CLASS__ . ' should never be unserialized.' );
 	}
 
 	/**
@@ -242,6 +242,6 @@ final class WP_Abilities_Category_Registry {
 	 * @throws \LogicException If the registry is serialized. This is a security hardening measure to prevent serialization of the registry.
 	 */
 	public function __sleep(): array {
-		throw new \LogicException( self::class . ' must not be serialized.' );
+		throw new \LogicException( __CLASS__ . ' should never be serialized' );
 	}
 }
