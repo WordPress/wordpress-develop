@@ -831,8 +831,8 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	// public function test_wp_always_load_block_styles_on_demand_init_in_block_theme(): void {
-	// 	// If we're in a block theme, expect no filters to be added.
-		
+	//  // If we're in a block theme, expect no filters to be added.
+
 	// }
 
 	/**
@@ -858,34 +858,34 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::wp_use_placeholder_for_delayed_css
 	 */
 	public function test_wp_use_placeholder_for_delayed_css(): void {
-		
+
 		// Enqueue a style
 		wp_enqueue_style( 'test-style', 'http://example.com/style.css' );
-		
+
 		wp_use_placeholder_for_delayed_css();
-		
+
 		// Simulate wp_head
 		ob_start();
 		do_action( 'wp_head' );
 		$head_output = ob_get_clean();
-		
+
 		$this->assertMatchesRegularExpression( '/<!--late_styles:[a-f0-9-]{36}-->/', $head_output, 'Expect the placeholder to be present' );
 		$this->assertStringContainsString( 'test-style', $head_output, 'Expect the enqueued stylesheet to be present' );
-		
+
 		// Enqueue a late style (after wp_head)
 		wp_enqueue_style( 'test-late-style', 'http://example.com/late-style.css' );
-		
+
 		// Simulate footer scripts
 		ob_start();
 		do_action( 'wp_print_footer_scripts' );
 		$footer_output = ob_get_clean();
-		
+
 		// Create a complete HTML buffer
 		$buffer = '<html><head>' . $head_output . '</head><body>Content' . $footer_output . '</body></html>';
-		
+
 		// Apply the output buffer filter
 		$filtered_buffer = apply_filters( 'wp_template_enhancement_output_buffer', $buffer );
-		
+
 		preg_match( '/<head>(.+?)<\/head>/s', $filtered_buffer, $head_matches );
 		$this->assertNotEmpty( $head_matches, 'Expect the late enqueued styles to be present in the header' );
 		$this->assertStringContainsString( 'test-late-style', $head_matches[1], 'Expect the late enqueued styles to be present in the header' );
