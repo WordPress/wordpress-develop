@@ -1062,14 +1062,13 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( $post_date_gmt, $post->post_date_gmt );
 
 		// Invalid post_date_gmt
-		$post_id = self::factory()->post->create(
+		$error = self::factory()->post->create_and_get(
 			array(
 				'post_date_gmt' => $invalid_date,
 			)
 		);
-		$post    = get_post( $post_id );
-		$this->assertSame( '1970-01-01 00:00:00', $post->post_date );
-		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$this->assertWPError( $error );
 	}
 
 	/**
@@ -1135,16 +1134,17 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$this->assertSame( $post_date, $post->post_date );
 		$this->assertSame( $post_date_gmt, $post->post_date_gmt );
 
+		/**
+		 * @ticket 36738
+		 */
 		// Invalid post_date_gmt
-		$post_id = self::factory()->post->create(
+		$post = self::factory()->post->create_and_get(
 			array(
 				'post_date'     => $post_date,
 				'post_date_gmt' => $invalid_date,
 			)
 		);
-		$post    = get_post( $post_id );
-		$this->assertSame( $post_date, $post->post_date );
-		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+		$this->assertWPError( $post );
 	}
 
 	/**
