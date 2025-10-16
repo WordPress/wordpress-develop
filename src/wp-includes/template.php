@@ -947,6 +947,22 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 
 	$filtered_output = $output;
 
+	// TODO: Also capture exceptions?
+	$error_log      = array();
+	$display_errors = ini_get( 'display_errors' );
+	if ( $display_errors ) {
+		ini_set( 'display_errors', 0 );
+		set_error_handler(
+			static function ( int $level, string $message, ?string $file = null, ?int $line = null, ?array $context = null ) use ( &$error_log ) {
+				if ( error_reporting() & $level ) {
+					$error_log[] = compact( 'level', 'message', 'file', 'line', 'context' );
+				}
+				return false;
+			},
+			E_ALL
+		);
+	}
+
 	/**
 	 * Filters the template enhancement output buffer prior to sending to the client.
 	 *
@@ -962,5 +978,37 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	 * @param string $filtered_output HTML template enhancement output buffer.
 	 * @param string $output          Original HTML template output buffer.
 	 */
-	return (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
+	$filtered_output = (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
+
+	if ( $display_errors ) {
+		foreach ( $error_log as $error ) {
+			switch ( $error['level'] ) {
+				case E_USER_NOTICE:
+					$type = 'Notice';
+					break;
+				case E_USER_DEPRECATED:
+					$type = 'Deprecated';
+					break;
+				case E_USER_WARNING:
+					$type = 'Warning';
+					break;
+				default:
+					$type = 'Error';
+			}
+			$displayed_error = sprintf( "<br />\n<b>%s</b>: %s", $type, $error['message'] );
+			if ( null !== $error['file'] ) {
+				$displayed_error .= sprintf( ' in <b>%s</b>', $error['file'] );
+				if ( null !== $error['line'] ) {
+					$displayed_error .= sprintf( ' on line <b>%d</b>', $error['line'] );
+				}
+			}
+			$displayed_error .= '<br />';
+
+			$filtered_output .= $displayed_error;
+		}
+		restore_error_handler();
+		ini_set( 'display_errors', 1 );
+	}
+
+	return $filtered_output;
 }
