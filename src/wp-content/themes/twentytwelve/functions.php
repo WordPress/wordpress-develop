@@ -436,7 +436,7 @@ if ( ! function_exists( 'twentytwelve_content_nav' ) ) :
 				<?php endif; ?>
 			</nav><!-- .navigation -->
 			<?php
-	endif;
+		endif;
 	}
 endif;
 
