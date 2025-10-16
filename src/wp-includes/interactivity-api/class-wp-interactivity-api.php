@@ -1118,7 +1118,7 @@ final class WP_Interactivity_API {
 			if ( empty( $valid_entry ) ) {
 				return;
 			}
-			$result = $this->evaluate( $entry );
+			$result = $this->evaluate( $valid_entry );
 
 			/*
 			 * Follows the same logic as Preact in the client and only changes the
