@@ -714,6 +714,11 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 
 	$dupe_id = $wpdb->get_var( $dupe );
 
+	// Allow duplicate notes for resolution purposes.
+	if ( isset( $commentdata['comment_type'] ) && 'note' === $commentdata['comment_type'] ) {
+		$dupe_id = false;
+	}
+
 	/**
 	 * Filters the ID, if any, of the duplicate comment found when creating a new comment.
 	 *
@@ -725,11 +730,6 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 	 * @param array $commentdata Data for the comment being created.
 	 */
 	$dupe_id = apply_filters( 'duplicate_comment_id', $dupe_id, $commentdata );
-
-	// Allow duplicate notes for resolution purposes.
-	if ( isset( $commentdata['comment_type'] ) && 'note' === $commentdata['comment_type'] ) {
-		$dupe_id = false;
-	}
 
 	if ( $dupe_id ) {
 		/**
