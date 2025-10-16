@@ -1741,7 +1741,7 @@ HTML;
 	public function test_load_on_client_navigation_defaults_to_false_for_registered_modules() {
 		$this->script_modules->register( 'foo', '/foo.js' );
 		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
-		$this->assertSame( false, $registered_modules['foo']['load_on_client_navigation'] );
+		$this->assertFalse( $registered_modules['foo']['load_on_client_navigation'] );
 	}
 
 	/**
