@@ -830,6 +830,27 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertSame( $json, $output, 'Expected output to not be processed.' );
 	}
 
+	// public function test_wp_always_load_block_styles_on_demand_init_in_block_theme(): void {
+	// 	// If we're in a block theme, expect no filters to be added.
+		
+	// }
+
+	/**
+	 * Tests that wp_always_load_block_styles_on_demand adds the expected filters for classic themes.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_always_load_block_styles_on_demand_init
+	 */
+	public function test_wp_always_load_block_styles_on_demand_init_in_classic_theme(): void {
+		// If we're in a classic theme, expect filters to be added.
+		$default = null;
+		$this->assertTrue( has_filter( 'should_load_separate_core_block_assets' ), 'Expect should_load_separate_core_block_assets filter to be added for classic themes.' );
+		$this->assertTrue( apply_filters( 'should_load_separate_core_block_assets', $default ), 'Expect should_load_separate_core_block_assets filters to return true' );
+		$this->assertTrue( has_filter( 'should_load_block_assets_on_demand' ), 'Expect should_load_block_assets_on_demand filter to be added for classic themes.' );
+		$this->assertTrue( apply_filters( 'should_load_block_assets_on_demand', $default ), 'Expect should_load_separate_core_block_assets filters to return true' );
+		$this->assertTrue( true == has_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' ), 'Expect wp_template_enhancement_output_buffer_started filter to be added for classic themes.' );
+	}
+
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
 		$this->go_to( $url );
 		$hierarchy = $this->get_template_hierarchy();
