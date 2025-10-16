@@ -15,7 +15,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Mock abilities registry.
 	 *
-	 * @var \WP_Abilities_Registry
+	 * @var WP_Abilities_Registry
 	 */
 	private $registry = null;
 

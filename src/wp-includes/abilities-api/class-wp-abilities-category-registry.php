@@ -30,7 +30,7 @@ final class WP_Abilities_Category_Registry {
 	 * Holds the registered categories.
 	 *
 	 * @since 6.9.0
-	 * @var \WP_Ability_Category[]
+	 * @var WP_Ability_Category[]
 	 */
 	private $registered_categories = array();
 

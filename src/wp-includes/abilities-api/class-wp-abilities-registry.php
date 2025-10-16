@@ -30,7 +30,7 @@ final class WP_Abilities_Registry {
 	 * Holds the registered abilities.
 	 *
 	 * @since 6.9.0
-	 * @var \WP_Ability[]
+	 * @var WP_Ability[]
 	 */
 	private $registered_abilities = array();
 

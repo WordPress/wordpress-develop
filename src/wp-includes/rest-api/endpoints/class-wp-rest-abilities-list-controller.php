@@ -315,8 +315,6 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 				'description'       => __( 'Current page of the collection.' ),
 				'type'              => 'integer',
 				'default'           => 1,
-				'sanitize_callback' => 'absint',
-				'validate_callback' => 'rest_validate_request_arg',
 				'minimum'           => 1,
 			),
 			'per_page' => array(
@@ -325,8 +323,6 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 				'default'           => self::DEFAULT_PER_PAGE,
 				'minimum'           => 1,
 				'maximum'           => 100,
-				'sanitize_callback' => 'absint',
-				'validate_callback' => 'rest_validate_request_arg',
 			),
 			'category' => array(
 				'description'       => __( 'Limit results to abilities in specific category.' ),
