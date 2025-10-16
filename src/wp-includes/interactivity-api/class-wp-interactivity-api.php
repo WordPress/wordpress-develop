@@ -902,30 +902,18 @@ final class WP_Interactivity_API {
 		}
 
 		$entries = $this->get_directive_entries( $p, 'context' );
-		// It processes the entries in reverse order to build the context stack correctly.
+		$context = end( $this->context_stack ) !== false ? end( $this->context_stack ) : array();
 		foreach ( $entries as $entry ) {
 			if ( null !== $entry['suffix'] ) {
 				continue;
 			}
 
-			/*
-			 * If there is a namespace, it adds a new context to the stack merging the
-			 * previous context with the new one.
-			 */
-			if ( is_string( $entry['namespace'] ) ) {
-				$this->context_stack[] = array_replace_recursive(
-					end( $this->context_stack ) !== false ? end( $this->context_stack ) : array(),
-					array( $entry['namespace'] => is_array( $entry['value'] ) ? $entry['value'] : array() )
-				);
-			} else {
-				/*
-				 * If there is no namespace, it pushes the current context to the stack.
-				 * It needs to do so because the function pops out the current context
-				 * from the stack whenever it finds a `data-wp-context`'s closing tag.
-				 */
-				$this->context_stack[] = end( $this->context_stack );
-			}
+			$context = array_replace_recursive(
+				$context,
+				array( $entry['namespace'] => is_array( $entry['value'] ) ? $entry['value'] : array() )
+			);
 		}
+		$this->context_stack[] = $context;
 	}
 
 	/**
