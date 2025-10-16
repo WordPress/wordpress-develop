@@ -14,7 +14,7 @@ declare( strict_types = 1 );
 /**
  * Registers a new ability using Abilities API.
  *
- * Note: Do not use before the {@see 'abilities_api_init'} hook.
+ * Note: Should only be used on the {@see 'abilities_api_init'} hook.
  *
  * @since 6.9.0
  *
@@ -26,7 +26,7 @@ declare( strict_types = 1 );
  * @param array<string,mixed> $args An associative array of arguments for the ability. This should include
  *                                  `label`, `description`, `category`, `input_schema`, `output_schema`, `execute_callback`,
  *                                  `permission_callback`, `meta`, and `ability_class`.
- * @return ?\WP_Ability An instance of registered ability on success, null on failure.
+ * @return WP_Ability|null An instance of registered ability on success, null on failure.
  *
  * @phpstan-param array{
  *   label?: string,
@@ -64,14 +64,14 @@ function wp_register_ability( string $name, array $args ): ?WP_Ability {
 }
 
 /**
- * Unregisters an ability using Abilities API.
+ * Unregisters an ability from the Abilities API.
  *
  * @since 6.9.0
  *
  * @see WP_Abilities_Registry::unregister()
  *
  * @param string $name The name of the registered ability, with its namespace.
- * @return ?\WP_Ability The unregistered ability instance on success, null on failure.
+ * @return WP_Ability|null The unregistered ability instance on success, null on failure.
  */
 function wp_unregister_ability( string $name ): ?WP_Ability {
 	return WP_Abilities_Registry::get_instance()->unregister( $name );
@@ -85,7 +85,7 @@ function wp_unregister_ability( string $name ): ?WP_Ability {
  * @see WP_Abilities_Registry::get_registered()
  *
  * @param string $name The name of the registered ability, with its namespace.
- * @return ?\WP_Ability The registered ability instance, or null if it is not registered.
+ * @return WP_Ability|null The registered ability instance, or null if it is not registered.
  */
 function wp_get_ability( string $name ): ?WP_Ability {
 	return WP_Abilities_Registry::get_instance()->get_registered( $name );
@@ -115,7 +115,7 @@ function wp_get_abilities(): array {
  *                                  alphanumeric characters and dashes.
  * @param array<string,mixed> $args An associative array of arguments for the category. This should
  *                                  include `label`, `description`, and optionally `meta`.
- * @return ?\WP_Ability_Category The registered category instance on success, null on failure.
+ * @return WP_Ability_Category|null The registered category instance on success, null on failure.
  *
  * @phpstan-param array{
  *   label: string,
@@ -136,7 +136,7 @@ function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_
  * @see WP_Abilities_Category_Registry::unregister()
  *
  * @param string $slug The slug of the registered category.
- * @return ?\WP_Ability_Category The unregistered category instance on success, null on failure.
+ * @return WP_Ability_Category|null The unregistered category instance on success, null on failure.
  */
 function wp_unregister_ability_category( string $slug ): ?WP_Ability_Category {
 	return WP_Abilities_Category_Registry::get_instance()->unregister( $slug );
@@ -150,7 +150,7 @@ function wp_unregister_ability_category( string $slug ): ?WP_Ability_Category {
  * @see WP_Abilities_Category_Registry::get_registered()
  *
  * @param string $slug The slug of the registered category.
- * @return ?\WP_Ability_Category The registered category instance, or null if it is not registered.
+ * @return WP_Ability_Category|null The registered category instance, or null if it is not registered.
  */
 function wp_get_ability_category( string $slug ): ?WP_Ability_Category {
 	return WP_Abilities_Category_Registry::get_instance()->get_registered( $slug );

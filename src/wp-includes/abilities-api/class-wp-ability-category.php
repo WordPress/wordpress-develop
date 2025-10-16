@@ -83,10 +83,10 @@ final class WP_Ability_Category {
 					__METHOD__,
 					sprintf(
 						/* translators: %s: Property name. */
-						esc_html__( 'Property "%1$s" is not a valid property for category "%2$s". Please check the %3$s class for allowed properties.' ),
+						__( 'Property "%1$s" is not a valid property for category "%2$s". Please check the %3$s class for allowed properties.' ),
 						'<code>' . esc_html( $property_name ) . '</code>',
 						'<code>' . esc_html( $this->slug ) . '</code>',
-						'<code>' . esc_html( self::class ) . '</code>'
+						'<code>' . __CLASS__ . '</code>'
 					),
 					'6.9.0'
 				);
@@ -117,20 +117,20 @@ final class WP_Ability_Category {
 		// Required args must be present and of the correct type.
 		if ( empty( $args['label'] ) || ! is_string( $args['label'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The category properties must contain a `label` string.' )
+				__( 'The category properties must contain a `label` string.' )
 			);
 		}
 
 		if ( empty( $args['description'] ) || ! is_string( $args['description'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The category properties must contain a `description` string.' )
+				__( 'The category properties must contain a `description` string.' )
 			);
 		}
 
 		// Optional args only need to be of the correct type if they are present.
 		if ( isset( $args['meta'] ) && ! is_array( $args['meta'] ) ) {
 			throw new \InvalidArgumentException(
-				esc_html__( 'The category properties should provide a valid `meta` array.' )
+				__( 'The category properties should provide a valid `meta` array.' )
 			);
 		}
 
@@ -188,7 +188,7 @@ final class WP_Ability_Category {
 	 * @throws \LogicException If the category is unserialized. This is a security hardening measure to prevent unserialization of the category.
 	 */
 	public function __wakeup(): void {
-		throw new \LogicException( self::class . ' must not be unserialized.' );
+		throw new \LogicException( __CLASS__ . ' should never be unserialized.' );
 	}
 
 	/**
@@ -198,6 +198,6 @@ final class WP_Ability_Category {
 	 * @throws \LogicException If the category is serialized. This is a security hardening measure to prevent serialization of the category.
 	 */
 	public function __sleep(): array {
-		throw new \LogicException( self::class . ' must not be serialized.' );
+		throw new \LogicException( __CLASS__ . ' should never be serialized' );
 	}
 }
