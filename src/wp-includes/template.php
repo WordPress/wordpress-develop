@@ -929,7 +929,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		$header_parts = explode( ':', strtolower( $header ), 2 );
 		if (
 			count( $header_parts ) === 2 &&
-			'content-type' === trim( $header_parts[0] )
+			'content-type' === $header_parts[0]
 		) {
 			$content_type         = trim( strtok( $header_parts[1], ';' ) );
 			$is_html_content_type = in_array( $content_type, $html_content_types, true );
