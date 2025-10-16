@@ -4110,11 +4110,11 @@ function _wp_check_for_scheduled_update_comment_type() {
 }
 
 /**
- * Register notes metadata for notes status.
+ * Register initial comment meta.
  *
  * @since 6.9.0
  */
-function wp_register_notes_metadata() {
+function wp_create_initial_comment_meta() {
 	register_meta(
 		'comment',
 		'_wp_note_status',
@@ -4134,4 +4134,4 @@ function wp_register_notes_metadata() {
 		)
 	);
 }
-add_action( 'init', 'wp_register_notes_metadata' );
+add_action( 'init', 'wp_create_initial_comment_meta' );
