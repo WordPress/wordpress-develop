@@ -775,6 +775,35 @@ final class WP_Interactivity_API {
 	}
 
 	/**
+	 * Parse the HTML element and get all the valid directives with the given prefix.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_Interactivity_API_Directives_Processor $p      The directives processor instance.
+	 * @param string                                    $prefix The directive prefix to filter by.
+	 * @return array An array of entries containing the directive namespace, value, suffix, and unique ID.
+	 */
+	private function get_directive_entries( WP_Interactivity_API_Directives_Processor $p, string $prefix ) {
+		$directive_attributes = $p->get_attribute_names_with_prefix( 'data-wp-' . $prefix );
+		$entries              = array();
+		foreach ( $directive_attributes as $attribute_name ) {
+			[ 'prefix' => $attr_prefix, 'suffix' => $suffix, 'unique_id' => $unique_id] = $this->parse_directive_name( $attribute_name );
+			// Ensure it is the desired directive.
+			if ( $prefix !== $attr_prefix ) {
+				continue;
+			}
+			list( $namespace, $value ) = $this->extract_directive_value( $p->get_attribute( $attribute_name ), end( $this->namespace_stack ) );
+			$entries[]                 = array(
+				'namespace' => $namespace,
+				'value'     => $value,
+				'suffix'    => $suffix,
+				'unique_id' => $unique_id,
+			);
+		}
+		return $entries;
+	}
+
+	/**
 	 * Transforms a kebab-case string to camelCase.
 	 *
 	 * @since 6.5.0
