@@ -660,7 +660,7 @@ if ( ! function_exists( 'twentyeleven_content_nav' ) ) :
 				<?php if ( $next_link ) : ?>
 					<div class="nav-next"><?php echo wp_kses_post( $next_link ); ?></div>
 				<?php endif; ?>
-			</nav><!-- #nav-above -->
+			</nav><!-- #<?php echo esc_attr( $html_id ); ?> -->
 			<?php
 		endif;
 	}
