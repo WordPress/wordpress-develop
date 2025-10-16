@@ -486,6 +486,11 @@ class WP_Query {
 	private $query_cache_key = '';
 
 	/**
+	 * @var string
+	 */
+	private $count_request;
+
+	/**
 	 * Resets query flags to false.
 	 *
 	 * The query flags are what page info WordPress was able to figure out.
@@ -3162,16 +3167,13 @@ class WP_Query {
 			$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
 		}
 
+		$count_field = "{$wpdb->posts}.ID";
 		if ( ! empty( $groupby ) ) {
-			$groupby = 'GROUP BY ' . $groupby;
+			$count_field = $groupby;
+			$groupby     = 'GROUP BY ' . $groupby;
 		}
 		if ( ! empty( $orderby ) ) {
 			$orderby = 'ORDER BY ' . $orderby;
-		}
-
-		$found_rows = '';
-		if ( ! $query_vars['no_found_rows'] && ! empty( $limits ) ) {
-			$found_rows = 'SQL_CALC_FOUND_ROWS';
 		}
 
 		/*
@@ -3186,7 +3188,7 @@ class WP_Query {
 		 * See https://github.com/WordPress/wordpress-develop/pull/6393#issuecomment-2088217429
 		 */
 		$old_request =
-			"SELECT $found_rows $distinct $fields
+			"SELECT $distinct $fields
 					 FROM {$wpdb->posts} $join
 					 WHERE 1=1 $where
 					 $groupby
@@ -3194,6 +3196,11 @@ class WP_Query {
 					 $limits";
 
 		$this->request = $old_request;
+
+		$this->count_request =
+			"SELECT COUNT(DISTINCT {$count_field})
+					 FROM {$wpdb->posts} $join
+					 WHERE 1=1 $where";
 
 		if ( ! $query_vars['suppress_filters'] ) {
 			/**
@@ -3408,7 +3415,7 @@ class WP_Query {
 
 				// Beginning of the string is on a new line to prevent leading whitespace. See https://core.trac.wordpress.org/ticket/56841.
 				$this->request =
-					"SELECT $found_rows $distinct {$wpdb->posts}.ID
+					"SELECT $distinct {$wpdb->posts}.ID
 					 FROM {$wpdb->posts} $join
 					 WHERE 1=1 $where
 					 $groupby
@@ -3689,6 +3696,12 @@ class WP_Query {
 		}
 
 		if ( ! empty( $limits ) ) {
+			$old_count_request = $this->count_request;
+			// If we used SQL_CALC_FOUND_ROWS, we need to make sure to use FOUND_ROWS() to get the correct count.
+			if ( str_contains( $this->request, 'SQL_CALC_FOUND_ROWS' ) ) {
+				$this->count_request = 'SELECT FOUND_ROWS()';
+			}
+
 			/**
 			 * Filters the query to run for retrieving the found posts.
 			 *
@@ -3697,7 +3710,12 @@ class WP_Query {
 			 * @param string   $found_posts_query The query to run to find the found posts.
 			 * @param WP_Query $query             The WP_Query instance (passed by reference).
 			 */
-			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( 'SELECT FOUND_ROWS()', &$this ) );
+			$found_posts_query = apply_filters_ref_array( 'found_posts_query', array( $this->count_request, &$this ) );
+
+			// If we changed the count_request to use FOUND_ROWS() but the found_posts_query filter reverted it back, restore the original count_request.
+			if ( ! str_contains( $this->request, 'SQL_CALC_FOUND_ROWS' ) && $found_posts_query === 'SELECT FOUND_ROWS()' ) {
+				$this->count_request = $old_count_request;
+			}
 
 			$this->found_posts = (int) $wpdb->get_var( $found_posts_query );
 		} else {
