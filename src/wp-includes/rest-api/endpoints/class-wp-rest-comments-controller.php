@@ -123,8 +123,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if the request has read access, error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-		$is_note         = ! empty( $request['type'] ) && 'note' === $request['type'];
-		$is_edit_context = ! empty( $request['context'] ) && 'edit' === $request['context'];
+		$is_note         = 'note' === $request['type'];
+		$is_edit_context = 'edit' === $request['context'];
 
 		if ( ! empty( $request['post'] ) ) {
 			foreach ( (array) $request['post'] as $post_id ) {
