@@ -60,6 +60,14 @@ class Tests_Compat_wpUtf8CodePointCount extends WP_UnitTestCase {
 	public function test_counts_within_appropriate_offsets( string $text, int $byte_offset, int $byte_length ) {
 		$substring = substr( $text, $byte_offset, $byte_length );
 
+		if (
+			! mb_check_encoding( $substring, 'UTF-8' ) &&
+			// Miscounting bug fixed by removal of “fast path” php/php-src@cca4ca6d3dda8c2e1c5c1b053550f94b3d6fb6bf
+			version_compare( PHP_VERSION, '8.3.0', '<' )
+		) {
+			$this->markTestSkipped( 'Prior to PHP 8.3.0, mb_strlen() misreported lengths of invalid inputs.' );
+		}
+
 		$this->assertSame(
 			mb_strlen( $substring, 'UTF-8' ),
 			_wp_utf8_codepoint_count( $text, $byte_offset, $byte_length ),
