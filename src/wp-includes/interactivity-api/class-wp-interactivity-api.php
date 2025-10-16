@@ -799,6 +799,24 @@ final class WP_Interactivity_API {
 				'unique_id' => $unique_id,
 			);
 		}
+		// Sort directive entries to ensure stable ordering with the client.
+		// Put nulls first, then sort by suffix and finally by uniqueIds.
+		usort(
+			$entries,
+			function ( $a, $b ) {
+				$a_suffix = $a['suffix'] ?? '';
+				$b_suffix = $b['suffix'] ?? '';
+				if ( $a_suffix !== $b_suffix ) {
+					return $a_suffix < $b_suffix ? -1 : 1;
+				}
+				$a_id = $a['unique_id'] ?? '';
+				$b_id = $b['unique_id'] ?? '';
+				if ( $a_id === $b_id ) {
+					return 0;
+				}
+				return $a_id > $b_id ? 1 : -1;
+			}
+		);
 		return $entries;
 	}
 
@@ -883,49 +901,21 @@ final class WP_Interactivity_API {
 			return;
 		}
 
-		$all_context_attributes = $p->get_attribute_names_with_prefix( 'data-wp-context' );
-		// Filter out entries with a suffix and ensure it is only 'data-wp-context'.
-		$all_context_attributes = array_filter(
-			$all_context_attributes,
-			function ( $attribute_name ) {
-				$params = $this->parse_directive_name( $attribute_name );
-				return null === $params['suffix'] && 'context' === $params['prefix'];
-			}
-		);
-		usort(
-			$all_context_attributes,
-			function ( $a, $b ) {
-				$a_parsed = $this->parse_directive_name( $a );
-				$b_parsed = $this->parse_directive_name( $b );
-
-				$a_id = $a_parsed['unique_id'] ?? '';
-				$b_id = $b_parsed['unique_id'] ?? '';
-
-				return $b_id <=> $a_id;
-			}
-		);
-
-		foreach ( $all_context_attributes as $attribute_name ) {
-			$params = $this->parse_directive_name( $attribute_name );
-			if ( 'context' !== $params['prefix'] || null !== $params['suffix'] ) {
+		$entries = $this->get_directive_entries( $p, 'context' );
+		// It processes the entries in reverse order to build the context stack correctly.
+		foreach ( array_reverse( $entries ) as $entry ) {
+			if ( null !== $entry['suffix'] ) {
 				continue;
 			}
-			$attribute_value = $p->get_attribute( $attribute_name );
-			$namespace_value = end( $this->namespace_stack );
-
-			// Separates the namespace from the context JSON object.
-			list( $namespace_value, $decoded_json ) = is_string( $attribute_value ) && ! empty( $attribute_value )
-				? $this->extract_directive_value( $attribute_value, $namespace_value )
-				: array( $namespace_value, null );
 
 			/*
 			 * If there is a namespace, it adds a new context to the stack merging the
 			 * previous context with the new one.
 			 */
-			if ( is_string( $namespace_value ) ) {
+			if ( is_string( $entry['namespace'] ) ) {
 				$this->context_stack[] = array_replace_recursive(
 					end( $this->context_stack ) !== false ? end( $this->context_stack ) : array(),
-					array( $namespace_value => is_array( $decoded_json ) ? $decoded_json : array() )
+					array( $entry['namespace'] => is_array( $entry['value'] ) ? $entry['value'] : array() )
 				);
 			} else {
 				/*
