@@ -662,7 +662,7 @@ if ( ! function_exists( 'twentyeleven_content_nav' ) ) :
 				<?php endif; ?>
 			</nav><!-- #nav-above -->
 			<?php
-	endif;
+		endif;
 	}
 endif; // twentyeleven_content_nav()
 
