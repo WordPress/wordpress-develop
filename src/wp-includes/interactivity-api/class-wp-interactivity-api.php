@@ -1272,13 +1272,11 @@ HTML;
 				 *
 				 * Nested `data-wp-each` directives could render
 				 * `data-wp-each-child` elements at the top level as well, and
-				 * they should be ignored.
+				 * they should be overwritten.
 				 */
 				$i = new WP_Interactivity_API_Directives_Processor( $processed_item );
 				while ( $i->next_tag() ) {
-					if ( ! $i->get_attribute( 'data-wp-each-child' ) ) {
-						$i->set_attribute( 'data-wp-each-child', $namespace_value . '::' . $path );
-					}
+					$i->set_attribute( 'data-wp-each-child', $namespace_value . '::' . $path );
 					$i->next_balanced_tag_closer_tag();
 				}
 				$processed_content .= $i->get_updated_html();
