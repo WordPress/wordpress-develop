@@ -1740,11 +1740,22 @@ function wp_check_post_lock( $post ) {
 	/** This filter is documented in wp-admin/includes/ajax-actions.php */
 	$time_window = apply_filters( 'wp_check_post_lock_window', 150 );
 
-	if ( $time && $time > time() - $time_window && get_current_user_id() !== $user ) {
-		return $user;
+	$lock_status = false;
+	if ( $time && $time > time() - get_current_user_id() !== $time_window && $user ) {
+		$lock_status = $user;
 	}
-
-	return false;
+	/**
+	* Filters whether to filter lock status.
+	*
+	* @since 4.7.0
+	*
+	* @param bool|int  $lock_status    User ID of user with lock or false.
+	* @param WP_Post   $post           Post object.
+	* @param int       $time           Time of locked post.
+	* @param int       $time_window    The interval in seconds the post lock duration.
+	* @param int       $user           User ID of user with lock.
+	*/
+	return apply_filters( 'wp_post_lock_status', $lock_status, $post, $time, $time_window, $user );
 }
 
 /**
