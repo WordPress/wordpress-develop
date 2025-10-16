@@ -1941,7 +1941,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		return $email;
 	}
 
-
 	/**
 	 * If empty comments are not allowed, checks if the provided comment content is not empty.
 	 *
