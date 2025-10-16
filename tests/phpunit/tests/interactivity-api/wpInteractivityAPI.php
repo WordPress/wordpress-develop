@@ -786,6 +786,226 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests the ability to get the valid entries of a specific directive in an HTML element.
+	 *
+	 * @ticket 99999
+	 *
+	 * @covers ::get_directive_entries
+	 */
+	public function test_get_directive_entries() {
+		$get_directive_entries = new ReflectionMethod( $this->interactivity, 'get_directive_entries' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_directive_entries->setAccessible( true );
+		}
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
+		// Should process simple directives.
+		$html = '<div data-wp-test="test value"></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertCount( 1, $results );
+		$result = $results[0];
+		$this->assertSame( 'myPlugin', $result['namespace'] );
+		$this->assertSame( 'test value', $result['value'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
+
+		// Should process directives without value.
+		$html = '<div data-wp-test></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertNull( $results[0]['value'] );
+
+		// Should parse JSON values in directives.
+		$html = '<div data-wp-test=\'{"key": "value"}\'></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertSame( array( 'key' => 'value' ), $results[0]['value'] );
+
+		// Should handle malformed JSON and keep as string.
+		$html = '<div data-wp-test="{malformed: json}"></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertSame( '{malformed: json}', $results[0]['value'] );
+
+		// Should process directives with a custom namespace.
+		$html = '<div data-wp-test="my-namespace::test value"></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertSame( 'my-namespace', $results[0]['namespace'] );
+		$this->assertSame( 'test value', $results[0]['value'] );
+
+		// Should parse JSON values with a custom namespace.
+		$html = '<div data-wp-test=\'my-namespace::{"key": "value"}\'></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertSame( 'my-namespace', $results[0]['namespace'] );
+		$this->assertSame( array( 'key' => 'value' ), $results[0]['value'] );
+
+		// Should handle multiple directives with different unique IDs.
+		$html = '
+			<div
+				data-wp-test---plugin-a="value-a"
+				data-wp-test---plugin-b="value-b"
+				data-wp-test---plugin-c="value-c"
+			></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertCount( 3, $results );
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value-a',
+				'suffix'    => null,
+				'unique_id' => 'plugin-a',
+			),
+			$results[0]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value-b',
+				'suffix'    => null,
+				'unique_id' => 'plugin-b',
+			),
+			$results[1]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value-c',
+				'suffix'    => null,
+				'unique_id' => 'plugin-c',
+			),
+			$results[2]
+		);
+
+		// Should handle mix of different suffixes and unique IDs.
+		$html = '
+			<div
+				data-wp-test--suffix-a---id-1="value1"
+				data-wp-test--suffix-a---id-2="value2"
+				data-wp-test--suffix-b---id-1="value3"
+				data-wp-test--suffix-c---id-1="value4"
+			></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertCount( 4, $results );
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value1',
+				'suffix'    => 'suffix-a',
+				'unique_id' => 'id-1',
+			),
+			$results[0]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value2',
+				'suffix'    => 'suffix-a',
+				'unique_id' => 'id-2',
+			),
+			$results[1]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value3',
+				'suffix'    => 'suffix-b',
+				'unique_id' => 'id-1',
+			),
+			$results[2]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value4',
+				'suffix'    => 'suffix-c',
+				'unique_id' => 'id-1',
+			),
+			$results[3]
+		);
+
+		// Should handle unique ID with namespace.
+		$html = '<div data-wp-test---unique-id="my-namespace::test value"></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertSame( 'my-namespace', $results[0]['namespace'] );
+		$this->assertSame( 'test value', $results[0]['value'] );
+		$this->assertSame( 'unique-id', $results[0]['unique_id'] );
+
+		// Should handle multiple directives with different namespaces and unique IDs.
+		$html = '
+			<div
+				data-wp-test---id-a="namespace-a::value1"
+				data-wp-test---id-b="namespace-b::value2"
+			></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertCount( 2, $results );
+		$this->assertSame(
+			array(
+				'namespace' => 'namespace-a',
+				'value'     => 'value1',
+				'suffix'    => null,
+				'unique_id' => 'id-a',
+			),
+			$results[0]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'namespace-b',
+				'value'     => 'value2',
+				'suffix'    => null,
+				'unique_id' => 'id-b',
+			),
+			$results[1]
+		);
+		// Should sort directives by suffix and uniqueId for stable ordering.
+		$html = '
+			<div
+				data-wp-test---z
+				data-wp-test---a
+				data-wp-test--b---z
+				data-wp-test--b---a
+				data-wp-test--a
+				data-wp-test
+			></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertCount( 6, $results );
+		$this->assertEquals(
+			array(
+				array( null, null ),
+				array( null, 'a' ),
+				array( null, 'z' ),
+				array( 'a', null ),
+				array( 'b', 'a' ),
+				array( 'b', 'z' ),
+			),
+			array_map(
+				function ( $d ) {
+					return array( $d['suffix'], $d['unique_id'] );
+				},
+				$results
+			)
+		);
+	}
+
+	/**
 	 * Tests that the `process_directives` method doesn't change the HTML if it
 	 * doesn't contain directives.
 	 *
