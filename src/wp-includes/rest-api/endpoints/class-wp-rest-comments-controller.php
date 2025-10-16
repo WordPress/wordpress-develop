@@ -640,7 +640,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $prepared_comment;
 		}
 
-		$prepared_comment['comment_type'] = empty( $request['type'] ) ? 'comment' : $request['type'];
+		$prepared_comment['comment_type'] = $request['type'];
 
 		if ( ! isset( $prepared_comment['comment_content'] ) ) {
 			$prepared_comment['comment_content'] = '';
@@ -1567,6 +1567,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
+					'default'     => 'comment',
 				),
 			),
 		);
