@@ -347,10 +347,8 @@ class WP_Script_Modules {
 	 * @since 6.9.0
 	 */
 	public function print_head_enqueued_script_modules() {
-		$script_modules            = $this->get_marked_for_enqueue();
-		$sorted_script_modules_ids = $this->get_sorted_dependencies( array_keys( $script_modules ) );
-		foreach ( $sorted_script_modules_ids as $id ) {
-			if ( isset( $script_modules[ $id ] ) && ! $script_modules[ $id ]['in_footer'] ) {
+		foreach ( $this->get_sorted_dependencies( $this->queue ) as $id ) {
+			if ( isset( $this->registered[ $id ] ) && ! $this->registered[ $id ]['in_footer'] ) {
 				// If any dependency is set to be printed in footer, skip printing this module in head.
 				$dependencies = $this->get_dependencies( array( $id ) );
 				foreach ( $dependencies as $dependency_id => $dependency ) {
@@ -358,8 +356,7 @@ class WP_Script_Modules {
 						continue 2;
 					}
 				}
-				$this->done[] = $id;
-				$this->print_script_module( $id, $script_modules[ $id ] );
+				$this->print_script_module( $id );
 			}
 		}
 	}
@@ -370,13 +367,8 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_enqueued_script_modules() {
-		$script_modules            = $this->get_marked_for_enqueue();
-		$sorted_script_modules_ids = $this->get_sorted_dependencies( array_keys( $script_modules ) );
-		foreach ( $sorted_script_modules_ids as $id ) {
-			if ( isset( $script_modules[ $id ] ) ) {
-				$this->done[] = $id;
-				$this->print_script_module( $id, $script_modules[ $id ] );
-			}
+		foreach ( $this->get_sorted_dependencies( $this->queue ) as $id ) {
+			$this->print_script_module( $id );
 		}
 	}
 
@@ -386,16 +378,21 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string $id     The script module identifier.
-	 * @param array  $module The script module to print.
+	 * @param string $id The script module identifier.
 	 */
-	private function print_script_module( string $id, array $script_module ) {
-		$args = array(
+	private function print_script_module( string $id ) {
+		if ( in_array( $id, $this->done, true ) || ! in_array( $id, $this->queue, true ) ) {
+			return;
+		}
+
+		$this->done[] = $id;
+		$args         = array(
 			'type' => 'module',
 			'src'  => $this->get_src( $id ),
 			'id'   => $id . '-js-module',
 		);
 
+		$script_module = $this->registered[ $id ];
 		$dependents    = $this->get_recursive_dependents( $id );
 		$fetchpriority = $this->get_highest_fetchpriority( array_merge( array( $id ), $dependents ) );
 		if ( 'auto' !== $fetchpriority ) {
