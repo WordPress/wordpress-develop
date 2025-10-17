@@ -22,7 +22,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		add_action(
 			'wp_abilities_api_categories_init',
 			function () {
-				if ( ! WP_Abilities_Category_Registry::get_instance()->is_registered( 'math' ) ) {
+				if ( ! WP_Ability_Categories_Registry::get_instance()->is_registered( 'math' ) ) {
 					wp_register_ability_category(
 						'math',
 						array(
@@ -66,7 +66,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 */
 	public function tear_down(): void {
 		// Clean up registered categories.
-		$category_registry = WP_Abilities_Category_Registry::get_instance();
+		$category_registry = WP_Ability_Categories_Registry::get_instance();
 		if ( $category_registry->is_registered( 'math' ) ) {
 			wp_unregister_ability_category( 'math' );
 		}
@@ -115,7 +115,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			array_merge(
 				self::$test_ability_properties['meta']['annotations'],
 				array(
-					'idempotent'   => false,
+					'idempotent' => false,
 				)
 			),
 			$ability->get_meta_item( 'annotations' )
@@ -135,9 +135,9 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'readonly'     => false,
-				'destructive'  => false,
-				'idempotent'   => false,
+				'readonly'    => false,
+				'destructive' => false,
+				'idempotent'  => false,
 			),
 			$ability->get_meta_item( 'annotations' )
 		);
@@ -150,9 +150,9 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 */
 	public function test_get_overridden_annotations_from_meta() {
 		$annotations = array(
-			'readonly'     => true,
-			'destructive'  => false,
-			'idempotent'   => false,
+			'readonly'    => true,
+			'destructive' => false,
+			'idempotent'  => false,
 		);
 		$args        = array_merge(
 			self::$test_ability_properties,

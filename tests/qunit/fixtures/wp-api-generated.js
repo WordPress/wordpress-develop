@@ -12473,7 +12473,7 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "category": {
-                            "description": "Limit results to abilities in specific category.",
+                            "description": "Limit results to abilities in specific ability category.",
                             "type": "string",
                             "required": false
                         }

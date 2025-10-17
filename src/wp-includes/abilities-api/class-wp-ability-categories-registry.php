@@ -2,7 +2,7 @@
 /**
  * Abilities API
  *
- * Defines WP_Abilities_Category_Registry class.
+ * Defines WP_Ability_Categories_Registry class.
  *
  * @package WordPress
  * @subpackage Abilities API
@@ -17,7 +17,7 @@ declare( strict_types = 1 );
  * @since 6.9.0
  * @access private
  */
-final class WP_Abilities_Category_Registry {
+final class WP_Ability_Categories_Registry {
 	/**
 	 * The singleton instance of the registry.
 	 *
@@ -27,7 +27,7 @@ final class WP_Abilities_Category_Registry {
 	private static $instance = null;
 
 	/**
-	 * Holds the registered categories.
+	 * Holds the registered ability categories.
 	 *
 	 * @since 6.9.0
 	 * @var WP_Ability_Category[]
@@ -35,7 +35,7 @@ final class WP_Abilities_Category_Registry {
 	private $registered_categories = array();
 
 	/**
-	 * Registers a new category.
+	 * Registers a new ability category.
 	 *
 	 * Do not use this method directly. Instead, use the `wp_register_ability_category()` function.
 	 *
@@ -43,24 +43,24 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * @see wp_register_ability_category()
 	 *
-	 * @param string               $slug The unique slug for the category. Must contain only lowercase
+	 * @param string               $slug The unique slug for the ability category. Must contain only lowercase
 	 *                                   alphanumeric characters and dashes.
 	 * @param array<string, mixed> $args {
-	 *     An associative array of arguments for the category.
+	 *     An associative array of arguments for the ability category.
 	 *
-	 *     @type string               $label       The human-readable label for the category.
-	 *     @type string               $description A description of the category.
-	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
+	 *     @type string               $label       The human-readable label for the ability category.
+	 *     @type string               $description A description of the ability category.
+	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the ability category.
 	 * }
-	 * @return WP_Ability_Category|null The registered category instance on success, null on failure.
+	 * @return WP_Ability_Category|null The registered ability category instance on success, null on failure.
 	 */
 	public function register( string $slug, array $args ): ?WP_Ability_Category {
 		if ( ! doing_action( 'wp_abilities_api_categories_init' ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
-					/* translators: 1: abilities_api_categories_init, 2: category slug. */
-					__( 'Categories must be registered during the %1$s action. The category %2$s was not registered.' ),
+					/* translators: 1: abilities_api_categories_init, 2: ability category slug. */
+					__( 'Ability categories must be registered during the %1$s action. The category %2$s was not registered.' ),
 					'<code>wp_abilities_api_categories_init</code>',
 					'<code>' . esc_html( $slug ) . '</code>'
 				),
@@ -72,8 +72,8 @@ final class WP_Abilities_Category_Registry {
 		if ( $this->is_registered( $slug ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				/* translators: %s: Category slug. */
-				sprintf( __( 'Category "%s" is already registered.' ), esc_html( $slug ) ),
+				/* translators: %s: Ability category slug. */
+				sprintf( __( 'Ability category "%s" is already registered.' ), esc_html( $slug ) ),
 				'6.9.0'
 			);
 			return null;
@@ -82,25 +82,25 @@ final class WP_Abilities_Category_Registry {
 		if ( ! preg_match( '/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'Category slug must contain only lowercase alphanumeric characters and dashes.' ),
+				__( 'Ability category slug must contain only lowercase alphanumeric characters and dashes.' ),
 				'6.9.0'
 			);
 			return null;
 		}
 
 		/**
-		 * Filters the category arguments before they are validated and used to instantiate the category.
+		 * Filters the ability category arguments before they are validated and used to instantiate the ability category.
 		 *
 		 * @since 6.9.0
 		 *
 		 * @param array<string, mixed> $args {
-		 *     The arguments used to instantiate the category.
+		 *     The arguments used to instantiate the ability category.
 		 *
-		 *     @type string               $label       The human-readable label for the category.
-		 *     @type string               $description A description of the category.
-		 *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
+		 *     @type string               $label       The human-readable label for the ability category.
+		 *     @type string               $description A description of the ability category.
+		 *     @type array<string, mixed> $meta        Optional. Additional metadata for the ability category.
 		 * }
-		 * @param string               $slug The slug of the category.
+		 * @param string               $slug The slug of the ability category.
 		 */
 		$args = apply_filters( 'wp_register_ability_category_args', $args, $slug );
 
@@ -121,7 +121,7 @@ final class WP_Abilities_Category_Registry {
 	}
 
 	/**
-	 * Unregisters a category.
+	 * Unregisters a ability category.
 	 *
 	 * Do not use this method directly. Instead, use the `wp_unregister_ability_category()` function.
 	 *
@@ -129,8 +129,8 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * @see wp_unregister_ability_category()
 	 *
-	 * @param string $slug The slug of the registered category.
-	 * @return WP_Ability_Category|null The unregistered category instance on success, null on failure.
+	 * @param string $slug The slug of the registered ability category.
+	 * @return WP_Ability_Category|null The unregistered ability category instance on success, null on failure.
 	 */
 	public function unregister( string $slug ): ?WP_Ability_Category {
 		if ( ! $this->is_registered( $slug ) ) {
@@ -150,7 +150,7 @@ final class WP_Abilities_Category_Registry {
 	}
 
 	/**
-	 * Retrieves the list of all registered categories.
+	 * Retrieves the list of all registered ability categories.
 	 *
 	 * Do not use this method directly. Instead, use the `wp_get_ability_categories()` function.
 	 *
@@ -158,26 +158,26 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * @see wp_get_ability_categories()
 	 *
-	 * @return array<string, WP_Ability_Category> The array of registered categories.
+	 * @return array<string, WP_Ability_Category> The array of registered ability categories.
 	 */
 	public function get_all_registered(): array {
 		return $this->registered_categories;
 	}
 
 	/**
-	 * Checks if a category is registered.
+	 * Checks if a ability category is registered.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string $slug The slug of the category.
-	 * @return bool True if the category is registered, false otherwise.
+	 * @param string $slug The slug of the ability category.
+	 * @return bool True if the ability category is registered, false otherwise.
 	 */
 	public function is_registered( string $slug ): bool {
 		return isset( $this->registered_categories[ $slug ] );
 	}
 
 	/**
-	 * Retrieves a registered category.
+	 * Retrieves a registered ability category.
 	 *
 	 * Do not use this method directly. Instead, use the `wp_get_ability_category()` function.
 	 *
@@ -185,8 +185,8 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * @see wp_get_ability_category()
 	 *
-	 * @param string $slug The slug of the registered category.
-	 * @return WP_Ability_Category|null The registered category instance, or null if it is not registered.
+	 * @param string $slug The slug of the registered ability category.
+	 * @return WP_Ability_Category|null The registered ability category instance, or null if it is not registered.
 	 */
 	public function get_registered( string $slug ): ?WP_Ability_Category {
 		if ( ! $this->is_registered( $slug ) ) {
@@ -208,7 +208,7 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return WP_Abilities_Category_Registry The main registry instance.
+	 * @return WP_Ability_Categories_Registry The main registry instance.
 	 */
 	public static function get_instance(): self {
 		if ( null === self::$instance ) {
@@ -217,11 +217,11 @@ final class WP_Abilities_Category_Registry {
 			/**
 			 * Fires when preparing ability categories registry.
 			 *
-			 * Categories should be registered on this action to ensure they're available when needed.
+			 * Ability categories should be registered on this action to ensure they're available when needed.
 			 *
 			 * @since 6.9.0
 			 *
-			 * @param WP_Abilities_Category_Registry $instance Categories registry object.
+			 * @param WP_Ability_Categories_Registry $instance Ability categories registry object.
 			 */
 			do_action( 'wp_abilities_api_categories_init', self::$instance );
 		}

@@ -51,7 +51,7 @@ final class WP_Abilities_Registry {
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
 	 *     @type string               $description           A detailed description of what the ability does.
-	 *     @type string               $category              The category slug this ability belongs to.
+	 *     @type string               $category              The ability category slug this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -100,7 +100,7 @@ final class WP_Abilities_Registry {
 		 *
 		 *     @type string               $label                 The human-readable label for the ability.
 		 *     @type string               $description           A detailed description of what the ability does.
-		 *     @type string               $category              The category slug this ability belongs to.
+		 *     @type string               $category              The ability category slug this ability belongs to.
 		 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 		 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 		 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -119,9 +119,9 @@ final class WP_Abilities_Registry {
 		 */
 		$args = apply_filters( 'wp_register_ability_args', $args, $name );
 
-		// Validate category exists if provided (will be validated as required in WP_Ability).
+		// Validate ability category exists if provided (will be validated as required in WP_Ability).
 		if ( isset( $args['category'] ) ) {
-			$category_registry = WP_Abilities_Category_Registry::get_instance();
+			$category_registry = WP_Ability_Categories_Registry::get_instance();
 			if ( ! $category_registry->is_registered( $args['category'] ) ) {
 				_doing_it_wrong(
 					__METHOD__,
@@ -261,9 +261,9 @@ final class WP_Abilities_Registry {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 
-			// Ensure category registry is initialized first to allow categories to be registered
+			// Ensure ability category registry is initialized first to allow categories to be registered
 			// before abilities that depend on them.
-			WP_Abilities_Category_Registry::get_instance();
+			WP_Ability_Categories_Registry::get_instance();
 
 			/**
 			 * Fires when preparing abilities registry.
