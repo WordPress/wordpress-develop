@@ -115,7 +115,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			array_merge(
 				self::$test_ability_properties['meta']['annotations'],
 				array(
-					'instructions' => '',
 					'idempotent'   => false,
 				)
 			),
@@ -136,9 +135,8 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'instructions' => '',
 				'readonly'     => false,
-				'destructive'  => true,
+				'destructive'  => false,
 				'idempotent'   => false,
 			),
 			$ability->get_meta_item( 'annotations' )
@@ -152,7 +150,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 */
 	public function test_get_overridden_annotations_from_meta() {
 		$annotations = array(
-			'instructions' => 'Enjoy responsibly.',
 			'readonly'     => true,
 			'destructive'  => false,
 			'idempotent'   => false,

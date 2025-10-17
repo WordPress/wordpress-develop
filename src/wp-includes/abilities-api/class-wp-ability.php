@@ -36,15 +36,13 @@ class WP_Ability {
 	 * @var array<string, (bool|string)>
 	 */
 	protected static $default_annotations = array(
-		// Instructions on how to use the ability.
-		'instructions' => '',
 		// If true, the ability does not modify its environment.
 		'readonly'     => false,
 		/*
 		 * If true, the ability may perform destructive updates to its environment.
 		 * If false, the ability performs only additive updates.
 		 */
-		'destructive'  => true,
+		'destructive'  => false,
 		/*
 		 * If true, calling the ability repeatedly with the same arguments will have no additional effect
 		 * on its environment.
