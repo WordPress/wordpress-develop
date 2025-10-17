@@ -378,7 +378,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'state'                     => array(
+				'state'                => array(
 					'pluginWithInvokedDerivedState'    => array(
 						'derivedProp' => $returns_whatever,
 						'nested'      => array(
