@@ -76,14 +76,14 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
-	 * @return \WP_REST_Response|\WP_Error Response object on success, or WP_Error object on failure.
+	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function run_ability_with_method_check( $request ) {
 		$ability = wp_get_ability( $request->get_param( 'name' ) );
 
 		if ( ! $ability ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'rest_ability_not_found',
 				__( 'Ability not found.' ),
 				array( 'status' => 404 )
@@ -96,7 +96,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 		$method      = $request->get_method();
 
 		if ( $is_readonly && 'GET' !== $method ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'rest_ability_invalid_method',
 				__( 'Read-only abilities require GET method.' ),
 				array( 'status' => 405 )
@@ -104,7 +104,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! $is_readonly && 'POST' !== $method ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'rest_ability_invalid_method',
 				__( 'Abilities that perform updates require POST method.' ),
 				array( 'status' => 405 )
@@ -119,13 +119,13 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
-	 * @return \WP_REST_Response|\WP_Error Response object on success, or WP_Error object on failure.
+	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function run_ability( $request ) {
 		$ability = wp_get_ability( $request->get_param( 'name' ) );
 		if ( ! $ability ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'rest_ability_not_found',
 				__( 'Ability not found.' ),
 				array( 'status' => 404 )
@@ -149,13 +149,13 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
-	 * @return true|\WP_Error True if the request has execution permission, WP_Error object otherwise.
+	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
+	 * @return true|WP_Error True if the request has execution permission, WP_Error object otherwise.
 	 */
 	public function run_ability_permissions_check( $request ) {
 		$ability = wp_get_ability( $request->get_param( 'name' ) );
 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'rest_ability_not_found',
 				__( 'Ability not found.' ),
 				array( 'status' => 404 )
@@ -164,7 +164,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 
 		$input = $this->get_input_from_request( $request );
 		if ( ! $ability->check_permissions( $input ) ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'rest_ability_cannot_execute',
 				__( 'Sorry, you are not allowed to execute this ability.' ),
 				array( 'status' => rest_authorization_required_code() )
@@ -179,7 +179,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param \WP_REST_Request<array<string,mixed>> $request The request object.
+	 * @param WP_REST_Request<array<string, mixed>> $request The request object.
 	 * @return mixed|null The input parameters.
 	 */
 	private function get_input_from_request( $request ) {

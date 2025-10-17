@@ -209,7 +209,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 					$user_id = $input['user_id'] ?? get_current_user_id();
 					$user    = get_user_by( 'id', $user_id );
 					if ( ! $user ) {
-						return new \WP_Error( 'user_not_found', 'User not found' );
+						return new WP_Error( 'user_not_found', 'User not found' );
 					}
 					return array(
 						'id'    => $user->ID,
@@ -298,7 +298,7 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 				'description'         => 'Returns error',
 				'category'            => 'general',
 				'execute_callback'    => static function () {
-					return new \WP_Error( 'test_error', 'This is a test error' );
+					return new WP_Error( 'test_error', 'This is a test error' );
 				},
 				'permission_callback' => '__return_true',
 				'meta'                => array(

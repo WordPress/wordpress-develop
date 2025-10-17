@@ -48,7 +48,7 @@ final class WP_Ability_Category {
 	 * The optional category metadata.
 	 *
 	 * @since 6.9.0
-	 * @var array<string,mixed>
+	 * @var array<string, mixed>
 	 */
 	protected $meta = array();
 
@@ -63,18 +63,18 @@ final class WP_Ability_Category {
 	 *
 	 * @see wp_register_ability_category()
 	 *
-	 * @param string              $slug The unique slug for the category.
-	 * @param array<string,mixed> $args {
+	 * @param string               $slug The unique slug for the category.
+	 * @param array<string, mixed> $args {
 	 *     An associative array of arguments for the category.
 	 *
-	 *     @type string              $label       The human-readable label for the category.
-	 *     @type string              $description A description of the category.
-	 *     @type array<string,mixed> $meta        Optional. Additional metadata for the category.
+	 *     @type string               $label       The human-readable label for the category.
+	 *     @type string               $description A description of the category.
+	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
 	 * }
 	 */
 	public function __construct( string $slug, array $args ) {
 		if ( empty( $slug ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				esc_html__( 'The category slug cannot be empty.' )
 			);
 		}
@@ -108,34 +108,34 @@ final class WP_Ability_Category {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param array<string,mixed> $args An associative array of arguments used to instantiate the class.
-	 * @return array<string,mixed> The validated and prepared properties.
-	 * @throws \InvalidArgumentException if an argument is invalid.
+	 * @param array<string, mixed> $args An associative array of arguments used to instantiate the class.
+	 * @return array<string, mixed> The validated and prepared properties.
+	 * @throws InvalidArgumentException if an argument is invalid.
 	 *
 	 * @phpstan-return array{
 	 *   label: string,
 	 *   description: string,
-	 *   meta?: array<string,mixed>,
+	 *   meta?: array<string, mixed>,
 	 *   ...<string, mixed>,
 	 * }
 	 */
 	protected function prepare_properties( array $args ): array {
 		// Required args must be present and of the correct type.
 		if ( empty( $args['label'] ) || ! is_string( $args['label'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The category properties must contain a `label` string.' )
 			);
 		}
 
 		if ( empty( $args['description'] ) || ! is_string( $args['description'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The category properties must contain a `description` string.' )
 			);
 		}
 
 		// Optional args only need to be of the correct type if they are present.
 		if ( isset( $args['meta'] ) && ! is_array( $args['meta'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The category properties should provide a valid `meta` array.' )
 			);
 		}
@@ -191,19 +191,21 @@ final class WP_Ability_Category {
 	 * Wakeup magic method.
 	 *
 	 * @since 6.9.0
-	 * @throws \LogicException If the category is unserialized. This is a security hardening measure to prevent unserialization of the category.
+	 * @throws LogicException If the ability category object is unserialized.
+	 *                        This is a security hardening measure to prevent unserialization of the ability category.
 	 */
 	public function __wakeup(): void {
-		throw new \LogicException( __CLASS__ . ' should never be unserialized.' );
+		throw new LogicException( __CLASS__ . ' should never be unserialized.' );
 	}
 
 	/**
-	 * Serialization magic method.
+	 * Sleep magic method.
 	 *
 	 * @since 6.9.0
-	 * @throws \LogicException If the category is serialized. This is a security hardening measure to prevent serialization of the category.
+	 * @throws LogicException If the ability category object is serialized.
+	 *                        This is a security hardening measure to prevent serialization of the ability category.
 	 */
 	public function __sleep(): array {
-		throw new \LogicException( __CLASS__ . ' should never be serialized' );
+		throw new LogicException( __CLASS__ . ' should never be serialized' );
 	}
 }

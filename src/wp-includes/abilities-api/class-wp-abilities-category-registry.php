@@ -43,21 +43,21 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * @see wp_register_ability_category()
 	 *
-	 * @param string              $slug The unique slug for the category. Must contain only lowercase
-	 *                                  alphanumeric characters and dashes.
-	 * @param array<string,mixed> $args {
+	 * @param string               $slug The unique slug for the category. Must contain only lowercase
+	 *                                   alphanumeric characters and dashes.
+	 * @param array<string, mixed> $args {
 	 *     An associative array of arguments for the category.
 	 *
-	 *     @type string              $label       The human-readable label for the category.
-	 *     @type string              $description A description of the category.
-	 *     @type array<string,mixed> $meta        Optional. Additional metadata for the category.
+	 *     @type string               $label       The human-readable label for the category.
+	 *     @type string               $description A description of the category.
+	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
 	 * }
 	 * @return WP_Ability_Category|null The registered category instance on success, null on failure.
 	 *
 	 * @phpstan-param array{
 	 *   label: string,
 	 *   description: string,
-	 *   meta?: array<string,mixed>,
+	 *   meta?: array<string, mixed>,
 	 *   ...<string, mixed>
 	 * } $args
 	 */
@@ -100,21 +100,21 @@ final class WP_Abilities_Category_Registry {
 		 *
 		 * @since 6.9.0
 		 *
-		 * @param array<string,mixed> $args {
+		 * @param array<string, mixed> $args {
 		 *     The arguments used to instantiate the category.
 		 *
-		 *     @type string              $label       The human-readable label for the category.
-		 *     @type string              $description A description of the category.
-		 *     @type array<string,mixed> $meta        Optional. Additional metadata for the category.
+		 *     @type string               $label       The human-readable label for the category.
+		 *     @type string               $description A description of the category.
+		 *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
 		 * }
-		 * @param string              $slug The slug of the category.
+		 * @param string               $slug The slug of the category.
 		 */
 		$args = apply_filters( 'register_ability_category_args', $args, $slug );
 
 		try {
 			// WP_Ability_Category::prepare_properties() will throw an exception if the properties are invalid.
 			$category = new WP_Ability_Category( $slug, $args );
-		} catch ( \InvalidArgumentException $e ) {
+		} catch ( InvalidArgumentException $e ) {
 			_doing_it_wrong(
 				__METHOD__,
 				$e->getMessage(),
@@ -165,7 +165,7 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * @see wp_get_ability_categories()
 	 *
-	 * @return array<string,\WP_Ability_Category> The array of registered categories.
+	 * @return array<string, WP_Ability_Category> The array of registered categories.
 	 */
 	public function get_all_registered(): array {
 		return $this->registered_categories;
@@ -215,7 +215,7 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return \WP_Abilities_Category_Registry The main registry instance.
+	 * @return WP_Abilities_Category_Registry The main registry instance.
 	 */
 	public static function get_instance(): self {
 		if ( null === self::$instance ) {
@@ -228,7 +228,7 @@ final class WP_Abilities_Category_Registry {
 			 *
 			 * @since 6.9.0
 			 *
-			 * @param \WP_Abilities_Category_Registry $instance Categories registry object.
+			 * @param WP_Abilities_Category_Registry $instance Categories registry object.
 			 */
 			do_action( 'abilities_api_categories_init', self::$instance );
 		}
@@ -240,19 +240,21 @@ final class WP_Abilities_Category_Registry {
 	 * Wakeup magic method.
 	 *
 	 * @since 6.9.0
-	 * @throws \LogicException If the registry is unserialized. This is a security hardening measure to prevent unserialization of the registry.
+	 * @throws LogicException If the registry object is unserialized.
+	 *                        This is a security hardening measure to prevent unserialization of the registry.
 	 */
 	public function __wakeup(): void {
-		throw new \LogicException( __CLASS__ . ' should never be unserialized.' );
+		throw new LogicException( __CLASS__ . ' should never be unserialized.' );
 	}
 
 	/**
-	 * Serialization magic method.
+	 * Sleep magic method.
 	 *
 	 * @since 6.9.0
-	 * @throws \LogicException If the registry is serialized. This is a security hardening measure to prevent serialization of the registry.
+	 * @throws LogicException If the registry object is serialized.
+	 *                        This is a security hardening measure to prevent serialization of the registry.
 	 */
 	public function __sleep(): array {
-		throw new \LogicException( __CLASS__ . ' should never be serialized' );
+		throw new LogicException( __CLASS__ . ' should never be serialized' );
 	}
 }

@@ -530,7 +530,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Ability::prepare_properties
 	 */
 	public function test_wp_ability_invalid_properties_throws_exception() {
-		$this->expectException( \InvalidArgumentException::class );
+		$this->expectException( InvalidArgumentException::class );
 		new WP_Ability(
 			'test/invalid',
 			array(
