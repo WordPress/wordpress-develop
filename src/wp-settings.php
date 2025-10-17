@@ -286,7 +286,7 @@ require ABSPATH . WPINC . '/nav-menu.php';
 require ABSPATH . WPINC . '/admin-bar.php';
 require ABSPATH . WPINC . '/class-wp-application-passwords.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-ability-category.php';
-require ABSPATH . WPINC . '/abilities-api/class-wp-abilities-category-registry.php';
+require ABSPATH . WPINC . '/abilities-api/class-wp-ability-categories-registry.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-ability.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-abilities-registry.php';
 require ABSPATH . WPINC . '/abilities-api.php';

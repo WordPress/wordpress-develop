@@ -28,7 +28,7 @@ declare( strict_types = 1 );
  *
  *     @type string               $label               The human-readable label for the ability.
  *     @type string               $description         A detailed description of what the ability does.
- *     @type string               $category            The category slug this ability belongs to.
+ *     @type string               $category            The ability category slug this ability belongs to.
  *     @type callable             $execute_callback    A callback function to execute when the ability is invoked.
  *                                                     Receives optional mixed input and returns mixed result or WP_Error.
  *     @type callable             $permission_callback A callback function to check permissions before execution.
@@ -109,21 +109,21 @@ function wp_get_abilities(): array {
  *
  * @since 6.9.0
  *
- * @see WP_Abilities_Category_Registry::register()
+ * @see WP_Ability_Categories_Registry::register()
  *
- * @param string               $slug The unique slug for the category. Must contain only lowercase
+ * @param string               $slug The unique slug for the ability category. Must contain only lowercase
  *                                   alphanumeric characters and dashes.
  * @param array<string, mixed> $args {
- *     An associative array of arguments for the category.
+ *     An associative array of arguments for the ability category.
  *
- *     @type string               $label       The human-readable label for the category.
- *     @type string               $description A description of the category.
- *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
+ *     @type string               $label       The human-readable label for the ability category.
+ *     @type string               $description A description of the ability category.
+ *     @type array<string, mixed> $meta        Optional. Additional metadata for the ability category.
  * }
- * @return WP_Ability_Category|null The registered category instance on success, null on failure.
+ * @return WP_Ability_Category|null The registered ability category instance on success, null on failure.
  */
 function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_Category {
-	return WP_Abilities_Category_Registry::get_instance()->register( $slug, $args );
+	return WP_Ability_Categories_Registry::get_instance()->register( $slug, $args );
 }
 
 /**
@@ -131,13 +131,13 @@ function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_
  *
  * @since 6.9.0
  *
- * @see WP_Abilities_Category_Registry::unregister()
+ * @see WP_Ability_Categories_Registry::unregister()
  *
- * @param string $slug The slug of the registered category.
- * @return WP_Ability_Category|null The unregistered category instance on success, null on failure.
+ * @param string $slug The slug of the registered ability category.
+ * @return WP_Ability_Category|null The unregistered ability category instance on success, null on failure.
  */
 function wp_unregister_ability_category( string $slug ): ?WP_Ability_Category {
-	return WP_Abilities_Category_Registry::get_instance()->unregister( $slug );
+	return WP_Ability_Categories_Registry::get_instance()->unregister( $slug );
 }
 
 /**
@@ -145,13 +145,13 @@ function wp_unregister_ability_category( string $slug ): ?WP_Ability_Category {
  *
  * @since 6.9.0
  *
- * @see WP_Abilities_Category_Registry::get_registered()
+ * @see WP_Ability_Categories_Registry::get_registered()
  *
- * @param string $slug The slug of the registered category.
- * @return WP_Ability_Category|null The registered category instance, or null if it is not registered.
+ * @param string $slug The slug of the registered ability category.
+ * @return WP_Ability_Category|null The registered ability category instance, or null if it is not registered.
  */
 function wp_get_ability_category( string $slug ): ?WP_Ability_Category {
-	return WP_Abilities_Category_Registry::get_instance()->get_registered( $slug );
+	return WP_Ability_Categories_Registry::get_instance()->get_registered( $slug );
 }
 
 /**
@@ -159,10 +159,10 @@ function wp_get_ability_category( string $slug ): ?WP_Ability_Category {
  *
  * @since 6.9.0
  *
- * @see WP_Abilities_Category_Registry::get_all_registered()
+ * @see WP_Ability_Categories_Registry::get_all_registered()
  *
- * @return WP_Ability_Category[] The array of registered categories.
+ * @return WP_Ability_Category[] The array of registered ability categories.
  */
 function wp_get_ability_categories(): array {
-	return WP_Abilities_Category_Registry::get_instance()->get_all_registered();
+	return WP_Ability_Categories_Registry::get_instance()->get_all_registered();
 }

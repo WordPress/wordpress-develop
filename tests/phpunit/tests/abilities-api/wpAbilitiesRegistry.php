@@ -33,7 +33,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		add_action(
 			'wp_abilities_api_categories_init',
 			function () {
-				if ( ! WP_Abilities_Category_Registry::get_instance()->is_registered( 'math' ) ) {
+				if ( ! WP_Ability_Categories_Registry::get_instance()->is_registered( 'math' ) ) {
 					wp_register_ability_category(
 						'math',
 						array(
@@ -94,7 +94,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		remove_all_filters( 'wp_register_ability_args' );
 
 		// Clean up registered categories.
-		$category_registry = WP_Abilities_Category_Registry::get_instance();
+		$category_registry = WP_Ability_Categories_Registry::get_instance();
 		if ( $category_registry->is_registered( 'math' ) ) {
 			wp_unregister_ability_category( 'math' );
 		}

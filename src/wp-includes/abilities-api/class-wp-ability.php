@@ -37,17 +37,17 @@ class WP_Ability {
 	 */
 	protected static $default_annotations = array(
 		// If true, the ability does not modify its environment.
-		'readonly'     => false,
+		'readonly'    => false,
 		/*
 		 * If true, the ability may perform destructive updates to its environment.
 		 * If false, the ability performs only additive updates.
 		 */
-		'destructive'  => false,
+		'destructive' => false,
 		/*
 		 * If true, calling the ability repeatedly with the same arguments will have no additional effect
 		 * on its environment.
 		 */
-		'idempotent'   => false,
+		'idempotent'  => false,
 	);
 
 	/**
@@ -140,7 +140,7 @@ class WP_Ability {
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
 	 *     @type string               $description           A detailed description of what the ability does.
-	 *     @type string               $category              The category slug this ability belongs to.
+	 *     @type string               $category              The ability category slug this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -195,7 +195,7 @@ class WP_Ability {
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
 	 *     @type string               $description           A detailed description of what the ability does.
-	 *     @type string               $category              The category slug this ability belongs to.
+	 *     @type string               $category              The ability category slug this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -214,7 +214,7 @@ class WP_Ability {
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
 	 *     @type string               $description           A detailed description of what the ability does.
-	 *     @type string               $category              The category slug this ability belongs to.
+	 *     @type string               $category              The ability category slug this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -344,11 +344,11 @@ class WP_Ability {
 	}
 
 	/**
-	 * Retrieves the category for the ability.
+	 * Retrieves the ability category for the ability.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return string The category for the ability.
+	 * @return string The ability category for the ability.
 	 */
 	public function get_category(): string {
 		return $this->category;

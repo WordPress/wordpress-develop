@@ -16,12 +16,12 @@ declare( strict_types = 1 );
  *
  * @since 6.9.0
  *
- * @see WP_Abilities_Category_Registry
+ * @see WP_Ability_Categories_Registry
  */
 final class WP_Ability_Category {
 
 	/**
-	 * The unique slug for the category.
+	 * The unique slug for the ability category.
 	 *
 	 * @since 6.9.0
 	 * @var string
@@ -29,7 +29,7 @@ final class WP_Ability_Category {
 	protected $slug;
 
 	/**
-	 * The human-readable category label.
+	 * The human-readable ability category label.
 	 *
 	 * @since 6.9.0
 	 * @var string
@@ -37,7 +37,7 @@ final class WP_Ability_Category {
 	protected $label;
 
 	/**
-	 * The detailed category description.
+	 * The detailed ability category description.
 	 *
 	 * @since 6.9.0
 	 * @var string
@@ -45,7 +45,7 @@ final class WP_Ability_Category {
 	protected $description;
 
 	/**
-	 * The optional category metadata.
+	 * The optional ability category metadata.
 	 *
 	 * @since 6.9.0
 	 * @var array<string, mixed>
@@ -63,19 +63,19 @@ final class WP_Ability_Category {
 	 *
 	 * @see wp_register_ability_category()
 	 *
-	 * @param string               $slug The unique slug for the category.
+	 * @param string               $slug The unique slug for the ability category.
 	 * @param array<string, mixed> $args {
-	 *     An associative array of arguments for the category.
+	 *     An associative array of arguments for the ability category.
 	 *
-	 *     @type string               $label       The human-readable label for the category.
-	 *     @type string               $description A description of the category.
-	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
+	 *     @type string               $label       The human-readable label for the ability category.
+	 *     @type string               $description A description of the ability category.
+	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the ability category.
 	 * }
 	 */
 	public function __construct( string $slug, array $args ) {
 		if ( empty( $slug ) ) {
 			throw new InvalidArgumentException(
-				esc_html__( 'The category slug cannot be empty.' )
+				esc_html__( 'The ability category slug cannot be empty.' )
 			);
 		}
 
@@ -89,7 +89,7 @@ final class WP_Ability_Category {
 					__METHOD__,
 					sprintf(
 						/* translators: %s: Property name. */
-						__( 'Property "%1$s" is not a valid property for category "%2$s". Please check the %3$s class for allowed properties.' ),
+						__( 'Property "%1$s" is not a valid property for ability category "%2$s". Please check the %3$s class for allowed properties.' ),
 						'<code>' . esc_html( $property_name ) . '</code>',
 						'<code>' . esc_html( $this->slug ) . '</code>',
 						'<code>' . __CLASS__ . '</code>'
@@ -104,23 +104,23 @@ final class WP_Ability_Category {
 	}
 
 	/**
-	 * Prepares and validates the properties used to instantiate the category.
+	 * Prepares and validates the properties used to instantiate the ability category.
 	 *
 	 * @since 6.9.0
 	 *
 	 * @param array<string, mixed> $args $args {
 	 *     An associative array of arguments used to instantiate the ability category class.
 	 *
-	 *     @type string               $label       The human-readable label for the category.
-	 *     @type string               $description A description of the category.
-	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
+	 *     @type string               $label       The human-readable label for the ability category.
+	 *     @type string               $description A description of the ability category.
+	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the ability category.
 	 * }
 	 * @return array<string, mixed> $args {
 	 *     An associative array with validated and prepared ability category properties.
 	 *
-	 *     @type string               $label       The human-readable label for the category.
-	 *     @type string               $description A description of the category.
-	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
+	 *     @type string               $label       The human-readable label for the ability category.
+	 *     @type string               $description A description of the ability category.
+	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the ability category.
 	 * }
 	 * @throws InvalidArgumentException if an argument is invalid.
 	 */
@@ -128,20 +128,20 @@ final class WP_Ability_Category {
 		// Required args must be present and of the correct type.
 		if ( empty( $args['label'] ) || ! is_string( $args['label'] ) ) {
 			throw new InvalidArgumentException(
-				__( 'The category properties must contain a `label` string.' )
+				__( 'The ability category properties must contain a `label` string.' )
 			);
 		}
 
 		if ( empty( $args['description'] ) || ! is_string( $args['description'] ) ) {
 			throw new InvalidArgumentException(
-				__( 'The category properties must contain a `description` string.' )
+				__( 'The ability category properties must contain a `description` string.' )
 			);
 		}
 
 		// Optional args only need to be of the correct type if they are present.
 		if ( isset( $args['meta'] ) && ! is_array( $args['meta'] ) ) {
 			throw new InvalidArgumentException(
-				__( 'The category properties should provide a valid `meta` array.' )
+				__( 'The ability category properties should provide a valid `meta` array.' )
 			);
 		}
 
@@ -149,44 +149,44 @@ final class WP_Ability_Category {
 	}
 
 	/**
-	 * Retrieves the slug of the category.
+	 * Retrieves the slug of the ability category.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return string The category slug.
+	 * @return string The ability category slug.
 	 */
 	public function get_slug(): string {
 		return $this->slug;
 	}
 
 	/**
-	 * Retrieves the human-readable label for the category.
+	 * Retrieves the human-readable label for the ability category.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return string The human-readable category label.
+	 * @return string The human-readable ability category label.
 	 */
 	public function get_label(): string {
 		return $this->label;
 	}
 
 	/**
-	 * Retrieves the detailed description for the category.
+	 * Retrieves the detailed description for the ability category.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return string The detailed description for the category.
+	 * @return string The detailed description for the ability category.
 	 */
 	public function get_description(): string {
 		return $this->description;
 	}
 
 	/**
-	 * Retrieves the metadata for the category.
+	 * Retrieves the metadata for the ability category.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return array<string,mixed> The metadata for the category.
+	 * @return array<string,mixed> The metadata for the ability category.
 	 */
 	public function get_meta(): array {
 		return $this->meta;

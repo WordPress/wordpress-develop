@@ -34,7 +34,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		add_action(
 			'wp_abilities_api_categories_init',
 			function () {
-				if ( ! WP_Abilities_Category_Registry::get_instance()->is_registered( 'math' ) ) {
+				if ( ! WP_Ability_Categories_Registry::get_instance()->is_registered( 'math' ) ) {
 					wp_register_ability_category(
 						'math',
 						array(
@@ -103,7 +103,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		}
 
 		// Clean up registered categories.
-		$category_registry = WP_Abilities_Category_Registry::get_instance();
+		$category_registry = WP_Ability_Categories_Registry::get_instance();
 		if ( $category_registry->is_registered( 'math' ) ) {
 			wp_unregister_ability_category( 'math' );
 		}
@@ -165,7 +165,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$expected_annotations = array_merge(
 			self::$test_ability_args['meta']['annotations'],
 			array(
-				'idempotent'   => false,
+				'idempotent' => false,
 			)
 		);
 		$expected_meta        = array_merge(
@@ -513,7 +513,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		// Ensure category doesn't exist - test should fail if it does.
 		$this->assertFalse(
-			WP_Abilities_Category_Registry::get_instance()->is_registered( 'nonexistent' ),
+			WP_Ability_Categories_Registry::get_instance()->is_registered( 'nonexistent' ),
 			'The nonexistent category should not be registered - test isolation may be broken'
 		);
 

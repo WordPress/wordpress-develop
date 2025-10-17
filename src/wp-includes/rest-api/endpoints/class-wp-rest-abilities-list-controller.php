@@ -101,7 +101,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 			}
 		);
 
-		// Filter by category if specified.
+		// Filter by ability category if specified.
 		$category = $request->get_param( 'category' );
 		if ( ! empty( $category ) ) {
 			$abilities = array_filter(
@@ -271,7 +271,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'category'      => array(
-					'description' => __( 'Category this ability belongs to.' ),
+					'description' => __( 'Ability category this ability belongs to.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
@@ -325,7 +325,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 				'maximum'           => 100,
 			),
 			'category' => array(
-				'description'       => __( 'Limit results to abilities in specific category.' ),
+				'description'       => __( 'Limit results to abilities in specific ability category.' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
