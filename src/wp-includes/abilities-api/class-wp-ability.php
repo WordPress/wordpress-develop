@@ -137,9 +137,25 @@ class WP_Ability {
 	 * @see wp_register_ability()
 	 *
 	 * @param string              $name The name of the ability, with its namespace.
-	 * @param array<string,mixed> $args An associative array of arguments for the ability. This should include:
-	 *                                  `label`, `description`, `category`, `input_schema`, `output_schema`,
-	 *                                  `execute_callback`, `permission_callback` and `meta`
+	 * @param array<string,mixed> $args {
+	 *     An associative array of arguments for the ability.
+	 *
+	 *     @type string               $label                 The human-readable label for the ability.
+	 *     @type string               $description           A detailed description of what the ability does.
+	 *     @type string               $category              The category slug this ability belongs to.
+	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
+	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
+	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
+	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *     @type array<string,mixed>  $input_schema          Optional. JSON Schema definition for the ability's input.
+	 *     @type array<string,mixed>  $output_schema         Optional. JSON Schema definition for the ability's output.
+	 *     @type array<string,mixed>  $meta                  {
+	 *         Optional. Additional metadata for the ability.
+	 *
+	 *         @type array<string,bool|string> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type bool                      $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *     }
+	 * }
 	 */
 	public function __construct( string $name, array $args ) {
 		$this->name = $name;

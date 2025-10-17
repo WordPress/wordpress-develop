@@ -64,7 +64,13 @@ final class WP_Ability_Category {
 	 * @see wp_register_ability_category()
 	 *
 	 * @param string              $slug The unique slug for the category.
-	 * @param array<string,mixed> $args An associative array of arguments for the category.
+	 * @param array<string,mixed> $args {
+	 *     An associative array of arguments for the category.
+	 *
+	 *     @type string              $label       The human-readable label for the category.
+	 *     @type string              $description A description of the category.
+	 *     @type array<string,mixed> $meta        Optional. Additional metadata for the category.
+	 * }
 	 */
 	public function __construct( string $slug, array $args ) {
 		if ( empty( $slug ) ) {
