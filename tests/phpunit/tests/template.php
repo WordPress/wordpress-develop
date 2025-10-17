@@ -874,7 +874,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertTrue( apply_filters( 'should_load_separate_core_block_assets', $default ), 'Expect should_load_separate_core_block_assets filters to return true' );
 		$this->assertTrue( has_filter( 'should_load_block_assets_on_demand' ), 'Expect should_load_block_assets_on_demand filter to be added for classic themes.' );
 		$this->assertTrue( apply_filters( 'should_load_block_assets_on_demand', $default ), 'Expect should_load_separate_core_block_assets filters to return true' );
-		$this->assertTrue( true == has_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' ), 'Expect wp_template_enhancement_output_buffer_started filter to be added for classic themes.' );
+		$this->assertNotFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' ), 'Expect wp_template_enhancement_output_buffer_started filter to be added for classic themes.' );
 	}
 
 	/**
