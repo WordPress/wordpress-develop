@@ -53,13 +53,6 @@ final class WP_Abilities_Category_Registry {
 	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
 	 * }
 	 * @return WP_Ability_Category|null The registered category instance on success, null on failure.
-	 *
-	 * @phpstan-param array{
-	 *   label: string,
-	 *   description: string,
-	 *   meta?: array<string, mixed>,
-	 *   ...<string, mixed>
-	 * } $args
 	 */
 	public function register( string $slug, array $args ): ?WP_Ability_Category {
 		if ( ! doing_action( 'wp_abilities_api_categories_init' ) ) {
