@@ -2969,6 +2969,11 @@ div.action-links {
 	line-height: 1.7;
 }
 
+#plugin-information #section-description iframe {
+	width: 100%;
+	height: auto;
+}
+
 #plugin-information #section-screenshots ol {
 	list-style: none;
 	margin: 0;

@@ -567,6 +567,7 @@ function install_plugin_information() {
 			'alt'   => array(),
 		),
 		'blockquote' => array( 'cite' => true ),
+		'iframe'     => array( 'src' => array(), 'width' => array(), 'height' => array(), 'frameborder' => array(), 'allowfullscreen' => array() ),
 	);
 
 	$plugins_section_titles = array(
