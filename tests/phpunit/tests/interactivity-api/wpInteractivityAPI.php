@@ -400,7 +400,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 						),
 					),
 				),
-				'derivedStatePropsAccessed' => array(
+				'derivedStateClosures' => array(
 					'pluginWithInvokedDerivedState' => array(
 						'state.derivedProp',
 						'state.nested.derivedProp',

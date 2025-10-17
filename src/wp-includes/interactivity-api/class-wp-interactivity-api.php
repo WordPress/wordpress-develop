@@ -289,7 +289,7 @@ final class WP_Interactivity_API {
 			}
 		}
 		if ( ! empty( $derived_props ) ) {
-			$data['derivedStatePropsAccessed'] = $derived_props;
+			$data['derivedStateClosures'] = $derived_props;
 		}
 
 		return $data;
