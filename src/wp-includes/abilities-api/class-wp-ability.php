@@ -192,8 +192,44 @@ class WP_Ability {
 	 *
 	 * @see WP_Abilities_Registry::register()
 	 *
-	 * @param array<string, mixed> $args An associative array of arguments used to instantiate the class.
-	 * @return array<string, mixed> The validated and prepared properties.
+	 * @param array<string, mixed> $args {
+	 *     An associative array of arguments used to instantiate the ability class.
+	 *
+	 *     @type string               $label                 The human-readable label for the ability.
+	 *     @type string               $description           A detailed description of what the ability does.
+	 *     @type string               $category              The category slug this ability belongs to.
+	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
+	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
+	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
+	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
+	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
+	 *     @type array<string, mixed> $meta                  {
+	 *         Optional. Additional metadata for the ability.
+	 *
+	 *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *     }
+	 * }
+	 * @return array<string, mixed> {
+	 *     An associative array of arguments with validated and prepared properties for the ability class.
+	 *
+	 *     @type string               $label                 The human-readable label for the ability.
+	 *     @type string               $description           A detailed description of what the ability does.
+	 *     @type string               $category              The category slug this ability belongs to.
+	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
+	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
+	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
+	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
+	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
+	 *     @type array<string, mixed> $meta                  {
+	 *         Additional metadata for the ability.
+	 *
+	 *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type bool                       $show_in_rest Whether to expose this ability in the REST API. Default false.
+	 *     }
+	 * }
 	 * @throws InvalidArgumentException if an argument is invalid.
 	 *
 	 * @phpstan-return array{
