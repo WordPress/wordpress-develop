@@ -162,12 +162,20 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'update_user_metadata_cache', array( $filter, 'filter' ), 10, 2 );
 
-		new WP_User_Query(
+		$query = new WP_User_Query(
 			array(
 				'include' => self::$author_ids,
 				'fields'  => 'all',
 			)
 		);
+
+		$users = $query->get_results();
+		foreach ( $users as $user ) {
+			$this->assertIsArray( $user->roles );
+			foreach ( $user->roles as $role ) {
+				$this->assertIsString( $role );
+			}
+		}
 
 		$args      = $filter->get_args();
 		$last_args = end( $args );

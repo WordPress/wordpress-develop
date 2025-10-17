@@ -567,6 +567,16 @@ module.exports = function(grunt) {
 				src: [
 					'wp-admin/css/colors/*/*.css'
 				]
+			},
+			themes: {
+				expand: true,
+				cwd: WORKING_DIR,
+				dest: WORKING_DIR,
+				ext: '.min.css',
+				src: [
+					'wp-content/themes/twentytwentytwo/style.css',
+					'wp-content/themes/twentytwentyfive/style.css',
+				]
 			}
 		},
 		rtlcss: {
@@ -838,7 +848,16 @@ module.exports = function(grunt) {
 					'!**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
+					'!wp-includes/js/wp-emoji-loader.js', // This is a module. See the emoji-loader task below.
 				]
+			},
+			'emoji-loader': {
+				options: {
+					module: true,
+					toplevel: true,
+				},
+				src: WORKING_DIR + 'wp-includes/js/wp-emoji-loader.js',
+				dest: WORKING_DIR + 'wp-includes/js/wp-emoji-loader.min.js',
 			},
 			'jquery-ui': {
 				options: {
@@ -1549,6 +1568,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'uglify:all', [
 		'uglify:core',
+		'uglify:emoji-loader',
 		'uglify:jquery-ui',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
@@ -1581,6 +1601,7 @@ module.exports = function(grunt) {
 		'rtl',
 		'cssmin:rtl',
 		'cssmin:colors',
+		'cssmin:themes',
 		'usebanner'
 	] );
 

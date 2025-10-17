@@ -43,11 +43,11 @@
  * @return int How many code points were successfully scanned.
  */
 function _wp_scan_utf8( string $bytes, int &$at, int &$invalid_length, ?int $max_bytes = null, ?int $max_code_points = null ): int {
-	$byte_length       = strlen( $bytes );
-	$end               = min( $byte_length, $at + ( $max_bytes ?? PHP_INT_MAX ) );
-	$invalid_length    = 0;
-	$count             = 0;
-	$max_count         = $max_code_points ?? PHP_INT_MAX;
+	$byte_length    = strlen( $bytes );
+	$end            = min( $byte_length, $at + ( $max_bytes ?? PHP_INT_MAX ) );
+	$invalid_length = 0;
+	$count          = 0;
+	$max_count      = $max_code_points ?? PHP_INT_MAX;
 
 	for ( $i = $at; $i < $end && $count <= $max_count; $i++ ) {
 		/*
@@ -227,10 +227,10 @@ function _wp_scan_utf8( string $bytes, int &$at, int &$invalid_length, ?int $max
 /**
  * Fallback mechanism for safely validating UTF-8 bytes.
  *
- * @see wp_is_valid_utf8()
- *
  * @since 6.9.0
  * @access private
+ *
+ * @see wp_is_valid_utf8()
  *
  * @param string $bytes String which might contain text encoded as UTF-8.
  * @return bool Whether the provided bytes can decode as valid UTF-8.
@@ -247,4 +247,232 @@ function _wp_is_valid_utf8_fallback( string $bytes ): bool {
 	_wp_scan_utf8( $bytes, $next_byte_at, $invalid_length );
 
 	return $bytes_length === $next_byte_at && 0 === $invalid_length;
+}
+
+/**
+ * Fallback mechanism for replacing invalid spans of UTF-8 bytes.
+ *
+ * Example:
+ *
+ *     'Pi�a' === _wp_scrub_utf8_fallback( "Pi\xF1a" ); // “ñ” is 0xF1 in Windows-1252.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @see wp_scrub_utf8()
+ *
+ * @param string $bytes UTF-8 encoded string which might contain spans of invalid bytes.
+ * @return string Input string with spans of invalid bytes swapped with the replacement character.
+ */
+function _wp_scrub_utf8_fallback( string $bytes ): string {
+	$bytes_length   = strlen( $bytes );
+	$next_byte_at   = 0;
+	$was_at         = 0;
+	$invalid_length = 0;
+	$scrubbed       = '';
+
+	while ( $next_byte_at <= $bytes_length ) {
+		_wp_scan_utf8( $bytes, $next_byte_at, $invalid_length );
+
+		if ( $next_byte_at >= $bytes_length ) {
+			if ( 0 === $was_at ) {
+				return $bytes;
+			}
+
+			return $scrubbed . substr( $bytes, $was_at, $next_byte_at - $was_at - $invalid_length );
+		}
+
+		$scrubbed .= substr( $bytes, $was_at, $next_byte_at - $was_at );
+		$scrubbed .= "\u{FFFD}";
+
+		$next_byte_at += $invalid_length;
+		$was_at        = $next_byte_at;
+	}
+
+	return $scrubbed;
+}
+
+/**
+ * Returns how many code points are found in the given UTF-8 string.
+ *
+ * Invalid spans of bytes count as a single code point according
+ * to the maximal subpart rule. This function is a fallback method
+ * for calling `mb_strlen( $text, 'UTF-8' )`.
+ *
+ * When negative values are provided for the byte offsets or length,
+ * this will always report zero code points.
+ *
+ * Example:
+ *
+ *     4  === _wp_utf8_codepoint_count( 'text' );
+ *
+ *     // Groups are 'test', "\x90" as '�', 'wp', "\xE2\x80" as '�', "\xC0" as '�', and 'test'.
+ *     13 === _wp_utf8_codepoint_count( "test\x90wp\xE2\x80\xC0test" );
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @param string $text            Count code points in this string.
+ * @param ?int   $byte_offset     Start counting after this many bytes in `$text`. Must be positive.
+ * @param ?int   $max_byte_length Optional. Stop counting after having scanned past this many bytes.
+ *                                Default is to scan until the end of the string. Must be positive.
+ * @return int How many code points were found.
+ */
+function _wp_utf8_codepoint_count( string $text, ?int $byte_offset = 0, ?int $max_byte_length = PHP_INT_MAX ): int {
+	if ( $byte_offset < 0 ) {
+		return 0;
+	}
+
+	$count           = 0;
+	$at              = $byte_offset;
+	$end             = strlen( $text );
+	$invalid_length  = 0;
+	$max_byte_length = min( $end - $at, $max_byte_length );
+
+	while ( $at < $end && ( $at - $byte_offset ) < $max_byte_length ) {
+		$count += _wp_scan_utf8( $text, $at, $invalid_length, $max_byte_length - ( $at - $byte_offset ) );
+		$count += $invalid_length > 0 ? 1 : 0;
+		$at    += $invalid_length;
+	}
+
+	return $count;
+}
+
+/**
+ * Converts a string from ISO-8859-1 to UTF-8, maintaining backwards compatibility
+ * with the deprecated function from the PHP standard library.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @see \utf8_encode()
+ *
+ * @param string $iso_8859_1_text Text treated as ISO-8859-1 (latin1) bytes.
+ * @return string Text converted into UTF-8.
+ */
+function _wp_utf8_encode_fallback( $iso_8859_1_text ) {
+	$iso_8859_1_text = (string) $iso_8859_1_text;
+	$at              = 0;
+	$was_at          = 0;
+	$end             = strlen( $iso_8859_1_text );
+	$utf8            = '';
+
+	while ( $at < $end ) {
+		// US-ASCII bytes are identical in ISO-8859-1 and UTF-8. These are 0x00–0x7F.
+		$ascii_byte_count = strspn(
+			$iso_8859_1_text,
+			"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" .
+			"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f" .
+			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f",
+			$at
+		);
+
+		if ( $ascii_byte_count > 0 ) {
+			$at += $ascii_byte_count;
+			continue;
+		}
+
+		// All other bytes transform into two-byte UTF-8 sequences.
+		$code_point = ord( $iso_8859_1_text[ $at ] );
+		$byte1      = chr( 0xC0 | ( $code_point >> 6 ) );
+		$byte2      = chr( 0x80 | ( $code_point & 0x3F ) );
+
+		$utf8 .= substr( $iso_8859_1_text, $was_at, $at - $was_at );
+		$utf8 .= "{$byte1}{$byte2}";
+
+		++$at;
+		$was_at = $at;
+	}
+
+	if ( 0 === $was_at ) {
+		return $iso_8859_1_text;
+	}
+
+	$utf8 .= substr( $iso_8859_1_text, $was_at );
+	return $utf8;
+}
+
+/**
+ * Converts a string from UTF-8 to ISO-8859-1, maintaining backwards compatibility
+ * with the deprecated function from the PHP standard library.
+ *
+ * @since 6.9.0
+ * @access private
+ *
+ * @see \utf8_decode()
+ *
+ * @param string $utf8_text Text treated as UTF-8 bytes.
+ * @return string Text converted into ISO-8859-1.
+ */
+function _wp_utf8_decode_fallback( $utf8_text ) {
+	$utf8_text       = (string) $utf8_text;
+	$at              = 0;
+	$was_at          = 0;
+	$end             = strlen( $utf8_text );
+	$iso_8859_1_text = '';
+
+	while ( $at < $end ) {
+		// US-ASCII bytes are identical in ISO-8859-1 and UTF-8. These are 0x00–0x7F.
+		$ascii_byte_count = strspn(
+			$utf8_text,
+			"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" .
+			"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f" .
+			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f",
+			$at
+		);
+
+		if ( $ascii_byte_count > 0 ) {
+			$at += $ascii_byte_count;
+			continue;
+		}
+
+		$next_at        = $at;
+		$invalid_length = 0;
+		$found          = _wp_scan_utf8( $utf8_text, $next_at, $invalid_length, null, 1 );
+		$span_length    = $next_at - $at;
+		$next_byte      = '?';
+
+		if ( 1 !== $found ) {
+			if ( $invalid_length > 0 ) {
+				$next_byte = '';
+				goto flush_sub_part;
+			}
+
+			break;
+		}
+
+		// All convertible code points are two-bytes long.
+		$byte1 = ord( $utf8_text[ $at ] );
+		if ( 0xC0 !== ( $byte1 & 0xE0 ) ) {
+			goto flush_sub_part;
+		}
+
+		// All convertible code points are not greater than U+FF.
+		$byte2 = ord( $utf8_text[ $at + 1 ] );
+		$code_point = ( ( $byte1 & 0x1F ) << 6 ) | ( ( $byte2 & 0x3F ) );
+		if ( $code_point > 0xFF ) {
+			goto flush_sub_part;
+		}
+
+		$next_byte = chr( $code_point );
+
+		flush_sub_part:
+		$iso_8859_1_text .= substr( $utf8_text, $was_at, $at - $was_at );
+		$iso_8859_1_text .= $next_byte;
+		$at              += $span_length;
+		$was_at           = $at;
+
+		if ( $invalid_length > 0 ) {
+			$iso_8859_1_text .= '?';
+			$at              += $invalid_length;
+			$was_at           = $at;
+		}
+	}
+
+	if ( 0 === $was_at ) {
+		return $utf8_text;
+	}
+
+	$iso_8859_1_text .= substr( $utf8_text, $was_at );
+	return $iso_8859_1_text;
 }
