@@ -394,11 +394,18 @@ class WP_Script_Modules {
 	 */
 	public function print_head_enqueued_script_modules() {
 		foreach ( $this->get_sorted_dependencies( $this->queue ) as $id ) {
-			if ( isset( $this->registered[ $id ] ) && ! $this->registered[ $id ]['in_footer'] ) {
+			if (
+				isset( $this->registered[ $id ] ) &&
+				! $this->registered[ $id ]['in_footer']
+			) {
 				// If any dependency is set to be printed in footer, skip printing this module in head.
 				$dependencies = $this->get_dependencies( array( $id ) );
-				foreach ( $dependencies as $dependency_id => $dependency ) {
-					if ( in_array( $dependency_id, $this->queue, true ) && $dependency['in_footer'] ) {
+				foreach ( $dependencies as $dependency_id ) {
+					if (
+						in_array( $dependency_id, $this->queue, true ) &&
+						isset( $this->registered[ $dependency_id ] ) &&
+						$this->registered[ $dependency_id ]['in_footer']
+					) {
 						continue 2;
 					}
 				}
@@ -459,21 +466,21 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_script_module_preloads() {
-		foreach ( $this->get_dependencies( array_unique( $this->queue ), array( 'static' ) ) as $id => $script_module ) {
+		foreach ( $this->get_dependencies( array_unique( $this->queue ), array( 'static' ) ) as $id ) {
 			// Don't preload if it's marked for enqueue.
 			if ( ! in_array( $id, $this->queue, true ) ) {
 				$enqueued_dependents   = array_intersect( $this->get_recursive_dependents( $id ), $this->queue );
 				$highest_fetchpriority = $this->get_highest_fetchpriority( $enqueued_dependents );
 				printf(
 					'<link rel="modulepreload" href="%s" id="%s"',
-					esc_url( $this->get_src( $id ) ),
+					esc_url( $this->get_src( $id ) ), // TODO: What if empty string?
 					esc_attr( $id . '-js-modulepreload' )
 				);
 				if ( 'auto' !== $highest_fetchpriority ) {
 					printf( ' fetchpriority="%s"', esc_attr( $highest_fetchpriority ) );
 				}
-				if ( $highest_fetchpriority !== $script_module['fetchpriority'] && 'auto' !== $script_module['fetchpriority'] ) {
-					printf( ' data-wp-fetchpriority="%s"', esc_attr( $script_module['fetchpriority'] ) );
+				if ( $highest_fetchpriority !== $this->registered[ $id ]['fetchpriority'] && 'auto' !== $this->registered[ $id ]['fetchpriority'] ) {
+					printf( ' data-wp-fetchpriority="%s"', esc_attr( $this->registered[ $id ]['fetchpriority'] ) );
 				}
 				echo ">\n";
 			}
@@ -510,7 +517,7 @@ class WP_Script_Modules {
 	 */
 	private function get_import_map(): array {
 		$imports = array();
-		foreach ( $this->get_dependencies( array_unique( $this->queue ) ) as $id => $script_module ) {
+		foreach ( $this->get_dependencies( array_unique( $this->queue ) ) as $id ) {
 			$src = $this->get_src( $id );
 			if ( '' !== $src ) {
 				$imports[ $id ] = $src;
@@ -520,8 +527,7 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Retrieves all the dependencies for the given script module identifiers,
-	 * filtered by import types.
+	 * Retrieves all the dependencies for the given script module identifiers, filtered by import types.
 	 *
 	 * It will consolidate an array containing a set of unique dependencies based
 	 * on the requested import types: 'static', 'dynamic', or both. This method is
@@ -532,30 +538,33 @@ class WP_Script_Modules {
 	 * @param non-empty-string[] $ids          The identifiers of the script modules for which to gather dependencies.
 	 * @param non-empty-string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
 	 *                                         Default is both.
-	 * @return array<non-empty-string, array> List of dependencies, keyed by script module identifier.
-	 *
-	 * @phpstan-return array<non-empty-string, ScriptModule>
+	 * @return non-empty-string[] List of IDs for script module dependencies.
 	 */
 	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ): array {
-		return array_reduce(
-			$ids,
-			function ( $dependency_script_modules, $id ) use ( $import_types ) {
-				$dependencies = array();
-				if ( isset( $this->registered[ $id ] ) ) {
-					foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
-						if (
-							in_array( $dependency['import'], $import_types, true ) &&
-							isset( $this->registered[ $dependency['id'] ] ) &&
-							! isset( $dependency_script_modules[ $dependency['id'] ] )
-						) {
-							$dependencies[ $dependency['id'] ] = $this->registered[ $dependency['id'] ];
-						}
-					}
+		$all_dependencies = array();
+		$id_queue         = $ids;
+
+		while ( ! empty( $id_queue ) ) {
+			$id = array_shift( $id_queue );
+			if ( ! isset( $this->registered[ $id ] ) ) {
+				continue;
+			}
+
+			foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
+				if (
+					! isset( $all_dependencies[ $dependency['id'] ] ) &&
+					in_array( $dependency['import'], $import_types, true ) &&
+					isset( $this->registered[ $dependency['id'] ] )
+				) {
+					$all_dependencies[ $dependency['id'] ] = true;
+
+					// Add this dependency to the list to get dependencies for.
+					$id_queue[] = $dependency['id'];
 				}
-				return array_merge( $dependency_script_modules, $dependencies, $this->get_dependencies( array_keys( $dependencies ), $import_types ) );
-			},
-			array()
-		);
+			}
+		}
+
+		return array_keys( $all_dependencies );
 	}
 
 	/**
