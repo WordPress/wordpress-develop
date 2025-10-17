@@ -830,10 +830,27 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertSame( $json, $output, 'Expected output to not be processed.' );
 	}
 
-	// public function test_wp_always_load_block_styles_on_demand_init_in_block_theme(): void {
-	//  // If we're in a block theme, expect no filters to be added.
+	/**
+	 * Tests that wp_always_load_block_styles_on_demand does not add filters for block themes.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_always_load_block_styles_on_demand_init
+	 */
+	public function test_wp_always_load_block_styles_on_demand_init_in_block_theme(): void {
+		// Clean up any filters that may have been added by previous tests
+		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
+		remove_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		remove_filter( 'should_load_block_assets_on_demand', '__return_true' );
+		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );
 
-	// }
+		switch_theme( 'block-theme' );
+
+		wp_always_load_block_styles_on_demand_init();
+
+		$this->assertFalse( has_filter( 'should_load_separate_core_block_assets' ), 'Expect should_load_separate_core_block_assets filter NOT to be added for block themes.' );
+		$this->assertFalse( has_filter( 'should_load_block_assets_on_demand', '__return_true' ), 'Expect should_load_block_assets_on_demand filter NOT to be added for block themes.' );
+		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' ), 'Expect wp_template_enhancement_output_buffer_started action NOT to be added for block themes.' );
+	}
 
 	/**
 	 * Tests that wp_always_load_block_styles_on_demand adds the expected filters for classic themes.
@@ -842,7 +859,16 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::wp_always_load_block_styles_on_demand_init
 	 */
 	public function test_wp_always_load_block_styles_on_demand_init_in_classic_theme(): void {
-		// If we're in a classic theme, expect filters to be added.
+		// Clean up any filters that may have been added by previous tests
+		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
+		remove_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		remove_filter( 'should_load_block_assets_on_demand', '__return_true' );
+		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );
+
+		switch_theme( 'default' );
+
+		wp_always_load_block_styles_on_demand_init();
+
 		$default = null;
 		$this->assertTrue( has_filter( 'should_load_separate_core_block_assets' ), 'Expect should_load_separate_core_block_assets filter to be added for classic themes.' );
 		$this->assertTrue( apply_filters( 'should_load_separate_core_block_assets', $default ), 'Expect should_load_separate_core_block_assets filters to return true' );
@@ -858,6 +884,13 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::wp_use_placeholder_for_delayed_css
 	 */
 	public function test_wp_use_placeholder_for_delayed_css(): void {
+		// Clean up any filters that may have been added by previous tests
+		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
+		remove_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		remove_filter( 'should_load_block_assets_on_demand', '__return_true' );
+		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );
+
+		switch_theme( 'default' );
 
 		// Enqueue a style
 		wp_enqueue_style( 'test-style', 'http://example.com/style.css' );
