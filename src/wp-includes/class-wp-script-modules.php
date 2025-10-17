@@ -31,6 +31,14 @@ class WP_Script_Modules {
 	private $queue = array();
 
 	/**
+	 * Holds the script module identifiers that have been printed.
+	 *
+	 * @since 6.9.0
+	 * @var string[]
+	 */
+	private $done = array();
+
+	/**
 	 * Tracks whether the @wordpress/a11y script module is available.
 	 *
 	 * Some additional HTML is required on the page for the module to work. Track
@@ -49,14 +57,6 @@ class WP_Script_Modules {
 	 * @var array<string, string[]>
 	 */
 	private $dependents_map = array();
-
-	/**
-	 * Holds the script module identifiers that have been printed.
-	 *
-	 * @since 6.9.0
-	 * @var string[]
-	 */
-	private $done = array();
 
 	/**
 	 * Registers the script module if no script module with that script module
