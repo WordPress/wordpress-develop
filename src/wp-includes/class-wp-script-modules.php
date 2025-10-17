@@ -622,29 +622,34 @@ class WP_Script_Modules {
 	 * @return non-empty-string[] Script module IDs.
 	 */
 	private function get_recursive_dependents( string $id ): array {
-		$get = function ( string $id, array $checked = array() ) use ( &$get ): array {
+		$dependents = array();
+		$id_queue   = array( $id );
+		$processed  = array();
 
-			// If by chance an unregistered script module is checked or there is a recursive dependency, return early.
-			if ( ! isset( $this->registered[ $id ] ) || isset( $checked[ $id ] ) ) {
-				return array();
+		while ( ! empty( $id_queue ) ) {
+			$current_id = array_shift( $id_queue );
+
+			// Skip unregistered or already-processed script modules.
+			if ( ! isset( $this->registered[ $current_id ] ) || isset( $processed[ $current_id ] ) ) {
+				continue;
 			}
 
-			// Mark this script module as checked to guard against infinite recursion.
-			$checked[ $id ] = true;
+			// Mark as processed to guard against infinite loops from circular dependencies.
+			$processed[ $current_id ] = true;
 
-			$dependents = array();
-			foreach ( $this->get_dependents( $id ) as $dependent ) {
-				$dependents = array_merge(
-					$dependents,
-					array( $dependent ),
-					$get( $dependent, $checked )
-				);
+			// Find the direct dependents of the current script.
+			foreach ( $this->get_dependents( $current_id ) as $dependent_id ) {
+				// Only add the dependent if we haven't found it before.
+				if ( ! isset( $dependents[ $dependent_id ] ) ) {
+					$dependents[ $dependent_id ] = true;
+
+					// Add dependency to the queue.
+					$id_queue[] = $dependent_id;
+				}
 			}
+		}
 
-			return $dependents;
-		};
-
-		return array_unique( $get( $id ) );
+		return array_keys( $dependents );
 	}
 
 	/**
