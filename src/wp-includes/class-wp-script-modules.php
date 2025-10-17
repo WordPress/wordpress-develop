@@ -76,6 +76,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 * @var non-empty-string[]
+	 * @phpstan-var array{'low', 'auto', 'high'}
 	 */
 	private $priorities = array(
 		'low',
@@ -90,7 +91,7 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 * @since 6.9.0 Added the $args parameter.
 	 *
-	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
+	 * @param non-empty-string  $id       The identifier of the script module. Should be unique. It will be used in the
 	 *                                    final import map.
 	 * @param string            $src      Optional. Full URL of the script module, or path of the script module relative
 	 *                                    to the WordPress root directory. If it is provided and the script module has
@@ -194,7 +195,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return string[] Script module IDs.
+	 * @return non-empty-string[] Script module IDs.
 	 */
 	public function get_queue(): array {
 		return $this->queue;
@@ -309,7 +310,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $id The identifier of the script module.
+	 * @param non-empty-string $id The identifier of the script module.
 	 */
 	public function dequeue( string $id ) {
 		$this->queue = array_values( array_diff( $this->queue, array( $id ) ) );
@@ -320,7 +321,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $id The identifier of the script module.
+	 * @param non-empty-string $id The identifier of the script module.
 	 */
 	public function deregister( string $id ) {
 		$this->dequeue( $id );
@@ -365,8 +366,8 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string[] $ids Script module IDs.
-	 * @return string Highest fetch priority for the provided script module IDs.
+	 * @param non-empty-string[] $ids Script module IDs.
+	 * @return 'auto'|'low'|'high' Highest fetch priority for the provided script module IDs.
 	 */
 	private function get_highest_fetchpriority( array $ids ): string {
 		static $high_priority_index = null;
@@ -427,7 +428,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string $id The script module identifier.
+	 * @param non-empty-string $id The script module identifier.
 	 */
 	private function print_script_module( string $id ) {
 		if ( in_array( $id, $this->done, true ) || ! in_array( $id, $this->queue, true ) ) {
@@ -685,7 +686,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param string $id The script module identifier.
+	 * @param non-empty-string $id The script module identifier.
 	 * @return string The script module src with a version if relevant.
 	 */
 	private function get_src( string $id ): string {
