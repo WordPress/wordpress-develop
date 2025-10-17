@@ -1676,10 +1676,11 @@ HTML;
 	}
 
 	/**
-	 * Tests that directly manipulating the queue works as expected.
+	 * Tests that manipulating the queue works as expected.
 	 *
 	 * @ticket 63676
 	 *
+	 * @covers WP_Script_Modules::get_queue
 	 * @covers WP_Script_Modules::queue
 	 * @covers WP_Script_Modules::dequeue
 	 */
@@ -1687,17 +1688,18 @@ HTML;
 		$this->script_modules->register( 'foo', '/foo.js' );
 		$this->script_modules->register( 'bar', '/bar.js' );
 		$this->script_modules->register( 'baz', '/baz.js' );
-		$this->assertSame( array(), $this->script_modules->queue, 'Expected queue to be empty.' );
+		$this->assertSame( array(), $this->script_modules->get_queue(), 'Expected queue to be empty.' );
 		$this->script_modules->enqueue( 'foo' );
 		$this->script_modules->enqueue( 'foo' );
 		$this->script_modules->enqueue( 'bar' );
-		$this->assertSame( array( 'foo', 'bar' ), $this->script_modules->queue, 'Expected two deduplicated queued items.' );
-		$this->script_modules->queue = array( 'baz' );
-		$this->script_modules->enqueue( 'bar' );
-		$this->assertSame( array( 'baz', 'bar' ), $this->script_modules->queue, 'Expected queue updated via setter and enqueue method to have two items.' );
+		$this->assertSame( array( 'foo', 'bar' ), $this->script_modules->get_queue(), 'Expected two deduplicated queued items.' );
+		$this->script_modules->dequeue( 'foo' );
+		$this->script_modules->dequeue( 'foo' );
+		$this->script_modules->enqueue( 'baz' );
+		$this->assertSame( array( 'bar', 'baz' ), $this->script_modules->get_queue(), 'Expected items tup be updated after dequeue and enqueue.' );
 		$this->script_modules->dequeue( 'baz' );
 		$this->script_modules->dequeue( 'bar' );
-		$this->assertSame( array(), $this->script_modules->queue, 'Expected queue to be empty after dequeueing both items.' );
+		$this->assertSame( array(), $this->script_modules->get_queue(), 'Expected queue to be empty after dequeueing both items.' );
 	}
 
 	/**
