@@ -16,7 +16,7 @@
  *     import: 'static'|'dynamic',
  * }
  * @phpstan-type ScriptModule array{
- *     src: non-empty-string,
+ *     src: string,
  *     version: string|false|null,
  *     dependencies: Dependency[],
  *     in_footer: bool,
@@ -131,10 +131,6 @@ class WP_Script_Modules {
 	public function register( string $id, string $src, array $deps = array(), $version = false, array $args = array() ) {
 		if ( '' === $id ) {
 			_doing_it_wrong( __METHOD__, __( 'Non-empty string required for id.' ), '6.9.0' );
-			return;
-		}
-		if ( '' === $src ) {
-			_doing_it_wrong( __METHOD__, __( 'Non-empty string required for src.' ), '6.9.0' );
 			return;
 		}
 
