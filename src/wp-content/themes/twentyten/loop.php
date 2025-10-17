@@ -20,7 +20,8 @@
 ?>
 
 <?php // Display navigation to next/previous pages when applicable. ?>
-<?php if ( $wp_query->max_num_pages > 1 ) :
+<?php
+if ( $wp_query->max_num_pages > 1 ) :
 	$order   = get_query_var( 'order', 'DESC' );
 	$is_desc = ( 'DESC' === $order );
 
