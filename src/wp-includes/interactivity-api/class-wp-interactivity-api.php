@@ -59,7 +59,7 @@ final class WP_Interactivity_API {
 	private $config_data = array();
 
 	/**
-	 * Keeps track of all derived state props accessed during server-side rendering.
+	 * Keeps track of all derived state closures accessed during server-side rendering.
 	 *
 	 * This data is serialized and sent to the client as part of the interactivity
 	 * data, and is handled later in the client to support derived state props that
@@ -68,7 +68,7 @@ final class WP_Interactivity_API {
 	 * @since 6.9.0
 	 * @var array
 	 */
-	private $derived_state_props_accessed = array();
+	private $derived_state_closures = array();
 
 	/**
 	 * Flag that indicates whether the `data-wp-router-region` directive has
@@ -257,7 +257,7 @@ final class WP_Interactivity_API {
 		if (
 			empty( $this->state_data ) &&
 			empty( $this->config_data ) &&
-			empty( $this->derived_state_props_accessed )
+			empty( $this->derived_state_closures )
 		) {
 			return $data;
 		}
@@ -283,7 +283,7 @@ final class WP_Interactivity_API {
 		}
 
 		$derived_props = array();
-		foreach ( $this->derived_state_props_accessed as $key => $value ) {
+		foreach ( $this->derived_state_closures as $key => $value ) {
 			if ( ! empty( $value ) ) {
 				$derived_props[ $key ] = $value;
 			}
@@ -681,12 +681,12 @@ final class WP_Interactivity_API {
 					 *
 					 * @since 6.9.0
 					 */
-					$this->derived_state_props_accessed[ $ns ] = $this->derived_state_props_accessed[ $ns ] ?? array();
+					$this->derived_state_closures[ $ns ] = $this->derived_state_closures[ $ns ] ?? array();
 
 					// Builds path for the current property and add it to tracking if not already present.
 					$current_path = implode( '.', array_slice( $path_segments, 0, $index + 1 ) );
-					if ( ! in_array( $current_path, $this->derived_state_props_accessed[ $ns ], true ) ) {
-						$this->derived_state_props_accessed[ $ns ][] = $current_path;
+					if ( ! in_array( $current_path, $this->derived_state_closures[ $ns ], true ) ) {
+						$this->derived_state_closures[ $ns ][] = $current_path;
 					}
 				} catch ( Throwable $e ) {
 					_doing_it_wrong(
