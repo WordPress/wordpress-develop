@@ -32,8 +32,13 @@ if ( $wp_query->max_num_pages > 1 ) :
 	$next_link = $is_desc ? get_previous_posts_link( $new_posts_text ) : get_next_posts_link( $new_posts_text );
 	?>
 	<div id="nav-above" class="navigation">
+	<?php if ( $prev_link ) : ?>
 		<div class="nav-previous"><?php echo wp_kses_post( $prev_link ); ?></div>
+	<?php endif; ?>
+
+	<?php if ( $next_link ) : ?>
 		<div class="nav-next"><?php echo wp_kses_post( $next_link ); ?></div>
+	<?php endif; ?>
 	</div><!-- #nav-above -->
 <?php endif; ?>
 
@@ -215,7 +220,12 @@ while ( have_posts() ) :
 <?php // Display navigation to next/previous pages when applicable. ?>
 <?php if ( $wp_query->max_num_pages > 1 ) : ?>
 				<div id="nav-below" class="navigation">
+				<?php if ( $prev_link ) : ?>
 					<div class="nav-previous"><?php echo wp_kses_post( $prev_link ); ?></div>
+				<?php endif; ?>
+
+				<?php if ( $next_link ) : ?>
 					<div class="nav-next"><?php echo wp_kses_post( $next_link ); ?></div>
+				<?php endif; ?>
 				</div><!-- #nav-below -->
 <?php endif; ?>
