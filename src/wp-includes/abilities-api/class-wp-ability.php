@@ -33,7 +33,7 @@ class WP_Ability {
 	 * They are not guaranteed to provide a faithful description of ability behavior.
 	 *
 	 * @since 6.9.0
-	 * @var array<string,(bool|string)>
+	 * @var array<string, (bool|string)>
 	 */
 	protected static $default_annotations = array(
 		// Instructions on how to use the ability.
@@ -78,10 +78,18 @@ class WP_Ability {
 	protected $description;
 
 	/**
+	 * The ability category.
+	 *
+	 * @since 6.9.0
+	 * @var string
+	 */
+	protected $category;
+
+	/**
 	 * The optional ability input schema.
 	 *
 	 * @since 6.9.0
-	 * @var array<string,mixed>
+	 * @var array<string, mixed>
 	 */
 	protected $input_schema = array();
 
@@ -89,7 +97,7 @@ class WP_Ability {
 	 * The optional ability output schema.
 	 *
 	 * @since 6.9.0
-	 * @var array<string,mixed>
+	 * @var array<string, mixed>
 	 */
 	protected $output_schema = array();
 
@@ -97,7 +105,7 @@ class WP_Ability {
 	 * The ability execute callback.
 	 *
 	 * @since 6.9.0
-	 * @var callable( mixed $input= ): (mixed|\WP_Error)
+	 * @var callable( mixed $input= ): (mixed|WP_Error)
 	 */
 	protected $execute_callback;
 
@@ -105,7 +113,7 @@ class WP_Ability {
 	 * The optional ability permission callback.
 	 *
 	 * @since 6.9.0
-	 * @var callable( mixed $input= ): (bool|\WP_Error)
+	 * @var callable( mixed $input= ): (bool|WP_Error)
 	 */
 	protected $permission_callback;
 
@@ -113,17 +121,9 @@ class WP_Ability {
 	 * The optional ability metadata.
 	 *
 	 * @since 6.9.0
-	 * @var array<string,mixed>
+	 * @var array<string, mixed>
 	 */
 	protected $meta;
-
-	/**
-	 * The ability category (required).
-	 *
-	 * @since 6.9.0
-	 * @var string
-	 */
-	protected $category;
 
 	/**
 	 * Constructor.
@@ -136,8 +136,8 @@ class WP_Ability {
 	 *
 	 * @see wp_register_ability()
 	 *
-	 * @param string              $name The name of the ability, with its namespace.
-	 * @param array<string,mixed> $args {
+	 * @param string               $name The name of the ability, with its namespace.
+	 * @param array<string, mixed> $args {
 	 *     An associative array of arguments for the ability.
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
@@ -147,13 +147,13 @@ class WP_Ability {
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
-	 *     @type array<string,mixed>  $input_schema          Optional. JSON Schema definition for the ability's input.
-	 *     @type array<string,mixed>  $output_schema         Optional. JSON Schema definition for the ability's output.
-	 *     @type array<string,mixed>  $meta                  {
+	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
+	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
+	 *     @type array<string, mixed> $meta                  {
 	 *         Optional. Additional metadata for the ability.
 	 *
-	 *         @type array<string,bool|string> $annotations  Optional. Annotation metadata for the ability.
-	 *         @type bool                      $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
 	 *     }
 	 * }
 	 */
@@ -185,27 +185,27 @@ class WP_Ability {
 	/**
 	 * Prepares and validates the properties used to instantiate the ability.
 	 *
-	 * Errors are thrown as exceptions instead of \WP_Errors to allow for simpler handling and overloading. They are then
+	 * Errors are thrown as exceptions instead of WP_Errors to allow for simpler handling and overloading. They are then
 	 * caught and converted to a WP_Error when by WP_Abilities_Registry::register().
 	 *
 	 * @since 6.9.0
 	 *
 	 * @see WP_Abilities_Registry::register()
 	 *
-	 * @param array<string,mixed> $args An associative array of arguments used to instantiate the class.
-	 * @return array<string,mixed> The validated and prepared properties.
-	 * @throws \InvalidArgumentException if an argument is invalid.
+	 * @param array<string, mixed> $args An associative array of arguments used to instantiate the class.
+	 * @return array<string, mixed> The validated and prepared properties.
+	 * @throws InvalidArgumentException if an argument is invalid.
 	 *
 	 * @phpstan-return array{
 	 *   label: string,
 	 *   description: string,
 	 *   category: string,
-	 *   execute_callback: callable( mixed $input= ): (mixed|\WP_Error),
-	 *   permission_callback: callable( mixed $input= ): (bool|\WP_Error),
-	 *   input_schema?: array<string,mixed>,
-	 *   output_schema?: array<string,mixed>,
+	 *   execute_callback: callable( mixed $input= ): (mixed|WP_Error),
+	 *   permission_callback: callable( mixed $input= ): (bool|WP_Error),
+	 *   input_schema?: array<string, mixed>,
+	 *   output_schema?: array<string, mixed>,
 	 *   meta?: array{
-	 *     annotations?: array<string,(bool|string)>,
+	 *     annotations?: array<string, (bool|string)>,
 	 *     show_in_rest?: bool,
 	 *     ...<string, mixed>
 	 *   },
@@ -215,62 +215,62 @@ class WP_Ability {
 	protected function prepare_properties( array $args ): array {
 		// Required args must be present and of the correct type.
 		if ( empty( $args['label'] ) || ! is_string( $args['label'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The ability properties must contain a `label` string.' )
 			);
 		}
 
 		if ( empty( $args['description'] ) || ! is_string( $args['description'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The ability properties must contain a `description` string.' )
 			);
 		}
 
 		if ( empty( $args['category'] ) || ! is_string( $args['category'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The ability properties must contain a `category` string.' )
 			);
 		}
 
 		if ( empty( $args['execute_callback'] ) || ! is_callable( $args['execute_callback'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The ability properties must contain a valid `execute_callback` function.' )
 			);
 		}
 
 		if ( empty( $args['permission_callback'] ) || ! is_callable( $args['permission_callback'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The ability properties must provide a valid `permission_callback` function.' )
 			);
 		}
 
 		// Optional args only need to be of the correct type if they are present.
 		if ( isset( $args['input_schema'] ) && ! is_array( $args['input_schema'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The ability properties should provide a valid `input_schema` definition.' )
 			);
 		}
 
 		if ( isset( $args['output_schema'] ) && ! is_array( $args['output_schema'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The ability properties should provide a valid `output_schema` definition.' )
 			);
 		}
 
 		if ( isset( $args['meta'] ) && ! is_array( $args['meta'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The ability properties should provide a valid `meta` array.' )
 			);
 		}
 
 		if ( isset( $args['meta']['annotations'] ) && ! is_array( $args['meta']['annotations'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The ability meta should provide a valid `annotations` array.' )
 			);
 		}
 
 		if ( isset( $args['meta']['show_in_rest'] ) && ! is_bool( $args['meta']['show_in_rest'] ) ) {
-			throw new \InvalidArgumentException(
+			throw new InvalidArgumentException(
 				__( 'The ability meta should provide a valid `show_in_rest` boolean.' )
 			);
 		}
@@ -326,11 +326,22 @@ class WP_Ability {
 	}
 
 	/**
+	 * Retrieves the category for the ability.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return string The category for the ability.
+	 */
+	public function get_category(): string {
+		return $this->category;
+	}
+
+	/**
 	 * Retrieves the input schema for the ability.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return array<string,mixed> The input schema for the ability.
+	 * @return array<string, mixed> The input schema for the ability.
 	 */
 	public function get_input_schema(): array {
 		return $this->input_schema;
@@ -341,7 +352,7 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return array<string,mixed> The output schema for the ability.
+	 * @return array<string, mixed> The output schema for the ability.
 	 */
 	public function get_output_schema(): array {
 		return $this->output_schema;
@@ -352,21 +363,10 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return array<string,mixed> The metadata for the ability.
+	 * @return array<string, mixed> The metadata for the ability.
 	 */
 	public function get_meta(): array {
 		return $this->meta;
-	}
-
-	/**
-	 * Retrieves the category for the ability.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @return string The category for the ability.
-	 */
-	public function get_category(): string {
-		return $this->category;
 	}
 
 	/**
@@ -388,7 +388,7 @@ class WP_Ability {
 	 * @since 6.9.0
 	 *
 	 * @param mixed $input Optional. The input data to validate. Default `null`.
-	 * @return true|\WP_Error Returns true if valid or the WP_Error object if validation fails.
+	 * @return true|WP_Error Returns true if valid or the WP_Error object if validation fails.
 	 */
 	protected function validate_input( $input = null ) {
 		$input_schema = $this->get_input_schema();
@@ -397,7 +397,7 @@ class WP_Ability {
 				return true;
 			}
 
-			return new \WP_Error(
+			return new WP_Error(
 				'ability_missing_input_schema',
 				sprintf(
 					/* translators: %s ability name. */
@@ -409,7 +409,7 @@ class WP_Ability {
 
 		$valid_input = rest_validate_value_from_schema( $input, $input_schema, 'input' );
 		if ( is_wp_error( $valid_input ) ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'ability_invalid_input',
 				sprintf(
 					/* translators: %1$s ability name, %2$s error message. */
@@ -449,7 +449,7 @@ class WP_Ability {
 	 * @since 6.9.0
 	 *
 	 * @param mixed $input Optional. The input data for permission checking. Default `null`.
-	 * @return bool|\WP_Error Whether the ability has the necessary permission.
+	 * @return bool|WP_Error Whether the ability has the necessary permission.
 	 */
 	public function check_permissions( $input = null ) {
 		$is_valid = $this->validate_input( $input );
@@ -467,11 +467,11 @@ class WP_Ability {
 	 * @since 6.9.0
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
-	 * @return mixed|\WP_Error The result of the ability execution, or WP_Error on failure.
+	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	protected function do_execute( $input = null ) {
 		if ( ! is_callable( $this->execute_callback ) ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'ability_invalid_execute_callback',
 				/* translators: %s ability name. */
 				sprintf( __( 'Ability "%s" does not have a valid execute callback.' ), $this->name )
@@ -487,7 +487,7 @@ class WP_Ability {
 	 * @since 6.9.0
 	 *
 	 * @param mixed $output The output data to validate.
-	 * @return true|\WP_Error Returns true if valid, or a WP_Error object if validation fails.
+	 * @return true|WP_Error Returns true if valid, or a WP_Error object if validation fails.
 	 */
 	protected function validate_output( $output ) {
 		$output_schema = $this->get_output_schema();
@@ -497,7 +497,7 @@ class WP_Ability {
 
 		$valid_output = rest_validate_value_from_schema( $output, $output_schema, 'output' );
 		if ( is_wp_error( $valid_output ) ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'ability_invalid_output',
 				sprintf(
 					/* translators: %1$s ability name, %2$s error message. */
@@ -518,7 +518,7 @@ class WP_Ability {
 	 * @since 6.9.0
 	 *
 	 * @param mixed $input Optional. The input data for the ability. Default `null`.
-	 * @return mixed|\WP_Error The result of the ability execution, or WP_Error on failure.
+	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	public function execute( $input = null ) {
 		$has_permissions = $this->check_permissions( $input );
@@ -535,7 +535,7 @@ class WP_Ability {
 				);
 			}
 
-			return new \WP_Error(
+			return new WP_Error(
 				'ability_invalid_permissions',
 				/* translators: %s ability name. */
 				sprintf( __( 'Ability "%s" does not have necessary permission.' ), $this->name )
@@ -580,8 +580,21 @@ class WP_Ability {
 	 * Wakeup magic method.
 	 *
 	 * @since 6.9.0
+	 * @throws LogicException If the ability object is unserialized.
+	 *                        This is a security hardening measure to prevent unserialization of the ability.
 	 */
 	public function __wakeup(): void {
-		throw new \LogicException( __CLASS__ . ' should never be unserialized.' );
+		throw new LogicException( __CLASS__ . ' should never be unserialized.' );
+	}
+
+	/**
+	 * Sleep magic method.
+	 *
+	 * @since 6.9.0
+	 * @throws LogicException If the ability object is serialized.
+	 *                        This is a security hardening measure to prevent serialization of the ability.
+	 */
+	public function __sleep(): array {
+		throw new LogicException( __CLASS__ . ' should never be serialized' );
 	}
 }

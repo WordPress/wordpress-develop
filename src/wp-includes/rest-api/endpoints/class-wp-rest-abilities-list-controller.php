@@ -90,8 +90,8 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
-	 * @return \WP_REST_Response Response object on success.
+	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
+	 * @return WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
 		$abilities = array_filter(
@@ -124,7 +124,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 		$max_pages       = ceil( $total_abilities / $per_page );
 
 		if ( $request->get_method() === 'HEAD' ) {
-			$response = new \WP_REST_Response( array() );
+			$response = new WP_REST_Response( array() );
 		} else {
 			$abilities = array_slice( $abilities, $offset, $per_page );
 
@@ -163,13 +163,13 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
-	 * @return \WP_REST_Response|\WP_Error Response object on success, or WP_Error object on failure.
+	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
 		$ability = wp_get_ability( $request->get_param( 'name' ) );
 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
-			return new \WP_Error(
+			return new WP_Error(
 				'rest_ability_not_found',
 				__( 'Ability not found.' ),
 				array( 'status' => 404 )
@@ -185,7 +185,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param \WP_REST_Request<array<string,mixed>> $request Full details about the request.
+	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
 	 * @return bool True if the request has read access.
 	 */
 	public function get_permissions_check( $request ) {
@@ -197,9 +197,9 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param \WP_Ability                           $ability The ability object.
-	 * @param \WP_REST_Request<array<string,mixed>> $request Request object.
-	 * @return \WP_REST_Response Response object.
+	 * @param WP_Ability                           $ability The ability object.
+	 * @param WP_REST_Request<array<string, mixed>> $request Request object.
+	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $ability, $request ) {
 		$data = array(

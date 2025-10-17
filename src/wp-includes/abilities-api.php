@@ -20,28 +20,28 @@ declare( strict_types = 1 );
  *
  * @see WP_Abilities_Registry::register()
  *
- * @param string              $name The name of the ability. The name must be a string containing a namespace
- *                                  prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
- *                                  alphanumeric characters, dashes and the forward slash.
- * @param array<string,mixed> $args {
+ * @param string               $name The name of the ability. The name must be a string containing a namespace
+ *                                   prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
+ *                                   alphanumeric characters, dashes and the forward slash.
+ * @param array<string, mixed> $args {
  *     An associative array of arguments for the ability.
  *
- *     @type string               $label                 The human-readable label for the ability.
- *     @type string               $description           A detailed description of what the ability does.
- *     @type string               $category              The category slug this ability belongs to.
- *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
- *                                                       Receives optional mixed input and returns mixed result or WP_Error.
- *     @type callable             $permission_callback   A callback function to check permissions before execution.
- *                                                       Receives optional mixed input and returns bool or WP_Error.
- *     @type array<string,mixed>  $input_schema          Optional. JSON Schema definition for the ability's input.
- *     @type array<string,mixed>  $output_schema         Optional. JSON Schema definition for the ability's output.
- *     @type array<string,mixed>  $meta                  {
+ *     @type string               $label               The human-readable label for the ability.
+ *     @type string               $description         A detailed description of what the ability does.
+ *     @type string               $category            The category slug this ability belongs to.
+ *     @type callable             $execute_callback    A callback function to execute when the ability is invoked.
+ *                                                     Receives optional mixed input and returns mixed result or WP_Error.
+ *     @type callable             $permission_callback A callback function to check permissions before execution.
+ *                                                     Receives optional mixed input and returns bool or WP_Error.
+ *     @type array<string, mixed> $input_schema        Optional. JSON Schema definition for the ability's input.
+ *     @type array<string, mixed> $output_schema       Optional. JSON Schema definition for the ability's output.
+ *     @type array<string, mixed> $meta                  {
  *         Optional. Additional metadata for the ability.
  *
- *         @type array<string,bool|string> $annotations  Optional. Annotation metadata for the ability.
- *         @type bool                      $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+ *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
+ *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
  *     }
- *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
+ *     @type string               $ability_class       Optional. Custom class to instantiate instead of WP_Ability.
  * }
  * @return WP_Ability|null An instance of registered ability on success, null on failure.
  *
@@ -49,16 +49,16 @@ declare( strict_types = 1 );
  *   label?: string,
  *   description?: string,
  *   category?: string,
- *   execute_callback?: callable( mixed $input= ): (mixed|\WP_Error),
- *   permission_callback?: callable( mixed $input= ): (bool|\WP_Error),
- *   input_schema?: array<string,mixed>,
- *   output_schema?: array<string,mixed>,
+ *   execute_callback?: callable( mixed $input= ): (mixed|WP_Error),
+ *   permission_callback?: callable( mixed $input= ): (bool|WP_Error),
+ *   input_schema?: array<string, mixed>,
+ *   output_schema?: array<string, mixed>,
  *   meta?: array{
- *     annotations?: array<string,(bool|string)>,
+ *     annotations?: array<string, (bool|string)>,
  *     show_in_rest?: bool,
- *     ...<string,mixed>,
+ *     ...<string, mixed>,
  *   },
- *   ability_class?: class-string<\WP_Ability>,
+ *   ability_class?: class-string<WP_Ability>,
  *   ...<string, mixed>
  * } $args
  */
@@ -115,7 +115,7 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  * @see WP_Abilities_Registry::get_all_registered()
  *
- * @return \WP_Ability[] The array of registered abilities.
+ * @return WP_Ability[] The array of registered abilities.
  */
 function wp_get_abilities(): array {
 	return WP_Abilities_Registry::get_instance()->get_all_registered();
@@ -128,21 +128,21 @@ function wp_get_abilities(): array {
  *
  * @see WP_Abilities_Category_Registry::register()
  *
- * @param string              $slug The unique slug for the category. Must contain only lowercase
- *                                  alphanumeric characters and dashes.
- * @param array<string,mixed> $args {
+ * @param string               $slug The unique slug for the category. Must contain only lowercase
+ *                                   alphanumeric characters and dashes.
+ * @param array<string, mixed> $args {
  *     An associative array of arguments for the category.
  *
  *     @type string               $label       The human-readable label for the category.
  *     @type string               $description A description of the category.
- *     @type array<string,mixed>  $meta        Optional. Additional metadata for the category.
+ *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
  * }
  * @return WP_Ability_Category|null The registered category instance on success, null on failure.
  *
  * @phpstan-param array{
  *   label: string,
  *   description: string,
- *   meta?: array<string,mixed>,
+ *   meta?: array<string, mixed>,
  *   ...<string, mixed>
  * } $args
  */
@@ -185,7 +185,7 @@ function wp_get_ability_category( string $slug ): ?WP_Ability_Category {
  *
  * @see WP_Abilities_Category_Registry::get_all_registered()
  *
- * @return \WP_Ability_Category[] The array of registered categories.
+ * @return WP_Ability_Category[] The array of registered categories.
  */
 function wp_get_ability_categories(): array {
 	return WP_Abilities_Category_Registry::get_instance()->get_all_registered();

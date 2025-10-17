@@ -43,10 +43,10 @@ final class WP_Abilities_Registry {
 	 *
 	 * @see wp_register_ability()
 	 *
-	 * @param string              $name The name of the ability. The name must be a string containing a namespace
-	 *                                  prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
-	 *                                  alphanumeric characters, dashes and the forward slash.
-	 * @param array<string,mixed> $args {
+	 * @param string               $name The name of the ability. The name must be a string containing a namespace
+	 *                                   prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
+	 *                                   alphanumeric characters, dashes and the forward slash.
+	 * @param array<string, mixed> $args {
 	 *     An associative array of arguments for the ability.
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
@@ -56,13 +56,13 @@ final class WP_Abilities_Registry {
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
-	 *     @type array<string,mixed>  $input_schema          Optional. JSON Schema definition for the ability's input.
-	 *     @type array<string,mixed>  $output_schema         Optional. JSON Schema definition for the ability's output.
-	 *     @type array<string,mixed>  $meta                  {
+	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
+	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
+	 *     @type array<string, mixed> $meta                  {
 	 *         Optional. Additional metadata for the ability.
 	 *
-	 *         @type array<string,bool|string> $annotations  Optional. Annotation metadata for the ability.
-	 *         @type bool                      $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
 	 *     }
 	 *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
 	 * }
@@ -72,16 +72,16 @@ final class WP_Abilities_Registry {
 	 *   label?: string,
 	 *   description?: string,
 	 *   category?: string,
-	 *   execute_callback?: callable( mixed $input= ): (mixed|\WP_Error),
-	 *   permission_callback?: callable( mixed $input= ): (bool|\WP_Error),
-	 *   input_schema?: array<string,mixed>,
-	 *   output_schema?: array<string,mixed>,
+	 *   execute_callback?: callable( mixed $input= ): (mixed|WP_Error),
+	 *   permission_callback?: callable( mixed $input= ): (bool|WP_Error),
+	 *   input_schema?: array<string, mixed>,
+	 *   output_schema?: array<string, mixed>,
 	 *   meta?: array{
-	 *     annotations?: array<string,(bool|string)>,
+	 *     annotations?: array<string, (bool|string)>,
 	 *     show_in_rest?: bool,
 	 *     ...<string, mixed>
 	 *   },
-	 *   ability_class?: class-string<\WP_Ability>,
+	 *   ability_class?: class-string<WP_Ability>,
 	 *   ...<string, mixed>
 	 * } $args
 	 */
@@ -112,7 +112,7 @@ final class WP_Abilities_Registry {
 		 *
 		 * @since 6.9.0
 		 *
-		 * @param array<string,mixed> $args {
+		 * @param array<string, mixed> $args {
 		 *     An associative array of arguments for the ability.
 		 *
 		 *     @type string               $label                 The human-readable label for the ability.
@@ -122,16 +122,16 @@ final class WP_Abilities_Registry {
 		 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 		 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 		 *                                                       Receives optional mixed input and returns bool or WP_Error.
-		 *     @type array<string,mixed>  $input_schema          Optional. JSON Schema definition for the ability's input.
-		 *     @type array<string,mixed>  $output_schema         Optional. JSON Schema definition for the ability's output.
-		 *     @type array<string,mixed>  $meta                  {
+		 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
+		 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
+		 *     @type array<string, mixed> $meta                  {
 		 *         Optional. Additional metadata for the ability.
 		 *
-		 *         @type array<string,bool|string> $annotations  Optional. Annotation metadata for the ability.
-		 *         @type bool                      $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+		 *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
+		 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
 		 *     }
 		 * }
-		 * @param string              $name The name of the ability, with its namespace.
+		 * @param string               $name The name of the ability, with its namespace.
 		 */
 		$args = apply_filters( 'register_ability_args', $args, $name );
 
@@ -163,14 +163,14 @@ final class WP_Abilities_Registry {
 			return null;
 		}
 
-		/** @var class-string<\WP_Ability> */
+		/** @var class-string<WP_Ability> */
 		$ability_class = $args['ability_class'] ?? WP_Ability::class;
 		unset( $args['ability_class'] );
 
 		try {
 			// WP_Ability::prepare_properties() will throw an exception if the properties are invalid.
 			$ability = new $ability_class( $name, $args );
-		} catch ( \InvalidArgumentException $e ) {
+		} catch ( InvalidArgumentException $e ) {
 			_doing_it_wrong(
 				__METHOD__,
 				$e->getMessage(),
@@ -221,7 +221,7 @@ final class WP_Abilities_Registry {
 	 *
 	 * @see wp_get_abilities()
 	 *
-	 * @return \WP_Ability[] The array of registered abilities.
+	 * @return WP_Ability[] The array of registered abilities.
 	 */
 	public function get_all_registered(): array {
 		return $this->registered_abilities;
@@ -249,7 +249,7 @@ final class WP_Abilities_Registry {
 	 * @see wp_get_ability()
 	 *
 	 * @param string $name The name of the registered ability, with its namespace.
-	 * @return ?\WP_Ability The registered ability instance, or null if it is not registered.
+	 * @return ?WP_Ability The registered ability instance, or null if it is not registered.
 	 */
 	public function get_registered( string $name ): ?WP_Ability {
 		if ( ! $this->is_registered( $name ) ) {
@@ -271,7 +271,7 @@ final class WP_Abilities_Registry {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return \WP_Abilities_Registry The main registry instance.
+	 * @return WP_Abilities_Registry The main registry instance.
 	 */
 	public static function get_instance(): self {
 		if ( null === self::$instance ) {
@@ -289,7 +289,7 @@ final class WP_Abilities_Registry {
 			 *
 			 * @since 6.9.0
 			 *
-			 * @param \WP_Abilities_Registry $instance Abilities registry object.
+			 * @param WP_Abilities_Registry $instance Abilities registry object.
 			 */
 			do_action( 'abilities_api_init', self::$instance );
 		}
@@ -301,13 +301,21 @@ final class WP_Abilities_Registry {
 	 * Wakeup magic method.
 	 *
 	 * @since 6.9.0
-	 * @throws \UnexpectedValueException If any of the registered abilities is not an instance of WP_Ability.
+	 * @throws LogicException If the registry object is unserialized.
+	 *                        This is a security hardening measure to prevent unserialization of the registry.
 	 */
 	public function __wakeup(): void {
-		foreach ( $this->registered_abilities as $ability ) {
-			if ( ! $ability instanceof WP_Ability ) {
-				throw new \UnexpectedValueException();
-			}
-		}
+		throw new LogicException( __CLASS__ . ' should never be unserialized.' );
+	}
+
+	/**
+	 * Sleep magic method.
+	 *
+	 * @since 6.9.0
+	 * @throws LogicException If the registry object is serialized.
+	 *                        This is a security hardening measure to prevent serialization of the registry.
+	 */
+	public function __sleep(): array {
+		throw new LogicException( __CLASS__ . ' should never be serialized' );
 	}
 }

@@ -511,9 +511,9 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for valid category slugs.
+	 * Data provider for valid ability category slugs.
 	 *
-	 * @return array<int,array<string>>
+	 * @return array<int, array<string>> Valid ability category slugs.
 	 */
 	public function data_valid_slug_provider(): array {
 		return array(
@@ -547,9 +547,9 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for invalid category slugs.
+	 * Data provider for invalid ability category slugs.
 	 *
-	 * @return array<int,array<string>>
+	 * @return array<int, array<string>> Invalid ability category slugs.
 	 */
 	public function data_invalid_slug_provider(): array {
 		return array(
@@ -713,7 +713,7 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 			)
 		);
 
-		$this->expectException( \LogicException::class );
+		$this->expectException( LogicException::class );
 		$serialized = serialize( $category );
 		unserialize( $serialized );
 	}
