@@ -45,8 +45,13 @@ final class WP_Abilities_Category_Registry {
 	 *
 	 * @param string              $slug The unique slug for the category. Must contain only lowercase
 	 *                                  alphanumeric characters and dashes.
-	 * @param array<string,mixed> $args An associative array of arguments for the category. See wp_register_ability_category() for
-	 *                                  details.
+	 * @param array<string,mixed> $args {
+	 *     An associative array of arguments for the category.
+	 *
+	 *     @type string              $label       The human-readable label for the category.
+	 *     @type string              $description A description of the category.
+	 *     @type array<string,mixed> $meta        Optional. Additional metadata for the category.
+	 * }
 	 * @return WP_Ability_Category|null The registered category instance on success, null on failure.
 	 *
 	 * @phpstan-param array{
@@ -95,7 +100,13 @@ final class WP_Abilities_Category_Registry {
 		 *
 		 * @since 6.9.0
 		 *
-		 * @param array<string,mixed> $args The arguments used to instantiate the category.
+		 * @param array<string,mixed> $args {
+		 *     The arguments used to instantiate the category.
+		 *
+		 *     @type string              $label       The human-readable label for the category.
+		 *     @type string              $description A description of the category.
+		 *     @type array<string,mixed> $meta        Optional. Additional metadata for the category.
+		 * }
 		 * @param string              $slug The slug of the category.
 		 */
 		$args = apply_filters( 'register_ability_category_args', $args, $slug );

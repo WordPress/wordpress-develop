@@ -46,8 +46,26 @@ final class WP_Abilities_Registry {
 	 * @param string              $name The name of the ability. The name must be a string containing a namespace
 	 *                                  prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
 	 *                                  alphanumeric characters, dashes and the forward slash.
-	 * @param array<string,mixed> $args An associative array of arguments for the ability. See wp_register_ability() for
-	 *                                  details.
+	 * @param array<string,mixed> $args {
+	 *     An associative array of arguments for the ability.
+	 *
+	 *     @type string               $label                 The human-readable label for the ability.
+	 *     @type string               $description           A detailed description of what the ability does.
+	 *     @type string               $category              The category slug this ability belongs to.
+	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
+	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
+	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
+	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *     @type array<string,mixed>  $input_schema          Optional. JSON Schema definition for the ability's input.
+	 *     @type array<string,mixed>  $output_schema         Optional. JSON Schema definition for the ability's output.
+	 *     @type array<string,mixed>  $meta                  {
+	 *         Optional. Additional metadata for the ability.
+	 *
+	 *         @type array<string,bool|string> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type bool                      $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *     }
+	 *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
+	 * }
 	 * @return WP_Ability|null The registered ability instance on success, null on failure.
 	 *
 	 * @phpstan-param array{
@@ -94,7 +112,25 @@ final class WP_Abilities_Registry {
 		 *
 		 * @since 6.9.0
 		 *
-		 * @param array<string,mixed> $args The arguments used to instantiate the ability.
+		 * @param array<string,mixed> $args {
+		 *     An associative array of arguments for the ability.
+		 *
+		 *     @type string               $label                 The human-readable label for the ability.
+		 *     @type string               $description           A detailed description of what the ability does.
+		 *     @type string               $category              The category slug this ability belongs to.
+		 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
+		 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
+		 *     @type callable             $permission_callback   A callback function to check permissions before execution.
+		 *                                                       Receives optional mixed input and returns bool or WP_Error.
+		 *     @type array<string,mixed>  $input_schema          Optional. JSON Schema definition for the ability's input.
+		 *     @type array<string,mixed>  $output_schema         Optional. JSON Schema definition for the ability's output.
+		 *     @type array<string,mixed>  $meta                  {
+		 *         Optional. Additional metadata for the ability.
+		 *
+		 *         @type array<string,bool|string> $annotations  Optional. Annotation metadata for the ability.
+		 *         @type bool                      $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+		 *     }
+		 * }
 		 * @param string              $name The name of the ability, with its namespace.
 		 */
 		$args = apply_filters( 'register_ability_args', $args, $name );

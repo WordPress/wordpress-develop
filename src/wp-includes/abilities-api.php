@@ -23,9 +23,26 @@ declare( strict_types = 1 );
  * @param string              $name The name of the ability. The name must be a string containing a namespace
  *                                  prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
  *                                  alphanumeric characters, dashes and the forward slash.
- * @param array<string,mixed> $args An associative array of arguments for the ability. This should include
- *                                  `label`, `description`, `category`, `input_schema`, `output_schema`, `execute_callback`,
- *                                  `permission_callback`, `meta`, and `ability_class`.
+ * @param array<string,mixed> $args {
+ *     An associative array of arguments for the ability.
+ *
+ *     @type string               $label                 The human-readable label for the ability.
+ *     @type string               $description           A detailed description of what the ability does.
+ *     @type string               $category              The category slug this ability belongs to.
+ *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
+ *                                                       Receives optional mixed input and returns mixed result or WP_Error.
+ *     @type callable             $permission_callback   A callback function to check permissions before execution.
+ *                                                       Receives optional mixed input and returns bool or WP_Error.
+ *     @type array<string,mixed>  $input_schema          Optional. JSON Schema definition for the ability's input.
+ *     @type array<string,mixed>  $output_schema         Optional. JSON Schema definition for the ability's output.
+ *     @type array<string,mixed>  $meta                  {
+ *         Optional. Additional metadata for the ability.
+ *
+ *         @type array<string,bool|string> $annotations  Optional. Annotation metadata for the ability.
+ *         @type bool                      $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+ *     }
+ *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
+ * }
  * @return WP_Ability|null An instance of registered ability on success, null on failure.
  *
  * @phpstan-param array{
@@ -113,8 +130,13 @@ function wp_get_abilities(): array {
  *
  * @param string              $slug The unique slug for the category. Must contain only lowercase
  *                                  alphanumeric characters and dashes.
- * @param array<string,mixed> $args An associative array of arguments for the category. This should
- *                                  include `label`, `description`, and optionally `meta`.
+ * @param array<string,mixed> $args {
+ *     An associative array of arguments for the category.
+ *
+ *     @type string               $label       The human-readable label for the category.
+ *     @type string               $description A description of the category.
+ *     @type array<string,mixed>  $meta        Optional. Additional metadata for the category.
+ * }
  * @return WP_Ability_Category|null The registered category instance on success, null on failure.
  *
  * @phpstan-param array{
