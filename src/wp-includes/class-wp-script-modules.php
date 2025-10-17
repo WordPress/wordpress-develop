@@ -30,7 +30,7 @@ class WP_Script_Modules {
 	 * Holds the registered script modules, keyed by script module identifier.
 	 *
 	 * @since 6.5.0
-	 * @var array[]
+	 * @var array<non-empty-string, array<non-empty-string, mixed>>
 	 * @phpstan-var array<non-empty-string, ScriptModule>
 	 */
 	private $registered = array();
@@ -67,7 +67,7 @@ class WP_Script_Modules {
 	 * Used to optimize recursive dependency tree checks.
 	 *
 	 * @since 6.9.0
-	 * @var array<string, string[]>
+	 * @var array<non-empty-string, non-empty-string[]>
 	 */
 	private $dependents_map = array();
 
