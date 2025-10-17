@@ -113,9 +113,9 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 			$result = wp_register_ability_category( $slug, $args );
 		};
 
-		add_action( 'abilities_api_categories_init', $callback );
-		do_action( 'abilities_api_categories_init', WP_Abilities_Category_Registry::get_instance() );
-		remove_action( 'abilities_api_categories_init', $callback );
+		add_action( 'wp_abilities_api_categories_init', $callback );
+		do_action( 'wp_abilities_api_categories_init', WP_Abilities_Category_Registry::get_instance() );
+		remove_action( 'wp_abilities_api_categories_init', $callback );
 
 		return $result;
 	}
@@ -230,10 +230,10 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store original count.
-		$original_count = isset( $wp_actions['abilities_api_categories_init'] ) ? $wp_actions['abilities_api_categories_init'] : 0;
+		$original_count = isset( $wp_actions['wp_abilities_api_categories_init'] ) ? $wp_actions['wp_abilities_api_categories_init'] : 0;
 
 		// Reset to simulate hook not fired.
-		unset( $wp_actions['abilities_api_categories_init'] );
+		unset( $wp_actions['wp_abilities_api_categories_init'] );
 
 		$result = wp_register_ability_category(
 			'test-math',
@@ -245,11 +245,11 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 
 		// Restore original count.
 		if ( $original_count > 0 ) {
-			$wp_actions['abilities_api_categories_init'] = $original_count;
+			$wp_actions['wp_abilities_api_categories_init'] = $original_count;
 		}
 
 		$this->assertNull( $result );
-		$this->assertDoingItWrongTriggered( 'WP_Abilities_Category_Registry::register', 'abilities_api_categories_init' );
+		$this->assertDoingItWrongTriggered( 'WP_Abilities_Category_Registry::register', 'wp_abilities_api_categories_init' );
 	}
 
 	/**
@@ -279,9 +279,9 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 			);
 		};
 
-		add_action( 'abilities_api_categories_init', $callback );
-		do_action( 'abilities_api_categories_init', WP_Abilities_Category_Registry::get_instance() );
-		remove_action( 'abilities_api_categories_init', $callback );
+		add_action( 'wp_abilities_api_categories_init', $callback );
+		do_action( 'wp_abilities_api_categories_init', WP_Abilities_Category_Registry::get_instance() );
+		remove_action( 'wp_abilities_api_categories_init', $callback );
 
 		$this->assertNull( $result );
 		$this->assertDoingItWrongTriggered( 'WP_Abilities_Category_Registry::register', 'already registered' );
@@ -412,7 +412,7 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_ability_requires_existing_category(): void {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		// Ensure category doesn't exist - test should fail if it does.
 		$this->assertFalse(
@@ -454,10 +454,10 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 			);
 		};
 
-		add_action( 'abilities_api_categories_init', $category_callback );
-		do_action( 'abilities_api_categories_init', WP_Abilities_Category_Registry::get_instance() );
-		remove_action( 'abilities_api_categories_init', $category_callback );
-		do_action( 'abilities_api_init' );
+		add_action( 'wp_abilities_api_categories_init', $category_callback );
+		do_action( 'wp_abilities_api_categories_init', WP_Abilities_Category_Registry::get_instance() );
+		remove_action( 'wp_abilities_api_categories_init', $category_callback );
+		do_action( 'wp_abilities_api_init' );
 
 		$result = wp_register_ability(
 			'test/calculator',
@@ -674,7 +674,7 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 	 */
 	public function test_register_category_args_filter(): void {
 		add_filter(
-			'register_ability_category_args',
+			'wp_register_ability_category_args',
 			static function ( $args, $slug ) {
 				if ( 'test-filtered' === $slug ) {
 					$args['label']       = 'Filtered Label';

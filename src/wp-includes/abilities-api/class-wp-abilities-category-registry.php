@@ -62,13 +62,13 @@ final class WP_Abilities_Category_Registry {
 	 * } $args
 	 */
 	public function register( string $slug, array $args ): ?WP_Ability_Category {
-		if ( ! doing_action( 'abilities_api_categories_init' ) ) {
+		if ( ! doing_action( 'wp_abilities_api_categories_init' ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
 					/* translators: 1: abilities_api_categories_init, 2: category slug. */
 					__( 'Categories must be registered during the %1$s action. The category %2$s was not registered.' ),
-					'<code>abilities_api_categories_init</code>',
+					'<code>wp_abilities_api_categories_init</code>',
 					'<code>' . esc_html( $slug ) . '</code>'
 				),
 				'6.9.0'
@@ -109,7 +109,7 @@ final class WP_Abilities_Category_Registry {
 		 * }
 		 * @param string               $slug The slug of the category.
 		 */
-		$args = apply_filters( 'register_ability_category_args', $args, $slug );
+		$args = apply_filters( 'wp_register_ability_category_args', $args, $slug );
 
 		try {
 			// WP_Ability_Category::prepare_properties() will throw an exception if the properties are invalid.
@@ -230,7 +230,7 @@ final class WP_Abilities_Category_Registry {
 			 *
 			 * @param WP_Abilities_Category_Registry $instance Categories registry object.
 			 */
-			do_action( 'abilities_api_categories_init', self::$instance );
+			do_action( 'wp_abilities_api_categories_init', self::$instance );
 		}
 
 		return self::$instance;
