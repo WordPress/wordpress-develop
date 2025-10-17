@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Script Modules API: WP_Script_Modules class.
  *
@@ -14,6 +15,7 @@
  * @since 6.5.0
  */
 class WP_Script_Modules {
+
 	/**
 	 * Holds the registered script modules, keyed by script module identifier.
 	 *
@@ -343,6 +345,20 @@ class WP_Script_Modules {
 			if ( $fetchpriority !== $script_module['fetchpriority'] ) {
 				$args['data-wp-fetchpriority'] = $script_module['fetchpriority'];
 			}
+
+			/**
+			 * Filters the attributes for a script module tag.
+			 *
+			 * @since 6.9.0
+			 *
+			 * @param array  $args          Key-value pairs representing `<script>` tag attributes.
+			 *                              Only the attribute name is added to the `<script>` tag for
+			 *                              entries with a boolean value, and that are true.
+			 * @param string $id            The script module identifier.
+			 * @param array  $script_module The script module data.
+			 */
+			$args = apply_filters( 'wp_script_module_attributes', $args, $id, $script_module );
+
 			wp_print_script_tag( $args );
 		}
 	}

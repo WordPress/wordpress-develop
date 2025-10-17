@@ -1730,4 +1730,38 @@ HTML;
 			'string'   => array( 'string' ),
 		);
 	}
+
+	/**
+	 * Tests that the wp_script_module_attributes filter can modify script module attributes.
+	 *
+	 * @ticket 62525
+	 *
+	 * @covers WP_Script_Modules::print_enqueued_script_modules()
+	 */
+	public function test_wp_script_module_attributes_filter() {
+		$this->script_modules->register( 'foo', '/foo.js' );
+		$this->script_modules->enqueue( 'foo' );
+
+		add_filter(
+			'wp_script_module_attributes',
+			function ( $args, $id ) {
+				if ( 'foo' === $id ) {
+					$args['data-custom'] = 'test-value';
+					$args['crossorigin'] = 'anonymous';
+				}
+				return $args;
+			},
+			10,
+			2
+		);
+
+		$enqueued_modules = $this->get_enqueued_script_modules();
+
+		$this->assertArrayHasKey( 'foo', $enqueued_modules );
+		$this->assertSame( 'test-value', $enqueued_modules['foo']['data-custom'] );
+
+		// Check the full output to verify crossorigin attribute
+		$output = get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) );
+		$this->assertStringContainsString( 'crossorigin="anonymous"', $output );
+	}
 }
