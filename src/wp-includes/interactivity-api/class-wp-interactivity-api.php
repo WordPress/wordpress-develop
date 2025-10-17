@@ -675,7 +675,12 @@ final class WP_Interactivity_API {
 				try {
 					$current = $current();
 
-					// Tracks derived state properties that are accessed during rendering.
+					/*
+					 * Tracks derived state properties that are accessed during
+					 * rendering.
+					 *
+					 * @since 6.9.0
+					 */
 					$this->derived_state_props_accessed[ $ns ] = $this->derived_state_props_accessed[ $ns ] ?? array();
 
 					// Builds path for the current property and add it to tracking if not already present.
@@ -1273,6 +1278,8 @@ HTML;
 				 * Nested `data-wp-each` directives could render
 				 * `data-wp-each-child` elements at the top level as well, and
 				 * they should be overwritten.
+				 *
+				 * @since 6.9.0
 				 */
 				$i = new WP_Interactivity_API_Directives_Processor( $processed_item );
 				while ( $i->next_tag() ) {
