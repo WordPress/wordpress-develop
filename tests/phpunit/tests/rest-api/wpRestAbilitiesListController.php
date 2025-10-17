@@ -295,13 +295,58 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
+		$this->assertCount( 7, $data, 'Response should contain all fields.' );
 		$this->assertEquals( 'test/calculator', $data['name'] );
 		$this->assertEquals( 'Calculator', $data['label'] );
 		$this->assertEquals( 'Performs basic calculations', $data['description'] );
+		$this->assertEquals( 'math', $data['category'] );
 		$this->assertArrayHasKey( 'input_schema', $data );
 		$this->assertArrayHasKey( 'output_schema', $data );
 		$this->assertArrayHasKey( 'meta', $data );
 		$this->assertTrue( $data['meta']['show_in_rest'] );
+	}
+
+	/**
+	 * Test getting a specific ability with only selected fields.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_get_item_with_selected_fields(): void {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
+		$request->set_param( '_fields', 'name,label' );
+		$response = $this->server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertCount( 2, $data, 'Response should only contain the requested fields.' );
+		$this->assertEquals( 'test/calculator', $data['name'] );
+		$this->assertEquals( 'Calculator', $data['label'] );
+	}
+
+	/**
+	 * Test getting a specific ability with embed context.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_get_item_with_embed_context(): void {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
+		$request->set_param( 'context', 'embed' );
+		$response = $this->server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertCount( 3, $data, 'Response should only contain the fields for embed context.' );
+		$this->assertEquals( 'test/calculator', $data['name'] );
+		$this->assertEquals( 'Calculator', $data['label'] );
+		$this->assertEquals( 'math', $data['category'] );
 	}
 
 	/**
@@ -728,22 +773,5 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
 		$this->assertEmpty( $data, 'Should return empty array for non-existent category' );
-	}
-
-	/**
-	 * Test that category field is present in response.
-	 *
-	 * @ticket 64098
-	 */
-	public function test_category_field_in_response(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertEquals( 200, $response->get_status() );
-
-		$data = $response->get_data();
-		$this->assertArrayHasKey( 'category', $data );
-		$this->assertEquals( 'math', $data['category'] );
-		$this->assertIsString( $data['category'], 'Category should be a string' );
 	}
 }
