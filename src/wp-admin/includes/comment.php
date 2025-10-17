@@ -157,7 +157,15 @@ function get_pending_comments_num( $post_id ) {
 	$post_id_array = array_map( 'intval', $post_id_array );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' GROUP BY comment_post_ID", ARRAY_A );
+	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' AND comment_type != 'block_comment' GROUP BY comment_post_ID", ARRAY_A );
+
+	/**
+	 * Filter the number of pending comments for a post or posts.
+	 * @since 6.8.2
+	 * @param array $pending Array of pending comments information.
+	 * @param int[] $post_id_array Array of post IDs.
+	 */
+	$pending = apply_filters( 'pre_get_pending_comments_num', $pending, $post_id_array );
 
 	if ( $single ) {
 		if ( empty( $pending ) ) {
