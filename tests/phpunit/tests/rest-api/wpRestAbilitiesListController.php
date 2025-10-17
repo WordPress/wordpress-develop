@@ -39,12 +39,12 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 		// Register test categories during the hook.
 		add_action(
-			'abilities_api_categories_init',
+			'wp_abilities_api_categories_init',
 			array( __CLASS__, 'register_test_categories' )
 		);
-		do_action( 'abilities_api_categories_init' );
+		do_action( 'wp_abilities_api_categories_init' );
 		remove_action(
-			'abilities_api_categories_init',
+			'wp_abilities_api_categories_init',
 			array( __CLASS__, 'register_test_categories' )
 		);
 	}
@@ -75,7 +75,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		do_action( 'rest_api_init' );
 
 		// Initialize Abilities API.
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 		$this->register_test_abilities();
 
 		// Set default user for tests

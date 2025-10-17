@@ -14,7 +14,7 @@ declare( strict_types = 1 );
 /**
  * Registers a new ability using Abilities API.
  *
- * Note: Should only be used on the {@see 'abilities_api_init'} hook.
+ * Note: Should only be used on the {@see 'wp_abilities_api_init'} hook.
  *
  * @since 6.9.0
  *
@@ -63,7 +63,7 @@ declare( strict_types = 1 );
  * } $args
  */
 function wp_register_ability( string $name, array $args ): ?WP_Ability {
-	if ( ! did_action( 'abilities_api_init' ) ) {
+	if ( ! did_action( 'wp_abilities_api_init' ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(

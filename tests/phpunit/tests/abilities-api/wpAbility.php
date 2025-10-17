@@ -20,7 +20,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		// Register category during the hook.
 		add_action(
-			'abilities_api_categories_init',
+			'wp_abilities_api_categories_init',
 			function () {
 				if ( ! WP_Abilities_Category_Registry::get_instance()->is_registered( 'math' ) ) {
 					wp_register_ability_category(
@@ -35,7 +35,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		);
 
 		// Fire the hook to allow category registration.
-		do_action( 'abilities_api_categories_init' );
+		do_action( 'wp_abilities_api_categories_init' );
 
 		self::$test_ability_properties = array(
 			'label'               => 'Calculator',
@@ -533,12 +533,12 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			$action_input        = $input;
 		};
 
-		add_action( 'before_execute_ability', $callback, 10, 2 );
+		add_action( 'wp_before_execute_ability', $callback, 10, 2 );
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute( 5 );
 
-		remove_action( 'before_execute_ability', $callback );
+		remove_action( 'wp_before_execute_ability', $callback );
 
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertSame( 5, $action_input, 'Action should receive correct input' );
@@ -568,12 +568,12 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			$action_input        = $input;
 		};
 
-		add_action( 'before_execute_ability', $callback, 10, 2 );
+		add_action( 'wp_before_execute_ability', $callback, 10, 2 );
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
 
-		remove_action( 'before_execute_ability', $callback );
+		remove_action( 'wp_before_execute_ability', $callback );
 
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertNull( $action_input, 'Action should receive null input when no input provided' );
@@ -610,12 +610,12 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			$action_result       = $result;
 		};
 
-		add_action( 'after_execute_ability', $callback, 10, 3 );
+		add_action( 'wp_after_execute_ability', $callback, 10, 3 );
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute( 7 );
 
-		remove_action( 'after_execute_ability', $callback );
+		remove_action( 'wp_after_execute_ability', $callback );
 
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertSame( 7, $action_input, 'Action should receive correct input' );
@@ -649,12 +649,12 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			$action_result       = $result;
 		};
 
-		add_action( 'after_execute_ability', $callback, 10, 3 );
+		add_action( 'wp_after_execute_ability', $callback, 10, 3 );
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
 
-		remove_action( 'after_execute_ability', $callback );
+		remove_action( 'wp_after_execute_ability', $callback );
 
 		$this->assertSame( self::$test_ability_name, $action_ability_name, 'Action should receive correct ability name' );
 		$this->assertNull( $action_input, 'Action should receive null input when no input provided' );
@@ -688,14 +688,14 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			$after_action_fired = true;
 		};
 
-		add_action( 'before_execute_ability', $before_callback );
-		add_action( 'after_execute_ability', $after_callback );
+		add_action( 'wp_before_execute_ability', $before_callback );
+		add_action( 'wp_after_execute_ability', $after_callback );
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
 
-		remove_action( 'before_execute_ability', $before_callback );
-		remove_action( 'after_execute_ability', $after_callback );
+		remove_action( 'wp_before_execute_ability', $before_callback );
+		remove_action( 'wp_after_execute_ability', $after_callback );
 
 		$this->assertFalse( $before_action_fired, 'before_execute_ability action should not be fired on permission failure' );
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired on permission failure' );
@@ -728,14 +728,14 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			$after_action_fired = true;
 		};
 
-		add_action( 'before_execute_ability', $before_callback );
-		add_action( 'after_execute_ability', $after_callback );
+		add_action( 'wp_before_execute_ability', $before_callback );
+		add_action( 'wp_after_execute_ability', $after_callback );
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
 
-		remove_action( 'before_execute_ability', $before_callback );
-		remove_action( 'after_execute_ability', $after_callback );
+		remove_action( 'wp_before_execute_ability', $before_callback );
+		remove_action( 'wp_after_execute_ability', $after_callback );
 
 		$this->assertTrue( $before_action_fired, 'before_execute_ability action should be fired even if execution fails' );
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired when execution returns WP_Error' );
@@ -773,14 +773,14 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			$after_action_fired = true;
 		};
 
-		add_action( 'before_execute_ability', $before_callback );
-		add_action( 'after_execute_ability', $after_callback );
+		add_action( 'wp_before_execute_ability', $before_callback );
+		add_action( 'wp_after_execute_ability', $after_callback );
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 		$result  = $ability->execute();
 
-		remove_action( 'before_execute_ability', $before_callback );
-		remove_action( 'after_execute_ability', $after_callback );
+		remove_action( 'wp_before_execute_ability', $before_callback );
+		remove_action( 'wp_after_execute_ability', $after_callback );
 
 		$this->assertTrue( $before_action_fired, 'before_execute_ability action should be fired even if output validation fails' );
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired when output validation fails' );

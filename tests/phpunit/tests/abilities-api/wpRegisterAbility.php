@@ -32,7 +32,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		// Register category during the hook.
 		add_action(
-			'abilities_api_categories_init',
+			'wp_abilities_api_categories_init',
 			function () {
 				if ( ! WP_Abilities_Category_Registry::get_instance()->is_registered( 'math' ) ) {
 					wp_register_ability_category(
@@ -47,7 +47,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		);
 
 		// Fire the hook to allow category registration.
-		do_action( 'abilities_api_categories_init' );
+		do_action( 'wp_abilities_api_categories_init' );
 
 		self::$test_ability_args = array(
 			'label'               => 'Add numbers',
@@ -119,7 +119,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_invalid_name(): void {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		$result = wp_register_ability( 'invalid_name', array() );
 
@@ -137,16 +137,16 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		global $wp_actions;
 
 		// Store the original action count
-		$original_count = isset( $wp_actions['abilities_api_init'] ) ? $wp_actions['abilities_api_init'] : 0;
+		$original_count = isset( $wp_actions['wp_abilities_api_init'] ) ? $wp_actions['wp_abilities_api_init'] : 0;
 
 		// Reset the action count to simulate it not being fired
-		unset( $wp_actions['abilities_api_init'] );
+		unset( $wp_actions['wp_abilities_api_init'] );
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
 		// Restore the original action count
 		if ( $original_count > 0 ) {
-			$wp_actions['abilities_api_init'] = $original_count;
+			$wp_actions['wp_abilities_api_init'] = $original_count;
 		}
 
 		$this->assertNull( $result );
@@ -158,7 +158,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_register_valid_ability(): void {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
@@ -209,7 +209,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_register_ability_no_permissions(): void {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		self::$test_ability_args['permission_callback'] = static function (): bool {
 			return false;
@@ -244,7 +244,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_register_ability_custom_ability_class(): void {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		$result = wp_register_ability(
 			self::$test_ability_name,
@@ -286,7 +286,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_execute_ability_no_input_schema_match(): void {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
@@ -315,7 +315,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_execute_ability_no_output_schema_match(): void {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		self::$test_ability_args['execute_callback'] = static function (): bool {
 			return true;
@@ -346,7 +346,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_permission_callback_no_input_schema_match(): void {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
@@ -375,7 +375,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_permission_callback_receives_input(): void {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		$received_input                                 = null;
 		self::$test_ability_args['permission_callback'] = static function ( array $input ) use ( &$received_input ): bool {
@@ -427,7 +427,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_unregister_existing_ability() {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
@@ -451,7 +451,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			wp_register_ability( $name, $args );
 		};
 
-		add_action( 'abilities_api_init', $callback );
+		add_action( 'wp_abilities_api_init', $callback );
 
 		// Reset the Registry, to ensure it's empty before the test.
 		$registry_reflection = new ReflectionClass( WP_Abilities_Registry::class );
@@ -463,7 +463,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_get_ability( $name );
 
-		remove_action( 'abilities_api_init', $callback );
+		remove_action( 'wp_abilities_api_init', $callback );
 
 		$this->assertEquals(
 			new WP_Ability( $name, $args ),
@@ -478,7 +478,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_get_all_registered_abilities() {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		$ability_one_name = 'test/ability-one';
 		$ability_one_args = self::$test_ability_args;
@@ -510,7 +510,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_nonexistent_category(): void {
-		do_action( 'abilities_api_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		// Ensure category doesn't exist - test should fail if it does.
 		$this->assertFalse(

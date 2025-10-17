@@ -27,11 +27,11 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		$this->registry = new WP_Abilities_Registry();
 
-		remove_all_filters( 'register_ability_args' );
+		remove_all_filters( 'wp_register_ability_args' );
 
 		// Register category during the hook.
 		add_action(
-			'abilities_api_categories_init',
+			'wp_abilities_api_categories_init',
 			function () {
 				if ( ! WP_Abilities_Category_Registry::get_instance()->is_registered( 'math' ) ) {
 					wp_register_ability_category(
@@ -46,7 +46,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		);
 
 		// Fire the hook to allow category registration.
-		do_action( 'abilities_api_categories_init' );
+		do_action( 'wp_abilities_api_categories_init' );
 
 		self::$test_ability_args = array(
 			'label'               => 'Add numbers',
@@ -91,7 +91,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	public function tear_down(): void {
 		$this->registry = null;
 
-		remove_all_filters( 'register_ability_args' );
+		remove_all_filters( 'wp_register_ability_args' );
 
 		// Clean up registered categories.
 		$category_registry = WP_Abilities_Category_Registry::get_instance();
@@ -551,7 +551,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		// Define the filter.
 		add_filter(
-			'register_ability_args',
+			'wp_register_ability_args',
 			static function ( $args ) use ( &$was_filter_callback_fired ) {
 				$args['label']             = 'Modified label';
 				$original_execute_callback = $args['execute_callback'];
@@ -593,7 +593,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	public function test_register_ability_args_filter_blocks_registration() {
 		// Define the filter.
 		add_filter(
-			'register_ability_args',
+			'wp_register_ability_args',
 			static function ( $args ) {
 				// Remove the label to make the args invalid.
 				unset( $args['label'] );
@@ -619,7 +619,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	public function test_register_ability_args_filter_blocks_invalid_ability_class() {
 		// Define the filter.
 		add_filter(
-			'register_ability_args',
+			'wp_register_ability_args',
 			static function ( $args ) {
 				// Set an invalid ability class.
 				$args['ability_class'] = 'NonExistentClass';
@@ -641,7 +641,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_ability_args_filter_only_applies_to_specific_ability() {
 		add_filter(
-			'register_ability_args',
+			'wp_register_ability_args',
 			static function ( $args, $name ) {
 				if ( self::$test_ability_name !== $name ) {
 					// Do not modify args for other abilities.

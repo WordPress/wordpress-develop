@@ -134,7 +134,7 @@ final class WP_Abilities_Registry {
 		 * }
 		 * @param string               $name The name of the ability, with its namespace.
 		 */
-		$args = apply_filters( 'register_ability_args', $args, $name );
+		$args = apply_filters( 'wp_register_ability_args', $args, $name );
 
 		// Validate category exists if provided (will be validated as required in WP_Ability).
 		if ( isset( $args['category'] ) ) {
@@ -292,7 +292,7 @@ final class WP_Abilities_Registry {
 			 *
 			 * @param WP_Abilities_Registry $instance Abilities registry object.
 			 */
-			do_action( 'abilities_api_init', self::$instance );
+			do_action( 'wp_abilities_api_init', self::$instance );
 		}
 
 		return self::$instance;
