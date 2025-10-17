@@ -439,9 +439,15 @@ class WP_Script_Modules {
 		}
 
 		$this->done[] = $id;
-		$args         = array(
+
+		$src = $this->get_src( $id );
+		if ( '' === $src ) {
+			return;
+		}
+
+		$attributes = array(
 			'type' => 'module',
-			'src'  => $this->get_src( $id ),
+			'src'  => $src,
 			'id'   => $id . '-js-module',
 		);
 
@@ -449,12 +455,12 @@ class WP_Script_Modules {
 		$dependents    = $this->get_recursive_dependents( $id );
 		$fetchpriority = $this->get_highest_fetchpriority( array_merge( array( $id ), $dependents ) );
 		if ( 'auto' !== $fetchpriority ) {
-			$args['fetchpriority'] = $fetchpriority;
+			$attributes['fetchpriority'] = $fetchpriority;
 		}
 		if ( $fetchpriority !== $script_module['fetchpriority'] ) {
-			$args['data-wp-fetchpriority'] = $script_module['fetchpriority'];
+			$attributes['data-wp-fetchpriority'] = $script_module['fetchpriority'];
 		}
-		wp_print_script_tag( $args );
+		wp_print_script_tag( $attributes );
 	}
 
 	/**
@@ -469,11 +475,16 @@ class WP_Script_Modules {
 		foreach ( $this->get_dependencies( array_unique( $this->queue ), array( 'static' ) ) as $id ) {
 			// Don't preload if it's marked for enqueue.
 			if ( ! in_array( $id, $this->queue, true ) ) {
+				$src = $this->get_src( $id );
+				if ( '' === $src ) {
+					continue;
+				}
+
 				$enqueued_dependents   = array_intersect( $this->get_recursive_dependents( $id ), $this->queue );
 				$highest_fetchpriority = $this->get_highest_fetchpriority( $enqueued_dependents );
 				printf(
 					'<link rel="modulepreload" href="%s" id="%s"',
-					esc_url( $this->get_src( $id ) ), // TODO: What if empty string?
+					esc_url( $src ),
 					esc_attr( $id . '-js-modulepreload' )
 				);
 				if ( 'auto' !== $highest_fetchpriority ) {
@@ -701,6 +712,9 @@ class WP_Script_Modules {
 
 		$script_module = $this->registered[ $id ];
 		$src           = $script_module['src'];
+		if ( '' === $src ) {
+			return '';
+		}
 
 		if ( false === $script_module['version'] ) {
 			$src = add_query_arg( 'ver', get_bloginfo( 'version' ), $src );
