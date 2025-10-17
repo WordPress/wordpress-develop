@@ -44,23 +44,6 @@ declare( strict_types = 1 );
  *     @type string               $ability_class       Optional. Custom class to instantiate instead of WP_Ability.
  * }
  * @return WP_Ability|null An instance of registered ability on success, null on failure.
- *
- * @phpstan-param array{
- *   label?: string,
- *   description?: string,
- *   category?: string,
- *   execute_callback?: callable( mixed $input= ): (mixed|WP_Error),
- *   permission_callback?: callable( mixed $input= ): (bool|WP_Error),
- *   input_schema?: array<string, mixed>,
- *   output_schema?: array<string, mixed>,
- *   meta?: array{
- *     annotations?: array<string, (bool|string)>,
- *     show_in_rest?: bool,
- *     ...<string, mixed>,
- *   },
- *   ability_class?: class-string<WP_Ability>,
- *   ...<string, mixed>
- * } $args
  */
 function wp_register_ability( string $name, array $args ): ?WP_Ability {
 	if ( ! did_action( 'wp_abilities_api_init' ) ) {
@@ -138,13 +121,6 @@ function wp_get_abilities(): array {
  *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
  * }
  * @return WP_Ability_Category|null The registered category instance on success, null on failure.
- *
- * @phpstan-param array{
- *   label: string,
- *   description: string,
- *   meta?: array<string, mixed>,
- *   ...<string, mixed>
- * } $args
  */
 function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_Category {
 	return WP_Abilities_Category_Registry::get_instance()->register( $slug, $args );

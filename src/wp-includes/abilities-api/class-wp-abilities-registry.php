@@ -67,23 +67,6 @@ final class WP_Abilities_Registry {
 	 *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
 	 * }
 	 * @return WP_Ability|null The registered ability instance on success, null on failure.
-	 *
-	 * @phpstan-param array{
-	 *   label?: string,
-	 *   description?: string,
-	 *   category?: string,
-	 *   execute_callback?: callable( mixed $input= ): (mixed|WP_Error),
-	 *   permission_callback?: callable( mixed $input= ): (bool|WP_Error),
-	 *   input_schema?: array<string, mixed>,
-	 *   output_schema?: array<string, mixed>,
-	 *   meta?: array{
-	 *     annotations?: array<string, (bool|string)>,
-	 *     show_in_rest?: bool,
-	 *     ...<string, mixed>
-	 *   },
-	 *   ability_class?: class-string<WP_Ability>,
-	 *   ...<string, mixed>
-	 * } $args
 	 */
 	public function register( string $name, array $args ): ?WP_Ability {
 		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {

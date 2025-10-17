@@ -231,22 +231,6 @@ class WP_Ability {
 	 *     }
 	 * }
 	 * @throws InvalidArgumentException if an argument is invalid.
-	 *
-	 * @phpstan-return array{
-	 *   label: string,
-	 *   description: string,
-	 *   category: string,
-	 *   execute_callback: callable( mixed $input= ): (mixed|WP_Error),
-	 *   permission_callback: callable( mixed $input= ): (bool|WP_Error),
-	 *   input_schema?: array<string, mixed>,
-	 *   output_schema?: array<string, mixed>,
-	 *   meta?: array{
-	 *     annotations?: array<string, (bool|string)>,
-	 *     show_in_rest?: bool,
-	 *     ...<string, mixed>
-	 *   },
-	 *   ...<string, mixed>,
-	 * } $args
 	 */
 	protected function prepare_properties( array $args ): array {
 		// Required args must be present and of the correct type.

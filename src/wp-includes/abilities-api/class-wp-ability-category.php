@@ -123,13 +123,6 @@ final class WP_Ability_Category {
 	 *     @type array<string, mixed> $meta        Optional. Additional metadata for the category.
 	 * }
 	 * @throws InvalidArgumentException if an argument is invalid.
-	 *
-	 * @phpstan-return array{
-	 *   label: string,
-	 *   description: string,
-	 *   meta?: array<string, mixed>,
-	 *   ...<string, mixed>,
-	 * }
 	 */
 	protected function prepare_properties( array $args ): array {
 		// Required args must be present and of the correct type.
