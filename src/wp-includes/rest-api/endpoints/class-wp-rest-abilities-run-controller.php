@@ -62,58 +62,13 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 				// This was the same issue that we ended up seeing with the Feature API.
 				array(
 					'methods'             => WP_REST_Server::ALLMETHODS,
-					'callback'            => array( $this, 'run_ability_with_method_check' ),
-					'permission_callback' => array( $this, 'run_ability_permissions_check' ),
+					'callback'            => array( $this, 'execute_ability' ),
+					'permission_callback' => array( $this, 'check_ability_permissions' ),
 					'args'                => $this->get_run_args(),
 				),
 				'schema' => array( $this, 'get_run_schema' ),
 			)
 		);
-	}
-
-	/**
-	 * Executes an ability with HTTP method validation.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
-	 */
-	public function run_ability_with_method_check( $request ) {
-		$ability = wp_get_ability( $request->get_param( 'name' ) );
-
-		if ( ! $ability ) {
-			return new WP_Error(
-				'rest_ability_not_found',
-				__( 'Ability not found.' ),
-				array( 'status' => 404 )
-			);
-		}
-
-		// Check if the HTTP method matches the ability annotations.
-		$annotations     = $ability->get_meta_item( 'annotations' );
-		$expected_method = 'POST';
-		if ( ! empty( $annotations['readonly'] ) ) {
-			$expected_method = 'GET';
-		} elseif ( ! empty( $annotations['destructive'] ) && ! empty( $annotations['idempotent'] ) ) {
-			$expected_method = 'DELETE';
-		}
-
-		if ( $expected_method !== $request->get_method() ) {
-			$error_message = __( 'Abilities that perform updates require POST method.' );
-			if ( 'GET' === $expected_method ) {
-				$error_message = __( 'Read-only abilities require GET method.' );
-			} elseif ( 'DELETE' === $expected_method ) {
-				$error_message = __( 'Abilities that perform destructive actions require DELETE method.' );
-			}
-			return new WP_Error(
-				'rest_ability_invalid_method',
-				$error_message,
-				array( 'status' => 405 )
-			);
-		}
-
-		return $this->run_ability( $request );
 	}
 
 	/**
@@ -124,7 +79,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
-	public function run_ability( $request ) {
+	public function execute_ability( $request ) {
 		$ability = wp_get_ability( $request->get_param( 'name' ) );
 		if ( ! $ability ) {
 			return new WP_Error(
@@ -147,6 +102,40 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Validates if the HTTP method matches the expected method for the ability based on its annotations.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string                     $request_method The HTTP method of the request.
+	 * @param array<string, (null|bool)> $annotations    The ability annotations.
+	 * @return true|WP_Error True on success, or WP_Error object on failure.
+	 */
+	public function validate_request_method( string $request_method, array $annotations ) {
+		$expected_method = 'POST';
+		if ( ! empty( $annotations['readonly'] ) ) {
+			$expected_method = 'GET';
+		} elseif ( ! empty( $annotations['destructive'] ) && ! empty( $annotations['idempotent'] ) ) {
+			$expected_method = 'DELETE';
+		}
+
+		if ( $expected_method === $request_method ) {
+			return true;
+		}
+
+		$error_message = __( 'Abilities that perform updates require POST method.' );
+		if ( 'GET' === $expected_method ) {
+			$error_message = __( 'Read-only abilities require GET method.' );
+		} elseif ( 'DELETE' === $expected_method ) {
+			$error_message = __( 'Abilities that perform destructive actions require DELETE method.' );
+		}
+		return new WP_Error(
+			'rest_ability_invalid_method',
+			$error_message,
+			array( 'status' => 405 )
+		);
+	}
+
+	/**
 	 * Checks if a given request has permission to execute a specific ability.
 	 *
 	 * @since 6.9.0
@@ -154,7 +143,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
 	 * @return true|WP_Error True if the request has execution permission, WP_Error object otherwise.
 	 */
-	public function run_ability_permissions_check( $request ) {
+	public function check_ability_permissions( $request ) {
 		$ability = wp_get_ability( $request->get_param( 'name' ) );
 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
 			return new WP_Error(
@@ -164,8 +153,23 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$input = $this->get_input_from_request( $request );
-		if ( ! $ability->check_permissions( $input ) ) {
+		$is_valid = $this->validate_request_method(
+			$request->get_method(),
+			$ability->get_meta_item( 'annotations' )
+		);
+		if ( is_wp_error( $is_valid ) ) {
+			return $is_valid;
+		}
+
+		$input  = $this->get_input_from_request( $request );
+		$result = $ability->check_permissions( $input );
+		if ( is_wp_error( $result ) ) {
+			if ( 'ability_invalid_input' === $result->get_error_code() ) {
+				$result->add_data( array( 'status' => 400 ) );
+			}
+			return $result;
+		}
+		if ( ! $result ) {
 			return new WP_Error(
 				'rest_ability_cannot_execute',
 				__( 'Sorry, you are not allowed to execute this ability.' ),
@@ -185,7 +189,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 * @return mixed|null The input parameters.
 	 */
 	private function get_input_from_request( $request ) {
-		if ( in_array( $request->get_method(), array( 'GET', 'DELETE' ) ) ) {
+		if ( in_array( $request->get_method(), array( 'GET', 'DELETE' ), true ) ) {
 			// For GET and DELETE requests, look for 'input' query parameter.
 			$query_params = $request->get_query_params();
 			return $query_params['input'] ?? null;
