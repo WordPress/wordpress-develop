@@ -691,7 +691,7 @@ class WP_Script_Modules {
 	 */
 	private function sort_item_dependencies( string $id, array $import_types, array &$sorted ): bool {
 		// If already processed, don't do it again.
-		if ( in_array( $id, $this->done, true ) || in_array( $id, $sorted, true ) ) {
+		if ( in_array( $id, $sorted, true ) ) {
 			return true;
 		}
 
