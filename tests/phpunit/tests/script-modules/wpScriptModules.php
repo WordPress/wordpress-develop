@@ -56,8 +56,6 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * @return array Enqueued script module URLs, keyed by script module identifier.
 	 */
 	public function get_enqueued_script_modules(): array {
-		$modules = array();
-
 		$get_modules = function ( string $html, bool $in_footer ): array {
 			$modules = array();
 			$p       = new WP_HTML_Tag_Processor( $html );
@@ -173,6 +171,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * @covers WP_Script_Modules::dequeue()
 	 * @covers ::wp_deregister_script_module()
 	 * @covers WP_Script_Modules::deregister()
+	 * @covers WP_Script_Modules::get_queue()
 	 * @covers WP_Script_Modules::set_fetchpriority()
 	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
@@ -211,11 +210,13 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 		// Minimal args.
 		$register_and_enqueue( 'a', '/a.js' );
+		$this->assertSame( array( 'a' ), wp_script_modules()->get_queue() );
 
 		// One Dependency.
 		$register( 'b-dep', '/b-dep.js' );
 		$register_and_enqueue( 'b', '/b.js', array( 'b-dep' ) );
 		$this->assertTrue( wp_script_modules()->set_fetchpriority( 'b', 'low' ) );
+		$this->assertSame( array( 'a', 'b' ), wp_script_modules()->get_queue() );
 
 		// Two dependencies with different formats and a false version.
 		$register( 'c-dep', '/c-static.js', array(), false, array( 'fetchpriority' => 'low' ) );
@@ -232,6 +233,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			),
 			false
 		);
+		$this->assertSame( array( 'a', 'b', 'c' ), wp_script_modules()->get_queue() );
 
 		// Two dependencies, one imported statically and the other dynamically, with a null version.
 		$register( 'd-static-dep', '/d-static-dep.js', array(), false, array( 'fetchpriority' => 'auto' ) );
@@ -251,6 +253,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			),
 			null
 		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd' ), wp_script_modules()->get_queue() );
 
 		// No dependencies, with a string version version.
 		$register_and_enqueue(
@@ -259,6 +262,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			array(),
 			'1.0.0'
 		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e' ), wp_script_modules()->get_queue() );
 
 		// No dependencies, with a string version and fetch priority.
 		$register_and_enqueue(
@@ -268,6 +272,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			'2.0.0',
 			array( 'fetchpriority' => 'auto' )
 		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f' ), wp_script_modules()->get_queue() );
 
 		// No dependencies, with a string version and fetch priority of low.
 		$register_and_enqueue(
@@ -277,6 +282,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			'2.0.0',
 			array( 'fetchpriority' => 'low' )
 		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g' ), wp_script_modules()->get_queue() );
 
 		// No dependencies, with a string version and fetch priority of high.
 		$register_and_enqueue(
@@ -286,6 +292,47 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			'3.0.0',
 			array( 'fetchpriority' => 'high' )
 		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' ), wp_script_modules()->get_queue() );
+
+		// Register and enqueue something which we'll dequeue right away.
+		$register_and_enqueue(
+			'i',
+			'/i.js',
+			array(),
+			'3.0.0'
+		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ), wp_script_modules()->get_queue() );
+
+		// Register and enqueue something which we'll deregister right away.
+		$register_and_enqueue(
+			'j',
+			'/j.js',
+			array(),
+			'3.0.0'
+		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j' ), wp_script_modules()->get_queue() );
+
+		// Make sure unregister functions work.
+		$deregister_id = 'j';
+		$this->assertArrayHasKey( 'j', $this->get_registered_script_modules( $this->script_modules ) );
+		if ( $use_global_function ) {
+			wp_deregister_script_module( $deregister_id );
+		} else {
+			wp_script_modules()->deregister( $deregister_id );
+		}
+		$this->assertArrayNotHasKey( 'j', $this->get_registered_script_modules( $this->script_modules ) );
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ), wp_script_modules()->get_queue() );
+
+		// Make sure dequeue functions work.
+		$dequeue_id = 'i';
+		$this->assertArrayHasKey( 'i', $this->get_registered_script_modules( $this->script_modules ) );
+		if ( $use_global_function ) {
+			wp_dequeue_script_module( $dequeue_id );
+		} else {
+			wp_script_modules()->dequeue( $dequeue_id );
+		}
+		$this->assertArrayHasKey( 'i', $this->get_registered_script_modules( $this->script_modules ) );
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' ), wp_script_modules()->get_queue() );
 
 		$actual = array(
 			'preload_links' => $this->get_preloaded_script_modules(),
@@ -364,77 +411,6 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 					'd-static-dep'  => '/d-static-dep.js?ver=99.9.9',
 					'd-dynamic-dep' => '/d-dynamic-dep.js?ver=99.9.9',
 				),
-			),
-			$actual,
-			"Snapshot:\n" . var_export( $actual, true )
-		);
-
-		// Dequeue the first half of the scripts.
-		foreach ( array( 'a', 'b', 'c', 'd' ) as $id ) {
-			if ( $use_global_function ) {
-				wp_dequeue_script_module( $id );
-			} else {
-				wp_script_modules()->dequeue( $id );
-			}
-		}
-
-		$this->set_printed_script_modules( $this->script_modules );
-		$actual = array(
-			'preload_links' => $this->get_preloaded_script_modules(),
-			'script_tags'   => $this->get_enqueued_script_modules(),
-			'import_map'    => $this->get_import_map(),
-		);
-		$this->assertSame(
-			array(
-				'preload_links' => array(),
-				'script_tags'   => array(
-					'e' => array(
-						'url'           => '/e.js?ver=1.0.0',
-						'fetchpriority' => 'auto',
-						'in_footer'     => false,
-					),
-					'f' => array(
-						'url'           => '/f.js?ver=2.0.0',
-						'fetchpriority' => 'auto',
-						'in_footer'     => false,
-					),
-					'g' => array(
-						'url'           => '/g.js?ver=2.0.0',
-						'fetchpriority' => 'low',
-						'in_footer'     => false,
-					),
-					'h' => array(
-						'url'           => '/h.js?ver=3.0.0',
-						'fetchpriority' => 'high',
-						'in_footer'     => false,
-					),
-				),
-				'import_map'    => array(),
-			),
-			$actual,
-			"Snapshot:\n" . var_export( $actual, true )
-		);
-
-		// Unregister the remaining scripts.
-		foreach ( array( 'e', 'f', 'g', 'h' ) as $id ) {
-			if ( $use_global_function ) {
-				wp_dequeue_script_module( $id );
-			} else {
-				wp_script_modules()->dequeue( $id );
-			}
-		}
-
-		$this->set_printed_script_modules( $this->script_modules );
-		$actual = array(
-			'preload_links' => $this->get_preloaded_script_modules(),
-			'script_tags'   => $this->get_enqueued_script_modules(),
-			'import_map'    => $this->get_import_map(),
-		);
-		$this->assertSame(
-			array(
-				'preload_links' => array(),
-				'script_tags'   => array(),
-				'import_map'    => array(),
 			),
 			$actual,
 			"Snapshot:\n" . var_export( $actual, true )
@@ -1752,21 +1728,6 @@ HTML;
 			$registered_property->setAccessible( true );
 		}
 		return $registered_property->getValue( $script_modules );
-	}
-
-	/**
-	 * Sets the done property storing the already printed script modules.
-	 *
-	 * @param WP_Script_Modules $script_modules The script modules instance.
-	 * @param array<string>     $done           Optional. The done array to set. Default empty array.
-	 */
-	private function set_printed_script_modules( WP_Script_Modules $script_modules, array $done = array() ) {
-		$reflection_class = new ReflectionClass( $script_modules );
-		$done_property    = $reflection_class->getProperty( 'done' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$done_property->setAccessible( true );
-		}
-		$done_property->setValue( $script_modules, $done );
 	}
 
 	/**
