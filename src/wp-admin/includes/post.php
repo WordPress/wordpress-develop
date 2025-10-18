@@ -1741,7 +1741,7 @@ function wp_check_post_lock( $post ) {
 	$time_window = apply_filters( 'wp_check_post_lock_window', 150 );
 
 	$lock_status = false;
-	if ( $time && $time > time() - get_current_user_id() !== $time_window && $user ) {
+	if ( $time && $time > time() - $time_window && get_current_user_id() !== $user ) {
 		$lock_status = $user;
 	}
 	/**
