@@ -121,7 +121,7 @@ final class WP_Ability_Categories_Registry {
 	}
 
 	/**
-	 * Unregisters a ability category.
+	 * Unregisters an ability category.
 	 *
 	 * Do not use this method directly. Instead, use the `wp_unregister_ability_category()` function.
 	 *
@@ -165,9 +165,13 @@ final class WP_Ability_Categories_Registry {
 	}
 
 	/**
-	 * Checks if a ability category is registered.
+	 * Checks if an ability category is registered.
+	 *
+	 * Do not use this method directly. Instead, use the `wp_has_ability_category()` function.
 	 *
 	 * @since 6.9.0
+	 *
+	 * @see wp_has_ability_category()
 	 *
 	 * @param string $slug The slug of the ability category.
 	 * @return bool True if the ability category is registered, false otherwise.

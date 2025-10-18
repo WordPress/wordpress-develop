@@ -356,6 +356,37 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests checking if an ability category is registered.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_has_registered_ability_category(): void {
+		$category_slug = 'test-math';
+		$this->register_category_during_hook(
+			$category_slug,
+			array(
+				'label'       => 'Math',
+				'description' => 'Mathematical operations.',
+			)
+		);
+
+		$result = wp_has_ability_category( $category_slug );
+
+		$this->assertTrue( $result );
+	}
+
+	/**
+	 * Tests checking if a non-existent ability category is registered.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_has_registered_nonexistent_ability_category(): void {
+		$result = wp_has_ability_category( 'test/non-existent' );
+
+		$this->assertFalse( $result );
+	}
+
+	/**
 	 * Test retrieving all registered categories.
 	 *
 	 * @ticket 64098
@@ -416,7 +447,7 @@ class Tests_Abilities_API_WpAbilityCategory extends WP_UnitTestCase {
 
 		// Ensure category doesn't exist - test should fail if it does.
 		$this->assertFalse(
-			WP_Ability_Categories_Registry::get_instance()->is_registered( 'test-nonexistent' ),
+			wp_has_ability_category( 'test-nonexistent' ),
 			'The test-nonexistent category should not be registered - test isolation may be broken'
 		);
 

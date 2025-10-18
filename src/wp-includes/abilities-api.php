@@ -78,6 +78,20 @@ function wp_unregister_ability( string $name ): ?WP_Ability {
 }
 
 /**
+ * Checks if an ability is registered.
+ *
+ * @since 6.9.0
+ *
+ * @see WP_Abilities_Registry::is_registered()
+ *
+ * @param string $name The name of the registered ability, with its namespace.
+ * @return bool True if the ability is registered, false otherwise.
+ */
+function wp_has_ability( string $name ): bool {
+	return WP_Abilities_Registry::get_instance()->is_registered( $name );
+}
+
+/**
  * Retrieves a registered ability using Abilities API.
  *
  * @since 6.9.0
@@ -138,6 +152,20 @@ function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_
  */
 function wp_unregister_ability_category( string $slug ): ?WP_Ability_Category {
 	return WP_Ability_Categories_Registry::get_instance()->unregister( $slug );
+}
+
+/**
+ * Checks if an ability category is registered.
+ *
+ * @since 6.9.0
+ *
+ * @see WP_Ability_Categories_Registry::is_registered()
+ *
+ * @param string $slug The slug of the ability category.
+ * @return bool True if the ability category is registered, false otherwise.
+ */
+function wp_has_ability_category( string $slug ): bool {
+	return WP_Ability_Categories_Registry::get_instance()->is_registered( $slug );
 }
 
 /**

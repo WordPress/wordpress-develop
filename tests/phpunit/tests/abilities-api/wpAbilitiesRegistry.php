@@ -33,7 +33,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		add_action(
 			'wp_abilities_api_categories_init',
 			function () {
-				if ( ! WP_Ability_Categories_Registry::get_instance()->is_registered( 'math' ) ) {
+				if ( ! wp_has_ability_category( 'math' ) ) {
 					wp_register_ability_category(
 						'math',
 						array(
@@ -464,7 +464,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Unregistering should fail if a ability is not registered.
+	 * Unregistering should fail if an ability is not registered.
 	 *
 	 * @ticket 64098
 	 *

@@ -312,17 +312,17 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 		return array(
 			'context'  => $this->get_context_param( array( 'default' => 'view' ) ),
 			'page'     => array(
-				'description'       => __( 'Current page of the collection.' ),
-				'type'              => 'integer',
-				'default'           => 1,
-				'minimum'           => 1,
+				'description' => __( 'Current page of the collection.' ),
+				'type'        => 'integer',
+				'default'     => 1,
+				'minimum'     => 1,
 			),
 			'per_page' => array(
-				'description'       => __( 'Maximum number of items to be returned in result set.' ),
-				'type'              => 'integer',
-				'default'           => self::DEFAULT_PER_PAGE,
-				'minimum'           => 1,
-				'maximum'           => 100,
+				'description' => __( 'Maximum number of items to be returned in result set.' ),
+				'type'        => 'integer',
+				'default'     => self::DEFAULT_PER_PAGE,
+				'minimum'     => 1,
+				'maximum'     => 100,
 			),
 			'category' => array(
 				'description'       => __( 'Limit results to abilities in specific ability category.' ),
