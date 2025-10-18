@@ -146,6 +146,12 @@ body.js .theme-browser.search-loading {
 	transition: opacity 0.2s ease-in-out;
 }
 
+.theme-browser .theme .theme-screenshot.uploading {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
 .theme-browser .theme:hover .theme-screenshot,
 .theme-browser .theme.focus .theme-screenshot {
 	background: #fff;

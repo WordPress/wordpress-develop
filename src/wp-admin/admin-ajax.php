@@ -117,6 +117,8 @@ $core_actions_post = array(
 	'parse-media-shortcode',
 	'destroy-sessions',
 	'install-plugin',
+	'upload-theme',
+	'cancel-theme-overwrite',
 	'activate-plugin',
 	'update-plugin',
 	'crop-image',
