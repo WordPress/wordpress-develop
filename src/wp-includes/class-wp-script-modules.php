@@ -472,7 +472,8 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_script_module_preloads() {
-		foreach ( $this->get_dependencies( array_unique( $this->queue ), array( 'static' ) ) as $id ) {
+		$dependency_ids = $this->get_sorted_dependencies( array_unique( $this->queue ), array( 'static' ) );
+		foreach ( $dependency_ids as $id ) {
 			// Don't preload if it's marked for enqueue.
 			if ( ! in_array( $id, $this->queue, true ) ) {
 				$src = $this->get_src( $id );
@@ -661,14 +662,16 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param non-empty-string[] $ids The identifiers of the script modules to sort.
+	 * @param non-empty-string[] $ids          The identifiers of the script modules to sort.
+	 * @param non-empty-string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
+	 *                                         Default is both.
 	 * @return non-empty-string[] Sorted list of script module identifiers.
 	 */
-	private function get_sorted_dependencies( array $ids ): array {
+	private function get_sorted_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ): array {
 		$sorted = array();
 
 		foreach ( $ids as $id ) {
-			$this->sort_item_dependencies( $id, $sorted );
+			$this->sort_item_dependencies( $id, $import_types, $sorted );
 		}
 
 		return array_unique( $sorted );
@@ -679,11 +682,12 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param non-empty-string   $id      The identifier of the script module to sort.
-	 * @param non-empty-string[] &$sorted The array of sorted identifiers, passed by reference.
+	 * @param non-empty-string   $id           The identifier of the script module to sort.
+	 * @param non-empty-string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
+	 * @param non-empty-string[] &$sorted      The array of sorted identifiers, passed by reference.
 	 * @return bool True on success, false on failure (e.g., missing dependency).
 	 */
-	private function sort_item_dependencies( string $id, array &$sorted ): bool {
+	private function sort_item_dependencies( string $id, array $import_types, array &$sorted ): bool {
 		// If already processed, don't do it again.
 		if ( in_array( $id, $this->done, true ) || in_array( $id, $sorted, true ) ) {
 			return true;
@@ -694,7 +698,12 @@ class WP_Script_Modules {
 			return false;
 		}
 
-		$dependency_ids = array_column( $this->registered[ $id ]['dependencies'], 'id' );
+		$dependency_ids = array();
+		foreach ( $this->registered[ $id ]['dependencies'] as $dependency ) {
+			if ( in_array( $dependency['import'], $import_types, true ) ) {
+				$dependency_ids[] = $dependency['id'];
+			}
+		}
 
 		// If the item requires dependencies that do not exist, fail.
 		if ( count( array_diff( $dependency_ids, array_keys( $this->registered ) ) ) > 0 ) {
@@ -703,7 +712,7 @@ class WP_Script_Modules {
 
 		// Recursively process dependencies.
 		foreach ( $dependency_ids as $dependency_id ) {
-			if ( ! $this->sort_item_dependencies( $dependency_id, $sorted ) ) {
+			if ( ! $this->sort_item_dependencies( $dependency_id, $import_types, $sorted ) ) {
 				// A dependency failed to resolve, so this branch fails.
 				return false;
 			}

@@ -1448,14 +1448,14 @@ HTML;
 				'enqueues' => array( 'alto' ),
 				'expected' => array(
 					'preload_links' => array(
-						'auto' => array(
-							'url'           => '/auto.js',
-							'fetchpriority' => 'high',
-						),
 						'bajo' => array(
 							'url'                   => '/bajo.js',
 							'fetchpriority'         => 'high',
 							'data-wp-fetchpriority' => 'low',
+						),
+						'auto' => array(
+							'url'           => '/auto.js',
+							'fetchpriority' => 'high',
 						),
 					),
 					'script_tags'   => array(
@@ -1576,12 +1576,12 @@ HTML;
 		$actual   = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
 		$actual  .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 		$expected = '
-			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload" fetchpriority="low">
-			<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="high">
-			<link rel="modulepreload" href="/y.js" id="y-js-modulepreload" fetchpriority="high">
-			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="low">
 			<link rel="modulepreload" href="/z.js" id="z-js-modulepreload" fetchpriority="high">
+			<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="high">
 			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="low">
+			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="low">
+			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload" fetchpriority="low">
+			<link rel="modulepreload" href="/y.js" id="y-js-modulepreload" fetchpriority="high">
 			<script type="module" src="/a.js" id="a-js-module" fetchpriority="low"></script>
 			<script type="module" src="/x.js" id="x-js-module" fetchpriority="high"></script>
 		';
@@ -1621,12 +1621,12 @@ HTML;
 		$actual   = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
 		$actual  .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 		$expected = '
-			<link rel="modulepreload" href="/a.js" id="a-js-modulepreload" fetchpriority="low" data-wp-fetchpriority="high">
-			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload">
-			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="high">
 			<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="low">
 			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+			<link rel="modulepreload" href="/a.js" id="a-js-modulepreload" fetchpriority="low" data-wp-fetchpriority="high">
+			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload">
 			<link rel="modulepreload" href="/f.js" id="f-js-modulepreload" fetchpriority="high">
+			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="high">
 			<script type="module" src="/x.js" id="x-js-module" fetchpriority="low"></script>
 			<script type="module" src="/y.js" id="y-js-module"></script>
 			<script type="module" src="/z.js" id="z-js-module" fetchpriority="high"></script>
@@ -1683,8 +1683,8 @@ HTML;
 
 		$expected = '
 			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
-			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
 			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
 			<script type="module" src="/super-important-module.js" id="super-important-js-module" fetchpriority="high"></script>
 		';
 		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
