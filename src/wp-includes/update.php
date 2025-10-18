@@ -29,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *                           Defaults to false, true if $extra_stats is set.
  */
 function wp_version_check( $extra_stats = array(), $force_check = false ) {
-	global $wpdb, $wp_local_package, $table_prefix;
+	global $wpdb, $wp_local_package;
 
 	if ( wp_installing() ) {
 		return;
