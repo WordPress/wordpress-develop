@@ -141,6 +141,92 @@ The development environment can be reset. This will destroy the database and att
 npm run env:reset
 ```
 
+### Windows (PowerShell & WSL2)
+
+The primary supported workflow on Windows is to use WSL2 (Windows Subsystem for Linux) with Docker Desktop's WSL integration. This provides a Linux-like environment where the project's tooling and Docker Compose behave as expected. If you prefer not to use WSL2, PowerShell can be used with a few additional steps described below, but WSL2 is recommended.
+
+Recommended minimal setup:
+
+- Windows 10 (2004+) or Windows 11 with WSL2 installed and enabled.
+- Docker Desktop for Windows with "Use the WSL 2 based engine" enabled and integration turned on for your WSL distribution.
+- Git for Windows (or install Git inside WSL2 and use the WSL shell).
+- Node.js 20.x and npm 10.x installed in your WSL2 distribution (or on Windows if using PowerShell).
+
+Using WSL2 (recommended)
+
+1. Open your WSL2 distribution (for example, Ubuntu) and clone the repo inside your Linux home directory (avoid cloning into the Windows-mounted drives for best performance):
+
+```powershell
+# In a PowerShell window (optional): open WSL
+wsl
+# In WSL shell:
+git clone https://github.com/WordPress/wordpress-develop.git
+cd wordpress-develop
+```
+
+2. Install dependencies, build, and start the environment (run inside WSL):
+
+```bash
+npm install
+npm run build:dev
+npm run env:start
+npm run env:install
+```
+
+3. Access the site at http://localhost:8889 from Windows or WSL. Docker Desktop routes localhost between Windows and WSL.
+
+Using PowerShell (alternative)
+
+If you choose to run commands from Windows PowerShell (not WSL), be aware of these additional considerations:
+
+- Ensure Docker Desktop is running and that the Compose V2 CLI is available in PowerShell.
+- Clone the repository to a path without spaces. Prefer using a path under your user folder (C:\Users\<you>\projects\wordpress-develop). If you clone to a different drive, ensure Docker Desktop has file sharing access or use WSL integration.
+- Some npm scripts expect Unix-style paths. If you run into path translation errors, set the environment variable COMPOSE_CONVERT_WINDOWS_PATHS to 1 in the same PowerShell session before running the env commands:
+
+```powershell
+$env:COMPOSE_CONVERT_WINDOWS_PATHS = '1'
+npm install
+npm run build:dev
+npm run env:start
+npm run env:install
+```
+
+Troubleshooting and tips
+
+- File performance: Working inside the WSL filesystem (for example, ~/workspace) is significantly faster than editing files on a mounted Windows drive (like /mnt/c/...). Move the repository into WSL if you experience slowness.
+- Docker Desktop WSL integration: Open Docker Desktop > Settings > Resources > WSL Integration and enable integration for your distribution.
+- Volume mount permissions: If you see permission or owner issues inside containers, check how volumes are mounted from Windows. Using WSL avoids many of these issues.
+- Line endings: Configure Git to avoid changing line endings unexpectedly. Recommended for contributors:
+
+```powershell
+git config --global core.autocrlf false
+```
+
+- Ports: If port 8889 is already in use, update the port in `.env` and restart the environment.
+- If Docker Compose fails with path or translation errors, try running the commands in WSL to avoid Windows path translation entirely.
+
+- WP-CLI: To run WP-CLI commands from WSL, use the env CLI wrapper. Example (in WSL):
+
+```bash
+# Show WP-CLI help
+npm run env:cli -- help
+
+# Install a plugin with WP-CLI
+npm run env:cli -- plugin install hello-dolly --activate
+```
+
+- npm scripts: Prefer running `npm` scripts from within WSL if your Node/npm are installed there. If using npm installed on Windows, run the commands from PowerShell but expect occasional path or permission differences.
+
+- Common error: "Mounts denied" or similar—ensure Docker Desktop has file sharing enabled for the drive, or use WSL to avoid mounting Windows drives into containers.
+
+If you still have issues on Windows, include the following information when reporting them:
+
+- Windows version and build
+- Docker Desktop version and whether WSL 2 engine is used
+- Whether you ran the workflow in WSL or PowerShell
+- Exact command output and any errors
+
+
 ### Apple Silicon machines and old MySQL/MariaDB versions
 
 Older MySQL and MariaDB container images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
