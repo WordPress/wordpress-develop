@@ -91,22 +91,24 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 		}
 
 		// Check if the HTTP method matches the ability annotations.
-		$annotations = $ability->get_meta_item( 'annotations' );
-		$is_readonly = ! empty( $annotations['readonly'] );
-		$method      = $request->get_method();
-
-		if ( $is_readonly && 'GET' !== $method ) {
-			return new WP_Error(
-				'rest_ability_invalid_method',
-				__( 'Read-only abilities require GET method.' ),
-				array( 'status' => 405 )
-			);
+		$annotations     = $ability->get_meta_item( 'annotations' );
+		$expected_method = 'POST';
+		if ( ! empty( $annotations['readonly'] ) ) {
+			$expected_method = 'GET';
+		} elseif ( ! empty( $annotations['destructive'] ) && ! empty( $annotations['idempotent'] ) ) {
+			$expected_method = 'DELETE';
 		}
 
-		if ( ! $is_readonly && 'POST' !== $method ) {
+		if ( $expected_method !== $request->get_method() ) {
+			$error_message = __( 'Abilities that perform updates require POST method.' );
+			if ( 'GET' === $expected_method ) {
+				$error_message = __( 'Read-only abilities require GET method.' );
+			} elseif ( 'DELETE' === $expected_method ) {
+				$error_message = __( 'Abilities that perform destructive actions require DELETE method.' );
+			}
 			return new WP_Error(
 				'rest_ability_invalid_method',
-				__( 'Abilities that perform updates require POST method.' ),
+				$error_message,
 				array( 'status' => 405 )
 			);
 		}
@@ -183,8 +185,8 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 * @return mixed|null The input parameters.
 	 */
 	private function get_input_from_request( $request ) {
-		if ( 'GET' === $request->get_method() ) {
-			// For GET requests, look for 'input' query parameter.
+		if ( in_array( $request->get_method(), array( 'GET', 'DELETE' ) ) ) {
+			// For GET and DELETE requests, look for 'input' query parameter.
 			$query_params = $request->get_query_params();
 			return $query_params['input'] ?? null;
 		}
@@ -226,7 +228,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 			'properties' => array(
 				'result' => array(
 					'description' => __( 'The result of the ability execution.' ),
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
 			),

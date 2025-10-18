@@ -33,21 +33,21 @@ class WP_Ability {
 	 * They are not guaranteed to provide a faithful description of ability behavior.
 	 *
 	 * @since 6.9.0
-	 * @var array<string, (bool|string)>
+	 * @var array<string, (null|bool)>
 	 */
 	protected static $default_annotations = array(
 		// If true, the ability does not modify its environment.
-		'readonly'    => false,
+		'readonly'    => null,
 		/*
 		 * If true, the ability may perform destructive updates to its environment.
 		 * If false, the ability performs only additive updates.
 		 */
-		'destructive' => false,
+		'destructive' => null,
 		/*
 		 * If true, calling the ability repeatedly with the same arguments will have no additional effect
 		 * on its environment.
 		 */
-		'idempotent'  => false,
+		'idempotent'  => null,
 	);
 
 	/**
@@ -150,8 +150,8 @@ class WP_Ability {
 	 *     @type array<string, mixed> $meta                  {
 	 *         Optional. Additional metadata for the ability.
 	 *
-	 *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
-	 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *         @type array<string, null|bool> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
 	 *     }
 	 * }
 	 */
@@ -205,8 +205,8 @@ class WP_Ability {
 	 *     @type array<string, mixed> $meta                  {
 	 *         Optional. Additional metadata for the ability.
 	 *
-	 *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
-	 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *         @type array<string, null|bool> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
 	 *     }
 	 * }
 	 * @return array<string, mixed> {
@@ -224,8 +224,8 @@ class WP_Ability {
 	 *     @type array<string, mixed> $meta                  {
 	 *         Additional metadata for the ability.
 	 *
-	 *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
-	 *         @type bool                       $show_in_rest Whether to expose this ability in the REST API. Default false.
+	 *         @type array<string, null|bool> $annotations  Optional. Annotation metadata for the ability.
+	 *         @type bool                     $show_in_rest Whether to expose this ability in the REST API. Default false.
 	 *     }
 	 * }
 	 * @throws InvalidArgumentException if an argument is invalid.

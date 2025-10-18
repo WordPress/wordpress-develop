@@ -228,6 +228,47 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			)
 		);
 
+		// Destructive ability (DELETE method).
+		wp_register_ability(
+			'test/delete-user',
+			array(
+				'label'               => 'Delete User',
+				'description'         => 'Deletes a user',
+				'category'            => 'system',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'user_id' => array(
+							'type'    => 'integer',
+							'default' => 0,
+						),
+					),
+				),
+				'output_schema'       => array(
+					'type'     => 'string',
+					'required' => true,
+				),
+				'execute_callback'    => static function ( array $input ) {
+					$user_id = $input['user_id'] ?? get_current_user_id();
+					$user    = get_user_by( 'id', $user_id );
+					if ( ! $user ) {
+						return new WP_Error( 'user_not_found', 'User not found' );
+					}
+					return 'User successfully deleted!';
+				},
+				'permission_callback' => static function () {
+					return is_user_logged_in();
+				},
+				'meta'                => array(
+					'annotations'  => array(
+						'destructive' => true,
+						'idempotent'  => true,
+					),
+					'show_in_rest' => true,
+				),
+			)
+		);
+
 		// Ability with contextual permissions
 		wp_register_ability(
 			'test/restricted',
@@ -403,6 +444,27 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test executing a destructive ability with GET.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_execute_destructive_ability_delete(): void {
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/abilities/test/delete-user/run' );
+		$request->set_query_params(
+			array(
+				'input' => array(
+					'user_id' => self::$user_id,
+				),
+			)
+		);
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 'User successfully deleted!', $response->get_data() );
+	}
+
+	/**
 	 * Test HTTP method validation for regular abilities.
 	 *
 	 * @ticket 64098
@@ -452,6 +514,24 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 		$this->assertSame( 'Read-only abilities require GET method.', $data['message'] );
 	}
 
+	/**
+	 * Test HTTP method validation for destructive abilities.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_destructive_ability_requires_delete(): void {
+		// Try POST on a destructive ability (should fail).
+		$request = new WP_REST_Request( 'POST', '/wp/v2/abilities/test/delete-user/run' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'user_id' => 1 ) ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 405, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'rest_ability_invalid_method', $data['code'] );
+		$this->assertSame( 'Abilities that perform destructive actions require DELETE method.', $data['message'] );
+	}
 
 	/**
 	 * Test output validation against schema.
