@@ -1615,6 +1615,7 @@ HTML;
 	 *
 	 * @covers ::wp_default_script_modules
 	 * @covers WP_Script_Modules::print_script_module_preloads
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules
 	 * @covers WP_Script_Modules::print_enqueued_script_modules
 	 */
 	public function test_default_script_modules() {
@@ -1622,17 +1623,34 @@ HTML;
 		wp_enqueue_script_module( '@wordpress/a11y' );
 		wp_enqueue_script_module( '@wordpress/block-library/navigation/view' );
 
-		$actual  = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
-		$actual .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+		$actual_preloads = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) ) );
+		$this->assertEqualHTML(
+			'
+				<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="low">
+			',
+			$actual_preloads,
+			'<body>',
+			"Snapshot:\n$actual_preloads"
+		);
 
-		$actual = $this->normalize_markup_for_snapshot( $actual );
+		$actual_head_script_modules = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_head_enqueued_script_modules' ) ) );
+		$this->assertEqualHTML(
+			'',
+			$actual_head_script_modules,
+			'<body>',
+			"Snapshot:\n$actual_head_script_modules"
+		);
 
-		$expected = '
-			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="low">
-			<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>
-			<script type="module" src="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-module" fetchpriority="low"></script>
-		';
-		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+		$actual_footer_script_modules = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) ) );
+		$this->assertEqualHTML(
+			'
+				<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>
+				<script type="module" src="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-module" fetchpriority="low"></script>
+			',
+			$actual_footer_script_modules,
+			'<body>',
+			"Snapshot:\n$actual_footer_script_modules"
+		);
 	}
 
 	/**
