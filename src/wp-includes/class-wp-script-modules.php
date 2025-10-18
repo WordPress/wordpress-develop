@@ -475,27 +475,29 @@ class WP_Script_Modules {
 		$dependency_ids = $this->get_sorted_dependencies( array_unique( $this->queue ), array( 'static' ) );
 		foreach ( $dependency_ids as $id ) {
 			// Don't preload if it's marked for enqueue.
-			if ( ! in_array( $id, $this->queue, true ) ) {
-				$src = $this->get_src( $id );
-				if ( '' === $src ) {
-					continue;
-				}
-
-				$enqueued_dependents   = array_intersect( $this->get_recursive_dependents( $id ), $this->queue );
-				$highest_fetchpriority = $this->get_highest_fetchpriority( $enqueued_dependents );
-				printf(
-					'<link rel="modulepreload" href="%s" id="%s"',
-					esc_url( $src ),
-					esc_attr( $id . '-js-modulepreload' )
-				);
-				if ( 'auto' !== $highest_fetchpriority ) {
-					printf( ' fetchpriority="%s"', esc_attr( $highest_fetchpriority ) );
-				}
-				if ( $highest_fetchpriority !== $this->registered[ $id ]['fetchpriority'] && 'auto' !== $this->registered[ $id ]['fetchpriority'] ) {
-					printf( ' data-wp-fetchpriority="%s"', esc_attr( $this->registered[ $id ]['fetchpriority'] ) );
-				}
-				echo ">\n";
+			if ( in_array( $id, $this->queue, true ) ) {
+				continue;
 			}
+
+			$src = $this->get_src( $id );
+			if ( '' === $src ) {
+				continue;
+			}
+
+			$enqueued_dependents   = array_intersect( $this->get_recursive_dependents( $id ), $this->queue );
+			$highest_fetchpriority = $this->get_highest_fetchpriority( $enqueued_dependents );
+			printf(
+				'<link rel="modulepreload" href="%s" id="%s"',
+				esc_url( $src ),
+				esc_attr( $id . '-js-modulepreload' )
+			);
+			if ( 'auto' !== $highest_fetchpriority ) {
+				printf( ' fetchpriority="%s"', esc_attr( $highest_fetchpriority ) );
+			}
+			if ( $highest_fetchpriority !== $this->registered[ $id ]['fetchpriority'] && 'auto' !== $this->registered[ $id ]['fetchpriority'] ) {
+				printf( ' data-wp-fetchpriority="%s"', esc_attr( $this->registered[ $id ]['fetchpriority'] ) );
+			}
+			echo ">\n";
 		}
 	}
 
