@@ -666,36 +666,53 @@ class WP_Script_Modules {
 	 */
 	private function get_sorted_dependencies( array $ids ): array {
 		$sorted = array();
-		$sorter = function ( array $ids, bool $recursion = false ) use ( &$sorter, &$sorted ) {
-			foreach ( $ids as $id ) {
-				if ( in_array( $id, $this->done, true ) || in_array( $id, $sorted, true ) ) { // Already done.
-					continue;
-				}
 
-				$keep_going = true;
-				if ( ! isset( $this->registered[ $id ] ) ) {
-					$keep_going = false; // Item doesn't exist.
-				} elseif ( array_diff( array_column( $this->registered[ $id ]['dependencies'], 'id' ), array_keys( $this->registered ) ) ) {
-					$keep_going = false; // Item requires dependencies that don't exist.
-				} elseif ( ! $sorter( array_column( $this->registered[ $id ]['dependencies'], 'id' ), true ) ) {
-					$keep_going = false; // Item requires dependencies that don't exist.
-				}
-
-				if ( ! $keep_going ) { // Either item or its dependencies don't exist.
-					if ( $recursion ) {
-						return false; // Abort this branch.
-					} else {
-						continue; // We're at the top level. Move on to the next one.
-					}
-				}
-
-				$sorted[] = $id;
-			}
-			return true;
-		};
-		$sorter( $ids );
+		foreach ( $ids as $id ) {
+			$this->sort_item_dependencies( $id, $sorted );
+		}
 
 		return array_unique( $sorted );
+	}
+
+	/**
+	 * Recursively sorts the dependencies for a single script module identifier.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param non-empty-string   $id      The identifier of the script module to sort.
+	 * @param non-empty-string[] &$sorted The array of sorted identifiers, passed by reference.
+	 * @return bool True on success, false on failure (e.g., missing dependency).
+	 */
+	private function sort_item_dependencies( string $id, array &$sorted ): bool {
+		// If already processed, don't do it again.
+		if ( in_array( $id, $this->done, true ) || in_array( $id, $sorted, true ) ) {
+			return true;
+		}
+
+		// If the item doesn't exist, fail.
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return false;
+		}
+
+		$dependency_ids = array_column( $this->registered[ $id ]['dependencies'], 'id' );
+
+		// If the item requires dependencies that do not exist, fail.
+		if ( count( array_diff( $dependency_ids, array_keys( $this->registered ) ) ) > 0 ) {
+			return false;
+		}
+
+		// Recursively process dependencies.
+		foreach ( $dependency_ids as $dependency_id ) {
+			if ( ! $this->sort_item_dependencies( $dependency_id, $sorted ) ) {
+				// A dependency failed to resolve, so this branch fails.
+				return false;
+			}
+		}
+
+		// All dependencies are sorted, so we can now add the current item.
+		$sorted[] = $id;
+
+		return true;
 	}
 
 	/**
