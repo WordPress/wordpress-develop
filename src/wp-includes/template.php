@@ -931,8 +931,19 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 			count( $header_parts ) === 2 &&
 			'content-type' === $header_parts[0]
 		) {
-			$content_type         = trim( strtok( $header_parts[1], ';' ) );
-			$is_html_content_type = in_array( $content_type, $html_content_types, true );
+			/*
+			 * This is looking for very specific content types, therefore it
+			 * doesn’t need to fully parse the header’s value. Instead, it needs
+			 * only assert that the content type is one of the static HTML types.
+			 *
+			 * Example:
+			 *
+			 *     Content-Type: text/html; charset=utf8
+			 *     Content-Type: text/html  ;charset=latin4
+			 *     Content-Type:application/xhtml+xml
+			 */
+			$media_type           = trim( strtok( $header_parts[1], ';' ), " \t" );
+			$is_html_content_type = in_array( $media_type, $html_content_types, true );
 			break; // PHP only sends the first Content-Type header in the list.
 		}
 	}
