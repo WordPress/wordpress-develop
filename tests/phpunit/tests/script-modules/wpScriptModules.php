@@ -1583,7 +1583,7 @@ HTML;
 			<link rel="modulepreload" href="/z.js" id="z-js-modulepreload" fetchpriority="high">
 			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="low">
 			<script type="module" src="/a.js" id="a-js-module" fetchpriority="low"></script>
-			<script type="module" src="/x.js" id="x-js-module" fetchpriority="high"></script
+			<script type="module" src="/x.js" id="x-js-module" fetchpriority="high"></script>
 		';
 		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
 	}
