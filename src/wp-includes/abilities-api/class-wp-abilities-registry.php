@@ -214,7 +214,11 @@ final class WP_Abilities_Registry {
 	/**
 	 * Checks if an ability is registered.
 	 *
+	 * Do not use this method directly. Instead, use the `wp_has_ability()` function.
+	 *
 	 * @since 6.9.0
+	 *
+	 * @see wp_has_ability()
 	 *
 	 * @param string $name The name of the registered ability, with its namespace.
 	 * @return bool True if the ability is registered, false otherwise.
