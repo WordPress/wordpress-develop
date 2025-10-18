@@ -4111,7 +4111,7 @@ function _wp_check_for_scheduled_update_comment_type() {
 }
 
 /**
- * Register initial comment meta.
+ * Register initial note status meta.
  *
  * @since 6.9.0
  */
