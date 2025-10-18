@@ -38,8 +38,8 @@ declare( strict_types = 1 );
  *     @type array<string, mixed> $meta                  {
  *         Optional. Additional metadata for the ability.
  *
- *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
- *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+ *         @type array<string, null|bool> $annotations  Optional. Annotation metadata for the ability.
+ *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
  *     }
  *     @type string               $ability_class       Optional. Custom class to instantiate instead of WP_Ability.
  * }

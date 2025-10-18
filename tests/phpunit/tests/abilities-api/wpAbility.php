@@ -111,11 +111,11 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public function test_get_merged_annotations_from_meta() {
 		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array_merge(
 				self::$test_ability_properties['meta']['annotations'],
 				array(
-					'idempotent' => false,
+					'idempotent' => null,
 				)
 			),
 			$ability->get_meta_item( 'annotations' )
@@ -135,9 +135,9 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array(
-				'readonly'    => false,
-				'destructive' => false,
-				'idempotent'  => false,
+				'readonly'    => null,
+				'destructive' => null,
+				'idempotent'  => null,
 			),
 			$ability->get_meta_item( 'annotations' )
 		);
