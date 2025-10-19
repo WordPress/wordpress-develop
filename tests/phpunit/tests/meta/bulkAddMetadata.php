@@ -192,7 +192,7 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 	/**
 	 * @return array<string,array<string>>
 	 */
-	protected function data_meta_types(): array {
+	public function data_meta_types(): array {
 		$types = array(
 			'post'    => array( 'post' ),
 			'user'    => array( 'user' ),
