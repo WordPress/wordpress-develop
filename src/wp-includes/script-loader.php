@@ -3494,10 +3494,10 @@ function wp_load_block_styles_on_demand_in_classic_themes() {
 	 * Load separate block styles so that the large block-library stylesheet is not enqueued unconditionally,
 	 * and so that block-specific styles will only be enqueued when they are used on the page.
 	 */
-	add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+	add_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
 
 	// Also ensure that block assets are loaded on demand (although the default value is from should_load_separate_core_block_assets).
-	add_filter( 'should_load_block_assets_on_demand', '__return_true' );
+	add_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
 
 	// Add hooks which require the presence of the output buffer. Ideally the above two filters could be added here, but they run too early.
 	add_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );

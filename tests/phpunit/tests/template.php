@@ -99,8 +99,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 		// Remove hooks which are added by wp_load_block_styles_on_demand_in_classic_themes() during bootstrapping.
 		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
-		remove_filter( 'should_load_separate_core_block_assets', '__return_true' );
-		remove_filter( 'should_load_block_assets_on_demand', '__return_true' );
+		remove_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
+		remove_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
 		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );
 
 		global $wp_scripts, $wp_styles;
