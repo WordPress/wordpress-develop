@@ -926,26 +926,28 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	$is_html_content_type = null;
 	$html_content_types   = array( 'text/html', 'application/xhtml+xml' );
 	foreach ( headers_list() as $header ) {
-		$header_parts = explode( ':', strtolower( $header ), 2 );
-		if (
-			count( $header_parts ) === 2 &&
-			'content-type' === $header_parts[0]
-		) {
-			/*
-			 * This is looking for very specific content types, therefore it
-			 * doesn’t need to fully parse the header’s value. Instead, it needs
-			 * only assert that the content type is one of the static HTML types.
-			 *
-			 * Example:
-			 *
-			 *     Content-Type: text/html; charset=utf8
-			 *     Content-Type: text/html  ;charset=latin4
-			 *     Content-Type:application/xhtml+xml
-			 */
-			$media_type           = trim( strtok( $header_parts[1], ';' ), " \t" );
-			$is_html_content_type = in_array( $media_type, $html_content_types, true );
-			break; // PHP only sends the first Content-Type header in the list.
+		$header_parts = explode( ':', $header, 2 );
+		if ( count( $header_parts ) !== 2 ) {
+			continue;
 		}
+
+		$name = strtolower( trim( $header_parts[0] ) );
+		if ( 'content-type' !== $name ) {
+			continue;
+		}
+
+		/*
+		 * This is looking for very specific content types, therefore it
+		 * doesn’t need to fully parse the header’s value. Instead, it needs
+		 * only assert that the content type is one of the static HTML types.
+		 *
+		 *     Content-Type: text/html; charset=utf8
+		 *     Content-Type: text/html  ;charset=latin4
+		 *     Content-Type:application/xhtml+xml
+		 */
+		$media_type           = trim( strtok( $header_parts[1], ';' ), " \t" );
+		$is_html_content_type = in_array( $media_type, $html_content_types, true );
+		break; // PHP only sends the first Content-Type header in the list.
 	}
 	if ( null === $is_html_content_type ) {
 		$is_html_content_type = in_array( ini_get( 'default_mimetype' ), $html_content_types, true );
