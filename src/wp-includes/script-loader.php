@@ -3470,14 +3470,15 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
 }
 
 /**
- * Adds filters to ensure that block styles are loaded on demand in classic themes.
+ * Adds hooks to load block styles on demand in classic themes.
  *
  * @since 6.9.0
  */
-function wp_always_load_block_styles_on_demand_init() {
+function wp_load_block_styles_on_demand_in_classic_themes() {
 	if ( wp_is_block_theme() ) {
 		return;
 	}
+
 	/*
 	 * Make sure that wp_should_output_buffer_template_for_enhancement() returns true even if there aren't any
 	 * `wp_template_enhancement_output_buffer` filters added, but do so at priority zero so that applications which
@@ -3489,11 +3490,13 @@ function wp_always_load_block_styles_on_demand_init() {
 		return;
 	}
 
-	// Load separate block styles so that the large block-library stylesheet is not enqueued unconditionally,
-	// and so that block-specific styles will only be enqueued when they are used on the page.
+	/*
+	 * Load separate block styles so that the large block-library stylesheet is not enqueued unconditionally,
+	 * and so that block-specific styles will only be enqueued when they are used on the page.
+	 */
 	add_filter( 'should_load_separate_core_block_assets', '__return_true' );
 
-	// Also ensure that block assets are loaded on demand (although the default value is should_load_separate_core_block_assets).
+	// Also ensure that block assets are loaded on demand (although the default value is from should_load_separate_core_block_assets).
 	add_filter( 'should_load_block_assets_on_demand', '__return_true' );
 
 	// Add hooks which require the presence of the output buffer. Ideally the above two filters could be added here, but they run too early.
@@ -3505,7 +3508,7 @@ function wp_always_load_block_styles_on_demand_init() {
  *
  * @since 6.9.0
  */
-function wp_use_placeholder_for_delayed_css(): void {
+function wp_use_placeholder_for_delayed_css() {
 
 	// While normally late styles are printed, there is a filter to disable late styles, so this makes sure they are printed.
 	add_filter( 'print_late_styles', '__return_true', 100 );
