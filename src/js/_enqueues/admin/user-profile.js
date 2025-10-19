@@ -341,7 +341,7 @@
 	}
 
 	/**
-	 * Binds Caps Lock detection to a given password input field.
+	 * Bind Caps Lock detection to a password input field.
 	 *
 	 * @param {jQuery} $input The password input field.
 	 */
