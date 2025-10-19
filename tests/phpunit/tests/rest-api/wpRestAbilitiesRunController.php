@@ -49,23 +49,16 @@ class Tests_REST_API_WpRestAbilitiesRunController extends WP_UnitTestCase {
 			)
 		);
 
-		// Register test categories during the hook.
-		add_action(
-			'wp_abilities_api_categories_init',
-			array( __CLASS__, 'register_test_categories' )
-		);
+		// Fire the init hook to allow test ability categories registration.
 		do_action( 'wp_abilities_api_categories_init' );
-		remove_action(
-			'wp_abilities_api_categories_init',
-			array( __CLASS__, 'register_test_categories' )
-		);
+		self::register_test_categories();
 	}
 
 	/**
 	 * Tear down after class.
 	 */
 	public static function tear_down_after_class(): void {
-		// Clean up test categories.
+		// Clean up registered test ability categories.
 		foreach ( array( 'math', 'system', 'general' ) as $slug ) {
 			wp_unregister_ability_category( $slug );
 		}

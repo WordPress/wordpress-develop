@@ -137,6 +137,20 @@ function wp_get_abilities(): array {
  * @return WP_Ability_Category|null The registered ability category instance on success, null on failure.
  */
 function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_Category {
+	if ( ! did_action( 'wp_abilities_api_categories_init' ) ) {
+		_doing_it_wrong(
+			__METHOD__,
+			sprintf(
+				/* translators: 1: abilities_api_categories_init, 2: ability category slug. */
+				__( 'Ability categories must be registered on the %1$s action. The category %2$s was not registered.' ),
+				'<code>wp_abilities_api_categories_init</code>',
+				'<code>' . esc_html( $slug ) . '</code>'
+			),
+			'6.9.0'
+		);
+		return null;
+	}
+
 	return WP_Ability_Categories_Registry::get_instance()->register( $slug, $args );
 }
 
