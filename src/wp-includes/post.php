@@ -3428,21 +3428,40 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 		return apply_filters( 'wp_count_posts', $counts, $type, $perm );
 	}
 
-	$query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s";
-
-	if ( 'readable' === $perm && is_user_logged_in() ) {
-		$post_type_object = get_post_type_object( $type );
-		if ( ! current_user_can( $post_type_object->cap->read_private_posts ) ) {
-			$query .= $wpdb->prepare(
-				" AND (post_status != 'private' OR ( post_author = %d AND post_status = 'private' ))",
-				get_current_user_id()
-			);
-		}
+	if (
+		'readable' === $perm &&
+		is_user_logged_in() &&
+		! current_user_can( get_post_type_object( $type )->cap->read_private_posts )
+	) {
+		// Optimized query uses subqueries which can leverage DB indexes for better performance. See #61097.
+		$query = "
+			SELECT post_status, COUNT(*) AS num_posts
+			FROM (
+				SELECT post_status
+				FROM {$wpdb->posts}
+				WHERE post_type = %s AND post_status != 'private'
+				UNION ALL
+				SELECT post_status
+				FROM {$wpdb->posts}
+				WHERE post_type = %s AND post_status = 'private' AND post_author = %d
+			) AS filtered_posts
+		";
+		$args  = array( $type, $type, get_current_user_id() );
+	} else {
+		$query = "
+			SELECT post_status, COUNT(*) AS num_posts
+			FROM {$wpdb->posts}
+			WHERE post_type = %s
+		";
+		$args  = array( $type );
 	}
 
 	$query .= ' GROUP BY post_status';
 
-	$results = (array) $wpdb->get_results( $wpdb->prepare( $query, $type ), ARRAY_A );
+	$results = (array) $wpdb->get_results(
+		$wpdb->prepare( $query, ...$args ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Placeholders are used in the string contained in the variable.
+		ARRAY_A
+	);
 	$counts  = array_fill_keys( get_post_stati(), 0 );
 
 	foreach ( $results as $row ) {
@@ -3752,13 +3771,19 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  * @see wp_delete_attachment()
  * @see wp_trash_post()
  *
- * @param int  $post_id      Optional. Post ID. Default 0.
+ * @param int  $post_id      Post ID. (The default of 0 is for historical reasons; providing it is incorrect.)
  * @param bool $force_delete Optional. Whether to bypass Trash and force deletion.
  *                           Default false.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
 function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	global $wpdb;
+
+	$post_id = (int) $post_id;
+	if ( $post_id <= 0 ) {
+		_doing_it_wrong( __FUNCTION__, __( 'The post ID must be greater than 0.' ), '6.9.0' );
+		return false;
+	}
 
 	$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d", $post_id ) );
 
@@ -3784,7 +3809,7 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param WP_Post|false|null $delete       Whether to go forward with deletion.
+	 * @param WP_Post|false|null $check        Whether to go forward with deletion. Anything other than null will short-circuit deletion.
 	 * @param WP_Post            $post         Post object.
 	 * @param bool               $force_delete Whether to bypass the Trash.
 	 */
