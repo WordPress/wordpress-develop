@@ -724,6 +724,12 @@ fieldset label,
 	top: -8px;
 }
 
+.profile-php .wp-pwd .caps-warning {
+	padding: 3px 5px;
+	top: -4px;
+	border-radius: 4px;
+}
+
 .wp-pwd .caps-icon {
 	display: inline-flex;
 	justify-content: center;
