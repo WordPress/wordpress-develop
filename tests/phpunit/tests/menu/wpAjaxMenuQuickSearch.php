@@ -18,14 +18,14 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 			array(
 				'post_type'    => 'page',
 				'post_content' => 'foo',
-				'post_title'   => 'foo',
+				'post_title'   => 'foo title',
 			)
 		);
 		self::factory()->post->create(
 			array(
 				'post_type'    => 'page',
 				'post_content' => 'bar',
-				'post_title'   => 'bar',
+				'post_title'   => 'bar title',
 			)
 		);
 
@@ -57,7 +57,7 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 			array(
 				'post_type'    => 'post',
 				'post_status'  => 'publish',
-				'post_title'   => 'Publish',
+				'post_title'   => 'Publish FOO',
 				'post_content' => 'FOO',
 			)
 		);
