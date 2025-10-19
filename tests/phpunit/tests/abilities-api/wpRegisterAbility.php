@@ -30,24 +30,15 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		// Register category during the hook.
-		add_action(
-			'wp_abilities_api_categories_init',
-			function () {
-				if ( ! wp_has_ability_category( 'math' ) ) {
-					wp_register_ability_category(
-						'math',
-						array(
-							'label'       => 'Math',
-							'description' => 'Mathematical operations and calculations.',
-						)
-					);
-				}
-			}
-		);
-
-		// Fire the hook to allow category registration.
+		// Fire the init hook to allow test ability category registration.
 		do_action( 'wp_abilities_api_categories_init' );
+		wp_register_ability_category(
+			'math',
+			array(
+				'label'       => 'Math',
+				'description' => 'Mathematical operations and calculations.',
+			)
+		);
 
 		self::$test_ability_args = array(
 			'label'               => 'Add numbers',
@@ -102,11 +93,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			wp_unregister_ability( $ability->get_name() );
 		}
 
-		// Clean up registered categories.
-		$category_registry = WP_Ability_Categories_Registry::get_instance();
-		if ( $category_registry->is_registered( 'math' ) ) {
-			wp_unregister_ability_category( 'math' );
-		}
+		// Clean up registered test ability category.
+		wp_unregister_ability_category( 'math' );
 
 		parent::tear_down();
 	}
@@ -491,7 +479,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 */
-	public function test_has_registered_nonexistent_abi() {
+	public function test_has_registered_nonexistent_ability() {
 		do_action( 'wp_abilities_api_init' );
 
 		$result = wp_has_ability( 'test/non-existent' );
@@ -527,31 +515,5 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_get_abilities();
 		$this->assertEquals( $expected, $result );
-	}
-
-	/**
-	 * Tests registering an ability with non-existent category.
-	 *
-	 * @ticket 64098
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
-	 */
-	public function test_register_ability_nonexistent_category(): void {
-		do_action( 'wp_abilities_api_init' );
-
-		// Ensure category doesn't exist - test should fail if it does.
-		$this->assertFalse(
-			wp_has_ability_category( 'nonexistent' ),
-			'The nonexistent category should not be registered - test isolation may be broken'
-		);
-
-		$args = array_merge(
-			self::$test_ability_args,
-			array( 'category' => 'nonexistent' )
-		);
-
-		$result = wp_register_ability( self::$test_ability_name, $args );
-
-		$this->assertNull( $result, 'Should return null when category does not exist' );
 	}
 }

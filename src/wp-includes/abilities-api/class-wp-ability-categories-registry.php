@@ -55,20 +55,6 @@ final class WP_Ability_Categories_Registry {
 	 * @return WP_Ability_Category|null The registered ability category instance on success, null on failure.
 	 */
 	public function register( string $slug, array $args ): ?WP_Ability_Category {
-		if ( ! doing_action( 'wp_abilities_api_categories_init' ) ) {
-			_doing_it_wrong(
-				__METHOD__,
-				sprintf(
-					/* translators: 1: abilities_api_categories_init, 2: ability category slug. */
-					__( 'Ability categories must be registered during the %1$s action. The category %2$s was not registered.' ),
-					'<code>wp_abilities_api_categories_init</code>',
-					'<code>' . esc_html( $slug ) . '</code>'
-				),
-				'6.9.0'
-			);
-			return null;
-		}
-
 		if ( $this->is_registered( $slug ) ) {
 			_doing_it_wrong(
 				__METHOD__,

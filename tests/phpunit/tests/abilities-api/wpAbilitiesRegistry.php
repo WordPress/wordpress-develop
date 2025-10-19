@@ -29,24 +29,15 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		remove_all_filters( 'wp_register_ability_args' );
 
-		// Register category during the hook.
-		add_action(
-			'wp_abilities_api_categories_init',
-			function () {
-				if ( ! wp_has_ability_category( 'math' ) ) {
-					wp_register_ability_category(
-						'math',
-						array(
-							'label'       => 'Math',
-							'description' => 'Mathematical operations and calculations.',
-						)
-					);
-				}
-			}
-		);
-
-		// Fire the hook to allow category registration.
+		// Fire the init hook to allow test ability category registration.
 		do_action( 'wp_abilities_api_categories_init' );
+		wp_register_ability_category(
+			'math',
+			array(
+				'label'       => 'Math',
+				'description' => 'Mathematical operations and calculations.',
+			)
+		);
 
 		self::$test_ability_args = array(
 			'label'               => 'Add numbers',
@@ -93,11 +84,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		remove_all_filters( 'wp_register_ability_args' );
 
-		// Clean up registered categories.
-		$category_registry = WP_Ability_Categories_Registry::get_instance();
-		if ( $category_registry->is_registered( 'math' ) ) {
-			wp_unregister_ability_category( 'math' );
-		}
+		// Clean up registered test ability category.
+		wp_unregister_ability_category( 'math' );
 
 		parent::tear_down();
 	}
@@ -212,6 +200,24 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
+	}
+
+	/**
+	 * Tests registering an ability with non-existent category.
+	 *
+	 * @ticket 64098
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_nonexistent_category(): void {
+		$args = array_merge(
+			self::$test_ability_args,
+			array( 'category' => 'nonexistent' )
+		);
+
+		$result = $this->registry->register( self::$test_ability_name, $args );
+
+		$this->assertNull( $result, 'Should return null when category does not exist.' );
 	}
 
 	/**
