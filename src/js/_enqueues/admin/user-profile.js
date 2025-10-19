@@ -23,7 +23,7 @@
 		successTimeout,
 		isMac = window.navigator.platform ? window.navigator.platform.indexOf( 'Mac' ) !== -1 : false, 
 		ua = navigator.userAgent.toLowerCase(),
-		isSafari = ua.indexOf( 'safari' ) !== -1 && ua.indexOf( 'chrome' ) === -1,
+		isSafari = window.safari !== 'undefined' && typeof window.safari === 'object',
 		isFirefox = ua.indexOf( 'firefox' ) !== -1;
 
 	function generatePassword() {
