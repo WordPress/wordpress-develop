@@ -346,25 +346,23 @@
 	 * @param {jQuery} $input The password input field.
 	 */
 	function bindCapsLockWarning( $input ) {
-		var $capsWarning = $( '#caps-warning' ),
-			capsLockOn   = false;
+		var $capsWarning,
+			capsLockOn = false;
 
 		// Skip warning on macOS Safari + Firefox (they show native indicators).
 		if ( isMac && ( isSafari || isFirefox ) ) {
 			return;
 		}
 
+		$capsWarning = $( '<div id="caps-warning" class="caps-warning"></div>' );
+		$capsIcon    = $( '<span class="caps-icon" aria-hidden="true"><svg viewBox="0 0 24 26" xmlns="http://www.w3.org/2000/svg" fill="#3c434a" stroke="#3c434a" stroke-width="0.5"><path d="M12 5L19 15H16V19H8V15H5L12 5Z"/><rect x="8" y="21" width="8" height="1.5" rx="0.75"/></svg></span>' );
+		$capsText    = $( '<span class="caps-warning-text">' + __( 'Caps lock is on.' ) + '</span>' );
+		$capsWarning.append( $capsIcon, $capsText );
+
+		$input.parent( 'div' ).append( $capsWarning );
+
 		$input.on( 'keydown', function( jqEvent ) {
 			var event = jqEvent.originalEvent;
-
-			// Skip CapsLock key itself.
-			if ( ev.key === 'CapsLock' ) {
-				if ( capsLockOn ) {
-					capsLockOn = false;
-					$capsWarning.hide();
-				}
-				return;
-			}
 
 			// Skip if key is not a printable character.
 			// Key length > 1 usually means non-printable (e.g., "Enter", "Tab").
@@ -374,13 +372,16 @@
 
 			var state = isCapsLockOn( event );
 
-			// Only react when the state changes.
+			// React when the state changes or if caps lock is on when the user starts typing.
 			if ( state !== capsLockOn ) {
 				capsLockOn = state;
 
 				if ( capsLockOn ) {
 					$capsWarning.show();
-					wp.a11y.speak( __( 'Caps lock is on.' ) );
+					// Don't duplicate existing screen reader Caps lock notifications.
+					if ( event.key !== 'CapsLock' ) {
+						wp.a11y.speak( __( 'Caps lock is on.' ), 'assertive' );
+					}
 				} else {
 					$capsWarning.hide();
 				}

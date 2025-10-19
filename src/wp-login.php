@@ -1522,15 +1522,6 @@ switch ( $action ) {
 					<button type="button" class="button button-secondary wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Show password' ); ?>">
 						<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
 					</button>
-					<div id="caps-warning" class="caps-warning">
-						<span class="caps-icon">
-							<svg viewBox="0 0 24 26" xmlns="http://www.w3.org/2000/svg" fill="#3c434a" stroke="#3c434a" stroke-width="0.5">
-								<path d="M12 5L19 15H16V19H8V15H5L12 5Z"/>
-								<rect x="8" y="21" width="8" height="1.5" rx="0.75"/>
-							</svg>
-						</span>
-						<span class="caps-warning-text"><?php _e( 'Caps lock is on.' ); ?></span>
-					</div>
 				</div>
 			</div>
 			<?php

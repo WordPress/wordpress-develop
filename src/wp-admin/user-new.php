@@ -602,15 +602,6 @@ if ( current_user_can( 'create_users' ) ) {
 				<div class="password-input-wrapper">
 					<input type="password" name="pass1" id="pass1" class="regular-text" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
 					<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
-					<div id="caps-warning" class="caps-warning">
-						<span class="caps-icon">
-							<svg viewBox="0 0 24 26" xmlns="http://www.w3.org/2000/svg" fill="#3c434a" stroke="#3c434a" stroke-width="0.5">
-								<path d="M12 5L19 15H16V19H8V15H5L12 5Z"/>
-								<rect x="8" y="21" width="8" height="1.5" rx="0.75"/>
-							</svg>
-						</span>
-						<span class="caps-warning-text"><?php _e( 'Caps lock is on.' ); ?></span>
-					</div>
 				</div>
 				<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 					<span class="dashicons dashicons-hidden" aria-hidden="true"></span>

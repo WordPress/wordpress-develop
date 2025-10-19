@@ -717,20 +717,20 @@ fieldset label,
 .wp-pwd .caps-warning {
 	display: none;
 	position: relative;
-	background: #f5e6ab;
+	background: #fcf9e8;
+	border: 1px solid #f0c33c;
+	color: #1d2327;
 	padding: 6px 10px;
 	top: -8px;
 }
 
 .wp-pwd .caps-icon {
 	display: inline-flex;
-    justify-content: center;
-    background-color: #fcf9e8;
-    width: 20px;
-    height: 20px;
-    border-radius: 3px;
-    margin-right: 5px;
-    vertical-align: middle;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	margin-right: 5px;
+	vertical-align: middle;
 }
 
 .wp-pwd .caps-warning-text {
