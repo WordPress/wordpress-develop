@@ -579,7 +579,6 @@ class Tests_Template extends WP_UnitTestCase {
 
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				while ( $p->next_tag() ) {
-					echo $p->get_tag() . PHP_EOL;
 					switch ( $p->get_tag() ) {
 						case 'HTML':
 							$p->set_attribute( 'lang', 'es' );
@@ -599,6 +598,9 @@ class Tests_Template extends WP_UnitTestCase {
 			10,
 			PHP_INT_MAX
 		);
+
+		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
+		ini_set( 'default_mimetype', 'text/html' ); // Since sending a header won't work.
 
 		$initial_ob_level = ob_get_level();
 		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
@@ -679,6 +681,9 @@ class Tests_Template extends WP_UnitTestCase {
 			}
 		);
 
+		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
+		ini_set( 'default_mimetype', 'text/html' ); // Since sending a header won't work.
+
 		$initial_ob_level = ob_get_level();
 		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
 		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
@@ -743,6 +748,9 @@ class Tests_Template extends WP_UnitTestCase {
 			}
 		);
 
+		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
+		ini_set( 'default_mimetype', 'application/xhtml+xml' ); // Since sending a header won't work.
+
 		$initial_ob_level = ob_get_level();
 		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
 		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
@@ -752,15 +760,18 @@ class Tests_Template extends WP_UnitTestCase {
 		<!DOCTYPE html>
 			<html lang="en">
 			<head>
+				<meta charset="utf-8">
 				<title>Unprocessed</title>
 			</head>
 			<body>
 				<h1>Hello World!</h1>
 				<!-- ... -->
 		<?php ob_clean(); // Clean the buffer started by wp_start_template_enhancement_output_buffer(), allowing the following document to replace the above.. ?>
+		<?php echo '<?xml version="1.0" encoding="UTF-8"?>'; ?>
 		<!DOCTYPE html>
-		<html lang="en">
+		<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 			<head>
+				<meta charset="utf-8" />
 				<title>Template Replaced</title>
 			</head>
 			<body>
@@ -802,7 +813,9 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
 		$this->assertSame( $initial_ob_level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented.' );
 
+		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
 		ini_set( 'default_mimetype', 'application/json' ); // Since sending a header won't work.
+
 		$json = wp_json_encode(
 			array(
 				'success' => true,

@@ -25,6 +25,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		$this->interactivity = new WP_Interactivity_API();
+		wp_default_script_modules();
 	}
 
 	public function charset_iso_8859_1() {
@@ -314,6 +315,107 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array( 'state' => array( 'myPlugin' => array( 'emptyArray' => array() ) ) ), $filter->get_args()[0][0] );
+	}
+	/**
+	 * Tests that derived state props invoked during directive evaluation are
+	 * serialized correctly.
+	 *
+	 * @ticket 63898
+	 */
+	public function test_invoked_derived_state_props_are_serialized() {
+		$returns_whatever = function () {
+			return 'whatever';
+		};
+
+		$returns_array = function () {
+			return array( 'prop' => 'whatever' );
+		};
+
+		$filter = $this->get_script_data_filter_result(
+			function () use ( $returns_whatever, $returns_array ) {
+				$this->interactivity->state(
+					'pluginWithInvokedDerivedState',
+					array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp'             => $returns_whatever,
+							'derivedPropReturnsArray' => $returns_array,
+						),
+					)
+				);
+
+				$this->interactivity->state(
+					'pluginWithInvokedDerivedStateReturningArray',
+					array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp'             => $returns_whatever,
+							'derivedPropReturnsArray' => $returns_array,
+						),
+					)
+				);
+
+				$this->interactivity->state(
+					'pluginWithoutInvokedDerivedState',
+					array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp' => $returns_whatever,
+						),
+					)
+				);
+
+				$this->set_internal_context_stack( array() );
+
+				// Multiple evaluations should be serialized only once.
+				$this->set_internal_namespace_stack( 'pluginWithInvokedDerivedState' );
+				$this->evaluate( 'state.derivedProp' );
+				$this->evaluate( 'state.derivedProp' );
+				$this->evaluate( 'state.nested.derivedProp' );
+				$this->evaluate( 'state.nested.derivedProp' );
+
+				// Only the path part that points to a derived state prop should be serialized.
+				$this->set_internal_namespace_stack( 'pluginWithInvokedDerivedStateReturningArray' );
+				$this->evaluate( 'state.nested.derivedProp.prop' );
+			}
+		);
+
+		$this->assertSame(
+			array(
+				'state'                => array(
+					'pluginWithInvokedDerivedState'    => array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp'             => $returns_whatever,
+							'derivedPropReturnsArray' => $returns_array,
+						),
+					),
+					'pluginWithInvokedDerivedStateReturningArray' => array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp'             => $returns_whatever,
+							'derivedPropReturnsArray' => $returns_array,
+						),
+					),
+					'pluginWithoutInvokedDerivedState' => array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp' => $returns_whatever,
+						),
+					),
+				),
+				'derivedStateClosures' => array(
+					'pluginWithInvokedDerivedState' => array(
+						'state.derivedProp',
+						'state.nested.derivedProp',
+					),
+					'pluginWithInvokedDerivedStateReturningArray' => array(
+						'state.nested.derivedProp',
+					),
+				),
+			),
+			$filter->get_args()[0][0]
+		);
 	}
 
 	/**
