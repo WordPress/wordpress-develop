@@ -199,7 +199,7 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string              $meta_type   Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
- *                                         or any other object type with an associated meta table.
+ *                                         'blog', or any other object type with an associated meta table.
  * @param int                 $object_id   ID of the object metadata is for.
  * @param array<string,mixed> $meta_fields Metadata values keyed by their meta key. Values must be serializable if non-scalar.
  * @return array<string,int>|false Array of meta IDs keyed by their meta key on success, false on failure.
