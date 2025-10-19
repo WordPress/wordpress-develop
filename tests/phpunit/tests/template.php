@@ -942,6 +942,10 @@ class Tests_Template extends WP_UnitTestCase {
 
 		wp_use_placeholder_for_delayed_css();
 
+		// Ensure late styles are printed.
+		add_filter( 'print_late_styles', '__return_false', 1000 );
+		$this->assertTrue( apply_filters( 'print_late_styles', true ), 'Expected late style printing to be forced.' );
+
 		// Simulate wp_head
 		ob_start();
 		do_action( 'wp_head' );

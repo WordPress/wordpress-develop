@@ -3512,7 +3512,7 @@ function wp_load_block_styles_on_demand_in_classic_themes() {
 function wp_use_placeholder_for_delayed_css() {
 
 	// While normally late styles are printed, there is a filter to disable late styles, so this makes sure they are printed.
-	add_filter( 'print_late_styles', '__return_true', 100 );
+	add_filter( 'print_late_styles', '__return_true', PHP_INT_MAX );
 
 	// Print a placeholder comment to inject late styles right after the head styles are printed.
 	$placeholder = sprintf( '<!--%s:%s-->', 'late_styles', wp_generate_uuid4() );
