@@ -349,12 +349,17 @@
 		var $capsWarning = $( '#caps-warning' ),
 			capsLockOn   = false;
 
-		$input.on( 'keydown', function( e ) {
-			var ev = e.originalEvent || e;
+		// Skip warning on macOS Safari + Firefox (they show native indicators).
+		if ( isMac && ( isSafari || isFirefox ) ) {
+			return;
+		}
+
+		$input.on( 'keydown', function( jqEvent ) {
+			var event = jqEvent.originalEvent;
 
 			// Skip CapsLock key itself.
 			if ( ev.key === 'CapsLock' ) {
-				if (capsLockOn) {
+				if ( capsLockOn ) {
 					capsLockOn = false;
 					$capsWarning.hide();
 				}
@@ -363,11 +368,11 @@
 
 			// Skip if key is not a printable character.
 			// Key length > 1 usually means non-printable (e.g., "Enter", "Tab").
-			if ( ev.ctrlKey || ev.metaKey || ev.altKey || ! ev.key || ev.key.length !== 1 ) {
+			if ( event.ctrlKey || event.metaKey || event.altKey || ! event.key || event.key.length !== 1 ) {
 				return;
 			}
 
-			var state = isCapsLockOn( ev );
+			var state = isCapsLockOn( event );
 
 			// Only react when the state changes.
 			if ( state !== capsLockOn ) {
@@ -398,15 +403,8 @@
 	 *
 	 * @return {boolean} True if Caps Lock is on, false otherwise. 
 	 */
-	function isCapsLockOn( e ) {
-		// Skip warning on macOS Safari + Firefox (they show native indicators).
-		if ( isMac && ( isSafari || isFirefox ) ) {
-			return false;
-		}
-
-		if ( typeof e.getModifierState === 'function' ) {
-			return e.getModifierState( 'CapsLock' );
-		}
+	function isCapsLockOn( event ) {
+		return event.getModifierState( 'CapsLock' );
 	}
 
 	function showOrHideWeakPasswordCheckbox() {
