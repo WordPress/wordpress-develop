@@ -1672,6 +1672,10 @@ table.form-table td .updated p {
 		padding: 8px;
 	}
 
+	.profile-php .wp-pwd .caps-warning {
+		padding: 8px;
+	}
+
 	.password-input-wrapper {
 		display: block;
 	}
