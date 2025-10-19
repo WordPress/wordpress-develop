@@ -24,9 +24,6 @@ class Tests_Themes_WpEnqueueStoredStyles extends WP_Theme_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		// TODO: This shouldn't be needed here. It should be done as part of the test that added the store.
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
-
 		global $wp_scripts, $wp_styles;
 		$this->original_wp_scripts = $wp_scripts;
 		$this->original_wp_styles  = $wp_styles;

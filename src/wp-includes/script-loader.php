@@ -3232,7 +3232,8 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  * }
  */
 function wp_enqueue_stored_styles( $options = array() ) {
-	$is_block_theme   = wp_is_block_theme(); // TODO: Shouldn't this rather check wp_should_load_block_assets_on_demand()? It should be something like $is_printing_styles_late.
+	// Note: Styles printed at wp_footer for classic themes may still end up in the head due to wp_load_block_styles_on_demand_in_classic_themes().
+	$is_block_theme   = wp_is_block_theme();
 	$is_classic_theme = ! $is_block_theme;
 
 	/*
