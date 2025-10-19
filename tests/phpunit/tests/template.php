@@ -502,21 +502,48 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer when no filters are present.
+	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer in a block theme when no filters are present.
 	 *
 	 * @ticket 43258
+	 * @ticket 64099
 	 * @covers ::wp_should_output_buffer_template_for_enhancement
 	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_load_block_styles_on_demand_in_classic_themes
 	 */
-	public function test_wp_start_template_enhancement_output_buffer_without_filters_and_no_override(): void {
+	public function test_wp_start_template_enhancement_output_buffer_without_filters_and_no_override_in_block_theme(): void {
+		switch_theme( 'block-theme' );
 		remove_all_filters( 'wp_template_enhancement_output_buffer' );
+		remove_all_filters( 'wp_should_output_buffer_template_for_enhancement' );
+		wp_load_block_styles_on_demand_in_classic_themes();
+
 		$level = ob_get_level();
-		if ( wp_is_block_theme() ) {
-			$this->assertFalse( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return false when there are no wp_template_enhancement_output_buffer filters added.' );
-			$this->assertFalse( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return false because the output buffer should not be started.' );
-		}
+		$this->assertFalse( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return false when there are no wp_template_enhancement_output_buffer filters added.' );
+		$this->assertFalse( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return false because the output buffer should not be started.' );
 		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to not have fired.' );
 		$this->assertSame( $level, ob_get_level(), 'Expected the initial output buffer level to be unchanged.' );
+	}
+
+	/**
+	 * Tests that wp_start_template_enhancement_output_buffer() does start a buffer in classic theme.
+	 *
+	 * @ticket 43258
+	 * @ticket 64099
+	 * @covers ::wp_should_output_buffer_template_for_enhancement
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_load_block_styles_on_demand_in_classic_themes
+	 */
+	public function test_wp_start_template_enhancement_output_buffer_in_classic_theme(): void {
+		switch_theme( 'default' );
+		remove_all_filters( 'wp_template_enhancement_output_buffer' );
+		remove_all_filters( 'wp_should_output_buffer_template_for_enhancement' );
+		wp_load_block_styles_on_demand_in_classic_themes();
+
+		$level = ob_get_level();
+		$this->assertTrue( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return true because wp_load_block_styles_on_demand_in_classic_themes() adds wp_template_enhancement_output_buffer filters.' );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true because the output buffer should be started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $level + 1, ob_get_level(), 'Expected the initial output buffer level to be incremented by one.' );
+		ob_end_clean();
 	}
 
 	/**
