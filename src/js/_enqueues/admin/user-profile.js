@@ -347,6 +347,8 @@
 	 */
 	function bindCapsLockWarning( $input ) {
 		var $capsWarning,
+			$capsIcon,
+			$capsText,
 			capsLockOn = false;
 
 		// Skip warning on macOS Safari + Firefox (they show native indicators).
