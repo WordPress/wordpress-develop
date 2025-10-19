@@ -32,10 +32,6 @@
 		"lock": false
 	},
 	"scripts": {
-		"bench": [
-			"docker compose run --rm php ./vendor/bin/phpbench run tests/phpbench/SingleAddMetaBench.php --tag=single --report=single-add-meta",
-			"docker compose run --rm php ./vendor/bin/phpbench run tests/phpbench/BulkAddMetaBench.php --ref=single --report=bulk-add-meta"
-		],
 		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
 		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
 		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
