@@ -43,6 +43,45 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that search only returns results for posts with term in title.
+	 *
+	 * @ticket 48655
+	 */
+	public function test_search_only_returns_results_for_posts_with_term_in_title() {
+		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
+
+		// This will make sure that WP_Query sets is_admin to true.
+		set_current_screen( 'nav-menu.php' );
+
+		self::factory()->post->create(
+			array(
+				'post_type'    => 'post',
+				'post_status'  => 'publish',
+				'post_title'   => 'Publish FOO',
+				'post_content' => 'FOO',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_type'    => 'post',
+				'post_status'  => 'publish',
+				'post_title'   => 'Publish without search term',
+				'post_content' => 'FOO',
+			)
+		);
+
+		$request = array(
+			'type' => 'quick-search-posttype-post',
+			'q'    => 'FOO',
+		);
+		$output  = get_echo( '_wp_ajax_menu_quick_search', array( $request ) );
+
+		$this->assertNotEmpty( $output );
+		$results = explode( "\n", trim( $output ) );
+		$this->assertCount( 1, $results );
+	}
+
+	/**
 	 * Test that search only returns results for published posts.
 	 *
 	 * @ticket 33742
