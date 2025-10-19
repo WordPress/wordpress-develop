@@ -97,6 +97,12 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
+		// Remove hooks which are added by wp_load_block_styles_on_demand_in_classic_themes() during bootstrapping.
+		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
+		remove_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		remove_filter( 'should_load_block_assets_on_demand', '__return_true' );
+		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );
+
 		global $wp_scripts, $wp_styles;
 		$this->original_wp_scripts = $wp_scripts;
 		$this->original_wp_styles  = $wp_styles;
@@ -534,8 +540,6 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	public function test_wp_start_template_enhancement_output_buffer_without_filters_and_no_override_in_block_theme(): void {
 		switch_theme( 'block-theme' );
-		remove_all_filters( 'wp_template_enhancement_output_buffer' );
-		remove_all_filters( 'wp_should_output_buffer_template_for_enhancement' );
 		wp_load_block_styles_on_demand_in_classic_themes();
 
 		$level = ob_get_level();
@@ -556,8 +560,6 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	public function test_wp_start_template_enhancement_output_buffer_in_classic_theme(): void {
 		switch_theme( 'default' );
-		remove_all_filters( 'wp_template_enhancement_output_buffer' );
-		remove_all_filters( 'wp_should_output_buffer_template_for_enhancement' );
 		wp_load_block_styles_on_demand_in_classic_themes();
 
 		$level = ob_get_level();
@@ -576,7 +578,6 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 */
 	public function test_wp_start_template_enhancement_output_buffer_begins_without_filters_but_overridden(): void {
-		remove_all_filters( 'wp_template_enhancement_output_buffer' );
 		$level = ob_get_level();
 		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true' );
 		$this->assertTrue( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return true when overridden with the wp_should_output_buffer_template_for_enhancement filter.' );
@@ -899,12 +900,6 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::wp_load_block_styles_on_demand_in_classic_themes
 	 */
 	public function test_wp_load_block_styles_on_demand_in_classic_themes_in_block_theme(): void {
-		// Clean up any filters that may have been added by previous tests
-		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
-		remove_filter( 'should_load_separate_core_block_assets', '__return_true' );
-		remove_filter( 'should_load_block_assets_on_demand', '__return_true' );
-		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );
-
 		switch_theme( 'block-theme' );
 
 		wp_load_block_styles_on_demand_in_classic_themes();
@@ -921,12 +916,6 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::wp_load_block_styles_on_demand_in_classic_themes
 	 */
 	public function test_wp_load_block_styles_on_demand_in_classic_themes_in_classic_theme(): void {
-		// Clean up any filters that may have been added by previous tests
-		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
-		remove_filter( 'should_load_separate_core_block_assets', '__return_true' );
-		remove_filter( 'should_load_block_assets_on_demand', '__return_true' );
-		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );
-
 		switch_theme( 'default' );
 
 		wp_load_block_styles_on_demand_in_classic_themes();
@@ -946,12 +935,6 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::wp_use_placeholder_for_delayed_css
 	 */
 	public function test_wp_use_placeholder_for_delayed_css(): void {
-		// Clean up any filters that may have been added by previous tests
-		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
-		remove_filter( 'should_load_separate_core_block_assets', '__return_true' );
-		remove_filter( 'should_load_block_assets_on_demand', '__return_true' );
-		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );
-
 		switch_theme( 'default' );
 
 		// Enqueue a style
