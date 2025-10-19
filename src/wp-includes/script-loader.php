@@ -3232,7 +3232,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  * }
  */
 function wp_enqueue_stored_styles( $options = array() ) {
-	$is_block_theme   = wp_is_block_theme();
+	$is_block_theme   = wp_is_block_theme(); // TODO: Shouldn't this rather check wp_should_load_block_assets_on_demand()? It should be something like $is_printing_styles_late.
 	$is_classic_theme = ! $is_block_theme;
 
 	/*
