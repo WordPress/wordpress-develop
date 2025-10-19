@@ -68,6 +68,16 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	protected $original_default_mimetype;
 
+	/**
+	 * @var WP_Scripts|null
+	 */
+	protected $original_wp_scripts;
+
+	/**
+	 * @var WP_Styles|null
+	 */
+	protected $original_wp_styles;
+
 	public function set_up() {
 		parent::set_up();
 		$this->original_default_mimetype = ini_get( 'default_mimetype' );
@@ -86,9 +96,21 @@ class Tests_Template extends WP_UnitTestCase {
 			)
 		);
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+
+		global $wp_scripts, $wp_styles;
+		$this->original_wp_scripts = $wp_scripts;
+		$this->original_wp_styles  = $wp_styles;
+		$wp_scripts                = null;
+		$wp_styles                 = null;
+		wp_scripts();
+		wp_styles();
 	}
 
 	public function tear_down() {
+		global $wp_scripts, $wp_styles;
+		$wp_scripts = $this->original_wp_scripts;
+		$wp_styles  = $this->original_wp_styles;
+
 		ini_set( 'default_mimetype', $this->original_default_mimetype );
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
