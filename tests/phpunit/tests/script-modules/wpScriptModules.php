@@ -2073,4 +2073,67 @@ HTML;
 			"Snapshot:\n" . var_export( $actual, true )
 		);
 	}
+
+	/**
+	 * Tests various ways of printing and dependency ordering of script modules.
+	 *
+	 * @ticket 63486
+	 *
+	 * @dataProvider data_test_register_and_enqueue_script_module
+	 *
+	 * @covers ::wp_register_script_module()
+	 * @covers WP_Script_Modules::register()
+	 * @covers ::wp_enqueue_script_module()
+	 * @covers WP_Script_Modules::enqueue()
+	 * @covers ::wp_dequeue_script_module()
+	 * @covers WP_Script_Modules::dequeue()
+	 * @covers ::wp_deregister_script_module()
+	 * @covers WP_Script_Modules::deregister()
+	 * @covers WP_Script_Modules::set_fetchpriority()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
+	 * @covers WP_Script_Modules::print_enqueued_script_modules()
+	 * @covers WP_Script_Modules::print_import_map()
+	 * @covers WP_Script_Modules::print_script_module_preloads()
+	 */
+	public function test_static_import_dependency_with_dynamic_imports_depending_on_static_import_dependency() {
+		$get_dependency = function ( string $id, string $import ): array {
+			return compact( 'id', 'import' );
+		};
+
+		wp_register_script_module( 'enqueued', '/enqueued.js', array( $get_dependency( 'static1', 'static' ) ), null );
+		wp_register_script_module( 'static1', '/static1.js', array( $get_dependency( 'dynamic1', 'dynamic' ) ), null );
+		wp_register_script_module( 'dynamic1', '/dynamic1.js', array( $get_dependency( 'static2', 'static' ) ), null );
+		wp_register_script_module( 'static2', '/static2.js', array(), null );
+
+		wp_enqueue_script_module( 'enqueued' );
+		$import_map     = $this->get_import_map();
+		$preload_links  = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
+		$script_modules = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$this->assertEquals(
+			array(
+				'static1'  => '/static1.js',
+				'dynamic1' => '/dynamic1.js',
+				'static2'  => '/static2.js',
+			),
+			$import_map,
+			"Expected import map to match snapshot:\n" . var_export( $import_map, true )
+		);
+		$this->assertEqualHTML(
+			'
+				<link rel="modulepreload" href="/static1.js" id="static1-js-modulepreload">
+			',
+			$preload_links,
+			'<body>',
+			"Expected preload links to match snapshot:\n$preload_links"
+		);
+		$this->assertEqualHTML(
+			'
+				<script type="module" src="/enqueued.js" id="enqueued-js-module"></script>
+			',
+			$script_modules,
+			'<body>',
+			"Expected script modules to match snapshot:\n$script_modules"
+		);
+	}
 }
