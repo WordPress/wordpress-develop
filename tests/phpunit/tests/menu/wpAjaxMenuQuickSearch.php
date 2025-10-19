@@ -65,7 +65,7 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 			array(
 				'post_type'    => 'post',
 				'post_status'  => 'draft',
-				'post_title'   => 'Draft',
+				'post_title'   => 'Draft FOO',
 				'post_content' => 'FOO',
 			)
 		);
@@ -73,7 +73,7 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 			array(
 				'post_type'    => 'post',
 				'post_status'  => 'pending',
-				'post_title'   => 'Pending',
+				'post_title'   => 'Pending FOO',
 				'post_content' => 'FOO',
 			)
 		);
@@ -81,7 +81,7 @@ class Tests_Menu_WpAjaxMenuQuickSearch extends WP_UnitTestCase {
 			array(
 				'post_type'    => 'post',
 				'post_status'  => 'future',
-				'post_title'   => 'Future',
+				'post_title'   => 'Future FOO',
 				'post_content' => 'FOO',
 				'post_date'    => gmdate( 'Y-m-d H:i:s', strtotime( '+1 month' ) ),
 			)

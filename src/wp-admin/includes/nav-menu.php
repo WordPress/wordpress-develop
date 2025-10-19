@@ -109,7 +109,7 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 			 *     @type array        $search_columns Which post table columns to query.
 			 * }
 			*/
-			$query_args = apply_filters( 'wp_ajax_menu_quick_search_args', $args );
+			$query_args = apply_filters( 'wp_ajax_menu_quick_search_args', $query_args );
 			$args       = array_merge(
 				$args,
 				$query_args
