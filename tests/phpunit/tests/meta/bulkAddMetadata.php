@@ -211,16 +211,15 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 		global $wpdb;
 
 		$table = "{$meta_type}meta";
-		$sql   = '
-			SELECT AUTO_INCREMENT
-			FROM INFORMATION_SCHEMA.TABLES
-			WHERE TABLE_SCHEMA = DATABASE()
-			AND TABLE_NAME = %s
-		';
 
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
-				$sql,
+				'
+					SELECT AUTO_INCREMENT
+					FROM INFORMATION_SCHEMA.TABLES
+					WHERE TABLE_SCHEMA = DATABASE()
+					AND TABLE_NAME = %s
+				',
 				$wpdb->$table
 			)
 		);
