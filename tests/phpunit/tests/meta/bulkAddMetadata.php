@@ -135,7 +135,7 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected_vals, $actual_vals, 'Actual meta values should match expected values.' );
-		$this->assertSame( $expected_mids, $result , 'Actual meta IDs should match expected meta IDs.' );
+		$this->assertSame( $expected_mids, $result, 'Actual meta IDs should match expected meta IDs.' );
 		$this->assertSame( 3, $action1->get_call_count(), "'add_{$meta_type}_metadata' filter should be called the correct number of times." );
 		$this->assertSame( 2, $action2->get_call_count(), "'add_{$meta_type}_meta' action should be called the correct number of times." );
 		$this->assertSame( 2, $action3->get_call_count(), "'added_{$meta_type}_meta' action should be called the correct number of times." );
@@ -193,15 +193,15 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 	 * @return array<string,array<string>>
 	 */
 	protected function data_meta_types(): array {
-		$types = [
-			'post'    => [ 'post' ],
-			'user'    => [ 'user' ],
-			'comment' => [ 'comment' ],
-			'term'    => [ 'term' ],
-		];
+		$types = array(
+			'post'    => array( 'post' ),
+			'user'    => array( 'user' ),
+			'comment' => array( 'comment' ),
+			'term'    => array( 'term' ),
+		);
 
 		if ( is_multisite() ) {
-			$types['blog'] = [ 'blog' ];
+			$types['blog'] = array( 'blog' );
 		}
 
 		return $types;
@@ -211,12 +211,12 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 		global $wpdb;
 
 		$table = "{$meta_type}meta";
-		$sql   = "
+		$sql   = '
 			SELECT AUTO_INCREMENT
 			FROM INFORMATION_SCHEMA.TABLES
 			WHERE TABLE_SCHEMA = DATABASE()
 			AND TABLE_NAME = %s
-		";
+		';
 
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
