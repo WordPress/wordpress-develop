@@ -391,6 +391,9 @@
 		} );
 
 		$input.on( 'blur', function() {
+			if ( ! document.hasFocus() ) {
+				return;
+			}
 			capsLockOn = false;
 			$capsWarning.hide();
 		} );
