@@ -2270,7 +2270,7 @@ function _post_states( $post, $display = true ) {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param string                 $post_states_html All relevant post sta60986tes combined into an HTML string for display.
+	 * @param string                 $post_states_html All relevant post states combined into an HTML string for display.
 	 *                                                 E.g. `&mdash; <span class='post-state'>Draft, </span><span class='post-state'>Sticky</span>`.
 	 * @param string<string, string> $post_states      A mapping of post state slugs to translated post state labels.
 	 *                                                 E.g. `array( 'draft' => 'Draft', 'sticky' => 'Sticky' )`.
