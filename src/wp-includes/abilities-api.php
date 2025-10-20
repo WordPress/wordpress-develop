@@ -142,7 +142,7 @@ function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_
 			__METHOD__,
 			sprintf(
 				/* translators: 1: abilities_api_categories_init, 2: ability category slug. */
-				__( 'Ability categories must be registered on the %1$s action. The category %2$s was not registered.' ),
+				__( 'Ability categories must be registered on the %1$s action. The ability category %2$s was not registered.' ),
 				'<code>wp_abilities_api_categories_init</code>',
 				'<code>' . esc_html( $slug ) . '</code>'
 			),

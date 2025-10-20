@@ -127,7 +127,7 @@ final class WP_Abilities_Registry {
 					__METHOD__,
 					sprintf(
 						/* translators: %1$s: ability category slug, %2$s: ability name */
-						__( 'Ability category "%1$s" is not registered. Please register the category before assigning it to ability "%2$s".' ),
+						__( 'Ability category "%1$s" is not registered. Please register the ability category before assigning it to ability "%2$s".' ),
 						esc_html( $args['category'] ),
 						esc_html( $name )
 					),
