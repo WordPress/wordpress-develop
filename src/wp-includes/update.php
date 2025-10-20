@@ -129,7 +129,24 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	// Only report when a site has MyISAM tables to save bytes.
 	if ( ! empty( $myisam_tables ) ) {
-		$query['myisam_tables'] = array_keys( $myisam_tables );
+		$all_unprefixed_tables = $wpdb->tables( 'all', false );
+
+		// Including the table prefix is not necessary.
+		$unprefixed_myisam_tables = array_reduce(
+			array_keys( $myisam_tables ),
+			function( $carry, $prefixed_myisam_table ) use ( $all_unprefixed_tables ) {
+				foreach ( $all_unprefixed_tables as $unprefixed ) {
+					if ( str_ends_with( $prefixed_myisam_table, $unprefixed ) ) {
+						$carry[] = $unprefixed;
+						break;
+					}
+				}
+				return $carry;
+			},
+			array()
+		);
+
+		$query['myisam_tables'] = $unprefixed_myisam_tables;
 	}
 
 	if ( function_exists( 'gd_info' ) ) {
