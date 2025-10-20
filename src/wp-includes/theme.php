@@ -1500,7 +1500,6 @@ function header_image() {
 function get_uploaded_header_images() {
 	$header_images = array();
 
-	// @todo Caching.
 	$headers = get_posts(
 		array(
 			'post_type'  => 'attachment',
@@ -3815,7 +3814,7 @@ function wp_customize_support_script() {
 		}());
 	</script>
 	<?php
-	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
 }
 
 /**
