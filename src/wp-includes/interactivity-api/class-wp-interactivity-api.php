@@ -402,8 +402,12 @@ final class WP_Interactivity_API {
 	 */
 	public function add_load_on_client_navigation_attribute_to_script_modules( $attributes ) {
 		if (
-			isset( $attributes['type'] ) && 'module' === $attributes['type'] && isset( $attributes['id'] )
-			&& array_key_exists( $attributes['id'], $this->script_modules_that_can_load_on_client_navigation )
+			isset( $attributes['type'], $attributes['id'] ) &&
+			'module' === $attributes['type'] &&
+			array_key_exists(
+				preg_replace( '/-js-module$/', '', $attributes['id'] ),
+				$this->script_modules_that_can_load_on_client_navigation
+			)
 		) {
 			$attributes['data-wp-router-options'] = wp_json_encode( array( 'loadOnClientNavigation' => true ) );
 		}
@@ -419,11 +423,10 @@ final class WP_Interactivity_API {
 	 * `data-wp-router-options` directive.
 	 *
 	 * @since 6.9.0
-	 *
 	 * @param string $script_module_id The script module identifier.
 	 */
 	public function add_client_navigation_support_to_script_module( $script_module_id ) {
-		$this->script_modules_that_can_load_on_client_navigation[ $script_module_id . '-js-module' ] = true;
+		$this->script_modules_that_can_load_on_client_navigation[ $script_module_id ] = true;
 	}
 
 	/**
