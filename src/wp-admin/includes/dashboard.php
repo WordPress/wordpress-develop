@@ -1814,7 +1814,7 @@ function wp_check_browser_version() {
 	$response = get_site_transient( 'browser_' . $key );
 
 	if ( false === $response ) {
-		$url     = wp_get_update_api_base( $https = false ) . '/core/browse-happy/1.1/';
+		$url     = wp_get_api_request_url( '/core/browse-happy/1.1/', 'http' );
 		$options = array(
 			'body'       => array( 'useragent' => $_SERVER['HTTP_USER_AGENT'] ),
 			'user-agent' => 'WordPress/' . wp_get_wp_version() . '; ' . home_url( '/' ),

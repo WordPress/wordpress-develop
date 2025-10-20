@@ -155,7 +155,7 @@ class WP_Debug_Data {
 		$core_version           = wp_get_wp_version();
 		$core_updates           = get_core_updates();
 		$core_update_needed     = '';
-		$update_api_base        = wp_get_update_api_base();
+		$update_api_base        = wp_get_api_request_url();
 
 		if ( is_array( $core_updates ) ) {
 			foreach ( $core_updates as $core => $update ) {
@@ -301,7 +301,8 @@ class WP_Debug_Data {
 			'debug' => true
 		);
 
-		if ( WP_UPDATE_API_DEFAULT !== wp_get_update_api_base()) {
+		$update_dom = parse_url( wp_get_update_api_base(), PHP_URL_HOST );
+		if ( WP_UPDATE_API_DEFAULT !== $update_dom ) {
 			$wp_update_api = wp_remote_get( wp_get_update_api_base(), array( 'timeout' => 10 ) );
 
 			if ( ! is_wp_error( $wp_update_api ) ) {
@@ -316,8 +317,8 @@ class WP_Debug_Data {
 					'value' => sprintf(
 						/* Translators: 1: hostname of update API, 2: IP address the update API hostname resolves to. 3: The error returned by the lookup */
 						__('Unable to reach %1$s (%2$s): %3$s' ),
-						parse_url( $update_api_base, PHP_URL_HOST ),
-						gethostbyname( parse_url( $update_api_base, PHP_URL_HOST ) ),
+						$update_dom;
+						gethostbyname( $update_dom ),
 						$wp_update_api->get_error_message(),
 					),
 					'debug' => $wp_update_api->get_error_message(),

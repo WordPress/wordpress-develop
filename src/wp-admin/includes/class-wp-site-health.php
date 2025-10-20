@@ -1307,7 +1307,7 @@ class WP_Site_Health {
 		);
 
 		$wp_dotorg = wp_remote_get(
-			WP_UPDATE_API_DEFAULT,
+			'http://' . WP_UPDATE_API_DEFAULT . '/',
 			array(
 				'timeout' => 10,
 			)
@@ -1350,7 +1350,7 @@ class WP_Site_Health {
 	/**
 	 * Tests if the site can communicate with a non-default update API endpoint.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @return array The test results.
 	 */
@@ -1371,7 +1371,7 @@ class WP_Site_Health {
 		);
 
 		$wp_update_api = wp_remote_get(
-			wp_get_update_api_base(),
+			wp_get_api_request_url(),
 			array(
 				'timeout' => 10,
 			)
@@ -1392,8 +1392,8 @@ class WP_Site_Health {
 					sprintf(
 						/* translators: 1: update API URL. 2: The IP address the update API endpoint resolves to. 3: The error returned by the lookup. */
 						__( 'Your site is unable to reach the specified update API endpoint (%s) at %s, and returned the error: %s' ),
-						wp_get_update_api_base(),
-						gethostbyname( parse_url( wp_get_update_api_base(), PHP_URL_HOST ) ),
+						wp_get_api_request_url(),
+						gethostbyname( parse_url( wp_get_api_request_url(), PHP_URL_HOST ) ),
 						$wp_update_api->get_error_message()
 					)
 				)
@@ -1402,7 +1402,7 @@ class WP_Site_Health {
 			$result['actions'] = sprintf(
 				/* translators: URL of update API */
 				__('Contact the owners of %s for support.'),
-				wp_get_update_api_base()
+				wp_get_api_request_url()
 			);
 		}
 
@@ -2929,7 +2929,7 @@ class WP_Site_Health {
 		}
 
 		// Only check alternate update API endpoint if one has been configured.
-		if ( WP_UPDATE_API_DEFAULT !== wp_get_update_api_base() ) {
+		if ( WP_UPDATE_API_DEFAULT !== parse_url( wp_get_api_request_url(), PHP_URL_HOST ) ) {
 			$tests['async']['alt_update_api_communication'] = array(
 				'label'             => __( 'Communication with update API' ),
 				'test'              => rest_url( 'wp-site-health/v1/tests/alt-update-api-communication' ),
