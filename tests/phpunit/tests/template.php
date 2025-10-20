@@ -956,7 +956,8 @@ class Tests_Template extends WP_UnitTestCase {
 		switch_theme( 'default' );
 
 		// Enqueue a style
-		wp_enqueue_style( 'test-style', 'http://example.com/style.css' );
+		wp_enqueue_style( 'early', 'http://example.com/style.css' );
+		wp_add_inline_style( 'early', '/* EARLY */' );
 
 		wp_hoist_late_printed_styles();
 
@@ -964,32 +965,60 @@ class Tests_Template extends WP_UnitTestCase {
 		add_filter( 'print_late_styles', '__return_false', 1000 );
 		$this->assertTrue( apply_filters( 'print_late_styles', true ), 'Expected late style printing to be forced.' );
 
-		// Simulate wp_head
-		ob_start();
-		do_action( 'wp_head' );
-		$head_output = ob_get_clean();
+		// Simulate wp_head.
+		$head_output = get_echo( 'wp_head' );
 
-		$this->assertMatchesRegularExpression( '/<!--wp_late_styles_placeholder:[a-f0-9-]+-->/', $head_output, 'Expect the placeholder to be present' );
-		$this->assertStringContainsString( 'test-style', $head_output, 'Expect the enqueued stylesheet to be present' );
+		$placeholder_pattern = '/<!--wp_late_styles_placeholder:[a-f0-9-]+-->/';
 
-		// Enqueue a late style (after wp_head)
-		wp_enqueue_style( 'test-late-style', 'http://example.com/late-style.css' );
+		$this->assertMatchesRegularExpression( $placeholder_pattern, $head_output, 'Expected the placeholder to be present' );
+		$this->assertStringContainsString( 'early', $head_output, 'Expected the early-enqueued stylesheet to be present.' );
 
-		// Simulate footer scripts
-		ob_start();
-		do_action( 'wp_print_footer_scripts' );
-		$footer_output = ob_get_clean();
+		// Enqueue a late style (after wp_head).
+		wp_enqueue_style( 'late', 'http://example.com/late-style.css', array(), null );
+		wp_add_inline_style( 'late', '/* EARLY */' );
 
-		// Create a complete HTML buffer
-		$buffer = '<html><head>' . $head_output . '</head><body>Content' . $footer_output . '</body></html>';
+		// Simulate footer scripts.
+		$footer_output = get_echo( 'wp_footer' );
 
-		// Apply the output buffer filter
+		// Create a simulated output buffer.
+		$buffer = '<html><head>' . $head_output . '</head><body><main>Content</main>' . $footer_output . '</body></html>';
+
+		// Apply the output buffer filter.
 		$filtered_buffer = apply_filters( 'wp_template_enhancement_output_buffer', $buffer );
 
-		preg_match( '/<head>(.+?)<\/head>/s', $filtered_buffer, $head_matches );
-		$this->assertNotEmpty( $head_matches, 'Expect the late enqueued styles to be present in the header' );
-		$this->assertStringContainsString( 'test-late-style', $head_matches[1], 'Expect the late enqueued styles to be present in the header' );
-		$this->assertStringNotContainsString( '<!--late_styles:', $filtered_buffer, 'Expect the placeholder to be gone' );
+		$this->assertDoesNotMatchRegularExpression( $placeholder_pattern, $filtered_buffer, 'Expected the placeholder to be removed.' );
+		$found_styles = array(
+			'HEAD' => array(),
+			'BODY' => array(),
+		);
+		$processor    = WP_HTML_Processor::create_full_parser( $filtered_buffer );
+		while ( $processor->next_tag() ) {
+			$group = in_array( 'HEAD', $processor->get_breadcrumbs(), true ) ? 'HEAD' : 'BODY';
+			if (
+				'LINK' === $processor->get_tag() &&
+				$processor->get_attribute( 'rel' ) === 'stylesheet'
+			) {
+				$found_styles[ $group ][] = $processor->get_attribute( 'id' );
+			} elseif ( 'STYLE' === $processor->get_tag() ) {
+				$found_styles[ $group ][] = $processor->get_attribute( 'id' );
+			}
+		}
+
+		$expected = array(
+			'early-css',
+			'early-inline-css',
+			'late-css',
+			'late-inline-css',
+		);
+		foreach ( $expected as $style_id ) {
+			$this->assertContains( $style_id, $found_styles['HEAD'], 'Expected stylesheet with ID to be in the HEAD.' );
+		}
+		$this->assertSame(
+			$expected,
+			array_values( array_intersect( $found_styles['HEAD'], $expected ) ),
+			'Expected styles to be printed in the same order.'
+		);
+		$this->assertCount( 0, $found_styles['BODY'], 'Expected no styles to be present in the footer.' );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
