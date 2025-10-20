@@ -155,6 +155,33 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test wp_register_script_module() with empty ID.
+	 *
+	 * @expectedIncorrectUsage WP_Script_Modules::register
+	 *
+	 * @covers ::wp_register_script_module
+	 * @covers WP_Script_Modules::register
+	 */
+	public function test_register_with_empty_id() {
+		wp_register_script_module( '', '/null-and-void.js' );
+		$this->assertArrayNotHasKey( '', $this->get_registered_script_modules( wp_script_modules() ) );
+	}
+
+	/**
+	 * Test wp_enqueue_script_module() with empty ID.
+	 *
+	 * @expectedIncorrectUsage WP_Script_Modules::enqueue
+	 *
+	 * @covers ::wp_enqueue_script_module
+	 * @covers WP_Script_Modules::enqueue
+	 */
+	public function test_enqueue_with_empty_id() {
+		wp_enqueue_script_module( '', '/null-and-void.js' );
+		$this->assertArrayNotHasKey( '', $this->get_registered_script_modules( wp_script_modules() ) );
+		$this->assertNotContains( '', wp_script_modules()->get_queue() );
+	}
+
+	/**
 	 * Tests various ways of registering, enqueueing, dequeuing, and deregistering a script module.
 	 *
 	 * This ensures that the global function aliases pass all the same parameters as the class methods.
