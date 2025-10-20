@@ -298,10 +298,18 @@ function create_initial_rest_routes() {
 		}
 	}
 
-	// Register the old templates endpoint.
+	// Register the old templates endpoints.
 	$wp_post_types['wp_template']->rest_base = 'templates';
 	$controller                              = new WP_REST_Templates_Controller( 'wp_template' );
+	$wp_post_types['wp_template']->rest_controller = $controller;
+	$revisions_controller                    = new WP_REST_Template_Revisions_Controller( 'wp_template' );
+	$wp_post_types['wp_template']->revisions_rest_controller = $revisions_controller;
+	$autosaves_controller                    = new WP_REST_Template_Autosaves_Controller( 'wp_template' );
+	$wp_post_types['wp_template']->rest_controller = null;
+	$wp_post_types['wp_template']->revisions_rest_controller = null;
 	$wp_post_types['wp_template']->rest_base = 'wp_template';
+	$autosaves_controller->register_routes();
+	$revisions_controller->register_routes();
 	$controller->register_routes();
 
 	register_rest_field(
