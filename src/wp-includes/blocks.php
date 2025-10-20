@@ -175,9 +175,9 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$module_version      = isset( $module_asset['version'] ) ? $module_asset['version'] : $block_version;
 
-	$supports_interactivity_true  = isset( $block_type->supports['interactivity'] ) && true === $block_type->supports['interactivity'];
-	$is_interactive               = $supports_interactivity_true || ( isset( $block_type->supports['interactivity']['interactive'] ) && true === $block_type->supports['interactivity']['interactive'] );
-	$supports_client_navigation   = $supports_interactivity_true || ( isset( $block_type->supports['interactivity']['clientNavigation'] ) && true === $block_type->supports['interactivity']['clientNavigation'] );
+	$supports_interactivity_true = isset( $metadata['supports']['interactivity'] ) && true === $metadata['supports']['interactivity'];
+	$is_interactive              = $supports_interactivity_true || ( isset( $metadata['supports']['interactivity']['interactive'] ) && true === $metadata['supports']['interactivity']['interactive'] );
+	$supports_client_navigation  = $supports_interactivity_true || ( isset( $metadata['supports']['interactivity']['clientNavigation'] ) && true === $metadata['supports']['interactivity']['clientNavigation'] );
 
 	$args = array();
 
@@ -638,6 +638,10 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			}
 			$settings[ $settings_field_name ] = $processed_scripts;
 		}
+	}
+
+	if ( ! empty( $settings['supports'] ) ) {
+		$metadata['supports'] = $settings['supports'];
 	}
 
 	$module_fields = array(
