@@ -47,7 +47,7 @@ Ensure your container environment is running before using these commands.
 
 #### To start the development environment for the first time
 
-Goto https://github.com/WordPress/wordpress-develop and fork the repository to your own GitHub account. 
+Go to https://github.com/WordPress/wordpress-develop and fork the repository to your own GitHub account. 
 
 Then clone the forked repository to your computer using `git clone https://github.com/<your-username>/wordpress-develop.git`.
 
