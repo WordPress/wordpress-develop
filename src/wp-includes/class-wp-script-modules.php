@@ -18,7 +18,7 @@ class WP_Script_Modules {
 	 * Holds the registered script modules, keyed by script module identifier.
 	 *
 	 * @since 6.5.0
-	 * @var array<non-empty-string, array<non-empty-string, mixed>>
+	 * @var array<string, array<string, mixed>>
 	 */
 	private $registered = array();
 
@@ -26,7 +26,7 @@ class WP_Script_Modules {
 	 * An array of IDs for queued script modules.
 	 *
 	 * @since 6.9.0
-	 * @var non-empty-string[]
+	 * @var string[]
 	 */
 	private $queue = array();
 
@@ -34,7 +34,7 @@ class WP_Script_Modules {
 	 * Holds the script module identifiers that have been printed.
 	 *
 	 * @since 6.9.0
-	 * @var non-empty-string[]
+	 * @var string[]
 	 */
 	private $done = array();
 
@@ -54,7 +54,7 @@ class WP_Script_Modules {
 	 * Used to optimize recursive dependency tree checks.
 	 *
 	 * @since 6.9.0
-	 * @var array<non-empty-string, non-empty-string[]>
+	 * @var array<string, string[]>
 	 */
 	private $dependents_map = array();
 
@@ -62,7 +62,7 @@ class WP_Script_Modules {
 	 * Holds the valid values for fetchpriority.
 	 *
 	 * @since 6.9.0
-	 * @var non-empty-string[]
+	 * @var string[]
 	 */
 	private $priorities = array(
 		'low',
@@ -77,7 +77,7 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 * @since 6.9.0 Added the $args parameter.
 	 *
-	 * @param non-empty-string  $id       The identifier of the script module. Should be unique. It will be used in the
+	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
 	 *                                    final import map.
 	 * @param string            $src      Optional. Full URL of the script module, or path of the script module relative
 	 *                                    to the WordPress root directory. If it is provided and the script module has
@@ -171,7 +171,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return non-empty-string[] Script module IDs.
+	 * @return string[] Script module IDs.
 	 */
 	public function get_queue(): array {
 		return $this->queue;
@@ -194,7 +194,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param non-empty-string    $id       Script module identifier.
+	 * @param string              $id       Script module identifier.
 	 * @param 'auto'|'low'|'high' $priority Fetch priority for the script module.
 	 * @return bool Whether setting the fetchpriority was successful.
 	 */
@@ -226,7 +226,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param non-empty-string $id        Script module identifier.
+	 * @param string           $id        Script module identifier.
 	 * @param bool             $in_footer Whether to print in the footer.
 	 * @return bool Whether setting the printing location was successful.
 	 */
@@ -247,7 +247,7 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 * @since 6.9.0 Added the $args parameter.
 	 *
-	 * @param non-empty-string  $id       The identifier of the script module. Should be unique. It will be used in the
+	 * @param string            $id       The identifier of the script module. Should be unique. It will be used in the
 	 *                                    final import map.
 	 * @param string            $src      Optional. Full URL of the script module, or path of the script module relative
 	 *                                    to the WordPress root directory. If it is provided and the script module has
@@ -297,7 +297,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param non-empty-string $id The identifier of the script module.
+	 * @param string $id The identifier of the script module.
 	 */
 	public function dequeue( string $id ) {
 		$this->queue = array_values( array_diff( $this->queue, array( $id ) ) );
@@ -308,7 +308,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param non-empty-string $id The identifier of the script module.
+	 * @param string $id The identifier of the script module.
 	 */
 	public function deregister( string $id ) {
 		$this->dequeue( $id );
@@ -355,7 +355,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param non-empty-string[] $ids Script module IDs.
+	 * @param string[] $ids Script module IDs.
 	 * @return 'auto'|'low'|'high' Highest fetch priority for the provided script module IDs.
 	 */
 	private function get_highest_fetchpriority( array $ids ): string {
@@ -424,7 +424,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param non-empty-string $id The script module identifier.
+	 * @param string $id The script module identifier.
 	 */
 	private function print_script_module( string $id ) {
 		if ( in_array( $id, $this->done, true ) || ! in_array( $id, $this->queue, true ) ) {
@@ -540,10 +540,10 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param non-empty-string[] $ids          The identifiers of the script modules for which to gather dependencies.
-	 * @param non-empty-string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
+	 * @param string[] $ids          The identifiers of the script modules for which to gather dependencies.
+	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
 	 *                                         Default is both.
-	 * @return non-empty-string[] List of IDs for script module dependencies.
+	 * @return string[] List of IDs for script module dependencies.
 	 */
 	private function get_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ): array {
 		$all_dependencies = array();
@@ -581,8 +581,8 @@ class WP_Script_Modules {
 	 *
 	 * @see WP_Scripts::get_dependents()
 	 *
-	 * @param non-empty-string $id The script ID.
-	 * @return non-empty-string[] Script module IDs.
+	 * @param string $id The script ID.
+	 * @return string[] Script module IDs.
 	 */
 	private function get_dependents( string $id ): array {
 		// Check if dependents map for the handle in question is present. If so, use it.
@@ -612,8 +612,8 @@ class WP_Script_Modules {
 	 *
 	 * @see WP_Scripts::get_dependents()
 	 *
-	 * @param non-empty-string $id The script ID.
-	 * @return non-empty-string[] Script module IDs.
+	 * @param string $id The script ID.
+	 * @return string[] Script module IDs.
 	 */
 	private function get_recursive_dependents( string $id ): array {
 		$dependents = array();
@@ -655,10 +655,10 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param non-empty-string[] $ids          The identifiers of the script modules to sort.
-	 * @param non-empty-string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
+	 * @param string[] $ids          The identifiers of the script modules to sort.
+	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
 	 *                                         Default is both.
-	 * @return non-empty-string[] Sorted list of script module identifiers.
+	 * @return string[] Sorted list of script module identifiers.
 	 */
 	private function get_sorted_dependencies( array $ids, array $import_types = array( 'static', 'dynamic' ) ): array {
 		$sorted = array();
@@ -675,9 +675,9 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param non-empty-string   $id           The identifier of the script module to sort.
-	 * @param non-empty-string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
-	 * @param non-empty-string[] &$sorted      The array of sorted identifiers, passed by reference.
+	 * @param string   $id           The identifier of the script module to sort.
+	 * @param string[] $import_types Optional. Import types of dependencies to retrieve: 'static', 'dynamic', or both.
+	 * @param string[] &$sorted      The array of sorted identifiers, passed by reference.
 	 * @return bool True on success, false on failure (e.g., missing dependency).
 	 */
 	private function sort_item_dependencies( string $id, array $import_types, array &$sorted ): bool {
@@ -726,7 +726,7 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param non-empty-string $id The script module identifier.
+	 * @param string $id The script module identifier.
 	 * @return string The script module src with a version if relevant.
 	 */
 	private function get_src( string $id ): string {
