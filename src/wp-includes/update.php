@@ -192,6 +192,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	 */
 	$query = apply_filters( 'core_version_check_query_args', $query );
 
+	error_log( print_r( $query, true ) );
 	$post_body = array(
 		'translations' => wp_json_encode( $translations ),
 	);
