@@ -106,6 +106,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'users'              => get_user_count(),
 		'multisite_enabled'  => $multisite_enabled,
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
+		'myisam_tables'      => array(),
 		'extensions'         => array_combine( $extensions, array_map( 'phpversion', $extensions ) ),
 		'platform_flags'     => array(
 			'os'   => PHP_OS,
@@ -116,18 +117,19 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	// Check for default tables using the MyISAM engine.
 	$table_names   = implode( "','", $wpdb->tables() );
-	$myisam_tables = (int) $wpdb->get_var(
+	$myisam_tables = $wpdb->get_results(
 		$wpdb->prepare(
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
-			"SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') AND ENGINE = %s;",
+			"SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') AND ENGINE = %s;",
 			DB_NAME,
 			'MyISAM'
-		)
+		),
+		OBJECT_K
 	);
 
 	// Only report when a site has MyISAM tables to save bytes.
-	if ( $myisam_tables > 0 ) {
-		$query['myisam_count'] = $myisam_tables;
+	if ( ! empty( $myisam_tables ) ) {
+		$query['myisam_tables'] = array_keys( $myisam_tables );
 	}
 
 	if ( function_exists( 'gd_info' ) ) {
