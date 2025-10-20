@@ -335,8 +335,9 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function add_hooks() {
-		add_action( wp_is_block_theme() ? 'wp_head' : 'wp_footer', array( $this, 'print_import_map' ) );
-		if ( wp_is_block_theme() ) {
+		$is_block_theme = wp_is_block_theme();
+		add_action( $is_block_theme ? 'wp_head' : 'wp_footer', array( $this, 'print_import_map' ) );
+		if ( $is_block_theme ) {
 			// Modules can only be printed in the head for block themes because only with
 			// block themes will import map be fully populated by modules discovered by
 			// rendering the block template. In classic themes, modules are enqueued during
@@ -345,7 +346,7 @@ class WP_Script_Modules {
 			add_action( 'wp_head', array( $this, 'print_head_enqueued_script_modules' ) );
 		}
 		add_action( 'wp_footer', array( $this, 'print_enqueued_script_modules' ) );
-		add_action( wp_is_block_theme() ? 'wp_head' : 'wp_footer', array( $this, 'print_script_module_preloads' ) );
+		add_action( $is_block_theme ? 'wp_head' : 'wp_footer', array( $this, 'print_script_module_preloads' ) );
 
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_import_map' ) );
 		add_action( 'admin_print_footer_scripts', array( $this, 'print_enqueued_script_modules' ) );
