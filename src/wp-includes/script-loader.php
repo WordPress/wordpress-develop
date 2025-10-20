@@ -3501,7 +3501,7 @@ function wp_load_block_styles_on_demand_in_classic_themes() {
 	add_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
 
 	// Add hooks which require the presence of the output buffer. Ideally the above two filters could be added here, but they run too early.
-	add_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );
+	add_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
 }
 
 /**
@@ -3509,7 +3509,7 @@ function wp_load_block_styles_on_demand_in_classic_themes() {
  *
  * @since 6.9.0
  */
-function wp_use_placeholder_for_delayed_css() {
+function wp_hoist_late_printed_styles() {
 
 	// Determine priority at which styles are printed at wp_head. Short-circuit if it was unhooked.
 	$wp_head_priority = has_action( 'wp_head', 'wp_print_styles' );

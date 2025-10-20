@@ -101,7 +101,7 @@ class Tests_Template extends WP_UnitTestCase {
 		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
 		remove_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
 		remove_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
-		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' );
+		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
 
 		global $wp_scripts, $wp_styles;
 		$this->original_wp_scripts = $wp_scripts;
@@ -906,7 +906,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$this->assertFalse( has_filter( 'should_load_separate_core_block_assets' ), 'Expect should_load_separate_core_block_assets filter NOT to be added for block themes.' );
 		$this->assertFalse( has_filter( 'should_load_block_assets_on_demand', '__return_true' ), 'Expect should_load_block_assets_on_demand filter NOT to be added for block themes.' );
-		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' ), 'Expect wp_template_enhancement_output_buffer_started action NOT to be added for block themes.' );
+		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expect wp_template_enhancement_output_buffer_started action NOT to be added for block themes.' );
 	}
 
 	/**
@@ -925,22 +925,22 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertTrue( apply_filters( 'should_load_separate_core_block_assets', $default ), 'Expect should_load_separate_core_block_assets filters to return true' );
 		$this->assertTrue( has_filter( 'should_load_block_assets_on_demand' ), 'Expect should_load_block_assets_on_demand filter to be added for classic themes.' );
 		$this->assertTrue( apply_filters( 'should_load_block_assets_on_demand', $default ), 'Expect should_load_separate_core_block_assets filters to return true' );
-		$this->assertNotFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_use_placeholder_for_delayed_css' ), 'Expect wp_template_enhancement_output_buffer_started filter to be added for classic themes.' );
+		$this->assertNotFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expect wp_template_enhancement_output_buffer_started filter to be added for classic themes.' );
 	}
 
 	/**
-	 * Tests that wp_use_placeholder_for_delayed_css adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
+	 * Tests that wp_hoist_late_printed_styles adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
 	 *
 	 * @ticket 64099
-	 * @covers ::wp_use_placeholder_for_delayed_css
+	 * @covers ::wp_hoist_late_printed_styles
 	 */
-	public function test_wp_use_placeholder_for_delayed_css(): void {
+	public function test_wp_hoist_late_printed_styles(): void {
 		switch_theme( 'default' );
 
 		// Enqueue a style
 		wp_enqueue_style( 'test-style', 'http://example.com/style.css' );
 
-		wp_use_placeholder_for_delayed_css();
+		wp_hoist_late_printed_styles();
 
 		// Ensure late styles are printed.
 		add_filter( 'print_late_styles', '__return_false', 1000 );
