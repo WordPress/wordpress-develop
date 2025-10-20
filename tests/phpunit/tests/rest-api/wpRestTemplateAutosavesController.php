@@ -599,11 +599,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$wp_post_types['wp_template']->revisions_rest_controller_class = 'WP_REST_Template_Revisions_Controller';
 		$wp_post_types['wp_template']->rest_controller                 = null;
 		$wp_post_types['wp_template']->revisions_rest_controller       = null;
-		$controller       = new WP_REST_Template_Autosaves_Controller( $parent_post->post_type );
+		$controller = new WP_REST_Template_Autosaves_Controller( $parent_post->post_type );
 		$wp_post_types['wp_template']->rest_controller_class           = $original_rest_controller_class;
 		$wp_post_types['wp_template']->revisions_rest_controller_class = $original_revisions_rest_controller_class;
 		$wp_post_types['wp_template']->rest_base                       = 'wp_template';
-		$response         = $controller->prepare_item_for_response( $autosave_db_post, $request );
+		$response = $controller->prepare_item_for_response( $autosave_db_post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
 			$response,

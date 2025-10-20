@@ -837,10 +837,10 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$original_rest_controller_class                      = $wp_post_types['wp_template']->rest_controller_class;
 		$wp_post_types['wp_template']->rest_controller_class = 'WP_REST_Templates_Controller';
 		$wp_post_types['wp_template']->rest_controller       = null;
-		$controller  = new WP_REST_Template_Revisions_Controller( $parent_post->post_type );
+		$controller = new WP_REST_Template_Revisions_Controller( $parent_post->post_type );
 		$wp_post_types['wp_template']->rest_controller_class = $original_rest_controller_class;
 		$wp_post_types['wp_template']->rest_base             = 'wp_template';
-		$response    = $controller->prepare_item_for_response( $post, $request );
+		$response = $controller->prepare_item_for_response( $post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
 			$response,
