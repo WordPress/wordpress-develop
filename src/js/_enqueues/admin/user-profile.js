@@ -358,7 +358,7 @@
 
 		$capsWarning = $( '<div id="caps-warning" class="caps-warning"></div>' );
 		$capsIcon    = $( '<span class="caps-icon" aria-hidden="true"><svg viewBox="0 0 24 26" xmlns="http://www.w3.org/2000/svg" fill="#3c434a" stroke="#3c434a" stroke-width="0.5"><path d="M12 5L19 15H16V19H8V15H5L12 5Z"/><rect x="8" y="21" width="8" height="1.5" rx="0.75"/></svg></span>' );
-		$capsText    = $( '<span class="caps-warning-text">' + __( 'Caps lock is on.' ) + '</span>' );
+		$capsText    = $( '<span>', { 'class': 'caps-warning-text', text: __( 'Caps lock is on.' ) } );
 		$capsWarning.append( $capsIcon, $capsText );
 
 		$input.parent( 'div' ).append( $capsWarning );
