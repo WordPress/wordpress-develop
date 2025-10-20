@@ -42,8 +42,8 @@ class Tests_Theme_GetUploadedHeaderImages extends WP_UnitTestCase {
 		$expected = array(
 			$cropped_1_id => array(
 				'attachment_id'     => $cropped_1_id,
-				'url'               => 'http://example.org/wp-content/uploads/foo-cropped-1.png',
-				'thumbnail_url'     => 'http://example.org/wp-content/uploads/foo-cropped-1.png',
+				'url'               => get_site_url() . '/wp-content/uploads/foo-cropped-1.png',
+				'thumbnail_url'     => get_site_url() . '/wp-content/uploads/foo-cropped-1.png',
 				'alt_text'          => '',
 				'attachment_parent' => $id,
 			),
