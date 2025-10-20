@@ -1859,14 +1859,16 @@ function wp_assign_new_template_to_theme( $changes, $request ) {
 	if ( $template ) {
 		return $changes;
 	}
-	$changes->tax_input = array(
-		'wp_theme' => isset( $request['theme'] ) ? $request['theme'] : get_stylesheet(),
-	);
+	if ( ! isset( $changes->tax_input ) ) {
+		$changes->tax_input = array();
+	}
+	$changes->tax_input['wp_theme'] = isset( $request['theme'] ) ? $request['theme'] : get_stylesheet();
 	// All new templates saved will receive meta so we can distinguish between
 	// templates created the old way as edits and templates created the new way.
-	$changes->meta_input = array(
-		'is_inactive_by_default' => true,
-	);
+	if ( ! isset( $changes->meta_input ) ) {
+		$changes->meta_input = array();
+	}
+	$changes->meta_input['is_inactive_by_default'] = true;
 	return $changes;
 }
 
