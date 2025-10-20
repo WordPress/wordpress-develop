@@ -1472,6 +1472,8 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * Verify the validate_theme_requirements theme responds as expected for twentyten.
+	 *
+	 * @ticket 54381
 	 */
 	public function test_validate_theme_requirements_filter_default() {
 		// Default expectation since twentyten has the least strict requirements.
