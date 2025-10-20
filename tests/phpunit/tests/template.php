@@ -947,12 +947,47 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{set_up?: Closure}>
+	 */
+	public function data_provider_for_test_wp_hoist_late_printed_styles(): array {
+		return array(
+			'no_actions_removed'              => array(
+				'set_up' => null,
+			),
+			'_wp_footer_scripts_removed'      => array(
+				'set_up' => static function () {
+					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+				},
+			),
+			'wp_print_footer_scripts_removed' => array(
+				'set_up' => static function () {
+					remove_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
+				},
+			),
+			'both_actions_removed'            => array(
+				'set_up' => static function () {
+					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+					remove_action( 'wp_footer', 'wp_print_footer_scripts' );
+				},
+			),
+		);
+	}
+
+	/**
 	 * Tests that wp_hoist_late_printed_styles() adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
 	 *
 	 * @ticket 64099
 	 * @covers ::wp_hoist_late_printed_styles
+	 *
+	 * @dataProvider data_provider_for_test_wp_hoist_late_printed_styles
 	 */
-	public function test_wp_hoist_late_printed_styles(): void {
+	public function test_wp_hoist_late_printed_styles( ?Closure $set_up ): void {
+		if ( $set_up ) {
+			$set_up();
+		}
+
 		switch_theme( 'default' );
 
 		// Enqueue a style
