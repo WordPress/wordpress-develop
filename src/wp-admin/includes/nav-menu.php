@@ -100,20 +100,17 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 			 * @param array $args {
 			 *     Menu quick search arguments.
 			 *
-			 *     @type boolean      $no_found_rows Whether to return found rows data. Default true.
+			 *     @type boolean      $no_found_rows          Whether to return found rows data. Default true.
 			 *     @type boolean      $update_post_meta_cache Whether to update post meta cache. Default false.
 			 *     @type boolean      $update_post_term_cache Whether to update post term cache. Default false.
-			 *     @type int          $posts_per_page Number of posts to return. Default 10.
-			 *     @type string       $post_type Type of post to return.
-			 *     @type string       $s Search query.
-			 *     @type array        $search_columns Which post table columns to query.
+			 *     @type int          $posts_per_page         Number of posts to return. Default 10.
+			 *     @type string       $post_type              Type of post to return.
+			 *     @type string       $s                      Search query.
+			 *     @type array        $search_columns         Which post table columns to query.
 			 * }
 			*/
 			$query_args = apply_filters( 'wp_ajax_menu_quick_search_args', $query_args );
-			$args       = array_merge(
-				$args,
-				$query_args
-			);
+			$args       = array_merge( $args, $query_args );
 
 			if ( isset( $post_type_obj->_default_query ) ) {
 				$args = array_merge( $args, (array) $post_type_obj->_default_query );
