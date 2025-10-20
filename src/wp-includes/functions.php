@@ -9221,3 +9221,39 @@ function wp_verify_fast_hash(
 
 	return hash_equals( $hash, wp_fast_hash( $message ) );
 }
+
+/**
+ * Returns the base URL in use for the wordpress.org API. Defaults to http://api.wordpress.org .
+ * 
+ * This URL can be overridden by specifying an environment variable `WP_UPDATE_API_BASE` or
+ * by using the {@see wp_update_api_base} filter. Providing an empty URL is not allowed and
+ * will result in the default being used.
+ * 
+ * @since 7.0.0
+ * 
+ * @param bool $https Whether requests should use https instead of http, defaults to true.
+ * @return string The base URL in use for the wordpress.org update API.
+ */
+function wp_get_update_api_base( $https = true ) {
+	$api_base = WP_UPDATE_API_DEFAULT;
+
+	if ( false !== getenv('WP_UPDATE_API_BASE') ) {
+		$api_base = getenv('WP_UPDATE_API_BASE');
+	}
+
+	/**
+	 * Filters the base URL used for wordpress.org API requests.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $content Default text.
+	 */
+	$api_base = apply_filters( 'wp_update_api_base', $api_base );
+
+	// required for back-compat as many old api references in core use http:// explicitly
+	if ( (! $https) && (substr($api_base, 0, 7) == 'http://') && ($api_base === WP_UPDATE_API_DEFAULT)) {
+		$api_base = str_replace( $api_base, 'http://', 'https://' );
+	}
+
+	return $api_base;
+}
