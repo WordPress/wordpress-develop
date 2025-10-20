@@ -172,27 +172,37 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_filter_post_states_string_should_enable_post_state_html_output_modification
 	 *
+	 * @covers ::_post_states
+	 *
 	 * @param string $post_state The post state to test.
 	 */
 	public function test_filter_post_states_string_should_enable_post_state_html_output_modification( $post_state ) {
 		$post = get_post( self::$post_ids[ $post_state ] );
 
 		$original_output = _post_states( $post, false );
-		$text_to_append  = '<span class="post-state">, Sample state</span>';
+
+		if ( count( get_post_states( $post ) ) === 0 ) {
+			$text_to_append = '&mdash; <span class="post-state">Sample state</span>';
+		} else {
+			$text_to_append = '<span class="post-state">, Sample state</span>';
+		}
 
 		add_filter(
 			'post_states_string',
-			static function ( $post_states_string, $post ) use ( $text_to_append ) {
+			function ( $post_states_string, $post_states, $filtered_post ) use ( $text_to_append, $post ) {
+				$this->assertIsString( $post_states_string, 'Expected first filter arg to be a string.' );
+				$this->assertIsArray( $post_states, 'Expected second filter arg to be an array.' );
+				$this->assertInstanceOf( WP_Post::class, $filtered_post, 'Expected third filter arg to be a WP_Post' );
+				$this->assertSame( $post->ID, $filtered_post->ID, 'Expected the third filter arg to be the same as the current post.' );
 				return $post_states_string . $text_to_append;
 			},
 			10,
-			2
+			3
 		);
 
 		$output = _post_states( $post, false );
 
-		$this->assertStringContainsString( $text_to_append, $output );
-		$this->assertStringContainsString( $original_output, $output );
+		$this->assertSame( $original_output . $text_to_append, $output, 'Expected text to be appended to the original output.' );
 	}
 
 	/**
