@@ -262,16 +262,18 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$aria_current = '';
 
 		$edit_filter_link_vars = compact( 'url', 'link_text', 'css_class' );
+
 		/**
 		 * Filters the links created for filtering the posts list table.
 		 *
 		 * @since 6.9.0
 		 *
 		 * @param array $edit_filter_link_vars {
-		*       The edit filter link variables.
-		 *      @type string $url        The formatted link string.
-		 *      @type string $link_text  The link text.
-		 *      @type string $css_class  The class HTML.
+		 *      The edit filter link variables.
+		 *
+		 *      @type string $url       The formatted link string.
+		 *      @type string $link_text The link text.
+		 *      @type string $css_class The class HTML.
 		 * }
 		 * @param array $args URL parameters for the link.
 		 */
