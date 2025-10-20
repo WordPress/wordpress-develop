@@ -828,6 +828,21 @@ $_old_files = array(
 	'wp-includes/SimplePie/Net/',
 	'wp-includes/SimplePie/Parse/',
 	'wp-includes/SimplePie/XML/',
+	// 6.8
+	'wp-includes/blocks/post-content/editor.css',
+	'wp-includes/blocks/post-content/editor.min.css',
+	'wp-includes/blocks/post-content/editor-rtl.css',
+	'wp-includes/blocks/post-content/editor-rtl.min.css',
+	'wp-includes/blocks/post-template/editor.css',
+	'wp-includes/blocks/post-template/editor.min.css',
+	'wp-includes/blocks/post-template/editor-rtl.css',
+	'wp-includes/blocks/post-template/editor-rtl.min.css',
+	'wp-includes/js/dist/undo-manager.js',
+	'wp-includes/js/dist/undo-manager.min.js',
+	'wp-includes/js/dist/fields.min.js',
+	'wp-includes/js/dist/fields.js',
+	// 6.9
+	'wp-content/plugins/hello.php',
 );
 
 /**
@@ -960,6 +975,7 @@ $_new_bundled_files = array(
 	'themes/twentytwentythree/' => '6.1',
 	'themes/twentytwentyfour/'  => '6.4',
 	'themes/twentytwentyfive/'  => '6.7',
+	'plugins/hello-dolly/'      => '6.9',
 );
 
 /**
@@ -1010,6 +1026,7 @@ $_new_bundled_files = array(
  * @global string[]           $_old_requests_files
  * @global string[]           $_new_bundled_files
  * @global wpdb               $wpdb                   WordPress database abstraction object.
+ * @global string             $wp_version             The WordPress version string.
  *
  * @param string $from New release unzipped path.
  * @param string $to   Path to old WordPress installation.
