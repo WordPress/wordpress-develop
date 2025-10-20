@@ -11,18 +11,6 @@
 /**
  * Core class used to register script modules.
  *
- * @phpstan-type Dependency array{
- *     id: non-empty-string,
- *     import: 'static'|'dynamic',
- * }
- * @phpstan-type ScriptModule array{
- *     src: string,
- *     version: string|false|null,
- *     dependencies: Dependency[],
- *     in_footer: bool,
- *     fetchpriority: 'auto'|'low'|'high',
- * }
- *
  * @since 6.5.0
  */
 class WP_Script_Modules {
@@ -31,7 +19,6 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.5.0
 	 * @var array<non-empty-string, array<non-empty-string, mixed>>
-	 * @phpstan-var array<non-empty-string, ScriptModule>
 	 */
 	private $registered = array();
 
@@ -76,7 +63,6 @@ class WP_Script_Modules {
 	 *
 	 * @since 6.9.0
 	 * @var non-empty-string[]
-	 * @phpstan-var array{'low', 'auto', 'high'}
 	 */
 	private $priorities = array(
 		'low',
@@ -121,12 +107,6 @@ class WP_Script_Modules {
 	 *     @type bool                $in_footer     Whether to print the script module in the footer. Default 'false'. Optional.
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
 	 * }
-	 *
-	 * @phpstan-param array<non-empty-string|Dependency> $deps
-	 * @phpstan-param array{
-	 *                    in_footer?: bool,
-	 *                    fetchpriority?: 'auto'|'low'|'high',
-	 *                } $args
 	 */
 	public function register( string $id, string $src, array $deps = array(), $version = false, array $args = array() ) {
 		if ( '' === $id ) {
@@ -280,12 +260,6 @@ class WP_Script_Modules {
 	 *     @type bool                $in_footer     Whether to print the script module in the footer. Default 'false'. Optional.
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
 	 * }
-	 *
-	 * @phpstan-param array<non-empty-string|Dependency> $deps
-	 * @phpstan-param array{
-	 *                    in_footer?: bool,
-	 *                    fetchpriority?: 'auto'|'low'|'high',
-	 *                } $args
 	 */
 	public function enqueue( string $id, string $src = '', array $deps = array(), $version = false, array $args = array() ) {
 		if ( '' === $id ) {
@@ -528,8 +502,6 @@ class WP_Script_Modules {
 	 *
 	 * @return array Array with an `imports` key mapping to an array of script module identifiers and their respective
 	 *               URLs, including the version query.
-	 *
-	 * @phpstan-return array{ imports: array<non-empty-string, non-empty-string> }
 	 */
 	private function get_import_map(): array {
 		$imports = array();
