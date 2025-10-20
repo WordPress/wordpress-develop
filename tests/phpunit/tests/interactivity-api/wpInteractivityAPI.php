@@ -26,6 +26,16 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		parent::set_up();
 		$this->interactivity = new WP_Interactivity_API();
 		wp_default_script_modules();
+		$this->interactivity->add_hooks();
+	}
+
+	/**
+	 * Tear down.
+	 */
+	public function tear_down() {
+		global $wp_script_modules;
+		parent::tear_down();
+		$wp_script_modules = null;
 	}
 
 	public function charset_iso_8859_1() {
@@ -236,7 +246,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @return MockAction
 	 */
 	private function get_script_data_filter_result( ?Closure $callback = null ): MockAction {
-		$this->interactivity->add_hooks();
 		wp_enqueue_script_module( '@wordpress/interactivity' );
 		$filter = new MockAction();
 		add_filter( 'script_module_data_@wordpress/interactivity', array( $filter, 'filter' ) );
@@ -1722,5 +1731,40 @@ HTML;
 		$this->assertStringContainsString( 'class="allowed"', $processed_html );
 		$this->assertStringNotContainsString( 'class="dis:allowed"', $processed_html );
 		$this->assertStringNotContainsString( 'class="[disallowed]"', $processed_html );
+	}
+
+	/**
+	 * Tests that add_client_navigation_support_to_script_module marks a
+	 * script module for client navigation.
+	 *
+	 * @ticket 64122
+	 *
+	 * @covers WP_Interactivity_API::add_client_navigation_support_to_script_module
+	 * @covers WP_Interactivity_API::add_load_on_client_navigation_attribute_to_script_modules
+	 */
+	public function test_add_client_navigation_support_to_script_module() {
+		$this->interactivity->add_client_navigation_support_to_script_module( 'marked-module' );
+
+		wp_register_script_module( 'marked-module', '/marked.js' );
+		wp_register_script_module( 'unmarked-module', '/unmarked.js' );
+		wp_enqueue_script_module( 'marked-module' );
+		wp_enqueue_script_module( 'unmarked-module' );
+
+		$output = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$p = new WP_HTML_Tag_Processor( $output );
+
+		// First module: marked-module should have the attribute.
+		$p->next_tag( array( 'tag_name' => 'SCRIPT' ) );
+		$this->assertSame( 'marked-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertSame(
+			'{"loadOnClientNavigation":true}',
+			$p->get_attribute( 'data-wp-router-options' )
+		);
+
+		// Second module: unmarked-module should NOT have the attribute.
+		$p->next_tag( array( 'tag_name' => 'SCRIPT' ) );
+		$this->assertSame( 'unmarked-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
 	}
 }
