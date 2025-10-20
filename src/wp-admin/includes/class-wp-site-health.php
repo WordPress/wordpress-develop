@@ -1391,7 +1391,7 @@ class WP_Site_Health {
 					__( 'Error' ),
 					sprintf(
 						/* translators: 1: update API URL. 2: The IP address the update API endpoint resolves to. 3: The error returned by the lookup. */
-						__( 'Your site is unable to reach the specified update API endpoint (%s) at %s, and returned the error: %s' ),
+						__( 'Your site is unable to reach the specified update API endpoint (%1$s) at %2$s, and returned the error: %3$s' ),
 						wp_get_api_request_url(),
 						gethostbyname( parse_url( wp_get_api_request_url(), PHP_URL_HOST ) ),
 						$wp_update_api->get_error_message()
@@ -1401,7 +1401,7 @@ class WP_Site_Health {
 
 			$result['actions'] = sprintf(
 				/* translators: URL of update API */
-				__('Contact the owners of %s for support.'),
+				__( 'Contact the owners of %s for support.' ),
 				wp_get_api_request_url()
 			);
 		}

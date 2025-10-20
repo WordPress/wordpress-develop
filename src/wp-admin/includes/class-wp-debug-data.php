@@ -298,7 +298,7 @@ class WP_Debug_Data {
 		$fields['update_api_base'] = array(
 			'label' => 'Update API URL',
 			'value' => $update_api_base,
-			'debug' => true
+			'debug' => true,
 		);
 
 		$update_dom = parse_url( wp_get_update_api_base(), PHP_URL_HOST );
@@ -316,7 +316,7 @@ class WP_Debug_Data {
 					'label' => __( 'Communication with update API' ),
 					'value' => sprintf(
 						/* Translators: 1: hostname of update API, 2: IP address the update API hostname resolves to. 3: The error returned by the lookup */
-						__('Unable to reach %1$s (%2$s): %3$s' ),
+						__( 'Unable to reach %1$s (%2$s): %3$s' ),
 						$update_dom;
 						gethostbyname( $update_dom ),
 						$wp_update_api->get_error_message(),

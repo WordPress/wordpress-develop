@@ -50,7 +50,7 @@ function translations_api( $type, $args = null ) {
 	$res = apply_filters( 'translations_api', false, $type, $args );
 
 	if ( false === $res ) {
-		$url      = wp_get_api_request_url( '/translations/' . $type . '/1.0/' , 'http' );
+		$url      = wp_get_api_request_url( '/translations/' . $type . '/1.0/', 'http' );
 		$http_url = $url;
 		$ssl      = wp_http_supports( array( 'ssl' ) );
 		if ( $ssl ) {

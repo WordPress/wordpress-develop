@@ -9224,20 +9224,21 @@ function wp_verify_fast_hash(
 
 /**
  * Given a path, returns the complete URL for a WP API request.
- * 
+ *
  * @since 7.0.0
- * 
+ *
  * @param string $path     The API endpoint to request.
  * @param string $scheme   Optional. Scheme for request. Defaults to https.
  * @return string          Complete URL for this request.
+ *
  */
 function wp_get_api_request_url( $path = '/', $scheme = 'https' ) {
 	$domain = WP_UPDATE_API_DEFAULT;
-	if (false !== getenv('WP_UPDATE_API_BASE')) {
-		$domain = getenv('WP_UPDATE_API_BASE');
+	if (false !== getenv( 'WP_UPDATE_API_BASE' ) ) {
+		$domain = getenv( 'WP_UPDATE_API_BASE' );
 	}
 
-	$uri = $scheme . "://" . $domain . $path ;
+	$uri = $scheme . '://' . $domain . $path;
 	/**
 	 * Filters the URL for a WP API request.
 	 * 
@@ -9246,5 +9247,5 @@ function wp_get_api_request_url( $path = '/', $scheme = 'https' ) {
 	 * @param string $url URL
 	 */
 	$uri = apply_filters( 'wp_api_request');
-    return $uri;
+	return $uri;
 }

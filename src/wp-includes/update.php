@@ -188,7 +188,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		$query['channel'] = WP_AUTO_UPDATE_CORE;
 	}
 
-	$url      = wp_get_update_api_base( $https = false ). '/core/version-check/1.7/?' . http_build_query( $query, '', '&' );
+	$url      = wp_get_api_request_url( '/core/version-check/1.7/?' . http_build_query( $query, '', '&' ), 'http' );
 	$http_url = $url;
 	$ssl      = wp_http_supports( array( 'ssl' ) );
 
@@ -425,7 +425,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$options['body']['update_stats'] = wp_json_encode( $extra_stats );
 	}
 
-	$url      = wp_get_update_api_base( $https = false ). '/plugins/update-check/1.1/';
+	$url      = wp_get_api_request_url( '/plugins/update-check/1.1/', 'http' );
 	$http_url = $url;
 	$ssl      = wp_http_supports( array( 'ssl' ) );
 
@@ -710,7 +710,7 @@ function wp_update_themes( $extra_stats = array() ) {
 		$options['body']['update_stats'] = wp_json_encode( $extra_stats );
 	}
 
-	$url      = wp_get_update_api_base( $https = false ) . '/themes/update-check/1.1/';
+	$url      = wp_get_api_request_url( '/themes/update-check/1.1/', 'http' );
 	$http_url = $url;
 	$ssl      = wp_http_supports( array( 'ssl' ) );
 

@@ -135,7 +135,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => 'GET',
 					'callback'            => array( $this, 'test_alt_update_api_communication' ),
-					'permission_callback' => function() {
+					'permission_callback' => function () {
 						return $this->validate_request_permission( 'alt_update_api_communication' );
 					},
 				),
