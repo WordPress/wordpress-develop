@@ -1943,22 +1943,6 @@ input[type=reset]:disabled,
 	padding-right: var(--global--spacing-unit);
 }
 
-.wp-block-cover,
-.wp-block-cover-image {
-	background-color: var(--cover--color-background);
-	min-height: var(--cover--height);
-	margin-top: inherit;
-	margin-bottom: inherit;
-
-	/* default & custom background-color */
-
-	/* Treating H2 separately to account for legacy /core styles */
-
-	/* Block Styles */
-
-	/* The background color class is used just for the overlay, and does not need to be applied to the inner container. */
-}
-
 .wp-block-cover:not(.alignwide):not(.alignfull),
 .wp-block-cover-image:not(.alignwide):not(.alignfull) {
 	clear: both;
@@ -1968,6 +1952,14 @@ input[type=reset]:disabled,
 .wp-block-cover-image.alignfull {
 	margin-top: 0;
 	margin-bottom: 0;
+}
+
+.wp-block-cover,
+.wp-block-cover-image {
+	background-color: var(--cover--color-background);
+	min-height: var(--cover--height);
+	margin-top: inherit;
+	margin-bottom: inherit;
 }
 
 .wp-block-cover .wp-block-cover__inner-container,
@@ -1999,6 +1991,12 @@ input[type=reset]:disabled,
 	color: var(--wp--style--color--link, var(--global--color-primary));
 }
 
+.wp-block-cover,
+.wp-block-cover-image {
+
+	/* default & custom background-color */
+}
+
 .wp-block-cover:not([class*=background-color]) .wp-block-cover__inner-container,
 .wp-block-cover:not([class*=background-color]) .wp-block-cover-image-text,
 .wp-block-cover:not([class*=background-color]) .wp-block-cover-text,
@@ -2006,6 +2004,12 @@ input[type=reset]:disabled,
 .wp-block-cover-image:not([class*=background-color]) .wp-block-cover-image-text,
 .wp-block-cover-image:not([class*=background-color]) .wp-block-cover-text {
 	color: var(--cover--color-foreground);
+}
+
+.wp-block-cover,
+.wp-block-cover-image {
+
+	/* Treating H2 separately to account for legacy /core styles */
 }
 
 .wp-block-cover h2,
@@ -2087,9 +2091,21 @@ input[type=reset]:disabled,
 	justify-content: center;
 }
 
+.wp-block-cover,
+.wp-block-cover-image {
+
+	/* Block Styles */
+}
+
 .wp-block-cover.is-style-twentytwentyone-border,
 .wp-block-cover-image.is-style-twentytwentyone-border {
 	border: calc(3 * var(--separator--height)) solid var(--global--color-border);
+}
+
+.wp-block-cover,
+.wp-block-cover-image {
+
+	/* The background color class is used just for the overlay, and does not need to be applied to the inner container. */
 }
 
 .wp-block-cover[class*=-background-color][class] .wp-block-cover__inner-container,
@@ -2809,10 +2825,6 @@ pre.wp-block-preformatted {
 	font-style: var(--pullquote--font-style);
 	font-weight: 700;
 	letter-spacing: var(--pullquote--letter-spacing);
-
-	/**
-   * Block Options
-   */
 }
 
 .wp-block-pullquote blockquote::before {
@@ -2852,6 +2864,13 @@ pre.wp-block-preformatted {
 	font-size: var(--global--font-size-xs);
 	font-style: var(--pullquote--font-style);
 	text-transform: none;
+}
+
+.wp-block-pullquote {
+
+	/**
+   * Block Options
+   */
 }
 
 .wp-block-pullquote:not(.is-style-solid-color) {
@@ -2933,10 +2952,6 @@ pre.wp-block-preformatted {
 	font-style: var(--quote--font-style);
 	font-weight: var(--quote--font-weight);
 	line-height: var(--quote--line-height);
-
-	/**
-   * Block Options
-   */
 }
 
 .wp-block-quote p {
@@ -2988,6 +3003,13 @@ pre.wp-block-preformatted {
 .wp-block-quote:where(:not([style*=font-weight])) cite,
 .wp-block-quote:where(:not([style*=font-weight])) footer {
 	font-weight: normal;
+}
+
+.wp-block-quote {
+
+	/**
+   * Block Options
+   */
 }
 
 .wp-block-quote.has-text-align-right {
@@ -3325,10 +3347,6 @@ hr {
 hr.wp-block-separator {
 	border-bottom: var(--separator--height) solid var(--separator--border-color);
 	opacity: 1;
-
-	/**
-   * Block Options
-   */
 }
 
 hr.wp-block-separator:not(.is-style-dots):not(.alignwide) {
@@ -3341,6 +3359,13 @@ hr.wp-block-separator:not(.is-style-dots).alignwide {
 
 hr.wp-block-separator:not(.is-style-dots).alignfull {
 	max-width: var(--responsive--alignfull-width);
+}
+
+hr.wp-block-separator {
+
+	/**
+   * Block Options
+   */
 }
 
 hr.wp-block-separator.is-style-twentytwentyone-separator-thick {
@@ -5556,17 +5581,13 @@ h1.page-title {
 	outline: 0;
 }
 
-.has-black-color[class] {
-	color: var(--global--color-black);
-}
-
 .has-black-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-black, #000);
 	color: var(--local--color-primary);
 }
 
-.has-gray-color[class] {
-	color: var(--global--color-gray);
+.has-black-color[class] {
+	color: var(--global--color-black);
 }
 
 .has-gray-color[class] > [class*=__inner-container] {
@@ -5574,8 +5595,8 @@ h1.page-title {
 	color: var(--local--color-primary);
 }
 
-.has-dark-gray-color[class] {
-	color: var(--global--color-dark-gray);
+.has-gray-color[class] {
+	color: var(--global--color-gray);
 }
 
 .has-dark-gray-color[class] > [class*=__inner-container] {
@@ -5583,8 +5604,8 @@ h1.page-title {
 	color: var(--local--color-primary);
 }
 
-.has-green-color[class] {
-	color: var(--global--color-green);
+.has-dark-gray-color[class] {
+	color: var(--global--color-dark-gray);
 }
 
 .has-green-color[class] > [class*=__inner-container] {
@@ -5592,8 +5613,8 @@ h1.page-title {
 	color: var(--local--color-primary);
 }
 
-.has-blue-color[class] {
-	color: var(--global--color-blue);
+.has-green-color[class] {
+	color: var(--global--color-green);
 }
 
 .has-blue-color[class] > [class*=__inner-container] {
@@ -5601,8 +5622,8 @@ h1.page-title {
 	color: var(--local--color-primary);
 }
 
-.has-purple-color[class] {
-	color: var(--global--color-purple);
+.has-blue-color[class] {
+	color: var(--global--color-blue);
 }
 
 .has-purple-color[class] > [class*=__inner-container] {
@@ -5610,8 +5631,8 @@ h1.page-title {
 	color: var(--local--color-primary);
 }
 
-.has-red-color[class] {
-	color: var(--global--color-red);
+.has-purple-color[class] {
+	color: var(--global--color-purple);
 }
 
 .has-red-color[class] > [class*=__inner-container] {
@@ -5619,8 +5640,8 @@ h1.page-title {
 	color: var(--local--color-primary);
 }
 
-.has-orange-color[class] {
-	color: var(--global--color-orange);
+.has-red-color[class] {
+	color: var(--global--color-red);
 }
 
 .has-orange-color[class] > [class*=__inner-container] {
@@ -5628,8 +5649,8 @@ h1.page-title {
 	color: var(--local--color-primary);
 }
 
-.has-yellow-color[class] {
-	color: var(--global--color-yellow);
+.has-orange-color[class] {
+	color: var(--global--color-orange);
 }
 
 .has-yellow-color[class] > [class*=__inner-container] {
@@ -5637,13 +5658,17 @@ h1.page-title {
 	color: var(--local--color-primary);
 }
 
-.has-white-color[class] {
-	color: var(--global--color-white);
+.has-yellow-color[class] {
+	color: var(--global--color-yellow);
 }
 
 .has-white-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-white, #fff);
 	color: var(--local--color-primary);
+}
+
+.has-white-color[class] {
+	color: var(--global--color-white);
 }
 
 .has-background a,
@@ -5657,17 +5682,13 @@ h1.page-title {
 	color: currentColor;
 }
 
-.has-black-background-color[class] {
-	background-color: var(--global--color-black);
-}
-
 .has-black-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-black, #000);
 	background-color: var(--local--color-background);
 }
 
-.has-dark-gray-background-color[class] {
-	background-color: var(--global--color-dark-gray);
+.has-black-background-color[class] {
+	background-color: var(--global--color-black);
 }
 
 .has-dark-gray-background-color[class] > [class*=__inner-container] {
@@ -5675,8 +5696,8 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
-.has-gray-background-color[class] {
-	background-color: var(--global--color-gray);
+.has-dark-gray-background-color[class] {
+	background-color: var(--global--color-dark-gray);
 }
 
 .has-gray-background-color[class] > [class*=__inner-container] {
@@ -5684,8 +5705,8 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
-.has-light-gray-background-color[class] {
-	background-color: var(--global--color-light-gray);
+.has-gray-background-color[class] {
+	background-color: var(--global--color-gray);
 }
 
 .has-light-gray-background-color[class] > [class*=__inner-container] {
@@ -5693,8 +5714,8 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
-.has-green-background-color[class] {
-	background-color: var(--global--color-green);
+.has-light-gray-background-color[class] {
+	background-color: var(--global--color-light-gray);
 }
 
 .has-green-background-color[class] > [class*=__inner-container] {
@@ -5702,8 +5723,8 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
-.has-blue-background-color[class] {
-	background-color: var(--global--color-blue);
+.has-green-background-color[class] {
+	background-color: var(--global--color-green);
 }
 
 .has-blue-background-color[class] > [class*=__inner-container] {
@@ -5711,8 +5732,8 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
-.has-purple-background-color[class] {
-	background-color: var(--global--color-purple);
+.has-blue-background-color[class] {
+	background-color: var(--global--color-blue);
 }
 
 .has-purple-background-color[class] > [class*=__inner-container] {
@@ -5720,8 +5741,8 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
-.has-red-background-color[class] {
-	background-color: var(--global--color-red);
+.has-purple-background-color[class] {
+	background-color: var(--global--color-purple);
 }
 
 .has-red-background-color[class] > [class*=__inner-container] {
@@ -5729,8 +5750,8 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
-.has-orange-background-color[class] {
-	background-color: var(--global--color-orange);
+.has-red-background-color[class] {
+	background-color: var(--global--color-red);
 }
 
 .has-orange-background-color[class] > [class*=__inner-container] {
@@ -5738,8 +5759,8 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
-.has-yellow-background-color[class] {
-	background-color: var(--global--color-yellow);
+.has-orange-background-color[class] {
+	background-color: var(--global--color-orange);
 }
 
 .has-yellow-background-color[class] > [class*=__inner-container] {
@@ -5747,13 +5768,17 @@ h1.page-title {
 	background-color: var(--local--color-background);
 }
 
-.has-white-background-color[class] {
-	background-color: var(--global--color-white);
+.has-yellow-background-color[class] {
+	background-color: var(--global--color-yellow);
 }
 
 .has-white-background-color[class] > [class*=__inner-container] {
 	--local--color-background: var(--global--color-white, #fff);
 	background-color: var(--local--color-background);
+}
+
+.has-white-background-color[class] {
+	background-color: var(--global--color-white);
 }
 
 .has-background:not(.has-text-color).has-black-background-color[class],
@@ -5766,13 +5791,18 @@ h1.page-title {
 .has-background:not(.has-text-color).has-gray-background-color[class] > [class*=__inner-container],
 .has-background:not(.has-text-color).has-dark-gray-background-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-background, #fff);
-	color: var(--local--color-primary, var(--global--color-primary));
 }
 
 .is-dark-theme .has-background:not(.has-text-color).has-black-background-color[class] > [class*=__inner-container],
 .is-dark-theme .has-background:not(.has-text-color).has-gray-background-color[class] > [class*=__inner-container],
 .is-dark-theme .has-background:not(.has-text-color).has-dark-gray-background-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-primary, #000);
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-gray-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] > [class*=__inner-container] {
+	color: var(--local--color-primary, var(--global--color-primary));
 }
 
 .has-background:not(.has-text-color).has-green-background-color[class],
@@ -5793,7 +5823,6 @@ h1.page-title {
 .has-background:not(.has-text-color).has-yellow-background-color[class] > [class*=__inner-container],
 .has-background:not(.has-text-color).has-white-background-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-primary, #000);
-	color: var(--local--color-primary, var(--global--color-primary));
 }
 
 .is-dark-theme .has-background:not(.has-text-color).has-green-background-color[class] > [class*=__inner-container],
@@ -5804,6 +5833,16 @@ h1.page-title {
 .is-dark-theme .has-background:not(.has-text-color).has-yellow-background-color[class] > [class*=__inner-container],
 .is-dark-theme .has-background:not(.has-text-color).has-white-background-color[class] > [class*=__inner-container] {
 	--local--color-primary: var(--global--color-background, #fff);
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-blue-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-purple-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-red-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-orange-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-yellow-background-color[class] > [class*=__inner-container],
+.has-background:not(.has-text-color).has-white-background-color[class] > [class*=__inner-container] {
+	color: var(--local--color-primary, var(--global--color-primary));
 }
 
 .has-purple-to-yellow-gradient-background {
