@@ -1482,6 +1482,8 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * Verify that a filtered failure of validate_theme_requirements returns WP_Error
+	 *
+	 * @ticket 54381
 	 */
 	public function test_validate_theme_requirements_filter_error() {
 		// Adds an extra requirement that always fails.
