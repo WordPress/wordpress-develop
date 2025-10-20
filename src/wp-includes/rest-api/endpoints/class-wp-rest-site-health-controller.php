@@ -129,6 +129,25 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			sprintf(
 				'/%s/%s',
 				$this->rest_base,
+				'alt-update-api-communication'
+			),
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'test_alt_update_api_communication' ),
+					'permission_callback' => function() {
+						return $this->validate_request_permission( 'alt_update_api_communication' );
+					},
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			sprintf(
+				'/%s/%s',
+				$this->rest_base,
 				'authorization-header'
 			),
 			array(
@@ -223,6 +242,18 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	public function test_dotorg_communication() {
 		$this->load_admin_textdomain();
 		return $this->site_health->get_test_dotorg_communication();
+	}
+
+	/**
+	 * Checks that the site can reach an alternate update API.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return array
+	 */
+	public function test_alt_update_api_communication() {
+		$this->load_admin_textdomain();
+		return $this->site_health->get_test_alt_update_api_communication();
 	}
 
 	/**

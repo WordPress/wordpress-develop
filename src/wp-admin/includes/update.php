@@ -129,7 +129,7 @@ function find_core_auto_update() {
  * @return array|false An array of checksums on success, false on failure.
  */
 function get_core_checksums( $version, $locale ) {
-	$http_url = 'http://api.wordpress.org/core/checksums/1.0/?' . http_build_query( compact( 'version', 'locale' ), '', '&' );
+	$http_url = wp_get_update_api_base( $https = false ) . '/core/checksums/1.0/?' . http_build_query( compact( 'version', 'locale' ), '', '&' );
 	$url      = $http_url;
 
 	$ssl = wp_http_supports( array( 'ssl' ) );
@@ -1124,4 +1124,40 @@ function wp_get_auto_update_message() {
 	}
 
 	return $message;
+}
+
+/**
+ * Returns the base URL in use for the wordpress.org API. Defaults to http://api.wordpress.org .
+ * 
+ * This URL can be overridden by specifying an environment variable `WP_UPDATE_API_BASE` or
+ * by using the {@see wp_update_api_base} filter. Providing an empty URL is not allowed and
+ * will result in the default being used.
+ * 
+ * @since 6.8.0
+ * 
+ * @param bool $https Whether requests should use https instead of http, defaults to true.
+ * @return string The base URL in use for the wordpress.org update API.
+ */
+function wp_get_update_api_base( $https = true ) {
+	$api_base = WP_UPDATE_API_DEFAULT;
+
+	if ( false !== getenv('WP_UPDATE_API_BASE') ) {
+		$api_base = getenv('WP_UPDATE_API_BASE');
+	}
+
+	/**
+	 * Filters the base URL used for wordpress.org API requests.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param string $content Default text.
+	 */
+	$api_base = apply_filters( 'wp_update_api_base', $api_base );
+
+	// required for back-compat as many old api references in core use http:// explicitly
+	if ( (! $https) && (substr($api_base, 0, 7) == 'http://') && ($api_base === WP_UPDATE_API_DEFAULT)) {
+		$api_base = str_replace( $api_base, 'http://', 'https://' );
+	}
+
+	return $api_base;
 }
