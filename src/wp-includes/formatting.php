@@ -3949,6 +3949,81 @@ function human_time_diff( $from, $to = 0 ) {
 }
 
 /**
+ * Returns a human-readable time difference between now and a given timestamp.
+ *
+ * An alternative to human_time_diff(). This function calculates the time
+ * difference between two given timestamps, and returns the result
+ * in a human-friendly string, such as:
+ *
+ * 4 days, 3 hours, 20 minutes, 15 seconds ago
+ *
+ * The timestamps are expected to be a Unix timestamp or a mysql date.
+ *
+ * @param int $from  Timestamp to compare to $to.
+ * @param int $to    Timestamp to compare $from against. Defaults to time().
+ * @param int $limit Maximum number of parts (precision) in the given result.
+ * @return string Human-readable time difference.
+ */
+function wp_natural_time( $from, $to = null, $limit = 1 ) {
+	if ( is_null( $to ) ) {
+		$to = time();
+	}
+	if ( ! is_numeric( $from ) ) {
+		$from = mysql2date( 'U', $from );
+	}
+	if ( ! is_numeric( $to ) ) {
+		$to = mysql2date( 'U', $to );
+	}
+	$diff = absint( $to - $from );
+
+	if ( $diff < 1 ) {
+		return apply_filters( 'wp_natural_time', _x( 'now', 'time ago' ), $from, $limit );
+	}
+
+	$result = array();
+
+	$parts = array(
+		/* translators: Time difference in years. %s: Number of years. */
+		array( YEAR_IN_SECONDS, _nx_noop( '%s year', '%s years', 'time ago' ) ),
+		/* translators: Time difference in months. %s: Number of months. */
+		array( 30 * DAY_IN_SECONDS, _nx_noop( '%s month', '%s months', 'time ago' ) ),
+		/* translators: Time difference in weeks. %s: Number of weeks. */
+		array( WEEK_IN_SECONDS, _nx_noop( '%s week', '%s weeks', 'time ago' ) ),
+		/* translators: Time difference in days. %s: Number of days. */
+		array( DAY_IN_SECONDS, _nx_noop( '%s day', '%s days', 'time ago' ) ),
+		/* translators: Time difference in hours. %s: Number of hours. */
+		array( HOUR_IN_SECONDS, _nx_noop( '%s hour', '%s hours', 'time ago' ) ),
+		/* translators: Time difference in minutes. %s: Number of minutes. */
+		array( MINUTE_IN_SECONDS, _nx_noop( '%s minute', '%s minutes', 'time ago' ) ),
+		/* translators: Time difference in seconds. %s: Number of seconds. */
+		array( 1, _nx_noop( '%s second', '%s seconds', 'time ago' ) ),
+	);
+
+	foreach ( $parts as $key => $pair ) {
+		$count = (int) ( $diff / $pair[0] );
+		if ( $count > 0 ) {
+			$result[] = sprintf( translate_nooped_plural( $parts[ $key ][1], $count ), $count );
+			$diff    -= $count * $pair[0];
+		} elseif ( ! empty( $result ) ) {
+			// units shall be adjacent, we already have something
+			// but the next unit just turned out to be 0, so stop the loop
+			break;
+		}
+
+		if ( $limit && count( $result ) >= $limit ) {
+			break;
+		}
+	}
+
+	/* translators: Time difference. %s: Time as a string. */
+	$label = ( $to > $from ) ? _x( '%s ago', 'time ago' ) : _x( '%s from now', 'time from now' );
+	$result = implode( _x( ', ', 'natural time separator' ), $result );
+	$result = sprintf( $label, $result );
+
+	return apply_filters( 'wp_natural_time', $result, $from, $to, $limit, $diff );
+}
+
+/**
  * Generates an excerpt from the content, if needed.
  *
  * Returns a maximum of 55 words with an ellipsis appended if necessary.

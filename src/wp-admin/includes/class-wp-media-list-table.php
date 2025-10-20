@@ -551,7 +551,7 @@ class WP_Media_List_Table extends WP_List_Table {
 
 			if ( $time && $time_diff > 0 && $time_diff < DAY_IN_SECONDS ) {
 				/* translators: %s: Human-readable time difference. */
-				$h_time = sprintf( __( '%s ago' ), human_time_diff( $time ) );
+				$h_time = wp_natural_time( $time );
 			} else {
 				$h_time = get_the_time( __( 'Y/m/d' ), $post );
 			}

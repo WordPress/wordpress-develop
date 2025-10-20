@@ -484,7 +484,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 
 		if ( $time_diff >= 0 && $time_diff < DAY_IN_SECONDS ) {
 			/* translators: %s: Human-readable time difference. */
-			return sprintf( __( '%s ago' ), human_time_diff( $timestamp ) );
+			return wp_natural_time( $timestamp );
 		}
 
 		return sprintf(

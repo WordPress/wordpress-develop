@@ -661,8 +661,7 @@ function install_plugin_information() {
 			<?php } if ( ! empty( $api->last_updated ) ) { ?>
 				<li><strong><?php _e( 'Last Updated:' ); ?></strong>
 					<?php
-					/* translators: %s: Human-readable time difference. */
-					printf( __( '%s ago' ), human_time_diff( strtotime( $api->last_updated ) ) );
+					echo wp_natural_time( $api->last_updated );
 					?>
 				</li>
 			<?php } if ( ! empty( $api->requires ) ) { ?>

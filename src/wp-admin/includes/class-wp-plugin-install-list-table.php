@@ -706,8 +706,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				<div class="column-updated">
 					<strong><?php _e( 'Last Updated:' ); ?></strong>
 					<?php
-						/* translators: %s: Human-readable time difference. */
-						printf( __( '%s ago' ), human_time_diff( $last_updated_timestamp ) );
+						echo wp_natural_time( $last_updated_timestamp );
 					?>
 				</div>
 				<div class="column-downloaded">

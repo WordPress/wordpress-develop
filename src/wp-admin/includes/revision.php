@@ -251,7 +251,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 			'date'       => date_i18n( __( 'M j, Y @ H:i' ), $modified ),
 			'dateShort'  => date_i18n( _x( 'j M Y @ H:i', 'revision date short format' ), $modified ),
 			/* translators: %s: Human-readable time difference. */
-			'timeAgo'    => sprintf( __( '%s ago' ), human_time_diff( $modified_gmt, $now_gmt ) ),
+			'timeAgo'    => wp_natural_time( $modified_gmt, $now_gmt ),
 			'autosave'   => $autosave,
 			'current'    => $current,
 			'restoreUrl' => $can_restore ? $restore_link : false,
@@ -294,7 +294,7 @@ function wp_prepare_revisions_for_js( $post, $selected_revision_id, $from = null
 			'date'       => date_i18n( __( 'M j, Y @ H:i' ), strtotime( $post->post_modified ) ),
 			'dateShort'  => date_i18n( _x( 'j M @ H:i', 'revision date short format' ), strtotime( $post->post_modified ) ),
 			/* translators: %s: Human-readable time difference. */
-			'timeAgo'    => sprintf( __( '%s ago' ), human_time_diff( strtotime( $post->post_modified_gmt ), $now_gmt ) ),
+			'timeAgo'    => wp_natural_time( $post->post_modified_gmt, $now_gmt ),
 			'autosave'   => false,
 			'current'    => true,
 			'restoreUrl' => false,
