@@ -1512,7 +1512,5 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		$this->assertTrue( validate_theme_requirements( 'twentyten' ) );
 		$this->assertInstanceOf( 'WP_Error', validate_theme_requirements( 'twentytwenty' ) );
-
-		remove_all_filters( 'validate_theme_requirements' );
 	}
 }
