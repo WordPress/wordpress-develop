@@ -1713,7 +1713,7 @@ module.exports = function(grunt) {
 	 */
 	grunt.registerTask( 'verify:build', [
 		'verify:old-files',
-		// 'verify:source-maps', We have a problem where Yjs is being bundled in core-data. Commenting it out until we have a solution.
+		'verify:source-maps',
 	] );
 
 	/**
@@ -1785,6 +1785,9 @@ module.exports = function(grunt) {
 		const ignoredFiles = [
 			'build/wp-includes/js/dist/components.js',
 			'build/wp-includes/js/dist/data.js',
+			// We have a problem where Yjs is being bundled in core-data.
+			// Ignoring this file until we find a solution.
+			'build/wp-includes/js/dist/core-data.js',
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.
