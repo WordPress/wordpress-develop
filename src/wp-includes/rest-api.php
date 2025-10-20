@@ -289,6 +289,34 @@ function create_initial_rest_routes() {
 		}
 	}
 
+	// Register the old templates endpoint.
+	global $wp_post_types;
+	$wp_post_types['wp_template']->rest_base = 'templates';
+	$controller                              = new WP_REST_Templates_Controller( 'wp_template' );
+	$wp_post_types['wp_template']->rest_base = 'wp_template';
+	$controller->register_routes();
+
+	register_rest_field(
+		'wp_template',
+		'theme',
+		array(
+			'get_callback' => function ( $post_arr ) {
+				// add_additional_fields_to_object is also called for the old
+				// templates controller, so we need to check if the id is an
+				// integer to make sure it's the proper post type endpoint.
+				if ( ! is_int( $post_arr['id'] ) ) {
+					$template = get_block_template( $post_arr['id'], 'wp_template' );
+					return $template ? $template->theme : null;
+				}
+				$terms = get_the_terms( $post_arr['id'], 'wp_theme' );
+				if ( is_wp_error( $terms ) || empty( $terms ) ) {
+					return null;
+				}
+				return $terms[0]->slug;
+			},
+		)
+	);
+
 	// Post types.
 	$controller = new WP_REST_Post_Types_Controller();
 	$controller->register_routes();
