@@ -894,13 +894,30 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_always_load_block_styles_on_demand does not add filters for block themes.
+	 * Tests that wp_load_block_styles_on_demand_in_classic_themes() does not add filters for block themes.
 	 *
 	 * @ticket 64099
 	 * @covers ::wp_load_block_styles_on_demand_in_classic_themes
 	 */
 	public function test_wp_load_block_styles_on_demand_in_classic_themes_in_block_theme(): void {
 		switch_theme( 'block-theme' );
+
+		wp_load_block_styles_on_demand_in_classic_themes();
+
+		$this->assertFalse( has_filter( 'should_load_separate_core_block_assets' ), 'Expect should_load_separate_core_block_assets filter NOT to be added for block themes.' );
+		$this->assertFalse( has_filter( 'should_load_block_assets_on_demand', '__return_true' ), 'Expect should_load_block_assets_on_demand filter NOT to be added for block themes.' );
+		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expect wp_template_enhancement_output_buffer_started action NOT to be added for block themes.' );
+	}
+
+	/**
+	 * Tests that wp_load_block_styles_on_demand_in_classic_themes() does not add filters for classic themes then output buffering is blocked.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_load_block_styles_on_demand_in_classic_themes
+	 */
+	public function test_wp_load_block_styles_on_demand_in_classic_themes_in_classic_theme_but_output_buffering_blocked(): void {
+		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_false' );
+		switch_theme( 'default' );
 
 		wp_load_block_styles_on_demand_in_classic_themes();
 
@@ -929,7 +946,7 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_hoist_late_printed_styles adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
+	 * Tests that wp_hoist_late_printed_styles() adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
 	 *
 	 * @ticket 64099
 	 * @covers ::wp_hoist_late_printed_styles
