@@ -3519,6 +3519,11 @@ function wp_load_block_styles_on_demand_in_classic_themes() {
  */
 function wp_hoist_late_printed_styles() {
 
+	// Skip the embed template on-demand styles aren't relevant, and there is no wp_head action.
+	if ( is_embed() ) {
+		return;
+	}
+
 	// Determine priority at which styles are printed at wp_head. Short-circuit if it was unhooked.
 	$wp_head_priority = has_action( 'wp_head', 'wp_print_styles' );
 	if ( false === $wp_head_priority ) {
