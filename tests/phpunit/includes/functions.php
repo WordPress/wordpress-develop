@@ -371,5 +371,5 @@ tests_add_filter( 'init', '_unhook_font_registration', 1000 );
  * @return object The MockPHPMailer object.
  */
 function _wp_phpmailer( $phpmailer ) {
- 	return new MockPHPMailer();
+	return new MockPHPMailer();
 }
