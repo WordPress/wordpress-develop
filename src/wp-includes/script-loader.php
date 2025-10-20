@@ -2264,6 +2264,11 @@ function wp_print_head_scripts() {
 /**
  * Private, for use in *_footer_scripts hooks
  *
+ * In classic themes, when block styles are loaded on demand via {@see wp_load_block_styles_on_demand_in_classic_themes()},
+ * this function is replaced by a closure in {@see wp_hoist_late_printed_styles()} which will capture the output of
+ * {@see print_late_styles()} before printing footer scripts as usual. The captured late-printed styles are then hoisted
+ * to the HEAD by means of the template enhancement output buffer.
+ *
  * @since 3.3.0
  */
 function _wp_footer_scripts() {
@@ -3508,6 +3513,9 @@ function wp_load_block_styles_on_demand_in_classic_themes() {
  * Adds the hooks needed for CSS output to be delayed until after the content of the page has been established.
  *
  * @since 6.9.0
+ *
+ * @see wp_load_block_styles_on_demand_in_classic_themes()
+ * @see _wp_footer_scripts()
  */
 function wp_hoist_late_printed_styles() {
 
