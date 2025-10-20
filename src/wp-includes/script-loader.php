@@ -3571,18 +3571,19 @@ function wp_hoist_late_printed_styles() {
 	 * swap out _wp_footer_scripts() with an alternative which captures the printed styles (for hoisting to HEAD) before
 	 * proceeding with printing the footer scripts.
 	 */
-	$wp_footer_priority = has_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
-	if ( false === $wp_footer_priority || false === has_action( 'wp_footer', 'wp_print_footer_scripts' ) ) {
+	$wp_print_footer_scripts_priority = has_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+	if ( false === $wp_print_footer_scripts_priority || false === has_action( 'wp_footer', 'wp_print_footer_scripts' ) ) {
 		// The normal priority for wp_print_footer_scripts() is to run at 20.
 		add_action( 'wp_footer', $capture_late_styles, 20 );
 	} else {
-		remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+		remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts', $wp_print_footer_scripts_priority );
 		add_action(
 			'wp_print_footer_scripts',
 			static function () use ( $capture_late_styles ) {
 				$capture_late_styles();
 				print_footer_scripts();
-			}
+			},
+			$wp_print_footer_scripts_priority
 		);
 	}
 
