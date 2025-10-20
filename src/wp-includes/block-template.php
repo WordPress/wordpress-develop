@@ -230,7 +230,7 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 	$query     = array(
 		'slug__in' => $remaining_slugs,
 	);
-	$templates = array_merge( $templates, gutenberg_get_registered_block_templates( $query ) );
+	$templates = array_merge( $templates, get_registered_block_templates( $query ) );
 
 	if ( $specific_template ) {
 		$templates = array_merge( $templates, get_block_templates( array( 'slug__in' => array( $specific_template ) ) ) );

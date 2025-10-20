@@ -263,6 +263,15 @@ function rest_api_default_filters() {
  * @since 4.7.0
  */
 function create_initial_rest_routes() {
+	global $wp_post_types;
+
+	// Register the registered templates endpoint. For that we need to copy the
+	// wp_template post type so that it's available as an entity in core-data.
+	$wp_post_types['wp_registered_template']                        = clone $wp_post_types['wp_template'];
+	$wp_post_types['wp_registered_template']->name                  = 'wp_registered_template';
+	$wp_post_types['wp_registered_template']->rest_base             = 'wp_registered_template';
+	$wp_post_types['wp_registered_template']->rest_controller_class = 'WP_REST_Registered_Templates_Controller';
+
 	foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
 		$controller = $post_type->get_rest_controller();
 
@@ -290,7 +299,6 @@ function create_initial_rest_routes() {
 	}
 
 	// Register the old templates endpoint.
-	global $wp_post_types;
 	$wp_post_types['wp_template']->rest_base = 'templates';
 	$controller                              = new WP_REST_Templates_Controller( 'wp_template' );
 	$wp_post_types['wp_template']->rest_base = 'wp_template';
