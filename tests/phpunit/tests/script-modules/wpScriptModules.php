@@ -498,6 +498,45 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that no script is printed for a script without a src.
+	 *
+	 * @covers WP_Script_Modules::register()
+	 * @covers WP_Script_Modules::enqueue()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
+	 * @covers WP_Script_Modules::print_enqueued_script_modules()
+	 * @covers WP_Script_Modules::get_src()
+	 */
+	public function test_wp_enqueue_script_module_with_empty_src() {
+		wp_enqueue_script_module( 'with-src', '/src.js' );
+		wp_register_script_module( 'without-src', '' );
+		wp_register_script_module( 'without-src-but-filtered', '' );
+		wp_enqueue_script_module( 'without-src' );
+		wp_enqueue_script_module( 'without-src-but-filtered' );
+		$this->assertSame( array( 'with-src', 'without-src', 'without-src-but-filtered' ), wp_script_modules()->get_queue() );
+		add_filter(
+			'script_module_loader_src',
+			static function ( $src, $id ) {
+				if ( 'without-src-but-filtered' === $id ) {
+					$src = '/was-empty-but-added-via-filter.js';
+				}
+				return $src;
+			},
+			10,
+			2
+		);
+		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+		$this->assertEqualHTML(
+			'
+				<script type="module" src="/src.js?ver=6.9-alpha-60093-src" id="with-src-js-module"></script>
+				<script type="module" src="/was-empty-but-added-via-filter.js" id="without-src-but-filtered-js-module"></script>
+			',
+			$actual,
+			'<body>',
+			"Expected only one SCRIPT tag to be printed. Snapshot:\n$actual"
+		);
+	}
+
+	/**
 	* Tests that a script module can be dequeued after being enqueued.
 	*
 	* @ticket 56313
