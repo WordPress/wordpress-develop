@@ -87,7 +87,7 @@ final class WP_Interactivity_API {
 
 	/**
 	 * Set of script modules that can be loaded after client-side navigation.
-	 * 
+	 *
 	 * @since 6.9.0
 	 * @var array<string, bool>
 	 */
@@ -402,7 +402,7 @@ final class WP_Interactivity_API {
 	 */
 	public function add_load_on_client_navigation_attribute_to_script_modules( $attributes ) {
 		if (
-			isset( $attributes['type'] ) && $attributes['type'] === 'module' && isset( $attributes['id'] )
+			isset( $attributes['type'] ) && 'module' === $attributes['type'] && isset( $attributes['id'] )
 			&& array_key_exists( $attributes['id'], $this->script_modules_that_can_load_on_client_navigation )
 		) {
 			$attributes['data-wp-router-options'] = wp_json_encode( array( 'loadOnClientNavigation' => true ) );
@@ -412,7 +412,7 @@ final class WP_Interactivity_API {
 
 	/**
 	 * Marks a script module as compatible with client-side navigation.
-	 * 
+	 *
 	 * This method registers a script module to be loaded during client-side
 	 * navigation in the Interactivity API router. Script modules marked with
 	 * this method will have the `loadOnClientNavigation` option enabled in the
