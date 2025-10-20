@@ -1178,7 +1178,7 @@ function comment_text( $comment_id = 0, $args = array() ) {
 function get_comment_time( $format = '', $gmt = false, $translate = true, $comment_id = null ) {
 	$comment = get_comment( $comment_id );
 
-	$source   = ( $gmt ) ? 'gmt' : 'local';
+	$source   = $gmt ? 'gmt' : 'local';
 	$datetime = get_comment_datetime( $comment, $source );
 
 	if ( false === $datetime ) {
