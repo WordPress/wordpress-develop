@@ -476,12 +476,23 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
 	 * @covers WP_Script_Modules::set_fetchpriority()
+	 * @covers WP_Script_Modules::set_in_footer()
 	 */
 	public function test_wp_enqueue_script_module() {
 		$this->script_modules->register( 'foo', '/foo.js' );
-		$this->script_modules->register( 'bar', '/bar.js', array(), false, array( 'fetchpriority' => 'high' ) );
+		$this->script_modules->register(
+			'bar',
+			'/bar.js',
+			array(),
+			false,
+			array(
+				'fetchpriority' => 'high',
+				'in_footer'     => true,
+			)
+		);
 		$this->script_modules->register( 'baz', '/baz.js' );
 		$this->assertTrue( $this->script_modules->set_fetchpriority( 'baz', 'low' ) );
+		$this->assertTrue( $this->script_modules->set_in_footer( 'baz', true ) );
 		$this->script_modules->enqueue( 'foo' );
 		$this->script_modules->enqueue( 'bar' );
 		$this->script_modules->enqueue( 'baz' );
@@ -491,10 +502,13 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$this->assertCount( 3, $enqueued_script_modules );
 		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo']['url'] );
 		$this->assertSame( 'auto', $enqueued_script_modules['foo']['fetchpriority'] );
+		$this->assertFalse( $enqueued_script_modules['foo']['in_footer'] );
 		$this->assertStringStartsWith( '/bar.js', $enqueued_script_modules['bar']['url'] );
 		$this->assertSame( 'high', $enqueued_script_modules['bar']['fetchpriority'] );
+		$this->assertTrue( $enqueued_script_modules['bar']['in_footer'] );
 		$this->assertStringStartsWith( '/baz.js', $enqueued_script_modules['baz']['url'] );
 		$this->assertSame( 'low', $enqueued_script_modules['baz']['fetchpriority'] );
+		$this->assertTrue( $enqueued_script_modules['baz']['in_footer'] );
 	}
 
 	/**
@@ -1388,6 +1402,57 @@ HTML;
 		$this->assertTrue( $this->script_modules->set_fetchpriority( 'test-script-2', '' ) );
 		$registered_modules = $this->get_registered_script_modules( $this->script_modules );
 		$this->assertSame( 'auto', $registered_modules['test-script-2']['fetchpriority'] );
+	}
+
+	/**
+	 * Tests ways of setting in_footer.
+	 *
+	 * @ticket 63486
+	 *
+	 * @covers ::wp_register_script_module
+	 * @covers ::wp_enqueue_script_module
+	 * @covers WP_Script_Modules::set_in_footer
+	 */
+	public function test_in_footer_methods() {
+		wp_register_script_module( 'default', '/default.js', array(), null );
+		wp_enqueue_script_module( 'default' );
+
+		wp_register_script_module( 'in-footer-via-register', '/in-footer-via-register.js', array(), null, array( 'in_footer' => true ) );
+		wp_enqueue_script_module( 'in-footer-via-register' );
+
+		wp_enqueue_script_module( 'in-footer-via-enqueue', '/in-footer-via-enqueue.js', array(), null, array( 'in_footer' => true ) );
+
+		wp_enqueue_script_module( 'not-in-footer-via-enqueue', '/not-in-footer-via-enqueue.js', array(), null, array( 'in_footer' => false ) );
+
+		wp_enqueue_script_module( 'in-footer-via-override', '/in-footer-via-override.js' );
+		wp_script_modules()->set_in_footer( 'in-footer-via-override', true );
+
+		wp_enqueue_script_module( 'not-in-footer-via-override', '/not-in-footer-via-override.js', array(), null, array( 'in_footer' => true ) );
+		wp_script_modules()->set_in_footer( 'not-in-footer-via-override', false );
+
+		$actual_head   = get_echo( array( wp_script_modules(), 'print_head_enqueued_script_modules' ) );
+		$actual_footer = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$this->assertEqualHTML(
+			$actual_head,
+			'
+				<script type="module" src="/default.js" id="default-js-module"></script>
+				<script type="module" src="/not-in-footer-via-enqueue.js" id="not-in-footer-via-enqueue-js-module"></script>
+				<script type="module" src="/not-in-footer-via-override.js" id="not-in-footer-via-override-js-module"></script>
+			',
+			'<body>',
+			"Expected equal script modules in the HEAD. Snapshot:\n$actual_head"
+		);
+		$this->assertEqualHTML(
+			$actual_footer,
+			'
+				<script type="module" src="/in-footer-via-register.js" id="in-footer-via-register-js-module"></script>
+				<script type="module" src="/in-footer-via-enqueue.js" id="in-footer-via-enqueue-js-module"></script>
+				<script type="module" src="/in-footer-via-override.js?ver=6.9-alpha-60093-src" id="in-footer-via-override-js-module"></script>
+			',
+			'<body>',
+			"Expected equal script modules in the footer. Snapshot:\n$actual_footer"
+		);
 	}
 
 	/**

@@ -222,6 +222,23 @@ class WP_Script_Modules {
 	}
 
 	/**
+	 * Sets whether a script module should be printed in the footer.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param non-empty-string $id        Script module identifier.
+	 * @param bool             $in_footer Whether to print in the footer.
+	 * @return bool Whether setting the printing location was successful.
+	 */
+	public function set_in_footer( string $id, bool $in_footer ): bool {
+		if ( ! isset( $this->registered[ $id ] ) ) {
+			return false;
+		}
+		$this->registered[ $id ]['in_footer'] = $in_footer;
+		return true;
+	}
+
+	/**
 	 * Marks the script module to be enqueued in the page.
 	 *
 	 * If a src is provided and the script module has not been registered yet, it
