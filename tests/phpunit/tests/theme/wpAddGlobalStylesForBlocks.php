@@ -291,7 +291,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	 * @covers ::wp_add_global_styles_for_blocks
 	 */
 	public function test_blocks_inline_styles_get_rendered() {
-		// Override wp_load_block_styles_on_demand_in_classic_themes().
+		// Override wp_load_classic_theme_block_styles_on_demand().
 		add_filter( 'should_load_block_assets_on_demand', '__return_false' ); // Needed for the .wp-block-post-featured-image assertion below.
 
 		$this->set_up_third_party_block();

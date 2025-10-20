@@ -436,7 +436,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_common_block_scripts_and_styles
 	 */
 	public function test_block_styles_for_editing_with_theme_support() {
-		// Override wp_load_block_styles_on_demand_in_classic_themes().
+		// Override wp_load_classic_theme_block_styles_on_demand().
 		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 
 		add_theme_support( 'wp-block-styles' );
@@ -475,7 +475,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_common_block_scripts_and_styles
 	 */
 	public function test_block_styles_for_viewing_with_theme_support() {
-		// Override wp_load_block_styles_on_demand_in_classic_themes().
+		// Override wp_load_classic_theme_block_styles_on_demand().
 		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 
 		add_theme_support( 'wp-block-styles' );

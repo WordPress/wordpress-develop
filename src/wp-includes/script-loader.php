@@ -2264,7 +2264,7 @@ function wp_print_head_scripts() {
 /**
  * Private, for use in *_footer_scripts hooks
  *
- * In classic themes, when block styles are loaded on demand via {@see wp_load_block_styles_on_demand_in_classic_themes()},
+ * In classic themes, when block styles are loaded on demand via {@see wp_load_classic_theme_block_styles_on_demand()},
  * this function is replaced by a closure in {@see wp_hoist_late_printed_styles()} which will capture the output of
  * {@see print_late_styles()} before printing footer scripts as usual. The captured late-printed styles are then hoisted
  * to the HEAD by means of the template enhancement output buffer.
@@ -3237,7 +3237,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  * }
  */
 function wp_enqueue_stored_styles( $options = array() ) {
-	// Note: Styles printed at wp_footer for classic themes may still end up in the head due to wp_load_block_styles_on_demand_in_classic_themes().
+	// Note: Styles printed at wp_footer for classic themes may still end up in the head due to wp_load_classic_theme_block_styles_on_demand().
 	$is_block_theme   = wp_is_block_theme();
 	$is_classic_theme = ! $is_block_theme;
 
@@ -3480,7 +3480,7 @@ function wp_remove_surrounding_empty_script_tags( $contents ) {
  *
  * @since 6.9.0
  */
-function wp_load_block_styles_on_demand_in_classic_themes() {
+function wp_load_classic_theme_block_styles_on_demand() {
 	if ( wp_is_block_theme() ) {
 		return;
 	}
@@ -3514,7 +3514,7 @@ function wp_load_block_styles_on_demand_in_classic_themes() {
  *
  * @since 6.9.0
  *
- * @see wp_load_block_styles_on_demand_in_classic_themes()
+ * @see wp_load_classic_theme_block_styles_on_demand()
  * @see _wp_footer_scripts()
  */
 function wp_hoist_late_printed_styles() {
