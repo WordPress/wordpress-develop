@@ -49,7 +49,7 @@ Ensure your container environment is running before using these commands.
 
 Go to https://github.com/WordPress/wordpress-develop and fork the repository to your own GitHub account. 
 
-Then clone the forked repository to your computer using `git clone https://github.com/<your-username>/wordpress-develop.git`.
+Then clone the forked repository to your computer using `git clone https://github.com/<your-username>/wordpress-develop.git`. Add the origin repo as an `upstream` remote via `git remote add upstream https://github.com/WordPress/wordpress-develop.git`; then you can keep your branches up to date via `git pull --ff upstream/trunk`, for example.
 
 Alternatively, if you have the GitHub CLI installed, you can just run `gh repo fork WordPress/wordpress-develop --clone --remote`. This will automatically add an `upstream` remote as well.
 
