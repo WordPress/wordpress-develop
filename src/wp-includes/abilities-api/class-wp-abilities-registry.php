@@ -5,7 +5,7 @@
  * Defines WP_Abilities_Registry class.
  *
  * @package WordPress
- * @subpackage Abilities API
+ * @subpackage Abilities_API
  * @since 6.9.0
  */
 
