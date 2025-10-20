@@ -301,9 +301,9 @@ class WP_Debug_Data {
 			'debug' => true,
 		);
 
-		$update_dom = parse_url( wp_get_update_api_base(), PHP_URL_HOST );
+		$update_dom = parse_url( wp_get_api_request_url(), PHP_URL_HOST );
 		if ( WP_UPDATE_API_DEFAULT !== $update_dom ) {
-			$wp_update_api = wp_remote_get( wp_get_update_api_base(), array( 'timeout' => 10 ) );
+			$wp_update_api = wp_remote_get( wp_get_api_request_url(), array( 'timeout' => 10 ) );
 
 			if ( ! is_wp_error( $wp_update_api ) ) {
 				$fields['alt_update_api_communication'] = array(
