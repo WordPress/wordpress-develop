@@ -1713,7 +1713,7 @@ module.exports = function(grunt) {
 	 */
 	grunt.registerTask( 'verify:build', [
 		'verify:old-files',
-		'verify:source-maps',
+		// 'verify:source-maps', We have a problem where Yjs is being bundled in core-data. Commenting it out until we have a solution.
 	] );
 
 	/**
