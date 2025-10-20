@@ -493,9 +493,8 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 	top: 2px;
 	left: 2px;
 	color: #50575e;
-	content: "\f229";
+	content: "\f229" / '';
 	font: normal 18px/1 dashicons;
-	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -512,19 +511,19 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 }
 
 .wp-slider .ui-slider-handle.from-handle:before {
-	content: "\f139";
+	content: "\f139" / '';
 }
 
 .wp-slider .ui-slider-handle.to-handle:before {
-	content: "\f141";
+	content: "\f141" / '';
 }
 
 .rtl .wp-slider .ui-slider-handle.from-handle:before {
-	content: "\f141";
+	content: "\f141" / '';
 }
 
 .rtl .wp-slider .ui-slider-handle.to-handle:before {
-	content: "\f139";
+	content: "\f139" / '';
 	right: -1px;
 }
 
@@ -572,6 +571,28 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 	}
 }
 
+@media screen and (max-width: 600px) {
+	.revisions-meta .author-card:not(.comparing-two-revisions .author-card) {
+		display: flex;
+		flex-direction: column;
+		width: fit-content;
+		gap: 16px;
+	}
+
+	.comparing-two-revisions .revisions-meta .restore-revision {
+		margin-top: 16px;
+	}
+
+	.revisions-controls {
+		padding-top: 0;
+	}
+
+	.revision-toggle-compare-mode {
+		position: relative;
+		padding: 1rem 0;
+	}
+}
+
 @media screen and (max-width: 782px) {
 	#diff-next-revision,
 	#diff-previous-revision {
@@ -585,12 +606,16 @@ div.revisions-controls > .wp-slider > .ui-slider-handle {
 
 	.revisions-controls,
 	.comparing-two-revisions .revisions-controls {
-		height: 170px;
+		height: fit-content;
 	}
 
 	.revisions-tooltip {
-		bottom: 130px;
+		bottom: 155px;
 		z-index: 2;
+	}
+
+	.comparing-two-revisions .revisions-tooltip {
+		bottom: 200px;
 	}
 
 	.diff-meta {

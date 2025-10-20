@@ -12,6 +12,9 @@ mockedApiResponse.Schema = {
     "home": "http://example.org",
     "gmt_offset": "0",
     "timezone_string": "",
+    "page_for_posts": 0,
+    "page_on_front": 0,
+    "show_on_front": "posts",
     "namespaces": [
         "oembed/1.0",
         "wp/v2",
@@ -625,6 +628,12 @@ mockedApiResponse.Schema = {
                         "sticky": {
                             "description": "Limit result set to items that are sticky.",
                             "type": "boolean",
+                            "required": false
+                        },
+                        "ignore_sticky": {
+                            "description": "Whether to ignore sticky posts or not.",
+                            "type": "boolean",
+                            "default": true,
                             "required": false
                         },
                         "format": {
@@ -2954,21 +2963,27 @@ mockedApiResponse.Schema = {
                         },
                         "media_type": {
                             "default": null,
-                            "description": "Limit result set to attachments of a particular media type.",
-                            "type": "string",
-                            "enum": [
-                                "image",
-                                "video",
-                                "text",
-                                "application",
-                                "audio"
-                            ],
+                            "description": "Limit result set to attachments of a particular media type or media types.",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "image",
+                                    "video",
+                                    "text",
+                                    "application",
+                                    "audio"
+                                ]
+                            },
                             "required": false
                         },
                         "mime_type": {
                             "default": null,
-                            "description": "Limit result set to attachments of a particular MIME type.",
-                            "type": "string",
+                            "description": "Limit result set to attachments of a particular MIME type or MIME types.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         }
                     }
@@ -3419,6 +3434,45 @@ mockedApiResponse.Schema = {
                                 ],
                                 "oneOf": [
                                     {
+                                        "title": "Flip",
+                                        "properties": {
+                                            "type": {
+                                                "description": "Flip type.",
+                                                "type": "string",
+                                                "enum": [
+                                                    "flip"
+                                                ]
+                                            },
+                                            "args": {
+                                                "description": "Flip arguments.",
+                                                "type": "object",
+                                                "required": [
+                                                    "flip"
+                                                ],
+                                                "properties": {
+                                                    "flip": {
+                                                        "description": "Flip direction.",
+                                                        "type": "object",
+                                                        "required": [
+                                                            "horizontal",
+                                                            "vertical"
+                                                        ],
+                                                        "properties": {
+                                                            "horizontal": {
+                                                                "description": "Whether to flip in the horizontal direction.",
+                                                                "type": "boolean"
+                                                            },
+                                                            "vertical": {
+                                                                "description": "Whether to flip in the vertical direction.",
+                                                                "type": "boolean"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
                                         "title": "Rotation",
                                         "properties": {
                                             "type": {
@@ -3522,6 +3576,87 @@ mockedApiResponse.Schema = {
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100,
+                            "required": false
+                        },
+                        "caption": {
+                            "description": "The attachment caption.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Caption for the attachment, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML caption for the attachment, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "description": {
+                            "description": "The attachment description.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Description for the attachment, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML description for the attachment, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "post": {
+                            "description": "The ID for the associated post of the attachment.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "alt_text": {
+                            "description": "Alternative text to display when attachment is not displayed.",
+                            "type": "string",
                             "required": false
                         }
                     }
@@ -6887,7 +7022,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/global-styles/(?P<id>[\\/\\d+]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -6905,8 +7040,8 @@ mockedApiResponse.Schema = {
                     },
                     "args": {
                         "id": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "ID of global styles config.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -9595,6 +9730,22 @@ mockedApiResponse.Schema = {
                                 }
                             },
                             "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "email",
+                                    "name",
+                                    "id",
+                                    "username",
+                                    "slug"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
                         }
                     }
                 },
@@ -10028,7 +10179,18 @@ mockedApiResponse.Schema = {
                         "app_id": {
                             "description": "A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
                             "type": "string",
-                            "format": "uuid",
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        ""
+                                    ]
+                                }
+                            ],
                             "required": false
                         },
                         "name": {
@@ -10112,7 +10274,18 @@ mockedApiResponse.Schema = {
                         "app_id": {
                             "description": "A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
                             "type": "string",
-                            "format": "uuid",
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        ""
+                                    ]
+                                }
+                            ],
                             "required": false
                         },
                         "name": {
@@ -13877,9 +14050,9 @@ mockedApiResponse.UsersCollection = [
         "link": "http://example.org/?author=1",
         "slug": "admin",
         "avatar_urls": {
-            "24": "https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=24&d=mm&r=g",
-            "48": "https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=48&d=mm&r=g",
-            "96": "https://secure.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=96&d=mm&r=g"
+            "24": "https://secure.gravatar.com/avatar/9387ed9432ec25ef93df84b8a0b9697ddef435a945e7f244670c4f79f88363e9?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/9387ed9432ec25ef93df84b8a0b9697ddef435a945e7f244670c4f79f88363e9?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/9387ed9432ec25ef93df84b8a0b9697ddef435a945e7f244670c4f79f88363e9?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": "meta_value"
@@ -13914,9 +14087,9 @@ mockedApiResponse.UsersCollection = [
         "link": "http://example.org/?author=2",
         "slug": "restapiclientfixtureuser",
         "avatar_urls": {
-            "24": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-            "48": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-            "96": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+            "24": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": ""
@@ -13953,9 +14126,9 @@ mockedApiResponse.UserModel = {
     "link": "http://example.org/?author=2",
     "slug": "restapiclientfixtureuser",
     "avatar_urls": {
-        "24": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-        "48": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-        "96": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+        "24": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=24&d=mm&r=g",
+        "48": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=48&d=mm&r=g",
+        "96": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": ""
@@ -13970,9 +14143,9 @@ mockedApiResponse.me = {
     "link": "http://example.org/?author=2",
     "slug": "restapiclientfixtureuser",
     "avatar_urls": {
-        "24": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-        "48": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-        "96": "https://secure.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
+        "24": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=24&d=mm&r=g",
+        "48": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=48&d=mm&r=g",
+        "96": "https://secure.gravatar.com/avatar/ea862d9636c72500beece7b1990870e2776f89c2096d0c064c14f2beb910077d?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": ""
@@ -13996,9 +14169,9 @@ mockedApiResponse.CommentsCollection = [
         "status": "approved",
         "type": "comment",
         "author_avatar_urls": {
-            "24": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=24&d=mm&r=g",
-            "48": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=48&d=mm&r=g",
-            "96": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=96&d=mm&r=g"
+            "24": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": "meta_value"
@@ -14050,9 +14223,9 @@ mockedApiResponse.CommentModel = {
     "status": "approved",
     "type": "comment",
     "author_avatar_urls": {
-        "24": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=24&d=mm&r=g",
-        "48": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=48&d=mm&r=g",
-        "96": "https://secure.gravatar.com/avatar/bd7c2b505bcf39cc71cfee564c614956?s=96&d=mm&r=g"
+        "24": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=24&d=mm&r=g",
+        "48": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=48&d=mm&r=g",
+        "96": "https://secure.gravatar.com/avatar/9ca51ced0b389ffbeba3d269c6d824be664c84fa1b35503282abdd302e1f417c?s=96&d=mm&r=g"
     },
     "meta": {
         "meta_key": "meta_value"

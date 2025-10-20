@@ -205,7 +205,7 @@ Any changes to the directives between these markers will be overwritten.'
 
 		if ( ! $found_marker ) {
 			$pre_lines[] = $line;
-		} elseif ( $found_marker && $found_end_marker ) {
+		} elseif ( $found_end_marker ) {
 			$post_lines[] = $line;
 		} else {
 			$existing_lines[] = $line;
@@ -263,7 +263,7 @@ function save_mod_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -303,7 +303,7 @@ function iis7_save_url_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -625,7 +625,7 @@ function show_message( $message ) {
  * @since 2.8.0
  *
  * @param string $content
- * @return array
+ * @return string[] Array of function names.
  */
 function wp_doc_link_parse( $content ) {
 	if ( ! is_string( $content ) || empty( $content ) ) {
@@ -988,7 +988,7 @@ function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingCo
 }
 
 /**
- * Displays the default admin color scheme picker (Used in user-edit.php).
+ * Displays the default administration color scheme picker (Used in user-edit.php).
  *
  * @since 3.0.0
  *
@@ -1022,12 +1022,7 @@ function admin_color_scheme_picker( $user_id ) {
 	}
 	?>
 	<fieldset id="color-picker" class="scheme-list">
-		<legend class="screen-reader-text"><span>
-			<?php
-			/* translators: Hidden accessibility text. */
-			_e( 'Admin Color Scheme' );
-			?>
-		</span></legend>
+		<legend class="screen-reader-text"><span><?php _e( 'Administration Color Scheme' ); ?></span></legend>
 		<?php
 		wp_nonce_field( 'save-color-scheme', 'color-nonce', false );
 		foreach ( $_wp_admin_css_colors as $color => $color_info ) :
@@ -1058,6 +1053,8 @@ function admin_color_scheme_picker( $user_id ) {
 
 /**
  *
+ * @since 3.8.0
+ *
  * @global array $_wp_admin_css_colors
  */
 function wp_color_scheme_settings() {
@@ -1083,7 +1080,7 @@ function wp_color_scheme_settings() {
 		);
 	}
 
-	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ) ) . ";</script>\n";
+	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
 }
 
 /**
@@ -1416,29 +1413,6 @@ function wp_admin_canonical_url() {
 }
 
 /**
- * Sends a referrer policy header so referrers are not sent externally from administration screens.
- *
- * @since 4.9.0
- */
-function wp_admin_headers() {
-	$policy = 'strict-origin-when-cross-origin';
-
-	/**
-	 * Filters the admin referrer policy header value.
-	 *
-	 * @since 4.9.0
-	 * @since 4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
-	 *
-	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
-	 *
-	 * @param string $policy The admin referrer policy header value. Default 'strict-origin-when-cross-origin'.
-	 */
-	$policy = apply_filters( 'admin_referrer_policy', $policy );
-
-	header( sprintf( 'Referrer-Policy: %s', $policy ) );
-}
-
-/**
  * Outputs JS that reloads the page if the user navigated to it with the Back or Forward button.
  *
  * Used on the Edit Post and Add New Post screens. Needed to ensure the page is not loaded from browser cache,
@@ -1483,9 +1457,9 @@ function update_option_new_admin_email( $old_value, $value ) {
 
 	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
-		'Howdy ###USERNAME###,
+		'Howdy,
 
-Someone with administrator capabilities recently requested to have the
+A site administrator (###USERNAME###) recently requested to have the
 administration email address changed on this site:
 ###SITEURL###
 
@@ -1506,11 +1480,12 @@ All at ###SITENAME###
 	 * Filters the text of the email sent when a change of site admin email address is attempted.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
-	 *  - ###USERNAME###  The current user's username.
-	 *  - ###ADMIN_URL### The link to click on to confirm the email change.
-	 *  - ###EMAIL###     The proposed new site admin email address.
-	 *  - ###SITENAME###  The name of the site.
-	 *  - ###SITEURL###   The URL to the site.
+	 *
+	 *  - `###USERNAME###`  The current user's username.
+	 *  - `###ADMIN_URL###` The link to click on to confirm the email change.
+	 *  - `###EMAIL###`     The proposed new site admin email address.
+	 *  - `###SITENAME###`  The name of the site.
+	 *  - `###SITEURL###`   The URL to the site.
 	 *
 	 * @since MU (3.0.0)
 	 * @since 4.9.0 This filter is no longer Multisite specific.

@@ -139,8 +139,7 @@ p {
 }
 
 .login form {
-	margin-top: 20px;
-	margin-left: 0;
+	margin: 24px 0;
 	padding: 26px 24px;
 	font-weight: 400;
 	overflow: hidden;
@@ -269,11 +268,11 @@ p {
 	vertical-align: baseline;
 }
 
-.login .wp-login-logo {
+.login h1 {
 	text-align: center;
 }
 
-.login .wp-login-logo a {
+.login h1 a {
 	background-image: url(../images/w-logo-blue.png?ver=20131202);
 	background-image: none, url(../images/wordpress-logo.svg?ver=20131107);
 	background-size: 84px;
@@ -284,7 +283,7 @@ p {
 	font-size: 20px;
 	font-weight: 400;
 	line-height: 1.3;
-	margin: 0 auto 25px;
+	margin: 0 auto 24px;
 	padding: 0;
 	text-decoration: none;
 	width: 84px;
@@ -323,13 +322,13 @@ p {
 
 .login #nav a:hover,
 .login #backtoblog a:hover,
-.login .wp-login-logo a:hover {
+.login h1 a:hover {
 	color: #135e96;
 }
 
 .login #nav a:focus,
 .login #backtoblog a:focus,
-.login .wp-login-logo a:focus {
+.login h1 a:focus {
 	color: #043959;
 }
 
@@ -390,7 +389,7 @@ body.interim-login {
 	margin: 5px auto 20px;
 }
 
-.interim-login.login .wp-login-logo a {
+.interim-login.login h1 a {
 	width: auto;
 }
 
@@ -407,7 +406,6 @@ body.interim-login {
 .screen-reader-text,
 .screen-reader-text span {
 	border: 0;
-	clip: rect(1px, 1px, 1px, 1px);
 	clip-path: inset(50%);
 	height: 1px;
 	margin: -1px;

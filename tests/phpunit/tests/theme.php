@@ -89,6 +89,9 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_get_theme() {
 		$themes = get_themes();
+
+		$this->assertNotEmpty( $themes );
+
 		foreach ( array_keys( $themes ) as $name ) {
 			$theme = get_theme( $name );
 			// WP_Theme implements ArrayAccess. Even ArrayObject returns false for is_array().
@@ -100,6 +103,9 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	public function test_wp_get_theme() {
 		$themes = wp_get_themes();
+
+		$this->assertNotEmpty( $themes );
+
 		foreach ( $themes as $theme ) {
 			$this->assertInstanceOf( 'WP_Theme', $theme );
 			$this->assertFalse( $theme->errors() );
@@ -115,6 +121,9 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_get_themes_contents() {
 		$themes = get_themes();
+
+		$this->assertNotEmpty( $themes );
+
 		// Generic tests that should hold true for any theme.
 		foreach ( $themes as $k => $theme ) {
 			// Don't run these checks for custom themes.
@@ -223,7 +232,9 @@ class Tests_Theme extends WP_UnitTestCase {
 		// Use a reflection to make WP_THEME::$default_themes accessible.
 		$reflection = new ReflectionClass( 'WP_Theme' );
 		$property   = $reflection->getProperty( 'default_themes' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		/*
 		 * `default` and `classic` are included in `WP_Theme::$default_themes` but not included
@@ -302,33 +313,93 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48566
+	 *
+	 * @dataProvider data_provider_default_themes
 	 */
-	public function test_year_in_readme() {
+	public function test_year_in_readme( $theme ) {
 		// This test is designed to only run on trunk.
 		$this->skipOnAutomatedBranches();
 
-		foreach ( $this->default_themes as $theme ) {
-			$wp_theme = wp_get_theme( $theme );
+		$wp_theme = wp_get_theme( $theme );
 
-			$path_to_readme_txt = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/readme.txt';
-			$this->assertFileExists( $path_to_readme_txt );
+		$path_to_readme_txt = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/readme.txt';
+		$this->assertFileExists( $path_to_readme_txt );
 
-			$readme    = file_get_contents( $path_to_readme_txt );
-			$this_year = gmdate( 'Y' );
+		$readme    = file_get_contents( $path_to_readme_txt );
+		$this_year = gmdate( 'Y' );
 
-			preg_match( '#Copyright (\d+) WordPress.org#', $readme, $matches );
-			if ( $matches ) {
-				$readme_year = trim( $matches[1] );
+		preg_match( '#(Copyright|\(C\)) (20\d\d-)?(\d+) WordPress.org#i', $readme, $matches );
+		if ( $matches ) {
+			$readme_year = trim( $matches[3] );
 
-				$this->assertSame( $this_year, $readme_year, "Bundled themes readme.txt's year needs to be updated to $this_year." );
+			$this->assertSame( $this_year, $readme_year, "$theme readme.txt's year needs to be updated to $this_year." );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ theme: string }>
+	 */
+	public function data_provider_default_themes(): array {
+		$data = array();
+		foreach ( $this->default_themes as $default_theme ) {
+			$data[ $default_theme ] = array( 'theme' => $default_theme );
+		}
+		return $data;
+	}
+
+	/**
+	 * Tests that the version number in style.css, readme.txt, and package.json all match.
+	 *
+	 * @ticket 63012
+	 *
+	 * @dataProvider data_provider_default_themes
+	 */
+	public function test_version_consistency_in_package_json( string $theme ) {
+		$wp_theme = wp_get_theme( $theme );
+
+		$path_to_style_css = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/style.css';
+		$this->assertFileExists( $path_to_style_css );
+		$this->assertSame( 1, preg_match( '/^Version: (\d+\.\d+(?:\.\d+)?)$/m', file_get_contents( $path_to_style_css ), $matches ), 'Expected Version in style.css' );
+		$style_version = $matches[1];
+
+		// Version in style.css does not use patch versions, so supply one of 0.
+		$version_with_patch = $matches[1];
+		if ( 1 === substr_count( $version_with_patch, '.' ) ) {
+			$version_with_patch .= '.0';
+		}
+
+		$package_files         = array( 'package.json', 'package-lock.json' );
+		$present_package_files = array();
+		foreach ( $package_files as $package_file ) {
+			$path_to_package_json = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/' . $package_file;
+			if ( file_exists( $path_to_package_json ) ) {
+				$present_package_files[] = $package_file;
+
+				$data = json_decode( file_get_contents( $path_to_package_json ), true );
+				$this->assertIsArray( $data, "Expected $package_file to be an array." );
+				$this->assertArrayHasKey( 'name', $data, "Expected name key in $package_file." );
+				$this->assertSame( $theme, $data['name'], "Expected name field to be the theme slug in $package_file." );
+				$this->assertArrayHasKey( 'version', $data, "Expected version key in $package_file." );
+				$this->assertSame( $version_with_patch, $data['version'], "Expected version from style.css to match version in $package_file." );
+
+				if ( 'package-lock.json' === $package_file && isset( $data['packages'][''] ) ) {
+					$this->assertArrayHasKey( 'version', $data['packages'][''], "Expected version key in packages[''] in package-lock.json." );
+					$this->assertSame( $version_with_patch, $data['packages']['']['version'], "Expected version from style.css to match packages[''].version in package-lock.json." );
+				}
 			}
+		}
+		if ( count( $present_package_files ) > 0 ) {
+			$this->assertCount( 2, $present_package_files, 'Expected package-lock.json to be present when package.json is present, and vice versa.' );
+		}
 
-			preg_match( '#Copyright 20\d\d-(\d+) WordPress.org#', $readme, $matches );
-			if ( $matches ) {
-				$readme_year = trim( $matches[1] );
-
-				$this->assertSame( $this_year, $readme_year, "Bundled themes readme.txt's year needs to be updated to $this_year." );
-			}
+		// TODO: The themes twentyfifteen, twentysixteen, and twentyseventeen lack a Stable Tag in the readme.txt.
+		$path_to_readme_txt = $wp_theme->get_theme_root() . '/' . $wp_theme->get_stylesheet() . '/readme.txt';
+		$this->assertFileExists( $path_to_readme_txt );
+		if ( 1 === preg_match( '/^Stable [Tt]ag: (\d+\.\d+(?:\.\d+)?)$/m', file_get_contents( $path_to_readme_txt ), $matches ) ) {
+			$readme_version = $matches[1];
+			$this->assertSame( $style_version, $readme_version, 'Expected version in style.css and stable tag in readme.txt to match.' );
 		}
 	}
 
@@ -358,6 +429,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	public function test_switch_theme() {
 		$themes = get_themes();
+
+		$this->assertNotEmpty( $themes );
 
 		// Switch to each theme in sequence.
 		// Do it twice to make sure we switch to the first theme, even if it's our starting theme.
@@ -961,6 +1034,50 @@ class Tests_Theme extends WP_UnitTestCase {
 			wp_should_load_separate_core_block_assets(),
 			'Block themes do not load separate core block assets by default.'
 		);
+	}
+
+	/**
+	 * Tests that block themes load block assets on demand by default.
+	 *
+	 * @ticket 61965
+	 *
+	 * @covers ::_add_default_theme_supports
+	 * @covers ::wp_should_load_block_assets_on_demand
+	 */
+	public function test_block_theme_should_load_block_assets_on_demand_by_default() {
+		$this->helper_requires_block_theme();
+
+		add_filter( 'should_load_block_assets_on_demand', '__return_false' );
+
+		$this->assertFalse(
+			wp_should_load_block_assets_on_demand(),
+			'Could not disable loading block assets on demand.'
+		);
+
+		do_action( 'after_setup_theme' );
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
+		$this->assertTrue(
+			wp_should_load_block_assets_on_demand(),
+			'Block themes do not load block assets on demand by default.'
+		);
+	}
+
+	/**
+	 * Tests that block themes load block assets on demand by default even when loading separate core block assets is disabled.
+	 *
+	 * @ticket 61965
+	 *
+	 * @covers ::_add_default_theme_supports
+	 * @covers ::wp_should_load_block_assets_on_demand
+	 */
+	public function test_block_theme_should_load_block_assets_on_demand_by_default_even_with_separate_core_block_assets_disabled() {
+		$this->helper_requires_block_theme();
+
+		do_action( 'after_setup_theme' );
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
+		$this->assertTrue( wp_should_load_block_assets_on_demand() );
 	}
 
 	/**

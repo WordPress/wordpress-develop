@@ -29,9 +29,9 @@ $result = null;
 if ( isset( $_GET['key'] ) && isset( $_POST['key'] ) && $_GET['key'] !== $_POST['key'] ) {
 	wp_die( __( 'A key value mismatch has been detected. Please follow the link provided in your activation email.' ), __( 'An error occurred during the activation' ), 400 );
 } elseif ( ! empty( $_GET['key'] ) ) {
-	$key = $_GET['key'];
+	$key = sanitize_text_field( $_GET['key'] );
 } elseif ( ! empty( $_POST['key'] ) ) {
-	$key = $_POST['key'];
+	$key = sanitize_text_field( $_POST['key'] );
 }
 
 if ( $key ) {
@@ -63,10 +63,6 @@ if ( null === $result || ( is_wp_error( $result ) && 'invalid_key' === $result->
 }
 
 nocache_headers();
-
-if ( is_object( $wp_object_cache ) ) {
-	$wp_object_cache->cache_enabled = false;
-}
 
 // Fix for page title.
 $wp_query->is_404 = false;
