@@ -157,6 +157,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	/**
 	 * Test wp_register_script_module() with empty ID.
 	 *
+	 * @ticket 63486
+	 *
 	 * @expectedIncorrectUsage WP_Script_Modules::register
 	 *
 	 * @covers ::wp_register_script_module
@@ -169,6 +171,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 	/**
 	 * Test wp_enqueue_script_module() with empty ID.
+	 *
+	 * @ticket 63486
 	 *
 	 * @expectedIncorrectUsage WP_Script_Modules::enqueue
 	 *
@@ -187,6 +191,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * This ensures that the global function aliases pass all the same parameters as the class methods.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @dataProvider data_test_register_and_enqueue_script_module
 	 *
@@ -470,6 +475,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * Tests that a script module gets enqueued correctly after being registered.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::register()
 	 * @covers WP_Script_Modules::enqueue()
@@ -514,6 +520,8 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	/**
 	 * Tests that no script is printed for a script without a src.
 	 *
+	 * @ticket 63486
+	 *
 	 * @covers WP_Script_Modules::register()
 	 * @covers WP_Script_Modules::enqueue()
 	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
@@ -554,6 +562,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	* Tests that a script module can be dequeued after being enqueued.
 	*
 	* @ticket 56313
+	* @ticket 63486
 	*
 	* @covers WP_Script_Modules::register()
 	* @covers WP_Script_Modules::enqueue()
@@ -653,6 +662,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	* be handled correctly once registered.
 	*
 	* @ticket 56313
+	* @ticket 63486
 	*
 	* @covers WP_Script_Modules::register()
 	* @covers WP_Script_Modules::enqueue()
@@ -677,6 +687,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * ensures that it is not enqueued after registration.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::register()
 	 * @covers WP_Script_Modules::enqueue()
@@ -1045,6 +1056,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * script modules and preloaded script modules.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::register()
 	 * @covers WP_Script_Modules::enqueue()
@@ -1084,6 +1096,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * valid src.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::enqueue()
 	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
@@ -1103,6 +1116,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * src.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::enqueue()
 	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
@@ -1123,6 +1137,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * src the second time.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::enqueue()
 	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
@@ -1150,6 +1165,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * enqueue.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::register()
 	 * @covers WP_Script_Modules::enqueue()
@@ -1407,6 +1423,7 @@ HTML;
 	/**
 	 * Tests ways of setting in_footer.
 	 *
+	 * @ticket 63486
 	 * @ticket 63486
 	 *
 	 * @covers ::wp_register_script_module
@@ -1743,6 +1760,8 @@ HTML;
 
 	/**
 	 * Tests that default script modules are printed as expected.
+	 *
+	 * @ticket 63486
 	 *
 	 * @covers ::wp_default_script_modules
 	 * @covers WP_Script_Modules::print_script_module_preloads
