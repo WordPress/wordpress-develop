@@ -109,6 +109,9 @@ jobs:
             db-version: '9.4'
           - php: '7.3'
             db-version: '9.4'
+          # No PHP 8.5 + Memcached support yet.
+          - php: '8.5'
+            memcached: true
 
     with:
       os: ${{ matrix.os }}

@@ -80,7 +80,7 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 				}
 			}
 		}
-	} elseif ( preg_match( '/quick-search-(posttype|taxonomy)-([a-zA-Z_-]*\b)/', $type, $matches ) ) {
+	} elseif ( preg_match( '/quick-search-(posttype|taxonomy)-([a-zA-Z0-9_-]*\b)/', $type, $matches ) ) {
 		if ( 'posttype' === $matches[1] && get_post_type_object( $matches[2] ) ) {
 			$post_type_obj = _wp_nav_menu_meta_box_object( get_post_type_object( $matches[2] ) );
 			$args          = array_merge(
@@ -495,7 +495,6 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 		}
 	}
 
-	// @todo Transient caching of these results with proper invalidation on updating of a post of this type.
 	$get_posts = new WP_Query();
 	$posts     = $get_posts->query( $args );
 
