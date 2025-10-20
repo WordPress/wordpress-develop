@@ -951,7 +951,7 @@ class Tests_Template extends WP_UnitTestCase {
 		do_action( 'wp_head' );
 		$head_output = ob_get_clean();
 
-		$this->assertMatchesRegularExpression( '/<!--late_styles:[a-f0-9-]{36}-->/', $head_output, 'Expect the placeholder to be present' );
+		$this->assertMatchesRegularExpression( '/<!--wp_late_styles_placeholder:[a-f0-9-]+-->/', $head_output, 'Expect the placeholder to be present' );
 		$this->assertStringContainsString( 'test-style', $head_output, 'Expect the enqueued stylesheet to be present' );
 
 		// Enqueue a late style (after wp_head)

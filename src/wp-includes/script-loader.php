@@ -3511,40 +3511,73 @@ function wp_load_block_styles_on_demand_in_classic_themes() {
  */
 function wp_use_placeholder_for_delayed_css() {
 
-	// While normally late styles are printed, there is a filter to disable late styles, so this makes sure they are printed.
+	// Determine priority at which styles are printed at wp_head. Short-circuit if it was unhooked.
+	$wp_head_priority = has_action( 'wp_head', 'wp_print_styles' );
+	if ( false === $wp_head_priority ) {
+		return;
+	}
+
+	/*
+	 * While normally late styles are printed, there is a filter to disable prevent this, so this makes sure they are
+	 * printed. Note that this filter was intended to control whether to print the styles queued too late for the HTML
+	 * head. This filter was introduced in <https://core.trac.wordpress.org/ticket/9346>. However, with the template
+	 * enhancement output buffer, essentially no style can be enqueued too late, because an output buffer filter can
+	 * always hoist it to the HEAD.
+	 */
 	add_filter( 'print_late_styles', '__return_true', PHP_INT_MAX );
 
-	// Print a placeholder comment to inject late styles right after the head styles are printed.
-	$placeholder = sprintf( '<!--%s:%s-->', 'late_styles', wp_generate_uuid4() );
-	remove_action( 'wp_head', 'wp_print_styles', 8 );
+	/*
+	 * Print a placeholder comment where the late styles can be hoisted from the footer to be printed in the header
+	 * by means of a filter below on the template enhancement output buffer.
+	 */
+	$placeholder = sprintf( '<!--%s-->', uniqid( 'wp_late_styles_placeholder:' ) );
+
+	// Print placeholder comment where the late styles will be moved to.
 	add_action(
 		'wp_head',
 		static function () use ( $placeholder ) {
-			wp_print_styles();
 			echo $placeholder;
 		},
-		8
+		$wp_head_priority
 	);
 
-	// Replace logic that prints scripts and styles in the footer.
-	$late_styles = '';
-	remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
-	add_action(
-		'wp_print_footer_scripts',
-		static function () use ( &$late_styles ) {
-			ob_start();
-			print_late_styles();
-			$late_styles = ob_get_clean();
+	// Wrap print_late_styles() with a closure that captures the late-printed styles.
+	$printed_late_styles = '';
+	$capture_late_styles = static function () use ( &$printed_late_styles ) {
+		ob_start();
+		print_late_styles();
+		$printed_late_styles = ob_get_clean();
+	};
 
-			print_footer_scripts();
-		}
-	);
+	/*
+	 * If _wp_footer_scripts() was unhooked from the wp_print_footer_scripts action, or if wp_print_footer_scripts()
+	 * was unhooked from running at the wp_footer action, then only add a callback to wp_footer which will capture the
+	 * late-printed styles.
+	 *
+	 * Otherwise, in the normal case where _wp_footer_scripts() will run at the wp_print_footer_scripts action, then
+	 * swap out _wp_footer_scripts() with an alternative which captures the printed styles (for hoisting to HEAD) before
+	 * proceeding with printing the footer scripts.
+	 */
+	$wp_footer_priority = has_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+	if ( false === $wp_footer_priority || false === has_action( 'wp_footer', 'wp_print_footer_scripts' ) ) {
+		// The normal priority for wp_print_footer_scripts() is to run at 20.
+		add_action( 'wp_footer', $capture_late_styles, 20 );
+	} else {
+		remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+		add_action(
+			'wp_print_footer_scripts',
+			static function () use ( $capture_late_styles ) {
+				$capture_late_styles();
+				print_footer_scripts();
+			}
+		);
+	}
 
 	// Replace placeholder with the captured late styles.
 	add_filter(
 		'wp_template_enhancement_output_buffer',
-		static function ( $buffer ) use ( $placeholder, &$late_styles ) {
-			return str_replace( $placeholder, $late_styles, $buffer );
+		static function ( $buffer ) use ( $placeholder, &$printed_late_styles ) {
+			return str_replace( $placeholder, $printed_late_styles, $buffer );
 		}
 	);
 }
