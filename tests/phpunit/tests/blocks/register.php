@@ -480,23 +480,23 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 
 		$p = new WP_HTML_Tag_Processor( $output );
 
-		$p->next_tag( array( 'tag_name' => 'SCRIPT' ) );
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
 		$this->assertSame( 'tests-interactivity-true-view-script-module-js-module', $p->get_attribute( 'id' ) );
 		$this->assertSame( '{"loadOnClientNavigation":true}', $p->get_attribute( 'data-wp-router-options' ) );
 
-		$p->next_tag( array( 'tag_name' => 'SCRIPT' ) );
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
 		$this->assertSame( 'tests-interactive-and-client-navigation-view-script-module-js-module', $p->get_attribute( 'id' ) );
 		$this->assertSame( '{"loadOnClientNavigation":true}', $p->get_attribute( 'data-wp-router-options' ) );
 
-		$p->next_tag( array( 'tag_name' => 'SCRIPT' ) );
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
 		$this->assertSame( 'tests-interactive-and-not-client-navigation-view-script-module-js-module', $p->get_attribute( 'id' ) );
 		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
 
-		$p->next_tag( array( 'tag_name' => 'SCRIPT' ) );
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
 		$this->assertSame( 'tests-not-interactive-and-client-navigation-view-script-module-js-module', $p->get_attribute( 'id' ) );
 		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
 
-		$p->next_tag( array( 'tag_name' => 'SCRIPT' ) );
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
 		$this->assertSame( 'tests-no-interactivity-view-script-module-js-module', $p->get_attribute( 'id' ) );
 		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
 	}
