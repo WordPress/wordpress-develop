@@ -89,7 +89,7 @@ final class WP_Interactivity_API {
 	 * Set of script modules that can be loaded after client-side navigation.
 	 *
 	 * @since 6.9.0
-	 * @var array<string, bool>
+	 * @var array<non-empty-string, true>
 	 */
 	private $script_modules_that_can_load_on_client_navigation = array();
 
@@ -397,11 +397,12 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param array $attributes The script tag attributes.
+	 * @param array<string, string|true>|mixed $attributes The script tag attributes.
 	 * @return array The modified script tag attributes.
 	 */
 	public function add_load_on_client_navigation_attribute_to_script_modules( $attributes ) {
 		if (
+			is_array( $attributes ) &&
 			isset( $attributes['type'], $attributes['id'] ) &&
 			'module' === $attributes['type'] &&
 			array_key_exists(
@@ -423,9 +424,10 @@ final class WP_Interactivity_API {
 	 * `data-wp-router-options` directive.
 	 *
 	 * @since 6.9.0
-	 * @param string $script_module_id The script module identifier.
+	 *
+	 * @param non-empty-string $script_module_id The script module identifier.
 	 */
-	public function add_client_navigation_support_to_script_module( $script_module_id ) {
+	public function add_client_navigation_support_to_script_module( string $script_module_id ) {
 		$this->script_modules_that_can_load_on_client_navigation[ $script_module_id ] = true;
 	}
 
