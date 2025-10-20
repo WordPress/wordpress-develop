@@ -175,13 +175,22 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	$block_version       = isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$module_version      = isset( $module_asset['version'] ) ? $module_asset['version'] : $block_version;
 
-	// Blocks using the Interactivity API are server-side rendered, so they are by design not in the critical rendering path and should be deprioritized.
+	$supports_interactivity_true  = isset( $block_type->supports['interactivity'] ) && true === $block_type->supports['interactivity'];
+	$is_interactive               = $supports_interactivity_true || ( isset( $block_type->supports['interactivity']['interactive'] ) && true === $block_type->supports['interactivity']['interactive'] );
+	$supports_client_navigation   = $supports_interactivity_true || ( isset( $block_type->supports['interactivity']['clientNavigation'] ) && true === $block_type->supports['interactivity']['clientNavigation'] );
+
 	$args = array();
-	if (
-		( isset( $metadata['supports']['interactivity'] ) && true === $metadata['supports']['interactivity'] ) ||
-		( isset( $metadata['supports']['interactivity']['interactive'] ) && true === $metadata['supports']['interactivity']['interactive'] )
-	) {
+
+	// Blocks using the Interactivity API are server-side rendered, so they are
+	// by design not in the critical rendering path and should be deprioritized.
+	if ( $is_interactive ) {
 		$args['fetchpriority'] = 'low';
+	}
+
+	// Blocks using the Interactivity API that support client-side navigation
+	// must be marked as such in their script modules.
+	if ( $is_interactive && $supports_client_navigation ) {
+		wp_interactivity()->add_client_navigation_support_to_script_module( $module_id );
 	}
 
 	wp_register_script_module(
