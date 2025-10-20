@@ -166,7 +166,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the `post_states_string` filter works to modify post state output.
+	 * Ensure the `post_states_html` filter works to modify post state output.
 	 *
 	 * @ticket 51403
 	 *
@@ -176,7 +176,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 *
 	 * @param string $post_state The post state to test.
 	 */
-	public function test_filter_post_states_string_should_enable_post_state_html_output_modification( $post_state ) {
+	public function test_filter_post_states_html_should_enable_post_state_html_output_modification( $post_state ) {
 		$post = get_post( self::$post_ids[ $post_state ] );
 
 		$original_output = _post_states( $post, false );
@@ -188,7 +188,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 		}
 
 		add_filter(
-			'post_states_string',
+			'post_states_html',
 			function ( $post_states_string, $post_states, $filtered_post ) use ( $text_to_append, $post ) {
 				$this->assertIsString( $post_states_string, 'Expected first filter arg to be a string.' );
 				$this->assertIsArray( $post_states, 'Expected second filter arg to be an array.' );
