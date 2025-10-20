@@ -1499,6 +1499,8 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * Verify that the theme is passed through to the validate_theme_requirements filter by selectively erroring.
+	 *
+	 * @ticket 54381
 	 */
 	public function test_validate_theme_requirements_filter_selective_failure() {
 		// Adds an extra requirement only for a particular theme.
