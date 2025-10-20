@@ -200,7 +200,7 @@ class WP_Ability {
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
-	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
+	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input. Required if ability accepts an input.
 	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
 	 *     @type array<string, mixed> $meta                  {
 	 *         Optional. Additional metadata for the ability.
