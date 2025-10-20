@@ -1571,6 +1571,59 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `WP_Upgrader::create_lock()` creates the 'lock' option.
+	 *
+	 * @covers WP_Upgrader::create_lock
+	 */
+	public function test_create_lock_should_create_lock_option() {
+		global $wpdb;
+
+		WP_Upgrader::create_lock( 'lock' );
+
+		// Check that the lock option was created with a timestamp less than or equal to now.
+		$this->assertLessThanOrEqual(
+			time(),
+			get_option( 'lock.lock' ),
+			'The lock option was not created as expected.'
+		);
+
+		$wpdb->delete(
+			$wpdb->options,
+			array( 'option_name' => 'lock.lock' ),
+			'%s'
+		);
+	}
+
+	/**
+	 * Tests that `WP_Upgrader::create_lock()` releases expired lock.
+	 *
+	 * @ticket 64080
+	 *
+	 * @covers WP_Upgrader::create_lock
+	 */
+	public function test_create_lock_should_release_lock() {
+		global $wpdb;
+
+		WP_Upgrader::create_lock( 'lock' );
+
+		sleep( 2 );
+
+		$recreate_lock = WP_Upgrader::create_lock( 'lock', 1 );
+
+		$this->assertSame(
+			true,
+			$recreate_lock,
+			'The lock was not re-created as expected.'
+		);
+
+		$wpdb->delete(
+			$wpdb->options,
+			array( 'option_name' => 'lock.lock' ),
+			'%s'
+		);
+	}
+
+	/**
 	 * Tests that `WP_Upgrader::release_lock()` removes the 'lock' option.
 	 *
 	 * @ticket 54245
