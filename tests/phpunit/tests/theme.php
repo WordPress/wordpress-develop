@@ -1506,7 +1506,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		// Adds an extra requirement only for a particular theme.
 		add_filter(
 			'validate_theme_requirements',
-			function( $met_requirements, $stylesheet ) {
+			function ( $met_requirements, $stylesheet ) {
 				if ( 'twentytwenty' === $stylesheet ) {
 					return new WP_Error( 'theme_test_failed_requirement' );
 				}
