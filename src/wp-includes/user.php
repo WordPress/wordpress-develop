@@ -1196,24 +1196,15 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 		return false;
 	}
 
-	$keys = get_user_meta( $user_id );
-	if ( empty( $keys ) ) {
-		return false;
+
+	if ( 1 === $blog_id ) {
+		$capabilities_key = $wpdb->base_prefix . 'capabilities';
+	} else {
+		$capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
 	}
+	$has_cap = get_user_meta( $user_id, $capabilities_key, true );
 
-	// No underscore before capabilities in $base_capabilities_key.
-	$base_capabilities_key = $wpdb->base_prefix . 'capabilities';
-	$site_capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
-
-	if ( isset( $keys[ $base_capabilities_key ] ) && 1 === $blog_id ) {
-		return true;
-	}
-
-	if ( isset( $keys[ $site_capabilities_key ] ) ) {
-		return true;
-	}
-
-	return false;
+	return is_array( $has_cap );
 }
 
 /**
@@ -1318,6 +1309,21 @@ function get_user_meta( $user_id, $key = '', $single = false ) {
  */
 function update_user_meta( $user_id, $meta_key, $meta_value, $prev_value = '' ) {
 	return update_metadata( 'user', $user_id, $meta_key, $meta_value, $prev_value );
+}
+
+/**
+ * Queue user meta for lazy-loading.
+ *
+ * @since 6.9.0
+ *
+ * @param int[] $user_ids List of user IDs.
+ */
+function wp_lazyload_user_meta( array $user_ids ) {
+	if ( empty( $user_ids ) ) {
+		return;
+	}
+	$lazyloader = wp_metadata_lazyloader();
+	$lazyloader->queue_objects( 'user', $user_ids );
 }
 
 /**
