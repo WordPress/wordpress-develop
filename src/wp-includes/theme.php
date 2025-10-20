@@ -3780,7 +3780,7 @@ function _wp_customize_loader_settings() {
 		),
 	);
 
-	$script = 'var _wpCustomizeLoaderSettings = ' . wp_json_encode( $settings ) . ';';
+	$script = 'var _wpCustomizeLoaderSettings = ' . wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';';
 
 	$wp_scripts = wp_scripts();
 	$data       = $wp_scripts->get_data( 'customize-loader', 'data' );
@@ -3803,7 +3803,7 @@ function _wp_customize_loader_settings() {
 function wp_customize_url( $stylesheet = '' ) {
 	$url = admin_url( 'customize.php' );
 	if ( $stylesheet ) {
-		$url .= '?theme=' . urlencode( $stylesheet );
+		$url = add_query_arg( 'theme', urlencode( $stylesheet ), $url );
 	}
 	return esc_url( $url );
 }
@@ -3847,7 +3847,7 @@ function wp_customize_support_script() {
 		}());
 	</script>
 	<?php
-	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __FUNCTION__ ) );
 }
 
 /**
@@ -4380,6 +4380,8 @@ function create_initial_theme_features() {
  * Returns whether the active theme is a block-based theme or not.
  *
  * @since 5.9.0
+ *
+ * @global string[] $wp_theme_directories
  *
  * @return bool Whether the active theme is a block-based theme or not.
  */

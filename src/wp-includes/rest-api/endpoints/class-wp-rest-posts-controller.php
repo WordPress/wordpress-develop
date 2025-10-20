@@ -463,7 +463,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			foreach ( $query_result as $post ) {
-				if ( ! $this->check_read_permission( $post ) ) {
+				if ( 'edit' === $request['context'] ) {
+					$permission = $this->check_update_permission( $post );
+				} else {
+					$permission = $this->check_read_permission( $post );
+				}
+
+				if ( ! $permission ) {
 					continue;
 				}
 
@@ -3075,7 +3081,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$query_params['ignore_sticky'] = array(
 				'description' => __( 'Whether to ignore sticky posts or not.' ),
 				'type'        => 'boolean',
-				'default'     => false,
+				'default'     => true,
 			);
 		}
 

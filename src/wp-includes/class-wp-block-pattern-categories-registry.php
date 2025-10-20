@@ -107,7 +107,7 @@ final class WP_Block_Pattern_Categories_Registry {
 	 * @since 5.5.0
 	 *
 	 * @param string $category_name Pattern category name including namespace.
-	 * @return array Registered pattern properties.
+	 * @return array|null Registered pattern properties, or `null` if the pattern category is not registered.
 	 */
 	public function get_registered( $category_name ) {
 		if ( ! $this->is_registered( $category_name ) ) {
@@ -138,11 +138,11 @@ final class WP_Block_Pattern_Categories_Registry {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param string $category_name Pattern category name including namespace.
+	 * @param string|null $category_name Pattern category name including namespace.
 	 * @return bool True if the pattern category is registered, false otherwise.
 	 */
 	public function is_registered( $category_name ) {
-		return isset( $this->registered_categories[ $category_name ] );
+		return isset( $category_name, $this->registered_categories[ $category_name ] );
 	}
 
 	/**

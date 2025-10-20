@@ -896,11 +896,11 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 	$sql = "SELECT tr.object_id FROM $wpdb->term_relationships AS tr INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id WHERE tt.taxonomy IN ($taxonomies) AND tt.term_id IN ($term_ids) ORDER BY tr.object_id $order";
 
 	$last_changed = wp_cache_get_last_changed( 'terms' );
-	$cache_key    = 'get_objects_in_term:' . md5( $sql ) . ":$last_changed";
-	$cache        = wp_cache_get( $cache_key, 'term-queries' );
+	$cache_key    = 'get_objects_in_term:' . md5( $sql );
+	$cache        = wp_cache_get_salted( $cache_key, 'term-queries', $last_changed );
 	if ( false === $cache ) {
 		$object_ids = $wpdb->get_col( $sql );
-		wp_cache_set( $cache_key, $object_ids, 'term-queries' );
+		wp_cache_set_salted( $cache_key, $object_ids, 'term-queries', $last_changed );
 	} else {
 		$object_ids = (array) $cache;
 	}
@@ -1292,6 +1292,8 @@ function get_term_to_edit( $id, $taxonomy ) {
  *
  * Prior to 4.5.0, taxonomy was passed as the first parameter of `get_terms()`.
  *
+ * {@internal The `$deprecated` parameter is parsed for backward compatibility only.}
+ *
  * @since 2.3.0
  * @since 4.2.0 Introduced 'name' and 'childless' parameters.
  * @since 4.4.0 Introduced the ability to pass 'term_id' as an alias of 'id' for the `orderby` parameter.
@@ -1300,8 +1302,6 @@ function get_term_to_edit( $id, $taxonomy ) {
  * @since 4.5.0 Changed the function signature so that the `$args` array can be provided as the first parameter.
  *              Introduced 'meta_key' and 'meta_value' parameters. Introduced the ability to order results by metadata.
  * @since 4.8.0 Introduced 'suppress_filter' parameter.
- *
- * @internal The `$deprecated` parameter is parsed for backward compatibility only.
  *
  * @param array|string $args       Optional. Array or string of arguments. See WP_Term_Query::__construct()
  *                                 for information on accepted arguments. Default empty array.
@@ -1337,7 +1337,7 @@ function get_terms( $args = array(), $deprecated = '' ) {
 		$args['taxonomy'] = $taxonomies;
 	} else {
 		$args = wp_parse_args( $args, $defaults );
-		if ( isset( $args['taxonomy'] ) && null !== $args['taxonomy'] ) {
+		if ( isset( $args['taxonomy'] ) ) {
 			$args['taxonomy'] = (array) $args['taxonomy'];
 		}
 	}
@@ -1382,6 +1382,8 @@ function get_terms( $args = array(), $deprecated = '' ) {
 /**
  * Adds metadata to a term.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 4.4.0
  *
  * @param int    $term_id    Term ID.
@@ -1408,6 +1410,8 @@ function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
 
 /**
  * Removes metadata matching criteria from a term.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 4.4.0
  *
@@ -1454,6 +1458,8 @@ function get_term_meta( $term_id, $key = '', $single = false ) {
  * Use the `$prev_value` parameter to differentiate between meta fields with the same key and term ID.
  *
  * If the meta field for the term does not exist, it will be added.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 4.4.0
  *
@@ -1624,6 +1630,10 @@ function term_exists( $term, $taxonomy = '', $parent_term = null ) {
 	 */
 	$defaults = apply_filters( 'term_exists_default_query_args', $defaults, $term, $taxonomy, $parent_term );
 
+	if ( ! empty( $taxonomy ) && is_numeric( $parent_term ) ) {
+		$defaults['parent'] = (int) $parent_term;
+	}
+
 	if ( is_int( $term ) ) {
 		if ( 0 === $term ) {
 			return 0;
@@ -1634,10 +1644,6 @@ function term_exists( $term, $taxonomy = '', $parent_term = null ) {
 		$term = trim( wp_unslash( $term ) );
 		if ( '' === $term ) {
 			return null;
-		}
-
-		if ( ! empty( $taxonomy ) && is_numeric( $parent_term ) ) {
-			$defaults['parent'] = (int) $parent_term;
 		}
 
 		$args  = wp_parse_args( array( 'slug' => sanitize_title( $term ) ), $defaults );
@@ -1927,10 +1933,10 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
  *
  * Default $args is 'hide_empty' which can be 'hide_empty=true' or array('hide_empty' => true).
  *
+ * {@internal The `$deprecated` parameter is parsed for backward compatibility only.}
+ *
  * @since 2.3.0
  * @since 5.6.0 Changed the function signature so that the `$args` array can be provided as the first parameter.
- *
- * @internal The `$deprecated` parameter is parsed for backward compatibility only.
  *
  * @param array|string $args       Optional. Array or string of arguments. See WP_Term_Query::__construct()
  *                                 for information on accepted arguments. Default empty array.
@@ -2137,11 +2143,11 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 			)
 		);
 
-		if ( 1 === count( $terms ) && isset( $default ) ) {
+		if ( 1 === count( $terms ) ) {
 			$terms = array( $default );
 		} else {
 			$terms = array_diff( $terms, array( $term ) );
-			if ( isset( $default ) && isset( $force_default ) && $force_default ) {
+			if ( isset( $force_default ) && $force_default ) {
 				$terms = array_merge( $terms, array( $default ) );
 			}
 		}
@@ -3726,8 +3732,10 @@ function clean_taxonomy_cache( $taxonomy ) {
 	wp_cache_set_terms_last_changed();
 
 	// Regenerate cached hierarchy.
-	delete_option( "{$taxonomy}_children" );
-	_get_term_hierarchy( $taxonomy );
+	if ( is_taxonomy_hierarchical( $taxonomy ) ) {
+		delete_option( "{$taxonomy}_children" );
+		_get_term_hierarchy( $taxonomy );
+	}
 
 	/**
 	 * Fires after a taxonomy's caches have been cleaned.
@@ -4169,26 +4177,37 @@ function _update_post_term_count( $terms, $taxonomy ) {
 	 */
 	$post_statuses = esc_sql( apply_filters( 'update_post_term_count_statuses', $post_statuses, $taxonomy ) );
 
-	foreach ( (array) $terms as $term ) {
+	foreach ( (array) $terms as $tt_id ) {
 		$count = 0;
 
 		// Attachments can be 'inherit' status, we need to base count off the parent's status if so.
 		if ( $check_attachments ) {
 			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status IN ('" . implode( "', '", $post_statuses ) . "') OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) IN ('" . implode( "', '", $post_statuses ) . "') ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $term ) );
+			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status IN ('" . implode( "', '", $post_statuses ) . "') OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) IN ('" . implode( "', '", $post_statuses ) . "') ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $tt_id ) );
 		}
 
 		if ( $object_types ) {
 			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status IN ('" . implode( "', '", $post_statuses ) . "') AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
+			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status IN ('" . implode( "', '", $post_statuses ) . "') AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $tt_id ) );
 		}
 
-		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edit_term_taxonomy', $term, $taxonomy->name );
-		$wpdb->update( $wpdb->term_taxonomy, compact( 'count' ), array( 'term_taxonomy_id' => $term ) );
+		/**
+		 * Fires when a term count is calculated, before it is updated in the database.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param int    $tt_id         Term taxonomy ID.
+		 * @param string $taxonomy_name Taxonomy slug.
+		 * @param int    $count         Term count.
+		 */
+		do_action( 'update_term_count', $tt_id, $taxonomy->name, $count );
 
 		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edited_term_taxonomy', $term, $taxonomy->name );
+		do_action( 'edit_term_taxonomy', $tt_id, $taxonomy->name );
+		$wpdb->update( $wpdb->term_taxonomy, compact( 'count' ), array( 'term_taxonomy_id' => $tt_id ) );
+
+		/** This action is documented in wp-includes/taxonomy.php */
+		do_action( 'edited_term_taxonomy', $tt_id, $taxonomy->name );
 	}
 }
 
@@ -4209,6 +4228,9 @@ function _update_generic_term_count( $terms, $taxonomy ) {
 
 	foreach ( (array) $terms as $term ) {
 		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $term ) );
+
+		/** This action is documented in wp-includes/taxonomy.php */
+		do_action( 'update_term_count', $term, $taxonomy->name, $count );
 
 		/** This action is documented in wp-includes/taxonomy.php */
 		do_action( 'edit_term_taxonomy', $term, $taxonomy->name );
@@ -4892,11 +4914,13 @@ function is_object_in_term( $object_id, $taxonomy, $terms = null ) {
 	if ( is_wp_error( $object_terms ) ) {
 		return $object_terms;
 	}
+
 	if ( empty( $object_terms ) ) {
 		return false;
 	}
+
 	if ( empty( $terms ) ) {
-		return ( ! empty( $object_terms ) );
+		return true;
 	}
 
 	$terms = (array) $terms;
