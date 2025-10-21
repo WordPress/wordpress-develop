@@ -321,7 +321,7 @@ class WP_Debug_Data {
 						gethostbyname( $update_dom ),
 						$wp_update_api->get_error_message()
 					),
-					'debug' => $wp_update_api->get_error_message()
+					'debug' => $wp_update_api->get_error_message(),
 				);
 			}
 		}
