@@ -3518,7 +3518,6 @@ function wp_load_classic_theme_block_styles_on_demand() {
  * @see _wp_footer_scripts()
  */
 function wp_hoist_late_printed_styles() {
-
 	// Skip the embed template on-demand styles aren't relevant, and there is no wp_head action.
 	if ( is_embed() ) {
 		return;
