@@ -469,7 +469,7 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 */
 	public function print_script_module_preloads() {
-		$dependency_ids = $this->get_sorted_dependencies( array_unique( $this->queue ), array( 'static' ) );
+		$dependency_ids = $this->get_sorted_dependencies( $this->queue, array( 'static' ) );
 		foreach ( $dependency_ids as $id ) {
 			// Don't preload if it's marked for enqueue.
 			if ( in_array( $id, $this->queue, true ) ) {
