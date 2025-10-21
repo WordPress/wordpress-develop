@@ -15,6 +15,7 @@ class Mock_Custom_Ability extends WP_Ability {
  * @covers wp_register_ability
  * @covers wp_unregister_ability
  * @covers wp_get_ability
+ * @covers wp_has_ability
  * @covers wp_get_all_abilities
  *
  * @group abilities-api
@@ -507,11 +508,11 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests retrieving existing ability.
+	 * Tests retrieving existing ability registered with the `wp_abilities_api_init` callback.
 	 *
 	 * @ticket 64098
 	 */
-	public function test_get_existing_ability() {
+	public function test_get_existing_ability_using_callback() {
 		$name     = self::$test_ability_name;
 		$args     = self::$test_ability_args;
 		$callback = static function ( $instance ) use ( $name, $args ) {

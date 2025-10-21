@@ -294,7 +294,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 					'description' => __( 'Meta information about the ability.' ),
 					'type'        => 'object',
 					'properties'  => array(
-						'annotations'   => array(
+						'annotations' => array(
 							'description' => __( 'Annotations for the ability.' ),
 							'type'        => array( 'boolean', 'null' ),
 							'default'     => null,
