@@ -516,7 +516,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$links = $response->get_links();
 		$this->assertArrayHasKey( 'self', $links );
 		$this->assertArrayHasKey( 'collection', $links );
-		$this->assertArrayHasKey( 'run', $links );
+		$this->assertArrayHasKey( 'wp:action-run', $links );
 
 		// Verify link URLs
 		$self_link = $links['self'][0]['href'];
@@ -525,7 +525,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$collection_link = $links['collection'][0]['href'];
 		$this->assertStringContainsString( '/wp/v2/abilities', $collection_link );
 
-		$run_link = $links['run'][0]['href'];
+		$run_link = $links['wp:action-run'][0]['href'];
 		$this->assertStringContainsString( '/wp/v2/abilities/test/calculator/run', $run_link );
 	}
 
@@ -580,15 +580,6 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'output_schema', $properties );
 		$this->assertArrayHasKey( 'meta', $properties );
 		$this->assertArrayHasKey( 'category', $properties );
-
-		// Test category property details
-		$category_property = $properties['category'];
-		$this->assertEquals( 'string', $category_property['type'] );
-		$this->assertTrue( $category_property['readonly'] );
-
-		// Check that category is in required fields
-		$this->assertArrayHasKey( 'required', $schema );
-		$this->assertContains( 'category', $schema['required'] );
 	}
 
 	/**

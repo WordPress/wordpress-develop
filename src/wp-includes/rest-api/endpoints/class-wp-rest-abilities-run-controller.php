@@ -76,11 +76,11 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function execute_ability( $request ) {
-		$ability = wp_get_ability( $request->get_param( 'name' ) );
+		$ability = wp_get_ability( $request['name'] );
 		if ( ! $ability ) {
 			return new WP_Error(
 				'rest_ability_not_found',
@@ -140,11 +140,11 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has execution permission, WP_Error object otherwise.
 	 */
 	public function check_ability_permissions( $request ) {
-		$ability = wp_get_ability( $request->get_param( 'name' ) );
+		$ability = wp_get_ability( $request['name'] );
 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
 			return new WP_Error(
 				'rest_ability_not_found',
@@ -185,7 +185,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param WP_REST_Request<array<string, mixed>> $request The request object.
+	 * @param WP_REST_Request $request The request object.
 	 * @return mixed|null The input parameters.
 	 */
 	private function get_input_from_request( $request ) {
@@ -232,6 +232,7 @@ class WP_REST_Abilities_Run_Controller extends WP_REST_Controller {
 			'properties' => array(
 				'result' => array(
 					'description' => __( 'The result of the ability execution.' ),
+					'type'        => array( 'integer', 'number', 'boolean', 'string', 'array', 'object', 'null' ),
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),

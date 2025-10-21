@@ -19,14 +19,6 @@ declare( strict_types = 1 );
 class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 
 	/**
-	 * Default number of items per page for pagination.
-	 *
-	 * @since 6.9.0
-	 * @var int
-	 */
-	public const DEFAULT_PER_PAGE = 50;
-
-	/**
 	 * REST API namespace.
 	 *
 	 * @since 6.9.0
@@ -57,7 +49,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_items' ),
-					'permission_callback' => array( $this, 'get_permissions_check' ),
+					'permission_callback' => array( $this, 'get_items_permissions_check' ),
 					'args'                => $this->get_collection_params(),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
@@ -78,7 +70,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_item' ),
-					'permission_callback' => array( $this, 'get_permissions_check' ),
+					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
@@ -90,7 +82,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Response object on success.
 	 */
 	public function get_items( $request ) {
@@ -102,7 +94,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 		);
 
 		// Filter by ability category if specified.
-		$category = $request->get_param( 'category' );
+		$category = $request['category'];
 		if ( ! empty( $category ) ) {
 			$abilities = array_filter(
 				$abilities,
@@ -114,10 +106,8 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 			$abilities = array_values( $abilities );
 		}
 
-		// Handle pagination with explicit defaults.
-		$params   = $request->get_params();
-		$page     = $params['page'] ?? 1;
-		$per_page = $params['per_page'] ?? self::DEFAULT_PER_PAGE;
+		$page     = $request['page'];
+		$per_page = $request['per_page'];
 		$offset   = ( $page - 1 ) * $per_page;
 
 		$total_abilities = count( $abilities );
@@ -163,11 +153,11 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$ability = wp_get_ability( $request->get_param( 'name' ) );
+		$ability = wp_get_ability( $request['name'] );
 		if ( ! $ability || ! $ability->get_meta_item( 'show_in_rest' ) ) {
 			return new WP_Error(
 				'rest_ability_not_found',
@@ -181,14 +171,26 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Checks if a given request has access to read abilities.
+	 * Checks if a given request has access to read ability items.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param WP_REST_Request<array<string, mixed>> $request Full details about the request.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return bool True if the request has read access.
 	 */
-	public function get_permissions_check( $request ) {
+	public function get_items_permissions_check( $request ) {
+		return current_user_can( 'read' );
+	}
+
+	/**
+	 * Checks if a given request has access to read an ability item.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return bool True if the request has read access.
+	 */
+	public function get_item_permissions_check( $request ) {
 		return current_user_can( 'read' );
 	}
 
@@ -197,8 +199,8 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param WP_Ability                           $ability The ability object.
-	 * @param WP_REST_Request<array<string, mixed>> $request Request object.
+	 * @param WP_Ability      $ability The ability object.
+	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $ability, $request ) {
@@ -212,7 +214,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 			'meta'          => $ability->get_meta(),
 		);
 
-		$context = $request->get_param( 'context' ) ?? 'view';
+		$context = $request['context'] ?? 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );
 
@@ -229,7 +231,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 				),
 			);
 
-			$links['run'] = array(
+			$links['wp:action-run'] = array(
 				'href' => rest_url( sprintf( '%s/%s/%s/run', $this->namespace, $this->rest_base, $ability->get_name() ) ),
 			);
 
@@ -291,11 +293,17 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 				'meta'          => array(
 					'description' => __( 'Meta information about the ability.' ),
 					'type'        => 'object',
+					'properties'  => array(
+						'annotations'   => array(
+							'description' => __( 'Annotations for the ability.' ),
+							'type'        => array( 'boolean', 'null' ),
+							'default'     => null,
+						),
+					),
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
 			),
-			'required'   => array( 'name', 'label', 'meta', 'description', 'category', 'input_schema', 'output_schema' ),
 		);
 
 		return $this->add_additional_fields_schema( $schema );
@@ -320,7 +328,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 			'per_page' => array(
 				'description' => __( 'Maximum number of items to be returned in result set.' ),
 				'type'        => 'integer',
-				'default'     => self::DEFAULT_PER_PAGE,
+				'default'     => 50,
 				'minimum'     => 1,
 				'maximum'     => 100,
 			),
