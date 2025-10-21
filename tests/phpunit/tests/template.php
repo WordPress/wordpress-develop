@@ -954,7 +954,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{set_up?: Closure}>
 	 */
-	public function data_provider_for_test_wp_hoist_late_printed_styles(): array {
+	public function data_wp_hoist_late_printed_styles(): array {
 		return array(
 			'no_actions_removed'              => array(
 				'set_up' => null,
@@ -984,7 +984,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @ticket 64099
 	 * @covers ::wp_hoist_late_printed_styles
 	 *
-	 * @dataProvider data_provider_for_test_wp_hoist_late_printed_styles
+	 * @dataProvider data_wp_hoist_late_printed_styles
 	 */
 	public function test_wp_hoist_late_printed_styles( ?Closure $set_up ): void {
 		if ( $set_up ) {
