@@ -1785,6 +1785,9 @@ module.exports = function(grunt) {
 		const ignoredFiles = [
 			'build/wp-includes/js/dist/components.js',
 			'build/wp-includes/js/dist/data.js',
+			// We have a problem where Yjs is being bundled in core-data.
+			// Ignoring this file until we find a solution.
+			'build/wp-includes/js/dist/core-data.js',
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.
