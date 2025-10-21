@@ -2068,7 +2068,7 @@ function wp_insert_comment( $commentdata ) {
 	$comment_date_gmt = ! isset( $data['comment_date_gmt'] ) ? get_gmt_from_date( $comment_date ) : $data['comment_date_gmt'];
 
 	$comment_post_id  = ! isset( $data['comment_post_ID'] ) ? 0 : $data['comment_post_ID'];
-	$comment_content  = ! isset( $data['comment_content'] ) ? '' : $data['comment_content'];
+	$comment_content  = ! isset( $data['comment_content'] ) ? '' : esc_html( $data['comment_content'] );
 	$comment_karma    = ! isset( $data['comment_karma'] ) ? 0 : $data['comment_karma'];
 	$comment_approved = ! isset( $data['comment_approved'] ) ? 1 : $data['comment_approved'];
 	$comment_agent    = ! isset( $data['comment_agent'] ) ? '' : $data['comment_agent'];
