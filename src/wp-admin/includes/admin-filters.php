@@ -44,7 +44,6 @@ add_action( 'admin_color_scheme_picker', 'admin_color_scheme_picker' );
 
 // Misc hooks.
 add_action( 'admin_init', 'wp_admin_headers' );
-add_action( 'login_init', 'wp_admin_headers' );
 add_action( 'admin_init', 'send_frame_options_header', 10, 0 );
 add_action( 'admin_head', 'wp_admin_canonical_url' );
 add_action( 'admin_head', 'wp_site_icon' );
@@ -173,3 +172,6 @@ add_filter( 'list_pages', '_wp_privacy_settings_filter_draft_page_titles', 10, 2
 // Font management.
 add_action( 'admin_print_styles', 'wp_print_font_faces', 50 );
 add_action( 'admin_print_styles', 'wp_print_font_faces_from_style_variations', 50 );
+
+// Load Press This.
+add_action( 'press_this_init', 'wp_load_press_this' );

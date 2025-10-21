@@ -147,6 +147,7 @@
 
 		<!-- Unit tests -->
 		<script src="wp-admin/js/password-strength-meter.js"></script>
+		<script src="wp-admin/js/theme.js"></script>
 		<script src="wp-admin/js/customize-base.js"></script>
 		<script src="wp-admin/js/customize-header.js"></script>
 		<script src="wp-admin/js/dashboard.js"></script>
@@ -995,7 +996,7 @@
 	</script>
 	<script type="text/html" id="tmpl-media-modal">
 		<div class="media-modal wp-core-ui">
-			<button type="button" class="media-modal-close"><span class="media-modal-icon"><span class="screen-reader-text">Close media panel</span></span></button>
+			<button type="button" class="media-modal-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">Close media panel</span></button>
 			<div class="media-modal-content"></div>
 		</div>
 		<div class="media-modal-backdrop"></div>
@@ -1258,11 +1259,11 @@
 				<# } #>
 			</div>
 			<# if ( data.buttons.close ) { #>
-				<button type="button" class="button-link attachment-close media-modal-icon"><span class="screen-reader-text">Remove</span></button>
+				<button type="button" class="button-link attachment-close"><span class="media-modal-icon" aria-hidden="true"></span></span><span class="screen-reader-text">Remove</span></button>
 			<# } #>
 		</div>
 		<# if ( data.buttons.check ) { #>
-			<button type="button" class="check" tabindex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text">Deselect</span></button>
+			<button type="button" class="check" tabindex="-1"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">Deselect</span></button>
 		<# } #>
 		<#
 		var maybeReadOnly = data.can.save || data.allowLocalEdits ? '' : 'readonly';
@@ -2292,7 +2293,6 @@
 			</li>
 			<li class="wp-has-submenu wp-not-current-submenu menu-top menu-icon-plugins" id="menu-plugins">
 				<a href="plugins.php" class="wp-has-submenu wp-not-current-submenu menu-top menu-icon-plugins" aria-haspopup="true">
-					<div class="wp-menu-arrow"><div></div></div>
 					<div class="wp-menu-image dashicons-before dashicons-admin-plugins"><br></div>
 					<div class="wp-menu-name">Plugins
 				<span class="update-plugins count-2">

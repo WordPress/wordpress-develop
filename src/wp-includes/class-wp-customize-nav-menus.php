@@ -191,13 +191,15 @@ final class WP_Customize_Nav_Menus {
 				}
 			} elseif ( 'post' !== $object_name && 0 === $page && $post_type->has_archive ) {
 				// Add a post type archive link.
+				$title   = $post_type->labels->archives;
 				$items[] = array(
-					'id'         => $object_name . '-archive',
-					'title'      => $post_type->labels->archives,
-					'type'       => 'post_type_archive',
-					'type_label' => __( 'Post Type Archive' ),
-					'object'     => $object_name,
-					'url'        => get_post_type_archive_link( $object_name ),
+					'id'             => $object_name . '-archive',
+					'title'          => $title,
+					'original_title' => $title,
+					'type'           => 'post_type_archive',
+					'type_label'     => __( 'Post Type Archive' ),
+					'object'         => $object_name,
+					'url'            => get_post_type_archive_link( $object_name ),
 				);
 			}
 
@@ -244,14 +246,16 @@ final class WP_Customize_Nav_Menus {
 					$post_type_label = implode( ',', $post_states );
 				}
 
+				$title   = html_entity_decode( $post_title, ENT_QUOTES, get_bloginfo( 'charset' ) );
 				$items[] = array(
-					'id'         => "post-{$post->ID}",
-					'title'      => html_entity_decode( $post_title, ENT_QUOTES, get_bloginfo( 'charset' ) ),
-					'type'       => 'post_type',
-					'type_label' => $post_type_label,
-					'object'     => $post->post_type,
-					'object_id'  => (int) $post->ID,
-					'url'        => get_permalink( (int) $post->ID ),
+					'id'             => "post-{$post->ID}",
+					'title'          => $title,
+					'original_title' => $title,
+					'type'           => 'post_type',
+					'type_label'     => $post_type_label,
+					'object'         => $post->post_type,
+					'object_id'      => (int) $post->ID,
+					'url'            => get_permalink( (int) $post->ID ),
 				);
 			}
 		} elseif ( 'taxonomy' === $object_type ) {
@@ -276,14 +280,16 @@ final class WP_Customize_Nav_Menus {
 			}
 
 			foreach ( $terms as $term ) {
+				$title   = html_entity_decode( $term->name, ENT_QUOTES, get_bloginfo( 'charset' ) );
 				$items[] = array(
-					'id'         => "term-{$term->term_id}",
-					'title'      => html_entity_decode( $term->name, ENT_QUOTES, get_bloginfo( 'charset' ) ),
-					'type'       => 'taxonomy',
-					'type_label' => get_taxonomy( $term->taxonomy )->labels->singular_name,
-					'object'     => $term->taxonomy,
-					'object_id'  => (int) $term->term_id,
-					'url'        => get_term_link( (int) $term->term_id, $term->taxonomy ),
+					'id'             => "term-{$term->term_id}",
+					'title'          => $title,
+					'original_title' => $title,
+					'type'           => 'taxonomy',
+					'type_label'     => get_taxonomy( $term->taxonomy )->labels->singular_name,
+					'object'         => $term->taxonomy,
+					'object_id'      => (int) $term->term_id,
+					'url'            => get_term_link( (int) $term->term_id, $term->taxonomy ),
 				);
 			}
 		}
@@ -545,7 +551,7 @@ final class WP_Customize_Nav_Menus {
 			'locationSlugMappedToName' => get_registered_nav_menus(),
 		);
 
-		$data = sprintf( 'var _wpCustomizeNavMenusSettings = %s;', wp_json_encode( $settings ) );
+		$data = sprintf( 'var _wpCustomizeNavMenusSettings = %s;', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
 		wp_scripts()->add_data( 'customize-nav-menus', 'data', $data );
 
 		// This is copied from nav-menus.php, and it has an unfortunate object name of `menus`.
@@ -1222,7 +1228,7 @@ final class WP_Customize_Nav_Menus {
 		$id = sprintf( 'available-menu-items-%s-%s', $available_item_type['type'], $available_item_type['object'] );
 		?>
 		<div id="<?php echo esc_attr( $id ); ?>" class="accordion-section">
-			<h4 class="accordion-section-title" role="presentation">
+			<h4 class="accordion-section-title">
 				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="<?php echo esc_attr( $id ); ?>-content">
 					<?php echo esc_html( $available_item_type['title'] ); ?>
 					<span class="spinner"></span>
@@ -1237,9 +1243,11 @@ final class WP_Customize_Nav_Menus {
 						<div class="new-content-item-wrapper">
 							<label for="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>"><?php echo esc_html( $post_type_obj->labels->add_new_item ); ?></label>
 							<div class="new-content-item">
-								<input type="text" id="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>" class="create-item-input">
+								<input type="text" id="<?php echo esc_attr( 'create-item-input-' . $available_item_type['object'] ); ?>" class="create-item-input form-required">
 								<button type="button" class="button add-content"><?php _e( 'Add' ); ?></button>
 							</div>
+							<span id="create-input-<?php echo esc_attr( $available_item_type['object'] ); ?>-error" class="create-item-error error-message" style="display: none;"><?php _e( 'Please enter an item title' ); ?></span>
+
 						</div>
 					<?php endif; ?>
 				<?php endif; ?>
@@ -1257,7 +1265,7 @@ final class WP_Customize_Nav_Menus {
 	protected function print_custom_links_available_menu_item() {
 		?>
 		<div id="new-custom-menu-item" class="accordion-section">
-			<h4 class="accordion-section-title" role="presentation">
+			<h4 class="accordion-section-title">
 				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="new-custom-menu-item-content">
 					<?php _e( 'Custom Links' ); ?>
 					<span class="toggle-indicator" aria-hidden="true"></span>
@@ -1268,10 +1276,12 @@ final class WP_Customize_Nav_Menus {
 				<p id="menu-item-url-wrap" class="wp-clearfix">
 					<label class="howto" for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
 					<input id="custom-menu-item-url" name="menu-item[-1][menu-item-url]" type="text" class="code menu-item-textbox" placeholder="https://">
+					<span id="custom-url-error" class="error-message" style="display: none;"><?php _e( 'Please provide a valid link.' ); ?></span>
 				</p>
 				<p id="menu-item-name-wrap" class="wp-clearfix">
 					<label class="howto" for="custom-menu-item-name"><?php _e( 'Link Text' ); ?></label>
 					<input id="custom-menu-item-name" name="menu-item[-1][menu-item-title]" type="text" class="regular-text menu-item-textbox">
+					<span id="custom-name-error" class="error-message" style="display: none;"><?php _e( 'The link text cannot be empty.' ); ?></span>
 				</p>
 				<p class="button-controls">
 					<span class="add-to-menu">
@@ -1546,7 +1556,7 @@ final class WP_Customize_Nav_Menus {
 		$exports = array(
 			'navMenuInstanceArgs' => $this->preview_nav_menu_instance_args,
 		);
-		wp_print_inline_script_tag( sprintf( 'var _wpCustomizePreviewNavMenusExports = %s;', wp_json_encode( $exports ) ) );
+		wp_print_inline_script_tag( sprintf( 'var _wpCustomizePreviewNavMenusExports = %s;', wp_json_encode( $exports, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 	}
 
 	/**

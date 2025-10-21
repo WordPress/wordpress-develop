@@ -59,6 +59,18 @@ final class WP_Interactivity_API {
 	private $config_data = array();
 
 	/**
+	 * Keeps track of all derived state closures accessed during server-side rendering.
+	 *
+	 * This data is serialized and sent to the client as part of the interactivity
+	 * data, and is handled later in the client to support derived state props that
+	 * are lazily hydrated.
+	 *
+	 * @since 6.9.0
+	 * @var array
+	 */
+	private $derived_state_closures = array();
+
+	/**
 	 * Flag that indicates whether the `data-wp-router-region` directive has
 	 * been found in the HTML and processed.
 	 *
@@ -236,12 +248,17 @@ final class WP_Interactivity_API {
 	 * interactivity stores and the configuration will be available using a `getConfig` utility.
 	 *
 	 * @since 6.7.0
+	 * @since 6.9.0 Serializes derived state props accessed during directive processing.
 	 *
 	 * @param array $data Data to filter.
 	 * @return array Data for the Interactivity API script module.
 	 */
 	public function filter_script_module_interactivity_data( array $data ): array {
-		if ( empty( $this->state_data ) && empty( $this->config_data ) ) {
+		if (
+			empty( $this->state_data ) &&
+			empty( $this->config_data ) &&
+			empty( $this->derived_state_closures )
+		) {
 			return $data;
 		}
 
@@ -263,6 +280,16 @@ final class WP_Interactivity_API {
 		}
 		if ( ! empty( $state ) ) {
 			$data['state'] = $state;
+		}
+
+		$derived_props = array();
+		foreach ( $this->derived_state_closures as $key => $value ) {
+			if ( ! empty( $value ) ) {
+				$derived_props[ $key ] = $value;
+			}
+		}
+		if ( ! empty( $derived_props ) ) {
+			$data['derivedStateClosures'] = $derived_props;
 		}
 
 		return $data;
@@ -423,7 +450,7 @@ final class WP_Interactivity_API {
 			}
 
 			if ( $p->is_tag_closer() ) {
-				list( $opening_tag_name, $directives_prefixes ) = end( $tag_stack );
+				list( $opening_tag_name, $directives_prefixes ) = ! empty( $tag_stack ) ? end( $tag_stack ) : array( null, null );
 
 				if ( 0 === count( $tag_stack ) || $opening_tag_name !== $tag_name ) {
 
@@ -451,6 +478,26 @@ final class WP_Interactivity_API {
 
 					// Checks if there is a server directive processor registered for each directive.
 					foreach ( $p->get_attribute_names_with_prefix( 'data-wp-' ) as $attribute_name ) {
+						if ( ! preg_match(
+							/*
+							 * This must align with the client-side regex used by the interactivity API.
+							 * @see https://github.com/WordPress/gutenberg/blob/ca616014255efbb61f34c10917d52a2d86c1c660/packages/interactivity/src/vdom.ts#L20-L32
+							 */
+							'/' .
+							'^data-wp-' .
+							// Match alphanumeric characters including hyphen-separated
+							// segments. It excludes underscore intentionally to prevent confusion.
+							// E.g., "custom-directive".
+							'([a-z0-9]+(?:-[a-z0-9]+)*)' .
+							// (Optional) Match '--' followed by any alphanumeric charachters. It
+							// excludes underscore intentionally to prevent confusion, but it can
+							// contain multiple hyphens. E.g., "--custom-prefix--with-more-info".
+							'(?:--([a-z0-9_-]+))?$' .
+							'/i',
+							$attribute_name
+						) ) {
+							continue;
+						}
 						list( $directive_prefix ) = $this->extract_prefix_and_suffix( $attribute_name );
 						if ( array_key_exists( $directive_prefix, self::$directive_processors ) ) {
 							$directives_prefixes[] = $directive_prefix;
@@ -578,7 +625,7 @@ final class WP_Interactivity_API {
 		// Extracts the value from the store using the reference path.
 		$path_segments = explode( '.', $path );
 		$current       = $store;
-		foreach ( $path_segments as $path_segment ) {
+		foreach ( $path_segments as $index => $path_segment ) {
 			/*
 			 * Special case for numeric arrays and strings. Add length
 			 * property mimicking JavaScript behavior.
@@ -627,6 +674,20 @@ final class WP_Interactivity_API {
 				array_push( $this->namespace_stack, $ns );
 				try {
 					$current = $current();
+
+					/*
+					 * Tracks derived state properties that are accessed during
+					 * rendering.
+					 *
+					 * @since 6.9.0
+					 */
+					$this->derived_state_closures[ $ns ] = $this->derived_state_closures[ $ns ] ?? array();
+
+					// Builds path for the current property and add it to tracking if not already present.
+					$current_path = implode( '.', array_slice( $path_segments, 0, $index + 1 ) );
+					if ( ! in_array( $current_path, $this->derived_state_closures[ $ns ], true ) ) {
+						$this->derived_state_closures[ $ns ][] = $current_path;
+					}
 				} catch ( Throwable $e ) {
 					_doing_it_wrong(
 						__METHOD__,
@@ -723,6 +784,8 @@ final class WP_Interactivity_API {
 
 	/**
 	 * Transforms a kebab-case string to camelCase.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param string $str The kebab-case string to transform to camelCase.
 	 * @return string The transformed camelCase string.
@@ -1138,6 +1201,7 @@ HTML;
 	 * `template` tag.
 	 *
 	 * @since 6.5.0
+	 * @since 6.9.0 Include the list path in the rendered `data-wp-each-child` directives.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
@@ -1183,8 +1247,8 @@ HTML;
 			}
 
 			// Extracts the namespace from the directive attribute value.
-			$namespace_value         = end( $this->namespace_stack );
-			list( $namespace_value ) = is_string( $attribute_value ) && ! empty( $attribute_value )
+			$namespace_value                = end( $this->namespace_stack );
+			list( $namespace_value, $path ) = is_string( $attribute_value ) && ! empty( $attribute_value )
 				? $this->extract_directive_value( $attribute_value, $namespace_value )
 				: array( $namespace_value, null );
 
@@ -1206,10 +1270,20 @@ HTML;
 					return;
 				}
 
-				// Adds the `data-wp-each-child` to each top-level tag.
+				/*
+				 * Adds the `data-wp-each-child` directive to each top-level tag
+				 * rendered by this `data-wp-each` directive. The value is the
+				 * `data-wp-each` directive's namespace and path.
+				 *
+				 * Nested `data-wp-each` directives could render
+				 * `data-wp-each-child` elements at the top level as well, and
+				 * they should be overwritten.
+				 *
+				 * @since 6.9.0
+				 */
 				$i = new WP_Interactivity_API_Directives_Processor( $processed_item );
 				while ( $i->next_tag() ) {
-					$i->set_attribute( 'data-wp-each-child', true );
+					$i->set_attribute( 'data-wp-each-child', $namespace_value . '::' . $path );
 					$i->next_balanced_tag_closer_tag();
 				}
 				$processed_content .= $i->get_updated_html();

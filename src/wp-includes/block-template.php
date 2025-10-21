@@ -100,7 +100,7 @@ function locate_block_template( $template, $type, array $templates ) {
 			} else {
 				if ( $block_template->has_theme_file ) {
 					// Show contents from theme template if user is not logged in.
-					$theme_template = _get_block_template_file( 'wp_template', $block_template->slug );
+					$theme_template               = _get_block_template_file( 'wp_template', $block_template->slug );
 					$_wp_current_template_content = file_get_contents( $theme_template['path'] );
 				} else {
 					$_wp_current_template_content = $block_template->content;
@@ -253,7 +253,7 @@ function get_the_block_template_html() {
 		if ( is_user_logged_in() ) {
 			return '<h1>' . esc_html__( 'No matching template found' ) . '</h1>';
 		}
-		return;
+		return '';
 	}
 
 	$content = $wp_embed->run_shortcode( $_wp_current_template_content );
