@@ -9,7 +9,6 @@
  */
 
 class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
-
 	/**
 	 * Tests whether the duotone preset class is added to the block.
 	 *

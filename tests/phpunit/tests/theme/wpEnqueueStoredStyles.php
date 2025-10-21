@@ -10,7 +10,6 @@ require_once __DIR__ . '/base.php';
  * @covers ::wp_enqueue_stored_styles
  */
 class Tests_Themes_WpEnqueueStoredStyles extends WP_Theme_UnitTestCase {
-
 	/**
 	 * @var WP_Scripts|null
 	 */
