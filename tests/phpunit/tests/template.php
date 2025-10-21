@@ -212,6 +212,7 @@ class Tests_Template extends WP_UnitTestCase {
 			array(
 				'taxonomy-taxo-foo-😀.php',
 				'taxonomy-taxo-foo-%f0%9f%98%80.php',
+				"taxonomy-taxo-{$term->term_id}.php",
 				'taxonomy-taxo.php',
 				'taxonomy.php',
 				'archive.php',

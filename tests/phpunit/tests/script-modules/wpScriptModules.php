@@ -56,30 +56,38 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * @return array Enqueued script module URLs, keyed by script module identifier.
 	 */
 	public function get_enqueued_script_modules(): array {
-		$modules = array();
+		$get_modules = function ( string $html, bool $in_footer ): array {
+			$modules = array();
+			$p       = new WP_HTML_Tag_Processor( $html );
+			while ( $p->next_tag( array( 'tag' => 'SCRIPT' ) ) ) {
+				$this->assertSame( 'module', $p->get_attribute( 'type' ) );
+				$this->assertIsString( $p->get_attribute( 'id' ) );
+				$this->assertIsString( $p->get_attribute( 'src' ) );
+				$this->assertStringEndsWith( '-js-module', $p->get_attribute( 'id' ) );
 
-		$p = new WP_HTML_Tag_Processor( get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) ) );
-		while ( $p->next_tag( array( 'tag' => 'SCRIPT' ) ) ) {
-			$this->assertSame( 'module', $p->get_attribute( 'type' ) );
-			$this->assertIsString( $p->get_attribute( 'id' ) );
-			$this->assertIsString( $p->get_attribute( 'src' ) );
-			$this->assertStringEndsWith( '-js-module', $p->get_attribute( 'id' ) );
+				$id             = preg_replace( '/-js-module$/', '', (string) $p->get_attribute( 'id' ) );
+				$fetchpriority  = $p->get_attribute( 'fetchpriority' );
+				$modules[ $id ] = array_merge(
+					array(
+						'url'           => $p->get_attribute( 'src' ),
+						'fetchpriority' => is_string( $fetchpriority ) ? $fetchpriority : 'auto',
+						'in_footer'     => $in_footer,
+					),
+					...array_map(
+						static function ( $attribute_name ) use ( $p ) {
+							return array( $attribute_name => $p->get_attribute( $attribute_name ) );
+						},
+						$p->get_attribute_names_with_prefix( 'data-' )
+					)
+				);
+			}
+			return $modules;
+		};
 
-			$id             = preg_replace( '/-js-module$/', '', (string) $p->get_attribute( 'id' ) );
-			$fetchpriority  = $p->get_attribute( 'fetchpriority' );
-			$modules[ $id ] = array_merge(
-				array(
-					'url'           => $p->get_attribute( 'src' ),
-					'fetchpriority' => is_string( $fetchpriority ) ? $fetchpriority : 'auto',
-				),
-				...array_map(
-					static function ( $attribute_name ) use ( $p ) {
-						return array( $attribute_name => $p->get_attribute( $attribute_name ) );
-					},
-					$p->get_attribute_names_with_prefix( 'data-' )
-				)
-			);
-		}
+		$modules = array_merge(
+			$get_modules( get_echo( array( $this->script_modules, 'print_head_enqueued_script_modules' ) ), false ),
+			$get_modules( get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) ), true )
+		);
 
 		return $modules;
 	}
@@ -147,11 +155,43 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test wp_register_script_module() with empty ID.
+	 *
+	 * @ticket 63486
+	 *
+	 * @expectedIncorrectUsage WP_Script_Modules::register
+	 *
+	 * @covers ::wp_register_script_module
+	 * @covers WP_Script_Modules::register
+	 */
+	public function test_register_with_empty_id() {
+		wp_register_script_module( '', '/null-and-void.js' );
+		$this->assertArrayNotHasKey( '', $this->get_registered_script_modules( wp_script_modules() ) );
+	}
+
+	/**
+	 * Test wp_enqueue_script_module() with empty ID.
+	 *
+	 * @ticket 63486
+	 *
+	 * @expectedIncorrectUsage WP_Script_Modules::enqueue
+	 *
+	 * @covers ::wp_enqueue_script_module
+	 * @covers WP_Script_Modules::enqueue
+	 */
+	public function test_enqueue_with_empty_id() {
+		wp_enqueue_script_module( '', '/null-and-void.js' );
+		$this->assertArrayNotHasKey( '', $this->get_registered_script_modules( wp_script_modules() ) );
+		$this->assertNotContains( '', wp_script_modules()->get_queue() );
+	}
+
+	/**
 	 * Tests various ways of registering, enqueueing, dequeuing, and deregistering a script module.
 	 *
 	 * This ensures that the global function aliases pass all the same parameters as the class methods.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @dataProvider data_test_register_and_enqueue_script_module
 	 *
@@ -163,7 +203,10 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * @covers WP_Script_Modules::dequeue()
 	 * @covers ::wp_deregister_script_module()
 	 * @covers WP_Script_Modules::deregister()
+	 * @covers WP_Script_Modules::get_queue()
+	 * @covers WP_Script_Modules::get_marked_for_enqueue()
 	 * @covers WP_Script_Modules::set_fetchpriority()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_import_map()
 	 * @covers WP_Script_Modules::print_script_module_preloads()
@@ -179,6 +222,12 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 				wp_script_modules()->register( ...$args );
 			}
 		};
+
+		$reflection_class       = new ReflectionClass( wp_script_modules() );
+		$get_marked_for_enqueue = $reflection_class->getMethod( 'get_marked_for_enqueue' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_marked_for_enqueue->setAccessible( true );
+		}
 
 		$register_and_enqueue = static function ( ...$args ) use ( $use_global_function, $only_enqueue ) {
 			if ( $use_global_function ) {
@@ -200,11 +249,17 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 		// Minimal args.
 		$register_and_enqueue( 'a', '/a.js' );
+		$this->assertSame( array( 'a' ), wp_script_modules()->get_queue(), 'Expected queue to match.' );
+		$marked_for_enqueue = $get_marked_for_enqueue->invoke( wp_script_modules() );
+		$this->assertSame( wp_script_modules()->get_queue(), array_keys( $marked_for_enqueue ), 'Expected get_queue() to match keys returned by get_marked_for_enqueue().' );
+		$this->assertIsArray( $marked_for_enqueue['a'], 'Expected script module "a" to have an array entry.' );
+		$this->assertSame( '/a.js', $marked_for_enqueue['a']['src'], 'Expected script module "a" to have the given src.' );
 
 		// One Dependency.
 		$register( 'b-dep', '/b-dep.js' );
 		$register_and_enqueue( 'b', '/b.js', array( 'b-dep' ) );
 		$this->assertTrue( wp_script_modules()->set_fetchpriority( 'b', 'low' ) );
+		$this->assertSame( array( 'a', 'b' ), wp_script_modules()->get_queue() );
 
 		// Two dependencies with different formats and a false version.
 		$register( 'c-dep', '/c-static.js', array(), false, array( 'fetchpriority' => 'low' ) );
@@ -221,6 +276,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			),
 			false
 		);
+		$this->assertSame( array( 'a', 'b', 'c' ), wp_script_modules()->get_queue() );
 
 		// Two dependencies, one imported statically and the other dynamically, with a null version.
 		$register( 'd-static-dep', '/d-static-dep.js', array(), false, array( 'fetchpriority' => 'auto' ) );
@@ -240,6 +296,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			),
 			null
 		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd' ), wp_script_modules()->get_queue() );
 
 		// No dependencies, with a string version version.
 		$register_and_enqueue(
@@ -248,6 +305,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			array(),
 			'1.0.0'
 		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e' ), wp_script_modules()->get_queue() );
 
 		// No dependencies, with a string version and fetch priority.
 		$register_and_enqueue(
@@ -257,6 +315,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			'2.0.0',
 			array( 'fetchpriority' => 'auto' )
 		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f' ), wp_script_modules()->get_queue() );
 
 		// No dependencies, with a string version and fetch priority of low.
 		$register_and_enqueue(
@@ -266,6 +325,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			'2.0.0',
 			array( 'fetchpriority' => 'low' )
 		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g' ), wp_script_modules()->get_queue() );
 
 		// No dependencies, with a string version and fetch priority of high.
 		$register_and_enqueue(
@@ -275,6 +335,47 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			'3.0.0',
 			array( 'fetchpriority' => 'high' )
 		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' ), wp_script_modules()->get_queue() );
+
+		// Register and enqueue something which we'll dequeue right away.
+		$register_and_enqueue(
+			'i',
+			'/i.js',
+			array(),
+			'3.0.0'
+		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ), wp_script_modules()->get_queue() );
+
+		// Register and enqueue something which we'll deregister right away.
+		$register_and_enqueue(
+			'j',
+			'/j.js',
+			array(),
+			'3.0.0'
+		);
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j' ), wp_script_modules()->get_queue() );
+
+		// Make sure unregister functions work.
+		$deregister_id = 'j';
+		$this->assertArrayHasKey( 'j', $this->get_registered_script_modules( $this->script_modules ) );
+		if ( $use_global_function ) {
+			wp_deregister_script_module( $deregister_id );
+		} else {
+			wp_script_modules()->deregister( $deregister_id );
+		}
+		$this->assertArrayNotHasKey( 'j', $this->get_registered_script_modules( $this->script_modules ) );
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i' ), wp_script_modules()->get_queue() );
+
+		// Make sure dequeue functions work.
+		$dequeue_id = 'i';
+		$this->assertArrayHasKey( 'i', $this->get_registered_script_modules( $this->script_modules ) );
+		if ( $use_global_function ) {
+			wp_dequeue_script_module( $dequeue_id );
+		} else {
+			wp_script_modules()->dequeue( $dequeue_id );
+		}
+		$this->assertArrayHasKey( 'i', $this->get_registered_script_modules( $this->script_modules ) );
+		$this->assertSame( array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' ), wp_script_modules()->get_queue() );
 
 		$actual = array(
 			'preload_links' => $this->get_preloaded_script_modules(),
@@ -308,34 +409,42 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 					'a' => array(
 						'url'           => '/a.js?ver=99.9.9',
 						'fetchpriority' => 'auto',
+						'in_footer'     => false,
 					),
 					'b' => array(
 						'url'           => '/b.js?ver=99.9.9',
 						'fetchpriority' => 'low',
+						'in_footer'     => false,
 					),
 					'c' => array(
 						'url'           => '/c.js?ver=99.9.9',
 						'fetchpriority' => 'auto',
+						'in_footer'     => false,
 					),
 					'd' => array(
 						'url'           => '/d.js',
 						'fetchpriority' => 'auto',
+						'in_footer'     => false,
 					),
 					'e' => array(
 						'url'           => '/e.js?ver=1.0.0',
 						'fetchpriority' => 'auto',
+						'in_footer'     => false,
 					),
 					'f' => array(
 						'url'           => '/f.js?ver=2.0.0',
 						'fetchpriority' => 'auto',
+						'in_footer'     => false,
 					),
 					'g' => array(
 						'url'           => '/g.js?ver=2.0.0',
 						'fetchpriority' => 'low',
+						'in_footer'     => false,
 					),
 					'h' => array(
 						'url'           => '/h.js?ver=3.0.0',
 						'fetchpriority' => 'high',
+						'in_footer'     => false,
 					),
 				),
 				'import_map'    => array(
@@ -345,71 +454,6 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 					'd-static-dep'  => '/d-static-dep.js?ver=99.9.9',
 					'd-dynamic-dep' => '/d-dynamic-dep.js?ver=99.9.9',
 				),
-			),
-			$actual,
-			"Snapshot:\n" . var_export( $actual, true )
-		);
-
-		// Dequeue the first half of the scripts.
-		foreach ( array( 'a', 'b', 'c', 'd' ) as $id ) {
-			if ( $use_global_function ) {
-				wp_dequeue_script_module( $id );
-			} else {
-				wp_script_modules()->dequeue( $id );
-			}
-		}
-
-		$actual = array(
-			'preload_links' => $this->get_preloaded_script_modules(),
-			'script_tags'   => $this->get_enqueued_script_modules(),
-			'import_map'    => $this->get_import_map(),
-		);
-		$this->assertSame(
-			array(
-				'preload_links' => array(),
-				'script_tags'   => array(
-					'e' => array(
-						'url'           => '/e.js?ver=1.0.0',
-						'fetchpriority' => 'auto',
-					),
-					'f' => array(
-						'url'           => '/f.js?ver=2.0.0',
-						'fetchpriority' => 'auto',
-					),
-					'g' => array(
-						'url'           => '/g.js?ver=2.0.0',
-						'fetchpriority' => 'low',
-					),
-					'h' => array(
-						'url'           => '/h.js?ver=3.0.0',
-						'fetchpriority' => 'high',
-					),
-				),
-				'import_map'    => array(),
-			),
-			$actual,
-			"Snapshot:\n" . var_export( $actual, true )
-		);
-
-		// Unregister the remaining scripts.
-		foreach ( array( 'e', 'f', 'g', 'h' ) as $id ) {
-			if ( $use_global_function ) {
-				wp_dequeue_script_module( $id );
-			} else {
-				wp_script_modules()->dequeue( $id );
-			}
-		}
-
-		$actual = array(
-			'preload_links' => $this->get_preloaded_script_modules(),
-			'script_tags'   => $this->get_enqueued_script_modules(),
-			'import_map'    => $this->get_import_map(),
-		);
-		$this->assertSame(
-			array(
-				'preload_links' => array(),
-				'script_tags'   => array(),
-				'import_map'    => array(),
 			),
 			$actual,
 			"Snapshot:\n" . var_export( $actual, true )
@@ -442,17 +486,30 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * Tests that a script module gets enqueued correctly after being registered.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::register()
 	 * @covers WP_Script_Modules::enqueue()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
 	 * @covers WP_Script_Modules::set_fetchpriority()
+	 * @covers WP_Script_Modules::set_in_footer()
 	 */
 	public function test_wp_enqueue_script_module() {
 		$this->script_modules->register( 'foo', '/foo.js' );
-		$this->script_modules->register( 'bar', '/bar.js', array(), false, array( 'fetchpriority' => 'high' ) );
+		$this->script_modules->register(
+			'bar',
+			'/bar.js',
+			array(),
+			false,
+			array(
+				'fetchpriority' => 'high',
+				'in_footer'     => true,
+			)
+		);
 		$this->script_modules->register( 'baz', '/baz.js' );
 		$this->assertTrue( $this->script_modules->set_fetchpriority( 'baz', 'low' ) );
+		$this->assertTrue( $this->script_modules->set_in_footer( 'baz', true ) );
 		$this->script_modules->enqueue( 'foo' );
 		$this->script_modules->enqueue( 'bar' );
 		$this->script_modules->enqueue( 'baz' );
@@ -462,20 +519,66 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$this->assertCount( 3, $enqueued_script_modules );
 		$this->assertStringStartsWith( '/foo.js', $enqueued_script_modules['foo']['url'] );
 		$this->assertSame( 'auto', $enqueued_script_modules['foo']['fetchpriority'] );
+		$this->assertFalse( $enqueued_script_modules['foo']['in_footer'] );
 		$this->assertStringStartsWith( '/bar.js', $enqueued_script_modules['bar']['url'] );
 		$this->assertSame( 'high', $enqueued_script_modules['bar']['fetchpriority'] );
+		$this->assertTrue( $enqueued_script_modules['bar']['in_footer'] );
 		$this->assertStringStartsWith( '/baz.js', $enqueued_script_modules['baz']['url'] );
 		$this->assertSame( 'low', $enqueued_script_modules['baz']['fetchpriority'] );
+		$this->assertTrue( $enqueued_script_modules['baz']['in_footer'] );
+	}
+
+	/**
+	 * Tests that no script is printed for a script without a src.
+	 *
+	 * @ticket 63486
+	 *
+	 * @covers WP_Script_Modules::register()
+	 * @covers WP_Script_Modules::enqueue()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
+	 * @covers WP_Script_Modules::print_enqueued_script_modules()
+	 * @covers WP_Script_Modules::get_src()
+	 */
+	public function test_wp_enqueue_script_module_with_empty_src() {
+		wp_enqueue_script_module( 'with-src', '/src.js' );
+		wp_register_script_module( 'without-src', '' );
+		wp_register_script_module( 'without-src-but-filtered', '' );
+		wp_enqueue_script_module( 'without-src' );
+		wp_enqueue_script_module( 'without-src-but-filtered' );
+		$this->assertSame( array( 'with-src', 'without-src', 'without-src-but-filtered' ), wp_script_modules()->get_queue() );
+		add_filter(
+			'script_module_loader_src',
+			static function ( $src, $id ) {
+				if ( 'without-src-but-filtered' === $id ) {
+					$src = '/was-empty-but-added-via-filter.js';
+				}
+				return $src;
+			},
+			10,
+			2
+		);
+		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+		$this->assertEqualHTML(
+			'
+				<script type="module" src="/src.js?ver=6.9-alpha-60093-src" id="with-src-js-module"></script>
+				<script type="module" src="/was-empty-but-added-via-filter.js" id="without-src-but-filtered-js-module"></script>
+			',
+			$actual,
+			'<body>',
+			"Expected only one SCRIPT tag to be printed. Snapshot:\n$actual"
+		);
 	}
 
 	/**
 	* Tests that a script module can be dequeued after being enqueued.
 	*
 	* @ticket 56313
+	* @ticket 63486
 	*
 	* @covers WP_Script_Modules::register()
 	* @covers WP_Script_Modules::enqueue()
 	* @covers WP_Script_Modules::dequeue()
+	* @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	* @covers WP_Script_Modules::print_enqueued_script_modules()
 	*/
 	public function test_wp_dequeue_script_module() {
@@ -570,9 +673,11 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	* be handled correctly once registered.
 	*
 	* @ticket 56313
+	* @ticket 63486
 	*
 	* @covers WP_Script_Modules::register()
 	* @covers WP_Script_Modules::enqueue()
+	* @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	* @covers WP_Script_Modules::print_enqueued_script_modules()
 	*/
 	public function test_wp_enqueue_script_module_works_before_register() {
@@ -593,10 +698,12 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * ensures that it is not enqueued after registration.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::register()
 	 * @covers WP_Script_Modules::enqueue()
 	 * @covers WP_Script_Modules::dequeue()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
 	 */
 	public function test_wp_dequeue_script_module_works_before_register() {
@@ -960,9 +1067,11 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * script modules and preloaded script modules.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::register()
 	 * @covers WP_Script_Modules::enqueue()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_import_map()
 	 * @covers WP_Script_Modules::print_script_module_preloads()
@@ -998,8 +1107,10 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * valid src.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::enqueue()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
 	 */
 	public function test_wp_enqueue_script_module_doesnt_register_without_a_valid_src() {
@@ -1016,8 +1127,10 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * src.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::enqueue()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
 	 */
 	public function test_wp_enqueue_script_module_registers_with_valid_src() {
@@ -1035,8 +1148,10 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * src the second time.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::enqueue()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
 	 */
 	public function test_wp_enqueue_script_module_registers_with_valid_src_the_second_time() {
@@ -1061,9 +1176,11 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * enqueue.
 	 *
 	 * @ticket 56313
+	 * @ticket 63486
 	 *
 	 * @covers WP_Script_Modules::register()
 	 * @covers WP_Script_Modules::enqueue()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_import_map()
 	 */
@@ -1315,6 +1432,58 @@ HTML;
 	}
 
 	/**
+	 * Tests ways of setting in_footer.
+	 *
+	 * @ticket 63486
+	 * @ticket 63486
+	 *
+	 * @covers ::wp_register_script_module
+	 * @covers ::wp_enqueue_script_module
+	 * @covers WP_Script_Modules::set_in_footer
+	 */
+	public function test_in_footer_methods() {
+		wp_register_script_module( 'default', '/default.js', array(), null );
+		wp_enqueue_script_module( 'default' );
+
+		wp_register_script_module( 'in-footer-via-register', '/in-footer-via-register.js', array(), null, array( 'in_footer' => true ) );
+		wp_enqueue_script_module( 'in-footer-via-register' );
+
+		wp_enqueue_script_module( 'in-footer-via-enqueue', '/in-footer-via-enqueue.js', array(), null, array( 'in_footer' => true ) );
+
+		wp_enqueue_script_module( 'not-in-footer-via-enqueue', '/not-in-footer-via-enqueue.js', array(), null, array( 'in_footer' => false ) );
+
+		wp_enqueue_script_module( 'in-footer-via-override', '/in-footer-via-override.js' );
+		wp_script_modules()->set_in_footer( 'in-footer-via-override', true );
+
+		wp_enqueue_script_module( 'not-in-footer-via-override', '/not-in-footer-via-override.js', array(), null, array( 'in_footer' => true ) );
+		wp_script_modules()->set_in_footer( 'not-in-footer-via-override', false );
+
+		$actual_head   = get_echo( array( wp_script_modules(), 'print_head_enqueued_script_modules' ) );
+		$actual_footer = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$this->assertEqualHTML(
+			$actual_head,
+			'
+				<script type="module" src="/default.js" id="default-js-module"></script>
+				<script type="module" src="/not-in-footer-via-enqueue.js" id="not-in-footer-via-enqueue-js-module"></script>
+				<script type="module" src="/not-in-footer-via-override.js" id="not-in-footer-via-override-js-module"></script>
+			',
+			'<body>',
+			"Expected equal script modules in the HEAD. Snapshot:\n$actual_head"
+		);
+		$this->assertEqualHTML(
+			$actual_footer,
+			'
+				<script type="module" src="/in-footer-via-register.js" id="in-footer-via-register-js-module"></script>
+				<script type="module" src="/in-footer-via-enqueue.js" id="in-footer-via-enqueue-js-module"></script>
+				<script type="module" src="/in-footer-via-override.js?ver=6.9-alpha-60093-src" id="in-footer-via-override-js-module"></script>
+			',
+			'<body>',
+			"Expected equal script modules in the footer. Snapshot:\n$actual_footer"
+		);
+	}
+
+	/**
 	 * Tests that a script module with an invalid fetchpriority value gets a value of auto.
 	 *
 	 * @ticket 61734
@@ -1377,6 +1546,7 @@ HTML;
 						'bajo' => array(
 							'url'                   => '/bajo.js',
 							'fetchpriority'         => 'high',
+							'in_footer'             => false,
 							'data-wp-fetchpriority' => 'low',
 						),
 					),
@@ -1399,6 +1569,7 @@ HTML;
 						'auto' => array(
 							'url'                   => '/auto.js',
 							'fetchpriority'         => 'high',
+							'in_footer'             => false,
 							'data-wp-fetchpriority' => 'auto',
 						),
 					),
@@ -1412,20 +1583,21 @@ HTML;
 				'enqueues' => array( 'alto' ),
 				'expected' => array(
 					'preload_links' => array(
-						'auto' => array(
-							'url'           => '/auto.js',
-							'fetchpriority' => 'high',
-						),
 						'bajo' => array(
 							'url'                   => '/bajo.js',
 							'fetchpriority'         => 'high',
 							'data-wp-fetchpriority' => 'low',
+						),
+						'auto' => array(
+							'url'           => '/auto.js',
+							'fetchpriority' => 'high',
 						),
 					),
 					'script_tags'   => array(
 						'alto' => array(
 							'url'           => '/alto.js',
 							'fetchpriority' => 'high',
+							'in_footer'     => false,
 						),
 					),
 					'import_map'    => array(
@@ -1539,11 +1711,11 @@ HTML;
 		$actual   = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
 		$actual  .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 		$expected = '
-			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload" fetchpriority="low">
-			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="low">
+			<link rel="modulepreload" href="/z.js" id="z-js-modulepreload" fetchpriority="high">
 			<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="high">
 			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="low">
-			<link rel="modulepreload" href="/z.js" id="z-js-modulepreload" fetchpriority="high">
+			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="low">
+			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload" fetchpriority="low">
 			<link rel="modulepreload" href="/y.js" id="y-js-modulepreload" fetchpriority="high">
 			<script type="module" src="/a.js" id="a-js-module" fetchpriority="low"></script>
 			<script type="module" src="/x.js" id="x-js-module" fetchpriority="high"></script>
@@ -1584,12 +1756,12 @@ HTML;
 		$actual   = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
 		$actual  .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 		$expected = '
-			<link rel="modulepreload" href="/a.js" id="a-js-modulepreload" fetchpriority="low" data-wp-fetchpriority="high">
 			<link rel="modulepreload" href="/d.js" id="d-js-modulepreload" fetchpriority="low">
 			<link rel="modulepreload" href="/e.js" id="e-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+			<link rel="modulepreload" href="/a.js" id="a-js-modulepreload" fetchpriority="low" data-wp-fetchpriority="high">
 			<link rel="modulepreload" href="/b.js" id="b-js-modulepreload">
-			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="high">
 			<link rel="modulepreload" href="/f.js" id="f-js-modulepreload" fetchpriority="high">
+			<link rel="modulepreload" href="/c.js" id="c-js-modulepreload" fetchpriority="high">
 			<script type="module" src="/x.js" id="x-js-module" fetchpriority="low"></script>
 			<script type="module" src="/y.js" id="y-js-module"></script>
 			<script type="module" src="/z.js" id="z-js-module" fetchpriority="high"></script>
@@ -1600,8 +1772,11 @@ HTML;
 	/**
 	 * Tests that default script modules are printed as expected.
 	 *
+	 * @ticket 63486
+	 *
 	 * @covers ::wp_default_script_modules
 	 * @covers WP_Script_Modules::print_script_module_preloads
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules
 	 * @covers WP_Script_Modules::print_enqueued_script_modules
 	 */
 	public function test_default_script_modules() {
@@ -1609,17 +1784,34 @@ HTML;
 		wp_enqueue_script_module( '@wordpress/a11y' );
 		wp_enqueue_script_module( '@wordpress/block-library/navigation/view' );
 
-		$actual  = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
-		$actual .= get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+		$actual_preloads = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) ) );
+		$this->assertEqualHTML(
+			'
+				<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="low">
+			',
+			$actual_preloads,
+			'<body>',
+			"Snapshot:\n$actual_preloads"
+		);
 
-		$actual = $this->normalize_markup_for_snapshot( $actual );
+		$actual_head_script_modules = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_head_enqueued_script_modules' ) ) );
+		$this->assertEqualHTML(
+			'',
+			$actual_head_script_modules,
+			'<body>',
+			"Snapshot:\n$actual_head_script_modules"
+		);
 
-		$expected = '
-			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="low">
-			<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>
-			<script type="module" src="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-module" fetchpriority="low"></script>
-		';
-		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+		$actual_footer_script_modules = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) ) );
+		$this->assertEqualHTML(
+			'
+				<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>
+				<script type="module" src="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-module" fetchpriority="low"></script>
+			',
+			$actual_footer_script_modules,
+			'<body>',
+			"Snapshot:\n$actual_footer_script_modules"
+		);
 	}
 
 	/**
@@ -1646,8 +1838,8 @@ HTML;
 
 		$expected = '
 			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
-			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
 			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/interactivity/debug.min.js" id="@wordpress/interactivity-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
+			<link rel="modulepreload" href="/wp-includes/js/dist/script-modules/block-library/navigation/view.min.js" id="@wordpress/block-library/navigation/view-js-modulepreload" fetchpriority="high" data-wp-fetchpriority="low">
 			<script type="module" src="/super-important-module.js" id="super-important-js-module" fetchpriority="high"></script>
 		';
 		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
@@ -1728,6 +1920,381 @@ HTML;
 			'stdClass' => array( new stdClass() ),
 			'number 1' => array( 1 ),
 			'string'   => array( 'string' ),
+		);
+	}
+
+	/**
+	 * Tests various ways of printing and dependency ordering of script modules.
+	 *
+	 * This ensures that the global function aliases pass all the same parameters as the class methods.
+	 *
+	 * @ticket 63486
+	 *
+	 * @dataProvider data_test_register_and_enqueue_script_module
+	 *
+	 * @covers ::wp_register_script_module()
+	 * @covers WP_Script_Modules::register()
+	 * @covers ::wp_enqueue_script_module()
+	 * @covers WP_Script_Modules::enqueue()
+	 * @covers ::wp_dequeue_script_module()
+	 * @covers WP_Script_Modules::dequeue()
+	 * @covers ::wp_deregister_script_module()
+	 * @covers WP_Script_Modules::deregister()
+	 * @covers WP_Script_Modules::set_fetchpriority()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
+	 * @covers WP_Script_Modules::print_enqueued_script_modules()
+	 * @covers WP_Script_Modules::print_import_map()
+	 * @covers WP_Script_Modules::print_script_module_preloads()
+	 */
+	public function test_script_module_printing_and_dependency_ordering( bool $use_global_function, bool $only_enqueue ) {
+		global $wp_version;
+		$wp_version = '99.9.9';
+
+		$register = static function ( ...$args ) use ( $use_global_function ) {
+			if ( $use_global_function ) {
+				wp_register_script_module( ...$args );
+			} else {
+				wp_script_modules()->register( ...$args );
+			}
+		};
+
+		$register_and_enqueue = static function ( ...$args ) use ( $use_global_function, $only_enqueue ) {
+			if ( $use_global_function ) {
+				if ( $only_enqueue ) {
+					wp_enqueue_script_module( ...$args );
+				} else {
+					wp_register_script_module( ...$args );
+					wp_enqueue_script_module( $args[0] );
+				}
+			} else {
+				if ( $only_enqueue ) {
+					wp_script_modules()->enqueue( ...$args );
+				} else {
+					wp_script_modules()->register( ...$args );
+					wp_script_modules()->enqueue( $args[0] );
+				}
+			}
+		};
+
+		$deregister = static function ( array $ids ) use ( $use_global_function ) {
+			foreach ( $ids as $id ) {
+				if ( $use_global_function ) {
+					wp_deregister_script_module( $id );
+				} else {
+					wp_script_modules()->deregister( $id );
+				}
+			}
+		};
+
+		// Test script module is placed in footer when in_footer is true.
+		$register_and_enqueue( 'a', '/a.js', array(), '1.0.0', array( 'in_footer' => true ) );
+
+		$actual = array(
+			'preload_links' => $this->get_preloaded_script_modules(),
+			'script_tags'   => $this->get_enqueued_script_modules(),
+			'import_map'    => $this->get_import_map(),
+		);
+		$this->assertSame(
+			array(
+				'preload_links' => array(),
+				'script_tags'   => array(
+					'a' => array(
+						'url'           => '/a.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => true,
+					),
+				),
+				'import_map'    => array(),
+			),
+			$actual,
+			"Snapshot:\n" . var_export( $actual, true )
+		);
+
+		$deregister( array( 'a' ) );
+
+		// Test that dependant also gets placed in footer when its dependency is in footer.
+		$register_and_enqueue( 'b', '/b.js', array(), '1.0.0', array( 'in_footer' => true ) );
+		$register_and_enqueue( 'c', '/c.js', array( 'b' ), '1.0.0' );
+
+		$actual = array(
+			'preload_links' => $this->get_preloaded_script_modules(),
+			'script_tags'   => $this->get_enqueued_script_modules(),
+			'import_map'    => $this->get_import_map(),
+		);
+		$this->assertSame(
+			array(
+				'preload_links' => array(),
+				'script_tags'   => array(
+					'b' => array(
+						'url'           => '/b.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => true,
+					),
+					'c' => array(
+						'url'           => '/c.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => true,
+					),
+				),
+				'import_map'    => array(
+					'b' => '/b.js?ver=1.0.0',
+				),
+			),
+			$actual,
+			"Snapshot:\n" . var_export( $actual, true )
+		);
+
+		$deregister( array( 'b', 'c ' ) );
+
+		// Test that registered dependency in footer doesn't place dependant in footer.
+		$register( 'd', '/d.js', array(), '1.0.0', array( 'in_footer' => true ) );
+		$register_and_enqueue( 'e', '/e.js', array( 'd' ), '1.0.0' );
+
+		$actual = array(
+			'preload_links' => $this->get_preloaded_script_modules(),
+			'script_tags'   => $this->get_enqueued_script_modules(),
+			'import_map'    => $this->get_import_map(),
+		);
+		$this->assertSame(
+			array(
+				'preload_links' => array(
+					'd' => array(
+						'url'           => '/d.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+					),
+				),
+				'script_tags'   => array(
+					'e' => array(
+						'url'           => '/e.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => false,
+					),
+				),
+				'import_map'    => array(
+					'd' => '/d.js?ver=1.0.0',
+				),
+			),
+			$actual,
+			"Snapshot:\n" . var_export( $actual, true )
+		);
+
+		$deregister( array( 'd', 'e' ) );
+
+		// Test if one of the dependency is in footer, the dependant and other dependant dependencies are also placed in footer.
+		$register_and_enqueue( 'f', '/f.js', array(), '1.0.0' );
+		$register_and_enqueue( 'g', '/g.js', array( 'f' ), '1.0.0', array( 'in_footer' => true ) );
+		$register_and_enqueue( 'h', '/h.js', array( 'g' ), '1.0.0' );
+		$register_and_enqueue( 'i', '/i.js', array( 'h' ), '1.0.0' );
+
+		$actual = array(
+			'preload_links' => $this->get_preloaded_script_modules(),
+			'script_tags'   => $this->get_enqueued_script_modules(),
+			'import_map'    => $this->get_import_map(),
+		);
+
+		$this->assertSame(
+			array(
+				'preload_links' => array(),
+				'script_tags'   => array(
+					'f' => array(
+						'url'           => '/f.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => false,
+					),
+					'g' => array(
+						'url'           => '/g.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => true,
+					),
+					'h' => array(
+						'url'           => '/h.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => true,
+					),
+					'i' => array(
+						'url'           => '/i.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => true,
+					),
+				),
+				'import_map'    => array(
+					'f' => '/f.js?ver=1.0.0',
+					'g' => '/g.js?ver=1.0.0',
+					'h' => '/h.js?ver=1.0.0',
+				),
+			),
+			$actual,
+			"Snapshot:\n" . var_export( $actual, true )
+		);
+
+		$deregister( array( 'f', 'g', 'h', 'i' ) );
+
+		// Test dependency ordering when all scripts modules are enqueued in head.
+		// Expected order: j, k, l, m.
+		$register_and_enqueue( 'm', '/m.js', array( 'j', 'l' ), '1.0.0' );
+		$register_and_enqueue( 'k', '/k.js', array( 'j' ), '1.0.0' );
+		$register_and_enqueue( 'l', '/l.js', array( 'k' ), '1.0.0' );
+		$register_and_enqueue( 'j', '/j.js', array(), '1.0.0' );
+
+		$actual = array(
+			'preload_links' => $this->get_preloaded_script_modules(),
+			'script_tags'   => $this->get_enqueued_script_modules(),
+			'import_map'    => $this->get_import_map(),
+		);
+
+		$this->assertSame(
+			array(
+				'preload_links' => array(),
+				'script_tags'   => array(
+					'j' => array(
+						'url'           => '/j.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => false,
+					),
+					'k' => array(
+						'url'           => '/k.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => false,
+					),
+					'l' => array(
+						'url'           => '/l.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => false,
+					),
+					'm' => array(
+						'url'           => '/m.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => false,
+					),
+				),
+				'import_map'    => array(
+					'j' => '/j.js?ver=1.0.0',
+					'l' => '/l.js?ver=1.0.0',
+					'k' => '/k.js?ver=1.0.0',
+				),
+			),
+			$actual,
+			"Snapshot:\n" . var_export( $actual, true )
+		);
+
+		$deregister( array( 'j', 'k', 'l', 'm' ) );
+
+		// Test dependency ordering when scripts modules are enqueued in both head and footer.
+		// Expected order: q, n, o, p, r.
+		$register_and_enqueue( 'n', '/n.js', array( 'q' ), '1.0.0' );
+		$register_and_enqueue( 'q', '/q.js', array(), '1.0.0' );
+		$register_and_enqueue( 'o', '/o.js', array( 'n' ), '1.0.0', array( 'in_footer' => true ) );
+		$register_and_enqueue( 'r', '/r.js', array( 'q', 'o', 'p' ), '1.0.0' );
+		$register_and_enqueue( 'p', '/p.js', array(), '1.0.0', array( 'in_footer' => true ) );
+
+		$actual = array(
+			'preload_links' => $this->get_preloaded_script_modules(),
+			'script_tags'   => $this->get_enqueued_script_modules(),
+			'import_map'    => $this->get_import_map(),
+		);
+
+		$this->assertSame(
+			array(
+				'preload_links' => array(),
+				'script_tags'   => array(
+					'q' => array(
+						'url'           => '/q.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => false,
+					),
+					'n' => array(
+						'url'           => '/n.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => false,
+					),
+					'o' => array(
+						'url'           => '/o.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => true,
+					),
+					'p' => array(
+						'url'           => '/p.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => true,
+					),
+					'r' => array(
+						'url'           => '/r.js?ver=1.0.0',
+						'fetchpriority' => 'auto',
+						'in_footer'     => true,
+					),
+				),
+				'import_map'    => array(
+					'q' => '/q.js?ver=1.0.0',
+					'n' => '/n.js?ver=1.0.0',
+					'o' => '/o.js?ver=1.0.0',
+					'p' => '/p.js?ver=1.0.0',
+				),
+			),
+			$actual,
+			"Snapshot:\n" . var_export( $actual, true )
+		);
+	}
+
+	/**
+	 * Tests various ways of printing and dependency ordering of script modules.
+	 *
+	 * @ticket 63486
+	 *
+	 * @dataProvider data_test_register_and_enqueue_script_module
+	 *
+	 * @covers ::wp_register_script_module()
+	 * @covers WP_Script_Modules::register()
+	 * @covers ::wp_enqueue_script_module()
+	 * @covers WP_Script_Modules::enqueue()
+	 * @covers ::wp_dequeue_script_module()
+	 * @covers WP_Script_Modules::dequeue()
+	 * @covers ::wp_deregister_script_module()
+	 * @covers WP_Script_Modules::deregister()
+	 * @covers WP_Script_Modules::set_fetchpriority()
+	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
+	 * @covers WP_Script_Modules::print_enqueued_script_modules()
+	 * @covers WP_Script_Modules::print_import_map()
+	 * @covers WP_Script_Modules::print_script_module_preloads()
+	 */
+	public function test_static_import_dependency_with_dynamic_imports_depending_on_static_import_dependency() {
+		$get_dependency = function ( string $id, string $import ): array {
+			return compact( 'id', 'import' );
+		};
+
+		wp_register_script_module( 'enqueued', '/enqueued.js', array( $get_dependency( 'static1', 'static' ) ), null );
+		wp_register_script_module( 'static1', '/static1.js', array( $get_dependency( 'dynamic1', 'dynamic' ) ), null );
+		wp_register_script_module( 'dynamic1', '/dynamic1.js', array( $get_dependency( 'static2', 'static' ) ), null );
+		wp_register_script_module( 'static2', '/static2.js', array(), null );
+
+		wp_enqueue_script_module( 'enqueued' );
+		$import_map     = $this->get_import_map();
+		$preload_links  = get_echo( array( wp_script_modules(), 'print_script_module_preloads' ) );
+		$script_modules = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$this->assertEquals(
+			array(
+				'static1'  => '/static1.js',
+				'dynamic1' => '/dynamic1.js',
+				'static2'  => '/static2.js',
+			),
+			$import_map,
+			"Expected import map to match snapshot:\n" . var_export( $import_map, true )
+		);
+		$this->assertEqualHTML(
+			'
+				<link rel="modulepreload" href="/static1.js" id="static1-js-modulepreload">
+			',
+			$preload_links,
+			'<body>',
+			"Expected preload links to match snapshot:\n$preload_links"
+		);
+		$this->assertEqualHTML(
+			'
+				<script type="module" src="/enqueued.js" id="enqueued-js-module"></script>
+			',
+			$script_modules,
+			'<body>',
+			"Expected script modules to match snapshot:\n$script_modules"
 		);
 	}
 }
