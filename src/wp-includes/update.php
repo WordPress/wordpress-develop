@@ -134,7 +134,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		// Including the table prefix is not necessary.
 		$unprefixed_myisam_tables = array_reduce(
 			array_keys( $myisam_tables ),
-			function( $carry, $prefixed_myisam_table ) use ( $all_unprefixed_tables ) {
+			function ( $carry, $prefixed_myisam_table ) use ( $all_unprefixed_tables ) {
 				foreach ( $all_unprefixed_tables as $unprefixed ) {
 					if ( str_ends_with( $prefixed_myisam_table, $unprefixed ) ) {
 						$carry[] = $unprefixed;
