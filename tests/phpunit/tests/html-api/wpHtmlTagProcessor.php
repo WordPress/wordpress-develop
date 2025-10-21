@@ -315,7 +315,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 * Ensures that set_attribute doesn’t allow setting an
 	 * attribute with an invalid name and thus break syntax.
 	 *
-	 * @ticket {TICKET_NUMBER}
+	 * @ticket 63863
 	 *
 	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_attribute
 	 *
