@@ -15,7 +15,6 @@
  * @coversDefaultClass WP_Style_Engine_CSS_Rules_Store
  */
 class Tests_Style_Engine_wpStyleEngineCSSRulesStore extends WP_UnitTestCase {
-
 	/**
 	 * Tests creating a new store on instantiation.
 	 *

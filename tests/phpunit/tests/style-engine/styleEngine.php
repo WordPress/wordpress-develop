@@ -13,7 +13,6 @@
  * Tests for registering, storing and generating styles.
  */
 class Tests_wpStyleEngine extends WP_UnitTestCase {
-
 	/**
 	 * Tests generating block styles and classnames based on various manifestations of the $block_styles argument.
 	 *
