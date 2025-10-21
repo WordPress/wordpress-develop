@@ -44,8 +44,8 @@ jQuery( function( $ ) {
 	$( '.health-check-accordion' ).on( 'click', '.health-check-accordion-trigger', function() {
 		var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
 
-		if ( 'undefined' !== typeof $( this ).attr( 'id' ) ) {
-			window.location.hash = $( this ).attr( 'id' );
+		if ( $( this ).prop( 'id' ) ) {
+			window.location.hash = $( this ).prop( 'id' );
 		}
 
 		if ( isExpanded ) {
@@ -65,7 +65,7 @@ jQuery( function( $ ) {
 		if ( hash ) {
 			var requestedPanel = $( hash );
 
-			if ( requestedPanel.length ) {
+			if ( requestedPanel.is( '.health-check-accordion-trigger' ) ) {
 				requestedPanel.trigger( 'click' );
 			}
 		}
