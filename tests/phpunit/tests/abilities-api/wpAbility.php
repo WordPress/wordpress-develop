@@ -62,6 +62,26 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * Direct instantiation of WP_Ability with invalid properties should throw an exception.
+	 *
+	 * @ticket 64098
+	 *
+	 * @covers WP_Ability::__construct
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_wp_ability_invalid_properties_throws_exception() {
+		$this->expectException( InvalidArgumentException::class );
+		new WP_Ability(
+			'test/invalid',
+			array(
+				'label'            => '',
+				'description'      => '',
+				'execute_callback' => null,
+			)
+		);
+	}
+
 	/*
 	 * Tests that getting non-existing metadata item returns default value.
 	 *

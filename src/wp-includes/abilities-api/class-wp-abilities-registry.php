@@ -259,9 +259,20 @@ final class WP_Abilities_Registry {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return WP_Abilities_Registry The main registry instance.
+	 * @return WP_Abilities_Registry|null The main registry instance, or null when `init` action has not fired.
 	 */
-	public static function get_instance(): self {
+	public static function get_instance(): ?self {
+		if ( ! did_action( 'init' ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					__( 'Ability API should not be initialized before the <code>init</code> action has fired' )
+				),
+				'6.9.0'
+			);
+			return null;
+		}
+
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 

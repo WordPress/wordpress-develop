@@ -528,26 +528,6 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Direct instantiation of WP_Ability with invalid properties should throw an exception.
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Ability::__construct
-	 * @covers WP_Ability::prepare_properties
-	 */
-	public function test_wp_ability_invalid_properties_throws_exception() {
-		$this->expectException( InvalidArgumentException::class );
-		new WP_Ability(
-			'test/invalid',
-			array(
-				'label'            => '',
-				'description'      => '',
-				'execute_callback' => null,
-			)
-		);
-	}
-
-	/**
 	 * Test register_ability_args filter modifies the args before ability instantiation.
 	 *
 	 * @ticket 64098

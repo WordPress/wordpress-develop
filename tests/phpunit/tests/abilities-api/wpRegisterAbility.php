@@ -115,26 +115,54 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests registering an ability when `abilities_api_init` hook is not fired.
+	 * Tests registering an ability when `abilities_api_init` action has not fired.
 	 *
 	 * @ticket 64098
 	 *
 	 * @expectedIncorrectUsage wp_register_ability
 	 */
-	public function test_register_ability_no_abilities_api_init_hook(): void {
+	public function test_register_ability_no_abilities_api_init_action(): void {
 		global $wp_actions;
 
-		// Store the original action count
+		// Store the original action count.
 		$original_count = isset( $wp_actions['wp_abilities_api_init'] ) ? $wp_actions['wp_abilities_api_init'] : 0;
 
-		// Reset the action count to simulate it not being fired
+		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['wp_abilities_api_init'] );
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
-		// Restore the original action count
+		// Restore the original action count.
 		if ( $original_count > 0 ) {
 			$wp_actions['wp_abilities_api_init'] = $original_count;
+		}
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Tests registering an ability when `init` action has not fired.
+	 *
+	 * @ticket 64098
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 */
+	public function test_register_ability_no_init_action(): void {
+		global $wp_actions;
+
+		do_action( 'wp_abilities_api_init' );
+
+		// Store the original action count.
+		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+
+		// Reset the action count to simulate it not being fired.
+		unset( $wp_actions['init'] );
+
+		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
+
+		// Restore the original action count.
+		if ( $original_count > 0 ) {
+			$wp_actions['init'] = $original_count;
 		}
 
 		$this->assertNull( $result );
@@ -409,6 +437,32 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests unregistering an ability when `init` action has not fired.
+	 *
+	 * @ticket 64098
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 */
+	public function test_unregister_ability_no_init_action(): void {
+		global $wp_actions;
+
+		// Store the original action count.
+		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+
+		// Reset the action count to simulate it not being fired.
+		unset( $wp_actions['init'] );
+
+		$result = wp_unregister_ability( self::$test_ability_name );
+
+		// Restore the original action count.
+		if ( $original_count > 0 ) {
+			$wp_actions['init'] = $original_count;
+		}
+
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * Tests unregistering existing ability.
 	 *
 	 * @ticket 64098
@@ -424,6 +478,32 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			new WP_Ability( self::$test_ability_name, self::$test_ability_args ),
 			$result
 		);
+	}
+
+	/**
+	 * Tests retrieving an ability when `init` action has not fired.
+	 *
+	 * @ticket 64098
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 */
+	public function test_get_ability_no_init_action(): void {
+		global $wp_actions;
+
+		// Store the original action count.
+		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+
+		// Reset the action count to simulate it not being fired.
+		unset( $wp_actions['init'] );
+
+		$result = wp_get_ability( self::$test_ability_name );
+
+		// Restore the original action count.
+		if ( $original_count > 0 ) {
+			$wp_actions['init'] = $original_count;
+		}
+
+		$this->assertNull( $result );
 	}
 
 	/**
@@ -460,6 +540,32 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests checking if an ability is registered when `init` action has not fired.
+	 *
+	 * @ticket 64098
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 */
+	public function test_has_ability_no_init_action(): void {
+		global $wp_actions;
+
+		// Store the original action count.
+		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+
+		// Reset the action count to simulate it not being fired.
+		unset( $wp_actions['init'] );
+
+		$result = wp_has_ability( self::$test_ability_name );
+
+		// Restore the original action count.
+		if ( $original_count > 0 ) {
+			$wp_actions['init'] = $original_count;
+		}
+
+		$this->assertFalse( $result );
+	}
+
+	/**
 	 * Tests checking if an ability is registered.
 	 *
 	 * @ticket 64098
@@ -485,6 +591,32 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$result = wp_has_ability( 'test/non-existent' );
 
 		$this->assertFalse( $result );
+	}
+
+	/**
+	 * Tests retrieving all registered abilities when `init` action has not fired.
+	 *
+	 * @ticket 64098
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 */
+	public function test_get_abilities_no_init_action(): void {
+		global $wp_actions;
+
+		// Store the original action count.
+		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
+
+		// Reset the action count to simulate it not being fired.
+		unset( $wp_actions['init'] );
+
+		$result = wp_get_abilities();
+
+		// Restore the original action count.
+		if ( $original_count > 0 ) {
+			$wp_actions['init'] = $original_count;
+		}
+
+		$this->assertSame( array(), $result );
 	}
 
 	/**

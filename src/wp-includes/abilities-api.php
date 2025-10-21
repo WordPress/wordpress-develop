@@ -60,7 +60,12 @@ function wp_register_ability( string $name, array $args ): ?WP_Ability {
 		return null;
 	}
 
-	return WP_Abilities_Registry::get_instance()->register( $name, $args );
+	$registry = WP_Abilities_Registry::get_instance();
+	if ( null === $registry ) {
+		return null;
+	}
+
+	return $registry->register( $name, $args );
 }
 
 /**
@@ -74,7 +79,12 @@ function wp_register_ability( string $name, array $args ): ?WP_Ability {
  * @return WP_Ability|null The unregistered ability instance on success, null on failure.
  */
 function wp_unregister_ability( string $name ): ?WP_Ability {
-	return WP_Abilities_Registry::get_instance()->unregister( $name );
+	$registry = WP_Abilities_Registry::get_instance();
+	if ( null === $registry ) {
+		return null;
+	}
+
+	return $registry->unregister( $name );
 }
 
 /**
@@ -88,7 +98,12 @@ function wp_unregister_ability( string $name ): ?WP_Ability {
  * @return bool True if the ability is registered, false otherwise.
  */
 function wp_has_ability( string $name ): bool {
-	return WP_Abilities_Registry::get_instance()->is_registered( $name );
+	$registry = WP_Abilities_Registry::get_instance();
+	if ( null === $registry ) {
+		return false;
+	}
+
+	return $registry->is_registered( $name );
 }
 
 /**
@@ -102,7 +117,12 @@ function wp_has_ability( string $name ): bool {
  * @return WP_Ability|null The registered ability instance, or null if it is not registered.
  */
 function wp_get_ability( string $name ): ?WP_Ability {
-	return WP_Abilities_Registry::get_instance()->get_registered( $name );
+	$registry = WP_Abilities_Registry::get_instance();
+	if ( null === $registry ) {
+		return null;
+	}
+
+	return $registry->get_registered( $name );
 }
 
 /**
@@ -115,7 +135,12 @@ function wp_get_ability( string $name ): ?WP_Ability {
  * @return WP_Ability[] The array of registered abilities.
  */
 function wp_get_abilities(): array {
-	return WP_Abilities_Registry::get_instance()->get_all_registered();
+	$registry = WP_Abilities_Registry::get_instance();
+	if ( null === $registry ) {
+		return array();
+	}
+
+	return $registry->get_all_registered();
 }
 
 /**
@@ -151,7 +176,12 @@ function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_
 		return null;
 	}
 
-	return WP_Ability_Categories_Registry::get_instance()->register( $slug, $args );
+	$registry = WP_Ability_Categories_Registry::get_instance();
+	if ( null === $registry ) {
+		return null;
+	}
+
+	return $registry->register( $slug, $args );
 }
 
 /**
@@ -165,7 +195,12 @@ function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_
  * @return WP_Ability_Category|null The unregistered ability category instance on success, null on failure.
  */
 function wp_unregister_ability_category( string $slug ): ?WP_Ability_Category {
-	return WP_Ability_Categories_Registry::get_instance()->unregister( $slug );
+	$registry = WP_Ability_Categories_Registry::get_instance();
+	if ( null === $registry ) {
+		return null;
+	}
+
+	return $registry->unregister( $slug );
 }
 
 /**
@@ -179,7 +214,12 @@ function wp_unregister_ability_category( string $slug ): ?WP_Ability_Category {
  * @return bool True if the ability category is registered, false otherwise.
  */
 function wp_has_ability_category( string $slug ): bool {
-	return WP_Ability_Categories_Registry::get_instance()->is_registered( $slug );
+	$registry = WP_Ability_Categories_Registry::get_instance();
+	if ( null === $registry ) {
+		return false;
+	}
+
+	return $registry->is_registered( $slug );
 }
 
 /**
@@ -193,7 +233,12 @@ function wp_has_ability_category( string $slug ): bool {
  * @return WP_Ability_Category|null The registered ability category instance, or null if it is not registered.
  */
 function wp_get_ability_category( string $slug ): ?WP_Ability_Category {
-	return WP_Ability_Categories_Registry::get_instance()->get_registered( $slug );
+	$registry = WP_Ability_Categories_Registry::get_instance();
+	if ( null === $registry ) {
+		return null;
+	}
+
+	return $registry->get_registered( $slug );
 }
 
 /**
@@ -206,5 +251,10 @@ function wp_get_ability_category( string $slug ): ?WP_Ability_Category {
  * @return WP_Ability_Category[] The array of registered ability categories.
  */
 function wp_get_ability_categories(): array {
-	return WP_Ability_Categories_Registry::get_instance()->get_all_registered();
+	$registry = WP_Ability_Categories_Registry::get_instance();
+	if ( null === $registry ) {
+		return array();
+	}
+
+	return $registry->get_all_registered();
 }
