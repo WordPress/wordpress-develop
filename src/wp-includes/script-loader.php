@@ -3523,12 +3523,6 @@ function wp_hoist_late_printed_styles() {
 		return;
 	}
 
-	// Determine priority at which styles are printed at wp_head. Short-circuit if it was unhooked.
-	$wp_head_priority = has_action( 'wp_head', 'wp_print_styles' );
-	if ( false === $wp_head_priority ) {
-		return;
-	}
-
 	/*
 	 * While normally late styles are printed, there is a filter to disable prevent this, so this makes sure they are
 	 * printed. Note that this filter was intended to control whether to print the styles queued too late for the HTML
@@ -3542,16 +3536,9 @@ function wp_hoist_late_printed_styles() {
 	 * Print a placeholder comment where the late styles can be hoisted from the footer to be printed in the header
 	 * by means of a filter below on the template enhancement output buffer.
 	 */
-	$placeholder = sprintf( '<!--%s-->', uniqid( 'wp_late_styles_placeholder:' ) );
+	$placeholder = sprintf( '/*%s*/', uniqid( 'wp_late_styles_placeholder:' ) );
 
-	// Print placeholder comment where the late styles will be moved to.
-	add_action(
-		'wp_head',
-		static function () use ( $placeholder ) {
-			echo $placeholder;
-		},
-		$wp_head_priority
-	);
+	wp_add_inline_style( 'wp-block-library', $placeholder );
 
 	// Wrap print_late_styles() with a closure that captures the late-printed styles.
 	$printed_late_styles = '';
@@ -3590,7 +3577,46 @@ function wp_hoist_late_printed_styles() {
 	add_filter(
 		'wp_template_enhancement_output_buffer',
 		static function ( $buffer ) use ( $placeholder, &$printed_late_styles ) {
-			return str_replace( $placeholder, $printed_late_styles, $buffer );
+
+			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
+			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
+				public function get_span(): WP_HTML_Span {
+					$this->set_bookmark( 'here' );
+					return $this->bookmarks['here'];
+				}
+			};
+
+			// Loop over STYLE tags.
+			while ( $processor->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
+				// Skip to the next if this is not the inline style for the wp-block-library stylesheet (which contains the placeholder).
+				if ( 'wp-block-library-inline-css' !== $processor->get_attribute( 'id' ) ) {
+					continue;
+				}
+
+				// If the inline style lacks the placeholder comment, then something went wrong and we need to abort.
+				$css_text = $processor->get_modifiable_text();
+				if ( ! str_contains( $css_text, $placeholder ) ) {
+					break;
+				}
+
+				// Remove the placeholder now that we've located the inline style.
+				$processor->set_modifiable_text( str_replace( $placeholder, '', $css_text ) );
+				$buffer = $processor->get_updated_html();
+
+				// Insert the $printed_late_styles immediately after the closing inline STYLE tag. This preserves the CSS cascade.
+				$span   = $processor->get_span();
+				$buffer = implode(
+					'',
+					array(
+						substr( $buffer, 0, $span->start + $span->length ),
+						$printed_late_styles,
+						substr( $buffer, $span->start + $span->length ),
+					)
+				);
+				break;
+			}
+
+			return $buffer;
 		}
 	);
 }

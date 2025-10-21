@@ -1006,7 +1006,7 @@ class Tests_Template extends WP_UnitTestCase {
 		// Simulate wp_head.
 		$head_output = get_echo( 'wp_head' );
 
-		$placeholder_pattern = '/<!--wp_late_styles_placeholder:[a-f0-9-]+-->/';
+		$placeholder_pattern = '#/\*wp_late_styles_placeholder:[a-f0-9-]+\*/#';
 
 		$this->assertMatchesRegularExpression( $placeholder_pattern, $head_output, 'Expected the placeholder to be present' );
 		$this->assertStringContainsString( 'early', $head_output, 'Expected the early-enqueued stylesheet to be present.' );
