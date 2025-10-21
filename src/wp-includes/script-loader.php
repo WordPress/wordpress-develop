@@ -3422,10 +3422,10 @@ function wp_enqueue_classic_theme_styles() {
 /**
  * Enqueues the assets required for the Command Palette.
  *
+ * @since 6.9.0
+ *
  * @global array  $menu
  * @global array  $submenu
- *
- * @since 6.9.0
  */
 function wp_enqueue_command_palette_assets() {
 	global $menu, $submenu;
