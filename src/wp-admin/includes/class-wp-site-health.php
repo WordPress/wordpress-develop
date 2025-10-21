@@ -756,7 +756,6 @@ class WP_Site_Health {
 		);
 
 		if ( ! $response ) {
-
 			return $result;
 		}
 
