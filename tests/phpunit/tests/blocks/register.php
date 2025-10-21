@@ -1039,8 +1039,8 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			'style'     => 'file:./block.css',
 			'viewStyle' => 'file:./block-view.css',
 		);
-		$this->assertSame( 'tests-notice-style', register_block_style_handle( $metadata, 'style' ) );
-		$this->assertSame( 'tests-notice-view-style', register_block_style_handle( $metadata, 'viewStyle' ) );
+		$this->assertSame( 'tests-notice-style', register_block_style_handle( $metadata, 'style' ), 'Style handle is expected to be tests-notice-style' );
+		$this->assertSame( 'tests-notice-view-style', register_block_style_handle( $metadata, 'viewStyle' ), 'View style handle is expected to be tests-notice-view-style' );
 		$this->assertTrue( wp_style_is( 'tests-notice-style', 'registered' ), 'Expected "tests-notice-style" style to be registered.' );
 		$this->assertTrue( wp_style_is( 'tests-notice-view-style', 'registered' ), 'Expected "tests-notice-view-style" style to be registered.' );
 

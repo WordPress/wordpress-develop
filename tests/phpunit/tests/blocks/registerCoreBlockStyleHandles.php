@@ -64,7 +64,7 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 	 */
 	public function test_wp_should_load_separate_core_block_assets_false( $name, $schema ) {
 		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
-		$this->assertFalse( wp_should_load_separate_core_block_assets() );
+		$this->assertFalse( wp_should_load_separate_core_block_assets(), 'Core blocks are not expected to load separate assets' );
 		register_core_block_style_handles();
 
 		foreach ( self::STYLE_FIELDS as $style_field => $filename ) {
@@ -91,7 +91,7 @@ class Tests_Blocks_registerCoreBlockStyleHandles extends WP_UnitTestCase {
 	 */
 	public function test_wp_should_load_separate_core_block_assets_true( $name, $schema ) {
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
-		$this->assertTrue( wp_should_load_separate_core_block_assets() );
+		$this->assertTrue( wp_should_load_separate_core_block_assets(), 'Core assets are expected to load separately' );
 		register_core_block_style_handles();
 
 		$wp_styles = $GLOBALS['wp_styles'];

@@ -322,7 +322,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	public function test_third_party_blocks_inline_styles_for_elements_get_rendered_when_per_block() {
 		$this->set_up_third_party_block();
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
-		$this->assertTrue( wp_should_load_separate_core_block_assets() );
+		$this->assertTrue( wp_should_load_separate_core_block_assets(), 'Core assets are expected to load separately' );
 
 		wp_register_style( 'global-styles', false, array(), true, true );
 		wp_enqueue_style( 'global-styles' );
