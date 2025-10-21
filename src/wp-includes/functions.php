@@ -9238,14 +9238,14 @@ function wp_get_api_request_url( $path = '/', $scheme = 'https' ) {
 		$domain = getenv( 'WP_UPDATE_API_BASE' );
 	}
 
-	$uri = $scheme . '://' . $domain . $path;
+	$url = $scheme . '://' . $domain . $path;
 	/**
 	 * Filters the URL for a WP API request.
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param string $url URL
+	 * @param string $url URL for this WP API request.
 	 */
-	$uri = apply_filters( 'wp_api_request' );
+	apply_filters( 'wp_api_request', $url );
 	return $uri;
 }
