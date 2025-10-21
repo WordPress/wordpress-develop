@@ -9246,6 +9246,5 @@ function wp_get_api_request_url( $path = '/', $scheme = 'https' ) {
 	 *
 	 * @param string $url URL for this WP API request.
 	 */
-	apply_filters( 'wp_api_request', $url );
-	return $uri;
+	return apply_filters( 'wp_api_request', $url );
 }
