@@ -12392,7 +12392,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+?)/run": {
+        "/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+?)/run": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -12435,7 +12435,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/abilities": {
+        "/wp-abilities/v1/abilities": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -12483,12 +12483,12 @@ mockedApiResponse.Schema = {
             "_links": {
                 "self": [
                     {
-                        "href": "http://example.org/index.php?rest_route=/wp/v2/abilities"
+                        "href": "http://example.org/index.php?rest_route=/wp-abilities/v1/abilities"
                     }
                 ]
             }
         },
-        "/wp/v2/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+)": {
+        "/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"

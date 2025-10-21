@@ -3,12 +3,12 @@
 /**
  * Tests for the REST list controller for abilities endpoint.
  *
- * @covers WP_REST_Abilities_List_Controller
+ * @covers WP_REST_Abilities_V1_List_Controller
  *
  * @group abilities-api
  * @group rest-api
  */
-class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
+class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 	/**
 	 * REST Server instance.
@@ -259,7 +259,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_get_items(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
@@ -282,7 +282,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_get_item(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/calculator' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
@@ -305,7 +305,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_get_item_with_selected_fields(): void {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/calculator' );
 		$request->set_param( '_fields', 'name,label' );
 		$response = $this->server->dispatch( $request );
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
@@ -326,7 +326,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_get_item_with_embed_context(): void {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/calculator' );
 		$request->set_param( 'context', 'embed' );
 		$response = $this->server->dispatch( $request );
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
@@ -350,7 +350,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
 	 */
 	public function test_get_item_not_found(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/non/existent' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/non/existent' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 404, $response->get_status() );
@@ -365,7 +365,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_get_item_not_show_in_rest(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/not-show-in-rest' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/not-show-in-rest' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 404, $response->get_status() );
@@ -383,7 +383,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		// Test with non-logged-in user
 		wp_set_current_user( 0 );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 401, $response->get_status() );
@@ -395,7 +395,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_pagination_headers(): void {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$request->set_param( 'per_page', 10 );
 		$response = $this->server->dispatch( $request );
 
@@ -416,7 +416,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_head_request(): void {
-		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/abilities' );
+		$request  = new WP_REST_Request( 'HEAD', '/wp-abilities/v1/abilities' );
 		$response = $this->server->dispatch( $request );
 
 		// Verify empty response body
@@ -436,7 +436,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 */
 	public function test_pagination_links(): void {
 		// Test first page (should have 'next' link header but no 'prev')
-		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$request->set_param( 'per_page', 10 );
 		$request->set_param( 'page', 1 );
 		$response = $this->server->dispatch( $request );
@@ -478,7 +478,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 */
 	public function test_collection_params(): void {
 		// Test per_page parameter
-		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$request->set_param( 'per_page', 5 );
 		$response = $this->server->dispatch( $request );
 
@@ -494,7 +494,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		$this->assertCount( 5, $data );
 
 		// Verify we got different abilities on page 2
-		$page1_request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$page1_request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$page1_request->set_param( 'per_page', 5 );
 		$page1_request->set_param( 'page', 1 );
 		$page1_response = $this->server->dispatch( $page1_request );
@@ -510,7 +510,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_ability_response_links(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/calculator' );
 		$response = $this->server->dispatch( $request );
 
 		$links = $response->get_links();
@@ -520,13 +520,13 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 
 		// Verify link URLs
 		$self_link = $links['self'][0]['href'];
-		$this->assertStringContainsString( '/wp/v2/abilities/test/calculator', $self_link );
+		$this->assertStringContainsString( '/wp-abilities/v1/abilities/test/calculator', $self_link );
 
 		$collection_link = $links['collection'][0]['href'];
-		$this->assertStringContainsString( '/wp/v2/abilities', $collection_link );
+		$this->assertStringContainsString( '/wp-abilities/v1/abilities', $collection_link );
 
 		$run_link = $links['wp:action-run'][0]['href'];
-		$this->assertStringContainsString( '/wp/v2/abilities/test/calculator/run', $run_link );
+		$this->assertStringContainsString( '/wp-abilities/v1/abilities/test/calculator/run', $run_link );
 	}
 
 	/**
@@ -535,7 +535,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_context_parameter(): void {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities/test/calculator' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/calculator' );
 		$request->set_param( 'context', 'view' );
 		$response = $this->server->dispatch( $request );
 
@@ -556,7 +556,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_get_schema(): void {
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/abilities' );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp-abilities/v1/abilities' );
 		$response = $this->server->dispatch( $request );
 		$data     = $response->get_data();
 
@@ -606,7 +606,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		);
 
 		// Test valid special characters (hyphen, forward slash)
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/test-hyphen/ability' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test-hyphen/ability' );
 		$response = $this->server->dispatch( $request );
 
 		wp_unregister_ability( 'test-hyphen/ability' );
@@ -642,7 +642,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @param string $name Invalid ability name to test.
 	 */
 	public function test_ability_name_with_invalid_special_characters( string $name ): void {
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/' . $name );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/' . $name );
 		$response = $this->server->dispatch( $request );
 		// Should return 404 as the regex pattern won't match
 		$this->assertEquals( 404, $response->get_status() );
@@ -659,7 +659,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 		// Create a very long but valid ability name
 		$long_name = 'test/' . str_repeat( 'a', 1000 );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/abilities/' . $long_name );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/' . $long_name );
 		$response = $this->server->dispatch( $request );
 
 		// Should return 404 as ability doesn't exist
@@ -693,7 +693,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @param array<string, mixed> $params Invalid pagination parameters.
 	 */
 	public function test_invalid_pagination_parameters( array $params ): void {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$request->set_query_params( $params );
 
 		$response = $this->server->dispatch( $request );
@@ -716,7 +716,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_filter_by_category(): void {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$request->set_param( 'category', 'math' );
 		$response = $this->server->dispatch( $request );
 
@@ -748,7 +748,7 @@ class Tests_REST_API_WpRestAbilitiesListController extends WP_UnitTestCase {
 			'The nonexistent category should not be registered - test isolation may be broken'
 		);
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/abilities' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$request->set_param( 'category', 'nonexistent' );
 		$response = $this->server->dispatch( $request );
 

@@ -16,7 +16,7 @@ declare( strict_types = 1 );
  *
  * @see WP_REST_Controller
  */
-class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
+class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 
 	/**
 	 * REST API namespace.
@@ -24,7 +24,7 @@ class WP_REST_Abilities_List_Controller extends WP_REST_Controller {
 	 * @since 6.9.0
 	 * @var string
 	 */
-	protected $namespace = 'wp/v2';
+	protected $namespace = 'wp-abilities/v1';
 
 	/**
 	 * REST API base route.
