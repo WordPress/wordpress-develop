@@ -399,7 +399,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$total_users = $query->get_total();
 
 		if ( $total_users < 1 ) {
-			// Out-of-bounds, run the query again without LIMIT for total count.
+			// Out-of-bounds, run the query without pagination/offset to get the total count.
 			unset( $prepared_args['number'], $prepared_args['offset'] );
 
 			$prepared_args['number'] = 1;

@@ -203,7 +203,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 			$total_revisions = $revisions_query->found_posts;
 
 			if ( $total_revisions < 1 ) {
-				// Out-of-bounds, run the query again without LIMIT for total count.
+				// Out-of-bounds, run the query without pagination/offset to get the total count.
 				unset( $query_args['paged'], $query_args['offset'] );
 
 				$count_query                          = new WP_Query();
