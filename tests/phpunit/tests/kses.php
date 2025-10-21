@@ -1441,25 +1441,114 @@ EOF;
 	/**
 	 * Data attributes are globally accepted.
 	 *
-	 * @ticket 33121
+	 * @ticket 61501
+	 *
+	 * @dataProvider data_data_attributes_and_whether_they_are_allowed
+	 *
+	 * @param string $attribute_name Custom data attribute, e.g. "data-wp-bind--enabled".
+	 * @param bool   $is_allowed     Whether the given attribute should be allowed.
 	 */
-	public function test_wp_kses_attr_data_attribute_is_allowed() {
-		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data-two-hyphens="remains">Pens and pencils</div>';
-		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
+	public function test_wp_kses_attr_boolean_data_attribute_is_allowed( string $attribute_name, bool $is_allowed ) {
+		$element = "<div {$attribute_name}>Pens and pencils.</div>";
 
-		$this->assertEqualHTML( $expected, wp_kses_post( $test ) );
+		$processor = new WP_HTML_Tag_Processor( $element );
+		$processor->next_tag();
+
+		$this->assertTrue(
+			$processor->get_attribute( $attribute_name ),
+			"Failed to find expected attribute '{$attribute_name}' before filtering: check test."
+		);
+
+		$processor = new WP_HTML_Tag_Processor( wp_kses_post( $element ) );
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Failed to find containing tag after filtering: check test.'
+		);
+
+		if ( $is_allowed ) {
+			$this->assertTrue(
+				$processor->get_attribute( $attribute_name ),
+				"Allowed custom data attribute '{$attribute_name}' should not have been removed."
+			);
+		} else {
+			$this->assertNull(
+				$processor->get_attribute( $attribute_name ),
+				"Should have removed un-allowed custom data attribute '{$attribute_name}'."
+			);
+		}
 	}
 
 	/**
-	 * Data attributes with leading, trailing, and double "-" are globally accepted.
+	 * Ensures that only allowable custom data attributes with values are retained.
 	 *
-	 * @ticket 61052
+	 * @ticket 33121
+	 *
+	 * @dataProvider data_data_attributes_and_whether_they_are_allowed
+	 *
+	 * @param string $attribute_name Custom data attribute, e.g. "dat-wp-bind--enabled".
+	 * @param bool   $is_allowed     Whether the given attribute should be allowed.
 	 */
-	public function test_wp_kses_attr_data_attribute_hypens_allowed() {
-		$test     = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
-		$expected = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
+	public function test_wp_kses_attr_data_attribute_is_allowed( string $attribute_name, bool $is_allowed ) {
+		$element = "<div {$attribute_name}='shadows and dust'>Pens and pencils.</div>";
 
-		$this->assertEqualHTML( $expected, wp_kses_post( $test ) );
+		$processor = new WP_HTML_Tag_Processor( $element );
+		$processor->next_tag();
+
+		$this->assertIsString(
+			$processor->get_attribute( $attribute_name ),
+			"Failed to find expected attribute '{$attribute_name}' before filtering: check test."
+		);
+
+		$processor = new WP_HTML_Tag_Processor( wp_kses_post( $element ) );
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Failed to find containing tag after filtering: check test.'
+		);
+
+		if ( $is_allowed ) {
+			$this->assertIsString(
+				$processor->get_attribute( $attribute_name ),
+				"Allowed custom data attribute '{$attribute_name}' should not have been removed."
+			);
+		} else {
+			$this->assertNull(
+				$processor->get_attribute( $attribute_name ),
+				"Should have removed un-allowed custom data attribute '{$attribute_name}'."
+			);
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[].
+	 */
+	public static function data_data_attributes_and_whether_they_are_allowed() {
+		return array(
+			// Allowable custom data attributes.
+			'Normative attribute'      => array( 'data-foo', true ),
+			'Non-consecutive dashes'   => array( 'data-two-hyphens', true ),
+			'Double-dashes'            => array( 'data--double-dash', true ),
+			'Trailing dash'            => array( 'data-trailing-dash-', true ),
+			'Uppercase alphas'         => array( 'data-Post-ID', true ),
+			'Bind Directive'           => array( 'data-wp-bind--enabled', true ),
+			'Single-dash suffix'       => array( 'data-after-', true ),
+			'Double-dash prefix'       => array( 'data--before', true ),
+			'Double-dash suffix'       => array( 'data-after--', true ),
+			'Double-dashes everywhere' => array( 'data--one--two--', true ),
+			'Underscore'               => array( 'data-over_under', true ),
+
+			// Not custom data attributes.
+			'No data- prefix'          => array( 'post-id', false ),
+			'No dash after prefix'     => array( 'datainvalid', false ),
+
+			// Un-allowable custom data attributes.
+			'Nothing after prefix'     => array( 'data-', false ),
+			'Whitespace after prefix'  => array( "data-\u{2003}", false ),
+			'Emoji in name'            => array( 'data-🐄', false ),
+			'Brackets'                 => array( 'data-[enabled]', false ),
+			'Colon'                    => array( 'data-wp:bind', false ),
+		);
 	}
 
 	/**

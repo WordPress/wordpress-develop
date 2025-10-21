@@ -1529,24 +1529,27 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
 
 	$allowed_attr = $allowed_html[ $element_low ];
 
+	/*
+	 * Allow Custom Data Attributes (`data-*`).
+	 *
+	 * When specifying `$allowed_html`, the attribute name should be set as
+	 * `data-*` (not to be mixed with the HTML 4.0 `data` attribute, see
+	 * https://www.w3.org/TR/html40/struct/objects.html#adef-data).
+	 *
+	 * Custom data attributes appear on an HTML element in the `dataset`
+	 * property and are available from JavaScript with a transformed name.
+	 *
+	 * @see https://html.spec.whatwg.org/#custom-data-attribute
+	 */
 	if ( ! isset( $allowed_attr[ $name_low ] ) || '' === $allowed_attr[ $name_low ] ) {
-		/*
-		 * Allow `data-*` attributes.
-		 *
-		 * When specifying `$allowed_html`, the attribute name should be set as
-		 * `data-*` (not to be mixed with the HTML 4.0 `data` attribute, see
-		 * https://www.w3.org/TR/html40/struct/objects.html#adef-data).
-		 *
-		 * Note: the attribute name should only contain `A-Za-z0-9_-` chars.
-		 */
-		if ( str_starts_with( $name_low, 'data-' ) && ! empty( $allowed_attr['data-*'] )
-			&& preg_match( '/^data-[a-z0-9_-]+$/', $name_low, $match )
-		) {
+		$dataset_name = wp_js_dataset_name( $name );
+		if ( isset( $dataset_name ) && ! empty( $allowed_attr['data-*'] ) ) {
 			/*
-			 * Add the whole attribute name to the allowed attributes and set any restrictions
-			 * for the `data-*` attribute values for the current element.
+			 * The attribute name passed in here is the `data-*` name, or the name in
+			 * the raw HTML. Add it to the set of allowed attributes and adopt the
+			 * restrictions applied to all custom data attributes for the element.
 			 */
-			$allowed_attr[ $match[0] ] = $allowed_attr['data-*'];
+			$allowed_attr[ $name_low ] = $allowed_attr['data-*'];
 		} else {
 			$name  = '';
 			$value = '';
