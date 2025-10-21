@@ -71,6 +71,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        event: ['${{ github.event_name }}']
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
@@ -206,6 +207,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        event: ['${{ github.event_name }}']
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mariadb' ]
@@ -452,6 +454,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        event: ['${{ github.event_name }}']
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql', 'mariadb' ]
