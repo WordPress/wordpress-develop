@@ -430,6 +430,107 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that blocks with supports.interactivity have the
+	 * `data-wp-router-options` directive.
+	 *
+	 * @ticket 64122
+	 *
+	 * @covers ::register_block_script_module_id
+	 */
+	public function test_register_block_script_module_id_with_interactivity_true() {
+		$metadata = array(
+			'file'             => DIR_TESTDATA . '/blocks/notice/block.json',
+			'viewScriptModule' => 'file:./block.js',
+		);
+
+		$interactivity_true                    = array_merge(
+			$metadata,
+			array(
+				'name'     => 'tests/interactivity-true',
+				'supports' => array( 'interactivity' => true ),
+			)
+		);
+		$interactive_and_client_navigation     = array_merge(
+			$metadata,
+			array(
+				'name'     => 'tests/interactive-and-client-navigation',
+				'supports' => array(
+					'interactivity' => array(
+						'interactive'      => true,
+						'clientNavigation' => true,
+					),
+				),
+			)
+		);
+		$interactive_and_not_client_navigation = array_merge(
+			$metadata,
+			array(
+				'name'     => 'tests/interactive-and-not-client-navigation',
+				'supports' => array(
+					'interactivity' => array(
+						'interactive'      => true,
+						'clientNavigation' => false,
+					),
+				),
+			)
+		);
+		$not_interactive_and_client_navigation = array_merge(
+			$metadata,
+			array(
+				'name'     => 'tests/not-interactive-and-client-navigation',
+				'supports' => array(
+					'interactivity' => array(
+						'interactive'      => false,
+						'clientNavigation' => true,
+					),
+				),
+			)
+		);
+		$no_interactivity                      = array_merge(
+			$metadata,
+			array(
+				'name'     => 'tests/no-interactivity',
+				'supports' => array(),
+			)
+		);
+
+		$interactivity_true_module_id                    = register_block_script_module_id( $interactivity_true, 'viewScriptModule' );
+		$interactive_and_client_navigation_module_id     = register_block_script_module_id( $interactive_and_client_navigation, 'viewScriptModule' );
+		$interactive_and_not_client_navigation_module_id = register_block_script_module_id( $interactive_and_not_client_navigation, 'viewScriptModule' );
+		$not_interactive_and_client_navigation_module_id = register_block_script_module_id( $not_interactive_and_client_navigation, 'viewScriptModule' );
+		$no_interactivity_module_id                      = register_block_script_module_id( $no_interactivity, 'viewScriptModule' );
+		wp_enqueue_script_module( $interactivity_true_module_id );
+		wp_enqueue_script_module( $interactive_and_client_navigation_module_id );
+		wp_enqueue_script_module( $interactive_and_not_client_navigation_module_id );
+		wp_enqueue_script_module( $not_interactive_and_client_navigation_module_id );
+		wp_enqueue_script_module( $no_interactivity_module_id );
+
+		$output = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$p = new WP_HTML_Tag_Processor( $output );
+
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
+		$this->assertSame( 'tests-interactivity-true-view-script-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertSame( '{"loadOnClientNavigation":true}', $p->get_attribute( 'data-wp-router-options' ) );
+
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
+		$this->assertSame( 'tests-interactive-and-client-navigation-view-script-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertSame( '{"loadOnClientNavigation":true}', $p->get_attribute( 'data-wp-router-options' ) );
+
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
+		$this->assertSame( 'tests-interactive-and-not-client-navigation-view-script-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
+
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
+		$this->assertSame( 'tests-not-interactive-and-client-navigation-view-script-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
+
+		$this->assertTrue( $p->next_tag( array( 'tag_name' => 'SCRIPT' ) ), 'Expected there to be another SCRIPT.' );
+		$this->assertSame( 'tests-no-interactivity-view-script-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
+	}
+
+	/**
 	 * @ticket 50263
 	 */
 	public function test_handle_passed_register_block_script_handle() {

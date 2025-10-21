@@ -522,4 +522,45 @@ class Tests_WP_Interactivity_API_WP_Context extends WP_UnitTestCase {
 		$p->next_tag( array( 'class_name' => 'test' ) );
 		$this->assertSame( 'some-id-1', $p->get_attribute( 'id' ) );
 	}
+
+	/**
+	 * Tests supports multiple context directives in the same element.
+	 *
+	 * @ticket 64106
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_context_supports_multiple_directives_in_the_same_element() {
+		$html    = '
+			<div
+				data-wp-interactive="directive-context/multiple"
+				data-wp-context=\'{ "prop": "parent", "parent": true }\'
+			>
+				<div
+					data-wp-context---id2=\'other-namespace::{ "prop": true }\'
+					data-wp-context=\'{ "prop": "default", "default": true }\'
+					data-wp-context---id1=\'{ "prop": "id1", "id1": true }\'
+				>
+					<span
+						class="test"
+						data-wp-bind--data-test-prop="context.prop"
+						data-wp-bind--data-test-parent="context.parent"
+						data-wp-bind--data-test-default="context.default"
+						data-wp-bind--data-test-id1="context.id1"
+						data-wp-bind--data-test-other="other-namespace::context.prop"
+					></span>
+				</div>
+			</div>
+		';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( 'id1', $p->get_attribute( 'data-test-prop' ) );
+		foreach ( array( 'parent', 'default', 'id1', 'other' ) as $attribute ) {
+			$attr_name = "data-test-$attribute";
+			$this->assertSame(
+				'true',
+				$p->get_attribute( $attr_name ),
+				"Failed asserting that $attr_name equals 'true'"
+			);
+		}
+	}
 }
