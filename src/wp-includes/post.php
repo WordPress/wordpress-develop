@@ -4843,7 +4843,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		if ( isset( $data[ $emoji_field ] ) ) {
 			$charset = $wpdb->get_col_charset( $wpdb->posts, $emoji_field );
 
-			if ( 'utf8' === $charset ) {
+			if ( 'utf8' === $charset || 'utf8mb3' === $charset ) {
 				$data[ $emoji_field ] = wp_encode_emoji( $data[ $emoji_field ] );
 			}
 		}
