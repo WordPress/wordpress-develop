@@ -223,7 +223,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 			}
 		};
 
-		$reflection_class = new ReflectionClass( wp_script_modules() );
+		$reflection_class       = new ReflectionClass( wp_script_modules() );
 		$get_marked_for_enqueue = $reflection_class->getMethod( 'get_marked_for_enqueue' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$get_marked_for_enqueue->setAccessible( true );
