@@ -204,6 +204,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * @covers ::wp_deregister_script_module()
 	 * @covers WP_Script_Modules::deregister()
 	 * @covers WP_Script_Modules::get_queue()
+	 * @covers WP_Script_Modules::get_marked_for_enqueue()
 	 * @covers WP_Script_Modules::set_fetchpriority()
 	 * @covers WP_Script_Modules::print_head_enqueued_script_modules()
 	 * @covers WP_Script_Modules::print_enqueued_script_modules()
@@ -221,6 +222,12 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 				wp_script_modules()->register( ...$args );
 			}
 		};
+
+		$reflection_class = new ReflectionClass( wp_script_modules() );
+		$get_marked_for_enqueue = $reflection_class->getMethod( 'get_marked_for_enqueue' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_marked_for_enqueue->setAccessible( true );
+		}
 
 		$register_and_enqueue = static function ( ...$args ) use ( $use_global_function, $only_enqueue ) {
 			if ( $use_global_function ) {
@@ -242,7 +249,11 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 
 		// Minimal args.
 		$register_and_enqueue( 'a', '/a.js' );
-		$this->assertSame( array( 'a' ), wp_script_modules()->get_queue() );
+		$this->assertSame( array( 'a' ), wp_script_modules()->get_queue(), 'Expected queue to match.' );
+		$marked_for_enqueue = $get_marked_for_enqueue->invoke( wp_script_modules() );
+		$this->assertSame( wp_script_modules()->get_queue(), array_keys( $marked_for_enqueue ), 'Expected get_queue() to match keys returned by get_marked_for_enqueue().' );
+		$this->assertIsArray( $marked_for_enqueue['a'], 'Expected script module "a" to have an array entry.' );
+		$this->assertSame( '/a.js', $marked_for_enqueue['a']['src'], 'Expected script module "a" to have the given src.' );
 
 		// One Dependency.
 		$register( 'b-dep', '/b-dep.js' );

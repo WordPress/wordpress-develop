@@ -532,6 +532,23 @@ class WP_Script_Modules {
 	}
 
 	/**
+	 * Retrieves the list of script modules marked for enqueue.
+	 *
+	 * Even though this is a private method and is unused in core, there are ecosystem plugins accessing it via the
+	 * Reflection API. The ecosystem should rather use {@see self::get_queue()}.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @return array<string, array> Script modules marked for enqueue, keyed by script module identifier.
+	 */
+	private function get_marked_for_enqueue(): array {
+		return wp_array_slice_assoc(
+			$this->registered,
+			$this->queue
+		);
+	}
+
+	/**
 	 * Retrieves all the dependencies for the given script module identifiers, filtered by import types.
 	 *
 	 * It will consolidate an array containing a set of unique dependencies based
