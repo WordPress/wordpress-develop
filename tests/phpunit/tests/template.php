@@ -556,6 +556,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @ticket 43258
 	 * @ticket 64099
+	 *
 	 * @covers ::wp_should_output_buffer_template_for_enhancement
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 * @covers ::wp_load_classic_theme_block_styles_on_demand
