@@ -1744,7 +1744,7 @@ function wp_default_styles( $styles ) {
 		'block-library'        => array(),
 		'block-directory'      => array(),
 		'components'           => array(),
-		'commands'             => array(),
+		'commands'             => array( 'wp-components' ),
 		'edit-post'            => array(
 			'wp-components',
 			'wp-block-editor',
