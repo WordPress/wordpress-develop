@@ -101,13 +101,13 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 
 		$expected_query = explode( ', ', $expected );
 		$expected_query = array_map(
-			function( $item ) use ( $wpdb ) {
+			function ( $item ) use ( $wpdb ) {
 				return "{$wpdb->posts}.{$item}";
 			},
 			$expected_query
 		);
 
-		$this->assertStringContainsString( "ORDER BY " . implode( ', ', $expected_query ), $this->sql );
+		$this->assertStringContainsString( 'ORDER BY ' . implode( ', ', $expected_query ), $this->sql );
 	}
 
 	/**
