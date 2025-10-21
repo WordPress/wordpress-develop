@@ -11,6 +11,16 @@
 class Tests_Blocks_Register extends WP_UnitTestCase {
 
 	/**
+	 * @var WP_Scripts|null
+	 */
+	protected $original_wp_scripts;
+
+	/**
+	 * @var WP_Styles|null
+	 */
+	protected $original_wp_styles;
+
+	/**
 	 * ID for a test post.
 	 *
 	 * @since 5.0.0
@@ -47,6 +57,21 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	public function render_stub() {}
 
 	/**
+	 * Set up.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		global $wp_scripts, $wp_styles;
+		$this->original_wp_scripts = $wp_scripts;
+		$this->original_wp_styles  = $wp_styles;
+		$wp_scripts                = null;
+		$wp_styles                 = null;
+		wp_scripts();
+		wp_styles();
+	}
+
+	/**
 	 * Tear down after each test.
 	 *
 	 * @since 5.0.0
@@ -66,6 +91,10 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 				wp_deregister_script( $script_handle );
 			}
 		}
+
+		global $wp_scripts, $wp_styles;
+		$wp_scripts = $this->original_wp_scripts;
+		$wp_styles  = $this->original_wp_styles;
 
 		parent::tear_down();
 	}
@@ -1003,6 +1032,18 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 			DIR_TESTDATA . '/blocks/notice'
 		);
 
+		// Register the styles not included in the metadata above.
+		$metadata = array(
+			'file'      => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'      => 'tests/notice',
+			'style'     => 'file:./block.css',
+			'viewStyle' => 'file:./block-view.css',
+		);
+		$this->assertSame( 'tests-notice-style', register_block_style_handle( $metadata, 'style' ), 'Style handle is expected to be tests-notice-style' );
+		$this->assertSame( 'tests-notice-view-style', register_block_style_handle( $metadata, 'viewStyle' ), 'View style handle is expected to be tests-notice-view-style' );
+		$this->assertTrue( wp_style_is( 'tests-notice-style', 'registered' ), 'Expected "tests-notice-style" style to be registered.' );
+		$this->assertTrue( wp_style_is( 'tests-notice-view-style', 'registered' ), 'Expected "tests-notice-view-style" style to be registered.' );
+
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
 		$this->assertSame( 2, $result->api_version );
 		$this->assertSame( 'tests/notice', $result->name );
@@ -1121,13 +1162,13 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 		// @ticket 50328
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
-			wp_normalize_path( wp_styles()->get_data( 'tests-test-block-style', 'path' ) )
+			wp_normalize_path( wp_styles()->get_data( 'tests-notice-style', 'path' ) )
 		);
 
 		// @ticket 59673
 		$this->assertSame(
 			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block-view.css' ) ),
-			wp_normalize_path( wp_styles()->get_data( 'tests-test-block-view-style', 'path' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'tests-notice-view-style', 'path' ) ),
 			'viewStyle asset path is not correct'
 		);
 

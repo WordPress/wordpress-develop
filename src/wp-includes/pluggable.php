@@ -125,7 +125,8 @@ if ( ! function_exists( 'cache_users' ) ) :
 	function cache_users( $user_ids ) {
 		global $wpdb;
 
-		update_meta_cache( 'user', $user_ids );
+		$user_ids = array_unique( array_map( 'intval', $user_ids ), SORT_NUMERIC );
+		wp_lazyload_user_meta( $user_ids );
 
 		$clean = _get_non_cached_ids( $user_ids, 'users' );
 
@@ -431,7 +432,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$from_name = apply_filters( 'wp_mail_from_name', $from_name );
 
 		try {
-			$phpmailer->setFrom( $from_email, $from_name, false );
+			$phpmailer->setFrom( $from_email, $from_name );
 		} catch ( PHPMailer\PHPMailer\Exception $e ) {
 			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 			$mail_error_data['phpmailer_exception_code'] = $e->getCode();

@@ -408,21 +408,18 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the Sender field in the SMTP envelope is not set by Core.
+	 * Test that the Sender field in the SMTP envelope is set by Core.
 	 *
-	 * Correctly setting the Sender requires knowledge that is not available
-	 * to Core. An incorrect value will often lead to messages being rejected
-	 * by the receiving MTA, so it's the admin's responsibility to
-	 * set it correctly.
+	 * A missing Sender field can lead to messages failing DMARC SPF checks.
 	 *
-	 * @ticket 37736
+	 * @ticket 49687
 	 */
-	public function test_wp_mail_sender_not_set() {
-		wp_mail( 'user@example.org', 'Testing the Sender field', 'The Sender field should not have been set.' );
+	public function test_wp_mail_sender_set() {
+		wp_mail( 'user@example.org', 'Testing the Sender field', 'The Sender field should have been set.' );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertSame( '', $mailer->Sender );
+		$this->assertSame( 'wordpress@example.org', $mailer->Sender );
 	}
 
 	/**
