@@ -104,7 +104,7 @@ class WP_Script_Modules {
 	 * @param array             $args     {
 	 *     Optional. An array of additional args. Default empty array.
 	 *
-	 *     @type bool                $in_footer     Whether to print the script module in the footer. Default 'false'. Optional.
+	 *     @type bool                $in_footer     Whether to print the script module in the footer. Only relevant to block themes. Default 'false'. Optional.
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
 	 * }
 	 */
@@ -224,6 +224,8 @@ class WP_Script_Modules {
 	/**
 	 * Sets whether a script module should be printed in the footer.
 	 *
+	 * This is only relevant in block themes.
+	 *
 	 * @since 6.9.0
 	 *
 	 * @param string           $id        Script module identifier.
@@ -274,7 +276,7 @@ class WP_Script_Modules {
 	 * @param array             $args     {
 	 *     Optional. An array of additional args. Default empty array.
 	 *
-	 *     @type bool                $in_footer     Whether to print the script module in the footer. Default 'false'. Optional.
+	 *     @type bool                $in_footer     Whether to print the script module in the footer. Only relevant to block themes. Default 'false'. Optional.
 	 *     @type 'auto'|'low'|'high' $fetchpriority Fetch priority. Default 'auto'. Optional.
 	 * }
 	 */
@@ -382,6 +384,8 @@ class WP_Script_Modules {
 
 	/**
 	 * Prints the enqueued script modules in head.
+	 *
+	 * This is only used in block themes.
 	 *
 	 * @since 6.9.0
 	 */
