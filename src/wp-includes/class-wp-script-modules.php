@@ -332,11 +332,13 @@ class WP_Script_Modules {
 		$position       = $is_block_theme ? 'wp_head' : 'wp_footer';
 		add_action( $position, array( $this, 'print_import_map' ) );
 		if ( $is_block_theme ) {
-			// Modules can only be printed in the head for block themes because only with
-			// block themes will import map be fully populated by modules discovered by
-			// rendering the block template. In classic themes, modules are enqueued during
-			// template rendering, thus the import map must be printed in the footer,
-			// followed by all enqueued modules.
+			/*
+			 * Modules can only be printed in the head for block themes because only with
+			 * block themes will import map be fully populated by modules discovered by
+			 * rendering the block template. In classic themes, modules are enqueued during
+			 * template rendering, thus the import map must be printed in the footer,
+			 * followed by all enqueued modules.
+			 */
 			add_action( 'wp_head', array( $this, 'print_head_enqueued_script_modules' ) );
 		}
 		add_action( 'wp_footer', array( $this, 'print_enqueued_script_modules' ) );
