@@ -408,7 +408,7 @@ class WP_Ability {
 	 * @param mixed $input Optional. The input data to validate. Default `null`.
 	 * @return true|WP_Error Returns true if valid or the WP_Error object if validation fails.
 	 */
-	protected function validate_input( $input = null ) {
+	public function validate_input( $input = null ) {
 		$input_schema = $this->get_input_schema();
 		if ( empty( $input_schema ) ) {
 			if ( null === $input ) {
@@ -462,22 +462,19 @@ class WP_Ability {
 	/**
 	 * Checks whether the ability has the necessary permissions.
 	 *
-	 * The input is validated against the input schema before it is passed to to permission callback.
+	 * Please note that input is not automatically validated against the input schema.
+	 * Use `validate_input()` method to validate input before calling this method if needed.
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param mixed $input Optional. The input data for permission checking. Default `null`.
+	 * @see validate_input()
+	 *
+	 * @param mixed $input Optional. The valid input data for permission checking. Default `null`.
 	 * @return bool|WP_Error Whether the ability has the necessary permission.
 	 */
 	public function check_permissions( $input = null ) {
-		$is_valid = $this->validate_input( $input );
-		if ( is_wp_error( $is_valid ) ) {
-			return $is_valid;
-		}
-
 		return $this->invoke_callback( $this->permission_callback, $input );
 	}
-
 
 	/**
 	 * Executes the ability callback.
@@ -539,12 +536,14 @@ class WP_Ability {
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	public function execute( $input = null ) {
+		$is_valid = $this->validate_input( $input );
+		if ( is_wp_error( $is_valid ) ) {
+			return $is_valid;
+		}
+
 		$has_permissions = $this->check_permissions( $input );
 		if ( true !== $has_permissions ) {
 			if ( is_wp_error( $has_permissions ) ) {
-				if ( 'ability_invalid_input' === $has_permissions->get_error_code() ) {
-					return $has_permissions;
-				}
 				// Don't leak the permission check error to someone without the correct perms.
 				_doing_it_wrong(
 					__METHOD__,
@@ -561,7 +560,7 @@ class WP_Ability {
 		}
 
 		/**
-		 * Fires before an ability gets executed and after permission check.
+		 * Fires before an ability gets executed, after input validation and permissions check.
 		 *
 		 * @since 6.9.0
 		 *

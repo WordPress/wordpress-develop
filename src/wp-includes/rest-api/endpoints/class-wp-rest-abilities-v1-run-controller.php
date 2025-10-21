@@ -92,9 +92,6 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		$input  = $this->get_input_from_request( $request );
 		$result = $ability->execute( $input );
 		if ( is_wp_error( $result ) ) {
-			if ( 'ability_invalid_input' === $result->get_error_code() ) {
-				$result->add_data( array( 'status' => 400 ) );
-			}
 			return $result;
 		}
 
@@ -161,12 +158,16 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $is_valid;
 		}
 
-		$input  = $this->get_input_from_request( $request );
+		$input    = $this->get_input_from_request( $request );
+		$is_valid = $ability->validate_input( $input );
+		if ( is_wp_error( $is_valid ) ) {
+			$is_valid->add_data( array( 'status' => 400 ) );
+			return $is_valid;
+		}
+
 		$result = $ability->check_permissions( $input );
 		if ( is_wp_error( $result ) ) {
-			if ( 'ability_invalid_input' === $result->get_error_code() ) {
-				$result->add_data( array( 'status' => 400 ) );
-			}
+			$result->add_data( array( 'status' => rest_authorization_required_code() ) );
 			return $result;
 		}
 		if ( ! $result ) {

@@ -357,16 +357,16 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests permission callback receiving input not matching schema.
+	 * Tests input validation failing due to schema mismatch.
 	 *
 	 * @ticket 64098
 	 */
-	public function test_permission_callback_no_input_schema_match(): void {
+	public function test_validate_input_no_input_schema_match(): void {
 		do_action( 'wp_abilities_api_init' );
 
 		$result = wp_register_ability( self::$test_ability_name, self::$test_ability_args );
 
-		$actual = $result->check_permissions(
+		$actual = $result->validate_input(
 			array(
 				'a'       => 2,
 				'b'       => 3,
@@ -376,7 +376,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$this->assertWPError(
 			$actual,
-			'Permission check should fail due to input not matching schema.'
+			'Input validation should fail due to input not matching schema.'
 		);
 		$this->assertSame( 'ability_invalid_input', $actual->get_error_code() );
 		$this->assertSame(
