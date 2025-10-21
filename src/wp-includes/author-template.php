@@ -93,7 +93,7 @@ function get_the_modified_author() {
 	$last_id = get_post_meta( get_post()->ID, '_edit_last', true );
 
 	if ( $last_id ) {
-		$last_user = get_userdata( $last_id );
+		$last_user = get_authordata( $last_id );
 
 		/**
 		 * Filters the display name of the author who last edited the current post.
@@ -164,7 +164,7 @@ function get_the_author_meta( $field = '', $user_id = false ) {
 		global $authordata;
 		$user_id = isset( $authordata->ID ) ? $authordata->ID : 0;
 	} else {
-		$authordata = get_userdata( $user_id );
+        $authordata = get_authordata( $user_id );
 	}
 
 	if ( in_array( $field, array( 'login', 'pass', 'nicename', 'email', 'url', 'registered', 'activation_key', 'status' ), true ) ) {
@@ -370,7 +370,7 @@ function get_author_posts_url( $author_id, $author_nicename = '' ) {
 		$link = $file . '?author=' . $author_id;
 	} else {
 		if ( '' === $author_nicename ) {
-			$user = get_userdata( $author_id );
+			$user = get_authordata( $author_id );
 			if ( ! empty( $user->user_nicename ) ) {
 				$author_nicename = $user->user_nicename;
 			}

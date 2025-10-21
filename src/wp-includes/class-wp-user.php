@@ -115,6 +115,9 @@ class WP_User {
 	 */
 	private static $back_compat_keys;
 
+
+	private $short_init = false;
+
 	/**
 	 * Constructor.
 	 *
@@ -177,13 +180,16 @@ class WP_User {
 	 *
 	 * @param object $data    User DB row object.
 	 * @param int    $site_id Optional. The site ID to initialize for.
+	 * @param bool   $short_init Optional. Whether to skip initializing capabilities and roles.
 	 */
-	public function init( $data, $site_id = 0 ) {
+	public function init( $data, $site_id = 0, $short_init = false ) {
 		if ( ! isset( $data->ID ) ) {
 			$data->ID = 0;
 		}
 		$this->data = $data;
 		$this->ID   = (int) $data->ID;
+
+		$this->short_init = $short_init;
 
 		$this->for_site( $site_id );
 	}
@@ -810,7 +816,6 @@ class WP_User {
 	 */
 	public function has_cap( $cap, ...$args ) {
 		$this->load_capability_data();
-
 		if ( is_numeric( $cap ) ) {
 			_deprecated_argument( __FUNCTION__, '2.0.0', __( 'Usage of user levels is deprecated. Use capabilities instead.' ) );
 			$cap = $this->translate_level_to_cap( $cap );
@@ -912,7 +917,14 @@ class WP_User {
 		}
 
 		$this->cap_key = $wpdb->get_blog_prefix( $this->site_id ) . 'capabilities';
-		$this->caps    = null;
+
+		if ( $this->short_init ) {
+			return;
+		}
+
+		$this->caps = $this->get_caps_data();
+
+		$this->get_role_caps();
 	}
 
 	/**
@@ -950,10 +962,11 @@ class WP_User {
 	 * @since 6.9.0
 	 */
 	private function load_capability_data() {
-		if ( isset( $this->caps ) ) {
+		if ( ! $this->short_init ) {
 			return;
 		}
 		$this->caps = $this->get_caps_data();
 		$this->get_role_caps();
+		$this->short_init = false;
 	}
 }

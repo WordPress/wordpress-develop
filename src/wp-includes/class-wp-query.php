@@ -4051,7 +4051,7 @@ class WP_Query {
 				}
 			}
 
-			$this->queried_object = get_userdata( $this->queried_object_id );
+			$this->queried_object = get_authordata( $this->queried_object_id );
 		}
 
 		return $this->queried_object;
@@ -4887,7 +4887,7 @@ class WP_Query {
 
 		$id = (int) $post->ID;
 
-		$authordata = get_userdata( $post->post_author );
+		$authordata = get_authordata( $post->post_author );
 
 		$currentday   = false;
 		$currentmonth = false;
