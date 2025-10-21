@@ -526,7 +526,7 @@ class WP_Script_Modules {
 	 */
 	private function get_import_map(): array {
 		$imports = array();
-		foreach ( $this->get_dependencies( array_unique( $this->queue ) ) as $id ) {
+		foreach ( $this->get_dependencies( $this->queue ) as $id ) {
 			$src = $this->get_src( $id );
 			if ( '' !== $src ) {
 				$imports[ $id ] = $src;
