@@ -2570,14 +2570,6 @@ class WP_Query {
 						$has_id_orderby = true;
 					}
 				}
-
-				// Add ID as tie-breaker if needed and not already present
-				if ( $needs_deterministic_orderby && ! $has_id_orderby ) {
-					$orderby_array[] = "{$wpdb->posts}.ID " . $query_vars['order'];
-				}
-
-				$orderby = implode( ', ', $orderby_array );
-
 			} else {
 				$query_vars['orderby'] = urldecode( $query_vars['orderby'] );
 				$query_vars['orderby'] = wp_slash( $query_vars['orderby'] );
@@ -2598,16 +2590,18 @@ class WP_Query {
 						$has_id_orderby = true;
 					}
 				}
-				$orderby = implode( ', ', $orderby_array );
+			}
 
-				if ( empty( $orderby ) ) {
-					$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'] . ', ' . "{$wpdb->posts}.ID " . $query_vars['order'];
-				} elseif ( $needs_deterministic_orderby && ! $has_id_orderby ) {
-					// Add ID as tie-breaker for deterministic ordering
-					$orderby .= ", {$wpdb->posts}.ID " . $query_vars['order'];
-				} elseif ( ! empty( $query_vars['order'] ) ) {
-					$orderby .= " {$query_vars['order']}";
-				}
+			// Add ID as tie-breaker if needed and not already present
+			if ( $needs_deterministic_orderby && ! $has_id_orderby ) {
+				$orderby_array[] = "{$wpdb->posts}.ID " . $query_vars['order'];
+			}
+
+			// Build the final orderby string
+			if ( empty( $orderby_array ) ) {
+				$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'] . ', ' . "{$wpdb->posts}.ID " . $query_vars['order'];
+			} else {
+				$orderby = implode( ', ', $orderby_array );
 			}
 		}
 
