@@ -641,10 +641,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		}
 	}
 
-	if ( ! empty( $settings['supports'] ) ) {
-		$metadata['supports'] = $settings['supports'];
-	}
-
 	$module_fields = array(
 		'viewScriptModule' => 'view_script_module_ids',
 	);
