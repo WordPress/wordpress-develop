@@ -1192,8 +1192,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_html_with_unbalanced_tags
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
-	 *
 	 * @param string $html HTML containing unbalanced tags and also a directive.
 	 */
 	public function test_process_directives_doesnt_change_html_if_contains_unbalanced_tags( $html ) {

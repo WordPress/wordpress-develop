@@ -559,14 +559,10 @@ final class WP_Interactivity_API {
 		/*
 		 * It returns null if the HTML is unbalanced because unbalanced HTML is
 		 * not safe to process. In that case, the Interactivity API runtime will
-		 * update the HTML on the client side during the hydration. It will also
-		 * display a notice to the developer to inform them about the issue.
+		 * update the HTML on the client side during the hydration. It will display
+		 * a notice to the developer in the console to inform them about the issue.
 		 */
 		if ( $unbalanced || 0 < count( $tag_stack ) ) {
-			$tag_errored = 0 < count( $tag_stack ) ? end( $tag_stack )[0] : $tag_name;
-			/* translators: %1s: Namespace processed, %2s: The tag that caused the error; could be any HTML tag.  */
-			$message = sprintf( __( 'Interactivity directives failed to process in "%1$s" due to a missing "%2$s" end tag.' ), end( $this->namespace_stack ), $tag_errored );
-			_doing_it_wrong( __METHOD__, $message, '6.6.0' );
 			return null;
 		}
 
