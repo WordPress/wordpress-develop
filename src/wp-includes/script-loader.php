@@ -3576,7 +3576,7 @@ function wp_hoist_late_printed_styles() {
 	// Replace placeholder with the captured late styles.
 	add_filter(
 		'wp_template_enhancement_output_buffer',
-		static function ( $buffer ) use ( $placeholder, &$printed_late_styles ) {
+		function ( $buffer ) use ( $placeholder, &$printed_late_styles ) {
 
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
