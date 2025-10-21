@@ -369,14 +369,39 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 
 				// Multiple evaluations should be serialized only once.
 				$this->set_internal_namespace_stack( 'pluginWithInvokedDerivedState' );
-				$this->evaluate( 'state.derivedProp' );
-				$this->evaluate( 'state.derivedProp' );
-				$this->evaluate( 'state.nested.derivedProp' );
-				$this->evaluate( 'state.nested.derivedProp' );
+				$this->evaluate(
+					array(
+						'namespace' => 'pluginWithInvokedDerivedState',
+						'value'     => 'state.derivedProp',
+					)
+				);
+				$this->evaluate(
+					array(
+						'namespace' => 'pluginWithInvokedDerivedState',
+						'value'     => 'state.derivedProp',
+					)
+				);
+				$this->evaluate(
+					array(
+						'namespace' => 'pluginWithInvokedDerivedState',
+						'value'     => 'state.nested.derivedProp',
+					)
+				);
+				$this->evaluate(
+					array(
+						'namespace' => 'pluginWithInvokedDerivedState',
+						'value'     => 'state.nested.derivedProp',
+					)
+				);
 
 				// Only the path part that points to a derived state prop should be serialized.
 				$this->set_internal_namespace_stack( 'pluginWithInvokedDerivedStateReturningArray' );
-				$this->evaluate( 'state.nested.derivedProp.prop' );
+				$this->evaluate(
+					array(
+						'namespace' => 'pluginWithInvokedDerivedStateReturningArray',
+						'value'     => 'state.nested.derivedProp',
+					)
+				);
 			}
 		);
 
