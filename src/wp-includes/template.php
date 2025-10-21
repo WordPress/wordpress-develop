@@ -844,16 +844,17 @@ function wp_should_output_buffer_template_for_enhancement(): bool {
 	 * Filters whether the template should be output-buffered for enhancement.
 	 *
 	 * By default, an output buffer is only started if a {@see 'wp_template_enhancement_output_buffer'} filter has been
-	 * added. For this default to apply, a filter must be added by the time the template is included at the
-	 * {@see 'wp_before_include_template'} action. This allows template responses to be streamed as much as possible
-	 * when no template enhancements are registered to apply. This filter allows a site to opt in to adding such
-	 * template enhancement filters during the rendering of the template.
+	 * added or if a plugin has added a {@see 'send_late_headers'} action. For this default to apply, a filter must be
+	 * added by the time the template is included at the {@see 'wp_before_include_template'} action. This allows
+	 * template responses to be streamed as much as possible when no template enhancements are registered to apply.
+	 * This filter allows a site to opt in to adding such template enhancement filters during the rendering of the
+	 * template.
 	 *
 	 * @since 6.9.0
 	 *
 	 * @param bool $use_output_buffer Whether an output buffer is started.
 	 */
-	return (bool) apply_filters( 'wp_should_output_buffer_template_for_enhancement', has_filter( 'wp_template_enhancement_output_buffer' ) );
+	return (bool) apply_filters( 'wp_should_output_buffer_template_for_enhancement', has_filter( 'wp_template_enhancement_output_buffer' ) || has_action( 'send_late_headers' ) );
 }
 
 /**
@@ -977,5 +978,18 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	 * @param string $filtered_output HTML template enhancement output buffer.
 	 * @param string $output          Original HTML template output buffer.
 	 */
-	return (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
+	$filtered_output = (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
+
+	/**
+	 * Fires at the last moment HTTP headers may be sent.
+	 *
+	 * This happens immediately after the template enhancement output buffer has been processed.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $filtered_output Filtered output buffer.
+	 */
+	do_action( 'send_late_headers', $filtered_output );
+
+	return $filtered_output;
 }
