@@ -89,7 +89,7 @@ final class WP_Interactivity_API {
 	 * Set of script modules that can be loaded after client-side navigation.
 	 *
 	 * @since 6.9.0
-	 * @var array<non-empty-string, true>
+	 * @var array<string, true>
 	 */
 	private $script_modules_that_can_load_on_client_navigation = array();
 
@@ -425,7 +425,7 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @param non-empty-string $script_module_id The script module identifier.
+	 * @param string $script_module_id The script module identifier.
 	 */
 	public function add_client_navigation_support_to_script_module( string $script_module_id ) {
 		$this->script_modules_that_can_load_on_client_navigation[ $script_module_id ] = true;
