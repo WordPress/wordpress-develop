@@ -319,9 +319,9 @@ class WP_Debug_Data {
 						__( 'Unable to reach %1$s (%2$s): %3$s' ),
 						$update_dom;
 						gethostbyname( $update_dom ),
-						$wp_update_api->get_error_message(),
+						$wp_update_api->get_error_message()
 					),
-					'debug' => $wp_update_api->get_error_message(),
+					'debug' => $wp_update_api->get_error_message()
 				);
 			}
 		}
