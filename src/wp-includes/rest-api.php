@@ -510,7 +510,7 @@ function rest_api_loaded() {
 			__( 'The REST route parameter must be a string.' ),
 			array( 'status' => 400 )
 		);
-		wp_die( $rest_type_error );
+		wp_die( $rest_type_error, 400 );
 	}
 
 	/**
