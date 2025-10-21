@@ -598,20 +598,26 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 */
 	public static function data_wp_mail_can_send_embedded_images() {
 		return array(
-			'Named embed + unnamed embeds' => array(
-				'canola' => DIR_TESTDATA . '/images/canola.jpg',
-				DIR_TESTDATA . '/images/test-image-2.gif',
-				DIR_TESTDATA . '/images/avif-lossy.avif',
+			'Mixed Array Embeds'       => array(
+				'embeds' => array(
+					'canola' => DIR_TESTDATA . '/images/canola.jpg',
+					DIR_TESTDATA . '/images/test-image-2.gif',
+					DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
 			),
-			'All named embeds'             => array(
-				'canola'       => DIR_TESTDATA . '/images/canola.jpg',
-				'test-image-2' => DIR_TESTDATA . '/images/test-image-2.gif',
-				'avif-lossy'   => DIR_TESTDATA . '/images/avif-lossy.avif',
+			'Associative Array Embeds' => array(
+				'embeds' => array(
+					'canola'       => DIR_TESTDATA . '/images/canola.jpg',
+					'test-image-2' => DIR_TESTDATA . '/images/test-image-2.gif',
+					'avif-lossy'   => DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
 			),
-			'All unnamed embeds'           => array(
-				DIR_TESTDATA . '/images/canola.jpg',
-				DIR_TESTDATA . '/images/test-image-2.gif',
-				DIR_TESTDATA . '/images/avif-lossy.avif',
+			'Indexed Array Embeds'     => array(
+				'embeds' => array(
+					DIR_TESTDATA . '/images/canola.jpg',
+					DIR_TESTDATA . '/images/test-image-2.gif',
+					DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
 			),
 		);
 	}
