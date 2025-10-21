@@ -37,9 +37,6 @@
  * @property string $rich_editing
  * @property string $syntax_highlighting
  * @property string $use_ssl
- * @property array<string, bool> $caps
- * @property string[] $roles
- * @property array<string, bool> $allcaps
  */
 #[AllowDynamicProperties]
 class WP_User {
@@ -63,10 +60,10 @@ class WP_User {
 	 * Capabilities that the individual user has been granted outside of those inherited from their role.
 	 *
 	 * @since 2.0.0
-	 * @var array<string, bool>|null Array of key/value pairs where keys represent a capability name
-	 *                               and boolean values represent whether the user has that capability.
+	 * @var bool[] Array of key/value pairs where keys represent a capability name
+	 *             and boolean values represent whether the user has that capability.
 	 */
-	protected $caps = null;
+	public $caps = array();
 
 	/**
 	 * User metadata option name.
@@ -82,16 +79,16 @@ class WP_User {
 	 * @since 2.0.0
 	 * @var string[]
 	 */
-	protected $roles = array();
+	public $roles = array();
 
 	/**
 	 * All capabilities the user has, including individual and role based.
 	 *
 	 * @since 2.0.0
-	 * @var array<string, bool> Array of key/value pairs where keys represent a capability name
-	 *                          and boolean values represent whether the user has that capability.
+	 * @var bool[] Array of key/value pairs where keys represent a capability name
+	 *             and boolean values represent whether the user has that capability.
 	 */
-	protected $allcaps = array();
+	public $allcaps = array();
 
 	/**
 	 * The filter context applied to user data fields.
@@ -114,6 +111,12 @@ class WP_User {
 	 * @var array
 	 */
 	private static $back_compat_keys;
+
+    /**
+	 * @since 6.9.0
+	 * @var bool
+	 */
+	private $short_init = false;
 
 	/**
 	 * Constructor.
@@ -177,13 +180,16 @@ class WP_User {
 	 *
 	 * @param object $data    User DB row object.
 	 * @param int    $site_id Optional. The site ID to initialize for.
+	 * @param bool   $short_init Optional. Whether to skip initializing capabilities and roles.
 	 */
-	public function init( $data, $site_id = 0 ) {
+	public function init( $data, $site_id = 0, $short_init = false ) {
 		if ( ! isset( $data->ID ) ) {
 			$data->ID = 0;
 		}
 		$this->data = $data;
 		$this->ID   = (int) $data->ID;
+
+		$this->short_init = $short_init;
 
 		$this->for_site( $site_id );
 	}
@@ -291,10 +297,6 @@ class WP_User {
 			$key = 'ID';
 		}
 
-		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
-			return true;
-		}
-
 		if ( isset( $this->data->$key ) ) {
 			return true;
 		}
@@ -326,11 +328,6 @@ class WP_User {
 				)
 			);
 			return $this->ID;
-		}
-
-		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
-			$this->load_capability_data();
-			return $this->$key;
 		}
 
 		if ( isset( $this->data->$key ) ) {
@@ -375,13 +372,6 @@ class WP_User {
 			return;
 		}
 
-		// Ensure capability data is loaded before setting related properties.
-		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
-			$this->load_capability_data();
-			$this->$key = $value;
-			return;
-		}
-
 		$this->data->$key = $value;
 	}
 
@@ -403,10 +393,6 @@ class WP_User {
 					'<code>WP_User->ID</code>'
 				)
 			);
-		}
-
-		if ( in_array( $key, array( 'caps', 'allcaps', 'roles' ), true ) ) {
-			$this->$key = null;
 		}
 
 		if ( isset( $this->data->$key ) ) {
@@ -537,11 +523,6 @@ class WP_User {
 		}
 
 		$wp_roles = wp_roles();
-
-		// Edge case: In case someone calls this method before lazy initialization, we need to initialize on demand.
-		if ( ! isset( $this->caps ) ) {
-			$this->caps = $this->get_caps_data();
-		}
 
 		// Filter out caps that are not role names and assign to $this->roles.
 		if ( is_array( $this->caps ) ) {
@@ -775,10 +756,10 @@ class WP_User {
 	 */
 	public function remove_all_caps() {
 		global $wpdb;
-		$this->caps = null;
+		$this->caps = array();
 		delete_user_meta( $this->ID, $this->cap_key );
 		delete_user_meta( $this->ID, $wpdb->get_blog_prefix() . 'user_level' );
-		$this->load_capability_data();
+		$this->get_role_caps();
 	}
 
 	/**
@@ -810,7 +791,6 @@ class WP_User {
 	 */
 	public function has_cap( $cap, ...$args ) {
 		$this->load_capability_data();
-
 		if ( is_numeric( $cap ) ) {
 			_deprecated_argument( __FUNCTION__, '2.0.0', __( 'Usage of user levels is deprecated. Use capabilities instead.' ) );
 			$cap = $this->translate_level_to_cap( $cap );
@@ -912,7 +892,14 @@ class WP_User {
 		}
 
 		$this->cap_key = $wpdb->get_blog_prefix( $this->site_id ) . 'capabilities';
-		$this->caps    = null;
+
+		if ( $this->short_init ) {
+			return;
+		}
+
+		$this->caps = $this->get_caps_data();
+
+		$this->get_role_caps();
 	}
 
 	/**
@@ -950,10 +937,11 @@ class WP_User {
 	 * @since 6.9.0
 	 */
 	private function load_capability_data() {
-		if ( isset( $this->caps ) ) {
+		if ( ! $this->short_init ) {
 			return;
 		}
 		$this->caps = $this->get_caps_data();
 		$this->get_role_caps();
+		$this->short_init = false;
 	}
 }
