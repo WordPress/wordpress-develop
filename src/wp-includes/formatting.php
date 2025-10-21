@@ -668,23 +668,46 @@ function wp_html_split( $input ) {
 		$next_at  += strlen( $raw_token );
 		$is_text   = '#text' === $token_reporter->get_token_name();
 
-		if ( ! $is_text && ! $was_text ) {
-			$tokens[] = '';
+		if ( ! $is_text ) {
+			if ( ! $was_text ) {
+				$tokens[] = '';
+			}
+
+			$tokens[] = $raw_token;
+			$was_text = false;
+			continue;
 		}
 
 		/*
-		 * Some legacy code assumes that text nodes will never start with a
-		 * less-than sign (<) but this isn’t the case, as some text nodes do
-		 * if the less-than sign doesn’t introduce a syntax token. To avoid
-		 * further corruption a leading less-than sign is replaced by its
-		 * encoded equivalent numeric character reference.
+		 * WordPress looks for shortcodes and escaped shortcodes within the HTML
+		 * where they look like tags but HTML wouldn’t consider them tags, such
+		 * as in "<[header level=2]>". Look for these and artificially split the
+		 * text nodes where it looks like shortcodes reside inside.
 		 */
-		if ( $is_text && '<' === ( $raw_token[0] ?? '' ) ) {
-			$raw_token = '&#60;' . substr( $raw_token, 1 );
-		}
+		$shortcode_pattern = get_shortcode_regex();
+		$text_chunks       = preg_split( "~(<{$shortcode_pattern}>)~", $raw_token, -1, PREG_SPLIT_DELIM_CAPTURE );
+		foreach ( $text_chunks as $i => $token ) {
+			// The preg_split() always puts captured delimiters in the odd indices.
+			$is_shortcode_tag = 0x01 === $i & 0x01;
 
-		$tokens[] = $raw_token;
-		$was_text = $is_text;
+			if ( $is_shortcode_tag && ! $was_text ) {
+				$tokens[] = '';
+			}
+
+			/*
+			 * Some legacy code assumes that text nodes will never start with a
+			 * less-than sign (<) but this isn’t the case, as some text nodes do
+			 * if the less-than sign doesn’t introduce a syntax token. To avoid
+			 * further corruption a leading less-than sign is replaced by its
+			 * encoded equivalent numeric character reference.
+			 */
+			if ( ! $is_shortcode_tag && '<' === ( $token[0] ?? '' ) ) {
+				$token = '&#60;' . substr( $token, 1 );
+			}
+
+			$was_text = ! $is_shortcode_tag;
+			$tokens[] = $token;
+		}
 	}
 
 	/*
