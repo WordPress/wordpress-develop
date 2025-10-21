@@ -100,12 +100,14 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		unset( $_REQUEST['s'] );
 
 		$expected_query = explode( ', ', $expected );
-		$expected_query = array_map( function( $item ) use ( $wpdb ) {
-			return "{$wpdb->posts}.{$item}";
-		}, $expected_query );
-		$expected_query = implode( ', ', $expected_query );
+		$expected_query = array_map(
+			function( $item ) use ( $wpdb ) {
+				return "{$wpdb->posts}.{$item}";
+			},
+			$expected_query
+		);
 
-		$this->assertStringContainsString( "ORDER BY {$expected_query}", $this->sql );
+		$this->assertStringContainsString( "ORDER BY " . implode( ', ', $expected_query ), $this->sql );
 	}
 
 	/**
