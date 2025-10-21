@@ -314,9 +314,9 @@ function create_initial_rest_routes() {
 	$wp_post_types['wp_template']->revisions_rest_controller_class = 'WP_REST_Template_Revisions_Controller';
 	// Initialize the controllers. The order is important: the autosave
 	// controller needs both the templates and revisions controllers.
-	$controller                                              = new WP_REST_Templates_Controller( 'wp_template' );
-	$wp_post_types['wp_template']->rest_controller           = $controller;
-	$revisions_controller                                    = new WP_REST_Template_Revisions_Controller( 'wp_template' );
+	$controller                                    = new WP_REST_Templates_Controller( 'wp_template' );
+	$wp_post_types['wp_template']->rest_controller = $controller;
+	$revisions_controller                          = new WP_REST_Template_Revisions_Controller( 'wp_template' );
 	$wp_post_types['wp_template']->revisions_rest_controller = $revisions_controller;
 	$autosaves_controller                                    = new WP_REST_Template_Autosaves_Controller( 'wp_template' );
 	// Unset the controller cache, it will be re-initialized when
@@ -324,8 +324,8 @@ function create_initial_rest_routes() {
 	$wp_post_types['wp_template']->rest_controller           = null;
 	$wp_post_types['wp_template']->revisions_rest_controller = null;
 	// Restore the original classes.
-	$wp_post_types['wp_template']->rest_controller_class = $original_rest_controller_class;
-	$wp_post_types['wp_template']->autosave_rest_controller_class = $original_autosave_rest_controller_class;
+	$wp_post_types['wp_template']->rest_controller_class           = $original_rest_controller_class;
+	$wp_post_types['wp_template']->autosave_rest_controller_class  = $original_autosave_rest_controller_class;
 	$wp_post_types['wp_template']->revisions_rest_controller_class = $original_revisions_rest_controller_class;
 	// Restore the original base.
 	$wp_post_types['wp_template']->rest_base = 'wp_template';

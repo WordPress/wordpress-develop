@@ -1363,7 +1363,7 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 		}
 	}
 
-	$wp_query_args        = array(
+	$wp_query_args  = array(
 		'post_name__in'  => array( $slug ),
 		'post_type'      => $template_type,
 		'post_status'    => array( 'auto-draft', 'draft', 'publish', 'trash' ),
@@ -1377,8 +1377,8 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 			),
 		),
 	);
-	$template_query       = new WP_Query( $wp_query_args );
-	$posts                = $template_query->posts;
+	$template_query = new WP_Query( $wp_query_args );
+	$posts          = $template_query->posts;
 
 	if ( count( $posts ) > 0 ) {
 		$template = _build_block_template_result_from_post( $posts[0] );
