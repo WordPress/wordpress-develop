@@ -2511,7 +2511,6 @@ class WP_Query {
 				'post_date',
 				'post_title',
 				'post_modified',
-				'post_mime_type',
 				'post_parent',
 				'post_type',
 				'name',
@@ -2566,7 +2565,7 @@ class WP_Query {
 						continue;
 					}
 
-					$orderby_array[] = $parsed;
+					$orderby_array[] = $parsed . ' ' . $query_vars['order'];
 
 					// Check if this field needs deterministic ordering
 					if ( in_array( $orderby, $fields_requiring_deterministic_orderby, true ) ) {
@@ -2575,7 +2574,7 @@ class WP_Query {
 						$has_id_orderby = true;
 					}
 				}
-				$orderby = implode( ' ' . $query_vars['order'] . ', ', $orderby_array );
+				$orderby = implode( ', ', $orderby_array );
 
 				if ( empty( $orderby ) ) {
 					$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'] . ', ' . "{$wpdb->posts}.ID " . $query_vars['order'];
