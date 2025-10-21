@@ -127,7 +127,6 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		OBJECT_K
 	);
 
-	// Only report when a site has MyISAM tables to save bytes.
 	if ( ! empty( $myisam_tables ) ) {
 		$all_unprefixed_tables = $wpdb->tables( 'all', false );
 
