@@ -68,6 +68,16 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	protected $original_default_mimetype;
 
+	/**
+	 * @var WP_Scripts|null
+	 */
+	protected $original_wp_scripts;
+
+	/**
+	 * @var WP_Styles|null
+	 */
+	protected $original_wp_styles;
+
 	public function set_up() {
 		parent::set_up();
 		$this->original_default_mimetype = ini_get( 'default_mimetype' );
@@ -86,9 +96,27 @@ class Tests_Template extends WP_UnitTestCase {
 			)
 		);
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+
+		// Remove hooks which are added by wp_load_classic_theme_block_styles_on_demand() during bootstrapping.
+		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
+		remove_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
+		remove_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
+		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
+
+		global $wp_scripts, $wp_styles;
+		$this->original_wp_scripts = $wp_scripts;
+		$this->original_wp_styles  = $wp_styles;
+		$wp_scripts                = null;
+		$wp_styles                 = null;
+		wp_scripts();
+		wp_styles();
 	}
 
 	public function tear_down() {
+		global $wp_scripts, $wp_styles;
+		$wp_scripts = $this->original_wp_scripts;
+		$wp_styles  = $this->original_wp_styles;
+
 		ini_set( 'default_mimetype', $this->original_default_mimetype );
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
@@ -503,19 +531,46 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer when no filters are present.
+	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer in a block theme when no filters are present.
 	 *
 	 * @ticket 43258
+	 * @ticket 64099
+	 *
 	 * @covers ::wp_should_output_buffer_template_for_enhancement
 	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
 	 */
-	public function test_wp_start_template_enhancement_output_buffer_without_filters_and_no_override(): void {
-		remove_all_filters( 'wp_template_enhancement_output_buffer' );
+	public function test_wp_start_template_enhancement_output_buffer_without_filters_and_no_override_in_block_theme(): void {
+		switch_theme( 'block-theme' );
+		wp_load_classic_theme_block_styles_on_demand();
+
 		$level = ob_get_level();
 		$this->assertFalse( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return false when there are no wp_template_enhancement_output_buffer filters added.' );
 		$this->assertFalse( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return false because the output buffer should not be started.' );
 		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to not have fired.' );
 		$this->assertSame( $level, ob_get_level(), 'Expected the initial output buffer level to be unchanged.' );
+	}
+
+	/**
+	 * Tests that wp_start_template_enhancement_output_buffer() does start a buffer in classic theme.
+	 *
+	 * @ticket 43258
+	 * @ticket 64099
+	 *
+	 * @covers ::wp_should_output_buffer_template_for_enhancement
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
+	 */
+	public function test_wp_start_template_enhancement_output_buffer_in_classic_theme(): void {
+		switch_theme( 'default' );
+		wp_load_classic_theme_block_styles_on_demand();
+
+		$level = ob_get_level();
+		$this->assertTrue( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return true because wp_load_classic_theme_block_styles_on_demand() adds wp_template_enhancement_output_buffer filters.' );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true because the output buffer should be started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $level + 1, ob_get_level(), 'Expected the initial output buffer level to be incremented by one.' );
+		ob_end_clean();
 	}
 
 	/**
@@ -526,7 +581,6 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 */
 	public function test_wp_start_template_enhancement_output_buffer_begins_without_filters_but_overridden(): void {
-		remove_all_filters( 'wp_template_enhancement_output_buffer' );
 		$level = ob_get_level();
 		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true' );
 		$this->assertTrue( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return true when overridden with the wp_should_output_buffer_template_for_enhancement filter.' );
@@ -840,6 +894,169 @@ class Tests_Template extends WP_UnitTestCase {
 		$output = ob_get_clean();
 		$this->assertIsString( $output, 'Expected ob_get_clean() to return a string.' );
 		$this->assertSame( $json, $output, 'Expected output to not be processed.' );
+	}
+
+	/**
+	 * Tests that wp_load_classic_theme_block_styles_on_demand() does not add hooks for block themes.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
+	 */
+	public function test_wp_load_classic_theme_block_styles_on_demand_in_block_theme(): void {
+		switch_theme( 'block-theme' );
+
+		wp_load_classic_theme_block_styles_on_demand();
+
+		$this->assertFalse( has_filter( 'should_load_separate_core_block_assets' ), 'Expect should_load_separate_core_block_assets filter NOT to be added for block themes.' );
+		$this->assertFalse( has_filter( 'should_load_block_assets_on_demand', '__return_true' ), 'Expect should_load_block_assets_on_demand filter NOT to be added for block themes.' );
+		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expect wp_template_enhancement_output_buffer_started action NOT to be added for block themes.' );
+	}
+
+	/**
+	 * Tests that wp_load_classic_theme_block_styles_on_demand() does not add hooks for classic themes when output buffering is blocked.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
+	 */
+	public function test_wp_load_classic_theme_block_styles_on_demand_in_classic_theme_but_output_buffering_blocked(): void {
+		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_false' );
+		switch_theme( 'default' );
+
+		wp_load_classic_theme_block_styles_on_demand();
+
+		$this->assertFalse( has_filter( 'should_load_separate_core_block_assets' ), 'Expect should_load_separate_core_block_assets filter NOT to be added for block themes.' );
+		$this->assertFalse( has_filter( 'should_load_block_assets_on_demand', '__return_true' ), 'Expect should_load_block_assets_on_demand filter NOT to be added for block themes.' );
+		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expect wp_template_enhancement_output_buffer_started action NOT to be added for block themes.' );
+	}
+
+	/**
+	 * Tests that wp_load_classic_theme_block_styles_on_demand() adds the expected hooks for classic themes.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
+	 */
+	public function test_wp_load_classic_theme_block_styles_on_demand_in_classic_theme(): void {
+		switch_theme( 'default' );
+
+		$this->assertFalse( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() to return false initially.' );
+		$this->assertFalse( wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() to return true' );
+		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expected wp_template_enhancement_output_buffer_started action to be added for classic themes.' );
+
+		wp_load_classic_theme_block_styles_on_demand();
+
+		$this->assertTrue( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() filters to return true' );
+		$this->assertTrue( wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() to return true' );
+		$this->assertNotFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expected wp_template_enhancement_output_buffer_started action to be added for classic themes.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{set_up?: Closure}>
+	 */
+	public function data_wp_hoist_late_printed_styles(): array {
+		return array(
+			'no_actions_removed'              => array(
+				'set_up' => null,
+			),
+			'_wp_footer_scripts_removed'      => array(
+				'set_up' => static function () {
+					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+				},
+			),
+			'wp_print_footer_scripts_removed' => array(
+				'set_up' => static function () {
+					remove_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
+				},
+			),
+			'both_actions_removed'            => array(
+				'set_up' => static function () {
+					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+					remove_action( 'wp_footer', 'wp_print_footer_scripts' );
+				},
+			),
+		);
+	}
+
+	/**
+	 * Tests that wp_hoist_late_printed_styles() adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_hoist_late_printed_styles
+	 *
+	 * @dataProvider data_wp_hoist_late_printed_styles
+	 */
+	public function test_wp_hoist_late_printed_styles( ?Closure $set_up ): void {
+		if ( $set_up ) {
+			$set_up();
+		}
+
+		switch_theme( 'default' );
+
+		// Enqueue a style
+		wp_enqueue_style( 'early', 'http://example.com/style.css' );
+		wp_add_inline_style( 'early', '/* EARLY */' );
+
+		wp_hoist_late_printed_styles();
+
+		// Ensure late styles are printed.
+		add_filter( 'print_late_styles', '__return_false', 1000 );
+		$this->assertTrue( apply_filters( 'print_late_styles', true ), 'Expected late style printing to be forced.' );
+
+		// Simulate wp_head.
+		$head_output = get_echo( 'wp_head' );
+
+		$placeholder_pattern = '#/\*wp_late_styles_placeholder:[a-f0-9-]+\*/#';
+
+		$this->assertMatchesRegularExpression( $placeholder_pattern, $head_output, 'Expected the placeholder to be present' );
+		$this->assertStringContainsString( 'early', $head_output, 'Expected the early-enqueued stylesheet to be present.' );
+
+		// Enqueue a late style (after wp_head).
+		wp_enqueue_style( 'late', 'http://example.com/late-style.css', array(), null );
+		wp_add_inline_style( 'late', '/* EARLY */' );
+
+		// Simulate footer scripts.
+		$footer_output = get_echo( 'wp_footer' );
+
+		// Create a simulated output buffer.
+		$buffer = '<html><head>' . $head_output . '</head><body><main>Content</main>' . $footer_output . '</body></html>';
+
+		// Apply the output buffer filter.
+		$filtered_buffer = apply_filters( 'wp_template_enhancement_output_buffer', $buffer );
+
+		$this->assertDoesNotMatchRegularExpression( $placeholder_pattern, $filtered_buffer, 'Expected the placeholder to be removed.' );
+		$found_styles = array(
+			'HEAD' => array(),
+			'BODY' => array(),
+		);
+		$processor    = WP_HTML_Processor::create_full_parser( $filtered_buffer );
+		while ( $processor->next_tag() ) {
+			$group = in_array( 'HEAD', $processor->get_breadcrumbs(), true ) ? 'HEAD' : 'BODY';
+			if (
+				'LINK' === $processor->get_tag() &&
+				$processor->get_attribute( 'rel' ) === 'stylesheet'
+			) {
+				$found_styles[ $group ][] = $processor->get_attribute( 'id' );
+			} elseif ( 'STYLE' === $processor->get_tag() ) {
+				$found_styles[ $group ][] = $processor->get_attribute( 'id' );
+			}
+		}
+
+		$expected = array(
+			'early-css',
+			'early-inline-css',
+			'late-css',
+			'late-inline-css',
+		);
+		foreach ( $expected as $style_id ) {
+			$this->assertContains( $style_id, $found_styles['HEAD'], 'Expected stylesheet with ID to be in the HEAD.' );
+		}
+		$this->assertSame(
+			$expected,
+			array_values( array_intersect( $found_styles['HEAD'], $expected ) ),
+			'Expected styles to be printed in the same order.'
+		);
+		$this->assertCount( 0, $found_styles['BODY'], 'Expected no styles to be present in the footer.' );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
