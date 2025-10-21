@@ -961,6 +961,14 @@ class WP_REST_Server {
 		 */
 		do_action( 'rest_lazy_load_namespace_' . $route_namespace );
 
+		/**
+		 * Fires when any lazy-loaded REST API namespace is being loaded.
+		 *
+		 * @since X.X.0
+		 *
+		 */
+		do_action( 'rest_lazy_load_namespace', $route_namespace );
+
 		return true;
 	}
 
