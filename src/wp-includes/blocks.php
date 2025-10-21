@@ -185,6 +185,7 @@ function register_block_script_module_id( $metadata, $field_name, $index = 0 ) {
 	// by design not in the critical rendering path and should be deprioritized.
 	if ( $is_interactive ) {
 		$args['fetchpriority'] = 'low';
+		$args['in_footer']     = true;
 	}
 
 	// Blocks using the Interactivity API that support client-side navigation
