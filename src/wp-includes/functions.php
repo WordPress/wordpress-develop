@@ -9234,18 +9234,18 @@ function wp_verify_fast_hash(
  */
 function wp_get_api_request_url( $path = '/', $scheme = 'https' ) {
 	$domain = WP_UPDATE_API_DEFAULT;
-	if (false !== getenv( 'WP_UPDATE_API_BASE' ) ) {
+	if ( false !== getenv( 'WP_UPDATE_API_BASE' ) ) {
 		$domain = getenv( 'WP_UPDATE_API_BASE' );
 	}
 
 	$uri = $scheme . '://' . $domain . $path;
 	/**
 	 * Filters the URL for a WP API request.
-	 * 
+	 *
 	 * @since 7.0.0
-	 * 
+	 *
 	 * @param string $url URL
 	 */
-	$uri = apply_filters( 'wp_api_request');
+	$uri = apply_filters( 'wp_api_request' );
 	return $uri;
 }
