@@ -369,12 +369,13 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 
 		switch_to_blog( $site_id );
 		$user = get_user_by( 'id', $user_id );
+		$this->assertContains( 'subscriber', $user->roles, 'User should have subscriber role' );
 		restore_current_blog();
 
 		wp_delete_site( $site_id );
 		wpmu_delete_user( $user_id );
 
-		$this->assertContains( 'subscriber', $user->roles );
+		$this->assertContains( 'subscriber', $user->roles, 'User should still have subscriber role' );
 	}
 
 	/**
@@ -446,5 +447,37 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 		$this->assertNotEmpty( $wp_roles->get_role( $role ) );
 
 		$wp_roles->remove_role( $role );
+	}
+
+	/**
+	 * @ticket 39170
+	 */
+	public function test_revoke_super_admin_with_network_email() {
+		if ( isset( $GLOBALS['super_admins'] ) ) {
+			$old_global = $GLOBALS['super_admins'];
+			unset( $GLOBALS['super_admins'] );
+		}
+
+		$old_network_email = get_site_option( 'admin_email' );
+		$email_address     = 'superadmin333@example.org';
+
+		$user_id = self::factory()->user->create(
+			array(
+				'user_email' => $email_address,
+			)
+		);
+
+		grant_super_admin( $user_id );
+		update_site_option( 'admin_email', $email_address );
+
+		$result = revoke_super_admin( $user_id );
+
+		update_site_option( 'admin_email', $old_network_email );
+
+		if ( isset( $old_global ) ) {
+			$GLOBALS['super_admins'] = $old_global;
+		}
+
+		$this->assertTrue( $result );
 	}
 }

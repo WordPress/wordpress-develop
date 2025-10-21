@@ -218,6 +218,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		wp_set_current_user( 0 );
 
 		$this->reset_lazyload_queue();
+
+		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
 	}
 
 	/**
@@ -303,6 +305,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		$lazyloader->reset_queue( 'term' );
 		$lazyloader->reset_queue( 'comment' );
 		$lazyloader->reset_queue( 'blog' );
+		$lazyloader->reset_queue( 'user' );
 	}
 
 	/**

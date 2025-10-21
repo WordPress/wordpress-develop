@@ -408,21 +408,18 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the Sender field in the SMTP envelope is not set by Core.
+	 * Test that the Sender field in the SMTP envelope is set by Core.
 	 *
-	 * Correctly setting the Sender requires knowledge that is not available
-	 * to Core. An incorrect value will often lead to messages being rejected
-	 * by the receiving MTA, so it's the admin's responsibility to
-	 * set it correctly.
+	 * A missing Sender field can lead to messages failing DMARC SPF checks.
 	 *
-	 * @ticket 37736
+	 * @ticket 49687
 	 */
-	public function test_wp_mail_sender_not_set() {
-		wp_mail( 'user@example.org', 'Testing the Sender field', 'The Sender field should not have been set.' );
+	public function test_wp_mail_sender_set() {
+		wp_mail( 'user@example.org', 'Testing the Sender field', 'The Sender field should have been set.' );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertSame( '', $mailer->Sender );
+		$this->assertSame( 'wordpress@example.org', $mailer->Sender );
 	}
 
 	/**
@@ -553,5 +550,76 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		$phpmailer = $GLOBALS['phpmailer'];
 		$this->assertNotSame( 'user1', $phpmailer->AltBody );
+	}
+
+	/**
+	 * Tests that wp_mail() can send embedded images.
+	 *
+	 * @ticket 28059
+	 */
+	public function test_wp_mail_can_send_embedded_images() {
+		$embeds = array(
+			'canola' => DIR_TESTDATA . '/images/canola.jpg',
+			DIR_TESTDATA . '/images/test-image-2.gif',
+			DIR_TESTDATA . '/images/avif-lossy.avif',
+		);
+
+		$message = '';
+		foreach ( $embeds as $key => $path ) {
+			$message .= '<p><img src="cid:' . $key . '" alt="" /></p>';
+		}
+
+		wp_mail(
+			'user@example.org',
+			'Embedded images test',
+			$message,
+			'Content-Type: text/html',
+			array(),
+			$embeds
+		);
+
+		$mailer      = tests_retrieve_phpmailer_instance();
+		$attachments = $mailer->getAttachments();
+
+		foreach ( $attachments as $attachment ) {
+			$inline_embed_exists = in_array( $attachment[0], $embeds, true ) && 'inline' === $attachment[6];
+			$this->assertTrue( $inline_embed_exists, 'The attachment ' . $attachment[2] . ' is not inline in the embeds array.' );
+		}
+		foreach ( $embeds as $key => $path ) {
+			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
+		}
+	}
+
+	/**
+	 * Tests that wp_mail() can send embedded images as a multiple line string.
+	 *
+	 * @ticket 28059
+	 */
+	public function test_wp_mail_string_embeds() {
+		$embeds  = DIR_TESTDATA . '/images/canola.jpg' . "\n";
+		$embeds .= DIR_TESTDATA . '/images/test-image-2.gif';
+
+		$message = '<p><img src="cid:0" alt="" /></p><p><img src="cid:1" alt="" /></p>';
+
+		wp_mail(
+			'user@example.org',
+			'Embedded images test',
+			$message,
+			'Content-Type: text/html',
+			array(),
+			$embeds
+		);
+
+		$embeds_array = explode( "\n", $embeds );
+		$mailer       = tests_retrieve_phpmailer_instance();
+		$attachments  = $mailer->getAttachments();
+
+		foreach ( $attachments as $attachment ) {
+			$inline_embed_exists = in_array( $attachment[0], $embeds_array, true ) && 'inline' === $attachment[6];
+			$this->assertTrue( $inline_embed_exists, 'The attachment ' . $attachment[2] . ' is not inline in the embeds array.' );
+		}
+		foreach ( $embeds_array as $key => $path ) {
+			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
+		}
 	}
 }
