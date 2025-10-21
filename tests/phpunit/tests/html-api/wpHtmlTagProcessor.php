@@ -312,6 +312,68 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that set_attribute doesn’t allow setting an
+	 * attribute with an invalid name and thus break syntax.
+	 *
+	 * @ticket 63863
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_attribute
+	 *
+	 * @dataProvider data_invalid_attribute_names
+	 *
+	 * @param string $invalid_name Invalid attribute name.
+	 */
+	public function test_set_attribute_rejects_invalid_names( $invalid_name ) {
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$processor->next_tag();
+
+		$this->assertFalse(
+			$processor->set_attribute( $invalid_name, true ),
+			'Should have rejected invalid attribute name.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_invalid_attribute_names() {
+		$invalid_names = array(
+			'Empty' => array( '' ),
+		);
+
+		// Syntax-like characters.
+		foreach ( str_split( '"\'>&</ =' ) as $c ) {
+			$invalid_names[ $c ] = array( "too{$c}late" );
+		}
+
+		// C0 controls.
+		for ( $i = 0; $i <= 0x1F; $i++ ) {
+			$c                                    = chr( $i );
+			$invalid_names[ "C0 Controls: {$i}" ] = array( "shut{$c}down" );
+		}
+
+		// Noncharacters.
+		for ( $i = 0xFDD0; $i <= 0xFDEF; $i++ ) {
+			$h                                       = dechex( $i );
+			$c                                       = mb_chr( $i );
+			$invalid_names[ "Noncharacter: U+{$h}" ] = array( "shut{$c}down" );
+		}
+
+		for ( $b = 0; $b <= 16; $b++ ) {
+			for ( $x = 0xFFFE; $x <= 0xFFFF; $x++ ) {
+				$i                                       = ( $b << 16 ) + $x;
+				$h                                       = dechex( $i );
+				$c                                       = mb_chr( $i );
+				$invalid_names[ "Noncharacter: U+{$h}" ] = array( "shut{$c}down" );
+			}
+		}
+
+		return $invalid_names;
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
