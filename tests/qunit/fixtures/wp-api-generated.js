@@ -19,7 +19,8 @@ mockedApiResponse.Schema = {
         "oembed/1.0",
         "wp/v2",
         "wp-site-health/v1",
-        "wp-block-editor/v1"
+        "wp-block-editor/v1",
+        "wp-abilities/v1"
     ],
     "authentication": {
         "application-passwords": {
@@ -12392,8 +12393,38 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp-abilities/v1": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "namespace": {
+                            "default": "wp-abilities/v1",
+                            "required": false
+                        },
+                        "context": {
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-abilities/v1"
+                    }
+                ]
+            }
+        },
         "/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+?)/run": {
-            "namespace": "wp/v2",
+            "namespace": "wp-abilities/v1",
             "methods": [
                 "GET",
                 "POST",
@@ -12436,7 +12467,7 @@ mockedApiResponse.Schema = {
             ]
         },
         "/wp-abilities/v1/abilities": {
-            "namespace": "wp/v2",
+            "namespace": "wp-abilities/v1",
             "methods": [
                 "GET"
             ],
@@ -12489,7 +12520,7 @@ mockedApiResponse.Schema = {
             }
         },
         "/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+)": {
-            "namespace": "wp/v2",
+            "namespace": "wp-abilities/v1",
             "methods": [
                 "GET"
             ],
