@@ -3428,6 +3428,10 @@ function wp_enqueue_classic_theme_styles() {
  * @global array  $submenu
  */
 function wp_enqueue_command_palette_assets() {
+	if ( is_network_admin() ) {
+		return;
+	}
+
 	global $menu, $submenu;
 
 	$command_palette_settings = array();
