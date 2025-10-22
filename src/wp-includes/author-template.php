@@ -87,14 +87,17 @@ function the_author( $deprecated = '', $deprecated_echo = true ) {
  *
  * @since 2.8.0
  *
+ * @param int $post_id Optional. Post ID. Defaults to the current post.
  * @return string|void The author's display name, empty string if unknown.
  */
-function get_the_modified_author() {
-	if ( ! get_post() ) {
+function get_the_modified_author( $post_id = 0 ) {
+	$post_id = $post_id ? $post_id : get_post()->ID;
+
+	if ( ! $post_id ) {
 		return;
 	}
 
-	$last_id = get_post_meta( get_post()->ID, '_edit_last', true );
+	$last_id = get_post_meta( $post_id, '_edit_last', true );
 
 	if ( $last_id ) {
 		$last_user = get_userdata( $last_id );
