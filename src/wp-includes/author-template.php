@@ -96,22 +96,21 @@ function get_the_modified_author( $post = null ) {
 	if ( ! $post ) {
 		return null;
 	}
-	$last_id = get_post_meta( $post->ID, '_edit_last', true );
 
+	$last_user = null;
+	$last_id   = get_post_meta( $post->ID, '_edit_last', true );
 	if ( $last_id ) {
 		$last_user = get_userdata( $last_id );
-
-		/**
-		 * Filters the display name of the author who last edited the current post.
-		 *
-		 * @since 2.8.0
-		 *
-		 * @param string $display_name The author's display name, empty string if unknown.
-		 */
-		return apply_filters( 'the_modified_author', $last_user ? $last_user->display_name : '' );
 	}
 
-	return null;
+	/**
+	 * Filters the display name of the author who last edited the current post.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param string $display_name The author's display name, empty string if unknown.
+	 */
+	return apply_filters( 'the_modified_author', $last_user ? $last_user->display_name : '' );
 }
 
 /**
