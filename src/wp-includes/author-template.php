@@ -86,18 +86,17 @@ function the_author( $deprecated = '', $deprecated_echo = true ) {
  * Retrieves the author who last edited the current post.
  *
  * @since 2.8.0
+ * @since 6.9.0 Added the `$post` parameter.
  *
- * @param int $post_id Optional. Post ID. Defaults to the current post.
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Default is global `$post` object.
  * @return string|void The author's display name, empty string if unknown.
  */
-function get_the_modified_author( $post_id = 0 ) {
-	$post_id = $post_id ? $post_id : get_post()->ID;
-
-	if ( ! $post_id ) {
+function get_the_modified_author( $post = null ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
 		return;
 	}
-
-	$last_id = get_post_meta( $post_id, '_edit_last', true );
+	$last_id = get_post_meta( $post->ID, '_edit_last', true );
 
 	if ( $last_id ) {
 		$last_user = get_userdata( $last_id );
