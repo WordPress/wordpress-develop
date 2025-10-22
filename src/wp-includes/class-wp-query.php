@@ -2607,7 +2607,7 @@ class WP_Query {
 			if ( empty( $orderby_array ) ) {
 				$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'] . ', ' . "{$wpdb->posts}.ID " . $query_vars['order'];
 			} else {
-				$orderby = implode( ', ', $orderby_array );
+				$orderby = trim( implode( ', ', $orderby_array ) );
 			}
 		}
 
@@ -3323,7 +3323,18 @@ class WP_Query {
 		}
 
 		if ( $query_vars['cache_results'] && $id_query_is_cacheable ) {
-			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
+			$new_request = $this->request;
+			// Split SQL into parts.
+			$parts = explode( 'ORDER BY', $new_request );
+			if ( count( $parts ) === 2 ) {
+				// Replace only in the SELECT part, preserve ORDER BY.
+				$select_part = str_replace( $fields, "{$wpdb->posts}.*", $parts[0] );
+				$new_request = $select_part . 'ORDER BY' . $parts[1];
+			} else {
+				// No ORDER BY clause, safe to replace.
+				$new_request = str_replace( $fields, "{$wpdb->posts}.*", $new_request );
+			}
+
 			$cache_key   = $this->generate_cache_key( $query_vars, $new_request );
 
 			$cache_found = false;
@@ -5139,7 +5150,7 @@ class WP_Query {
 
 		// Add a default orderby value of date to ensure same cache key generation.
 		if ( ! isset( $args['orderby'] ) ) {
-			$args['orderby'] = 'date';
+			$args['orderby'] = 'date, ID';
 		}
 
 		$placeholder = $wpdb->placeholder_escape();
