@@ -37,7 +37,7 @@ class Tests_User_GetTheModifiedAuthor extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$GLOBALS['post'] = self::$post_id;
+		$GLOBALS['post'] = get_post( self::$post_id );
 	}
 
 	public function test_get_the_modified_author() {
