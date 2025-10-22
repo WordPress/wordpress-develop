@@ -89,8 +89,8 @@ class Tests_User_GetTheModifiedAuthor extends WP_UnitTestCase {
 
 		$another_post_id = self::factory()->post->create();
 
-		$this->assertSame( '', get_the_modified_author( $another_post_id ) );
-		$this->assertSame( '', get_the_modified_author( get_post( $another_post_id ) ) );
+		$this->assertNull( get_the_modified_author( $another_post_id ) );
+		$this->assertNull( get_the_modified_author( get_post( $another_post_id ) ) );
 
 		add_post_meta( $another_post_id, '_edit_last', $editor_id );
 		$this->assertSame( $expected_display_name, get_the_modified_author( $another_post_id ) );
