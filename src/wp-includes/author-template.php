@@ -89,7 +89,7 @@ function the_author( $deprecated = '', $deprecated_echo = true ) {
  * @since 6.9.0 Added the `$post` parameter. Unknown return value is now explicitly null instead of void.
  *
  * @param int|WP_Post|null $post Optional. Post ID or post object. Default is global `$post` object.
- * @return string|null The author's display name, or null if unknown.
+ * @return string|null The author's display name. Empty string if unknown, or null if no valid post.
  */
 function get_the_modified_author( $post = null ) {
 	$post = get_post( $post );
