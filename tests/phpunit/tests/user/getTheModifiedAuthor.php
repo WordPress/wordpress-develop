@@ -56,4 +56,12 @@ class Tests_User_GetTheModifiedAuthor extends WP_UnitTestCase {
 
 		$this->assertSame( '', get_the_modified_author() );
 	}
+
+	/**
+	 * @ticket 64104
+	 */
+	public function test_get_the_modified_author_when_post_global_does_not_exist() {
+		$GLOBALS['post'] = null;
+		$this->assertNull( get_the_modified_author() );
+	}
 }
