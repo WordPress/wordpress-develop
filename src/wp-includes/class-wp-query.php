@@ -5119,7 +5119,6 @@ class WP_Query {
 			sort( $args['post_status'] );
 		}
 
-
 		/*
 		 * Ensure deterministic ordering to prevent duplicate records across pages.
 		 * When multiple posts have the same value for a field, add ID as secondary sort to guarantee consistent ordering.
