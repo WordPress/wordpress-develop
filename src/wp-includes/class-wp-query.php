@@ -3312,8 +3312,8 @@ class WP_Query {
 			}
 
 			$cache_key   = $this->generate_cache_key( $query_vars, $new_request );
-
 			$cache_found = false;
+
 			if ( null === $this->posts ) {
 				$cached_results = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 
@@ -5119,10 +5119,13 @@ class WP_Query {
 			sort( $args['post_status'] );
 		}
 
-		// Add a default orderby value of date to ensure same cache key generation.
+
+		/*
+		 * Ensure deterministic ordering to prevent duplicate records across pages.
+		 * When multiple posts have the same value for a field, add ID as secondary sort to guarantee consistent ordering.
+		 */
 		$args['orderby'] ??= 'date, ID';
-		if ( $args['orderby'] === 'date' ) {
-			// Normalize 'date' to 'date, ID' to match deterministic ordering
+		if ( 'date' === $args['orderby'] ) {
 			$args['orderby'] = 'date, ID';
 		}
 
