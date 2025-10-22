@@ -2521,7 +2521,10 @@ class WP_Query {
 				 */
 				$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'] . ', ' . "{$wpdb->posts}.ID " . $query_vars['order'];
 			}
-		} elseif ( 'none' === $query_vars['orderby'] ) {
+		// See get_pages(): when sort_column is 'none', the get_pages() function should not generate any ORDER BY clause.
+		// Should it rather be handled in the get_pages() function?
+		// src/wp-includes/post.php L6496
+		} elseif ( 'none' === $query_vars['orderby'] || ( is_array( $query_vars['orderby'] ) && array_key_exists( 'none', $query_vars['orderby'] ) ) ) {
 			$orderby = '';
 		} else {
 			/*
@@ -2551,6 +2554,7 @@ class WP_Query {
 			$orderby_array               = array();
 			$needs_deterministic_orderby = false;
 			$has_id_orderby              = false;
+			$id_tie_breaker_order        = $query_vars['order']; // Default to global order
 
 			if ( is_array( $query_vars['orderby'] ) ) {
 				foreach ( $query_vars['orderby'] as $_orderby => $order ) {
@@ -2566,6 +2570,8 @@ class WP_Query {
 					// Check if this field needs deterministic ordering
 					if ( in_array( $_orderby, $fields_requiring_deterministic_orderby, true ) ) {
 						$needs_deterministic_orderby = true;
+						// Use the order from the array for ID tie-breaker
+						$id_tie_breaker_order = $this->parse_order( $order );
 					} elseif ( 'ID' === $_orderby ) {
 						$has_id_orderby = true;
 					}
@@ -2594,7 +2600,7 @@ class WP_Query {
 
 			// Add ID as tie-breaker if needed and not already present
 			if ( $needs_deterministic_orderby && ! $has_id_orderby ) {
-				$orderby_array[] = "{$wpdb->posts}.ID " . $query_vars['order'];
+				$orderby_array[] = "{$wpdb->posts}.ID " . $id_tie_breaker_order;
 			}
 
 			// Build the final orderby string
