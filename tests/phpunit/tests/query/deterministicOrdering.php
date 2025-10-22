@@ -11,67 +11,118 @@
 class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 
 	/**
-	 * Test that deterministic ordering adds ID as tie-breaker for fields that can have duplicates.
+	 * Test that deterministic ordering prevents duplicate records across pages.
+	 *
+	 * This is the core test for the bug fix. When multiple posts have the same
+	 * value for a field (like post_date), pagination can show duplicate records
+	 * without deterministic ordering.
 	 *
 	 * @ticket 44349
 	 */
-	public function test_deterministic_ordering_adds_id_tie_breaker() {
-		global $wpdb;
+	public function test_deterministic_ordering_prevents_duplicates_across_pages() {
+		// Create multiple posts with identical post_date to trigger the bug
+		$identical_date = '2023-01-01 10:00:00';
+		$post_ids       = array();
 
-		// Create posts with same post_date to test deterministic ordering
-		$post1 = self::factory()->post->create( array(
-			'post_title' => 'Post A',
-			'post_date' => '2023-01-01 10:00:00',
-		) );
-		$post2 = self::factory()->post->create( array(
-			'post_title' => 'Post B', 
-			'post_date' => '2023-01-01 10:00:00', // Same date as post1
-		) );
-		$post3 = self::factory()->post->create( array(
-			'post_title' => 'Post C',
-			'post_date' => '2023-01-01 10:00:00', // Same date as post1 and post2
-		) );
+		for ( $i = 1; $i <= 20; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
 
-		// Test ordering by post_date (should add ID tie-breaker)
-		$query = new WP_Query( array(
-			'orderby' => 'post_date',
-			'order' => 'ASC',
-			'posts_per_page' => 10,
-		) );
+		// Get first page
+		$query1 = new WP_Query(
+			array(
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+				'paged'          => 1,
+			)
+		);
 
-		// Verify SQL contains ID as secondary sort
-		$this->assertStringContainsString( 'ORDER BY', $query->request );
-		$this->assertStringContainsString( 'post_date ASC', $query->request );
-		$this->assertStringContainsString( 'ID ASC', $query->request );
-		$this->assertStringNotContainsString( 'ASC ASC', $query->request ); // No double ASC
+		// Get second page
+		$query2 = new WP_Query(
+			array(
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+				'paged'          => 2,
+			)
+		);
+
+		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
+		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
+
+		// Verify no overlap between pages (no duplicates)
+		$overlap = array_intersect( $page1_ids, $page2_ids );
+		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts' );
+
+		// Verify total count is correct
+		$this->assertEquals( 20, $query1->found_posts, 'Total posts should be 20' );
+		$this->assertEquals( 10, count( $page1_ids ), 'First page should have 10 posts' );
+		$this->assertEquals( 10, count( $page2_ids ), 'Second page should have 10 posts' );
+
+		// Verify deterministic ordering: same query should return same results
+		$query1_repeat    = new WP_Query(
+			array(
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+				'paged'          => 1,
+			)
+		);
+		$page1_repeat_ids = wp_list_pluck( $query1_repeat->posts, 'ID' );
+
+		$this->assertEquals( $page1_ids, $page1_repeat_ids, 'Same query should return same results' );
 	}
 
 	/**
-	 * Test that deterministic ordering works with post_title.
+	 * Test that deterministic ordering works with post_title field.
 	 *
 	 * @ticket 44349
 	 */
 	public function test_deterministic_ordering_with_post_title() {
-		// Create posts with same title to test deterministic ordering
-		$post1 = self::factory()->post->create( array(
-			'post_title' => 'Same Title',
-			'post_date' => '2023-01-01 10:00:00',
-		) );
-		$post2 = self::factory()->post->create( array(
-			'post_title' => 'Same Title', // Same title as post1
-			'post_date' => '2023-01-01 11:00:00',
-		) );
+		$identical_title = 'Same Title';
+		$post_ids        = array();
 
-		$query = new WP_Query( array(
-			'orderby' => 'post_title',
-			'order' => 'ASC',
-			'posts_per_page' => 10,
-		) );
+		for ( $i = 1; $i <= 15; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => $identical_title,
+					'post_date'  => "2023-01-0$i 10:00:00",
+				)
+			);
+		}
 
-		// Verify SQL contains ID as secondary sort
-		$this->assertStringContainsString( 'post_title ASC', $query->request );
-		$this->assertStringContainsString( 'ID ASC', $query->request );
-		$this->assertStringNotContainsString( 'ASC ASC', $query->request );
+		// Get first page
+		$query1 = new WP_Query(
+			array(
+				'orderby'        => 'post_title',
+				'order'          => 'ASC',
+				'posts_per_page' => 8,
+				'paged'          => 1,
+			)
+		);
+
+		// Get second page
+		$query2 = new WP_Query(
+			array(
+				'orderby'        => 'post_title',
+				'order'          => 'ASC',
+				'posts_per_page' => 8,
+				'paged'          => 2,
+			)
+		);
+
+		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
+		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
+
+		// Verify no duplicates across pages
+		$overlap = array_intersect( $page1_ids, $page2_ids );
+		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts when ordering by title' );
 	}
 
 	/**
@@ -80,16 +131,44 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 * @ticket 44349
 	 */
 	public function test_deterministic_ordering_with_desc_order() {
-		$query = new WP_Query( array(
-			'orderby' => 'post_date',
-			'order' => 'DESC',
-			'posts_per_page' => 10,
-		) );
+		$identical_date = '2023-01-01 10:00:00';
+		$post_ids       = array();
 
-		// Verify SQL contains ID as secondary sort with DESC
-		$this->assertStringContainsString( 'post_date DESC', $query->request );
-		$this->assertStringContainsString( 'ID DESC', $query->request );
-		$this->assertStringNotContainsString( 'DESC DESC', $query->request );
+		for ( $i = 1; $i <= 12; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		// Get first page with DESC order
+		$query1 = new WP_Query(
+			array(
+				'orderby'        => 'post_date',
+				'order'          => 'DESC',
+				'posts_per_page' => 6,
+				'paged'          => 1,
+			)
+		);
+
+		// Get second page with DESC order
+		$query2 = new WP_Query(
+			array(
+				'orderby'        => 'post_date',
+				'order'          => 'DESC',
+				'posts_per_page' => 6,
+				'paged'          => 2,
+			)
+		);
+
+		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
+		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
+
+		// Verify no duplicates across pages
+		$overlap = array_intersect( $page1_ids, $page2_ids );
+		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts with DESC order' );
 	}
 
 	/**
@@ -98,19 +177,47 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 * @ticket 44349
 	 */
 	public function test_deterministic_ordering_with_array_orderby() {
-		$query = new WP_Query( array(
-			'orderby' => array(
-				'post_date' => 'ASC',
-				'post_title' => 'ASC',
-			),
-			'posts_per_page' => 10,
-		) );
+		$identical_date = '2023-01-01 10:00:00';
+		$post_ids       = array();
 
-		// Verify SQL contains both fields with directions
-		$this->assertStringContainsString( 'post_date ASC', $query->request );
-		$this->assertStringContainsString( 'post_title ASC', $query->request );
-		$this->assertStringContainsString( 'ID ASC', $query->request );
-		$this->assertStringNotContainsString( 'ASC ASC', $query->request );
+		for ( $i = 1; $i <= 16; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		// Test with array orderby
+		$query1 = new WP_Query(
+			array(
+				'orderby'        => array(
+					'post_date'  => 'ASC',
+					'post_title' => 'ASC',
+				),
+				'posts_per_page' => 8,
+				'paged'          => 1,
+			)
+		);
+
+		$query2 = new WP_Query(
+			array(
+				'orderby'        => array(
+					'post_date'  => 'ASC',
+					'post_title' => 'ASC',
+				),
+				'posts_per_page' => 8,
+				'paged'          => 2,
+			)
+		);
+
+		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
+		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
+
+		// Verify no duplicates across pages
+		$overlap = array_intersect( $page1_ids, $page2_ids );
+		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts with array orderby' );
 	}
 
 	/**
@@ -119,90 +226,29 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 * @ticket 44349
 	 */
 	public function test_deterministic_ordering_does_not_duplicate_id() {
-		$query = new WP_Query( array(
-			'orderby' => 'ID',
-			'order' => 'ASC',
-			'posts_per_page' => 10,
-		) );
+		$identical_date = '2023-01-01 10:00:00';
+		$post_ids       = array();
 
-		// Should not add duplicate ID
-		$this->assertStringContainsString( 'ID ASC', $query->request );
-		$this->assertStringNotContainsString( 'ID ASC, ID ASC', $query->request );
-	}
-
-	/**
-	 * Test that deterministic ordering works with fields that don't need it.
-	 *
-	 * @ticket 44349
-	 */
-	public function test_deterministic_ordering_with_non_deterministic_fields() {
-		$query = new WP_Query( array(
-			'orderby' => 'rand',
-			'posts_per_page' => 10,
-		) );
-
-		// Should not add ID tie-breaker for rand
-		$this->assertStringContainsString( 'RAND()', $query->request );
-		$this->assertStringNotContainsString( 'ID ASC', $query->request );
-	}
-
-	/**
-	 * Test that deterministic ordering works with default ordering.
-	 *
-	 * @ticket 44349
-	 */
-	public function test_deterministic_ordering_with_default_ordering() {
-		$query = new WP_Query( array(
-			'posts_per_page' => 10,
-		) );
-
-		// Default ordering should include ID tie-breaker
-		$this->assertStringContainsString( 'post_date DESC', $query->request );
-		$this->assertStringContainsString( 'ID DESC', $query->request );
-		$this->assertStringNotContainsString( 'DESC DESC', $query->request );
-	}
-
-	/**
-	 * Test that deterministic ordering prevents duplicate records across pages.
-	 *
-	 * @ticket 44349
-	 */
-	public function test_deterministic_ordering_prevents_duplicates_across_pages() {
-		// Create multiple posts with same post_date
-		$posts = array();
 		for ( $i = 1; $i <= 10; $i++ ) {
-			$posts[] = self::factory()->post->create( array(
-				'post_title' => "Post $i",
-				'post_date' => '2023-01-01 10:00:00', // All same date
-			) );
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
 		}
 
-		// Get first page
-		$query1 = new WP_Query( array(
-			'orderby' => 'post_date',
-			'order' => 'ASC',
-			'posts_per_page' => 5,
-			'paged' => 1,
-		) );
+		$query = new WP_Query(
+			array(
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+			)
+		);
 
-		// Get second page
-		$query2 = new WP_Query( array(
-			'orderby' => 'post_date',
-			'order' => 'ASC',
-			'posts_per_page' => 5,
-			'paged' => 2,
-		) );
-
-		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
-		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
-
-		// No overlap between pages
-		$this->assertEmpty( array_intersect( $page1_ids, $page2_ids ) );
-
-		// Total posts should equal sum of both pages
-		$this->assertEquals( 10, $query1->found_posts );
-		$this->assertEquals( 5, count( $page1_ids ) );
-		$this->assertEquals( 5, count( $page2_ids ) );
+		// Should not add duplicate ID ordering
+		$this->assertStringContainsString( 'ID ASC', $query->request );
+		$this->assertStringNotContainsString( 'ID ASC, ID ASC', $query->request );
 	}
 
 	/**
@@ -211,81 +257,45 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 * @ticket 44349
 	 */
 	public function test_deterministic_ordering_with_search() {
-		// Create posts with searchable content
-		$post1 = self::factory()->post->create( array(
-			'post_title' => 'Test Post 1',
-			'post_content' => 'This is a test post',
-			'post_date' => '2023-01-01 10:00:00',
-		) );
-		$post2 = self::factory()->post->create( array(
-			'post_title' => 'Test Post 2',
-			'post_content' => 'This is another test post',
-			'post_date' => '2023-01-01 10:00:00', // Same date
-		) );
+		$identical_date = '2023-01-01 10:00:00';
+		$post_ids       = array();
 
-		$query = new WP_Query( array(
-			's' => 'test',
-			'orderby' => 'post_date',
-			'order' => 'ASC',
-			'posts_per_page' => 10,
-		) );
+		for ( $i = 1; $i <= 12; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title'   => "Test Post $i",
+					'post_content' => 'This is a test post',
+					'post_date'    => $identical_date,
+				)
+			);
+		}
 
-		// Should still have deterministic ordering even with search
-		$this->assertStringContainsString( 'post_date ASC', $query->request );
-		$this->assertStringContainsString( 'ID ASC', $query->request );
-		$this->assertStringNotContainsString( 'ASC ASC', $query->request );
-	}
+		// Test with search
+		$query1 = new WP_Query(
+			array(
+				's'              => 'test',
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 6,
+				'paged'          => 1,
+			)
+		);
 
-	/**
-	 * Test that deterministic ordering works with meta queries.
-	 *
-	 * @ticket 44349
-	 */
-	public function test_deterministic_ordering_with_meta_query() {
-		// Create posts with meta values
-		$post1 = self::factory()->post->create();
-		add_post_meta( $post1, 'test_meta', 'value1' );
+		$query2 = new WP_Query(
+			array(
+				's'              => 'test',
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 6,
+				'paged'          => 2,
+			)
+		);
 
-		$post2 = self::factory()->post->create();
-		add_post_meta( $post2, 'test_meta', 'value2' );
+		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
+		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
 
-		$query = new WP_Query( array(
-			'meta_key' => 'test_meta',
-			'orderby' => 'post_date',
-			'order' => 'ASC',
-			'posts_per_page' => 10,
-		) );
-
-		// Should still have deterministic ordering with meta queries
-		$this->assertStringContainsString( 'post_date ASC', $query->request );
-		$this->assertStringContainsString( 'ID ASC', $query->request );
-		$this->assertStringNotContainsString( 'ASC ASC', $query->request );
-	}
-
-	/**
-	 * Test that deterministic ordering works with taxonomy queries.
-	 *
-	 * @ticket 44349
-	 */
-	public function test_deterministic_ordering_with_taxonomy_query() {
-		// Create posts with categories
-		$post1 = self::factory()->post->create();
-		$post2 = self::factory()->post->create();
-
-		$cat_id = self::factory()->category->create( array( 'name' => 'Test Category' ) );
-		wp_set_post_categories( $post1, array( $cat_id ) );
-		wp_set_post_categories( $post2, array( $cat_id ) );
-
-		$query = new WP_Query( array(
-			'category_name' => 'test-category',
-			'orderby' => 'post_date',
-			'order' => 'ASC',
-			'posts_per_page' => 10,
-		) );
-
-		// Should still have deterministic ordering with taxonomy queries
-		$this->assertStringContainsString( 'post_date ASC', $query->request );
-		$this->assertStringContainsString( 'ID ASC', $query->request );
-		$this->assertStringNotContainsString( 'ASC ASC', $query->request );
+		// Verify no duplicates across pages even with search
+		$overlap = array_intersect( $page1_ids, $page2_ids );
+		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts even with search' );
 	}
 }

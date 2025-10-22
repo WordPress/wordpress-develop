@@ -2521,9 +2521,9 @@ class WP_Query {
 				 */
 				$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'] . ', ' . "{$wpdb->posts}.ID " . $query_vars['order'];
 			}
-		// See get_pages(): when sort_column is 'none', the get_pages() function should not generate any ORDER BY clause.
-		// Should it rather be handled in the get_pages() function?
-		// src/wp-includes/post.php L6496
+			// See get_pages(): when sort_column is 'none', the get_pages() function should not generate any ORDER BY clause.
+			// Should it rather be handled in the get_pages() function?
+			// src/wp-includes/post.php L6496
 		} elseif ( 'none' === $query_vars['orderby'] || ( is_array( $query_vars['orderby'] ) && array_key_exists( 'none', $query_vars['orderby'] ) ) ) {
 			$orderby = '';
 		} else {
