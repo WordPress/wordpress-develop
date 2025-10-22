@@ -5121,6 +5121,10 @@ class WP_Query {
 
 		// Add a default orderby value of date to ensure same cache key generation.
 		$args['orderby'] ??= 'date, ID';
+		if ( $args['orderby'] === 'date' ) {
+			// Normalize 'date' to 'date, ID' to match deterministic ordering
+			$args['orderby'] = 'date, ID';
+		}
 
 		$placeholder = $wpdb->placeholder_escape();
 		array_walk_recursive(
