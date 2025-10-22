@@ -6,7 +6,7 @@
  *
  * @group query
  * @group ordering
- * @ticket 44349
+ * @ticket xxxxx
  */
 class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 
@@ -17,7 +17,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 * value for a field (like post_date), pagination can show duplicate records
 	 * without deterministic ordering.
 	 *
-	 * @ticket 44349
+	 * @ticket xxxxx
 	 */
 	public function test_deterministic_ordering_prevents_duplicates_across_pages() {
 		// Create multiple posts with identical post_date to trigger the bug
@@ -82,7 +82,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	/**
 	 * Test that deterministic ordering works with post_title field.
 	 *
-	 * @ticket 44349
+	 * @ticket xxxxx
 	 */
 	public function test_deterministic_ordering_with_post_title() {
 		$identical_title = 'Same Title';
@@ -128,7 +128,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	/**
 	 * Test that deterministic ordering works with DESC order.
 	 *
-	 * @ticket 44349
+	 * @ticket xxxxx
 	 */
 	public function test_deterministic_ordering_with_desc_order() {
 		$identical_date = '2023-01-01 10:00:00';
@@ -174,7 +174,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	/**
 	 * Test that deterministic ordering works with array orderby.
 	 *
-	 * @ticket 44349
+	 * @ticket xxxxx
 	 */
 	public function test_deterministic_ordering_with_array_orderby() {
 		$identical_date = '2023-01-01 10:00:00';
@@ -223,7 +223,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	/**
 	 * Test that deterministic ordering doesn't add ID when ID is already present.
 	 *
-	 * @ticket 44349
+	 * @ticket xxxxx
 	 */
 	public function test_deterministic_ordering_does_not_duplicate_id() {
 		$identical_date = '2023-01-01 10:00:00';
@@ -254,7 +254,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	/**
 	 * Test that deterministic ordering works with search queries.
 	 *
-	 * @ticket 44349
+	 * @ticket xxxxx
 	 */
 	public function test_deterministic_ordering_with_search() {
 		$identical_date = '2023-01-01 10:00:00';
