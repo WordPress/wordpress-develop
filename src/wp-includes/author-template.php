@@ -90,6 +90,10 @@ function the_author( $deprecated = '', $deprecated_echo = true ) {
  * @return string|void The author's display name, empty string if unknown.
  */
 function get_the_modified_author() {
+	if ( ! get_post() ) {
+		return;
+	}
+
 	$last_id = get_post_meta( get_post()->ID, '_edit_last', true );
 
 	if ( $last_id ) {
