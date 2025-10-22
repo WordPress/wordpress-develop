@@ -5149,7 +5149,11 @@ class WP_Query {
 		}
 
 		// Add a default orderby value of date to ensure same cache key generation.
+		// Add a default orderby value of date to ensure same cache key generation.
 		if ( ! isset( $args['orderby'] ) ) {
+			$args['orderby'] = 'date, ID';
+		} elseif ( $args['orderby'] === 'date' ) {
+			// Normalize 'date' to 'date, ID' to match deterministic ordering
 			$args['orderby'] = 'date, ID';
 		}
 
