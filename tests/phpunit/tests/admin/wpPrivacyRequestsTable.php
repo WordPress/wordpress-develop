@@ -193,14 +193,14 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 				'order'    => 'ASC',
 				'orderby'  => 'requester',
 				's'        => 'foo',
-				'expected' => 'post_title ASC',
+				'expected' => 'post_title ASC, ID ASC',
 			),
 			// Search and order by requested (post_date) ASC.
 			array(
 				'order'    => 'ASC',
 				'orderby'  => 'requested',
 				's'        => 'foo',
-				'expected' => 'post_date ASC',
+				'expected' => 'post_date ASC, ID ASC',
 			),
 		);
 	}
