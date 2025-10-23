@@ -128,4 +128,32 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 			'The registered block style should have the same label.'
 		);
 	}
+
+	/**
+	 * Should register the block style when `label` is missing, using `name` as the label.
+	 *
+	 * @ticket 52592
+	 *
+	 * @covers WP_Block_Styles_Registry::register
+	 * @covers WP_Block_Styles_Registry::is_registered
+	 * @covers WP_Block_Styles_Registry::get_registered_styles_for_block
+	 */
+	public function test_register_block_style_without_label() {
+		$name             = 'core/paragraph';
+		$style_properties = array(
+			'name' => 'fancy',
+		);
+		$result           = $this->registry->register( $name, $style_properties );
+
+		$this->assertTrue( $result, 'The block style should be registered when the label is missing.' );
+		$this->assertTrue(
+			$this->registry->is_registered( $name, 'fancy' ),
+			'The block type should have the block style registered when the label is missing.'
+		);
+		$this->assertEquals(
+			$style_properties['name'],
+			$this->registry->get_registered_styles_for_block( $name )['fancy']['label'],
+			'The registered block style should have a name and label equal.'
+		);
+	}
 }
