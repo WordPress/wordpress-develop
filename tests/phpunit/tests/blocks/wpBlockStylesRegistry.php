@@ -98,4 +98,34 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 			'Both empty block and style name should return false.'
 		);
 	}
+
+	/**
+	 * Should accept valid string style label.
+	 * The registered style should have the same label.
+	 *
+	 * @ticket 52592
+	 *
+	 * @covers WP_Block_Styles_Registry::register
+	 * @covers WP_Block_Styles_Registry::is_registered
+	 * @covers WP_Block_Styles_Registry::get_registered_styles_for_block
+	 */
+	public function test_register_block_style_with_label() {
+		$name             = 'core/paragraph';
+		$style_properties = array(
+			'name'  => 'fancy',
+			'label' => 'Fancy',
+		);
+		$result           = $this->registry->register( $name, $style_properties );
+
+		$this->assertTrue( $result, 'The block style should be registered when the label is a valid string.' );
+		$this->assertTrue(
+			$this->registry->is_registered( $name, 'fancy' ),
+			'The block type should have the block style registered when the label is valid.'
+		);
+		$this->assertEquals(
+			$style_properties['label'],
+			$this->registry->get_registered_styles_for_block( $name )['fancy']['label'],
+			'The registered block style should have the same label.'
+		);
+	}
 }
