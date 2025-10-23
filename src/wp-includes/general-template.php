@@ -3327,8 +3327,9 @@ function feed_links_extra( $args = array() ) {
 	$args = apply_filters( 'feed_links_extra_args', $args );
 
 	// Singular objects only, excluding a single `show_on_front` Home Page.
-	$post = get_post();
-	if ( is_singular() && ! is_home() && $post instanceof WP_Post ) {
+	$queried_object = get_queried_object();
+	if ( is_singular() && ! is_home() && $queried_object instanceof WP_Post ) {
+		$post = $queried_object;
 
 		/** This filter is documented in wp-includes/general-template.php */
 		$show_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );

@@ -638,11 +638,11 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	/**
 	 * @ticket 63263
 	 */
-	public function test_feed_links_extra_should_not_fail_if_global_post_empty() {
+	public function test_feed_links_extra_should_work_fail_if_global_post_empty() {
 		$post_id = self::factory()->post->create();
 		$this->go_to( get_permalink( $post_id ) );
 		$GLOBALS['post'] = null;
 
-		$this->assertEmpty( get_echo( 'feed_links_extra' ) );
+		$this->assertNotEmpty( get_echo( 'feed_links_extra' ) );
 	}
 }
