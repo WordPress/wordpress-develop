@@ -1,0 +1,136 @@
+<?php declare( strict_types=1 );
+
+/**
+ * Tests for the core abilities shipped with the Abilities API.
+ *
+ * @group abilities-api
+ */
+class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
+
+	/**
+     * Tests that the `core/get-site-info` ability is registered with the expected schema.
+     */
+    public function test_core_get_bloginfo_ability_is_registered(): void {
+        $ability = wp_get_ability( 'core/get-site-info' );
+
+		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
+
+		$input_schema  = $ability->get_input_schema();
+		$output_schema = $ability->get_output_schema();
+
+		$this->assertSame( 'object', $input_schema['type'] );
+		$this->assertArrayHasKey( 'default', $input_schema );
+		$this->assertSame( array(), $input_schema['default'] );
+
+		// Input schema should have optional fields array.
+		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
+		$this->assertSame( 'array', $input_schema['properties']['fields']['type'] );
+		$this->assertContains( 'name', $input_schema['properties']['fields']['items']['enum'] );
+
+		// Output schema should have all fields documented.
+		$this->assertArrayHasKey( 'name', $output_schema['properties'] );
+		$this->assertArrayHasKey( 'url', $output_schema['properties'] );
+		$this->assertArrayHasKey( 'version', $output_schema['properties'] );
+	}
+
+	/**
+     * Tests executing the `core/get-site-info` ability returns all fields by default.
+     */
+    public function test_core_get_bloginfo_executes(): void {
+        // Requires manage_options.
+        $admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+        wp_set_current_user( $admin_id );
+
+        $ability = wp_get_ability( 'core/get-site-info' );
+
+		// Test without fields parameter - should return all fields.
+		$result = $ability->execute();
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'name', $result );
+		$this->assertArrayHasKey( 'description', $result );
+		$this->assertArrayHasKey( 'url', $result );
+		$this->assertArrayHasKey( 'version', $result );
+		$this->assertSame( get_bloginfo( 'name' ), $result['name'] );
+
+		// Test with fields parameter - should return only requested fields.
+		$result = $ability->execute(
+			array(
+				'fields' => array( 'name', 'url' ),
+			)
+		);
+
+		$this->assertIsArray( $result );
+		$this->assertArrayHasKey( 'name', $result );
+		$this->assertArrayHasKey( 'url', $result );
+		$this->assertArrayNotHasKey( 'description', $result );
+		$this->assertArrayNotHasKey( 'version', $result );
+		$this->assertSame( get_bloginfo( 'name' ), $result['name'] );
+		$this->assertSame( get_bloginfo( 'url' ), $result['url'] );
+
+        wp_set_current_user( 0 );
+    }
+
+	/**
+     * Tests that executing the current user info ability requires authentication.
+     */
+    public function test_core_get_current_user_info_requires_authentication(): void {
+        $ability = wp_get_ability( 'core/get-user-info' );
+
+		$this->assertFalse( $ability->check_permissions() );
+
+		$result = $ability->execute();
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
+	}
+
+	/**
+     * Tests executing the current user info ability as an authenticated user.
+     */
+    public function test_core_get_current_user_info_returns_user_data(): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'   => 'subscriber',
+				'locale' => 'fr_FR',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+        $ability = wp_get_ability( 'core/get-user-info' );
+
+		$this->assertTrue( $ability->check_permissions() );
+
+		$result = $ability->execute();
+		$this->assertSame( $user_id, $result['id'] );
+		$this->assertSame( 'fr_FR', $result['locale'] );
+		$this->assertSame( 'subscriber', $result['roles'][0] );
+		$this->assertSame( get_userdata( $user_id )->display_name, $result['display_name'] );
+
+		wp_set_current_user( 0 );
+	}
+
+	/**
+     * Tests executing the environment info ability.
+     */
+    public function test_core_get_environment_type_executes(): void {
+        // Requires manage_options.
+        $admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+        wp_set_current_user( $admin_id );
+
+        $ability      = wp_get_ability( 'core/get-environment-info' );
+        $environment  = wp_get_environment_type();
+        $ability_data = $ability->execute();
+
+        $this->assertIsArray( $ability_data );
+        $this->assertArrayHasKey( 'environment', $ability_data );
+        $this->assertArrayHasKey( 'php_version', $ability_data );
+        $this->assertArrayHasKey( 'db_server_info', $ability_data );
+        $this->assertArrayHasKey( 'wp_version', $ability_data );
+        $this->assertSame( $environment, $ability_data['environment'] );
+
+        wp_set_current_user( 0 );
+    }
+
+}
