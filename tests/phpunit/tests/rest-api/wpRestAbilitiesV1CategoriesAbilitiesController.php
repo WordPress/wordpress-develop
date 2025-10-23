@@ -7,8 +7,9 @@
  *
  * @group abilities-api
  * @group rest-api
+ * @group abilities-categories
  */
-class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCase {
+class Tests_REST_API_WpRestAbilitiesV1AblitiesCategoriesController extends WP_UnitTestCase {
 
 	/**
 	 * REST Server instance.
@@ -138,7 +139,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_get_items(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
@@ -161,7 +162,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_get_item(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-data-retrieval' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories/test-data-retrieval' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
@@ -179,7 +180,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_get_item_with_meta(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-communication' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories/test-communication' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
@@ -197,7 +198,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_get_item_with_selected_fields(): void {
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-data-retrieval' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories/test-data-retrieval' );
 		$request->set_param( '_fields', 'slug,label' );
 		$response = $this->server->dispatch( $request );
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
@@ -220,7 +221,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_registered
 	 */
 	public function test_get_item_not_found(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/non-existent' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories/non-existent' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 404, $response->get_status() );
@@ -237,7 +238,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	public function test_get_items_permission_denied(): void {
 		wp_set_current_user( 0 );
 
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 401, $response->get_status() );
@@ -251,7 +252,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	public function test_get_item_permission_denied(): void {
 		wp_set_current_user( 0 );
 
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-data-retrieval' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories/test-data-retrieval' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 401, $response->get_status() );
@@ -263,7 +264,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_pagination_headers(): void {
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories' );
 		$request->set_param( 'per_page', 10 );
 		$response = $this->server->dispatch( $request );
 
@@ -284,7 +285,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_head_request(): void {
-		$request  = new WP_REST_Request( 'HEAD', '/wp-abilities/v1/categories' );
+		$request  = new WP_REST_Request( 'HEAD', '/wp-abilities/v1/abilities-categories' );
 		$response = $this->server->dispatch( $request );
 
 		$data = $response->get_data();
@@ -301,7 +302,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_pagination_links(): void {
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories' );
 		$request->set_param( 'per_page', 10 );
 		$request->set_param( 'page', 1 );
 		$response = $this->server->dispatch( $request );
@@ -339,7 +340,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_collection_params(): void {
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories' );
 		$request->set_param( 'per_page', 5 );
 		$response = $this->server->dispatch( $request );
 
@@ -352,7 +353,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$data = $response->get_data();
 		$this->assertCount( 5, $data );
 
-		$page1_request = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories' );
+		$page1_request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories' );
 		$page1_request->set_param( 'per_page', 5 );
 		$page1_request->set_param( 'page', 1 );
 		$page1_response = $this->server->dispatch( $page1_request );
@@ -368,7 +369,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_ability_category_response_links(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-data-retrieval' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories/test-data-retrieval' );
 		$response = $this->server->dispatch( $request );
 
 		$links = $response->get_links();
@@ -377,13 +378,13 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$this->assertArrayHasKey( 'abilities', $links );
 
 		$self_link = $links['self'][0]['href'];
-		$this->assertStringContainsString( '/wp-abilities/v1/categories/test-data-retrieval', $self_link );
+		$this->assertStringContainsString( '/wp-abilities/v1/abilities-categories/test-data-retrieval', $self_link );
 
 		$collection_link = $links['collection'][0]['href'];
-		$this->assertStringContainsString( '/wp-abilities/v1/categories', $collection_link );
+		$this->assertStringContainsString( '/wp-abilities/v1/abilities-categories', $collection_link );
 
 		$abilities_link = $links['abilities'][0]['href'];
-		$this->assertStringContainsString( '/wp-abilities/v1/abilities?category=test-data-retrieval', $abilities_link );
+		$this->assertStringContainsString( '/wp-abilities/v1/abilities?ability_category=test-data-retrieval', $abilities_link );
 	}
 
 	/**
@@ -392,7 +393,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_context_parameter(): void {
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-data-retrieval' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories/test-data-retrieval' );
 		$request->set_param( 'context', 'view' );
 		$response = $this->server->dispatch( $request );
 
@@ -413,7 +414,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_get_schema(): void {
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp-abilities/v1/categories' );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp-abilities/v1/abilities-categories' );
 		$response = $this->server->dispatch( $request );
 		$data     = $response->get_data();
 
@@ -444,7 +445,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @ticket 64098
 	 */
 	public function test_ability_category_slug_with_valid_format(): void {
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-data-retrieval' );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories/test-data-retrieval' );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 	}
@@ -475,7 +476,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @param string $slug Invalid ability category slug to test.
 	 */
 	public function test_ability_category_slug_with_invalid_format( string $slug ): void {
-		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/' . $slug );
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories/' . $slug );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertContains( $response->get_status(), array( 400, 404 ) );
@@ -508,7 +509,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	 * @param array<string, mixed> $params Invalid pagination parameters.
 	 */
 	public function test_invalid_pagination_parameters( array $params ): void {
-		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories' );
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities-categories' );
 		$request->set_query_params( $params );
 
 		$response = $this->server->dispatch( $request );

@@ -13513,7 +13513,7 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
-        "/wp-abilities/v1/categories": {
+        "/wp-abilities/v1/abilities-categories": {
             "namespace": "wp-abilities/v1",
             "methods": [
                 "GET"
@@ -13556,12 +13556,12 @@ mockedApiResponse.Schema = {
             "_links": {
                 "self": [
                     {
-                        "href": "http://example.org/index.php?rest_route=/wp-abilities/v1/categories"
+                        "href": "http://example.org/index.php?rest_route=/wp-abilities/v1/abilities-categories"
                     }
                 ]
             }
         },
-        "/wp-abilities/v1/categories/(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)": {
+        "/wp-abilities/v1/abilities-categories/(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)": {
             "namespace": "wp-abilities/v1",
             "methods": [
                 "GET"
