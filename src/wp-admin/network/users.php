@@ -99,7 +99,7 @@ if ( isset( $_GET['action'] ) ) {
 								 *
 								 * @param bool $update_blog_status Whether to update the blog status. Default false.
 								 */
-								if ( apply_filters( 'handle_network_allusers_update_blog_status', false ) ) {
+								if ( apply_filters( 'handle_network_allusers_update_blog_status', false, $user_id, $doaction ) ) {
 									$blogs = get_blogs_of_user( $user_id, true );
 
 									foreach ( $blogs as $details ) {
