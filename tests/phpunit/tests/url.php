@@ -631,7 +631,5 @@ class Tests_URL extends WP_UnitTestCase {
 		// Next should be empty (no later posts).
 		$next = get_adjacent_post( false, '', false );
 		$this->assertSame( '', $next );
-
-		$GLOBALS['post'] = $orig_post;
 	}
 }
