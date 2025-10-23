@@ -95,7 +95,7 @@ if ( isset( $_GET['action'] ) ) {
 								/**
 								 * Filters whether the blog status for all of a user's blogs should be updated.
 								 *
-								 * @since 6.7
+								 * @since 6.9.0
 								 *
 								 * @param bool $update_blog_status Whether to update the blog status. Default false.
 								 */
