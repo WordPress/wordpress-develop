@@ -5,19 +5,16 @@ name: Installation Tests
 
 on:
   push:
-    branches:
+    branches: &branches
       - trunk
     # Always test the workflow after it's updated.
-    paths:
+    paths: &paths
       - '.github/workflows/install-testing.yml'
       - '.version-support-*.json'
       - '.github/workflows/reusable-support-json-reader-v1.yml'
   pull_request:
-    # Always test the workflow when changes are suggested.
-    paths:
-      - '.version-support-*.json'
-      - '.github/workflows/install-testing.yml'
-      - '.github/workflows/reusable-support-json-reader-v1.yml'
+    branches: *branches
+    paths: *paths
 
   schedule:
     - cron: '0 0 * * 1'

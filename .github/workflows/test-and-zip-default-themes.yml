@@ -2,11 +2,11 @@ name: Test Default Themes & Create ZIPs
 
 on:
   push:
-    branches:
+    branches: &branches
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
-    paths:
+    paths: &paths
       # Changing the preferred version of Node.js could affect themes with build processes.
       - '.npmrc'
       - '.nvmrc'
@@ -19,22 +19,8 @@ on:
       # Changes to this workflow file should always verify success.
       - '.github/workflows/test-and-zip-default-themes.yml'
   pull_request:
-    branches:
-      - trunk
-      - '3.[89]'
-      - '[4-9].[0-9]'
-    paths:
-      # Changing the preferred version of Node.js could affect themes with build processes.
-      - '.npmrc'
-      - '.nvmrc'
-      # Changes to any themes with a build script should be confirmed.
-      - 'src/wp-content/themes/twentynineteen/**'
-      - 'src/wp-content/themes/twentytwenty/**'
-      - 'src/wp-content/themes/twentytwentyone/**'
-      - 'src/wp-content/themes/twentytwentytwo/**'
-      - 'src/wp-content/themes/twentytwentyfive/**'
-      # Changes to this workflow file should always verify success.
-      - '.github/workflows/test-and-zip-default-themes.yml'
+    branches: *branches
+    paths: *paths
   workflow_dispatch:
     inputs:
       branch:

@@ -2,11 +2,11 @@ name: Local Docker Environment
 
 on:
   push:
-    branches:
+    branches: &branches
       - trunk
       - '6.[8-9]'
       - '[7-9].[0-9]'
-    paths:
+    paths: &paths
       # Any changes to Docker related files.
       - '.env.example'
       - 'docker-compose.yml'
@@ -28,31 +28,8 @@ on:
       - '.github/workflows/reusable-support-json-reader-v1.yml'
       - '.github/workflows/reusable-test-docker-environment-v1.yml'
   pull_request:
-    branches:
-      - trunk
-      - '6.[8-9]'
-      - '[7-9].[0-9]'
-    paths:
-      # Any changes to Docker related files.
-      - '.env.example'
-      - 'docker-compose.yml'
-      # Any changes to local environment related files
-      - 'tools/local-env/**'
-      # These files configure npm and the task runner. Changes could affect the outcome.
-      - 'package*.json'
-      - 'Gruntfile.js'
-      - 'webpack.config.js'
-      - 'tools/webpack/**'
-      - '.npmrc'
-      - '.nvmrc'
-      # These files configure Composer. Changes could affect the local environment.
-      - 'composer.*'
-      # These files define the versions to test.
-      - '.version-support-*.json'
-      # Changes to this and related workflow files should always be verified.
-      - '.github/workflows/local-docker-environment.yml'
-      - '.github/workflows/reusable-support-json-reader-v1.yml'
-      - '.github/workflows/reusable-test-docker-environment-v1.yml'
+    branches: *branches
+    paths: *paths
   workflow_dispatch:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
