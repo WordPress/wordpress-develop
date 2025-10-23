@@ -274,6 +274,9 @@ if ( $multisite ) {
 }
 unset( $multisite );
 
+// Ensure that PHPMailer is alwways a MockPHPMailer.
+tests_add_filter( 'wp_phpmailer', '_wp_phpmailer' );
+
 $GLOBALS['_wp_die_disabled'] = false;
 // Allow tests to override wp_die().
 tests_add_filter( 'wp_die_handler', '_wp_die_handler_filter' );
@@ -300,10 +303,8 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 // Load WordPress.
 require_once ABSPATH . 'wp-settings.php';
 
-// Override the PHPMailer.
+// Load the override of the PHPMailer.
 require_once __DIR__ . '/mock-mailer.php';
-
-$phpmailer = new MockPHPMailer( true );
 
 // Delete any default posts & related data.
 _delete_all_posts();

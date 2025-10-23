@@ -278,6 +278,16 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
 			require_once ABSPATH . WPINC . '/class-wp-phpmailer.php';
 			$phpmailer = new WP_PHPMailer( true );
+			/**
+			 * Filters the PHPMailer object.
+			 *
+			 * Allows plugins to override the PHPMailer class with one of their own if required.
+			 *
+			 * @since 6.9
+			 *
+			 * @param object $phpmailer A PHPMailer (or compatible) class.
+			 */
+			$phpmailer = apply_filters( 'wp_phpmailer', $phpmailer );
 
 			$phpmailer::$validator = static function ( $email ) {
 				return (bool) is_email( $email );
