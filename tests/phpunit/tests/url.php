@@ -590,11 +590,6 @@ class Tests_URL extends WP_UnitTestCase {
 			);
 		}
 
-		if ( ! isset( $GLOBALS['post'] ) ) {
-			$GLOBALS['post'] = null;
-		}
-		$orig_post = $GLOBALS['post'];
-
 		// Test from the middle post (2nd post).
 		$GLOBALS['post'] = get_post( $post_ids[1] );
 
