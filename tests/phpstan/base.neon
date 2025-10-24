@@ -71,23 +71,22 @@ parameters:
 		- ../../src/wp-admin
 	excludePaths:
 		analyseAndScan:
-			# These files are deprecated and should not be scanned.
-			- ../../src/wp-admin/includes/deprecated.php
-			- ../../src/wp-admin/includes/ms-deprecated.php
 			- ../../src/wp-admin/includes/noop.php
-			- ../../src/wp-includes/deprecated.php
-			- ../../src/wp-includes/ms-deprecated.php
-			- ../../src/wp-includes/pluggable-deprecated.php
 			# These files are not part of the WordPress Core codebase.
 			- ../../src/wp-content
 			# JavaScript/CSS/Asset files.
-			- ../../src/js
 			- ../../src/wp-admin/css
 			- ../../src/wp-admin/images
 			# These are built from js/_enqueues.
 			- ../../src/wp-admin/js (?)
 			- ../../src/wp-includes/js (?)
 		analyse:
+			# These files are deprecated.
+			- ../../src/wp-admin/includes/deprecated.php
+			- ../../src/wp-admin/includes/ms-deprecated.php
+			- ../../src/wp-includes/deprecated.php
+			- ../../src/wp-includes/ms-deprecated.php
+			- ../../src/wp-includes/pluggable-deprecated.php
 			# These files are sourced by wordpress/gutenberg in `tools/release/sync-stable-blocks.js`.
 			- ../../src/wp-includes/blocks
 			# Third-party libraries.
