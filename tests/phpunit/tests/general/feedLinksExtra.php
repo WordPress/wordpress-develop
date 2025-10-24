@@ -656,9 +656,9 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 				'post_title' => 'Test post for custom post type feed links extra',
 			)
 		);
-		$GLOBALS['post'] = null;
 
 		$this->go_to( get_permalink( $post_id ) );
+		$GLOBALS['post'] = null;
 		$this->assertNotEmpty( get_echo( 'feed_links_extra' ) );
 	}
 }
