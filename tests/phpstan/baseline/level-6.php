@@ -302,6 +302,30 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/file.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Function get_registered_block_templates\\(\\) has parameter \\$query with no type specified\\.$#',
+	'identifier' => 'missingType.parameter',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_assign_new_template_to_theme\\(\\) has parameter \\$changes with no type specified\\.$#',
+	'identifier' => 'missingType.parameter',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_assign_new_template_to_theme\\(\\) has parameter \\$request with no type specified\\.$#',
+	'identifier' => 'missingType.parameter',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_maybe_activate_template\\(\\) has parameter \\$post_id with no type specified\\.$#',
+	'identifier' => 'missingType.parameter',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Property WP_Admin_Bar\\:\\:\\$bound has no type specified\\.$#',
 	'identifier' => 'missingType.property',
 	'count' => 1,
@@ -608,6 +632,18 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-user-query.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Function utf8_decode\\(\\) has parameter \\$utf8_text with no type specified\\.$#',
+	'identifier' => 'missingType.parameter',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/compat.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function utf8_encode\\(\\) has parameter \\$iso_8859_1_text with no type specified\\.$#',
+	'identifier' => 'missingType.parameter',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/compat.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Property WP_Customize_Upload_Control\\:\\:\\$context has no type specified\\.$#',
 	'identifier' => 'missingType.property',
 	'count' => 1,
@@ -636,6 +672,12 @@ $ignoreErrors[] = [
 	'identifier' => 'missingType.generics',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/class-wp-rest-request.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function wp_scrub_utf8\\(\\) has parameter \\$text with no type specified\\.$#',
+	'identifier' => 'missingType.parameter',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/utf8.php',
 ];
 
 return ['parameters' => ['ignoreErrors' => $ignoreErrors]];

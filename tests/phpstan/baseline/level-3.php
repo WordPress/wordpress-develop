@@ -14,25 +14,25 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-debug-data.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Method WP_Filesystem_Direct\\:\\:group\\(\\) should return string\\|false but returns int\\<min, \\-1\\>\\|int\\<1, max\\>\\.$#',
+	'message' => '#^Method WP_Filesystem_Direct\\:\\:group\\(\\) should return string\\|false but returns int\\<1, max\\>\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-direct.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Method WP_Filesystem_Direct\\:\\:owner\\(\\) should return string\\|false but returns int\\<min, \\-1\\>\\|int\\<1, max\\>\\.$#',
+	'message' => '#^Method WP_Filesystem_Direct\\:\\:owner\\(\\) should return string\\|false but returns int\\<1, max\\>\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-direct.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Method WP_Filesystem_SSH2\\:\\:group\\(\\) should return string\\|false but returns int\\<min, \\-1\\>\\|int\\<1, max\\>\\.$#',
+	'message' => '#^Method WP_Filesystem_SSH2\\:\\:group\\(\\) should return string\\|false but returns int\\<1, max\\>\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Method WP_Filesystem_SSH2\\:\\:owner\\(\\) should return string\\|false but returns int\\<min, \\-1\\>\\|int\\<1, max\\>\\.$#',
+	'message' => '#^Method WP_Filesystem_SSH2\\:\\:owner\\(\\) should return string\\|false but returns int\\<1, max\\>\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
@@ -134,36 +134,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/blocks.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Offset \'host\' does not exist on array\\{path\\: list\\<string\\>\\|string\\|null\\}\\.$#',
-	'identifier' => 'offsetAccess.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Offset \'port\' does not exist on array\\{path\\: list\\<string\\>\\|string\\|null, host\\?\\: string\\}\\.$#',
-	'identifier' => 'offsetAccess.notFound',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Offset \'query\' does not exist on array\\{path\\: list\\<string\\>\\|string\\|null, host\\?\\: string\\}\\.$#',
-	'identifier' => 'offsetAccess.notFound',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Offset \'query\' does not exist on array\\{path\\: list\\<string\\>\\|string\\|null\\}\\.$#',
-	'identifier' => 'offsetAccess.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Offset \'scheme\' does not exist on array\\{path\\: list\\<string\\>\\|string\\|null, host\\?\\: string\\}\\.$#',
-	'identifier' => 'offsetAccess.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Function get_category_by_path\\(\\) should return array\\|WP_Error\\|WP_Term\\|null but empty return statement found\\.$#',
 	'identifier' => 'return.empty',
 	'count' => 1,
@@ -198,6 +168,18 @@ $ignoreErrors[] = [
 	'identifier' => 'property.defaultValue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-walker-nav-menu.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Block_Processor\\:\\:extract_block\\(\\) should return array\\<array\\>\\|null but returns array\\<string, array\\|string\\|null\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Method WP_Block_Processor\\:\\:extract_block\\(\\) should return array\\<array\\>\\|null but returns array\\<string, list\\<string\\|null\\>\\|string\\|null\\>\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Method WP_Block_Type\\:\\:__get\\(\\) should return array\\<string\\>\\|string\\|void\\|null but returns array\\<array\\>\\.$#',
@@ -540,6 +522,12 @@ $ignoreErrors[] = [
 	'identifier' => 'assign.propertyType',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wpdb.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter &\\$has_noncharacters by\\-ref type of function _wp_scan_utf8\\(\\) expects bool\\|null, int given\\.$#',
+	'identifier' => 'parameterByRef.type',
+	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/compat-utf8.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^PHPDoc type array of property WP_Customize_Nav_Menu_Item_Setting\\:\\:\\$default is not covariant with PHPDoc type string of overridden property WP_Customize_Setting\\:\\:\\$default\\.$#',

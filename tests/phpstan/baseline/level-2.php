@@ -410,12 +410,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ssh2.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Binary operation "\\." between \'http\\://\' and list\\<string\\>\\|null results in an error\\.$#',
-	'identifier' => 'binaryOp.invalid',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-importer.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$info on array\\|object\\.$#',
 	'identifier' => 'property.nonObject',
 	'count' => 1,
@@ -462,18 +456,6 @@ $ignoreErrors[] = [
 	'identifier' => 'method.nonObject',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-theme-install-list-table.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Comparison operation "\\<\\=" between \\(array\\|float\\|int\\) and 0 results in an error\\.$#',
-	'identifier' => 'smallerOrEqual.invalid',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/dashboard.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Comparison operation "\\>" between array\\|float\\|int and 0 results in an error\\.$#',
-	'identifier' => 'greater.invalid',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/dashboard.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Function _crop_image_resource\\(\\) has invalid return type GdImage\\.$#',
@@ -540,12 +522,6 @@ $ignoreErrors[] = [
 	'identifier' => 'property.nonObject',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/media.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Comparison operation "\\>" between 1 and array\\<int\\|WP_Comment\\>\\|int results in an error\\.$#',
-	'identifier' => 'greater.invalid',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/meta-boxes.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Method WP_List_Table\\:\\:display\\(\\) invoked with 1 parameter, 0 required\\.$#',
@@ -750,6 +726,12 @@ $ignoreErrors[] = [
 	'identifier' => 'property.notFound',
 	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-walker-nav-menu.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^PHPDoc tag @param for parameter \\$block_type with type array\\<string\\> is incompatible with native type string\\.$#',
+	'identifier' => 'parameter.phpDocType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Access to private property WP_Block_Type\\:\\:\\$uses_context\\.$#',
@@ -1172,12 +1154,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/revision.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Cannot access property \\$object_id on array\\|int\\|string\\|WP_Term\\.$#',
-	'identifier' => 'property.nonObject',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$parent on array\\|object\\.$#',
 	'identifier' => 'property.nonObject',
 	'count' => 1,
@@ -1193,12 +1169,6 @@ $ignoreErrors[] = [
 	'message' => '#^Cannot access property \\$term_id on array\\|object\\.$#',
 	'identifier' => 'property.nonObject',
 	'count' => 4,
-	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Comparison operation "\\>" between int\\|string\\|WP_Term and 0 results in an error\\.$#',
-	'identifier' => 'greater.invalid',
-	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
 ];
 $ignoreErrors[] = [

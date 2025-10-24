@@ -266,6 +266,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Strict comparison using \\=\\=\\= between false and mixed will always evaluate to false\\.$#',
+	'identifier' => 'identical.alwaysFalse',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^While loop condition is always true\\.$#',
 	'identifier' => 'while.alwaysTrue',
 	'count' => 1,
@@ -275,24 +281,6 @@ $ignoreErrors[] = [
 	'message' => '#^Left side of && is always true\\.$#',
 	'identifier' => 'booleanAnd.leftAlwaysTrue',
 	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Offset \'port\' on array\\{path\\: mixed, host\\?\\: mixed\\} in empty\\(\\) does not exist\\.$#',
-	'identifier' => 'empty.offset',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Offset \'query\' on array\\{path\\: array\\|string\\|null\\} in empty\\(\\) does not exist\\.$#',
-	'identifier' => 'empty.offset',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Offset \'query\' on array\\{path\\: mixed, host\\?\\: mixed\\} in empty\\(\\) does not exist\\.$#',
-	'identifier' => 'empty.offset',
-	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/canonical.php',
 ];
 $ignoreErrors[] = [
@@ -314,10 +302,46 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-bindings-registry.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^If condition is always false\\.$#',
+	'identifier' => 'if.alwaysFalse',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Property WP_Block_Processor\\:\\:\\$last_error \\(string\\|null\\) is never assigned string so it can be removed from the property type\\.$#',
+	'identifier' => 'property.unusedType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-processor.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Negated boolean expression is always true\\.$#',
 	'identifier' => 'booleanNot.alwaysTrue',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block-templates-registry.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Negated boolean expression is always true\\.$#',
+	'identifier' => 'booleanNot.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Result of \\|\\| is always true\\.$#',
+	'identifier' => 'booleanOr.alwaysTrue',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Unreachable statement \\- code above always terminates\\.$#',
+	'identifier' => 'deadCode.unreachable',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-block.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Negated boolean expression is always false\\.$#',
@@ -398,20 +422,8 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-customize-widgets.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Call to function is_array\\(\\) with mixed will always evaluate to false\\.$#',
-	'identifier' => 'function.impossibleType',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-date-query.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Property WP_Dependencies\\:\\:\\$all_queued_deps \\(array\\) in isset\\(\\) is not nullable\\.$#',
 	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-dependencies.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property _WP_Dependency\\:\\:\\$ver \\(bool\\|string\\) on left side of \\?\\? is not nullable\\.$#',
-	'identifier' => 'nullCoalesce.property',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-dependencies.php',
 ];
@@ -590,22 +602,16 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-rewrite.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Property _WP_Dependency\\:\\:\\$args \\(array\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
+	'message' => '#^Method WP_Script_Modules\\:\\:get_marked_for_enqueue\\(\\) is unused\\.$#',
+	'identifier' => 'method.unused',
 	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-scripts.php',
+	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-script-modules.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Property _WP_Dependency\\:\\:\\$translations_path \\(string\\) in isset\\(\\) is not nullable\\.$#',
 	'identifier' => 'isset.property',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-scripts.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property _WP_Dependency\\:\\:\\$args \\(array\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-styles.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Comparison operation "\\<\\=" between 0 and int\\<0, max\\>\\|false is always true\\.$#',
@@ -714,6 +720,18 @@ $ignoreErrors[] = [
 	'identifier' => 'booleanAnd.rightAlwaysFalse',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wpdb.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function _wp_scan_utf8\\(\\) never assigns null to &\\$has_noncharacters so it can be removed from the by\\-ref type\\.$#',
+	'identifier' => 'parameterByRef.unusedType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/compat-utf8.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Function _wp_utf8_codepoint_span\\(\\) never assigns null to &\\$found_code_points so it can be removed from the by\\-ref type\\.$#',
+	'identifier' => 'parameterByRef.unusedType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/compat-utf8.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Instanceof between mixed and ResourceBundle will always evaluate to false\\.$#',

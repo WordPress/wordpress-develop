@@ -986,12 +986,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-site.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$text of function esc_attr expects string, array given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-styles.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$array of function implode expects array\\<string\\>, array\\<array\\|string\\> given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 2,
@@ -1191,6 +1185,12 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$callback of function add_action expects callable\\(\\)\\: mixed, \'the_block_template…\' given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/default-filters.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$callback of function add_action expects callable\\(\\)\\: mixed, \'wp_print_auto_sizes…\' given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/default-filters.php',
@@ -1454,12 +1454,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/post-template.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$fallback of function sanitize_html_class expects string, int given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/post-template.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$replace of function str_replace expects array\\<string\\>\\|string, int\\<1, max\\> given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -1506,6 +1500,12 @@ $ignoreErrors[] = [
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$value of function wp_slash expects array\\|string, stdClass\\|WP_Error given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$comment_id of function get_comment_type expects int\\|WP_Comment, string given\\.$#',
@@ -1724,7 +1724,7 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/theme-templates.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$str of function mb_strlen expects string, int\\<2, max\\> given\\.$#',
+	'message' => '#^Parameter \\#1 \\$string of function mb_strlen expects string, int\\<2, max\\> given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
