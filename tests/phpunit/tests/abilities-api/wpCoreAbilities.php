@@ -1,4 +1,6 @@
-<?php declare( strict_types=1 );
+<?php
+
+declare( strict_types=1 );
 
 /**
  * Tests for the core abilities shipped with the Abilities API.
