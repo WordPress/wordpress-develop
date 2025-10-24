@@ -74,6 +74,7 @@ services:
 
     environment:
       MYSQL_ROOT_PASSWORD: password
+      LOCAL_DB_IMAGE: ${LOCAL_DB_IMAGE-mysql:latest}
 
     volumes:
       - ./tools/local-env/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
