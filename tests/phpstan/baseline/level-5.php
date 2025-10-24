@@ -86,12 +86,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/edit.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$callback of function add_action expects callable\\(\\)\\: mixed, \'print_emoji_styles\' given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/includes/admin-filters.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$attachment of function wp_get_attachment_id3_keys expects WP_Post, stdClass given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -740,12 +734,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/author-template.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$callback of function add_action expects callable\\(\\)\\: mixed, \'print_emoji_styles\' given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/block-editor.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$separator of function explode expects string, float given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -791,12 +779,6 @@ $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$blog_id of function get_home_url expects int\\|null, string given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-admin-bar.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$callback of function add_action expects callable\\(\\)\\: mixed, \'wp_admin_bar_header\' given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 2,
 	'path' => __DIR__ . '/../../../src/wp-includes/class-wp-admin-bar.php',
 ];
 $ignoreErrors[] = [
@@ -1170,30 +1152,6 @@ $ignoreErrors[] = [
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/customize/class-wp-customize-selective-refresh.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$callback of function add_action expects callable\\(\\)\\: mixed, \'print_embed_styles\' given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/default-filters.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$callback of function add_action expects callable\\(\\)\\: mixed, \'print_emoji_styles\' given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/default-filters.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$callback of function add_action expects callable\\(\\)\\: mixed, \'the_block_template…\' given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/default-filters.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#2 \\$callback of function add_action expects callable\\(\\)\\: mixed, \'wp_print_auto_sizes…\' given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/default-filters.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$response of method WP_REST_Server\\:\\:response_to_data\\(\\) expects WP_REST_Response, WP_HTTP_Response given\\.$#',

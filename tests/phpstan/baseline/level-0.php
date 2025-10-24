@@ -20,18 +20,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/file.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function get_file not found\\.$#',
-	'identifier' => 'function.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/load-scripts.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function get_file not found\\.$#',
-	'identifier' => 'function.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-admin/load-styles.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Instantiated class WP_Press_This_Plugin not found\\.$#',
 	'identifier' => 'class.notFound',
 	'count' => 1,
