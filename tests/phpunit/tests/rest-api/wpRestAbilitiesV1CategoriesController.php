@@ -62,6 +62,11 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 
 		do_action( 'rest_api_init' );
 
+		// Unregister all ability categories to ensure a clean slate for each test.
+		foreach ( wp_get_ability_categories() as $ability_category ) {
+			wp_unregister_ability_category( $ability_category->get_slug() );
+		}
+
 		// Initialize the API and register test ability categories.
 		do_action( 'wp_abilities_api_categories_init' );
 		$this->register_test_ability_categories();

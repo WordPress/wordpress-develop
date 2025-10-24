@@ -18,6 +18,11 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
+		// Unregister all ability categories to ensure a clean slate for each test.
+		foreach ( wp_get_ability_categories() as $ability_category ) {
+			wp_unregister_ability_category( $ability_category->get_slug() );
+		}
+
 		// Fire the init hook to allow test ability category registration.
 		do_action( 'wp_abilities_api_categories_init' );
 		wp_register_ability_category(
