@@ -645,4 +645,19 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( get_echo( 'feed_links_extra' ) );
 	}
+
+	/**
+	 * @ticket 63263
+	 */
+	public function test_feed_links_extra_handles_custom_post_type() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'  => self::$post_with_cpt_id,
+				'post_title' => 'Test post for custom post type feed links extra',
+			)
+		);
+
+		$this->go_to( get_permalink( $post_id ) );
+		$this->assertNotEmpty( get_echo( 'feed_links_extra' ) );
+	}
 }
