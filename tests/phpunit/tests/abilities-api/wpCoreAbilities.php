@@ -10,25 +10,25 @@ declare( strict_types=1 );
 class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 
 	/**
-	 * Set up before each test.
+	 * Set up before the class.
 	 */
-	public function set_up(): void {
-		parent::set_up();
+	public static function set_up_before_class(): void {
+		parent::set_up_before_class();
 
-		// Ensure core ability categories and abilities are registered for these tests.
-		// Re-add the action hooks if they were removed by other tests.
-		$needs_categories_init = ! has_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		$needs_abilities_init  = ! has_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+		// Ensure core abilities are registered for these tests.
+		// Temporarily remove the unhook functions so we can register core abilities.
+		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
+		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
 
-		if ( $needs_categories_init ) {
-			add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-			do_action( 'wp_abilities_api_categories_init' );
-		}
+		// Add the core registration hooks and fire the actions.
+		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+		do_action( 'wp_abilities_api_categories_init' );
+		do_action( 'wp_abilities_api_init' );
 
-		if ( $needs_abilities_init ) {
-			add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-			do_action( 'wp_abilities_api_init' );
-		}
+		// Re-add the unhook functions for subsequent tests.
+		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
+		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
 	}
 
 	/**

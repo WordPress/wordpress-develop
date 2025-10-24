@@ -26,12 +26,6 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 			'label'       => 'Math',
 			'description' => 'Mathematical operations.',
 		);
-
-		// Unregister all ability categories to ensure a clean slate for each test.
-		foreach ( wp_get_ability_categories() as $ability_category ) {
-			wp_unregister_ability_category( $ability_category->get_slug() );
-		}
-		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
 	}
 
 	/**
@@ -47,10 +41,6 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
 
-		// Re-add core registration action and re-register core categories.
-		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		do_action( 'wp_abilities_api_categories_init' );
-
 		parent::tear_down();
 	}
 
@@ -62,10 +52,6 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage wp_register_ability_category
 	 */
 	public function test_register_category_before_init_hook(): void {
-		// simulate that the 'wp_abilities_api_categories_init' action has not yet fired.
-		global $wp_actions;
-		$wp_actions[ 'wp_abilities_api_categories_init' ] = 0;
-
 		$result = wp_register_ability_category(
 			self::$test_ability_category_name,
 			self::$test_ability_category_args

@@ -31,20 +31,6 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 
-		// Unregister all ability categories to ensure a clean slate for each test.
-		foreach ( wp_get_ability_categories() as $ability_category ) {
-			wp_unregister_ability_category( $ability_category->get_slug() );
-		}
-
-		// Unregister core abilities and remove core registration actions to prevent interference with tests.
-		foreach ( wp_get_abilities() as $ability ) {
-			if ( str_starts_with( $ability->get_name(), 'core/' ) ) {
-				wp_unregister_ability( $ability->get_name() );
-			}
-		}
-		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-
 		// Fire the init hook to allow test ability category registration.
 		do_action( 'wp_abilities_api_categories_init' );
 		wp_register_ability_category(
@@ -110,12 +96,6 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		// Clean up registered test ability category.
 		wp_unregister_ability_category( 'math' );
-
-		// Re-add core registration actions and re-register core abilities for subsequent tests.
-		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-		do_action( 'wp_abilities_api_categories_init' );
-		do_action( 'wp_abilities_api_init' );
 
 		parent::tear_down();
 	}
@@ -541,10 +521,14 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		add_action( 'wp_abilities_api_init', $callback );
 
-		// Fire the init action - this triggers the callback.
-		do_action( 'wp_abilities_api_init' );
+		// Reset the Registry, to ensure it's empty before the test.
+		$registry_reflection = new ReflectionClass( WP_Abilities_Registry::class );
+		$instance_prop       = $registry_reflection->getProperty( 'instance' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$instance_prop->setAccessible( true );
+		}
+		$instance_prop->setValue( null, null );
 
-		// Now get the ability.
 		$result = wp_get_ability( $name );
 
 		remove_action( 'wp_abilities_api_init', $callback );

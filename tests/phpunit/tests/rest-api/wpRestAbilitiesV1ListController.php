@@ -36,12 +36,21 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 				'role' => 'subscriber',
 			)
 		);
+
+		// Fire the init hook to allow test ability categories registration.
+		do_action( 'wp_abilities_api_categories_init' );
+		self::register_test_categories();
 	}
 
 	/**
 	 * Tear down after class.
 	 */
 	public static function tear_down_after_class(): void {
+		// Clean up registered test ability categories.
+		foreach ( array( 'math', 'system', 'general' ) as $slug ) {
+			wp_unregister_ability_category( $slug );
+		}
+
 		parent::tear_down_after_class();
 	}
 
@@ -58,30 +67,8 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		do_action( 'rest_api_init' );
 
-		// Unregister all abilities to ensure a clean slate for each test.
-		foreach ( wp_get_abilities() as $ability ) {
-			wp_unregister_ability( $ability->get_name() );
-		}
-
-		// Unregister all ability categories to ensure a clean slate for each test.
-		foreach ( wp_get_ability_categories() as $ability_category ) {
-			wp_unregister_ability_category( $ability_category->get_slug() );
-		}
-
-		// Remove core registration actions to prevent re-registration.
-		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-
-		// Fire categories init to trigger internal setup (happens inside get_instance).
-		do_action( 'wp_abilities_api_categories_init' );
-
-		// Register test categories after the init.
-		self::register_test_categories();
-
 		// Initialize Abilities API.
 		do_action( 'wp_abilities_api_init' );
-
-		// Register test abilities.
 		$this->register_test_abilities();
 
 		// Set default user for tests
@@ -100,21 +87,6 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 			wp_unregister_ability( $ability->get_name() );
 		}
-
-		// Clean up test ability categories.
-		foreach ( wp_get_ability_categories() as $ability_category ) {
-			$slug = $ability_category->get_slug();
-			if ( ! str_starts_with( $slug, 'test-' ) && ! in_array( $slug, array( 'math', 'system', 'general' ), true ) ) {
-				continue;
-			}
-
-			wp_unregister_ability_category( $slug );
-		}
-
-		// Re-add core registration actions and re-register core abilities.
-		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-		do_action( 'wp_abilities_api_init' );
 
 		// Reset REST server
 		global $wp_rest_server;
