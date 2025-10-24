@@ -88,14 +88,9 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result );
-		$this->assertArrayHasKey( 'name', $result );
-		$this->assertArrayHasKey( 'url', $result );
-		$this->assertArrayNotHasKey( 'description', $result );
-		$this->assertArrayNotHasKey( 'version', $result );
+		$this->assertCount( 2, $result );
 		$this->assertSame( get_bloginfo( 'name' ), $result['name'] );
 		$this->assertSame( get_bloginfo( 'url' ), $result['url'] );
-
-		wp_set_current_user( 0 );
 	}
 
 	/**
@@ -135,8 +130,6 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 		$this->assertSame( 'fr_FR', $result['locale'] );
 		$this->assertSame( 'subscriber', $result['roles'][0] );
 		$this->assertSame( get_userdata( $user_id )->display_name, $result['display_name'] );
-
-		wp_set_current_user( 0 );
 	}
 
 	/**
@@ -158,7 +151,5 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'db_server_info', $ability_data );
 		$this->assertArrayHasKey( 'wp_version', $ability_data );
 		$this->assertSame( $environment, $ability_data['environment'] );
-
-		wp_set_current_user( 0 );
 	}
 }
