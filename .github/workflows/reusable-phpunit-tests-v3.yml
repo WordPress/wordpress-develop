@@ -17,13 +17,18 @@ on:
         description: 'The version of PHP to use, in the format of X.Y'
         required: true
         type: 'string'
+      db-image:
+        description: 'Database image.'
+        required: false
+        type: 'string'
+        default: ''
       db-type:
-        description: 'Database type. Valid types are mysql and mariadb'
+        description: 'Database type. Valid types are mysql and mariadb. Only used when db-image is not provided.'
         required: false
         type: 'string'
         default: 'mysql'
       db-version:
-        description: 'Database version'
+        description: 'Database version. Only used when db-image is not provided.'
         required: false
         type: 'string'
         default: '8.4'
@@ -84,8 +89,7 @@ env:
   LOCAL_PHP: ${{ inputs.php }}-fpm
   LOCAL_PHP_XDEBUG: ${{ inputs.coverage-report || false }}
   LOCAL_PHP_XDEBUG_MODE: ${{ inputs.coverage-report && 'coverage' || 'develop,debug' }}
-  LOCAL_DB_TYPE: ${{ inputs.db-type }}
-  LOCAL_DB_VERSION: ${{ inputs.db-version }}
+  LOCAL_DB_IMAGE: ${{ inputs.db-image || format( '{0}:{1}', inputs.db-type, inputs.db-version ) }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   LOCAL_WP_TESTS_DOMAIN: ${{ inputs.tests-domain }}
   PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
@@ -118,7 +122,7 @@ jobs:
   # - Checks out the WordPress Test reporter repository.
   # - Submit the test results to the WordPress.org host test results.
   phpunit-tests:
-    name: ${{ ( inputs.phpunit-test-groups || inputs.coverage-report ) && format( 'PHP {0} with ', inputs.php ) || '' }} ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.db-innovation && ' (innovation release)' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
+    name: ${{ ( inputs.phpunit-test-groups || inputs.coverage-report ) && format( 'PHP {0} with ', inputs.php ) || '' }} ${{ inputs.db-image || format( '{0}:{1}', inputs.db-type, inputs.db-version ) }}${{ inputs.multisite && ' multisite' || '' }}${{ inputs.db-innovation && ' (innovation release)' || '' }}${{ inputs.memcached && ' with memcached' || '' }}${{ inputs.report && ' (test reporting enabled)' || '' }} ${{ 'example.org' != inputs.tests-domain && inputs.tests-domain || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: ${{ inputs.coverage-report && 120 || inputs.php == '8.4' && 30 || 20 }}
     permissions:
@@ -187,13 +191,11 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker compose run --rm mysql "${LOCAL_DB_CMD}" --version
+          docker compose run --rm mysql sh -c 'command -v mariadb >/dev/null 2>&1 && mariadb --version || mysql --version'
           docker compose run --rm php php --version
           docker compose run --rm php php -m
           docker compose run --rm php php -i
           docker compose run --rm php locale -a
-        env:
-          LOCAL_DB_CMD: ${{ env.LOCAL_DB_TYPE == 'mariadb' && contains( fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), env.LOCAL_DB_VERSION ) && 'mysql' || env.LOCAL_DB_TYPE }}
 
       - name: Install WordPress
         run: npm run env:install

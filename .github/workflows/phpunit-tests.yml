@@ -74,8 +74,7 @@ jobs:
         event: ['${{ github.event_name }}']
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
-        db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.0', '8.4' ]
+        db-image: [ 'mysql:5.7', 'mysql:8.0', 'mysql:8.4' ]
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
@@ -97,82 +96,77 @@ jobs:
               db-version: '8.4'
             - event: pull_request
               php: '7.4'
-              db-version: '5.7'
+              db-image: 'mysql:5.7'
             - event: pull_request
               php: '7.4'
-              db-version: '8.0'
+              db-image: 'mysql:8.0'
             - event: pull_request
               php: '8.0'
-              db-version: '8.0'
+              db-image: 'mysql:8.0'
             - event: pull_request
               php: '8.0'
-              db-version: '8.4'
+              db-image: 'mysql:8.4'
             - event: pull_request
               php: '8.1'
-              db-version: '5.7'
+              db-image: 'mysql:5.7'
             - event: pull_request
               php: '8.1'
-              db-version: '8.4'
+              db-image: 'mysql:8.4'
             - event: pull_request
               php: '8.2'
-              db-version: '5.7'
+              db-image: 'mysql:5.7'
             - event: pull_request
               php: '8.2'
-              db-version: '8.0'
+              db-image: 'mysql:8.0'
             - event: pull_request
               php: '8.3'
-              db-version: '8.0'
+              db-image: 'mysql:8.0'
             - event: pull_request
               php: '8.3'
-              db-version: '8.4'
+              db-image: 'mysql:8.4'
             - event: pull_request
               php: '8.4'
-              db-version: '5.7'
+              db-image: 'mysql:5.7'
             - event: pull_request
               php: '8.4'
-              db-version: '8.4'
+              db-image: 'mysql:8.4'
             - event: pull_request
               php: '8.5'
-              db-version: '5.7'
+              db-image: 'mysql:5.7'
             - event: pull_request
               php: '8.5'
-              db-version: '8.0'
+              db-image: 'mysql:8.0'
 
         include:
           # Include jobs that test with memcached.
           - os: ubuntu-24.04
             php: '8.3'
-            db-type: 'mysql'
-            db-version: '8.4'
+            db-image: 'mysql:8.4'
             tests-domain: 'example.org'
             multisite: false
             memcached: true
           - os: ubuntu-24.04
             php: '8.3'
-            db-type: 'mysql'
-            db-version: '8.4'
+            db-image: 'mysql:8.4'
             tests-domain: 'example.org'
             multisite: true
             memcached: true
           # Include jobs with a port on the test domain for both single and multisite.
           - os: ubuntu-24.04
             php: '8.4'
-            db-type: 'mysql'
-            db-version: '8.4'
+            db-image: 'mysql:8.4'
             tests-domain: 'example.org:8889'
             multisite: false
             memcached: false
           - os: ubuntu-24.04
             php: '8.4'
-            db-type: 'mysql'
-            db-version: '8.4'
+            db-image: 'mysql:8.4'
             tests-domain: 'example.org:8889'
             multisite: true
             memcached: false
           # Report test results to the Host Test Results.
           - os: ubuntu-24.04
-            db-type: 'mysql'
-            db-version: '8.4'
+            db-image: 'mysql:8.4'
             tests-domain: 'example.org'
             multisite: false
             memcached: false
@@ -180,8 +174,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
-      db-type: ${{ matrix.db-type }}
-      db-version: ${{ matrix.db-version }}
+      db-image: ${{ matrix.db-image }}
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
@@ -210,8 +203,7 @@ jobs:
         event: ['${{ github.event_name }}']
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
-        db-type: [ 'mariadb' ]
-        db-version: [ '5.5', '10.3', '10.4', '10.5', '10.6', '10.11', '11.4', '11.8' ]
+        db-image: [ 'mariadb:5.5', 'mariadb:10.3', 'mariadb:10.4', 'mariadb:10.5', 'mariadb:10.6', 'mariadb:10.11', 'mariadb:11.4', 'mariadb:11.8' ]
         multisite: [ false, true ]
         memcached: [ false ]
 
@@ -263,171 +255,168 @@ jobs:
             db-version: '11.8'
           - event: pull_request
             php: '7.4'
-            db-version: '5.5'
+            db-image: 'mariadb:5.5'
           - event: pull_request
             php: '7.4'
-            db-version: '10.3'
+            db-image: 'mariadb:10.3'
           - event: pull_request
             php: '7.4'
-            db-version: '10.5'
+            db-image: 'mariadb:10.5'
           - event: pull_request
             php: '7.4'
-            db-version: '10.6'
+            db-image: 'mariadb:10.6'
           - event: pull_request
             php: '7.4'
-            db-version: '10.11'
+            db-image: 'mariadb:10.11'
           - event: pull_request
             php: '7.4'
-            db-version: '11.4'
+            db-image: 'mariadb:11.4'
           - event: pull_request
             php: '7.4'
-            db-version: '11.8'
+            db-image: 'mariadb:11.8'
           - event: pull_request
             php: '8.0'
-            db-version: '5.5'
+            db-image: 'mariadb:5.5'
           - event: pull_request
             php: '8.0'
-            db-version: '10.3'
+            db-image: 'mariadb:10.3'
           - event: pull_request
             php: '8.0'
-            db-version: '10.4'
+            db-image: 'mariadb:10.4'
           - event: pull_request
             php: '8.0'
-            db-version: '10.6'
+            db-image: 'mariadb:10.6'
           - event: pull_request
             php: '8.0'
-            db-version: '10.11'
+            db-image: 'mariadb:10.11'
           - event: pull_request
             php: '8.0'
-            db-version: '11.4'
+            db-image: 'mariadb:11.4'
           - event: pull_request
             php: '8.0'
-            db-version: '11.8'
+            db-image: 'mariadb:11.8'
           - event: pull_request
             php: '8.1'
-            db-version: '5.5'
+            db-image: 'mariadb:5.5'
           - event: pull_request
             php: '8.1'
-            db-version: '10.3'
+            db-image: 'mariadb:10.3'
           - event: pull_request
             php: '8.1'
-            db-version: '10.4'
+            db-image: 'mariadb:10.4'
           - event: pull_request
             php: '8.1'
-            db-version: '10.5'
+            db-image: 'mariadb:10.5'
           - event: pull_request
             php: '8.1'
-            db-version: '10.11'
+            db-image: 'mariadb:10.11'
           - event: pull_request
             php: '8.1'
-            db-version: '11.4'
+            db-image: 'mariadb:11.4'
           - event: pull_request
             php: '8.1'
-            db-version: '11.8'
+            db-image: 'mariadb:11.8'
           - event: pull_request
             php: '8.2'
-            db-version: '5.5'
+            db-image: 'mariadb:5.5'
           - event: pull_request
             php: '8.2'
-            db-version: '10.3'
+            db-image: 'mariadb:10.3'
           - event: pull_request
             php: '8.2'
-            db-version: '10.4'
+            db-image: 'mariadb:10.4'
           - event: pull_request
             php: '8.2'
-            db-version: '10.5'
+            db-image: 'mariadb:10.5'
           - event: pull_request
             php: '8.2'
-            db-version: '10.6'
+            db-image: 'mariadb:10.6'
           - event: pull_request
             php: '8.2'
-            db-version: '11.4'
+            db-image: 'mariadb:11.4'
           - event: pull_request
             php: '8.2'
-            db-version: '11.8'
+            db-image: 'mariadb:11.8'
           - event: pull_request
             php: '8.3'
-            db-version: '5.5'
+            db-image: 'mariadb:5.5'
           - event: pull_request
             php: '8.3'
-            db-version: '10.3'
+            db-image: 'mariadb:10.3'
           - event: pull_request
             php: '8.3'
-            db-version: '10.4'
+            db-image: 'mariadb:10.4'
           - event: pull_request
             php: '8.3'
-            db-version: '10.5'
+            db-image: 'mariadb:10.5'
           - event: pull_request
             php: '8.3'
-            db-version: '10.6'
+            db-image: 'mariadb:10.6'
           - event: pull_request
             php: '8.3'
-            db-version: '10.11'
+            db-image: 'mariadb:10.11'
           - event: pull_request
             php: '8.3'
-            db-version: '11.8'
+            db-image: 'mariadb:11.8'
           - event: pull_request
             php: '8.4'
-            db-version: '5.5'
+            db-image: 'mariadb:5.5'
           - event: pull_request
             php: '8.4'
-            db-version: '10.3'
+            db-image: 'mariadb:10.3'
           - event: pull_request
             php: '8.4'
-            db-version: '10.4'
+            db-image: 'mariadb:10.4'
           - event: pull_request
             php: '8.4'
-            db-version: '10.5'
+            db-image: 'mariadb:10.5'
           - event: pull_request
             php: '8.4'
-            db-version: '10.6'
+            db-image: 'mariadb:10.6'
           - event: pull_request
             php: '8.4'
-            db-version: '10.11'
+            db-image: 'mariadb:10.11'
           - event: pull_request
             php: '8.4'
-            db-version: '11.4'
+            db-image: 'mariadb:11.4'
           - event: pull_request
             php: '8.5'
-            db-version: '5.5'
+            db-image: 'mariadb:5.5'
           - event: pull_request
             php: '8.5'
-            db-version: '10.3'
+            db-image: 'mariadb:10.3'
           - event: pull_request
             php: '8.5'
-            db-version: '10.4'
+            db-image: 'mariadb:10.4'
           - event: pull_request
             php: '8.5'
-            db-version: '10.5'
+            db-image: 'mariadb:10.5'
           - event: pull_request
             php: '8.5'
-            db-version: '10.6'
+            db-image: 'mariadb:10.6'
           - event: pull_request
             php: '8.5'
-            db-version: '10.11'
+            db-image: 'mariadb:10.11'
           - event: pull_request
             php: '8.5'
-            db-version: '11.4'
+            db-image: 'mariadb:11.4'
 
         include:
         # Include jobs that test with memcached.
         - os: ubuntu-24.04
           php: '8.3'
-          db-type: 'mariadb'
-          db-version: '11.8'
+          db-image: 'mariadb:11.8'
           multisite: false
           memcached: true
         - os: ubuntu-24.04
           php: '8.3'
-          db-type: 'mariadb'
-          db-version: '11.8'
+          db-image: 'mariadb:11.8'
           multisite: true
           memcached: true
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
-      db-type: ${{ matrix.db-type }}
-      db-version: ${{ matrix.db-version }}
+      db-image: ${{ matrix.db-image }}
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
       phpunit-config: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
@@ -457,8 +446,7 @@ jobs:
         event: ['${{ github.event_name }}']
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
-        db-type: [ 'mysql', 'mariadb' ]
-        db-version: [ '9.4', '12.0' ]
+        db-image: [ 'mysql:9.4', 'mariadb:12.0' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
@@ -495,8 +483,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
-      db-type: ${{ matrix.db-type }}
-      db-version: ${{ matrix.db-version }}
+      db-image: ${{ matrix.db-image }}
       db-innovation: ${{ matrix.db-innovation }}
       multisite: ${{ matrix.multisite }}
       memcached: ${{ matrix.memcached }}
@@ -522,15 +509,13 @@ jobs:
       fail-fast: false
       matrix:
         php: [ '7.2', '7.4', '8.0', '8.4' ]
-        db-type: [ 'mysql' ]
-        db-version: [ '8.4' ]
+        db-image: [ 'mysql:8.4' ]
         phpunit-test-groups: [ 'html-api-html5lib-tests' ]
         # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
         label: [ 'HTML API' ]
     with:
       php: ${{ matrix.php }}
-      db-type: ${{ matrix.db-type }}
-      db-version: ${{ matrix.db-version }}
+      db-image: ${{ matrix.db-image }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups }}
 
   #
@@ -551,43 +536,30 @@ jobs:
       fail-fast: false
       matrix:
         php: [ '7.2', '8.4' ]
-        db-version: [ '8.4', '11.8' ]
-        db-type: [ 'mysql', 'mariadb' ]
+        db-image: [ 'mysql:8.4', 'mariadb:11.8', ]
         multisite: [ false ]
 
         include:
           # Include one multisite job for each database type.
           - php: '8.4'
-            db-version: '8.4'
-            db-type: 'mysql'
+            db-image: 'mysql:8.4'
             multisite: true
           - php: '8.4'
-            db-version: '11.8'
-            db-type: 'mariadb'
+            db-image: 'mariadb:11.8'
             multisite: true
           # Test with memcached.
           - php: '8.4'
-            db-version: '8.4'
-            db-type: 'mysql'
+            db-image: 'mysql:8.4'
             multisite: true
             memcached: true
           # Run specific test groups once.
           - php: '8.4'
-            db-version: '8.4'
-            db-type: 'mysql'
+            db-image: 'mysql:8.4'
             phpunit-test-groups: 'html-api-html5lib-tests'
-
-        exclude:
-          # Exclude PHP versions that are not supported by the database versions.
-          - db-type: 'mysql'
-            db-version: '11.8'
-          - db-type: 'mariadb'
-            db-version: '8.4'
 
     with:
       php: ${{ matrix.php }}
-      db-version: ${{ matrix.db-version }}
-      db-type: ${{ matrix.db-type }}
+      db-image: ${{ matrix.db-image }}
       memcached: ${{ matrix.memcached || false }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
 

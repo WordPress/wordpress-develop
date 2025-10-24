@@ -64,7 +64,7 @@ services:
   # The MySQL container.
   ##
   mysql:
-    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
+    image: ${LOCAL_DB_IMAGE-mysql:latest}
 
     networks:
       - wpdevnet
@@ -85,7 +85,7 @@ services:
     healthcheck:
       test: [
         'CMD-SHELL',
-        'if [ "$LOCAL_DB_TYPE" = "mariadb" ]; then case "$LOCAL_DB_VERSION" in 5.5|10.0|10.1|10.2|10.3) mysqladmin ping -h localhost || exit $$?;; *) mariadb-admin ping -h localhost || exit $$?;; esac; else mysqladmin ping -h localhost || exit $$?; fi'
+        'if [ "${LOCAL_DB_IMAGE%%:*}" = "mariadb" ]; then case "${LOCAL_DB_IMAGE#*:}" in 5.5|10.0|10.1|10.2|10.3) mysqladmin ping -h localhost || exit $$?;; *) mariadb-admin ping -h localhost || exit $$?;; esac; else mysqladmin ping -h localhost || exit $$?; fi'
       ]
       timeout: 5s
       interval: 5s

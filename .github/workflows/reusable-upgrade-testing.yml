@@ -26,13 +26,18 @@ on:
         required: false
         type: 'boolean'
         default: false
+      db-image:
+        description: 'The database Docker image to use'
+        required: false
+        type: 'string'
+        default: ''
       db-type:
-        description: 'Database type. Valid types are mysql and mariadb.'
+        description: 'Database type. Valid types are mysql and mariadb. Only used when db-image is not provided.'
         required: false
         type: 'string'
         default: 'mysql'
       db-version:
-        description: 'Database version.'
+        description: 'Database version. Only used when db-image is not provided.'
         required: false
         type: 'string'
         default: '5.7'
@@ -57,7 +62,7 @@ jobs:
   # - Updates the database.
   # - Checks the version of WordPress after the upgrade.
   upgrade-tests:
-    name: ${{ inputs.wp }} to ${{ inputs.new-version }} / PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
+    name: ${{ inputs.wp }} to ${{ inputs.new-version }} / PHP ${{ inputs.php }} with ${{ inputs.db-image || format( '{0}:{1}', inputs.db-type, inputs.db-version ) }}${{ inputs.multisite && ' multisite' || '' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -65,7 +70,7 @@ jobs:
 
     services:
       database:
-        image: ${{ inputs.db-type }}:${{ inputs.db-version }}
+        image: ${{ inputs.db-image || format( '{0}:{1}', inputs.db-type, inputs.db-version ) }}
         ports:
           - 3306
         options: >-
@@ -75,8 +80,6 @@ jobs:
           --health-retries="5"
           -e MYSQL_ROOT_PASSWORD="root"
           -e MYSQL_DATABASE="test_db"
-          --entrypoint sh ${{ inputs.db-type }}:${{ inputs.db-version }}
-          -c "exec docker-entrypoint.sh mysqld${{ inputs.db-type == 'mysql' && contains( fromJSON('["7.2", "7.3"]'), inputs.php ) && ' --default-authentication-plugin=mysql_native_password' || '' }}"
 
     steps:
       - name: Set up PHP ${{ inputs.php }}

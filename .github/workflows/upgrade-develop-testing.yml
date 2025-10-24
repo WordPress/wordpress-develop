@@ -64,8 +64,7 @@ jobs:
       matrix:
         os: [ 'ubuntu-24.04' ]
         php: [ '7.2', '8.4' ]
-        db-type: [ 'mysql' ]
-        db-version: [ '5.7', '8.4' ]
+        db-image: [ 'mysql:5.7', 'mysql:8.4' ]
         # WordPress 4.9 is the oldest version that supports PHP 7.2.
         wp: [ '4.9', '6.6', '6.7', '6.8' ]
         multisite: [ false, true ]
@@ -80,8 +79,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
-      db-type: ${{ matrix.db-type }}
-      db-version: ${{ matrix.db-version }}
+      db-image: ${{ matrix.db-image }}
       wp: ${{ matrix.wp }}
       new-version: develop
       multisite: ${{ matrix.multisite }}
@@ -99,8 +97,7 @@ jobs:
       matrix:
         os: [ 'ubuntu-24.04' ]
         php: [ '7.2', '8.4' ]
-        db-type: [ 'mysql' ]
-        db-version: [ '8.4' ]
+        db-image: [ 'mysql:8.4' ]
         # WordPress 4.9 is the oldest version that supports PHP 7.2.
         wp: [ '6.7', '6.8' ]
         multisite: [ false, true ]
@@ -112,8 +109,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
-      db-type: ${{ matrix.db-type }}
-      db-version: ${{ matrix.db-version }}
+      db-image: ${{ matrix.db-image }}
       wp: ${{ matrix.wp }}
       new-version: develop
       multisite: ${{ matrix.multisite }}
