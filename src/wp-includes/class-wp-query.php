@@ -1679,6 +1679,7 @@ class WP_Query {
 	 * Converts the given orderby alias (if allowed) to a properly-prefixed value.
 	 *
 	 * @since 4.0.0
+	 * @since 6.9.0 Extends allowed_keys to support ordering by `post_mime_type`.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -1695,6 +1696,7 @@ class WP_Query {
 			'post_date',
 			'post_title',
 			'post_modified',
+			'post_mime_type',
 			'post_parent',
 			'post_type',
 			'name',
@@ -1748,6 +1750,7 @@ class WP_Query {
 			case 'post_author':
 			case 'post_date':
 			case 'post_title':
+			case 'post_mime_type':
 			case 'post_modified':
 			case 'post_parent':
 			case 'post_type':

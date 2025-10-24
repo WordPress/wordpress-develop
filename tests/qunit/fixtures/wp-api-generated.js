@@ -2904,7 +2904,8 @@ mockedApiResponse.Schema = {
                                 "relevance",
                                 "slug",
                                 "include_slugs",
-                                "title"
+                                "title",
+                                "mime_type"
                             ],
                             "required": false
                         },

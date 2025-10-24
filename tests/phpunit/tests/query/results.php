@@ -20,6 +20,11 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	public static $child_two;
 	public static $child_three;
 	public static $child_four;
+	public static $image1_jpg;
+	public static $image2_jpg;
+	public static $image3_png;
+	public static $audio1_mp3;
+	public static $video1_mp4;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$cat_a           = $factory->term->create(
@@ -292,6 +297,47 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 		self::$post_ids[]   = self::$child_four;
+
+		self::$image1_jpg = $factory->attachment->create_object(
+			'image1.jpg',
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_date'      => '2025-09-29 06:22:49',
+			)
+		);
+		self::$image2_jpg = $factory->attachment->create_object(
+			'image2.jpg',
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_date'      => '2025-09-29 06:22:49',
+			)
+		);
+		self::$image3_png = $factory->attachment->create_object(
+			'image3.png',
+			0,
+			array(
+				'post_mime_type' => 'image/png',
+				'post_date'      => '2025-09-29 06:22:49',
+			)
+		);
+		self::$audio1_mp3 = $factory->attachment->create_object(
+			'audio1.mp3',
+			0,
+			array(
+				'post_mime_type' => 'audio/mpeg',
+				'post_date'      => '2025-09-29 06:22:49',
+			)
+		);
+		self::$video1_mp4 = $factory->attachment->create_object(
+			'video1.mp4',
+			0,
+			array(
+				'post_mime_type' => 'video/mp4',
+				'post_date'      => '2025-09-29 06:22:49',
+			)
+		);
 	}
 
 	public function set_up() {
@@ -1263,5 +1309,54 @@ class Tests_Query_Results extends WP_UnitTestCase {
 
 		$feed_comment = $this->q->next_comment();
 		$this->assertEquals( $comment_id, $feed_comment->comment_ID );
+	}
+
+	/**
+	 * @ticket 64073
+	 */
+	public function test_attachment_orderby_post_mime_type() {
+		$all_attachments_desc = $this->q->query(
+			array(
+				'post_type'   => 'attachment',
+				'orderby'     => 'post_mime_type',
+				'post_status' => 'inherit',
+				'order'       => 'desc',
+			)
+		);
+
+		$this->assertCount( 5, $all_attachments_desc );
+
+		$this->assertSame(
+			array(
+				self::$video1_mp4,
+				self::$image3_png,
+				self::$image1_jpg,
+				self::$image2_jpg,
+				self::$audio1_mp3,
+			),
+			wp_list_pluck( $all_attachments_desc, 'ID' ),
+			'Order by post_mime_type order desc returns incorrect order'
+		);
+
+		$all_attachments_asc = $this->q->query(
+			array(
+				'post_type'   => 'attachment',
+				'orderby'     => 'post_mime_type',
+				'post_status' => 'inherit',
+				'order'       => 'asc',
+			)
+		);
+
+		$this->assertSame(
+			array(
+				self::$audio1_mp3,
+				self::$image1_jpg,
+				self::$image2_jpg,
+				self::$image3_png,
+				self::$video1_mp4,
+			),
+			wp_list_pluck( $all_attachments_asc, 'ID' ),
+			'Order by post_mime_type order asc returns incorrect order'
+		);
 	}
 }
