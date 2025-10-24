@@ -9,7 +9,7 @@
 
 declare( strict_types = 1 );
 /**
- * Registers the core abilities categories.
+ * Registers the core ability categories.
  *
  * @since 6.9.0
  *
