@@ -540,7 +540,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 * @covers WP_Script_Modules::get_src()
 	 */
 	public function test_wp_enqueue_script_module_with_empty_src() {
-		wp_enqueue_script_module( 'with-src', '/src.js' );
+		wp_enqueue_script_module( 'with-src', '/src.js', array(), null );
 		wp_register_script_module( 'without-src', '' );
 		wp_register_script_module( 'without-src-but-filtered', '' );
 		wp_enqueue_script_module( 'without-src' );
@@ -560,7 +560,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 		$actual = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
 		$this->assertEqualHTML(
 			'
-				<script type="module" src="/src.js?ver=6.9-alpha-60093-src" id="with-src-js-module"></script>
+				<script type="module" src="/src.js" id="with-src-js-module"></script>
 				<script type="module" src="/was-empty-but-added-via-filter.js" id="without-src-but-filtered-js-module"></script>
 			',
 			$actual,
@@ -1452,7 +1452,7 @@ HTML;
 
 		wp_enqueue_script_module( 'not-in-footer-via-enqueue', '/not-in-footer-via-enqueue.js', array(), null, array( 'in_footer' => false ) );
 
-		wp_enqueue_script_module( 'in-footer-via-override', '/in-footer-via-override.js' );
+		wp_enqueue_script_module( 'in-footer-via-override', '/in-footer-via-override.js', array(), null );
 		wp_script_modules()->set_in_footer( 'in-footer-via-override', true );
 
 		wp_enqueue_script_module( 'not-in-footer-via-override', '/not-in-footer-via-override.js', array(), null, array( 'in_footer' => true ) );
@@ -1476,7 +1476,7 @@ HTML;
 			'
 				<script type="module" src="/in-footer-via-register.js" id="in-footer-via-register-js-module"></script>
 				<script type="module" src="/in-footer-via-enqueue.js" id="in-footer-via-enqueue-js-module"></script>
-				<script type="module" src="/in-footer-via-override.js?ver=6.9-alpha-60093-src" id="in-footer-via-override-js-module"></script>
+				<script type="module" src="/in-footer-via-override.js" id="in-footer-via-override-js-module"></script>
 			',
 			'<body>',
 			"Expected equal script modules in the footer. Snapshot:\n$actual_footer"

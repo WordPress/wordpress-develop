@@ -204,6 +204,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/font-families/(?P<font_family_id>[\d]+)/font-faces/(?P<id>[\d]+)',
 			'/wp/v2/font-families/(?P<id>[\d]+)',
 			'/wp-abilities/v1',
+			'/wp-abilities/v1/categories',
+			'/wp-abilities/v1/categories/(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)',
 			'/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\-\/]+?)/run',
 			'/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\-\/]+)',
 			'/wp-abilities/v1/abilities',
