@@ -3327,8 +3327,8 @@ function feed_links_extra( $args = array() ) {
 	$args = apply_filters( 'feed_links_extra_args', $args );
 
 	/*
-	 * Use the queried object rather than relying on the global $post.
-	 * feed_links_extra() should not depend on $GLOBALS['post'] being set. See #63263
+	 * The template conditionals are referring to the global query, so the queried object is used rather than
+	 * depending on a global $post being set.
 	 */
 	$queried_object = get_queried_object();
 	if ( is_singular() && $queried_object instanceof WP_Post ) {
@@ -3352,10 +3352,6 @@ function feed_links_extra( $args = array() ) {
 		 */
 		$show_post_comments_feed = apply_filters( 'feed_links_extra_show_post_comments_feed', $show_comments_feed );
 
-		/*
-		 * Pass the explicit post to comments_open() / pings_open() and
-		 * the_title_attribute() to avoid relying on globals.
-		 */
 		if ( $show_post_comments_feed && ( comments_open( $post ) || pings_open( $post ) || (int) $post->comment_count > 0 ) ) {
 			$title = sprintf(
 				$args['singletitle'],
