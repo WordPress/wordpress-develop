@@ -14,13 +14,6 @@
   font-style: normal;
 }
 
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  @font-face {
-    font-family: "Genericons";
-    src: url("./Genericons.svg#Genericons") format("svg");
-  }
-}
-
 
 /**
  * All Genericons
