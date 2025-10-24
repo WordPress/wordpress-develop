@@ -124,3 +124,5 @@ parameters:
 			- ../../src/wp-includes/Text
 			# Contains errors that cannot be ignored by PHPStan.
 			- ../../src/wp-includes/html-api/class-wp-html-processor.php
+			# Setting `$metadata['user_pass'] = ''` (https://core.trac.wordpress.org/ticket/22114) causes PHPStan to hang
+			- ../../src/wp-includes/user.php
