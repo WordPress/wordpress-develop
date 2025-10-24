@@ -5409,7 +5409,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @return int[] Array of comment IDs indexed by type: [0] => regular comment, [1] => pingback, [2] => note.
 	 */
 	protected function create_note_type_test_comments() {
-		$comments = array();
+		$comments    = array();
 		$comments[0] = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
@@ -5449,8 +5449,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$comments = $this->create_note_type_test_comments();
 
 		$query_args['fields'] = 'ids';
-		$q     = new WP_Comment_Query();
-		$found = $q->query( $query_args );
+		$q                    = new WP_Comment_Query();
+		$found                = $q->query( $query_args );
 
 		$expected = array();
 		foreach ( $expected_indices as $index ) {
@@ -5469,35 +5469,35 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 */
 	public function data_note_type_exclusion() {
 		return array(
-			'default query excludes note'                    => array(
+			'default query excludes note'        => array(
 				'query_args'       => array(),
 				'expected_indices' => array( 0, 1 ), // comment and pingback.
 			),
-			'empty type parameter excludes note'             => array(
+			'empty type parameter excludes note' => array(
 				'query_args'       => array( 'type' => '' ),
 				'expected_indices' => array( 0, 1 ), // comment and pingback.
 			),
-			'type all includes note'                         => array(
+			'type all includes note'             => array(
 				'query_args'       => array( 'type' => 'all' ),
 				'expected_indices' => array( 0, 1, 2 ), // comment, pingback, and note.
 			),
-			'explicit note type'                             => array(
+			'explicit note type'                 => array(
 				'query_args'       => array( 'type' => 'note' ),
 				'expected_indices' => array( 2 ), // only note.
 			),
-			'type__in with note'                             => array(
+			'type__in with note'                 => array(
 				'query_args'       => array( 'type__in' => array( 'note' ) ),
 				'expected_indices' => array( 2 ), // only note.
 			),
-			'type__in with note and pingback'                => array(
+			'type__in with note and pingback'    => array(
 				'query_args'       => array( 'type__in' => array( 'note', 'pingback' ) ),
 				'expected_indices' => array( 1, 2 ), // pingback and note.
 			),
-			'type pings excludes note'                       => array(
+			'type pings excludes note'           => array(
 				'query_args'       => array( 'type' => 'pings' ),
 				'expected_indices' => array( 1 ), // only pingback.
 			),
-			'type__not_in with note'                         => array(
+			'type__not_in with note'             => array(
 				'query_args'       => array( 'type__not_in' => array( 'note' ) ),
 				'expected_indices' => array( 0, 1 ), // comment and pingback.
 			),
@@ -5534,7 +5534,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers ::get_comment_count
 	 */
 	public function test_get_comment_count_excludes_note_type() {
-		$post_id = self::factory()->post->create();
+		$post_id            = self::factory()->post->create();
 		$this->test_posts[] = $post_id;
 
 		$c1 = self::factory()->comment->create(
