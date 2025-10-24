@@ -771,7 +771,11 @@ class WP_Comment_Query {
 		);
 
 		// @since 6.9.0 Exclude the 'note' comment type, unless 'all' types or the 'note' type explicitly are requested.
-		if ( ! in_array( 'all', $raw_types['IN'], true ) && ! in_array( 'note', $raw_types['IN'], true ) ) {
+		if (
+			! in_array( 'all', $raw_types['IN'], true ) &&
+			! in_array( 'note', $raw_types['IN'], true ) &&
+			! in_array( 'note', $raw_types['NOT IN'], true )
+		) {
 			$raw_types['NOT IN'][] = 'note';
 		}
 
