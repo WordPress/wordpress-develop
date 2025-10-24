@@ -3326,9 +3326,8 @@ function feed_links_extra( $args = array() ) {
 	 */
 	$args = apply_filters( 'feed_links_extra_args', $args );
 
-	// Singular objects only, excluding a single `show_on_front` Home Page.
 	$queried_object = get_queried_object();
-	if ( is_singular() && ! is_home() && $queried_object instanceof WP_Post ) {
+	if ( is_singular() && $queried_object instanceof WP_Post ) {
 		$post = $queried_object;
 
 		/** This filter is documented in wp-includes/general-template.php */
