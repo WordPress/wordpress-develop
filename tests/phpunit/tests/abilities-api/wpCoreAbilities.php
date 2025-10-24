@@ -33,6 +33,7 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 
 	/**
 	 * Tests that the `core/get-site-info` ability is registered with the expected schema.
+	 * @ticket 64146
 	 */
 	public function test_core_get_bloginfo_ability_is_registered(): void {
 		$ability = wp_get_ability( 'core/get-site-info' );
@@ -60,6 +61,7 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 
 	/**
 	 * Tests executing the `core/get-site-info` ability returns all fields by default.
+	 * @ticket 64146
 	 */
 	public function test_core_get_bloginfo_executes(): void {
 		// Requires manage_options.
@@ -98,6 +100,7 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 
 	/**
 	 * Tests that executing the current user info ability requires authentication.
+	 * @ticket 64146
 	 */
 	public function test_core_get_current_user_info_requires_authentication(): void {
 		$ability = wp_get_ability( 'core/get-user-info' );
@@ -111,6 +114,7 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 
 	/**
 	 * Tests executing the current user info ability as an authenticated user.
+	 * @ticket 64146
 	 */
 	public function test_core_get_current_user_info_returns_user_data(): void {
 		$user_id = self::factory()->user->create(
@@ -137,6 +141,7 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 
 	/**
 	 * Tests executing the environment info ability.
+	 * @ticket 64146
 	 */
 	public function test_core_get_environment_type_executes(): void {
 		// Requires manage_options.
