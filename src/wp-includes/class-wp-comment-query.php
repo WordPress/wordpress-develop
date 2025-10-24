@@ -539,6 +539,8 @@ class WP_Comment_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
+	 * @since 6.9.0 Excludes the 'note' comment type, unless 'all' or the 'note'types are requested.
+	 *
 	 * @return int|array A single count of comment IDs if a count query. An array of comment IDs if a full query.
 	 */
 	protected function get_comment_ids() {
