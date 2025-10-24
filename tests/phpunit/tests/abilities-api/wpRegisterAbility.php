@@ -36,8 +36,9 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
 
-		// Remove core registration action to prevent re-registration.
+		// Remove core registration actions to prevent re-registration.
 		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 
 		// Fire the init hook to allow test ability category registration.
 		do_action( 'wp_abilities_api_categories_init' );
@@ -105,8 +106,9 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		// Clean up registered test ability category.
 		wp_unregister_ability_category( 'math' );
 
-		// Re-add core registration action and re-register core categories.
+		// Re-add core registration actions and re-register core categories and abilities.
 		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 		do_action( 'wp_abilities_api_categories_init' );
 
 		parent::tear_down();
@@ -533,6 +535,10 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		add_action( 'wp_abilities_api_init', $callback );
 
+		// Re-add core registration actions since we're resetting the registry.
+		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+
 		// Reset the Registry, to ensure it's empty before the test.
 		$registry_reflection = new ReflectionClass( WP_Abilities_Registry::class );
 		$instance_prop       = $registry_reflection->getProperty( 'instance' );
@@ -544,6 +550,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$result = wp_get_ability( $name );
 
 		remove_action( 'wp_abilities_api_init', $callback );
+		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 
 		$this->assertEquals(
 			new WP_Ability( $name, $args ),

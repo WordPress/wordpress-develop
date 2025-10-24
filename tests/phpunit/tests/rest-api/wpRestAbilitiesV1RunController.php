@@ -112,6 +112,16 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			wp_unregister_ability( $ability->get_name() );
 		}
 
+		// Clean up test ability categories.
+		foreach ( wp_get_ability_categories() as $ability_category ) {
+			$slug = $ability_category->get_slug();
+			if ( ! str_starts_with( $slug, 'test-' ) && ! in_array( $slug, array( 'math', 'system', 'general' ), true ) ) {
+				continue;
+			}
+
+			wp_unregister_ability_category( $slug );
+		}
+
 		// Re-add core registration actions and re-register core abilities.
 		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
 		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
