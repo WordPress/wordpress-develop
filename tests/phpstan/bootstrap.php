@@ -17,7 +17,6 @@ define( 'YB_IN_BYTES', 1024 * ZB_IN_BYTES );
 define( 'WP_START_TIMESTAMP', microtime( true ) );
 define( 'WP_MEMORY_LIMIT', '' );
 define( 'WP_MAX_MEMORY_LIMIT', '' );
-define( 'WP_CONTENT_DIR', '' );
 define( 'WP_DEVELOPMENT_MODE', '' );
 define( 'WP_DEBUG', false );
 define( 'WP_DEBUG_DISPLAY', false );
