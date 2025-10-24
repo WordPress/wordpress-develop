@@ -88,6 +88,10 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
 
+		// Remove core registration actions to prevent re-registration.
+		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+
 		// Initialize Abilities API.
 		do_action( 'wp_abilities_api_init' );
 		$this->register_test_abilities();
@@ -108,6 +112,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 			wp_unregister_ability( $ability->get_name() );
 		}
+
+		// Re-add core registration actions and re-register core abilities.
+		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+		do_action( 'wp_abilities_api_init' );
 
 		global $wp_rest_server;
 		$wp_rest_server = null;

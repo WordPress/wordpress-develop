@@ -25,7 +25,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	protected static $admin_user_id;
 
 	/**
-	 * Test subscriber user ID.
+	 * Test subscriber user ID.x
 	 *
 	 * @var int
 	 */
@@ -67,6 +67,9 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
 
+		// Remove core registration action to prevent re-registration.
+		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+
 		// Initialize the API and register test ability categories.
 		do_action( 'wp_abilities_api_categories_init' );
 		$this->register_test_ability_categories();
@@ -87,6 +90,10 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
+
+		// Re-add core registration action and re-register core categories.
+		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		do_action( 'wp_abilities_api_categories_init' );
 
 		global $wp_rest_server;
 		$wp_rest_server = null;

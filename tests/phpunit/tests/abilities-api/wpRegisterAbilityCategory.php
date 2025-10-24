@@ -47,6 +47,10 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
 
+		// Re-add core registration action and re-register core categories.
+		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		do_action( 'wp_abilities_api_categories_init' );
+
 		parent::tear_down();
 	}
 

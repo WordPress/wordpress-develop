@@ -34,6 +34,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
 
+		// Remove core registration action to prevent re-registration.
+		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+
 		// Fire the init hook to allow test ability category registration.
 		do_action( 'wp_abilities_api_categories_init' );
 		wp_register_ability_category(
@@ -91,6 +94,10 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		// Clean up registered test ability category.
 		wp_unregister_ability_category( 'math' );
+
+		// Re-add core registration action and re-register core categories.
+		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		do_action( 'wp_abilities_api_categories_init' );
 
 		parent::tear_down();
 	}
