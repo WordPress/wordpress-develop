@@ -11,7 +11,7 @@ parameters:
 	# The Minimum PHP Version
 	phpVersion:
 		min: 70224
-		max: 80400
+		max: 80500
 
 	# If it's not enforced by PHP we can't assume users are passing valid values.
 	treatPhpDocTypesAsCertain: false
