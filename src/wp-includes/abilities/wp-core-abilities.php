@@ -4,18 +4,17 @@
  *
  * @package WordPress
  * @subpackage Abilities_API
- * @since 0.3.0
+ * @since 6.9.0
  */
 
 declare( strict_types = 1 );
 /**
  * Registers the core abilities categories.
  *
- * @since 0.3.0
+ * @since 6.9.0
  *
  * @return void
  */
-// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
 		'site',
@@ -37,11 +36,10 @@ function wp_register_core_ability_categories(): void {
 /**
  * Registers the default core abilities.
  *
- * @since 0.3.0
+ * @since 6.9.0
  *
  * @return void
  */
-// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
 function wp_register_core_abilities(): void {
 	$category_site = 'site';
 	$category_user = 'user';
