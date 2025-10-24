@@ -10,6 +10,28 @@ declare( strict_types=1 );
 class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 
 	/**
+	 * Set up before each test.
+	 */
+	public function set_up(): void {
+		parent::set_up();
+
+		// Ensure core ability categories and abilities are registered for these tests.
+		// Re-add the action hooks if they were removed by other tests.
+		$needs_categories_init = ! has_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		$needs_abilities_init  = ! has_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+
+		if ( $needs_categories_init ) {
+			add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+			do_action( 'wp_abilities_api_categories_init' );
+		}
+
+		if ( $needs_abilities_init ) {
+			add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+			do_action( 'wp_abilities_api_init' );
+		}
+	}
+
+	/**
 	 * Tests that the `core/get-site-info` ability is registered with the expected schema.
 	 */
 	public function test_core_get_bloginfo_ability_is_registered(): void {

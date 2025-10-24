@@ -23,7 +23,12 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
 
-		// Remove core registration actions to prevent re-registration.
+		// Unregister core abilities and remove core registration actions to prevent interference with tests.
+		foreach ( wp_get_abilities() as $ability ) {
+			if ( str_starts_with( $ability->get_name(), 'core/' ) ) {
+				wp_unregister_ability( $ability->get_name() );
+			}
+		}
 		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
 		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 
@@ -68,10 +73,11 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		// Clean up registered test ability category.
 		wp_unregister_ability_category( 'math' );
 
-		// Re-add core registration actions and re-register core categories and abilities.
+		// Re-add core registration actions and re-register core abilities for subsequent tests.
 		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
 		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 		do_action( 'wp_abilities_api_categories_init' );
+		do_action( 'wp_abilities_api_init' );
 
 		parent::tear_down();
 	}
