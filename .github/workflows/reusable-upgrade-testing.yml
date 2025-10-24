@@ -1,5 +1,5 @@
 # A reusable workflow that runs WordPress upgrade testing under the conditions provided.
-name: Upgrade Tests
+name: Upgrade Tests (reusable)
 
 on:
   workflow_call:

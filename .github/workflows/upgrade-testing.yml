@@ -1,7 +1,7 @@
 # Confirms that updating WordPress using WP-CLI works successfully.
 #
 # This workflow is not meant to test wordpress-develop checkouts, but rather tagged versions officially available on WordPress.org.
-name: Upgrade Tests
+name: Upgrade Tests (top)
 
 on:
   push:
