@@ -1095,6 +1095,7 @@ th.action-links {
 	display: flex;
 	align-items: center;
 	column-gap: .5rem;
+	margin: 10px;
 }
 
 .wp-filter .search-form input[type="search"] {
@@ -1346,12 +1347,6 @@ th.action-links {
 	float: none;
 }
 
-@media only screen and (max-width: 1138px) {
-	.wp-filter .search-form {
-		margin: 11px 0;
-	}
-}
-
 @media only screen and (max-width: 1120px) {
 	.filter-drawer {
 		border-bottom: 1px solid #f0f0f1;
@@ -1381,7 +1376,6 @@ th.action-links {
 		max-width: 100%;
 	}
 	.wp-filter .search-form {
-		margin: 11px 0;
 		flex-wrap: wrap;
 		row-gap: 10px;
 	}
