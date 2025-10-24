@@ -535,23 +535,13 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		add_action( 'wp_abilities_api_init', $callback );
 
-		// Re-add core registration actions since we're resetting the registry.
-		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+		// Fire the init action - this triggers the callback.
+		do_action( 'wp_abilities_api_init' );
 
-		// Reset the Registry, to ensure it's empty before the test.
-		$registry_reflection = new ReflectionClass( WP_Abilities_Registry::class );
-		$instance_prop       = $registry_reflection->getProperty( 'instance' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$instance_prop->setAccessible( true );
-		}
-		$instance_prop->setValue( null, null );
-
+		// Now get the ability.
 		$result = wp_get_ability( $name );
 
 		remove_action( 'wp_abilities_api_init', $callback );
-		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 
 		$this->assertEquals(
 			new WP_Ability( $name, $args ),
