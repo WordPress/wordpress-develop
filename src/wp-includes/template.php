@@ -844,8 +844,8 @@ function wp_should_output_buffer_template_for_enhancement(): bool {
 	 * Filters whether the template should be output-buffered for enhancement.
 	 *
 	 * By default, an output buffer is only started if a {@see 'wp_template_enhancement_output_buffer'} filter has been
-	 * added or if a plugin has added a {@see 'send_late_headers'} action. For this default to apply, a filter must be
-	 * added by the time the template is included at the {@see 'wp_before_include_template'} action. This allows
+	 * added or if a plugin has added a {@see 'wp_send_late_headers'} action. For this default to apply, a filter must
+	 * be added by the time the template is included at the {@see 'wp_before_include_template'} action. This allows
 	 * template responses to be streamed as much as possible when no template enhancements are registered to apply.
 	 * This filter allows a site to opt in to adding such template enhancement filters during the rendering of the
 	 * template.
@@ -854,7 +854,7 @@ function wp_should_output_buffer_template_for_enhancement(): bool {
 	 *
 	 * @param bool $use_output_buffer Whether an output buffer is started.
 	 */
-	return (bool) apply_filters( 'wp_should_output_buffer_template_for_enhancement', has_filter( 'wp_template_enhancement_output_buffer' ) || has_action( 'send_late_headers' ) );
+	return (bool) apply_filters( 'wp_should_output_buffer_template_for_enhancement', has_filter( 'wp_template_enhancement_output_buffer' ) || has_action( 'wp_send_late_headers' ) );
 }
 
 /**
@@ -989,7 +989,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	 *
 	 * @param string $filtered_output Filtered output buffer.
 	 */
-	do_action( 'send_late_headers', $filtered_output );
+	do_action( 'wp_send_late_headers', $filtered_output );
 
 	return $filtered_output;
 }
