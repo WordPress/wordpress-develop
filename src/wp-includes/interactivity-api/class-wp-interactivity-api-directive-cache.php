@@ -150,4 +150,3 @@ class WP_Interactivity_API_Directive_Cache {
 		return count( $this->cache );
 	}
 }
-
