@@ -114,10 +114,9 @@ function wp_register_core_abilities(): void {
 				),
 				'additionalProperties' => false,
 			),
-			'execute_callback'    => static function ( $input = array() ): array {
+			'execute_callback'    => static function ( $input = array() ) use ( $site_info_fields ): array {
 				$input = is_array( $input ) ? $input : array();
-				$all_fields       = array( 'name', 'description', 'url', 'wpurl', 'admin_email', 'charset', 'language', 'version' );
-				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $all_fields;
+				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $site_info_fields;
 
 				$result = array();
 				foreach ( $requested_fields as $field ) {
