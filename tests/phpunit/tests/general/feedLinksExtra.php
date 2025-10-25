@@ -537,7 +537,7 @@ class Tests_General_FeedLinksExtra extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy() {
+	public function data_feed_links_extra_should_output_nothing_when_post_comments_feed_link_is_falsy() {
 		return array(
 			'empty string' => array( 'callback' => '__return_empty_string' ),
 			'empty array'  => array( 'callback' => '__return_empty_array' ),
