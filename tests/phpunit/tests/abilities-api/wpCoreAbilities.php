@@ -37,7 +37,7 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 	 * Tests that the `core/get-site-info` ability is registered with the expected schema.
 	 * @ticket 64146
 	 */
-	public function test_core_get_bloginfo_ability_is_registered(): void {
+	public function test_core_get_site_info_ability_is_registered(): void {
 		$ability = wp_get_ability( 'core/get-site-info' );
 
 		$this->assertInstanceOf( WP_Ability::class, $ability );
@@ -65,7 +65,7 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 	 * Tests executing the `core/get-site-info` ability returns all fields by default.
 	 * @ticket 64146
 	 */
-	public function test_core_get_bloginfo_executes(): void {
+	public function test_core_get_site_info_executes(): void {
 		// Requires manage_options.
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_id );
@@ -138,7 +138,7 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 	 * Tests executing the environment info ability.
 	 * @ticket 64146
 	 */
-	public function test_core_get_environment_type_executes(): void {
+	public function test_core_get_environment_info_executes(): void {
 		// Requires manage_options.
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_id );
