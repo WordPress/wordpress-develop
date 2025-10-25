@@ -2294,42 +2294,12 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = strtolower( $title );
 
 	if ( 'save' === $context ) {
-		// Mapping of Unicode hex codepoint to HTML named entity (if it exists).
-		$dash_characters = array(
-			// Non-breaking space (U+00A0).
-			'A0'   => 'nbsp',
-
-			// Non-breaking hyphen (U+2011).
-			'2011' => null,
-
-			// En dash (U+2013).
-			'2013' => 'ndash',
-
-			// Em dash (U+2014).
-			'2014' => 'mdash',
-		);
-
-		// Convert dashes to hyphens.
-		$replacements = array();
-		foreach ( $dash_characters as $hex_codepoint => $named_entity ) {
-			// HTML entities.
-			$replacements[] = '&#x' . $hex_codepoint . ';';
-			if ( $named_entity ) {
-				$replacements[] = '&' . $named_entity . ';';
-			}
-			$decimal_codepoint = hexdec( $hex_codepoint );
-			$replacements[]    = '&#' . $decimal_codepoint . ';';
-
-			// URL-encoded characters.
-			if ( function_exists( 'mb_chr' ) ) {
-				$replacements[] = rawurlencode( mb_chr( $decimal_codepoint, 'UTF-8' ) );
-			}
-		}
-
+		// Convert &nbsp, non-breaking hyphen, &ndash, and &mdash to hyphens.
+		$title = str_replace( array( '%c2%a0', '%e2%80%91', '%e2%80%93', '%e2%80%94' ), '-', $title );
+		// Convert &nbsp, non-breaking hyphen, &ndash, and &mdash HTML entities to hyphens.
+		$title = str_replace( array( '&nbsp;', '&#8209;', '&#160;', '&ndash;', '&#8211;', '&mdash;', '&#8212;' ), '-', $title );
 		// Convert forward slash to hyphen.
-		$replacements[] = '/';
-
-		$title = str_ireplace( $replacements, '-', $title );
+		$title = str_replace( '/', '-', $title );
 
 		// Strip these characters entirely.
 		$title = str_replace(
