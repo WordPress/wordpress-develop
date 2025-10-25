@@ -11,6 +11,8 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 
 	/**
 	 * Set up before the class.
+	 *
+	 * @since 6.9.0
 	 */
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
