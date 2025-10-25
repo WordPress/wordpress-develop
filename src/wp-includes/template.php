@@ -844,10 +844,10 @@ function wp_should_output_buffer_template_for_enhancement(): bool {
 	 * Filters whether the template should be output-buffered for enhancement.
 	 *
 	 * By default, an output buffer is only started if a {@see 'wp_template_enhancement_output_buffer'} filter has been
-	 * added or if a plugin has added a {@see 'wp_send_late_headers'} action. For this default to apply, a filter must
-	 * be added by the time the template is included at the {@see 'wp_before_include_template'} action. This allows
-	 * template responses to be streamed as much as possible when no template enhancements are registered to apply.
-	 * This filter allows a site to opt in to adding such template enhancement filters during the rendering of the
+	 * added or if a plugin has added a {@see 'wp_send_late_headers'} action. For this default to apply, either of the
+	 * hooks must be added by the time the template is included at the {@see 'wp_before_include_template'} action. This
+	 * allows template responses to be streamed unless the there is code which depends on an output buffer being opened.
+	 * This filter allows a site to opt in to adding such template enhancement filters later during the rendering of the
 	 * template.
 	 *
 	 * @since 6.9.0
