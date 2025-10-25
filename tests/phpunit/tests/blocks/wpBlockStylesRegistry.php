@@ -150,7 +150,7 @@ class Tests_Blocks_wpBlockStylesRegistry extends WP_UnitTestCase {
 			$this->registry->is_registered( $name, 'fancy' ),
 			'The block type should have the block style registered when the label is missing.'
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			$style_properties['name'],
 			$this->registry->get_registered_styles_for_block( $name )['fancy']['label'],
 			'The registered block style should have a name and label equal.'
