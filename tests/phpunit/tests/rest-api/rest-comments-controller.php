@@ -4078,7 +4078,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_get_note_with_children_link() {
 		$comment_id_1 = self::factory()->comment->create(
 			array(
-				'comment_approved' => 0,
+				'comment_approved' => 1,
 				'comment_post_ID'  => self::$post_id,
 				'user_id'          => self::$subscriber_id,
 				'comment_type'     => 'note',
@@ -4087,7 +4087,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		self::factory()->comment->create(
 			array(
-				'comment_approved' => 0,
+				'comment_approved' => 1,
 				'comment_parent'   => $comment_id_1,
 				'comment_post_ID'  => self::$post_id,
 				'user_id'          => self::$subscriber_id,
