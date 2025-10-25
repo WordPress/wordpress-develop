@@ -1254,6 +1254,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			array(
 				'count'   => true,
 				'orderby' => 'none',
+				'type'    => $comment->comment_type,
+				'status'  => 'all',
 			)
 		);
 
