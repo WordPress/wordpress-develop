@@ -273,9 +273,11 @@ class Tests_Interactivity_API_Data_Wp_Each_Optimization extends WP_UnitTestCase 
 
 		$processed = $this->interactivity->process_directives( $html );
 
-		// Should render 2 static items
+		// Should render 2 static items plus 1 in the template (3 total)
+		// The template tag remains in the output (for client-side hydration)
+		// and the 2 rendered items are appended after it
 		$count = substr_count( $processed, '<li' );
-		$this->assertSame( 2, $count );
+		$this->assertSame( 3, $count );
 	}
 
 	/**
