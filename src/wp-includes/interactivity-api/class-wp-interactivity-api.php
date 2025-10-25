@@ -466,14 +466,17 @@ final class WP_Interactivity_API {
 	 * This method returns null if the HTML contains unbalanced tags.
 	 *
 	 * @since 6.6.0
+	 * @since 6.10.0 Added $directive_cache parameter for performance optimization.
 	 *
-	 * @param string $html The HTML content to process.
+	 * @param string                                    $html            The HTML content to process.
+	 * @param WP_Interactivity_API_Directive_Cache|null $directive_cache Optional. Cache for directive parsing results.
 	 * @return string|null The processed HTML content. It returns null when the HTML contains unbalanced tags.
 	 */
-	private function _process_directives( string $html ) {
+	private function _process_directives( string $html, ?WP_Interactivity_API_Directive_Cache $directive_cache = null ) {
 		$p          = new WP_Interactivity_API_Directives_Processor( $html );
 		$tag_stack  = array();
 		$unbalanced = false;
+		$tag_index  = 0;
 
 		$directive_processor_prefixes          = array_keys( self::$directive_processors );
 		$directive_processor_prefixes_reversed = array_reverse( $directive_processor_prefixes );
@@ -504,7 +507,7 @@ final class WP_Interactivity_API {
 			}
 
 			if ( $p->is_tag_closer() ) {
-				list( $opening_tag_name, $directives_prefixes ) = ! empty( $tag_stack ) ? end( $tag_stack ) : array( null, null );
+				list( $opening_tag_name, $directives_prefixes, $opening_tag_index ) = ! empty( $tag_stack ) ? end( $tag_stack ) : array( null, null, null );
 
 				if ( 0 === count( $tag_stack ) || $opening_tag_name !== $tag_name ) {
 
@@ -520,6 +523,8 @@ final class WP_Interactivity_API {
 					array_pop( $tag_stack );
 				}
 			} else {
+				$current_tag_index = $tag_index;
+
 				if ( 0 !== count( $p->get_attribute_names_with_prefix( 'data-wp-each-child' ) ) ) {
 					/*
 					 * If the tag has a `data-wp-each-child` directive, jump to its closer
@@ -547,8 +552,13 @@ final class WP_Interactivity_API {
 					 * so it can process its closing tag and check for unbalanced tags.
 					 */
 					if ( $p->has_and_visits_its_closer_tag() ) {
-						$tag_stack[] = array( $tag_name, $directives_prefixes );
+						$tag_stack[] = array( $tag_name, $directives_prefixes, $current_tag_index );
 					}
+				}
+
+				// Increment tag index for tags with directives.
+				if ( ! empty( $directives_prefixes ) ) {
+					++$tag_index;
 				}
 			}
 			/*
@@ -591,12 +601,19 @@ final class WP_Interactivity_API {
 					'enter' === $mode ? $directive_processor_prefixes : $directive_processor_prefixes_reversed,
 					$directives_prefixes
 				);
+
+				/*
+				 * Use the tag index from the opening tag when in exit mode.
+				 * This ensures we use the same cached data for both enter and exit.
+				 */
+				$processor_tag_index = ( 'exit' === $mode && isset( $opening_tag_index ) ) ? $opening_tag_index : $current_tag_index;
+
 				foreach ( $existing_directives_prefixes as $directive_prefix ) {
 					$func = is_array( self::$directive_processors[ $directive_prefix ] )
 						? self::$directive_processors[ $directive_prefix ]
 						: array( $this, self::$directive_processors[ $directive_prefix ] );
 
-					call_user_func_array( $func, array( $p, $mode, &$tag_stack ) );
+					call_user_func_array( $func, array( $p, $mode, &$tag_stack, $processor_tag_index, $directive_cache ) );
 				}
 			}
 
@@ -913,6 +930,35 @@ final class WP_Interactivity_API {
 	}
 
 	/**
+	 * Gets directive entries with optional caching support.
+	 *
+	 * This method wraps get_directive_entries() to support caching for performance.
+	 * When a directive cache is provided and the entries are already cached, it returns
+	 * the cached result. Otherwise, it parses and optionally caches the result.
+	 *
+	 * @since 6.10.0
+	 *
+	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $prefix          The directive prefix to filter by.
+	 * @param int                                       $tag_index       The tag occurrence index for caching.
+	 * @param WP_Interactivity_API_Directive_Cache|null $directive_cache Optional directive cache.
+	 * @return array An array of directive entries.
+	 */
+	private function get_directive_entries_cached( WP_Interactivity_API_Directives_Processor $p, string $prefix, int $tag_index, ?WP_Interactivity_API_Directive_Cache $directive_cache = null ): array {
+		if ( null === $directive_cache ) {
+			return $this->get_directive_entries( $p, $prefix );
+		}
+
+		return $directive_cache->get_or_parse_entries(
+			$tag_index,
+			$prefix,
+			function ( $idx, $pfx ) use ( $p ) {
+				return $this->get_directive_entries( $p, $pfx );
+			}
+		);
+	}
+
+	/**
 	 * Transforms a kebab-case string to camelCase.
 	 *
 	 * @since 6.5.0
@@ -939,11 +985,15 @@ final class WP_Interactivity_API {
 	 * stack so that it's available for the nested interactivity elements.
 	 *
 	 * @since 6.5.0
+	 * @since 6.10.0 Added $tag_index and $directive_cache parameters for signature consistency.
 	 *
-	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
-	 * @param string                                    $mode Whether the processing is entering or exiting the tag.
+	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 * @param array                                     $tag_stack       The reference to the tag stack.
+	 * @param int                                       $tag_index       The tag occurrence index (unused by this processor).
+	 * @param WP_Interactivity_API_Directive_Cache|null $directive_cache Optional directive cache (unused by this processor).
 	 */
-	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
+	private function data_wp_interactive_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack = array(), int $tag_index = 0, ?WP_Interactivity_API_Directive_Cache $directive_cache = null ) {
 		// When exiting tags, it removes the last namespace from the stack.
 		if ( 'exit' === $mode ) {
 			array_pop( $this->namespace_stack );
@@ -982,18 +1032,22 @@ final class WP_Interactivity_API {
 	 * it's available for the nested interactivity elements.
 	 *
 	 * @since 6.5.0
+	 * @since 6.10.0 Added $tag_stack, $tag_index and $directive_cache parameters for caching optimization.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 * @param array                                     $tag_stack       The reference to the tag stack.
+	 * @param int                                       $tag_index       The tag occurrence index for caching.
+	 * @param WP_Interactivity_API_Directive_Cache|null $directive_cache Optional directive cache.
 	 */
-	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
+	private function data_wp_context_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack = array(), int $tag_index = 0, ?WP_Interactivity_API_Directive_Cache $directive_cache = null ) {
 		// When exiting tags, it removes the last context from the stack.
 		if ( 'exit' === $mode ) {
 			array_pop( $this->context_stack );
 			return;
 		}
 
-		$entries = $this->get_directive_entries( $p, 'context' );
+		$entries = $this->get_directive_entries_cached( $p, 'context', $tag_index, $directive_cache );
 		$context = end( $this->context_stack ) !== false ? end( $this->context_stack ) : array();
 		foreach ( $entries as $entry ) {
 			if ( null !== $entry['suffix'] ) {
@@ -1015,13 +1069,17 @@ final class WP_Interactivity_API {
 	 * associated reference.
 	 *
 	 * @since 6.5.0
+	 * @since 6.10.0 Added $tag_stack, $tag_index and $directive_cache parameters for caching optimization.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 * @param array                                     $tag_stack       The reference to the tag stack.
+	 * @param int                                       $tag_index       The tag occurrence index for caching.
+	 * @param WP_Interactivity_API_Directive_Cache|null $directive_cache Optional directive cache.
 	 */
-	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
+	private function data_wp_bind_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack = array(), int $tag_index = 0, ?WP_Interactivity_API_Directive_Cache $directive_cache = null ) {
 		if ( 'enter' === $mode ) {
-			$entries = $this->get_directive_entries( $p, 'bind' );
+			$entries = $this->get_directive_entries_cached( $p, 'bind', $tag_index, $directive_cache );
 			foreach ( $entries as $entry ) {
 				if ( empty( $entry['suffix'] ) || null !== $entry['unique_id'] ) {
 						return;
@@ -1064,14 +1122,18 @@ final class WP_Interactivity_API {
 	 * evaluation of its associated references.
 	 *
 	 * @since 6.5.0
+	 * @since 6.10.0 Added $tag_stack, $tag_index and $directive_cache parameters for caching optimization.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 * @param array                                     $tag_stack       The reference to the tag stack.
+	 * @param int                                       $tag_index       The tag occurrence index for caching.
+	 * @param WP_Interactivity_API_Directive_Cache|null $directive_cache Optional directive cache.
 	 */
-	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
+	private function data_wp_class_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack = array(), int $tag_index = 0, ?WP_Interactivity_API_Directive_Cache $directive_cache = null ) {
 		if ( 'enter' === $mode ) {
 			$all_class_directives = $p->get_attribute_names_with_prefix( 'data-wp-class--' );
-			$entries              = $this->get_directive_entries( $p, 'class' );
+			$entries              = $this->get_directive_entries_cached( $p, 'class', $tag_index, $directive_cache );
 			foreach ( $entries as $entry ) {
 				if ( empty( $entry['suffix'] ) ) {
 					continue;
@@ -1102,13 +1164,17 @@ final class WP_Interactivity_API {
 	 * the evaluation of its associated references.
 	 *
 	 * @since 6.5.0
+	 * @since 6.10.0 Added $tag_stack, $tag_index and $directive_cache parameters for caching optimization.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 * @param array                                     $tag_stack       The reference to the tag stack.
+	 * @param int                                       $tag_index       The tag occurrence index for caching.
+	 * @param WP_Interactivity_API_Directive_Cache|null $directive_cache Optional directive cache.
 	 */
-	private function data_wp_style_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
+	private function data_wp_style_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack = array(), int $tag_index = 0, ?WP_Interactivity_API_Directive_Cache $directive_cache = null ) {
 		if ( 'enter' === $mode ) {
-			$entries = $this->get_directive_entries( $p, 'style' );
+			$entries = $this->get_directive_entries_cached( $p, 'style', $tag_index, $directive_cache );
 			foreach ( $entries as $entry ) {
 				$style_property = $entry['suffix'];
 				if ( empty( $style_property ) || null !== $entry['unique_id'] ) {
@@ -1191,13 +1257,17 @@ final class WP_Interactivity_API {
 	 * evaluation of its associated reference.
 	 *
 	 * @since 6.5.0
+	 * @since 6.10.0 Added $tag_stack, $tag_index and $directive_cache parameters for caching optimization.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 * @param array                                     $tag_stack       The reference to the tag stack.
+	 * @param int                                       $tag_index       The tag occurrence index for caching.
+	 * @param WP_Interactivity_API_Directive_Cache|null $directive_cache Optional directive cache.
 	 */
-	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
+	private function data_wp_text_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack = array(), int $tag_index = 0, ?WP_Interactivity_API_Directive_Cache $directive_cache = null ) {
 		if ( 'enter' === $mode ) {
-			$entries     = $this->get_directive_entries( $p, 'text' );
+			$entries     = $this->get_directive_entries_cached( $p, 'text', $tag_index, $directive_cache );
 			$valid_entry = null;
 			// Get the first valid `data-wp-text` entry without suffix or unique ID.
 			foreach ( $entries as $entry ) {
@@ -1304,11 +1374,15 @@ HTML;
 	 * and 2) an `aria-live` region for accessible navigation announcements.
 	 *
 	 * @since 6.5.0
+	 * @since 6.10.0 Added $tag_index and $directive_cache parameters for signature consistency.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 * @param array                                     $tag_stack       The reference to the tag stack.
+	 * @param int                                       $tag_index       The tag occurrence index (unused by this processor).
+	 * @param WP_Interactivity_API_Directive_Cache|null $directive_cache Optional directive cache (unused by this processor).
 	 */
-	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
+	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack = array(), int $tag_index = 0, ?WP_Interactivity_API_Directive_Cache $directive_cache = null ) {
 		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
 
@@ -1331,14 +1405,17 @@ HTML;
 	 *
 	 * @since 6.5.0
 	 * @since 6.9.0 Include the list path in the rendered `data-wp-each-child` directives.
+	 * @since 6.10.0 Added $tag_index and $directive_cache parameters for caching optimization.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 * @param array                                     $tag_stack       The reference to the tag stack.
+	 * @param int                                       $tag_index       The tag occurrence index for caching.
+	 * @param WP_Interactivity_API_Directive_Cache|null $directive_cache Optional directive cache.
 	 */
-	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack ) {
+	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack, int $tag_index = 0, ?WP_Interactivity_API_Directive_Cache $directive_cache = null ) {
 		if ( 'enter' === $mode && 'TEMPLATE' === $p->get_tag() ) {
-			$entries = $this->get_directive_entries( $p, 'each' );
+			$entries = $this->get_directive_entries_cached( $p, 'each', $tag_index, $directive_cache );
 			if ( count( $entries ) > 1 || empty( $entries ) ) {
 				// There should be only one `data-wp-each` directive per template tag.
 				return;
@@ -1382,7 +1459,10 @@ HTML;
 			}
 
 			// Processes the inner content for each item of the array.
-			$processed_content = '';
+			$processed_content  = '';
+			$template_cache     = null;
+			$is_first_iteration = true;
+
 			foreach ( $result as $item ) {
 				// Creates a new context that includes the current item of the array.
 				$this->context_stack[] = array_replace_recursive(
@@ -1390,8 +1470,21 @@ HTML;
 					array( $entry['namespace'] => array( $item_name => $item ) )
 				);
 
-				// Processes the inner content with the new context.
-				$processed_item = $this->_process_directives( $inner_content );
+				/*
+				 * Performance optimization: Create a directive cache on the first iteration.
+				 * This cache will be populated as we parse directives, then reused on all
+				 * subsequent iterations. This reduces O(N×M) complexity to O(M + N×E) where:
+				 * - N = number of items in the array
+				 * - M = template parsing cost
+				 * - E = directive evaluation cost (much smaller than M)
+				 */
+				if ( $is_first_iteration ) {
+					$template_cache     = new WP_Interactivity_API_Directive_Cache();
+					$is_first_iteration = false;
+				}
+
+				// Processes the inner content with the new context and cache.
+				$processed_item = $this->_process_directives( $inner_content, $template_cache );
 
 				if ( null === $processed_item ) {
 					// If the HTML is unbalanced, stop processing it.
