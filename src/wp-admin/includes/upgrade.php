@@ -886,6 +886,10 @@ function upgrade_all() {
 		upgrade_682();
 	}
 
+	if ( $wp_current_db_version < 60718 ) {
+		upgrade_690();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2478,6 +2482,46 @@ function upgrade_682() {
 		$ping_sites_value = array_filter( $ping_sites_value );
 		$ping_sites_value = implode( "\n", $ping_sites_value );
 		update_option( 'ping_sites', $ping_sites_value );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 6.9.0.
+ *
+ * @ignore
+ * @since 6.9.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_690() {
+	global $wp_current_db_version;
+
+	if ( $wp_current_db_version < 60718 ) {
+		// Query all templates in the database that are linked to the current
+		// theme and activate them. See `get_block_templates`.
+		$template_query_args = array(
+			'post_status'         => 'publish',
+			'post_type'           => 'wp_template',
+			'posts_per_page'      => -1,
+			'no_found_rows'       => true,
+			'lazy_load_term_meta' => false,
+			'tax_query'           => array(
+				array(
+					'taxonomy' => 'wp_theme',
+					'field'    => 'name',
+					'terms'    => get_stylesheet(),
+				),
+			),
+		);
+
+		$template_query   = new WP_Query( $template_query_args );
+		$active_templates = array();
+
+		foreach ( $template_query->posts as $post ) {
+			$active_templates[ $post->post_name ] = $post->ID;
+		}
+
+		update_option( 'active_templates', $active_templates );
 	}
 }
 
