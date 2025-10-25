@@ -4071,9 +4071,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * Test children link for note comment type.
+	 * Test children link for note comment type. Based on test_get_comment_with_children_link.
 	 *
-	 * @ticket TBD
+	 * @ticket 64152
 	 */
 	public function test_get_note_with_children_link() {
 		$comment_id_1 = self::factory()->comment->create(
