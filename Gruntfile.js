@@ -28,7 +28,7 @@ module.exports = function(grunt) {
 			'wp-content/themes/index.php',
 			'wp-content/themes/twenty*/**',
 			'wp-content/plugins/index.php',
-			'wp-content/plugins/hello-dolly/**',
+			'wp-content/plugins/hello.php',
 			'wp-content/plugins/akismet/**',
 			'!wp-content/themes/twenty*/node_modules/**',
 		],
@@ -566,6 +566,16 @@ module.exports = function(grunt) {
 				ext: '.min.css',
 				src: [
 					'wp-admin/css/colors/*/*.css'
+				]
+			},
+			themes: {
+				expand: true,
+				cwd: WORKING_DIR,
+				dest: WORKING_DIR,
+				ext: '.min.css',
+				src: [
+					'wp-content/themes/twentytwentytwo/style.css',
+					'wp-content/themes/twentytwentyfive/style.css',
 				]
 			}
 		},
@@ -1591,6 +1601,7 @@ module.exports = function(grunt) {
 		'rtl',
 		'cssmin:rtl',
 		'cssmin:colors',
+		'cssmin:themes',
 		'usebanner'
 	] );
 
@@ -1774,6 +1785,9 @@ module.exports = function(grunt) {
 		const ignoredFiles = [
 			'build/wp-includes/js/dist/components.js',
 			'build/wp-includes/js/dist/data.js',
+			// We have a problem where Yjs is being bundled in core-data.
+			// Ignoring this file until we find a solution.
+			'build/wp-includes/js/dist/core-data.js',
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.

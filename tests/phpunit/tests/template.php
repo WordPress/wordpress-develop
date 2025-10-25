@@ -63,8 +63,24 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @var string
+	 */
+	protected $original_default_mimetype;
+
+	/**
+	 * @var WP_Scripts|null
+	 */
+	protected $original_wp_scripts;
+
+	/**
+	 * @var WP_Styles|null
+	 */
+	protected $original_wp_styles;
+
 	public function set_up() {
 		parent::set_up();
+		$this->original_default_mimetype = ini_get( 'default_mimetype' );
 		register_post_type(
 			'cpt',
 			array(
@@ -80,9 +96,28 @@ class Tests_Template extends WP_UnitTestCase {
 			)
 		);
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+
+		// Remove hooks which are added by wp_load_classic_theme_block_styles_on_demand() during bootstrapping.
+		remove_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
+		remove_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
+		remove_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
+		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
+
+		global $wp_scripts, $wp_styles;
+		$this->original_wp_scripts = $wp_scripts;
+		$this->original_wp_styles  = $wp_styles;
+		$wp_scripts                = null;
+		$wp_styles                 = null;
+		wp_scripts();
+		wp_styles();
 	}
 
 	public function tear_down() {
+		global $wp_scripts, $wp_styles;
+		$wp_scripts = $this->original_wp_scripts;
+		$wp_styles  = $this->original_wp_styles;
+
+		ini_set( 'default_mimetype', $this->original_default_mimetype );
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );
@@ -177,6 +212,7 @@ class Tests_Template extends WP_UnitTestCase {
 			array(
 				'taxonomy-taxo-foo-😀.php',
 				'taxonomy-taxo-foo-%f0%9f%98%80.php',
+				"taxonomy-taxo-{$term->term_id}.php",
 				'taxonomy-taxo.php',
 				'taxonomy.php',
 				'archive.php',
@@ -492,6 +528,535 @@ class Tests_Template extends WP_UnitTestCase {
 
 		switch_theme( $new_theme->get_stylesheet() );
 		$this->assertSame( $new_theme->get_stylesheet_directory() . '/index.php', locate_template( $template_names ), 'Incorrect index template found in theme after switch.' );
+	}
+
+	/**
+	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer in a block theme when no filters are present.
+	 *
+	 * @ticket 43258
+	 * @ticket 64099
+	 *
+	 * @covers ::wp_should_output_buffer_template_for_enhancement
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
+	 */
+	public function test_wp_start_template_enhancement_output_buffer_without_filters_and_no_override_in_block_theme(): void {
+		switch_theme( 'block-theme' );
+		wp_load_classic_theme_block_styles_on_demand();
+
+		$level = ob_get_level();
+		$this->assertFalse( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return false when there are no wp_template_enhancement_output_buffer filters added.' );
+		$this->assertFalse( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return false because the output buffer should not be started.' );
+		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to not have fired.' );
+		$this->assertSame( $level, ob_get_level(), 'Expected the initial output buffer level to be unchanged.' );
+	}
+
+	/**
+	 * Tests that wp_start_template_enhancement_output_buffer() does start a buffer in classic theme.
+	 *
+	 * @ticket 43258
+	 * @ticket 64099
+	 *
+	 * @covers ::wp_should_output_buffer_template_for_enhancement
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
+	 */
+	public function test_wp_start_template_enhancement_output_buffer_in_classic_theme(): void {
+		switch_theme( 'default' );
+		wp_load_classic_theme_block_styles_on_demand();
+
+		$level = ob_get_level();
+		$this->assertTrue( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return true because wp_load_classic_theme_block_styles_on_demand() adds wp_template_enhancement_output_buffer filters.' );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true because the output buffer should be started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $level + 1, ob_get_level(), 'Expected the initial output buffer level to be incremented by one.' );
+		ob_end_clean();
+	}
+
+	/**
+	 * Tests that wp_start_template_enhancement_output_buffer() does start a buffer when no filters are present but there is an override.
+	 *
+	 * @ticket 43258
+	 * @covers ::wp_should_output_buffer_template_for_enhancement
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 */
+	public function test_wp_start_template_enhancement_output_buffer_begins_without_filters_but_overridden(): void {
+		$level = ob_get_level();
+		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true' );
+		$this->assertTrue( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return true when overridden with the wp_should_output_buffer_template_for_enhancement filter.' );
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true because the output buffer should be started due to the override.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented.' );
+		ob_end_clean();
+	}
+
+	/**
+	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer even when there are filters present due to override.
+	 *
+	 * @ticket 43258
+	 * @covers ::wp_should_output_buffer_template_for_enhancement
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 */
+	public function test_wp_start_template_enhancement_output_buffer_begins_with_filters_but_blocked(): void {
+		add_filter(
+			'wp_template_enhancement_output_buffer',
+			static function () {
+				return '<html>Hey!</html>';
+			}
+		);
+		$level = ob_get_level();
+		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_false' );
+		$this->assertFalse( wp_should_output_buffer_template_for_enhancement(), 'Expected wp_should_output_buffer_template_for_enhancement() to return false since wp_should_output_buffer_template_for_enhancement was filtered to be false even though there is a wp_template_enhancement_output_buffer filter added.' );
+		$this->assertFalse( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return false because the output buffer should not be started.' );
+		$this->assertSame( 0, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to not have fired.' );
+		$this->assertSame( $level, ob_get_level(), 'Expected the initial output buffer level to be unchanged.' );
+	}
+
+	/**
+	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer and that the expected hooks fire for
+	 * an HTML document and that the response is not incrementally flushable.
+	 *
+	 * @ticket 43258
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_finalize_template_enhancement_output_buffer
+	 */
+	public function test_wp_start_template_enhancement_output_buffer_for_html(): void {
+		// Start a wrapper output buffer so that we can flush the inner buffer.
+		ob_start();
+
+		$filter_args = null;
+		add_filter(
+			'wp_template_enhancement_output_buffer',
+			static function ( string $buffer ) use ( &$filter_args ): string {
+				$filter_args = func_get_args();
+
+				$p = WP_HTML_Processor::create_full_parser( $buffer );
+				while ( $p->next_tag() ) {
+					switch ( $p->get_tag() ) {
+						case 'HTML':
+							$p->set_attribute( 'lang', 'es' );
+							break;
+						case 'TITLE':
+							$p->set_modifiable_text( 'Saludo' );
+							break;
+						case 'H1':
+							if ( $p->next_token() && '#text' === $p->get_token_name() ) {
+								$p->set_modifiable_text( '¡Hola, mundo!' );
+							}
+							break;
+					}
+				}
+				return $p->get_updated_html();
+			},
+			10,
+			PHP_INT_MAX
+		);
+
+		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
+		ini_set( 'default_mimetype', 'text/html' ); // Since sending a header won't work.
+
+		$initial_ob_level = ob_get_level();
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented' );
+
+		?>
+		<!DOCTYPE html>
+		<html lang="en">
+			<head>
+				<title>Greeting</title>
+			</head>
+			<?php
+			$this->assertFalse(
+				@ob_flush(), // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				'Expected output buffer to not be incrementally flushable.'
+			);
+			?>
+			<body>
+				<h1>Hello World!</h1>
+			</body>
+		</html>
+		<?php
+
+		$ob_status = ob_get_status();
+		$this->assertSame( 'wp_finalize_template_enhancement_output_buffer', $ob_status['name'], 'Expected name to be WP function.' );
+		$this->assertSame( 1, $ob_status['type'], 'Expected type to be user supplied handler.' );
+		$this->assertSame( 0, $ob_status['chunk_size'], 'Expected unlimited chunk size.' );
+
+		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
+		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
+
+		$this->assertIsArray( $filter_args, 'Expected the wp_template_enhancement_output_buffer filter to have applied.' );
+		$this->assertCount( 2, $filter_args, 'Expected two args to be supplied to the wp_template_enhancement_output_buffer filter.' );
+		$this->assertIsString( $filter_args[0], 'Expected the $filtered_output param to the wp_template_enhancement_output_buffer filter to be a string.' );
+		$this->assertIsString( $filter_args[1], 'Expected the $output param to the wp_template_enhancement_output_buffer filter to be a string.' );
+		$this->assertSame( $filter_args[1], $filter_args[0], 'Expected the initial $filtered_output to match $output in the wp_template_enhancement_output_buffer filter.' );
+		$original_output = $filter_args[0];
+		$this->assertStringContainsString( '<!DOCTYPE html>', $original_output, 'Expected original output to contain string.' );
+		$this->assertStringContainsString( '<html lang="en">', $original_output, 'Expected original output to contain string.' );
+		$this->assertStringContainsString( '<title>Greeting</title>', $original_output, 'Expected original output to contain string.' );
+		$this->assertStringContainsString( '<h1>Hello World!</h1>', $original_output, 'Expected original output to contain string.' );
+		$this->assertStringContainsString( '</html>', $original_output, 'Expected original output to contain string.' );
+
+		$processed_output = ob_get_clean(); // Obtain the output via the wrapper output buffer.
+		$this->assertIsString( $processed_output );
+		$this->assertNotEquals( $original_output, $processed_output );
+
+		$this->assertStringContainsString( '<!DOCTYPE html>', $processed_output, 'Expected processed output to contain string.' );
+		$this->assertStringContainsString( '<html lang="es">', $processed_output, 'Expected processed output to contain string.' );
+		$this->assertStringContainsString( '<title>Saludo</title>', $processed_output, 'Expected processed output to contain string.' );
+		$this->assertStringContainsString( '<h1>¡Hola, mundo!</h1>', $processed_output, 'Expected processed output to contain string.' );
+		$this->assertStringContainsString( '</html>', $processed_output, 'Expected processed output to contain string.' );
+	}
+
+	/**
+	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer but ending with cleaning prevents any processing.
+	 *
+	 * @ticket 43258
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_finalize_template_enhancement_output_buffer
+	 */
+	public function test_wp_start_template_enhancement_output_buffer_ended_cleaned(): void {
+		// Start a wrapper output buffer so that we can flush the inner buffer.
+		ob_start();
+
+		$applied_filter = false;
+		add_filter(
+			'wp_template_enhancement_output_buffer',
+			static function ( string $buffer ) use ( &$applied_filter ): string {
+				$applied_filter = true;
+
+				$p = WP_HTML_Processor::create_full_parser( $buffer );
+				if ( $p->next_tag( array( 'tag_name' => 'TITLE' ) ) ) {
+					$p->set_modifiable_text( 'Processed' );
+				}
+				return $p->get_updated_html();
+			}
+		);
+
+		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
+		ini_set( 'default_mimetype', 'text/html' ); // Since sending a header won't work.
+
+		$initial_ob_level = ob_get_level();
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented' );
+
+		?>
+		<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<title>Unprocessed</title>
+			</head>
+			<body>
+				<h1>Hello World!</h1>
+				<!-- ... -->
+		<?php ob_end_clean(); // Clean and end the buffer started by wp_start_template_enhancement_output_buffer(). ?>
+		<!DOCTYPE html>
+		<html lang="en">
+			<head>
+				<title>Output Buffer Not Processed</title>
+			</head>
+			<body>
+				<h1>Template rendering aborted!!!</h1>
+			</body>
+		</html>
+		<?php
+
+		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
+
+		$this->assertFalse( $applied_filter, 'Expected the wp_template_enhancement_output_buffer filter to not have applied.' );
+		$this->assertSame( 0, did_action( 'wp_final_template_output_buffer' ), 'Expected the wp_final_template_output_buffer action to not have fired.' );
+
+		// Obtain the output via the wrapper output buffer.
+		$output = ob_get_clean();
+		$this->assertIsString( $output, 'Expected ob_get_clean() to return a string.' );
+		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output, 'Expected output buffer to not have string since the template was overridden.' );
+		$this->assertStringNotContainsString( '<title>Processed</title>', $output, 'Expected output buffer to not have string since the filter did not apply.' );
+		$this->assertStringContainsString( '<title>Output Buffer Not Processed</title>', $output, 'Expected output buffer to have string since the output buffer was ended with cleaning.' );
+	}
+
+	/**
+	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer and cleaning allows the template to be replaced.
+	 *
+	 * @ticket 43258
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_finalize_template_enhancement_output_buffer
+	 */
+	public function test_wp_start_template_enhancement_output_buffer_cleaned_and_replaced(): void {
+		// Start a wrapper output buffer so that we can flush the inner buffer.
+		ob_start();
+
+		$called_filter = false;
+		add_filter(
+			'wp_template_enhancement_output_buffer',
+			static function ( string $buffer ) use ( &$called_filter ): string {
+				$called_filter = true;
+
+				$p = WP_HTML_Processor::create_full_parser( $buffer );
+				if ( $p->next_tag( array( 'tag_name' => 'TITLE' ) ) ) {
+					$p->set_modifiable_text( 'Processed' );
+				}
+				return $p->get_updated_html();
+			}
+		);
+
+		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
+		ini_set( 'default_mimetype', 'application/xhtml+xml' ); // Since sending a header won't work.
+
+		$initial_ob_level = ob_get_level();
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented.' );
+
+		?>
+		<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="utf-8">
+				<title>Unprocessed</title>
+			</head>
+			<body>
+				<h1>Hello World!</h1>
+				<!-- ... -->
+		<?php ob_clean(); // Clean the buffer started by wp_start_template_enhancement_output_buffer(), allowing the following document to replace the above.. ?>
+		<?php echo '<?xml version="1.0" encoding="UTF-8"?>'; ?>
+		<!DOCTYPE html>
+		<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+			<head>
+				<meta charset="utf-8" />
+				<title>Template Replaced</title>
+			</head>
+			<body>
+				<h1>Template Replaced</h1>
+				<p>The original template called <code>ob_clean()</code> which allowed this template to take its place.</p>
+			</body>
+		</html>
+		<?php
+
+		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
+		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
+
+		$this->assertTrue( $called_filter, 'Expected the wp_template_enhancement_output_buffer filter to have applied.' );
+
+		// Obtain the output via the wrapper output buffer.
+		$output = ob_get_clean();
+		$this->assertIsString( $output, 'Expected ob_get_clean() to return a string.' );
+		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output, 'Expected output buffer to not have string due to template override.' );
+		$this->assertStringContainsString( '<title>Processed</title>', $output, 'Expected output buffer to have string due to filtering.' );
+		$this->assertStringContainsString( '<h1>Template Replaced</h1>', $output, 'Expected output buffer to have string due to replaced template.' );
+	}
+
+	/**
+	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer and that the output buffer is not processed.
+	 *
+	 * @ticket 43258
+	 * @covers ::wp_start_template_enhancement_output_buffer
+	 * @covers ::wp_finalize_template_enhancement_output_buffer
+	 */
+	public function test_wp_start_template_enhancement_output_buffer_for_json(): void {
+		// Start a wrapper output buffer so that we can flush the inner buffer.
+		ob_start();
+
+		$mock_filter_callback = new MockAction();
+		add_filter( 'wp_template_enhancement_output_buffer', array( $mock_filter_callback, 'filter' ) );
+
+		$initial_ob_level = ob_get_level();
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
+		$this->assertSame( 1, did_action( 'wp_template_enhancement_output_buffer_started' ), 'Expected the wp_template_enhancement_output_buffer_started action to have fired.' );
+		$this->assertSame( $initial_ob_level + 1, ob_get_level(), 'Expected the output buffer level to have been incremented.' );
+
+		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
+		ini_set( 'default_mimetype', 'application/json' ); // Since sending a header won't work.
+
+		$json = wp_json_encode(
+			array(
+				'success' => true,
+				'data'    => array(
+					'message' => 'Hello, world!',
+					'fish'    => '<o><', // Something that looks like HTML.
+				),
+			)
+		);
+		echo $json;
+
+		$ob_status = ob_get_status();
+		$this->assertSame( 'wp_finalize_template_enhancement_output_buffer', $ob_status['name'], 'Expected name to be WP function.' );
+		$this->assertSame( 1, $ob_status['type'], 'Expected type to be user supplied handler.' );
+		$this->assertSame( 0, $ob_status['chunk_size'], 'Expected unlimited chunk size.' );
+
+		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
+		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
+
+		$this->assertSame( 0, $mock_filter_callback->get_call_count(), 'Expected the wp_template_enhancement_output_buffer filter to not have applied.' );
+
+		// Obtain the output via the wrapper output buffer.
+		$output = ob_get_clean();
+		$this->assertIsString( $output, 'Expected ob_get_clean() to return a string.' );
+		$this->assertSame( $json, $output, 'Expected output to not be processed.' );
+	}
+
+	/**
+	 * Tests that wp_load_classic_theme_block_styles_on_demand() does not add hooks for block themes.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
+	 */
+	public function test_wp_load_classic_theme_block_styles_on_demand_in_block_theme(): void {
+		switch_theme( 'block-theme' );
+
+		wp_load_classic_theme_block_styles_on_demand();
+
+		$this->assertFalse( has_filter( 'should_load_separate_core_block_assets' ), 'Expect should_load_separate_core_block_assets filter NOT to be added for block themes.' );
+		$this->assertFalse( has_filter( 'should_load_block_assets_on_demand', '__return_true' ), 'Expect should_load_block_assets_on_demand filter NOT to be added for block themes.' );
+		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expect wp_template_enhancement_output_buffer_started action NOT to be added for block themes.' );
+	}
+
+	/**
+	 * Tests that wp_load_classic_theme_block_styles_on_demand() does not add hooks for classic themes when output buffering is blocked.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
+	 */
+	public function test_wp_load_classic_theme_block_styles_on_demand_in_classic_theme_but_output_buffering_blocked(): void {
+		add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_false' );
+		switch_theme( 'default' );
+
+		wp_load_classic_theme_block_styles_on_demand();
+
+		$this->assertFalse( has_filter( 'should_load_separate_core_block_assets' ), 'Expect should_load_separate_core_block_assets filter NOT to be added for block themes.' );
+		$this->assertFalse( has_filter( 'should_load_block_assets_on_demand', '__return_true' ), 'Expect should_load_block_assets_on_demand filter NOT to be added for block themes.' );
+		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expect wp_template_enhancement_output_buffer_started action NOT to be added for block themes.' );
+	}
+
+	/**
+	 * Tests that wp_load_classic_theme_block_styles_on_demand() adds the expected hooks for classic themes.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
+	 */
+	public function test_wp_load_classic_theme_block_styles_on_demand_in_classic_theme(): void {
+		switch_theme( 'default' );
+
+		$this->assertFalse( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() to return false initially.' );
+		$this->assertFalse( wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() to return true' );
+		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expected wp_template_enhancement_output_buffer_started action to be added for classic themes.' );
+
+		wp_load_classic_theme_block_styles_on_demand();
+
+		$this->assertTrue( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() filters to return true' );
+		$this->assertTrue( wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() to return true' );
+		$this->assertNotFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expected wp_template_enhancement_output_buffer_started action to be added for classic themes.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{set_up?: Closure}>
+	 */
+	public function data_wp_hoist_late_printed_styles(): array {
+		return array(
+			'no_actions_removed'              => array(
+				'set_up' => null,
+			),
+			'_wp_footer_scripts_removed'      => array(
+				'set_up' => static function () {
+					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+				},
+			),
+			'wp_print_footer_scripts_removed' => array(
+				'set_up' => static function () {
+					remove_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
+				},
+			),
+			'both_actions_removed'            => array(
+				'set_up' => static function () {
+					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+					remove_action( 'wp_footer', 'wp_print_footer_scripts' );
+				},
+			),
+		);
+	}
+
+	/**
+	 * Tests that wp_hoist_late_printed_styles() adds a placeholder for delayed CSS, then removes it and adds all CSS to the head including late enqueued styles.
+	 *
+	 * @ticket 64099
+	 * @covers ::wp_hoist_late_printed_styles
+	 *
+	 * @dataProvider data_wp_hoist_late_printed_styles
+	 */
+	public function test_wp_hoist_late_printed_styles( ?Closure $set_up ): void {
+		if ( $set_up ) {
+			$set_up();
+		}
+
+		switch_theme( 'default' );
+
+		// Enqueue a style
+		wp_enqueue_style( 'early', 'http://example.com/style.css' );
+		wp_add_inline_style( 'early', '/* EARLY */' );
+
+		wp_hoist_late_printed_styles();
+
+		// Ensure late styles are printed.
+		add_filter( 'print_late_styles', '__return_false', 1000 );
+		$this->assertTrue( apply_filters( 'print_late_styles', true ), 'Expected late style printing to be forced.' );
+
+		// Simulate wp_head.
+		$head_output = get_echo( 'wp_head' );
+
+		$placeholder_pattern = '#/\*wp_late_styles_placeholder:[a-f0-9-]+\*/#';
+
+		$this->assertMatchesRegularExpression( $placeholder_pattern, $head_output, 'Expected the placeholder to be present' );
+		$this->assertStringContainsString( 'early', $head_output, 'Expected the early-enqueued stylesheet to be present.' );
+
+		// Enqueue a late style (after wp_head).
+		wp_enqueue_style( 'late', 'http://example.com/late-style.css', array(), null );
+		wp_add_inline_style( 'late', '/* EARLY */' );
+
+		// Simulate footer scripts.
+		$footer_output = get_echo( 'wp_footer' );
+
+		// Create a simulated output buffer.
+		$buffer = '<html><head>' . $head_output . '</head><body><main>Content</main>' . $footer_output . '</body></html>';
+
+		// Apply the output buffer filter.
+		$filtered_buffer = apply_filters( 'wp_template_enhancement_output_buffer', $buffer );
+
+		$this->assertDoesNotMatchRegularExpression( $placeholder_pattern, $filtered_buffer, 'Expected the placeholder to be removed.' );
+		$found_styles = array(
+			'HEAD' => array(),
+			'BODY' => array(),
+		);
+		$processor    = WP_HTML_Processor::create_full_parser( $filtered_buffer );
+		while ( $processor->next_tag() ) {
+			$group = in_array( 'HEAD', $processor->get_breadcrumbs(), true ) ? 'HEAD' : 'BODY';
+			if (
+				'LINK' === $processor->get_tag() &&
+				$processor->get_attribute( 'rel' ) === 'stylesheet'
+			) {
+				$found_styles[ $group ][] = $processor->get_attribute( 'id' );
+			} elseif ( 'STYLE' === $processor->get_tag() ) {
+				$found_styles[ $group ][] = $processor->get_attribute( 'id' );
+			}
+		}
+
+		$expected = array(
+			'early-css',
+			'early-inline-css',
+			'late-css',
+			'late-inline-css',
+		);
+		foreach ( $expected as $style_id ) {
+			$this->assertContains( $style_id, $found_styles['HEAD'], 'Expected stylesheet with ID to be in the HEAD.' );
+		}
+		$this->assertSame(
+			$expected,
+			array_values( array_intersect( $found_styles['HEAD'], $expected ) ),
+			'Expected styles to be printed in the same order.'
+		);
+		$this->assertCount( 0, $found_styles['BODY'], 'Expected no styles to be present in the footer.' );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {

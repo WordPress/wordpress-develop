@@ -1180,7 +1180,7 @@ class WP_Query {
 
 		foreach ( get_taxonomies( array(), 'objects' ) as $taxonomy => $t ) {
 			if ( 'post_tag' === $taxonomy ) {
-				continue; // Handled further down in the $q['tag'] block.
+				continue; // Handled further down in the $query_vars['tag'] block.
 			}
 
 			if ( $t->query_var && ! empty( $query_vars[ $t->query_var ] ) ) {
@@ -5043,7 +5043,7 @@ class WP_Query {
 		}
 
 		// Add a default orderby value of date to ensure same cache key generation.
-		if ( ! isset( $q['orderby'] ) ) {
+		if ( ! isset( $args['orderby'] ) ) {
 			$args['orderby'] = 'date';
 		}
 
