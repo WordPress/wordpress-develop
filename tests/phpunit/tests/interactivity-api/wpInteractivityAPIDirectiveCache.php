@@ -39,12 +39,12 @@ class Tests_Interactivity_API_Directive_Cache extends WP_UnitTestCase {
 	 * @ticket 64093
 	 */
 	public function test_get_or_parse_entries_caches_result() {
-		$tag_index = 0;
-		$prefix    = 'text';
+		$tag_index  = 0;
+		$prefix     = 'text';
 		$call_count = 0;
 
 		$parser = function ( $idx, $pfx ) use ( &$call_count ) {
-			$call_count++;
+			++$call_count;
 			return array(
 				array(
 					'namespace' => 'test-plugin',
@@ -241,4 +241,3 @@ class Tests_Interactivity_API_Directive_Cache extends WP_UnitTestCase {
 		$this->assertTrue( $this->cache->has_cached_entries( 0, 'text' ) );
 	}
 }
-
