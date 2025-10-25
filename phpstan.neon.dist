@@ -26,6 +26,18 @@ parameters:
 		- # Inner functions arent supported by PHPstan.
 			message: '#Function wxr_[a-z_]+ not found#'
 			path: src/wp-admin/includes/export.php
+		-
+			identifier: function.inner
+			path: src/wp-admin/includes/export.php
+			count: 13
+		-
+			identifier: function.inner
+			path: src/wp-admin/includes/file.php
+			count: 1
+		-
+			identifier: function.inner
+			path: src/wp-includes/canonical.php
+			count: 1
 
 		# Level 1:
 		- # These are too noisy at the moment.
