@@ -975,6 +975,11 @@ class Tests_Template extends WP_UnitTestCase {
 					remove_action( 'wp_footer', 'wp_print_footer_scripts' );
 				},
 			),
+			'block_library_removed'           => array(
+				'set_up' => static function () {
+					wp_deregister_style( 'wp-block-library' );
+				},
+			),
 		);
 	}
 
@@ -1006,9 +1011,6 @@ class Tests_Template extends WP_UnitTestCase {
 		// Simulate wp_head.
 		$head_output = get_echo( 'wp_head' );
 
-		$placeholder_pattern = '#/\*wp_late_styles_placeholder:[a-f0-9-]+\*/#';
-
-		$this->assertMatchesRegularExpression( $placeholder_pattern, $head_output, 'Expected the placeholder to be present' );
 		$this->assertStringContainsString( 'early', $head_output, 'Expected the early-enqueued stylesheet to be present.' );
 
 		// Enqueue a late style (after wp_head).
@@ -1024,7 +1026,9 @@ class Tests_Template extends WP_UnitTestCase {
 		// Apply the output buffer filter.
 		$filtered_buffer = apply_filters( 'wp_template_enhancement_output_buffer', $buffer );
 
-		$this->assertDoesNotMatchRegularExpression( $placeholder_pattern, $filtered_buffer, 'Expected the placeholder to be removed.' );
+		$this->assertStringContainsString( '</head>', $buffer, 'Expected the closing HEAD tag to be in the response.' );
+
+		$this->assertDoesNotMatchRegularExpression( '#/\*wp_late_styles_placeholder:[a-f0-9-]+\*/#', $filtered_buffer, 'Expected the placeholder to be removed.' );
 		$found_styles = array(
 			'HEAD' => array(),
 			'BODY' => array(),

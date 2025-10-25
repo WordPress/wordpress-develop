@@ -3684,33 +3684,50 @@ function wp_hoist_late_printed_styles() {
 			};
 
 			// Loop over STYLE tags.
-			while ( $processor->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
-				// Skip to the next if this is not the inline style for the wp-block-library stylesheet (which contains the placeholder).
-				if ( 'wp-block-library-inline-css' !== $processor->get_attribute( 'id' ) ) {
-					continue;
-				}
+			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 
-				// If the inline style lacks the placeholder comment, then something went wrong and we need to abort.
-				$css_text = $processor->get_modifiable_text();
-				if ( ! str_contains( $css_text, $placeholder ) ) {
+				// We've encountered the inline style for the 'wp-block-library' stylesheet which probably has the placeholder comment.
+				if (
+					! $processor->is_tag_closer() &&
+					'STYLE' === $processor->get_tag() &&
+					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
+				) {
+					// If the inline style lacks the placeholder comment, then we have to continue until we get to </HEAD> to append the styles there.
+					$css_text = $processor->get_modifiable_text();
+					if ( ! str_contains( $css_text, $placeholder ) ) {
+						continue;
+					}
+
+					// Remove the placeholder now that we've located the inline style.
+					$processor->set_modifiable_text( str_replace( $placeholder, '', $css_text ) );
+					$buffer = $processor->get_updated_html();
+
+					// Insert the $printed_late_styles immediately after the closing inline STYLE tag. This preserves the CSS cascade.
+					$span   = $processor->get_span();
+					$buffer = implode(
+						'',
+						array(
+							substr( $buffer, 0, $span->start + $span->length ),
+							$printed_late_styles,
+							substr( $buffer, $span->start + $span->length ),
+						)
+					);
 					break;
 				}
 
-				// Remove the placeholder now that we've located the inline style.
-				$processor->set_modifiable_text( str_replace( $placeholder, '', $css_text ) );
-				$buffer = $processor->get_updated_html();
-
-				// Insert the $printed_late_styles immediately after the closing inline STYLE tag. This preserves the CSS cascade.
-				$span   = $processor->get_span();
-				$buffer = implode(
-					'',
-					array(
-						substr( $buffer, 0, $span->start + $span->length ),
-						$printed_late_styles,
-						substr( $buffer, $span->start + $span->length ),
-					)
-				);
-				break;
+				// As a fallback, append the hoisted late styles to the end of the HEAD.
+				if ( $processor->is_tag_closer() && 'HEAD' === $processor->get_tag() ) {
+					$span   = $processor->get_span();
+					$buffer = implode(
+						'',
+						array(
+							substr( $buffer, 0, $span->start ),
+							$printed_late_styles,
+							substr( $buffer, $span->start ),
+						)
+					);
+					break;
+				}
 			}
 
 			return $buffer;
