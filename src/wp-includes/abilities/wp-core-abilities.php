@@ -242,7 +242,7 @@ function wp_register_core_abilities(): void {
 				$env          = wp_get_environment_type();
 				$php_version  = phpversion();
 				$db_server_info  = '';
-				if ( isset( $wpdb ) && is_object( $wpdb ) && method_exists( $wpdb, 'db_server_info' ) ) {
+				if ( method_exists( $wpdb, 'db_server_info' ) ) {
 					$db_server_info = $wpdb->db_server_info() ?? '';
 				}
 				$wp_version   = get_bloginfo( 'version' );
