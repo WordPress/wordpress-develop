@@ -106,14 +106,6 @@ final class WP_Interactivity_API {
 	private $current_element = null;
 
 	/**
-	 * Cache for data-wp-each template blueprints.
-	 *
-	 * @since 6.9.0
-	 * @var array
-	 */
-	private static $template_blueprints = array();
-
-	/**
 	 * Gets and/or sets the initial state of an Interactivity API store for a
 	 * given namespace.
 	 *
@@ -1161,82 +1153,98 @@ HTML;
 	}
 
 	/**
-	 * Processes the data-wp-each directive using a pre-computed traversal blueprint.
+	 * Processes the `data-wp-each` directive.
 	 *
-	 * @param WP_HTML_Tag_Processor $p       The WP_HTML_Tag_Processor instance.
-	 * @param array                 $context The context.
+	 * This directive gets an array passed as reference and iterates over it
+	 * generating new content for each item based on the inner markup of the
+	 * `template` tag.
+	 *
+	 * @since 6.5.0
+	 *
+	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
+	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
+	 * @param array                                     $tag_stack       The reference to the tag stack.
 	 */
-	private function data_wp_each_processor( WP_HTML_Tag_Processor $p, array $context ) {
-		if ( 'TEMPLATE' !== $p->get_tag() ) {
-			return;
-		}
+	private function data_wp_each_processor( WP_Interactivity_API_Directives_Processor $p, string $mode, array &$tag_stack ) {
+		if ( 'enter' === $mode && 'TEMPLATE' === $p->get_tag() ) {
+			$attribute_name   = $p->get_attribute_names_with_prefix( 'data-wp-each' )[0];
+			$extracted_suffix = $this->extract_prefix_and_suffix( $attribute_name );
+			$item_name        = isset( $extracted_suffix[1] ) ? $this->kebab_to_camel_case( $extracted_suffix[1] ) : 'item';
+			$attribute_value  = $p->get_attribute( $attribute_name );
+			$result           = $this->evaluate( $attribute_value );
 
-		$directive_value = $p->get_attribute( 'data-wp-each' );
-		list( $item_name, $array_name ) = explode( ' in ', $directive_value );
-		$item_name  = trim( $item_name );
-		$array_name = trim( $array_name );
+			// Gets the content between the template tags and leaves the cursor in the closer tag.
+			$inner_content = $p->get_content_between_balanced_template_tags();
 
-		$template_html = '';
-		if ( $p->next_tag(
-			array(
-				'tag_closers' => 'visit',
-				'tag_name'    => 'TEMPLATE',
-			)
-		) ) {
-			$template_html = $p->get_content_between_balanced_tags();
-		}
+			// Checks if there is a manual server-side directive processing.
+			$template_end = 'data-wp-each: template end';
+			$p->set_bookmark( $template_end );
+			$p->next_tag();
+			$manual_sdp = $p->get_attribute( 'data-wp-each-child' );
+			$p->seek( $template_end ); // Rewinds to the template closer tag.
+			$p->release_bookmark( $template_end );
 
-		$p->next_tag(
-			array(
-				'tag_name'    => 'TEMPLATE',
-				'tag_closers' => 'visit',
-			)
-		);
-
-		$cache_key = md5( $template_html );
-
-		// 1. Blueprint Generation: Parse the template once to create a full traversal map.
-		if ( ! isset( self::$template_blueprints[ $cache_key ] ) ) {
-			$traversal_p   = new WP_HTML_Tag_Processor( $template_html );
-			$bookmarks     = array();
-			$bookmark_id   = 0;
-
-			// By visiting every tag (including closers), we create a complete, ordered
-			// map of the entire template structure.
-			while ( $traversal_p->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
-				$bookmark_name = 'bookmark_' . $bookmark_id++;
-				$traversal_p->set_bookmark( $bookmark_name );
-				$bookmarks[] = $bookmark_name;
+			/*
+			 * It doesn't process in these situations:
+			 * - Manual server-side directive processing.
+			 * - Empty or non-array values.
+			 * - Associative arrays because those are deserialized as objects in JS.
+			 * - Templates that contain top-level texts because those texts can't be
+			 *   identified and removed in the client.
+			 */
+			if (
+				$manual_sdp ||
+				empty( $result ) ||
+				! is_array( $result ) ||
+				! array_is_list( $result ) ||
+				! str_starts_with( trim( $inner_content ), '<' ) ||
+				! str_ends_with( trim( $inner_content ), '>' )
+			) {
+				array_pop( $tag_stack );
+				return;
 			}
-			self::$template_blueprints[ $cache_key ] = $bookmarks;
-		}
 
-		$traversal_bookmarks = self::$template_blueprints[ $cache_key ];
-		$html                = '';
+			// Extracts the namespace from the directive attribute value.
+			$namespace_value         = end( $this->namespace_stack );
+			list( $namespace_value ) = is_string( $attribute_value ) && ! empty( $attribute_value )
+				? $this->extract_directive_value( $attribute_value, $namespace_value )
+				: array( $namespace_value, null );
 
-		// 2. Optimized Loop: Replay the traversal for each item without re-parsing.
-		foreach ( $this->get_context_value( $array_name, $context ) as $item_context ) {
-			$item_p = new WP_HTML_Tag_Processor( $template_html );
-			$inner_context = array(
-				$item_name => $item_context,
-				'context'  => $item_context,
-			);
-			$current_context = array_merge( $context, $inner_context );
+			// Processes the inner content for each item of the array.
+			$processed_content = '';
+			foreach ( $result as $item ) {
+				// Creates a new context that includes the current item of the array.
+				$this->context_stack[] = array_replace_recursive(
+					end( $this->context_stack ) !== false ? end( $this->context_stack ) : array(),
+					array( $namespace_value => array( $item_name => $item ) )
+				);
 
-			// Instead of scanning with `next_tag()`, we jump through our pre-computed traversal.
-			foreach ( $traversal_bookmarks as $bookmark_name ) {
-				$item_p->seek( $bookmark_name );
+				// Processes the inner content with the new context.
+				$processed_item = $this->_process_directives( $inner_content );
 
-				// Only call the expensive directive processing logic if directives actually exist on the current tag.
-				// This preserves the full traversal for state management but optimizes the work done at each step.
-				if ( ! empty( $item_p->get_attribute_names_with_prefix( 'data-wp-' ) ) ) {
-					$this->process_directives( $item_p, $current_context );
+				if ( null === $processed_item ) {
+					// If the HTML is unbalanced, stop processing it.
+					array_pop( $this->context_stack );
+					return;
 				}
+
+				// Adds the `data-wp-each-child` to each top-level tag.
+				$i = new WP_Interactivity_API_Directives_Processor( $processed_item );
+				while ( $i->next_tag() ) {
+					$i->set_attribute( 'data-wp-each-child', true );
+					$i->next_balanced_tag_closer_tag();
+				}
+				$processed_content .= $i->get_updated_html();
+
+				// Removes the current context from the stack.
+				array_pop( $this->context_stack );
 			}
 
-			$html .= $item_p->get_updated_html();
-		}
+			// Appends the processed content after the tag closer of the template.
+			$p->append_content_after_template_tag_closer( $processed_content );
 
-		$p->insert_before_closing_tag( $html );
+			// Pops the last tag because it skipped the closing tag of the template tag.
+			array_pop( $tag_stack );
+		}
 	}
 }
