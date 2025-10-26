@@ -3118,7 +3118,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// Mock wp_insert_attachment to capture the data being passed.
 		add_filter(
 			'wp_insert_attachment_data',
-			function ( $data ) use ( &$captured_data ) {
+			static function ( $data ) use ( &$captured_data ) {
 				$captured_data = $data;
 				return $data;
 			},
