@@ -17,9 +17,78 @@
  *  - Validate inputs and outputs using JSON Schema.
  *  - Expose abilities through the REST API.
  *
- * ## Basic Usage
+ * ## Working with Abilities
  *
- * Registering an ability requires three steps:
+ * Abilities must be registered on the `wp_abilities_api_init` action hook.
+ * Attempting to register an ability outside of this hook will fail and
+ * trigger a `_doing_it_wrong()` notice.
+
+ * Example:
+ *
+ *     function my_plugin_register_abilities(): void {
+ *         wp_register_ability(
+ *             'my-plugin/export-users',
+ *             array(
+ *                 'label'               => __( 'Export Users', 'my-plugin' ),
+ *                 'description'         => __( 'Exports user data to CSV format.', 'my-plugin' ),
+ *                 'category'            => 'data-export',
+ *                 'execute_callback'    => 'my_plugin_export_users',
+ *                 'permission_callback' => function(): bool {
+ *                     return current_user_can( 'export' );
+ *                 },
+ *                 'input_schema'        => array(
+ *                     'type'        => 'string',
+ *                     'enum'        => array( 'subscriber', 'contributor', 'author', 'editor', 'administrator' ),
+ *                     'description' => __( 'Limits the export to users with this role.', 'my-plugin' ),
+ *                     'required'    => false,
+ *                 ),
+ *                 'output_schema'       => array(
+ *                     'type'        => 'string',
+ *                     'description' => __( 'User data in CSV format.', 'my-plugin' ),
+ *                     'required'    => true,
+ *                 ),
+ *                 'meta'                => array(
+ *                     'show_in_rest' => true,
+ *                 ),
+ *             )
+ *         );
+ *     }
+ *     add_action( 'wp_abilities_api_init', 'my_plugin_register_abilities' );
+ *
+ * Once registered, abilities can be checked, retrieved, and managed:
+ *
+ *     // Checks if an ability is registered, and prints its label.
+ *     if ( wp_has_ability( 'my-plugin/export-users' ) ) {
+ *         $ability = wp_get_ability( 'my-plugin/export-users' );
+ *
+ *         echo $ability->get_label();
+ *     }
+ *
+ *     // Gets all registered abilities.
+ *     $all_abilities = wp_get_abilities();
+ *
+ *     // Unregisters when no longer needed.
+ *     wp_unregister_ability( 'my-plugin/export-users' );
+ *
+ * ## Best Practices
+ *
+ *  - Always register abilities on the `wp_abilities_api_init` hook.
+ *  - Use namespaced ability names to prevent conflicts.
+ *  - Implement robust permission checks in permission callbacks.
+ *  - Provide an `input_schema` to ensure data integrity and document expected inputs.
+ *  - Define an `output_schema` to describe return values and validate responses.
+ *  - Return `WP_Error` objects for failures rather than throwing exceptions.
+ *  - Use internationalization functions for all user-facing strings.
+ *
+ * @package WordPress
+ * @subpackage Abilities_API
+ * @since 6.9.0
+ */
+
+declare( strict_types = 1 );
+
+/**
+ * Registers a new ability using the Abilities API. It requires three steps:
  *
  *  1. Hook into the `wp_abilities_api_init` action.
  *  2. Call `wp_register_ability()` with a namespaced name and configuration.
@@ -85,8 +154,20 @@
  *
  * ### Input and Output Schemas
  *
- * Define JSON Schema specifications to validate ability inputs and outputs.
- * This ensures data integrity and provides documentation for API consumers:
+ * Schemas define the expected structure, type, and constraints for ability inputs
+ * and outputs using JSON Schema syntax. They serve two critical purposes: automatic
+ * validation of data passed to and returned from abilities, and self-documenting
+ * API contracts for developers.
+ *
+ * WordPress implements a validator based on a subset of the JSON Schema Version 4
+ * specification (https://json-schema.org/specification-links.html#draft-4).
+ * For details on supported JSON Schema properties and syntax, see the
+ * related WordPress REST API Schema documentation:
+ * https://developer.wordpress.org/rest-api/extending-the-rest-api/schema/#json-schema-basics
+ *
+ * Defining schemas is mandatory when there is a value to pass or return.
+ * They ensure data integrity, improve developer experience, and enable
+ * better documentation:
  *
  *     'input_schema' => array(
  *         'type'        => 'string',
@@ -118,9 +199,10 @@
  *
  * #### Permission Callback
  *
- * The permission callback determines whether the current user can execute
- * the ability. It receives the same input as the execute callback and must
- * return a boolean or `WP_Error`:
+ * The permission callback determines whether the ability can be executed.
+ * It receives the same input as the execute callback and must return a
+ * boolean or `WP_Error`. Common use cases include checking user capabilities,
+ * validating API keys, or verifying system state:
  *
  *     function my_plugin_can_analyze_text( string $input ): bool|WP_Error {
  *         return current_user_can( 'edit_posts' );
@@ -136,82 +218,6 @@
  *     ),
  *
  * This allows abilities to be invoked via HTTP requests to the WordPress REST API.
- *
- * ## Working with Abilities
- *
- * Once registered, abilities can be checked, retrieved, and managed:
- *
- *     // Checks if an ability is registered, and prints its label.
- *     if ( wp_has_ability( 'my-plugin/analyze-text' ) ) {
- *         $ability = wp_get_ability( 'my-plugin/analyze-text' );
- *
- *         echo $ability->get_label();
- *     }
- *
- *     // Gets all registered abilities.
- *     $all_abilities = wp_get_abilities();
- *
- *     // Unregisters when no longer needed.
- *     wp_unregister_ability( 'my-plugin/analyze-text' );
- *
- * ## Best Practices
- *
- *  - Always register abilities on the `wp_abilities_api_init` hook.
- *  - Use namespaced ability names to prevent conflicts.
- *  - Implement robust permission checks in permission callbacks.
- *  - Provide an `input_schema` to ensure data integrity and document expected inputs.
- *  - Define an `output_schema` to describe return values and validate responses.
- *  - Return `WP_Error` objects for failures rather than throwing exceptions.
- *  - Use internationalization functions for all user-facing strings.
- *
- * @package WordPress
- * @subpackage Abilities_API
- * @since 6.9.0
- */
-
-declare( strict_types = 1 );
-
-/**
- * Registers a new ability using the Abilities API.
- *
- * Abilities must be registered on the `wp_abilities_api_init` action hook.
- * Attempting to register an ability outside of this hook will fail and
- * trigger a `_doing_it_wrong()` notice.
- *
- * See the file header for detailed documentation on naming conventions, callbacks,
- * schemas, ability categories, and best practices.
- *
- * Example:
- *
- *     function my_plugin_register_abilities(): void {
- *         wp_register_ability(
- *             'my-plugin/export-users',
- *             array(
- *                 'label'               => __( 'Export Users', 'my-plugin' ),
- *                 'description'         => __( 'Exports user data to CSV format.', 'my-plugin' ),
- *                 'category'            => 'data-export',
- *                 'execute_callback'    => 'my_plugin_export_users',
- *                 'permission_callback' => function(): bool {
- *                     return current_user_can( 'export' );
- *                 },
- *                 'input_schema'        => array(
- *                     'type'        => 'string',
- *                     'enum'        => array( 'subscriber', 'contributor', 'author', 'editor', 'administrator' ),
- *                     'description' => __( 'Limits the export to users with this role.', 'my-plugin' ),
- *                     'required'    => false,
- *                 ),
- *                 'output_schema'       => array(
- *                     'type'        => 'string',
- *                     'description' => __( 'User data in CSV format.', 'my-plugin' ),
- *                     'required'    => true,
- *                 ),
- *                 'meta'                => array(
- *                     'show_in_rest' => true,
- *                 ),
- *             )
- *         );
- *     }
- *     add_action( 'wp_abilities_api_init', 'my_plugin_register_abilities' );
  *
  * @since 6.9.0
  *
@@ -267,9 +273,9 @@ function wp_register_ability( string $name, array $args ): ?WP_Ability {
 		_doing_it_wrong(
 			__FUNCTION__,
 			sprintf(
-				/* translators: 1: abilities_api_init, 2: string value of the ability name. */
+				/* translators: 1: wp_abilities_api_init, 2: string value of the ability name. */
 				esc_html__( 'Abilities must be registered on the %1$s action. The ability %2$s was not registered.' ),
-				'<code>abilities_api_init</code>',
+				'<code>wp_abilities_api_init</code>',
 				'<code>' . esc_html( $name ) . '</code>'
 			),
 			'6.9.0'
@@ -288,7 +294,7 @@ function wp_register_ability( string $name, array $args ): ?WP_Ability {
 /**
  * Unregisters an ability from the Abilities API.
  *
- * Takes a previously registered ability out of the global registry. Use this to
+ * Removes a previously registered ability from the global registry. Use this to
  * disable abilities provided by other plugins or when an ability is no longer needed.
  *
  * Can be called at any time after the ability has been registered.
@@ -454,9 +460,9 @@ function wp_get_abilities(): array {
 function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_Category {
 	if ( ! did_action( 'wp_abilities_api_categories_init' ) ) {
 		_doing_it_wrong(
-			__METHOD__,
+			__FUNCTION__,
 			sprintf(
-				/* translators: 1: abilities_api_categories_init, 2: ability category slug. */
+				/* translators: 1: wp_abilities_api_categories_init, 2: ability category slug. */
 				__( 'Ability categories must be registered on the %1$s action. The ability category %2$s was not registered.' ),
 				'<code>wp_abilities_api_categories_init</code>',
 				'<code>' . esc_html( $slug ) . '</code>'
@@ -477,7 +483,7 @@ function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_
 /**
  * Unregisters an ability category.
  *
- * Takes a previously registered ability category out of the global registry. Use this to
+ * Removes a previously registered ability category from the global registry. Use this to
  * disable ability categories that are no longer needed.
  *
  * Can be called at any time after the ability category has been registered.
