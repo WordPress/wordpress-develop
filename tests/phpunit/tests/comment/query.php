@@ -32,7 +32,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * Test-specific comments created during individual tests that need cleanup.
 	 *
 	 * @since 6.9.0
-	 * @var array
+	 * @var int[]
 	 */
 	private $test_comments = array();
 
