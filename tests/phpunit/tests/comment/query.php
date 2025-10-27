@@ -5385,7 +5385,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 */
 	protected function create_note_type_test_comments(): array {
 		$comments = array(
-			'comment' => self::factory()->comment->create(
+			'comment'  => self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => self::$post_id,
 					'comment_approved' => '1',
@@ -5398,13 +5398,13 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 					'comment_type'     => 'pingback',
 				)
 			),
-			'note' => self::factory()->comment->create(
+			'note'     => self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => self::$post_id,
 					'comment_approved' => '1',
 					'comment_type'     => 'note',
 				)
-			)
+				),
 		);
 
 		return $comments;
