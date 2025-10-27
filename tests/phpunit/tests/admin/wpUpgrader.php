@@ -1576,8 +1576,6 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * @covers WP_Upgrader::create_lock
 	 */
 	public function test_create_lock_should_create_lock_option() {
-		global $wpdb;
-
 		WP_Upgrader::create_lock( 'lock' );
 
 		// Check that the lock option was created with a timestamp less than or equal to now.
@@ -1585,12 +1583,6 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 			time(),
 			get_option( 'lock.lock' ),
 			'The lock option was not created as expected.'
-		);
-
-		$wpdb->delete(
-			$wpdb->options,
-			array( 'option_name' => 'lock.lock' ),
-			'%s'
 		);
 	}
 
@@ -1602,9 +1594,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * @covers WP_Upgrader::create_lock
 	 */
 	public function test_create_lock_should_release_lock() {
-		global $wpdb;
-
-		$this->assertTrue( WP_Upgrader::create_lock( 'lock' );
+		$this->assertTrue( WP_Upgrader::create_lock( 'lock' ) );
 
 		$this->assertTrue( update_option( 'lock.lock', time() - 2 ) );
 
@@ -1614,12 +1604,6 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 			true,
 			$recreate_lock,
 			'The lock was not re-created as expected.'
-		);
-
-		$wpdb->delete(
-			$wpdb->options,
-			array( 'option_name' => 'lock.lock' ),
-			'%s'
 		);
 	}
 
