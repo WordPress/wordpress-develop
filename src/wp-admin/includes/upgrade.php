@@ -2497,8 +2497,10 @@ function upgrade_690() {
 	global $wp_current_db_version;
 
 	if ( $wp_current_db_version < 60718 ) {
-		// Query all templates in the database that are linked to the current
-		// theme and activate them. See `get_block_templates`.
+		/*
+		 * Query all templates in the database that are linked to the current
+		 * theme and activate them. See `get_block_templates()`.
+		 */
 		$template_query_args = array(
 			'post_status'         => 'publish',
 			'post_type'           => 'wp_template',
