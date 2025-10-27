@@ -5412,8 +5412,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$comments = $this->create_note_type_test_comments();
 
 		$query_args['fields'] = 'ids';
-		$q                    = new WP_Comment_Query();
-		$found                = $q->query( $query_args );
+		$query                = new WP_Comment_Query();
+		$found                = $query->query( $query_args );
 
 		$expected = array();
 		foreach ( $expected_indices as $index ) {
@@ -5477,8 +5477,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$comments = $this->create_note_type_test_comments();
 
-		$q     = new WP_Comment_Query();
-		$found = $q->query(
+		$query = new WP_Comment_Query();
+		$found = $query->query(
 			array(
 				'type__not_in' => array( 'note' ),
 				'fields'       => 'ids',
