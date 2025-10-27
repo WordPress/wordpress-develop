@@ -5,9 +5,12 @@ declare( strict_types=1 );
 /**
  * Tests for the core abilities shipped with the Abilities API.
  *
+ * @covers wp_register_core_ability_categories
+ * @covers wp_register_core_abilities
+ *
  * @group abilities-api
  */
-class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
+class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 
 	/**
 	 * Set up before the class.
@@ -27,10 +30,27 @@ class Tests_Abilities_API_WpCoreAbilities extends WP_UnitTestCase {
 		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 		do_action( 'wp_abilities_api_categories_init' );
 		do_action( 'wp_abilities_api_init' );
+	}
 
+	/**
+	 * Tear down after the class.
+	 *
+	 * @since 6.9.0
+	 */
+	public static function tear_down_after_class(): void {
 		// Re-add the unhook functions for subsequent tests.
 		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
+
+		// Remove the core abilities and their categories.
+		foreach ( wp_get_abilities() as $ability ) {
+			wp_unregister_ability( $ability->get_name() );
+		}
+		foreach ( wp_get_ability_categories() as $ability_category ) {
+			wp_unregister_ability_category( $ability_category->get_slug() );
+		}
+
+		parent::tear_down_after_class();
 	}
 
 	/**
