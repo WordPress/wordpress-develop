@@ -5373,7 +5373,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return array Array of comments created (keys: 'comment', 'pingback', 'note').
+	 * @return array<'comment'|'pingback'|'note', int> Array of comments created.
 	 */
 	protected function create_note_type_test_comments(): array {
 		return array(
@@ -5405,15 +5405,14 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::get_comment_ids
 	 * @dataProvider data_note_type_exclusion
 	 *
-	 * @param array $query_args       Query arguments for WP_Comment_Query.
-	 * @param array $expected_indices Indices of expected comments in the $comments array.
+	 * @param array<string, string|array> $query_args       Query arguments for WP_Comment_Query.
+	 * @param int[]                       $expected_indices Indices of expected comments in the $comments array.
 	 */
-	public function test_note_type_exclusion( $query_args, $expected_indices ) {
+	public function test_note_type_exclusion( array $query_args, array $expected_indices ) {
 		$comments = $this->create_note_type_test_comments();
 
-		$query_args['fields'] = 'ids';
-		$query                = new WP_Comment_Query();
-		$found                = $query->query( $query_args );
+		$query = new WP_Comment_Query();
+		$found = $query->query( array_merge( $query_args, array( 'fields' => 'ids' ) ) );
 
 		$expected = array();
 		foreach ( $expected_indices as $index ) {
@@ -5429,9 +5428,9 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return array[]
+	 * @return array<string, array{ query_args: array<string, string|array>, expected_indices: int[] }>
 	 */
-	public function data_note_type_exclusion() {
+	public function data_note_type_exclusion(): array {
 		return array(
 			'default query excludes note'        => array(
 				'query_args'       => array(),
