@@ -28,14 +28,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 */
 	private $test_posts = array();
 
-	/**
-	 * Test-specific comments created during individual tests that need cleanup.
-	 *
-	 * @since 6.9.0
-	 * @var int[]
-	 */
-	private $test_comments = array();
-
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 	}
@@ -5415,9 +5407,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		// Track for cleanup.
-		$this->test_comments = array_merge( $this->test_comments, $comments );
-
 		return $comments;
 	}
 
@@ -5541,9 +5530,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'comment_type'     => 'note',
 			)
 		);
-
-		// Track comments for cleanup.
-		$this->test_comments = array_merge( $this->test_comments, array( $c1, $c2, $c3 ) );
 
 		$counts = get_comment_count( $post_id );
 
