@@ -1,7 +1,7 @@
 <?php
 
 class WP_REST_Registered_Templates_Controller extends WP_REST_Templates_Controller {
-    public function __construct() {
+	public function __construct() {
 		$this->rest_base = 'registered-templates';
 		$this->namespace = 'wp/v2';
 	}
