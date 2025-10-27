@@ -5396,7 +5396,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 					'comment_approved' => '1',
 					'comment_type'     => 'note',
 				)
-				),
+			),
 		);
 
 		return $comments;
