@@ -1606,7 +1606,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		WP_Upgrader::create_lock( 'lock' );
 
-		sleep( 2 );
+		$this->assertTrue( update_option( 'lock.lock', time() - 2 ) );
 
 		$recreate_lock = WP_Upgrader::create_lock( 'lock', 1 );
 
