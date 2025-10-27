@@ -164,8 +164,8 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 		$template_hierarchy
 	);
 
-	$object            = get_queried_object();
-	$specific_template = $object ? get_page_template_slug( $object ) : null;
+	$object_id         = get_queried_object_id();
+	$specific_template = $object_id && get_post( $object_id ) ? get_page_template_slug( $object_id ) : null;
 	$active_templates  = (array) get_option( 'active_templates', array() );
 
 	// We expect one template for each slug. Use the active template if it is
@@ -222,7 +222,7 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 	);
 	$templates = array_merge( $templates, get_registered_block_templates( $query ) );
 
-	if ( $specific_template ) {
+	if ( $specific_template && in_array( $specific_template, $remaining_slugs, true ) ) {
 		$templates = array_merge( $templates, get_block_templates( array( 'slug__in' => array( $specific_template ) ) ) );
 	}
 
