@@ -5381,7 +5381,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return int[] Array of comment IDs indexed by type: [0] => regular comment, [1] => pingback, [2] => note.
+	 * @return array Array of comments created (keys: 'comment', 'pingback', 'note').
 	 */
 	protected function create_note_type_test_comments(): array {
 		$comments = array(
