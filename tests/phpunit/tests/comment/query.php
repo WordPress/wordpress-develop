@@ -5392,25 +5392,26 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @return int[] Array of comment IDs indexed by type: [0] => regular comment, [1] => pingback, [2] => note.
 	 */
 	protected function create_note_type_test_comments() {
-		$comments    = array();
-		$comments[0] = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => self::$post_id,
-				'comment_approved' => '1',
-			)
-		);
-		$comments[1] = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => self::$post_id,
-				'comment_approved' => '1',
-				'comment_type'     => 'pingback',
-			)
-		);
-		$comments[2] = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => self::$post_id,
-				'comment_approved' => '1',
-				'comment_type'     => 'note',
+		$comments = array(
+			'comment' => self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => self::$post_id,
+					'comment_approved' => '1',
+				)
+			),
+			'pingback' => self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => self::$post_id,
+					'comment_approved' => '1',
+					'comment_type'     => 'pingback',
+				)
+			),
+			'note' => self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => self::$post_id,
+					'comment_approved' => '1',
+					'comment_type'     => 'note',
+				)
 			)
 		);
 
