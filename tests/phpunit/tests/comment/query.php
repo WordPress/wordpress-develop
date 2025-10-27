@@ -5486,7 +5486,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( array( $comments['comment'], $comments['pingback'] ), $found );
-		$this->assertNotContains( $comments['note'], $found );      // Verify that 'note' doesn't appear twice in the query.
+		$this->assertNotContains( $comments['note'], $found );
 		$note_count = substr_count( $wpdb->last_query, "'note'" );
 		$this->assertSame( 1, $note_count, 'The note type should only appear once in the query' );
 	}
