@@ -120,7 +120,7 @@ if ( isset( $_GET['action'] ) ) {
 								if ( is_super_admin( $user->ID ) ) {
 									wp_die(
 										sprintf(
-										/* translators: %s: User login. */
+											/* translators: %s: User login. */
 											__( 'Warning! User cannot be modified. The user %s is a network administrator.' ),
 											esc_html( $user->user_login )
 										)
