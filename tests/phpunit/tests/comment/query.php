@@ -5419,7 +5419,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		$expected = array();
 		foreach ( $expected_indices as $index ) {
-			$expected[] = $comments[ $index ];
+			$keys       = array_keys( $comments );
+			$expected[] = $comments[ $keys[ $index ] ];
 		}
 
 		$this->assertSameSets( $expected, $found );
@@ -5486,8 +5487,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( array( $comments[0], $comments[1] ), $found );
-		$this->assertNotContains( $comments[2], $found );
+		$this->assertSameSets( array( $comments[ 'comment' ], $comments[ 'pingback' ] ), $found );
+		$this->assertNotContains( $comments[ 'note' ], $found );
 
 		// Verify that 'note' doesn't appear twice in the query.
 		$note_count = substr_count( $wpdb->last_query, "'note'" );
