@@ -5405,22 +5405,23 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers WP_Comment_Query::get_comment_ids
 	 * @dataProvider data_note_type_exclusion
 	 *
-	 * @param array<string, string|array> $query_args       Query arguments for WP_Comment_Query.
-	 * @param int[]                       $expected_indices Indices of expected comments in the $comments array.
+	 * @param array<string, string|array> $query_args     Query arguments for WP_Comment_Query.
+	 * @param string[]                    $expected_types Expected comment types.
 	 */
-	public function test_note_type_exclusion( array $query_args, array $expected_indices ) {
-		$comments = $this->create_note_type_test_comments();
+	public function test_note_type_exclusion( array $query_args, array $expected_types ) {
+		$this->create_note_type_test_comments();
 
 		$query = new WP_Comment_Query();
 		$found = $query->query( array_merge( $query_args, array( 'fields' => 'ids' ) ) );
 
-		$expected = array();
-		foreach ( $expected_indices as $index ) {
-			$keys       = array_keys( $comments );
-			$expected[] = $comments[ $keys[ $index ] ];
-		}
+		$actual_types = array_map(
+			static function ( int $comment_id ): string {
+				return get_comment( $comment_id )->comment_type;
+			},
+			$found
+		);
 
-		$this->assertSameSets( $expected, $found );
+		$this->assertSameSets( $expected_types, $actual_types, 'Expected comment query to return comments of the these types.' );
 	}
 
 	/**
@@ -5428,41 +5429,41 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 *
 	 * @since 6.9.0
 	 *
-	 * @return array<string, array{ query_args: array<string, string|array>, expected_indices: int[] }>
+	 * @return array<string, array{ query_args: array<string, string|array>, expected_types: string[] }>
 	 */
 	public function data_note_type_exclusion(): array {
 		return array(
 			'default query excludes note'        => array(
-				'query_args'       => array(),
-				'expected_indices' => array( 0, 1 ), // comment and pingback.
+				'query_args'     => array(),
+				'expected_types' => array( 'comment', 'pingback' ),
 			),
 			'empty type parameter excludes note' => array(
-				'query_args'       => array( 'type' => '' ),
-				'expected_indices' => array( 0, 1 ), // comment and pingback.
+				'query_args'     => array( 'type' => '' ),
+				'expected_types' => array( 'comment', 'pingback' ),
 			),
 			'type all includes note'             => array(
-				'query_args'       => array( 'type' => 'all' ),
-				'expected_indices' => array( 0, 1, 2 ), // comment, pingback, and note.
+				'query_args'     => array( 'type' => 'all' ),
+				'expected_types' => array( 'comment', 'pingback', 'note' ),
 			),
 			'explicit note type'                 => array(
-				'query_args'       => array( 'type' => 'note' ),
-				'expected_indices' => array( 2 ), // only note.
+				'query_args'     => array( 'type' => 'note' ),
+				'expected_types' => array( 'note' ),
 			),
 			'type__in with note'                 => array(
-				'query_args'       => array( 'type__in' => array( 'note' ) ),
-				'expected_indices' => array( 2 ), // only note.
+				'query_args'     => array( 'type__in' => array( 'note' ) ),
+				'expected_types' => array( 'note' ),
 			),
 			'type__in with note and pingback'    => array(
-				'query_args'       => array( 'type__in' => array( 'note', 'pingback' ) ),
-				'expected_indices' => array( 1, 2 ), // pingback and note.
+				'query_args'     => array( 'type__in' => array( 'note', 'pingback' ) ),
+				'expected_types' => array( 'note', 'pingback' ),
 			),
 			'type pings excludes note'           => array(
-				'query_args'       => array( 'type' => 'pings' ),
-				'expected_indices' => array( 1 ), // only pingback.
+				'query_args'     => array( 'type' => 'pings' ),
+				'expected_types' => array( 'pingback' ),
 			),
 			'type__not_in with note'             => array(
-				'query_args'       => array( 'type__not_in' => array( 'note' ) ),
-				'expected_indices' => array( 0, 1 ), // comment and pingback.
+				'query_args'     => array( 'type__not_in' => array( 'note' ) ),
+				'expected_types' => array( 'comment', 'pingback' ),
 			),
 		);
 	}
