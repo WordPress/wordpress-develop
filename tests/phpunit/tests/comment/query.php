@@ -5498,20 +5498,20 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	public function test_get_comment_count_excludes_note_type() {
 		$post_id = self::factory()->post->create();
 
-		$c1 = self::factory()->comment->create(
+		self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_approved' => '1',
 			)
 		);
-		$c2 = self::factory()->comment->create(
+		self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_approved' => '1',
 				'comment_type'     => 'note',
 			)
 		);
-		$c3 = self::factory()->comment->create(
+		self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_approved' => '0',
