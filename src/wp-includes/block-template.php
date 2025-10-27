@@ -168,16 +168,6 @@ function resolve_block_template( $template_type, $template_hierarchy, $fallback_
 	$specific_template = $object ? get_page_template_slug( $object ) : null;
 	$active_templates  = (array) get_option( 'active_templates', array() );
 
-	// Remove templates slugs that are deactivated, except if it's the specific
-	// template or index.
-	$slugs = array_filter(
-		$slugs,
-		function ( $slug ) use ( $specific_template, $active_templates ) {
-			$should_ignore = $slug === $specific_template || 'index' === $slug;
-			return $should_ignore || ( ! isset( $active_templates[ $slug ] ) || false !== $active_templates[ $slug ] );
-		}
-	);
-
 	// We expect one template for each slug. Use the active template if it is
 	// set and exists. Otherwise use the static template.
 	$templates       = array();

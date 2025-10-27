@@ -1358,8 +1358,6 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 					return $template;
 				}
 			}
-		} elseif ( false === $active_templates[ $slug ] ) {
-			return null;
 		}
 	}
 
