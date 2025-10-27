@@ -1600,8 +1600,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		$recreate_lock = WP_Upgrader::create_lock( 'lock', 1 );
 
-		$this->assertSame(
-			true,
+		$this->assertTrue(
 			$recreate_lock,
 			'The lock was not re-created as expected.'
 		);
