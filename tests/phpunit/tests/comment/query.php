@@ -20,14 +20,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 */
 	private $to_exclude;
 
-	/**
-	 * Test-specific posts created during individual tests that need cleanup.
-	 *
-	 * @since 6.9.0
-	 * @var int[]
-	 */
-	private $test_posts = array();
-
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 	}
@@ -5508,7 +5500,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 */
 	public function test_get_comment_count_excludes_note_type() {
 		$post_id            = self::factory()->post->create();
-		$this->test_posts[] = $post_id;
 
 		$c1 = self::factory()->comment->create(
 			array(
