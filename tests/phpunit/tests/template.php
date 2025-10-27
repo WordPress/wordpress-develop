@@ -985,7 +985,7 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{set_up?: Closure}>
+	 * @return array<string, array{set_up: Closure|null}>
 	 */
 	public function data_wp_hoist_late_printed_styles(): array {
 		return array(
