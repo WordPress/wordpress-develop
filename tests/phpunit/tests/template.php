@@ -969,6 +969,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	public function test_wp_load_classic_theme_block_styles_on_demand_in_classic_theme_without_block_styles_support(): void {
 		switch_theme( 'default' );
+		remove_theme_support( 'wp-block-styles' );
 
 		$this->assertFalse( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() to return false initially.' );
 		$this->assertFalse( wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() to return true' );
