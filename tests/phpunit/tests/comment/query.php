@@ -40,23 +40,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
-	public function tear_down() {
-		// Clean up test-specific comments.
-		foreach ( $this->test_comments as $comment_id ) {
-			wp_delete_comment( $comment_id, true );
-		}
-		$this->test_comments = array();
-
-		// Clean up test-specific posts.
-		foreach ( $this->test_posts as $post_id ) {
-			wp_delete_post( $post_id, true );
-		}
-		$this->test_posts = array();
-
-		unset( $this->to_exclude );
-		parent::tear_down();
-	}
-
 	/**
 	 * @covers WP_Comment_Query::query
 	 */
