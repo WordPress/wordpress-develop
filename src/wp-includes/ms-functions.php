@@ -559,7 +559,11 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
 			$wpdb->delete( $wpdb->signups, array( 'user_login' => $user_name ) );
 		} else {
-			$errors->add( 'user_name', __( 'That username is currently reserved but may be available in a couple of days.' ) );
+			// If the username has already been used for a signup on this site, disallow it.
+			$meta = maybe_unserialize( $signup->meta );
+			if ( $meta['add_to_blog'] === get_current_blog_id() ) {
+				$errors->add( 'user_name', __( 'That username is currently reserved but may be available in a couple of days.' ) );
+			}
 		}
 	}
 
@@ -570,7 +574,11 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
 			$wpdb->delete( $wpdb->signups, array( 'user_email' => $user_email ) );
 		} else {
-			$errors->add( 'user_email', __( 'That email address has already been used. Please check your inbox for an activation email. It will become available in a couple of days if you do nothing.' ) );
+			// If the email address has already been used for a signup on this site, disallow it.
+			$meta = maybe_unserialize( $signup->meta );
+			if ( $meta['add_to_blog'] === get_current_blog_id() ) {
+					$errors->add( 'user_email', __( 'That email address has already been used. Please check your inbox for an activation email. It will become available in a couple of days if you do nothing.' ) );
+			}
 		}
 	}
 
@@ -886,19 +894,43 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
 	 */
 	$meta = apply_filters( 'signup_user_meta', $meta, $user, $user_email, $key );
 
-	$wpdb->insert(
-		$wpdb->signups,
-		array(
-			'domain'         => '',
-			'path'           => '',
-			'title'          => '',
-			'user_login'     => $user,
-			'user_email'     => $user_email,
-			'registered'     => current_time( 'mysql', true ),
-			'activation_key' => $key,
-			'meta'           => serialize( $meta ),
-		)
-	);
+	$existing_signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_email = %s", $user_email ) );
+
+	if ( $existing_signup === null ) {
+			$wpdb->insert(
+				$wpdb->signups,
+				array(
+					'domain'         => '',
+					'path'           => '',
+					'title'          => '',
+					'user_login'     => $user,
+					'user_email'     => $user_email,
+					'registered'     => current_time( 'mysql', true ),
+					'activation_key' => $key,
+					'meta'           => serialize( $meta ),
+				)
+			);
+	} else {
+		// If there's already a signup for this email address,
+		// note if the user should be signed up for another site.
+		$diff = time() - mysql2date( 'U', $existing_signup->registered );
+
+		// If registered less than two days ago, add another signup for the user.
+		if ( $diff <= 2 * DAY_IN_SECONDS ) {
+					$new_signup_meta = maybe_unserialize( $existing_signup->meta );
+			if ( $new_signup_meta['add_to_blog'] != get_current_blog_id() ) {
+				if ( isset( $new_signup_meta['other_blogs'] ) ) {
+							$new_signup_meta['other_blogs'] = array();
+				}
+				$new_signup_meta['other_blogs'][] = maybe_unserialize( $meta );
+				$wpdb->update(
+					$wpdb->signups,
+					array( 'meta' => maybe_serialize( $new_signup_meta ) ),
+					array( 'signup_id' => $existing_signup->signup_id )
+				);
+			}
+		}
+	}
 
 	/**
 	 * Fires after a user's signup information has been written to the database.
@@ -2321,6 +2353,14 @@ function add_new_user_to_blog(
 
 		if ( ! is_wp_error( $result ) ) {
 			update_user_meta( $user_id, 'primary_blog', $blog_id );
+		}
+
+		if ( ! empty( $meta['other_blogs'] ) ) {
+			foreach ( $meta['other_blogs'] as $add_to_blog_info ) {
+				$blog_id = $add_to_blog_info['add_to_blog'];
+				$role    = $add_to_blog_info['new_role'];
+				add_user_to_blog( $blog_id, $user_id, $role );
+			}
 		}
 	}
 }
