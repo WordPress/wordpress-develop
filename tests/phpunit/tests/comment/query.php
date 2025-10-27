@@ -5376,7 +5376,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @return array Array of comments created (keys: 'comment', 'pingback', 'note').
 	 */
 	protected function create_note_type_test_comments(): array {
-		$comments = array(
+		return array(
 			'comment'  => self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => self::$post_id,
@@ -5398,8 +5398,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				)
 			),
 		);
-
-		return $comments;
 	}
 
 	/**
