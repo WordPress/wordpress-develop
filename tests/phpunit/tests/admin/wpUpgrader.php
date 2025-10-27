@@ -1604,7 +1604,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	public function test_create_lock_should_release_lock() {
 		global $wpdb;
 
-		WP_Upgrader::create_lock( 'lock' );
+		$this->assertTrue( WP_Upgrader::create_lock( 'lock' );
 
 		$this->assertTrue( update_option( 'lock.lock', time() - 2 ) );
 
