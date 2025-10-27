@@ -78,6 +78,11 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	protected $original_wp_styles;
 
+	/**
+	 * @var array|null
+	 */
+	protected $original_theme_features;
+
 	public function set_up() {
 		parent::set_up();
 		$this->original_default_mimetype = ini_get( 'default_mimetype' );
@@ -110,12 +115,16 @@ class Tests_Template extends WP_UnitTestCase {
 		$wp_styles                 = null;
 		wp_scripts();
 		wp_styles();
+
+		$this->original_theme_features = $GLOBALS['_wp_theme_features'];
 	}
 
 	public function tear_down() {
 		global $wp_scripts, $wp_styles;
 		$wp_scripts = $this->original_wp_scripts;
 		$wp_styles  = $this->original_wp_styles;
+
+		$GLOBALS['_wp_theme_features'] = $this->original_theme_features;
 
 		ini_set( 'default_mimetype', $this->original_default_mimetype );
 		unregister_post_type( 'cpt' );
@@ -930,12 +939,35 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that wp_load_classic_theme_block_styles_on_demand() adds the expected hooks for classic themes.
+	 * Tests that wp_load_classic_theme_block_styles_on_demand() adds the expected hooks for classic theme which supports block styles.
 	 *
 	 * @ticket 64099
+	 * @ticket 64150
 	 * @covers ::wp_load_classic_theme_block_styles_on_demand
 	 */
-	public function test_wp_load_classic_theme_block_styles_on_demand_in_classic_theme(): void {
+	public function test_wp_load_classic_theme_block_styles_on_demand_in_classic_theme_with_block_styles_support(): void {
+		switch_theme( 'default' );
+		add_theme_support( 'wp-block-styles' );
+
+		$this->assertFalse( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() to return false initially.' );
+		$this->assertFalse( wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() to return true' );
+		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expected wp_template_enhancement_output_buffer_started action to be added for classic themes.' );
+
+		wp_load_classic_theme_block_styles_on_demand();
+
+		$this->assertTrue( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() filters to return true because the theme does support wp-block-styles' );
+		$this->assertTrue( wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() to return true because the theme does support wp-block-styles' );
+		$this->assertNotFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expected wp_template_enhancement_output_buffer_started action to be added for classic themes.' );
+	}
+
+	/**
+	 * Tests that wp_load_classic_theme_block_styles_on_demand() adds the expected hooks for classic theme which does not support block styles.
+	 *
+	 * @ticket 64099
+	 * @ticket 64150
+	 * @covers ::wp_load_classic_theme_block_styles_on_demand
+	 */
+	public function test_wp_load_classic_theme_block_styles_on_demand_in_classic_theme_without_block_styles_support(): void {
 		switch_theme( 'default' );
 
 		$this->assertFalse( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() to return false initially.' );
@@ -944,8 +976,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 		wp_load_classic_theme_block_styles_on_demand();
 
-		$this->assertTrue( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() filters to return true' );
-		$this->assertTrue( wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() to return true' );
+		$this->assertFalse( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() filters to return false because the theme does not support wp-block-styles' );
+		$this->assertFalse( wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() to return false because the theme does not support wp-block-styles' );
 		$this->assertNotFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expected wp_template_enhancement_output_buffer_started action to be added for classic themes.' );
 	}
 

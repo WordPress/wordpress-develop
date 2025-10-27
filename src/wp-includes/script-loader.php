@@ -3593,13 +3593,21 @@ function wp_load_classic_theme_block_styles_on_demand() {
 	}
 
 	/*
-	 * Load separate block styles so that the large block-library stylesheet is not enqueued unconditionally,
-	 * and so that block-specific styles will only be enqueued when they are used on the page.
+	 * If the theme supports block styles, add filters to ensure they are loaded separately and on demand. Without this,
+	 * if a theme does not want or support block styles, then enabling these filters can result in undesired separate
+	 * block-specific styles being enqueued, though a theme may also be trying to nullify the wp-block-library
+	 * stylesheet.
 	 */
-	add_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
+	if ( current_theme_supports( 'wp-block-styles' ) ) {
+		/*
+		 * Load separate block styles so that the large block-library stylesheet is not enqueued unconditionally,
+		 * and so that block-specific styles will only be enqueued when they are used on the page.
+		 */
+		add_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
 
-	// Also ensure that block assets are loaded on demand (although the default value is from should_load_separate_core_block_assets).
-	add_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
+		// Also ensure that block assets are loaded on demand (although the default value is from should_load_separate_core_block_assets).
+		add_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
+	}
 
 	// Add hooks which require the presence of the output buffer. Ideally the above two filters could be added here, but they run too early.
 	add_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
