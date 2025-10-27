@@ -5499,7 +5499,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 * @covers ::get_comment_count
 	 */
 	public function test_get_comment_count_excludes_note_type() {
-		$post_id            = self::factory()->post->create();
+		$post_id = self::factory()->post->create();
 
 		$c1 = self::factory()->comment->create(
 			array(
