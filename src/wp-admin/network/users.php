@@ -98,8 +98,10 @@ if ( isset( $_GET['action'] ) ) {
 								 * @since 6.9.0
 								 *
 								 * @param bool $update_blog_status Whether to update the blog status. Default false.
+								 * @param int $user_id User ID
+								 * @param string $doaction The selected action to execute.
 								 */
-								if ( apply_filters( 'handle_network_allusers_update_blog_status', false, $user_id, $doaction ) ) {
+								if ( apply_filters( 'handle_network_spam_user_update_blog_status', false, $user_id, $doaction ) ) {
 									$blogs = get_blogs_of_user( $user_id, true );
 
 									foreach ( $blogs as $details ) {
@@ -130,11 +132,11 @@ if ( isset( $_GET['action'] ) ) {
 								$userfunction = 'all_notspam';
 
 								/** This filter is documented in wp-admin/network/users.php#L95 */
-								if ( apply_filters( 'handle_network_allusers_update_blog_status', false ) ) {
+								if ( apply_filters( 'handle_network_spam_user_update_blog_status', false, $user_id, $doaction ) ) {
 									$blogs = get_blogs_of_user( $user_id, true );
 
 									foreach ( $blogs as $details ) {
-										if ( ! is_main_site( $details->userblog_id ) && $details->site_id === get_current_network_id() ) { // Main site is never a spam and part of the current network. 
+										if ( ! is_main_site( $details->userblog_id ) && $details->site_id === get_current_network_id() ) { // Main site is never a spam and part of the current network.
 											update_blog_status( $details->userblog_id, 'spam', '0' );
 										}
 									}
