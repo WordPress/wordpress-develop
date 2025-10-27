@@ -350,6 +350,7 @@ function _unhook_block_registration() {
 	remove_action( 'init', '_register_block_bindings_pattern_overrides_source' );
 	remove_action( 'init', '_register_block_bindings_post_data_source' );
 	remove_action( 'init', '_register_block_bindings_post_meta_source' );
+	remove_action( 'init', '_register_block_bindings_term_data_source' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
 
@@ -363,3 +364,26 @@ function _unhook_font_registration() {
 	remove_action( 'init', '_wp_register_default_font_collections' );
 }
 tests_add_filter( 'init', '_unhook_font_registration', 1000 );
+
+/**
+ * Before the abilities API categories init action runs, unhook the core ability
+ * categories registration function to prevent core categories from being registered
+ * during tests.
+ *
+ * @since 6.9.0
+ */
+function _unhook_core_ability_categories_registration() {
+	remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+}
+tests_add_filter( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
+
+/**
+ * Before the abilities API init action runs, unhook the core abilities
+ * registration function to prevent core abilities from being registered during tests.
+ *
+ * @since 6.9.0
+ */
+function _unhook_core_abilities_registration() {
+	remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+}
+tests_add_filter( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
