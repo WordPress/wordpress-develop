@@ -37,11 +37,13 @@ If you are not using a package manager, see the [Node.js download page](https://
 
 **Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
 
-You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
+You will also need a container environment such as [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running on your computer. The container environment is the virtualization software that powers the local development environment and can be installed just like any other regular application.
+
+**Note:** WordPress currently only officially supports Docker but several container environments are available and should generally be compatible, such as [Colima](https://github.com/abiosoft/colima), [OrbStack](https://orbstack.dev/), [Podman Desktop](https://podman-desktop.io/), and [Rancher Desktop](https://rancherdesktop.io/).
 
 ### Development Environment Commands
 
-Ensure [Docker](https://www.docker.com/products/docker-desktop) is running before using these commands.
+Ensure your container environment is running before using these commands.
 
 #### To start the development environment for the first time
 
@@ -97,7 +99,7 @@ npm run test:php -- --group <group name or ticket number>
 #### Generating a code coverage report
 PHP code coverage reports are [generated daily](https://github.com/WordPress/wordpress-develop/actions/workflows/test-coverage.yml) and [submitted to Codecov.io](https://app.codecov.io/gh/WordPress/wordpress-develop).
 
-After the local Docker environment has [been installed and started](#to-start-the-development-environment-for-the-first-time), the following command can be used to generate a code coverage report. 
+After the local container environment has [been installed and started](#to-start-the-development-environment-for-the-first-time), the following command can be used to generate a code coverage report. 
 
 ```
 npm run test:coverage
@@ -133,7 +135,7 @@ npm run env:start
 
 #### Resetting the development environment
 
-The development environment can be reset. This will destroy the database and attempt to remove the pulled Docker images.
+The development environment can be reset. This will destroy the database and attempt to remove the pulled container images.
 
 ```
 npm run env:reset
@@ -141,7 +143,7 @@ npm run env:reset
 
 ### Apple Silicon machines and old MySQL/MariaDB versions
 
-Older MySQL and MariaDB Docker images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
+Older MySQL and MariaDB container images do not support Apple Silicon processors (M1, M2, etc.). This is true for:
 
 - MySQL versions 5.7 and earlier
 - MariaDB 5.5
@@ -155,7 +157,7 @@ services:
     platform: linux/amd64
 ```
 
-Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in Docker needs to be disabled for this workaround.
+Additionally, the "Use Rosetta for x86/AMD64 emulation on Apple Silicon" setting in your container environment (if applicable) needs to be disabled for this workaround.
 
 ## Credentials
 

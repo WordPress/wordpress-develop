@@ -70,6 +70,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * prepares for WP_Query.
 	 *
 	 * @since 4.7.0
+	 * @since 6.9.0 Extends the `media_type` and `mime_type` request arguments to support array values.
 	 *
 	 * @param array           $prepared_args Optional. Array of prepared arguments. Default empty array.
 	 * @param WP_REST_Request $request       Optional. Request to prepare items for.
@@ -82,17 +83,28 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$query_args['post_status'] = 'inherit';
 		}
 
-		$media_types = $this->get_media_types();
+		$all_mime_types = array();
+		$media_types    = $this->get_media_types();
 
-		if ( ! empty( $request['media_type'] ) && isset( $media_types[ $request['media_type'] ] ) ) {
-			$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
+		if ( ! empty( $request['media_type'] ) && is_array( $request['media_type'] ) ) {
+			foreach ( $request['media_type'] as $type ) {
+				if ( isset( $media_types[ $type ] ) ) {
+					$all_mime_types = array_merge( $all_mime_types, $media_types[ $type ] );
+				}
+			}
 		}
 
-		if ( ! empty( $request['mime_type'] ) ) {
-			$parts = explode( '/', $request['mime_type'] );
-			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ], true ) ) {
-				$query_args['post_mime_type'] = $request['mime_type'];
+		if ( ! empty( $request['mime_type'] ) && is_array( $request['mime_type'] ) ) {
+			foreach ( $request['mime_type'] as $mime_type ) {
+				$parts = explode( '/', $mime_type );
+				if ( isset( $media_types[ $parts[0] ] ) && in_array( $mime_type, $media_types[ $parts[0] ], true ) ) {
+					$all_mime_types[] = $mime_type;
+				}
 			}
+		}
+
+		if ( ! empty( $all_mime_types ) ) {
+			$query_args['post_mime_type'] = array_values( array_unique( $all_mime_types ) );
 		}
 
 		// Filter query clauses to include filenames.
@@ -543,6 +555,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Applies edits to a media item and creates a new attachment record.
 	 *
 	 * @since 5.5.0
+	 * @since 6.9.0 Adds flips capability and editable fields for the newly-created attachment post.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
@@ -583,6 +596,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$modifiers = $request['modifiers'];
 		} else {
 			$modifiers = array();
+
+			if ( isset( $request['flip']['horizontal'] ) || isset( $request['flip']['vertical'] ) ) {
+				$flip_args = array(
+					'vertical'   => isset( $request['flip']['vertical'] ) ? (bool) $request['flip']['vertical'] : false,
+					'horizontal' => isset( $request['flip']['horizontal'] ) ? (bool) $request['flip']['horizontal'] : false,
+				);
+
+				$modifiers[] = array(
+					'type' => 'flip',
+					'args' => array(
+						'flip' => $flip_args,
+					),
+				);
+			}
 
 			if ( ! empty( $request['rotation'] ) ) {
 				$modifiers[] = array(
@@ -637,6 +664,21 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		foreach ( $modifiers as $modifier ) {
 			$args = $modifier['args'];
 			switch ( $modifier['type'] ) {
+				case 'flip':
+					/*
+					 * Flips the current image.
+					 * The vertical flip is the first argument (flip along horizontal axis), the horizontal flip is the second argument (flip along vertical axis).
+					 * See: WP_Image_Editor::flip()
+					 */
+					$result = $image_editor->flip( $args['flip']['vertical'], $args['flip']['horizontal'] );
+					if ( is_wp_error( $result ) ) {
+						return new WP_Error(
+							'rest_image_flip_failed',
+							__( 'Unable to flip this image.' ),
+							array( 'status' => 500 )
+						);
+					}
+					break;
 				case 'rotate':
 					// Rotation direction: clockwise vs. counterclockwise.
 					$rotate = 0 - $args['angle'];
@@ -711,24 +753,31 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $saved;
 		}
 
-		// Create new attachment post.
-		$new_attachment_post = array(
-			'post_mime_type' => $saved['mime-type'],
-			'guid'           => $uploads['url'] . "/$filename",
-			'post_title'     => $image_name,
-			'post_content'   => '',
-		);
+		// Grab original attachment post so we can use it to set defaults.
+		$original_attachment_post = get_post( $attachment_id );
 
-		// Copy post_content, post_excerpt, and post_title from the edited image's attachment post.
-		$attachment_post = get_post( $attachment_id );
+		// Check request fields and assign default values.
+		$new_attachment_post                 = $this->prepare_item_for_database( $request );
+		$new_attachment_post->post_mime_type = $saved['mime-type'];
+		$new_attachment_post->guid           = $uploads['url'] . "/$filename";
 
-		if ( $attachment_post ) {
-			$new_attachment_post['post_content'] = $attachment_post->post_content;
-			$new_attachment_post['post_excerpt'] = $attachment_post->post_excerpt;
-			$new_attachment_post['post_title']   = $attachment_post->post_title;
-		}
+		// Unset ID so wp_insert_attachment generates a new ID.
+		unset( $new_attachment_post->ID );
 
-		$new_attachment_id = wp_insert_attachment( wp_slash( $new_attachment_post ), $saved['path'], 0, true );
+		// Set new attachment post title with fallbacks.
+		$new_attachment_post->post_title = $new_attachment_post->post_title ?? $original_attachment_post->post_title ?? $image_name;
+
+		// Set new attachment post caption (post_excerpt).
+		$new_attachment_post->post_excerpt = $new_attachment_post->post_excerpt ?? $original_attachment_post->post_excerpt ?? '';
+
+		// Set new attachment post description (post_content) with fallbacks.
+		$new_attachment_post->post_content = $new_attachment_post->post_content ?? $original_attachment_post->post_content ?? '';
+
+		// Set post parent if set in request, else the default of `0` (no parent).
+		$new_attachment_post->post_parent = $new_attachment_post->post_parent ?? 0;
+
+		// Insert the new attachment post.
+		$new_attachment_id = wp_insert_attachment( wp_slash( (array) $new_attachment_post ), $saved['path'], 0, true );
 
 		if ( is_wp_error( $new_attachment_id ) ) {
 			if ( 'db_update_error' === $new_attachment_id->get_error_code() ) {
@@ -740,8 +789,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $new_attachment_id;
 		}
 
-		// Copy the image alt text from the edited image.
-		$image_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+		// First, try to use the alt text from the request. If not set, copy the image alt text from the original attachment.
+		$image_alt = isset( $request['alt_text'] ) ? sanitize_text_field( $request['alt_text'] ) : get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
 
 		if ( ! empty( $image_alt ) ) {
 			// update_post_meta() expects slashed.
@@ -968,6 +1017,33 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * @param WP_REST_Request  $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_attachment', $response, $post, $request );
+	}
+
+	/**
+	 * Prepares attachment links for the request.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_Post $post Post object.
+	 * @return array Links for the given attachment.
+	 */
+	protected function prepare_links( $post ) {
+		$links = parent::prepare_links( $post );
+
+		if ( ! empty( $post->post_parent ) ) {
+			$post = get_post( $post->post_parent );
+
+			if ( ! empty( $post ) ) {
+				$links['https://api.w.org/attached-to'] = array(
+					'href'       => rest_url( rest_get_route_for_post( $post ) ),
+					'embeddable' => true,
+					'post_type'  => $post->post_type,
+					'id'         => $post->ID,
+				);
+			}
+		}
+
+		return $links;
 	}
 
 	/**
@@ -1278,6 +1354,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Retrieves the query params for collections of attachments.
 	 *
 	 * @since 4.7.0
+	 * @since 6.9.0 Extends the `media_type` and `mime_type` request arguments to support array values.
 	 *
 	 * @return array Query parameters for the attachment collection as an array.
 	 */
@@ -1285,19 +1362,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$params                            = parent::get_collection_params();
 		$params['status']['default']       = 'inherit';
 		$params['status']['items']['enum'] = array( 'inherit', 'private', 'trash' );
-		$media_types                       = $this->get_media_types();
+		$media_types                       = array_keys( $this->get_media_types() );
 
 		$params['media_type'] = array(
 			'default'     => null,
-			'description' => __( 'Limit result set to attachments of a particular media type.' ),
-			'type'        => 'string',
-			'enum'        => array_keys( $media_types ),
+			'description' => __( 'Limit result set to attachments of a particular media type or media types.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'type' => 'string',
+				'enum' => $media_types,
+			),
 		);
 
 		$params['mime_type'] = array(
 			'default'     => null,
-			'description' => __( 'Limit result set to attachments of a particular MIME type.' ),
-			'type'        => 'string',
+			'description' => __( 'Limit result set to attachments of a particular MIME type or MIME types.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'type' => 'string',
+			),
 		);
 
 		return $params;
@@ -1453,17 +1536,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Gets the request args for the edit item route.
 	 *
 	 * @since 5.5.0
+	 * @since 6.9.0 Adds flips capability and editable fields for the newly-created attachment post.
 	 *
 	 * @return array
 	 */
 	protected function get_edit_media_item_args() {
-		return array(
+		$args = array(
 			'src'       => array(
 				'description' => __( 'URL to the edited image file.' ),
 				'type'        => 'string',
 				'format'      => 'uri',
 				'required'    => true,
 			),
+			// The `modifiers` param takes precedence over the older format.
 			'modifiers' => array(
 				'description' => __( 'Array of image edits.' ),
 				'type'        => 'array',
@@ -1476,6 +1561,43 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						'args',
 					),
 					'oneOf'       => array(
+						array(
+							'title'      => __( 'Flip' ),
+							'properties' => array(
+								'type' => array(
+									'description' => __( 'Flip type.' ),
+									'type'        => 'string',
+									'enum'        => array( 'flip' ),
+								),
+								'args' => array(
+									'description' => __( 'Flip arguments.' ),
+									'type'        => 'object',
+									'required'    => array(
+										'flip',
+									),
+									'properties'  => array(
+										'flip' => array(
+											'description' => __( 'Flip direction.' ),
+											'type'        => 'object',
+											'required'    => array(
+												'horizontal',
+												'vertical',
+											),
+											'properties'  => array(
+												'horizontal' => array(
+													'description' => __( 'Whether to flip in the horizontal direction.' ),
+													'type' => 'boolean',
+												),
+												'vertical' => array(
+													'description' => __( 'Whether to flip in the vertical direction.' ),
+													'type' => 'boolean',
+												),
+											),
+										),
+									),
+								),
+							),
+						),
 						array(
 							'title'      => __( 'Rotation' ),
 							'properties' => array(
@@ -1573,5 +1695,33 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'maximum'     => 100,
 			),
 		);
+
+		/*
+		 * Get the args based on the post schema. This calls `rest_get_endpoint_args_for_schema()`,
+		 * which also takes care of sanitization and validation.
+		 */
+		$update_item_args = $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE );
+
+		if ( isset( $update_item_args['caption'] ) ) {
+			$args['caption'] = $update_item_args['caption'];
+		}
+
+		if ( isset( $update_item_args['description'] ) ) {
+			$args['description'] = $update_item_args['description'];
+		}
+
+		if ( isset( $update_item_args['title'] ) ) {
+			$args['title'] = $update_item_args['title'];
+		}
+
+		if ( isset( $update_item_args['post'] ) ) {
+			$args['post'] = $update_item_args['post'];
+		}
+
+		if ( isset( $update_item_args['alt_text'] ) ) {
+			$args['alt_text'] = $update_item_args['alt_text'];
+		}
+
+		return $args;
 	}
 }

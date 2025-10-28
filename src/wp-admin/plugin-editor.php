@@ -93,9 +93,11 @@ $edit_error     = null;
 $posted_content = null;
 
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
-	$r = wp_edit_theme_plugin_file( wp_unslash( $_POST ) );
-	if ( is_wp_error( $r ) ) {
-		$edit_error = $r;
+	$edit_result = wp_edit_theme_plugin_file( wp_unslash( $_POST ) );
+
+	if ( is_wp_error( $edit_result ) ) {
+		$edit_error = $edit_result;
+
 		if ( check_ajax_referer( 'edit-plugin_' . $file, 'nonce', false ) && isset( $_POST['newcontent'] ) ) {
 			$posted_content = wp_unslash( $_POST['newcontent'] );
 		}
@@ -122,9 +124,10 @@ if ( ! is_file( $real_file ) ) {
 } else {
 	// Get the extension of the file.
 	if ( preg_match( '/\.([^.]+)$/', $real_file, $matches ) ) {
-		$ext = strtolower( $matches[1] );
+		$extension = strtolower( $matches[1] );
+
 		// If extension is not in the acceptable list, skip it.
-		if ( ! in_array( $ext, $editable_extensions, true ) ) {
+		if ( ! in_array( $extension, $editable_extensions, true ) ) {
 			wp_die( sprintf( '<p>%s</p>', __( 'Files of this type are not editable.' ) ) );
 		}
 	}
@@ -160,7 +163,7 @@ $settings = array(
 	'codeEditor' => wp_enqueue_code_editor( array( 'file' => $real_file ) ),
 );
 wp_enqueue_script( 'wp-theme-plugin-editor' );
-wp_add_inline_script( 'wp-theme-plugin-editor', sprintf( 'jQuery( function( $ ) { wp.themePluginEditor.init( $( "#template" ), %s ); } )', wp_json_encode( $settings ) ) );
+wp_add_inline_script( 'wp-theme-plugin-editor', sprintf( 'jQuery( function( $ ) { wp.themePluginEditor.init( $( "#template" ), %s ); } )', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) );
 wp_add_inline_script( 'wp-theme-plugin-editor', sprintf( 'wp.themePluginEditor.themeOrPlugin = "plugin";' ) );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
@@ -288,6 +291,7 @@ printf(
 		<ul role="group">
 			<?php wp_print_plugin_file_tree( wp_make_plugin_file_tree( $plugin_editable_files ) ); ?>
 		</ul>
+	</li>
 	</ul>
 </div>
 
