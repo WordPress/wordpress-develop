@@ -24,6 +24,11 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
+	public function tear_down() {
+		unset( $this->to_exclude );
+		parent::tear_down();
+	}
+
 	/**
 	 * @covers WP_Comment_Query::query
 	 */
