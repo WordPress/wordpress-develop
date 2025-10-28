@@ -131,7 +131,7 @@ if ( isset( $_GET['action'] ) ) {
 								$userfunction = 'all_notspam';
 
 								/** This filter is documented in wp-admin/network/users.php#L95 */
-								if ( apply_filters( 'handle_network_spam_user_update_blog_status', false, $user_id, $doaction ) ) {
+								if ( apply_filters( 'network_user_spam_propagate_to_blogs', false, $user_id ) ) {
 									$blogs = get_blogs_of_user( $user_id, true );
 
 									foreach ( $blogs as $details ) {
