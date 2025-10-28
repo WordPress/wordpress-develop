@@ -22,9 +22,9 @@ on:
       php-versions:
         description: "The PHP versions to test for the given wp-version"
         value: ${{ jobs.php-versions.outputs.versions }}
-      mysql-versions:
+      db-images:
         description: "The MySQL versions to test for the given wp-version"
-        value: ${{ jobs.mysql-versions.outputs.versions }}
+        value: ${{ jobs.db-images.outputs.versions }}
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -111,21 +111,21 @@ jobs:
         env:
           WP_VERSION: ${{ needs.major-wp-version.outputs.version }}
 
-  # Determines the versions of MySQL supported for a version of WordPress.
+  # Determines the names of database images for MariaDB and MySQL that are supported for a version of WordPress.
   #
   # Performs the following steps:
   # - Checks out the repository
-  # - Returns the versions of MySQL supported for the major version of WordPress by parsing the
-  #   .version-support-mysql.json file and returning the values in that version's index.
-  mysql-versions:
-    name: Determine MySQL versions
+  # - Returns the database image names of MariaDB and MySQL supported for the major version of WordPress by parsing the
+  #   .version-support-mysql.json file and returning the values in that version's index as image names.
+  db-images:
+    name: Determine database images
     permissions:
       contents: read
     runs-on: ubuntu-24.04
     needs: [ major-wp-version ]
     timeout-minutes: 5
     outputs:
-      versions: ${{ steps.mysql-versions.outputs.versions }}
+      versions: ${{ steps.db-images.outputs.versions }}
 
     steps:
       - name: Checkout repository
@@ -135,10 +135,10 @@ jobs:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
-      # Look up the major version's specific MySQL support policy when a version is provided.
-      # Otherwise, use the current MySQL support policy.
-      - name: Get supported MySQL versions
-        id: mysql-versions
+      # Look up the major version's specific MariaDB and MySQL support policy when a version is provided.
+      # Otherwise, use the current MariaDB and MySQL support policy.
+      - name: Get supported database images
+        id: db-images
         run: |
           if [ "${WP_VERSION}" != "latest" ] && [ "${WP_VERSION}" != "nightly" ]; then
             VERSIONS="$( jq \
@@ -151,7 +151,7 @@ jobs:
               end | @json' \
               .version-support-mysql.json
             )"
-            echo "versions=$VERSIONS" >> "$GITHUB_OUTPUT"
+            echo "images=$VERSIONS" >> "$GITHUB_OUTPUT"
           else
             VERSIONS="$( jq \
               -r \
@@ -162,7 +162,7 @@ jobs:
               end | @json' \
               .version-support-mysql.json
             )"
-            echo "versions=$VERSIONS" >> "$GITHUB_OUTPUT"
+            echo "images=$VERSIONS" >> "$GITHUB_OUTPUT"
           fi
         env:
           WP_VERSION: ${{ needs.major-wp-version.outputs.version }}
