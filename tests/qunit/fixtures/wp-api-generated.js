@@ -15557,7 +15557,7 @@ mockedApiResponse.settings = {
     "page_for_posts": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
-    "active_templates": null,
+    "active_templates": [],
     "site_logo": null,
     "site_icon": 0
 };
