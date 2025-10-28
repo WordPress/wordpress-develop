@@ -220,48 +220,6 @@ jobs:
           # Each PHP version is tested against one version of MariaDB.
           # Each MariaDB version is tested at least once.
           - event: pull_request
-            php: '7.2'
-            db-version: '10.3'
-          - event: pull_request
-            php: '7.2'
-            db-version: '10.4'
-          - event: pull_request
-            php: '7.2'
-            db-version: '10.5'
-          - event: pull_request
-            php: '7.2'
-            db-version: '10.6'
-          - event: pull_request
-            php: '7.2'
-            db-version: '10.11'
-          - event: pull_request
-            php: '7.2'
-            db-version: '11.4'
-          - event: pull_request
-            php: '7.2'
-            db-version: '11.8'
-          - event: pull_request
-            php: '7.3'
-            db-version: '5.5'
-          - event: pull_request
-            php: '7.3'
-            db-version: '10.4'
-          - event: pull_request
-            php: '7.3'
-            db-version: '10.5'
-          - event: pull_request
-            php: '7.3'
-            db-version: '10.6'
-          - event: pull_request
-            php: '7.3'
-            db-version: '10.11'
-          - event: pull_request
-            php: '7.3'
-            db-version: '11.4'
-          - event: pull_request
-            php: '7.3'
-            db-version: '11.8'
-          - event: pull_request
             php: '7.4'
             db-version: '5.5'
           - event: pull_request
