@@ -93,7 +93,7 @@ if ( isset( $_GET['action'] ) ) {
 								$userfunction = 'all_spam';
 
 								/**
-								 * Filters whether the blog status for all of a user's blogs should be updated.
+								 * Filters whether to propagate the blog status when a user is marked as spam.
 								 *
 								 * @since 6.9.0
 								 *
