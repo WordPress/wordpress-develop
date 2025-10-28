@@ -515,7 +515,7 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 		<div class="nav-links">
 		<?php if ( $prev_link ) : ?>
 			<div class="nav-previous">
-				<?php echo wp_kses_post( $prev_link ); ?>
+				<?php echo $prev_link; ?>
 			</div>
 			<?php
 		endif;
@@ -523,7 +523,7 @@ if ( ! function_exists( 'twentythirteen_paging_nav' ) ) :
 		if ( $next_link ) :
 			?>
 			<div class="nav-next">
-				<?php echo wp_kses_post( $next_link ); ?>
+				<?php echo $next_link; ?>
 			</div>
 		<?php endif; ?>
 
