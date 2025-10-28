@@ -2297,9 +2297,7 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
 	foreach ( $features as $feature ) {
 		if ( $args ) {
 			// Check if feature already exists with args and if both are associative arrays that should be merged.
-			if ( isset( $_wp_post_type_features[ $post_type ][ $feature ] )
-				&& is_array( $_wp_post_type_features[ $post_type ][ $feature ] )
-				&& isset( $_wp_post_type_features[ $post_type ][ $feature ][0] )
+			if ( isset( $_wp_post_type_features[ $post_type ][ $feature ][0] )
 				&& is_array( $_wp_post_type_features[ $post_type ][ $feature ][0] )
 				&& isset( $args[0] )
 				&& is_array( $args[0] ) ) {
