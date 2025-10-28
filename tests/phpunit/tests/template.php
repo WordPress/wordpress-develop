@@ -1037,8 +1037,8 @@ class Tests_Template extends WP_UnitTestCase {
 
 		switch_theme( 'default' );
 
-		// Enqueue a style
-		wp_enqueue_style( 'early', 'http://example.com/style.css' );
+		// Enqueue a style.
+		wp_enqueue_style( 'early', 'https://example.com/style.css' );
 		wp_add_inline_style( 'early', '/* EARLY */' );
 
 		wp_hoist_late_printed_styles();
@@ -1053,8 +1053,8 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'early', $head_output, 'Expected the early-enqueued stylesheet to be present.' );
 
 		// Enqueue a late style (after wp_head).
-		wp_enqueue_style( 'late', 'http://example.com/late-style.css', array(), null );
-		wp_add_inline_style( 'late', '/* EARLY */' );
+		wp_enqueue_style( 'late', 'https://example.com/late-style.css', array(), null );
+		wp_add_inline_style( 'late', '/* LATE */' );
 
 		// Simulate footer scripts.
 		$footer_output = get_echo( 'wp_footer' );
