@@ -23,8 +23,8 @@ on:
         description: "The PHP versions to test for the given wp-version"
         value: ${{ jobs.php-versions.outputs.versions }}
       db-images:
-        description: "The MySQL versions to test for the given wp-version"
-        value: ${{ jobs.db-images.outputs.versions }}
+        description: "The MariaDB and MySQL images to test for the given wp-version"
+        value: ${{ jobs.db-images.outputs.images }}
 
 # Disable permissions for all available scopes by default.
 # Any needed permissions should be configured at the job level.
@@ -125,7 +125,7 @@ jobs:
     needs: [ major-wp-version ]
     timeout-minutes: 5
     outputs:
-      versions: ${{ steps.db-images.outputs.versions }}
+      images: ${{ steps.db-images.outputs.images }}
 
     steps:
       - name: Checkout repository
