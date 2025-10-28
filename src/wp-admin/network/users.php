@@ -97,9 +97,8 @@ if ( isset( $_GET['action'] ) ) {
 								 *
 								 * @since 6.9.0
 								 *
-								 * @param bool $update_blog_status Whether to update the blog status. Default false.
-								 * @param int $user_id User ID
-								 * @param string $doaction The selected action to execute.
+								 * @param bool $propagate Whether to propagate the blog status. Default false.
+								 * @param int  $user_id   User ID.
 								 */
 								if ( apply_filters( 'handle_network_spam_user_update_blog_status', false, $user_id, $doaction ) ) {
 									$blogs = get_blogs_of_user( $user_id, true );
