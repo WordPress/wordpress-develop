@@ -84,18 +84,6 @@ jobs:
             # Trim the matrix on Pull Requests to reduce the number of concurrent jobs.
             # Each PHP version is tested againgst one version of MySQL.
             - event: pull_request
-              php: '7.2'
-              db-version: '8.0'
-            - event: pull_request
-              php: '7.2'
-              db-version: '8.4'
-            - event: pull_request
-              php: '7.3'
-              db-version: '5.7'
-            - event: pull_request
-              php: '7.3'
-              db-version: '8.4'
-            - event: pull_request
               php: '7.4'
               db-version: '5.7'
             - event: pull_request
@@ -429,8 +417,6 @@ jobs:
             db-version: '12.0'
           # On Pull requests, only test each innovation release once.
           - event: pull_request
-            php: '7.3'
-          - event: pull_request
             php: '7.4'
           - event: pull_request
             php: '8.0'
@@ -503,7 +489,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '7.2', '8.4' ]
+        php: [ '7.4', '8.4' ]
         db-version: [ '8.4', '11.8' ]
         db-type: [ 'mysql', 'mariadb' ]
         multisite: [ false ]
