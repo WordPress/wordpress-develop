@@ -1271,6 +1271,22 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
+		// Embedding children for notes requires `type` and `status` inheritance.
+		if ( isset( $links['children'] ) && 'note' === $comment->comment_type ) {
+			$args = array(
+				'parent' => $comment->comment_ID,
+				'type'   => $comment->comment_type,
+				'status' => 'all',
+			);
+
+			$rest_url = add_query_arg( $args, rest_url( $this->namespace . '/' . $this->rest_base ) );
+
+			$links['children'] = array(
+				'href'       => $rest_url,
+				'embeddable' => true,
+			);
+		}
+
 		return $links;
 	}
 
