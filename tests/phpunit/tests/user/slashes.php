@@ -154,7 +154,7 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 				'nickname'     => self::SLASH_5,
 				'display_name' => self::SLASH_7,
 				'description'  => self::SLASH_3,
-				'user_pass'    => '',
+				'user_pass'    => 'password',
 			)
 		);
 		$user    = get_user_to_edit( $user_id );
@@ -175,7 +175,7 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 				'nickname'     => self::SLASH_6,
 				'display_name' => self::SLASH_2,
 				'description'  => self::SLASH_4,
-				'user_pass'    => '',
+				'user_pass'    => 'password',
 			)
 		);
 		$user    = get_user_to_edit( $user_id );

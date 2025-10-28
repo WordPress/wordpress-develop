@@ -24,6 +24,8 @@ on:
       - '**.php'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/webpack/**'
@@ -54,15 +56,17 @@ env:
 jobs:
   # Runs the end-to-end test suite.
   e2e-tests:
-    name: Test with SCRIPT_DEBUG ${{ matrix.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
+    name: ${{ matrix.label }}
     uses: ./.github/workflows/reusable-end-to-end-tests.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:
         LOCAL_SCRIPT_DEBUG: [ true, false ]
+        # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
+        label: [ 'E2E Tests' ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
 
