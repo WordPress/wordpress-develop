@@ -76,13 +76,21 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 		self::$is_trash   = new ReflectionProperty( self::$list_table, 'is_trash' );
 		self::$detached   = new ReflectionProperty( self::$list_table, 'detached' );
 
-		self::$is_trash->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$is_trash->setAccessible( true );
+		}
 		self::$is_trash_original = self::$is_trash->getValue( self::$list_table );
-		self::$is_trash->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$is_trash->setAccessible( false );
+		}
 
-		self::$detached->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$detached->setAccessible( true );
+		}
 		self::$detached_original = self::$detached->getValue( self::$list_table );
-		self::$detached->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$detached->setAccessible( false );
+		}
 
 		// Create users.
 		self::$admin      = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -181,9 +189,13 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 		}
 
 		$_get_row_actions = new ReflectionMethod( self::$list_table, '_get_row_actions' );
-		$_get_row_actions->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( true );
+		}
 		$actions = $_get_row_actions->invoke( self::$list_table, self::$post, 'att_title' );
-		$_get_row_actions->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( false );
+		}
 
 		$this->assertIsArray( $actions, 'An array was not returned.' );
 		$this->assertArrayHasKey( $action, $actions, "'$action' was not included in the actions." );
@@ -262,9 +274,13 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 		}
 
 		$_get_row_actions = new ReflectionMethod( self::$list_table, '_get_row_actions' );
-		$_get_row_actions->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( true );
+		}
 		$actions = $_get_row_actions->invoke( self::$list_table, self::$post, 'att_title' );
-		$_get_row_actions->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( false );
+		}
 
 		$this->assertIsArray( $actions, 'An array was not returned.' );
 		$this->assertArrayNotHasKey( $action, $actions, "'$action' was included in the actions." );
@@ -355,9 +371,13 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 		add_filter( 'post_link', '__return_false', 10, 0 );
 
 		$_get_row_actions = new ReflectionMethod( self::$list_table, '_get_row_actions' );
-		$_get_row_actions->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( true );
+		}
 		$actions = $_get_row_actions->invoke( self::$list_table, self::$post, 'att_title' );
-		$_get_row_actions->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( false );
+		}
 
 		$this->assertIsArray( $actions, 'An array was not returned.' );
 		$this->assertArrayNotHasKey( 'view', $actions, '"view" was included in the actions.' );
@@ -374,9 +394,13 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 		self::set_is_trash( false );
 
 		$_get_row_actions = new ReflectionMethod( self::$list_table, '_get_row_actions' );
-		$_get_row_actions->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( true );
+		}
 		$actions = $_get_row_actions->invoke( self::$list_table, self::$attachment, 'att_title' );
-		$_get_row_actions->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( false );
+		}
 
 		$this->assertIsArray( $actions, 'An array was not returned.' );
 		$this->assertArrayHasKey( 'copy', $actions, '"copy" was not included in the actions.' );
@@ -397,9 +421,13 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 		add_filter( 'wp_get_attachment_url', '__return_false', 10, 0 );
 
 		$_get_row_actions = new ReflectionMethod( self::$list_table, '_get_row_actions' );
-		$_get_row_actions->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( true );
+		}
 		$actions = $_get_row_actions->invoke( self::$list_table, self::$attachment, 'att_title' );
-		$_get_row_actions->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( false );
+		}
 
 		$this->assertIsArray( $actions, 'An array was not returned.' );
 		$this->assertArrayNotHasKey( 'copy', $actions, '"copy" was included in the actions.' );
@@ -414,9 +442,13 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 */
 	public function test_get_row_actions_should_include_download() {
 		$_get_row_actions = new ReflectionMethod( self::$list_table, '_get_row_actions' );
-		$_get_row_actions->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( true );
+		}
 		$actions = $_get_row_actions->invoke( self::$list_table, self::$attachment, 'att_title' );
-		$_get_row_actions->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( false );
+		}
 
 		$this->assertIsArray( $actions, 'An array was not returned.' );
 		$this->assertArrayHasKey( 'download', $actions, '"download" was not included in the actions.' );
@@ -435,9 +467,13 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 		add_filter( 'wp_get_attachment_url', '__return_false', 10, 0 );
 
 		$_get_row_actions = new ReflectionMethod( self::$list_table, '_get_row_actions' );
-		$_get_row_actions->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( true );
+		}
 		$actions = $_get_row_actions->invoke( self::$list_table, self::$attachment, 'att_title' );
-		$_get_row_actions->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$_get_row_actions->setAccessible( false );
+		}
 
 		$this->assertIsArray( $actions, 'An array was not returned.' );
 		$this->assertArrayNotHasKey( 'download', $actions, '"download" was included in the actions.' );
@@ -451,9 +487,13 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * @param bool $is_trash Whether the attachment filter is currently 'trash'.
 	 */
 	private static function set_is_trash( $is_trash ) {
-		self::$is_trash->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$is_trash->setAccessible( true );
+		}
 		self::$is_trash->setValue( self::$list_table, $is_trash );
-		self::$is_trash->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$is_trash->setAccessible( false );
+		}
 	}
 
 	/**
@@ -464,8 +504,12 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * @param bool $detached Whether the attachment filter is currently 'detached'.
 	 */
 	private static function set_detached( $detached ) {
-		self::$detached->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$detached->setAccessible( true );
+		}
 		self::$detached->setValue( self::$list_table, $detached );
-		self::$detached->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$detached->setAccessible( false );
+		}
 	}
 }
