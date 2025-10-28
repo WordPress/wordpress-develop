@@ -276,9 +276,12 @@ function switchUploader( s ) {
 
 		if ( typeof( uploader ) == 'object' )
 			uploader.refresh();
+		
+		jQuery( '#plupload-browse-button' ).trigger( 'focus' );
 	} else {
 		setUserSetting( 'uploader', '1' ); // 1 == html uploader.
 		jQuery( '.media-upload-form' ).addClass( 'html-uploader' );
+		jQuery( '#async-upload' ).trigger( 'focus' );
 	}
 }
 
