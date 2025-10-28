@@ -654,11 +654,11 @@ if ( ! function_exists( 'twentyeleven_content_nav' ) ) :
 			<nav id="<?php echo esc_attr( $html_id ); ?>">
 				<h3 class="assistive-text"><?php _e( 'Post navigation', 'twentyeleven' ); ?></h3>
 				<?php if ( $prev_link ) : ?>
-					<div class="nav-previous"><?php echo wp_kses_post( $prev_link ); ?></div>
+					<div class="nav-previous"><?php echo $prev_link; ?></div>
 				<?php endif; ?>
 
 				<?php if ( $next_link ) : ?>
-					<div class="nav-next"><?php echo wp_kses_post( $next_link ); ?></div>
+					<div class="nav-next"><?php echo $next_link; ?></div>
 				<?php endif; ?>
 			</nav><!-- #<?php echo esc_attr( $html_id ); ?> -->
 			<?php
