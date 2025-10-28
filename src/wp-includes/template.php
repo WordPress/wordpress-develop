@@ -973,7 +973,8 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 
 	// If the content type is not HTML, short-circuit since it is not relevant for enhancement.
 	if ( ! $is_html_content_type ) {
-		$do_send_late_headers( $output );
+		/** This action is documented in wp-includes/template.php */
+		do_action( 'wp_send_late_headers', $output );
 		return $output;
 	}
 
@@ -996,7 +997,18 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	 */
 	$filtered_output = (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
 
-	$do_send_late_headers( $filtered_output );
+	/**
+	 * Fires at the last moment HTTP headers may be sent.
+	 *
+	 * This happens immediately before the template enhancement output buffer is flushed. This is in contrast with
+	 * the {@see 'send_headers'} action which fires after the initial headers have been sent before the template
+	 * has begun rendering, and thus does not depend on output buffering.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $output Output buffer.
+	 */
+	do_action( 'wp_send_late_headers', $filtered_output );
 
 	return $filtered_output;
 }
