@@ -33,6 +33,17 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 			);
 		}
 
+		sleep( 1 ); // Ensure modified time changes
+		// Update every second post if we can trigger the error.
+		for ( $i = 1; $i <= 20; $i += 2 ) {
+			wp_update_post(
+				array(
+					'ID'           => $post_ids[ $i - 1 ],
+					'post_content' => "Updated post $i content",
+				)
+			);
+		}
+
 		// Get first page
 		$query1 = new WP_Query(
 			array(
@@ -89,14 +100,25 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 		$post_ids        = array();
 
 		for ( $i = 1; $i <= 15; $i++ ) {
-			$post_day   = str_pad( (string) $i, 2, '0', STR_PAD_LEFT );
 			$post_ids[] = self::factory()->post->create(
 				array(
 					'post_title' => $identical_title,
-					'post_date'  => "2023-01-{$post_day} 10:00:00",
+					'post_date'  => "2023-01-0$i 10:00:00",
 				)
 			);
 		}
+
+		sleep( 1 ); // Ensure modified time changes
+		// Update every second post if we can trigger the error.
+		for ( $i = 1; $i <= 15; $i += 2 ) {
+			wp_update_post(
+				array(
+					'ID'           => $post_ids[ $i - 1 ],
+					'post_content' => "Updated post $i content",
+				)
+			);
+		}
+
 
 		// Get first page
 		$query1 = new WP_Query(
@@ -144,6 +166,17 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 			);
 		}
 
+		sleep( 1 ); // Ensure modified time changes
+		// Update every second post if we can trigger the error.
+		for ( $i = 1; $i <= 12; $i += 2 ) {
+			wp_update_post(
+				array(
+					'ID'           => $post_ids[ $i - 1 ],
+					'post_content' => "Updated post $i content",
+				)
+			);
+		}
+
 		// Get first page with DESC order
 		$query1 = new WP_Query(
 			array(
@@ -186,6 +219,16 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 				array(
 					'post_title' => "Post $i",
 					'post_date'  => $identical_date,
+				)
+			);
+		}
+		sleep( 1 ); // Ensure modified time changes
+		// Update every second post if we can trigger the error.
+		for ( $i = 1; $i <= 15; $i += 2 ) {
+			wp_update_post(
+				array(
+					'ID'           => $post_ids[ $i - 1 ],
+					'post_content' => "Updated post $i content",
 				)
 			);
 		}
@@ -238,6 +281,16 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 				)
 			);
 		}
+		sleep( 1 ); // Ensure modified time changes
+		// Update every second post if we can trigger the error.
+		for ( $i = 1; $i <= 10; $i += 2 ) {
+			wp_update_post(
+				array(
+					'ID'           => $post_ids[ $i - 1 ],
+					'post_content' => "Updated post $i content",
+				)
+			);
+		}
 
 		$query = new WP_Query(
 			array(
@@ -267,6 +320,17 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 					'post_title'   => "Test Post $i",
 					'post_content' => 'This is a test post',
 					'post_date'    => $identical_date,
+				)
+			);
+		}
+
+		sleep( 1 ); // Ensure modified time changes
+		// Update every second post if we can trigger the error.
+		for ( $i = 1; $i <= 12; $i += 2 ) {
+			wp_update_post(
+				array(
+					'ID'           => $post_ids[ $i - 1 ],
+					'post_content' => "Updated test post $i content",
 				)
 			);
 		}
