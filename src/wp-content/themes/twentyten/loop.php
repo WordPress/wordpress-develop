@@ -22,7 +22,7 @@
 <?php // Display navigation to next/previous pages when applicable. ?>
 <?php
 if ( $wp_query->max_num_pages > 1 ) :
-	$is_desc = ( 'DESC' === get_query_var( 'order', 'DESC' ) );
+	$is_desc = ( get_query_var( 'order', 'DESC' ) === $order );
 
 	$new_posts_text = __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentyten' );
 	$old_posts_text = __( '<span class="meta-nav">&larr;</span> Older posts', 'twentyten' );
