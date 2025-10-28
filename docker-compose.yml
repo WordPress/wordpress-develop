@@ -64,7 +64,7 @@ services:
   # The MySQL container.
   ##
   mysql:
-    image: ${LOCAL_DB_TYPE-mysql}:${LOCAL_DB_VERSION-latest}
+    image: ${LOCAL_DB_IMAGE-mysql:latest}
 
     networks:
       - wpdevnet
@@ -74,18 +74,16 @@ services:
 
     environment:
       MYSQL_ROOT_PASSWORD: password
+      LOCAL_DB_IMAGE: ${LOCAL_DB_IMAGE-mysql:latest}
 
     volumes:
       - ./tools/local-env/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql
       - mysql:/var/lib/mysql
 
-    # For compatibility with PHP versions that don't support the caching_sha2_password auth plugin used in MySQL 8.0.
-    command: ${LOCAL_DB_AUTH_OPTION-}
-
     healthcheck:
       test: [
         'CMD-SHELL',
-        'if [ "$LOCAL_DB_TYPE" = "mariadb" ]; then case "$LOCAL_DB_VERSION" in 5.5|10.0|10.1|10.2|10.3) mysqladmin ping -h localhost || exit $$?;; *) mariadb-admin ping -h localhost || exit $$?;; esac; else mysqladmin ping -h localhost || exit $$?; fi'
+        'if [ "$${LOCAL_DB_IMAGE%%:*}" = "mariadb" ]; then case "$${LOCAL_DB_IMAGE#*:}" in 5.5|10.0|10.1|10.2|10.3) mysqladmin ping -h localhost || exit $$?;; *) mariadb-admin ping -h localhost || exit $$?;; esac; else mysqladmin ping -h localhost || exit $$?; fi'
       ]
       timeout: 5s
       interval: 5s

@@ -18,13 +18,18 @@ on:
         required: false
         type: 'string'
         default: 'latest'
+      db-image:
+        description: 'The database Docker image to use'
+        required: false
+        type: 'string'
+        default: ''
       db-type:
-        description: 'Database type. Valid types are mysql and mariadb'
+        description: 'Database type. Valid types are mysql and mariadb. Only used when db-image is not provided.'
         required: false
         type: 'string'
         default: 'mysql'
       db-version:
-        description: 'Database version'
+        description: 'Database version. Only used when db-image is not provided.'
         required: false
         type: 'string'
         default: '8.4'
@@ -41,8 +46,7 @@ on:
 
 env:
   LOCAL_PHP: ${{ inputs.php == 'latest' && 'latest' || format( '{0}-fpm', inputs.php ) }}
-  LOCAL_DB_TYPE: ${{ inputs.db-type }}
-  LOCAL_DB_VERSION: ${{ inputs.db-version }}
+  LOCAL_DB_IMAGE: ${{ inputs.db-image || format( '{0}:{1}', inputs.db-type, inputs.db-version ) }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   LOCAL_WP_TESTS_DOMAIN: ${{ inputs.tests-domain }}
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
@@ -73,7 +77,7 @@ jobs:
   # - Tests the reset command.
   # - Ensures version-controlled files are not modified or deleted.
   local-docker-environment-tests:
-    name: PHP ${{ inputs.php }} / ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.memcached && ' with memcached' || '' }}${{ 'example.org' != inputs.tests-domain && format( ' {0}', inputs.tests-domain ) || '' }}
+    name: PHP ${{ inputs.php }} / ${{ inputs.db-image }}${{ inputs.memcached && ' with memcached' || '' }}${{ 'example.org' != inputs.tests-domain && format( ' {0}', inputs.tests-domain ) || '' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -142,7 +146,7 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker compose run --rm mysql "${LOCAL_DB_TYPE}" --version
+          docker compose run --rm mysql sh -c 'command -v mariadb >/dev/null 2>&1 && mariadb --version || mysql --version'
           docker compose run --rm php php --version
           docker compose run --rm php php -m
           docker compose run --rm php php -i
