@@ -144,12 +144,25 @@ jobs:
             VERSIONS="$( jq \
               -r \
               --arg wp_version "${WP_VERSION}" \
-              '.[$wp_version] | @json' \
+              'if (.[$wp_version] | type) == "object" then
+                (.[$wp_version].mysql // [] | map("mysql:" + .)) + (.[$wp_version].mariadb // [] | map("mariadb:" + .))
+              else
+                (.[$wp_version] // [] | map("mysql:" + ., "mariadb:" + .))
+              end | @json' \
               .version-support-mysql.json
             )"
             echo "versions=$VERSIONS" >> "$GITHUB_OUTPUT"
           else
-            echo "versions=$(jq -r '.[ (keys[-1]) ] | @json' .version-support-mysql.json)" >> "$GITHUB_OUTPUT"
+            VERSIONS="$( jq \
+              -r \
+              'if (.[ (keys[-1]) ] | type) == "object" then
+                (.[ (keys[-1]) ].mysql // [] | map("mysql:" + .)) + (.[ (keys[-1]) ].mariadb // [] | map("mariadb:" + .))
+              else
+                (.[ (keys[-1]) ] // [] | map("mysql:" + ., "mariadb:" + .))
+              end | @json' \
+              .version-support-mysql.json
+            )"
+            echo "versions=$VERSIONS" >> "$GITHUB_OUTPUT"
           fi
         env:
           WP_VERSION: ${{ needs.major-wp-version.outputs.version }}
