@@ -4103,4 +4103,54 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertArrayHasKey( 'children', $response->get_links() );
 	}
+
+	/**
+	 * Test that children note links are properly embedded in the REST API response.
+	 *
+	 * @ticket 64145
+	 */
+	public function test_get_note_with_embedded_children() {
+		$parent_comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => 1,
+				'comment_post_ID'  => self::$post_id,
+				'user_id'          => self::$admin_id,
+				'comment_type'     => 'note',
+				'comment_content'  => 'Parent note comment',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_approved' => 1,
+				'comment_parent'   => $parent_comment_id,
+				'comment_post_ID'  => self::$post_id,
+				'user_id'          => self::$admin_id,
+				'comment_type'     => 'note',
+				'comment_content'  => 'First child note comment',
+			)
+		);
+
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', self::$post_id );
+		$request->set_param( 'type', 'note' );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'parent', 0 );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertArrayHasKey( '_links', $data[0] );
+		$this->assertArrayHasKey( 'children', $data[0]['_links'] );
+
+		$children = $data[0]['_links']['children'];
+
+		// Verify the href attribute contains the expected status and type parameters.
+		$this->assertStringContainsString( 'status=all', $children[0]['href'] );
+		$this->assertStringContainsString( 'type=note', $children[0]['href'] );
+	}
 }
