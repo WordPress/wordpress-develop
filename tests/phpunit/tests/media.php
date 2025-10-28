@@ -29,6 +29,11 @@ CAP;
 	protected static $large_filename = 'test-image-large.jpg';
 	protected static $post_ids;
 
+	/**
+	 * @var WP_Styles|null
+	 */
+	protected static $original_wp_styles;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
@@ -66,6 +71,13 @@ CAP;
 		wp_trash_post( self::$post_ids['trash'] );
 	}
 
+	public function set_up(): void {
+		global $wp_styles;
+		self::$original_wp_styles = $wp_styles;
+		$wp_styles                = null;
+		parent::set_up();
+	}
+
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
 	}
@@ -79,8 +91,10 @@ CAP;
 	 * Ensures that the static content media count, fetchpriority element flag and related filter are reset between tests.
 	 */
 	public function tear_down() {
-		global $_wp_current_template_id, $_wp_current_template_content;
+		global $_wp_current_template_id, $_wp_current_template_content, $wp_styles;
 		unset( $_wp_current_template_id, $_wp_current_template_content );
+
+		$wp_styles = self::$original_wp_styles;
 
 		parent::tear_down();
 
@@ -208,14 +222,34 @@ CAP;
 	}
 
 	public function test_new_img_caption_shortcode_with_html_caption() {
+		$mark = "\u{203B}";
+
+		$this->assertStringNotContainsString(
+			self::HTML_CONTENT,
+			$mark,
+			'Test caption content should not contain the mark surround it: check test setup.'
+		);
+
 		$result = img_caption_shortcode(
 			array(
 				'width'   => 20,
-				'caption' => self::HTML_CONTENT,
+				'caption' => $mark . self::HTML_CONTENT . $mark,
 			)
 		);
 
-		$this->assertSame( 1, substr_count( $result, self::HTML_CONTENT ) );
+		$result_chunks = explode( $mark, $result );
+		$this->assertSame(
+			3,
+			count( $result_chunks ),
+			'Expected to find embedded caption inside marks, but failed to do so.'
+		);
+
+		$this->assertEqualHTML(
+			self::HTML_CONTENT,
+			$result_chunks[1],
+			'<body>',
+			'Should have embedded the caption inside the image output.'
+		);
 	}
 
 	public function test_new_img_caption_shortcode_new_format() {
@@ -1632,6 +1666,26 @@ EOF;
 		$output = wp_get_attachment_image( self::$large_id );
 		$this->assertStringContainsString( 'width="150"', $output, 'Width should not be changed.' );
 		$this->assertStringContainsString( 'height="150"', $output, 'Height should not be changed.' );
+	}
+
+	/**
+	 * Test that `wp_get_attachment_image` doesn't overwrite an already valid user-provided width and height.
+	 *
+	 * @ticket 63714
+	 */
+	public function test_wp_get_attachment_image_not_overwrite_user_provided_width_height() {
+		$img = wp_get_attachment_image(
+			self::$large_id,
+			'large',
+			false,
+			array(
+				'width'  => 999,
+				'height' => 999,
+			)
+		);
+
+		$this->assertStringContainsString( 'width="999"', $img, 'User-provided width should not be changed.' );
+		$this->assertStringContainsString( 'height="999"', $img, 'User-provided height should not be changed.' );
 	}
 
 	/**
@@ -5440,6 +5494,9 @@ EOF;
 
 		// Sub-sizes: for each size, the JPEGs should be smaller than the WebP.
 		$sizes_to_compare = array_intersect_key( $jpeg_sizes['sizes'], $webp_sizes['sizes'] );
+
+		$this->assertNotEmpty( $sizes_to_compare );
+
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $webp_sizes['sizes'][ $size ]['filesize'], $jpeg_sizes['sizes'][ $size ]['filesize'] );
 		}
@@ -5449,6 +5506,10 @@ EOF;
 	 * Test AVIF quality filters.
 	 *
 	 * @ticket 61614
+	 *
+	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
+	 * See https://core.trac.wordpress.org/ticket/63932.
+	 * @requires PHP < 8.3
 	 */
 	public function test_quality_with_avif_conversion_file_sizes() {
 		$temp_dir = get_temp_dir();
@@ -5482,6 +5543,8 @@ EOF;
 
 		// Sub-sizes: for each size, the AVIF should be smaller than the JPEG.
 		$sizes_to_compare = array_intersect_key( $avif_sizes['sizes'], $smaller_avif_sizes['sizes'] );
+
+		$this->assertNotEmpty( $sizes_to_compare );
 
 		foreach ( $sizes_to_compare as $size => $size_data ) {
 			$this->assertLessThan( $avif_sizes['sizes'][ $size ]['filesize'], $smaller_avif_sizes['sizes'][ $size ]['filesize'] );
@@ -6545,6 +6608,112 @@ EOF;
 				true,
 			),
 		);
+	}
+
+	/**
+	 * Provides data to test wp_enqueue_img_auto_sizes_contain_css_fix().
+	 *
+	 * @return array<string, array>
+	 */
+	public function data_provider_data_provider_to_test_wp_enqueue_img_auto_sizes_contain_css_fix(): array {
+		return array(
+			'default'                     => array(
+				'set_up'   => null,
+				'expected' => true,
+			),
+			'dequeued'                    => array(
+				'set_up'   => static function (): void {
+					add_action(
+						'wp_enqueue_scripts',
+						static function () {
+							wp_dequeue_style( 'wp-img-auto-sizes-contain' );
+						}
+					);
+				},
+				'expected' => false,
+			),
+			'filtered_off'                => array(
+				'set_up'   => static function (): void {
+					add_filter( 'wp_img_tag_add_auto_sizes', '__return_false' );
+				},
+				'expected' => false,
+			),
+			'filtered_on'                 => array(
+				'set_up'   => static function (): void {
+					add_filter( 'wp_img_tag_add_auto_sizes', '__return_false' );
+					add_filter( 'wp_img_tag_add_auto_sizes', '__return_true', 100 );
+				},
+				'expected' => true,
+			),
+			'deprecated_function_removed' => array(
+				'set_up'   => static function (): void {
+					remove_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', 1 );
+				},
+				'expected' => false,
+			),
+			'new_function_removed'        => array(
+				'set_up'              => static function (): void {
+					remove_action( 'wp_head', 'wp_enqueue_img_auto_sizes_contain_css_fix', 0 );
+				},
+				'expected'            => false,
+				'expected_deprecated' => 'wp_print_auto_sizes_contain_css_fix',
+			),
+			'both_functions_removed'      => array(
+				'set_up'   => static function (): void {
+					remove_action( 'wp_head', 'wp_enqueue_img_auto_sizes_contain_css_fix', 0 );
+					remove_action( 'wp_head', 'wp_print_auto_sizes_contain_css_fix', 1 );
+				},
+				'expected' => false,
+			),
+		);
+	}
+
+	/**
+	 * Tests that IMG auto-sizes CSS fix is enqueued (and printed) when expected.
+	 *
+	 * @covers ::wp_enqueue_img_auto_sizes_contain_css_fix
+	 * @ticket 62731
+	 *
+	 * @dataProvider data_provider_data_provider_to_test_wp_enqueue_img_auto_sizes_contain_css_fix
+	 */
+	public function test_wp_enqueue_img_auto_sizes_contain_css_fix( ?Closure $set_up, bool $expected, ?string $expected_deprecated = null ): void {
+		if ( $set_up ) {
+			$set_up();
+		}
+		if ( isset( $expected_deprecated ) ) {
+			$this->setExpectedDeprecated( $expected_deprecated );
+		}
+
+		$this->assertCount( 0, wp_styles()->queue );
+		wp_enqueue_style( 'very-early-enqueued', home_url( '/very-early-enqueued.css' ) );
+		add_action(
+			'wp_enqueue_scripts',
+			static function () {
+				wp_enqueue_style( 'wp-block-library' );
+			}
+		);
+
+		$wp_head_output           = get_echo( 'wp_head' );
+		$html_processor           = new WP_HTML_Tag_Processor( $wp_head_output );
+		$found_style_text_content = null;
+		while ( $html_processor->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
+			if ( $html_processor->get_attribute( 'id' ) === 'wp-img-auto-sizes-contain-inline-css' ) {
+				$found_style_text_content = $html_processor->get_modifiable_text();
+				break;
+			}
+		}
+
+		$enqueued = wp_styles()->queue;
+		if ( $expected ) {
+			$this->assertSame( 'wp-img-auto-sizes-contain', array_shift( $enqueued ) );
+			$this->assertIsString( $found_style_text_content );
+			$this->assertStringContainsString( 'contain-intrinsic-size', $found_style_text_content );
+		} else {
+			$this->assertNull( $found_style_text_content );
+		}
+		$this->assertSame( 'very-early-enqueued', array_shift( $enqueued ) );
+		$this->assertContains( 'wp-emoji-styles', $enqueued );
+		$this->assertContains( 'wp-block-library', $enqueued );
 	}
 
 	/**

@@ -760,17 +760,17 @@ function is_serialized_string( $data ) {
 }
 
 /**
- * Retrieves post title from XMLRPC XML.
+ * Retrieves post title from XML-RPC XML.
  *
- * If the title element is not part of the XML, then the default post title from
- * the $post_default_title will be used instead.
+ * If the `title` element is not found in the XML, the default post title
+ * from the `$post_default_title` global will be used instead.
  *
  * @since 0.71
  *
  * @global string $post_default_title Default XML-RPC post title.
  *
- * @param string $content XMLRPC XML Request content
- * @return string Post title
+ * @param string $content XML-RPC XML Request content.
+ * @return string Post title.
  */
 function xmlrpc_getposttitle( $content ) {
 	global $post_default_title;
@@ -783,18 +783,20 @@ function xmlrpc_getposttitle( $content ) {
 }
 
 /**
- * Retrieves the post category or categories from XMLRPC XML.
+ * Retrieves the post category or categories from XML-RPC XML.
  *
- * If the category element is not found, then the default post category will be
- * used. The return type then would be what $post_default_category. If the
- * category is found, then it will always be an array.
+ * If the `category` element is not found in the XML, the default post category
+ * from the `$post_default_category` global will be used instead.
+ * The return type will then be a string.
+ *
+ * If the `category` element is found, the return type will be an array.
  *
  * @since 0.71
  *
  * @global string $post_default_category Default XML-RPC post category.
  *
- * @param string $content XMLRPC XML Request content
- * @return string|array List of categories or category name.
+ * @param string $content XML-RPC XML Request content.
+ * @return string[]|string An array of category names or default category name.
  */
 function xmlrpc_getpostcategory( $content ) {
 	global $post_default_category;
@@ -808,12 +810,12 @@ function xmlrpc_getpostcategory( $content ) {
 }
 
 /**
- * XMLRPC XML content without title and category elements.
+ * XML-RPC XML content without title and category elements.
  *
  * @since 0.71
  *
  * @param string $content XML-RPC XML Request content.
- * @return string XMLRPC XML Request content without title and category elements.
+ * @return string XML-RPC XML Request content without title and category elements.
  */
 function xmlrpc_removepostdata( $content ) {
 	$content = preg_replace( '/<title>(.+?)<\/title>/si', '', $content );
@@ -1024,10 +1026,10 @@ function is_new_day() {
 }
 
 /**
- * Builds URL query based on an associative and, or indexed array.
+ * Builds a URL query based on an associative or indexed array.
  *
- * This is a convenient function for easily building url queries. It sets the
- * separator to '&' and uses _http_build_query() function.
+ * This is a convenient function for easily building URL queries.
+ * It sets the separator to '&' and uses the _http_build_query() function.
  *
  * @since 2.3.0
  *
@@ -2207,12 +2209,14 @@ function wp_normalize_path( $path ) {
 /**
  * Determines a writable directory for temporary files.
  *
- * Function's preference is the return value of sys_get_temp_dir(),
- * followed by your PHP temporary upload directory, followed by WP_CONTENT_DIR,
- * before finally defaulting to /tmp/
+ * Function's preference is the return value of `sys_get_temp_dir()`,
+ * followed by the `upload_tmp_dir` value from `php.ini`, followed by `WP_CONTENT_DIR`,
+ * before finally defaulting to `/tmp/`.
+ *
+ * Note that `sys_get_temp_dir()` honors the `TMPDIR` environment variable.
  *
  * In the event that this function does not find a writable location,
- * It may be overridden by the WP_TEMP_DIR constant in your wp-config.php file.
+ * it may be overridden by the `WP_TEMP_DIR` constant in your `wp-config.php` file.
  *
  * @since 2.5.0
  *
@@ -3005,14 +3009,13 @@ function wp_ext2type( $ext ) {
 }
 
 /**
- * Returns first matched extension for the mime-type,
- * as mapped from wp_get_mime_types().
+ * Returns the first matched extension for the mime type, as mapped from wp_get_mime_types().
  *
  * @since 5.8.1
  *
- * @param string $mime_type
- *
- * @return string|false
+ * @param string $mime_type The mime type to search.
+ * @return string|false The first matching file extension, or false if no extensions are found
+ *                      for the given mime type.
  */
 function wp_get_default_extension_for_mime_type( $mime_type ) {
 	$extensions = explode( '|', array_search( $mime_type, wp_get_mime_types(), true ) );
@@ -3171,7 +3174,10 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	if ( $type && ! $real_mime && extension_loaded( 'fileinfo' ) ) {
 		$finfo     = finfo_open( FILEINFO_MIME_TYPE );
 		$real_mime = finfo_file( $finfo, $file );
-		finfo_close( $finfo );
+
+		if ( PHP_VERSION_ID < 80100 ) { // finfo_close() has no effect as of PHP 8.1.
+			finfo_close( $finfo );
+		}
 
 		$google_docs_types = array(
 			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -3400,7 +3406,10 @@ function wp_get_image_mime( $file ) {
 				if ( extension_loaded( 'fileinfo' ) ) {
 					$fileinfo  = finfo_open( FILEINFO_MIME_TYPE );
 					$mime_type = finfo_file( $fileinfo, $file );
-					finfo_close( $fileinfo );
+
+					if ( PHP_VERSION_ID < 80100 ) { // finfo_close() has no effect as of PHP 8.1.
+						finfo_close( $fileinfo );
+					}
 
 					if ( wp_is_heic_image_mime_type( $mime_type ) ) {
 						$mime = $mime_type;
@@ -4166,7 +4175,7 @@ function _jsonp_wp_die_handler( $message, $title = '', $args = array() ) {
 /**
  * Kills WordPress execution and displays XML response with an error message.
  *
- * This is the handler for wp_die() when processing XMLRPC requests.
+ * This is the handler for wp_die() when processing XML-RPC requests.
  *
  * @since 3.2.0
  * @access private
@@ -5092,7 +5101,7 @@ function _wp_array_get( $input_array, $path, $default_value = null ) {
 			 * We check with `isset()` first, as it is a lot faster
 			 * than `array_key_exists()`.
 			 */
-			if ( isset( $input_array[ $path_element ] ) ) {
+			if ( isset( $path_element, $input_array[ $path_element ] ) ) {
 				$input_array = $input_array[ $path_element ];
 				continue;
 			}
@@ -5101,7 +5110,7 @@ function _wp_array_get( $input_array, $path, $default_value = null ) {
 			 * If `isset()` returns false, we check with `array_key_exists()`,
 			 * which also checks for `null` values.
 			 */
-			if ( array_key_exists( $path_element, $input_array ) ) {
+			if ( isset( $path_element ) && array_key_exists( $path_element, $input_array ) ) {
 				$input_array = $input_array[ $path_element ];
 				continue;
 			}
@@ -7139,10 +7148,14 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
  *
  * @since 3.1.3
  *
- * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors
  */
 function send_frame_options_header() {
-	header( 'X-Frame-Options: SAMEORIGIN' );
+	if ( ! headers_sent() ) {
+		header( 'X-Frame-Options: SAMEORIGIN' );
+		header( "Content-Security-Policy: frame-ancestors 'self';" );
+	}
 }
 
 /**
@@ -7160,7 +7173,7 @@ function wp_admin_headers() {
 	 * @since 4.9.0
 	 * @since 4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
 	 *
-	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
+	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy
 	 *
 	 * @param string $policy The admin referrer policy header value. Default 'strict-origin-when-cross-origin'.
 	 */
@@ -7784,6 +7797,7 @@ function wp_post_preview_js() {
 			window.addEventListener( 'pagehide', function() { window.name = ''; } );
 		}
 	}());
+	//# sourceURL=<?php echo rawurlencode( __FUNCTION__ ); ?>
 	</script>
 	<?php
 	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
