@@ -119,7 +119,6 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 			);
 		}
 
-
 		// Get first page
 		$query1 = new WP_Query(
 			array(
