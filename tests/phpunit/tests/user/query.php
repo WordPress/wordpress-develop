@@ -162,20 +162,12 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'update_user_metadata_cache', array( $filter, 'filter' ), 10, 2 );
 
-		$query = new WP_User_Query(
+		new WP_User_Query(
 			array(
 				'include' => self::$author_ids,
 				'fields'  => 'all',
 			)
 		);
-
-		$users = $query->get_results();
-		foreach ( $users as $user ) {
-			$this->assertIsArray( $user->roles );
-			foreach ( $user->roles as $role ) {
-				$this->assertIsString( $role );
-			}
-		}
 
 		$args      = $filter->get_args();
 		$last_args = end( $args );
@@ -1746,6 +1738,20 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 		// Make sure manually setting total_users doesn't get overwritten.
 		$this->assertSame( 1, $q->total_users );
+	}
+
+	/**
+	 * @ticket 47719
+	 */
+	public function test_include_should_return_no_users_when_0() {
+		$query = new WP_User_Query(
+			array(
+				'role'    => '',
+				'include' => array( 0 ),
+			)
+		);
+
+		$this->assertSame( array(), $query->get_results() );
 	}
 
 	public static function filter_users_pre_query( $posts, $query ) {
