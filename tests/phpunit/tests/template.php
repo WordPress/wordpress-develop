@@ -998,6 +998,11 @@ class Tests_Template extends WP_UnitTestCase {
 			'no_actions_removed'              => array(
 				'set_up' => null,
 			),
+			'disabled_printing_late_styles'   => array(
+				'set_up' => static function () {
+					add_filter( 'print_late_styles', '__return_false', 1000 );
+				},
+			),
 			'_wp_footer_scripts_removed'      => array(
 				'set_up' => static function () {
 					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
@@ -1044,7 +1049,6 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_hoist_late_printed_styles();
 
 		// Ensure late styles are printed.
-		add_filter( 'print_late_styles', '__return_false', 1000 );
 		$this->assertTrue( apply_filters( 'print_late_styles', true ), 'Expected late style printing to be forced.' );
 
 		// Simulate wp_head.
