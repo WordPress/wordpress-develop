@@ -771,7 +771,7 @@ class WP_Comment_Query {
 			'NOT IN' => (array) $this->query_vars['type__not_in'],
 		);
 
-		// @since 6.9.0 Exclude the 'note' comment type, unless 'all' types or the 'note' type explicitly are requested.
+		// Exclude the 'note' comment type, unless 'all' types or the 'note' type explicitly are requested.
 		if (
 			! in_array( 'all', $raw_types['IN'], true ) &&
 			! in_array( 'note', $raw_types['IN'], true ) &&
