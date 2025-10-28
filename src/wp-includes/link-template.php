@@ -1888,14 +1888,18 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 				return '';
 			}
 			$term_array = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) );
+			if ( is_wp_error( $term_array ) ) {
+				return '';
+			}
 
 			// Remove any exclusions from the term array to include.
 			$term_array = array_diff( $term_array, (array) $excluded_terms );
-			$term_array = array_map( 'intval', $term_array );
 
-			if ( ! $term_array || is_wp_error( $term_array ) ) {
+			if ( ! $term_array ) {
 				return '';
 			}
+
+			$term_array = array_map( 'intval', $term_array );
 
 			$where .= ' AND tt.term_id IN (' . implode( ',', $term_array ) . ')';
 		}
@@ -1935,8 +1939,8 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		$where .= " AND p.post_status = 'publish'";
 	}
 
-	$op    = $previous ? '<' : '>';
-	$order = $previous ? 'DESC' : 'ASC';
+	$comparison_operator = $previous ? '<' : '>';
+	$order               = $previous ? 'DESC' : 'ASC';
 
 	/**
 	 * Filters the JOIN clause in the SQL for an adjacent post query.
@@ -1960,6 +1964,9 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 */
 	$join = apply_filters( "get_{$adjacent}_post_join", $join, $in_same_term, $excluded_terms, $taxonomy, $post );
 
+	// Prepare the where clause for the adjacent post query.
+	$where_prepared = $wpdb->prepare( "WHERE (p.post_date $comparison_operator %s OR (p.post_date = %s AND p.ID $comparison_operator %d)) AND p.post_type = %s $where", $current_post_date, $current_post_date, $post->ID, $post->post_type ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $comparison_operator is a string literal, either '<' or '>'.
+
 	/**
 	 * Filters the WHERE clause in the SQL for an adjacent post query.
 	 *
@@ -1973,6 +1980,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 *
 	 * @since 2.5.0
 	 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
+	 * @since 6.9.0 Adds ID-based fallback for posts with identical dates in adjacent post queries.
 	 *
 	 * @param string       $where          The `WHERE` clause in the SQL.
 	 * @param bool         $in_same_term   Whether post should be in the same taxonomy term.
@@ -1980,7 +1988,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
 	 * @param WP_Post      $post           WP_Post object.
 	 */
-	$where = apply_filters( "get_{$adjacent}_post_where", $wpdb->prepare( "WHERE p.post_date $op %s AND p.post_type = %s $where", $current_post_date, $post->post_type ), $in_same_term, $excluded_terms, $taxonomy, $post );
+	$where = apply_filters( "get_{$adjacent}_post_where", $where_prepared, $in_same_term, $excluded_terms, $taxonomy, $post );
 
 	/**
 	 * Filters the ORDER BY clause in the SQL for an adjacent post query.
@@ -1996,22 +2004,23 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @since 2.5.0
 	 * @since 4.4.0 Added the `$post` parameter.
 	 * @since 4.9.0 Added the `$order` parameter.
+	 * @since 6.9.0 Adds ID sort to ensure deterministic ordering for posts with identical dates.
 	 *
 	 * @param string $order_by The `ORDER BY` clause in the SQL.
 	 * @param WP_Post $post    WP_Post object.
 	 * @param string  $order   Sort order. 'DESC' for previous post, 'ASC' for next.
 	 */
-	$sort = apply_filters( "get_{$adjacent}_post_sort", "ORDER BY p.post_date $order LIMIT 1", $post, $order );
+	$sort = apply_filters( "get_{$adjacent}_post_sort", "ORDER BY p.post_date $order, p.ID $order LIMIT 1", $post, $order );
 
 	$query        = "SELECT p.ID FROM $wpdb->posts AS p $join $where $sort";
 	$key          = md5( $query );
-	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$last_changed = (array) wp_cache_get_last_changed( 'posts' );
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
-		$last_changed .= wp_cache_get_last_changed( 'terms' );
+		$last_changed[] = wp_cache_get_last_changed( 'terms' );
 	}
-	$cache_key = "adjacent_post:$key:$last_changed";
+	$cache_key = "adjacent_post:$key";
 
-	$result = wp_cache_get( $cache_key, 'post-queries' );
+	$result = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false !== $result ) {
 		if ( $result ) {
 			$result = get_post( $result );
@@ -2024,7 +2033,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		$result = '';
 	}
 
-	wp_cache_set( $cache_key, $result, 'post-queries' );
+	wp_cache_set_salted( $cache_key, $result, 'post-queries', $last_changed );
 
 	if ( $result ) {
 		$result = get_post( $result );
@@ -4339,9 +4348,11 @@ function is_avatar_comment_type( $comment_type ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param array $types An array of content types. Default only contains 'comment'.
+	 * @since 6.9.0 The 'note' comment type was added.
+	 *
+	 * @param array $types An array of content types. Default contains 'comment' and 'note'.
 	 */
-	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment' ) );
+	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment', 'note' ) );
 
 	return in_array( $comment_type, (array) $allowed_comment_types, true );
 }
@@ -4549,22 +4560,31 @@ function get_avatar_data( $id_or_email, $args = null ) {
 		'r' => $args['rating'],
 	);
 
-	// Handle additional parameters for the 'initials' avatar type
+	// Handle additional parameters for the 'initials' avatar type.
 	if ( 'initials' === $args['default'] ) {
 		$name = '';
 
 		if ( $user ) {
-			$name = ! empty( $user->display_name ) ? $user->display_name :
-					( ! empty( $user->first_name ) && ! empty( $user->last_name ) ?
-					$user->first_name . ' ' . $user->last_name : $user->user_login );
-		} elseif ( is_object( $id_or_email ) && isset( $id_or_email->comment_author ) ) {
+			if ( '' !== $user->display_name ) {
+				$name = $user->display_name;
+			} elseif ( '' !== $user->first_name && '' !== $user->last_name ) {
+				$name = sprintf(
+					/* translators: 1: User's first name, 2: Last name. */
+					_x( '%1$s %2$s', 'Display name based on first name and last name' ),
+					$user->first_name,
+					$user->last_name
+				);
+			} else {
+				$name = $user->user_login;
+			}
+		} elseif ( $id_or_email instanceof WP_Comment ) {
 			$name = $id_or_email->comment_author;
 		} elseif ( is_string( $id_or_email ) && false !== strpos( $id_or_email, '@' ) ) {
 			$name = str_replace( array( '.', '_', '-' ), ' ', substr( $id_or_email, 0, strpos( $id_or_email, '@' ) ) );
 		}
 
-		if ( ! empty( $name ) ) {
-			if ( preg_match( '/\p{Han}|\p{Hiragana}|\p{Katakana}|\p{Hangul}/u', $name ) || false === strpos( $name, ' ' ) ) {
+		if ( '' !== $name ) {
+			if ( ! str_contains( $name, ' ' ) || preg_match( '/\p{Han}|\p{Hiragana}|\p{Katakana}|\p{Hangul}/u', $name ) ) {
 				$initials = mb_substr( $name, 0, min( 2, mb_strlen( $name, 'UTF-8' ) ), 'UTF-8' );
 			} else {
 				$first    = mb_substr( $name, 0, 1, 'UTF-8' );

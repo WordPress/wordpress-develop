@@ -274,7 +274,7 @@ function media_send_to_editor( $html ) {
 	?>
 	<script type="text/javascript">
 	var win = window.dialogArguments || opener || parent || top;
-	win.send_to_editor( <?php echo wp_json_encode( $html ); ?> );
+	win.send_to_editor( <?php echo wp_json_encode( $html, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 	</script>
 	<?php
 	exit;
@@ -650,12 +650,12 @@ function media_buttons( $editor_id = 'content' ) {
 
 	wp_enqueue_media( array( 'post' => $post ) );
 
-	$img = '<span class="wp-media-buttons-icon"></span> ';
+	$img = '<span class="wp-media-buttons-icon" aria-hidden="true"></span> ';
 
 	$id_attribute = 1 === $instance ? ' id="insert-media-button"' : '';
 
 	printf(
-		'<button type="button"%s class="button insert-media add_media" data-editor="%s">%s</button>',
+		'<button type="button"%s class="button insert-media add_media" data-editor="%s" aria-haspopup="dialog" aria-controls="wp-media-modal">%s</button>',
 		$id_attribute,
 		esc_attr( $editor_id ),
 		$img . __( 'Add Media' )
@@ -2236,7 +2236,7 @@ function media_upload_form( $errors = null ) {
 
 	?>
 	var resize_height = <?php echo $large_size_h; ?>, resize_width = <?php echo $large_size_w; ?>,
-	wpUploaderInit = <?php echo wp_json_encode( $plupload_init ); ?>;
+	wpUploaderInit = <?php echo wp_json_encode( $plupload_init, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 	</script>
 
 	<div id="plupload-upload-ui" class="hide-if-no-js">
