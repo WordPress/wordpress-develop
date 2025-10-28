@@ -610,7 +610,7 @@ class Tests_Template extends WP_UnitTestCase {
 		add_filter(
 			'wp_template_enhancement_output_buffer',
 			static function () {
-				return '<html>Hey!</html>';
+				return '<html lang="en"><head><meta charset="utf-8"></head><body>Hey!</body></html>';
 			}
 		);
 		$level = ob_get_level();
@@ -1060,7 +1060,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$footer_output = get_echo( 'wp_footer' );
 
 		// Create a simulated output buffer.
-		$buffer = '<html><head>' . $head_output . '</head><body><main>Content</main>' . $footer_output . '</body></html>';
+		$buffer = '<html lang="en"><head><meta charset="utf-8">' . $head_output . '</head><body><main>Content</main>' . $footer_output . '</body></html>';
 
 		// Apply the output buffer filter.
 		$filtered_buffer = apply_filters( 'wp_template_enhancement_output_buffer', $buffer );
