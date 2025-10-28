@@ -3052,11 +3052,11 @@ function media_upload_html_bypass() {
 	?>
 	<p class="upload-html-bypass hide-if-no-js">
 	<?php
- 		printf(
- 		/* translators: %s: HTML attributes for button. */
- 		__( 'You are using the browser&#8217;s built-in file uploader. The WordPress uploader includes multiple file selection and drag and drop capability. <button %s>Switch to the multi-file uploader</button>.' ),
+		printf(
+		/* translators: %s: HTML attributes for button. */
+		__( 'You are using the browser&#8217;s built-in file uploader. The WordPress uploader includes multiple file selection and drag and drop capability. <button %s>Switch to the multi-file uploader</button>.' ),
 		'type="button" class="button-link"'
- 	);
+	);
 	?>
 	</p>
 	<?php
