@@ -317,7 +317,7 @@ class WP_Debug_Data {
 					'value' => sprintf(
 						/* Translators: 1: hostname of update API, 2: IP address the update API hostname resolves to. 3: The error returned by the lookup */
 						__( 'Unable to reach %1$s (%2$s): %3$s' ),
-						$update_dom;
+						$update_dom,
 						gethostbyname( $update_dom ),
 						$wp_update_api->get_error_message()
 					),

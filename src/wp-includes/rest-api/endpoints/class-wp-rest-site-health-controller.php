@@ -247,7 +247,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * Checks that the site can reach an alternate update API.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0.0
 	 *
 	 * @return array
 	 */
