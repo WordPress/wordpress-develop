@@ -1882,6 +1882,11 @@ function wp_maybe_activate_template( $post_id ) {
 }
 
 function _wp_migrate_active_templates() {
+	// Do not run during installation when the database is not yet available.
+	if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
+		return;
+	}
+
 	$active_templates = get_option( 'active_templates', false );
 
 	if ( false !== $active_templates ) {
