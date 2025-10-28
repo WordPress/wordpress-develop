@@ -157,7 +157,7 @@ function get_pending_comments_num( $post_id ) {
 	$post_id_array = array_map( 'intval', $post_id_array );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' GROUP BY comment_post_ID", ARRAY_A );
+	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' AND comment_type != 'note' GROUP BY comment_post_ID", ARRAY_A );
 
 	if ( $single ) {
 		if ( empty( $pending ) ) {
@@ -209,6 +209,8 @@ function enqueue_comment_hotkeys_js() {
 
 /**
  * Displays error message at bottom of comments.
+ *
+ * @since 2.5.0
  *
  * @param string $msg Error Message. Assumed to contain HTML and be sanitized.
  */

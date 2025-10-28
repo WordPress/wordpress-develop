@@ -344,4 +344,16 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 		$result = $this->registry->is_registered( self::$test_source_name );
 		$this->assertTrue( $result );
 	}
+
+	/**
+	 * Should return false when checking registration with a null source name.
+	 *
+	 * @ticket 63957
+	 *
+	 * @covers WP_Block_Bindings_Registry::is_registered
+	 */
+	public function test_is_registered_with_null_source_name() {
+		$result = $this->registry->is_registered( null );
+		$this->assertFalse( $result );
+	}
 }
