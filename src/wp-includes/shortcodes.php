@@ -757,7 +757,9 @@ function strip_shortcodes( $content ) {
 function strip_shortcode_tag( $m ) {
 	// Allow [[foo]] syntax for escaping a tag.
 	if ( '[' === $m[1] && ']' === $m[6] ) {
-		return substr( $m[0], 1, -1 );
+		// Convert escaped shortcode to HTML entities to prevent unexpected execution
+		// when do_shortcode() is called later (e.g., in excerpt generation).
+		return '&#91;' . substr( $m[0], 2, -2 ) . '&#93;';
 	}
 
 	return $m[1] . $m[6];
