@@ -22,6 +22,9 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		do_action( 'rest_api_init', $wp_rest_server );
 
 		add_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
+
+		// `get_post_embed_html()` used in fixture generation assumes `wp-includes/js/wp-embed.js` exists.
+		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
 	}
 
 	public function tear_down() {
