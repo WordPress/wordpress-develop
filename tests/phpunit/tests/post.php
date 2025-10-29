@@ -1046,5 +1046,4 @@ class Tests_Post extends WP_UnitTestCase {
 			),
 		);
 	}
-
 }
