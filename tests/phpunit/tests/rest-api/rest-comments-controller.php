@@ -173,23 +173,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		if ( is_multisite() ) {
 			update_site_option( 'site_admins', array( 'superadmin' ) );
 		}
-		// Ensure note resolution meta is registered.
-		register_meta(
-			'comment',
-			'_wp_note_status',
-			array(
-				'type'         => 'string',
-				'description'  => __( 'Note resolution status' ),
-				'single'       => true,
-				'show_in_rest' => array(
-					'schema' => array(
-						'type' => 'string',
-						'enum' => array( 'resolved', 'reopen' ),
-					),
-				),
-			)
-		);
-
 	}
 
 	public function test_register_routes() {
