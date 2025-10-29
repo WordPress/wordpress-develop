@@ -2573,7 +2573,10 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	}
 
 	$slug = wp_unique_term_slug( $slug, (object) $args );
-
+	// Truncate the slug if it's longer than 200 characters to avoid DB errors (see #46010).
+	if ( strlen( $slug ) > 200 ) {
+		$slug = substr( $slug, 0, 200 );
+	}
 	$data = compact( 'name', 'slug', 'term_group' );
 
 	/**
