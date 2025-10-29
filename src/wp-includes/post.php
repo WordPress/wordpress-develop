@@ -5426,7 +5426,7 @@ function wp_resolve_post_date( $post_date = '', $post_date_gmt = '' ) {
 	}
 
 	// Validate the date.
-	preg_match( "/^(?P<year>[0-9]{4})-(?P<month>0[1-9]|1[0-2])-(?P<day>0[1-9]|[1-2][0-9]|3[0-1])/", $post_date, $matches );
+	preg_match( '/^(?P<year>[0-9]{4})-(?P<month>0[1-9]|1[0-2])-(?P<day>0[1-9]|[1-2][0-9]|3[0-1])/', $post_date, $matches );
 
 	if ( empty( $matches ) || ! is_array( $matches ) || count( $matches ) < 4 ) {
 		return false;
