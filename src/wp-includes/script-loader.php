@@ -3685,9 +3685,8 @@ function wp_hoist_late_printed_styles() {
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
 				public function get_span(): WP_HTML_Span {
-					$instance = $this; // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewClosure.ThisFoundOutsideClass -- It is inside an anonymous class. This can be removed once <https://github.com/PHPCompatibility/PHPCompatibility/issues/1481> is released in v10.
-					$instance->set_bookmark( 'here' );
-					return $instance->bookmarks['here'];
+					$this->set_bookmark( 'here' );
+					return $this->bookmarks['here'];
 				}
 			};
 
