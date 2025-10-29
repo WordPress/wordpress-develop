@@ -922,21 +922,6 @@ function wp_start_template_enhancement_output_buffer(): bool {
  * @return string Finalized output buffer.
  */
 function wp_finalize_template_enhancement_output_buffer( string $output, int $phase ): string {
-	$do_send_late_headers = static function ( string $output ): void {
-		/**
-		 * Fires at the last moment HTTP headers may be sent.
-		 *
-		 * This happens immediately before the template enhancement output buffer is flushed. This is in contrast with
-		 * the {@see 'send_headers'} action which fires after the initial headers have been sent before the template
-		 * has begun rendering, and thus does not depend on output buffering.
-		 *
-		 * @since 6.9.0
-		 *
-		 * @param string $output Output buffer.
-		 */
-		do_action( 'wp_send_late_headers', $output );
-	};
-
 	// When the output is being cleaned (e.g. pending template is replaced with error page), do not send it through the filter.
 	if ( ( $phase & PHP_OUTPUT_HANDLER_CLEAN ) !== 0 ) {
 		return $output;
