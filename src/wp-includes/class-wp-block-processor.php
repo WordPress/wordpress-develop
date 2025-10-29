@@ -933,8 +933,8 @@ class WP_Block_Processor {
 
 				$name_length = 1 + strspn( $text, 'abcdefghijklmnopqrstuvwxyz0123456789-_', $name_at + 1 );
 			} else {
-				$name_at          = $namespace_at;
-				$name_length      = $namespace_length;
+				$name_at     = $namespace_at;
+				$name_length = $namespace_length;
 			}
 
 			if ( $name_at + $name_length >= $end ) {
@@ -1332,14 +1332,14 @@ class WP_Block_Processor {
 
 			$closer_must_be_at = $dashes_at + 2 + strspn( $text, '-', $dashes_at + 2 );
 			if ( $closer_must_be_at < $search_end && '!' === $text[ $closer_must_be_at ] ) {
-				$closer_must_be_at++;
+				++$closer_must_be_at;
 			}
 
 			if ( $closer_must_be_at < $search_end && '>' === $text[ $closer_must_be_at ] ) {
 				return $closer_must_be_at + 1;
 			}
 
-			$now_at++;
+			++$now_at;
 		}
 
 		return $search_end;

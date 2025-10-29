@@ -92,6 +92,36 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test assorted handles to make sure they are output correctly.
+	 *
+	 * @dataProvider data_awkward_handles_are_supported_consistently
+	 *
+	 * @ticket 30036
+	 */
+	public function test_awkward_handles_are_supported_consistently( $handle ) {
+		wp_enqueue_style( $handle, 'example.com', array(), null );
+
+		$expected = "<link rel='stylesheet' id='$handle-css' href='http://example.com' type='text/css' media='all' />\n";
+
+		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public function data_awkward_handles_are_supported_consistently() {
+		return array(
+			'some spaces'       => array( 'with some spaces' ),
+			'snowman'           => array( 'with-☃-snowman' ),
+			'trailing space'    => array( 'with-trailing-space ' ),
+			'leading space'     => array( ' with-leading-space' ),
+			'an "ironic" title' => array( 'an &quot;ironic&quot; title' ),
+		);
+	}
+
+	/**
 	 * Test the different protocol references in wp_enqueue_style
 	 *
 	 * @global WP_Styles $wp_styles
@@ -436,6 +466,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_common_block_scripts_and_styles
 	 */
 	public function test_block_styles_for_editing_with_theme_support() {
+		// Override wp_load_classic_theme_block_styles_on_demand().
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
 		add_theme_support( 'wp-block-styles' );
 
 		wp_default_styles( $GLOBALS['wp_styles'] );
@@ -472,6 +505,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_common_block_scripts_and_styles
 	 */
 	public function test_block_styles_for_viewing_with_theme_support() {
+		// Override wp_load_classic_theme_block_styles_on_demand().
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+
 		add_theme_support( 'wp-block-styles' );
 
 		wp_default_styles( $GLOBALS['wp_styles'] );
