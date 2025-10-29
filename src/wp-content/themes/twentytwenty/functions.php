@@ -111,6 +111,36 @@ function twentytwenty_theme_support() {
 		)
 	);
 
+	/*
+	 * As of 6.9, classic themes default to loading block styles on demand by hosting them from the footer to the head.
+	 * Block styles are only registered separately for each block in register_block_type_from_metadata() when the theme
+	 * also supports 'wp-block-styles'. Nevertheless, this also hase the effect of enqueueing the block theme styles.
+	 * Since Twenty Twenty never adopted these block theme styles, any such styles need to be excluded from being
+	 * printed.
+	 */
+	if ( 0 && version_compare( $GLOBALS['wp_version'], '6.9-beta2', '>=' ) ) {
+		add_theme_support( 'wp-block-styles' );
+
+		add_filter(
+			'print_styles_array',
+			static function ( $handles ) {
+				// This undoes <https://github.com/WordPress/wordpress-develop/blob/781fb28d4773147edb17b0fd7eefa52671b5daa6/src/wp-includes/script-loader.php#L2480>.
+				$handles = array_diff(
+					$handles,
+					array( 'wp-block-library-theme' )
+				);
+
+				// This undoes <https://github.com/WordPress/wordpress-develop/blob/781fb28d4773147edb17b0fd7eefa52671b5daa6/src/wp-includes/blocks.php#L511>.
+				return array_filter(
+					$handles,
+					static function ( $handle ) {
+						return ! preg_match( '/^wp-block-.+?-theme$/', $handle );
+					}
+				);
+			}
+		);
+	}
+
 	// Add support for full and wide align images.
 	add_theme_support( 'align-wide' );
 
