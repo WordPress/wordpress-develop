@@ -4136,4 +4136,3 @@ function wp_create_initial_comment_meta() {
 	);
 }
 add_action( 'init', 'wp_create_initial_comment_meta' );
-
