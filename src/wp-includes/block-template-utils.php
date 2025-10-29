@@ -1853,8 +1853,7 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 
 function wp_assign_new_template_to_theme( $changes, $request ) {
 	// Do not run this for templates created through the old enpoint.
-	$template = $request['id'] ? get_block_template( $request['id'], 'wp_template' ) : null;
-	if ( $template ) {
+	if ( str_starts_with( $request->get_route(), '/wp/v2/templates' ) ) {
 		return $changes;
 	}
 	if ( ! isset( $changes->tax_input ) ) {
