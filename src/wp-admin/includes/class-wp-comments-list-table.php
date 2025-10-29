@@ -151,6 +151,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			'order'                     => $order,
 			'post_type'                 => $post_type,
 			'update_comment_post_cache' => true,
+			'type__not_in'              => array( 'note' ),
 		);
 
 		/**
@@ -356,6 +357,10 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 */
 	protected function get_bulk_actions() {
 		global $comment_status;
+
+		if ( ! current_user_can( 'moderate_comments' ) ) {
+			return array(); // Return an empty array if the user doesn't have permission
+		}
 
 		$actions = array();
 

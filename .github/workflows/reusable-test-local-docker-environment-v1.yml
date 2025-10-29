@@ -73,7 +73,7 @@ jobs:
   # - Tests the reset command.
   # - Ensures version-controlled files are not modified or deleted.
   local-docker-environment-tests:
-    name: PHP ${{ inputs.php }} / ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.memcached && ' with memcached' || '' }}${{ 'example.org' != inputs.tests-domain && format( ' {0}', inputs.tests-domain ) || '' }}
+    name: ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.memcached && ' with memcached' || '' }}${{ 'example.org' != inputs.tests-domain && format( ' {0}', inputs.tests-domain ) || '' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -92,7 +92,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -105,7 +105,7 @@ jobs:
       # dependency versions are installed and cached.
       ##
       - name: Set up PHP
-        uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401 # v2.32.0
+        uses: shivammathur/setup-php@20529878ed81ef8e78ddf08b480401e6101a850f # v2.35.3
         with:
           php-version: '${{ inputs.php }}'
           coverage: none
@@ -113,7 +113,7 @@ jobs:
       # Since Composer dependencies are installed using `composer update` and no lock file is in version control,
       # passing a custom cache suffix ensures that the cache is flushed at least once per week.
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@57532f8be5bda426838819c5ee9afb8af389d51a # v3.0.0
+        uses: ramsey/composer-install@3cf229dc2919194e9e36783941438d17239e8520 # v3.1.1
         with:
           custom-cache-suffix: $(/bin/date -u --date='last Mon' "+%F")
 
@@ -155,7 +155,7 @@ jobs:
         run: npm run env:restart
 
       - name: Test a CLI command
-        run: npm run env:cli wp option get siteurl
+        run: npm run env:cli option get siteurl
 
       - name: Test logs command
         run: npm run env:logs

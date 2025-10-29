@@ -35,6 +35,11 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	const TEMPLATE_PART_POST_TYPE = 'wp_template_part';
 
 	/**
+	 * @var string
+	 */
+	const PARENT_POST_TYPE = 'wp_template';
+
+	/**
 	 * Admin user ID.
 	 *
 	 * @since 6.4.0
@@ -293,6 +298,28 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content.',
+				'post_ID'      => self::$template_post->ID,
+				'post_type'    => self::PARENT_POST_TYPE,
+			)
+		);
+
+		$request  = new WP_REST_Request(
+			'HEAD',
+			'/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves'
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
 	 * Data provider for test_get_items_with_data_provider.
 	 *
 	 * @return array
@@ -427,6 +454,26 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * @ticket 56481
+	 */
+	public function test_get_item_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content.',
+				'post_ID'      => self::$template_post->ID,
+				'post_type'    => self::PARENT_POST_TYPE,
+			)
+		);
+
+		$request  = new WP_REST_Request( 'HEAD', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
 	 * Data provider for test_get_item_with_data_provider.
 	 *
 	 * @return array
@@ -436,6 +483,79 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			'templates'      => array( 'template_post', 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
 		);
+	}
+
+	/**
+	 * @dataProvider data_get_item_with_data_provider
+	 * @covers       WP_REST_Template_Autosaves_Controller::get_item
+	 * @ticket 56922
+	 *
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $rest_base Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
+	 */
+	public function test_get_item_head_request_with_specified_fields_returns_success_response( $parent_post_property_name, $rest_base, $template_id ) {
+		wp_set_current_user( self::$admin_id );
+
+		$parent_post = self::$$parent_post_property_name;
+
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content.',
+				'post_ID'      => $parent_post->ID,
+				'post_type'    => $parent_post->post_type,
+			)
+		);
+
+		$request = new WP_REST_Request(
+			'HEAD',
+			'/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves/' . $autosave_post_id
+		);
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * @dataProvider data_get_items_with_data_provider
+	 * @covers       WP_REST_Template_Autosaves_Controller::get_items
+	 * @ticket 56922
+	 *
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $rest_base Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
+	 */
+	public function test_get_items_head_request_with_specified_fields_returns_success_response( $parent_post_property_name, $rest_base, $template_id ) {
+		wp_set_current_user( self::$admin_id );
+		// Cannot access this property in the data provider because it is not initialized at the time of execution.
+		$parent_post = self::$$parent_post_property_name;
+		wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content.',
+				'post_ID'      => $parent_post->ID,
+				'post_type'    => $parent_post->post_type,
+			)
+		);
+
+		$request = new WP_REST_Request(
+			'HEAD',
+			'/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves'
+		);
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
 	}
 
 	/**
@@ -469,8 +589,21 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 		$autosave_db_post = get_post( $autosave_post_id );
 		$request          = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves/' . $autosave_db_post->ID );
-		$controller       = new WP_REST_Template_Autosaves_Controller( $parent_post->post_type );
-		$response         = $controller->prepare_item_for_response( $autosave_db_post, $request );
+		// See create_initial_rest_routes. The controller need the post type
+		// with adjusted settings to initialize.
+		global $wp_post_types;
+		$wp_post_types['wp_template']->rest_base                       = 'templates';
+		$original_rest_controller_class                                = $wp_post_types['wp_template']->rest_controller_class;
+		$original_revisions_rest_controller_class                      = $wp_post_types['wp_template']->revisions_rest_controller_class;
+		$wp_post_types['wp_template']->rest_controller_class           = 'WP_REST_Templates_Controller';
+		$wp_post_types['wp_template']->revisions_rest_controller_class = 'WP_REST_Template_Revisions_Controller';
+		$wp_post_types['wp_template']->rest_controller                 = null;
+		$wp_post_types['wp_template']->revisions_rest_controller       = null;
+		$controller = new WP_REST_Template_Autosaves_Controller( $parent_post->post_type );
+		$wp_post_types['wp_template']->rest_controller_class           = $original_rest_controller_class;
+		$wp_post_types['wp_template']->revisions_rest_controller_class = $original_revisions_rest_controller_class;
+		$wp_post_types['wp_template']->rest_base                       = 'wp_template';
+		$response = $controller->prepare_item_for_response( $autosave_db_post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
 			$response,

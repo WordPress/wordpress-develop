@@ -951,7 +951,7 @@ endif;
 	<p class="submit">
 		<?php submit_button( __( 'Crop and Publish' ), 'primary', 'submit', false ); ?>
 		<?php
-		if ( isset( $oitar ) && 1 === $oitar
+		if ( 1 === $oitar
 			&& ( current_theme_supports( 'custom-header', 'flex-height' )
 				|| current_theme_supports( 'custom-header', 'flex-width' ) )
 		) {
@@ -1547,8 +1547,8 @@ endif;
 
 		$already_has_default = false;
 
-		foreach ( $this->default_headers as $k => $h ) {
-			if ( $h['url'] === $default ) {
+		foreach ( $this->default_headers as $k => $header ) {
+			if ( $header['url'] === $default ) {
 				$already_has_default = true;
 				break;
 			}

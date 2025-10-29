@@ -72,10 +72,10 @@ class WP_List_Table {
 	protected $modes = array();
 
 	/**
-	 * Stores the value returned by ->get_column_info().
+	 * Stores the value returned by ::get_column_info().
 	 *
 	 * @since 4.1.0
-	 * @var array
+	 * @var array|null
 	 */
 	protected $_column_headers;
 
@@ -1021,7 +1021,7 @@ class WP_List_Table {
 	 * @param string $which The location of the pagination: Either 'top' or 'bottom'.
 	 */
 	protected function pagination( $which ) {
-		if ( empty( $this->_pagination_args ) ) {
+		if ( empty( $this->_pagination_args['total_items'] ) ) {
 			return;
 		}
 
@@ -1524,15 +1524,12 @@ class WP_List_Table {
 				);
 			}
 
-			$tag   = ( 'cb' === $column_key ) ? 'td' : 'th';
-			$scope = ( 'th' === $tag ) ? 'scope="col"' : '';
-			$id    = $with_id ? "id='$column_key'" : '';
+			$tag        = ( 'cb' === $column_key ) ? 'td' : 'th';
+			$scope      = ( 'th' === $tag ) ? 'scope="col"' : '';
+			$id         = $with_id ? "id='$column_key'" : '';
+			$class_attr = "class='" . implode( ' ', $class ) . "'";
 
-			if ( ! empty( $class ) ) {
-				$class = "class='" . implode( ' ', $class ) . "'";
-			}
-
-			echo "<$tag $scope $id $class $aria_sort_attr $abbr_attr>$column_display_name</$tag>";
+			echo "<$tag $scope $id $class_attr $aria_sort_attr $abbr_attr>$column_display_name</$tag>";
 		}
 	}
 
@@ -1543,7 +1540,6 @@ class WP_List_Table {
 	 * should be provided via get_sortable_columns().
 	 *
 	 * @since 6.3.0
-	 * @access public
 	 */
 	public function print_table_description() {
 		list( $columns, $hidden, $sortable ) = $this->get_column_info();
@@ -1672,6 +1668,9 @@ class WP_List_Table {
 	 * @param string $which The location of the navigation: Either 'top' or 'bottom'.
 	 */
 	protected function display_tablenav( $which ) {
+		if ( 'bottom' === $which && ! $this->has_items() ) {
+			return;
+		}
 		if ( 'top' === $which ) {
 			wp_nonce_field( 'bulk-' . $this->_args['plural'] );
 		}
@@ -1872,6 +1871,6 @@ class WP_List_Table {
 			),
 		);
 
-		printf( "<script type='text/javascript'>list_args = %s;</script>\n", wp_json_encode( $args ) );
+		printf( "<script type='text/javascript'>list_args = %s;</script>\n", wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
 	}
 }

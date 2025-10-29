@@ -21,7 +21,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 2.3.0
  *
- * @global string $wp_version       Used to check against the newest WordPress version.
  * @global wpdb   $wpdb             WordPress database abstraction object.
  * @global string $wp_local_package Locale code of the package.
  *
@@ -107,6 +106,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		'users'              => get_user_count(),
 		'multisite_enabled'  => $multisite_enabled,
 		'initial_db_version' => get_site_option( 'initial_db_version' ),
+		'myisam_tables'      => array(),
 		'extensions'         => array_combine( $extensions, array_map( 'phpversion', $extensions ) ),
 		'platform_flags'     => array(
 			'os'   => PHP_OS,
@@ -114,6 +114,39 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 		),
 		'image_support'      => array(),
 	);
+
+	// Check for default tables using the MyISAM engine.
+	$table_names   = implode( "','", $wpdb->tables() );
+	$myisam_tables = $wpdb->get_results(
+		$wpdb->prepare(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
+			"SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME IN ('$table_names') AND ENGINE = %s;",
+			DB_NAME,
+			'MyISAM'
+		),
+		OBJECT_K
+	);
+
+	if ( ! empty( $myisam_tables ) ) {
+		$all_unprefixed_tables = $wpdb->tables( 'all', false );
+
+		// Including the table prefix is not necessary.
+		$unprefixed_myisam_tables = array_reduce(
+			array_keys( $myisam_tables ),
+			function ( $carry, $prefixed_myisam_table ) use ( $all_unprefixed_tables ) {
+				foreach ( $all_unprefixed_tables as $unprefixed ) {
+					if ( str_ends_with( $prefixed_myisam_table, $unprefixed ) ) {
+						$carry[] = $unprefixed;
+						break;
+					}
+				}
+				return $carry;
+			},
+			array()
+		);
+
+		$query['myisam_tables'] = $unprefixed_myisam_tables;
+	}
 
 	if ( function_exists( 'gd_info' ) ) {
 		$gd_info = gd_info();
@@ -154,6 +187,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	 * Please exercise extreme caution.
 	 *
 	 * @since 4.9.0
+	 * @since 6.1.0 Added `$extensions`, `$platform_flags`, and `$image_support` to the `$query` parameter.
 	 *
 	 * @param array $query {
 	 *     Version check query arguments.
@@ -167,6 +201,9 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	 *     @type int    $users              Number of users on this WordPress installation.
 	 *     @type int    $multisite_enabled  Whether this WordPress installation uses Multisite.
 	 *     @type int    $initial_db_version Database version of WordPress at time of installation.
+	 *     @type array  $extensions         List of PHP extensions and their versions.
+	 *     @type array  $platform_flags     List containing the operating system name and bit support.
+	 *     @type array  $image_support      List of image formats supported by GD and Imagick.
 	 * }
 	 */
 	$query = apply_filters( 'core_version_check_query_args', $query );
@@ -313,8 +350,6 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
  *
  * @since 2.3.0
  *
- * @global string $wp_version The WordPress version string.
- *
  * @param array $extra_stats Extra statistics to report to the WordPress.org API.
  */
 function wp_update_plugins( $extra_stats = array() ) {
@@ -336,12 +371,6 @@ function wp_update_plugins( $extra_stats = array() ) {
 	if ( ! is_object( $current ) ) {
 		$current = new stdClass();
 	}
-
-	$updates               = new stdClass();
-	$updates->last_checked = time();
-	$updates->response     = array();
-	$updates->translations = array();
-	$updates->no_update    = array();
 
 	$doing_cron = wp_doing_cron();
 
@@ -371,8 +400,6 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$plugin_changed = false;
 
 		foreach ( $plugins as $file => $p ) {
-			$updates->checked[ $file ] = $p['Version'];
-
 			if ( ! isset( $current->checked[ $file ] ) || (string) $current->checked[ $file ] !== (string) $p['Version'] ) {
 				$plugin_changed = true;
 			}
@@ -459,6 +486,15 @@ function wp_update_plugins( $extra_stats = array() ) {
 
 	if ( is_wp_error( $raw_response ) || 200 !== wp_remote_retrieve_response_code( $raw_response ) ) {
 		return;
+	}
+
+	$updates               = new stdClass();
+	$updates->last_checked = time();
+	$updates->response     = array();
+	$updates->translations = array();
+	$updates->no_update    = array();
+	foreach ( $plugins as $file => $p ) {
+		$updates->checked[ $file ] = $p['Version'];
 	}
 
 	$response = json_decode( wp_remote_retrieve_body( $raw_response ), true );
@@ -584,8 +620,6 @@ function wp_update_plugins( $extra_stats = array() ) {
  * if WordPress isn't installing.
  *
  * @since 2.7.0
- *
- * @global string $wp_version The WordPress version string.
  *
  * @param array $extra_stats Extra statistics to report to the WordPress.org API.
  */
@@ -891,7 +925,12 @@ function wp_get_translation_updates() {
  *
  * @since 3.3.0
  *
- * @return array
+ * @return array {
+ *     Fetched update data.
+ *
+ *     @type int[]   $counts       An array of counts for available plugin, theme, and WordPress updates.
+ *     @type string  $update_title Titles of available updates.
+ * }
  */
 function wp_get_update_data() {
 	$counts = array(
@@ -1111,7 +1150,7 @@ function _wp_delete_all_temp_backups() {
 	global $wp_filesystem;
 
 	if ( ! function_exists( 'WP_Filesystem' ) ) {
-		require_once ABSPATH . '/wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 	}
 
 	ob_start();

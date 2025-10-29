@@ -1,16 +1,17 @@
 name: Performance Tests
 
 on:
+  # Performance testing was introduced in WordPress 6.2.
   push:
     branches:
       - trunk
       - '6.[2-9]'
       - '[7-9].[0-9]'
     tags:
-      - '[0-9]+.[0-9]'
-      - '[0-9]+.[0-9].[0-9]+'
-      - '![45].[0-9].[0-9]+'
-      - '!6.[01].[0-9]+'
+      - '6.[2-9]'
+      - '6.[2-9].[0-9]+'
+      - '[7-9].[0-9]'
+      - '[7-9].[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -23,6 +24,8 @@ on:
       - '**.php'
       # These files configure npm and the task runner. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       - 'Gruntfile.js'
       - 'webpack.config.js'
       - 'tools/webpack/**'
@@ -52,7 +55,8 @@ jobs:
     name: Determine Matrix
     runs-on: ubuntu-24.04
     if: ${{ ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) && ! contains( github.event.before, '00000000' ) }}
-    permissions: {}
+    permissions:
+      actions: read
     env:
       TARGET_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
     outputs:
@@ -98,7 +102,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        memcached: [ true, false ]
+        memcached: [ false, true ]
         multisite: [ true, false ]
         subject: ${{ fromJson( needs.determine-matrix.outputs.subjects ) }}
     with:
@@ -116,8 +120,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        memcached: [ true, false ]
+        memcached: [ false, true ]
         multisite: [ true, false ]
+        # A matrix value is needed in the 'name' directive for proper grouping in the GitHub UI.
         label: [ Compare ]
     with:
       memcached: ${{ matrix.memcached }}
