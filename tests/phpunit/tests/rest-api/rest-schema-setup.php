@@ -23,7 +23,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 
 		add_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
 
-		// `get_post_embed_html()` used in fixture generation assumes `wp-includes/js/wp-embed.js` exists.
+		// `get_post_embed_html()` assumes `wp-includes/js/wp-embed.js` is present:
 		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
 	}
 
