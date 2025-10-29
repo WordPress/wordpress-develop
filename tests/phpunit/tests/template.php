@@ -1060,11 +1060,16 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_enqueue_style( 'late', 'https://example.com/late-style.css', array(), null );
 		wp_add_inline_style( 'late', '/* LATE */' );
 
+		$content = apply_filters(
+			'the_content',
+			'<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator -->'
+		);
+
 		// Simulate footer scripts.
 		$footer_output = get_echo( 'wp_footer' );
 
 		// Create a simulated output buffer.
-		$buffer = '<html lang="en"><head><meta charset="utf-8">' . $head_output . '</head><body><main>Content</main>' . $footer_output . '</body></html>';
+		$buffer = '<html lang="en"><head><meta charset="utf-8">' . $head_output . '</head><body><main>' . $content . '</main>' . $footer_output . '</body></html>';
 
 		// Apply the output buffer filter.
 		$filtered_buffer = apply_filters( 'wp_template_enhancement_output_buffer', $buffer );
