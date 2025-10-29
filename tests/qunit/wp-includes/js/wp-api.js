@@ -400,9 +400,12 @@
 
 					// Get the main endpoint.
 					var endpoint = theModels.at(0);
-					var expectedMetas = '{"_wp_note_status":null,"meta_key":"meta_value"}';
+					var expectedMetas = '{"meta_key":"meta_value"}';
 					if ( 'Tags' === modelType ) {
 						expectedMetas = '{"test_single":"","test_multi":[],"meta_key":"meta_value","test_tag_meta":""}';
+					}
+					if ( 'Comments' === modelType ) {
+						expectedMetas = '{"_wp_note_status":null,"meta_key":"meta_value"}';
 					}
 
 					// Verify the meta object returned correctly from `getMetas()`.
