@@ -3888,6 +3888,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'meta', $data );
+		$this->assertArrayHasKey( '_wp_note_status', $data['meta'] );
+		$this->assertSame( $status, $data['meta']['_wp_note_status'] );
 	}
 
 	/**
