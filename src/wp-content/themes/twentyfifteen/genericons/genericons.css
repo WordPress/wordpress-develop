@@ -21,8 +21,8 @@
 	font-size: 16px;
 	vertical-align: top;
 	text-align: center;
-	-moz-transition: color 0.1s ease-in 0s;
-	-webkit-transition: color 0.1s ease-in 0s;
+	-moz-transition: color 0.1s ease-in;
+	-webkit-transition: color 0.1s ease-in;
 	display: inline-block;
 	font-family: "Genericons";
 	font-style: normal;
