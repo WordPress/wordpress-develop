@@ -965,7 +965,6 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 
 	$filtered_output = $output;
 
-	// TODO: Also capture exceptions?
 	$error_log      = array();
 	$display_errors = ini_get( 'display_errors' );
 	if ( $display_errors ) {
@@ -980,22 +979,41 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		);
 	}
 
-	/**
-	 * Filters the template enhancement output buffer prior to sending to the client.
-	 *
-	 * This filter only applies the HTML output of an included template. This filter is a progressive enhancement
-	 * intended for applications such as optimizing markup to improve frontend page load performance. Sites must not
-	 * depend on this filter applying since they may opt to stream the responses instead. Callbacks for this filter are
-	 * highly discouraged from using regular expressions to do any kind of replacement on the output. Use the HTML API
-	 * (either `WP_HTML_Tag_Processor` or `WP_HTML_Processor`), or else use {@see DOM\HtmlDocument} as of PHP 8.4 which
-	 * fully supports HTML5.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param string $filtered_output HTML template enhancement output buffer.
-	 * @param string $output          Original HTML template output buffer.
-	 */
-	$filtered_output = (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
+	try {
+		/**
+		 * Filters the template enhancement output buffer prior to sending to the client.
+		 *
+		 * This filter only applies the HTML output of an included template. This filter is a progressive enhancement
+		 * intended for applications such as optimizing markup to improve frontend page load performance. Sites must not
+		 * depend on this filter applying since they may opt to stream the responses instead. Callbacks for this filter are
+		 * highly discouraged from using regular expressions to do any kind of replacement on the output. Use the HTML API
+		 * (either `WP_HTML_Tag_Processor` or `WP_HTML_Processor`), or else use {@see DOM\HtmlDocument} as of PHP 8.4 which
+		 * fully supports HTML5.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string $filtered_output HTML template enhancement output buffer.
+		 * @param string $output          Original HTML template output buffer.
+		 */
+		$filtered_output = (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
+	} catch ( Exception $exception ) {
+		$error_log[] = array(
+			'level'   => E_USER_ERROR,
+			'message' => $exception->getMessage(),
+			'file'    => $exception->getFile(),
+			'line'    => $exception->getLine(),
+		);
+
+		// Emit to the error log.
+		trigger_error(
+			sprintf(
+				/* translators: %s is wp_template_enhancement_output_buffer */
+				__( 'Exception thrown during %s filter: ' ) . $exception->getMessage(),
+				'wp_template_enhancement_output_buffer'
+			),
+			E_USER_WARNING
+		);
+	}
 
 	if ( $display_errors ) {
 		foreach ( $error_log as $error ) {
@@ -1025,23 +1043,37 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		}
 	}
 
-	/**
-	 * Fires at the last moment HTTP headers may be sent.
-	 *
-	 * This happens immediately before the template enhancement output buffer is flushed. This is in contrast with
-	 * the {@see 'send_headers'} action which fires after the initial headers have been sent before the template
-	 * has begun rendering, and thus does not depend on output buffering. This action does not fire if the "template
-	 * enhancement output buffer" was not started. This output buffer is automatically started if this action is added
-	 * before {@see wp_start_template_enhancement_output_buffer()} runs at the {@see 'wp_before_include_template'}
-	 * action with priority 1000. Before this point, the output buffer will also be started automatically if there was a
-	 * {@see 'wp_template_enhancement_output_buffer'} filter added, or if the
-	 * {@see 'wp_should_output_buffer_template_for_enhancement'} filter is made to return `true`.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @param string $output Output buffer.
-	 */
-	do_action( 'wp_send_late_headers', $filtered_output );
+	try {
+		/**
+		 * Fires at the last moment HTTP headers may be sent.
+		 *
+		 * This happens immediately before the template enhancement output buffer is flushed. This is in contrast with
+		 * the {@see 'send_headers'} action which fires after the initial headers have been sent before the template
+		 * has begun rendering, and thus does not depend on output buffering. This action does not fire if the "template
+		 * enhancement output buffer" was not started. This output buffer is automatically started if this action is added
+		 * before {@see wp_start_template_enhancement_output_buffer()} runs at the {@see 'wp_before_include_template'}
+		 * action with priority 1000. Before this point, the output buffer will also be started automatically if there was a
+		 * {@see 'wp_template_enhancement_output_buffer'} filter added, or if the
+		 * {@see 'wp_should_output_buffer_template_for_enhancement'} filter is made to return `true`.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param string $output Output buffer.
+		 */
+		do_action( 'wp_send_late_headers', $filtered_output );
+	} catch ( Exception $exception ) {
+		// Emit to the error log.
+		trigger_error(
+			sprintf(
+				/* translators: %s is wp_send_late_headers */
+				__( 'Exception thrown during %s action: ' ) . $exception->getMessage(),
+				'wp_send_late_headers'
+			),
+			E_USER_WARNING
+		);
+
+		// TODO: Should this also append the error to $filtered output if $display_errors? But it could make a sent header incorrect.
+	}
 
 	if ( $display_errors ) {
 		restore_error_handler();
