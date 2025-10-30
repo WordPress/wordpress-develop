@@ -1023,8 +1023,6 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 
 			$filtered_output .= $displayed_error;
 		}
-		restore_error_handler();
-		ini_set( 'display_errors', 1 );
 	}
 
 	/**
@@ -1044,6 +1042,11 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	 * @param string $output Output buffer.
 	 */
 	do_action( 'wp_send_late_headers', $filtered_output );
+
+	if ( $display_errors ) {
+		restore_error_handler();
+		ini_set( 'display_errors', 1 );
+	}
 
 	return $filtered_output;
 }
