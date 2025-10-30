@@ -732,7 +732,7 @@ class WP_Site_Health {
 				__( 'Your site is running PHP %s' ),
 				PHP_VERSION
 			),
-			'status'      => 'recommended',
+			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Performance' ),
 				'color' => 'blue',
