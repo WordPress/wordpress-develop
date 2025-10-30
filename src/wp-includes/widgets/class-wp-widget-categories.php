@@ -119,7 +119,7 @@ class WP_Widget_Categories extends WP_Widget {
 	dropdown.addEventListener( 'click', function() {
 		dropdown.removeAttribute( 'data-lastkey' );
 	});
-	dropdown.onchange = onCatChange;
+	dropdown.addEventListener( 'change', onCatChange );
 })();
 </script>
 
