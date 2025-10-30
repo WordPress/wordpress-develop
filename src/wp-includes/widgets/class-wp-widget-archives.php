@@ -110,7 +110,7 @@ class WP_Widget_Archives extends WP_Widget {
 			<?php ob_start(); ?>
 <script>
 (function( dropdownId ) {
-	var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' ), lastkey;
+	var dropdown = document.getElementById( dropdownId ), lastkey;
 	function onSelectChange(e) {
 		setTimeout(function() {
 			lastKey = dropdown.getAttribute( 'data-lastkey' );
