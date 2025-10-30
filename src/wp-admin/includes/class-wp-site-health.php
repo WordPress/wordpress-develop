@@ -756,6 +756,17 @@ class WP_Site_Health {
 		);
 
 		if ( ! $response ) {
+			$result['label']       = sprintf(
+				/* translators: %s: The current PHP version. */
+				__( 'Unable to determine the status of the current PHP version (%s)' ),
+				PHP_VERSION
+			);
+			$result['status']      = 'recommended';
+			$result['description'] = '<p><em>' . sprintf(
+				/* translators: %s is the URL to the Serve Happy docs page. */
+				__( 'Unable to access the WordPress.org API for <a href="%s">Serve Happy</a>.' ),
+				'https://codex.wordpress.org/WordPress.org_API#Serve_Happy'
+			) . '</em></p>' . $result['description'];
 			return $result;
 		}
 
