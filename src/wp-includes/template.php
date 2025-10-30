@@ -976,8 +976,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 					$error_log[] = compact( 'level', 'message', 'file', 'line', 'context' );
 				}
 				return false;
-			},
-			E_ALL
+			}
 		);
 	}
 
