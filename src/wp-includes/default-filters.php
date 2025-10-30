@@ -422,7 +422,7 @@ add_action( 'do_all_pings', 'do_all_trackbacks', 10, 0 );
 add_action( 'do_all_pings', 'generic_ping', 10, 0 );
 add_action( 'do_robots', 'do_robots' );
 add_action( 'do_favicon', 'do_favicon' );
-add_action( 'wp_before_include_template', 'wp_start_template_enhancement_output_buffer' );
+add_action( 'wp_before_include_template', 'wp_start_template_enhancement_output_buffer', 1000 ); // Late priority to let `wp_template_enhancement_output_buffer` filters and `wp_send_late_headers` actions be registered.
 add_action( 'set_comment_cookies', 'wp_set_comment_cookies', 10, 3 );
 add_action( 'sanitize_comment_cookies', 'sanitize_comment_cookies' );
 add_action( 'init', 'smilies_init', 5 );
@@ -570,6 +570,7 @@ add_action( 'transition_post_status', '__clear_multi_author_cache' );
 
 // Post.
 add_action( 'init', 'create_initial_post_types', 0 ); // Highest priority.
+add_action( 'init', '_wp_migrate_active_templates', 0 ); // Highest priority.
 add_action( 'admin_menu', '_add_post_type_submenus' );
 add_action( 'before_delete_post', '_reset_front_page_settings_for_post' );
 add_action( 'wp_trash_post', '_reset_front_page_settings_for_post' );
