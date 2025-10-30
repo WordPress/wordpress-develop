@@ -404,9 +404,6 @@
 					if ( 'Tags' === modelType ) {
 						expectedMetas = '{"test_single":"","test_multi":[],"meta_key":"meta_value","test_tag_meta":""}';
 					}
-					if ( 'Comments' === modelType ) {
-						expectedMetas = '{"_wp_note_status":null,"meta_key":"meta_value"}';
-					}
 
 					// Verify the meta object returned correctly from `getMetas()`.
 					assert.equal( JSON.stringify( endpoint.getMetas() ), expectedMetas, 'Full meta key/values object should be readable.' );
