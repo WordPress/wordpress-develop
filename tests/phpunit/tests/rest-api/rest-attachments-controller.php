@@ -3097,4 +3097,58 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// The controller converts the integer values to booleans: 0 !== (int) 1 = true.
 		$this->assertSame( array( true, false ), WP_Image_Editor_Mock::$spy['flip'][0], 'Vertical flip of the image is not identical.' );
 	}
+
+	/**
+	 * Test that wp_slash() is properly applied when creating edited images.
+	 *
+	 * This test verifies that the object returned by prepare_item_for_database()
+	 * is properly cast to an array before being passed to wp_slash(), ensuring
+	 * that string values are properly escaped for database insertion.
+	 *
+	 * @ticket 64149
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_image_wp_slash_with_object_cast() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		// Create a mock to capture the data passed to wp_insert_attachment.
+		$captured_data = null;
+
+		// Mock wp_insert_attachment to capture the data being passed.
+		add_filter(
+			'wp_insert_attachment_data',
+			static function ( $data ) use ( &$captured_data ) {
+				$captured_data = $data;
+				return $data;
+			},
+			10,
+			1
+		);
+
+		$params = array(
+			'rotation'    => 60,
+			'src'         => wp_get_attachment_image_url( $attachment, 'full' ),
+			'title'       => 'Test Title with "quotes" and \'apostrophes\'',
+			'caption'     => 'Test Caption with "quotes" and \'apostrophes\'',
+			'description' => 'Test Description with "quotes" and \'apostrophes\'',
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		// Verify that the data was properly slashed (escaped)
+		$this->assertNotNull( $captured_data, 'wp_insert_attachment was not called with data' );
+
+		// Check that quotes are properly escaped in the captured data.
+		$this->assertStringContainsString( 'Test Title with \"quotes\"', $captured_data['post_title'] ?? '', 'Title quotes not properly escaped' );
+		$this->assertStringContainsString( 'Test Caption with \"quotes\"', $captured_data['post_excerpt'] ?? '', 'Caption quotes not properly escaped' );
+		$this->assertStringContainsString( 'Test Description with \"quotes\"', $captured_data['post_content'] ?? '', 'Description quotes not properly escaped' );
+
+		// Verify that the data is an array (not an object).
+		$this->assertIsArray( $captured_data, 'Data passed to wp_insert_attachment should be an array' );
+	}
 }

@@ -921,12 +921,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test edge case with empty input for both GET and POST methods.
+	 * Test edge case with empty input for GET method.
 	 *
 	 * @ticket 64098
 	 */
-	public function test_empty_input_handling(): void {
-		// Registers abilities for empty input testing.
+	public function test_empty_input_handling_get_method(): void {
 		wp_register_ability(
 			'test/read-only-empty',
 			array(
@@ -946,6 +945,55 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
+		// Tests GET with no input parameter.
+		$get_request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/read-only-empty/run' );
+		$get_response = $this->server->dispatch( $get_request );
+		$this->assertEquals( 200, $get_response->get_status() );
+		$this->assertTrue( $get_response->get_data()['input_was_empty'] );
+	}
+
+	/**
+	 * Test edge case with empty input for GET method, and normalized input using schema.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_empty_input_handling_get_method_with_normalized_input(): void {
+		wp_register_ability(
+			'test/read-only-empty-array',
+			array(
+				'label'               => 'Read-only Empty Array',
+				'description'         => 'Read-only with inferred empty array input from schema.',
+				'category'            => 'general',
+				'input_schema'        => array(
+					'type'    => 'array',
+					'default' => array(),
+				),
+				'execute_callback'    => static function ( $input ) {
+					return is_array( $input ) && empty( $input );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'annotations'  => array(
+						'readonly' => true,
+					),
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Tests GET with no input parameter.
+		$get_request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/read-only-empty-array/run' );
+		$get_response = $this->server->dispatch( $get_request );
+		$this->assertEquals( 200, $get_response->get_status() );
+		$this->assertTrue( $get_response->get_data() );
+	}
+
+	/**
+	 * Test edge case with empty input for POST method.
+	 *
+	 * @ticket 64098
+	 */
+	public function test_empty_input_handling_post_method(): void {
 		wp_register_ability(
 			'test/regular-empty',
 			array(
@@ -961,12 +1009,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 				),
 			)
 		);
-
-		// Tests GET with no input parameter.
-		$get_request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/read-only-empty/run' );
-		$get_response = $this->server->dispatch( $get_request );
-		$this->assertEquals( 200, $get_response->get_status() );
-		$this->assertTrue( $get_response->get_data()['input_was_empty'] );
 
 		// Tests POST with no body.
 		$post_request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/regular-empty/run' );
