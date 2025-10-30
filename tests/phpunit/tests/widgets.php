@@ -1359,4 +1359,57 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 		$this->assertSameSetsWithIndex( $expected_sidebars, $new_next_theme_sidebars );
 	}
+
+	/**
+	 * Ensures null sidebar values are converted to empty arrays in retrieve_widgets().
+	 *
+	 * @covers ::retrieve_widgets
+	 * @ticket 57469
+	 */
+	public function test_retrieve_widgets_converts_null_sidebar_to_empty_array() {
+		global $sidebars_widgets;
+		wp_widgets_init();
+		$this->register_sidebars( array( 'primary', 'secondary', 'wp_inactive_widgets' ) );
+
+		$sidebars_widgets = array(
+			'primary'             => null,
+			'secondary'           => array( 'text-1' ),
+			'extra_sidebar'       => array( 'unregistered_widget-1' ),
+			'wp_inactive_widgets' => array(),
+		);
+
+		$result = retrieve_widgets( true );
+		$this->assertArrayHasKey( 'primary', $result );
+		$this->assertSame( array(), $result['primary'], 'Primary sidebar should be an empty array after normalization.' );
+		$this->assertArrayNotHasKey( 'extra_sidebar', $result, 'Unregistered sidebar should be removed.' );
+	}
+
+	/**
+	 * Ensures wp_map_sidebars_widgets() normalizes null sidebar widget arrays.
+	 *
+	 * @covers ::wp_map_sidebars_widgets
+	 * @ticket 57469
+	 */
+	public function test_wp_map_sidebars_widgets_converts_null_sidebar_to_empty_array() {
+		$this->register_sidebars( array( 'primary', 'wp_inactive_widgets' ) );
+		// Theme data containing a null so the normalization loop runs.
+		set_theme_mod(
+			'sidebars_widgets',
+			array(
+				'time' => time(),
+				'data' => array(
+					'primary' => null,
+				),
+			)
+		);
+
+		$prev_theme_sidebars = array(
+			'primary'             => null,
+			'wp_inactive_widgets' => array(),
+		);
+
+		$new_sidebars = wp_map_sidebars_widgets( $prev_theme_sidebars );
+		$this->assertArrayHasKey( 'primary', $new_sidebars );
+		$this->assertSame( array(), $new_sidebars['primary'], 'Primary sidebar should be an empty array after normalization.' );
+	}
 }

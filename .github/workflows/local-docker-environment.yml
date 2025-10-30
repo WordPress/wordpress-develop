@@ -1,6 +1,7 @@
 name: Local Docker Environment
 
 on:
+  # Local Docker environment testing was introduced in WordPress 6.8.
   push:
     branches:
       - trunk
@@ -92,7 +93,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        memcached: [ false ]
+        memcached: [ false, true ]
         php: ${{ fromJSON( needs.build-test-matrix.outputs.php-versions ) }}
         db-version: ${{ fromJSON( needs.build-test-matrix.outputs.mysql-versions ) }}
 
@@ -109,6 +110,9 @@ jobs:
             db-version: '9.4'
           - php: '7.3'
             db-version: '9.4'
+          # No PHP 8.5 + Memcached support yet.
+          - php: '8.5'
+            memcached: true
 
     with:
       os: ${{ matrix.os }}

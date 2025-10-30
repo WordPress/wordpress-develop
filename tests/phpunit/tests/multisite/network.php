@@ -157,7 +157,9 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		$reflection = new ReflectionObject( $network );
 		$property   = $reflection->getProperty( 'id' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$this->assertSame( (int) $id, $property->getValue( $network ) );
 	}
@@ -194,7 +196,9 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		$reflection = new ReflectionObject( $network );
 		$property   = $reflection->getProperty( 'blog_id' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$this->assertIsString( $property->getValue( $network ) );
 	}
@@ -269,7 +273,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	}
 
 	public function test_active_network_plugins() {
-		$path = 'hello-dolly/hello.php';
+		$path = 'hello.php';
 
 		// Local activate, should be invisible for the network.
 		activate_plugin( $path ); // Enable the plugin for the current site.
@@ -281,7 +285,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 		// Activate the plugin sitewide.
 		activate_plugin( $path, '', true ); // Enable the plugin for all sites in the network.
 		$active_plugins = wp_get_active_network_plugins();
-		$this->assertSame( array( WP_PLUGIN_DIR . '/hello-dolly/hello.php' ), $active_plugins );
+		$this->assertSame( array( WP_PLUGIN_DIR . '/hello.php' ), $active_plugins );
 
 		// Deactivate the plugin.
 		deactivate_plugins( $path );
@@ -300,7 +304,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	 * @ticket 28651
 	 */
 	public function test_duplicate_network_active_plugin() {
-		$path = 'hello-dolly/hello.php';
+		$path = 'hello.php';
 		$mock = new MockAction();
 		add_action( 'activate_' . $path, array( $mock, 'action' ) );
 
@@ -320,13 +324,13 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	}
 
 	public function test_is_plugin_active_for_network_true() {
-		activate_plugin( 'hello-dolly/hello.php', '', true );
-		$this->assertTrue( is_plugin_active_for_network( 'hello-dolly/hello.php' ) );
+		activate_plugin( 'hello.php', '', true );
+		$this->assertTrue( is_plugin_active_for_network( 'hello.php' ) );
 	}
 
 	public function test_is_plugin_active_for_network_false() {
-		deactivate_plugins( 'hello-dolly/hello.php', false, true );
-		$this->assertFalse( is_plugin_active_for_network( 'hello-dolly/hello.php' ) );
+		deactivate_plugins( 'hello.php', false, true );
+		$this->assertFalse( is_plugin_active_for_network( 'hello.php' ) );
 	}
 
 	public function helper_deactivate_hook() {

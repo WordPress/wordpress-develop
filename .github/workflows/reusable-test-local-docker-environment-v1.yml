@@ -73,7 +73,7 @@ jobs:
   # - Tests the reset command.
   # - Ensures version-controlled files are not modified or deleted.
   local-docker-environment-tests:
-    name: PHP ${{ inputs.php }} / ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.memcached && ' with memcached' || '' }}${{ 'example.org' != inputs.tests-domain && format( ' {0}', inputs.tests-domain ) || '' }}
+    name: ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.memcached && ' with memcached' || '' }}${{ 'example.org' != inputs.tests-domain && format( ' {0}', inputs.tests-domain ) || '' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}
@@ -90,12 +90,6 @@ jobs:
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
-
-      - name: Create a Docker override file
-        if: ${{ contains( fromJSON('["8.3", "8.4"]'), inputs.php ) }}
-        env:
-          PHP_VERSION: ${{ inputs.php }}
-        run: cp "tools/local-env/php-$PHP_VERSION-docker-compose.override.yml" docker-compose.override.yml
 
       - name: Set up Node.js
         uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0

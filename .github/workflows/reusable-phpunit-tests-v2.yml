@@ -89,6 +89,8 @@ jobs:
     name: PHP ${{ inputs.php }} / ${{ inputs.multisite && ' Multisite' || 'Single Site' }}${{ inputs.split_slow && ' slow tests' || '' }}${{ inputs.memcached && ' with memcached' || '' }}
     runs-on: ${{ inputs.os }}
     timeout-minutes: 20
+    permissions:
+      contents: read
 
     steps:
       - name: Configure environment variables

@@ -136,7 +136,7 @@ class WP_Widget_Archives extends WP_Widget {
 })( <?php echo wp_json_encode( $dropdown_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 </script>
 			<?php
-			wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );
+			wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) . "\n//# sourceURL=" . rawurlencode( __METHOD__ ) );
 		} else {
 			$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
 
