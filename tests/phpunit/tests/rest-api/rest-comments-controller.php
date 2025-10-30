@@ -4076,40 +4076,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 64152
 	 */
 	public function test_get_note_with_children_link() {
-		$comment_id_1 = self::factory()->comment->create(
-			array(
-				'comment_approved' => 0,
-				'comment_post_ID'  => self::$post_id,
-				'user_id'          => self::$subscriber_id,
-				'comment_type'     => 'note',
-			)
-		);
-
-		self::factory()->comment->create(
-			array(
-				'comment_approved' => 0,
-				'comment_parent'   => $comment_id_1,
-				'comment_post_ID'  => self::$post_id,
-				'user_id'          => self::$subscriber_id,
-				'comment_type'     => 'note',
-			)
-		);
-		wp_set_current_user( self::$admin_id );
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
-		$request->set_param( 'type', 'note' );
-		$request->set_param( 'context', 'edit' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
-
-		$this->assertArrayHasKey( 'children', $response->get_links() );
-	}
-
-	/**
-	 * Test that children note links are properly embedded in the REST API response.
-	 *
-	 * @ticket 64145
-	 */
-	public function test_get_note_with_embedded_children() {
 		$parent_comment_id = self::factory()->comment->create(
 			array(
 				'comment_approved' => 1,
@@ -4132,6 +4098,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $parent_comment_id ) );
+		$request->set_param( 'type', 'note' );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertArrayHasKey( 'children', $response->get_links() );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'post', self::$post_id );
