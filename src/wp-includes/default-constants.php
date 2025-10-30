@@ -411,7 +411,7 @@ function wp_functionality_constants() {
 		 * fired by using an alternative method such as WP CLI.
 		 *
 		 * For single site installs, the following WP CLI command can be scheduled via a system
-		 * cron job: `wp cron event run --due-now`. For multi site installs, the command must be
+		 * cron job: `wp cron event run --due-now`. For multisite installs, the command must be
 		 * run for each site by specifying the global `--url` parameter.
 		 *
 		 * When disabling the wp-cron.php endpoint via the filter, the filter must be added on
