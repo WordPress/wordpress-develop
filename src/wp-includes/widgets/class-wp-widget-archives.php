@@ -109,7 +109,7 @@ class WP_Widget_Archives extends WP_Widget {
 
 			<?php ob_start(); ?>
 <script>
-(function() {
+(function( dropdownId ) {
 	var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' ), lastkey;
 	function onSelectChange(e) {
 		setTimeout(function() {
