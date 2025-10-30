@@ -117,8 +117,8 @@ class WP_Widget_Archives extends WP_Widget {
 			if ( 'change' === e.type && 'escape' === lastKey ) {
 				return;
 			}
-			if ( dropdown.options[ dropdown.selectedIndex ].value !== '' ) {
-				document.location.href = this.options[ this.selectedIndex ].value;
+			if ( dropdown.value ) {
+				document.location.href = dropdown.value;
 			}
 		}, 250 );
 	}
