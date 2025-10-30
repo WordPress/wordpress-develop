@@ -170,6 +170,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function set_up() {
 		parent::set_up();
 		$this->endpoint = new WP_REST_Comments_Controller();
+		wp_create_initial_comment_meta();
+
 		if ( is_multisite() ) {
 			update_site_option( 'site_admins', array( 'superadmin' ) );
 		}

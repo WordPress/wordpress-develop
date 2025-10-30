@@ -4135,4 +4135,3 @@ function wp_create_initial_comment_meta() {
 		)
 	);
 }
-add_action( 'rest_api_init', 'wp_create_initial_comment_meta' );
