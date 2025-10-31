@@ -130,6 +130,18 @@ jobs:
             const fs = require( 'fs' );
             const issue_number = Number( fs.readFileSync( './NR' ) );
 
+            // Confirm that the pull request is still open.
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: issue_number,
+            });
+
+            if ( pr.data.state !== 'open' ) {
+              core.info( 'The pull request has been closed.' );
+              return;
+            }
+
             // Comments are only added after the first successful build. Check for the presence of a comment and bail early.
             const commentInfo = {
               owner: context.repo.owner,
@@ -141,6 +153,7 @@ jobs:
 
             for ( const currentComment of comments ) {
               if ( currentComment.user.type === 'Bot' && currentComment.body.includes( 'Test using WordPress Playground' ) ) {
+                core.info( 'A comment with instructions for how to test in Playground already exists.' );
                 return;
               }
             };
