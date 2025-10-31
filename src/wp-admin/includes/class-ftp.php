@@ -284,7 +284,7 @@ class ftp_base {
     	    $this->SendMSG("Incorrect port syntax");
 			return FALSE;
 		} else {
-			$ip=@gethostbyname($host);
+			$ip=@get_host_by_name($host);
 	        $dns=@gethostbyaddr($host);
 	        if(!$ip) $ip=$host;
 	        if(!$dns) $dns=$host;

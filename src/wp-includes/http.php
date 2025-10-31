@@ -619,8 +619,8 @@ function wp_http_validate_url( $url ) {
 		if ( preg_match( '#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#', $host ) ) {
 			$ip = $host;
 		} else {
-			$ip = gethostbyname( $host );
-			if ( $ip === $host ) { // Error condition for gethostbyname().
+			$ip = get_host_by_name( $host );
+			if ( $ip === $host ) { // Error condition for get_host_by_name().
 				return false;
 			}
 		}

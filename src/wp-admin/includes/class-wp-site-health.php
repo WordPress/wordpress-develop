@@ -1328,7 +1328,7 @@ class WP_Site_Health {
 					sprintf(
 						/* translators: 1: The IP address WordPress.org resolves to. 2: The error returned by the lookup. */
 						__( 'Your site is unable to reach WordPress.org at %1$s, and returned the error: %2$s' ),
-						gethostbyname( 'api.wordpress.org' ),
+						get_host_by_name( 'api.wordpress.org' ),
 						$wp_dotorg->get_error_message()
 					)
 				)
