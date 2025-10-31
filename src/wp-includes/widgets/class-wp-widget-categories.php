@@ -98,9 +98,9 @@ class WP_Widget_Categories extends WP_Widget {
 <script>
 ( ( dropdownId ) => {
 	const dropdown = document.getElementById( dropdownId );
-	function onCatChange( event ) {
+	function onCatChange() {
 		setTimeout( () => {
-			if ( 'change' === event.type && 'escape' === dropdown.dataset.lastkey ) {
+			if ( 'escape' === dropdown.dataset.lastkey ) {
 				return;
 			}
 			if ( dropdown.value && parseInt( dropdown.value ) > 0 && dropdown.parentElement instanceof HTMLSelectElement ) {
