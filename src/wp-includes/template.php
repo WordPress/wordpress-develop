@@ -975,6 +975,10 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	 * (either `WP_HTML_Tag_Processor` or `WP_HTML_Processor`), or else use {@see DOM\HtmlDocument} as of PHP 8.4 which
 	 * fully supports HTML5.
 	 *
+	 * Important: Because this filter is applied inside an output buffer callback (i.e. display handler), any callbacks
+	 * added to the filter must not attempt to start their own output buffers. Otherwise, PHP will raise a fatal error:
+	 * "Cannot use output buffering in output buffering display handlers."
+	 *
 	 * @since 6.9.0
 	 *
 	 * @param string $filtered_output HTML template enhancement output buffer.
@@ -995,6 +999,10 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	 * priority 1000. Before this point, the output buffer will also be started automatically if there was a
 	 * {@see 'wp_template_enhancement_output_buffer'} filter added, or if the
 	 * {@see 'wp_should_output_buffer_template_for_enhancement'} filter is made to return `true`.
+	 *
+	 * Important: Because this action fires inside an output buffer callback (i.e. display handler), any callbacks added
+	 * to the action must not attempt to start their own output buffers. Otherwise, PHP will raise a fatal error:
+	 * "Cannot use output buffering in output buffering display handlers."
 	 *
 	 * @since 6.9.0
 	 *
