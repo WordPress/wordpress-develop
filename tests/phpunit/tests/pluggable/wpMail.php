@@ -651,4 +651,79 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
 	}
+
+	/**
+	 * Test that wp_mail() can handle complex multiple header addresses.
+	 *
+	 * @requires extension imap
+	 * @ticket 62940
+	 * @dataProvider data_wp_mail_complex_multiple_header_addresses
+	 */
+	public function test_wp_mail_complex_multiple_header_addresses( $header, $expected ) {
+
+		$type_list = array( 'To', 'Cc', 'Bcc' );
+
+		foreach ( $type_list as $type ) {
+			if ( 'To' === $type ) {
+				wp_mail( $header, 'subject', 'message' );
+			} else {
+				wp_mail( 'john@example.com', 'subject', 'message', $type . ': ' . $header );
+			}
+
+			$mailer = tests_retrieve_phpmailer_instance();
+
+			// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			switch ( $type ) {
+				case 'Cc':
+					$this->assertSame( $expected, $mailer->getCcAddresses() );
+					break;
+				case 'Bcc':
+					$this->assertSame( $expected, $mailer->getBccAddresses() );
+					break;
+				case 'To':
+					$this->assertSame( $expected, $mailer->getToAddresses() );
+					break;
+				default:
+					$this->fail( 'Invalid header type: ' . $header[0] );
+			}
+			// phpcs:enable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_mail_complex_multiple_header_addresses.
+	 * @return array
+	 */
+	public function data_wp_mail_complex_multiple_header_addresses() {
+		return array(
+			'multiple simple addresses'            => array(
+				'header'   => 'test@example.com, joe.doe@example.com',
+				'expected' => array(
+					array( 'test@example.com', '' ),
+					array( 'joe.doe@example.com', '' ),
+				),
+			),
+			'multiple simple addresses with name'  => array(
+				'header'   => 'test <test@example.com>, joe.doe@example.com',
+				'expected' => array(
+					array( 'test@example.com', 'test' ),
+					array( 'joe.doe@example.com', '' ),
+				),
+			),
+			'single with multiple aspect address'  => array(
+				'header'   => '"Joe, Doe" <joe.doe@example.com>"',
+				'expected' => array(
+					array( 'joe.doe@example.com', 'Joe, Doe' ),
+				),
+			),
+
+			'multiple complex addresses with name' => array(
+				'header'   => 'test <test@example.com>, "Joe, Doe" <joe.doe@example.com>"',
+				'expected' => array(
+					array( 'test@example.com', 'test' ),
+					array( 'joe.doe@example.com', 'Joe, Doe' ),
+				),
+			),
+		);
+	}
 }
