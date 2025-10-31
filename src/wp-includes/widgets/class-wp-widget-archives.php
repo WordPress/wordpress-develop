@@ -109,11 +109,11 @@ class WP_Widget_Archives extends WP_Widget {
 
 			<?php ob_start(); ?>
 <script>
-(function( dropdownId ) {
-	var dropdown = document.getElementById( dropdownId ), lastkey;
+(( dropdownId ) => {
+	const dropdown = document.getElementById( dropdownId );
 	function onSelectChange(e) {
 		setTimeout(function() {
-			lastKey = dropdown.getAttribute( 'data-lastkey' );
+			const lastKey = dropdown.getAttribute( 'data-lastkey' );
 			if ( 'change' === e.type && 'escape' === lastKey ) {
 				return;
 			}
