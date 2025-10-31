@@ -20,11 +20,39 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	 */
 	private $to_exclude;
 
+	/**
+	 * Test-specific posts created during individual tests that need cleanup.
+	 *
+	 * @since 6.9.0
+	 * @var array
+	 */
+	private $test_posts = array();
+
+	/**
+	 * Test-specific comments created during individual tests that need cleanup.
+	 *
+	 * @since 6.9.0
+	 * @var array
+	 */
+	private $test_comments = array();
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 	}
 
 	public function tear_down() {
+		// Clean up test-specific comments.
+		foreach ( $this->test_comments as $comment_id ) {
+			wp_delete_comment( $comment_id, true );
+		}
+		$this->test_comments = array();
+
+		// Clean up test-specific posts.
+		foreach ( $this->test_posts as $post_id ) {
+			wp_delete_post( $post_id, true );
+		}
+		$this->test_posts = array();
+
 		unset( $this->to_exclude );
 		parent::tear_down();
 	}
@@ -5371,5 +5399,176 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( ltrim( $q->request ), $q->request, 'The query has leading whitespace' );
+	}
+
+	/**
+	 * Helper method to create standard test comments for note type exclusion tests.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return int[] Array of comment IDs indexed by type: [0] => regular comment, [1] => pingback, [2] => note.
+	 */
+	protected function create_note_type_test_comments() {
+		$comments    = array();
+		$comments[0] = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+			)
+		);
+		$comments[1] = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'pingback',
+			)
+		);
+		$comments[2] = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'note',
+			)
+		);
+
+		// Track for cleanup.
+		$this->test_comments = array_merge( $this->test_comments, $comments );
+
+		return $comments;
+	}
+
+	/**
+	 * @ticket 64145
+	 * @covers WP_Comment_Query::get_comment_ids
+	 * @dataProvider data_note_type_exclusion
+	 *
+	 * @param array $query_args       Query arguments for WP_Comment_Query.
+	 * @param array $expected_indices Indices of expected comments in the $comments array.
+	 */
+	public function test_note_type_exclusion( $query_args, $expected_indices ) {
+		$comments = $this->create_note_type_test_comments();
+
+		$query_args['fields'] = 'ids';
+		$q                    = new WP_Comment_Query();
+		$found                = $q->query( $query_args );
+
+		$expected = array();
+		foreach ( $expected_indices as $index ) {
+			$expected[] = $comments[ $index ];
+		}
+
+		$this->assertSameSets( $expected, $found );
+	}
+
+	/**
+	 * Data provider for note type exclusion tests.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return array[]
+	 */
+	public function data_note_type_exclusion() {
+		return array(
+			'default query excludes note'        => array(
+				'query_args'       => array(),
+				'expected_indices' => array( 0, 1 ), // comment and pingback.
+			),
+			'empty type parameter excludes note' => array(
+				'query_args'       => array( 'type' => '' ),
+				'expected_indices' => array( 0, 1 ), // comment and pingback.
+			),
+			'type all includes note'             => array(
+				'query_args'       => array( 'type' => 'all' ),
+				'expected_indices' => array( 0, 1, 2 ), // comment, pingback, and note.
+			),
+			'explicit note type'                 => array(
+				'query_args'       => array( 'type' => 'note' ),
+				'expected_indices' => array( 2 ), // only note.
+			),
+			'type__in with note'                 => array(
+				'query_args'       => array( 'type__in' => array( 'note' ) ),
+				'expected_indices' => array( 2 ), // only note.
+			),
+			'type__in with note and pingback'    => array(
+				'query_args'       => array( 'type__in' => array( 'note', 'pingback' ) ),
+				'expected_indices' => array( 1, 2 ), // pingback and note.
+			),
+			'type pings excludes note'           => array(
+				'query_args'       => array( 'type' => 'pings' ),
+				'expected_indices' => array( 1 ), // only pingback.
+			),
+			'type__not_in with note'             => array(
+				'query_args'       => array( 'type__not_in' => array( 'note' ) ),
+				'expected_indices' => array( 0, 1 ), // comment and pingback.
+			),
+		);
+	}
+
+	/**
+	 * @ticket 64145
+	 * @covers WP_Comment_Query::get_comment_ids
+	 */
+	public function test_note_type_not_duplicated_in_type__not_in() {
+		global $wpdb;
+
+		$comments = $this->create_note_type_test_comments();
+
+		$q     = new WP_Comment_Query();
+		$found = $q->query(
+			array(
+				'type__not_in' => array( 'note' ),
+				'fields'       => 'ids',
+			)
+		);
+
+		$this->assertSameSets( array( $comments[0], $comments[1] ), $found );
+		$this->assertNotContains( $comments[2], $found );
+
+		// Verify that 'note' doesn't appear twice in the query.
+		$note_count = substr_count( $wpdb->last_query, "'note'" );
+		$this->assertSame( 1, $note_count, 'The note type should only appear once in the query' );
+	}
+
+	/**
+	 * @ticket 64145
+	 * @covers ::get_comment_count
+	 */
+	public function test_get_comment_count_excludes_note_type() {
+		$post_id            = self::factory()->post->create();
+		$this->test_posts[] = $post_id;
+
+		$c1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+		$c2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+				'comment_type'     => 'note',
+			)
+		);
+		$c3 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '0',
+				'comment_type'     => 'note',
+			)
+		);
+
+		// Track comments for cleanup.
+		$this->test_comments = array_merge( $this->test_comments, array( $c1, $c2, $c3 ) );
+
+		$counts = get_comment_count( $post_id );
+
+		$this->assertSame( 1, $counts['approved'] );
+		$this->assertSame( 0, $counts['awaiting_moderation'] );
+		$this->assertSame( 0, $counts['spam'] );
+		$this->assertSame( 0, $counts['trash'] );
+		$this->assertSame( 0, $counts['post-trashed'] );
+		$this->assertSame( 1, $counts['all'] );
+		$this->assertSame( 1, $counts['total_comments'] );
 	}
 }
