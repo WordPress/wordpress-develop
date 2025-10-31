@@ -98,7 +98,7 @@ class WP_Widget_Categories extends WP_Widget {
 <script>
 ( ( dropdownId ) => {
 	const dropdown = document.getElementById( dropdownId );
-	function onCatChange() {
+	function onSelectChange() {
 		setTimeout( () => {
 			if ( 'escape' === dropdown.dataset.lastkey ) {
 				return;
@@ -120,7 +120,7 @@ class WP_Widget_Categories extends WP_Widget {
 	}
 	dropdown.addEventListener( 'keyup', onKeyUp );
 	dropdown.addEventListener( 'click', onClick );
-	dropdown.addEventListener( 'change', onCatChange );
+	dropdown.addEventListener( 'change', onSelectChange );
 })( <?php echo wp_json_encode( $dropdown_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 </script>
 
