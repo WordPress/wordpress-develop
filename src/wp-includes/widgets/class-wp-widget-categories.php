@@ -96,11 +96,11 @@ class WP_Widget_Categories extends WP_Widget {
 			?>
 
 <script>
-(function() {
-	var dropdown = document.getElementById( '<?php echo esc_js( $dropdown_id ); ?>' ), lastkey;
-	function onCatChange(e) {
+(( dropdownId ) => {
+	const dropdown = document.getElementById( dropdownId ); 
+	function onCatChange(event) {
 		setTimeout(function() {
-			if ( 'change' === e.type && 'escape' === dropdown.dataset.lastkey ) {
+			if ( 'change' === event.type && 'escape' === dropdown.dataset.lastkey ) {
 				return;
 			}
 			if ( dropdown.value && parseInt( dropdown.value ) > 0 ) {
@@ -109,7 +109,7 @@ class WP_Widget_Categories extends WP_Widget {
 		}, 250 );
 	}
 	dropdown.addEventListener( 'keyup', function(e) {
-		if ( 'Escape' === e.key ) {
+		if ( 'Escape' === event.key ) {
 			dropdown.dataset.lastkey = 'escape';
 		} else {
 			delete dropdown.dataset.lastkey;

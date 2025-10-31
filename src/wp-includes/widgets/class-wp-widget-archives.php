@@ -111,12 +111,10 @@ class WP_Widget_Archives extends WP_Widget {
 <script>
 (( dropdownId ) => {
 	const dropdown = document.getElementById( dropdownId );
-	function onSelectChange(e) {
-		setTimeout(function() {
+	function onSelectChange(event) {
+		setTimeout( function() {
 			const lastKey = dropdown.getAttribute( 'data-lastkey' );
-			if ( 'change' === e.type && 'escape' === lastKey ) {
-				return;
-			if ( 'change' === e.type && 'escape' === dropdown.dataset.lastkey ) {
+			if ( 'change' === event.type && 'escape' === dropdown.dataset.lastkey ) {
 				return;
 			}
 			if ( dropdown.value ) {
@@ -124,8 +122,8 @@ class WP_Widget_Archives extends WP_Widget {
 			}
 		}, 250 );
 	}
-	dropdown.addEventListener( 'keyup', function(e) {
-		if ( 'Escape' === e.key ) {
+	dropdown.addEventListener( 'keyup', function(event) {
+		if ( 'Escape' === event.key ) {
 			dropdown.dataset.lastkey = 'escape';
 		} else {
 			delete dropdown.dataset.lastkey;
