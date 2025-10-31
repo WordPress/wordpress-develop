@@ -536,6 +536,33 @@ function send_origin_headers() {
 	return false;
 }
 
+function get_host_list_by_name( $host ) {
+	# Get DNS_A (IPv4) and DNS_AAAA (IPv6) records
+	$records = dns_get_record( $host, DNS_AAAA | DNS_A );
+
+	$ips = array();
+	foreach ( $records as $record ) {
+		if ( $record["type"] == "A" ) {
+			$ips[] = $record["ip"];
+		}
+		if ( $record["type"] == "AAAA" ) {
+			$ips[] = $record["ipv6"];
+		}
+	}
+
+	return $ips;
+}
+
+function get_host_by_name( $host ) {
+	$ips = get_host_list_by_name( $host );
+
+	if ( $ips == false ) {
+		return $host;
+	}
+
+	return $ips[0];
+}
+
 /**
  * Validates a URL as safe for use in the HTTP API.
  *
