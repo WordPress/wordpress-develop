@@ -19,7 +19,8 @@ mockedApiResponse.Schema = {
         "oembed/1.0",
         "wp/v2",
         "wp-site-health/v1",
-        "wp-block-editor/v1"
+        "wp-block-editor/v1",
+        "wp-abilities/v1"
     ],
     "authentication": {
         "application-passwords": {
@@ -633,7 +634,7 @@ mockedApiResponse.Schema = {
                         "ignore_sticky": {
                             "description": "Whether to ignore sticky posts or not.",
                             "type": "boolean",
-                            "default": false,
+                            "default": true,
                             "required": false
                         },
                         "format": {
@@ -2963,21 +2964,27 @@ mockedApiResponse.Schema = {
                         },
                         "media_type": {
                             "default": null,
-                            "description": "Limit result set to attachments of a particular media type.",
-                            "type": "string",
-                            "enum": [
-                                "image",
-                                "video",
-                                "text",
-                                "application",
-                                "audio"
-                            ],
+                            "description": "Limit result set to attachments of a particular media type or media types.",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "image",
+                                    "video",
+                                    "text",
+                                    "application",
+                                    "audio"
+                                ]
+                            },
                             "required": false
                         },
                         "mime_type": {
                             "default": null,
-                            "description": "Limit result set to attachments of a particular MIME type.",
-                            "type": "string",
+                            "description": "Limit result set to attachments of a particular MIME type or MIME types.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         }
                     }
@@ -3428,6 +3435,45 @@ mockedApiResponse.Schema = {
                                 ],
                                 "oneOf": [
                                     {
+                                        "title": "Flip",
+                                        "properties": {
+                                            "type": {
+                                                "description": "Flip type.",
+                                                "type": "string",
+                                                "enum": [
+                                                    "flip"
+                                                ]
+                                            },
+                                            "args": {
+                                                "description": "Flip arguments.",
+                                                "type": "object",
+                                                "required": [
+                                                    "flip"
+                                                ],
+                                                "properties": {
+                                                    "flip": {
+                                                        "description": "Flip direction.",
+                                                        "type": "object",
+                                                        "required": [
+                                                            "horizontal",
+                                                            "vertical"
+                                                        ],
+                                                        "properties": {
+                                                            "horizontal": {
+                                                                "description": "Whether to flip in the horizontal direction.",
+                                                                "type": "boolean"
+                                                            },
+                                                            "vertical": {
+                                                                "description": "Whether to flip in the vertical direction.",
+                                                                "type": "boolean"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
                                         "title": "Rotation",
                                         "properties": {
                                             "type": {
@@ -3531,6 +3577,87 @@ mockedApiResponse.Schema = {
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100,
+                            "required": false
+                        },
+                        "caption": {
+                            "description": "The attachment caption.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Caption for the attachment, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML caption for the attachment, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "description": {
+                            "description": "The attachment description.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Description for the attachment, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML description for the attachment, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "post": {
+                            "description": "The ID for the associated post of the attachment.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "alt_text": {
+                            "description": "Alternative text to display when attachment is not displayed.",
+                            "type": "string",
                             "required": false
                         }
                     }
@@ -5381,7 +5508,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/templates/(?P<parent>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)/revisions": {
+        "/wp/v2/created-templates/(?P<parent>[\\d]+)/revisions": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -5393,8 +5520,8 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "The ID for the parent of the revision.",
+                            "type": "integer",
                             "required": false
                         },
                         "context": {
@@ -5479,7 +5606,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/templates/(?P<parent>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)/revisions/(?P<id>[\\d]+)": {
+        "/wp/v2/created-templates/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5492,8 +5619,8 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "The ID for the parent of the revision.",
+                            "type": "integer",
                             "required": false
                         },
                         "id": {
@@ -5520,8 +5647,8 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "The ID for the parent of the revision.",
+                            "type": "integer",
                             "required": false
                         },
                         "id": {
@@ -5539,7 +5666,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)/autosaves": {
+        "/wp/v2/created-templates/(?P<id>[\\d]+)/autosaves": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5551,9 +5678,9 @@ mockedApiResponse.Schema = {
                         "GET"
                     ],
                     "args": {
-                        "id": {
-                            "description": "The id of a template",
-                            "type": "string",
+                        "parent": {
+                            "description": "The ID for the parent of the autosave.",
+                            "type": "integer",
                             "required": false
                         },
                         "context": {
@@ -5574,90 +5701,36 @@ mockedApiResponse.Schema = {
                         "POST"
                     ],
                     "args": {
-                        "id": {
-                            "description": "The id of a template",
-                            "type": "string",
+                        "parent": {
+                            "description": "The ID for the parent of the autosave.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "date": {
+                            "description": "The date the post was published, in the site's timezone.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "date_gmt": {
+                            "description": "The date the post was published, as GMT.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
                             "required": false
                         },
                         "slug": {
-                            "description": "Unique slug identifying the template.",
-                            "type": "string",
-                            "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\%-]+",
-                            "required": false
-                        },
-                        "theme": {
-                            "description": "Theme identifier for the template.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "type": {
-                            "description": "Type of template.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "content": {
-                            "description": "Content of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the template, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ]
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the template.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
-                        },
-                        "title": {
-                            "description": "Title of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the template, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the template, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
-                        },
-                        "description": {
-                            "description": "Description of template.",
+                            "description": "An alphanumeric identifier for the post unique to its type.",
                             "type": "string",
                             "required": false
                         },
                         "status": {
-                            "description": "Status of template.",
+                            "description": "A named status for the post.",
                             "type": "string",
                             "enum": [
                                 "publish",
@@ -5668,16 +5741,131 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "password": {
+                            "description": "A password to protect access to the content and excerpt.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "content": {
+                            "description": "The content for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the post.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "protected": {
+                                    "description": "Whether the content is protected with a password.",
+                                    "type": "boolean",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
                         "author": {
-                            "description": "The ID for the author of the template.",
+                            "description": "The ID for the author of the post.",
                             "type": "integer",
+                            "required": false
+                        },
+                        "excerpt": {
+                            "description": "The excerpt for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Excerpt for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML excerpt for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                },
+                                "protected": {
+                                    "description": "Whether the excerpt is protected with a password.",
+                                    "type": "boolean",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        },
+                        "template": {
+                            "description": "The theme file to use to display the post.",
+                            "type": "string",
                             "required": false
                         }
                     }
                 }
             ]
         },
-        "/wp/v2/templates/(?P<parent>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)/autosaves/(?P<id>[\\d]+)": {
+        "/wp/v2/created-templates/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -5689,8 +5877,8 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "The ID for the parent of the autosave.",
+                            "type": "integer",
                             "required": false
                         },
                         "id": {
@@ -5713,7 +5901,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/templates": {
+        "/wp/v2/created-templates": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5724,6 +5912,9 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "context": {
                             "description": "Scope under which the request is made; determines fields present in response.",
@@ -5736,19 +5927,171 @@ mockedApiResponse.Schema = {
                             "default": "view",
                             "required": false
                         },
-                        "wp_id": {
-                            "description": "Limit to the specified post id.",
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 10,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "after": {
+                            "description": "Limit response to posts published after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "author": {
+                            "description": "Limit result set to posts assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "author_exclude": {
+                            "description": "Ensure result set excludes posts assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "before": {
+                            "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "search_semantics": {
+                            "description": "How to interpret the search input.",
+                            "type": "string",
+                            "enum": [
+                                "exact"
+                            ],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
                             "type": "integer",
                             "required": false
                         },
-                        "area": {
-                            "description": "Limit to the specified template part area.",
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
                             "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
                             "required": false
                         },
-                        "post_type": {
-                            "description": "Post type to get the templates for.",
+                        "orderby": {
+                            "description": "Sort collection by post attribute.",
                             "type": "string",
+                            "default": "date",
+                            "enum": [
+                                "author",
+                                "date",
+                                "id",
+                                "include",
+                                "modified",
+                                "parent",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title"
+                            ],
+                            "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "Limit result set to posts with one or more specific slugs.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "required": false
+                        },
+                        "status": {
+                            "default": "publish",
+                            "description": "Limit result set to posts assigned one or more statuses.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "publish",
+                                    "future",
+                                    "draft",
+                                    "pending",
+                                    "private",
+                                    "trash",
+                                    "auto-draft",
+                                    "inherit",
+                                    "request-pending",
+                                    "request-confirmed",
+                                    "request-failed",
+                                    "request-completed",
+                                    "any"
+                                ],
+                                "type": "string"
+                            },
                             "required": false
                         }
                     }
@@ -5757,90 +6100,35 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "POST"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
+                        "date": {
+                            "description": "The date the post was published, in the site's timezone.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "date_gmt": {
+                            "description": "The date the post was published, as GMT.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
+                        },
                         "slug": {
-                            "description": "Unique slug identifying the template.",
-                            "type": "string",
-                            "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\%-]+",
-                            "required": true
-                        },
-                        "theme": {
-                            "description": "Theme identifier for the template.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "type": {
-                            "description": "Type of template.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "content": {
-                            "default": "",
-                            "description": "Content of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the template, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ]
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the template.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
-                        },
-                        "title": {
-                            "default": "",
-                            "description": "Title of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the template, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the template, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
-                        },
-                        "description": {
-                            "default": "",
-                            "description": "Description of template.",
+                            "description": "An alphanumeric identifier for the post unique to its type.",
                             "type": "string",
                             "required": false
                         },
                         "status": {
-                            "default": "publish",
-                            "description": "Status of template.",
+                            "description": "A named status for the post.",
                             "type": "string",
                             "enum": [
                                 "publish",
@@ -5851,10 +6139,125 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "password": {
+                            "description": "A password to protect access to the content and excerpt.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "content": {
+                            "description": "The content for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the post.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "protected": {
+                                    "description": "Whether the content is protected with a password.",
+                                    "type": "boolean",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
                         "author": {
-                            "description": "The ID for the author of the template.",
+                            "description": "The ID for the author of the post.",
                             "type": "integer",
                             "required": false
+                        },
+                        "excerpt": {
+                            "description": "The excerpt for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Excerpt for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML excerpt for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                },
+                                "protected": {
+                                    "description": "Whether the excerpt is protected with a password.",
+                                    "type": "boolean",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        },
+                        "template": {
+                            "description": "The theme file to use to display the post.",
+                            "type": "string",
+                            "required": false
                         }
                     }
                 }
@@ -5862,49 +6265,12 @@ mockedApiResponse.Schema = {
             "_links": {
                 "self": [
                     {
-                        "href": "http://example.org/index.php?rest_route=/wp/v2/templates"
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/created-templates"
                     }
                 ]
             }
         },
-        "/wp/v2/templates/lookup": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "slug": {
-                            "description": "The slug of the template to get the fallback for",
-                            "type": "string",
-                            "required": true
-                        },
-                        "is_custom": {
-                            "description": "Indicates if a template is custom or part of the template hierarchy",
-                            "type": "boolean",
-                            "required": false
-                        },
-                        "template_prefix": {
-                            "description": "The template prefix for the created template. This is used to extract the main template type, e.g. in `taxonomy-books` extracts the `taxonomy`",
-                            "type": "string",
-                            "required": false
-                        }
-                    }
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp/v2/templates/lookup"
-                    }
-                ]
-            }
-        },
-        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
+        "/wp/v2/created-templates/(?P<id>[\\d]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5918,10 +6284,13 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "GET"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
                             "required": false
                         },
                         "context": {
@@ -5934,6 +6303,16 @@ mockedApiResponse.Schema = {
                             ],
                             "default": "view",
                             "required": false
+                        },
+                        "excerpt_length": {
+                            "description": "Override the default excerpt length.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "password": {
+                            "description": "The password for the post if it is password protected.",
+                            "type": "string",
+                            "required": false
                         }
                     }
                 },
@@ -5943,91 +6322,40 @@ mockedApiResponse.Schema = {
                         "PUT",
                         "PATCH"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "date": {
+                            "description": "The date the post was published, in the site's timezone.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "date_gmt": {
+                            "description": "The date the post was published, as GMT.",
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
                             "required": false
                         },
                         "slug": {
-                            "description": "Unique slug identifying the template.",
-                            "type": "string",
-                            "minLength": 1,
-                            "pattern": "[a-zA-Z0-9_\\%-]+",
-                            "required": false
-                        },
-                        "theme": {
-                            "description": "Theme identifier for the template.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "type": {
-                            "description": "Type of template.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "content": {
-                            "description": "Content of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the template, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ]
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the template.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
-                        },
-                        "title": {
-                            "description": "Title of template.",
-                            "type": [
-                                "object",
-                                "string"
-                            ],
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the template, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the template, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
-                        },
-                        "description": {
-                            "description": "Description of template.",
+                            "description": "An alphanumeric identifier for the post unique to its type.",
                             "type": "string",
                             "required": false
                         },
                         "status": {
-                            "description": "Status of template.",
+                            "description": "A named status for the post.",
                             "type": "string",
                             "enum": [
                                 "publish",
@@ -6038,9 +6366,124 @@ mockedApiResponse.Schema = {
                             ],
                             "required": false
                         },
+                        "password": {
+                            "description": "A password to protect access to the content and excerpt.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "title": {
+                            "description": "The title for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "content": {
+                            "description": "The content for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML content for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the post.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                },
+                                "protected": {
+                                    "description": "Whether the content is protected with a password.",
+                                    "type": "boolean",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
                         "author": {
-                            "description": "The ID for the author of the template.",
+                            "description": "The ID for the author of the post.",
                             "type": "integer",
+                            "required": false
+                        },
+                        "excerpt": {
+                            "description": "The excerpt for the post.",
+                            "type": "object",
+                            "properties": {
+                                "raw": {
+                                    "description": "Excerpt for the post, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "edit"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML excerpt for the post, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                },
+                                "protected": {
+                                    "description": "Whether the excerpt is protected with a password.",
+                                    "type": "boolean",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "meta": {
+                            "description": "Meta fields.",
+                            "type": "object",
+                            "properties": [],
+                            "required": false
+                        },
+                        "template": {
+                            "description": "The theme file to use to display the post.",
+                            "type": "string",
                             "required": false
                         }
                     }
@@ -6049,10 +6492,13 @@ mockedApiResponse.Schema = {
                     "methods": [
                         "DELETE"
                     ],
+                    "allow_batch": {
+                        "v1": true
+                    },
                     "args": {
                         "id": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "Unique identifier for the post.",
+                            "type": "integer",
                             "required": false
                         },
                         "force": {
@@ -6896,7 +7342,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/global-styles/(?P<id>[\\/\\w-]+)": {
+        "/wp/v2/global-styles/(?P<id>[\\/\\d+]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -6914,8 +7360,8 @@ mockedApiResponse.Schema = {
                     },
                     "args": {
                         "id": {
-                            "description": "The id of a template",
-                            "type": "string",
+                            "description": "ID of global styles config.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -8219,6 +8665,769 @@ mockedApiResponse.Schema = {
                             "type": "boolean",
                             "default": false,
                             "description": "Whether to bypass Trash and force deletion.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)/autosaves": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "Unique slug identifying the template.",
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
+                            "required": false
+                        },
+                        "theme": {
+                            "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "content": {
+                            "description": "Content of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "title": {
+                            "description": "Title of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "description": {
+                            "description": "Description of template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "status": {
+                            "description": "Status of template.",
+                            "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/templates/(?P<parent>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)/autosaves/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "id": {
+                            "description": "The ID for the autosave.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/templates/(?P<parent>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)/revisions": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "search": {
+                            "description": "Limit results to those matching a string.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "exclude": {
+                            "description": "Ensure result set excludes specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "include": {
+                            "description": "Limit result set to specific IDs.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "offset": {
+                            "description": "Offset the result set by a specific number of items.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "order": {
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "required": false
+                        },
+                        "orderby": {
+                            "description": "Sort collection by object attribute.",
+                            "type": "string",
+                            "default": "date",
+                            "enum": [
+                                "date",
+                                "id",
+                                "include",
+                                "relevance",
+                                "slug",
+                                "include_slugs",
+                                "title"
+                            ],
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/templates/(?P<parent>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)/revisions/(?P<id>[\\d]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "id": {
+                            "description": "Unique identifier for the revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": {
+                        "parent": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "id": {
+                            "description": "Unique identifier for the revision.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Required to be true, as revisions do not support trashing.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/templates": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "wp_id": {
+                            "description": "Limit to the specified post id.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "area": {
+                            "description": "Limit to the specified template part area.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "post_type": {
+                            "description": "Post type to get the templates for.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "slug": {
+                            "description": "Unique slug identifying the template.",
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
+                            "required": true
+                        },
+                        "theme": {
+                            "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "content": {
+                            "default": "",
+                            "description": "Content of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "title": {
+                            "default": "",
+                            "description": "Title of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "description": {
+                            "default": "",
+                            "description": "Description of template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "status": {
+                            "default": "publish",
+                            "description": "Status of template.",
+                            "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/templates"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/templates/lookup": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "slug": {
+                            "description": "The slug of the template to get the fallback for",
+                            "type": "string",
+                            "required": true
+                        },
+                        "is_custom": {
+                            "description": "Indicates if a template is custom or part of the template hierarchy",
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "template_prefix": {
+                            "description": "The template prefix for the created template. This is used to extract the main template type, e.g. in `taxonomy-books` extracts the `taxonomy`",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/templates/lookup"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "slug": {
+                            "description": "Unique slug identifying the template.",
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "[a-zA-Z0-9_\\%-]+",
+                            "required": false
+                        },
+                        "theme": {
+                            "description": "Theme identifier for the template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "type": {
+                            "description": "Type of template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "content": {
+                            "description": "Content of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Content for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit"
+                                    ]
+                                },
+                                "block_version": {
+                                    "description": "Version of the content block format used by the template.",
+                                    "type": "integer",
+                                    "context": [
+                                        "edit"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "title": {
+                            "description": "Title of template.",
+                            "type": [
+                                "object",
+                                "string"
+                            ],
+                            "properties": {
+                                "raw": {
+                                    "description": "Title for the template, as it exists in the database.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "rendered": {
+                                    "description": "HTML title for the template, transformed for display.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ],
+                                    "readonly": true
+                                }
+                            },
+                            "required": false
+                        },
+                        "description": {
+                            "description": "Description of template.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "status": {
+                            "description": "Status of template.",
+                            "type": "string",
+                            "enum": [
+                                "publish",
+                                "future",
+                                "draft",
+                                "pending",
+                                "private"
+                            ],
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the template.",
+                            "type": "integer",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Whether to bypass Trash and force deletion.",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/registered-templates": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "wp_id": {
+                            "description": "Limit to the specified post id.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "area": {
+                            "description": "Limit to the specified template part area.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "post_type": {
+                            "description": "Post type to get the templates for.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/registered-templates"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/registered-templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
                             "required": false
                         }
                     }
@@ -10053,7 +11262,18 @@ mockedApiResponse.Schema = {
                         "app_id": {
                             "description": "A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
                             "type": "string",
-                            "format": "uuid",
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        ""
+                                    ]
+                                }
+                            ],
                             "required": false
                         },
                         "name": {
@@ -10137,7 +11357,18 @@ mockedApiResponse.Schema = {
                         "app_id": {
                             "description": "A UUID provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
                             "type": "string",
-                            "format": "uuid",
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        ""
+                                    ]
+                                }
+                            ],
                             "required": false
                         },
                         "name": {
@@ -10978,6 +12209,13 @@ mockedApiResponse.Schema = {
                                 "open",
                                 "closed"
                             ],
+                            "required": false
+                        },
+                        "active_templates": {
+                            "title": "Active Templates",
+                            "description": "",
+                            "type": "object",
+                            "additionalProperties": true,
                             "required": false
                         },
                         "site_logo": {
@@ -12243,6 +13481,222 @@ mockedApiResponse.Schema = {
                     }
                 }
             ]
+        },
+        "/wp-abilities/v1": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "namespace": {
+                            "default": "wp-abilities/v1",
+                            "required": false
+                        },
+                        "context": {
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-abilities/v1"
+                    }
+                ]
+            }
+        },
+        "/wp-abilities/v1/categories": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 50,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-abilities/v1/categories"
+                    }
+                ]
+            }
+        },
+        "/wp-abilities/v1/categories/(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "slug": {
+                            "description": "Unique identifier for the ability category.",
+                            "type": "string",
+                            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+?)/run": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE"
+                    ],
+                    "args": {
+                        "name": {
+                            "description": "Unique identifier for the ability.",
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-\\/]+$",
+                            "required": false
+                        },
+                        "input": {
+                            "description": "Input parameters for the ability execution.",
+                            "type": [
+                                "integer",
+                                "number",
+                                "boolean",
+                                "string",
+                                "array",
+                                "object",
+                                "null"
+                            ],
+                            "default": null,
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp-abilities/v1/abilities": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "page": {
+                            "description": "Current page of the collection.",
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1,
+                            "required": false
+                        },
+                        "per_page": {
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer",
+                            "default": 50,
+                            "minimum": 1,
+                            "maximum": 100,
+                            "required": false
+                        },
+                        "category": {
+                            "description": "Limit results to abilities in specific ability category.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-abilities/v1/abilities"
+                    }
+                ]
+            }
+        },
+        "/wp-abilities/v1/abilities/(?P<name>[a-zA-Z0-9\\-\\/]+)": {
+            "namespace": "wp-abilities/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "name": {
+                            "description": "Unique identifier for the ability.",
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-\\/]+$",
+                            "required": false
+                        }
+                    }
+                }
+            ]
         }
     },
     "site_logo": 0,
@@ -13313,7 +14767,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "wp_template",
         "icon": null,
         "taxonomies": [],
-        "rest_base": "templates",
+        "rest_base": "created-templates",
         "rest_namespace": "wp/v2",
         "template": [],
         "template_lock": false,
@@ -13325,7 +14779,7 @@ mockedApiResponse.TypesCollection = {
             ],
             "wp:items": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/templates"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/created-templates"
                 }
             ],
             "curies": [
@@ -14103,6 +15557,7 @@ mockedApiResponse.settings = {
     "page_for_posts": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
+    "active_templates": [],
     "site_logo": null,
     "site_icon": 0
 };
