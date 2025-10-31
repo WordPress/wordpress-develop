@@ -1076,7 +1076,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'origin'          => array(
 					'description' => __( 'Source of a customized template' ),
-					'type'        => 'string',
+					'type'        => array( 'string', 'null' ),
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
@@ -1150,8 +1150,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				),
 				'modified'        => array(
 					'description' => __( "The date the template was last modified, in the site's timezone." ),
-					'type'        => 'string',
-					'format'      => 'date-time',
+					'oneOf'       => array(
+						array(
+							'type'   => 'string',
+							'format' => 'date-time',
+						),
+						array(
+							'type' => 'boolean',
+							'enum' => array( false ),
+						),
+					),
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),

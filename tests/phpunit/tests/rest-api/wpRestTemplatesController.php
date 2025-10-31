@@ -989,6 +989,93 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertArrayHasKey( 'plugin', $properties );
 	}
 
+	/**
+	 * Test that the origin property schema allows null values.
+	 *
+	 * @ticket 64168
+	 * @covers WP_REST_Templates_Controller::get_item_schema
+	 */
+	public function test_origin_property_schema_allows_null() {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayHasKey( 'origin', $properties );
+		$this->assertArrayHasKey( 'type', $properties['origin'] );
+		$this->assertIsArray( $properties['origin']['type'] );
+		$this->assertCount( 2, $properties['origin']['type'] );
+		$this->assertContains( 'string', $properties['origin']['type'] );
+		$this->assertContains( 'null', $properties['origin']['type'] );
+	}
+
+	/**
+	 * Test that the modified property schema allows boolean (false) values.
+	 *
+	 * @ticket 64168
+	 * @covers WP_REST_Templates_Controller::get_item_schema
+	 */
+	public function test_modified_property_schema_allows_boolean() {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/templates' );
+		$response   = rest_get_server()->dispatch( $request );
+		$data       = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayHasKey( 'modified', $properties );
+		$this->assertArrayHasKey( 'oneOf', $properties['modified'] );
+		$this->assertIsArray( $properties['modified']['oneOf'] );
+		$this->assertCount( 2, $properties['modified']['oneOf'] );
+
+		$string_schema  = null;
+		$boolean_schema = null;
+		foreach ( $properties['modified']['oneOf'] as $schema ) {
+			if ( isset( $schema['type'] ) && 'string' === $schema['type'] ) {
+				$string_schema = $schema;
+			}
+			if ( isset( $schema['type'] ) && 'boolean' === $schema['type'] ) {
+				$boolean_schema = $schema;
+			}
+		}
+
+		$this->assertNotNull( $string_schema, 'String schema not found in oneOf' );
+		$this->assertArrayHasKey( 'format', $string_schema );
+		$this->assertSame( 'date-time', $string_schema['format'] );
+
+		$this->assertNotNull( $boolean_schema, 'Boolean schema not found in oneOf' );
+		$this->assertArrayHasKey( 'enum', $boolean_schema );
+		$this->assertSame( array( false ), $boolean_schema['enum'] );
+	}
+
+	/**
+	 * Test that template parts from theme files have null origin and false modified.
+	 *
+	 * @ticket 64168
+	 * @covers WP_REST_Templates_Controller::prepare_item_for_response
+	 */
+	public function test_template_part_from_theme_has_null_origin_and_false_modified() {
+		wp_set_current_user( self::$admin_id );
+		switch_theme( 'block-theme' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/template-parts' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$theme_template_part = null;
+		foreach ( $data as $template_part ) {
+			if ( isset( $template_part['source'] ) && 'theme' === $template_part['source'] ) {
+				$theme_template_part = $template_part;
+				break;
+			}
+		}
+
+		$this->assertNotNull( $theme_template_part, 'No theme template part found in response' );
+
+		$this->assertArrayHasKey( 'origin', $theme_template_part );
+		$this->assertNull( $theme_template_part['origin'] );
+
+		$this->assertArrayHasKey( 'modified', $theme_template_part );
+		$this->assertFalse( $theme_template_part['modified'] );
+	}
+
 	protected function find_and_normalize_template_by_id( $templates, $id ) {
 		foreach ( $templates as $template ) {
 			if ( $template['id'] === $id ) {
