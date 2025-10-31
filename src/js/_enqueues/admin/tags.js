@@ -61,22 +61,7 @@ jQuery( function($) {
 					}
 					tr.fadeOut('normal', function() {
 						tr.remove();
-
-						if ( $('#the-list tr').length === 0 ) {
-							$('#the-list').append(
-								'<tr class="no-items"><td class="colspanchange" colspan="5">' +
-								wp.i18n.__( 'No tags found.' ) +
-								'</td></tr>'
-							);
-
-							$('.tablenav').hide();
-							$('p.search-box').hide();
-						}
-
-						var currentCount = parseInt( $('.tablenav-pages .displaying-num').first().text().match(/\d+/) ) || 0;
-						var itemCount = currentCount - 1 || 0;
-						var itemText = wp.i18n._n( '%d item', '%d items', itemCount );
-						$('.tablenav-pages .displaying-num').text( itemText );
+						updateTableNavCount();
 					});
 
 					/**
@@ -118,6 +103,33 @@ jQuery( function($) {
 		tr.children().css( 'backgroundColor', '' );
 		tr.css( 'pointer-events', '' );
 		tr.find( ':input, a' ).prop( 'disabled', false ).removeAttr( 'tabindex' );
+	}
+
+	/**
+	 * Update the row count for table navigation..
+	 *
+	 * @return {void}
+	 */
+	function updateTableNavCount( action = 'remove' ) {
+		var currentCount = parseInt( $('.tablenav-pages .displaying-num').first().text().match(/\d+/) ) || 0;
+		var itemCount = ( 'remove' === action ) ? currentCount - 1 || 0 : currentCount + 1;
+		var itemText = wp.i18n.sprintf( wp.i18n._n( '%d item', '%d items', itemCount ), itemCount );
+		$('.tablenav-pages .displaying-num').text( itemText );
+		// Show the tablenav if row count positive.
+		if ( itemCount === 1 ) {
+			$('.tablenav').show();
+			$('p.search-box').show();
+		}
+		if ( $('#the-list tr').length === 0 ) {
+			$('#the-list').append(
+				'<tr class="no-items"><td class="colspanchange" colspan="5">' +
+				wp.i18n.__( 'No tags found.' ) +
+				'</td></tr>'
+			);
+
+			$('.tablenav').hide();
+			$('p.search-box').hide();
+		}
 	}
 
 	/**
@@ -210,15 +222,7 @@ jQuery( function($) {
 
 			$('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):visible, textarea:visible', form).val('');
 
-			var currentCount = parseInt( $('.tablenav-pages .displaying-num').first().text().match(/\d+/) ) || 0;
-			var itemCount = currentCount + 1 || 0;
-			var itemText = wp.i18n._n( '%d item', '%d items', itemCount );
-			$('.tablenav-pages .displaying-num').text( itemText );
-
-			if ( itemCount === 1 ) {
-				$('.tablenav').show();
-				$('p.search-box').show();
-			}
+			updateTableNavCount( 'add' );
 		});
 
 		return false;
