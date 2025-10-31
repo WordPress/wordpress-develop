@@ -1958,7 +1958,7 @@ Thanks! -- The WordPress Team"
 				$lines = array_reverse( file( WP_CONTENT_DIR . '/debug.log', FILE_IGNORE_NEW_LINES ) );
 				foreach ( $lines as $line ) {
 					if ( strpos( $line, 'PHP Fatal error' ) !== false ) {
-						$fatal_error .= trim( $line );
+						$fatal_error = trim( $line );
 						break;
 					}
 				}
