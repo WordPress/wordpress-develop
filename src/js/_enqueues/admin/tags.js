@@ -49,6 +49,16 @@ jQuery( function($) {
 				var message;
 				if ( '1' == r ) {
 					$('#ajax-response').empty();
+					let nextFocus = tr.next( 'tr' ).find( 'a.row-title' );
+					let prevFocus = tr.prev( 'tr' ).find( 'a.row-title' );
+					// If there is neither a next row or a previous row, focus the tag input field.
+					if ( nextFocus.length < 1 && prevFocus.length < 1 ) {
+						nextFocus = $( '#tag-name' ).trigger( 'focus' );
+					} else {
+						if ( nextFocus.length < 1 ) {
+							nextFocus = prevFocus;
+						}
+					}
 					tr.fadeOut('normal', function() {
 						tr.remove();
 
