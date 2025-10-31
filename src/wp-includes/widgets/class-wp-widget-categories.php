@@ -119,7 +119,7 @@ class WP_Widget_Categories extends WP_Widget {
 		delete dropdown.dataset.lastkey;
 	});
 	dropdown.addEventListener( 'change', onCatChange );
-})();
+})( <?php echo wp_json_encode( $dropdown_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 </script>
 
 			<?php
