@@ -121,16 +121,18 @@ class WP_Widget_Archives extends WP_Widget {
 			}
 		}, 250 );
 	}
-	dropdown.addEventListener( 'keyup', function(event) {
+	function onKeyUp( event ) {
 		if ( 'Escape' === event.key ) {
 			dropdown.dataset.lastkey = 'escape';
 		} else {
 			delete dropdown.dataset.lastkey;
 		}
-	});
-	dropdown.addEventListener( 'click', function() {
+	}
+	function onClick() {
 		delete dropdown.dataset.lastkey;
-	});
+	}
+	dropdown.addEventListener( 'keyup', onKeyUp );
+	dropdown.addEventListener( 'click', onClick );
 	dropdown.addEventListener( 'change', onSelectChange );
 })( <?php echo wp_json_encode( $dropdown_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 </script>
