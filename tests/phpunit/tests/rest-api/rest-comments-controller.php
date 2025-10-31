@@ -3970,6 +3970,66 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * @ticket 99999
+	 */
+	public function test_note_responses_are_trashed_when_parent_is() {
+		wp_set_current_user( self::$editor_id );
+		$post_id = self::factory()->post->create();
+
+		$params  = array(
+			'post'         => $post_id,
+			'author_name'  => 'Editor',
+			'author_email' => 'editor@example.com',
+			'author_url'   => 'https://example.com',
+			'author'       => self::$editor_id,
+			'type'         => 'note',
+			'content'      => 'This is a top-level note',
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 201, $response->get_status() );
+
+		$top_level_note = $response->get_data();
+		$nested_notes = array();
+
+		for ( $i = 0; $i < 2; $i++ ) {
+			$params  = array(
+				'post'         => $post_id,
+				'parent'       => $top_level_note['id'],
+				'author_name'  => 'Editor',
+				'author_email' => 'editor@example.com',
+				'author_url'   => 'https://example.com',
+				'author'       => self::$editor_id,
+				'type'         => 'note',
+				'content'      => 'Nested comment #' . $i,
+			);
+			$child_request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+			$child_request->add_header( 'Content-Type', 'application/json' );
+			$child_request->set_body( wp_json_encode( $params ) );
+			$child_response = rest_get_server()->dispatch( $child_request );
+			$this->assertSame( 201, $child_response->get_status() );
+
+			$current_reply = $child_response->get_data();
+			$nested_notes[] = $current_reply['id'];
+		}
+
+		$delete_request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', $top_level_note['id'] ) );
+		$delete_request->set_param( 'force', 'false' );
+		$delete_response = rest_get_server()->dispatch( $delete_request );
+		$this->assertSame( 200, $delete_response->get_status() );
+
+		$data = $delete_response->get_data();
+		$this->assertSame( 'trash', $data['status'] );
+
+		foreach ( $nested_notes as $comment_id ) {
+			$reply_status = wp_get_comment_status( $comment_id );
+			$this->assertSame( 'trash', $reply_status );
+		}
+	}
+
+	/**
 	 * @dataProvider data_note_get_items_permissions_data_provider
 	 * @ticket 64096
 	 */
