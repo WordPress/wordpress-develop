@@ -446,7 +446,7 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 function wpautop( $text, $br = true ) {
 	$pre_tags = array();
 
-	if ( trim( $text ) === '' ) {
+	if ( '' === trim( $text ) ) {
 		return '';
 	}
 
@@ -918,177 +918,6 @@ function seems_utf8( $str ) {
 }
 
 /**
- * Determines if a given byte string represents a valid UTF-8 encoding.
- *
- * Note that it’s unlikely for non-UTF-8 data to validate as UTF-8, but
- * it is still possible. Many texts are simultaneously valid UTF-8,
- * valid US-ASCII, and valid ISO-8859-1 (`latin1`).
- *
- * Example:
- *
- *     true === wp_is_valid_utf8( '' );
- *     true === wp_is_valid_utf8( 'just a test' );
- *     true === wp_is_valid_utf8( "\xE2\x9C\x8F" );    // Pencil, U+270F.
- *     true === wp_is_valid_utf8( "\u{270F}" );        // Pencil, U+270F.
- *     true === wp_is_valid_utf8( '✏' );              // Pencil, U+270F.
- *
- *     false === wp_is_valid_utf8( "just \xC0 test" ); // Invalid bytes.
- *     false === wp_is_valid_utf8( "\xE2\x9C" );       // Invalid/incomplete sequences.
- *     false === wp_is_valid_utf8( "\xC1\xBF" );       // Overlong sequences.
- *     false === wp_is_valid_utf8( "\xED\xB0\x80" );   // Surrogate halves.
- *     false === wp_is_valid_utf8( "B\xFCch" );        // ISO-8859-1 high-bytes.
- *                                                     // E.g. The “ü” in ISO-8859-1 is a single byte 0xFC,
- *                                                     // but in UTF-8 is the two-byte sequence 0xC3 0xBC.
- *
- * @see _wp_is_valid_utf8_fallback
- *
- * @since 6.9.0
- *
- * @param string $bytes String which might contain text encoded as UTF-8.
- * @return bool Whether the provided bytes can decode as valid UTF-8.
- */
-function wp_is_valid_utf8( string $bytes ): bool {
-	/*
-	 * Since PHP 8.3.0 the UTF-8 validity is cached internally
-	 * on string objects, making this a direct property lookup.
-	 *
-	 * This is to be preferred exclusively once PHP 8.3.0 is
-	 * the minimum supported version, because even when the
-	 * status isn’t cached, it uses highly-optimized code to
-	 * validate the byte stream.
-	 */
-	return function_exists( 'mb_check_encoding' )
-		? mb_check_encoding( $bytes, 'UTF-8' )
-		: _wp_is_valid_utf8_fallback( $bytes );
-}
-
-/**
- * Fallback mechanism for safely validating UTF-8 bytes.
- *
- * By implementing a raw method here the code will behave in the same way on
- * all installed systems, regardless of what extensions are installed.
- *
- * @see wp_is_valid_utf8
- *
- * @since 6.9.0
- * @access private
- *
- * @param string $bytes String which might contain text encoded as UTF-8.
- * @return bool Whether the provided bytes can decode as valid UTF-8.
- */
-function _wp_is_valid_utf8_fallback( string $bytes ): bool {
-	$end = strlen( $bytes );
-
-	for ( $i = 0; $i < $end; $i++ ) {
-		/*
-		 * Quickly skip past US-ASCII bytes, all of which are valid UTF-8.
-		 *
-		 * This optimization step improves the speed from 10x to 100x
-		 * depending on whether the JIT has optimized the function.
-		 */
-		$i += strspn(
-			$bytes,
-			"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f" .
-			"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f" .
-			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f",
-			$i
-		);
-		if ( $i >= $end ) {
-			break;
-		}
-
-		/**
-		 * The above fast-track handled all single-byte UTF-8 characters. What
-		 * follows MUST be a multibyte sequence otherwise there’s invalid UTF-8.
-		 *
-		 * Therefore everything past here is checking those multibyte sequences.
-		 * Because it’s possible that there are truncated characters, the use of
-		 * the null-coalescing operator with "\xC0" is a convenience for skipping
-		 * length checks on every continuation bytes. This works because 0xC0 is
-		 * always invalid in a UTF-8 string, meaning that if the string has been
-		 * truncated, it will find 0xC0 and reject as invalid UTF-8.
-		 *
-		 *  > [The following table] lists all of the byte sequences that are well-formed
-		 * > in UTF-8. A range of byte values such as A0..BF indicates that any byte
-		 * > from A0 to BF (inclusive) is well-formed in that position. Any byte value
-		 * > outside of the ranges listed is ill-formed.
-		 *
-		 * > Table 3-7. Well-Formed UTF-8 Byte Sequences
-		 *  ╭─────────────────────┬────────────┬──────────────┬─────────────┬──────────────╮
-		 *  │ Code Points         │ First Byte │ Second Byte  │ Third Byte  │ Fourth Byte  │
-		 *  ├─────────────────────┼────────────┼──────────────┼─────────────┼──────────────┤
-		 *  │ U+0000..U+007F      │ 00..7F     │              │             │              │
-		 *  │ U+0080..U+07FF      │ C2..DF     │ 80..BF       │             │              │
-		 *  │ U+0800..U+0FFF      │ E0         │ A0..BF       │ 80..BF      │              │
-		 *  │ U+1000..U+CFFF      │ E1..EC     │ 80..BF       │ 80..BF      │              │
-		 *  │ U+D000..U+D7FF      │ ED         │ 80..9F       │ 80..BF      │              │
-		 *  │ U+E000..U+FFFF      │ EE..EF     │ 80..BF       │ 80..BF      │              │
-		 *  │ U+10000..U+3FFFF    │ F0         │ 90..BF       │ 80..BF      │ 80..BF       │
-		 *  │ U+40000..U+FFFFF    │ F1..F3     │ 80..BF       │ 80..BF      │ 80..BF       │
-		 *  │ U+100000..U+10FFFF  │ F4         │ 80..8F       │ 80..BF      │ 80..BF       │
-		 *  ╰─────────────────────┴────────────┴──────────────┴─────────────┴──────────────╯
-		 *
-		 * Notice that all valid third and forth bytes are in the range 80..BF. This
-		 * validator takes advantage of that to only check the range of those bytes once.
-		 *
-		 * @see https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
-		 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G27506
-		 */
-
-		$b1 = ord( $bytes[ $i ] );
-		$b2 = ord( $bytes[ $i + 1 ] ?? "\xC0" );
-
-		// Valid two-byte code points.
-
-		if ( $b1 >= 0xC2 && $b1 <= 0xDF && $b2 >= 0x80 && $b2 <= 0xBF ) {
-			$i++;
-			continue;
-		}
-
-		$b3 = ord( $bytes[ $i + 2 ] ?? "\xC0" );
-
-		// Valid three-byte code points.
-
-		if ( $b3 < 0x80 || $b3 > 0xBF ) {
-			return false;
-		}
-
-		if (
-			( 0xE0 === $b1 && $b2 >= 0xA0 && $b2 <= 0xBF ) ||
-			( $b1 >= 0xE1 && $b1 <= 0xEC && $b2 >= 0x80 && $b2 <= 0xBF ) ||
-			( 0xED === $b1 && $b2 >= 0x80 && $b2 <= 0x9F ) ||
-			( $b1 >= 0xEE && $b1 <= 0xEF && $b2 >= 0x80 && $b2 <= 0xBF )
-		) {
-			$i += 2;
-			continue;
-		}
-
-		$b4 = ord( $bytes[ $i + 3 ] ?? "\xC0" );
-
-		// Valid four-byte code points.
-
-		if ( $b4 < 0x80 || $b4 > 0xBF ) {
-			return false;
-		}
-
-		if (
-			( 0xF0 === $b1 && $b2 >= 0x90 && $b2 <= 0xBF ) ||
-			( $b1 >= 0xF1 && $b1 <= 0xF3 && $b2 >= 0x80 && $b2 <= 0xBF ) ||
-			( 0xF4 === $b1 && $b2 >= 0x80 && $b2 <= 0x8F )
-		) {
-			$i += 3;
-			continue;
-		}
-
-		// Any other sequence is invalid.
-		return false;
-	}
-
-	// Reaching the end implies validating every byte.
-	return true;
-}
-
-/**
  * Converts a number of special characters into their HTML entities.
  *
  * Specifically deals with: `&`, `<`, `>`, `"`, and `'`.
@@ -1260,10 +1089,39 @@ function wp_specialchars_decode( $text, $quote_style = ENT_NOQUOTES ) {
 /**
  * Checks for invalid UTF8 in a string.
  *
- * @since 2.8.0
+ * Note! This function only performs its work if the `blog_charset` is set
+ * to UTF-8. For all other values it returns the input text unchanged.
  *
- * @param string $text   The text which is to be checked.
- * @param bool   $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
+ * Note! Unless requested, this returns an empty string if the input contains
+ * any sequences of invalid UTF-8. To replace invalid byte sequences, pass
+ * `true` as the optional `$strip` parameter.
+ *
+ * Consider using {@see wp_scrub_utf8()} instead which does not depend on
+ * the value of `blog_charset`.
+ *
+ * Example:
+ *
+ *     // The `blog_charset` is `latin1`, so this returns the input unchanged.
+ *     $every_possible_input === wp_check_invalid_utf8( $every_possible_input );
+ *
+ *     // Valid strings come through unchanged.
+ *     'test' === wp_check_invalid_utf8( 'test' );
+ *
+ *     $invalid = "the byte \xC0 is never allowed in a UTF-8 string.";
+ *
+ *     // Invalid strings are rejected outright.
+ *     '' === wp_check_invalid_utf8( $invalid );
+ *
+ *     // “Stripping” invalid sequences produces the replacement character instead.
+ *     "the byte \u{FFFD} is never allowed in a UTF-8 string." === wp_check_invalid_utf8( $invalid, true );
+ *     'the byte � is never allowed in a UTF-8 string.' === wp_check_invalid_utf8( $invalid, true );
+ *
+ * @since 2.8.0
+ * @since 6.9.0 Stripping replaces invalid byte sequences with the Unicode replacement character U+FFFD (�).
+ *
+ * @param string $text   String which is expected to be encoded as UTF-8 unless `blog_charset` is another encoding.
+ * @param bool   $strip  Optional. Whether to replace invalid sequences of bytes with the Unicode replacement
+ *                       character (U+FFFD `�`). Default `false` returns an empty string for invalid UTF-8 inputs.
  * @return string The checked text.
  */
 function wp_check_invalid_utf8( $text, $strip = false ) {
@@ -1278,32 +1136,14 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
 	if ( ! isset( $is_utf8 ) ) {
 		$is_utf8 = is_utf8_charset();
 	}
-	if ( ! $is_utf8 ) {
+
+	if ( ! $is_utf8 || wp_is_valid_utf8( $text ) ) {
 		return $text;
 	}
 
-	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
-	static $utf8_pcre = null;
-	if ( ! isset( $utf8_pcre ) ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
-	}
-	// We can't demand utf8 in the PCRE installation, so just return the string in those cases.
-	if ( ! $utf8_pcre ) {
-		return $text;
-	}
-
-	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- preg_match fails when it encounters invalid UTF8 in $text.
-	if ( 1 === @preg_match( '/^./us', $text ) ) {
-		return $text;
-	}
-
-	// Attempt to strip the bad chars if requested (not recommended).
-	if ( $strip && function_exists( 'iconv' ) ) {
-		return iconv( 'utf-8', 'utf-8', $text );
-	}
-
-	return '';
+	return $strip
+		? wp_scrub_utf8( $text )
+		: '';
 }
 
 /**
@@ -1341,7 +1181,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
 			$unicode        .= $encoded_char;
 			$unicode_length += $encoded_char_length;
 		} else {
-			if ( count( $values ) === 0 ) {
+			if ( 0 === count( $values ) ) {
 				if ( $value < 224 ) {
 					$num_octets = 2;
 				} elseif ( $value < 240 ) {
@@ -2195,20 +2035,13 @@ function sanitize_file_name( $filename ) {
 
 	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', '’', '«', '»', '”', '“', chr( 0 ) );
 
-	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
-	static $utf8_pcre = null;
-	if ( ! isset( $utf8_pcre ) ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
-	}
-
 	if ( ! wp_is_valid_utf8( $filename ) ) {
 		$_ext     = pathinfo( $filename, PATHINFO_EXTENSION );
 		$_name    = pathinfo( $filename, PATHINFO_FILENAME );
 		$filename = sanitize_title_with_dashes( $_name ) . '.' . $_ext;
 	}
 
-	if ( $utf8_pcre ) {
+	if ( _wp_can_use_pcre_u() ) {
 		/**
 		 * Replace all whitespace characters with a basic space (U+0020).
 		 *
@@ -2461,10 +2294,10 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = strtolower( $title );
 
 	if ( 'save' === $context ) {
-		// Convert &nbsp, &ndash, and &mdash to hyphens.
-		$title = str_replace( array( '%c2%a0', '%e2%80%93', '%e2%80%94' ), '-', $title );
-		// Convert &nbsp, &ndash, and &mdash HTML entities to hyphens.
-		$title = str_replace( array( '&nbsp;', '&#160;', '&ndash;', '&#8211;', '&mdash;', '&#8212;' ), '-', $title );
+		// Convert &nbsp, non-breaking hyphen, &ndash, and &mdash to hyphens.
+		$title = str_replace( array( '%c2%a0', '%e2%80%91', '%e2%80%93', '%e2%80%94' ), '-', $title );
+		// Convert &nbsp, non-breaking hyphen, &ndash, and &mdash HTML entities to hyphens.
+		$title = str_replace( array( '&nbsp;', '&#8209;', '&#160;', '&ndash;', '&#8211;', '&mdash;', '&#8212;' ), '-', $title );
 		// Convert forward slash to hyphen.
 		$title = str_replace( '/', '-', $title );
 
@@ -2725,7 +2558,7 @@ function convert_invalid_entities( $content ) {
  * @return string Balanced text.
  */
 function balanceTags( $text, $force = false ) {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	if ( $force || (int) get_option( 'use_balanceTags' ) === 1 ) {
+	if ( $force || 1 === (int) get_option( 'use_balanceTags' ) ) {
 		return force_balance_tags( $text );
 	} else {
 		return $text;
@@ -3166,7 +2999,7 @@ function _make_web_ftp_clickable_cb( $matches ) {
 
 	// Removed trailing [.,;:)] from URL.
 	$last_char = substr( $dest, -1 );
-	if ( in_array( $last_char, array( '.', ',', ';', ':', ')' ), true ) === true ) {
+	if ( in_array( $last_char, array( '.', ',', ';', ':', ')' ), true ) ) {
 		$ret  = $last_char;
 		$dest = substr( $dest, 0, strlen( $dest ) - 1 );
 	}
@@ -3493,7 +3326,7 @@ function wp_targeted_link_rel( $text ) {
 	_deprecated_function( __FUNCTION__, '6.7.0' );
 
 	// Don't run (more expensive) regex if no links with targets.
-	if ( stripos( $text, 'target' ) === false || stripos( $text, '<a ' ) === false || is_serialized( $text ) ) {
+	if ( false === stripos( $text, 'target' ) || false === stripos( $text, '<a ' ) || is_serialized( $text ) ) {
 		return $text;
 	}
 
@@ -3613,7 +3446,7 @@ function wp_remove_targeted_link_rel_filters() {
 function translate_smiley( $matches ) {
 	global $wpsmiliestrans;
 
-	if ( count( $matches ) === 0 ) {
+	if ( 0 === count( $matches ) ) {
 		return '';
 	}
 
@@ -3739,7 +3572,7 @@ function is_email( $email, $deprecated = false ) {
 	}
 
 	// Test for an @ character after the first position.
-	if ( strpos( $email, '@', 1 ) === false ) {
+	if ( false === strpos( $email, '@', 1 ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'email_no_at' );
 	}
@@ -3953,7 +3786,7 @@ function sanitize_email( $email ) {
 	}
 
 	// Test for an @ character after the first position.
-	if ( strpos( $email, '@', 1 ) === false ) {
+	if ( false === strpos( $email, '@', 1 ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'email_no_at' );
 	}
@@ -4642,6 +4475,8 @@ function esc_sql( $data ) {
  * is applied to the returned cleaned URL.
  *
  * @since 2.8.0
+ * @since 6.9.0 Prepends `https://` to the URL if it does not already contain a scheme
+ *              and the first item in `$protocols` is 'https'.
  *
  * @param string   $url       The URL to be cleaned.
  * @param string[] $protocols Optional. An array of acceptable protocols.
@@ -4674,12 +4509,14 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	/*
 	 * If the URL doesn't appear to contain a scheme, we presume
 	 * it needs http:// prepended (unless it's a relative link
-	 * starting with /, # or ?, or a PHP file).
+	 * starting with /, # or ?, or a PHP file). If the first item
+	 * in $protocols is 'https', then https:// is prepended.
 	 */
 	if ( ! str_contains( $url, ':' ) && ! in_array( $url[0], array( '/', '#', '?' ), true ) &&
 		! preg_match( '/^[a-z0-9-]+?\.php/i', $url )
 	) {
-		$url = 'http://' . $url;
+		$scheme = ( is_array( $protocols ) && 'https' === array_first( $protocols ) ) ? 'https://' : 'http://';
+		$url    = $scheme . $url;
 	}
 
 	// Replace ampersands and single quotes only when displaying.
@@ -5525,7 +5362,7 @@ function wp_sprintf_l( $pattern, $args ) {
 
 	$args   = (array) $args;
 	$result = array_shift( $args );
-	if ( count( $args ) === 1 ) {
+	if ( 1 === count( $args ) ) {
 		$result .= $l['between_only_two'] . array_shift( $args );
 	}
 
@@ -5978,16 +5815,20 @@ function wp_unslash( $value ) {
  *
  * @since 3.6.0
  *
- * @param string $content A string which might contain a URL.
- * @return string|false The found URL.
+ * @param string $content A string which might contain an `A` element with a non-empty `href` attribute.
+ * @return string|false Database-escaped URL via {@see esc_url()} if found, otherwise `false`.
  */
 function get_url_in_content( $content ) {
 	if ( empty( $content ) ) {
 		return false;
 	}
 
-	if ( preg_match( '/<a\s[^>]*?href=([\'"])(.+?)\1/is', $content, $matches ) ) {
-		return sanitize_url( $matches[2] );
+	$processor = new WP_HTML_Tag_Processor( $content );
+	while ( $processor->next_tag( 'A' ) ) {
+		$href = $processor->get_attribute( 'href' );
+		if ( is_string( $href ) && '' !== $href ) {
+			return sanitize_url( $href );
+		}
 	}
 
 	return false;
@@ -6071,7 +5912,11 @@ function print_emoji_detection_script() {
 
 	$printed = true;
 
-	_print_emoji_detection_script();
+	if ( did_action( 'wp_print_footer_scripts' ) ) {
+		_print_emoji_detection_script();
+	} else {
+		add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+	}
 }
 
 /**
@@ -6137,8 +5982,20 @@ function _print_emoji_detection_script() {
 	}
 
 	wp_print_inline_script_tag(
-		sprintf( 'window._wpemojiSettings = %s;', wp_json_encode( $settings ) ) . "\n" .
-			file_get_contents( ABSPATH . WPINC . '/js/wp-emoji-loader' . wp_scripts_get_suffix() . '.js' )
+		wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+		array(
+			'id'   => 'wp-emoji-settings',
+			'type' => 'application/json',
+		)
+	);
+
+	$emoji_loader_script_path = '/js/wp-emoji-loader' . wp_scripts_get_suffix() . '.js';
+	wp_print_inline_script_tag(
+		rtrim( file_get_contents( ABSPATH . WPINC . $emoji_loader_script_path ) ) . "\n" .
+		'//# sourceURL=' . esc_url_raw( includes_url( $emoji_loader_script_path ) ),
+		array(
+			'type' => 'module',
+		)
 	);
 }
 
@@ -6407,8 +6264,9 @@ function sanitize_hex_color( $color ) {
  *
  * @since 3.4.0
  *
- * @param string $color
- * @return string|null
+ * @param string $color The color value to sanitize. Can be with or without a #.
+ * @return string|null The sanitized hex color without the hash prefix,
+ *                     empty string if input is empty, or null if invalid.
  */
 function sanitize_hex_color_no_hash( $color ) {
 	$color = ltrim( $color, '#' );
@@ -6428,8 +6286,9 @@ function sanitize_hex_color_no_hash( $color ) {
  *
  * @since 3.4.0
  *
- * @param string $color
- * @return string
+ * @param string $color The color value to add the hash prefix to. Can be with or without a #.
+ * @return string The color with the hash prefix if it's a valid hex color,
+ *                otherwise the original value.
  */
 function maybe_hash_hex_color( $color ) {
 	$unhashed = sanitize_hex_color_no_hash( $color );

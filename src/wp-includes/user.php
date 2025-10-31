@@ -623,11 +623,11 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
 	$query = "SELECT COUNT(*) FROM $wpdb->posts $where";
 
 	$last_changed = wp_cache_get_last_changed( 'posts' );
-	$cache_key    = 'count_user_posts:' . md5( $query ) . ':' . $last_changed;
-	$count        = wp_cache_get( $cache_key, 'post-queries' );
+	$cache_key    = 'count_user_posts:' . md5( $query );
+	$count        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false === $count ) {
 		$count = $wpdb->get_var( $query );
-		wp_cache_set( $cache_key, $count, 'post-queries' );
+		wp_cache_set_salted( $cache_key, $count, 'post-queries', $last_changed );
 	}
 
 	/**
@@ -649,13 +649,14 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
  * Gets the number of posts written by a list of users.
  *
  * @since 3.0.0
+ * @since 6.9.0 The results are now cached.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int[]           $users       Array of user IDs.
  * @param string|string[] $post_type   Optional. Single post type or array of post types to check. Defaults to 'post'.
  * @param bool            $public_only Optional. Only return counts for public posts.  Defaults to false.
- * @return string[] Amount of posts each user has written, as strings, keyed by user ID.
+ * @return array<int, string> Amount of posts each user has written, as strings, keyed by user ID.
  */
 function count_many_users_posts( $users, $post_type = 'post', $public_only = false ) {
 	global $wpdb;
@@ -682,14 +683,30 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 		return $pre;
 	}
 
-	$userlist = implode( ',', array_map( 'absint', $users ) );
-	$where    = get_posts_by_author_sql( $post_type, true, null, $public_only );
+	// Cleanup the users array. Remove duplicates and sort for consistent ordering.
+	$users = array_unique( array_filter( array_map( 'intval', $users ) ) );
+	sort( $users );
 
-	$result = $wpdb->get_results( "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author", ARRAY_N );
+	// Cleanup the post type argument. Remove duplicates and sort for consistent ordering.
+	$post_type = array_unique( (array) $post_type );
+	sort( $post_type );
 
-	$count = array_fill_keys( $users, 0 );
-	foreach ( $result as $row ) {
-		$count[ $row[0] ] = $row[1];
+	$userlist    = implode( ',', $users );
+	$where       = get_posts_by_author_sql( $post_type, true, null, $public_only );
+	$query       = "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author";
+	$cache_key   = 'count_many_users_posts:' . md5( $query );
+	$cache_salts = array( wp_cache_get_last_changed( 'posts' ), wp_cache_get_last_changed( 'users' ) );
+	$count       = wp_cache_get_salted( $cache_key, 'post-queries', $cache_salts );
+
+	if ( false === $count ) {
+		$result = $wpdb->get_results( $query, ARRAY_N );
+
+		$count = array_fill_keys( $users, 0 );
+		foreach ( $result as $row ) {
+			$count[ $row[0] ] = $row[1];
+		}
+
+		wp_cache_set_salted( $cache_key, $count, 'post-queries', $cache_salts, HOUR_IN_SECONDS );
 	}
 
 	return $count;
@@ -1179,24 +1196,14 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 		return false;
 	}
 
-	$keys = get_user_meta( $user_id );
-	if ( empty( $keys ) ) {
-		return false;
+	if ( 1 === $blog_id ) {
+		$capabilities_key = $wpdb->base_prefix . 'capabilities';
+	} else {
+		$capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
 	}
+	$has_cap = get_user_meta( $user_id, $capabilities_key, true );
 
-	// No underscore before capabilities in $base_capabilities_key.
-	$base_capabilities_key = $wpdb->base_prefix . 'capabilities';
-	$site_capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
-
-	if ( isset( $keys[ $base_capabilities_key ] ) && 1 === $blog_id ) {
-		return true;
-	}
-
-	if ( isset( $keys[ $site_capabilities_key ] ) ) {
-		return true;
-	}
-
-	return false;
+	return is_array( $has_cap );
 }
 
 /**
@@ -2221,6 +2228,18 @@ function wp_insert_user( $userdata ) {
 		$user_pass = ! empty( $userdata['user_pass'] ) ? $userdata['user_pass'] : $old_user_data->user_pass;
 	} else {
 		$update = false;
+
+		if ( empty( $userdata['user_pass'] ) ) {
+			wp_trigger_error(
+				__FUNCTION__,
+				__( 'The user_pass field is required when creating a new user. The user will need to reset their password before logging in.' ),
+				E_USER_WARNING
+			);
+
+			// Set the password as an empty string to force the password reset flow.
+			$userdata['user_pass'] = '';
+		}
+
 		// Hash the password.
 		$user_pass = wp_hash_password( $userdata['user_pass'] );
 	}
@@ -2503,7 +2522,7 @@ function wp_insert_user( $userdata ) {
 
 	if ( ! $update ) {
 		/** This action is documented in wp-includes/pluggable.php */
-		do_action( 'wp_set_password', $userdata['user_pass'], $user_id, $userdata );
+		do_action( 'wp_set_password', $userdata['user_pass'], $user_id, $user );
 	}
 
 	/**
@@ -2953,22 +2972,19 @@ function _get_additional_user_keys( $user ) {
 /**
  * Sets up the user contact methods.
  *
- * Default contact methods were removed in 3.6. A filter dictates contact methods.
+ * Default contact methods were removed for new installations in WordPress 3.6
+ * and completely removed from the codebase in WordPress 6.9.
+ *
+ * Use the {@see 'user_contactmethods'} filter to add or remove contact methods.
  *
  * @since 3.7.0
+ * @since 6.9.0 Removed references to `aim`, `jabber`, and `yim` contact methods.
  *
  * @param WP_User|null $user Optional. WP_User object.
  * @return string[] Array of contact method labels keyed by contact method.
  */
 function wp_get_user_contact_methods( $user = null ) {
 	$methods = array();
-	if ( get_site_option( 'initial_db_version' ) < 23588 ) {
-		$methods = array(
-			'aim'    => __( 'AIM' ),
-			'yim'    => __( 'Yahoo IM' ),
-			'jabber' => __( 'Jabber / Google Talk' ),
-		);
-	}
 
 	/**
 	 * Filters the user contact methods.
