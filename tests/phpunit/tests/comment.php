@@ -21,7 +21,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'role'       => 'author',
 				'user_login' => 'test_wp_user_get',
 				'user_pass'  => 'password',
-				'user_email' => 'test@test.com',
+				'user_email' => 'author@example.com',
 			)
 		);
 
@@ -95,7 +95,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_post_ID'      => self::$post_id,
 				'comment_author'       => 'Author',
 				'comment_author_url'   => 'http://example.localhost/',
-				'comment_author_email' => 'test@test.com',
+				'comment_author_email' => 'author@example.com',
 				'user_id'              => $admin_id_1,
 				'comment_content'      => 'This is a comment',
 			)
@@ -108,7 +108,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'role'       => 'administrator',
 				'user_login' => 'test_wp_admin_get',
 				'user_pass'  => 'password',
-				'user_email' => 'testadmin@test.com',
+				'user_email' => 'testadmin@example.com',
 			)
 		);
 
@@ -139,7 +139,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_post_ID'      => self::$post_id,
 				'comment_author'       => 'Author',
 				'comment_author_url'   => 'http://example.localhost/',
-				'comment_author_email' => 'test@test.com',
+				'comment_author_email' => 'author@example.com',
 				'user_id'              => self::$user_id,
 				'comment_content'      => '<a href="http://example.localhost/something.html">click</a>',
 			)
@@ -152,7 +152,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'role'       => 'administrator',
 				'user_login' => 'test_wp_admin_get',
 				'user_pass'  => 'password',
-				'user_email' => 'testadmin@test.com',
+				'user_email' => 'testadmin@example.com',
 			)
 		);
 
@@ -168,7 +168,12 @@ class Tests_Comment extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 
 		$comment = get_comment( $comment_id );
-		$this->assertSame( '<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>', $comment->comment_content, 'Comment: ' . $comment->comment_content );
+		$this->assertEqualHTML(
+			'<a href="http://example.localhost/something.html" rel="nofollow ugc">click</a>',
+			$comment->comment_content,
+			'<body>',
+			'Comment: ' . $comment->comment_content
+		);
 	}
 
 	/**
@@ -1445,10 +1450,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Post authors possibly notified when a comment is approved on their post.
 		wp_set_comment_status( $comment, 'approve' );
 
-		// Check to see if a notification email was sent to the post author `test@test.com`.
+		// Check to see if a notification email was sent to the post author `author@example.com`.
 		if ( isset( $GLOBALS['phpmailer']->mock_sent )
 			&& ! empty( $GLOBALS['phpmailer']->mock_sent )
-			&& 'test@test.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0]
+			&& 'author@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0]
 		) {
 			$email_sent_when_comment_approved = true;
 		} else {
@@ -1467,10 +1472,10 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 		wp_new_comment( $data );
 
-		// Check to see if a notification email was sent to the post author `test@test.com`.
+		// Check to see if a notification email was sent to the post author `author@example.com`.
 		if ( isset( $GLOBALS['phpmailer']->mock_sent ) &&
 			! empty( $GLOBALS['phpmailer']->mock_sent ) &&
-			'test@test.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] ) {
+			'author@example.com' === $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0] ) {
 				$email_sent_when_comment_added = true;
 				reset_phpmailer_instance();
 		} else {
@@ -1565,6 +1570,8 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$lengths = wp_get_comment_fields_max_lengths();
+
+		$this->assertNotEmpty( $lengths );
 
 		foreach ( $lengths as $field => $length ) {
 			$this->assertSame( $expected[ $field ], $length );

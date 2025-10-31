@@ -205,7 +205,7 @@ Any changes to the directives between these markers will be overwritten.'
 
 		if ( ! $found_marker ) {
 			$pre_lines[] = $line;
-		} elseif ( $found_marker && $found_end_marker ) {
+		} elseif ( $found_end_marker ) {
 			$post_lines[] = $line;
 		} else {
 			$existing_lines[] = $line;
@@ -263,7 +263,7 @@ function save_mod_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -303,7 +303,7 @@ function iis7_save_url_rewrite_rules() {
 	global $wp_rewrite;
 
 	if ( is_multisite() ) {
-		return;
+		return null;
 	}
 
 	// Ensure get_home_path() is declared.
@@ -988,7 +988,7 @@ function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingCo
 }
 
 /**
- * Displays the default admin color scheme picker (Used in user-edit.php).
+ * Displays the default administration color scheme picker (Used in user-edit.php).
  *
  * @since 3.0.0
  *
@@ -1025,7 +1025,7 @@ function admin_color_scheme_picker( $user_id ) {
 		<legend class="screen-reader-text"><span>
 			<?php
 			/* translators: Hidden accessibility text. */
-			_e( 'Admin Color Scheme' );
+			_e( 'Administration Color Scheme' );
 			?>
 		</span></legend>
 		<?php
@@ -1058,6 +1058,8 @@ function admin_color_scheme_picker( $user_id ) {
 
 /**
  *
+ * @since 3.8.0
+ *
  * @global array $_wp_admin_css_colors
  */
 function wp_color_scheme_settings() {
@@ -1083,7 +1085,7 @@ function wp_color_scheme_settings() {
 		);
 	}
 
-	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ) ) . ";</script>\n";
+	echo '<script type="text/javascript">var _wpColorScheme = ' . wp_json_encode( array( 'icons' => $icon_colors ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ";</script>\n";
 }
 
 /**

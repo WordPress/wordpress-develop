@@ -850,6 +850,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 			// @ticket 32763
 			'SELECT ' . str_repeat( 'a', 10000 ) . " FROM (SELECT * FROM $table) as subquery",
+
+			// @ticket 63777
+			"SET STATEMENT max_statement_time=1 FOR SELECT * FROM $table",
 		);
 
 		$querycount = count( $queries );
@@ -1984,7 +1987,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$default = $wpdb->allow_unsafe_unquoted_parameters;
 
 		$property = new ReflectionProperty( $wpdb, 'allow_unsafe_unquoted_parameters' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $wpdb, $allow );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -1992,7 +1997,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 		// Reset.
 		$property->setValue( $wpdb, $default );
-		$property->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( false );
+		}
 
 		$this->assertSame( $expected, $actual );
 	}
