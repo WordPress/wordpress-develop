@@ -62,7 +62,6 @@ jobs:
                     nodes {
                       ... on PullRequest {
                         number
-                        state
                         bodyText
                       }
                     }
