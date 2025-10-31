@@ -96,10 +96,10 @@ class WP_Widget_Categories extends WP_Widget {
 			?>
 
 <script>
-(( dropdownId ) => {
-	const dropdown = document.getElementById( dropdownId ); 
-	function onCatChange(event) {
-		setTimeout(function() {
+( ( dropdownId ) => {
+	const dropdown = document.getElementById( dropdownId );
+	function onCatChange( event ) {
+		setTimeout( () => {
 			if ( 'change' === event.type && 'escape' === dropdown.dataset.lastkey ) {
 				return;
 			}

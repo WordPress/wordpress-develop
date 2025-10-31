@@ -109,10 +109,10 @@ class WP_Widget_Archives extends WP_Widget {
 
 			<?php ob_start(); ?>
 <script>
-(( dropdownId ) => {
+( ( dropdownId ) => {
 	const dropdown = document.getElementById( dropdownId );
-	function onSelectChange(event) {
-		setTimeout( function() {
+	function onSelectChange( event ) {
+		setTimeout( () => {
 			if ( 'change' === event.type && 'escape' === dropdown.dataset.lastkey ) {
 				return;
 			}
