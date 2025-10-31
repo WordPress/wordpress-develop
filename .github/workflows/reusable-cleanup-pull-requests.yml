@@ -54,7 +54,7 @@ jobs:
 
             for (const ticket of fixedList) {
               const tracTicketUrl = `https://core.trac.wordpress.org/ticket/${ticket}`;
-              const corePrefix = `Core-${ticket}`;
+              const corePrefix = `core-${ticket}`;
 
               const query = `
                 query($searchQuery: String!) {
@@ -79,6 +79,7 @@ jobs:
               // Since search queries will match anywhere for any activity on a pull request, the body specifically needs to be manually checked.
               const matchingPRs = result.search.nodes
                 .filter(
+                  const bodyLower = pr.bodyText.toLowerCase();
                   pr => pr.bodyText.includes(tracTicketUrl) || pr.bodyText.includes(corePrefix)
                 )
                 .map(pr => pr.number);
