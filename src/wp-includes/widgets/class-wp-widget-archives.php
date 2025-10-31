@@ -116,6 +116,8 @@ class WP_Widget_Archives extends WP_Widget {
 			const lastKey = dropdown.getAttribute( 'data-lastkey' );
 			if ( 'change' === e.type && 'escape' === lastKey ) {
 				return;
+			if ( 'change' === e.type && 'escape' === dropdown.dataset.lastkey ) {
+				return;
 			}
 			if ( dropdown.value ) {
 				document.location.href = dropdown.value;
@@ -124,13 +126,13 @@ class WP_Widget_Archives extends WP_Widget {
 	}
 	dropdown.addEventListener( 'keyup', function(e) {
 		if ( 'Escape' === e.key ) {
-			dropdown.setAttribute( 'data-lastkey', 'escape' ); 
+			dropdown.dataset.lastkey = 'escape';
 		} else {
-			dropdown.removeAttribute( 'data-lastkey' ); 
+			delete dropdown.dataset.lastkey;
 		}
 	});
 	dropdown.addEventListener( 'click', function() {
-		dropdown.removeAttribute( 'data-lastkey' );
+		delete dropdown.dataset.lastkey;
 	});
 	dropdown.addEventListener( 'change', onSelectChange );
 })( <?php echo wp_json_encode( $dropdown_id, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
