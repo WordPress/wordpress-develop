@@ -75,8 +75,8 @@ jQuery( function($) {
 
 						var currentCount = parseInt( $('.tablenav-pages .displaying-num').first().text().match(/\d+/) ) || 0;
 						var itemCount = currentCount - 1 || 0;
-						var itemText = itemCount === 1 ? wp.i18n.__('item') : wp.i18n.__('items');
-						$('.tablenav-pages .displaying-num').text( itemCount + ' ' + itemText);
+						var itemText = wp.i18n._n( '%d item', '%d items', itemCount );
+						$('.tablenav-pages .displaying-num').text( itemText );
 					});
 
 					/**
@@ -212,8 +212,8 @@ jQuery( function($) {
 
 			var currentCount = parseInt( $('.tablenav-pages .displaying-num').first().text().match(/\d+/) ) || 0;
 			var itemCount = currentCount + 1 || 0;
-			var itemText = itemCount === 1 ? wp.i18n.__('item') : wp.i18n.__('items');
-			$('.tablenav-pages .displaying-num').text( itemCount + ' ' + itemText);
+			var itemText = wp.i18n._n( '%d item', '%d items', itemCount );
+			$('.tablenav-pages .displaying-num').text( itemText );
 
 			if ( itemCount === 1 ) {
 				$('.tablenav').show();
