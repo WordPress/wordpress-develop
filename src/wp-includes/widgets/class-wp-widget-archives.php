@@ -113,7 +113,6 @@ class WP_Widget_Archives extends WP_Widget {
 	const dropdown = document.getElementById( dropdownId );
 	function onSelectChange(event) {
 		setTimeout( function() {
-			const lastKey = dropdown.getAttribute( 'data-lastkey' );
 			if ( 'change' === event.type && 'escape' === dropdown.dataset.lastkey ) {
 				return;
 			}
