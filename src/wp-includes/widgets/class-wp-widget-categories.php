@@ -103,8 +103,8 @@ class WP_Widget_Categories extends WP_Widget {
 			if ( 'change' === event.type && 'escape' === dropdown.dataset.lastkey ) {
 				return;
 			}
-			if ( dropdown.value && parseInt( dropdown.value ) > 0 ) {
-				dropdown.parentNode.submit();
+			if ( dropdown.value && parseInt( dropdown.value ) > 0 && dropdown.parentElement instanceof HTMLSelectElement ) {
+				dropdown.parentElement.submit();
 			}
 		}, 250 );
 	}
