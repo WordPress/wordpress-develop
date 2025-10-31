@@ -6,13 +6,41 @@
  * @group post
  */
 class Tests_Post extends WP_UnitTestCase {
-	protected static $editor_id;
 	protected static $grammarian_id;
+
+	protected static $user_ids = array(
+		'administrator' => null,
+		'editor'        => null,
+		'author'        => null,
+		'contributor'   => null,
+	);
 
 	private $post_ids = array();
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
+
+		self::$user_ids = array(
+			'administrator' => $factory->user->create(
+				array(
+					'role' => 'administrator',
+				)
+			),
+			'editor'        => $factory->user->create(
+				array(
+					'role' => 'editor',
+				)
+			),
+			'author'        => $factory->user->create(
+				array(
+					'role' => 'author',
+				)
+			),
+			'contributor'   => $factory->user->create(
+				array(
+					'role' => 'contributor',
+				)
+			),
+		);
 
 		add_role(
 			'grammarian',
@@ -142,6 +170,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24803
+	 * @covers ::wp_count_posts
 	 */
 	public function test_wp_count_posts() {
 		$post_type = rand_str( 20 );
@@ -161,6 +190,49 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEquals( new stdClass(), $count );
 	}
 
+	/**
+	 * Ensure `wp_count_posts()` in 'readable' context excludes private posts
+	 * authored by other users when the current user lacks the capability to
+	 * read private posts.
+	 *
+	 * @ticket 61097
+	 *
+	 * @covers ::wp_count_posts
+	 */
+	public function test_wp_count_posts_readable_excludes_unreadable_private_posts() {
+		$post_type = rand_str( 20 );
+		register_post_type( $post_type );
+
+		$admin_user_id = self::$user_ids['administrator'];
+
+		self::factory()->post->create_many(
+			5,
+			array(
+				'post_type'   => $post_type,
+				'post_status' => 'publish',
+				'post_author' => $admin_user_id,
+			)
+		);
+
+		self::factory()->post->create_many(
+			3,
+			array(
+				'post_type'   => $post_type,
+				'post_status' => 'private',
+				'post_author' => $admin_user_id,
+			)
+		);
+
+		wp_set_current_user( self::$user_ids['author'] );
+
+		$count = wp_count_posts( $post_type, 'readable' );
+		$this->assertEquals( 5, $count->publish );
+		_unregister_post_type( $post_type );
+	}
+
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_filtered() {
 		$post_type = rand_str( 20 );
 		register_post_type( $post_type );
@@ -186,6 +258,9 @@ class Tests_Post extends WP_UnitTestCase {
 		return $counts;
 	}
 
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_insert_invalidation() {
 		$post_ids       = self::factory()->post->create_many( 3 );
 		$initial_counts = wp_count_posts();
@@ -206,6 +281,9 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertNotEquals( $initial_counts->publish, $after_draft_counts->publish );
 	}
 
+	/**
+	 * @covers ::wp_count_posts
+	 */
 	public function test_wp_count_posts_trash_invalidation() {
 		$post_ids       = self::factory()->post->create_many( 3 );
 		$initial_counts = wp_count_posts();
@@ -226,6 +304,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49685
+	 * @covers ::wp_count_posts
 	 */
 	public function test_wp_count_posts_status_changes_visible() {
 		self::factory()->post->create_many( 3 );
@@ -252,7 +331,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post = self::factory()->post->create( array( 'post_type' => $post_type ) );
 		wp_set_object_terms( $post, 'foo', $tax );
 
-		wp_set_current_user( self::$editor_id );
+		wp_set_current_user( self::$user_ids['editor'] );
 
 		$wp_tag_cloud = wp_tag_cloud(
 			array(
@@ -305,7 +384,7 @@ class Tests_Post extends WP_UnitTestCase {
 			'post_excerpt' => 'foo&#x1f610;bat',
 		);
 
-		wp_set_current_user( self::$editor_id );
+		wp_set_current_user( self::$user_ids['editor'] );
 
 		edit_post( $data );
 
@@ -421,30 +500,6 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $a1->get_call_count() );
 		$this->assertSame( 1, $a2->get_call_count() );
-	}
-
-	public function test_wp_delete_post_reassign_hierarchical_post_type() {
-		$grandparent_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$parent_page_id      = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $grandparent_page_id,
-			)
-		);
-		$page_id             = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $parent_page_id,
-			)
-		);
-
-		$this->assertSame( $parent_page_id, get_post( $page_id )->post_parent );
-
-		wp_delete_post( $parent_page_id, true );
-		$this->assertSame( $grandparent_page_id, get_post( $page_id )->post_parent );
-
-		wp_delete_post( $grandparent_page_id, true );
-		$this->assertSame( 0, get_post( $page_id )->post_parent );
 	}
 
 	/**

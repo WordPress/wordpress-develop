@@ -67,17 +67,76 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
       matrix:
+        event: ['${{ github.event_name }}']
         os: [ ubuntu-24.04 ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.0', '8.4' ]
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
+
+        exclude:
+            # Trim the matrix on Pull Requests to reduce the number of concurrent jobs.
+            # Each PHP version is tested againgst one version of MySQL.
+            - event: pull_request
+              php: '7.2'
+              db-version: '8.0'
+            - event: pull_request
+              php: '7.2'
+              db-version: '8.4'
+            - event: pull_request
+              php: '7.3'
+              db-version: '5.7'
+            - event: pull_request
+              php: '7.3'
+              db-version: '8.4'
+            - event: pull_request
+              php: '7.4'
+              db-version: '5.7'
+            - event: pull_request
+              php: '7.4'
+              db-version: '8.0'
+            - event: pull_request
+              php: '8.0'
+              db-version: '8.0'
+            - event: pull_request
+              php: '8.0'
+              db-version: '8.4'
+            - event: pull_request
+              php: '8.1'
+              db-version: '5.7'
+            - event: pull_request
+              php: '8.1'
+              db-version: '8.4'
+            - event: pull_request
+              php: '8.2'
+              db-version: '5.7'
+            - event: pull_request
+              php: '8.2'
+              db-version: '8.0'
+            - event: pull_request
+              php: '8.3'
+              db-version: '8.0'
+            - event: pull_request
+              php: '8.3'
+              db-version: '8.4'
+            - event: pull_request
+              php: '8.4'
+              db-version: '5.7'
+            - event: pull_request
+              php: '8.4'
+              db-version: '8.4'
+            - event: pull_request
+              php: '8.5'
+              db-version: '5.7'
+            - event: pull_request
+              php: '8.5'
+              db-version: '8.0'
 
         include:
           # Include jobs that test with memcached.
@@ -144,16 +203,211 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
       matrix:
+        event: ['${{ github.event_name }}']
         os: [ ubuntu-24.04 ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mariadb' ]
         db-version: [ '5.5', '10.3', '10.4', '10.5', '10.6', '10.11', '11.4', '11.8' ]
         multisite: [ false, true ]
         memcached: [ false ]
+
+        exclude:
+          # Trim the matrix on Pull Requests to reduce the number of concurrent jobs.
+          # Each PHP version is tested against one version of MariaDB.
+          # Each MariaDB version is tested at least once.
+          - event: pull_request
+            php: '7.2'
+            db-version: '10.3'
+          - event: pull_request
+            php: '7.2'
+            db-version: '10.4'
+          - event: pull_request
+            php: '7.2'
+            db-version: '10.5'
+          - event: pull_request
+            php: '7.2'
+            db-version: '10.6'
+          - event: pull_request
+            php: '7.2'
+            db-version: '10.11'
+          - event: pull_request
+            php: '7.2'
+            db-version: '11.4'
+          - event: pull_request
+            php: '7.2'
+            db-version: '11.8'
+          - event: pull_request
+            php: '7.3'
+            db-version: '5.5'
+          - event: pull_request
+            php: '7.3'
+            db-version: '10.4'
+          - event: pull_request
+            php: '7.3'
+            db-version: '10.5'
+          - event: pull_request
+            php: '7.3'
+            db-version: '10.6'
+          - event: pull_request
+            php: '7.3'
+            db-version: '10.11'
+          - event: pull_request
+            php: '7.3'
+            db-version: '11.4'
+          - event: pull_request
+            php: '7.3'
+            db-version: '11.8'
+          - event: pull_request
+            php: '7.4'
+            db-version: '5.5'
+          - event: pull_request
+            php: '7.4'
+            db-version: '10.3'
+          - event: pull_request
+            php: '7.4'
+            db-version: '10.5'
+          - event: pull_request
+            php: '7.4'
+            db-version: '10.6'
+          - event: pull_request
+            php: '7.4'
+            db-version: '10.11'
+          - event: pull_request
+            php: '7.4'
+            db-version: '11.4'
+          - event: pull_request
+            php: '7.4'
+            db-version: '11.8'
+          - event: pull_request
+            php: '8.0'
+            db-version: '5.5'
+          - event: pull_request
+            php: '8.0'
+            db-version: '10.3'
+          - event: pull_request
+            php: '8.0'
+            db-version: '10.4'
+          - event: pull_request
+            php: '8.0'
+            db-version: '10.6'
+          - event: pull_request
+            php: '8.0'
+            db-version: '10.11'
+          - event: pull_request
+            php: '8.0'
+            db-version: '11.4'
+          - event: pull_request
+            php: '8.0'
+            db-version: '11.8'
+          - event: pull_request
+            php: '8.1'
+            db-version: '5.5'
+          - event: pull_request
+            php: '8.1'
+            db-version: '10.3'
+          - event: pull_request
+            php: '8.1'
+            db-version: '10.4'
+          - event: pull_request
+            php: '8.1'
+            db-version: '10.5'
+          - event: pull_request
+            php: '8.1'
+            db-version: '10.11'
+          - event: pull_request
+            php: '8.1'
+            db-version: '11.4'
+          - event: pull_request
+            php: '8.1'
+            db-version: '11.8'
+          - event: pull_request
+            php: '8.2'
+            db-version: '5.5'
+          - event: pull_request
+            php: '8.2'
+            db-version: '10.3'
+          - event: pull_request
+            php: '8.2'
+            db-version: '10.4'
+          - event: pull_request
+            php: '8.2'
+            db-version: '10.5'
+          - event: pull_request
+            php: '8.2'
+            db-version: '10.6'
+          - event: pull_request
+            php: '8.2'
+            db-version: '11.4'
+          - event: pull_request
+            php: '8.2'
+            db-version: '11.8'
+          - event: pull_request
+            php: '8.3'
+            db-version: '5.5'
+          - event: pull_request
+            php: '8.3'
+            db-version: '10.3'
+          - event: pull_request
+            php: '8.3'
+            db-version: '10.4'
+          - event: pull_request
+            php: '8.3'
+            db-version: '10.5'
+          - event: pull_request
+            php: '8.3'
+            db-version: '10.6'
+          - event: pull_request
+            php: '8.3'
+            db-version: '10.11'
+          - event: pull_request
+            php: '8.3'
+            db-version: '11.8'
+          - event: pull_request
+            php: '8.4'
+            db-version: '5.5'
+          - event: pull_request
+            php: '8.4'
+            db-version: '10.3'
+          - event: pull_request
+            php: '8.4'
+            db-version: '10.4'
+          - event: pull_request
+            php: '8.4'
+            db-version: '10.5'
+          - event: pull_request
+            php: '8.4'
+            db-version: '10.6'
+          - event: pull_request
+            php: '8.4'
+            db-version: '10.11'
+          - event: pull_request
+            php: '8.4'
+            db-version: '11.4'
+          - event: pull_request
+            php: '8.5'
+            db-version: '5.5'
+          - event: pull_request
+            php: '8.5'
+            db-version: '10.3'
+          - event: pull_request
+            php: '8.5'
+            db-version: '10.4'
+          - event: pull_request
+            php: '8.5'
+            db-version: '10.5'
+          - event: pull_request
+            php: '8.5'
+            db-version: '10.6'
+          - event: pull_request
+            php: '8.5'
+            db-version: '10.11'
+          - event: pull_request
+            php: '8.5'
+            db-version: '11.4'
 
         include:
         # Include jobs that test with memcached.
@@ -196,14 +450,15 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
       matrix:
+        event: ['${{ github.event_name }}']
         os: [ ubuntu-24.04 ]
-        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
-        db-type: [ 'mysql' ]
-        db-version: [ '9.4' ]
+        php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        db-type: [ 'mysql', 'mariadb' ]
+        db-version: [ '9.4', '12.0' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
@@ -214,6 +469,29 @@ jobs:
             db-version: '9.4'
           - php: '7.3'
             db-version: '9.4'
+          # Exclude version combinations that don't exist.
+          - db-type: 'mariadb'
+            db-version: '9.4'
+          - db-type: 'mysql'
+            db-version: '12.0'
+          # On Pull requests, only test each innovation release once.
+          - event: pull_request
+            php: '7.3'
+          - event: pull_request
+            php: '7.4'
+          - event: pull_request
+            php: '8.0'
+          - event: pull_request
+            php: '8.1'
+          - event: pull_request
+            php: '8.1'
+          - event: pull_request
+            php: '8.2'
+          - event: pull_request
+            php: '8.4'
+          - event: pull_request
+            php: '8.5'
+
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -239,7 +517,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) ) }}
+    if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
       fail-fast: false
       matrix:
@@ -268,7 +546,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ ! startsWith( github.repository, 'WordPress/' ) && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+    if: ${{ ! startsWith( github.repository, 'WordPress/' ) && github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
       matrix:

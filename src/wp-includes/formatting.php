@@ -446,7 +446,7 @@ function _wptexturize_pushpop_element( $text, &$stack, $disabled_elements ) {
 function wpautop( $text, $br = true ) {
 	$pre_tags = array();
 
-	if ( trim( $text ) === '' ) {
+	if ( '' === trim( $text ) ) {
 		return '';
 	}
 
@@ -918,58 +918,6 @@ function seems_utf8( $str ) {
 }
 
 /**
- * Determines if a given byte string represents a valid UTF-8 encoding.
- *
- * Note that it’s unlikely for non-UTF-8 data to validate as UTF-8, but
- * it is still possible. Many texts are simultaneously valid UTF-8,
- * valid US-ASCII, and valid ISO-8859-1 (`latin1`).
- *
- * Example:
- *
- *     true === wp_is_valid_utf8( '' );
- *     true === wp_is_valid_utf8( 'just a test' );
- *     true === wp_is_valid_utf8( "\xE2\x9C\x8F" );    // Pencil, U+270F.
- *     true === wp_is_valid_utf8( "\u{270F}" );        // Pencil, U+270F.
- *     true === wp_is_valid_utf8( '✏' );              // Pencil, U+270F.
- *
- *     false === wp_is_valid_utf8( "just \xC0 test" ); // Invalid bytes.
- *     false === wp_is_valid_utf8( "\xE2\x9C" );       // Invalid/incomplete sequences.
- *     false === wp_is_valid_utf8( "\xC1\xBF" );       // Overlong sequences.
- *     false === wp_is_valid_utf8( "\xED\xB0\x80" );   // Surrogate halves.
- *     false === wp_is_valid_utf8( "B\xFCch" );        // ISO-8859-1 high-bytes.
- *                                                     // E.g. The “ü” in ISO-8859-1 is a single byte 0xFC,
- *                                                     // but in UTF-8 is the two-byte sequence 0xC3 0xBC.
- *
- * A “valid” string consists of “well-formed UTF-8 code unit sequence[s],” meaning
- * that the bytes conform to the UTF-8 encoding scheme, all characters use the minimal
- * byte sequence required by UTF-8, and that no sequence encodes a UTF-16 surrogate
- * code point or any character above the representable range.
- *
- * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G32860
- *
- * @see _wp_is_valid_utf8_fallback
- *
- * @since 6.9.0
- *
- * @param string $bytes String which might contain text encoded as UTF-8.
- * @return bool Whether the provided bytes can decode as valid UTF-8.
- */
-function wp_is_valid_utf8( string $bytes ): bool {
-	/*
-	 * Since PHP 8.3.0 the UTF-8 validity is cached internally
-	 * on string objects, making this a direct property lookup.
-	 *
-	 * This is to be preferred exclusively once PHP 8.3.0 is
-	 * the minimum supported version, because even when the
-	 * status isn’t cached, it uses highly-optimized code to
-	 * validate the byte stream.
-	 */
-	return function_exists( 'mb_check_encoding' )
-		? mb_check_encoding( $bytes, 'UTF-8' )
-		: _wp_is_valid_utf8_fallback( $bytes );
-}
-
-/**
  * Converts a number of special characters into their HTML entities.
  *
  * Specifically deals with: `&`, `<`, `>`, `"`, and `'`.
@@ -1141,10 +1089,39 @@ function wp_specialchars_decode( $text, $quote_style = ENT_NOQUOTES ) {
 /**
  * Checks for invalid UTF8 in a string.
  *
- * @since 2.8.0
+ * Note! This function only performs its work if the `blog_charset` is set
+ * to UTF-8. For all other values it returns the input text unchanged.
  *
- * @param string $text   The text which is to be checked.
- * @param bool   $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
+ * Note! Unless requested, this returns an empty string if the input contains
+ * any sequences of invalid UTF-8. To replace invalid byte sequences, pass
+ * `true` as the optional `$strip` parameter.
+ *
+ * Consider using {@see wp_scrub_utf8()} instead which does not depend on
+ * the value of `blog_charset`.
+ *
+ * Example:
+ *
+ *     // The `blog_charset` is `latin1`, so this returns the input unchanged.
+ *     $every_possible_input === wp_check_invalid_utf8( $every_possible_input );
+ *
+ *     // Valid strings come through unchanged.
+ *     'test' === wp_check_invalid_utf8( 'test' );
+ *
+ *     $invalid = "the byte \xC0 is never allowed in a UTF-8 string.";
+ *
+ *     // Invalid strings are rejected outright.
+ *     '' === wp_check_invalid_utf8( $invalid );
+ *
+ *     // “Stripping” invalid sequences produces the replacement character instead.
+ *     "the byte \u{FFFD} is never allowed in a UTF-8 string." === wp_check_invalid_utf8( $invalid, true );
+ *     'the byte � is never allowed in a UTF-8 string.' === wp_check_invalid_utf8( $invalid, true );
+ *
+ * @since 2.8.0
+ * @since 6.9.0 Stripping replaces invalid byte sequences with the Unicode replacement character U+FFFD (�).
+ *
+ * @param string $text   String which is expected to be encoded as UTF-8 unless `blog_charset` is another encoding.
+ * @param bool   $strip  Optional. Whether to replace invalid sequences of bytes with the Unicode replacement
+ *                       character (U+FFFD `�`). Default `false` returns an empty string for invalid UTF-8 inputs.
  * @return string The checked text.
  */
 function wp_check_invalid_utf8( $text, $strip = false ) {
@@ -1159,32 +1136,14 @@ function wp_check_invalid_utf8( $text, $strip = false ) {
 	if ( ! isset( $is_utf8 ) ) {
 		$is_utf8 = is_utf8_charset();
 	}
-	if ( ! $is_utf8 ) {
+
+	if ( ! $is_utf8 || wp_is_valid_utf8( $text ) ) {
 		return $text;
 	}
 
-	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
-	static $utf8_pcre = null;
-	if ( ! isset( $utf8_pcre ) ) {
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$utf8_pcre = @preg_match( '/^./u', 'a' );
-	}
-	// We can't demand utf8 in the PCRE installation, so just return the string in those cases.
-	if ( ! $utf8_pcre ) {
-		return $text;
-	}
-
-	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- preg_match fails when it encounters invalid UTF8 in $text.
-	if ( 1 === @preg_match( '/^./us', $text ) ) {
-		return $text;
-	}
-
-	// Attempt to strip the bad chars if requested (not recommended).
-	if ( $strip && function_exists( 'iconv' ) ) {
-		return iconv( 'utf-8', 'utf-8', $text );
-	}
-
-	return '';
+	return $strip
+		? wp_scrub_utf8( $text )
+		: '';
 }
 
 /**
@@ -1222,7 +1181,7 @@ function utf8_uri_encode( $utf8_string, $length = 0, $encode_ascii_characters = 
 			$unicode        .= $encoded_char;
 			$unicode_length += $encoded_char_length;
 		} else {
-			if ( count( $values ) === 0 ) {
+			if ( 0 === count( $values ) ) {
 				if ( $value < 224 ) {
 					$num_octets = 2;
 				} elseif ( $value < 240 ) {
@@ -2335,10 +2294,10 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = strtolower( $title );
 
 	if ( 'save' === $context ) {
-		// Convert &nbsp, &ndash, and &mdash to hyphens.
-		$title = str_replace( array( '%c2%a0', '%e2%80%93', '%e2%80%94' ), '-', $title );
-		// Convert &nbsp, &ndash, and &mdash HTML entities to hyphens.
-		$title = str_replace( array( '&nbsp;', '&#160;', '&ndash;', '&#8211;', '&mdash;', '&#8212;' ), '-', $title );
+		// Convert &nbsp, non-breaking hyphen, &ndash, and &mdash to hyphens.
+		$title = str_replace( array( '%c2%a0', '%e2%80%91', '%e2%80%93', '%e2%80%94' ), '-', $title );
+		// Convert &nbsp, non-breaking hyphen, &ndash, and &mdash HTML entities to hyphens.
+		$title = str_replace( array( '&nbsp;', '&#8209;', '&#160;', '&ndash;', '&#8211;', '&mdash;', '&#8212;' ), '-', $title );
 		// Convert forward slash to hyphen.
 		$title = str_replace( '/', '-', $title );
 
@@ -2599,7 +2558,7 @@ function convert_invalid_entities( $content ) {
  * @return string Balanced text.
  */
 function balanceTags( $text, $force = false ) {  // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
-	if ( $force || (int) get_option( 'use_balanceTags' ) === 1 ) {
+	if ( $force || 1 === (int) get_option( 'use_balanceTags' ) ) {
 		return force_balance_tags( $text );
 	} else {
 		return $text;
@@ -3040,7 +2999,7 @@ function _make_web_ftp_clickable_cb( $matches ) {
 
 	// Removed trailing [.,;:)] from URL.
 	$last_char = substr( $dest, -1 );
-	if ( in_array( $last_char, array( '.', ',', ';', ':', ')' ), true ) === true ) {
+	if ( in_array( $last_char, array( '.', ',', ';', ':', ')' ), true ) ) {
 		$ret  = $last_char;
 		$dest = substr( $dest, 0, strlen( $dest ) - 1 );
 	}
@@ -3367,7 +3326,7 @@ function wp_targeted_link_rel( $text ) {
 	_deprecated_function( __FUNCTION__, '6.7.0' );
 
 	// Don't run (more expensive) regex if no links with targets.
-	if ( stripos( $text, 'target' ) === false || stripos( $text, '<a ' ) === false || is_serialized( $text ) ) {
+	if ( false === stripos( $text, 'target' ) || false === stripos( $text, '<a ' ) || is_serialized( $text ) ) {
 		return $text;
 	}
 
@@ -3487,7 +3446,7 @@ function wp_remove_targeted_link_rel_filters() {
 function translate_smiley( $matches ) {
 	global $wpsmiliestrans;
 
-	if ( count( $matches ) === 0 ) {
+	if ( 0 === count( $matches ) ) {
 		return '';
 	}
 
@@ -3613,7 +3572,7 @@ function is_email( $email, $deprecated = false ) {
 	}
 
 	// Test for an @ character after the first position.
-	if ( strpos( $email, '@', 1 ) === false ) {
+	if ( false === strpos( $email, '@', 1 ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'email_no_at' );
 	}
@@ -3827,7 +3786,7 @@ function sanitize_email( $email ) {
 	}
 
 	// Test for an @ character after the first position.
-	if ( strpos( $email, '@', 1 ) === false ) {
+	if ( false === strpos( $email, '@', 1 ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'email_no_at' );
 	}
@@ -5403,7 +5362,7 @@ function wp_sprintf_l( $pattern, $args ) {
 
 	$args   = (array) $args;
 	$result = array_shift( $args );
-	if ( count( $args ) === 1 ) {
+	if ( 1 === count( $args ) ) {
 		$result .= $l['between_only_two'] . array_shift( $args );
 	}
 
@@ -5826,7 +5785,7 @@ function sanitize_trackback_urls( $to_ping ) {
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
-		$value = array_map( 'wp_slash', $value );
+		return array_map( 'wp_slash', $value );
 	}
 
 	if ( is_string( $value ) ) {
@@ -5953,7 +5912,11 @@ function print_emoji_detection_script() {
 
 	$printed = true;
 
-	_print_emoji_detection_script();
+	if ( did_action( 'wp_print_footer_scripts' ) ) {
+		_print_emoji_detection_script();
+	} else {
+		add_action( 'wp_print_footer_scripts', '_print_emoji_detection_script' );
+	}
 }
 
 /**
@@ -6019,8 +5982,20 @@ function _print_emoji_detection_script() {
 	}
 
 	wp_print_inline_script_tag(
-		sprintf( 'window._wpemojiSettings = %s;', wp_json_encode( $settings ) ) . "\n" .
-			file_get_contents( ABSPATH . WPINC . '/js/wp-emoji-loader' . wp_scripts_get_suffix() . '.js' )
+		wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+		array(
+			'id'   => 'wp-emoji-settings',
+			'type' => 'application/json',
+		)
+	);
+
+	$emoji_loader_script_path = '/js/wp-emoji-loader' . wp_scripts_get_suffix() . '.js';
+	wp_print_inline_script_tag(
+		rtrim( file_get_contents( ABSPATH . WPINC . $emoji_loader_script_path ) ) . "\n" .
+		'//# sourceURL=' . esc_url_raw( includes_url( $emoji_loader_script_path ) ),
+		array(
+			'type' => 'module',
+		)
 	);
 }
 

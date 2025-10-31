@@ -289,16 +289,13 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
 </td>
 </tr>
 
-<?php if ( ! is_multisite() ) { ?>
-
-<tr>
-<th scope="row"><?php _e( 'Membership' ); ?></th>
-<td> <fieldset><legend class="screen-reader-text"><span>
-	<?php
-	/* translators: Hidden accessibility text. */
-	_e( 'Membership' );
+<?php
+if ( ! is_multisite() ) {
+	$membership_title = __( 'Membership' );
 	?>
-</span></legend><label for="users_can_register">
+<tr>
+<th scope="row"><?php echo $membership_title; ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo $membership_title; ?></span></legend><label for="users_can_register">
 <input name="users_can_register" type="checkbox" id="users_can_register" value="1" <?php checked( '1', get_option( 'users_can_register' ) ); ?> />
 	<?php _e( 'Anyone can register' ); ?></label>
 </fieldset></td>
@@ -459,17 +456,13 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 </p>
 <?php endif; ?>
 </td>
-
 </tr>
+
+<?php $date_format_title = __( 'Date Format' ); ?>
 <tr>
-<th scope="row"><?php _e( 'Date Format' ); ?></th>
+<th scope="row"><?php echo $date_format_title; ?></th>
 <td>
-	<fieldset><legend class="screen-reader-text"><span>
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Date Format' );
-		?>
-	</span></legend>
+	<fieldset><legend class="screen-reader-text"><span><?php echo $date_format_title; ?></span></legend>
 <?php
 	/**
 	 * Filters the default date formats.
@@ -486,11 +479,20 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 
 foreach ( $date_formats as $format ) {
 	echo "\t<label><input type='radio' name='date_format' value='" . esc_attr( $format ) . "'";
+
 	if ( get_option( 'date_format' ) === $format ) { // checked() uses "==" rather than "===".
 		echo " checked='checked'";
 		$custom = false;
 	}
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
+
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span>' .
+		'<code>' . esc_html( $format ) . '</code>';
+
+	if ( __( 'F j, Y' ) === $format ) {
+		echo ' ' . __( '(Site language default)' );
+	}
+
+	echo "</label><br />\n";
 }
 
 	echo '<label><input type="radio" name="date_format" id="date_format_custom_radio" value="\c\u\s\t\o\m"';
@@ -511,15 +513,12 @@ foreach ( $date_formats as $format ) {
 	</fieldset>
 </td>
 </tr>
+
+<?php $time_format_title = __( 'Time Format' ); ?>
 <tr>
-<th scope="row"><?php _e( 'Time Format' ); ?></th>
+<th scope="row"><?php echo $time_format_title; ?></th>
 <td>
-	<fieldset><legend class="screen-reader-text"><span>
-		<?php
-		/* translators: Hidden accessibility text. */
-		_e( 'Time Format' );
-		?>
-	</span></legend>
+	<fieldset><legend class="screen-reader-text"><span><?php echo $time_format_title; ?></span></legend>
 <?php
 	/**
 	 * Filters the default time formats.
@@ -534,11 +533,20 @@ foreach ( $date_formats as $format ) {
 
 foreach ( $time_formats as $format ) {
 	echo "\t<label><input type='radio' name='time_format' value='" . esc_attr( $format ) . "'";
+
 	if ( get_option( 'time_format' ) === $format ) { // checked() uses "==" rather than "===".
 		echo " checked='checked'";
 		$custom = false;
 	}
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
+
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span>' .
+		'<code>' . esc_html( $format ) . '</code>';
+
+	if ( __( 'g:i a' ) === $format ) {
+		echo ' ' . __( '(Site language default)' );
+	}
+
+	echo "</label><br />\n";
 }
 
 	echo '<label><input type="radio" name="time_format" id="time_format_custom_radio" value="\c\u\s\t\o\m"';
