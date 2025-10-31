@@ -1540,6 +1540,17 @@ class WP_Automatic_Updater {
 		 */
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
 
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && $type === 'fail' ) {
+			$transient_key = 'wp_last_fatal_error';
+			$fatal_error = get_transient( $transient_key );
+			if ( $fatal_error ) {
+				$email['body'] .= "\n\n=== LAST FATAL ERROR (PHP) ===\n";
+				$email['body'] .= "• " . $fatal_error . "\n";
+				$email['body'] .= "========================================\n";
+				delete_transient( $transient_key );
+			}
+		}
+		
 		$result = wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
 
 		if ( $result ) {
@@ -1828,6 +1839,27 @@ Thanks! -- The WordPress Team"
 			$result       = json_decode( trim( $error_output ), true );
 		}
 
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$fatal_error = null;
+
+			$last_error = error_get_last();
+			if ( $last_error && in_array( $last_error['type'], [1,2,4,256] ) ) {
+				$fatal_error = "PHP Fatal error: {$last_error['message']} in {$last_error['file']} on line {$last_error['line']}";
+			} elseif ( file_exists( WP_CONTENT_DIR . '/debug.log' ) ) {
+				$lines = array_reverse( file( WP_CONTENT_DIR . '/debug.log', FILE_IGNORE_NEW_LINES ) );
+				foreach ( $lines as $line ) {
+					if ( strpos( $line, 'PHP Fatal error' ) !== false ) {
+						$fatal_error .= trim( $line );
+						break;
+					}
+				}
+			}
+
+			if ( $fatal_error ) {
+				set_transient( 'wp_last_fatal_error', $fatal_error, 300 );
+			}
+		}
+		
 		delete_transient( $transient );
 
 		// Only fatal errors will result in a 'type' key.
