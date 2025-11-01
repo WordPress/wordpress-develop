@@ -646,7 +646,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$mock_action_callback = new MockAction();
 		add_filter(
-			'wp_send_late_headers',
+			'wp_finalized_template_enhancement_output_buffer',
 			array( $mock_action_callback, 'action' ),
 			10,
 			PHP_INT_MAX
@@ -733,11 +733,11 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<h1>¡Hola, mundo!</h1>', $processed_output, 'Expected processed output to contain string.' );
 		$this->assertStringContainsString( '</html>', $processed_output, 'Expected processed output to contain string.' );
 
-		$this->assertSame( 1, did_action( 'wp_send_late_headers' ), 'Expected the wp_send_late_headers action to have fired.' );
-		$this->assertSame( 1, $mock_action_callback->get_call_count(), 'Expected wp_send_late_headers action callback to have been called once.' );
+		$this->assertSame( 1, did_action( 'wp_finalized_template_enhancement_output_buffer' ), 'Expected the wp_finalized_template_enhancement_output_buffer action to have fired.' );
+		$this->assertSame( 1, $mock_action_callback->get_call_count(), 'Expected wp_finalized_template_enhancement_output_buffer action callback to have been called once.' );
 		$action_args = $mock_action_callback->get_args()[0];
-		$this->assertCount( 1, $action_args, 'Expected the wp_send_late_headers action to have been passed only one argument.' );
-		$this->assertSame( $processed_output, $action_args[0], 'Expected the arg passed to wp_send_late_headers to be the same as the processed output buffer.' );
+		$this->assertCount( 1, $action_args, 'Expected the wp_finalized_template_enhancement_output_buffer action to have been passed only one argument.' );
+		$this->assertSame( $processed_output, $action_args[0], 'Expected the arg passed to wp_finalized_template_enhancement_output_buffer to be the same as the processed output buffer.' );
 	}
 
 	/**
@@ -772,7 +772,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$mock_action_callback = new MockAction();
 		add_filter(
-			'wp_send_late_headers',
+			'wp_finalized_template_enhancement_output_buffer',
 			array( $mock_action_callback, 'action' ),
 			10,
 			PHP_INT_MAX
@@ -818,8 +818,8 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '<title>Processed</title>', $output, 'Expected output buffer to not have string since the filter did not apply.' );
 		$this->assertStringContainsString( '<title>Output Buffer Not Processed</title>', $output, 'Expected output buffer to have string since the output buffer was ended with cleaning.' );
 
-		$this->assertSame( 0, did_action( 'wp_send_late_headers' ), 'Expected the wp_send_late_headers action to not have fired.' );
-		$this->assertSame( 0, $mock_action_callback->get_call_count(), 'Expected wp_send_late_headers action callback to have been called once.' );
+		$this->assertSame( 0, did_action( 'wp_finalized_template_enhancement_output_buffer' ), 'Expected the wp_finalized_template_enhancement_output_buffer action to not have fired.' );
+		$this->assertSame( 0, $mock_action_callback->get_call_count(), 'Expected wp_finalized_template_enhancement_output_buffer action callback to have been called once.' );
 	}
 
 	/**
@@ -854,7 +854,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$mock_action_callback = new MockAction();
 		add_filter(
-			'wp_send_late_headers',
+			'wp_finalized_template_enhancement_output_buffer',
 			array( $mock_action_callback, 'action' ),
 			10,
 			PHP_INT_MAX
@@ -905,11 +905,11 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<title>Processed</title>', $output, 'Expected output buffer to have string due to filtering.' );
 		$this->assertStringContainsString( '<h1>Template Replaced</h1>', $output, 'Expected output buffer to have string due to replaced template.' );
 
-		$this->assertSame( 1, did_action( 'wp_send_late_headers' ), 'Expected the wp_send_late_headers action to have fired.' );
-		$this->assertSame( 1, $mock_action_callback->get_call_count(), 'Expected wp_send_late_headers action callback to have been called once.' );
+		$this->assertSame( 1, did_action( 'wp_finalized_template_enhancement_output_buffer' ), 'Expected the wp_finalized_template_enhancement_output_buffer action to have fired.' );
+		$this->assertSame( 1, $mock_action_callback->get_call_count(), 'Expected wp_finalized_template_enhancement_output_buffer action callback to have been called once.' );
 		$action_args = $mock_action_callback->get_args()[0];
-		$this->assertCount( 1, $action_args, 'Expected the wp_send_late_headers action to have been passed only one argument.' );
-		$this->assertSame( $output, $action_args[0], 'Expected the arg passed to wp_send_late_headers to be the same as the processed output buffer.' );
+		$this->assertCount( 1, $action_args, 'Expected the wp_finalized_template_enhancement_output_buffer action to have been passed only one argument.' );
+		$this->assertSame( $output, $action_args[0], 'Expected the arg passed to wp_finalized_template_enhancement_output_buffer to be the same as the processed output buffer.' );
 	}
 
 	/**
@@ -930,7 +930,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$mock_action_callback = new MockAction();
 		add_filter(
-			'wp_send_late_headers',
+			'wp_finalized_template_enhancement_output_buffer',
 			array( $mock_action_callback, 'action' ),
 			10,
 			PHP_INT_MAX
@@ -970,11 +970,11 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertIsString( $output, 'Expected ob_get_clean() to return a string.' );
 		$this->assertSame( $json, $output, 'Expected output to not be processed.' );
 
-		$this->assertSame( 1, did_action( 'wp_send_late_headers' ), 'Expected the wp_send_late_headers action to have fired even though the wp_template_enhancement_output_buffer filter did not apply.' );
-		$this->assertSame( 1, $mock_action_callback->get_call_count(), 'Expected wp_send_late_headers action callback to have been called once.' );
+		$this->assertSame( 1, did_action( 'wp_finalized_template_enhancement_output_buffer' ), 'Expected the wp_finalized_template_enhancement_output_buffer action to have fired even though the wp_template_enhancement_output_buffer filter did not apply.' );
+		$this->assertSame( 1, $mock_action_callback->get_call_count(), 'Expected wp_finalized_template_enhancement_output_buffer action callback to have been called once.' );
 		$action_args = $mock_action_callback->get_args()[0];
-		$this->assertCount( 1, $action_args, 'Expected the wp_send_late_headers action to have been passed only one argument.' );
-		$this->assertSame( $output, $action_args[0], 'Expected the arg passed to wp_send_late_headers to be the same as the processed output buffer.' );
+		$this->assertCount( 1, $action_args, 'Expected the wp_finalized_template_enhancement_output_buffer action to have been passed only one argument.' );
+		$this->assertSame( $output, $action_args[0], 'Expected the arg passed to wp_finalized_template_enhancement_output_buffer to be the same as the processed output buffer.' );
 	}
 
 	/**
