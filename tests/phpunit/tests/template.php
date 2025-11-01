@@ -1045,7 +1045,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'PHP Warning:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified? in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Warning</b>: Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified? in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>: Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified? in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'exception'               => array(
@@ -1058,7 +1058,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'PHP Warning:  Uncaught exception "Exception" thrown: I take exception to this! in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Warning</b>: Uncaught exception "Exception" thrown: I take exception to this! in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>: Uncaught exception "Exception" thrown: I take exception to this! in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'multiple_non_errors'     => array(

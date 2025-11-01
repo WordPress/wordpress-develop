@@ -965,12 +965,19 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 
 	$filtered_output = $output;
 
+	$did_just_catch_exception = false;
+
 	$error_log = array();
 	set_error_handler(
-		static function ( int $level, string $message, ?string $file = null, ?int $line = null ) use ( &$error_log ) {
+		static function ( int $level, string $message, ?string $file = null, ?int $line = null ) use ( &$error_log, &$did_just_catch_exception ) {
 			// Switch a user error to an exception so that it can be caught and the buffer can be returned.
 			if ( E_USER_ERROR === $level ) {
 				throw new Exception( __( 'User error triggered:' ) . ' ' . $message );
+			}
+
+			// Display a caught exception as an error since it prevents any of the output buffer filters from applying.
+			if ( $did_just_catch_exception ) {
+				$level = E_USER_ERROR;
 			}
 
 			if ( error_reporting() & $level ) {
@@ -1006,7 +1013,9 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		 */
 		$filtered_output = (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
 	} catch ( Exception $exception ) {
-		// Emit to the error log.
+		$did_just_catch_exception = true;
+
+		// Emit to the error log as a warning not as an error to prevent halting execution.
 		trigger_error(
 			sprintf(
 				/* translators: %s is the exception class name */
@@ -1016,6 +1025,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 			E_USER_WARNING
 		);
 	}
+	$did_just_catch_exception = false;
 
 	if ( $display_errors ) {
 		foreach ( $error_log as $error ) {
@@ -1036,10 +1046,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 			if ( ! ini_get( 'html_errors' ) ) {
 				$format = strip_tags( $format );
 			}
-
-			$displayed_error = sprintf( $format, $type, $error['message'], $error['file'], $error['line'] );
-
-			$filtered_output .= $displayed_error;
+			$filtered_output .= sprintf( $format, $type, $error['message'], $error['file'], $error['line'] );
 		}
 	}
 
