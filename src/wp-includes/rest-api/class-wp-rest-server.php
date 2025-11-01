@@ -763,7 +763,7 @@ class WP_REST_Server {
 	 * @since 5.4.0 The `$embed` parameter can now contain a list of link relations to include.
 	 *
 	 * @param array         $data  Data from the request.
-	 * @param bool|string[] $embed Whether to embed all links or a filtered list of link relations.
+	 * @param bool|string[] $embed Whether to embed all links or a filtered list of link relations. Default true.
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
