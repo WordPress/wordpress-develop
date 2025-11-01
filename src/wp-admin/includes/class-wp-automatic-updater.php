@@ -1540,13 +1540,13 @@ class WP_Automatic_Updater {
 		 */
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && 'fail' === $type ) {
-			$fatal_error = get_transient( 'wp_last_fatal_error' );
+		if ( WP_DEBUG && 'fail' === $type ) {
+			$fatal_error = get_transient( 'wp_updater_last_fatal_error' );
 			if ( $fatal_error ) {
-				$email['body'] .= "\n\n=== LAST FATAL PHP ERROR ===\n";
+				$email['body'] .= "\n\n=== " . __( 'LAST FATAL PHP ERROR' ) . " ===\n";
 				$email['body'] .= '• ' . $fatal_error . "\n";
 				$email['body'] .= "========================================\n";
-				delete_transient( 'wp_last_fatal_error' );
+				delete_transient( 'wp_updater_last_fatal_error' );
 			}
 		}
 
@@ -1838,15 +1838,21 @@ Thanks! -- The WordPress Team"
 			$result       = json_decode( trim( $error_output ), true );
 		}
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		if ( WP_DEBUG ) {
 			$fatal_error = null;
 
 			$last_error = error_get_last();
 			if ( $last_error && in_array( $last_error['type'], array( E_ERROR, E_PARSE, E_COMPILE_ERROR, E_USER_ERROR ) ) ) {
 				$fatal_error = "PHP Fatal error: {$last_error['message']} in {$last_error['file']} on line {$last_error['line']}";
 			} else {
-				$log_file = WP_CONTENT_DIR . '/debug.log';
-				if ( file_exists( $log_file ) && is_readable( $log_file ) ) {
+				$log_file = ini_get( 'error_log' );
+
+				if ( ! $log_file ) {
+					error_log( 'WP Auto-Update: error_log is empty, falling back to debug.log' );
+					$log_file = WP_CONTENT_DIR . '/debug.log';
+				}
+
+				if ( $log_file && file_exists( $log_file ) && is_readable( $log_file ) ) {
 					$handle = fopen( $log_file, 'r' );
 					if ( $handle ) {
 						$pos = -2;
@@ -1880,7 +1886,7 @@ Thanks! -- The WordPress Team"
 			}
 
 			if ( $fatal_error ) {
-				set_transient( 'wp_last_fatal_error', $fatal_error, 5 * MINUTE_IN_SECONDS );
+				set_transient( 'wp_updater_last_fatal_error', $fatal_error, 5 * MINUTE_IN_SECONDS );
 			}
 		}
 
