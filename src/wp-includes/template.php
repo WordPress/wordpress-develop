@@ -1015,9 +1015,8 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		 */
 		$filtered_output = (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
 	} catch ( Exception $exception ) {
-		$did_just_catch_exception = true;
-
 		// Emit to the error log as a warning not as an error to prevent halting execution.
+		$did_just_catch_exception = true;
 		trigger_error(
 			sprintf(
 				/* translators: %s is the exception class name */
@@ -1026,8 +1025,8 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 			) . ' ' . $exception->getMessage(),
 			E_USER_WARNING
 		);
+		$did_just_catch_exception = false;
 	}
-	$did_just_catch_exception = false;
 
 	if ( $display_errors ) {
 		foreach ( $error_log as $error ) {
