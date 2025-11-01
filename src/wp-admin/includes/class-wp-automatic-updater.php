@@ -1843,14 +1843,39 @@ Thanks! -- The WordPress Team"
 			$fatal_error = null;
 
 			$last_error = error_get_last();
-			if ( $last_error && in_array( $last_error['type'], [1,2,4,256] ) ) {
-				$fatal_error = "PHP Fatal error: {$last_error['message']} in {$last_error['file']} on line {$last_error['line']}";
-			} elseif ( file_exists( WP_CONTENT_DIR . '/debug.log' ) ) {
-				$lines = array_reverse( file( WP_CONTENT_DIR . '/debug.log', FILE_IGNORE_NEW_LINES ) );
-				foreach ( $lines as $line ) {
-					if ( strpos( $line, 'PHP Fatal error' ) !== false ) {
-						$fatal_error = trim( $line );
-						break;
+			if ( $last_error && in_array( $last_error['type'], [ E_ERROR, E_PARSE, E_COMPILE_ERROR, E_USER_ERROR ] ) ) {
+						$fatal_error = "PHP Fatal error: {$last_error['message']} in {$last_error['file']} on line {$last_error['line']}";
+			} else {
+				$log_file = WP_CONTENT_DIR . '/debug.log';
+				if ( file_exists( $log_file ) && is_readable( $log_file ) ) {
+					$handle = fopen( $log_file, 'r' );
+					if ( $handle ) {
+						$pos = -2;
+						$current_line = '';
+						while ( $pos > -filesize( $log_file ) ) {
+							fseek( $handle, $pos, SEEK_END );
+							$char = fgetc( $handle );
+							if ( $char === "\n" ) {
+								if ( $current_line !== '' ) {
+									$line = strrev( $current_line );
+									if ( strpos( $line, 'PHP Fatal error' ) !== false ) {
+										$fatal_error = trim( $line );
+										break;
+									}
+									$current_line = '';
+								}
+							} else {
+								$current_line .= $char;
+							}
+							$pos--;
+						}
+						if ( $current_line !== '' && $fatal_error === null ) {
+							$line = strrev( $current_line );
+							if ( strpos( $line, 'PHP Fatal error' ) !== false ) {
+								$fatal_error = trim( $line );
+							}
+						}
+						fclose( $handle );
 					}
 				}
 			}
