@@ -980,8 +980,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 				$level = E_USER_ERROR;
 			}
 
-			// TODO: Append to the message that this error happened while doing wp_template_enhancement_output_buffer filters or the wp_finalized_template_enhancement_output_buffer action?
-
+			// Capture a reported error to be displayed by appending to the processed output buffer if display_errors is enabled.
 			if ( error_reporting() & $level ) {
 				$error_log[] = compact( 'level', 'message', 'file', 'line' );
 			}
