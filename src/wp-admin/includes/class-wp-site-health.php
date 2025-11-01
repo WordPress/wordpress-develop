@@ -752,7 +752,7 @@ class WP_Site_Health {
 		);
 
 		if ( ! $response ) {
-			$result['label']       = sprintf(
+			$result['label'] = sprintf(
 				/* translators: %s: The current PHP version. */
 				__( 'Unable to determine the status of the current PHP version (%s)' ),
 				PHP_VERSION
