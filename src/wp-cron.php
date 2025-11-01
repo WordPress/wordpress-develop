@@ -48,7 +48,7 @@ if ( ! apply_filters( 'wp_cron_endpoint_enabled', true ) ) {
 
 if ( ! headers_sent() ) {
 	header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
-	header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+	header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
 	header( 'X-WP-Cron: Spawned' );
 }
 
