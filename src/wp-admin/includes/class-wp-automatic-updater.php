@@ -1649,17 +1649,16 @@ class WP_Automatic_Updater {
 		 */
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && $type === 'fail' ) {
-			$transient_key = 'wp_last_fatal_error';
-			$fatal_error = get_transient( $transient_key );
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && 'fail' === $type ) {
+			$fatal_error = get_transient( 'wp_last_fatal_error' );
 			if ( $fatal_error ) {
-				$email['body'] .= "\n\n=== LAST FATAL ERROR (PHP) ===\n";
-				$email['body'] .= "• " . $fatal_error . "\n";
+				$email['body'] .= "\n\n=== LAST FATAL PHP ERROR ===\n";
+				$email['body'] .= '• ' . $fatal_error . "\n";
 				$email['body'] .= "========================================\n";
-				delete_transient( $transient_key );
+				delete_transient( 'wp_last_fatal_error' );
 			}
 		}
-		
+
 		$result = wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
 
 		if ( $result ) {
@@ -1952,8 +1951,8 @@ Thanks! -- The WordPress Team"
 			$fatal_error = null;
 
 			$last_error = error_get_last();
-			if ( $last_error && in_array( $last_error['type'], [ E_ERROR, E_PARSE, E_COMPILE_ERROR, E_USER_ERROR ] ) ) {
-						$fatal_error = "PHP Fatal error: {$last_error['message']} in {$last_error['file']} on line {$last_error['line']}";
+			if ( $last_error && in_array( $last_error['type'], array( E_ERROR, E_PARSE, E_COMPILE_ERROR, E_USER_ERROR ) ) ) {
+				$fatal_error = "PHP Fatal error: {$last_error['message']} in {$last_error['file']} on line {$last_error['line']}";
 			} else {
 				$log_file = WP_CONTENT_DIR . '/debug.log';
 				if ( file_exists( $log_file ) && is_readable( $log_file ) ) {
@@ -1964,10 +1963,10 @@ Thanks! -- The WordPress Team"
 						while ( $pos > -filesize( $log_file ) ) {
 							fseek( $handle, $pos, SEEK_END );
 							$char = fgetc( $handle );
-							if ( $char === "\n" ) {
-								if ( $current_line !== '' ) {
+							if ( "\n" === $char ) {
+								if ( '' !== $current_line ) {
 									$line = strrev( $current_line );
-									if ( strpos( $line, 'PHP Fatal error' ) !== false ) {
+									if ( false !== strpos( $line, 'PHP Fatal error' ) ) {
 										$fatal_error = trim( $line );
 										break;
 									}
@@ -1978,9 +1977,9 @@ Thanks! -- The WordPress Team"
 							}
 							$pos--;
 						}
-						if ( $current_line !== '' && $fatal_error === null ) {
+						if ( '' !== $current_line && null === $fatal_error ) {
 							$line = strrev( $current_line );
-							if ( strpos( $line, 'PHP Fatal error' ) !== false ) {
+							if ( false !== strpos( $line, 'PHP Fatal error' ) ) {
 								$fatal_error = trim( $line );
 							}
 						}
@@ -1990,10 +1989,10 @@ Thanks! -- The WordPress Team"
 			}
 
 			if ( $fatal_error ) {
-				set_transient( 'wp_last_fatal_error', $fatal_error, 300 );
+				set_transient( 'wp_last_fatal_error', $fatal_error, 5 * MINUTE_IN_SECONDS );
 			}
 		}
-		
+
 		delete_transient( $transient );
 
 		// Only fatal errors will result in a 'type' key.
