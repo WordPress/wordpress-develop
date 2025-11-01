@@ -770,11 +770,11 @@ class WP_Site_Health {
 			return $result;
 		}
 
-			$result['description'] .= '<p>' . sprintf(
-				/* translators: %s: The minimum recommended PHP version. */
-				__( 'The minimum recommended version of PHP is %s.' ),
-				$response['recommended_version']
-			) . '</p>';
+		$result['description'] .= '<p>' . sprintf(
+			/* translators: %s: The minimum recommended PHP version. */
+			__( 'The minimum recommended version of PHP is %s.' ),
+			$response['recommended_version']
+		) . '</p>';
 
 		// PHP is up to date.
 		if ( version_compare( PHP_VERSION, $response['recommended_version'], '>=' ) ) {
