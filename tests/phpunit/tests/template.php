@@ -983,11 +983,11 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_filtering.
+	 * Data provider for data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing.
 	 *
 	 * @return array
 	 */
-	public function data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_filtering(): array {
+	public function data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing(): array {
 		$log_and_display_all = array(
 			'error_reporting' => E_ALL,
 			'display_errors'  => true,
@@ -998,86 +998,114 @@ class Tests_Template extends WP_UnitTestCase {
 		$tests = array(
 			'deprecated'              => array(
 				'ini_config_options'        => $log_and_display_all,
-				'emit_errors'               => static function () {
-					trigger_error( 'You are history.', E_USER_DEPRECATED );
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'You are history during filter.', E_USER_DEPRECATED );
+				},
+				'emit_action_errors'        => static function () {
+					trigger_error( 'You are history during action.', E_USER_DEPRECATED );
 				},
 				'expected_processed'        => true,
 				'expected_error_log'        => array(
-					'PHP Deprecated:  You are history. in __FILE__ on line __LINE__',
+					'PHP Deprecated:  You are history during filter. in __FILE__ on line __LINE__',
+					'PHP Deprecated:  You are history during action. in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Deprecated</b>: You are history. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Deprecated</b>: You are history during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'notice'                  => array(
 				'ini_config_options'        => $log_and_display_all,
-				'emit_errors'               => static function () {
-					trigger_error( 'POSTED: No trespassing.', E_USER_NOTICE );
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'POSTED: No trespassing during filter.', E_USER_NOTICE );
+				},
+				'emit_action_errors'        => static function () {
+					trigger_error( 'POSTED: No trespassing during action.', E_USER_NOTICE );
 				},
 				'expected_processed'        => true,
 				'expected_error_log'        => array(
-					'PHP Notice:  POSTED: No trespassing. in __FILE__ on line __LINE__',
+					'PHP Notice:  POSTED: No trespassing during filter. in __FILE__ on line __LINE__',
+					'PHP Notice:  POSTED: No trespassing during action. in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Notice</b>: POSTED: No trespassing. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Notice</b>: POSTED: No trespassing during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'warning'                 => array(
 				'ini_config_options'        => $log_and_display_all,
-				'emit_errors'               => static function () {
-					trigger_error( 'AVISO: Piso mojado.', E_USER_WARNING );
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'AVISO: Piso mojado durante filtro.', E_USER_WARNING );
+				},
+				'emit_action_errors'        => static function () {
+					trigger_error( 'AVISO: Piso mojado durante acción.', E_USER_WARNING );
 				},
 				'expected_processed'        => true,
 				'expected_error_log'        => array(
-					'PHP Warning:  AVISO: Piso mojado. in __FILE__ on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado durante filtro. in __FILE__ on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado durante acción. in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Warning</b>: AVISO: Piso mojado. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>: AVISO: Piso mojado durante filtro. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'error'                   => array(
 				'ini_config_options'        => $log_and_display_all,
-				'emit_errors'               => static function () {
-					@trigger_error( 'ERROR: Can this mistake be rectified?', E_USER_ERROR ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				'emit_filter_errors'        => static function () {
+					@trigger_error( 'ERROR: Can this mistake be rectified during filter?', E_USER_ERROR ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				},
+				'emit_action_errors'        => static function () {
+					@trigger_error( 'ERROR: Can this mistake be rectified during action?', E_USER_ERROR ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 				},
 				'expected_processed'        => false,
 				'expected_error_log'        => array(
-					'PHP Warning:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified? in __FILE__ on line __LINE__',
+					'PHP Warning:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during filter? in __FILE__ on line __LINE__',
+					'PHP Warning:  Exception thrown during wp_finalized_template_enhancement_output_buffer action: User error triggered: ERROR: Can this mistake be rectified during action? in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Error</b>: Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified? in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>: Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during filter? in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'exception'               => array(
 				'ini_config_options'        => $log_and_display_all,
-				'emit_errors'               => static function () {
-					throw new Exception( 'I take exception to this!' );
+				'emit_filter_errors'        => static function () {
+					throw new Exception( 'I take exception to this filter!' );
+				},
+				'emit_action_errors'        => static function () {
+					throw new Exception( 'I take exception to this action!' );
 				},
 				'expected_processed'        => false,
 				'expected_error_log'        => array(
-					'PHP Warning:  Uncaught exception "Exception" thrown: I take exception to this! in __FILE__ on line __LINE__',
+					'PHP Warning:  Uncaught exception "Exception" thrown: I take exception to this filter! in __FILE__ on line __LINE__',
+					'PHP Warning:  Exception thrown during wp_finalized_template_enhancement_output_buffer action: I take exception to this action! in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Error</b>: Uncaught exception "Exception" thrown: I take exception to this! in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>: Uncaught exception "Exception" thrown: I take exception to this filter! in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'multiple_non_errors'     => array(
 				'ini_config_options'        => $log_and_display_all,
-				'emit_errors'               => static function () {
-					trigger_error( 'You are history.', E_USER_DEPRECATED );
-					trigger_error( 'POSTED: No trespassing.', E_USER_NOTICE );
-					trigger_error( 'AVISO: Piso mojado.', E_USER_WARNING );
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'You are history during filter.', E_USER_DEPRECATED );
+					trigger_error( 'POSTED: No trespassing during filter.', E_USER_NOTICE );
+					trigger_error( 'AVISO: Piso mojado durante filtro.', E_USER_WARNING );
+				},
+				'emit_action_errors'        => static function () {
+					trigger_error( 'You are history during action.', E_USER_DEPRECATED );
+					trigger_error( 'POSTED: No trespassing during action.', E_USER_NOTICE );
+					trigger_error( 'AVISO: Piso mojado durante acción.', E_USER_WARNING );
 				},
 				'expected_processed'        => true,
 				'expected_error_log'        => array(
-					'PHP Deprecated:  You are history. in __FILE__ on line __LINE__',
-					'PHP Notice:  POSTED: No trespassing. in __FILE__ on line __LINE__',
-					'PHP Warning:  AVISO: Piso mojado. in __FILE__ on line __LINE__',
+					'PHP Deprecated:  You are history during filter. in __FILE__ on line __LINE__',
+					'PHP Notice:  POSTED: No trespassing during filter. in __FILE__ on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado durante filtro. in __FILE__ on line __LINE__',
+					'PHP Deprecated:  You are history during action. in __FILE__ on line __LINE__',
+					'PHP Notice:  POSTED: No trespassing during action. in __FILE__ on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado durante acción. in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Deprecated</b>: You are history. in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Notice</b>: POSTED: No trespassing. in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Warning</b>: AVISO: Piso mojado. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Deprecated</b>: You are history during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Notice</b>: POSTED: No trespassing during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>: AVISO: Piso mojado durante filtro. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'deprecated_without_html' => array(
@@ -1087,28 +1115,33 @@ class Tests_Template extends WP_UnitTestCase {
 						'html_errors' => false,
 					)
 				),
-				'emit_errors'               => static function () {
-					trigger_error( 'You are history.', E_USER_DEPRECATED );
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'You are history during filter.', E_USER_DEPRECATED );
 				},
+				'emit_action_errors'        => null,
 				'expected_processed'        => true,
 				'expected_error_log'        => array(
-					'PHP Deprecated:  You are history. in __FILE__ on line __LINE__',
+					'PHP Deprecated:  You are history during filter. in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'Deprecated: You are history. in __FILE__ on line __LINE__',
+					'Deprecated: You are history during filter. in __FILE__ on line __LINE__',
 				),
 			),
 			'warning_in_eval'         => array(
 				'ini_config_options'        => $log_and_display_all,
-				'emit_errors'               => static function () {
-					eval( "trigger_error( 'AVISO: Piso mojado.', E_USER_WARNING );" ); // phpcs:ignore Squiz.PHP.Eval.Discouraged -- We're in a test!
+				'emit_filter_errors'        => static function () {
+					eval( "trigger_error( 'AVISO: Piso mojado durante filtro.', E_USER_WARNING );" ); // phpcs:ignore Squiz.PHP.Eval.Discouraged -- We're in a test!
+				},
+				'emit_action_errors'        => static function () {
+					eval( "trigger_error( 'AVISO: Piso mojado durante acción.', E_USER_WARNING );" ); // phpcs:ignore Squiz.PHP.Eval.Discouraged -- We're in a test!
 				},
 				'expected_processed'        => true,
 				'expected_error_log'        => array(
-					'PHP Warning:  AVISO: Piso mojado. in __FILE__ : eval()\'d code on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado durante filtro. in __FILE__ : eval()\'d code on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado durante acción. in __FILE__ : eval()\'d code on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Warning</b>: AVISO: Piso mojado. in <b>__FILE__ : eval()\'d code</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>: AVISO: Piso mojado durante filtro. in <b>__FILE__ : eval()\'d code</b> on line <b>__LINE__</b>',
 				),
 			),
 		);
@@ -1160,16 +1193,16 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that errors emitted when filtering wp_template_enhancement_output_buffer are handled as expected.
+	 * Tests that errors are handled as expected when errors are emitted when filtering wp_template_enhancement_output_buffer or doing the wp_finalize_template_enhancement_output_buffer action.
 	 *
 	 * @ticket 43258
 	 * @ticket 64108
 	 *
 	 * @covers ::wp_finalize_template_enhancement_output_buffer
 	 *
-	 * @dataProvider data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_filtering
+	 * @dataProvider data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing
 	 */
-	public function test_wp_finalize_template_enhancement_output_buffer_with_errors_while_filtering( array $ini_config_options, Closure $emit_errors, bool $expected_processed, array $expected_error_log, array $expected_displayed_errors ): void {
+	public function test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing( array $ini_config_options, ?Closure $emit_filter_errors, ?Closure $emit_action_errors, bool $expected_processed, array $expected_error_log, array $expected_displayed_errors ): void {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
@@ -1180,12 +1213,23 @@ class Tests_Template extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_template_enhancement_output_buffer',
-			static function ( string $buffer ) use ( $emit_errors ): string {
+			static function ( string $buffer ) use ( $emit_filter_errors ): string {
 				$buffer = str_replace( 'Hello', 'Goodbye', $buffer );
-				$emit_errors();
+				if ( $emit_filter_errors ) {
+					$emit_filter_errors();
+				}
 				return $buffer;
 			}
 		);
+
+		if ( $emit_action_errors ) {
+			add_action(
+				'wp_finalized_template_enhancement_output_buffer',
+				static function () use ( $emit_action_errors ): void {
+					$emit_action_errors();
+				}
+			);
+		}
 
 		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
 
