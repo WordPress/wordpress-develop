@@ -999,14 +999,18 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		 *
 		 * This filter only applies the HTML output of an included template. This filter is a progressive enhancement
 		 * intended for applications such as optimizing markup to improve frontend page load performance. Sites must not
-		 * depend on this filter applying since they may opt to stream the responses instead. Callbacks for this filter are
-		 * highly discouraged from using regular expressions to do any kind of replacement on the output. Use the HTML API
-		 * (either `WP_HTML_Tag_Processor` or `WP_HTML_Processor`), or else use {@see DOM\HtmlDocument} as of PHP 8.4 which
-		 * fully supports HTML5.
+		 * depend on this filter applying since they may opt to stream the responses instead. Callbacks for this filter
+		 * are highly discouraged from using regular expressions to do any kind of replacement on the output. Use the
+		 * HTML API (either `WP_HTML_Tag_Processor` or `WP_HTML_Processor`), or else use {@see DOM\HtmlDocument} as of
+		 * PHP 8.4 which fully supports HTML5.
 		 *
-		 * Important: Because this filter is applied inside an output buffer callback (i.e. display handler), any callbacks
-		 * added to the filter must not attempt to start their own output buffers. Otherwise, PHP will raise a fatal error:
-		 * "Cannot use output buffering in output buffering display handlers."
+		 * Do not print any output during this filter. While filters normally don't print anything, this is especially
+		 * important since this applies during an output buffer callback. Prior to PHP 8.5, the output will be silently
+		 * omitted, whereas afterward a deprecation notice will be emitted.
+		 *
+		 * Important: Because this filter is applied inside an output buffer callback (i.e. display handler), any
+		 * callbacks added to the filter must not attempt to start their own output buffers. Otherwise, PHP will raise a
+		 * fatal error: "Cannot use output buffering in output buffering display handlers."
 		 *
 		 * @since 6.9.0
 		 *
@@ -1055,20 +1059,26 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		/**
 		 * Fires after the template enhancement output buffer has been finalized.
 		 *
-		 * This happens immediately before the template enhancement output buffer is flushed. No output may be printed at
-		 * this action. However, HTTP headers may be sent, which makes this action complimentary to the
+		 * This happens immediately before the template enhancement output buffer is flushed. No output may be printed
+		 * at this action; prior to PHP 8.5, the output will be silently omitted, whereas afterward a deprecation notice
+		 * will be emitted. Nevertheless, HTTP headers may be sent, which makes this action complimentary to the
 		 * {@see 'send_headers'} action, in which headers may be sent before the template has started rendering. In
 		 * contrast, this `wp_finalized_template_enhancement_output_buffer` action is the possible point at which HTTP
-		 * headers can be sent. This action does not fire if the "template enhancement output buffer" was not started. This
-		 * output buffer is automatically started if this action is added before
-		 * {@see wp_start_template_enhancement_output_buffer()} runs at the {@see 'wp_before_include_template'} action with
-		 * priority 1000. Before this point, the output buffer will also be started automatically if there was a
+		 * headers can be sent. This action does not fire if the "template enhancement output buffer" was not started.
+		 * This output buffer is automatically started if this action is added before
+		 * {@see wp_start_template_enhancement_output_buffer()} runs at the {@see 'wp_before_include_template'} action
+		 * with priority 1000. Before this point, the output buffer will also be started automatically if there was a
 		 * {@see 'wp_template_enhancement_output_buffer'} filter added, or if the
 		 * {@see 'wp_should_output_buffer_template_for_enhancement'} filter is made to return `true`.
 		 *
-		 * Important: Because this action fires inside an output buffer callback (i.e. display handler), any callbacks added
-		 * to the action must not attempt to start their own output buffers. Otherwise, PHP will raise a fatal error:
-		 * "Cannot use output buffering in output buffering display handlers."
+		 * Important: Because this action fires inside an output buffer callback (i.e. display handler), any callbacks
+		 * added to the action must not attempt to start their own output buffers. Otherwise, PHP will raise a fatal
+		 * error: "Cannot use output buffering in output buffering display handlers."
+		 *
+		 * If any errors are occur in callbacks for this action (e.g. deprecations, notices, warnings, exceptions),
+		 * there will be no error message printed even if `display_errors` is enabled. This is because the output has
+		 * already been finalized. The error will be emitted to the error log, however, as long as the error reporting
+		 * level is configured.
 		 *
 		 * @since 6.9.0
 		 *
