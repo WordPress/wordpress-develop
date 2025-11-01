@@ -64,11 +64,6 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @var string
-	 */
-	protected $original_default_mimetype;
-
-	/**
 	 * @var WP_Scripts|null
 	 */
 	protected $original_wp_scripts;
@@ -83,9 +78,14 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	protected $original_theme_features;
 
+	/**
+	 * @var array
+	 */
+	protected $original_ini_config;
+
 	public function set_up() {
 		parent::set_up();
-		$this->original_default_mimetype = ini_get( 'default_mimetype' );
+
 		register_post_type(
 			'cpt',
 			array(
@@ -117,6 +117,9 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_styles();
 
 		$this->original_theme_features = $GLOBALS['_wp_theme_features'];
+		foreach ( array( 'display_errors', 'error_reporting', 'log_errors', 'error_log', 'default_mimetype', 'html_errors' ) as $config ) {
+			$this->original_ini_config[ $config ] = ini_get( $config );
+		}
 	}
 
 	public function tear_down() {
@@ -125,8 +128,10 @@ class Tests_Template extends WP_UnitTestCase {
 		$wp_styles  = $this->original_wp_styles;
 
 		$GLOBALS['_wp_theme_features'] = $this->original_theme_features;
+		foreach ( $this->original_ini_config as $config => $value ) {
+			ini_set( $config, $value );
+		}
 
-		ini_set( 'default_mimetype', $this->original_default_mimetype );
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );
@@ -975,6 +980,301 @@ class Tests_Template extends WP_UnitTestCase {
 		$action_args = $mock_action_callback->get_args()[0];
 		$this->assertCount( 1, $action_args, 'Expected the wp_finalized_template_enhancement_output_buffer action to have been passed only one argument.' );
 		$this->assertSame( $output, $action_args[0], 'Expected the arg passed to wp_finalized_template_enhancement_output_buffer to be the same as the processed output buffer.' );
+	}
+
+	/**
+	 * Data provider for data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_filtering.
+	 *
+	 * @return array
+	 */
+	public function data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_filtering(): array {
+		$log_and_display_all = array(
+			'error_reporting' => E_ALL,
+			'display_errors'  => true,
+			'log_errors'      => true,
+			'html_errors'     => true,
+		);
+
+		$tests = array(
+			'deprecated'              => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_errors'               => static function () {
+					trigger_error( 'You are history.', E_USER_DEPRECATED );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Deprecated:  You are history. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Deprecated</b>: You are history. in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'notice'                  => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_errors'               => static function () {
+					trigger_error( 'POSTED: No trespassing.', E_USER_NOTICE );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Notice:  POSTED: No trespassing. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Notice</b>: POSTED: No trespassing. in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'warning'                 => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_errors'               => static function () {
+					trigger_error( 'AVISO: Piso mojado.', E_USER_WARNING );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Warning:  AVISO: Piso mojado. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Warning</b>: AVISO: Piso mojado. in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'error'                   => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_errors'               => static function () {
+					@trigger_error( 'ERROR: Can this mistake be rectified?', E_USER_ERROR ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				},
+				'expected_processed'        => false,
+				'expected_error_log'        => array(
+					'PHP Warning:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified? in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Warning</b>: Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified? in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'exception'               => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_errors'               => static function () {
+					throw new Exception( 'I take exception to this!' );
+				},
+				'expected_processed'        => false,
+				'expected_error_log'        => array(
+					'PHP Warning:  Uncaught exception "Exception" thrown: I take exception to this! in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Warning</b>: Uncaught exception "Exception" thrown: I take exception to this! in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'multiple_non_errors'     => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_errors'               => static function () {
+					trigger_error( 'You are history.', E_USER_DEPRECATED );
+					trigger_error( 'POSTED: No trespassing.', E_USER_NOTICE );
+					trigger_error( 'AVISO: Piso mojado.', E_USER_WARNING );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Deprecated:  You are history. in __FILE__ on line __LINE__',
+					'PHP Notice:  POSTED: No trespassing. in __FILE__ on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Deprecated</b>: You are history. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Notice</b>: POSTED: No trespassing. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>: AVISO: Piso mojado. in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'deprecated_without_html' => array(
+				'ini_config_options'        => array_merge(
+					$log_and_display_all,
+					array(
+						'html_errors' => false,
+					)
+				),
+				'emit_errors'               => static function () {
+					trigger_error( 'You are history.', E_USER_DEPRECATED );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Deprecated:  You are history. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'Deprecated: You are history. in __FILE__ on line __LINE__',
+				),
+			),
+			'warning_in_eval'         => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_errors'               => static function () {
+					eval( "trigger_error( 'AVISO: Piso mojado.', E_USER_WARNING );" ); // phpcs:ignore Squiz.PHP.Eval.Discouraged -- We're in a test!
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Warning:  AVISO: Piso mojado. in __FILE__ : eval()\'d code on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Warning</b>: AVISO: Piso mojado. in <b>__FILE__ : eval()\'d code</b> on line <b>__LINE__</b>',
+				),
+			),
+		);
+
+		$tests_error_reporting_warnings_and_above = array();
+		foreach ( $tests as $name => $test ) {
+			$test['ini_config_options']['error_reporting'] = E_ALL ^ E_USER_NOTICE ^ E_USER_DEPRECATED;
+
+			$test['expected_error_log'] = array_values(
+				array_filter(
+					$test['expected_error_log'],
+					static function ( $log_entry ) {
+						return ! ( str_contains( $log_entry, 'Notice' ) || str_contains( $log_entry, 'Deprecated' ) );
+					}
+				)
+			);
+
+			$test['expected_displayed_errors'] = array_values(
+				array_filter(
+					$test['expected_displayed_errors'],
+					static function ( $log_entry ) {
+						return ! ( str_contains( $log_entry, 'Notice' ) || str_contains( $log_entry, 'Deprecated' ) );
+					}
+				)
+			);
+
+			$tests_error_reporting_warnings_and_above[ "{$name}_with_warnings_and_above_reported" ] = $test;
+		}
+
+		$tests_without_display_errors = array();
+		foreach ( $tests as $name => $test ) {
+			$test['ini_config_options']['display_errors'] = false;
+			$test['expected_displayed_errors']            = array();
+
+			$tests_without_display_errors[ "{$name}_without_display_errors" ] = $test;
+		}
+
+		$tests_without_display_or_log_errors = array();
+		foreach ( $tests as $name => $test ) {
+			$test['ini_config_options']['display_errors'] = false;
+			$test['ini_config_options']['log_errors']     = false;
+			$test['expected_displayed_errors']            = array();
+			$test['expected_error_log']                   = array();
+
+			$tests_without_display_or_log_errors[ "{$name}_without_display_errors_or_log_errors" ] = $test;
+		}
+
+		return array_merge( $tests, $tests_error_reporting_warnings_and_above, $tests_without_display_errors, $tests_without_display_or_log_errors );
+	}
+
+	/**
+	 * Tests that errors emitted when filtering wp_template_enhancement_output_buffer are handled as expected.
+	 *
+	 * @ticket 43258
+	 * @ticket 64108
+	 *
+	 * @covers ::wp_finalize_template_enhancement_output_buffer
+	 *
+	 * @dataProvider data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_filtering
+	 */
+	public function test_wp_finalize_template_enhancement_output_buffer_with_errors_while_filtering( array $ini_config_options, Closure $emit_errors, bool $expected_processed, array $expected_error_log, array $expected_displayed_errors ): void {
+		// Start a wrapper output buffer so that we can flush the inner buffer.
+		ob_start();
+
+		ini_set( 'error_log', $this->temp_filename() ); // phpcs:ignore WordPress.PHP.IniSet.log_errors_Blacklisted, WordPress.PHP.IniSet.Risky
+		foreach ( $ini_config_options as $config => $option ) {
+			ini_set( $config, $option );
+		}
+
+		add_filter(
+			'wp_template_enhancement_output_buffer',
+			static function ( string $buffer ) use ( $emit_errors ): string {
+				$buffer = str_replace( 'Hello', 'Goodbye', $buffer );
+				$emit_errors();
+				return $buffer;
+			}
+		);
+
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
+
+		?>
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<title>Greeting</title>
+		</head>
+		<body>
+			<h1>Hello World!</h1>
+		</body>
+		</html>
+		<?php
+
+		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
+
+		$processed_output = ob_get_clean(); // Obtain the output via the wrapper output buffer.
+
+		if ( $expected_processed ) {
+			$this->assertStringContainsString( 'Goodbye', $processed_output, 'Expected the output buffer to have been processed.' );
+		} else {
+			$this->assertStringNotContainsString( 'Goodbye', $processed_output, 'Expected the output buffer to not have been processed.' );
+		}
+
+		$actual_error_log = array_values(
+			array_map(
+				static function ( string $error_log_entry ): string {
+					$error_log_entry = preg_replace(
+						'/^\[.+?] /',
+						'',
+						$error_log_entry
+					);
+					$error_log_entry = preg_replace(
+						'#(?<= in ).+?' . preg_quote( basename( __FILE__ ), '#' ) . '(\(\d+\))?#',
+						'__FILE__',
+						$error_log_entry
+					);
+					return preg_replace(
+						'#(?<= on line )\d+#',
+						'__LINE__',
+						$error_log_entry
+					);
+				},
+				array_filter( explode( "\n", trim( file_get_contents( ini_get( 'error_log' ) ) ) ) )
+			)
+		);
+
+		$this->assertSame(
+			$expected_error_log,
+			$actual_error_log,
+			'Expected same error log entries. Snapshot: ' . var_export( $actual_error_log, true )
+		);
+
+		$displayed_errors = array_values(
+			array_map(
+				static function ( string $displayed_error ): string {
+					$displayed_error = str_replace( '<br />', '', $displayed_error );
+					$displayed_error = preg_replace(
+						'#( in (?:<b>)?).+?' . preg_quote( basename( __FILE__ ), '#' ) . '(\(\d+\))?#',
+						'$1__FILE__',
+						$displayed_error
+					);
+					return preg_replace(
+						'#( on line (?:<b>)?)\d+#',
+						'$1__LINE__',
+						$displayed_error
+					);
+				},
+				array_filter(
+					explode( "\n", trim( $processed_output ) ),
+					static function ( $line ): bool {
+						return str_contains( $line, ' in ' );
+					}
+				)
+			)
+		);
+
+		$this->assertSame(
+			$expected_displayed_errors,
+			$displayed_errors,
+			'Expected the displayed errors to be the same. Snapshot: ' . var_export( $displayed_errors, true )
+		);
+
+		if ( count( $expected_displayed_errors ) > 0 ) {
+			$this->assertStringEndsNotWith( '</html>', rtrim( $processed_output ), 'Expected the output to have the error displayed.' );
+		} else {
+			$this->assertStringEndsWith( '</html>', rtrim( $processed_output ), 'Expected the output to not have the error displayed.' );
+		}
 	}
 
 	/**

@@ -965,18 +965,23 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 
 	$filtered_output = $output;
 
-	$error_log      = array();
+	$error_log = array();
+	set_error_handler(
+		static function ( int $level, string $message, ?string $file = null, ?int $line = null ) use ( &$error_log ) {
+			// Switch a user error to an exception so that it can be caught and the buffer can be returned.
+			if ( E_USER_ERROR === $level ) {
+				throw new Exception( __( 'User error triggered:' ) . ' ' . $message );
+			}
+
+			if ( error_reporting() & $level ) {
+				$error_log[] = compact( 'level', 'message', 'file', 'line' );
+			}
+			return false;
+		}
+	);
 	$display_errors = ini_get( 'display_errors' );
 	if ( $display_errors ) {
 		ini_set( 'display_errors', 0 );
-		set_error_handler(
-			static function ( int $level, string $message, ?string $file = null, ?int $line = null, ?array $context = null ) use ( &$error_log ) {
-				if ( error_reporting() & $level ) {
-					$error_log[] = compact( 'level', 'message', 'file', 'line', 'context' );
-				}
-				return false;
-			}
-		);
 	}
 
 	try {
@@ -1001,20 +1006,13 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		 */
 		$filtered_output = (string) apply_filters( 'wp_template_enhancement_output_buffer', $filtered_output, $output );
 	} catch ( Exception $exception ) {
-		$error_log[] = array(
-			'level'   => E_USER_ERROR,
-			'message' => $exception->getMessage(),
-			'file'    => $exception->getFile(),
-			'line'    => $exception->getLine(),
-		);
-
 		// Emit to the error log.
 		trigger_error(
 			sprintf(
-				/* translators: %s is wp_template_enhancement_output_buffer */
-				__( 'Exception thrown during %s filter: ' ) . $exception->getMessage(),
-				'wp_template_enhancement_output_buffer'
-			),
+				/* translators: %s is the exception class name */
+				__( 'Uncaught exception "%s" thrown:' ),
+				get_class( $exception )
+			) . ' ' . $exception->getMessage(),
 			E_USER_WARNING
 		);
 	}
@@ -1034,14 +1032,12 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 				default:
 					$type = 'Error';
 			}
-			$displayed_error = sprintf( "<br />\n<b>%s</b>: %s", $type, $error['message'] );
-			if ( null !== $error['file'] ) {
-				$displayed_error .= sprintf( ' in <b>%s</b>', $error['file'] );
-				if ( null !== $error['line'] ) {
-					$displayed_error .= sprintf( ' on line <b>%d</b>', $error['line'] );
-				}
+			$format = "<br />\n<b>%s</b>: %s in <b>%s</b> on line <b>%d</b><br />";
+			if ( ! ini_get( 'html_errors' ) ) {
+				$format = strip_tags( $format );
 			}
-			$displayed_error .= '<br />';
+
+			$displayed_error = sprintf( $format, $type, $error['message'], $error['file'], $error['line'] );
 
 			$filtered_output .= $displayed_error;
 		}
@@ -1086,9 +1082,9 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	}
 
 	if ( $display_errors ) {
-		restore_error_handler();
 		ini_set( 'display_errors', 1 );
 	}
+	restore_error_handler();
 
 	return $filtered_output;
 }
