@@ -1096,8 +1096,6 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 			E_USER_WARNING
 		);
 		$did_just_catch_exception = false;
-
-		// TODO: Should this also append the error to $filtered output if $display_errors? But it could make a sent header incorrect.
 	}
 
 	if ( $display_errors ) {
