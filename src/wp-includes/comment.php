@@ -763,7 +763,7 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 
 	// Notes require logged in users that can edit the current post, ignore flooding check.
 	if ( isset( $commentdata['comment_type'] ) && 'note' === $commentdata['comment_type'] ) {
-		if (  ! current_user_can( 'edit_post', $commentdata['comment_post_ID'] ) ) {
+		if ( ! isset( $commentdata['comment_post_ID'] ) || ! current_user_can( 'edit_post', $commentdata['comment_post_ID'] ) ) {
 			return new WP_Error( 'comment_note_permission', __( 'You do not have permission edit notes on this post.' ), 403 );
 		}
 	} else {
