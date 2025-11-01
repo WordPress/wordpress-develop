@@ -980,6 +980,8 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 				$level = E_USER_ERROR;
 			}
 
+			// TODO: Append to the message that this error happened while doing wp_template_enhancement_output_buffer filters or the wp_finalized_template_enhancement_output_buffer action?
+
 			if ( error_reporting() & $level ) {
 				$error_log[] = compact( 'level', 'message', 'file', 'line' );
 			}
@@ -1078,9 +1080,9 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 		// Emit to the error log.
 		trigger_error(
 			sprintf(
-				/* translators: %s is wp_send_late_headers */
+				/* translators: %s is wp_finalized_template_enhancement_output_buffer */
 				__( 'Exception thrown during %s action: ' ) . $exception->getMessage(),
-				'wp_send_late_headers'
+				'wp_finalized_template_enhancement_output_buffer'
 			),
 			E_USER_WARNING
 		);
