@@ -1086,11 +1086,18 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 				default:
 					$type = 'Error';
 			}
-			$format = "<br />\n<b>%s</b>: %s in <b>%s</b> on line <b>%d</b><br />";
-			if ( ! ini_get( 'html_errors' ) ) {
-				$format = strip_tags( $format );
+
+			if ( ini_get( 'html_errors' ) ) {
+				/*
+				 * Adapted from PHP internals: <https://github.com/php/php-src/blob/a979e9f897a90a580e883b1f39ce5673686ffc67/main/main.c#L1478>.
+				 * The self-closing tags are a vestige of the XHTML past!
+				 */
+				$format = "%s<br />\n<b>%s</b>:  %s in <b>%s</b> on line <b>%s</b><br />\n%s";
+			} else {
+				// Adapted from PHP internals: <https://github.com/php/php-src/blob/a979e9f897a90a580e883b1f39ce5673686ffc67/main/main.c#L1492>.
+				$format = "%s\n%s: %s in %s on line %s\n%s";
 			}
-			$filtered_output .= sprintf( $format, $type, $error['message'], $error['file'], $error['line'] );
+			$filtered_output .= sprintf( $format, ini_get( 'error_prepend_string' ), $type, $error['message'], $error['file'], $error['line'], ini_get( 'error_append_string' ) );
 		}
 
 		ini_set( 'display_errors', 1 );

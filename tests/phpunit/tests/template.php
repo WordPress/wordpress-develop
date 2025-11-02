@@ -117,7 +117,7 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_styles();
 
 		$this->original_theme_features = $GLOBALS['_wp_theme_features'];
-		foreach ( array( 'display_errors', 'error_reporting', 'log_errors', 'error_log', 'default_mimetype', 'html_errors' ) as $config ) {
+		foreach ( array( 'display_errors', 'error_reporting', 'log_errors', 'error_log', 'default_mimetype', 'html_errors', 'error_prepend_string', 'error_append_string' ) as $config ) {
 			$this->original_ini_config[ $config ] = ini_get( $config );
 		}
 	}
@@ -1010,8 +1010,8 @@ class Tests_Template extends WP_UnitTestCase {
 					'PHP Deprecated:  You are history during action. in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Deprecated</b>: You are history during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Deprecated</b>: You are history during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Deprecated</b>:  You are history during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Deprecated</b>:  You are history during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'notice'                  => array(
@@ -1028,8 +1028,8 @@ class Tests_Template extends WP_UnitTestCase {
 					'PHP Notice:  POSTED: No trespassing during action. in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Notice</b>: POSTED: No trespassing during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Notice</b>: POSTED: No trespassing during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Notice</b>:  POSTED: No trespassing during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Notice</b>:  POSTED: No trespassing during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'warning'                 => array(
@@ -1046,8 +1046,8 @@ class Tests_Template extends WP_UnitTestCase {
 					'PHP Warning:  AVISO: Piso mojado durante acción. in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Warning</b>: AVISO: Piso mojado durante filtro. in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Warning</b>: AVISO: Piso mojado durante acción. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>:  AVISO: Piso mojado durante filtro. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>:  AVISO: Piso mojado durante acción. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'error'                   => array(
@@ -1064,8 +1064,8 @@ class Tests_Template extends WP_UnitTestCase {
 					'PHP Warning:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during action? in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Error</b>: Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during filter? in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Error</b>: Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during action? in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during filter? in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during action? in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'exception'               => array(
@@ -1082,8 +1082,8 @@ class Tests_Template extends WP_UnitTestCase {
 					'PHP Warning:  Uncaught exception "Exception" thrown: I take exception to this action! in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Error</b>: Uncaught exception "Exception" thrown: I take exception to this filter! in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Error</b>: Uncaught exception "Exception" thrown: I take exception to this action! in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>:  Uncaught exception "Exception" thrown: I take exception to this filter! in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>:  Uncaught exception "Exception" thrown: I take exception to this action! in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'multiple_non_errors'     => array(
@@ -1108,12 +1108,12 @@ class Tests_Template extends WP_UnitTestCase {
 					'PHP Warning:  AVISO: Piso mojado durante acción. in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Deprecated</b>: You are history during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Notice</b>: POSTED: No trespassing during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Warning</b>: AVISO: Piso mojado durante filtro. in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Deprecated</b>: You are history during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Notice</b>: POSTED: No trespassing during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Warning</b>: AVISO: Piso mojado durante acción. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Deprecated</b>:  You are history during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Notice</b>:  POSTED: No trespassing during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>:  AVISO: Piso mojado durante filtro. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Deprecated</b>:  You are history during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Notice</b>:  POSTED: No trespassing during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>:  AVISO: Piso mojado durante acción. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'deprecated_without_html' => array(
@@ -1135,8 +1135,14 @@ class Tests_Template extends WP_UnitTestCase {
 					'Deprecated: You are history during filter. in __FILE__ on line __LINE__',
 				),
 			),
-			'warning_in_eval'         => array(
-				'ini_config_options'        => $log_and_display_all,
+			'warning_in_eval_with_prepend_and_append'         => array(
+				'ini_config_options'        => array_merge(
+					$log_and_display_all,
+					array(
+						'error_prepend_string' => '<details><summary>PHP Problem!</summary>',
+						'error_append_string'  => '</details>',
+					)
+				),
 				'emit_filter_errors'        => static function () {
 					eval( "trigger_error( 'AVISO: Piso mojado durante filtro.', E_USER_WARNING );" ); // phpcs:ignore Squiz.PHP.Eval.Discouraged -- We're in a test!
 				},
@@ -1149,8 +1155,8 @@ class Tests_Template extends WP_UnitTestCase {
 					'PHP Warning:  AVISO: Piso mojado durante acción. in __FILE__ : eval()\'d code on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Warning</b>: AVISO: Piso mojado durante filtro. in <b>__FILE__ : eval()\'d code</b> on line <b>__LINE__</b>',
-					'<b>Warning</b>: AVISO: Piso mojado durante acción. in <b>__FILE__ : eval()\'d code</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>:  AVISO: Piso mojado durante filtro. in <b>__FILE__ : eval()\'d code</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>:  AVISO: Piso mojado durante acción. in <b>__FILE__ : eval()\'d code</b> on line <b>__LINE__</b>',
 				),
 			),
 		);
