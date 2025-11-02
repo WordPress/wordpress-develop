@@ -247,15 +247,17 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			return false;
 		}
 
+		if ( is_int( $priority ) ) {
+			// If there are no callbacks at the requested priority, clearly it wasn't added.
+			if ( ! isset( $this->callbacks[ $priority ] ) ) {
+				return false;
+			}
+			return isset( $this->callbacks[ $priority ][ $function_key ] );
+		}
+
 		foreach ( $this->callbacks as $callback_priority => $callbacks ) {
 			if ( isset( $callbacks[ $function_key ] ) ) {
-				if ( is_int( $priority ) ) {
-					if ( $priority === (int) $callback_priority ) {
-						return true;
-					}
-				} else {
-					return $callback_priority;
-				}
+				return $callback_priority;
 			}
 		}
 
