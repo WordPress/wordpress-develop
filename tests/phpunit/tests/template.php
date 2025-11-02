@@ -1075,9 +1075,7 @@ class Tests_Template extends WP_UnitTestCase {
 			'early-css',
 			'early-inline-css',
 			'wp-emoji-styles-inline-css',
-			'wp-block-library-css',
 			'wp-block-library-inline-css',
-
 			'wp-block-separator-inline-css',
 			'global-styles-inline-css',
 			'core-block-supports-inline-css',
@@ -1109,16 +1107,14 @@ class Tests_Template extends WP_UnitTestCase {
 					'wp-emoji-styles-inline-css',
 					'wp-block-library-css',
 					'wp-block-library-inline-css',
-					'late-css',
-					'late-inline-css',
-
-					// TODO: The following three are enqueued in a different order compared to $expected_head_styles above. Why?
 					'core-block-supports-inline-css',
 					'classic-theme-styles-inline-css',
 					'global-styles-inline-css',
-
 					'normal-css',
 					'normal-inline-css',
+					'wp-custom-css',
+					'late-css',
+					'late-inline-css',
 				),
 			),
 			'disabled_printing_late_styles'   => array(
@@ -1183,6 +1179,8 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, array $theme_supports, array $expected ): void {
 		switch_theme( 'default' );
+		global $wp_styles;
+		$wp_styles = null;
 
 		foreach ( $theme_supports as $theme_support ) {
 			add_theme_support( $theme_support );
@@ -1205,6 +1203,7 @@ class Tests_Template extends WP_UnitTestCase {
 		foreach ( array_keys( $block_registry->get_all_registered() ) as $block_name ) {
 			$block_registry->unregister( $block_name );
 		}
+		register_core_block_style_handles();
 		register_core_block_types_from_metadata();
 
 		$this->assertFalse( wp_is_block_theme(), 'Test is only relevant to block themes.' );
@@ -1252,7 +1251,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '</head>', $buffer, 'Expected the closing HEAD tag to be in the response.' );
 
-		$this->assertDoesNotMatchRegularExpression( '#/\*wp_late_styles_placeholder:[a-f0-9-]+\*/#', $filtered_buffer, 'Expected the placeholder to be removed.' );
+		$this->assertDoesNotMatchRegularExpression( '#/\*wp_late_styles_placeholder:[a-f0-9]+\*/#', $filtered_buffer, 'Expected the placeholder to be removed.' );
 		$found_styles = array(
 			'HEAD' => array(),
 			'BODY' => array(),

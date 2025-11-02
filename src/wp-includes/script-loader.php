@@ -3634,7 +3634,7 @@ function wp_hoist_late_printed_styles() {
 	 * enhancement output buffer, essentially no style can be enqueued too late, because an output buffer filter can
 	 * always hoist it to the HEAD.
 	 */
-	add_filter( 'print_late_styles', '__return_true', PHP_INT_MAX );
+	add_filter( 'print_late_styles', '__return_true', PHP_INT_MAX ); // TODO: Remove.
 
 	/*
 	 * Print a placeholder comment where the late styles can be hoisted from the footer to be printed in the header
@@ -3645,11 +3645,44 @@ function wp_hoist_late_printed_styles() {
 	wp_add_inline_style( 'wp-block-library', $placeholder );
 
 	// Wrap print_late_styles() with a closure that captures the late-printed styles.
-	$printed_late_styles = '';
-	$capture_late_styles = static function () use ( &$printed_late_styles ) {
+	$printed_block_styles = '';
+	$printed_late_styles  = '';
+	$capture_late_styles  = static function () use ( &$printed_block_styles, &$printed_late_styles ) {
+		global $concatenate_scripts;
+		script_concat_settings();
+
+		// Print the styles related to on-demand block enqueues.
+		$all_block_style_handles = array();
+		foreach ( WP_Block_Type_Registry::get_instance()->get_all_registered() as $block_type ) {
+			foreach ( $block_type->style_handles as $style_handle ) {
+				$all_block_style_handles[] = $style_handle;
+			}
+		}
+		$all_block_style_handles = array_merge(
+			$all_block_style_handles,
+			array( 'global-styles', 'core-block-supports', 'block-style-variation-styles' ) // TODO: What else?
+		);
+
+		$enqueued_block_styles = array_values( array_intersect( $all_block_style_handles, wp_styles()->queue ) );
+		if ( count( $enqueued_block_styles ) > 0 ) {
+			wp_styles()->do_concat = $concatenate_scripts;
+			ob_start();
+			wp_styles()->do_items( $enqueued_block_styles );
+			_print_styles();
+			$printed_block_styles = ob_get_clean();
+			wp_styles()->reset();
+		}
+
+		/*
+		 * Print remaining styles not related to blocks. This is the same logic as in print_late_styles(), but without
+		 * the filter to control whether late styles are printed (since they are being hoisted anyway).
+		 */
+		wp_styles()->do_concat = $concatenate_scripts;
 		ob_start();
-		print_late_styles();
+		wp_styles()->do_footer_items();
+		_print_styles();
 		$printed_late_styles = ob_get_clean();
+		wp_styles()->reset();
 	};
 
 	/*
@@ -3680,7 +3713,7 @@ function wp_hoist_late_printed_styles() {
 	// Replace placeholder with the captured late styles.
 	add_filter(
 		'wp_template_enhancement_output_buffer',
-		function ( $buffer ) use ( $placeholder, &$printed_late_styles ) {
+		function ( $buffer ) use ( $placeholder, &$printed_block_styles, &$printed_late_styles ) {
 
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
@@ -3690,19 +3723,18 @@ function wp_hoist_late_printed_styles() {
 				}
 			};
 
-			// Loop over STYLE tags.
-			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
-
-				// We've encountered the inline style for the 'wp-block-library' stylesheet which probably has the placeholder comment.
+			// TODO: If there are no block styles to print, it would be nice to not have to replace the placehoolder comment.
+			// Locate the inline style for the 'wp-block-library' stylesheet which probably has the placeholder comment.
+			while ( $processor->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
 				if (
 					! $processor->is_tag_closer() &&
 					'STYLE' === $processor->get_tag() &&
 					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
 				) {
-					// If the inline style lacks the placeholder comment, then we have to continue until we get to </HEAD> to append the styles there.
+					// If the inline style lacks the placeholder comment, then all the styles will be inserted below before </HEAD>.
 					$css_text = $processor->get_modifiable_text();
 					if ( ! str_contains( $css_text, $placeholder ) ) {
-						continue;
+						break;
 					}
 
 					// Remove the placeholder now that we've located the inline style.
@@ -3715,25 +3747,47 @@ function wp_hoist_late_printed_styles() {
 						'',
 						array(
 							substr( $buffer, 0, $span->start + $span->length ),
-							$printed_late_styles,
+							$printed_block_styles,
 							substr( $buffer, $span->start + $span->length ),
 						)
 					);
+
+					// Prevent printing them again.
+					$printed_block_styles = '';
 					break;
 				}
+			}
+
+			// If there are remaining styles to hoist, either because
+			if ( $printed_block_styles || $printed_late_styles ) {
+
+				// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
+				$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
+					public function get_span(): WP_HTML_Span {
+						$this->set_bookmark( 'here' );
+						return $this->bookmarks['here'];
+					}
+				};
 
 				// As a fallback, append the hoisted late styles to the end of the HEAD.
-				if ( $processor->is_tag_closer() && 'HEAD' === $processor->get_tag() ) {
-					$span   = $processor->get_span();
-					$buffer = implode(
-						'',
-						array(
-							substr( $buffer, 0, $span->start ),
-							$printed_late_styles,
-							substr( $buffer, $span->start ),
-						)
-					);
-					break;
+				while ( $processor->next_tag(
+					array(
+						'tag_name'    => 'HEAD',
+						'tag_closers' => 'visit',
+					)
+				) ) {
+					if ( $processor->is_tag_closer() ) {
+						$span   = $processor->get_span();
+						$buffer = implode(
+							'',
+							array(
+								substr( $buffer, 0, $span->start ),
+								$printed_block_styles . $printed_late_styles,
+								substr( $buffer, $span->start ),
+							)
+						);
+						break;
+					}
 				}
 			}
 
