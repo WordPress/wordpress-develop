@@ -1159,6 +1159,26 @@ class Tests_Template extends WP_UnitTestCase {
 					'<b>Warning</b>:  AVISO: Piso mojado durante acción. in <b>__FILE__ : eval()\'d code</b> on line <b>__LINE__</b>',
 				),
 			),
+			'notice_with_display_errors_stderr'       => array(
+				'ini_config_options'        => array_merge(
+					$log_and_display_all,
+					array(
+						'display_errors' => 'stderr',
+					)
+				),
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'POSTED: No trespassing during filter.' );
+				},
+				'emit_action_errors'        => static function () {
+					trigger_error( 'POSTED: No trespassing during action.' );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Notice:  POSTED: No trespassing during filter. in __FILE__ on line __LINE__',
+					'PHP Notice:  POSTED: No trespassing during action. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(),
+			),
 		);
 
 		$tests_error_reporting_warnings_and_above = array();
