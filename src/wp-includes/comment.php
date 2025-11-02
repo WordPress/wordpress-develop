@@ -417,7 +417,6 @@ function get_comment_count( $post_id = 0 ) {
 		'count'                     => true,
 		'update_comment_meta_cache' => false,
 		'orderby'                   => 'none',
-		'type__not_in'              => array( 'note' ),
 	);
 	if ( $post_id > 0 ) {
 		$args['post_id'] = $post_id;
@@ -4129,7 +4128,9 @@ function wp_create_initial_comment_meta() {
 					'enum' => array( 'resolved', 'reopen' ),
 				),
 			),
+			'auth_callback' => function ( $allowed, $meta_key, $object_id ) {
+				return current_user_can( 'edit_comment', $object_id );
+			},
 		)
 	);
 }
-add_action( 'init', 'wp_create_initial_comment_meta' );

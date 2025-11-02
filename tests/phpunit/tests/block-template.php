@@ -479,6 +479,34 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that unregister_block_template() returns a WP_Error when trying to unregister
+	 * a non-registered template, and that the error message includes the template name.
+	 *
+	 * @ticket 64072
+	 *
+	 * @covers ::unregister_block_template
+	 */
+	public function test_unregister_block_template_error_message_includes_template_name() {
+		$template_name = 'test-plugin//unregistered-template';
+
+		// Ensure template is not registered.
+		unregister_block_template( $template_name );
+
+		// Expect _doing_it_wrong() notice.
+		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::unregister' );
+
+		// Try to unregister again, should return WP_Error.
+		$error = unregister_block_template( $template_name );
+
+		$this->assertInstanceOf( 'WP_Error', $error );
+		$this->assertStringContainsString(
+			$template_name,
+			$error->get_error_message(),
+			'Error message should include the template name.'
+		);
+	}
+
+	/**
 	 * Registers a test block to log `in_the_loop()` results.
 	 *
 	 * @param array $in_the_loop_logs Array to log function results in. Passed by reference.
