@@ -987,8 +987,8 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 			return false;
 		}
 	);
-	$display_errors = ini_get( 'display_errors' );
-	if ( $display_errors ) {
+	$original_display_errors = ini_get( 'display_errors' );
+	if ( $original_display_errors ) {
 		ini_set( 'display_errors', 0 );
 	}
 
@@ -1071,7 +1071,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 	}
 
 	// Append any errors to be displayed before returning flushing the buffer.
-	if ( $display_errors ) {
+	if ( $original_display_errors && 'stderr' !== $original_display_errors ) {
 		foreach ( $error_log as $error ) {
 			switch ( $error['level'] ) {
 				case E_USER_NOTICE:
@@ -1100,7 +1100,7 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 			$filtered_output .= sprintf( $format, ini_get( 'error_prepend_string' ), $type, $error['message'], $error['file'], $error['line'], ini_get( 'error_append_string' ) );
 		}
 
-		ini_set( 'display_errors', 1 );
+		ini_set( 'display_errors', $original_display_errors );
 	}
 
 	restore_error_handler();
