@@ -996,7 +996,7 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		$tests = array(
-			'deprecated'              => array(
+			'deprecated'                              => array(
 				'ini_config_options'        => $log_and_display_all,
 				'emit_filter_errors'        => static function () {
 					trigger_error( 'You are history during filter.', E_USER_DEPRECATED );
@@ -1014,7 +1014,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'<b>Deprecated</b>:  You are history during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
-			'notice'                  => array(
+			'notice'                                  => array(
 				'ini_config_options'        => $log_and_display_all,
 				'emit_filter_errors'        => static function () {
 					trigger_error( 'POSTED: No trespassing during filter.', E_USER_NOTICE );
@@ -1032,7 +1032,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'<b>Notice</b>:  POSTED: No trespassing during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
-			'warning'                 => array(
+			'warning'                                 => array(
 				'ini_config_options'        => $log_and_display_all,
 				'emit_filter_errors'        => static function () {
 					trigger_error( 'AVISO: Piso mojado durante filtro.', E_USER_WARNING );
@@ -1050,7 +1050,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'<b>Warning</b>:  AVISO: Piso mojado durante acción. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
-			'error'                   => array(
+			'error'                                   => array(
 				'ini_config_options'        => $log_and_display_all,
 				'emit_filter_errors'        => static function () {
 					@trigger_error( 'ERROR: Can this mistake be rectified during filter?', E_USER_ERROR ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
@@ -1068,7 +1068,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'<b>Error</b>:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during action? in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
-			'exception'               => array(
+			'exception'                               => array(
 				'ini_config_options'        => $log_and_display_all,
 				'emit_filter_errors'        => static function () {
 					throw new Exception( 'I take exception to this filter!' );
@@ -1086,7 +1086,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'<b>Error</b>:  Uncaught exception "Exception" thrown: I take exception to this action! in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
-			'multiple_non_errors'     => array(
+			'multiple_non_errors'                     => array(
 				'ini_config_options'        => $log_and_display_all,
 				'emit_filter_errors'        => static function () {
 					trigger_error( 'You are history during filter.', E_USER_DEPRECATED );
@@ -1116,7 +1116,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'<b>Warning</b>:  AVISO: Piso mojado durante acción. in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
-			'deprecated_without_html' => array(
+			'deprecated_without_html'                 => array(
 				'ini_config_options'        => array_merge(
 					$log_and_display_all,
 					array(
@@ -1135,7 +1135,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'Deprecated: You are history during filter. in __FILE__ on line __LINE__',
 				),
 			),
-			'warning_in_eval_with_prepend_and_append'         => array(
+			'warning_in_eval_with_prepend_and_append' => array(
 				'ini_config_options'        => array_merge(
 					$log_and_display_all,
 					array(
