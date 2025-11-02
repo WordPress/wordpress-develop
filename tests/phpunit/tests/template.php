@@ -1060,12 +1060,12 @@ class Tests_Template extends WP_UnitTestCase {
 				},
 				'expected_processed'        => false,
 				'expected_error_log'        => array(
-					'PHP Warning:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during filter? in __FILE__ on line __LINE__',
-					'PHP Warning:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during action? in __FILE__ on line __LINE__',
+					'PHP Warning:  Uncaught "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during filter? in __FILE__ on line __LINE__',
+					'PHP Warning:  Uncaught "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during action? in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Error</b>:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during filter? in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Error</b>:  Uncaught exception "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during action? in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>:  Uncaught "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during filter? in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>:  Uncaught "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during action? in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'exception'                               => array(
@@ -1078,12 +1078,12 @@ class Tests_Template extends WP_UnitTestCase {
 				},
 				'expected_processed'        => false,
 				'expected_error_log'        => array(
-					'PHP Warning:  Uncaught exception "Exception" thrown: I take exception to this filter! in __FILE__ on line __LINE__',
-					'PHP Warning:  Uncaught exception "Exception" thrown: I take exception to this action! in __FILE__ on line __LINE__',
+					'PHP Warning:  Uncaught "Exception" thrown: I take exception to this filter! in __FILE__ on line __LINE__',
+					'PHP Warning:  Uncaught "Exception" thrown: I take exception to this action! in __FILE__ on line __LINE__',
 				),
 				'expected_displayed_errors' => array(
-					'<b>Error</b>:  Uncaught exception "Exception" thrown: I take exception to this filter! in <b>__FILE__</b> on line <b>__LINE__</b>',
-					'<b>Error</b>:  Uncaught exception "Exception" thrown: I take exception to this action! in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>:  Uncaught "Exception" thrown: I take exception to this filter! in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>:  Uncaught "Exception" thrown: I take exception to this action! in <b>__FILE__</b> on line <b>__LINE__</b>',
 				),
 			),
 			'multiple_non_errors'                     => array(
