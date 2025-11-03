@@ -226,7 +226,7 @@ class WP_REST_Server {
 	 *
 	 * @param string $code    WP_Error-style code.
 	 * @param string $message Human-readable message.
-	 * @param int    $status  Optional. HTTP status code to send. Default null.
+	 * @param int|null $status  Optional. HTTP status code to send. Default null.
 	 * @return string JSON representation of the error.
 	 */
 	protected function json_error( $code, $message, $status = null ) {
