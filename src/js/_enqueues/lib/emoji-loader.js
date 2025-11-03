@@ -278,7 +278,7 @@ function browserSupportsEmoji( context, type, emojiSetsRenderIdentically, emojiR
 			 * The hairy creature emoji is a single code point emoji. Testing for browser
 			 * support required testing the center point of the emoji to see if it is empty.
 			 *
-			 * 0xD83E 0xDEDF (\uD83E\u1FAC8) == 🫟 Splatter.
+			 * 0xD83E 0x1FAC8 (\uD83E\u1FAC8) == 🫈 Hairy creature.
 			 *
 			 * When updating this test, please ensure that the emoji is either a single code point
 			 * or switch to using the emojiSetsRenderIdentically function and testing with a zero-width
