@@ -157,6 +157,11 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 				'🧚',
 				'&#x1f9da;',
 			),
+			array(
+				// Hairy creature (Unicode 17).
+				'🫈',
+				'&#x1fac8;',
+			),
 		);
 	}
 
@@ -191,6 +196,11 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 				// Unicode 10.
 				'🧚',
 				'<img src="' . $this->png_cdn . '1f9da.png" alt="🧚" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+			),
+			array(
+				// Hairy creature (Unicode 17).
+				'🫈',
+				'<img src="' . $this->png_cdn . '1fac8.png" alt="🫈" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 		);
 
