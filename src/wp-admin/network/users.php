@@ -132,9 +132,7 @@ if ( isset( $_GET['action'] ) ) {
 
 								/** This filter is documented in wp-admin/network/users.php */
 								if ( apply_filters( 'network_user_spam_propagate_to_blogs', false, $user_id ) ) {
-									$blogs = get_blogs_of_user( $user_id, true );
-
-									foreach ( $blogs as $details ) {
+									foreach ( get_blogs_of_user( $user_id, true ) as $details ) {
 										if ( ! is_main_site( $details->userblog_id ) && get_current_network_id() === $details->site_id ) { // Main site is never a spam and part of the current network.
 											update_blog_status( $details->userblog_id, 'spam', '0' );
 										}
