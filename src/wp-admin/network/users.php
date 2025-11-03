@@ -130,7 +130,7 @@ if ( isset( $_GET['action'] ) ) {
 
 								$userfunction = 'all_notspam';
 
-								/** This filter is documented in wp-admin/network/users.php#L95 */
+								/** This filter is documented in wp-admin/network/users.php */
 								if ( apply_filters( 'network_user_spam_propagate_to_blogs', false, $user_id ) ) {
 									$blogs = get_blogs_of_user( $user_id, true );
 
