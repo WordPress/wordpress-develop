@@ -278,8 +278,8 @@ class WP_REST_Server {
 	 *
 	 * @global WP_User $current_user The currently authenticated user.
 	 *
-	 * @param string $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
-	 *                     Default null.
+	 * @param string|null $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
+	 *                          Default null.
 	 * @return null|false Null if not served and a HEAD request, false otherwise.
 	 */
 	public function serve_request( $path = null ) {
