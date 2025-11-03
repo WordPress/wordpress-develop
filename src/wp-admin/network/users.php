@@ -120,7 +120,7 @@ if ( isset( $_GET['action'] ) ) {
 									wp_die(
 										sprintf(
 											/* translators: %s: User login. */
-											__( 'The user %s is a network administrator and cannot be modified.' ),
+											__( 'Warning! User cannot be modified. The user %s is a network administrator.' ),
 											esc_html( $user->user_login )
 										),
 										403
