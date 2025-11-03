@@ -81,6 +81,20 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * @var array
 	 */
+	const RESTORED_CONFIG_OPTIONS = array(
+		'display_errors',
+		'error_reporting',
+		'log_errors',
+		'error_log',
+		'default_mimetype',
+		'html_errors',
+		'error_prepend_string',
+		'error_append_string',
+	);
+
+	/**
+	 * @var array
+	 */
 	protected $original_ini_config;
 
 	public function set_up() {
@@ -117,8 +131,8 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_styles();
 
 		$this->original_theme_features = $GLOBALS['_wp_theme_features'];
-		foreach ( array( 'display_errors', 'error_reporting', 'log_errors', 'error_log', 'default_mimetype', 'html_errors', 'error_prepend_string', 'error_append_string' ) as $config ) {
-			$this->original_ini_config[ $config ] = ini_get( $config );
+		foreach ( self::RESTORED_CONFIG_OPTIONS as $option ) {
+			$this->original_ini_config[ $option ] = ini_get( $option );
 		}
 	}
 
@@ -128,8 +142,8 @@ class Tests_Template extends WP_UnitTestCase {
 		$wp_styles  = $this->original_wp_styles;
 
 		$GLOBALS['_wp_theme_features'] = $this->original_theme_features;
-		foreach ( $this->original_ini_config as $config => $value ) {
-			ini_set( $config, $value );
+		foreach ( $this->original_ini_config as $option => $value ) {
+			ini_set( $option, $value );
 		}
 
 		unregister_post_type( 'cpt' );
