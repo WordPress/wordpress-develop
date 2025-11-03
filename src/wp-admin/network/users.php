@@ -100,7 +100,7 @@ if ( isset( $_GET['action'] ) ) {
 								 * @param bool $propagate Whether to propagate the blog status. Default false.
 								 * @param int  $user_id   User ID.
 								 */
-								if ( apply_filters( 'network_user_spam_propagate_to_blogs', false, $user_id, $doaction ) ) {
+								if ( apply_filters( 'network_user_spam_propagate_to_blogs', false, $user_id ) ) {
 									$blogs = get_blogs_of_user( $user_id, true );
 
 									foreach ( $blogs as $details ) {
