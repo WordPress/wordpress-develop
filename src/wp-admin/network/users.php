@@ -101,9 +101,7 @@ if ( isset( $_GET['action'] ) ) {
 								 * @param int  $user_id   User ID.
 								 */
 								if ( apply_filters( 'network_user_spam_propagate_to_blogs', false, $user_id ) ) {
-									$blogs = get_blogs_of_user( $user_id, true );
-
-									foreach ( $blogs as $details ) {
+									foreach ( get_blogs_of_user( $user_id, true ) as $details ) {
 										if ( ! is_main_site( $details->userblog_id ) ) { // Main site is not a spam!
 											update_blog_status( $details->userblog_id, 'spam', '1' );
 										}
