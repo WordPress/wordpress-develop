@@ -1097,7 +1097,15 @@ function wp_finalize_template_enhancement_output_buffer( string $output, int $ph
 				// Adapted from PHP internals: <https://github.com/php/php-src/blob/a979e9f897a90a580e883b1f39ce5673686ffc67/main/main.c#L1492>.
 				$format = "%s\n%s: %s in %s on line %s\n%s";
 			}
-			$filtered_output .= sprintf( $format, ini_get( 'error_prepend_string' ), $type, $error['message'], $error['file'], $error['line'], ini_get( 'error_append_string' ) );
+			$filtered_output .= sprintf(
+				$format,
+				ini_get( 'error_prepend_string' ),
+				$type,
+				$error['message'],
+				$error['file'],
+				$error['line'],
+				ini_get( 'error_append_string' )
+			);
 		}
 
 		ini_set( 'display_errors', $original_display_errors );
