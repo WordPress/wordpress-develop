@@ -229,7 +229,8 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @param callable|string|array|false $callback  Optional. The callback to check for.
 	 *                                               This method can be called unconditionally to speculatively check
 	 *                                               a callback that may or may not exist. Default false.
-	 * @param int|false                   $priority  Whether to check for a filter at a specific priority.
+	 * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
+	 *                                               Default false.
 	 * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
 	 *                  anything registered. When checking a specific function, the priority
 	 *                  of that hook is returned, or false if the function is not attached.
