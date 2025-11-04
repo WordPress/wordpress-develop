@@ -47,15 +47,16 @@ Ensure your container environment is running before using these commands.
 
 #### To start the development environment for the first time
 
-Go to https://github.com/WordPress/wordpress-develop and fork the repository to your own GitHub account. 
+You can get started using the local development environment with these steps:
 
-Then clone the forked repository to your computer using `git clone https://github.com/<your-username>/wordpress-develop.git`. Add the origin repo as an `upstream` remote via `git remote add upstream https://github.com/WordPress/wordpress-develop.git`; then you can keep your branches up to date via `git pull --ff upstream/trunk`, for example.
+1. Go to https://github.com/WordPress/wordpress-develop and fork the repository to your own GitHub account. 
+1. Then clone the forked repository to your computer using `git clone https://github.com/<your-username>/wordpress-develop.git`.
+1. Add the origin repo as an `upstream` remote via `git remote add upstream https://github.com/WordPress/wordpress-develop.git`;
+1. Then you can keep your branches up to date via `git pull --ff upstream/trunk`, for example.
 
 Alternatively, if you have the [GitHub CLI](https://cli.github.com/) installed, you can just run `gh repo fork WordPress/wordpress-develop --clone --remote`. This will automatically add an `upstream` remote as well.
 
-Alternatively, if you have the GitHub CLI installed, you can just run `gh repo fork WordPress/wordpress-develop --clone --remote`. This will automatically add an `upstream` remote as well.
-
-Then in your terminal move to the repository folder `cd wordpress-develop` and run the following commands:
+After either of the two options above, move to the repository folder `cd wordpress-develop` and run the following commands in a terminal:
 
 ```
 npm install
