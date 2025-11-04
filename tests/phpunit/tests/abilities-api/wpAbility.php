@@ -46,9 +46,6 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 * Tear down after each test.
 	 */
 	public function tear_down(): void {
-		// Clean up registered test ability category.
-		wp_unregister_ability_category( 'math' );
-
 		parent::tear_down();
 	}
 
