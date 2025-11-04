@@ -1070,7 +1070,7 @@ JS;
 	 * @param array<string, true> $checked Optional. An array of already checked script handles, used to avoid recursive loops.
 	 * @return string|null Highest fetch priority for the script and its dependents.
 	 */
-	private function get_highest_fetchpriority_with_dependents( string $handle, array $checked = array() ): ?string {
+	private function get_highest_fetchpriority_with_dependents( string $handle, array &$checked = array() ): ?string {
 		// If there is a recursive dependency, return early.
 		if ( isset( $checked[ $handle ] ) ) {
 			return null;
