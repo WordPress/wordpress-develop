@@ -271,7 +271,7 @@ class WP_Styles extends WP_Dependencies {
 				$tag .= $rtl_tag;
 			}
 		}
-		
+
 		if ( 'rtl' !== $this->text_direction && isset( $obj->extra['ltr'] ) && $obj->extra['ltr'] ) {
 			if ( is_bool( $obj->extra['ltr'] ) || 'replace' === $obj->extra['ltr'] ) {
 				$suffix   = isset( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
