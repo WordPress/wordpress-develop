@@ -1393,35 +1393,39 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	public function data_wp_load_classic_theme_block_styles_on_demand(): array {
 		return array(
-			'block_theme'                                => array(
+			'block_theme'                              => array(
 				'theme'                   => 'block-theme',
 				'set_up'                  => static function () {},
-				'expected_on_demand'      => false,
+				'expected_load_separate'  => true,
+				'expected_on_demand'      => true,
 				'expected_buffer_started' => false,
 			),
-			'classic_theme_with_output_buffer_blocked'   => array(
+			'classic_theme_with_output_buffer_blocked' => array(
 				'theme'                   => 'default',
 				'set_up'                  => static function () {
 					add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_false' );
 				},
+				'expected_load_separate'  => false,
 				'expected_on_demand'      => false,
 				'expected_buffer_started' => false,
 			),
-			'classic_theme_with_block_styles_support'    => array(
+			'classic_theme_with_should_load_separate_core_block_assets_opt_out' => array(
 				'theme'                   => 'default',
 				'set_up'                  => static function () {
-					add_theme_support( 'wp-block-styles' );
+					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 				},
+				'expected_load_separate'  => false,
 				'expected_on_demand'      => true,
-				'expected_buffer_started' => true,
+				'expected_buffer_started' => false,
 			),
-			'classic_theme_without_block_styles_support' => array(
+			'classic_theme_with_should_load_block_assets_on_demand_out_out' => array(
 				'theme'                   => 'default',
 				'set_up'                  => static function () {
-					remove_theme_support( 'wp-block-styles' );
+					add_filter( 'should_load_block_assets_on_demand', '__return_false' );
 				},
+				'expected_load_separate'  => true,
 				'expected_on_demand'      => false,
-				'expected_buffer_started' => true,
+				'expected_buffer_started' => false,
 			),
 		);
 	}
@@ -1436,7 +1440,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_load_classic_theme_block_styles_on_demand
 	 */
-	public function test_wp_load_classic_theme_block_styles_on_demand( string $theme, ?Closure $set_up, bool $expected_on_demand, bool $expected_buffer_started ) {
+	public function test_wp_load_classic_theme_block_styles_on_demand( string $theme, ?Closure $set_up, bool $expected_load_separate, bool $expected_on_demand, bool $expected_buffer_started ) {
 		$this->assertFalse( wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() to return false initially.' );
 		$this->assertFalse( wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() to return true' );
 		$this->assertFalse( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expected wp_template_enhancement_output_buffer_started action to be added for classic themes.' );
@@ -1447,8 +1451,9 @@ class Tests_Template extends WP_UnitTestCase {
 		}
 
 		wp_load_classic_theme_block_styles_on_demand();
+		_add_default_theme_supports();
 
-		$this->assertSame( $expected_on_demand, wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() return value.' );
+		$this->assertSame( $expected_load_separate, wp_should_load_separate_core_block_assets(), 'Expected wp_should_load_separate_core_block_assets() return value.' );
 		$this->assertSame( $expected_on_demand, wp_should_load_block_assets_on_demand(), 'Expected wp_should_load_block_assets_on_demand() return value.' );
 		$this->assertSame( $expected_buffer_started, (bool) has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ), 'Expected wp_template_enhancement_output_buffer_started action added status.' );
 	}
