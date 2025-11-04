@@ -6412,6 +6412,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertSame( $expected, $button_variations );
 	}
 
+	/**
+	 * Tests that block-level settings inherit global default settings when not explicitly set.
+	 *
+	 * When a block doesn't have its own default presets setting, it should inherit
+	 * the global setting from the theme. This affects whether default presets
+	 * are filtered out during merging.
+	 *
+	 * @ticket 64195
+	 */
 	public function test_merge_incoming_data_block_level_inherits_global_default_setting() {
 		$defaults = new WP_Theme_JSON(
 			array(
@@ -6518,6 +6527,16 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
+	/**
+	 * Tests that presets with unique slugs are preserved during merging.
+	 *
+	 * When merging theme presets, any preset with a slug that doesn't match
+	 * a default preset should always be preserved, regardless of default
+	 * preset settings. Only presets with matching slugs should be filtered out
+	 * when defaults are enabled.
+	 *
+	 * @ticket 64195
+	 */
 	public function test_merge_incoming_data_unique_slugs_always_preserved() {
 		$defaults = new WP_Theme_JSON(
 			array(
