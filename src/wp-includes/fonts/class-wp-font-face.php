@@ -421,6 +421,17 @@ class WP_Font_Face {
 				/*
 				 * CSS Unicode escaping for problematic characters.
 				 * https://www.w3.org/TR/css-syntax-3/#escaping
+				 *
+				 * These characters are not required by CSS but may be problematic in WordPress:
+				 *
+				 * - "<" is replaced to prevent issues with KSES and other sanitization when
+				 *   printing CSS later.
+				 * - "," is replaced to prevent issues where multiple font family names may be
+				 *   split, sanitized, and joined on the `,` character (regardless of quoting
+				 *   or escaping).
+				 *
+				 * Note that the Unicode escape sequences are used rather than backslash-escaping.
+				 * This also helps to prevent issues with problematic characters.
 				 */
 				"\n"   => '\\A ',
 				'\\'   => '\\5C ',
