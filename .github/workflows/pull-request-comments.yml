@@ -130,7 +130,9 @@ jobs:
             const fs = require( 'fs' );
             const issue_number = Number( fs.readFileSync( './NR' ) );
 
-            // Confirm that the pull request is still open.
+            core.info( `Checking pull request #${issue_number}.` );
+
+            // Confirm that the pull request is still open before leaving a comment.
             const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -138,7 +140,7 @@ jobs:
             });
 
             if ( pr.data.state !== 'open' ) {
-              core.info( 'The pull request has been closed.' );
+              core.info( 'The pull request has been closed. No comment will be left.' );
               return;
             }
 
@@ -153,7 +155,7 @@ jobs:
 
             for ( const currentComment of comments ) {
               if ( currentComment.user.type === 'Bot' && currentComment.body.includes( 'Test using WordPress Playground' ) ) {
-                core.info( 'A comment with instructions for how to test in Playground already exists.' );
+                core.info( 'A comment with instructions to test within a Playground instance already exists.' );
                 return;
               }
             };
