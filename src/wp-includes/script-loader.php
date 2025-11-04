@@ -3591,7 +3591,7 @@ function wp_load_classic_theme_block_styles_on_demand() {
 	 */
 	add_filter( 'wp_should_output_buffer_template_for_enhancement', '__return_true', 0 );
 
-	// If a site has opted out of the template enhancement output buffer, then we must abort.
+	// If a site has opted out of the template enhancement output buffer, then bail.
 	if ( ! wp_should_output_buffer_template_for_enhancement() ) {
 		return;
 	}
@@ -3601,13 +3601,13 @@ function wp_load_classic_theme_block_styles_on_demand() {
 	/*
 	 * Load separate block styles so that the large block-library stylesheet is not enqueued unconditionally,
 	 * and so that block-specific styles will only be enqueued when they are used on the page.
-	 * A priority of zero allows for this to be easily overridden by themes which wish to opt-out.
+	 * A priority of zero allows for this to be easily overridden by themes which wish to opt out.
 	 */
 	add_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
 
 	/*
 	 * Also ensure that block assets are loaded on demand (although the default value is from should_load_separate_core_block_assets).
-	 * As above, a priority of zero allows for this to be easily overridden by themes which wish to opt-out.
+	 * As above, a priority of zero allows for this to be easily overridden by themes which wish to opt out.
 	 */
 	add_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
 
