@@ -53,6 +53,8 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 	/**
 	 * Test case where a trashed parent comment causes its child comments to be excluded from the comment count.
 	 *
+	 * @ticket 36409
+	 *
 	 * @return void
 	 */
 	public function test_trashed_parent_comment_excludes_child_comments_from_count() {
@@ -107,6 +109,8 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 
 	/**
 	 * Test case for unapproved parent comment causing its child comments to be excluded from the comment count.
+	 *
+	 * @ticket 36409
 	 *
 	 * @return void
 	 */
