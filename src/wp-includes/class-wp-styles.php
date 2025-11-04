@@ -271,6 +271,34 @@ class WP_Styles extends WP_Dependencies {
 				$tag .= $rtl_tag;
 			}
 		}
+		
+		if ( 'rtl' !== $this->text_direction && isset( $obj->extra['ltr'] ) && $obj->extra['ltr'] ) {
+			if ( is_bool( $obj->extra['ltr'] ) || 'replace' === $obj->extra['ltr'] ) {
+				$suffix   = isset( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
+				$ltr_href = str_replace( "{$suffix}.css", "-ltr{$suffix}.css", $this->_css_href( $src, $ver, "$handle-ltr" ) );
+			} else {
+				$ltr_href = $this->_css_href( $obj->extra['ltr'], $ver, "$handle-ltr" );
+			}
+
+			$ltr_tag = sprintf(
+				"<link rel='%s' id='%s-ltr-css'%s href='%s'%s media='%s' />\n",
+				$rel,
+				esc_attr( $handle ),
+				$title ? sprintf( " title='%s'", esc_attr( $title ) ) : '',
+				$ltr_href,
+				$this->type_attr,
+				esc_attr( $media )
+			);
+
+			/** This filter is documented in wp-includes/class-wp-styles.php */
+			$ltr_tag = apply_filters( 'style_loader_tag', $ltr_tag, $handle, $ltr_href, $media );
+
+			if ( 'replace' === $obj->extra['ltr'] ) {
+				$tag = $ltr_tag;
+			} else {
+				$tag .= $ltr_tag;
+			}
+		}
 
 		if ( $this->do_concat ) {
 			$this->print_html .= $tag;
