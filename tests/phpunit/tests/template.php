@@ -1427,6 +1427,13 @@ class Tests_Template extends WP_UnitTestCase {
 				'expected_on_demand'      => false,
 				'expected_buffer_started' => false,
 			),
+			'classic_theme_without_any_opt_out'        => array(
+				'theme'                   => 'default',
+				'set_up'                  => static function () {},
+				'expected_load_separate'  => true,
+				'expected_on_demand'      => true,
+				'expected_buffer_started' => true,
+			),
 		);
 	}
 
