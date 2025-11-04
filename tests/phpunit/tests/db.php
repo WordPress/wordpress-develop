@@ -132,23 +132,23 @@ class Tests_DB extends WP_UnitTestCase {
 
 	public function data_esc_like() {
 		return array(
-			'single percent'     => array(
+			'single percent'    => array(
 				'howdy%',
 				'howdy\\%',
 			),
-			'single underscore'  => array(
+			'single underscore' => array(
 				'howdy_',
 				'howdy\\_',
 			),
-			'single slash'       => array(
+			'single slash'      => array(
 				'howdy\\',
 				'howdy\\\\',
 			),
-			'the works'          => array(
+			'the works'         => array(
 				'howdy\\howdy%howdy_',
 				'howdy\\\\howdy\\%howdy\\_',
 			),
-			'plain text'         => array(
+			'plain text'        => array(
 				'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
 				'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
 			),
