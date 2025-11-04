@@ -16,11 +16,6 @@ if ( ! current_user_can( 'edit_posts' ) ) {
 	);
 }
 
-// Never show notes on the comments page.
-if ( 'note' === $_REQUEST['comment_type'] ) {
-	unset( $_REQUEST['comment_type'] );
-}
-
 $wp_list_table = _get_list_table( 'WP_Comments_List_Table' );
 $pagenum       = $wp_list_table->get_pagenum();
 
