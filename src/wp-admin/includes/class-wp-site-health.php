@@ -728,7 +728,7 @@ class WP_Site_Health {
 
 		$result = array(
 			'label'       => sprintf(
-				/* translators: %s: The current PHP version. */
+				/* translators: %s: The server PHP version. */
 				__( 'Your site is running PHP %s' ),
 				PHP_VERSION
 			),
