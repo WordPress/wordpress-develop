@@ -224,9 +224,6 @@ jobs:
             db-version: '10.3'
           - event: pull_request
             php: '7.2'
-            db-version: '10.4'
-          - event: pull_request
-            php: '7.2'
             db-version: '10.5'
           - event: pull_request
             php: '7.2'
@@ -243,9 +240,6 @@ jobs:
           - event: pull_request
             php: '7.3'
             db-version: '5.5'
-          - event: pull_request
-            php: '7.3'
-            db-version: '10.4'
           - event: pull_request
             php: '7.3'
             db-version: '10.5'
@@ -290,9 +284,6 @@ jobs:
             db-version: '10.3'
           - event: pull_request
             php: '8.0'
-            db-version: '10.4'
-          - event: pull_request
-            php: '8.0'
             db-version: '10.6'
           - event: pull_request
             php: '8.0'
@@ -309,9 +300,6 @@ jobs:
           - event: pull_request
             php: '8.1'
             db-version: '10.3'
-          - event: pull_request
-            php: '8.1'
-            db-version: '10.4'
           - event: pull_request
             php: '8.1'
             db-version: '10.5'
@@ -330,9 +318,6 @@ jobs:
           - event: pull_request
             php: '8.2'
             db-version: '10.3'
-          - event: pull_request
-            php: '8.2'
-            db-version: '10.4'
           - event: pull_request
             php: '8.2'
             db-version: '10.5'
@@ -351,9 +336,6 @@ jobs:
           - event: pull_request
             php: '8.3'
             db-version: '10.3'
-          - event: pull_request
-            php: '8.3'
-            db-version: '10.4'
           - event: pull_request
             php: '8.3'
             db-version: '10.5'
@@ -372,9 +354,6 @@ jobs:
           - event: pull_request
             php: '8.4'
             db-version: '10.3'
-          - event: pull_request
-            php: '8.4'
-            db-version: '10.4'
           - event: pull_request
             php: '8.4'
             db-version: '10.5'
@@ -393,9 +372,6 @@ jobs:
           - event: pull_request
             php: '8.5'
             db-version: '10.3'
-          - event: pull_request
-            php: '8.5'
-            db-version: '10.4'
           - event: pull_request
             php: '8.5'
             db-version: '10.5'
