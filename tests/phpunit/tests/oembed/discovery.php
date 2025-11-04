@@ -49,6 +49,9 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$expected .= '<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
 
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
+
+		add_filter( 'oembed_discovery_links', '__return_empty_string' );
+		$this->assertSame( '', get_echo( 'wp_oembed_add_discovery_links' ), 'Expected filtering oembed_discovery_links to empty string to result in no wp_oembed_add_discovery_links() output.' );
 	}
 
 	public function test_add_oembed_discovery_links_to_page() {
