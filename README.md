@@ -53,6 +53,8 @@ Then clone the forked repository to your computer using `git clone https://githu
 
 Alternatively, if you have the [GitHub CLI](https://cli.github.com/) installed, you can just run `gh repo fork WordPress/wordpress-develop --clone --remote`. This will automatically add an `upstream` remote as well.
 
+Alternatively, if you have the GitHub CLI installed, you can just run `gh repo fork WordPress/wordpress-develop --clone --remote`. This will automatically add an `upstream` remote as well.
+
 Then in your terminal move to the repository folder `cd wordpress-develop` and run the following commands:
 
 ```
