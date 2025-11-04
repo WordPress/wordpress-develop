@@ -426,18 +426,33 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 			'template parts' => array( 'template_part_post', 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
 		);
 	}
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request(
+			'HEAD',
+			'/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions'
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
 
 	/**
 	 * @dataProvider data_get_items_endpoint_should_return_unauthorized_https_status_code_for_unauthorized_request
 	 * @covers WP_REST_Template_Revisions_Controller::get_items_permissions_check
 	 * @ticket 56922
+	 * @ticket 56481
 	 *
 	 * @param string $rest_base   Base part of the REST API endpoint to test.
 	 * @param string $template_id Template ID to use in the test.
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_items_endpoint_should_return_unauthorized_https_status_code_for_unauthorized_request( $rest_base, $template_id ) {
+	public function test_get_items_endpoint_should_return_unauthorized_https_status_code_for_unauthorized_request( $rest_base, $template_id, $method ) {
 		wp_set_current_user( 0 );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, WP_Http::UNAUTHORIZED );
 	}
@@ -449,8 +464,10 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 */
 	public function data_get_items_endpoint_should_return_unauthorized_https_status_code_for_unauthorized_request() {
 		return array(
-			'templates'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
-			'template parts' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
+			'templates, GET request'       => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'GET' ),
+			'templates, HEAD request'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'HEAD' ),
+			'template parts, GET request'  => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME, 'GET' ),
+			'template parts, HEAD request' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME, 'HEAD' ),
 		);
 	}
 
@@ -458,13 +475,15 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 * @dataProvider data_get_items_endpoint_should_return_forbidden_https_status_code_for_users_with_insufficient_permissions
 	 * @covers WP_REST_Template_Revisions_Controller::get_items_permissions_check
 	 * @ticket 56922
+	 * @ticket 56481
 	 *
 	 * @param string $rest_base   Base part of the REST API endpoint to test.
 	 * @param string $template_id Template ID to use in the test.
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_items_endpoint_should_return_forbidden_https_status_code_for_users_with_insufficient_permissions( $rest_base, string $template_id ) {
+	public function test_get_items_endpoint_should_return_forbidden_https_status_code_for_users_with_insufficient_permissions( $rest_base, string $template_id, $method ) {
 		wp_set_current_user( self::$contributor_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions' );
+		$request  = new WP_REST_Request( $method, '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, WP_Http::FORBIDDEN );
 	}
@@ -476,8 +495,10 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 */
 	public function data_get_items_endpoint_should_return_forbidden_https_status_code_for_users_with_insufficient_permissions() {
 		return array(
-			'templates'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME ),
-			'template parts' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME ),
+			'templates, GET request'       => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'GET' ),
+			'templates, HEAD request'      => array( 'templates', self::TEST_THEME . '//' . self::TEMPLATE_NAME, 'HEAD' ),
+			'template parts, GET request'  => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME, 'GET' ),
+			'template parts, HEAD request' => array( 'template-parts', self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME, 'HEAD' ),
 		);
 	}
 
@@ -597,6 +618,19 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
+	 * @ticket 56481
+	 */
+	public function test_get_item_should_return_no_response_body_for_head_requests() {
+		wp_set_current_user( self::$admin_id );
+		$revisions   = wp_get_post_revisions( self::$template_post, array( 'fields' => 'ids' ) );
+		$revision_id = array_shift( $revisions );
+		$request     = new WP_REST_Request( 'HEAD', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions/' . $revision_id );
+		$response    = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Response status is 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
 	 * Data provider for test_get_item_with_data_provider.
 	 *
 	 * @return array
@@ -609,14 +643,15 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @dataProvider data_get_item_not_found
-	 * @covers WP_REST_Template_Revisions_Controller::get_item
+	 * @dataProvider data_get_item_with_data_provider
+	 * @covers       WP_REST_Template_Revisions_Controller::get_item
 	 * @ticket 56922
 	 *
-	 * @param string  $parent_post_property_name  A class property name that contains the parent post object.
-	 * @param string  $rest_base                  Base part of the REST API endpoint to test.
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $rest_base Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
 	 */
-	public function test_get_item_not_found( $parent_post_property_name, $rest_base ) {
+	public function test_get_item_head_request_with_specified_fields_returns_success_response( $parent_post_property_name, $rest_base, $template_id ) {
 		wp_set_current_user( self::$admin_id );
 
 		$parent_post = self::$$parent_post_property_name;
@@ -624,7 +659,67 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$revisions   = wp_get_post_revisions( $parent_post, array( 'fields' => 'ids' ) );
 		$revision_id = array_shift( $revisions );
 
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/invalid//parent/revisions/' . $revision_id );
+		$request = new WP_REST_Request(
+			'HEAD',
+			'/wp/v2/' . $rest_base . '/' . $template_id . '/revisions/' . $revision_id
+		);
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * @dataProvider data_get_items_with_data_provider
+	 * @covers       WP_REST_Template_Revisions_Controller::get_items
+	 * @ticket 56922
+	 *
+	 * @param string $parent_post_property_name A class property name that contains the parent post object.
+	 * @param string $rest_base Base part of the REST API endpoint to test.
+	 * @param string $template_id Template ID to use in the test.
+	 */
+	public function test_get_items_head_request_with_specified_fields_returns_success_response( $parent_post_property_name, $rest_base, $template_id ) {
+		wp_set_current_user( self::$admin_id );
+		$parent_post = self::$$parent_post_property_name;
+
+		$request = new WP_REST_Request(
+			'HEAD',
+			'/wp/v2/' . $rest_base . '/' . $template_id . '/revisions'
+		);
+
+		$request->set_param( '_fields', 'id' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
+	 * @dataProvider data_get_item_not_found
+	 * @covers WP_REST_Template_Revisions_Controller::get_item
+	 * @ticket 56922
+	 * @ticket 56481
+	 *
+	 * @param string  $parent_post_property_name  A class property name that contains the parent post object.
+	 * @param string  $rest_base                  Base part of the REST API endpoint to test.
+	 * @param string  $method                     HTTP method to use.
+	 */
+	public function test_get_item_not_found( $parent_post_property_name, $rest_base, $method ) {
+		wp_set_current_user( self::$admin_id );
+
+		$parent_post = self::$$parent_post_property_name;
+
+		$revisions   = wp_get_post_revisions( $parent_post, array( 'fields' => 'ids' ) );
+		$revision_id = array_shift( $revisions );
+
+		$request  = new WP_REST_Request( $method, '/wp/v2/' . $rest_base . '/invalid//parent/revisions/' . $revision_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent', $response, WP_Http::NOT_FOUND );
 	}
@@ -636,8 +731,10 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 */
 	public function data_get_item_not_found() {
 		return array(
-			'templates'      => array( 'template_post', 'templates' ),
-			'template parts' => array( 'template_part_post', 'template-parts' ),
+			'templates, GET request'       => array( 'template_post', 'templates', 'GET' ),
+			'templates, HEAD request'      => array( 'template_post', 'templates', 'HEAD' ),
+			'template parts, GET request'  => array( 'template_part_post', 'template-parts', 'GET' ),
+			'template parts, HEAD request' => array( 'template_part_post', 'template-parts', 'HEAD' ),
 		);
 	}
 
@@ -645,13 +742,15 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 * @dataProvider data_get_item_invalid_parent_id
 	 * @covers WP_REST_Template_Revisions_Controller::get_item
 	 * @ticket 59875
+	 * @ticket 56481
 	 *
 	 * @param string $parent_post_property_name        A class property name that contains the parent post object.
 	 * @param string $actual_parent_post_property_name A class property name that contains the parent post object.
 	 * @param string $rest_base                        Base part of the REST API endpoint to test.
 	 * @param string $template_id                      Template ID to use in the test.
+	 * @param string $method HTTP method to use.
 	 */
-	public function test_get_item_invalid_parent_id( $parent_post_property_name, $actual_parent_post_property_name, $rest_base, $template_id ) {
+	public function test_get_item_invalid_parent_id( $parent_post_property_name, $actual_parent_post_property_name, $rest_base, $template_id, $method ) {
 		wp_set_current_user( self::$admin_id );
 
 		$parent_post        = self::$$parent_post_property_name;
@@ -659,7 +758,7 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$revisions          = wp_get_post_revisions( $parent_post, array( 'fields' => 'ids' ) );
 		$revision_id        = array_shift( $revisions );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions/' . $revision_id );
+		$request = new WP_REST_Request( $method, '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions/' . $revision_id );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_revision_parent_id_mismatch', $response, 404 );
@@ -675,17 +774,33 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	 */
 	public function data_get_item_invalid_parent_id() {
 		return array(
-			'templates'      => array(
+			'templates, GET request'       => array(
 				'template_post',
 				'template_post_2',
 				'templates',
 				self::TEST_THEME . '//' . self::TEMPLATE_NAME_2,
+				'GET',
 			),
-			'template parts' => array(
+			'templates, HEAD request'      => array(
+				'template_post',
+				'template_post_2',
+				'templates',
+				self::TEST_THEME . '//' . self::TEMPLATE_NAME_2,
+				'HEAD',
+			),
+			'template parts, GET request'  => array(
 				'template_part_post',
 				'template_part_post_2',
 				'template-parts',
 				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME_2,
+				'GET',
+			),
+			'template parts, HEAD request' => array(
+				'template_part_post',
+				'template_part_post_2',
+				'template-parts',
+				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME_2,
+				'HEAD',
 			),
 		);
 	}
@@ -715,8 +830,17 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		$revision_id = array_shift( $revisions );
 		$post        = get_post( $revision_id );
 		$request     = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/revisions/' . $revision_id );
-		$controller  = new WP_REST_Template_Revisions_Controller( $parent_post->post_type );
-		$response    = $controller->prepare_item_for_response( $post, $request );
+		// See create_initial_rest_routes. The controller need the post type
+		// with adjusted settings to initialize.
+		global $wp_post_types;
+		$wp_post_types['wp_template']->rest_base             = 'templates';
+		$original_rest_controller_class                      = $wp_post_types['wp_template']->rest_controller_class;
+		$wp_post_types['wp_template']->rest_controller_class = 'WP_REST_Templates_Controller';
+		$wp_post_types['wp_template']->rest_controller       = null;
+		$controller = new WP_REST_Template_Revisions_Controller( $parent_post->post_type );
+		$wp_post_types['wp_template']->rest_controller_class = $original_rest_controller_class;
+		$wp_post_types['wp_template']->rest_base             = 'wp_template';
+		$response = $controller->prepare_item_for_response( $post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
 			$response,
@@ -1076,29 +1200,29 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	public function test_get_template_revisions_pagination() {
 		wp_set_current_user( self::$admin_id );
 
-		// Test offset
+		// Test offset.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions' );
 		$request->set_param( 'offset', 1 );
 		$request->set_param( 'per_page', 1 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( 4, $response->get_headers()['X-WP-Total'] );
-		$this->assertEquals( 4, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( 4, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 4, $response->get_headers()['X-WP-TotalPages'] );
 
-		// Test paged
+		// Test paged.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions' );
 		$request->set_param( 'page', 2 );
 		$request->set_param( 'per_page', 2 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 2, $data );
-		$this->assertEquals( 4, $response->get_headers()['X-WP-Total'] );
-		$this->assertEquals( 2, $response->get_headers()['X-WP-TotalPages'] );
+		$this->assertSame( 4, $response->get_headers()['X-WP-Total'] );
+		$this->assertSame( 2, $response->get_headers()['X-WP-TotalPages'] );
 
-		// Test out of bounds
+		// Test out of bounds.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/templates/' . self::TEST_THEME . '/' . self::TEMPLATE_NAME . '/revisions' );
 		$request->set_param( 'page', 4 );
 		$request->set_param( 'per_page', 6 );

@@ -29,6 +29,12 @@
 			"default": true
 		}
 	},
+	"example": {
+		"attributes": {
+			"type": "search"
+		}
+	},
+	"usesContext": [ "query" ],
 	"supports": {
 		"align": [ "wide", "full" ],
 		"html": false,

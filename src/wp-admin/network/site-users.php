@@ -139,11 +139,25 @@ if ( $action ) {
 
 		case 'promote':
 			check_admin_referer( 'bulk-users' );
+
+			if ( ! current_user_can( 'promote_users' ) ) {
+				wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
+			}
+
 			$editable_roles = get_editable_roles();
 			$role           = $_REQUEST['new_role'];
 
+			// Mock `none` as editable role.
+			$editable_roles['none'] = array(
+				'name' => __( '&mdash; No role for this site &mdash;' ),
+			);
+
 			if ( empty( $editable_roles[ $role ] ) ) {
 				wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
+			}
+
+			if ( 'none' === $role ) {
+				$role = '';
 			}
 
 			if ( isset( $_REQUEST['users'] ) ) {
@@ -152,16 +166,22 @@ if ( $action ) {
 				foreach ( $userids as $user_id ) {
 					$user_id = (int) $user_id;
 
+					if ( ! current_user_can( 'promote_user', $user_id ) ) {
+						wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
+					}
+
 					// If the user doesn't already belong to the blog, bail.
 					if ( ! is_user_member_of_blog( $user_id ) ) {
 						wp_die(
-							'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
+							'<h1>' . __( 'An error occurred.' ) . '</h1>' .
 							'<p>' . __( 'One of the selected users is not a member of this site.' ) . '</p>',
 							403
 						);
 					}
 
 					$user = get_userdata( $user_id );
+
+					// If $role is empty, none will be set.
 					$user->set_role( $role );
 				}
 			} else {
@@ -341,6 +361,9 @@ if ( current_user_can( 'promote_users' ) && apply_filters( 'show_network_site_us
 /**
  * Filters whether to show the Add New User form on the Multisite Users screen.
  *
+ * Note: While WordPress is moving towards simplifying labels by removing "New" from "Add New X" labels,
+ * we keep "Add New User" here to maintain a clear distinction from the "Add Existing User" section above.
+ *
  * @since 3.1.0
  *
  * @param bool $bool Whether to show the Add New User form. Default true.
@@ -374,7 +397,7 @@ if ( current_user_can( 'create_users' ) && apply_filters( 'show_network_site_use
 		</tr>
 	</table>
 	<?php wp_nonce_field( 'add-user', '_wpnonce_add-new-user' ); ?>
-	<?php submit_button( __( 'Add New User' ), 'primary', 'add-user', true, array( 'id' => 'submit-add-user' ) ); ?>
+	<?php submit_button( __( 'Add User' ), 'primary', 'add-user', true, array( 'id' => 'submit-add-user' ) ); ?>
 </form>
 <?php endif; ?>
 </div>

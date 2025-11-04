@@ -22,7 +22,7 @@ permissions: {}
 jobs:
   # Comments on a pull request when the author is a first time contributor.
   post-welcome-message:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write
@@ -80,7 +80,7 @@ jobs:
   # Leaves a comment on a pull request with a link to test the changes in a WordPress Playground instance.
   playground-details:
     name: Comment on a pull request with Playground details
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write
@@ -96,7 +96,7 @@ jobs:
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts( {
                owner: context.repo.owner,
                repo: context.repo.repo,
-               run_id: ${{ github.event.workflow_run.id }},
+               run_id: process.env.RUN_ID,
             } );
 
             const matchArtifact = artifacts.data.artifacts.filter( ( artifact ) => {
@@ -117,13 +117,14 @@ jobs:
 
             const fs = require( 'fs' );
             fs.writeFileSync( '${{github.workspace}}/pr-number.zip', Buffer.from( download.data ) )
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
 
       - name: Unzip the artifact containing the PR number
         run: unzip pr-number.zip
 
       - name: Leave a comment about testing with Playground
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: ${{ github.actor != 'dependabot[bot]' }}
         with:
           script: |
             const fs = require( 'fs' );
@@ -156,7 +157,7 @@ jobs:
             - All changes will be lost when refreshing the page.
             - A fresh instance is created each time the link below is clicked.
             - Every time this pull request is updated, a new ZIP file containing all changes is created. If changes are not reflected in the Playground instance,
-            it's possible that the most recent build failed, or has not completed. Check the [list of workflow runs to be sure](https://github.com/WordPress/wordpress-develop/actions/workflows/wordpress-playground.yml).
+            it's possible that the most recent build failed, or has not completed. Check the [list of workflow runs to be sure](https://github.com/WordPress/wordpress-develop/actions/workflows/test-build-processes.yml).
 
             For more details about these limitations and more, check out the [Limitations page](https://wordpress.github.io/wordpress-playground/limitations/) in the WordPress Playground documentation.
 
@@ -168,11 +169,11 @@ jobs:
   # Manages comments reminding contributors to include a Trac ticket link when opening a pull request.
   trac-ticket-check:
     name: Manage Trac ticket reminders for pull requests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write
-    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' && ! github.event.pull_request.draft && github.event.pull_request.state == 'open' && github.actor != 'dependabot[bot]' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' && ! github.event.pull_request.draft && github.event.pull_request.state == 'open' }}
     steps:
       - name: Check for Trac ticket and manage comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1

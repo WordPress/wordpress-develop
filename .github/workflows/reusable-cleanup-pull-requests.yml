@@ -22,28 +22,26 @@ jobs:
   # - Leaves a comment on each PR before closing.
   close-prs:
     name: Find and close PRs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pull-requests: write
 
     steps:
       - name: Find fixed ticket numbers
         id: trac-tickets
+        env:
+          COMMIT_MSG_RAW: ${{ github.event.head_commit.message }}
         run: |
-          COMMIT_MESSAGE=$(cat <<'EOF' | sed -n '/^Fixes #/,/\./p'
-          ${{ github.event.head_commit.message }}
-          EOF
-          )
-          echo "fixed_list=$(echo \"$COMMIT_MESSAGE\" | sed -n 's/.*Fixes #\([0-9]\+\).*/\1/p' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          COMMIT_MESSAGE="$(echo "$COMMIT_MSG_RAW" | sed -n '/^Fixes #/,/\./p')"
+          echo "fixed_list=$(echo "$COMMIT_MESSAGE" | sed -n 's/.*Fixes #\([0-9]\+\).*/\1/p' | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
 
       - name: Get the SVN revision
         id: git-svn-id
+        env:
+          COMMIT_MSG_RAW: ${{ github.event.head_commit.message }}
         run: |
-          COMMIT_MESSAGE=$(cat <<'EOF' | sed -n '$p'
-          ${{ github.event.head_commit.message }}
-          EOF
-          )
-          echo "svn_revision_number=$(echo \"$COMMIT_MESSAGE\" | sed -n 's/.*git-svn-id: https:\/\/develop.svn.wordpress.org\/[^@]*@\([0-9]*\) .*/\1/p')" >> $GITHUB_OUTPUT
+          COMMIT_MESSAGE="$(echo "$COMMIT_MSG_RAW" | sed -n '$p')"
+          echo "svn_revision_number=$(echo "$COMMIT_MESSAGE" | sed -n 's/.*git-svn-id: https:\/\/develop.svn.wordpress.org\/[^@]*@\([0-9]*\) .*/\1/p')" >> "$GITHUB_OUTPUT"
 
       - name: Find pull requests
         id: linked-prs
@@ -52,14 +50,40 @@ jobs:
         with:
           script: |
             const fixedList = "${{ steps.trac-tickets.outputs.fixed_list }}".split(' ').filter(Boolean);
-
             let prNumbers = [];
 
             for (const ticket of fixedList) {
-              const query = 'is:pr is:open repo:' + context.repo.owner + '/' + context.repo.repo + ' in:body https://core.trac.wordpress.org/ticket/' + ticket;
-              const result = await github.rest.search.issuesAndPullRequests({ q: query });
+              const tracTicketUrl = `https://core.trac.wordpress.org/ticket/${ticket}`;
+              const corePrefix = `core-${ticket}`;
 
-              prNumbers = prNumbers.concat(result.data.items.map(pr => pr.number));
+              const query = `
+                query($searchQuery: String!) {
+                  search(query: $searchQuery, type: ISSUE_ADVANCED, first: 20) {
+                    nodes {
+                      ... on PullRequest {
+                        number
+                        bodyText
+                      }
+                    }
+                  }
+                }
+              `;
+
+              const searchQuery = `repo:${context.repo.owner}/${context.repo.repo} is:pr is:open ( "${tracTicketUrl}" OR "${corePrefix}" )`;
+
+              const result = await github.graphql(query, {
+                searchQuery,
+              });
+
+              // Since search queries will match anywhere for any activity on a pull request, the body specifically needs to be manually checked.
+              const matchingPRs = result.search.nodes
+                .filter(pr => {
+                  const bodyLower = pr.bodyText.toLowerCase();
+
+                  return bodyLower.includes(tracTicketUrl.toLowerCase()) || bodyLower.includes(corePrefix.toLowerCase());
+              }).map(pr => pr.number);
+
+              prNumbers.push(...matchingPRs);
             }
 
             return prNumbers;

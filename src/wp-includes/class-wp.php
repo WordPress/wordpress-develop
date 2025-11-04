@@ -545,6 +545,11 @@ class WP {
 			if ( $post && pings_open( $post ) ) {
 				$headers['X-Pingback'] = get_bloginfo( 'pingback_url', 'display' );
 			}
+
+			// Send nocache headers for password protected posts to avoid unwanted caching.
+			if ( ! empty( $post->post_password ) ) {
+				$headers = array_merge( $headers, wp_get_nocache_headers() );
+			}
 		}
 
 		/**
@@ -582,6 +587,9 @@ class WP {
 
 		/**
 		 * Fires once the requested HTTP headers for caching, content type, etc. have been sent.
+		 *
+		 * The {@see 'wp_finalized_template_enhancement_output_buffer'} action may be used to send
+		 * headers after rendering the template into an output buffer.
 		 *
 		 * @since 2.1.0
 		 *
