@@ -1,6 +1,6 @@
 /* jshint node:true */
 
-const dotenv       = require( 'dotenv' );
+const dotenv       = require( 'dotenv' ).config({ quiet: true });
 const dotenvExpand = require( 'dotenv-expand' );
 const { execSync, spawnSync } = require( 'child_process' );
 const local_env_utils = require( './utils' );
