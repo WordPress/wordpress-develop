@@ -8,16 +8,25 @@
  */
 class Tests_Hooks_HasFilter extends WP_UnitTestCase {
 
+	/**
+	 * @ticket 64186
+	 */
 	public function test_has_filter_with_function() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
 		$hook_name     = __FUNCTION__;
-		$priority      = 1;
+		$priority_a    = 1;
+		$priority_b    = 10;
 		$accepted_args = 2;
 
-		$hook->add_filter( $hook_name, $callback, $priority, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority_a, $accepted_args );
+		$hook->add_filter( $hook_name, $callback, $priority_b, $accepted_args );
 
-		$this->assertSame( $priority, $hook->has_filter( $hook_name, $callback ) );
+		$this->assertSame( $priority_a, $hook->has_filter( $hook_name, $callback ) );
+		$this->assertTrue( $hook->has_filter( $hook_name, $callback, $priority_a ) );
+		$this->assertTrue( $hook->has_filter( $hook_name, $callback, $priority_b ) );
+		$hook->remove_filter( $hook_name, $callback, $priority_a );
+		$this->assertSame( $priority_b, $hook->has_filter( $hook_name, $callback ) );
 	}
 
 	public function test_has_filter_with_object() {

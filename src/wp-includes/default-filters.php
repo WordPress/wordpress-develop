@@ -423,7 +423,7 @@ add_action( 'do_all_pings', 'do_all_trackbacks', 10, 0 );
 add_action( 'do_all_pings', 'generic_ping', 10, 0 );
 add_action( 'do_robots', 'do_robots' );
 add_action( 'do_favicon', 'do_favicon' );
-add_action( 'wp_before_include_template', 'wp_start_template_enhancement_output_buffer', 1000 ); // Late priority to let `wp_template_enhancement_output_buffer` filters and `wp_send_late_headers` actions be registered.
+add_action( 'wp_before_include_template', 'wp_start_template_enhancement_output_buffer', 1000 ); // Late priority to let `wp_template_enhancement_output_buffer` filters and `wp_finalized_template_enhancement_output_buffer` actions be registered.
 add_action( 'set_comment_cookies', 'wp_set_comment_cookies', 10, 3 );
 add_action( 'sanitize_comment_cookies', 'sanitize_comment_cookies' );
 add_action( 'init', 'smilies_init', 5 );
@@ -704,7 +704,8 @@ add_filter( 'media_send_to_editor', 'image_media_send_to_editor', 10, 3 );
 add_action( 'rest_api_init', 'wp_oembed_register_route' );
 add_filter( 'rest_pre_serve_request', '_oembed_rest_pre_serve_request', 10, 4 );
 
-add_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+add_action( 'wp_head', 'wp_oembed_add_discovery_links', 4 ); // Printed after feed_links() and feed_links_extra().
+add_action( 'wp_head', 'wp_oembed_add_discovery_links' ); // Unhooked the first time that wp_oembed_add_discovery_links() runs for back-compat.
 add_action( 'wp_head', 'wp_oembed_add_host_js' ); // Back-compat for sites disabling oEmbed host JS by removing action.
 add_filter( 'embed_oembed_html', 'wp_maybe_enqueue_oembed_host_js' );
 
