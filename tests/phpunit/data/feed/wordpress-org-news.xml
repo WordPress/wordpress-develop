@@ -854,57 +854,20 @@
 
 		<post-id xmlns="com-wordpress:feed-additions:1">9225</post-id>	</item>
 		<item>
-		<title>WordPress 5.5.3 Maintenance Release</title>
-		<link>https://wordpress.org/news/2020/10/wordpress-5-5-3-maintenance-release/</link>
+		<title>Title with &lt;em&gt;HTML entities&lt;/em&gt;</title>
+		<link>https://wordpress.org/news/2020/10/mock-html-entities/</link>
 
-		<dc:creator><![CDATA[Jake Spurlock]]></dc:creator>
-		<pubDate>Fri, 30 Oct 2020 20:25:44 +0000</pubDate>
-				<category><![CDATA[Releases]]></category>
-		<guid isPermaLink="false">https://wordpress.org/news/?p=9212</guid>
+		<dc:creator><![CDATA[Mock Author]]></dc:creator>
+		<pubDate>Mon, 26 Oct 2020 12:00:00 +0000</pubDate>
+				<category><![CDATA[Mock Category]]></category>
+		<guid isPermaLink="false">https://wordpress.org/news/?p=9999</guid>
 
-					<description><![CDATA[WordPress 5.5.3 is now available.&#160; This maintenance release fixes an issue introduced in WordPress 5.5.2 which makes it impossible to install WordPress on a brand new website that does not have a database connection configured. This release does not affect sites where a database connection is already configured, for example, via one-click installers or an [&#8230;]]]></description>
-										<content:encoded><![CDATA[
-<p>WordPress 5.5.3 is now available.&nbsp;</p>
-
-
-
-<p>This maintenance release fixes an issue introduced in WordPress 5.5.2 which makes it impossible to install WordPress on a brand new website that does not have a database connection configured. This release does not affect sites where a database connection is already configured, for example, via one-click installers or an existing <code>wp-config.php</code> file.</p>
-
-
-
-<h2>5.5.3-alpha Issue</h2>
-
-
-
-<p>Earlier today &#8212; between approximately 15:30 and 16:00 UTC &#8212; the auto-update system for WordPress updated some sites from version 5.5.2 to version 5.5.3-alpha. This auto-update was due to an error in the Updates API caused by the 5.5.3 release preparations (<a href="https://wordpress.org/support/topic/wordpress-5-5-3-alpha-auto-updates/">see more here</a>). The 5.5.3-alpha version at this point was functionally identical to 5.5.2 as no development work had been started on 5.5.3; however, the following changes may have been made to your site:</p>
-
-
-
-<ul><li>The default “Twenty” themes installed as part of the pre-release package.</li><li>The “Akismet” plugin installed as part of the pre-release package.</li></ul>
-
-
-
-<p>These themes and plugins were not activated and therefore remain non-functional unless you installed them previously. It is safe to delete these features should you prefer not to use them.&nbsp;</p>
-
-
-
-<p>If you are not on 5.5.2, or have auto-updates for minor releases disabled, please manually update to the 5.5.3 version by downloading WordPress 5.5.3 or visiting Dashboard → Updates and click “Update Now.”</p>
-
-
-
-<p>For more technical details of the issue, we’ve <a href="https://make.wordpress.org/core/2020/10/30/wordpress-5-5-3-release-some-technical-details/">posted on our Core Development blog</a>.</p>
-
-
-
-<h2>Thanks and props!</h2>
-
-
-
-<p>Thanks to those who contributed to the 5.5.3 release: <a href='https://profiles.wordpress.org/audrasjb/' class='mention'><span class='mentions-prefix'>@</span>audrasjb</a>, <a href='https://profiles.wordpress.org/barry/' class='mention'><span class='mentions-prefix'>@</span>barry</a>, <a href='https://profiles.wordpress.org/chanthaboune/' class='mention'><span class='mentions-prefix'>@</span>chanthaboune</a>, <a href='https://profiles.wordpress.org/cbringmann/' class='mention'><span class='mentions-prefix'>@</span>cbringmann</a>, <a href='https://profiles.wordpress.org/clorith/' class='mention'><span class='mentions-prefix'>@</span>clorith</a>, <a href='https://profiles.wordpress.org/davidbaumwald/' class='mention'><span class='mentions-prefix'>@</span>davidbaumwald</a>, <a href='https://profiles.wordpress.org/desrosj/' class='mention'><span class='mentions-prefix'>@</span>desrosj</a>, <a href='https://profiles.wordpress.org/hellofromtonya/' class='mention'><span class='mentions-prefix'>@</span>hellofromtonya</a>, <a href='https://profiles.wordpress.org/jeffpaul/' class='mention'><span class='mentions-prefix'>@</span>jeffpaul</a>, <a href='https://profiles.wordpress.org/johnbillion/' class='mention'><span class='mentions-prefix'>@</span>johnbillion</a>, <a href='https://profiles.wordpress.org/garubi/' class='mention'><span class='mentions-prefix'>@</span>garubi</a>, <a href='https://profiles.wordpress.org/metalandcoffee/' class='mention'><span class='mentions-prefix'>@</span>metalandcoffee</a>, <a href='https://profiles.wordpress.org/mukesh27/' class='mention'><span class='mentions-prefix'>@</span>mukesh27</a>, <a href='https://profiles.wordpress.org/otto42/' class='mention'><span class='mentions-prefix'>@</span>otto42</a>, <a href='https://profiles.wordpress.org/punitsoftac/' class='mention'><span class='mentions-prefix'>@</span>punitsoftac</a>, <a href='https://profiles.wordpress.org/sergeybiryukov/' class='mention'><span class='mentions-prefix'>@</span>sergeybiryukov</a>, <a href='https://profiles.wordpress.org/whyisjake/' class='mention'><span class='mentions-prefix'>@</span>whyisjake</a>, and <a href='https://profiles.wordpress.org/xknown/' class='mention'><span class='mentions-prefix'>@</span>xknown</a>.</p>
+					<description><![CDATA[Mock description for item with HTML entities in the title.]]></description>
+							<content:encoded><![CDATA[
+<p>This mock entry validates handling of HTML entities within item titles.</p>
 ]]></content:encoded>
 
 
-
-		<post-id xmlns="com-wordpress:feed-additions:1">9212</post-id>	</item>
+		<post-id xmlns="com-wordpress:feed-additions:1">9999</post-id>	</item>
 	</channel>
 </rss>

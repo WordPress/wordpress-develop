@@ -1644,7 +1644,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 		}
 		$link = esc_url( strip_tags( $link ) );
 
-		$title = esc_html( trim( strip_tags( $item->get_title() ) ) );
+		$title = esc_html( trim( strip_tags( html_entity_decode( $item->get_title() ) ) ) );
 		if ( empty( $title ) ) {
 			$title = __( 'Untitled' );
 		}
