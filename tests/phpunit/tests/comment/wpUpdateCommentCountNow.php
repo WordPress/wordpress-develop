@@ -61,27 +61,35 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		/**
 		 * Create 2 parent comment, and 2 child comment for parent 1.
 		 */
-		$parent_comment_id = self::factory()->comment->create( array(
-			'comment_post_ID'  => $post_id,
-			'comment_approved' => 1,
-		) );
+		$parent_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID'  => $post_id,
-			'comment_approved' => 1,
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID'  => $post_id,
-			'comment_parent'   => $parent_comment_id,
-			'comment_approved' => 1,
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $parent_comment_id,
+				'comment_approved' => 1,
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID'  => $post_id,
-			'comment_parent'   => $parent_comment_id,
-			'comment_approved' => 1,
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $parent_comment_id,
+				'comment_approved' => 1,
+			)
+		);
 
 		wp_update_comment_count_now( $post_id );
 		$this->assertSame( '4', get_comments_number( $post_id ) );
@@ -106,27 +114,35 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		/**
 		 * Create 2 parent comment, and 2 child comment for parent 1.
 		 */
-		$parent_comment_id = self::factory()->comment->create( array(
-			'comment_post_ID'  => $post_id,
-			'comment_approved' => 1,
-		) );
+		$parent_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID'  => $post_id,
-			'comment_approved' => 1,
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID'  => $post_id,
-			'comment_parent'   => $parent_comment_id,
-			'comment_approved' => 1,
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $parent_comment_id,
+				'comment_approved' => 1,
+			)
+		);
 
-		self::factory()->comment->create( array(
-			'comment_post_ID'  => $post_id,
-			'comment_parent'   => $parent_comment_id,
-			'comment_approved' => 1,
-		) );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_parent'   => $parent_comment_id,
+				'comment_approved' => 1,
+			)
+		);
 
 		wp_update_comment_count_now( $post_id );
 		$this->assertSame( '4', get_comments_number( $post_id ) );
