@@ -64,11 +64,6 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @var string
-	 */
-	protected $original_default_mimetype;
-
-	/**
 	 * @var WP_Scripts|null
 	 */
 	protected $original_wp_scripts;
@@ -83,9 +78,28 @@ class Tests_Template extends WP_UnitTestCase {
 	 */
 	protected $original_theme_features;
 
+	/**
+	 * @var array
+	 */
+	const RESTORED_CONFIG_OPTIONS = array(
+		'display_errors',
+		'error_reporting',
+		'log_errors',
+		'error_log',
+		'default_mimetype',
+		'html_errors',
+		'error_prepend_string',
+		'error_append_string',
+	);
+
+	/**
+	 * @var array
+	 */
+	protected $original_ini_config;
+
 	public function set_up() {
 		parent::set_up();
-		$this->original_default_mimetype = ini_get( 'default_mimetype' );
+
 		register_post_type(
 			'cpt',
 			array(
@@ -117,6 +131,9 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_styles();
 
 		$this->original_theme_features = $GLOBALS['_wp_theme_features'];
+		foreach ( self::RESTORED_CONFIG_OPTIONS as $option ) {
+			$this->original_ini_config[ $option ] = ini_get( $option );
+		}
 	}
 
 	public function tear_down() {
@@ -125,8 +142,10 @@ class Tests_Template extends WP_UnitTestCase {
 		$wp_styles  = $this->original_wp_styles;
 
 		$GLOBALS['_wp_theme_features'] = $this->original_theme_features;
+		foreach ( $this->original_ini_config as $option => $value ) {
+			ini_set( $option, $value );
+		}
 
-		ini_set( 'default_mimetype', $this->original_default_mimetype );
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );
@@ -603,6 +622,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer even when there are filters present due to override.
 	 *
 	 * @ticket 43258
+	 *
 	 * @covers ::wp_should_output_buffer_template_for_enhancement
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 */
@@ -626,6 +646,8 @@ class Tests_Template extends WP_UnitTestCase {
 	 * an HTML document and that the response is not incrementally flushable.
 	 *
 	 * @ticket 43258
+	 * @ticket 64126
+	 *
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 * @covers ::wp_finalize_template_enhancement_output_buffer
 	 */
@@ -633,12 +655,25 @@ class Tests_Template extends WP_UnitTestCase {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
-		$filter_args = null;
+		$mock_filter_callback = new MockAction();
 		add_filter(
 			'wp_template_enhancement_output_buffer',
-			static function ( string $buffer ) use ( &$filter_args ): string {
-				$filter_args = func_get_args();
+			array( $mock_filter_callback, 'filter' ),
+			10,
+			PHP_INT_MAX
+		);
 
+		$mock_action_callback = new MockAction();
+		add_filter(
+			'wp_finalized_template_enhancement_output_buffer',
+			array( $mock_action_callback, 'action' ),
+			10,
+			PHP_INT_MAX
+		);
+
+		add_filter(
+			'wp_template_enhancement_output_buffer',
+			static function ( string $buffer ): string {
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				while ( $p->next_tag() ) {
 					switch ( $p->get_tag() ) {
@@ -656,9 +691,7 @@ class Tests_Template extends WP_UnitTestCase {
 					}
 				}
 				return $p->get_updated_html();
-			},
-			10,
-			PHP_INT_MAX
+			}
 		);
 
 		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
@@ -695,6 +728,8 @@ class Tests_Template extends WP_UnitTestCase {
 		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
 		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
 
+		$this->assertSame( 1, $mock_filter_callback->get_call_count(), 'Expected the wp_template_enhancement_output_buffer filter to have applied.' );
+		$filter_args = $mock_filter_callback->get_args()[0];
 		$this->assertIsArray( $filter_args, 'Expected the wp_template_enhancement_output_buffer filter to have applied.' );
 		$this->assertCount( 2, $filter_args, 'Expected two args to be supplied to the wp_template_enhancement_output_buffer filter.' );
 		$this->assertIsString( $filter_args[0], 'Expected the $filtered_output param to the wp_template_enhancement_output_buffer filter to be a string.' );
@@ -716,12 +751,20 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<title>Saludo</title>', $processed_output, 'Expected processed output to contain string.' );
 		$this->assertStringContainsString( '<h1>¡Hola, mundo!</h1>', $processed_output, 'Expected processed output to contain string.' );
 		$this->assertStringContainsString( '</html>', $processed_output, 'Expected processed output to contain string.' );
+
+		$this->assertSame( 1, did_action( 'wp_finalized_template_enhancement_output_buffer' ), 'Expected the wp_finalized_template_enhancement_output_buffer action to have fired.' );
+		$this->assertSame( 1, $mock_action_callback->get_call_count(), 'Expected wp_finalized_template_enhancement_output_buffer action callback to have been called once.' );
+		$action_args = $mock_action_callback->get_args()[0];
+		$this->assertCount( 1, $action_args, 'Expected the wp_finalized_template_enhancement_output_buffer action to have been passed only one argument.' );
+		$this->assertSame( $processed_output, $action_args[0], 'Expected the arg passed to wp_finalized_template_enhancement_output_buffer to be the same as the processed output buffer.' );
 	}
 
 	/**
 	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer but ending with cleaning prevents any processing.
 	 *
 	 * @ticket 43258
+	 * @ticket 64126
+	 *
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 * @covers ::wp_finalize_template_enhancement_output_buffer
 	 */
@@ -729,18 +772,29 @@ class Tests_Template extends WP_UnitTestCase {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
-		$applied_filter = false;
+		$mock_filter_callback = new MockAction();
 		add_filter(
 			'wp_template_enhancement_output_buffer',
-			static function ( string $buffer ) use ( &$applied_filter ): string {
-				$applied_filter = true;
+			array( $mock_filter_callback, 'filter' )
+		);
 
+		add_filter(
+			'wp_template_enhancement_output_buffer',
+			static function ( string $buffer ): string {
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				if ( $p->next_tag( array( 'tag_name' => 'TITLE' ) ) ) {
 					$p->set_modifiable_text( 'Processed' );
 				}
 				return $p->get_updated_html();
 			}
+		);
+
+		$mock_action_callback = new MockAction();
+		add_filter(
+			'wp_finalized_template_enhancement_output_buffer',
+			array( $mock_action_callback, 'action' ),
+			10,
+			PHP_INT_MAX
 		);
 
 		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
@@ -774,8 +828,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
 
-		$this->assertFalse( $applied_filter, 'Expected the wp_template_enhancement_output_buffer filter to not have applied.' );
-		$this->assertSame( 0, did_action( 'wp_final_template_output_buffer' ), 'Expected the wp_final_template_output_buffer action to not have fired.' );
+		$this->assertSame( 0, $mock_filter_callback->get_call_count(), 'Expected the wp_template_enhancement_output_buffer filter to not have applied.' );
 
 		// Obtain the output via the wrapper output buffer.
 		$output = ob_get_clean();
@@ -783,12 +836,17 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output, 'Expected output buffer to not have string since the template was overridden.' );
 		$this->assertStringNotContainsString( '<title>Processed</title>', $output, 'Expected output buffer to not have string since the filter did not apply.' );
 		$this->assertStringContainsString( '<title>Output Buffer Not Processed</title>', $output, 'Expected output buffer to have string since the output buffer was ended with cleaning.' );
+
+		$this->assertSame( 0, did_action( 'wp_finalized_template_enhancement_output_buffer' ), 'Expected the wp_finalized_template_enhancement_output_buffer action to not have fired.' );
+		$this->assertSame( 0, $mock_action_callback->get_call_count(), 'Expected wp_finalized_template_enhancement_output_buffer action callback to have been called once.' );
 	}
 
 	/**
 	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer and cleaning allows the template to be replaced.
 	 *
 	 * @ticket 43258
+	 * @ticket 64126
+	 *
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 * @covers ::wp_finalize_template_enhancement_output_buffer
 	 */
@@ -796,18 +854,29 @@ class Tests_Template extends WP_UnitTestCase {
 		// Start a wrapper output buffer so that we can flush the inner buffer.
 		ob_start();
 
-		$called_filter = false;
+		$mock_filter_callback = new MockAction();
 		add_filter(
 			'wp_template_enhancement_output_buffer',
-			static function ( string $buffer ) use ( &$called_filter ): string {
-				$called_filter = true;
+			array( $mock_filter_callback, 'filter' )
+		);
 
+		add_filter(
+			'wp_template_enhancement_output_buffer',
+			static function ( string $buffer ): string {
 				$p = WP_HTML_Processor::create_full_parser( $buffer );
 				if ( $p->next_tag( array( 'tag_name' => 'TITLE' ) ) ) {
 					$p->set_modifiable_text( 'Processed' );
 				}
 				return $p->get_updated_html();
 			}
+		);
+
+		$mock_action_callback = new MockAction();
+		add_filter(
+			'wp_finalized_template_enhancement_output_buffer',
+			array( $mock_action_callback, 'action' ),
+			10,
+			PHP_INT_MAX
 		);
 
 		$this->assertCount( 0, headers_list(), 'Expected no headers to have been sent during unit tests.' );
@@ -846,7 +915,7 @@ class Tests_Template extends WP_UnitTestCase {
 		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
 		$this->assertSame( $initial_ob_level, ob_get_level(), 'Expected the output buffer to be back at the initial level.' );
 
-		$this->assertTrue( $called_filter, 'Expected the wp_template_enhancement_output_buffer filter to have applied.' );
+		$this->assertSame( 1, $mock_filter_callback->get_call_count(), 'Expected the wp_template_enhancement_output_buffer filter to have applied.' );
 
 		// Obtain the output via the wrapper output buffer.
 		$output = ob_get_clean();
@@ -854,12 +923,20 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '<title>Unprocessed</title>', $output, 'Expected output buffer to not have string due to template override.' );
 		$this->assertStringContainsString( '<title>Processed</title>', $output, 'Expected output buffer to have string due to filtering.' );
 		$this->assertStringContainsString( '<h1>Template Replaced</h1>', $output, 'Expected output buffer to have string due to replaced template.' );
+
+		$this->assertSame( 1, did_action( 'wp_finalized_template_enhancement_output_buffer' ), 'Expected the wp_finalized_template_enhancement_output_buffer action to have fired.' );
+		$this->assertSame( 1, $mock_action_callback->get_call_count(), 'Expected wp_finalized_template_enhancement_output_buffer action callback to have been called once.' );
+		$action_args = $mock_action_callback->get_args()[0];
+		$this->assertCount( 1, $action_args, 'Expected the wp_finalized_template_enhancement_output_buffer action to have been passed only one argument.' );
+		$this->assertSame( $output, $action_args[0], 'Expected the arg passed to wp_finalized_template_enhancement_output_buffer to be the same as the processed output buffer.' );
 	}
 
 	/**
 	 * Tests that wp_start_template_enhancement_output_buffer() starts the expected output buffer and that the output buffer is not processed.
 	 *
 	 * @ticket 43258
+	 * @ticket 64126
+	 *
 	 * @covers ::wp_start_template_enhancement_output_buffer
 	 * @covers ::wp_finalize_template_enhancement_output_buffer
 	 */
@@ -869,6 +946,14 @@ class Tests_Template extends WP_UnitTestCase {
 
 		$mock_filter_callback = new MockAction();
 		add_filter( 'wp_template_enhancement_output_buffer', array( $mock_filter_callback, 'filter' ) );
+
+		$mock_action_callback = new MockAction();
+		add_filter(
+			'wp_finalized_template_enhancement_output_buffer',
+			array( $mock_action_callback, 'action' ),
+			10,
+			PHP_INT_MAX
+		);
 
 		$initial_ob_level = ob_get_level();
 		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
@@ -903,6 +988,386 @@ class Tests_Template extends WP_UnitTestCase {
 		$output = ob_get_clean();
 		$this->assertIsString( $output, 'Expected ob_get_clean() to return a string.' );
 		$this->assertSame( $json, $output, 'Expected output to not be processed.' );
+
+		$this->assertSame( 1, did_action( 'wp_finalized_template_enhancement_output_buffer' ), 'Expected the wp_finalized_template_enhancement_output_buffer action to have fired even though the wp_template_enhancement_output_buffer filter did not apply.' );
+		$this->assertSame( 1, $mock_action_callback->get_call_count(), 'Expected wp_finalized_template_enhancement_output_buffer action callback to have been called once.' );
+		$action_args = $mock_action_callback->get_args()[0];
+		$this->assertCount( 1, $action_args, 'Expected the wp_finalized_template_enhancement_output_buffer action to have been passed only one argument.' );
+		$this->assertSame( $output, $action_args[0], 'Expected the arg passed to wp_finalized_template_enhancement_output_buffer to be the same as the processed output buffer.' );
+	}
+
+	/**
+	 * Data provider for data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing.
+	 *
+	 * @return array
+	 */
+	public function data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing(): array {
+		$log_and_display_all = array(
+			'error_reporting' => E_ALL,
+			'display_errors'  => true,
+			'log_errors'      => true,
+			'html_errors'     => true,
+		);
+
+		$tests = array(
+			'deprecated'                              => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'You are history during filter.', E_USER_DEPRECATED );
+				},
+				'emit_action_errors'        => static function () {
+					trigger_error( 'You are history during action.', E_USER_DEPRECATED );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Deprecated:  You are history during filter. in __FILE__ on line __LINE__',
+					'PHP Deprecated:  You are history during action. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Deprecated</b>:  You are history during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Deprecated</b>:  You are history during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'notice'                                  => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'POSTED: No trespassing during filter.', E_USER_NOTICE );
+				},
+				'emit_action_errors'        => static function () {
+					trigger_error( 'POSTED: No trespassing during action.', E_USER_NOTICE );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Notice:  POSTED: No trespassing during filter. in __FILE__ on line __LINE__',
+					'PHP Notice:  POSTED: No trespassing during action. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Notice</b>:  POSTED: No trespassing during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Notice</b>:  POSTED: No trespassing during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'warning'                                 => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'AVISO: Piso mojado durante filtro.', E_USER_WARNING );
+				},
+				'emit_action_errors'        => static function () {
+					trigger_error( 'AVISO: Piso mojado durante acción.', E_USER_WARNING );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Warning:  AVISO: Piso mojado durante filtro. in __FILE__ on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado durante acción. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Warning</b>:  AVISO: Piso mojado durante filtro. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>:  AVISO: Piso mojado durante acción. in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'error'                                   => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_filter_errors'        => static function () {
+					@trigger_error( 'ERROR: Can this mistake be rectified during filter?', E_USER_ERROR ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				},
+				'emit_action_errors'        => static function () {
+					@trigger_error( 'ERROR: Can this mistake be rectified during action?', E_USER_ERROR ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+				},
+				'expected_processed'        => false,
+				'expected_error_log'        => array(
+					'PHP Warning:  Uncaught "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during filter? in __FILE__ on line __LINE__',
+					'PHP Warning:  Uncaught "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during action? in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Error</b>:  Uncaught "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during filter? in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>:  Uncaught "Exception" thrown: User error triggered: ERROR: Can this mistake be rectified during action? in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'exception'                               => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_filter_errors'        => static function () {
+					throw new Exception( 'I take exception to this filter!' );
+				},
+				'emit_action_errors'        => static function () {
+					throw new Exception( 'I take exception to this action!' );
+				},
+				'expected_processed'        => false,
+				'expected_error_log'        => array(
+					'PHP Warning:  Uncaught "Exception" thrown: I take exception to this filter! in __FILE__ on line __LINE__',
+					'PHP Warning:  Uncaught "Exception" thrown: I take exception to this action! in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Error</b>:  Uncaught "Exception" thrown: I take exception to this filter! in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Error</b>:  Uncaught "Exception" thrown: I take exception to this action! in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'multiple_non_errors'                     => array(
+				'ini_config_options'        => $log_and_display_all,
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'You are history during filter.', E_USER_DEPRECATED );
+					trigger_error( 'POSTED: No trespassing during filter.', E_USER_NOTICE );
+					trigger_error( 'AVISO: Piso mojado durante filtro.', E_USER_WARNING );
+				},
+				'emit_action_errors'        => static function () {
+					trigger_error( 'You are history during action.', E_USER_DEPRECATED );
+					trigger_error( 'POSTED: No trespassing during action.', E_USER_NOTICE );
+					trigger_error( 'AVISO: Piso mojado durante acción.', E_USER_WARNING );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Deprecated:  You are history during filter. in __FILE__ on line __LINE__',
+					'PHP Notice:  POSTED: No trespassing during filter. in __FILE__ on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado durante filtro. in __FILE__ on line __LINE__',
+					'PHP Deprecated:  You are history during action. in __FILE__ on line __LINE__',
+					'PHP Notice:  POSTED: No trespassing during action. in __FILE__ on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado durante acción. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Deprecated</b>:  You are history during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Notice</b>:  POSTED: No trespassing during filter. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>:  AVISO: Piso mojado durante filtro. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Deprecated</b>:  You are history during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Notice</b>:  POSTED: No trespassing during action. in <b>__FILE__</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>:  AVISO: Piso mojado durante acción. in <b>__FILE__</b> on line <b>__LINE__</b>',
+				),
+			),
+			'deprecated_without_html'                 => array(
+				'ini_config_options'        => array_merge(
+					$log_and_display_all,
+					array(
+						'html_errors' => false,
+					)
+				),
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'You are history during filter.', E_USER_DEPRECATED );
+				},
+				'emit_action_errors'        => null,
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Deprecated:  You are history during filter. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'Deprecated: You are history during filter. in __FILE__ on line __LINE__',
+				),
+			),
+			'warning_in_eval_with_prepend_and_append' => array(
+				'ini_config_options'        => array_merge(
+					$log_and_display_all,
+					array(
+						'error_prepend_string' => '<details><summary>PHP Problem!</summary>',
+						'error_append_string'  => '</details>',
+					)
+				),
+				'emit_filter_errors'        => static function () {
+					eval( "trigger_error( 'AVISO: Piso mojado durante filtro.', E_USER_WARNING );" ); // phpcs:ignore Squiz.PHP.Eval.Discouraged -- We're in a test!
+				},
+				'emit_action_errors'        => static function () {
+					eval( "trigger_error( 'AVISO: Piso mojado durante acción.', E_USER_WARNING );" ); // phpcs:ignore Squiz.PHP.Eval.Discouraged -- We're in a test!
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Warning:  AVISO: Piso mojado durante filtro. in __FILE__ : eval()\'d code on line __LINE__',
+					'PHP Warning:  AVISO: Piso mojado durante acción. in __FILE__ : eval()\'d code on line __LINE__',
+				),
+				'expected_displayed_errors' => array(
+					'<b>Warning</b>:  AVISO: Piso mojado durante filtro. in <b>__FILE__ : eval()\'d code</b> on line <b>__LINE__</b>',
+					'<b>Warning</b>:  AVISO: Piso mojado durante acción. in <b>__FILE__ : eval()\'d code</b> on line <b>__LINE__</b>',
+				),
+			),
+			'notice_with_display_errors_stderr'       => array(
+				'ini_config_options'        => array_merge(
+					$log_and_display_all,
+					array(
+						'display_errors' => 'stderr',
+					)
+				),
+				'emit_filter_errors'        => static function () {
+					trigger_error( 'POSTED: No trespassing during filter.' );
+				},
+				'emit_action_errors'        => static function () {
+					trigger_error( 'POSTED: No trespassing during action.' );
+				},
+				'expected_processed'        => true,
+				'expected_error_log'        => array(
+					'PHP Notice:  POSTED: No trespassing during filter. in __FILE__ on line __LINE__',
+					'PHP Notice:  POSTED: No trespassing during action. in __FILE__ on line __LINE__',
+				),
+				'expected_displayed_errors' => array(),
+			),
+		);
+
+		$tests_error_reporting_warnings_and_above = array();
+		foreach ( $tests as $name => $test ) {
+			$test['ini_config_options']['error_reporting'] = E_ALL ^ E_USER_NOTICE ^ E_USER_DEPRECATED;
+
+			$test['expected_error_log'] = array_values(
+				array_filter(
+					$test['expected_error_log'],
+					static function ( $log_entry ) {
+						return ! ( str_contains( $log_entry, 'Notice' ) || str_contains( $log_entry, 'Deprecated' ) );
+					}
+				)
+			);
+
+			$test['expected_displayed_errors'] = array_values(
+				array_filter(
+					$test['expected_displayed_errors'],
+					static function ( $log_entry ) {
+						return ! ( str_contains( $log_entry, 'Notice' ) || str_contains( $log_entry, 'Deprecated' ) );
+					}
+				)
+			);
+
+			$tests_error_reporting_warnings_and_above[ "{$name}_with_warnings_and_above_reported" ] = $test;
+		}
+
+		$tests_without_display_errors = array();
+		foreach ( $tests as $name => $test ) {
+			$test['ini_config_options']['display_errors'] = false;
+			$test['expected_displayed_errors']            = array();
+
+			$tests_without_display_errors[ "{$name}_without_display_errors" ] = $test;
+		}
+
+		$tests_without_display_or_log_errors = array();
+		foreach ( $tests as $name => $test ) {
+			$test['ini_config_options']['display_errors'] = false;
+			$test['ini_config_options']['log_errors']     = false;
+			$test['expected_displayed_errors']            = array();
+			$test['expected_error_log']                   = array();
+
+			$tests_without_display_or_log_errors[ "{$name}_without_display_errors_or_log_errors" ] = $test;
+		}
+
+		return array_merge( $tests, $tests_error_reporting_warnings_and_above, $tests_without_display_errors, $tests_without_display_or_log_errors );
+	}
+
+	/**
+	 * Tests that errors are handled as expected when errors are emitted when filtering wp_template_enhancement_output_buffer or doing the wp_finalize_template_enhancement_output_buffer action.
+	 *
+	 * @ticket 43258
+	 * @ticket 64108
+	 *
+	 * @covers ::wp_finalize_template_enhancement_output_buffer
+	 *
+	 * @dataProvider data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing
+	 */
+	public function test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing( array $ini_config_options, ?Closure $emit_filter_errors, ?Closure $emit_action_errors, bool $expected_processed, array $expected_error_log, array $expected_displayed_errors ): void {
+		// Start a wrapper output buffer so that we can flush the inner buffer.
+		ob_start();
+
+		ini_set( 'error_log', $this->temp_filename() ); // phpcs:ignore WordPress.PHP.IniSet.log_errors_Blacklisted, WordPress.PHP.IniSet.Risky
+		foreach ( $ini_config_options as $config => $option ) {
+			ini_set( $config, $option );
+		}
+
+		add_filter(
+			'wp_template_enhancement_output_buffer',
+			static function ( string $buffer ) use ( $emit_filter_errors ): string {
+				$buffer = str_replace( 'Hello', 'Goodbye', $buffer );
+				if ( $emit_filter_errors ) {
+					$emit_filter_errors();
+				}
+				return $buffer;
+			}
+		);
+
+		if ( $emit_action_errors ) {
+			add_action(
+				'wp_finalized_template_enhancement_output_buffer',
+				static function () use ( $emit_action_errors ): void {
+					$emit_action_errors();
+				}
+			);
+		}
+
+		$this->assertTrue( wp_start_template_enhancement_output_buffer(), 'Expected wp_start_template_enhancement_output_buffer() to return true indicating the output buffer started.' );
+
+		?>
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<title>Greeting</title>
+		</head>
+		<body>
+			<h1>Hello World!</h1>
+		</body>
+		</html>
+		<?php
+
+		ob_end_flush(); // End the buffer started by wp_start_template_enhancement_output_buffer().
+
+		$processed_output = ob_get_clean(); // Obtain the output via the wrapper output buffer.
+
+		if ( $expected_processed ) {
+			$this->assertStringContainsString( 'Goodbye', $processed_output, 'Expected the output buffer to have been processed.' );
+		} else {
+			$this->assertStringNotContainsString( 'Goodbye', $processed_output, 'Expected the output buffer to not have been processed.' );
+		}
+
+		$actual_error_log = array_values(
+			array_map(
+				static function ( string $error_log_entry ): string {
+					$error_log_entry = preg_replace(
+						'/^\[.+?] /',
+						'',
+						$error_log_entry
+					);
+					$error_log_entry = preg_replace(
+						'#(?<= in ).+?' . preg_quote( basename( __FILE__ ), '#' ) . '(\(\d+\))?#',
+						'__FILE__',
+						$error_log_entry
+					);
+					return preg_replace(
+						'#(?<= on line )\d+#',
+						'__LINE__',
+						$error_log_entry
+					);
+				},
+				array_filter( explode( "\n", trim( file_get_contents( ini_get( 'error_log' ) ) ) ) )
+			)
+		);
+
+		$this->assertSame(
+			$expected_error_log,
+			$actual_error_log,
+			'Expected same error log entries. Snapshot: ' . var_export( $actual_error_log, true )
+		);
+
+		$displayed_errors = array_values(
+			array_map(
+				static function ( string $displayed_error ): string {
+					$displayed_error = str_replace( '<br />', '', $displayed_error );
+					$displayed_error = preg_replace(
+						'#( in (?:<b>)?).+?' . preg_quote( basename( __FILE__ ), '#' ) . '(\(\d+\))?#',
+						'$1__FILE__',
+						$displayed_error
+					);
+					return preg_replace(
+						'#( on line (?:<b>)?)\d+#',
+						'$1__LINE__',
+						$displayed_error
+					);
+				},
+				array_filter(
+					explode( "\n", trim( $processed_output ) ),
+					static function ( $line ): bool {
+						return str_contains( $line, ' in ' );
+					}
+				)
+			)
+		);
+
+		$this->assertSame(
+			$expected_displayed_errors,
+			$displayed_errors,
+			'Expected the displayed errors to be the same. Snapshot: ' . var_export( $displayed_errors, true )
+		);
+
+		if ( count( $expected_displayed_errors ) > 0 ) {
+			$this->assertStringEndsNotWith( '</html>', rtrim( $processed_output ), 'Expected the output to have the error displayed.' );
+		} else {
+			$this->assertStringEndsWith( '</html>', rtrim( $processed_output ), 'Expected the output to not have the error displayed.' );
+		}
 	}
 
 	/**

@@ -3055,14 +3055,14 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
 function wp_maybe_inline_styles() {
 	global $wp_styles;
 
-	$total_inline_limit = 50000;
+	$total_inline_limit = 40000;
 	/**
 	 * The maximum size of inlined styles in bytes.
 	 *
 	 * @since 5.8.0
-	 * @since 6.9.0 The default limit increased from 20K to 50K.
+	 * @since 6.9.0 The default limit increased from 20K to 40K.
 	 *
-	 * @param int $total_inline_limit The file-size threshold, in bytes. Default 50000.
+	 * @param int $total_inline_limit The file-size threshold, in bytes. Default 40000.
 	 */
 	$total_inline_limit = apply_filters( 'styles_inline_size_limit', $total_inline_limit );
 
@@ -3430,7 +3430,9 @@ function wp_enqueue_classic_theme_styles() {
 function wp_enqueue_command_palette_assets() {
 	global $menu, $submenu;
 
-	$command_palette_settings = array();
+	$command_palette_settings = array(
+		'is_network_admin' => is_network_admin(),
+	);
 
 	if ( $menu ) {
 		$menu_commands = array();
