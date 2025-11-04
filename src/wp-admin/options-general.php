@@ -445,6 +445,7 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 				__( 'Standard time begins on: %s.' );
 			printf(
 				$message,
+				/* translators: Localized date and time format, see https://www.php.net/manual/datetime.format.php */
 				'<code>' . wp_date( __( 'F j, Y g:i a' ), $transitions[1]['ts'] ) . '</code>'
 			);
 		} else {
