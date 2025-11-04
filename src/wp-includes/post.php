@@ -37,7 +37,18 @@ function create_initial_post_types() {
 			'rewrite'               => false,
 			'query_var'             => false,
 			'delete_with_user'      => true,
-			'supports'              => array( 'title', 'editor', 'author', 'thumbnail', 'excerpt', 'trackbacks', 'custom-fields', 'comments', 'revisions', 'post-formats' ),
+			'supports'              => array(
+				'title',
+				'editor' => array( 'notes' => true ),
+				'author',
+				'thumbnail',
+				'excerpt',
+				'trackbacks',
+				'custom-fields',
+				'comments',
+				'revisions',
+				'post-formats',
+			),
 			'show_in_rest'          => true,
 			'rest_base'             => 'posts',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
@@ -62,7 +73,16 @@ function create_initial_post_types() {
 			'rewrite'               => false,
 			'query_var'             => false,
 			'delete_with_user'      => true,
-			'supports'              => array( 'title', 'editor', 'author', 'thumbnail', 'page-attributes', 'custom-fields', 'comments', 'revisions' ),
+			'supports'              => array(
+				'title',
+				'editor' => array( 'notes' => true ),
+				'author',
+				'thumbnail',
+				'page-attributes',
+				'custom-fields',
+				'comments',
+				'revisions',
+			),
 			'show_in_rest'          => true,
 			'rest_base'             => 'pages',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
@@ -348,7 +368,7 @@ function create_initial_post_types() {
 	register_post_type(
 		'wp_template',
 		array(
-			'labels'                          => array(
+			'labels'                  => array(
 				'name'                  => _x( 'Templates', 'post type general name' ),
 				'singular_name'         => _x( 'Template', 'post type singular name' ),
 				'add_new'               => __( 'Add Template' ),
@@ -369,22 +389,20 @@ function create_initial_post_types() {
 				'items_list'            => __( 'Templates list' ),
 				'item_updated'          => __( 'Template updated.' ),
 			),
-			'description'                     => __( 'Templates to include in your theme.' ),
-			'public'                          => false,
-			'_builtin'                        => true, /* internal use only. don't use this when registering your own post type. */
-			'_edit_link'                      => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
-			'has_archive'                     => false,
-			'show_ui'                         => false,
-			'show_in_menu'                    => false,
-			'show_in_rest'                    => true,
-			'rewrite'                         => false,
-			'rest_base'                       => 'templates',
-			'rest_controller_class'           => 'WP_REST_Templates_Controller',
-			'autosave_rest_controller_class'  => 'WP_REST_Template_Autosaves_Controller',
-			'revisions_rest_controller_class' => 'WP_REST_Template_Revisions_Controller',
-			'late_route_registration'         => true,
-			'capability_type'                 => array( 'template', 'templates' ),
-			'capabilities'                    => array(
+			'description'             => __( 'Templates to include in your theme.' ),
+			'public'                  => false,
+			'_builtin'                => true, /* internal use only. don't use this when registering your own post type. */
+			'_edit_link'              => $template_edit_link, /* internal use only. don't use this when registering your own post type. */
+			'has_archive'             => false,
+			'show_ui'                 => false,
+			'show_in_menu'            => false,
+			'show_in_rest'            => true,
+			'rewrite'                 => false,
+			'rest_base'               => 'created-templates',
+			'rest_controller_class'   => 'WP_REST_Posts_Controller',
+			'late_route_registration' => true,
+			'capability_type'         => array( 'template', 'templates' ),
+			'capabilities'            => array(
 				'create_posts'           => 'edit_theme_options',
 				'delete_posts'           => 'edit_theme_options',
 				'delete_others_posts'    => 'edit_theme_options',
@@ -398,14 +416,15 @@ function create_initial_post_types() {
 				'read'                   => 'edit_theme_options',
 				'read_private_posts'     => 'edit_theme_options',
 			),
-			'map_meta_cap'                    => true,
-			'supports'                        => array(
+			'map_meta_cap'            => true,
+			'supports'                => array(
 				'title',
 				'slug',
 				'excerpt',
 				'editor',
 				'revisions',
 				'author',
+				'custom-fields',
 			),
 		)
 	);
@@ -2329,7 +2348,6 @@ function post_type_supports( $post_type, $feature ) {
 
 	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
 }
-
 /**
  * Retrieves a list of post type names that support a specific feature.
  *
@@ -3400,21 +3418,40 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 		return apply_filters( 'wp_count_posts', $counts, $type, $perm );
 	}
 
-	$query = "SELECT post_status, COUNT( * ) AS num_posts FROM {$wpdb->posts} WHERE post_type = %s";
-
-	if ( 'readable' === $perm && is_user_logged_in() ) {
-		$post_type_object = get_post_type_object( $type );
-		if ( ! current_user_can( $post_type_object->cap->read_private_posts ) ) {
-			$query .= $wpdb->prepare(
-				" AND (post_status != 'private' OR ( post_author = %d AND post_status = 'private' ))",
-				get_current_user_id()
-			);
-		}
+	if (
+		'readable' === $perm &&
+		is_user_logged_in() &&
+		! current_user_can( get_post_type_object( $type )->cap->read_private_posts )
+	) {
+		// Optimized query uses subqueries which can leverage DB indexes for better performance. See #61097.
+		$query = "
+			SELECT post_status, COUNT(*) AS num_posts
+			FROM (
+				SELECT post_status
+				FROM {$wpdb->posts}
+				WHERE post_type = %s AND post_status != 'private'
+				UNION ALL
+				SELECT post_status
+				FROM {$wpdb->posts}
+				WHERE post_type = %s AND post_status = 'private' AND post_author = %d
+			) AS filtered_posts
+		";
+		$args  = array( $type, $type, get_current_user_id() );
+	} else {
+		$query = "
+			SELECT post_status, COUNT(*) AS num_posts
+			FROM {$wpdb->posts}
+			WHERE post_type = %s
+		";
+		$args  = array( $type );
 	}
 
 	$query .= ' GROUP BY post_status';
 
-	$results = (array) $wpdb->get_results( $wpdb->prepare( $query, $type ), ARRAY_A );
+	$results = (array) $wpdb->get_results(
+		$wpdb->prepare( $query, ...$args ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Placeholders are used in the string contained in the variable.
+		ARRAY_A
+	);
 	$counts  = array_fill_keys( get_post_stati(), 0 );
 
 	foreach ( $results as $row ) {
@@ -3724,13 +3761,19 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  * @see wp_delete_attachment()
  * @see wp_trash_post()
  *
- * @param int  $post_id      Optional. Post ID. Default 0.
+ * @param int  $post_id      Post ID. (The default of 0 is for historical reasons; providing it is incorrect.)
  * @param bool $force_delete Optional. Whether to bypass Trash and force deletion.
  *                           Default false.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
 function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	global $wpdb;
+
+	$post_id = (int) $post_id;
+	if ( $post_id <= 0 ) {
+		_doing_it_wrong( __FUNCTION__, __( 'The post ID must be greater than 0.' ), '6.9.0' );
+		return false;
+	}
 
 	$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d", $post_id ) );
 
@@ -3756,7 +3799,7 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param WP_Post|false|null $delete       Whether to go forward with deletion.
+	 * @param WP_Post|false|null $check        Whether to go forward with deletion. Anything other than null will short-circuit deletion.
 	 * @param WP_Post            $post         Post object.
 	 * @param bool               $force_delete Whether to bypass the Trash.
 	 */
@@ -4799,7 +4842,8 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		if ( isset( $data[ $emoji_field ] ) ) {
 			$charset = $wpdb->get_col_charset( $wpdb->posts, $emoji_field );
 
-			if ( 'utf8' === $charset ) {
+			// The 'utf8' character set is a deprecated alias of 'utf8mb3'. See <https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-utf8.html>.
+			if ( 'utf8' === $charset || 'utf8mb3' === $charset ) {
 				$data[ $emoji_field ] = wp_encode_emoji( $data[ $emoji_field ] );
 			}
 		}
@@ -8583,6 +8627,18 @@ function wp_create_initial_post_meta() {
 					'enum' => array( 'partial', 'unsynced' ),
 				),
 			),
+		)
+	);
+
+	// Allow setting the is_wp_suggestion meta field, which partly determines if
+	// a template is a custom template.
+	register_post_meta(
+		'wp_template',
+		'is_wp_suggestion',
+		array(
+			'type'         => 'boolean',
+			'show_in_rest' => true,
+			'single'       => true,
 		)
 	);
 }
