@@ -860,7 +860,7 @@
 		<dc:creator><![CDATA[Mock Author]]></dc:creator>
 		<pubDate>Mon, 26 Oct 2020 12:00:00 +0000</pubDate>
 				<category><![CDATA[Mock Category]]></category>
-		<guid isPermaLink="false">https://wordpress.org/news/?p=9999</guid>
+		<guid isPermaLink="false">https://wordpress.org/news/?p=9212</guid>
 
 					<description><![CDATA[Mock description for item with HTML entities in the title.]]></description>
 							<content:encoded><![CDATA[
@@ -868,6 +868,6 @@
 ]]></content:encoded>
 
 
-		<post-id xmlns="com-wordpress:feed-additions:1">9999</post-id>	</item>
+		<post-id xmlns="com-wordpress:feed-additions:1">9212</post-id>	</item>
 	</channel>
 </rss>
