@@ -714,6 +714,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
+		// Don't check for duplicates or flooding for notes.
 		$prepared_comment['comment_approved'] =
 			'note' === $prepared_comment['comment_type'] ?
 			'1' :
