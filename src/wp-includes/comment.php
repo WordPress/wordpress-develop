@@ -761,65 +761,59 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 		}
 	}
 
-	// Notes require logged in users that can edit the current post, ignore flooding check.
-	if ( isset( $commentdata['comment_type'] ) && 'note' === $commentdata['comment_type'] ) {
-		if ( ! isset( $commentdata['comment_post_ID'] ) || ! current_user_can( 'edit_post', $commentdata['comment_post_ID'] ) ) {
-			return new WP_Error( 'comment_note_permission', __( 'You do not have permission edit notes on this post.' ), 403 );
-		}
-	} else {
-		/**
-		 * Fires immediately before a comment is marked approved.
-		 *
-		 * Allows checking for comment flooding.
-		 *
-		 * @since 2.3.0
-		 * @since 4.7.0 The `$avoid_die` parameter was added.
-		 * @since 5.5.0 The `$avoid_die` parameter was renamed to `$wp_error`.
-		 *
-		 * @param string $comment_author_ip    Comment author's IP address.
-		 * @param string $comment_author_email Comment author's email.
-		 * @param string $comment_date_gmt     GMT date the comment was posted.
-		 * @param bool   $wp_error             Whether to return a WP_Error object instead of executing
-		 *                                     wp_die() or die() if a comment flood is occurring.
-		 */
-		do_action(
-			'check_comment_flood',
-			$commentdata['comment_author_IP'],
-			$commentdata['comment_author_email'],
-			$commentdata['comment_date_gmt'],
-			$wp_error
-		);
 
-		/**
-		 * Filters whether a comment is part of a comment flood.
-		 *
-		 * The default check is wp_check_comment_flood(). See check_comment_flood_db().
-		 *
-		 * @since 4.7.0
-		 * @since 5.5.0 The `$avoid_die` parameter was renamed to `$wp_error`.
-		 *
-		 * @param bool   $is_flood             Is a comment flooding occurring? Default false.
-		 * @param string $comment_author_ip    Comment author's IP address.
-		 * @param string $comment_author_email Comment author's email.
-		 * @param string $comment_date_gmt     GMT date the comment was posted.
-		 * @param bool   $wp_error             Whether to return a WP_Error object instead of executing
-		 *                                     wp_die() or die() if a comment flood is occurring.
-		 */
-		$is_flood = apply_filters(
-			'wp_is_comment_flood',
-			false,
-			$commentdata['comment_author_IP'],
-			$commentdata['comment_author_email'],
-			$commentdata['comment_date_gmt'],
-			$wp_error
-		);
+	/**
+	 * Fires immediately before a comment is marked approved.
+	 *
+	 * Allows checking for comment flooding.
+	 *
+	 * @since 2.3.0
+	 * @since 4.7.0 The `$avoid_die` parameter was added.
+	 * @since 5.5.0 The `$avoid_die` parameter was renamed to `$wp_error`.
+	 *
+	 * @param string $comment_author_ip    Comment author's IP address.
+	 * @param string $comment_author_email Comment author's email.
+	 * @param string $comment_date_gmt     GMT date the comment was posted.
+	 * @param bool   $wp_error             Whether to return a WP_Error object instead of executing
+	 *                                     wp_die() or die() if a comment flood is occurring.
+	 */
+	do_action(
+		'check_comment_flood',
+		$commentdata['comment_author_IP'],
+		$commentdata['comment_author_email'],
+		$commentdata['comment_date_gmt'],
+		$wp_error
+	);
 
-		if ( $is_flood ) {
-			/** This filter is documented in wp-includes/comment-template.php */
-			$comment_flood_message = apply_filters( 'comment_flood_message', __( 'You are posting comments too quickly. Slow down.' ) );
+	/**
+	 * Filters whether a comment is part of a comment flood.
+	 *
+	 * The default check is wp_check_comment_flood(). See check_comment_flood_db().
+	 *
+	 * @since 4.7.0
+	 * @since 5.5.0 The `$avoid_die` parameter was renamed to `$wp_error`.
+	 *
+	 * @param bool   $is_flood             Is a comment flooding occurring? Default false.
+	 * @param string $comment_author_ip    Comment author's IP address.
+	 * @param string $comment_author_email Comment author's email.
+	 * @param string $comment_date_gmt     GMT date the comment was posted.
+	 * @param bool   $wp_error             Whether to return a WP_Error object instead of executing
+	 *                                     wp_die() or die() if a comment flood is occurring.
+	 */
+	$is_flood = apply_filters(
+		'wp_is_comment_flood',
+		false,
+		$commentdata['comment_author_IP'],
+		$commentdata['comment_author_email'],
+		$commentdata['comment_date_gmt'],
+		$wp_error
+	);
 
-			return new WP_Error( 'comment_flood', $comment_flood_message, 429 );
-		}
+	if ( $is_flood ) {
+		/** This filter is documented in wp-includes/comment-template.php */
+		$comment_flood_message = apply_filters( 'comment_flood_message', __( 'You are posting comments too quickly. Slow down.' ) );
+
+		return new WP_Error( 'comment_flood', $comment_flood_message, 429 );
 	}
 
 	return wp_check_comment_data( $commentdata );
