@@ -94,10 +94,12 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		wp_update_comment_count_now( $post_id );
 		$this->assertSame( '4', get_comments_number( $post_id ) );
 
-		wp_update_comment( array(
-			'comment_ID'       => $parent_comment_id,
-			'comment_approved' => 'trash',
-		) );
+		wp_update_comment(
+			array(
+				'comment_ID'       => $parent_comment_id,
+				'comment_approved' => 'trash',
+			)
+		);
 
 		wp_update_comment_count_now( $post_id );
 		$this->assertSame( '1', get_comments_number( $post_id ) );
@@ -147,10 +149,12 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		wp_update_comment_count_now( $post_id );
 		$this->assertSame( '4', get_comments_number( $post_id ) );
 
-		wp_update_comment( array(
-			'comment_ID'       => $parent_comment_id,
-			'comment_approved' => '0',
-		) );
+		wp_update_comment(
+			array(
+				'comment_ID'       => $parent_comment_id,
+				'comment_approved' => '0',
+			)
+		);
 
 		wp_update_comment_count_now( $post_id );
 		$this->assertSame( '1', get_comments_number( $post_id ) );
