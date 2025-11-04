@@ -3596,7 +3596,7 @@ function wp_load_classic_theme_block_styles_on_demand() {
 		return;
 	}
 
-	// The following to filters are added by default for block themes in _add_default_theme_supports().
+	// The following two filters are added by default for block themes in _add_default_theme_supports().
 
 	/*
 	 * Load separate block styles so that the large block-library stylesheet is not enqueued unconditionally,
@@ -3611,7 +3611,7 @@ function wp_load_classic_theme_block_styles_on_demand() {
 	 */
 	add_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
 
-	// If even with the filtering
+	// If a site has explicitly opted out of loading block styles on demand via filters with priorities higher than above, then abort.
 	if ( ! wp_should_load_separate_core_block_assets() || ! wp_should_load_block_assets_on_demand() ) {
 		return;
 	}
