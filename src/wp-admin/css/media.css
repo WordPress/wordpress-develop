@@ -167,9 +167,9 @@
 }
 
 .media-item .filename {
-	padding: 14px 0;
+	padding: 14px 2px;
 	overflow: hidden;
-	margin-left: 6px;
+	margin-left: 4px;
 }
 
 .media-item .pinkynail {
@@ -354,10 +354,9 @@
 #find-posts-close:before {
 	font: normal 20px/36px dashicons;
 	vertical-align: top;
-	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	content: "\f158";
+	content: "\f158" / '';
 }
 
 .find-box-buttons {
@@ -621,7 +620,7 @@ border color while dragging a file over the uploader drop area */
 }
 
 .upload-php .media-modal-close .media-modal-icon:before {
-	content: "\f335";
+	content: "\f335" / '';
 	font-size: 22px;
 }
 
@@ -693,11 +692,11 @@ border color while dragging a file over the uploader drop area */
 }
 
 .edit-attachment-frame .edit-media-header .left:before {
-	content: "\f341";
+	content: "\f341" / '';
 }
 
 .edit-attachment-frame .edit-media-header .right:before {
-	content: "\f345";
+	content: "\f345" / '';
 }
 
 .edit-attachment-frame .edit-media-header [disabled],
@@ -901,6 +900,15 @@ border color while dragging a file over the uploader drop area */
 	display: block;
 }
 
+.imgedit-panel-active .imgedit-group-controls > .imgedit-crop-apply {
+	display: flex;
+}
+
+.imgedit-crop-apply {
+	gap: 4px;
+	flex-wrap: wrap;
+}
+
 .wp_attachment_holder .imgedit-wrap .image-editor {
 	float: right;
 	width: 250px;
@@ -971,20 +979,10 @@ border color while dragging a file over the uploader drop area */
 	padding: 1em 0 0;
 }
 
-.image-editor .imgedit-menu .button {
-	display: inline-block;
-	width: auto;
-	min-height: 28px;
-	font-size: 13px;
-	line-height: 2;
-	padding: 0 10px;
-}
-
 .imgedit-menu .button:after,
 .imgedit-menu .button:before {
 	font: normal 16px/1 dashicons;
 	margin-right: 8px;
-	speak: never;
 	vertical-align: middle;
 	position: relative;
 	top: -2px;
@@ -1013,23 +1011,23 @@ border color while dragging a file over the uploader drop area */
 }
 
 .imgedit-crop:before {
-	content: "\f165";
+	content: "\f165" / '';
 }
 
 .imgedit-scale:before {
-	content: "\f211";
+	content: "\f211" / '';
 }
 
 .imgedit-rotate:before {
-	content: "\f167";
+	content: "\f167" / '';
 }
 
 .imgedit-undo:before {
-	content: "\f171";
+	content: "\f171" / '';
 }
 
 .imgedit-redo:before {
-	content: "\f172";
+	content: "\f172" / '';
 }
 
 .imgedit-crop-wrap {
@@ -1266,7 +1264,7 @@ audio, video {
 	.edit-attachment-frame textarea {
 		line-height: 1.5;
 	}
-	
+
 	.wp_attachment_details label[for="content"] {
 		font-size: 14px;
 		line-height: 1.5;

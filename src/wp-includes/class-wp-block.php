@@ -29,7 +29,7 @@ class WP_Block {
 	 * @example "core/paragraph"
 	 *
 	 * @since 5.5.0
-	 * @var string
+	 * @var string|null
 	 */
 	public $name;
 
@@ -54,7 +54,6 @@ class WP_Block {
 	 *
 	 * @since 5.5.0
 	 * @var array
-	 * @access protected
 	 */
 	protected $available_context = array();
 
@@ -63,7 +62,6 @@ class WP_Block {
 	 *
 	 * @since 5.9.0
 	 * @var WP_Block_Type_Registry
-	 * @access protected
 	 */
 	protected $registry;
 
@@ -116,12 +114,12 @@ class WP_Block {
 	 * @param array                  $block             {
 	 *     An associative array of a single parsed block object. See WP_Block_Parser_Block.
 	 *
-	 *     @type string   $blockName    Name of block.
-	 *     @type array    $attrs        Attributes from block comment delimiters.
-	 *     @type array    $innerBlocks  List of inner blocks. An array of arrays that
-	 *                                  have the same structure as this one.
-	 *     @type string   $innerHTML    HTML from inside block comment delimiters.
-	 *     @type array    $innerContent List of string fragments and null markers where inner blocks were found.
+	 *     @type string|null $blockName    Name of block.
+	 *     @type array       $attrs        Attributes from block comment delimiters.
+	 *     @type array       $innerBlocks  List of inner blocks. An array of arrays that
+	 *                                     have the same structure as this one.
+	 *     @type string      $innerHTML    HTML from inside block comment delimiters.
+	 *     @type array       $innerContent List of string fragments and null markers where inner blocks were found.
 	 * }
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
@@ -280,19 +278,15 @@ class WP_Block {
 	 * @return array The computed block attributes for the provided block bindings.
 	 */
 	private function process_block_bindings() {
+		$block_type                 = $this->name;
 		$parsed_block               = $this->parsed_block;
 		$computed_attributes        = array();
-		$supported_block_attributes = array(
-			'core/paragraph' => array( 'content' ),
-			'core/heading'   => array( 'content' ),
-			'core/image'     => array( 'id', 'url', 'title', 'alt' ),
-			'core/button'    => array( 'url', 'text', 'linkTarget', 'rel' ),
-		);
+		$supported_block_attributes = get_block_bindings_supported_attributes( $block_type );
 
 		// If the block doesn't have the bindings property, isn't one of the supported
 		// block types, or the bindings property is not an array, return the block content.
 		if (
-			! isset( $supported_block_attributes[ $this->name ] ) ||
+			empty( $supported_block_attributes ) ||
 			empty( $parsed_block['attrs']['metadata']['bindings'] ) ||
 			! is_array( $parsed_block['attrs']['metadata']['bindings'] )
 		) {
@@ -316,7 +310,7 @@ class WP_Block {
 			 * Note that this also omits the `__default` attribute from the
 			 * resulting array.
 			 */
-			foreach ( $supported_block_attributes[ $parsed_block['blockName'] ] as $attribute_name ) {
+			foreach ( $supported_block_attributes as $attribute_name ) {
 				// Retain any non-pattern override bindings that might be present.
 				$updated_bindings[ $attribute_name ] = isset( $bindings[ $attribute_name ] )
 					? $bindings[ $attribute_name ]
@@ -335,7 +329,7 @@ class WP_Block {
 
 		foreach ( $bindings as $attribute_name => $block_binding ) {
 			// If the attribute is not in the supported list, process next attribute.
-			if ( ! in_array( $attribute_name, $supported_block_attributes[ $this->name ], true ) ) {
+			if ( ! in_array( $attribute_name, $supported_block_attributes, true ) ) {
 				continue;
 			}
 			// If no source is provided, or that source is not registered, process next attribute.
@@ -389,7 +383,7 @@ class WP_Block {
 		switch ( $block_type->attributes[ $attribute_name ]['source'] ) {
 			case 'html':
 			case 'rich-text':
-				$block_reader = new WP_HTML_Tag_Processor( $block_content );
+				$block_reader = self::get_block_bindings_processor( $block_content );
 
 				// TODO: Support for CSS selectors whenever they are ready in the HTML API.
 				// In the meantime, support comma-separated selectors by exploding them into an array.
@@ -398,18 +392,6 @@ class WP_Block {
 				$block_reader->next_tag();
 				$block_reader->set_bookmark( 'iterate-selectors' );
 
-				// TODO: This shouldn't be needed when the `set_inner_html` function is ready.
-				// Store the parent tag and its attributes to be able to restore them later in the button.
-				// The button block has a wrapper while the paragraph and heading blocks don't.
-				if ( 'core/button' === $this->name ) {
-					$button_wrapper                 = $block_reader->get_tag();
-					$button_wrapper_attribute_names = $block_reader->get_attribute_names_with_prefix( '' );
-					$button_wrapper_attrs           = array();
-					foreach ( $button_wrapper_attribute_names as $name ) {
-						$button_wrapper_attrs[ $name ] = $block_reader->get_attribute( $name );
-					}
-				}
-
 				foreach ( $selectors as $selector ) {
 					// If the parent tag, or any of its children, matches the selector, replace the HTML.
 					if ( strcasecmp( $block_reader->get_tag(), $selector ) === 0 || $block_reader->next_tag(
@@ -417,34 +399,10 @@ class WP_Block {
 							'tag_name' => $selector,
 						)
 					) ) {
+						// TODO: Use `WP_HTML_Processor::set_inner_html` method once it's available.
 						$block_reader->release_bookmark( 'iterate-selectors' );
-
-						// TODO: Use `set_inner_html` method whenever it's ready in the HTML API.
-						// Until then, it is hardcoded for the paragraph, heading, and button blocks.
-						// Store the tag and its attributes to be able to restore them later.
-						$selector_attribute_names = $block_reader->get_attribute_names_with_prefix( '' );
-						$selector_attrs           = array();
-						foreach ( $selector_attribute_names as $name ) {
-							$selector_attrs[ $name ] = $block_reader->get_attribute( $name );
-						}
-						$selector_markup = "<$selector>" . wp_kses_post( $source_value ) . "</$selector>";
-						$amended_content = new WP_HTML_Tag_Processor( $selector_markup );
-						$amended_content->next_tag();
-						foreach ( $selector_attrs as $attribute_key => $attribute_value ) {
-							$amended_content->set_attribute( $attribute_key, $attribute_value );
-						}
-						if ( 'core/paragraph' === $this->name || 'core/heading' === $this->name ) {
-							return $amended_content->get_updated_html();
-						}
-						if ( 'core/button' === $this->name ) {
-							$button_markup  = "<$button_wrapper>{$amended_content->get_updated_html()}</$button_wrapper>";
-							$amended_button = new WP_HTML_Tag_Processor( $button_markup );
-							$amended_button->next_tag();
-							foreach ( $button_wrapper_attrs as $attribute_key => $attribute_value ) {
-								$amended_button->set_attribute( $attribute_key, $attribute_value );
-							}
-							return $amended_button->get_updated_html();
-						}
+						$block_reader->replace_rich_text( wp_kses_post( $source_value ) );
+						return $block_reader->get_updated_html();
 					} else {
 						$block_reader->seek( 'iterate-selectors' );
 					}
@@ -470,6 +428,54 @@ class WP_Block {
 		}
 	}
 
+	private static function get_block_bindings_processor( string $block_content ) {
+		$internal_processor_class = new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE) extends WP_HTML_Processor {
+			/**
+			 * Replace the rich text content between a tag opener and matching closer.
+			 *
+			 * When stopped on a tag opener, replace the content enclosed by it and its
+			 * matching closer with the provided rich text.
+			 *
+			 * @param string $rich_text The rich text to replace the original content with.
+			 * @return bool True on success.
+			 */
+			public function replace_rich_text( $rich_text ) {
+				if ( $this->is_tag_closer() || ! $this->expects_closer() ) {
+					return false;
+				}
+
+				$depth    = $this->get_current_depth();
+				$tag_name = $this->get_tag();
+
+				$this->set_bookmark( '_wp_block_bindings' );
+				// The bookmark names are prefixed with `_` so the key below has an extra `_`.
+				$tag_opener = $this->bookmarks['__wp_block_bindings'];
+				$start      = $tag_opener->start + $tag_opener->length;
+
+				// Find matching tag closer.
+				while ( $this->next_token() && $this->get_current_depth() >= $depth ) {
+				}
+
+				if ( ! $this->is_tag_closer() || $tag_name !== $this->get_tag() ) {
+					return false;
+				}
+
+				$this->set_bookmark( '_wp_block_bindings' );
+				$tag_closer = $this->bookmarks['__wp_block_bindings'];
+				$end        = $tag_closer->start;
+
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$start,
+					$end - $start,
+					$rich_text
+				);
+
+				return true;
+			}
+		};
+
+		return $internal_processor_class::create_fragment( $block_content );
+	}
 
 	/**
 	 * Generates the render output for the block.
@@ -488,6 +494,13 @@ class WP_Block {
 	 */
 	public function render( $options = array() ) {
 		global $post;
+
+		$before_wp_enqueue_scripts_count = did_action( 'wp_enqueue_scripts' );
+
+		// Capture the current assets queues.
+		$before_styles_queue         = wp_styles()->queue;
+		$before_scripts_queue        = wp_scripts()->queue;
+		$before_script_modules_queue = wp_script_modules()->get_queue();
 
 		/*
 		 * There can be only one root interactive block at a time because the rendered HTML of that block contains
@@ -656,6 +669,50 @@ class WP_Block {
 			// The root interactive block has finished rendering. Time to process directives.
 			$block_content          = wp_interactivity_process_directives( $block_content );
 			$root_interactive_block = null;
+		}
+
+		// Capture the new assets enqueued during rendering, and restore the queues the state prior to rendering.
+		$after_styles_queue         = wp_styles()->queue;
+		$after_scripts_queue        = wp_scripts()->queue;
+		$after_script_modules_queue = wp_script_modules()->get_queue();
+
+		/*
+		 * As a very special case, a dynamic block may in fact include a call to wp_head() (and thus wp_enqueue_scripts()),
+		 * in which all of its enqueued assets are targeting wp_footer. In this case, nothing would be printed, but this
+		 * shouldn't indicate that the just-enqueued assets should be dequeued due to it being an empty block.
+		 */
+		$just_did_wp_enqueue_scripts = ( did_action( 'wp_enqueue_scripts' ) !== $before_wp_enqueue_scripts_count );
+
+		$has_new_styles         = ( $before_styles_queue !== $after_styles_queue );
+		$has_new_scripts        = ( $before_scripts_queue !== $after_scripts_queue );
+		$has_new_script_modules = ( $before_script_modules_queue !== $after_script_modules_queue );
+
+		// Dequeue the newly enqueued assets with the existing assets if the rendered block was empty & wp_enqueue_scripts did not fire.
+		if (
+			! $just_did_wp_enqueue_scripts &&
+			( $has_new_styles || $has_new_scripts || $has_new_script_modules ) &&
+			(
+				trim( $block_content ) === '' &&
+				/**
+				 * Filters whether to enqueue assets for a block which has no rendered content.
+				 *
+				 * @since 6.9.0
+				 *
+				 * @param bool   $enqueue    Whether to enqueue assets.
+				 * @param string $block_name Block name.
+				 */
+				! (bool) apply_filters( 'enqueue_empty_block_content_assets', false, $this->name )
+			)
+		) {
+			foreach ( array_diff( $after_styles_queue, $before_styles_queue ) as $handle ) {
+				wp_dequeue_style( $handle );
+			}
+			foreach ( array_diff( $after_scripts_queue, $before_scripts_queue ) as $handle ) {
+				wp_dequeue_script( $handle );
+			}
+			foreach ( array_diff( $after_script_modules_queue, $before_script_modules_queue ) as $handle ) {
+				wp_dequeue_script_module( $handle );
+			}
 		}
 
 		return $block_content;

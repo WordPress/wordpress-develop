@@ -19,9 +19,9 @@
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialized header.
- * @param array  $args Optional. Additional arguments passed to the header template.
- *                     Default empty array.
+ * @param string|null $name The name of the specialized header. Default null.
+ * @param array       $args Optional. Additional arguments passed to the header template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_header( $name = null, $args = array() ) {
@@ -63,9 +63,9 @@ function get_header( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialized footer.
- * @param array  $args Optional. Additional arguments passed to the footer template.
- *                     Default empty array.
+ * @param string|null $name The name of the specialized footer. Default null.
+ * @param array       $args Optional. Additional arguments passed to the footer template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_footer( $name = null, $args = array() ) {
@@ -107,9 +107,9 @@ function get_footer( $name = null, $args = array() ) {
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
  *
- * @param string $name The name of the specialized sidebar.
- * @param array  $args Optional. Additional arguments passed to the sidebar template.
- *                     Default empty array.
+ * @param string|null $name The name of the specialized sidebar. Default null.
+ * @param array       $args Optional. Additional arguments passed to the sidebar template.
+ *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
  */
 function get_sidebar( $name = null, $args = array() ) {
@@ -159,7 +159,7 @@ function get_sidebar( $name = null, $args = array() ) {
  * @since 5.5.0 The `$args` parameter was added.
  *
  * @param string      $slug The slug name for the generic template.
- * @param string|null $name Optional. The name of the specialized template.
+ * @param string|null $name Optional. The name of the specialized template. Default null.
  * @param array       $args Optional. Additional arguments passed to the template.
  *                          Default empty array.
  * @return void|false Void on success, false if the template does not exist.
@@ -175,8 +175,8 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 * @since 5.5.0 The `$args` parameter was added.
 	 *
 	 * @param string      $slug The slug name for the generic template.
-	 * @param string|null $name The name of the specialized template or null if
-	 *                          there is none.
+	 * @param string|null $name The name of the specialized template
+	 *                          or null if there is none.
 	 * @param array       $args Additional arguments passed to the template.
 	 */
 	do_action( "get_template_part_{$slug}", $slug, $name, $args );
@@ -196,8 +196,8 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 * @since 5.5.0 The `$args` parameter was added.
 	 *
 	 * @param string   $slug      The slug name for the generic template.
-	 * @param string   $name      The name of the specialized template or an empty
-	 *                            string if there is none.
+	 * @param string   $name      The name of the specialized template
+	 *                            or an empty string if there is none.
 	 * @param string[] $templates Array of template files to search for, in order.
 	 * @param array    $args      Additional arguments passed to the template.
 	 */
@@ -1436,7 +1436,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	 *
 	 * @param string[] $title_array Array of parts of the page title.
 	 */
-	$title_array = apply_filters( 'wp_title_parts', explode( $t_sep, $title ) );
+	$title_array = apply_filters( 'wp_title_parts', ! empty( $title ) ? explode( $t_sep, $title ) : array() );
 
 	// Determines position of the separator and direction of the breadcrumb.
 	if ( 'right' === $seplocation ) { // Separator on right, so reverse the order.
@@ -1916,7 +1916,7 @@ function get_the_post_type_description() {
  * @param string $format   Optional. Can be 'link', 'option', 'html', or custom. Default 'html'.
  * @param string $before   Optional. Content to prepend to the description. Default empty.
  * @param string $after    Optional. Content to append to the description. Default empty.
- * @param bool   $selected Optional. Set to true if the current page is the selected archive page.
+ * @param bool   $selected Optional. Set to true if the current page is the selected archive page. Default false.
  * @return string HTML link content for archive.
  */
 function get_archives_link( $url, $text, $format = 'html', $before = '', $after = '', $selected = false ) {
@@ -2069,11 +2069,11 @@ function wp_get_archives( $args = '' ) {
 	if ( 'monthly' === $parsed_args['type'] ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
-		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'post-queries' );
+		$key     = "wp_get_archives:$key";
+		$results = wp_cache_get_salted( $key, 'post-queries', $last_changed );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'post-queries' );
+			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2094,11 +2094,11 @@ function wp_get_archives( $args = '' ) {
 	} elseif ( 'yearly' === $parsed_args['type'] ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
-		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'post-queries' );
+		$key     = "wp_get_archives:$key";
+		$results = wp_cache_get_salted( $key, 'post-queries', $last_changed );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'post-queries' );
+			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2118,11 +2118,11 @@ function wp_get_archives( $args = '' ) {
 	} elseif ( 'daily' === $parsed_args['type'] ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, DAYOFMONTH(post_date) AS `dayofmonth`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date), DAYOFMONTH(post_date) ORDER BY post_date $order $limit";
 		$key     = md5( $query );
-		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'post-queries' );
+		$key     = "wp_get_archives:$key";
+		$results = wp_cache_get_salted( $key, 'post-queries', $last_changed );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'post-queries' );
+			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
 		}
 		if ( $results ) {
 			$after = $parsed_args['after'];
@@ -2144,11 +2144,11 @@ function wp_get_archives( $args = '' ) {
 		$week    = _wp_mysql_week( '`post_date`' );
 		$query   = "SELECT DISTINCT $week AS `week`, YEAR( `post_date` ) AS `yr`, DATE_FORMAT( `post_date`, '%Y-%m-%d' ) AS `yyyymmdd`, count( `ID` ) AS `posts` FROM `$wpdb->posts` $join $where GROUP BY $week, YEAR( `post_date` ) ORDER BY `post_date` $order $limit";
 		$key     = md5( $query );
-		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'post-queries' );
+		$key     = "wp_get_archives:$key";
+		$results = wp_cache_get_salted( $key, 'post-queries', $last_changed );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'post-queries' );
+			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
 		}
 		$arc_w_last = '';
 		if ( $results ) {
@@ -2183,11 +2183,11 @@ function wp_get_archives( $args = '' ) {
 		$orderby = ( 'alpha' === $parsed_args['type'] ) ? 'post_title ASC ' : 'post_date DESC, ID DESC ';
 		$query   = "SELECT * FROM $wpdb->posts $join $where ORDER BY $orderby $limit";
 		$key     = md5( $query );
-		$key     = "wp_get_archives:$key:$last_changed";
-		$results = wp_cache_get( $key, 'post-queries' );
+		$key     = "wp_get_archives:$key";
+		$results = wp_cache_get_salted( $key, 'post-queries', $last_changed );
 		if ( ! $results ) {
 			$results = $wpdb->get_results( $query );
-			wp_cache_set( $key, $results, 'post-queries' );
+			wp_cache_set_salted( $key, $results, 'post-queries', $last_changed );
 		}
 		if ( $results ) {
 			foreach ( (array) $results as $result ) {
@@ -2289,7 +2289,6 @@ function get_calendar( $args = array() ) {
 	 *     @type bool   $display   Whether to display the calendar output. Default true.
 	 *     @type string $post_type Optional. Post type. Default 'post'.
 	 * }
-	 * @return array The arguments for the `get_calendar` function.
 	 */
 	$args = apply_filters( 'get_calendar_args', wp_parse_args( $args, $defaults ) );
 
@@ -2494,7 +2493,7 @@ function get_calendar( $args = array() ) {
 	$daysinmonth = (int) gmdate( 't', $unixmonth );
 
 	for ( $day = 1; $day <= $daysinmonth; ++$day ) {
-		if ( isset( $newrow ) && $newrow ) {
+		if ( $newrow ) {
 			$calendar_output .= "\n\t</tr>\n\t<tr>\n\t\t";
 		}
 
@@ -3327,9 +3326,13 @@ function feed_links_extra( $args = array() ) {
 	 */
 	$args = apply_filters( 'feed_links_extra_args', $args );
 
-	if ( is_singular() ) {
-		$id   = 0;
-		$post = get_post( $id );
+	/*
+	 * The template conditionals are referring to the global query, so the queried object is used rather than
+	 * depending on a global $post being set.
+	 */
+	$queried_object = get_queried_object();
+	if ( is_singular() && $queried_object instanceof WP_Post ) {
+		$post = $queried_object;
 
 		/** This filter is documented in wp-includes/general-template.php */
 		$show_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );
@@ -3349,12 +3352,17 @@ function feed_links_extra( $args = array() ) {
 		 */
 		$show_post_comments_feed = apply_filters( 'feed_links_extra_show_post_comments_feed', $show_comments_feed );
 
-		if ( $show_post_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
+		if ( $show_post_comments_feed && ( comments_open( $post ) || pings_open( $post ) || (int) $post->comment_count > 0 ) ) {
 			$title = sprintf(
 				$args['singletitle'],
 				get_bloginfo( 'name' ),
 				$args['separator'],
-				the_title_attribute( array( 'echo' => false ) )
+				the_title_attribute(
+					array(
+						'echo' => false,
+						'post' => $post,
+					)
+				)
 			);
 
 			$feed_link = get_post_comments_feed_link( $post->ID );
@@ -4067,7 +4075,7 @@ function wp_enqueue_code_editor( $args ) {
 		}
 	}
 
-	wp_add_inline_script( 'code-editor', sprintf( 'jQuery.extend( wp.codeEditor.defaultSettings, %s );', wp_json_encode( $settings ) ) );
+	wp_add_inline_script( 'code-editor', sprintf( 'jQuery.extend( wp.codeEditor.defaultSettings, %s );', wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ) );
 
 	/**
 	 * Fires when scripts and styles are enqueued for the code editor.

@@ -333,11 +333,11 @@ switch ( $action ) {
 
 					<?php if ( count( $_wp_admin_css_colors ) > 1 && has_action( 'admin_color_scheme_picker' ) ) : ?>
 					<tr class="user-admin-color-wrap">
-						<th scope="row"><?php _e( 'Admin Color Scheme' ); ?></th>
+						<th scope="row"><?php _e( 'Administration Color Scheme' ); ?></th>
 						<td>
 							<?php
 							/**
-							 * Fires in the 'Admin Color Scheme' section of the user editing screen.
+							 * Fires in the 'Administration Color Scheme' section of the user editing screen.
 							 *
 							 * The section is only enabled if a callback is hooked to the action,
 							 * and if there is more than one defined color scheme for the admin.
@@ -471,32 +471,46 @@ switch ( $action ) {
 						</tr>
 					<?php endif; // End if ! IS_PROFILE_PAGE. ?>
 
-					<?php if ( is_multisite() && is_network_admin() && ! IS_PROFILE_PAGE && current_user_can( 'manage_network_options' ) && ! isset( $super_admins ) ) : ?>
+					<?php if ( is_multisite() && is_network_admin() && ! IS_PROFILE_PAGE && ! isset( $super_admins ) ) : ?>
 						<tr class="user-super-admin-wrap">
 							<th><?php _e( 'Super Admin' ); ?></th>
 							<td>
-								<?php if ( 0 !== strcasecmp( $profile_user->user_email, get_site_option( 'admin_email' ) ) || ! is_super_admin( $profile_user->ID ) ) : ?>
-									<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
-								<?php else : ?>
-									<p><?php _e( 'Super admin privileges cannot be removed because this user has the network admin email.' ); ?></p>
-								<?php endif; ?>
+								<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
 							</td>
 						</tr>
 					<?php endif; ?>
 
 					<tr class="user-first-name-wrap">
 						<th><label for="first_name"><?php _e( 'First Name' ); ?></label></th>
-						<td><input type="text" name="first_name" id="first_name" value="<?php echo esc_attr( $profile_user->first_name ); ?>" class="regular-text" /></td>
+						<td>
+						<?php if ( IS_PROFILE_PAGE ) : ?>
+							<input type="text" name="first_name" id="first_name" value="<?php echo esc_attr( $profile_user->first_name ); ?>" autocomplete="given-name" class="regular-text" />
+						<?php else : ?>
+							<input type="text" name="first_name" id="first_name" value="<?php echo esc_attr( $profile_user->first_name ); ?>" class="regular-text" />
+						<?php endif; ?>
+						</td>
 					</tr>
 
 					<tr class="user-last-name-wrap">
 						<th><label for="last_name"><?php _e( 'Last Name' ); ?></label></th>
-						<td><input type="text" name="last_name" id="last_name" value="<?php echo esc_attr( $profile_user->last_name ); ?>" class="regular-text" /></td>
+						<td>
+						<?php if ( IS_PROFILE_PAGE ) : ?>
+							<input type="text" name="last_name" id="last_name" value="<?php echo esc_attr( $profile_user->last_name ); ?>" autocomplete="family-name" class="regular-text" />
+						<?php else : ?>
+							<input type="text" name="last_name" id="last_name" value="<?php echo esc_attr( $profile_user->last_name ); ?>" class="regular-text" />
+						<?php endif; ?>
+						</td>
 					</tr>
 
 					<tr class="user-nickname-wrap">
 						<th><label for="nickname"><?php _e( 'Nickname' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></label></th>
-						<td><input type="text" name="nickname" id="nickname" value="<?php echo esc_attr( $profile_user->nickname ); ?>" class="regular-text" /></td>
+						<td>
+						<?php if ( IS_PROFILE_PAGE ) : ?>
+							<input type="text" name="nickname" id="nickname" value="<?php echo esc_attr( $profile_user->nickname ); ?>" autocomplete="nickname" class="regular-text" />
+						<?php else : ?>
+							<input type="text" name="nickname" id="nickname" value="<?php echo esc_attr( $profile_user->nickname ); ?>" class="regular-text" />
+						<?php endif; ?>
+						</td>
 					</tr>
 
 					<tr class="user-display-name-wrap">
@@ -546,7 +560,7 @@ switch ( $action ) {
 						<th><label for="email"><?php _e( 'Email' ); ?> <span class="description"><?php _e( '(required)' ); ?></span></label></th>
 						<td>
 							<?php if ( $profile_user->ID === $current_user->ID ) : ?>
-								<input type="email" name="email" id="email" aria-describedby="email-description" value="<?php echo esc_attr( $profile_user->user_email ); ?>" class="regular-text ltr" />
+								<input type="email" name="email" id="email" aria-describedby="email-description" value="<?php echo esc_attr( $profile_user->user_email ); ?>" autocomplete="email" class="regular-text ltr" />
 								<p class="description" id="email-description">
 									<?php _e( 'If you change this, an email will be sent at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
 								</p>
@@ -873,7 +887,7 @@ switch ( $action ) {
 					<?php
 					if ( IS_PROFILE_PAGE ) {
 						/**
-						 * Fires after the 'About Yourself' settings table on the 'Profile' editing screen.
+						 * Fires after the 'Application Passwords' section is loaded on the 'Profile' editing screen.
 						 *
 						 * The action only fires if the current user is editing their own profile.
 						 *
@@ -884,7 +898,9 @@ switch ( $action ) {
 						do_action( 'show_user_profile', $profile_user );
 					} else {
 						/**
-						 * Fires after the 'About the User' settings table on the 'Edit User' screen.
+						 * Fires after the 'Application Passwords' section is loaded on 'Edit User' screen.
+						 *
+						 * The action only fires if the current user is editing another user's profile.
 						 *
 						 * @since 2.0.0
 						 *
