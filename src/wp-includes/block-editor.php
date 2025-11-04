@@ -496,6 +496,14 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$custom_settings
 	);
 
+	$editor_settings['__experimentalBlockBindingsSupportedAttributes'] = array();
+	foreach ( array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() ) as $block_type ) {
+		$supported_block_attributes = get_block_bindings_supported_attributes( $block_type );
+		if ( ! empty( $supported_block_attributes ) ) {
+			$editor_settings['__experimentalBlockBindingsSupportedAttributes'][ $block_type ] = $supported_block_attributes;
+		}
+	}
+
 	$global_styles = array();
 	$presets       = array(
 		array(
@@ -766,7 +774,7 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 		'wp-api-fetch',
 		sprintf(
 			'wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( %s ) );',
-			wp_json_encode( $preload_data )
+			wp_json_encode( $preload_data, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 		),
 		'after'
 	);

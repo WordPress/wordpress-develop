@@ -60,6 +60,12 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			break;
 		case 'edit_user':
 		case 'edit_users':
+			// Non-existent users can't edit users, not even themselves.
+			if ( $user_id < 1 ) {
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
 			// Allow user to edit themselves.
 			if ( 'edit_user' === $cap && isset( $args[0] ) && $user_id === (int) $args[0] ) {
 				break;
@@ -1246,6 +1252,7 @@ function grant_super_admin( $user_id ) {
  * Revokes Super Admin privileges.
  *
  * @since 3.0.0
+ * @since 6.9.0 Super admin privileges can be revoked regardless of email address.
  *
  * @global array $super_admins
  *
@@ -1272,7 +1279,7 @@ function revoke_super_admin( $user_id ) {
 	$super_admins = get_site_option( 'site_admins', array( 'admin' ) );
 
 	$user = get_userdata( $user_id );
-	if ( $user && 0 !== strcasecmp( $user->user_email, get_site_option( 'admin_email' ) ) ) {
+	if ( $user ) {
 		$key = array_search( $user->user_login, $super_admins, true );
 		if ( false !== $key ) {
 			unset( $super_admins[ $key ] );

@@ -62,7 +62,7 @@ if ( $wp_customize->changeset_post_id() ) {
 		?>
 		<?php wp_print_scripts( array( 'wp-util' ) ); ?>
 		<script>
-			wp.ajax.post( 'customize_save', <?php echo wp_json_encode( $request_args ); ?> );
+			wp.ajax.post( 'customize_save', <?php echo wp_json_encode( $request_args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 		</script>
 		<?php
 		$script = ob_get_clean();
@@ -158,7 +158,7 @@ $admin_title = sprintf( $wp_customize->get_document_title_template(), __( 'Loadi
 <title><?php echo esc_html( $admin_title ); ?></title>
 
 <script type="text/javascript">
-var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php', 'relative' ) ); ?>,
+var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php', 'relative' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>,
 	pagenow = 'customize';
 </script>
 
@@ -268,7 +268,7 @@ do_action( 'customize_controls_head' );
 
 		<div id="customize-footer-actions" class="wp-full-overlay-footer">
 			<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php echo esc_attr_x( 'Hide Controls', 'label for hide controls button without length constraints' ); ?>">
-				<span class="collapse-sidebar-arrow"></span>
+				<span class="collapse-sidebar-arrow" aria-hidden="true"></span>
 				<span class="collapse-sidebar-label"><?php _ex( 'Hide Controls', 'short (~12 characters) label for hide controls button' ); ?></span>
 			</button>
 			<?php $previewable_devices = $wp_customize->get_previewable_devices(); ?>

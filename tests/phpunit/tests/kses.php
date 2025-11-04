@@ -17,7 +17,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	public function test_wp_filter_post_kses_address( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -65,7 +65,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	public function test_wp_filter_post_kses_a( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -120,7 +120,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @param string $expected Expected output following KSES parsing.
 	 */
 	public function test_wp_kses_video( $source, $context, $expected ) {
-		$this->assertSame( $expected, wp_kses( $source, $context ) );
+		$this->assertEqualHTML( $expected, wp_kses( $source, $context ) );
 	}
 
 	/**
@@ -171,7 +171,7 @@ class Tests_Kses extends WP_UnitTestCase {
 	public function test_wp_filter_post_kses_abbr( $content, $expected ) {
 		global $allowedposttags;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -232,7 +232,7 @@ EOF;
 <a href="">CLICK ME</a>
 EOF;
 
-		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function test_wp_kses_bad_protocol() {
@@ -546,8 +546,8 @@ EOF;
 		$expect_stripped_content = 'Alot of hyphens.';
 		$expect_valid_content    = '<hyphenated-tag attribute="value">Alot of hyphens.</hyphenated-tag>';
 
-		$this->assertSame( $expect_stripped_content, wp_kses_post( $content ) );
-		$this->assertSame( $expect_valid_content, wp_kses( $content, $custom_tags ) );
+		$this->assertEqualHTML( $expect_stripped_content, wp_kses_post( $content ) );
+		$this->assertEqualHTML( $expect_valid_content, wp_kses( $content, $custom_tags ) );
 	}
 
 	/**
@@ -597,6 +597,12 @@ EOF;
 			'Encoded named ref &amp;amp;'        => array( '&amp;amp;', '&amp;amp;' ),
 			'Encoded named ref &#38;amp;'        => array( '&#38;amp;', '&#038;amp;' ),
 			'Encoded named ref &#x26;amp;'       => array( '&#x26;amp;', '&#x26;amp;' ),
+			'Encoded numeric ref &amp;#39;'      => array( '&amp;#39;', '&amp;#39;' ),
+			'Encoded numeric ref &#38;#39;'      => array( '&#38;#39;', '&#038;#39;' ),
+			'Encoded numeric ref &#x26;#39;'     => array( '&#x26;#39;', '&#x26;#39;' ),
+			'Encoded hex ref &amp;#x27;'         => array( '&amp;#x27;', '&amp;#x27;' ),
+			'Encoded hex ref &#38;#x27;'         => array( '&#38;#x27;', '&#038;#x27;' ),
+			'Encoded hex ref &#x26;#x27;'        => array( '&#x26;#x27;', '&#x26;#x27;' ),
 
 			/*
 			 * The codepoint value here is outside of the valid unicode range whose
@@ -609,11 +615,12 @@ EOF;
 
 	/**
 	 * @ticket 26290
+	 * @ticket 63630
 	 *
 	 * @dataProvider data_normalize_entities
 	 */
 	public function test_wp_kses_normalize_entities( string $input, string $expected ) {
-		$this->assertSame( $expected, wp_kses_normalize_entities( $input ) );
+		$this->assertEqualHTML( $expected, wp_kses_normalize_entities( $input ) );
 	}
 
 	/**
@@ -625,7 +632,7 @@ EOF;
 	public function test_ctrl_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		return $this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function data_ctrl_removal() {
@@ -662,7 +669,7 @@ EOF;
 	public function test_slash_zero_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
+		return $this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function data_slash_zero_removal() {
@@ -917,7 +924,7 @@ EOF;
 
 		$content = '<p>This is <bdo dir="rtl">a BDO tag</bdo>. Weird, <bdo dir="ltr">right?</bdo></p>';
 
-		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -928,7 +935,7 @@ EOF;
 
 		$content = '<ruby>✶<rp>: </rp><rt>Star</rt><rp>, </rp><rt lang="fr">Étoile</rt><rp>.</rp></ruby>';
 
-		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -939,7 +946,7 @@ EOF;
 
 		$content = '<ol reversed="reversed"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ol>';
 
-		$this->assertSame( $content, wp_kses( $content, $allowedposttags ) );
+		$this->assertEqualHTML( $content, wp_kses( $content, $allowedposttags ) );
 	}
 
 	/**
@@ -949,7 +956,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => array() ), array() ) );
+		$this->assertEqualHTML( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => array() ), array() ) );
 	}
 
 	/**
@@ -959,7 +966,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => true ), array() ) );
+		$this->assertEqualHTML( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => true ), array() ) );
 	}
 
 	/**
@@ -969,7 +976,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element} title=\"foo\">", wp_kses_attr( $element, $attribute, array( 'foo' => array( 'title' => true ) ), array() ) );
+		$this->assertEqualHTML( "<{$element} title=\"foo\">", wp_kses_attr( $element, $attribute, array( 'foo' => array( 'title' => true ) ), array() ) );
 	}
 
 	/**
@@ -979,7 +986,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => false ), array() ) );
+		$this->assertEqualHTML( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => false ), array() ) );
 	}
 
 	/**
@@ -1172,6 +1179,23 @@ EOF;
 			array(
 				'css'      => 'object-fit: cover',
 				'expected' => 'object-fit: cover',
+			),
+			// `white-space` introduced in 6.9.0.
+			array(
+				'css'      => 'white-space: nowrap',
+				'expected' => 'white-space: nowrap',
+			),
+			array(
+				'css'      => 'white-space: pre',
+				'expected' => 'white-space: pre',
+			),
+			array(
+				'css'      => 'white-space: pre-wrap',
+				'expected' => 'white-space: pre-wrap',
+			),
+			array(
+				'css'      => 'white-space: pre-line',
+				'expected' => 'white-space: pre-line',
 			),
 			// Expressions are not allowed.
 			array(
@@ -1423,7 +1447,7 @@ EOF;
 		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data-two-hyphens="remains">Pens and pencils</div>';
 		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
 
-		$this->assertSame( $expected, wp_kses_post( $test ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $test ) );
 	}
 
 	/**
@@ -1435,7 +1459,7 @@ EOF;
 		$test     = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
 		$expected = '<div data--leading="remains" data-trailing-="remains" data-middle--double="remains">Pens and pencils</div>';
 
-		$this->assertSame( $expected, wp_kses_post( $test ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $test ) );
 	}
 
 	/**
@@ -1456,7 +1480,7 @@ EOF;
 
 		$actual = wp_kses( $content, $allowed_html );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -1476,7 +1500,7 @@ EOF;
 
 		$actual = wp_kses( $content, $allowed_html );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -1761,7 +1785,7 @@ EOF;
 
 		$html = implode( ' ', $html );
 
-		$this->assertSame( $html, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1779,7 +1803,7 @@ EOF;
 
 		$html = implode( ' ', $test );
 
-		$this->assertSame( $html, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $html, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1793,7 +1817,7 @@ EOF;
 	 * @param string $expected The expected result from KSES.
 	 */
 	public function test_wp_kses_object_tag_allowed( $html, $expected ) {
-		$this->assertSame( $expected, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1904,7 +1928,7 @@ EOF;
 	 */
 	public function test_wp_kses_object_data_url_with_port_number_allowed( $html, $expected ) {
 		add_filter( 'upload_dir', array( $this, 'wp_kses_upload_dir_filter' ), 10, 2 );
-		$this->assertSame( $expected, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -1970,7 +1994,7 @@ HTML;
 
 		remove_filter( 'wp_kses_allowed_html', array( $this, 'filter_wp_kses_object_added_in_html_filter' ) );
 
-		$this->assertSame( $html, $filtered_html );
+		$this->assertEqualHTML( $html, $filtered_html );
 	}
 
 	public function filter_wp_kses_object_added_in_html_filter( $tags, $context ) {
@@ -2001,9 +2025,10 @@ HTML;
 	 * @param string $expected_output How `wp_kses()` ought to transform the comment.
 	 */
 	public function test_wp_kses_preserves_html_comments( $html_comment, $expected_output ) {
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$expected_output,
 			wp_kses( $html_comment, array() ),
+			'<body>',
 			'Failed to properly preserve HTML comment.'
 		);
 	}
@@ -2033,7 +2058,7 @@ HTML;
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
 	public function test_wp_kses_allowed_values_list( $content, $expected, $allowed_html ) {
-		$this->assertSame( $expected, wp_kses( $content, $allowed_html ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
 	}
 
 	/**
@@ -2091,7 +2116,7 @@ HTML;
 	 * @param array  $allowed_html The allowed HTML to pass to KSES.
 	 */
 	public function test_wp_kses_required_attribute( $content, $expected, $allowed_html ) {
-		$this->assertSame( $expected, wp_kses( $content, $allowed_html ) );
+		$this->assertEqualHTML( $expected, wp_kses( $content, $allowed_html ) );
 	}
 
 	/**
@@ -2312,7 +2337,7 @@ HTML;
 	public function test_target_attribute_preserved_in_context( $context, $input, $expected ) {
 		$allowed = wp_kses_allowed_html( $context );
 		$this->assertTrue( isset( $allowed['a']['target'] ), "Target attribute not allowed in {$context}" );
-		$this->assertEquals( $expected, wp_kses( $input, $context ) );
+		$this->assertEqualHTML( $expected, wp_kses( $input, $context ) );
 	}
 
 	/**

@@ -50,7 +50,7 @@ class _WP_Dependency {
 	 * Used for cache-busting.
 	 *
 	 * @since 2.6.0
-	 * @var bool|string
+	 * @var string|false|null
 	 */
 	public $ver = false;
 
@@ -58,7 +58,7 @@ class _WP_Dependency {
 	 * Additional arguments for the handle.
 	 *
 	 * @since 2.6.0
-	 * @var array
+	 * @var mixed
 	 */
 	public $args = null;  // Custom property, such as $in_footer or $media.
 
