@@ -714,6 +714,11 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 
 	$dupe_id = $wpdb->get_var( $dupe );
 
+	// Allow duplicate notes for resolution purposes.
+	if ( isset( $commentdata['comment_type'] ) && 'note' === $commentdata['comment_type'] ) {
+		$dupe_id = false;
+	}
+
 	/**
 	 * Filters the ID, if any, of the duplicate comment found when creating a new comment.
 	 *
@@ -932,8 +937,8 @@ function wp_check_comment_flood( $is_flood, $ip, $email, $date, $avoid_die = fal
  *
  * @since 2.7.0
  *
- * @param WP_Comment[] $comments Array of comments
- * @return WP_Comment[] Array of comments keyed by comment_type.
+ * @param WP_Comment[] $comments Array of comments.
+ * @return array<string, WP_Comment[]> Array of comments keyed by comment type.
  */
 function separate_comments( &$comments ) {
 	$comments_by_type = array(
@@ -1050,7 +1055,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 
 	$comment = get_comment( $comment_id );
 	if ( ! $comment ) {
-		return;
+		return null;
 	}
 
 	$defaults      = array(
@@ -3060,22 +3065,19 @@ function do_trackbacks( $post ) {
 	$post_title = apply_filters( 'the_title', $post->post_title, $post->ID );
 	$post_title = strip_tags( $post_title );
 
-	if ( $to_ping ) {
-		foreach ( (array) $to_ping as $tb_ping ) {
-			$tb_ping = trim( $tb_ping );
-			if ( ! in_array( $tb_ping, $pinged, true ) ) {
-				trackback( $tb_ping, $post_title, $excerpt, $post->ID );
-				$pinged[] = $tb_ping;
-			} else {
-				$wpdb->query(
-					$wpdb->prepare(
-						"UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s,
-					'')) WHERE ID = %d",
-						$tb_ping,
-						$post->ID
-					)
-				);
-			}
+	foreach ( (array) $to_ping as $tb_ping ) {
+		$tb_ping = trim( $tb_ping );
+		if ( ! in_array( $tb_ping, $pinged, true ) ) {
+			trackback( $tb_ping, $post_title, $excerpt, $post->ID );
+			$pinged[] = $tb_ping;
+		} else {
+			$wpdb->query(
+				$wpdb->prepare(
+					"UPDATE $wpdb->posts SET to_ping = TRIM(REPLACE(to_ping, %s, '')) WHERE ID = %d",
+					$tb_ping,
+					$post->ID
+				)
+			);
 		}
 	}
 }
@@ -3436,9 +3438,9 @@ function _prime_comment_caches( $comment_ids, $update_meta_cache = true ) {
  * @since 2.7.0
  * @access private
  *
- * @param WP_Post  $posts Post data object.
- * @param WP_Query $query Query object.
- * @return array
+ * @param WP_Post[] $posts Array of post objects.
+ * @param WP_Query  $query Query object.
+ * @return WP_Post[]
  */
 function _close_comments_for_old_posts( $posts, $query ) {
 	if ( empty( $posts ) || ! $query->is_singular() || ! get_option( 'close_comments_for_old_posts' ) ) {
@@ -4105,4 +4107,30 @@ function _wp_check_for_scheduled_update_comment_type() {
 	if ( ! get_option( 'finished_updating_comment_type' ) && ! wp_next_scheduled( 'wp_update_comment_type_batch' ) ) {
 		wp_schedule_single_event( time() + MINUTE_IN_SECONDS, 'wp_update_comment_type_batch' );
 	}
+}
+
+/**
+ * Register initial note status meta.
+ *
+ * @since 6.9.0
+ */
+function wp_create_initial_comment_meta() {
+	register_meta(
+		'comment',
+		'_wp_note_status',
+		array(
+			'type'         => 'string',
+			'description'  => __( 'Note resolution status' ),
+			'single'       => true,
+			'show_in_rest' => array(
+				'schema' => array(
+					'type' => 'string',
+					'enum' => array( 'resolved', 'reopen' ),
+				),
+			),
+			'auth_callback' => function ( $allowed, $meta_key, $object_id ) {
+				return current_user_can( 'edit_comment', $object_id );
+			},
+		)
+	);
 }
