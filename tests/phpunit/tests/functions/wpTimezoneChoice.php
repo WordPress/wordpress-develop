@@ -32,14 +32,14 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 */
 	public function data_wp_timezone_choice() {
 		return array(
-			'placeholder option' => array( '<option selected="selected" value="">Select a city</option>' ),
-			'city in Americas' => array( '<option value="America/Los_Angeles">Los Angeles</option>' ),
-			'deprecated timezone' => array( '<option value="Pacific/Honolulu">Honolulu</option>' ),
-			'manual offset example' => array( '<option value="UTC-8">UTC-8</option>' ),
-			'UTC option' => array( '<option value="UTC">UTC</option>' ),
-			'continent example' => array( '<option value="Africa/Johannesburg">Johannesburg</option>' ),
-			'city example' => array( '<option value="Asia/Kuala_Lumpur">Kuala Lumpur</option>' ),
-			'city with sub-city' => array( '<option value="America/Argentina/Buenos_Aires">Argentina - Buenos Aires</option>' ),
+			'placeholder option'           => array( '<option selected="selected" value="">Select a city</option>' ),
+			'city in Americas'             => array( '<option value="America/Los_Angeles">Los Angeles</option>' ),
+			'deprecated timezone'          => array( '<option value="Pacific/Honolulu">Honolulu</option>' ),
+			'manual offset example'        => array( '<option value="UTC-8">UTC-8</option>' ),
+			'UTC option'                   => array( '<option value="UTC">UTC</option>' ),
+			'continent example'            => array( '<option value="Africa/Johannesburg">Johannesburg</option>' ),
+			'city example'                 => array( '<option value="Asia/Kuala_Lumpur">Kuala Lumpur</option>' ),
+			'city with sub-city'           => array( '<option value="America/Argentina/Buenos_Aires">Argentina - Buenos Aires</option>' ),
 			'translated city name appears' => array( '<option value="Pacific/Port_Moresby">Port Moresby</option>' ),
 		);
 	}
@@ -63,7 +63,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 */
 	public function data_wp_timezone_choice_selected() {
 		return array(
-			'city from the list' => array(
+			'city from the list'                  => array(
 				'America/Los_Angeles',
 				'<option selected="selected" value="America/Los_Angeles">Los Angeles</option>',
 			),
@@ -71,11 +71,11 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 				'Pacific/Auckland',
 				'<option selected="selected" value="Pacific/Auckland">Auckland</option>',
 			),
-			'UTC' => array(
+			'UTC'                                  => array(
 				'UTC',
 				'<option selected="selected" value="UTC">UTC</option>',
 			),
-			'manual UTC offset' => array(
+			'manual UTC offset'                    => array(
 				'UTC+10',
 				'<option selected="selected" value="UTC+10">UTC+10</option>',
 			),
@@ -107,9 +107,9 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	public function data_wp_timezone_choice_es() {
 		return array(
 			'placeholder remains in English (no translation override passed)' => array( '<option selected="selected" value="">Select a city</option>' ),
-			'spanish city translation' => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
-			'spanish optgroup Arctic' => array( '<optgroup label="Ártico">' ),
-			'spanish optgroup Manual Offsets untranslated' => array( '<optgroup label="Manual Offsets">' ),
+			'spanish city translation'                                        => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
+			'spanish optgroup Arctic'                                         => array( '<optgroup label="Ártico">' ),
+			'spanish optgroup Manual Offsets untranslated'                    => array( '<optgroup label="Manual Offsets">' ),
 		);
 	}
 
@@ -133,9 +133,9 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 */
 	public function data_wp_timezone_choice_es_set() {
 		return array(
-			'placeholder in Spanish' => array( '<option selected="selected" value="">Elige una ciudad</option>' ),
-			'spanish city translation' => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
-			'spanish optgroup Arctic' => array( '<optgroup label="Ártico">' ),
+			'placeholder in Spanish'          => array( '<option selected="selected" value="">Elige una ciudad</option>' ),
+			'spanish city translation'        => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
+			'spanish optgroup Arctic'         => array( '<optgroup label="Ártico">' ),
 			'spanish optgroup Manual Offsets' => array( '<optgroup label="Compensaciones manuales">' ),
 		);
 	}
