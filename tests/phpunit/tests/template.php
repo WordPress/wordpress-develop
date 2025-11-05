@@ -79,6 +79,11 @@ class Tests_Template extends WP_UnitTestCase {
 	protected $original_theme_features;
 
 	/**
+	 * @var WP_Block_Type_Registry
+	 */
+	protected $original_block_type_registry;
+
+	/**
 	 * @var array
 	 */
 	const RESTORED_CONFIG_OPTIONS = array(
@@ -135,6 +140,8 @@ class Tests_Template extends WP_UnitTestCase {
 		foreach ( self::RESTORED_CONFIG_OPTIONS as $option ) {
 			$this->original_ini_config[ $option ] = ini_get( $option );
 		}
+
+		$this->original_block_type_registry = WP_Block_Type_Registry::get_instance();
 	}
 
 	public function tear_down() {
@@ -150,6 +157,14 @@ class Tests_Template extends WP_UnitTestCase {
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );
+
+		$reflection_class  = new ReflectionClass( WP_Block_Type_Registry::class );
+		$instance_property = $reflection_class->getProperty( 'instance' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$instance_property->setAccessible( true );
+		}
+		$instance_property->setValue( null, $this->original_block_type_registry );
+
 		parent::tear_down();
 	}
 
