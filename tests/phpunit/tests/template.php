@@ -131,7 +131,7 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_styles();
 
 		$this->original_theme_features = $_wp_theme_features;
-		$_wp_theme_features = array();
+		$_wp_theme_features            = array();
 		foreach ( self::RESTORED_CONFIG_OPTIONS as $option ) {
 			$this->original_ini_config[ $option ] = ini_get( $option );
 		}
@@ -1795,6 +1795,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$export = preg_replace( '/\barray \($/m', 'array(', $export );
 		$export = preg_replace( '/^(\s+)\d+\s+=>\s+/m', '$1', $export );
 		$export = preg_replace( '/=> *\n +/', '=> ', $export );
+		$export = preg_replace( '/array\(\n\s+\)/', 'array()', $export );
 		return preg_replace_callback(
 			'/(^ +)/m',
 			static function ( $matches ) {
