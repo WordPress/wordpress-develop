@@ -1474,7 +1474,7 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{set_up: Closure|null, expected_styles: array{ HEAD: string[], BODY: string[] }}>
+	 * @return array<string, array{set_up: Closure|null, inline_size_limit: int,  expected_styles: array{ HEAD: string[], BODY: string[] }}>
 	 */
 	public function data_wp_hoist_late_printed_styles(): array {
 		$common_expected_head_styles = array(
@@ -1496,15 +1496,39 @@ class Tests_Template extends WP_UnitTestCase {
 
 		return array(
 			// TODO: Add test case for embed template.
-			'standard_classic_theme_config'               => array(
-				'set_up'          => null,
-				'expected_styles' => array(
+			'standard_classic_theme_config_with_min_styles_inlined' => array(
+				'set_up'            => null,
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
 				),
 			),
+			'standard_classic_theme_config_with_max_styles_inlined' => array(
+				'set_up'            => null,
+				'inline_size_limit' => PHP_INT_MAX,
+				'expected_styles'   => array(
+					'HEAD' => array(
+						'wp-img-auto-sizes-contain-inline-css',
+						'early-css',
+						'early-inline-css',
+						'wp-emoji-styles-inline-css',
+						'wp-block-library-inline-css',
+						'wp-block-separator-inline-css',
+						'global-styles-inline-css',
+						'core-block-supports-inline-css',
+						'classic-theme-styles-inline-css',
+						'normal-css',
+						'normal-inline-css',
+						'wp-custom-css',
+						'late-css',
+						'late-inline-css',
+					),
+					'BODY' => array(),
+				),
+			),
 			'standard_classic_theme_config_extra_block_library_inline_style' => array(
-				'set_up'          => static function () {
+				'set_up'            => static function () {
 					add_action(
 						'enqueue_block_assets',
 						static function () {
@@ -1512,7 +1536,8 @@ class Tests_Template extends WP_UnitTestCase {
 						}
 					);
 				},
-				'expected_styles' => array(
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
 					'HEAD' => ( function ( $expected_styles ) {
 						// Insert 'wp-block-library-inline-css' right after 'wp-block-library-css'.
 						$i = array_search( 'wp-block-library-css', $expected_styles, true );
@@ -1524,10 +1549,11 @@ class Tests_Template extends WP_UnitTestCase {
 				),
 			),
 			'classic_theme_opt_out_separate_block_styles' => array(
-				'set_up'          => static function () {
+				'set_up'            => static function () {
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 				},
-				'expected_styles' => array(
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
 					'HEAD' => array(
 						'wp-img-auto-sizes-contain-inline-css',
 						'early-css',
@@ -1548,8 +1574,9 @@ class Tests_Template extends WP_UnitTestCase {
 				),
 			),
 			'wp_block_styles_not_supported'               => array(
-				'set_up'          => null,
-				'expected_styles' => array(
+				'set_up'            => null,
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
 					'HEAD' => array_values(
 						array_diff(
 							$common_expected_head_styles,
@@ -1562,35 +1589,38 @@ class Tests_Template extends WP_UnitTestCase {
 				),
 			),
 			'_wp_footer_scripts_removed'                  => array(
-				'set_up'          => static function () {
+				'set_up'            => static function () {
 					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 				},
-				'expected_styles' => array(
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
 				),
 			),
 			'wp_print_footer_scripts_removed'             => array(
-				'set_up'          => static function () {
+				'set_up'            => static function () {
 					remove_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
 				},
-				'expected_styles' => array(
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
 				),
 			),
 			'both_actions_removed'                        => array(
-				'set_up'          => static function () {
+				'set_up'            => static function () {
 					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 					remove_action( 'wp_footer', 'wp_print_footer_scripts' );
 				},
-				'expected_styles' => array(
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
 				),
 			),
 			'disable_block_library'                       => array(
-				'set_up'          => static function () {
+				'set_up'            => static function () {
 					add_action(
 						'enqueue_block_assets',
 						function (): void {
@@ -1600,7 +1630,8 @@ class Tests_Template extends WP_UnitTestCase {
 					);
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 				},
-				'expected_styles' => array(
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
 					'HEAD' => array(
 						'wp-img-auto-sizes-contain-inline-css',
 						'early-css',
@@ -1631,7 +1662,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 */
-	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, array $expected_styles ): void {
+	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, int $inline_size_limit, array $expected_styles ): void {
 		switch_theme( 'default' );
 		global $wp_styles;
 		$wp_styles = null;
@@ -1639,8 +1670,8 @@ class Tests_Template extends WP_UnitTestCase {
 		// Disable the styles_inline_size_limit in order to prevent changes from invalidating the snapshots.
 		add_filter(
 			'styles_inline_size_limit',
-			static function (): int {
-				return 0;
+			static function () use ( $inline_size_limit ): int {
+				return $inline_size_limit;
 			}
 		);
 
@@ -1657,6 +1688,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		wp_load_classic_theme_block_styles_on_demand();
 
+		// Ensure that separate core block assets get registered.
 		register_core_block_style_handles();
 
 		$this->assertFalse( wp_is_block_theme(), 'Test is not relevant to block themes (only classic themes).' );
