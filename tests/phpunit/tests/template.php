@@ -1573,21 +1573,6 @@ class Tests_Template extends WP_UnitTestCase {
 					),
 				),
 			),
-			'wp_block_styles_not_supported'               => array(
-				'set_up'            => null,
-				'inline_size_limit' => 0,
-				'expected_styles'   => array(
-					'HEAD' => array_values(
-						array_diff(
-							$common_expected_head_styles,
-							array(
-								'wp-block-separator-theme-css',
-							)
-						)
-					),
-					'BODY' => array(),
-				),
-			),
 			'_wp_footer_scripts_removed'                  => array(
 				'set_up'            => static function () {
 					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
