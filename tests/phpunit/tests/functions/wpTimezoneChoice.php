@@ -83,7 +83,6 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 		$this->assertStringContainsString( $expected, $actual );
 	}
 
-
 	/**
 	 * Test passing the locale in.
 	 *
