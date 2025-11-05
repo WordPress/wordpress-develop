@@ -47,7 +47,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 		$timezone_from_city_and_subcity_option = '<option value="America/Argentina/Buenos_Aires">Argentina - Buenos Aires</option>';
 		$this->assertStringContainsString( $timezone_from_city_and_subcity_option, $timezone_list );
 
-		// Test an tranalated city.
+		// Test a translated city.
 		$timezone_from_city_es = '<option value="Pacific/Port_Moresby">Port Moresby</option>';
 		$this->assertStringContainsString( $timezone_from_city_es, $timezone_list );
 	}
