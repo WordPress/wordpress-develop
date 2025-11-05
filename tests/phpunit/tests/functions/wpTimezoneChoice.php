@@ -125,7 +125,5 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 
 		$timezone_from_city_es = '<optgroup label="Compensaciones manuales">';
 		$this->assertStringContainsString( $timezone_from_city_es, $timezone_list );
-
-		restore_current_locale();
 	}
 }
