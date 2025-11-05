@@ -3749,10 +3749,26 @@ function wp_hoist_late_printed_styles() {
 
 					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start + $span->length, 0, $text );
 				}
+
+				/**
+				 * Removes the current token.
+				 */
+				public function remove() {
+					$span = $this->get_span();
+
+					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start, $span->length, '' );
+				}
 			};
 
-			// TODO: If there are no block styles to print, it would be nice to not have to replace the placeholder comment.
-			// Insert block styles right after wp-block-library (if it is present), and then insert any remaining styles at </head>.
+			/*
+			 * Insert block styles right after wp-block-library (if it is present), and then insert any remaining styles
+			 * at </head> (or else print everything there). The placeholder CSS comment will always be added to the
+			 * wp-block-library inline style since it gets printed at `wp_head` before the blocks are rendered.
+			 * This means that there may not actually be any block styles to hoist from the footer to insert after this
+			 * inline style. The placeholder CSS comment needs to be added so that the inline style gets printed, but
+			 * if the resulting inline style is empty after the placeholder is removed, then the inline style is
+			 * removed.
+			 */
 			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 				if (
 					'STYLE' === $processor->get_tag() &&
@@ -3764,8 +3780,16 @@ function wp_hoist_late_printed_styles() {
 						continue;
 					}
 
-					// Remove the placeholder now that we've located the inline style.
-					$processor->set_modifiable_text( str_replace( $placeholder, '', $css_text ) );
+					/*
+					 * Remove the placeholder now that we've located the inline style (and remove the inline style if it
+					 * is now empty, aside from a sourceURL comment).
+					 */
+					$css_text = str_replace( $placeholder, '', $css_text );
+					if ( preg_match( ':^/\*# sourceURL=\S+? \*/$:', trim( $css_text ) ) ) {
+						$processor->remove();
+					} else {
+						$processor->set_modifiable_text( $css_text );
+					}
 
 					// Insert the $printed_late_styles immediately after the closing inline STYLE tag. This preserves the CSS cascade.
 					if ( '' !== $printed_block_styles ) {

@@ -1508,6 +1508,25 @@ class Tests_Template extends WP_UnitTestCase {
 				'expected_head'   => $expected_head_styles,
 				'expected_footer' => array(),
 			),
+			'standard_classic_theme_config_extra_block_library_inline_style' => array(
+				'set_up'          => static function () {
+					add_action(
+						'enqueue_block_assets',
+						static function () {
+							wp_add_inline_style( 'wp-block-library', '/* Extra CSS which prevents empty inline style containing placeholder from being removed. */' );
+						}
+					);
+				},
+				'theme_supports'  => $theme_supports,
+				'expected_head'   => ( function ( $expected_styles ) {
+					// Insert 'wp-block-library-inline-css' right after 'wp-block-library-css'.
+					$i = array_search( 'wp-block-library-css', $expected_styles, true );
+					$this->assertIsInt( $i, 'Expected wp-block-library-css to be among the styles.' );
+					array_splice( $expected_styles, $i + 1, 0, 'wp-block-library-inline-css' );
+					return $expected_styles;
+				} )( $expected_head_styles ),
+				'expected_footer' => array(),
+			),
 			'classic_theme_opt_out_separate_block_styles' => array(
 				'set_up'          => static function () {
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
