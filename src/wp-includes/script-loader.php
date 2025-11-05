@@ -3642,11 +3642,15 @@ function wp_hoist_late_printed_styles() {
 
 	wp_add_inline_style( 'wp-block-library', $placeholder );
 
-	// Wrap print_late_styles() with a closure that captures the late-printed styles.
+	/*
+	 * Create a substitute for `print_late_styles()` which is aware of block styles. This substitute does not print
+	 * the styles, but it captures what would be printed for block styles and non-block styles so that they can be
+	 * later hoisted to the HEAD in the template enhancement output buffer. This will run at `wp_print_footer_scripts`
+	 * before `print_footer_scripts()` is called.
+	 */
 	$printed_block_styles = '';
 	$printed_late_styles  = '';
 	$capture_late_styles  = static function () use ( &$printed_block_styles, &$printed_late_styles ) {
-
 		// Gather the styles related to on-demand block enqueues.
 		$all_block_style_handles = array();
 		foreach ( WP_Block_Type_Registry::get_instance()->get_all_registered() as $block_type ) {
@@ -3686,12 +3690,12 @@ function wp_hoist_late_printed_styles() {
 	};
 
 	/*
-	 * If _wp_footer_scripts() was unhooked from the wp_print_footer_scripts action, or if wp_print_footer_scripts()
-	 * was unhooked from running at the wp_footer action, then only add a callback to wp_footer which will capture the
+	 * If `_wp_footer_scripts()` was unhooked from the `wp_print_footer_scripts` action, or if `wp_print_footer_scripts()`
+	 * was unhooked from running at the `wp_footer` action, then only add a callback to `wp_footer` which will capture the
 	 * late-printed styles.
 	 *
-	 * Otherwise, in the normal case where _wp_footer_scripts() will run at the wp_print_footer_scripts action, then
-	 * swap out _wp_footer_scripts() with an alternative which captures the printed styles (for hoisting to HEAD) before
+	 * Otherwise, in the normal case where `_wp_footer_scripts()` will run at the `wp_print_footer_scripts` action, then
+	 * swap out `_wp_footer_scripts()` with an alternative which captures the printed styles (for hoisting to HEAD) before
 	 * proceeding with printing the footer scripts.
 	 */
 	$wp_print_footer_scripts_priority = has_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
