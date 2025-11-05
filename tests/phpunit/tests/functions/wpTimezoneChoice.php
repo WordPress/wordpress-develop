@@ -32,15 +32,15 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 */
 	public function data_wp_timezone_choice() {
 		return array(
-			'placeholder option' => array('<option selected="selected" value="">Select a city</option>'),
-			'city in Americas' => array('<option value="America/Los_Angeles">Los Angeles</option>'),
-			'deprecated timezone' => array('<option value="Pacific/Honolulu">Honolulu</option>'),
-			'manual offset example' => array('<option value="UTC-8">UTC-8</option>'),
-			'UTC option' => array('<option value="UTC">UTC</option>'),
-			'continent example' => array('<option value="Africa/Johannesburg">Johannesburg</option>'),
-			'city example' => array('<option value="Asia/Kuala_Lumpur">Kuala Lumpur</option>'),
-			'city with sub-city' => array('<option value="America/Argentina/Buenos_Aires">Argentina - Buenos Aires</option>'),
-			'translated city name appears' => array('<option value="Pacific/Port_Moresby">Port Moresby</option>'),
+			'placeholder option' => array( '<option selected="selected" value="">Select a city</option>' ),
+			'city in Americas' => array( '<option value="America/Los_Angeles">Los Angeles</option>' ),
+			'deprecated timezone' => array( '<option value="Pacific/Honolulu">Honolulu</option>' ),
+			'manual offset example' => array( '<option value="UTC-8">UTC-8</option>' ),
+			'UTC option' => array( '<option value="UTC">UTC</option>' ),
+			'continent example' => array( '<option value="Africa/Johannesburg">Johannesburg</option>' ),
+			'city example' => array( '<option value="Asia/Kuala_Lumpur">Kuala Lumpur</option>' ),
+			'city with sub-city' => array( '<option value="America/Argentina/Buenos_Aires">Argentina - Buenos Aires</option>' ),
+			'translated city name appears' => array( '<option value="Pacific/Port_Moresby">Port Moresby</option>' ),
 		);
 	}
 
@@ -106,10 +106,10 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 */
 	public function data_wp_timezone_choice_es() {
 		return array(
-			'placeholder remains in English (no translation override passed)' => array('<option selected="selected" value="">Select a city</option>'),
-			'spanish city translation' => array('<option value="Pacific/Port_Moresby">Puerto Moresby</option>'),
-			'spanish optgroup Arctic' => array('<optgroup label="Ártico">'),
-			'spanish optgroup Manual Offsets untranslated' => array('<optgroup label="Manual Offsets">'),
+			'placeholder remains in English (no translation override passed)' => array( '<option selected="selected" value="">Select a city</option>' ),
+			'spanish city translation' => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
+			'spanish optgroup Arctic' => array( '<optgroup label="Ártico">' ),
+			'spanish optgroup Manual Offsets untranslated' => array( '<optgroup label="Manual Offsets">' ),
 		);
 	}
 
