@@ -1073,10 +1073,9 @@ JS;
 	 * @return string|null Highest fetch priority for the script and its dependents.
 	 */
 	private function get_highest_fetchpriority_with_dependents( string $handle, array $checked = array(), array &$stored_results = array() ): ?string {
-		if(isset($stored_results[$handle]) && !empty($stored_results[$handle])) {
-			return $stored_results[$handle];
+		if ( isset( $stored_results[ $handle ] ) && ! empty( $stored_results[ $handle ] ) ) {
+			return $stored_results[ $handle ];
 		}
-
 
 		// If there is a recursive dependency, return early.
 		if ( isset( $checked[ $handle ] ) ) {
@@ -1118,7 +1117,7 @@ JS;
 				}
 			}
 		}
-		$stored_results[$handle] = $priorities[ $highest_priority_index ];
+		$stored_results[ $handle ] = $priorities[ $highest_priority_index ];
 		return $priorities[ $highest_priority_index ];
 	}
 
