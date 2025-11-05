@@ -2448,8 +2448,10 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	}
 
 	// Only send notifications for approved comments.
-	if ( ! isset( $comment->comment_approved ) || '1' !== $comment->comment_approved ) {
-		return false;
+	if (
+		! isset( $comment->comment_approved ) ||
+		( '1' !== $comment->comment_approved && 'note' !== $comment->comment_type ) ) {
+			return false;
 	}
 
 	return wp_notify_postauthor( $comment_id );
