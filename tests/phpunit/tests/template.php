@@ -1698,6 +1698,7 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_enqueue_style( 'late', 'https://example.com/late-style.css', array(), null );
 		wp_add_inline_style( 'late', '/* LATE */' );
 
+		// Simulate the_content().
 		$content = apply_filters(
 			'the_content',
 			'<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator -->'
@@ -1712,7 +1713,7 @@ class Tests_Template extends WP_UnitTestCase {
 		// Apply the output buffer filter.
 		$filtered_buffer = apply_filters( 'wp_template_enhancement_output_buffer', $buffer );
 
-		$this->assertStringContainsString( '</head>', $buffer, 'Expected the closing HEAD tag to be in the response.' );
+		$this->assertStringContainsString( '</head>', $filtered_buffer, 'Expected the closing HEAD tag to be in the response.' );
 
 		$this->assertDoesNotMatchRegularExpression( '#/\*wp_late_styles_placeholder:[a-f0-9]+\*/#', $filtered_buffer, 'Expected the placeholder to be removed.' );
 		$found_styles = array(
