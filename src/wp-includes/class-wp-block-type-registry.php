@@ -150,7 +150,7 @@ final class WP_Block_Type_Registry {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @return array<string, WP_Block_Type> Associative array of `$block_type_name => $block_type` pairs.
+	 * @return WP_Block_Type[] Associative array of `$block_type_name => $block_type` pairs.
 	 */
 	public function get_all_registered() {
 		return $this->registered_block_types;
