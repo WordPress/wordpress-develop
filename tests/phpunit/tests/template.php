@@ -1529,6 +1529,7 @@ class Tests_Template extends WP_UnitTestCase {
 				'expected_footer' => array(
 					'late-css',
 					'late-inline-css',
+					'core-block-supports-inline-css',
 				),
 			),
 			'classic_theme_opt_out_separate_block_styles_and_no_footer_printing' => array(
@@ -1622,9 +1623,9 @@ class Tests_Template extends WP_UnitTestCase {
 					'wp-custom-css',
 				),
 				'expected_footer' => array(
-					'core-block-supports-inline-css',
 					'late-css',
 					'late-inline-css',
+					'core-block-supports-inline-css',
 				),
 			),
 		);
@@ -1737,8 +1738,8 @@ class Tests_Template extends WP_UnitTestCase {
 			'Expected the same styles in the HEAD. Snapshot: ' . self::get_array_snapshot_export( $found_styles['HEAD'] )
 		);
 		$this->assertSame(
-			$expected_head,
-			$found_styles['HEAD'],
+			$expected_footer,
+			$found_styles['BODY'],
 			'Expected the same styles in the BODY. Snapshot: ' . self::get_array_snapshot_export( $found_styles['BODY'] )
 		);
 	}
