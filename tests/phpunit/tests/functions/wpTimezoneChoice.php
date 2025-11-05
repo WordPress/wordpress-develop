@@ -133,10 +133,10 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 */
 	public function data_wp_timezone_choice_es_set() {
 		return array(
-			'placeholder in Spanish' => array('<option selected="selected" value="">Elige una ciudad</option>'),
-			'spanish city translation' => array('<option value="Pacific/Port_Moresby">Puerto Moresby</option>'),
-			'spanish optgroup Arctic' => array('<optgroup label="Ártico">'),
-			'spanish optgroup Manual Offsets' => array('<optgroup label="Compensaciones manuales">'),
+			'placeholder in Spanish' => array( '<option selected="selected" value="">Elige una ciudad</option>' ),
+			'spanish city translation' => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
+			'spanish optgroup Arctic' => array( '<optgroup label="Ártico">' ),
+			'spanish optgroup Manual Offsets' => array( '<optgroup label="Compensaciones manuales">' ),
 		);
 	}
 }
