@@ -52,7 +52,6 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 		$this->assertStringContainsString( $timezone_from_city_es, $timezone_list );
 	}
 
-
 	/**
 	 * Zones are selected from the list.
 	 *
