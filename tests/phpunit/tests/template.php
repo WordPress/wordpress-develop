@@ -1475,7 +1475,7 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{set_up: Closure|null, theme_supports: string[], expected: string[]}>
+	 * @return array<string, array{set_up: Closure|null, theme_supports: string[], expected_head: string[], expected_footer: string[]}>
 	 */
 	public function data_wp_hoist_late_printed_styles(): array {
 		$theme_supports = array(
@@ -1489,93 +1489,121 @@ class Tests_Template extends WP_UnitTestCase {
 			'wp-emoji-styles-inline-css',
 			'wp-block-library-inline-css',
 			'wp-block-separator-inline-css',
+			'wp-block-separator-theme-inline-css',
 			'global-styles-inline-css',
 			'core-block-supports-inline-css',
 			'classic-theme-styles-inline-css',
 			'normal-css',
 			'normal-inline-css',
 			'wp-custom-css',
-
-			// TODO: This is unexpected. Just because something is enqueued late shouldn't necessitate that it be inserted right after wp-block-library and before a normal style enqueued at wp_enqueue_scripts.
 			'late-css',
 			'late-inline-css',
 		);
 
 		return array(
 			// TODO: Add test case for embed template.
-			'standard_classic_theme_config'   => array(
-				'set_up'         => null,
-				'theme_supports' => $theme_supports,
-				'expected'       => $expected_head_styles,
+			'standard_classic_theme_config'               => array(
+				'set_up'          => null,
+				'theme_supports'  => $theme_supports,
+				'expected_head'   => $expected_head_styles,
+				'expected_footer' => array(),
 			),
-			'wp_block_styles_not_supported'   => array(
-				'set_up'         => null,
-				'theme_supports' => array(),
-				// The following excludes 'wp-block-separator-inline-css' from $expected_head_styles.
-				'expected'       => array(
+			'classic_theme_opt_out_separate_block_styles' => array(
+				'set_up'          => static function () {
+					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+				},
+				'theme_supports'  => $theme_supports,
+				'expected_head'   => array(
 					'wp-img-auto-sizes-contain-inline-css',
 					'early-css',
 					'early-inline-css',
 					'wp-emoji-styles-inline-css',
 					'wp-block-library-css',
-					'wp-block-library-inline-css',
-					'core-block-supports-inline-css',
+					'wp-block-library-theme-inline-css',
 					'classic-theme-styles-inline-css',
 					'global-styles-inline-css',
 					'normal-css',
 					'normal-inline-css',
 					'wp-custom-css',
+				),
+				'expected_footer' => array(
 					'late-css',
 					'late-inline-css',
 				),
 			),
-			'disabled_printing_late_styles'   => array(
-				'set_up'         => static function () {
-					add_filter( 'print_late_styles', '__return_false', 1000 );
-				},
-				'theme_supports' => $theme_supports,
-				'expected'       => $expected_head_styles,
-			),
-			'_wp_footer_scripts_removed'      => array(
-				'set_up'         => static function () {
-					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
-				},
-				'theme_supports' => $theme_supports,
-				'expected'       => $expected_head_styles,
-			),
-			'wp_print_footer_scripts_removed' => array(
-				'set_up'         => static function () {
-					remove_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
-				},
-				'theme_supports' => $theme_supports,
-				'expected'       => $expected_head_styles,
-			),
-			'both_actions_removed'            => array(
-				'set_up'         => static function () {
-					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
-					remove_action( 'wp_footer', 'wp_print_footer_scripts' );
-				},
-				'theme_supports' => $theme_supports,
-				'expected'       => $expected_head_styles,
-			),
-			'block_library_removed'           => array(
-				'set_up'         => static function () {
-					wp_deregister_style( 'wp-block-library' );
-				},
-				'theme_supports' => array(),
-				'expected'       => array_values(
+			'wp_block_styles_not_supported'               => array(
+				'set_up'          => null,
+				'theme_supports'  => array(),
+				'expected_head'   => array_values(
 					array_diff(
 						$expected_head_styles,
 						array(
-							'wp-block-separator-inline-css',
-							'wp-block-library-css',
-							'wp-block-library-inline-css',
-							'core-block-supports-inline-css',
-							'classic-theme-styles-inline-css',
-							'global-styles-inline-css',
+							'wp-block-separator-theme-inline-css',
 						)
 					)
 				),
+				'expected_footer' => array(),
+			),
+			'disabled_printing_late_styles'               => array(
+				'set_up'          => static function () {
+					add_filter( 'print_late_styles', '__return_false', 1000 );
+				},
+				'theme_supports'  => $theme_supports,
+				'expected_head'   => $expected_head_styles,
+				'expected_footer' => array(),
+			),
+			'_wp_footer_scripts_removed'                  => array(
+				'set_up'          => static function () {
+					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+				},
+				'theme_supports'  => $theme_supports,
+				'expected_head'   => $expected_head_styles,
+				'expected_footer' => array(),
+			),
+			'wp_print_footer_scripts_removed'             => array(
+				'set_up'          => static function () {
+					remove_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
+				},
+				'theme_supports'  => $theme_supports,
+				'expected_head'   => $expected_head_styles,
+				'expected_footer' => array(),
+			),
+			'both_actions_removed'                        => array(
+				'set_up'          => static function () {
+					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
+					remove_action( 'wp_footer', 'wp_print_footer_scripts' );
+				},
+				'theme_supports'  => $theme_supports,
+				'expected_head'   => $expected_head_styles,
+				'expected_footer' => array(),
+			),
+			'disable_block_library'                       => array(
+				'set_up'          => static function () {
+					add_action(
+						'enqueue_block_assets',
+						function (): void {
+							wp_deregister_style( 'wp-block-library' );
+							wp_register_style( 'wp-block-library', '' );
+						}
+					);
+					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+				},
+				'theme_supports'  => array(),
+				'expected_head'   => array(
+					'wp-img-auto-sizes-contain-inline-css',
+					'early-css',
+					'early-inline-css',
+					'wp-emoji-styles-inline-css',
+					'classic-theme-styles-inline-css',
+					'global-styles-inline-css',
+					'normal-css',
+					'normal-inline-css',
+					'wp-custom-css',
+					'core-block-supports-inline-css',
+					'late-css',
+					'late-inline-css',
+				),
+				'expected_footer' => array(),
 			),
 		);
 	}
@@ -1589,7 +1617,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 */
-	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, array $theme_supports, array $expected ): void {
+	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, array $theme_supports, array $expected_head, array $expected_footer ): void {
 		switch_theme( 'default' );
 		global $wp_styles;
 		$wp_styles = null;
@@ -1616,7 +1644,7 @@ class Tests_Template extends WP_UnitTestCase {
 			$block_registry->unregister( $block_name );
 		}
 		register_core_block_style_handles();
-		register_core_block_types_from_metadata();
+		register_core_block_types_from_metadata(); // See register_block_type_from_metadata().
 
 		$this->assertFalse( wp_is_block_theme(), 'Test is only relevant to block themes.' );
 
@@ -1633,7 +1661,10 @@ class Tests_Template extends WP_UnitTestCase {
 			}
 		);
 
-		wp_hoist_late_printed_styles();
+		// Call wp_hoist_late_printed_styles() if wp_load_classic_theme_block_styles_on_demand() queued it up.
+		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
+			wp_hoist_late_printed_styles();
+		}
 
 		// Ensure late styles are printed.
 		$this->assertTrue( apply_filters( 'print_late_styles', true ), 'Expected late style printing to be forced.' );
@@ -1681,15 +1712,16 @@ class Tests_Template extends WP_UnitTestCase {
 			}
 		}
 
-		foreach ( $expected as $style_id ) {
-			$this->assertContains( $style_id, $found_styles['HEAD'], 'Expected stylesheet with ID to be in the HEAD among this snapshot: ' . self::get_array_snapshot_export( $found_styles['HEAD'] ) );
-		}
 		$this->assertSame(
-			$expected,
-			array_values( array_intersect( $found_styles['HEAD'], $expected ) ),
-			'Expected styles to be printed in the same order. Snapshot: ' . self::get_array_snapshot_export( $found_styles['HEAD'] )
+			$expected_head,
+			$found_styles['HEAD'],
+			'Expected the same styles in the HEAD. Snapshot: ' . self::get_array_snapshot_export( $found_styles['HEAD'] )
 		);
-		$this->assertCount( 0, $found_styles['BODY'], 'Expected no styles to be present in the footer.' );
+		$this->assertSame(
+			$expected_head,
+			$found_styles['HEAD'],
+			'Expected the same styles in the BODY. Snapshot: ' . self::get_array_snapshot_export( $found_styles['BODY'] )
+		);
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
