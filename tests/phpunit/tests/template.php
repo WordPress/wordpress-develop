@@ -1487,12 +1487,12 @@ class Tests_Template extends WP_UnitTestCase {
 			'early-css',
 			'early-inline-css',
 			'wp-emoji-styles-inline-css',
-			'wp-block-library-inline-css',
-			'wp-block-separator-inline-css',
-			'wp-block-separator-theme-inline-css',
+			'wp-block-library-css',
+			'wp-block-separator-css',
+			'wp-block-separator-theme-css',
 			'global-styles-inline-css',
 			'core-block-supports-inline-css',
-			'classic-theme-styles-inline-css',
+			'classic-theme-styles-css',
 			'normal-css',
 			'normal-inline-css',
 			'wp-custom-css',
@@ -1518,9 +1518,9 @@ class Tests_Template extends WP_UnitTestCase {
 					'early-css',
 					'early-inline-css',
 					'wp-emoji-styles-inline-css',
-					'wp-block-library-inline-css',
-					'wp-block-library-theme-inline-css',
-					'classic-theme-styles-inline-css',
+					'wp-block-library-css',
+					'wp-block-library-theme-css',
+					'classic-theme-styles-css',
 					'global-styles-inline-css',
 					'normal-css',
 					'normal-inline-css',
@@ -1539,7 +1539,7 @@ class Tests_Template extends WP_UnitTestCase {
 					array_diff(
 						$expected_head_styles,
 						array(
-							'wp-block-separator-theme-inline-css',
+							'wp-block-separator-theme-css',
 						)
 					)
 				),
@@ -1587,7 +1587,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'early-css',
 					'early-inline-css',
 					'wp-emoji-styles-inline-css',
-					'classic-theme-styles-inline-css',
+					'classic-theme-styles-css',
 					'global-styles-inline-css',
 					'normal-css',
 					'normal-inline-css',
@@ -1620,11 +1620,11 @@ class Tests_Template extends WP_UnitTestCase {
 			add_theme_support( $theme_support );
 		}
 
-		// Set the styles_inline_size_limit to unlimited in order to prevent changes from invalidating the snapshots.
+		// Disable the styles_inline_size_limit in order to prevent changes from invalidating the snapshots.
 		add_filter(
 			'styles_inline_size_limit',
 			static function (): int {
-				return PHP_INT_MAX;
+				return 0;
 			}
 		);
 
