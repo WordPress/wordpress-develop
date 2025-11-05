@@ -63,7 +63,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 */
 	public function data_wp_timezone_choice_selected() {
 		return array(
-			'city from the list'                  => array(
+			'city from the list'                   => array(
 				'America/Los_Angeles',
 				'<option selected="selected" value="America/Los_Angeles">Los Angeles</option>',
 			),
@@ -107,9 +107,9 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	public function data_wp_timezone_choice_es() {
 		return array(
 			'placeholder remains in English (no translation override passed)' => array( '<option selected="selected" value="">Select a city</option>' ),
-			'spanish city translation'                                        => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
-			'spanish optgroup Arctic'                                         => array( '<optgroup label="Ártico">' ),
-			'spanish optgroup Manual Offsets untranslated'                    => array( '<optgroup label="Manual Offsets">' ),
+			'spanish city translation'                     => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
+			'spanish optgroup Arctic'                      => array( '<optgroup label="Ártico">' ),
+			'spanish optgroup Manual Offsets untranslated' => array( '<optgroup label="Manual Offsets">' ),
 		);
 	}
 
