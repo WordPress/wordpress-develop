@@ -140,6 +140,10 @@ class Tests_Template extends WP_UnitTestCase {
 		$wp_scripts = $this->original_wp_scripts;
 		$wp_styles  = $this->original_wp_styles;
 
+		foreach ( $this->original_ini_config as $option => $value ) {
+			ini_set( $option, $value );
+		}
+
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );
