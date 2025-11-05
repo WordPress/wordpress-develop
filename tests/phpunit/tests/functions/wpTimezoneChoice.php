@@ -7,18 +7,18 @@
  *
  * @covers ::wp_timezone_choice
  */
-class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
+class Tests_Functions_WpTimezoneChoice extends WP_UnitTestCase {
 
 	public function tear_down() {
-
 		restore_current_locale();
 	}
 	/**
 	 * Default values.
 	 *
 	 * @ticket 59941
-	 *
 	 * @dataProvider data_wp_timezone_choice
+	 *
+	 * @param string $expected Expected string HTML fragment.
 	 */
 	public function test_wp_timezone_choice( $expected ) {
 		$timezone_list = wp_timezone_choice( '' );
@@ -48,8 +48,10 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 * Zones are selected from the list.
 	 *
 	 * @ticket 59941
-	 *
 	 * @dataProvider data_wp_timezone_choice_selected
+	 *
+	 * @param string $selected_zone The timezone to select.
+	 * @param string $expected Expected string HTML fragment.
 	 */
 	public function test_wp_timezone_choice_selected( $selected_zone, $expected ) {
 		$actual = wp_timezone_choice( $selected_zone );
@@ -86,13 +88,9 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 * Test passing the locale in.
 	 *
 	 * @ticket 59941
-	 */
-	/**
-	 * Test passing the locale in.
-	 *
-	 * @ticket 59941
-	 *
 	 * @dataProvider data_wp_timezone_choice_es
+	 *
+	 * @param string $expected Expected string HTML fragment.
 	 */
 	public function test_wp_timezone_choice_es( $expected ) {
 		$timezone_list = wp_timezone_choice( '', 'es_ES' );
@@ -117,8 +115,9 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 * Set the locale globally.
 	 *
 	 * @ticket 59941
-	 *
 	 * @dataProvider data_wp_timezone_choice_es_set
+	 *
+	 * @param string $expected Expected string HTML fragment.
 	 */
 	public function test_wp_timezone_choice_es_set( $expected ) {
 		switch_to_locale( 'es_ES' );
