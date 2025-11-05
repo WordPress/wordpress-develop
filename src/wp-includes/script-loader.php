@@ -2264,11 +2264,6 @@ function wp_print_head_scripts() {
 /**
  * Private, for use in *_footer_scripts hooks
  *
- * In classic themes, when block styles are loaded on demand via {@see wp_load_classic_theme_block_styles_on_demand()},
- * this function is replaced by a closure in {@see wp_hoist_late_printed_styles()} which will capture the output of
- * {@see print_late_styles()} before printing footer scripts as usual. The captured late-printed styles are then hoisted
- * to the HEAD by means of the template enhancement output buffer.
- *
  * @since 3.3.0
  */
 function _wp_footer_scripts() {
@@ -3651,10 +3646,8 @@ function wp_hoist_late_printed_styles() {
 	$printed_block_styles = '';
 	$printed_late_styles  = '';
 	$capture_late_styles  = static function () use ( &$printed_block_styles, &$printed_late_styles ) {
-		global $concatenate_scripts;
-		script_concat_settings();
 
-		// Print the styles related to on-demand block enqueues.
+		// Gather the styles related to on-demand block enqueues.
 		$all_block_style_handles = array();
 		foreach ( WP_Block_Type_Registry::get_instance()->get_all_registered() as $block_type ) {
 			foreach ( $block_type->style_handles as $style_handle ) {
@@ -3663,29 +3656,33 @@ function wp_hoist_late_printed_styles() {
 		}
 		$all_block_style_handles = array_merge(
 			$all_block_style_handles,
-			array( 'global-styles', 'core-block-supports', 'block-style-variation-styles', 'core-block-supports-duotone' ) // TODO: What else?
+			array(
+				'global-styles',
+				'block-style-variation-styles',
+				'core-block-supports',
+				'core-block-supports-duotone',
+			)
 		);
 
+		/*
+		 * First print all styles related to blocks which should inserted right after the wp-block-library stylesheet
+		 * to preserve the CSS cascade. The logic in this `if` statement is derived from `wp_print_styles()`.
+		 */
 		$enqueued_block_styles = array_values( array_intersect( $all_block_style_handles, wp_styles()->queue ) );
 		if ( count( $enqueued_block_styles ) > 0 ) {
-			wp_styles()->do_concat = $concatenate_scripts;
 			ob_start();
 			wp_styles()->do_items( $enqueued_block_styles );
-			_print_styles(); // TODO: Is this needed?
 			$printed_block_styles = ob_get_clean();
-			wp_styles()->reset();
 		}
 
 		/*
-		 * Print remaining styles not related to blocks. This is the same logic as in print_late_styles(), but without
-		 * the filter to control whether late styles are printed (since they are being hoisted anyway).
+		 * Print all remaining styles not related to blocks. This contains a subset of the logic from
+		 * `print_late_styles()`, without admin-specific logic and the `print_late_styles` filter to control whether
+		 * late styles are printed (since they are being hoisted anyway).
 		 */
-		wp_styles()->do_concat = $concatenate_scripts;
 		ob_start();
 		wp_styles()->do_footer_items();
-		_print_styles(); // TODO: Is this needed?
 		$printed_late_styles = ob_get_clean();
-		wp_styles()->reset();
 	};
 
 	/*
