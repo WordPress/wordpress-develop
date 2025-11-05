@@ -2309,6 +2309,9 @@ function get_post_states( $post ) {
 	if ( 'private' === $post->post_status && 'private' !== $post_status ) {
 		$post_states['private'] = _x( 'Private', 'post status' );
 	}
+	if ( 'private' === $post->post_status && strtotime( $post->post_date_gmt ) > time() ) {
+		$post_states['scheduled'] = _x( 'Scheduled', 'post status' );
+	}
 
 	if ( 'draft' === $post->post_status ) {
 		if ( get_post_meta( $post->ID, '_customize_changeset_uuid', true ) ) {
