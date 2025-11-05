@@ -3726,81 +3726,72 @@ function wp_hoist_late_printed_styles() {
 
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
-				public function get_span(): WP_HTML_Span {
-					$this->set_bookmark( 'here' );
+				/**
+				 * Gets the span for the current token.
+				 *
+				 * @return WP_HTML_Span Current token span.
+				 */
+				private function get_span(): WP_HTML_Span {
+					$this->set_bookmark( 'here' ); // TODO: What if this fails?
 					return $this->bookmarks['here'];
+				}
+
+				/**
+				 * Inserts text before the current token.
+				 *
+				 * @param string $text Text to insert.
+				 */
+				public function insert_before( string $text ) {
+					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $this->get_span()->start, 0, $text );
+				}
+
+				/**
+				 * Inserts text after the current token.
+				 *
+				 * @param string $text Text to insert.
+				 */
+				public function insert_after( string $text ) {
+					$span = $this->get_span();
+
+					$this->lexical_updates[] = new WP_HTML_Text_Replacement( $span->start + $span->length, 0, $text );
 				}
 			};
 
 			// TODO: If there are no block styles to print, it would be nice to not have to replace the placeholder comment.
-			// Locate the inline style for the 'wp-block-library' stylesheet which probably has the placeholder comment.
-			while ( $processor->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
+			// Insert block styles right after wp-block-library (if it is present), and then insert any remaining styles at </head>.
+			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 				if (
-					! $processor->is_tag_closer() &&
 					'STYLE' === $processor->get_tag() &&
 					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
 				) {
-					// If the inline style lacks the placeholder comment, then all the styles will be inserted below before </HEAD>.
+					// If the inline style lacks the placeholder comment, then all the styles will be inserted below at </head>.
 					$css_text = $processor->get_modifiable_text();
 					if ( ! str_contains( $css_text, $placeholder ) ) {
-						break;
+						continue;
 					}
 
 					// Remove the placeholder now that we've located the inline style.
 					$processor->set_modifiable_text( str_replace( $placeholder, '', $css_text ) );
-					$buffer = $processor->get_updated_html();
 
 					// Insert the $printed_late_styles immediately after the closing inline STYLE tag. This preserves the CSS cascade.
-					$span   = $processor->get_span();
-					$buffer = implode(
-						'',
-						array(
-							substr( $buffer, 0, $span->start + $span->length ),
-							$printed_block_styles,
-							substr( $buffer, $span->start + $span->length ),
-						)
-					);
+					if ( '' !== $printed_block_styles ) {
+						$processor->insert_after( $printed_block_styles );
 
-					// Prevent printing them again.
-					$printed_block_styles = '';
+						// Prevent printing them again at </head>.
+						$printed_block_styles = '';
+					}
+
+					// If there aren't any late styles, there's no need to continue to finding </head>.
+					if ( '' === $printed_late_styles ) {
+						break;
+					}
+				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
+					$processor->insert_before( $printed_block_styles . $printed_late_styles );
 					break;
 				}
 			}
 
-			// If there are remaining styles to hoist, either because
-			if ( $printed_block_styles || $printed_late_styles ) {
-
-				// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
-				$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
-					public function get_span(): WP_HTML_Span {
-						$this->set_bookmark( 'here' );
-						return $this->bookmarks['here'];
-					}
-				};
-
-				// As a fallback, append the hoisted late styles to the end of the HEAD.
-				while ( $processor->next_tag(
-					array(
-						'tag_name'    => 'HEAD',
-						'tag_closers' => 'visit',
-					)
-				) ) {
-					if ( $processor->is_tag_closer() ) {
-						$span   = $processor->get_span();
-						$buffer = implode(
-							'',
-							array(
-								substr( $buffer, 0, $span->start ),
-								$printed_block_styles . $printed_late_styles,
-								substr( $buffer, $span->start ),
-							)
-						);
-						break;
-					}
-				}
-			}
-
-			return $buffer;
+			return $processor->get_updated_html();
 		}
 	);
 }
