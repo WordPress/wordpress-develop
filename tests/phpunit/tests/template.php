@@ -1666,9 +1666,6 @@ class Tests_Template extends WP_UnitTestCase {
 			wp_hoist_late_printed_styles();
 		}
 
-		// Ensure late styles are printed.
-		$this->assertTrue( apply_filters( 'print_late_styles', true ), 'Expected late style printing to be forced.' );
-
 		// Simulate wp_head.
 		$head_output = get_echo( 'wp_head' );
 

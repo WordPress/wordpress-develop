@@ -3646,15 +3646,6 @@ function wp_hoist_late_printed_styles() {
 	}
 
 	/*
-	 * While normally late styles are printed, there is a filter to disable prevent this, so this makes sure they are
-	 * printed. Note that this filter was intended to control whether to print the styles queued too late for the HTML
-	 * head. This filter was introduced in <https://core.trac.wordpress.org/ticket/9346>. However, with the template
-	 * enhancement output buffer, essentially no style can be enqueued too late, because an output buffer filter can
-	 * always hoist it to the HEAD.
-	 */
-	add_filter( 'print_late_styles', '__return_true', PHP_INT_MAX ); // TODO: Remove.
-
-	/*
 	 * Print a placeholder comment where the late styles can be hoisted from the footer to be printed in the header
 	 * by means of a filter below on the template enhancement output buffer.
 	 */
@@ -3741,7 +3732,7 @@ function wp_hoist_late_printed_styles() {
 				}
 			};
 
-			// TODO: If there are no block styles to print, it would be nice to not have to replace the placehoolder comment.
+			// TODO: If there are no block styles to print, it would be nice to not have to replace the placeholder comment.
 			// Locate the inline style for the 'wp-block-library' stylesheet which probably has the placeholder comment.
 			while ( $processor->next_tag( array( 'tag_name' => 'STYLE' ) ) ) {
 				if (
