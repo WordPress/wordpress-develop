@@ -814,4 +814,37 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
 		remove_filter( 'use_block_editor_for_post', '__return_true' );
 	}
+
+	/**
+	 * Test that post title with %10 generates correct permalink.
+	 *
+	 * @ticket 3329
+	 * @covers ::get_permalink
+	 */
+	public function test_post_title_with_percentage_followed_by_numbers() {
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Test Title %10',
+				'post_status' => 'publish',
+			)
+		);
+
+		$post = get_post( $post_id );
+
+		// Test slug generation
+		$this->assertSame( 'test-title-%10', $post->post_name );
+
+		// Test permalink generation
+		$permalink = get_permalink( $post_id );
+		$this->assertStringContainsString( 'test-title-%10', $permalink );
+
+		// Test that we can query this post
+		$query = new WP_Query( array( 'name' => $post->post_name ) );
+		$this->assertTrue( $query->have_posts() );
+		$this->assertEquals( $post_id, $query->post->ID );
+
+		$this->set_permalink_structure( '' );
+	}
 }
