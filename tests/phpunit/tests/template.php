@@ -1518,7 +1518,7 @@ class Tests_Template extends WP_UnitTestCase {
 					'early-css',
 					'early-inline-css',
 					'wp-emoji-styles-inline-css',
-					'wp-block-library-css',
+					'wp-block-library-inline-css',
 					'wp-block-library-theme-inline-css',
 					'classic-theme-styles-inline-css',
 					'global-styles-inline-css',
@@ -1619,6 +1619,14 @@ class Tests_Template extends WP_UnitTestCase {
 		foreach ( $theme_supports as $theme_support ) {
 			add_theme_support( $theme_support );
 		}
+
+		// Set the styles_inline_size_limit to unlimited in order to prevent changes from invalidating the snapshots.
+		add_filter(
+			'styles_inline_size_limit',
+			static function (): int {
+				return PHP_INT_MAX;
+			}
+		);
 
 		add_filter(
 			'wp_get_custom_css',
