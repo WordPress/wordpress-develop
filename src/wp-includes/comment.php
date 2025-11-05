@@ -2458,6 +2458,19 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 }
 
 /**
+ * Send a notification to the post author when a new note is added via the REST API.
+ *
+ * @since 6.9.1
+ *
+ * @param WP_Comment $comment The comment object.
+ */
+function wp_new_comment_via_rest_notify_postauthor( $comment ) {
+	if ( 'note' === $comment->comment_type ) {
+		wp_new_comment_notify_postauthor( $comment->comment_ID );
+	}
+}
+
+/**
  * Sets the status of a comment.
  *
  * The {@see 'wp_set_comment_status'} action is called after the comment is handled.
