@@ -1495,7 +1495,6 @@ class Tests_Template extends WP_UnitTestCase {
 		);
 
 		return array(
-			// TODO: Add test case for embed template.
 			'standard_classic_theme_config_with_min_styles_inlined' => array(
 				'set_up'            => null,
 				'inline_size_limit' => 0,
