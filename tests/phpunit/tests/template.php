@@ -1475,14 +1475,14 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{set_up: Closure|null, theme_supports: string[], expected_head: string[], expected_footer: string[]}>
+	 * @return array<string, array{set_up: Closure|null, theme_supports: string[], expected_styles: array{ HEAD: string[], BODY: string[] }}>
 	 */
 	public function data_wp_hoist_late_printed_styles(): array {
 		$theme_supports = array(
 			'wp-block-styles',
 		);
 
-		$expected_head_styles = array(
+		$common_expected_head_styles = array(
 			'wp-img-auto-sizes-contain-inline-css',
 			'early-css',
 			'early-inline-css',
@@ -1505,8 +1505,10 @@ class Tests_Template extends WP_UnitTestCase {
 			'standard_classic_theme_config'               => array(
 				'set_up'          => null,
 				'theme_supports'  => $theme_supports,
-				'expected_head'   => $expected_head_styles,
-				'expected_footer' => array(),
+				'expected_styles' => array(
+					'HEAD' => $common_expected_head_styles,
+					'BODY' => array(),
+				),
 			),
 			'standard_classic_theme_config_extra_block_library_inline_style' => array(
 				'set_up'          => static function () {
@@ -1518,67 +1520,77 @@ class Tests_Template extends WP_UnitTestCase {
 					);
 				},
 				'theme_supports'  => $theme_supports,
-				'expected_head'   => ( function ( $expected_styles ) {
-					// Insert 'wp-block-library-inline-css' right after 'wp-block-library-css'.
-					$i = array_search( 'wp-block-library-css', $expected_styles, true );
-					$this->assertIsInt( $i, 'Expected wp-block-library-css to be among the styles.' );
-					array_splice( $expected_styles, $i + 1, 0, 'wp-block-library-inline-css' );
-					return $expected_styles;
-				} )( $expected_head_styles ),
-				'expected_footer' => array(),
+				'expected_styles' => array(
+					'HEAD' => ( function ( $expected_styles ) {
+						// Insert 'wp-block-library-inline-css' right after 'wp-block-library-css'.
+						$i = array_search( 'wp-block-library-css', $expected_styles, true );
+						$this->assertIsInt( $i, 'Expected wp-block-library-css to be among the styles.' );
+						array_splice( $expected_styles, $i + 1, 0, 'wp-block-library-inline-css' );
+						return $expected_styles;
+					} )( $common_expected_head_styles ),
+					'BODY' => array(),
+				),
 			),
 			'classic_theme_opt_out_separate_block_styles' => array(
 				'set_up'          => static function () {
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 				},
 				'theme_supports'  => $theme_supports,
-				'expected_head'   => array(
-					'wp-img-auto-sizes-contain-inline-css',
-					'early-css',
-					'early-inline-css',
-					'wp-emoji-styles-inline-css',
-					'wp-block-library-css',
-					'wp-block-library-theme-css',
-					'classic-theme-styles-css',
-					'global-styles-inline-css',
-					'normal-css',
-					'normal-inline-css',
-					'wp-custom-css',
-				),
-				'expected_footer' => array(
-					'late-css',
-					'late-inline-css',
-					'core-block-supports-inline-css',
+				'expected_styles' => array(
+					'HEAD' => array(
+						'wp-img-auto-sizes-contain-inline-css',
+						'early-css',
+						'early-inline-css',
+						'wp-emoji-styles-inline-css',
+						'wp-block-library-css',
+						'wp-block-library-theme-css',
+						'classic-theme-styles-css',
+						'global-styles-inline-css',
+						'normal-css',
+						'normal-inline-css',
+						'wp-custom-css',
+					),
+					'BODY' => array(
+						'late-css',
+						'late-inline-css',
+						'core-block-supports-inline-css',
+					),
 				),
 			),
 			'wp_block_styles_not_supported'               => array(
 				'set_up'          => null,
 				'theme_supports'  => array(),
-				'expected_head'   => array_values(
-					array_diff(
-						$expected_head_styles,
-						array(
-							'wp-block-separator-theme-css',
+				'expected_styles' => array(
+					'HEAD' => array_values(
+						array_diff(
+							$common_expected_head_styles,
+							array(
+								'wp-block-separator-theme-css',
+							)
 						)
-					)
+					),
+					'BODY' => array(),
 				),
-				'expected_footer' => array(),
 			),
 			'_wp_footer_scripts_removed'                  => array(
 				'set_up'          => static function () {
 					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 				},
 				'theme_supports'  => $theme_supports,
-				'expected_head'   => $expected_head_styles,
-				'expected_footer' => array(),
+				'expected_styles' => array(
+					'HEAD' => $common_expected_head_styles,
+					'BODY' => array(),
+				),
 			),
 			'wp_print_footer_scripts_removed'             => array(
 				'set_up'          => static function () {
 					remove_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
 				},
 				'theme_supports'  => $theme_supports,
-				'expected_head'   => $expected_head_styles,
-				'expected_footer' => array(),
+				'expected_styles' => array(
+					'HEAD' => $common_expected_head_styles,
+					'BODY' => array(),
+				),
 			),
 			'both_actions_removed'                        => array(
 				'set_up'          => static function () {
@@ -1586,8 +1598,10 @@ class Tests_Template extends WP_UnitTestCase {
 					remove_action( 'wp_footer', 'wp_print_footer_scripts' );
 				},
 				'theme_supports'  => $theme_supports,
-				'expected_head'   => $expected_head_styles,
-				'expected_footer' => array(),
+				'expected_styles' => array(
+					'HEAD' => $common_expected_head_styles,
+					'BODY' => array(),
+				),
 			),
 			'disable_block_library'                       => array(
 				'set_up'          => static function () {
@@ -1601,21 +1615,23 @@ class Tests_Template extends WP_UnitTestCase {
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 				},
 				'theme_supports'  => array(),
-				'expected_head'   => array(
-					'wp-img-auto-sizes-contain-inline-css',
-					'early-css',
-					'early-inline-css',
-					'wp-emoji-styles-inline-css',
-					'classic-theme-styles-css',
-					'global-styles-inline-css',
-					'normal-css',
-					'normal-inline-css',
-					'wp-custom-css',
-				),
-				'expected_footer' => array(
-					'late-css',
-					'late-inline-css',
-					'core-block-supports-inline-css',
+				'expected_styles' => array(
+					'HEAD' => array(
+						'wp-img-auto-sizes-contain-inline-css',
+						'early-css',
+						'early-inline-css',
+						'wp-emoji-styles-inline-css',
+						'classic-theme-styles-css',
+						'global-styles-inline-css',
+						'normal-css',
+						'normal-inline-css',
+						'wp-custom-css',
+					),
+					'BODY' => array(
+						'late-css',
+						'late-inline-css',
+						'core-block-supports-inline-css',
+					),
 				),
 			),
 		);
@@ -1630,7 +1646,7 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 */
-	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, array $theme_supports, array $expected_head, array $expected_footer ): void {
+	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, array $theme_supports, array $expected_styles ): void {
 		switch_theme( 'default' );
 		global $wp_styles;
 		$wp_styles = null;
@@ -1732,14 +1748,9 @@ class Tests_Template extends WP_UnitTestCase {
 		}
 
 		$this->assertSame(
-			$expected_head,
-			$found_styles['HEAD'],
-			'Expected the same styles in the HEAD. Snapshot: ' . self::get_array_snapshot_export( $found_styles['HEAD'] )
-		);
-		$this->assertSame(
-			$expected_footer,
-			$found_styles['BODY'],
-			'Expected the same styles in the BODY. Snapshot: ' . self::get_array_snapshot_export( $found_styles['BODY'] )
+			$expected_styles,
+			$found_styles,
+			'Expected the same styles. Snapshot: ' . self::get_array_snapshot_export( $found_styles )
 		);
 	}
 
@@ -1774,7 +1785,6 @@ class Tests_Template extends WP_UnitTestCase {
 	 *          'c',
 	 *      )
 	 *
-	 * This does not currently support nested arrays.
 	 *
 	 * @param array $snapshot Snapshot.
 	 * @return string Snapshot export.
@@ -1782,9 +1792,8 @@ class Tests_Template extends WP_UnitTestCase {
 	private static function get_array_snapshot_export( array $snapshot ): string {
 		$export = var_export( $snapshot, true );
 		$export = preg_replace( '/\barray \($/m', 'array(', $export );
-		if ( array_is_list( $snapshot ) ) {
-			$export = preg_replace( '/^(\s+)\d+\s+=>\s+/m', '$1', $export );
-		}
+		$export = preg_replace( '/^(\s+)\d+\s+=>\s+/m', '$1', $export );
+		$export = preg_replace( '/=> *\n +/', '=> ', $export );
 		return preg_replace_callback(
 			'/(^ +)/m',
 			static function ( $matches ) {
