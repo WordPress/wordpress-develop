@@ -1422,7 +1422,7 @@ class Tests_Template extends WP_UnitTestCase {
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 				},
 				'expected_load_separate'  => false,
-				'expected_on_demand'      => true,
+				'expected_on_demand'      => false,
 				'expected_buffer_started' => false,
 			),
 			'classic_theme_with_should_load_block_assets_on_demand_out_out' => array(
