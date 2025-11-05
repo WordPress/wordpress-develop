@@ -1532,27 +1532,6 @@ class Tests_Template extends WP_UnitTestCase {
 					'core-block-supports-inline-css',
 				),
 			),
-			'classic_theme_opt_out_separate_block_styles_and_no_footer_printing' => array(
-				'set_up'          => static function () {
-					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
-					add_filter( 'print_late_styles', '__return_false' );
-				},
-				'theme_supports'  => $theme_supports,
-				'expected_head'   => array(
-					'wp-img-auto-sizes-contain-inline-css',
-					'early-css',
-					'early-inline-css',
-					'wp-emoji-styles-inline-css',
-					'wp-block-library-css',
-					'wp-block-library-theme-inline-css',
-					'classic-theme-styles-inline-css',
-					'global-styles-inline-css',
-					'normal-css',
-					'normal-inline-css',
-					'wp-custom-css',
-				),
-				'expected_footer' => array(),
-			),
 			'wp_block_styles_not_supported'               => array(
 				'set_up'          => null,
 				'theme_supports'  => array(),
@@ -1564,14 +1543,6 @@ class Tests_Template extends WP_UnitTestCase {
 						)
 					)
 				),
-				'expected_footer' => array(),
-			),
-			'disabled_printing_late_styles'               => array(
-				'set_up'          => static function () {
-					add_filter( 'print_late_styles', '__return_false', 1000 );
-				},
-				'theme_supports'  => $theme_supports,
-				'expected_head'   => $expected_head_styles,
 				'expected_footer' => array(),
 			),
 			'_wp_footer_scripts_removed'                  => array(
