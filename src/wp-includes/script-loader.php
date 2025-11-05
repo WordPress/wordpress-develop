@@ -3677,7 +3677,7 @@ function wp_hoist_late_printed_styles() {
 			wp_styles()->do_concat = $concatenate_scripts;
 			ob_start();
 			wp_styles()->do_items( $enqueued_block_styles );
-			_print_styles();
+			_print_styles(); // TODO: Is this needed?
 			$printed_block_styles = ob_get_clean();
 			wp_styles()->reset();
 		}
@@ -3689,7 +3689,7 @@ function wp_hoist_late_printed_styles() {
 		wp_styles()->do_concat = $concatenate_scripts;
 		ob_start();
 		wp_styles()->do_footer_items();
-		_print_styles();
+		_print_styles(); // TODO: Is this needed?
 		$printed_late_styles = ob_get_clean();
 		wp_styles()->reset();
 	};
