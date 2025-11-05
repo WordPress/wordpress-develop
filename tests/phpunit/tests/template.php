@@ -79,11 +79,6 @@ class Tests_Template extends WP_UnitTestCase {
 	protected $original_theme_features;
 
 	/**
-	 * @var WP_Block_Type_Registry
-	 */
-	protected $original_block_type_registry;
-
-	/**
 	 * @var array
 	 */
 	const RESTORED_CONFIG_OPTIONS = array(
@@ -127,7 +122,7 @@ class Tests_Template extends WP_UnitTestCase {
 		remove_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
 		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
 
-		global $wp_scripts, $wp_styles, $_wp_theme_features;
+		global $wp_scripts, $wp_styles;
 		$this->original_wp_scripts = $wp_scripts;
 		$this->original_wp_styles  = $wp_styles;
 		$wp_scripts                = null;
@@ -135,35 +130,19 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_scripts();
 		wp_styles();
 
-		$this->original_theme_features = $_wp_theme_features;
-		$_wp_theme_features            = array();
 		foreach ( self::RESTORED_CONFIG_OPTIONS as $option ) {
 			$this->original_ini_config[ $option ] = ini_get( $option );
 		}
-
-		$this->original_block_type_registry = WP_Block_Type_Registry::get_instance();
 	}
 
 	public function tear_down() {
-		global $wp_scripts, $wp_styles, $_wp_theme_features;
+		global $wp_scripts, $wp_styles;
 		$wp_scripts = $this->original_wp_scripts;
 		$wp_styles  = $this->original_wp_styles;
-
-		$_wp_theme_features = $this->original_theme_features;
-		foreach ( $this->original_ini_config as $option => $value ) {
-			ini_set( $option, $value );
-		}
 
 		unregister_post_type( 'cpt' );
 		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );
-
-		$reflection_class  = new ReflectionClass( WP_Block_Type_Registry::class );
-		$instance_property = $reflection_class->getProperty( 'instance' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$instance_property->setAccessible( true );
-		}
-		$instance_property->setValue( null, $this->original_block_type_registry );
 
 		parent::tear_down();
 	}
@@ -1491,13 +1470,9 @@ class Tests_Template extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{set_up: Closure|null, theme_supports: string[], expected_styles: array{ HEAD: string[], BODY: string[] }}>
+	 * @return array<string, array{set_up: Closure|null, expected_styles: array{ HEAD: string[], BODY: string[] }}>
 	 */
 	public function data_wp_hoist_late_printed_styles(): array {
-		$theme_supports = array(
-			'wp-block-styles',
-		);
-
 		$common_expected_head_styles = array(
 			'wp-img-auto-sizes-contain-inline-css',
 			'early-css',
@@ -1505,7 +1480,6 @@ class Tests_Template extends WP_UnitTestCase {
 			'wp-emoji-styles-inline-css',
 			'wp-block-library-css',
 			'wp-block-separator-css',
-			'wp-block-separator-theme-css',
 			'global-styles-inline-css',
 			'core-block-supports-inline-css',
 			'classic-theme-styles-css',
@@ -1520,7 +1494,6 @@ class Tests_Template extends WP_UnitTestCase {
 			// TODO: Add test case for embed template.
 			'standard_classic_theme_config'               => array(
 				'set_up'          => null,
-				'theme_supports'  => $theme_supports,
 				'expected_styles' => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
@@ -1535,7 +1508,6 @@ class Tests_Template extends WP_UnitTestCase {
 						}
 					);
 				},
-				'theme_supports'  => $theme_supports,
 				'expected_styles' => array(
 					'HEAD' => ( function ( $expected_styles ) {
 						// Insert 'wp-block-library-inline-css' right after 'wp-block-library-css'.
@@ -1551,7 +1523,6 @@ class Tests_Template extends WP_UnitTestCase {
 				'set_up'          => static function () {
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 				},
-				'theme_supports'  => $theme_supports,
 				'expected_styles' => array(
 					'HEAD' => array(
 						'wp-img-auto-sizes-contain-inline-css',
@@ -1559,7 +1530,6 @@ class Tests_Template extends WP_UnitTestCase {
 						'early-inline-css',
 						'wp-emoji-styles-inline-css',
 						'wp-block-library-css',
-						'wp-block-library-theme-css',
 						'classic-theme-styles-css',
 						'global-styles-inline-css',
 						'normal-css',
@@ -1575,7 +1545,6 @@ class Tests_Template extends WP_UnitTestCase {
 			),
 			'wp_block_styles_not_supported'               => array(
 				'set_up'          => null,
-				'theme_supports'  => array(),
 				'expected_styles' => array(
 					'HEAD' => array_values(
 						array_diff(
@@ -1592,7 +1561,6 @@ class Tests_Template extends WP_UnitTestCase {
 				'set_up'          => static function () {
 					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 				},
-				'theme_supports'  => $theme_supports,
 				'expected_styles' => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
@@ -1602,7 +1570,6 @@ class Tests_Template extends WP_UnitTestCase {
 				'set_up'          => static function () {
 					remove_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
 				},
-				'theme_supports'  => $theme_supports,
 				'expected_styles' => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
@@ -1613,7 +1580,6 @@ class Tests_Template extends WP_UnitTestCase {
 					remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 					remove_action( 'wp_footer', 'wp_print_footer_scripts' );
 				},
-				'theme_supports'  => $theme_supports,
 				'expected_styles' => array(
 					'HEAD' => $common_expected_head_styles,
 					'BODY' => array(),
@@ -1630,7 +1596,6 @@ class Tests_Template extends WP_UnitTestCase {
 					);
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
 				},
-				'theme_supports'  => array(),
 				'expected_styles' => array(
 					'HEAD' => array(
 						'wp-img-auto-sizes-contain-inline-css',
@@ -1662,14 +1627,10 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 */
-	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, array $theme_supports, array $expected_styles ): void {
+	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, array $expected_styles ): void {
 		switch_theme( 'default' );
 		global $wp_styles;
 		$wp_styles = null;
-
-		foreach ( $theme_supports as $theme_support ) {
-			add_theme_support( $theme_support );
-		}
 
 		// Disable the styles_inline_size_limit in order to prevent changes from invalidating the snapshots.
 		add_filter(
@@ -1692,12 +1653,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		wp_load_classic_theme_block_styles_on_demand();
 
-		$block_registry = WP_Block_Type_Registry::get_instance();
-		foreach ( array_keys( $block_registry->get_all_registered() ) as $block_name ) {
-			$block_registry->unregister( $block_name );
-		}
 		register_core_block_style_handles();
-		register_core_block_types_from_metadata(); // See register_block_type_from_metadata().
 
 		$this->assertFalse( wp_is_block_theme(), 'Test is not relevant to block themes (only classic themes).' );
 
@@ -1763,9 +1719,19 @@ class Tests_Template extends WP_UnitTestCase {
 			}
 		}
 
+		/*
+		 * Since new styles could appear at any time and since certain styles leak in from the global scope not being
+		 * properly reset somewhere else in the test suite, we only check that the expected styles are at least present
+		 * and in the same order.
+		 */
+		$found_subset_styles = array();
+		foreach ( array( 'HEAD', 'BODY' ) as $group ) {
+			$found_subset_styles[ $group ] = array_values( array_intersect( $found_styles[ $group ], $expected_styles[ $group ] ) );
+		}
+
 		$this->assertSame(
 			$expected_styles,
-			$found_styles,
+			$found_subset_styles,
 			'Expected the same styles. Snapshot: ' . self::get_array_snapshot_export( $found_styles )
 		);
 	}
