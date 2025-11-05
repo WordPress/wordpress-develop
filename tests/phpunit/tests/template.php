@@ -122,7 +122,7 @@ class Tests_Template extends WP_UnitTestCase {
 		remove_filter( 'should_load_block_assets_on_demand', '__return_true', 0 );
 		remove_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' );
 
-		global $wp_scripts, $wp_styles;
+		global $wp_scripts, $wp_styles, $_wp_theme_features;
 		$this->original_wp_scripts = $wp_scripts;
 		$this->original_wp_styles  = $wp_styles;
 		$wp_scripts                = null;
@@ -130,18 +130,19 @@ class Tests_Template extends WP_UnitTestCase {
 		wp_scripts();
 		wp_styles();
 
-		$this->original_theme_features = $GLOBALS['_wp_theme_features'];
+		$this->original_theme_features = $_wp_theme_features;
+		$_wp_theme_features = array();
 		foreach ( self::RESTORED_CONFIG_OPTIONS as $option ) {
 			$this->original_ini_config[ $option ] = ini_get( $option );
 		}
 	}
 
 	public function tear_down() {
-		global $wp_scripts, $wp_styles;
+		global $wp_scripts, $wp_styles, $_wp_theme_features;
 		$wp_scripts = $this->original_wp_scripts;
 		$wp_styles  = $this->original_wp_styles;
 
-		$GLOBALS['_wp_theme_features'] = $this->original_theme_features;
+		$_wp_theme_features = $this->original_theme_features;
 		foreach ( $this->original_ini_config as $option => $value ) {
 			ini_set( $option, $value );
 		}
