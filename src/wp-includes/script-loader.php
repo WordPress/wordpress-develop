@@ -3727,7 +3727,8 @@ function wp_hoist_late_printed_styles() {
 				 * @return WP_HTML_Span Current token span.
 				 */
 				private function get_span(): WP_HTML_Span {
-					$this->set_bookmark( 'here' ); // TODO: What if this fails?
+					// Note: This call will never fail according to the usage of this class, given it is always called after ::next_tag() is true.
+					$this->set_bookmark( 'here' );
 					return $this->bookmarks['here'];
 				}
 
