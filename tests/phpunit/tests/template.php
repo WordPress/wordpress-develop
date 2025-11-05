@@ -1700,15 +1700,38 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Export PHP array as string formatted for pasting into unit test case.
+	 * Exports PHP array as string formatted as a snapshot for pasting into a data provider.
+	 *
+	 * Unfortunately, `var_export()` always includes array indices even for lists. For example:
+	 *
+	 *     var_export( array( 'a', 'b', 'c' ) );
+	 *
+	 * Results in:
+	 *
+	 *     array (
+	 *       0 => 'a',
+	 *       1 => 'b',
+	 *       2 => 'c',
+	 *     )
+	 *
+	 * This makes it unhelpful when outputting a snapshot to update a unit test. So this function strips out the indices
+	 * to facilitate copy/pasting the snapshot from an assertion error message into the data provider. For example:
+	 *
+	 *      array(
+	 *          'a',
+	 *          'b',
+	 *          'c',
+	 *      )
+	 *
+	 * This does not currently support nested arrays.
 	 *
 	 * @param array $snapshot Snapshot.
 	 * @return string Snapshot export.
 	 */
-	protected static function get_array_snapshot_export( array $snapshot ): string {
+	private static function get_array_snapshot_export( array $snapshot ): string {
 		$export = var_export( $snapshot, true );
 		$export = preg_replace( '/\barray \($/m', 'array(', $export );
-		if ( isset( $snapshot[0] ) ) {
+		if ( array_is_list( $snapshot ) ) {
 			$export = preg_replace( '/^(\s+)\d+\s+=>\s+/m', '$1', $export );
 		}
 		return preg_replace_callback(
