@@ -1531,6 +1531,27 @@ class Tests_Template extends WP_UnitTestCase {
 					'late-inline-css',
 				),
 			),
+			'classic_theme_opt_out_separate_block_styles_and_no_footer_printing' => array(
+				'set_up'          => static function () {
+					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+					add_filter( 'print_late_styles', '__return_false' );
+				},
+				'theme_supports'  => $theme_supports,
+				'expected_head'   => array(
+					'wp-img-auto-sizes-contain-inline-css',
+					'early-css',
+					'early-inline-css',
+					'wp-emoji-styles-inline-css',
+					'wp-block-library-css',
+					'wp-block-library-theme-inline-css',
+					'classic-theme-styles-inline-css',
+					'global-styles-inline-css',
+					'normal-css',
+					'normal-inline-css',
+					'wp-custom-css',
+				),
+				'expected_footer' => array(),
+			),
 			'wp_block_styles_not_supported'               => array(
 				'set_up'          => null,
 				'theme_supports'  => array(),
@@ -1599,11 +1620,12 @@ class Tests_Template extends WP_UnitTestCase {
 					'normal-css',
 					'normal-inline-css',
 					'wp-custom-css',
+				),
+				'expected_footer' => array(
 					'core-block-supports-inline-css',
 					'late-css',
 					'late-inline-css',
 				),
-				'expected_footer' => array(),
 			),
 		);
 	}
@@ -1646,7 +1668,7 @@ class Tests_Template extends WP_UnitTestCase {
 		register_core_block_style_handles();
 		register_core_block_types_from_metadata(); // See register_block_type_from_metadata().
 
-		$this->assertFalse( wp_is_block_theme(), 'Test is only relevant to block themes.' );
+		$this->assertFalse( wp_is_block_theme(), 'Test is not relevant to block themes (only classic themes).' );
 
 		// Enqueue a style early, before wp_enqueue_scripts.
 		wp_enqueue_style( 'early', 'https://example.com/style.css' );
