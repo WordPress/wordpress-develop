@@ -3663,7 +3663,7 @@ function wp_hoist_late_printed_styles() {
 		}
 		$all_block_style_handles = array_merge(
 			$all_block_style_handles,
-			array( 'global-styles', 'core-block-supports', 'block-style-variation-styles' ) // TODO: What else?
+			array( 'global-styles', 'core-block-supports', 'block-style-variation-styles', 'core-block-supports-duotone' ) // TODO: What else?
 		);
 
 		$enqueued_block_styles = array_values( array_intersect( $all_block_style_handles, wp_styles()->queue ) );
