@@ -351,7 +351,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 								} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
 									$boundary = trim( str_replace( array( 'BOUNDARY=', 'boundary=', '"' ), '', $charset_content ) );
 									$charset  = '';
-									if ( preg_match( '~multipart/([a-z]+)~i', $content_type, $matches ) ) {
+									if ( preg_match( '~^multipart/(\S+)~', $content_type, $matches ) ) {
 										$content_type = 'multipart/' . strtolower( $matches[1] ) . '; boundary="' . $boundary . '"';
 									}
 								}
