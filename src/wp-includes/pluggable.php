@@ -1938,7 +1938,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 
 			/* translators: %s: Comment URL. */
 			if ( 'note' === $comment->comment_type ) {
-				$notify_message .= admin_url( "post.php?post={$comment->comment_post_ID}" ) . "\r\n";
+				$notify_message .= get_edit_post_link( $comment->comment_post_ID, 'url' ) . "\r\n";
 			} else {
 				$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
 				$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
