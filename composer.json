@@ -45,6 +45,13 @@
 	},
 	"extra": {
 		"installer-paths": {
+			"paragonie/sodium_compat": {
+				"target": "src/wp-includes/sodium_compat",
+				"ignore": [
+					"README.md",
+					"composer-php52.json"
+				]
+			},
 			"phpmailer/phpmailer": {
 				"target": "src/wp-includes/PHPMailer",
 				"source": "src"
@@ -75,13 +82,6 @@
 					"phpstan.dist.neon",
 					"README.markdown",
 					"utils/PHPStan"
-				]
-			},
-			"paragonie/sodium_compat": {
-				"target": "src/wp-includes/sodium_compat",
-				"ignore": [
-					"README.md",
-					"composer-php52.json"
 				]
 			}
 		}
