@@ -1004,7 +1004,7 @@ JS;
 	 * @return string[] A list of eligible loading strategies that could be used.
 	 */
 	private function filter_eligible_strategies( $handle, $eligible_strategies = null, $checked = array(), array &$stored_results = array() ) {
-		if ( isset( $stored_results[ $handle ] ) && ! empty( $stored_results[ $handle ] ) ) {
+		if ( isset( $stored_results[ $handle ] ) ) {
 			return $stored_results[ $handle ];
 		}
 
@@ -1058,7 +1058,7 @@ JS;
 				return array();
 			}
 
-			$eligible_strategies = $this->filter_eligible_strategies( $dependent, $eligible_strategies, $checked );
+			$eligible_strategies = $this->filter_eligible_strategies( $dependent, $eligible_strategies, $checked, $stored_results);
 		}
 		$stored_results[ $handle ] = $eligible_strategies;
 		return $eligible_strategies;
