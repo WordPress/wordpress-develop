@@ -1609,6 +1609,7 @@ HTML
 	 * In this scenario, both B and C depend on D, and A depends on both B and C.
 	 * The goal is to confirm that when `$stored_results` already contains an entry for D,
 	 * the cached value is reused instead of recalculating the strategies for D multiple times.
+	 * @covers WP_Scripts::filter_eligible_strategies
 	 */
 	public function test_filter_eligible_strategies_uses_cached_result_for_shared_dependency() {
 		$wp_scripts = new WP_Scripts();

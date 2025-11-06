@@ -1058,7 +1058,7 @@ JS;
 				return array();
 			}
 
-			$eligible_strategies = $this->filter_eligible_strategies( $dependent, $eligible_strategies, $checked, $stored_results);
+			$eligible_strategies = $this->filter_eligible_strategies( $dependent, $eligible_strategies, $checked, $stored_results );
 		}
 		$stored_results[ $handle ] = $eligible_strategies;
 		return $eligible_strategies;
@@ -1078,7 +1078,7 @@ JS;
 	 * @return string|null Highest fetch priority for the script and its dependents.
 	 */
 	private function get_highest_fetchpriority_with_dependents( string $handle, array $checked = array(), array &$stored_results = array() ): ?string {
-		if ( isset( $stored_results[ $handle ] ) && ! empty( $stored_results[ $handle ] ) ) {
+		if ( isset( $stored_results[ $handle ] ) ) {
 			return $stored_results[ $handle ];
 		}
 
