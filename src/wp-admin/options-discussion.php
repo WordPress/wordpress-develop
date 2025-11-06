@@ -155,7 +155,7 @@ $thread_comments_depth .= '</select>';
 <td><fieldset><legend class="screen-reader-text"><span><?php echo $email_me_whenever_title; ?></span></legend>
 <label for="comments_notify">
 <input name="comments_notify" type="checkbox" id="comments_notify" value="1" <?php checked( '1', get_option( 'comments_notify' ) ); ?> />
-<?php _e( 'Anyone posts a comment' ); ?> </label>
+<?php _e( 'Anyone posts a comment or note' ); ?> </label>
 <br />
 <label for="moderation_notify">
 <input name="moderation_notify" type="checkbox" id="moderation_notify" value="1" <?php checked( '1', get_option( 'moderation_notify' ) ); ?> />
