@@ -1,21 +1,13 @@
 <?php
 /**
- * Tests for LTR stylesheet support in wp_register_style() and wp_print_styles().
- *
  * @group dependencies
  * @group i18n
- *
- * @ticket 64193
  */
 class Tests_Dependencies_StylesLtrSupport extends WP_UnitTestCase {
 
 	public function set_up(): void {
 		parent::set_up();
-
-		// Switch to an RTL locale to test LTR handling.
-		switch_to_locale( 'fa_IR' );
-
-		// Reset styles registry to ensure a clean environment.
+		switch_to_locale( 'fa_IR' ); // RTL language.
 		wp_styles()->registered = array();
 	}
 
@@ -55,7 +47,7 @@ class Tests_Dependencies_StylesLtrSupport extends WP_UnitTestCase {
 	 */
 	public function test_no_ltr_data_for_ltr_locale() {
 		restore_previous_locale();
-		switch_to_locale( 'en_US' ); // LTR language
+		switch_to_locale( 'en_US' ); // LTR language.
 
 		$handle = 'sample-style-ltr';
 		wp_register_style( $handle, 'https://example.com/style.css' );
@@ -65,15 +57,15 @@ class Tests_Dependencies_StylesLtrSupport extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'ltr', $styles->registered[ $handle ]->extra );
 		$this->assertSame( 'replace', $styles->registered[ $handle ]->extra['ltr'] );
 	}
-
 	/**
-	 * Verify that an LTR stylesheet is printed after its main stylesheet in the HTML output.
+	 * Verify that an LTR stylesheet actually gets printed in HTML output.
 	 *
 	 * @group output
 	 * @ticket 64193
-	 * @expectedDeprecated print_emoji_styles
 	 */
 	public function test_ltr_stylesheet_is_printed_in_output() {
+		$this->setExpectedDeprecated( 'print_emoji_styles' );
+
 		global $wp_styles;
 
 		// Reset styles registry to ensure a clean environment.
@@ -99,8 +91,8 @@ class Tests_Dependencies_StylesLtrSupport extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'ltr.css', $output, 'LTR stylesheet was not printed in output.' );
 
 		// Verify correct order (LTR after main style).
-		$mainPos = strpos( $output, 'style.css' );
-		$ltrPos  = strpos( $output, 'ltr.css' );
-		$this->assertTrue( $ltrPos > $mainPos, 'LTR stylesheet should appear after the main style.' );
+		$main_pos = strpos( $output, 'style.css' );
+		$ltr_pos  = strpos( $output, 'ltr.css' );
+		$this->assertTrue( $ltr_pos > $main_pos, 'LTR stylesheet should appear after the main style.' );
 	}
 }
