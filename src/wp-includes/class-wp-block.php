@@ -628,9 +628,6 @@ class WP_Block {
 		 */
 		if ( ( ! empty( $this->block_type->style_handles ) ) ) {
 			foreach ( $this->block_type->style_handles as $style_handle ) {
-				if ( ! empty( $GLOBALS['debug_on_demand_block_style'] ) ) {
-					error_log( __FILE__ . ':' . __LINE__ . ' enqueue: ' . json_encode( $style_handle ) );
-				}
 				wp_enqueue_style( $style_handle );
 			}
 		}
@@ -678,9 +675,6 @@ class WP_Block {
 		$after_styles_queue         = wp_styles()->queue;
 		$after_scripts_queue        = wp_scripts()->queue;
 		$after_script_modules_queue = wp_script_modules()->get_queue();
-		if ( ! empty( $GLOBALS['debug_on_demand_block_style'] ) ) {
-			error_log( __FILE__ . ':' . __LINE__ . ' $after_styles_queue: ' . json_encode( $after_styles_queue ) );
-		}
 
 		/*
 		 * As a very special case, a dynamic block may in fact include a call to wp_head() (and thus wp_enqueue_scripts()),
@@ -712,9 +706,6 @@ class WP_Block {
 		) {
 			foreach ( array_diff( $after_styles_queue, $before_styles_queue ) as $handle ) {
 				wp_dequeue_style( $handle );
-				if ( ! empty( $GLOBALS['debug_on_demand_block_style'] ) ) {
-					error_log( __FILE__ . ':' . __LINE__ . ' wp_dequeue_style: ' . json_encode( $handle ) );
-				}
 			}
 			foreach ( array_diff( $after_scripts_queue, $before_scripts_queue ) as $handle ) {
 				wp_dequeue_script( $handle );
