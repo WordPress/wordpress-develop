@@ -1674,6 +1674,9 @@ class Tests_Template extends WP_UnitTestCase {
 
 		// Ensure that separate core block assets get registered.
 		register_core_block_style_handles();
+		if ( wp_should_load_separate_core_block_assets() ) {
+			$this->assertTrue( wp_style_is( 'wp-block-separator', 'registered' ), 'Expected the wp-block-separator style to be registered.' );
+		}
 
 		$this->assertFalse( wp_is_block_theme(), 'Test is not relevant to block themes (only classic themes).' );
 
