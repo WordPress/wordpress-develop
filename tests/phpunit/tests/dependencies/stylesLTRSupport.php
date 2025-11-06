@@ -8,7 +8,7 @@ class Tests_Dependencies_StylesLtrSupport extends WP_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 		switch_to_locale( 'fa_IR' ); // RTL language
-		wp_styles()->registered = [];
+		wp_styles()->registered = array();
 	}
 
 	public function tear_down(): void {
