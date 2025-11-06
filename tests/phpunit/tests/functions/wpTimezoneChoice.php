@@ -10,9 +10,10 @@
 class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 
 	public function tear_down() {
-
 		restore_current_locale();
+		parent::tear_down();
 	}
+
 	/**
 	 * Default values.
 	 *
@@ -28,7 +29,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	/**
 	 * Datasets for test_wp_timezone_choice.
 	 *
-	 * @return array
+	 * @return array<string, string[]>
 	 */
 	public function data_wp_timezone_choice() {
 		return array(
@@ -59,7 +60,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	/**
 	 * Datasets for test_wp_timezone_choice_selected.
 	 *
-	 * @return array
+	 * @return array<string, string[]>
 	 */
 	public function data_wp_timezone_choice_selected() {
 		return array(
@@ -102,7 +103,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	/**
 	 * Datasets for test_wp_timezone_choice_es.
 	 *
-	 * @return array
+	 * @return array<string, string[]>
 	 */
 	public function data_wp_timezone_choice_es() {
 		return array(
@@ -129,7 +130,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	/**
 	 * Datasets for test_wp_timezone_choice_es_set.
 	 *
-	 * @return array
+	 * @return array<string, string[]>
 	 */
 	public function data_wp_timezone_choice_es_set() {
 		return array(
