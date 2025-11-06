@@ -1436,18 +1436,11 @@ HTML
 	}
 
 	/**
-	 * Tests that `WP_Scripts::get_highest_fetchpriority_with_dependents()` correctly
-	 * reuses cached results (`$stored_results`) for shared dependencies in a diamond-shaped graph.
+	 * Tests that `WP_Scripts::get_highest_fetchpriority_with_dependents()` correctly reuses cached results.
 	 *
-	 * Dependency Graph:
-	 *
-	 *     D <- [B, C]
-	 *     B <- [A]
-	 *     C <- [A]
-	 *     A <- []
-	 *
-	 * This verifies that when multiple dependents share a common dependency (`D`),
-	 * the cached result for `D` is used rather than recalculating it multiple times.
+	 * This test uses a diamond-shaped dependency graph where 'a' depends on 'b' and 'c', and both 'b' and 'c' depend
+	 * on 'd'. This verifies that when multiple dependents share a common dependency ('d'), the cached result for 'd'
+	 * is used rather than recalculating it multiple times.
 	 *
 	 * @ticket 64194
 	 *
@@ -1598,19 +1591,11 @@ HTML
 	}
 
 	/**
-	 * Tests that `WP_Scripts::filter_eligible_strategies()` correctly reuses cached results
-	 * for shared dependencies in a diamond-shaped dependency graph.
+	 * Tests that `WP_Scripts::filter_eligible_strategies()` correctly reuses cached results for shared dependencies.
 	 *
-	 * Dependency Graph:
-	 *
-	 *     D <- [B, C]
-	 *     B <- [A]
-	 *     C <- [A]
-	 *     A <- []
-	 *
-	 * In this scenario, both B and C depend on D, and A depends on both B and C.
-	 * The goal is to confirm that when `$stored_results` already contains an entry for D,
-	 * the cached value is reused instead of recalculating the strategies for D multiple times.
+	 * This test uses a diamond-shaped dependency graph where 'a' depends on 'b' and 'c', and both 'b' and 'c' depend
+	 * on 'd' (a diamond-shaped dependency graph). The goal is to confirm that when `$stored_results` already contains
+	 * an entry for 'd', the cached value is reused instead of recalculating the strategies for 'd' multiple times.
 	 *
 	 * @ticket 64194
 	 *
