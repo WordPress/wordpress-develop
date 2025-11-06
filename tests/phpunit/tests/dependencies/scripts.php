@@ -1436,6 +1436,66 @@ HTML
 	}
 
 	/**
+	 * @ticket 64194
+	 *
+	 * Tests that `WP_Scripts::get_highest_fetchpriority_with_dependents()` correctly
+	 * reuses cached results (`$stored_results`) for shared dependencies in a diamond-shaped graph.
+	 *
+	 * Dependency Graph:
+	 *
+	 *     D <- [B, C]
+	 *     B <- [A]
+	 *     C <- [A]
+	 *     A <- []
+	 *
+	 * This verifies that when multiple dependents share a common dependency (`D`),
+	 * the cached result for `D` is used rather than recalculating it multiple times.
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 */
+
+	public function test_highest_fetchpriority_with_dependents_uses_cached_result_for_shared_dependency() {
+		$wp_scripts = new WP_Scripts();
+
+		/*
+		 * Register scripts forming a diamond-shaped dependency graph:
+		 * D is the shared dependent of B and C, and A depends on both B and C.
+		 */
+		$wp_scripts->add( 'a', 'https://example.com/a.js', array( 'b', 'c' ) );
+		$wp_scripts->add( 'b', 'https://example.com/b.js', array( 'd' ) );
+		$wp_scripts->add( 'c', 'https://example.com/c.js', array( 'd' ) );
+		$wp_scripts->add( 'd', 'https://example.com/d.js' );
+
+		// Enqueue all scripts so they are considered active ("enqueued").
+		foreach ( array( 'a', 'b', 'c', 'd' ) as $handle ) {
+			$wp_scripts->enqueue( $handle );
+		}
+
+		$wp_scripts->add_data( 'a', 'fetchpriority', 'auto' );
+		$wp_scripts->add_data( 'b', 'fetchpriority', 'low' );
+		$wp_scripts->add_data( 'c', 'fetchpriority', 'low' );
+		$wp_scripts->add_data( 'd', 'fetchpriority', 'low' );
+
+		/*
+		 * Simulate a pre-existing `$stored_results` cache entry for `d`.
+		 * If the caching logic works, the function should use this "high" value
+		 * instead of recalculating based on the actual (lower) value.
+		 */
+		$stored_results = array( 'd' => 'high' );
+
+		// Access the private method using reflection.
+		$method = new ReflectionMethod( WP_Scripts::class, 'get_highest_fetchpriority_with_dependents' );
+		$method->setAccessible( true );
+
+		// Pass `$stored_results` BY REFERENCE.
+		$result = $method->invokeArgs( $wp_scripts, array( 'd', array(), &$stored_results ) );
+
+		$this->assertSame(
+			'high',
+			$result,
+			'Expected "high" indicates that the cached `$stored_results` entry for D was used instead of recalculating.'
+		);
+	}
+	/**
 	 * Tests that printing a script without enqueueing has the same output as when it is enqueued.
 	 *
 	 * @ticket 61734
@@ -1533,7 +1593,72 @@ HTML
 		$expected = str_replace( "'", '"', $expected );
 		$this->assertSame( $expected, $output, 'Scripts registered with no strategy assigned, and who have no dependencies, should have no loading strategy attributes printed.' );
 	}
+	/**
+	 * @ticket 64194
+	 *
+	 * Tests that `WP_Scripts::filter_eligible_strategies()` correctly reuses cached results
+	 * for shared dependencies in a diamond-shaped dependency graph.
+	 *
+	 * Dependency Graph:
+	 *
+	 *     D <- [B, C]
+	 *     B <- [A]
+	 *     C <- [A]
+	 *     A <- []
+	 *
+	 * In this scenario, both B and C depend on D, and A depends on both B and C.
+	 * The goal is to confirm that when `$stored_results` already contains an entry for D,
+	 * the cached value is reused instead of recalculating the strategies for D multiple times.
+	 */
+	public function test_filter_eligible_strategies_uses_cached_result_for_shared_dependency() {
+		$wp_scripts = new WP_Scripts();
 
+		/*
+		 * Register scripts forming a diamond-shaped dependency graph:
+		 * D is the shared dependent of B and C, and A depends on both B and C.
+		 */
+		$wp_scripts->add( 'a', 'https://example.com/a.js', array( 'b', 'c' ) );
+		$wp_scripts->add( 'b', 'https://example.com/b.js', array( 'd' ) );
+		$wp_scripts->add( 'c', 'https://example.com/c.js', array( 'd' ) );
+		$wp_scripts->add( 'd', 'https://example.com/d.js' );
+
+		// Enqueue all scripts so they are treated as active/enqueued.
+		foreach ( array( 'a', 'b', 'c', 'd' ) as $handle ) {
+			$wp_scripts->enqueue( $handle );
+		}
+
+		/*
+		 * Assign strategies:
+		 * - A: async
+		 * - B: async
+		 * - C: async
+		 * - D: async
+		 */
+		$wp_scripts->add_data( 'a', 'strategy', 'defer' );
+		$wp_scripts->add_data( 'b', 'strategy', 'defer' );
+		$wp_scripts->add_data( 'c', 'strategy', 'defer' );
+		$wp_scripts->add_data( 'd', 'strategy', 'async' );
+
+		/*
+		 * Simulate a cached result in `$stored_results` for D.
+		 * If caching logic is functioning properly, this cached value
+		 * should be returned immediately without recomputing.
+		 */
+		$stored_results = array( 'd' => array( 'async' ) );
+
+		// Access the private method via reflection.
+		$method = new ReflectionMethod( WP_Scripts::class, 'filter_eligible_strategies' );
+		$method->setAccessible( true );
+
+		// Invoke the method with `$stored_results` passed by reference.
+		$result = $method->invokeArgs( $wp_scripts, array( 'd', null, array(), &$stored_results ) );
+
+		$this->assertSame(
+			array( 'async' ),
+			$result,
+			'Expected cached `$stored_results` value for D to be reused instead of recomputed.'
+		);
+	}
 	/**
 	 * Tests that scripts registered for the head do indeed end up there.
 	 *

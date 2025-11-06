@@ -1000,9 +1000,14 @@ JS;
 	 * @param string              $handle              The script handle.
 	 * @param string[]|null       $eligible_strategies Optional. The list of strategies to filter. Default null.
 	 * @param array<string, true> $checked             Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @param array<string, string[]> $stored_results Optional. An array of already computed eligible loading strategies by handle, used to increase performance in large dependency lists.
 	 * @return string[] A list of eligible loading strategies that could be used.
 	 */
-	private function filter_eligible_strategies( $handle, $eligible_strategies = null, $checked = array() ) {
+	private function filter_eligible_strategies( $handle, $eligible_strategies = null, $checked = array(), array &$stored_results = array() ) {
+		if ( isset( $stored_results[ $handle ] ) && ! empty( $stored_results[ $handle ] ) ) {
+			return $stored_results[ $handle ];
+		}
+
 		// If no strategies are being passed, all strategies are eligible.
 		if ( null === $eligible_strategies ) {
 			$eligible_strategies = $this->delayed_strategies;
@@ -1055,7 +1060,7 @@ JS;
 
 			$eligible_strategies = $this->filter_eligible_strategies( $dependent, $eligible_strategies, $checked );
 		}
-
+		$stored_results[ $handle ] = $eligible_strategies;
 		return $eligible_strategies;
 	}
 
