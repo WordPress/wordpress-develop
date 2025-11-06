@@ -2447,7 +2447,7 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 		return false;
 	}
 
-	// Only send notifications for approved comments.
+	// Send notifications for approved comments and all notes.
 	if (
 		! isset( $comment->comment_approved ) ||
 		( '1' !== $comment->comment_approved && 'note' !== $comment->comment_type ) ) {
