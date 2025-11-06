@@ -1592,6 +1592,11 @@ class WP_Debug_Data {
 				'value' => $db_collate,
 				'debug' => $db_collate_debug,
 			),
+			'EMPTY_TRASH_DAYS'    => array(
+				'label' => 'EMPTY_TRASH_DAYS',
+				'value' => ( defined( 'EMPTY_TRASH_DAYS' ) ? EMPTY_TRASH_DAYS : __( 'Undefined' ) ),
+				'debug' => ( defined( 'EMPTY_TRASH_DAYS' ) ? EMPTY_TRASH_DAYS : 'undefined' ),
+			),
 		);
 
 		return array(
