@@ -5508,7 +5508,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/created-templates/(?P<parent>[\\d]+)/revisions": {
+        "/wp/v2/wp_template/(?P<parent>[\\d]+)/revisions": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -5606,7 +5606,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/created-templates/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)": {
+        "/wp/v2/wp_template/(?P<parent>[\\d]+)/revisions/(?P<id>[\\d]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5666,7 +5666,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/created-templates/(?P<id>[\\d]+)/autosaves": {
+        "/wp/v2/wp_template/(?P<id>[\\d]+)/autosaves": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -5865,7 +5865,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/created-templates/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)": {
+        "/wp/v2/wp_template/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET"
@@ -5901,7 +5901,7 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
-        "/wp/v2/created-templates": {
+        "/wp/v2/wp_template": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -6265,12 +6265,12 @@ mockedApiResponse.Schema = {
             "_links": {
                 "self": [
                     {
-                        "href": "http://example.org/index.php?rest_route=/wp/v2/created-templates"
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/wp_template"
                     }
                 ]
             }
         },
-        "/wp/v2/created-templates/(?P<id>[\\d]+)": {
+        "/wp/v2/wp_template/(?P<id>[\\d]+)": {
             "namespace": "wp/v2",
             "methods": [
                 "GET",
@@ -8671,6 +8671,85 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/wp_registered_template": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "wp_id": {
+                            "description": "Limit to the specified post id.",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "area": {
+                            "description": "Limit to the specified template part area.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "post_type": {
+                            "description": "Post type to get the templates for.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/wp_registered_template"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/wp_registered_template/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The id of a template",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)/autosaves": {
             "namespace": "wp/v2",
             "methods": [
@@ -9349,85 +9428,6 @@ mockedApiResponse.Schema = {
                             "type": "boolean",
                             "default": false,
                             "description": "Whether to bypass Trash and force deletion.",
-                            "required": false
-                        }
-                    }
-                }
-            ]
-        },
-        "/wp/v2/registered-templates": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "enum": [
-                                "view",
-                                "embed",
-                                "edit"
-                            ],
-                            "default": "view",
-                            "required": false
-                        },
-                        "wp_id": {
-                            "description": "Limit to the specified post id.",
-                            "type": "integer",
-                            "required": false
-                        },
-                        "area": {
-                            "description": "Limit to the specified template part area.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "post_type": {
-                            "description": "Post type to get the templates for.",
-                            "type": "string",
-                            "required": false
-                        }
-                    }
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp/v2/registered-templates"
-                    }
-                ]
-            }
-        },
-        "/wp/v2/registered-templates/(?P<id>([^\\/:<>\\*\\?\"\\|]+(?:\\/[^\\/:<>\\*\\?\"\\|]+)?)[\\/\\w%-]+)": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "id": {
-                            "description": "The id of a template",
-                            "type": "string",
-                            "required": false
-                        },
-                        "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "enum": [
-                                "view",
-                                "embed",
-                                "edit"
-                            ],
-                            "default": "view",
                             "required": false
                         }
                     }
@@ -10809,7 +10809,8 @@ mockedApiResponse.Schema = {
                                     "wp_global_styles": "wp_global_styles",
                                     "wp_navigation": "wp_navigation",
                                     "wp_font_family": "wp_font_family",
-                                    "wp_font_face": "wp_font_face"
+                                    "wp_font_face": "wp_font_face",
+                                    "wp_registered_template": "wp_registered_template"
                                 }
                             },
                             "required": false
@@ -14767,7 +14768,7 @@ mockedApiResponse.TypesCollection = {
         "slug": "wp_template",
         "icon": null,
         "taxonomies": [],
-        "rest_base": "created-templates",
+        "rest_base": "wp_template",
         "rest_namespace": "wp/v2",
         "template": [],
         "template_lock": false,
@@ -14779,7 +14780,7 @@ mockedApiResponse.TypesCollection = {
             ],
             "wp:items": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/created-templates"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/wp_template"
                 }
             ],
             "curies": [
@@ -14940,6 +14941,38 @@ mockedApiResponse.TypesCollection = {
             "wp:items": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/font-families/(?P<font_family_id>[\\d]+)/font-faces"
+                }
+            ],
+            "curies": [
+                {
+                    "name": "wp",
+                    "href": "https://api.w.org/{rel}",
+                    "templated": true
+                }
+            ]
+        }
+    },
+    "wp_registered_template": {
+        "description": "Templates to include in your theme.",
+        "hierarchical": false,
+        "has_archive": false,
+        "name": "Templates",
+        "slug": "wp_registered_template",
+        "icon": null,
+        "taxonomies": [],
+        "rest_base": "wp_registered_template",
+        "rest_namespace": "wp/v2",
+        "template": [],
+        "template_lock": false,
+        "_links": {
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types"
+                }
+            ],
+            "wp:items": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/wp_registered_template"
                 }
             ],
             "curies": [
@@ -15557,7 +15590,7 @@ mockedApiResponse.settings = {
     "page_for_posts": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
-    "active_templates": [],
+    "active_templates": null,
     "site_logo": null,
     "site_icon": 0
 };
