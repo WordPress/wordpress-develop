@@ -1436,8 +1436,6 @@ HTML
 	}
 
 	/**
-	 * @ticket 64194
-	 *
 	 * Tests that `WP_Scripts::get_highest_fetchpriority_with_dependents()` correctly
 	 * reuses cached results (`$stored_results`) for shared dependencies in a diamond-shaped graph.
 	 *
@@ -1450,9 +1448,11 @@ HTML
 	 *
 	 * This verifies that when multiple dependents share a common dependency (`D`),
 	 * the cached result for `D` is used rather than recalculating it multiple times.
+	 *
+	 * @ticket 64194
+	 *
 	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
 	 */
-
 	public function test_highest_fetchpriority_with_dependents_uses_cached_result_for_shared_dependency() {
 		$wp_scripts = new WP_Scripts();
 
@@ -1487,6 +1487,7 @@ HTML
 		if ( PHP_VERSION_ID < 80100 ) {
 			$method->setAccessible( true );
 		}
+
 		// Pass `$stored_results` BY REFERENCE.
 		$result = $method->invokeArgs( $wp_scripts, array( 'd', array(), &$stored_results ) );
 
@@ -1496,6 +1497,7 @@ HTML
 			'Expected "high" indicates that the cached `$stored_results` entry for D was used instead of recalculating.'
 		);
 	}
+
 	/**
 	 * Tests that printing a script without enqueueing has the same output as when it is enqueued.
 	 *
@@ -1594,9 +1596,8 @@ HTML
 		$expected = str_replace( "'", '"', $expected );
 		$this->assertSame( $expected, $output, 'Scripts registered with no strategy assigned, and who have no dependencies, should have no loading strategy attributes printed.' );
 	}
+
 	/**
-	 * @ticket 64194
-	 *
 	 * Tests that `WP_Scripts::filter_eligible_strategies()` correctly reuses cached results
 	 * for shared dependencies in a diamond-shaped dependency graph.
 	 *
@@ -1610,6 +1611,9 @@ HTML
 	 * In this scenario, both B and C depend on D, and A depends on both B and C.
 	 * The goal is to confirm that when `$stored_results` already contains an entry for D,
 	 * the cached value is reused instead of recalculating the strategies for D multiple times.
+	 *
+	 * @ticket 64194
+	 *
 	 * @covers WP_Scripts::filter_eligible_strategies
 	 */
 	public function test_filter_eligible_strategies_uses_cached_result_for_shared_dependency() {
@@ -1653,6 +1657,7 @@ HTML
 		if ( PHP_VERSION_ID < 80100 ) {
 			$method->setAccessible( true );
 		}
+
 		// Invoke the method with `$stored_results` passed by reference.
 		$result = $method->invokeArgs( $wp_scripts, array( 'd', null, array(), &$stored_results ) );
 
@@ -1662,6 +1667,7 @@ HTML
 			'Expected cached `$stored_results` value for D to be reused instead of recomputed.'
 		);
 	}
+
 	/**
 	 * Tests that scripts registered for the head do indeed end up there.
 	 *

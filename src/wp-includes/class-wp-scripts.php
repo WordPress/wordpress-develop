@@ -997,10 +997,10 @@ JS;
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param string              $handle              The script handle.
-	 * @param string[]|null       $eligible_strategies Optional. The list of strategies to filter. Default null.
-	 * @param array<string, true> $checked             Optional. An array of already checked script handles, used to avoid recursive loops.
-	 * @param array<string, string[]> $stored_results Optional. An array of already computed eligible loading strategies by handle, used to increase performance in large dependency lists.
+	 * @param string                  $handle              The script handle.
+	 * @param string[]|null           $eligible_strategies Optional. The list of strategies to filter. Default null.
+	 * @param array<string, true>     $checked             Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @param array<string, string[]> $stored_results      Optional. An array of already computed eligible loading strategies by handle, used to increase performance in large dependency lists.
 	 * @return string[] A list of eligible loading strategies that could be used.
 	 */
 	private function filter_eligible_strategies( $handle, $eligible_strategies = null, $checked = array(), array &$stored_results = array() ) {
@@ -1071,10 +1071,9 @@ JS;
 	 * @see self::filter_eligible_strategies()
 	 * @see WP_Script_Modules::get_highest_fetchpriority_with_dependents()
 	 *
-	 * @param string              $handle  Script module ID.
-	 * @param array<string, true> $checked Optional. An array of already checked script handles, used to avoid recursive loops.
+	 * @param string                $handle         Script module ID.
+	 * @param array<string, true>   $checked        Optional. An array of already checked script handles, used to avoid recursive loops.
 	 * @param array<string, string> $stored_results Optional. An array of already computed max priority by handle, used to increase performance in large dependency lists.
-	 *
 	 * @return string|null Highest fetch priority for the script and its dependents.
 	 */
 	private function get_highest_fetchpriority_with_dependents( string $handle, array $checked = array(), array &$stored_results = array() ): ?string {
