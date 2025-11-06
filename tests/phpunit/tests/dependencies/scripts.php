@@ -1484,8 +1484,9 @@ HTML
 
 		// Access the private method using reflection.
 		$method = new ReflectionMethod( WP_Scripts::class, 'get_highest_fetchpriority_with_dependents' );
-		$method->setAccessible( true );
-
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 		// Pass `$stored_results` BY REFERENCE.
 		$result = $method->invokeArgs( $wp_scripts, array( 'd', array(), &$stored_results ) );
 
@@ -1649,8 +1650,9 @@ HTML
 
 		// Access the private method via reflection.
 		$method = new ReflectionMethod( WP_Scripts::class, 'filter_eligible_strategies' );
-		$method->setAccessible( true );
-
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 		// Invoke the method with `$stored_results` passed by reference.
 		$result = $method->invokeArgs( $wp_scripts, array( 'd', null, array(), &$stored_results ) );
 
