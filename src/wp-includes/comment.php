@@ -2460,7 +2460,7 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 /**
  * Send a notification to the post author when a new note is added via the REST API.
  *
- * @since 6.9.1
+ * @since 6.9.0
  *
  * @param WP_Comment $comment The comment object.
  */
