@@ -2425,7 +2425,7 @@ function wp_new_comment_notify_moderator( $comment_id ) {
  */
 function wp_new_comment_notify_postauthor( $comment_id ) {
 	$comment = get_comment( $comment_id );
-	$isNote  = ( 'note' === $comment->comment_type );
+	$isNote  = ( $comment && 'note' === $comment->comment_type );
 
 	$maybe_notify = $isNote ? get_option( 'notes_notify' ) : get_option( 'comments_notify' );
 
