@@ -110,7 +110,35 @@ final class CustomInstaller extends LibraryInstaller {
 		$installPath = $this->getInstallPath( $package );
 
 		$this->applySourceSubdirectory( $package, $installPath );
+		$this->applyReplacements( $package, $installPath );
 		$this->applyIgnorePatterns( $package, $installPath );
+	}
+
+	/**
+	 * Apply file replacements from custom replacement files.
+	 *
+	 * @param PackageInterface $package     The package.
+	 * @param string           $installPath The installation path.
+	 */
+	private function applyReplacements( PackageInterface $package, string $installPath ): void {
+		$packageName = $package->getName();
+
+		if ( ! isset( $this->installerPaths[ $packageName ]['replace'] ) ) {
+			return;
+		}
+
+		$filesystem      = new Filesystem();
+		$replacementsDir = realpath( getcwd() ) . '/tools/composer/replacements';
+
+		foreach ( $this->installerPaths[ $packageName ]['replace'] as $target => $source ) {
+			$sourcePath = $replacementsDir . '/' . $source;
+
+			if ( ! file_exists( $sourcePath ) ) {
+				throw new \RuntimeException( "Replacement file 'tools/composer/replacements/{$source}' does not exist for package '{$packageName}'." );
+			}
+
+			$filesystem->copy( $sourcePath, $installPath . '/' . $target );
+		}
 	}
 
 	/**

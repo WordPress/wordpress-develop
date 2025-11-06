@@ -60,7 +60,10 @@
 					"library/README.md",
 					"LICENSE",
 					"README.md"
-				]
+				],
+				"replace": {
+					"library/Requests.php": "Requests.php"
+				}
 			},
 			"simplepie/simplepie": {
 				"target": "src/wp-includes/SimplePie",
