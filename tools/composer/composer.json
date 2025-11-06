@@ -1,0 +1,17 @@
+{
+	"name": "wordpress/custom-installer-plugin",
+	"description": "Custom Composer installer plugin for WordPress vendor dependencies",
+	"type": "composer-plugin",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"composer-plugin-api": "^2.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"WordPress\\Composer\\": "src/"
+		}
+	},
+	"extra": {
+		"class": "WordPress\\Composer\\CustomInstallerPlugin"
+	}
+}
