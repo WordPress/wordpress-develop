@@ -1746,6 +1746,11 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 			return false;
 		}
 
+		// Skip notifications for empty notes.
+		if ( 'note' === $comment->comment_type && empty( $comment->comment_content ) ) {
+			return false;
+		}
+
 		$post   = get_post( $comment->comment_post_ID );
 		$author = get_userdata( $post->post_author );
 
@@ -1938,8 +1943,6 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 				$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
 				$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
 			}
-
-			error_log( $subject );
 
 			if ( 'note' !== $comment->comment_type && user_can( $post->post_author, 'edit_comment', $comment->comment_ID ) ) {
 				if ( EMPTY_TRASH_DAYS ) {
