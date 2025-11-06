@@ -2466,23 +2466,9 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
  */
 function wp_new_comment_via_rest_notify_postauthor( $comment ) {
 	if ( 'note' === $comment->comment_type ) {
-		// Queue up the email notification as a cron callback. The second parameter ensures each callback is executed.
-		wp_schedule_single_event( time(), 'wp_new_comment_via_rest_notify_postauthor', array( $comment->comment_ID, time() ) );
+		wp_new_comment_notify_postauthor( $comment->comment_ID );
 	}
 }
-
-/**
- * Cron callback to send an author email notifcation, keeping the action asynchronous.
- */
-function wp_new_comment_via_rest_notify_postauthor_cron( $comment_id ) {
-	$comment = get_comment( $comment_id );
-	if ( $comment ) {
-		wp_new_comment_notify_postauthor( $comment_id );
-	}
-}
-
-// Add a custom hook for the note notification cron job.
-add_action( 'wp_new_comment_via_rest_notify_postauthor', 'wp_new_comment_via_rest_notify_postauthor_cron' );
 
 /**
  * Sets the status of a comment.
