@@ -45,13 +45,24 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test registering ability category before `abilities_api_categories_init` hook.
+	 * Simulates the `wp_abilities_api_categories_init` action.
+	 */
+	private function simulate_doing_wp_ability_categories_init_action() {
+		global $wp_current_filter;
+
+		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+	}
+
+	/**
+	 * Test registering ability category before `wp_abilities_api_categories_init` hook.
 	 *
 	 * @ticket 64098
 	 *
 	 * @expectedIncorrectUsage wp_register_ability_category
 	 */
 	public function test_register_category_before_init_hook(): void {
+		$this->assertFalse( doing_action( 'wp_abilities_api_categories_init' ) );
+
 		$result = wp_register_ability_category(
 			self::$test_ability_category_name,
 			self::$test_ability_category_args
@@ -70,13 +81,13 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	public function test_register_ability_category_no_init_action(): void {
 		global $wp_actions;
 
-		do_action( 'wp_abilities_api_categories_init' );
-
 		// Store the original action count.
 		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
+
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$result = wp_register_ability_category(
 			self::$test_ability_category_name,
@@ -97,7 +108,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_register_valid_category(): void {
-		do_action( 'wp_abilities_api_categories_init' );
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$result = wp_register_ability_category(
 			self::$test_ability_category_name,
@@ -120,13 +131,13 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	public function test_unregister_ability_category_no_init_action(): void {
 		global $wp_actions;
 
-		do_action( 'wp_abilities_api_categories_init' );
-
 		// Store the original action count.
 		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
+
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$result = wp_unregister_ability_category( self::$test_ability_category_name );
 
@@ -146,7 +157,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::unregister
 	 */
 	public function test_unregister_nonexistent_category(): void {
-		do_action( 'wp_abilities_api_categories_init' );
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$result = wp_unregister_ability_category( 'test-nonexistent' );
 
@@ -159,7 +170,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_unregister_existing_category(): void {
-		do_action( 'wp_abilities_api_categories_init' );
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		wp_register_ability_category(
 			self::$test_ability_category_name,
@@ -182,13 +193,13 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	public function test_has_ability_category_no_init_action(): void {
 		global $wp_actions;
 
-		do_action( 'wp_abilities_api_categories_init' );
-
 		// Store the original action count.
 		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
+
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$result = wp_has_ability_category( self::$test_ability_category_name );
 
@@ -206,7 +217,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_has_registered_nonexistent_ability_category(): void {
-		do_action( 'wp_abilities_api_categories_init' );
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$result = wp_has_ability_category( 'test/non-existent' );
 
@@ -219,7 +230,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_has_registered_ability_category(): void {
-		do_action( 'wp_abilities_api_categories_init' );
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$category_slug = self::$test_ability_category_name;
 
@@ -243,13 +254,13 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	public function test_get_ability_category_no_init_action(): void {
 		global $wp_actions;
 
-		do_action( 'wp_abilities_api_categories_init' );
-
 		// Store the original action count.
 		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
+
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$result = wp_get_ability_category( self::$test_ability_category_name );
 
@@ -269,7 +280,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_registered
 	 */
 	public function test_get_nonexistent_category(): void {
-		do_action( 'wp_abilities_api_categories_init' );
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$result = wp_get_ability_category( 'test-nonexistent' );
 
@@ -316,13 +327,13 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	public function test_get_ability_categories_no_init_action(): void {
 		global $wp_actions;
 
-		do_action( 'wp_abilities_api_categories_init' );
-
 		// Store the original action count.
 		$original_count = isset( $wp_actions['init'] ) ? $wp_actions['init'] : 0;
 
 		// Reset the action count to simulate it not being fired.
 		unset( $wp_actions['init'] );
+
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		$result = wp_get_ability_categories( self::$test_ability_category_name );
 
@@ -340,7 +351,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 * @ticket 64098
 	 */
 	public function test_get_all_categories(): void {
-		do_action( 'wp_abilities_api_categories_init' );
+		$this->simulate_doing_wp_ability_categories_init_action();
 
 		wp_register_ability_category(
 			self::$test_ability_category_name,

@@ -997,9 +997,16 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing.
+	 * Data provider for test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing.
 	 *
-	 * @return array
+	 * @return array<string, array{
+	 *             ini_config_options: array<string, int|string|bool>,
+	 *             emit_filter_errors: Closure,
+	 *             emit_action_errors: Closure,
+	 *             expected_processed: bool,
+	 *             expected_error_log: string[],
+	 *             expected_displayed_errors: string[],
+	 *         }>
 	 */
 	public function data_provider_to_test_wp_finalize_template_enhancement_output_buffer_with_errors_while_processing(): array {
 		$log_and_display_all = array(
