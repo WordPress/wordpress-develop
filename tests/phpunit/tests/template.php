@@ -127,8 +127,6 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->original_wp_styles  = $wp_styles;
 		$wp_scripts                = null;
 		$wp_styles                 = null;
-		wp_scripts();
-		wp_styles();
 
 		foreach ( self::RESTORED_CONFIG_OPTIONS as $option ) {
 			$this->original_ini_config[ $option ] = ini_get( $option );
@@ -1647,6 +1645,9 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 */
 	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, int $inline_size_limit, array $expected_styles ): void {
+		$GLOBALS['debug_on_demand_block_style'] = true; // TODO: Remove.
+		error_log( "\n##BEGIN DEBUG ####################################\n" );
+
 		switch_theme( 'default' );
 		global $wp_styles;
 		$wp_styles = null;
@@ -1674,8 +1675,49 @@ class Tests_Template extends WP_UnitTestCase {
 
 		// Ensure that separate core block assets get registered.
 		register_core_block_style_handles();
+		$this->assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'core/separator' ), 'Expected the core/separator block to be registered.' );
+
+		// Ensure
+		$this->ensure_style_asset_file_created( 'wp-block-library', 'css/dist/block-library/style.css' );
+//		$handle = 'wp-block-library';
+//		$this->assertTrue( wp_style_is( $handle, 'registered' ), 'Expected the wp-block-library style to be registered.' );
+//		$dependency = wp_styles()->query( $handle );
+//		$relative_path = 'css/dist/block-library/style.css';
+//		error_log( __FILE__ . ':' . __LINE__ . ' $dependency->src === ' . $dependency->src );
+//		$dependency->src = includes_url( $relative_path );
+//		$path = ABSPATH . WPINC . '/blocks/separator/style.css';
+//		if ( ! file_exists( $path ) ) {
+//			mkdir( dirname( $path ), 0777, true );
+//			error_log( __FILE__ . ':' . __LINE__ . ' FILE DOES NOT EXIST: ' . $path );
+//			file_put_contents( $path, '/* The separator CSS */' );
+//		} else {
+//			error_log( __FILE__ . ':' . __LINE__ . ' FILE DOES EXIST: ' . $path );
+//		}
+//		wp_style_add_data( $handle, 'path', $path );
+
 		if ( wp_should_load_separate_core_block_assets() ) {
-			$this->assertTrue( wp_style_is( 'wp-block-separator', 'registered' ), 'Expected the wp-block-separator style to be registered.' );
+			$this->ensure_style_asset_file_created( 'wp-block-separator', 'blocks/separator/style.css' );
+
+//			$handle = 'wp-block-separator';
+//			$this->assertTrue( wp_style_is( $handle, 'registered' ), 'Expected the wp-block-separator style to be registered.' );
+//			$dependency = wp_styles()->query( $handle );
+//			error_log( __FILE__ . ':' . __LINE__ . ' $dependency->src === ' . $dependency->src );
+//			$relative_path = 'blocks/separator/style.css';
+//			$dependency->src = includes_url( $relative_path );
+//			$path = ABSPATH . WPINC . '/' . $relative_path;
+//			if ( ! file_exists( $path ) ) {
+//				mkdir( dirname( $path ), 0777, true );
+//				error_log( __FILE__ . ':' . __LINE__ . ' FILE DOES NOT EXIST: ' . $path );
+//				file_put_contents( $path, '/* The separator CSS */' );
+//			} else {
+//				error_log( __FILE__ . ':' . __LINE__ . ' FILE DOES EXIST: ' . $path );
+//			}
+//			wp_style_add_data( $handle, 'path', $path );
+
+			$handle = 'wp-block-separator';
+			$done = wp_styles()->done;
+			error_log( __FILE__ . ':' . __LINE__ . ": wp_print_styles($handle): " . get_echo( 'wp_print_styles', array( $handle ) ) );
+			wp_styles()->done = $done;
 		}
 
 		$this->assertFalse( wp_is_block_theme(), 'Test is not relevant to block themes (only classic themes).' );
@@ -1712,6 +1754,9 @@ class Tests_Template extends WP_UnitTestCase {
 			'the_content',
 			'<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator -->'
 		);
+		if ( ! empty( $GLOBALS['debug_on_demand_block_style'] ) ) {
+			error_log( __FILE__ . ':' . __LINE__ . ' wp_styles()->queue: ' . json_encode( wp_styles()->queue ) );
+		}
 
 		// Simulate footer scripts.
 		$footer_output = get_echo( 'wp_footer' );
@@ -1757,6 +1802,39 @@ class Tests_Template extends WP_UnitTestCase {
 			$found_subset_styles,
 			'Expected the same styles. Snapshot: ' . self::get_array_snapshot_export( $found_styles )
 		);
+
+		unset( $GLOBALS['debug_on_demand_block_style'] ); // TODO: Remove.
+		error_log( "\n##END DEBUG ####################################\n" ); // TODO: Remove.
+	}
+
+	/**
+	 * Ensures a CSS file is on the filesystem.
+	 *
+	 * This is needed because unit tests may be run without a build step having been done. Something similar can be seen
+	 * elsewhere in tests for the `wp-emoji-loader.js` script:
+	 *
+	 *     self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
+	 *
+	 * @param string $handle        Style handle.
+	 * @param string $relative_path Relative path to the CSS file in the includes directory.
+	 */
+	private function ensure_style_asset_file_created( string $handle, string $relative_path ) {
+		$this->assertTrue( wp_style_is( $handle, 'registered' ), 'Expected the wp-block-separator style to be registered.' );
+		$dependency = wp_styles()->query( $handle );
+		error_log( __FILE__ . ':' . __LINE__ . ' $dependency->src === ' . $dependency->src );
+		$dependency->src = includes_url( $relative_path );
+		$path            = ABSPATH . WPINC . '/' . $relative_path;
+		if ( ! file_exists( $path ) ) {
+			$dir = dirname( $path );
+			if ( ! file_exists( $dir ) ) {
+				mkdir( $dir, 0777, true );
+			}
+			error_log( __FILE__ . ':' . __LINE__ . ' FILE DOES NOT EXIST: ' . $path );
+			file_put_contents( $path, "/* CSS for $handle */" );
+		} else {
+			error_log( __FILE__ . ':' . __LINE__ . ' FILE DOES EXIST: ' . $path );
+		}
+		wp_style_add_data( $handle, 'path', $path );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {

@@ -3660,6 +3660,8 @@ function wp_hoist_late_printed_styles() {
 	$printed_block_styles = '';
 	$printed_late_styles  = '';
 	$capture_late_styles  = static function () use ( &$printed_block_styles, &$printed_late_styles ) {
+		error_log( __FILE__ . ':' . __LINE__ . ' wp_styles()->queue: ' . json_encode( wp_styles()->queue ) );
+
 		// Gather the styles related to on-demand block enqueues.
 		$all_block_style_handles = array();
 		foreach ( WP_Block_Type_Registry::get_instance()->get_all_registered() as $block_type ) {
@@ -3682,11 +3684,14 @@ function wp_hoist_late_printed_styles() {
 		 * to preserve the CSS cascade. The logic in this `if` statement is derived from `wp_print_styles()`.
 		 */
 		$enqueued_block_styles = array_values( array_intersect( $all_block_style_handles, wp_styles()->queue ) );
+		error_log( __FILE__ . ':' . __LINE__ . ' $enqueued_block_styles: ' . json_encode( $enqueued_block_styles ) );
+		error_log( __FILE__ . ':' . __LINE__ . ' wp_styles()->done: ' . json_encode( wp_styles()->done ) );
 		if ( count( $enqueued_block_styles ) > 0 ) {
 			ob_start();
 			wp_styles()->do_items( $enqueued_block_styles );
 			$printed_block_styles = ob_get_clean();
 		}
+		error_log( __FILE__ . ':' . __LINE__ . ' wp_styles()->done: ' . json_encode( wp_styles()->done ) );
 
 		/*
 		 * Print all remaining styles not related to blocks. This contains a subset of the logic from
@@ -3696,6 +3701,7 @@ function wp_hoist_late_printed_styles() {
 		ob_start();
 		wp_styles()->do_footer_items();
 		$printed_late_styles = ob_get_clean();
+		error_log( __FILE__ . ':' . __LINE__ . ' wp_styles()->done: ' . json_encode( wp_styles()->done ) );
 	};
 
 	/*
