@@ -1707,11 +1707,10 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'core/separator' ), 'Expected the core/separator block to be registered.' );
 
 		// Ensure stylesheet files exist on the filesystem since a build may not have been done.
-		$this->ensure_style_asset_file_created( 'wp-block-library', 'css/dist/block-library/style.css' );
+		$this->ensure_style_asset_file_created( 'wp-block-library' );
 		if ( wp_should_load_separate_core_block_assets() ) {
-			$this->ensure_style_asset_file_created( 'wp-block-separator', 'blocks/separator/style.css' );
+			$this->ensure_style_asset_file_created( 'wp-block-separator' );
 		}
-
 		$this->assertFalse( wp_is_block_theme(), 'Test is not relevant to block themes (only classic themes).' );
 
 		// Enqueue a style early, before wp_enqueue_scripts.
@@ -1813,12 +1812,22 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 *     self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 	 *
-	 * @param string $handle        Style handle.
-	 * @param string $relative_path Relative path to the CSS file in the includes directory.
+	 * @param string $handle Style handle.
+	 *
+	 * @throws Exception If the supplied style handle is not registered as expected.
 	 */
-	private function ensure_style_asset_file_created( string $handle, string $relative_path ) {
-		$this->assertTrue( wp_style_is( $handle, 'registered' ), 'Expected the wp-block-separator style to be registered.' );
-		$dependency      = wp_styles()->query( $handle );
+	private function ensure_style_asset_file_created( string $handle ) {
+		$dependency = wp_styles()->query( $handle );
+		if ( ! $dependency ) {
+			throw new Exception( "The stylesheet for $handle is not registered." );
+		}
+		if ( ! $dependency->src ) {
+			throw new Exception( "The stylesheet URL for $handle is empty." );
+		}
+		if ( ! str_contains( $dependency->src, '/wp-includes/' ) ) {
+			throw new Exception( "Expected the stylesheet URL for $handle to be in the includes directory, but got {$dependency->src}" );
+		}
+		$relative_path   = preg_replace( '#^.*?/wp-includes/#', '/', $dependency->src );
 		$dependency->src = includes_url( $relative_path );
 		$path            = ABSPATH . WPINC . '/' . $relative_path;
 		if ( ! file_exists( $path ) ) {
