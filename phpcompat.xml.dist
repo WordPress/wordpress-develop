@@ -118,7 +118,7 @@
 		Excluded while waiting for PHPCompatibility v10.
 		See <https://github.com/PHPCompatibility/PHPCompatibility/issues/1481>.
 	-->
-	<rule ref="PHPCompatibility.FunctionDeclarations.NewClosure.ThisFoundOutsideClass">
+	<rule ref="PHPCompatibility.FunctionDeclarations.NewClosure.ThisFoundInStatic">
 		<exclude-pattern>/src/wp-includes/script-loader\.php$</exclude-pattern>
 	</rule>
 
