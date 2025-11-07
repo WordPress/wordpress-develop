@@ -1811,7 +1811,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
-	 * Cleanup the unzip destination.
+	 * Clean up the unzip destination.
 	 *
 	 * @param string $unzip_destination Unzip destination.
 	 * @return void
