@@ -1442,7 +1442,7 @@ HTML
 	 *
 	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
 	 */
-	public function test_highest_fetchpriority_with_dependents_uses_cached_result_for_shared_dependency() {
+	public function test_highest_fetchpriority_with_dependents_uses_cached_result() {
 		$wp_scripts = new WP_Scripts();
 		$wp_scripts->add( 'd', 'https://example.com/d.js' );
 		$wp_scripts->add_data( 'd', 'fetchpriority', 'low' );
@@ -1570,13 +1570,13 @@ HTML
 	}
 
 	/**
-	 * Tests that `WP_Scripts::filter_eligible_strategies()` correctly reuses cached results for shared dependencies.
+	 * Tests that `WP_Scripts::filter_eligible_strategies()` correctly reuses cached results.
 	 *
 	 * @ticket 64194
 	 *
 	 * @covers WP_Scripts::filter_eligible_strategies
 	 */
-	public function test_filter_eligible_strategies_uses_cached_result_for_shared_dependency() {
+	public function test_filter_eligible_strategies_uses_cached_result() {
 		$wp_scripts = new WP_Scripts();
 		$wp_scripts->add( 'd', 'https://example.com/d.js' );
 		$wp_scripts->add_data( 'd', 'strategy', 'defer' );
