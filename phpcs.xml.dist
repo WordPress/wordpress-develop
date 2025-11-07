@@ -81,6 +81,9 @@
 	<exclude-pattern>/tests/phpunit/build*</exclude-pattern>
 	<exclude-pattern>/tests/phpunit/data/*</exclude-pattern>
 
+	<!-- PHPStan bootstrap, stubs, and baseline. -->
+	<exclude-pattern>/tests/phpstan/*</exclude-pattern>
+
 	<exclude-pattern>/tools/*</exclude-pattern>
 
 	<!-- Drop-in plugins. -->

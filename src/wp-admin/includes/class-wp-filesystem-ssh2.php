@@ -672,6 +672,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *                      Default 0.
 	 */
 	public function touch( $file, $time = 0, $atime = 0 ) {
+		// @phpstan-ignore-next-line
 		// Not implemented.
 	}
 
