@@ -1816,7 +1816,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 * @param string $unzip_destination Unzip destination.
 	 * @return void
 	 */
-	public function cleanup_unzip_destination( $unzip_destination ) {
+	public function clean_up_unzip_destination( $unzip_destination ) {
 		if ( file_exists( $unzip_destination ) ) {
 			$this->rmdir( $unzip_destination );
 			$this->delete_folders( $unzip_destination );
