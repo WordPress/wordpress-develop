@@ -220,21 +220,21 @@ OPTIONS;
 	 * @ticket 64198
 	 */
 	public function test_comments_list_table_does_not_show_note_comment_type() {
-		$post_id = self::factory()->post->create();
-		$note_id = self::factory()->comment->create(
+		$post_id    = self::factory()->post->create();
+		$note_id    = self::factory()->comment->create(
 			array(
-				'comment_post_ID'   => $post_id,
-				'comment_content'   => 'This is a note.',
-				'comment_type'      => 'note',
-				'comment_approved'  => '1',
+				'comment_post_ID'  => $post_id,
+				'comment_content'  => 'This is a note.',
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
 			)
 		);
 		$comment_id = self::factory()->comment->create(
 			array(
-				'comment_post_ID'   => $post_id,
-				'comment_content'   => 'This is a regular comment.',
-				'comment_type'      => '',
-				'comment_approved'  => '1',
+				'comment_post_ID'  => $post_id,
+				'comment_content'  => 'This is a regular comment.',
+				'comment_type'     => '',
+				'comment_approved' => '1',
 			)
 		);
 		// Request the note comment type.
