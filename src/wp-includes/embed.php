@@ -202,7 +202,7 @@ function wp_maybe_load_embeds() {
 		return;
 	}
 
-	wp_embed_register_handler( 'youtube_embed_url', '#https?://(www.)?youtube\.com/(?:v|embed)/([^/]+)#i', 'wp_embed_handler_youtube' );
+	wp_embed_register_handler( 'youtube_embed_url', '#https?://(www\.)?youtube\.com/(?:v|embed)/([^/]+)#i', 'wp_embed_handler_youtube' );
 
 	/**
 	 * Filters the audio embed handler callback.
@@ -332,8 +332,19 @@ function wp_oembed_register_route() {
  *
  * @since 4.4.0
  * @since 6.8.0 Output was adjusted to only embed if the post supports it.
+ * @since 6.9.0 Now runs first at `wp_head` priority 4, with a fallback to priority 10. This helps ensure the discovery links appear within the first 150KB.
  */
 function wp_oembed_add_discovery_links() {
+	if ( doing_action( 'wp_head' ) ) {
+		// For back-compat, short-circuit if a plugin has removed the action at the original priority.
+		if ( ! has_action( 'wp_head', 'wp_oembed_add_discovery_links', 10 ) ) {
+			return;
+		}
+
+		// Prevent running again at the original priority.
+		remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+	}
+
 	$output = '';
 
 	if ( is_singular() && is_post_embeddable() ) {
@@ -518,8 +529,9 @@ function get_post_embed_html( $width, $height, $post = null ) {
 	 * will fail to match and everything will be matched by `.*` and not included in the group. This regex issue goes
 	 * back to WordPress 4.4, so in order to not break older installs this script must come at the end.
 	 */
+	$js_path = '/js/wp-embed' . wp_scripts_get_suffix() . '.js';
 	$output .= wp_get_inline_script_tag(
-		file_get_contents( ABSPATH . WPINC . '/js/wp-embed' . wp_scripts_get_suffix() . '.js' )
+		trim( file_get_contents( ABSPATH . WPINC . $js_path ) ) . "\n//# sourceURL=" . esc_url_raw( includes_url( $js_path ) )
 	);
 
 	/**
@@ -765,7 +777,7 @@ function wp_oembed_ensure_format( $format ) {
  * @param WP_HTTP_Response $result  Result to send to the client. Usually a `WP_REST_Response`.
  * @param WP_REST_Request  $request Request used to generate the response.
  * @param WP_REST_Server   $server  Server instance.
- * @return true
+ * @return bool True if the request was served, false otherwise.
  */
 function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	$params = $request->get_params();
@@ -791,7 +803,7 @@ function _oembed_rest_pre_serve_request( $served, $result, $request, $server ) {
 	// Bail if there's no XML.
 	if ( ! $result ) {
 		status_header( 501 );
-		return get_status_header_desc( 501 );
+		die( get_status_header_desc( 501 ) );
 	}
 
 	if ( ! headers_sent() ) {
@@ -843,10 +855,10 @@ function _oembed_create_xml( $data, $node = null ) {
  *
  * @since 5.2.0
  *
- * @param string $result The oEmbed HTML result.
- * @param object $data   A data object result from an oEmbed provider.
- * @param string $url    The URL of the content to be embedded.
- * @return string The filtered oEmbed result.
+ * @param string|false $result The oEmbed HTML result.
+ * @param object       $data   A data object result from an oEmbed provider.
+ * @param string       $url    The URL of the content to be embedded.
+ * @return string|false The filtered oEmbed result.
  */
 function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
 	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
@@ -910,10 +922,10 @@ function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
  *
  * @since 4.4.0
  *
- * @param string $result The oEmbed HTML result.
- * @param object $data   A data object result from an oEmbed provider.
- * @param string $url    The URL of the content to be embedded.
- * @return string The filtered and sanitized oEmbed result.
+ * @param string|false $result The oEmbed HTML result.
+ * @param object       $data   A data object result from an oEmbed provider.
+ * @param string       $url    The URL of the content to be embedded.
+ * @return string|false The filtered and sanitized oEmbed result.
  */
 function wp_filter_oembed_result( $result, $data, $url ) {
 	if ( false === $result || ! in_array( $data->type, array( 'rich', 'video' ), true ) ) {
@@ -1055,7 +1067,6 @@ function wp_embed_excerpt_attachment( $content ) {
  * @since 4.4.0
  */
 function enqueue_embed_scripts() {
-	wp_enqueue_style( 'wp-embed-template-ie' );
 
 	/**
 	 * Fires when scripts and styles are enqueued for the embed iframe.
@@ -1090,8 +1101,9 @@ function wp_enqueue_embed_styles() {
  * @since 4.4.0
  */
 function print_embed_scripts() {
+	$js_path = '/js/wp-embed-template' . wp_scripts_get_suffix() . '.js';
 	wp_print_inline_script_tag(
-		file_get_contents( ABSPATH . WPINC . '/js/wp-embed-template' . wp_scripts_get_suffix() . '.js' )
+		trim( file_get_contents( ABSPATH . WPINC . $js_path ) ) . "\n//# sourceURL=" . esc_url_raw( includes_url( $js_path ) )
 	);
 }
 

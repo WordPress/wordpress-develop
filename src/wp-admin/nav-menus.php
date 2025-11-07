@@ -672,9 +672,9 @@ if ( is_nav_menu( $nav_menu_selected_id ) ) {
 }
 
 /**
- * @global int $_wp_nav_menu_max_depth
- *
  * @since 3.0.0
+ *
+ * @global int $_wp_nav_menu_max_depth
  *
  * @param string $classes
  * @return string
@@ -1083,7 +1083,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					$menu_name_aria_desc = $add_new_screen ? ' aria-describedby="menu-name-desc"' : '';
 
 					if ( $one_theme_location_no_menus ) {
-						$menu_name_val = 'value="' . esc_attr( 'Menu 1' ) . '"';
+						$menu_name_val = 'value="' . esc_attr__( 'Menu 1' ) . '"';
 						?>
 						<input type="hidden" name="zero-menu-state" value="true" />
 						<?php
@@ -1122,14 +1122,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 									<p><?php echo $starter_copy; ?></p>
 								</div>
 
-								<?php if ( ! $add_new_screen ) : ?>
-									<div id="nav-menu-bulk-actions-top" class="bulk-actions" <?php echo $hide_style; ?>>
-										<label class="bulk-select-button" for="bulk-select-switcher-top">
-											<input type="checkbox" id="bulk-select-switcher-top" name="bulk-select-switcher-top" class="bulk-select-switcher">
-											<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
-										</label>
-									</div>
-								<?php endif; ?>
+								<div id="nav-menu-bulk-actions-top" class="bulk-actions" <?php echo $hide_style; ?>>
+									<label class="bulk-select-button" for="bulk-select-switcher-top">
+										<input type="checkbox" id="bulk-select-switcher-top" name="bulk-select-switcher-top" class="bulk-select-switcher">
+										<span class="bulk-select-button-label"><?php _e( 'Bulk Select' ); ?></span>
+									</label>
+								</div>
 
 								<?php
 								if ( isset( $edit_markup ) && ! is_wp_error( $edit_markup ) ) {
