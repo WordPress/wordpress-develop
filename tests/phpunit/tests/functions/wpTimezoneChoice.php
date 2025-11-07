@@ -87,11 +87,6 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	 * Test passing the locale in.
 	 *
 	 * @ticket 59941
-	 */
-	/**
-	 * Test passing the locale in.
-	 *
-	 * @ticket 59941
 	 *
 	 * @dataProvider data_wp_timezone_choice_es
 	 */
