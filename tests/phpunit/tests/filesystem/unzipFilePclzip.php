@@ -69,7 +69,7 @@ class Tests_Filesystem_UnzipFilePclzip extends WP_UnitTestCase {
 		_unzip_file_pclzip( self::$test_data_dir . 'archive.zip', $unzip_destination );
 
 		// Cleanup test environment.
-		$this->cleanup_unzip_destination( $unzip_destination );
+		$this->clean_up_unzip_destination( $unzip_destination );
 
 		$this->assertSame( 1, $filter->get_call_count() );
 	}
