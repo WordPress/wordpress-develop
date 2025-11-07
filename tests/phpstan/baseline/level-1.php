@@ -121,11 +121,5 @@ $ignoreErrors[] = [
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/template.php',
 ];
-$ignoreErrors[] = [
-	'message' => '#^Variable \\$old_user_data in empty\\(\\) always exists and is not falsy\\.$#',
-	'identifier' => 'empty.variable',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
-];
 
 return ['parameters' => ['ignoreErrors' => $ignoreErrors]];

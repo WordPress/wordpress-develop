@@ -302,30 +302,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/file.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function get_registered_block_templates\\(\\) has parameter \\$query with no type specified\\.$#',
-	'identifier' => 'missingType.parameter',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function wp_assign_new_template_to_theme\\(\\) has parameter \\$changes with no type specified\\.$#',
-	'identifier' => 'missingType.parameter',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function wp_assign_new_template_to_theme\\(\\) has parameter \\$request with no type specified\\.$#',
-	'identifier' => 'missingType.parameter',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function wp_maybe_activate_template\\(\\) has parameter \\$post_id with no type specified\\.$#',
-	'identifier' => 'missingType.parameter',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Property WP_Admin_Bar\\:\\:\\$bound has no type specified\\.$#',
 	'identifier' => 'missingType.property',
 	'count' => 1,

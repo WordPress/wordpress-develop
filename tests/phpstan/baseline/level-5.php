@@ -1382,6 +1382,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$post of function get_edit_post_link expects int\\|WP_Post, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, string given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 4,
@@ -1430,6 +1436,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$month of function wp_checkdate expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$string of function strlen expects string, int\\<2, max\\> given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 3,
@@ -1448,9 +1460,21 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$day of function wp_checkdate expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$object_id of function delete_metadata expects int, null given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 2,
+	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#3 \\$year of function wp_checkdate expects int, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
 ];
 $ignoreErrors[] = [
@@ -1460,12 +1484,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$value of function wp_slash expects array\\|string, stdClass\\|WP_Error given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$comment_id of function get_comment_type expects int\\|WP_Comment, string given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 2,
@@ -1473,6 +1491,12 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#1 \\$comment_id of function wp_delete_comment expects int\\|WP_Comment, string given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php',
+];
+$ignoreErrors[] = [
+	'message' => '#^Parameter \\#1 \\$comment_id of function wp_new_comment_notify_postauthor expects int, string given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/rest-api/endpoints/class-wp-rest-comments-controller.php',
@@ -1652,6 +1676,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Parameter \\#2 \\$newvalue of function ini_set expects string, int given\\.$#',
+	'identifier' => 'argument.type',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/template.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#3 \\$replacement of function _deprecated_file expects string, null given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
@@ -1680,12 +1710,6 @@ $ignoreErrors[] = [
 	'identifier' => 'argument.type',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/theme-templates.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Parameter \\#1 \\$string of function mb_strlen expects string, int\\<2, max\\> given\\.$#',
-	'identifier' => 'argument.type',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^Parameter \\#3 \\$control_callback of function wp_register_widget_control expects callable\\(\\)\\: mixed, \'\' given\\.$#',

@@ -770,18 +770,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/theme.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Function _wp_get_current_user\\(\\) should return WP_User but returns array\\|float\\|int\\|string\\|false\\|null\\.$#',
-	'identifier' => 'return.type',
-	'count' => 3,
-	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function _wp_get_current_user\\(\\) should return WP_User but returns null\\.$#',
-	'identifier' => 'return.type',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Static property WP_Widget_Media\\:\\:\\$l10n_defaults \\(array\\<string\\>\\) does not accept array\\<string, array\\|string\\>\\.$#',
 	'identifier' => 'assign.propertyType',
 	'count' => 1,

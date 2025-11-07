@@ -266,12 +266,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Strict comparison using \\=\\=\\= between false and mixed will always evaluate to false\\.$#',
-	'identifier' => 'identical.alwaysFalse',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/block-template-utils.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^While loop condition is always true\\.$#',
 	'identifier' => 'while.alwaysTrue',
 	'count' => 1,
@@ -1082,6 +1076,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-includes/pluggable.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Call to function is_array\\(\\) with non\\-empty\\-list\\{0\\?\\: string, 1\\?\\: non\\-falsy\\-string&numeric\\-string, 2\\?\\: numeric\\-string, 3\\?\\: numeric\\-string\\} will always evaluate to true\\.$#',
+	'identifier' => 'function.alreadyNarrowedType',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-includes/post.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Property WP_Post\\:\\:\\$filter \\(string\\) in isset\\(\\) is not nullable\\.$#',
 	'identifier' => 'isset.property',
 	'count' => 1,
@@ -1170,24 +1170,6 @@ $ignoreErrors[] = [
 	'identifier' => 'return.unusedType',
 	'count' => 1,
 	'path' => __DIR__ . '/../../../src/wp-includes/theme.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_Site\\:\\:\\$domain \\(string\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Property WP_User\\:\\:\\$ID \\(int\\) in isset\\(\\) is not nullable\\.$#',
-	'identifier' => 'isset.property',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Right side of && is always true\\.$#',
-	'identifier' => 'booleanAnd.rightAlwaysTrue',
-	'count' => 2,
-	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^If condition is always false\\.$#',

@@ -398,6 +398,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ftpext.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Property WP_Filesystem_FTPext\\:\\:\\$link has unknown class FTP\\\\Connection as its type\\.$#',
+	'identifier' => 'class.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/../../../src/wp-admin/includes/class-wp-filesystem-ftpext.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Default value of the parameter \\#1 \\$opt \\(string\\) of method WP_Filesystem_ftpsockets\\:\\:__construct\\(\\) is incompatible with type array\\.$#',
 	'identifier' => 'parameter.defaultValue',
 	'count' => 1,
@@ -1170,12 +1176,6 @@ $ignoreErrors[] = [
 	'identifier' => 'property.nonObject',
 	'count' => 4,
 	'path' => __DIR__ . '/../../../src/wp-includes/taxonomy.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Function wp_list_users\\(\\) should return string\\|null but return statement is missing\\.$#',
-	'identifier' => 'return.missing',
-	'count' => 1,
-	'path' => __DIR__ . '/../../../src/wp-includes/user.php',
 ];
 $ignoreErrors[] = [
 	'message' => '#^PHPDoc tag @var does not specify variable name\\.$#',
