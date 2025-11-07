@@ -2264,14 +2264,14 @@ function wp_print_head_scripts() {
 /**
  * Private, for use in *_footer_scripts hooks
  *
- * In classic themes, when block styles are loaded on demand via {@see wp_load_classic_theme_block_styles_on_demand()},
- * this function is replaced by a closure in {@see wp_hoist_late_printed_styles()} which will capture the printing of
+ * In classic themes, when block styles are loaded on demand via wp_load_classic_theme_block_styles_on_demand(),
+ * this function is replaced by a closure in wp_hoist_late_printed_styles() which will capture the printing of
  * two sets of "late" styles to be hoisted to the HEAD by means of the template enhancement output buffer:
  *
  * 1. Styles related to blocks are inserted right after the wp-block-library stylesheet.
  * 2. All other styles are appended to the end of the HEAD.
  *
- * The closure calls {@see print_footer_scripts()} to print scripts in the footer as usual.
+ * The closure calls print_footer_scripts() to print scripts in the footer as usual.
  *
  * @since 3.3.0
  */
