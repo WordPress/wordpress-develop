@@ -310,6 +310,11 @@ class WP_Http {
 		if ( $parsed_args['stream'] ) {
 			if ( empty( $parsed_args['filename'] ) ) {
 				$parsed_args['filename'] = get_temp_dir() . basename( $url );
+
+				// If that file exists, fallback to a temporary file.
+				if ( file_exists( $parsed_args['filename'] ) ) {
+					$parsed_args['filename'] = wp_tempnam( basename( $url ) );
+				}
 			}
 
 			// Force some settings if we are streaming to a file and check for existence
