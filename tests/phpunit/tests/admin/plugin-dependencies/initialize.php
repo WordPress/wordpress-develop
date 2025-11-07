@@ -281,7 +281,11 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 		$expected_slugs = array();
 		foreach ( $plugins as $plugin_file => &$headers ) {
 			// Create the expected slugs.
-			$slug = str_replace( '.php', '', explode( '/', $plugin_file )[0] );
+			if ( 'hello.php' === $plugin_file ) {
+				$slug = 'hello-dolly';
+			} else {
+				$slug = str_replace( '.php', '', explode( '/', $plugin_file )[0] );
+			}
 
 			$expected_slugs[ $plugin_file ] = $slug;
 

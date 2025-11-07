@@ -7173,7 +7173,7 @@ function wp_admin_headers() {
 	 * @since 4.9.0
 	 * @since 4.9.5 The default value was changed to 'strict-origin-when-cross-origin'.
 	 *
-	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
+	 * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy
 	 *
 	 * @param string $policy The admin referrer policy header value. Default 'strict-origin-when-cross-origin'.
 	 */
@@ -7397,6 +7397,11 @@ function wp_is_stream( $path ) {
  * @return bool True if valid date, false if not valid date.
  */
 function wp_checkdate( $month, $day, $year, $source_date ) {
+	$checkdate = false;
+	if ( is_numeric( $month ) && is_numeric( $day ) && is_numeric( $year ) ) {
+		$checkdate = checkdate( (int) $month, (int) $day, (int) $year );
+	}
+
 	/**
 	 * Filters whether the given date is valid for the Gregorian calendar.
 	 *
@@ -7405,7 +7410,7 @@ function wp_checkdate( $month, $day, $year, $source_date ) {
 	 * @param bool   $checkdate   Whether the given date is valid.
 	 * @param string $source_date Date to check.
 	 */
-	return apply_filters( 'wp_checkdate', checkdate( $month, $day, $year ), $source_date );
+	return apply_filters( 'wp_checkdate', $checkdate, $source_date );
 }
 
 /**
@@ -7797,6 +7802,7 @@ function wp_post_preview_js() {
 			window.addEventListener( 'pagehide', function() { window.name = ''; } );
 		}
 	}());
+	//# sourceURL=<?php echo rawurlencode( __FUNCTION__ ); ?>
 	</script>
 	<?php
 	wp_print_inline_script_tag( wp_remove_surrounding_empty_script_tags( ob_get_clean() ) );

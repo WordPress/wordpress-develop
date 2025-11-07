@@ -2425,8 +2425,9 @@ function wp_new_comment_notify_moderator( $comment_id ) {
  */
 function wp_new_comment_notify_postauthor( $comment_id ) {
 	$comment = get_comment( $comment_id );
+	$is_note = ( $comment && 'note' === $comment->comment_type );
 
-	$maybe_notify = get_option( 'comments_notify' );
+	$maybe_notify = $is_note ? get_option( 'wp_notes_notify' ) : get_option( 'comments_notify' );
 
 	/**
 	 * Filters whether to send the post author new comment notification emails,
@@ -2447,9 +2448,11 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 		return false;
 	}
 
-	// Only send notifications for approved comments.
-	if ( ! isset( $comment->comment_approved ) || '1' !== $comment->comment_approved ) {
-		return false;
+	// Send notifications for approved comments and all notes.
+	if (
+		! isset( $comment->comment_approved ) ||
+		( '1' !== $comment->comment_approved && ! $is_note ) ) {
+			return false;
 	}
 
 	return wp_notify_postauthor( $comment_id );
@@ -4102,4 +4105,30 @@ function _wp_check_for_scheduled_update_comment_type() {
 	if ( ! get_option( 'finished_updating_comment_type' ) && ! wp_next_scheduled( 'wp_update_comment_type_batch' ) ) {
 		wp_schedule_single_event( time() + MINUTE_IN_SECONDS, 'wp_update_comment_type_batch' );
 	}
+}
+
+/**
+ * Register initial note status meta.
+ *
+ * @since 6.9.0
+ */
+function wp_create_initial_comment_meta() {
+	register_meta(
+		'comment',
+		'_wp_note_status',
+		array(
+			'type'          => 'string',
+			'description'   => __( 'Note resolution status' ),
+			'single'        => true,
+			'show_in_rest'  => array(
+				'schema' => array(
+					'type' => 'string',
+					'enum' => array( 'resolved', 'reopen' ),
+				),
+			),
+			'auth_callback' => function ( $allowed, $meta_key, $object_id ) {
+				return current_user_can( 'edit_comment', $object_id );
+			},
+		)
+	);
 }

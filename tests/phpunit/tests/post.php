@@ -502,30 +502,6 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertSame( 1, $a2->get_call_count() );
 	}
 
-	public function test_wp_delete_post_reassign_hierarchical_post_type() {
-		$grandparent_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$parent_page_id      = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $grandparent_page_id,
-			)
-		);
-		$page_id             = self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $parent_page_id,
-			)
-		);
-
-		$this->assertSame( $parent_page_id, get_post( $page_id )->post_parent );
-
-		wp_delete_post( $parent_page_id, true );
-		$this->assertSame( $grandparent_page_id, get_post( $page_id )->post_parent );
-
-		wp_delete_post( $grandparent_page_id, true );
-		$this->assertSame( 0, get_post( $page_id )->post_parent );
-	}
-
 	/**
 	 * Test ensuring that the post_slug can be filtered with a custom value short circuiting the built in
 	 * function that tries to create a unique name based on the post name.
@@ -837,5 +813,244 @@ class Tests_Post extends WP_UnitTestCase {
 		add_filter( 'use_block_editor_for_post', '__return_true' );
 		$this->assertTrue( use_block_editor_for_post( $restless_post_id ) );
 		remove_filter( 'use_block_editor_for_post', '__return_true' );
+	}
+
+	/**
+	 * @ticket 26798
+	 *
+	 * @dataProvider data_wp_insert_post_handle_malformed_post_date
+	 *
+	 * The purpose of this test is to ensure that invalid dates do not
+	 * cause PHP errors when wp_insert_post() is called, and that the
+	 * posts are not actually "inserted" (created).
+	 */
+	public function test_wp_insert_post_handle_malformed_post_date( $input, $expected ) {
+		$post = array(
+			'post_author'  => self::$user_ids['editor'],
+			'post_status'  => 'publish',
+			'post_content' => 'content',
+			'post_title'   => 'title',
+			'post_date'    => $input,
+		);
+
+		// Inserting the post should fail gracefully.
+		$id     = wp_insert_post( $post );
+		$actual = ! empty( $id );
+
+		// Compare if post was (or was not) inserted.
+		$this->assertSame( $actual, $expected );
+	}
+
+	/**
+	 * @ticket 26798
+	 */
+	public function data_wp_insert_post_handle_malformed_post_date() {
+		return array(
+			array(
+				'2012-01-01',
+				true,
+			),
+			// 24-hour time format.
+			array(
+				'2012-01-01 13:00:00',
+				true,
+			),
+			// ISO8601 date with timezone.
+			array(
+				'2016-01-16T00:00:00Z',
+				true,
+			),
+			// ISO8601 date with timezone offset.
+			array(
+				'2016-01-16T00:00:00+0100',
+				true,
+			),
+			// RFC3339 Format.
+			array(
+				'1970-01-01T01:00:00+01:00',
+				true,
+			),
+			// RSS Format
+			array(
+				'1970-01-01T01:00:00+0100',
+				true,
+			),
+			// Leap year.
+			array(
+				'2012-02-29',
+				true,
+			),
+			// Strange formats.
+			array(
+				'2012-01-01 0',
+				true,
+			),
+			array(
+				'2012-01-01 25:00:00',
+				true,
+			),
+			array(
+				'2012-01-01 00:60:00',
+				true,
+			),
+			// Dates without leading zeros (valid but malformed format).
+			array(
+				'2012-08-1',
+				true,
+			),
+			array(
+				'2012-1-08 00:00:00',
+				true,
+			),
+			array(
+				'2012-01-8 00:00:00',
+				true,
+			),
+			// Failures.
+			array(
+				'2012-08-0z',
+				false,
+			),
+			array(
+				'201-01-08 00:00:00',
+				false,
+			),
+			array(
+				'201-01-08 00:60:00',
+				false,
+			),
+			array(
+				'201a-01-08 00:00:00',
+				false,
+			),
+			array(
+				'2012-31-08 00:00:00',
+				false,
+			),
+			array(
+				'2012-01-48 00:00:00',
+				false,
+			),
+			// Not a leap year.
+			array(
+				'2011-02-29',
+				false,
+			),
+		);
+	}
+
+	/**
+	 * @ticket 26798
+	 *
+	 * @dataProvider data_wp_resolve_post_date_regex
+	 *
+	 * Tests the regex inside of wp_resolve_post_date(), with
+	 * the emphasis on the date format (not the time).
+	 */
+	public function test_wp_resolve_post_date_regex( $date, $expected ) {
+		// Attempt to resolve post date.
+		$actual = wp_resolve_post_date( $date );
+
+		// Compare if resolved post date is (or is not) valid.
+		$this->assertSame( $actual, $expected );
+	}
+
+	/**
+	 * @ticket 26798
+	 */
+	public function data_wp_resolve_post_date_regex() {
+		return array(
+			array(
+				'2012-01-01',
+				'2012-01-01',
+			),
+			array(
+				'2012-01-01 00:00:00',
+				'2012-01-01 00:00:00',
+			),
+			// ISO8601 date with timezone.
+			array(
+				'2016-01-16T00:00:00Z',
+				'2016-01-16T00:00:00Z',
+			),
+			// ISO8601 date with timezone offset.
+			array(
+				'2016-01-16T00:00:00+0100',
+				'2016-01-16T00:00:00+0100',
+			),
+			// RFC3339 Format.
+			array(
+				'1970-01-01T01:00:00+01:00',
+				'1970-01-01T01:00:00+01:00',
+			),
+			// RSS Format
+			array(
+				'1970-01-01T01:00:00+0100',
+				'1970-01-01T01:00:00+0100',
+			),
+			// 24-hour time format.
+			array(
+				'2012-01-01 13:00:00',
+				'2012-01-01 13:00:00',
+			),
+			array(
+				'2016-01-16T00:0',
+				'2016-01-16T00:0',
+			),
+			array(
+				'2012-01-01 0',
+				'2012-01-01 0',
+			),
+			array(
+				'2012-01-01 00:00',
+				'2012-01-01 00:00',
+			),
+			array(
+				'2012-01-01 25:00:00',
+				'2012-01-01 25:00:00',
+			),
+			array(
+				'2012-01-01 00:60:00',
+				'2012-01-01 00:60:00',
+			),
+			array(
+				'2012-01-01 00:00:60',
+				'2012-01-01 00:00:60',
+			),
+			// Dates without leading zeros (valid but malformed format).
+			array(
+				'2012-1-08',
+				'2012-1-08',
+			),
+			array(
+				'2012-01-8',
+				'2012-01-8',
+			),
+			array(
+				'201-01-08',
+				false,
+			),
+			array(
+				'201a-01-08',
+				false,
+			),
+			array(
+				'2012-31-08',
+				false,
+			),
+			array(
+				'2012-01-48 00:00:00',
+				false,
+			),
+			// Leap year.
+			array(
+				'2012-02-29',
+				'2012-02-29',
+			),
+			array(
+				'2011-02-29',
+				false,
+			),
+		);
 	}
 }

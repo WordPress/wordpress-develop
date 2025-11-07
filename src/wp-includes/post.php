@@ -37,7 +37,18 @@ function create_initial_post_types() {
 			'rewrite'               => false,
 			'query_var'             => false,
 			'delete_with_user'      => true,
-			'supports'              => array( 'title', 'editor', 'author', 'thumbnail', 'excerpt', 'trackbacks', 'custom-fields', 'comments', 'revisions', 'post-formats' ),
+			'supports'              => array(
+				'title',
+				'editor' => array( 'notes' => true ),
+				'author',
+				'thumbnail',
+				'excerpt',
+				'trackbacks',
+				'custom-fields',
+				'comments',
+				'revisions',
+				'post-formats',
+			),
 			'show_in_rest'          => true,
 			'rest_base'             => 'posts',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
@@ -62,7 +73,16 @@ function create_initial_post_types() {
 			'rewrite'               => false,
 			'query_var'             => false,
 			'delete_with_user'      => true,
-			'supports'              => array( 'title', 'editor', 'author', 'thumbnail', 'page-attributes', 'custom-fields', 'comments', 'revisions' ),
+			'supports'              => array(
+				'title',
+				'editor' => array( 'notes' => true ),
+				'author',
+				'thumbnail',
+				'page-attributes',
+				'custom-fields',
+				'comments',
+				'revisions',
+			),
 			'show_in_rest'          => true,
 			'rest_base'             => 'pages',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
@@ -1493,7 +1513,7 @@ function register_post_status( $post_status, $args = array() ) {
 function get_post_status_object( $post_status ) {
 	global $wp_post_statuses;
 
-	if ( empty( $wp_post_statuses[ $post_status ] ) ) {
+	if ( ! is_string( $post_status ) || empty( $wp_post_statuses[ $post_status ] ) ) {
 		return null;
 	}
 
@@ -2329,7 +2349,6 @@ function post_type_supports( $post_type, $feature ) {
 
 	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
 }
-
 /**
  * Retrieves a list of post type names that support a specific feature.
  *
@@ -2437,6 +2456,10 @@ function is_post_type_viewable( $post_type ) {
  */
 function is_post_status_viewable( $post_status ) {
 	if ( is_scalar( $post_status ) ) {
+		if ( ! is_string( $post_status ) ) {
+			return false;
+		}
+
 		$post_status = get_post_status_object( $post_status );
 
 		if ( ! $post_status ) {
@@ -3743,13 +3766,19 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  * @see wp_delete_attachment()
  * @see wp_trash_post()
  *
- * @param int  $post_id      Optional. Post ID. Default 0.
+ * @param int  $post_id      Post ID. (The default of 0 is for historical reasons; providing it is incorrect.)
  * @param bool $force_delete Optional. Whether to bypass Trash and force deletion.
  *                           Default false.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
 function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	global $wpdb;
+
+	$post_id = (int) $post_id;
+	if ( $post_id <= 0 ) {
+		_doing_it_wrong( __FUNCTION__, __( 'The post ID must be greater than 0.' ), '6.9.0' );
+		return false;
+	}
 
 	$post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d", $post_id ) );
 
@@ -3775,7 +3804,7 @@ function wp_delete_post( $post_id = 0, $force_delete = false ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param WP_Post|false|null $delete       Whether to go forward with deletion.
+	 * @param WP_Post|false|null $check        Whether to go forward with deletion. Anything other than null will short-circuit deletion.
 	 * @param WP_Post            $post         Post object.
 	 * @param bool               $force_delete Whether to bypass the Trash.
 	 */
@@ -4818,7 +4847,8 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		if ( isset( $data[ $emoji_field ] ) ) {
 			$charset = $wpdb->get_col_charset( $wpdb->posts, $emoji_field );
 
-			if ( 'utf8' === $charset ) {
+			// The 'utf8' character set is a deprecated alias of 'utf8mb3'. See <https://dev.mysql.com/doc/refman/8.4/en/charset-unicode-utf8.html>.
+			if ( 'utf8' === $charset || 'utf8mb3' === $charset ) {
 				$data[ $emoji_field ] = wp_encode_emoji( $data[ $emoji_field ] );
 			}
 		}
@@ -5402,11 +5432,13 @@ function wp_resolve_post_date( $post_date = '', $post_date_gmt = '' ) {
 	}
 
 	// Validate the date.
-	$month = (int) substr( $post_date, 5, 2 );
-	$day   = (int) substr( $post_date, 8, 2 );
-	$year  = (int) substr( $post_date, 0, 4 );
+	preg_match( '/^(\d{4})-(\d{1,2})-(\d{1,2})/', $post_date, $matches );
 
-	$valid_date = wp_checkdate( $month, $day, $year, $post_date );
+	if ( empty( $matches ) || ! is_array( $matches ) || count( $matches ) < 4 ) {
+		return false;
+	}
+
+	$valid_date = wp_checkdate( $matches[2], $matches[3], $matches[1], $post_date );
 
 	if ( ! $valid_date ) {
 		return false;

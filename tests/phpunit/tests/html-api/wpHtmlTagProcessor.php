@@ -312,6 +312,68 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that set_attribute doesn’t allow setting an
+	 * attribute with an invalid name and thus break syntax.
+	 *
+	 * @ticket 63863
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_attribute
+	 *
+	 * @dataProvider data_invalid_attribute_names
+	 *
+	 * @param string $invalid_name Invalid attribute name.
+	 */
+	public function test_set_attribute_rejects_invalid_names( $invalid_name ) {
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$processor->next_tag();
+
+		$this->assertFalse(
+			$processor->set_attribute( $invalid_name, true ),
+			'Should have rejected invalid attribute name.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_invalid_attribute_names() {
+		$invalid_names = array(
+			'Empty' => array( '' ),
+		);
+
+		// Syntax-like characters.
+		foreach ( str_split( '"\'>&</ =' ) as $c ) {
+			$invalid_names[ $c ] = array( "too{$c}late" );
+		}
+
+		// C0 controls.
+		for ( $i = 0; $i <= 0x1F; $i++ ) {
+			$c                                    = chr( $i );
+			$invalid_names[ "C0 Controls: {$i}" ] = array( "shut{$c}down" );
+		}
+
+		// Noncharacters.
+		for ( $i = 0xFDD0; $i <= 0xFDEF; $i++ ) {
+			$h                                       = dechex( $i );
+			$c                                       = mb_chr( $i );
+			$invalid_names[ "Noncharacter: U+{$h}" ] = array( "shut{$c}down" );
+		}
+
+		for ( $b = 0; $b <= 16; $b++ ) {
+			for ( $x = 0xFFFE; $x <= 0xFFFF; $x++ ) {
+				$i                                       = ( $b << 16 ) + $x;
+				$h                                       = dechex( $i );
+				$c                                       = mb_chr( $i );
+				$invalid_names[ "Noncharacter: U+{$h}" ] = array( "shut{$c}down" );
+			}
+		}
+
+		return $invalid_names;
+	}
+
+	/**
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
@@ -841,7 +903,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @param string $attribute_value A value with potential XSS exploit.
 	 */
-	public function test_set_attribute_prevents_xss( $attribute_value ) {
+	public function test_set_attribute_prevents_xss( $attribute_value, $escaped_attribute_value = null ) {
 		$processor = new WP_HTML_Tag_Processor( '<div></div>' );
 		$processor->next_tag();
 		$processor->set_attribute( 'test', $attribute_value );
@@ -861,7 +923,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		preg_match( '~^<div test=(.*)></div>$~', $processor->get_updated_html(), $match );
 		list( , $actual_value ) = $match;
 
-		$this->assertSame( '"' . esc_attr( $attribute_value ) . '"', $actual_value, 'Entities were not properly escaped in the attribute value' );
+		$this->assertSame( '"' . $escaped_attribute_value . '"', $actual_value, 'Entities were not properly escaped in the attribute value' );
 	}
 
 	/**
@@ -871,15 +933,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_set_attribute_prevents_xss() {
 		return array(
-			array( '"' ),
-			array( '&quot;' ),
-			array( '&' ),
-			array( '&amp;' ),
-			array( '&euro;' ),
-			array( "'" ),
-			array( '<>' ),
-			array( '&quot";' ),
-			array( '" onclick="alert(\'1\');"><span onclick=""></span><script>alert("1")</script>' ),
+			array( '"', '&quot;' ),
+			array( '&quot;', '&amp;quot;' ),
+			array( '&', '&amp;' ),
+			array( '&amp;', '&amp;amp;' ),
+			array( '&euro;', '&amp;euro;' ),
+			array( "'", '&apos;' ),
+			array( '<>', '&lt;&gt;' ),
+			array( '&quot";', '&amp;quot&quot;;' ),
+			array(
+				'" onclick="alert(\'1\');"><span onclick=""></span><script>alert("1")</script>',
+				'&quot; onclick=&quot;alert(&apos;1&apos;);&quot;&gt;&lt;span onclick=&quot;&quot;&gt;&lt;/span&gt;&lt;script&gt;alert(&quot;1&quot;)&lt;/script&gt;',
+			),
 		);
 	}
 
@@ -903,6 +968,21 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			$processor->get_attribute( 'test-attribute' ),
 			'get_attribute() (called after get_updated_html()) did not return attribute added via set_attribute()'
 		);
+	}
+
+	/**
+	 * Ensure that attribute values that appear to contain HTML character references are correctly
+	 * encoded and preserve the original value.
+	 *
+	 * @ticket 64054
+	 */
+	public function test_set_attribute_encodes_html_character_references() {
+		$original  = 'HTML character references: &lt; &gt; &amp;';
+		$processor = new WP_HTML_Tag_Processor( '<span>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-attr', $original );
+		$this->assertSame( $original, $processor->get_attribute( 'data-attr' ) );
+		$this->assertEqualHTML( '<span data-attr="HTML character references: &amp;lt; &amp;gt; &amp;amp;">', $processor->get_updated_html() );
 	}
 
 	/**
@@ -2786,9 +2866,10 @@ HTML;
 		$processor->next_tag();
 		$processor->add_class( 'secondTag' );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$expected,
 			$processor->get_updated_html(),
+			'<body>',
 			'Did not properly update attributes and classnames given malformed input'
 		);
 	}
@@ -2806,11 +2887,11 @@ HTML;
 			),
 			'HTML tag opening inside attribute value'      => array(
 				'input'    => '<pre id="<code" class="wp-block-code <code is poetry&gt;"><code>This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
-				'expected' => '<pre foo="bar" id="<code" class="wp-block-code &lt;code is poetry&gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
+				'expected' => '<pre foo="bar" id="<code" class="wp-block-code &lt;code is poetry&amp;gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
 			),
 			'HTML tag brackets in attribute values and data markup' => array(
 				'input'    => '<pre id="<code-&gt;-block-&gt;" class="wp-block-code <code is poetry&gt;"><code>This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
-				'expected' => '<pre foo="bar" id="<code-&gt;-block-&gt;" class="wp-block-code &lt;code is poetry&gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
+				'expected' => '<pre foo="bar" id="<code-&gt;-block-&gt;" class="wp-block-code &lt;code is poetry&amp;gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
 			),
 			'Single and double quotes in attribute value'  => array(
 				'input'    => '<p title="Demonstrating how to use single quote (\') and double quote (&quot;)"><span>test</span>',
