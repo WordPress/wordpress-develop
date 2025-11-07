@@ -651,4 +651,22 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
 	}
+
+	/**
+	 * Test that the encoding of the email does not bleed between long and short emails.
+	 *
+	 * @ticket 33972
+	 */
+	public function test_wp_mail_encoding_does_not_bleed() {
+		$content = str_repeat( 'A', 1000 );
+		wp_mail( WP_TESTS_EMAIL, 'Looong line testing', $content );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertEquals( 'quoted-printable', $mailer->Encoding );
+
+		wp_mail( WP_TESTS_EMAIL, 'A follow up short email', 'Short email' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertEquals( '7bit', $mailer->Encoding );
+	}
 }

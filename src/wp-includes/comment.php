@@ -417,7 +417,6 @@ function get_comment_count( $post_id = 0 ) {
 		'count'                     => true,
 		'update_comment_meta_cache' => false,
 		'orderby'                   => 'none',
-		'type__not_in'              => array( 'note' ),
 	);
 	if ( $post_id > 0 ) {
 		$args['post_id'] = $post_id;
@@ -714,11 +713,6 @@ function wp_allow_comment( $commentdata, $wp_error = false ) {
 	);
 
 	$dupe_id = $wpdb->get_var( $dupe );
-
-	// Allow duplicate notes for resolution purposes.
-	if ( isset( $commentdata['comment_type'] ) && 'note' === $commentdata['comment_type'] ) {
-		$dupe_id = false;
-	}
 
 	/**
 	 * Filters the ID, if any, of the duplicate comment found when creating a new comment.
@@ -2431,8 +2425,9 @@ function wp_new_comment_notify_moderator( $comment_id ) {
  */
 function wp_new_comment_notify_postauthor( $comment_id ) {
 	$comment = get_comment( $comment_id );
+	$is_note = ( $comment && 'note' === $comment->comment_type );
 
-	$maybe_notify = get_option( 'comments_notify' );
+	$maybe_notify = $is_note ? get_option( 'wp_notes_notify' ) : get_option( 'comments_notify' );
 
 	/**
 	 * Filters whether to send the post author new comment notification emails,
@@ -2453,9 +2448,11 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 		return false;
 	}
 
-	// Only send notifications for approved comments.
-	if ( ! isset( $comment->comment_approved ) || '1' !== $comment->comment_approved ) {
-		return false;
+	// Send notifications for approved comments and all notes.
+	if (
+		! isset( $comment->comment_approved ) ||
+		( '1' !== $comment->comment_approved && ! $is_note ) ) {
+			return false;
 	}
 
 	return wp_notify_postauthor( $comment_id );
@@ -4120,16 +4117,18 @@ function wp_create_initial_comment_meta() {
 		'comment',
 		'_wp_note_status',
 		array(
-			'type'         => 'string',
-			'description'  => __( 'Note resolution status' ),
-			'single'       => true,
-			'show_in_rest' => array(
+			'type'          => 'string',
+			'description'   => __( 'Note resolution status' ),
+			'single'        => true,
+			'show_in_rest'  => array(
 				'schema' => array(
 					'type' => 'string',
 					'enum' => array( 'resolved', 'reopen' ),
 				),
 			),
+			'auth_callback' => function ( $allowed, $meta_key, $object_id ) {
+				return current_user_can( 'edit_comment', $object_id );
+			},
 		)
 	);
 }
-add_action( 'init', 'wp_create_initial_comment_meta' );
