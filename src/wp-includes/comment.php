@@ -2484,8 +2484,9 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	}
 
 	/**
-	 * Filters whether to send the post author new comment notification emails,
-	 * overriding the site setting.
+	 * Filters whether to send the post author new comment and note notification emails,
+	 * overriding the site settings and defaults. By default, notifications are sent for
+	 * all notes and for approved comments.
 	 *
 	 * @since 4.4.0
 	 *
