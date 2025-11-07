@@ -821,6 +821,8 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @ticket 26798
 	 *
+	 * @covers ::wp_insert_post
+	 *
 	 * @dataProvider data_wp_insert_post_handle_malformed_post_date
 	 *
 	 * @param string $input    The input post_date value.
@@ -846,12 +848,7 @@ class Tests_Post extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_insert_post_handle_malformed_post_date().
 	 *
-	 * @return array[] {
-	 *     Arguments passed to test.
-	 *
-	 *     @type string $input    The input post_date value.
-	 *     @type bool   $expected Whether the post is expected to be inserted.
-	 * }
+	 * @return array<string, array{ date: string, expected: bool }>
 	 */
 	public static function data_wp_insert_post_handle_malformed_post_date() {
 		return array(
@@ -954,6 +951,8 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @ticket 26798
 	 *
+	 * @covers ::wp_resolve_post_date
+	 *
 	 * @dataProvider data_wp_resolve_post_date_regex
 	 *
 	 * @param string       $date     The input post_date value.
@@ -970,12 +969,7 @@ class Tests_Post extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_resolve_post_date_regex().
 	 *
-	 * @return array[] {
-	 *     Arguments passed to test.
-	 *
-	 *     @type string       $date     The input post_date value.
-	 *     @type string|false $expected The expected resolved post date, or false if invalid
-	 * }
+	 * @return array<string, array{ date: string, expected: string|false }>
 	 */
 	public static function data_wp_resolve_post_date_regex() {
 		return array(
