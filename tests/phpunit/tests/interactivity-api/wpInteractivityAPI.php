@@ -845,7 +845,7 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 			'myPlugin',
 			array(
 				'id' => 'some-id',
-			),
+			)
 		);
 
 		$html = '</br><div data-wp-bind--id="myPlugin::state.id">Content</div>';
