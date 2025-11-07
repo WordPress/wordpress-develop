@@ -3434,6 +3434,27 @@ function wp_enqueue_command_palette_assets() {
 		'is_network_admin' => is_network_admin(),
 	);
 
+	// Only collect text nodes at root level (not wrapped in any HTML tags).
+	$extract_root_text = static function( $label ) {
+		if ( '' === $label ) {
+			return '';
+		}
+
+		$processor  = WP_HTML_Processor::create_fragment( $label );
+		$text_parts = array();
+
+		if ( $processor->next_token() ) {
+			$root_depth = $processor->get_current_depth();
+			do {
+				if ( '#text' === $processor->get_token_type() && $root_depth === $processor->get_current_depth() ) {
+					$text_parts[] = $processor->get_modifiable_text();
+				}
+			} while ( $processor->next_token() );
+		}
+
+		return trim( implode( '', $text_parts ) );
+	};
+
 	if ( $menu ) {
 		$menu_commands = array();
 		foreach ( $menu as $menu_item ) {
@@ -3441,21 +3462,7 @@ function wp_enqueue_command_palette_assets() {
 				continue;
 			}
 
-			// Only collect text nodes at root level (not wrapped in any HTML tags).
-			$menu_label = $menu_item[0];
-			$processor  = WP_HTML_Processor::create_fragment( $menu_label );
-			$text_parts = array();
-
-			if ( $processor->next_token() ) {
-				$root_depth = $processor->get_current_depth();
-				do {
-					if ( '#text' === $processor->get_token_type() && $root_depth === $processor->get_current_depth() ) {
-						$text_parts[] = $processor->get_modifiable_text();
-					}
-				} while ( $processor->next_token() );
-			}
-
-			$menu_label = trim( implode( '', $text_parts ) );
+			$menu_label = $extract_root_text( $menu_item[0] );
 			$menu_url   = '';
 			$menu_slug  = $menu_item[2];
 
@@ -3479,21 +3486,7 @@ function wp_enqueue_command_palette_assets() {
 						continue;
 					}
 
-					// Only collect text nodes at root level (not wrapped in any HTML tags).
-					$submenu_label = $submenu_item[0];
-					$processor     = WP_HTML_Processor::create_fragment( $submenu_label );
-					$text_parts    = array();
-
-					if ( $processor->next_token() ) {
-						$root_depth = $processor->get_current_depth();
-						do {
-							if ( '#text' === $processor->get_token_type() && $root_depth === $processor->get_current_depth() ) {
-								$text_parts[] = $processor->get_modifiable_text();
-							}
-						} while ( $processor->next_token() );
-					}
-
-					$submenu_label = trim( implode( '', $text_parts ) );
+					$submenu_label = $extract_root_text( $submenu_item[0] );
 					$submenu_url   = '';
 					$submenu_slug  = $submenu_item[2];
 
