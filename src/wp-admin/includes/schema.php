@@ -421,7 +421,6 @@ function populate_options( array $options = array() ) {
 		'use_smilies'                     => 1,
 		'require_name_email'              => 1,
 		'comments_notify'                 => 1,
-		'wp_notes_notify'                    => 1,
 		'posts_per_rss'                   => 10,
 		'rss_use_excerpt'                 => 0,
 		'mailserver_url'                  => 'mail.example.com',
@@ -561,6 +560,10 @@ function populate_options( array $options = array() ) {
 
 		// 6.4.0
 		'wp_attachment_pages_enabled'     => 0,
+
+		// 6.9.0
+		'wp_notes_notify'                 => 1,
+
 	);
 
 	// 3.3.0
