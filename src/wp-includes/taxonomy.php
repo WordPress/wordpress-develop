@@ -1730,10 +1730,8 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
 			if ( isset( $term->$field ) ) {
 				$term->$field = sanitize_term_field( $field, $term->$field, $term_id, $taxonomy, $context );
 			}
-		} else {
-			if ( isset( $term[ $field ] ) ) {
+		} elseif ( isset( $term[ $field ] ) ) {
 				$term[ $field ] = sanitize_term_field( $field, $term[ $field ], $term_id, $taxonomy, $context );
-			}
 		}
 	}
 
@@ -1770,7 +1768,7 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  *                         'attribute', or 'js'. Default 'display'.
  * @return mixed Sanitized field.
  */
-function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
+function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context = 'display' ) {
 	$int_fields = array( 'parent', 'term_id', 'count', 'term_group', 'term_taxonomy_id', 'object_id' );
 	if ( in_array( $field, $int_fields, true ) ) {
 		$value = (int) $value;
@@ -3199,9 +3197,9 @@ function wp_unique_term_slug( $slug, $term ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int          $term_id  The ID of the term.
- * @param string       $taxonomy The taxonomy of the term.
- * @param array        $args {
+ * @param int    $term_id  The ID of the term.
+ * @param string $taxonomy The taxonomy of the term.
+ * @param array  $args {
  *     Optional. Array of arguments for updating a term.
  *
  *     @type string $alias_of    Slug of the term to make this term an alias of.
