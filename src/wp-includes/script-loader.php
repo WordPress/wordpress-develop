@@ -3435,7 +3435,7 @@ function wp_enqueue_command_palette_assets() {
 	);
 
 	// Only collect text nodes at root level (not wrapped in any HTML tags).
-	$extract_root_text = static function( $label ) {
+	$extract_root_text = static function ( $label ) {
 		if ( '' === $label ) {
 			return '';
 		}
