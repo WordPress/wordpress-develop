@@ -3441,19 +3441,28 @@ function wp_enqueue_command_palette_assets() {
 				continue;
 			}
 
-			// Remove all HTML tags and their contents.
+			// Only collect text nodes at root level (not wrapped in any HTML tags).
 			$menu_label = $menu_item[0];
-			while ( preg_match( '/<[^>]*>/', $menu_label ) ) {
-				$menu_label = preg_replace( '/<[^>]*>.*?<\/[^>]*>|<[^>]*\/>|<[^>]*>/s', '', $menu_label );
+			$processor  = WP_HTML_Processor::create_fragment( $menu_label );
+			$text_parts = array();
+
+			if ( $processor->next_token() ) {
+				$root_depth = $processor->get_current_depth();
+				do {
+					if ( '#text' === $processor->get_token_type() && $root_depth === $processor->get_current_depth() ) {
+						$text_parts[] = $processor->get_modifiable_text();
+					}
+				} while ( $processor->next_token() );
 			}
-			$menu_label = trim( $menu_label );
+
+			$menu_label = trim( implode( '', $text_parts ) );
 			$menu_url   = '';
 			$menu_slug  = $menu_item[2];
 
 			if ( preg_match( '/\.php($|\?)/', $menu_slug ) || wp_http_validate_url( $menu_slug ) ) {
 				$menu_url = $menu_slug;
 			} elseif ( ! empty( menu_page_url( $menu_slug, false ) ) ) {
-				$menu_url = html_entity_decode( menu_page_url( $menu_slug, false ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+				$menu_url = WP_HTML_Decoder::decode_attribute( menu_page_url( $menu_slug, false ) );
 			}
 
 			if ( $menu_url ) {
@@ -3470,21 +3479,29 @@ function wp_enqueue_command_palette_assets() {
 						continue;
 					}
 
-					// Remove all HTML tags and their contents.
+					// Only collect text nodes at root level (not wrapped in any HTML tags).
 					$submenu_label = $submenu_item[0];
-					while ( preg_match( '/<[^>]*>/', $submenu_label ) ) {
-						$submenu_label = preg_replace( '/<[^>]*>.*?<\/[^>]*>|<[^>]*\/>|<[^>]*>/s', '', $submenu_label );
+					$processor     = WP_HTML_Processor::create_fragment( $submenu_label );
+					$text_parts    = array();
+
+					if ( $processor->next_token() ) {
+						$root_depth = $processor->get_current_depth();
+						do {
+							if ( '#text' === $processor->get_token_type() && $root_depth === $processor->get_current_depth() ) {
+								$text_parts[] = $processor->get_modifiable_text();
+							}
+						} while ( $processor->next_token() );
 					}
-					$submenu_label = trim( $submenu_label );
+
+					$submenu_label = trim( implode( '', $text_parts ) );
 					$submenu_url   = '';
 					$submenu_slug  = $submenu_item[2];
 
 					if ( preg_match( '/\.php($|\?)/', $submenu_slug ) || wp_http_validate_url( $submenu_slug ) ) {
 						$submenu_url = $submenu_slug;
 					} elseif ( ! empty( menu_page_url( $submenu_slug, false ) ) ) {
-						$submenu_url = html_entity_decode( menu_page_url( $submenu_slug, false ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+						$submenu_url = WP_HTML_Decoder::decode_attribute( menu_page_url( $submenu_slug, false ) );
 					}
-
 					if ( $submenu_url ) {
 						$menu_commands[] = array(
 							'label' => sprintf(
