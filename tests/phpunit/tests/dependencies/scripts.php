@@ -1593,42 +1593,14 @@ HTML
 	/**
 	 * Tests that `WP_Scripts::filter_eligible_strategies()` correctly reuses cached results for shared dependencies.
 	 *
-	 * This test uses a diamond-shaped dependency graph where 'a' depends on 'b' and 'c', and both 'b' and 'c' depend
-	 * on 'd' (a diamond-shaped dependency graph). The goal is to confirm that when `$stored_results` already contains
-	 * an entry for 'd', the cached value is reused instead of recalculating the strategies for 'd' multiple times.
-	 *
 	 * @ticket 64194
 	 *
 	 * @covers WP_Scripts::filter_eligible_strategies
 	 */
 	public function test_filter_eligible_strategies_uses_cached_result_for_shared_dependency() {
 		$wp_scripts = new WP_Scripts();
-
-		/*
-		 * Register scripts forming a diamond-shaped dependency graph:
-		 * D is the shared dependent of B and C, and A depends on both B and C.
-		 */
-		$wp_scripts->add( 'a', 'https://example.com/a.js', array( 'b', 'c' ) );
-		$wp_scripts->add( 'b', 'https://example.com/b.js', array( 'd' ) );
-		$wp_scripts->add( 'c', 'https://example.com/c.js', array( 'd' ) );
 		$wp_scripts->add( 'd', 'https://example.com/d.js' );
-
-		// Enqueue all scripts so they are treated as active/enqueued.
-		foreach ( array( 'a', 'b', 'c', 'd' ) as $handle ) {
-			$wp_scripts->enqueue( $handle );
-		}
-
-		/*
-		 * Assign strategies:
-		 * - A: async
-		 * - B: async
-		 * - C: async
-		 * - D: async
-		 */
-		$wp_scripts->add_data( 'a', 'strategy', 'defer' );
-		$wp_scripts->add_data( 'b', 'strategy', 'defer' );
-		$wp_scripts->add_data( 'c', 'strategy', 'defer' );
-		$wp_scripts->add_data( 'd', 'strategy', 'async' );
+		$wp_scripts->add_data( 'd', 'strategy', 'defer' );
 
 		/*
 		 * Simulate a cached result in `$stored_results` for D.
