@@ -3,7 +3,7 @@
 /**
  * Tests for the wp_timezone_choice function.
  *
- * @group Functions.php
+ * @group functions
  *
  * @covers ::wp_timezone_choice
  */
