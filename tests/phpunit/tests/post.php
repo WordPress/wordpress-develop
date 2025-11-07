@@ -826,7 +826,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 */
 	public function test_wp_insert_post_handle_malformed_post_date( $input, $expected ) {
 		$post = array(
-			'post_author'  => self::$editor_id,
+			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => 'content',
 			'post_title'   => 'title',
@@ -893,13 +893,22 @@ class Tests_Post extends WP_UnitTestCase {
 				'2012-01-01 00:60:00',
 				true,
 			),
+			// Dates without leading zeros (valid but malformed format).
+			array(
+				'2012-08-1',
+				true,
+			),
+			array(
+				'2012-1-08 00:00:00',
+				true,
+			),
+			array(
+				'2012-01-8 00:00:00',
+				true,
+			),
 			// Failures.
 			array(
 				'2012-08-0z',
-				false,
-			),
-			array(
-				'2012-08-1',
 				false,
 			),
 			array(
@@ -915,15 +924,7 @@ class Tests_Post extends WP_UnitTestCase {
 				false,
 			),
 			array(
-				'2012-1-08 00:00:00',
-				false,
-			),
-			array(
 				'2012-31-08 00:00:00',
-				false,
-			),
-			array(
-				'2012-01-8 00:00:00',
 				false,
 			),
 			array(
@@ -1016,6 +1017,15 @@ class Tests_Post extends WP_UnitTestCase {
 				'2012-01-01 00:00:60',
 				'2012-01-01 00:00:60',
 			),
+			// Dates without leading zeros (valid but malformed format).
+			array(
+				'2012-1-08',
+				'2012-1-08',
+			),
+			array(
+				'2012-01-8',
+				'2012-01-8',
+			),
 			array(
 				'201-01-08',
 				false,
@@ -1025,15 +1035,7 @@ class Tests_Post extends WP_UnitTestCase {
 				false,
 			),
 			array(
-				'2012-1-08',
-				false,
-			),
-			array(
 				'2012-31-08',
-				false,
-			),
-			array(
-				'2012-01-8',
 				false,
 			),
 			array(
