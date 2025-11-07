@@ -9,13 +9,16 @@
  */
 class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 
+	/**
+	 * Tears down.
+	 */
 	public function tear_down() {
 		restore_current_locale();
 		parent::tear_down();
 	}
 
 	/**
-	 * Default values.
+	 * Tests default values.
 	 *
 	 * @ticket 59941
 	 *
@@ -27,11 +30,11 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Datasets for test_wp_timezone_choice.
+	 * Gets data sets for test_wp_timezone_choice.
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_wp_timezone_choice() {
+	public function data_wp_timezone_choice(): array {
 		return array(
 			'placeholder option'           => array( '<option selected="selected" value="">Select a city</option>' ),
 			'city in Americas'             => array( '<option value="America/Los_Angeles">Los Angeles</option>' ),
@@ -46,7 +49,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Zones are selected from the list.
+	 * Tests zones are selected from the list.
 	 *
 	 * @ticket 59941
 	 *
@@ -58,11 +61,11 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Datasets for test_wp_timezone_choice_selected.
+	 * Gets data sets for test_wp_timezone_choice_selected.
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_wp_timezone_choice_selected() {
+	public function data_wp_timezone_choice_selected(): array {
 		return array(
 			'city from the list'                   => array(
 				'America/Los_Angeles',
@@ -84,7 +87,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test passing the locale in.
+	 * Tests passing in the locale.
 	 *
 	 * @ticket 59941
 	 *
@@ -96,11 +99,11 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Datasets for test_wp_timezone_choice_es.
+	 * Gets data sets for test_wp_timezone_choice_es.
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_wp_timezone_choice_es() {
+	public function data_wp_timezone_choice_es(): array {
 		return array(
 			'placeholder remains in English (no translation override passed)' => array( '<option selected="selected" value="">Select a city</option>' ),
 			'spanish city translation'                     => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
@@ -110,7 +113,7 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Set the locale globally.
+	 * Tests setting the locale globally.
 	 *
 	 * @ticket 59941
 	 *
@@ -123,11 +126,11 @@ class Tests_Functions_wpTimezoneChoice extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Datasets for test_wp_timezone_choice_es_set.
+	 * Gets data sets for test_wp_timezone_choice_es_set.
 	 *
 	 * @return array<string, string[]>
 	 */
-	public function data_wp_timezone_choice_es_set() {
+	public function data_wp_timezone_choice_es_set(): array {
 		return array(
 			'placeholder in Spanish'          => array( '<option selected="selected" value="">Elige una ciudad</option>' ),
 			'spanish city translation'        => array( '<option value="Pacific/Port_Moresby">Puerto Moresby</option>' ),
