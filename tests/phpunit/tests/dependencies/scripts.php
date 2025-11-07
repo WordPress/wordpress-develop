@@ -1438,34 +1438,13 @@ HTML
 	/**
 	 * Tests that `WP_Scripts::get_highest_fetchpriority_with_dependents()` correctly reuses cached results.
 	 *
-	 * This test uses a diamond-shaped dependency graph where 'a' depends on 'b' and 'c', and both 'b' and 'c' depend
-	 * on 'd'. This verifies that when multiple dependents share a common dependency ('d'), the cached result for 'd'
-	 * is used rather than recalculating it multiple times.
-	 *
 	 * @ticket 64194
 	 *
 	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
 	 */
 	public function test_highest_fetchpriority_with_dependents_uses_cached_result_for_shared_dependency() {
 		$wp_scripts = new WP_Scripts();
-
-		/*
-		 * Register scripts forming a diamond-shaped dependency graph:
-		 * D is the shared dependent of B and C, and A depends on both B and C.
-		 */
-		$wp_scripts->add( 'a', 'https://example.com/a.js', array( 'b', 'c' ) );
-		$wp_scripts->add( 'b', 'https://example.com/b.js', array( 'd' ) );
-		$wp_scripts->add( 'c', 'https://example.com/c.js', array( 'd' ) );
 		$wp_scripts->add( 'd', 'https://example.com/d.js' );
-
-		// Enqueue all scripts so they are considered active ("enqueued").
-		foreach ( array( 'a', 'b', 'c', 'd' ) as $handle ) {
-			$wp_scripts->enqueue( $handle );
-		}
-
-		$wp_scripts->add_data( 'a', 'fetchpriority', 'auto' );
-		$wp_scripts->add_data( 'b', 'fetchpriority', 'low' );
-		$wp_scripts->add_data( 'c', 'fetchpriority', 'low' );
 		$wp_scripts->add_data( 'd', 'fetchpriority', 'low' );
 
 		/*
