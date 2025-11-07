@@ -993,6 +993,29 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test add_role with implied capabilities grant successfully grants capabilities.
+	 *
+	 * @ticket 43421
+	 */
+	public function test_add_role_with_single_level_capabilities() {
+		$role_name = 'janitor';
+		add_role(
+			$role_name,
+			'Janitor',
+			array(
+				'foo',
+			)
+		);
+		$this->flush_roles();
+
+		// Assign a user to that role.
+		$id   = self::factory()->user->create( array( 'role' => $role_name ) );
+		$user = new WP_User( $id );
+
+		$this->assertTrue( $user->has_cap( 'foo' ) );
+	}
+
+	/**
 	 * Change the capabilities associated with a role and make sure the change
 	 * is reflected in has_cap().
 	 */

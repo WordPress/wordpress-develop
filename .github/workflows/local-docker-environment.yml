@@ -73,7 +73,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     with:
       wp-version: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
 
@@ -83,7 +83,6 @@ jobs:
     uses: ./.github/workflows/reusable-test-local-docker-environment-v1.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     needs: [ build-test-matrix ]
     strategy:
       fail-fast: false
@@ -98,11 +97,13 @@ jobs:
           - db-version: '5.5'
           # Only test the latest innovation release.
           - db-version: '9.0'
+          - db-version: '9.1'
+          - db-version: '9.2'
           # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.1'
+            db-version: '9.3'
           - php: '7.3'
-            db-version: '9.1'
+            db-version: '9.3'
 
     with:
       os: ${{ matrix.os }}

@@ -4,8 +4,8 @@ Theme URI: https://wordpress.org/themes/twentysixteen/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Twenty Sixteen is a modernized take on an ever-popular WordPress layout — the horizontal masthead with an optional right sidebar that works perfectly for blogs and websites. It has custom color options with beautiful default color schemes, a harmonious fluid grid using a mobile-first approach, and impeccable polish in every detail. Twenty Sixteen will make your WordPress look beautiful everywhere.
-Version: 3.4
-Tested up to: 6.7
+Version: 3.5
+Tested up to: 6.8
 Requires at least: 4.4
 Requires PHP: 5.2.4
 License: GNU General Public License v2 or later
@@ -1284,7 +1284,7 @@ a:active {
 /* Text meant only for screen readers */
 .says,
 .screen-reader-text {
-	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
 	height: 1px;
 	overflow: hidden;
 	position: absolute !important;
@@ -1316,7 +1316,7 @@ a:active {
 }
 
 .site .skip-link:focus {
-	clip: auto;
+	clip-path: none;
 	height: auto;
 	left: 6px;
 	top: 7px;

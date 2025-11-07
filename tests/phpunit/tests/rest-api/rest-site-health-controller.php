@@ -92,6 +92,9 @@ class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}
 
+	/**
+	 * @group external-http
+	 */
 	public function test() {
 		wp_set_current_user( self::$admin );
 		$response = rest_do_request( '/wp-site-health/v1/tests/dotorg-communication' );

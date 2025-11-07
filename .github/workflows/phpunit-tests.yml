@@ -53,13 +53,17 @@ jobs:
   #
   # Creates a PHPUnit test job for each PHP/MySQL combination.
   #
+  # Though MySQL 5.5 and 5.6 are still supported by WordPress, they are not currently tested here because the Docker
+  # images do not work. Testing against MariaDB 5.5 provides a reasonable level of MySQL 5.5 testing (see MariaDB matrix
+  # below for more details).
+  #
   test-with-mysql:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     strategy:
       fail-fast: false
       matrix:
@@ -124,20 +128,26 @@ jobs:
   #
   # Creates a PHPUnit test job for each PHP/MariaDB combination.
   #
+  # All LTS versions of MariaDB supported by WordPress with greater than 1% usage according to w.org/stats should be
+  # tested. The exceptions to this rule are the most recent LTS and version 5.5.
+  #
+  # The 5.5 release was intended as a drop-in replacement for MySQL. Because the MySQL 5.5 Docker containers do not
+  # work, this ensures some level of MySQL 5.5 testing.
+  #
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mariadb' ]
-        db-version: [ '5.5', '10.3', '10.4', '10.5', '10.6', '10.11', '11.4' ]
+        db-version: [ '5.5', '10.3', '10.4', '10.5', '10.6', '10.11', '11.4', '11.8' ]
         multisite: [ false, true ]
         memcached: [ false ]
 
@@ -146,13 +156,13 @@ jobs:
         - os: ubuntu-24.04
           php: '8.3'
           db-type: 'mariadb'
-          db-version: '11.4'
+          db-version: '11.8'
           multisite: false
           memcached: true
         - os: ubuntu-24.04
           php: '8.3'
           db-type: 'mariadb'
-          db-version: '11.4'
+          db-version: '11.8'
           multisite: true
           memcached: true
     with:
@@ -168,11 +178,11 @@ jobs:
   #
   # Creates PHPUnit test jobs to test MariaDB and MySQL innovation releases.
   #
-  # Though innovation releases are deemed "production grade" and never receive LTS status, they include new features
-  # and updates that will be included in the next LTS version.
+  # Though innovation releases are deemed "production grade", they never receive LTS status. However, they include new
+  # features and updates that will be included in the next LTS version.
   #
-  # Because upstream support for innovation releases gets dropped when a new one is released, only the most recent
-  # innovation version is tested.
+  # Because upstream support for innovation releases is dropped when a new one is released (including security updates),
+  # only the most recent innovation version is tested.
   #
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
@@ -180,14 +190,14 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
         db-type: [ 'mysql', 'mariadb' ]
-        db-version: [ '9.1', '11.6' ]
+        db-version: [ '9.3', '11.7' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
@@ -195,14 +205,14 @@ jobs:
         exclude:
           # MySQL 9.0+ will not work on PHP <= 7.3 because mysql_native_password was removed. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.1'
+            db-version: '9.3'
           - php: '7.3'
-            db-version: '9.1'
+            db-version: '9.3'
           # Exclude version combinations that don't exist.
           - db-type: 'mariadb'
-            db-version: '9.1'
+            db-version: '9.3'
           - db-type: 'mysql'
-            db-version: '11.6'
+            db-version: '11.7'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -217,13 +227,15 @@ jobs:
   #
   # Runs specific individual test groups.
   #
+  # These tests are run against the most recent LTS version of MySQL.
+  #
   specific-test-groups:
     name: ${{ matrix.phpunit-test-groups }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
     strategy:
       fail-fast: false
       matrix:

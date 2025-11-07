@@ -396,7 +396,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 			"\n",
 			array(
 				'( function() {',
-				'	var userId = ' . get_current_user_ID() . ';',
+				'	var userId = ' . get_current_user_id() . ';',
 				'	var storageKey = "WP_DATA_USER_" + userId;',
 				'	wp.data',
 				'		.use( wp.data.plugins.persistence, { storageKey: storageKey } );',
@@ -757,6 +757,28 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'common', "/wp-admin/js/common$suffix.js", array( 'jquery', 'hoverIntent', 'utils', 'wp-a11y' ), false, 1 );
 	$scripts->set_translations( 'common' );
 
+	$bulk_action_observer_ids = array(
+		'bulk_action' => 'action',
+		'changeit'    => 'new_role',
+	);
+	did_action( 'init' ) && $scripts->localize(
+		'common',
+		'bulkActionObserverIds',
+		/**
+		 * Filters the array of field name attributes for bulk actions.
+		 *
+		 * @since 6.8.1
+		 *
+		 * @param array $bulk_action_observer_ids {
+		 *      An array of field name attributes for bulk actions.
+		 *
+		 *      @type string $bulk_action The bulk action field name. Default 'action'.
+		 *      @type string $changeit    The new role field name. Default 'new_role'.
+		 * }
+		 */
+		apply_filters( 'bulk_action_observer_ids', $bulk_action_observer_ids )
+	);
+
 	$scripts->add( 'wp-sanitize', "/wp-includes/js/wp-sanitize$suffix.js", array(), false, 1 );
 
 	$scripts->add( 'sack', "/wp-includes/js/tw-sack$suffix.js", array(), '1.6.1', 1 );
@@ -810,7 +832,7 @@ function wp_default_scripts( $scripts ) {
 		'wpAjax',
 		array(
 			'noPerm' => __( 'Sorry, you are not allowed to do that.' ),
-			'broken' => __( 'Something went wrong.' ),
+			'broken' => __( 'An error occurred while processing your request. Please try again later.' ),
 		)
 	);
 
@@ -975,8 +997,6 @@ function wp_default_scripts( $scripts ) {
 	// Not used in core, replaced by imgAreaSelect.
 	$scripts->add( 'jcrop', '/wp-includes/js/jcrop/jquery.Jcrop.min.js', array( 'jquery' ), '0.9.15' );
 
-	$scripts->add( 'swfobject', '/wp-includes/js/swfobject.js', array(), '2.2-20120417' );
-
 	// Error messages for Plupload.
 	$uploader_l10n = array(
 		'queue_limit_exceeded'      => __( 'You have attempted to queue too many files.' ),
@@ -1011,7 +1031,7 @@ function wp_default_scripts( $scripts ) {
 		'file_url_copied'           => __( 'The file URL has been copied to your clipboard' ),
 	);
 
-	$scripts->add( 'moxiejs', "/wp-includes/js/plupload/moxie$suffix.js", array(), '1.3.5' );
+	$scripts->add( 'moxiejs', "/wp-includes/js/plupload/moxie$suffix.js", array(), '1.3.5.1' );
 	$scripts->add( 'plupload', "/wp-includes/js/plupload/plupload$suffix.js", array( 'moxiejs' ), '2.1.9' );
 	// Back compat handles:
 	foreach ( array( 'all', 'html5', 'flash', 'silverlight', 'html4' ) as $handle ) {
@@ -1023,12 +1043,6 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'wp-plupload', "/wp-includes/js/plupload/wp-plupload$suffix.js", array( 'plupload', 'jquery', 'json2', 'media-models' ), false, 1 );
 	did_action( 'init' ) && $scripts->localize( 'wp-plupload', 'pluploadL10n', $uploader_l10n );
-
-	// Keep 'swfupload' for back-compat.
-	$scripts->add( 'swfupload', '/wp-includes/js/swfupload/swfupload.js', array(), '2201-20110113' );
-	$scripts->add( 'swfupload-all', false, array( 'swfupload' ), '2201' );
-	$scripts->add( 'swfupload-handlers', "/wp-includes/js/swfupload/handlers$suffix.js", array( 'swfupload-all', 'jquery' ), '2201-20110524' );
-	did_action( 'init' ) && $scripts->localize( 'swfupload-handlers', 'swfuploadL10n', $uploader_l10n );
 
 	$scripts->add( 'comment-reply', "/wp-includes/js/comment-reply$suffix.js", array(), false, 1 );
 	did_action( 'init' ) && $scripts->add_data( 'comment-reply', 'strategy', 'async' );
@@ -1292,7 +1306,7 @@ function wp_default_scripts( $scripts ) {
 			'close'                   => __( 'Close' ),
 			'action'                  => __( 'Action' ),
 			'discardChanges'          => __( 'Discard changes' ),
-			'cheatin'                 => __( 'Something went wrong.' ),
+			'cheatin'                 => __( 'An error occurred. Please try again later.' ),
 			'notAllowedHeading'       => __( 'You need a higher level of permission.' ),
 			'notAllowed'              => __( 'Sorry, you are not allowed to customize this site.' ),
 			'previewIframeTitle'      => __( 'Site Preview' ),
@@ -1475,7 +1489,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'wp-color-picker', "/wp-admin/js/color-picker$suffix.js", array( 'iris' ), false, 1 );
 		$scripts->set_translations( 'wp-color-picker' );
 
-		$scripts->add( 'dashboard', "/wp-admin/js/dashboard$suffix.js", array( 'jquery', 'admin-comments', 'postbox', 'wp-util', 'wp-a11y', 'wp-date' ), false, 1 );
+		$scripts->add( 'dashboard', "/wp-admin/js/dashboard$suffix.js", array( 'common', 'jquery', 'admin-comments', 'postbox', 'wp-util', 'wp-a11y', 'wp-date' ), false, 1 );
 		$scripts->set_translations( 'dashboard' );
 
 		$scripts->add( 'list-revisions', "/wp-includes/js/wp-list-revisions$suffix.js" );
@@ -1662,6 +1676,10 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'wp-block-library-theme', "/$block_library_theme_path" );
 	$styles->add_data( 'wp-block-library-theme', 'path', ABSPATH . $block_library_theme_path );
 
+	$classic_theme_styles_path = WPINC . "/css/classic-themes$suffix.css";
+	$styles->add( 'classic-theme-styles', "/$classic_theme_styles_path" );
+	$styles->add_data( 'classic-theme-styles', 'path', ABSPATH . $classic_theme_styles_path );
+
 	$styles->add(
 		'wp-reset-editor-styles',
 		"/wp-includes/css/dist/block-library/reset$suffix.css",
@@ -1680,18 +1698,16 @@ function wp_default_styles( $styles ) {
 		array( 'wp-components' )
 	);
 
+	// Only add CONTENT styles here that should be enqueued in the iframe!
 	$wp_edit_blocks_dependencies = array(
 		'wp-components',
-		'wp-editor',
 		/*
 		 * This needs to be added before the block library styles,
 		 * The block library styles override the "reset" styles.
 		 */
 		'wp-reset-editor-styles',
 		'wp-block-library',
-		'wp-reusable-blocks',
 		'wp-block-editor-content',
-		'wp-patterns',
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
@@ -1750,24 +1766,25 @@ function wp_default_styles( $styles ) {
 		'edit-widgets'         => array(
 			'wp-widgets',
 			'wp-block-editor',
+			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
-			'wp-reusable-blocks',
 			'wp-patterns',
 			'wp-preferences',
 		),
 		'customize-widgets'    => array(
 			'wp-widgets',
 			'wp-block-editor',
+			'wp-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
-			'wp-reusable-blocks',
 			'wp-patterns',
 			'wp-preferences',
 		),
 		'edit-site'            => array(
 			'wp-components',
 			'wp-block-editor',
+			'wp-editor',
 			'wp-edit-blocks',
 			'wp-commands',
 			'wp-preferences',
@@ -2096,7 +2113,7 @@ function wp_style_loader_src( $src, $handle ) {
  *
  * @global bool $concatenate_scripts
  *
- * @return array
+ * @return string[] Handles of the scripts that were printed.
  */
 function print_head_scripts() {
 	global $concatenate_scripts;
@@ -2135,7 +2152,7 @@ function print_head_scripts() {
  * @global WP_Scripts $wp_scripts
  * @global bool       $concatenate_scripts
  *
- * @return array
+ * @return string[] Handles of the scripts that were printed.
  */
 function print_footer_scripts() {
 	global $wp_scripts, $concatenate_scripts;
@@ -2216,7 +2233,7 @@ function _print_scripts() {
  *
  * @global WP_Scripts $wp_scripts
  *
- * @return array
+ * @return string[] Handles of the scripts that were printed.
  */
 function wp_print_head_scripts() {
 	global $wp_scripts;
@@ -2281,7 +2298,7 @@ function wp_enqueue_scripts() {
  *
  * @global bool $concatenate_scripts
  *
- * @return array
+ * @return string[] Handles of the styles that were printed.
  */
 function print_admin_styles() {
 	global $concatenate_scripts;
@@ -2488,20 +2505,21 @@ function wp_filter_out_block_nodes( $nodes ) {
  * @since 5.8.0
  */
 function wp_enqueue_global_styles() {
-	$separate_assets  = wp_should_load_separate_core_block_assets();
+	$assets_on_demand = wp_should_load_block_assets_on_demand();
 	$is_block_theme   = wp_is_block_theme();
 	$is_classic_theme = ! $is_block_theme;
 
 	/*
-	 * Global styles should be printed in the head when loading all styles combined.
-	 * The footer should only be used to print global styles for classic themes with separate core assets enabled.
+	 * Global styles should be printed in the head for block themes, or for classic themes when loading assets on
+	 * demand is disabled, which is the default.
+	 * The footer should only be used for classic themes when loading assets on demand is enabled.
 	 *
-	 * See https://core.trac.wordpress.org/ticket/53494.
+	 * See https://core.trac.wordpress.org/ticket/53494 and https://core.trac.wordpress.org/ticket/61965.
 	 */
 	if (
 		( $is_block_theme && doing_action( 'wp_footer' ) ) ||
-		( $is_classic_theme && doing_action( 'wp_footer' ) && ! $separate_assets ) ||
-		( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) && $separate_assets )
+		( $is_classic_theme && doing_action( 'wp_footer' ) && ! $assets_on_demand ) ||
+		( $is_classic_theme && doing_action( 'wp_enqueue_scripts' ) && $assets_on_demand )
 	) {
 		return;
 	}
@@ -2568,25 +2586,22 @@ function wp_should_load_block_editor_scripts_and_styles() {
 }
 
 /**
- * Checks whether separate styles should be loaded for core blocks on-render.
+ * Checks whether separate styles should be loaded for core blocks.
  *
- * When this function returns true, other functions ensure that core blocks
- * only load their assets on-render, and each block loads its own, individual
- * assets. Third-party blocks only load their assets when rendered.
+ * When this function returns true, other functions ensure that core blocks use their own separate stylesheets.
+ * When this function returns false, all core blocks will use the single combined 'wp-block-library' stylesheet.
  *
- * When this function returns false, all core block assets are loaded regardless
- * of whether they are rendered in a page or not, because they are all part of
- * the `block-library/style.css` file. Assets for third-party blocks are always
- * enqueued regardless of whether they are rendered or not.
+ * As a side effect, the return value will by default result in block assets to be loaded on demand, via the
+ * {@see wp_should_load_block_assets_on_demand()} function. This behavior can be separately altered via that function.
  *
  * This only affects front end and not the block editor screens.
  *
+ * @since 5.8.0
+ * @see @see wp_should_load_block_assets_on_demand()
  * @see wp_enqueue_registered_block_scripts_and_styles()
  * @see register_block_style_handle()
  *
- * @since 5.8.0
- *
- * @return bool Whether separate assets will be loaded.
+ * @return bool Whether separate core block assets will be loaded.
  */
 function wp_should_load_separate_core_block_assets() {
 	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
@@ -2608,23 +2623,71 @@ function wp_should_load_separate_core_block_assets() {
 }
 
 /**
+ * Checks whether block styles should be loaded only on-render.
+ *
+ * When this function returns true, other functions ensure that blocks only load their assets on-render.
+ * When this function returns false, all block assets are loaded regardless of whether they are rendered in a page.
+ *
+ * The default return value depends on the result of {@see wp_should_load_separate_core_block_assets()}, which controls
+ * whether Core block stylesheets should be loaded separately or via a combined 'wp-block-library' stylesheet.
+ *
+ * This only affects front end and not the block editor screens.
+ *
+ * @since 6.8.0
+ * @see wp_should_load_separate_core_block_assets()
+ *
+ * @return bool Whether to load block assets only when they are rendered.
+ */
+function wp_should_load_block_assets_on_demand() {
+	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
+		return false;
+	}
+
+	/*
+	 * For backward compatibility, the default return value for this function is based on the return value of
+	 * `wp_should_load_separate_core_block_assets()`. Initially, this function used to control both of these concerns.
+	 */
+	$load_assets_on_demand = wp_should_load_separate_core_block_assets();
+
+	/**
+	 * Filters whether block styles should be loaded on demand.
+	 *
+	 * Returning false loads all block assets, regardless of whether they are rendered in a page or not.
+	 * Returning true loads block assets only when they are rendered.
+	 *
+	 * The default value of the filter depends on the result of {@see wp_should_load_separate_core_block_assets()},
+	 * which controls whether Core block stylesheets should be loaded separately or via a combined 'wp-block-library'
+	 * stylesheet.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param bool $load_assets_on_demand Whether to load block assets only when they are rendered.
+	 */
+	return apply_filters( 'should_load_block_assets_on_demand', $load_assets_on_demand );
+}
+
+/**
  * Enqueues registered block scripts and styles, depending on current rendered
  * context (only enqueuing editor scripts while in context of the editor).
  *
  * @since 5.0.0
- *
- * @global WP_Screen $current_screen WordPress current screen object.
  */
 function wp_enqueue_registered_block_scripts_and_styles() {
-	global $current_screen;
-
-	if ( wp_should_load_separate_core_block_assets() ) {
+	if ( wp_should_load_block_assets_on_demand() ) {
 		return;
 	}
 
 	$load_editor_scripts_and_styles = is_admin() && wp_should_load_block_editor_scripts_and_styles();
 
 	$block_registry = WP_Block_Type_Registry::get_instance();
+
+	/*
+	 * Block styles are only enqueued if they're registered. For core blocks, this is only the case if
+	 * `wp_should_load_separate_core_block_assets()` returns true. Otherwise they use the single combined
+	 * 'wp-block-library` stylesheet. See also `register_core_block_style_handles()`.
+	 * Since `wp_enqueue_style()` does not trigger warnings if the style is not registered, it is okay to not cater for
+	 * this behavior here and simply call `wp_enqueue_style()` unconditionally.
+	 */
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
 		// Front-end and editor styles.
 		foreach ( $block_type->style_handles as $style_handle ) {
@@ -2666,8 +2729,8 @@ function enqueue_block_styles_assets() {
 		foreach ( $styles as $style_properties ) {
 			if ( isset( $style_properties['style_handle'] ) ) {
 
-				// If the site loads separate styles per-block, enqueue the stylesheet on render.
-				if ( wp_should_load_separate_core_block_assets() ) {
+				// If the site loads block styles on demand, enqueue the stylesheet on render.
+				if ( wp_should_load_block_assets_on_demand() ) {
 					add_filter(
 						'render_block',
 						static function ( $html, $block ) use ( $block_name, $style_properties ) {
@@ -2688,8 +2751,8 @@ function enqueue_block_styles_assets() {
 				// Default to "wp-block-library".
 				$handle = 'wp-block-library';
 
-				// If the site loads separate styles per-block, check if the block has a stylesheet registered.
-				if ( wp_should_load_separate_core_block_assets() ) {
+				// If the site loads block styles on demand, check if the block has a stylesheet registered.
+				if ( wp_should_load_block_assets_on_demand() ) {
 					$block_stylesheet_handle = generate_block_asset_handle( $block_name, 'style' );
 
 					if ( isset( $wp_styles->registered[ $block_stylesheet_handle ] ) ) {
@@ -2825,7 +2888,7 @@ function wp_get_script_tag( $attributes ) {
 /**
  * Prints formatted `<script>` loader tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
@@ -2839,7 +2902,7 @@ function wp_print_script_tag( $attributes ) {
 /**
  * Constructs an inline script tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
@@ -2928,7 +2991,7 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 /**
  * Prints an inline script tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_inline_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.7.0
@@ -3188,7 +3251,7 @@ function wp_enqueue_stored_styles( $options = array() ) {
 /**
  * Enqueues a stylesheet for a specific block.
  *
- * If the theme has opted-in to separate-styles loading,
+ * If the theme has opted-in to load block styles on demand,
  * then the stylesheet will be enqueued on-render,
  * otherwise when the block inits.
  *
@@ -3256,7 +3319,7 @@ function wp_enqueue_block_style( $block_name, $args ) {
 	};
 
 	$hook = did_action( 'wp_enqueue_scripts' ) ? 'wp_footer' : 'wp_enqueue_scripts';
-	if ( wp_should_load_separate_core_block_assets() ) {
+	if ( wp_should_load_block_assets_on_demand() ) {
 		/**
 		 * Callback function to register and enqueue styles.
 		 *
@@ -3302,52 +3365,16 @@ function wp_enqueue_block_style( $block_name, $args ) {
 /**
  * Loads classic theme styles on classic themes in the frontend.
  *
- * This is needed for backwards compatibility for button blocks specifically.
+ * This is used for backwards compatibility for Button and File blocks specifically.
  *
  * @since 6.1.0
+ * @since 6.2.0 Added File block styles.
+ * @since 6.8.0 Moved stylesheet registration outside of this function.
  */
 function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_theme_has_theme_json() ) {
-		$suffix = wp_scripts_get_suffix();
-		wp_register_style( 'classic-theme-styles', '/' . WPINC . "/css/classic-themes$suffix.css" );
-		wp_style_add_data( 'classic-theme-styles', 'path', ABSPATH . WPINC . "/css/classic-themes$suffix.css" );
 		wp_enqueue_style( 'classic-theme-styles' );
 	}
-}
-
-/**
- * Loads classic theme styles on classic themes in the editor.
- *
- * This is needed for backwards compatibility for button blocks specifically.
- *
- * @since 6.1.0
- *
- * @param array $editor_settings The array of editor settings.
- * @return array A filtered array of editor settings.
- */
-function wp_add_editor_classic_theme_styles( $editor_settings ) {
-	if ( wp_theme_has_theme_json() ) {
-		return $editor_settings;
-	}
-
-	$suffix               = wp_scripts_get_suffix();
-	$classic_theme_styles = ABSPATH . WPINC . "/css/classic-themes$suffix.css";
-
-	/*
-	 * This follows the pattern of get_block_editor_theme_styles,
-	 * but we can't use get_block_editor_theme_styles directly as it
-	 * only handles external files or theme files.
-	 */
-	$classic_theme_styles_settings = array(
-		'css'            => file_get_contents( $classic_theme_styles ),
-		'__unstableType' => 'core',
-		'isGlobalStyles' => false,
-	);
-
-	// Add these settings to the start of the array so that themes can override them.
-	array_unshift( $editor_settings['styles'], $classic_theme_styles_settings );
-
-	return $editor_settings;
 }
 
 /**

@@ -941,6 +941,7 @@ VIDEO;
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp3', $actual );
 		$this->assertStringNotContainsString( 'loop', $actual );
 		$this->assertStringNotContainsString( 'autoplay', $actual );
+		$this->assertStringNotContainsString( 'muted', $actual );
 		$this->assertStringContainsString( 'preload="none"', $actual );
 		$this->assertStringContainsString( 'class="wp-audio-shortcode"', $actual );
 		$this->assertStringContainsString( 'style="width: 100%;"', $actual );
@@ -950,16 +951,18 @@ VIDEO;
 				'src'      => 'https://example.com/foo.mp3',
 				'loop'     => true,
 				'autoplay' => true,
-				'preload'  => true,
+				'muted'    => true,
+				'preload'  => 'none',
 				'class'    => 'foobar',
 				'style'    => 'padding:0;',
 			)
 		);
 
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp3', $actual );
-		$this->assertStringContainsString( 'loop="1"', $actual );
-		$this->assertStringContainsString( 'autoplay="1"', $actual );
-		$this->assertStringContainsString( 'preload="1"', $actual );
+		$this->assertStringContainsString( 'loop', $actual );
+		$this->assertStringContainsString( 'autoplay', $actual );
+		$this->assertStringContainsString( 'muted', $actual );
+		$this->assertStringContainsString( 'preload="none"', $actual );
 		$this->assertStringContainsString( 'class="foobar"', $actual );
 		$this->assertStringContainsString( 'style="padding:0;"', $actual );
 	}
@@ -996,7 +999,6 @@ VIDEO;
 		$content = apply_filters( 'the_content', $video );
 
 		$expected = '<div style="width: ' . $width . 'px;" class="wp-video">' .
-			"<!--[if lt IE 9]><script>document.createElement('video');</script><![endif]-->\n" .
 			'<video class="wp-video-shortcode" id="video-' . $post_id . '-1" width="' . $width . '" height="' . $h . '" preload="metadata" controls="controls">' .
 			'<source type="video/mp4" src="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4?_=1" />' .
 			'<!-- WebM/VP8 for Firefox4, Opera, and Chrome --><source type="video/webm" src="myvideo.webm" />' .
@@ -1060,7 +1062,7 @@ VIDEO;
 				'loop'     => true,
 				'autoplay' => true,
 				'muted'    => true,
-				'preload'  => true,
+				'preload'  => 'metadata',
 				'width'    => 123,
 				'height'   => 456,
 				'class'    => 'foobar',
@@ -1069,10 +1071,10 @@ VIDEO;
 
 		$this->assertStringContainsString( 'src="https://example.com/foo.mp4', $actual );
 		$this->assertStringContainsString( 'poster="https://example.com/foo.png', $actual );
-		$this->assertStringContainsString( 'loop="1"', $actual );
-		$this->assertStringContainsString( 'autoplay="1"', $actual );
+		$this->assertStringContainsString( 'loop', $actual );
+		$this->assertStringContainsString( 'autoplay', $actual );
 		$this->assertStringContainsString( 'muted', $actual );
-		$this->assertStringContainsString( 'preload="1"', $actual );
+		$this->assertStringContainsString( 'preload="metadata"', $actual );
 		$this->assertStringContainsString( 'width="123"', $actual );
 		$this->assertStringContainsString( 'height="456"', $actual );
 		$this->assertStringContainsString( 'class="foobar"', $actual );
@@ -1843,6 +1845,8 @@ EOF;
 
 		// Calculate a srcset array.
 		$sizes = explode( ', ', wp_calculate_image_srcset( $size_array, $image_url, $image_meta ) );
+
+		$this->assertNotEmpty( $sizes );
 
 		// Test to confirm all sources in the array include the same edit hash.
 		foreach ( $sizes as $size ) {
@@ -3777,6 +3781,8 @@ EOF;
 
 		$query = $this->get_new_wp_query_for_published_post();
 
+		$this->assertTrue( have_posts() );
+
 		while ( have_posts() ) {
 			the_post();
 
@@ -3833,6 +3839,8 @@ EOF;
 
 		// Use the filter to alter the threshold for not lazy-loading to the first five elements.
 		$this->force_omit_loading_attr_threshold( 5 );
+
+		$this->assertTrue( have_posts() );
 
 		while ( have_posts() ) {
 			the_post();

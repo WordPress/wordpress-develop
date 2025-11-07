@@ -83,11 +83,45 @@ module.exports = function(grunt) {
 	// First do `npm install` if package.json has changed.
 	installChanged.watchPackage();
 
-	// Load tasks.
-	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
-
 	// Load legacy utils.
 	grunt.util = require('grunt-legacy-util');
+
+	var gruntDependencies = {
+		'contrib': [
+			'clean',
+			'concat',
+			'copy',
+			'cssmin',
+			'jshint',
+			'qunit',
+			'uglify',
+			'watch'
+		],
+		'standard': [
+			'banner',
+			'file-append',
+			'jsdoc',
+			'patch-wordpress',
+			'replace-lts',
+			'rtlcss',
+			'sass',
+			'webpack'
+		]
+	};
+
+	// Load grunt-* tasks.
+	function loadGruntTasks( dependency ) {
+		var contrib = key === 'contrib' ? 'contrib-' : '';
+		grunt.loadNpmTasks( 'grunt-' + contrib + dependency );
+	}
+
+	for ( var key in gruntDependencies ) {
+		if ( ! gruntDependencies.hasOwnProperty( key ) ) {
+			continue;
+		}
+
+		gruntDependencies[key].forEach( loadGruntTasks );
+	}
 
 	// Load PostCSS tasks.
 	grunt.loadNpmTasks('@lodder/grunt-postcss');
@@ -774,7 +808,14 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
+				parse: {
+					module: false
+				},
+				compress: {
+					module: false
+				},
 				output: {
+					module: false,
 					ascii_only: true
 				}
 			},
@@ -797,7 +838,6 @@ module.exports = function(grunt) {
 					'!**/*.min.js',
 					'!wp-admin/js/custom-header.js', // Why? We should minify this.
 					'!wp-admin/js/farbtastic.js',
-					'!wp-includes/js/swfobject.js',
 				]
 			},
 			'jquery-ui': {
@@ -1100,7 +1140,7 @@ module.exports = function(grunt) {
 								}
 
 								// Fetch a list of the files that Twemoji supplies.
-								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "v15.0.3:assets/svg") {... on Tree {entries {name}}}}}';
+								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "v16.0.1:assets/svg") {... on Tree {entries {name}}}}}';
 								files = spawn( 'gh', [ 'api', 'graphql', '-f', query] );
 
 								if ( 0 !== files.status ) {
@@ -1663,6 +1703,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'verify:source-maps', function() {
 		const ignoredFiles = [
 			'build/wp-includes/js/dist/components.js',
+			'build/wp-includes/js/dist/data.js',
 		];
 		const files = buildFiles.reduce( ( acc, path ) => {
 			// Skip excluded paths and any path that isn't a file.

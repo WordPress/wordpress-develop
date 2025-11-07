@@ -49,7 +49,7 @@ class Tests_User extends WP_UnitTestCase {
 		self::$user_ids[] = self::$admin_id;
 		self::$editor_id  = $factory->user->create(
 			array(
-				'user_email' => 'test@test.com',
+				'user_email' => 'test@example.com',
 				'role'       => 'editor',
 			)
 		);
@@ -820,7 +820,7 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function test_validate_username_string() {
 		$this->assertTrue( validate_username( 'johndoe' ) );
-		$this->assertTrue( validate_username( 'test@test.com' ) );
+		$this->assertTrue( validate_username( 'test@example.com' ) );
 	}
 
 	/**
@@ -1035,7 +1035,7 @@ class Tests_User extends WP_UnitTestCase {
 		$u        = wp_insert_user(
 			array(
 				'user_login' => 'test',
-				'user_email' => 'test@example.com',
+				'user_email' => 'urltest@example.com',
 				'user_pass'  => 'password',
 				'user_url'   => $user_url,
 			)
@@ -1083,7 +1083,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 35750
 	 */
 	public function test_wp_update_user_should_delete_userslugs_cache() {
-		$u    = self::factory()->user->create();
+		$u    = self::$sub_id;
 		$user = get_userdata( $u );
 
 		wp_update_user(
@@ -1256,7 +1256,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Alter the case of the email address (which stays the same).
 		$userdata = array(
 			'ID'         => self::$editor_id,
-			'user_email' => 'test@TEST.com',
+			'user_email' => 'test@EXAMPLE.com',
 		);
 		$update   = wp_update_user( $userdata );
 
@@ -1270,7 +1270,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Change the email address.
 		$userdata = array(
 			'ID'         => self::$editor_id,
-			'user_email' => 'test2@test.com',
+			'user_email' => 'test2@example.com',
 		);
 		$update   = wp_update_user( $userdata );
 
@@ -1279,7 +1279,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		// Verify that the email address has been updated.
 		$user = get_userdata( self::$editor_id );
-		$this->assertSame( $user->user_email, 'test2@test.com' );
+		$this->assertSame( $user->user_email, 'test2@example.com' );
 	}
 
 	/**
@@ -1939,11 +1939,7 @@ class Tests_User extends WP_UnitTestCase {
 		$_GET     = array();
 		$_REQUEST = array();
 
-		$administrator = self::factory()->user->create(
-			array(
-				'role' => 'administrator',
-			)
-		);
+		$administrator = self::$admin_id;
 
 		wp_set_current_user( $administrator );
 
@@ -1957,11 +1953,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( array( 'administrator' ), get_userdata( $administrator )->roles );
 
 		// Promote an editor to an administrator.
-		$editor = self::factory()->user->create(
-			array(
-				'role' => 'editor',
-			)
-		);
+		$editor = self::$editor_id;
 
 		$_POST['role']     = 'administrator';
 		$_POST['email']    = 'administrator@administrator.test';
@@ -1978,7 +1970,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 43547
 	 */
 	public function test_wp_user_personal_data_exporter_no_user() {
-		$actual = wp_user_personal_data_exporter( 'not-a-user-email@test.com' );
+		$actual = wp_user_personal_data_exporter( 'not-a-user-email@example.com' );
 
 		$expected = array(
 			'data' => array(),

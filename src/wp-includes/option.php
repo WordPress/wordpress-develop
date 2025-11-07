@@ -689,7 +689,7 @@ function wp_prime_site_option_caches( array $options ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int      $network_id ID of the network. Can be null to default to the current network ID.
+ * @param int|null $network_id ID of the network. Can be null to default to the current network ID.
  * @param string[] $options    An array of option names to be loaded.
  */
 function wp_prime_network_option_caches( $network_id, array $options ) {
@@ -1168,7 +1168,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 2.5.0 As "add_option_{$name}"
+	 * @since 2.5.0 As `add_option_{$name}`
 	 * @since 3.0.0
 	 *
 	 * @param string $option Name of the option to add.
@@ -1292,15 +1292,15 @@ function delete_option( $option ) {
  * @since 6.6.0
  * @access private
  *
- * @param string $option          The name of the option.
- * @param mixed $value            The value of the option to check its autoload value.
- * @param mixed $serialized_value The serialized value of the option to check its autoload value.
- * @param bool|null $autoload     The autoload value to check.
- *                                Accepts 'on'|true to enable or 'off'|false to disable, or
- *                                'auto-on', 'auto-off', or 'auto' for internal purposes.
- *                                Any other autoload value will be forced to either 'auto-on',
- *                                'auto-off', or 'auto'.
- *                                'yes' and 'no' are supported for backward compatibility.
+ * @param string    $option           The name of the option.
+ * @param mixed     $value            The value of the option to check its autoload value.
+ * @param mixed     $serialized_value The serialized value of the option to check its autoload value.
+ * @param bool|null $autoload         The autoload value to check.
+ *                                    Accepts 'on'|true to enable or 'off'|false to disable, or
+ *                                    'auto-on', 'auto-off', or 'auto' for internal purposes.
+ *                                    Any other autoload value will be forced to either 'auto-on',
+ *                                    'auto-off', or 'auto'.
+ *                                    'yes' and 'no' are supported for backward compatibility.
  * @return string Returns the original $autoload value if explicit, or 'auto-on', 'auto-off',
  *                or 'auto' depending on default heuristics.
  */
@@ -1880,7 +1880,7 @@ function wp_set_all_user_settings( $user_settings ) {
 	}
 
 	if ( ! is_user_member_of_blog() ) {
-		return;
+		return null;
 	}
 
 	$settings = '';
@@ -1993,9 +1993,9 @@ function update_site_option( $option, $value ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $network_id    ID of the network. Can be null to default to the current network ID.
- * @param string $option        Name of the option to retrieve. Expected to not be SQL-escaped.
- * @param mixed  $default_value Optional. Value to return if the option doesn't exist. Default false.
+ * @param int|null $network_id    ID of the network. Can be null to default to the current network ID.
+ * @param string   $option        Name of the option to retrieve. Expected to not be SQL-escaped.
+ * @param mixed    $default_value Optional. Value to return if the option doesn't exist. Default false.
  * @return mixed Value set for the option.
  */
 function get_network_option( $network_id, $option, $default_value = false ) {
@@ -2127,9 +2127,9 @@ function get_network_option( $network_id, $option, $default_value = false ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $network_id ID of the network. Can be null to default to the current network ID.
- * @param string $option     Name of the option to add. Expected to not be SQL-escaped.
- * @param mixed  $value      Option value, can be anything. Expected to not be SQL-escaped.
+ * @param int|null $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string   $option     Name of the option to add. Expected to not be SQL-escaped.
+ * @param mixed    $value      Option value, can be anything. Expected to not be SQL-escaped.
  * @return bool True if the option was added, false otherwise.
  */
 function add_network_option( $network_id, $option, $value ) {
@@ -2254,8 +2254,8 @@ function add_network_option( $network_id, $option, $value ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $network_id ID of the network. Can be null to default to the current network ID.
- * @param string $option     Name of the option to delete. Expected to not be SQL-escaped.
+ * @param int|null $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string   $option     Name of the option to delete. Expected to not be SQL-escaped.
  * @return bool True if the option was deleted, false otherwise.
  */
 function delete_network_option( $network_id, $option ) {
@@ -2358,9 +2358,9 @@ function delete_network_option( $network_id, $option ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int    $network_id ID of the network. Can be null to default to the current network ID.
- * @param string $option     Name of the option. Expected to not be SQL-escaped.
- * @param mixed  $value      Option value. Expected to not be SQL-escaped.
+ * @param int|null $network_id ID of the network. Can be null to default to the current network ID.
+ * @param string   $option     Name of the option. Expected to not be SQL-escaped.
+ * @param mixed    $value      Option value. Expected to not be SQL-escaped.
  * @return bool True if the value was updated, false otherwise.
  */
 function update_network_option( $network_id, $option, $value ) {
@@ -3176,7 +3176,23 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *
  * @global array $wp_registered_settings
  *
- * @return array List of registered settings, keyed by option name.
+ * @return array {
+ *     List of registered settings, keyed by option name.
+ *
+ *     @type array ...$0 {
+ *         Data used to describe the setting when registered.
+ *
+ *         @type string     $type              The type of data associated with this setting.
+ *                                             Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
+ *         @type string     $label             A label of the data attached to this setting.
+ *         @type string     $description       A description of the data attached to this setting.
+ *         @type callable   $sanitize_callback A callback function that sanitizes the option's value.
+ *         @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
+ *                                             When registering complex settings, this argument may optionally be an
+ *                                             array with a 'schema' key.
+ *         @type mixed      $default           Default value when calling `get_option()`.
+ *     }
+ * }
  */
 function get_registered_settings() {
 	global $wp_registered_settings;

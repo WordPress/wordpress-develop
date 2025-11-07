@@ -407,41 +407,43 @@ function wp_print_revision_templates() {
 					<strong id="diff-title-to"><?php _ex( 'To:', 'Followed by post revision info' ); ?></strong>
 				<# } #>
 				<div class="author-card<# if ( data.attributes.autosave ) { #> autosave<# } #>">
-					{{{ data.attributes.author.avatar }}}
-					<div class="author-info" id="diff-title-author">
-					<# if ( data.attributes.autosave ) { #>
-						<span class="byline">
-						<?php
-						printf(
-							/* translators: %s: User's display name. */
-							__( 'Autosave by %s' ),
-							'<span class="author-name">{{ data.attributes.author.name }}</span>'
-						);
-						?>
-							</span>
-					<# } else if ( data.attributes.current ) { #>
-						<span class="byline">
-						<?php
-						printf(
-							/* translators: %s: User's display name. */
-							__( 'Current Revision by %s' ),
-							'<span class="author-name">{{ data.attributes.author.name }}</span>'
-						);
-						?>
-							</span>
-					<# } else { #>
-						<span class="byline">
-						<?php
-						printf(
-							/* translators: %s: User's display name. */
-							__( 'Revision by %s' ),
-							'<span class="author-name">{{ data.attributes.author.name }}</span>'
-						);
-						?>
-							</span>
-					<# } #>
-						<span class="time-ago">{{ data.attributes.timeAgo }}</span>
-						<span class="date">({{ data.attributes.dateShort }})</span>
+					<div>
+						{{{ data.attributes.author.avatar }}}
+						<div class="author-info" id="diff-title-author">
+						<# if ( data.attributes.autosave ) { #>
+							<span class="byline">
+							<?php
+							printf(
+								/* translators: %s: User's display name. */
+								__( 'Autosave by %s' ),
+								'<span class="author-name">{{ data.attributes.author.name }}</span>'
+							);
+							?>
+								</span>
+						<# } else if ( data.attributes.current ) { #>
+							<span class="byline">
+							<?php
+							printf(
+								/* translators: %s: User's display name. */
+								__( 'Current Revision by %s' ),
+								'<span class="author-name">{{ data.attributes.author.name }}</span>'
+							);
+							?>
+								</span>
+						<# } else { #>
+							<span class="byline">
+							<?php
+							printf(
+								/* translators: %s: User's display name. */
+								__( 'Revision by %s' ),
+								'<span class="author-name">{{ data.attributes.author.name }}</span>'
+							);
+							?>
+								</span>
+						<# } #>
+							<span class="time-ago">{{ data.attributes.timeAgo }}</span>
+							<span class="date">({{ data.attributes.dateShort }})</span>
+						</div>
 					</div>
 				<# if ( 'to' === data.type && data.attributes.restoreUrl ) { #>
 					<input  <?php if ( wp_check_post_lock( $post->ID ) ) { ?>
@@ -466,7 +468,7 @@ function wp_print_revision_templates() {
 
 	<script id="tmpl-revisions-diff" type="text/html">
 		<div class="loading-indicator"><span class="spinner"></span></div>
-		<div class="diff-error"><?php _e( 'Sorry, something went wrong. The requested comparison could not be loaded.' ); ?></div>
+		<div class="diff-error"><?php _e( 'An error occurred while loading the comparison. Please refresh the page and try again.' ); ?></div>
 		<div class="diff">
 		<# _.each( data.fields, function( field ) { #>
 			<h2>{{ field.name }}</h2>

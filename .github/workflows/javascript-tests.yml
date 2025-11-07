@@ -53,7 +53,7 @@ jobs:
     uses: ./.github/workflows/reusable-javascript-tests.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
 
   slack-notifications:
     name: Slack Notifications

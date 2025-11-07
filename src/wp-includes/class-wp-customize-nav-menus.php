@@ -1222,7 +1222,7 @@ final class WP_Customize_Nav_Menus {
 		$id = sprintf( 'available-menu-items-%s-%s', $available_item_type['type'], $available_item_type['object'] );
 		?>
 		<div id="<?php echo esc_attr( $id ); ?>" class="accordion-section">
-			<h4 class="accordion-section-title" role="presentation">
+			<h4 class="accordion-section-title">
 				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="<?php echo esc_attr( $id ); ?>-content">
 					<?php echo esc_html( $available_item_type['title'] ); ?>
 					<span class="spinner"></span>
@@ -1257,7 +1257,7 @@ final class WP_Customize_Nav_Menus {
 	protected function print_custom_links_available_menu_item() {
 		?>
 		<div id="new-custom-menu-item" class="accordion-section">
-			<h4 class="accordion-section-title" role="presentation">
+			<h4 class="accordion-section-title">
 				<button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="new-custom-menu-item-content">
 					<?php _e( 'Custom Links' ); ?>
 					<span class="toggle-indicator" aria-hidden="true"></span>
@@ -1268,10 +1268,12 @@ final class WP_Customize_Nav_Menus {
 				<p id="menu-item-url-wrap" class="wp-clearfix">
 					<label class="howto" for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
 					<input id="custom-menu-item-url" name="menu-item[-1][menu-item-url]" type="text" class="code menu-item-textbox" placeholder="https://">
+					<span id="custom-url-error" class="error-message" style="display: none;"><?php _e( 'Please provide a valid link.' ); ?></span>
 				</p>
 				<p id="menu-item-name-wrap" class="wp-clearfix">
 					<label class="howto" for="custom-menu-item-name"><?php _e( 'Link Text' ); ?></label>
 					<input id="custom-menu-item-name" name="menu-item[-1][menu-item-title]" type="text" class="regular-text menu-item-textbox">
+					<span id="custom-name-error" class="error-message" style="display: none;"><?php _e( 'The link text cannot be empty.' ); ?></span>
 				</p>
 				<p class="button-controls">
 					<span class="add-to-menu">

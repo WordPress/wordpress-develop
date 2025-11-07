@@ -146,7 +146,7 @@ function create_initial_taxonomies() {
 				'all_items'                  => __( 'All Link Categories' ),
 				'edit_item'                  => __( 'Edit Link Category' ),
 				'update_item'                => __( 'Update Link Category' ),
-				'add_new_item'               => __( 'Add New Link Category' ),
+				'add_new_item'               => __( 'Add Link Category' ),
 				'new_item_name'              => __( 'New Link Category Name' ),
 				'separate_items_with_commas' => null,
 				'add_or_remove_items'        => null,
@@ -233,7 +233,7 @@ function create_initial_taxonomies() {
 			'labels'             => array(
 				'name'                       => _x( 'Pattern Categories', 'taxonomy general name' ),
 				'singular_name'              => _x( 'Pattern Category', 'taxonomy singular name' ),
-				'add_new_item'               => __( 'Add New Category' ),
+				'add_new_item'               => __( 'Add Category' ),
 				'add_or_remove_items'        => __( 'Add or remove pattern categories' ),
 				'back_to_items'              => __( '&larr; Go to Pattern Categories' ),
 				'choose_from_most_used'      => __( 'Choose from the most used pattern categories' ),
@@ -678,7 +678,7 @@ function unregister_taxonomy( $taxonomy ) {
  *     @type string $edit_item                  Default 'Edit Tag'/'Edit Category'.
  *     @type string $view_item                  Default 'View Tag'/'View Category'.
  *     @type string $update_item                Default 'Update Tag'/'Update Category'.
- *     @type string $add_new_item               Default 'Add New Tag'/'Add New Category'.
+ *     @type string $add_new_item               Default 'Add Tag'/'Add Category'.
  *     @type string $new_item_name              Default 'New Tag Name'/'New Category Name'.
  *     @type string $template_name              Default 'Tag Archives'/'Category Archives'.
  *     @type string $separate_items_with_commas This label is only used for non-hierarchical taxonomies. Default
@@ -1292,6 +1292,8 @@ function get_term_to_edit( $id, $taxonomy ) {
  *
  * Prior to 4.5.0, taxonomy was passed as the first parameter of `get_terms()`.
  *
+ * {@internal The `$deprecated` parameter is parsed for backward compatibility only.}
+ *
  * @since 2.3.0
  * @since 4.2.0 Introduced 'name' and 'childless' parameters.
  * @since 4.4.0 Introduced the ability to pass 'term_id' as an alias of 'id' for the `orderby` parameter.
@@ -1300,8 +1302,6 @@ function get_term_to_edit( $id, $taxonomy ) {
  * @since 4.5.0 Changed the function signature so that the `$args` array can be provided as the first parameter.
  *              Introduced 'meta_key' and 'meta_value' parameters. Introduced the ability to order results by metadata.
  * @since 4.8.0 Introduced 'suppress_filter' parameter.
- *
- * @internal The `$deprecated` parameter is parsed for backward compatibility only.
  *
  * @param array|string $args       Optional. Array or string of arguments. See WP_Term_Query::__construct()
  *                                 for information on accepted arguments. Default empty array.
@@ -1382,6 +1382,8 @@ function get_terms( $args = array(), $deprecated = '' ) {
 /**
  * Adds metadata to a term.
  *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
  * @since 4.4.0
  *
  * @param int    $term_id    Term ID.
@@ -1408,6 +1410,8 @@ function add_term_meta( $term_id, $meta_key, $meta_value, $unique = false ) {
 
 /**
  * Removes metadata matching criteria from a term.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 4.4.0
  *
@@ -1454,6 +1458,8 @@ function get_term_meta( $term_id, $key = '', $single = false ) {
  * Use the `$prev_value` parameter to differentiate between meta fields with the same key and term ID.
  *
  * If the meta field for the term does not exist, it will be added.
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
  *
  * @since 4.4.0
  *
@@ -1927,10 +1933,10 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
  *
  * Default $args is 'hide_empty' which can be 'hide_empty=true' or array('hide_empty' => true).
  *
+ * {@internal The `$deprecated` parameter is parsed for backward compatibility only.}
+ *
  * @since 2.3.0
  * @since 5.6.0 Changed the function signature so that the `$args` array can be provided as the first parameter.
- *
- * @internal The `$deprecated` parameter is parsed for backward compatibility only.
  *
  * @param array|string $args       Optional. Array or string of arguments. See WP_Term_Query::__construct()
  *                                 for information on accepted arguments. Default empty array.
@@ -2137,11 +2143,11 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 			)
 		);
 
-		if ( 1 === count( $terms ) && isset( $default ) ) {
+		if ( 1 === count( $terms ) ) {
 			$terms = array( $default );
 		} else {
 			$terms = array_diff( $terms, array( $term ) );
-			if ( isset( $default ) && isset( $force_default ) && $force_default ) {
+			if ( isset( $force_default ) && $force_default ) {
 				$terms = array_merge( $terms, array( $default ) );
 			}
 		}
@@ -4892,11 +4898,13 @@ function is_object_in_term( $object_id, $taxonomy, $terms = null ) {
 	if ( is_wp_error( $object_terms ) ) {
 		return $object_terms;
 	}
+
 	if ( empty( $object_terms ) ) {
 		return false;
 	}
+
 	if ( empty( $terms ) ) {
-		return ( ! empty( $object_terms ) );
+		return true;
 	}
 
 	$terms = (array) $terms;
