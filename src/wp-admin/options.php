@@ -125,7 +125,7 @@ $allowed_options            = array(
 		'comment_order',
 		'comment_registration',
 		'show_comments_cookies_opt_in',
-		'notes_notify',
+		'wp_notes_notify',
 	),
 	'media'      => array(
 		'thumbnail_size_w',
