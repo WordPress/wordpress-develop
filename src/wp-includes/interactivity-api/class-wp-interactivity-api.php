@@ -521,11 +521,11 @@ final class WP_Interactivity_API {
 				}
 			} else {
 				$each_child_attrs = $p->get_attribute_names_with_prefix( 'data-wp-each-child' );
-				if ( ! is_countable( $each_child_attrs ) ) {
+				if ( null === $each_child_attrs ) {
 					continue;
 				}
 
-				if ( 0 !== count( $each_child_attrs ) ) {
+				if ( null !== $each_child_attrs && 0 !== count( $each_child_attrs ) ) {
 					/*
 					 * If the tag has a `data-wp-each-child` directive, jump to its closer
 					 * tag because those tags have already been processed.
