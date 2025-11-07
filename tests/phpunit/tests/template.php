@@ -1747,17 +1747,24 @@ class Tests_Template extends WP_UnitTestCase {
 		/*
 		 * Since new styles could appear at any time and since certain styles leak in from the global scope not being
 		 * properly reset somewhere else in the test suite, we only check that the expected styles are at least present
-		 * and in the same order.
+		 * and in the same order. When new styles are introduced in core, they may be added to this array as opposed to
+		 * updating the arrays in the data provider, if appropriate.
 		 */
+		$ignored_styles = array(
+			'core-block-supports-duotone-inline-css',
+			'wp-block-library-theme-css',
+			'wp-block-template-skip-link-inline-css',
+		);
+
 		$found_subset_styles = array();
 		foreach ( array( 'HEAD', 'BODY' ) as $group ) {
-			$found_subset_styles[ $group ] = array_values( array_intersect( $found_styles[ $group ], $expected_styles[ $group ] ) );
+			$found_subset_styles[ $group ] = array_values( array_diff( $found_styles[ $group ], $ignored_styles ) );
 		}
 
 		$this->assertSame(
 			$expected_styles,
 			$found_subset_styles,
-			'Expected the same styles. Snapshot: ' . self::get_array_snapshot_export( $found_styles )
+			'Expected the same styles. Snapshot: ' . self::get_array_snapshot_export( $found_subset_styles )
 		);
 	}
 
