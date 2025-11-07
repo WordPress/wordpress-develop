@@ -48,8 +48,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			wp_new_comment_notify_postauthor( $comment->comment_ID );
 		}
 	}
-
-
 	/**
 	 * Registers the routes for comments.
 	 *
