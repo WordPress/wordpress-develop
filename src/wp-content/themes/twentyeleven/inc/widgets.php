@@ -156,6 +156,10 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 * where any validation should be dealt with.
 	 *
 	 * @since Twenty Eleven 1.0
+	 *
+	 * @param array $new_instance New settings for this instance as input by the user.
+	 * @param array $old_instance Old settings for this instance.
+	 * @return array Updated settings to save.
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance           = $old_instance;
