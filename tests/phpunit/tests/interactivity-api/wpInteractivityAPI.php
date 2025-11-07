@@ -830,19 +830,17 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 			'SPAN opener inside' => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div>' ),
 			'SPAN closer after'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>' ),
 			'SPAN overlapping'   => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>' ),
-			'BR self-closing'    => array( '<div data-wp-bind--id="myPlugin::state.id">Content<br></br></div>' ),
 		);
 	}
 
 	/**
-	 * Tests that the `process_directives` handles self-closing tags with invalid
-	 * closing tags without causing fatal errors.
+	 * Tests that the `process_directives` handles self-closing BR tags without
+	 * causing fatal errors and processes directives correctly.
 	 *
+	 * @ticket 63891
 	 * @covers ::process_directives
-	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
-	public function test_process_directives_handles_self_closing_tags_with_invalid_closers() {
+	public function test_process_directives_handles_br_self_closing_tags_with_invalid_closers() {
 		$this->interactivity->state(
 			'myPlugin',
 			array(
@@ -850,15 +848,14 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 			),
 		);
 
-		$html = '<div data-wp-bind--id="myPlugin::state.id">Content<br></br></div>';
+		$html = '</br><div data-wp-bind--id="myPlugin::state.id">Content</div>';
 
 		$processed_html = $this->interactivity->process_directives( $html );
 
-		$this->assertSame( $html, $processed_html );
-
 		$p = new WP_HTML_Tag_Processor( $processed_html );
 		$p->next_tag( 'div' );
-		$this->assertNull( $p->get_attribute( 'id' ) );
+
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
