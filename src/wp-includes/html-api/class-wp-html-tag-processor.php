@@ -834,6 +834,14 @@ class WP_HTML_Tag_Processor {
 	 * @param string $html HTML to process.
 	 */
 	public function __construct( $html ) {
+		if ( ! is_string( $html ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The HTML parameter must be a string.' ),
+				'6.9.0'
+			);
+			$html = '';
+		}
 		$this->html = $html;
 	}
 
@@ -3738,10 +3746,22 @@ class WP_HTML_Tag_Processor {
 	 *         $processor->set_modifiable_text( str_replace( ':)', '🙂', $chunk ) );
 	 *     }
 	 *
+	 * This function handles all necessary HTML encoding. Provide normal, unescaped string values.
+	 * The HTML API will encode the strings appropriately so that the browser will interpret them
+	 * as the intended value.
+	 *
+	 * Example:
+	 *
+	 *     // Renders as “Eggs & Milk” in a browser, encoded as `<p>Eggs &amp; Milk</p>`.
+	 *     $processor->set_modifiable_text( 'Eggs & Milk' );
+	 *
+	 *     // Renders as “Eggs &amp; Milk” in a browser, encoded as `<p>Eggs &amp;amp; Milk</p>`.
+	 *     $processor->set_modifiable_text( 'Eggs &amp; Milk' );
+	 *
 	 * @since 6.7.0
+	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
 	 *
 	 * @param string $plaintext_content New text content to represent in the matched token.
-	 *
 	 * @return bool Whether the text was able to update.
 	 */
 	public function set_modifiable_text( string $plaintext_content ): bool {
@@ -3749,7 +3769,16 @@ class WP_HTML_Tag_Processor {
 			$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 				$this->text_starts_at,
 				$this->text_length,
-				htmlspecialchars( $plaintext_content, ENT_QUOTES | ENT_HTML5 )
+				strtr(
+					$plaintext_content,
+					array(
+						'<' => '&lt;',
+						'>' => '&gt;',
+						'&' => '&amp;',
+						'"' => '&quot;',
+						"'" => '&apos;',
+					)
+				)
 			);
 
 			return true;
@@ -3780,17 +3809,28 @@ class WP_HTML_Tag_Processor {
 
 		switch ( $this->get_tag() ) {
 			case 'SCRIPT':
-				/*
+				/**
 				 * This is over-protective, but ensures the update doesn't break
-				 * out of the SCRIPT element. A more thorough check would need to
-				 * ensure that the script closing tag doesn't exist, and isn't
-				 * also "hidden" inside the script double-escaped state.
+				 * the HTML structure of the SCRIPT element.
 				 *
-				 * It may seem like replacing `</script` with `<\/script` would
-				 * properly escape these things, but this could mask regex patterns
-				 * that previously worked. Resolve this by not sending `</script`
+				 * More thorough analysis could track the HTML tokenizer states
+				 * and to ensure that the SCRIPT element closes at the expected
+				 * SCRIPT close tag as is done in {@see ::skip_script_data()}.
+				 *
+				 * A SCRIPT element could be closed prematurely by contents
+				 * like `</script>`. A SCRIPT element could be prevented from
+				 * closing by contents like `<!--<script>`.
+				 *
+				 * The following strings are essential for dangerous content,
+				 * although they are insufficient on their own. This trade-off
+				 * prevents dangerous scripts from being sent to the browser.
+				 * It is also unlikely to produce HTML that may confuse more
+				 * basic HTML tooling.
 				 */
-				if ( false !== stripos( $plaintext_content, '</script' ) ) {
+				if (
+					false !== stripos( $plaintext_content, '</script' ) ||
+					false !== stripos( $plaintext_content, '<script' )
+				) {
 					return false;
 				}
 
@@ -3852,14 +3892,31 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
-	 * For boolean attributes special handling is provided:
+	 * This function handles all necessary HTML encoding. Provide normal, unescaped string values.
+	 * The HTML API will encode the strings appropriately so that the browser will interpret them
+	 * as the intended value.
+	 *
+	 * Example:
+	 *
+	 *     // Renders “Eggs & Milk” in a browser, encoded as `<abbr title="Eggs &amp; Milk">`.
+	 *     $processor->set_attribute( 'title', 'Eggs & Milk' );
+	 *
+	 *     // Renders “Eggs &amp; Milk” in a browser, encoded as `<abbr title="Eggs &amp;amp; Milk">`.
+	 *     $processor->set_attribute( 'title', 'Eggs &amp; Milk' );
+	 *
+	 *     // Renders `true` as `<abbr title>`.
+	 *     $processor->set_attribute( 'title', true );
+	 *
+	 *     // Renders without the attribute for `false` as `<abbr>`.
+	 *     $processor->set_attribute( 'title', false );
+	 *
+	 * Special handling is provided for boolean attribute values:
 	 *  - When `true` is passed as the value, then only the attribute name is added to the tag.
 	 *  - When `false` is passed, the attribute gets removed if it existed before.
 	 *
-	 * For string attributes, the value is escaped using the `esc_attr` function.
-	 *
 	 * @since 6.2.0
 	 * @since 6.2.1 Fix: Only create a single update for multiple calls with case-variant attribute names.
+	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
 	 *
 	 * @param string      $name  The attribute name to target.
 	 * @param string|bool $value The new attribute value.
@@ -3873,41 +3930,32 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		/*
+		$name_length = strlen( $name );
+
+		/**
 		 * WordPress rejects more characters than are strictly forbidden
 		 * in HTML5. This is to prevent additional security risks deeper
-		 * in the WordPress and plugin stack. Specifically the
-		 * less-than (<) greater-than (>) and ampersand (&) aren't allowed.
+		 * in the WordPress and plugin stack. Specifically the following
+		 * are not allowed to be set as part of an HTML attribute name:
 		 *
-		 * The use of a PCRE match enables looking for specific Unicode
-		 * code points without writing a UTF-8 decoder. Whereas scanning
-		 * for one-byte characters is trivial (with `strcspn`), scanning
-		 * for the longer byte sequences would be more complicated. Given
-		 * that this shouldn't be in the hot path for execution, it's a
-		 * reasonable compromise in efficiency without introducing a
-		 * noticeable impact on the overall system.
+		 *  - greater-than “>”
+		 *  - ampersand “&”
 		 *
 		 * @see https://html.spec.whatwg.org/#attributes-2
-		 *
-		 * @todo As the only regex pattern maybe we should take it out?
-		 *       Are Unicode patterns available broadly in Core?
 		 */
-		if ( preg_match(
-			'~[' .
-				// Syntax-like characters.
-				'"\'>&</ =' .
-				// Control characters.
-				'\x{00}-\x{1F}' .
-				// HTML noncharacters.
-				'\x{FDD0}-\x{FDEF}' .
-				'\x{FFFE}\x{FFFF}\x{1FFFE}\x{1FFFF}\x{2FFFE}\x{2FFFF}\x{3FFFE}\x{3FFFF}' .
-				'\x{4FFFE}\x{4FFFF}\x{5FFFE}\x{5FFFF}\x{6FFFE}\x{6FFFF}\x{7FFFE}\x{7FFFF}' .
-				'\x{8FFFE}\x{8FFFF}\x{9FFFE}\x{9FFFF}\x{AFFFE}\x{AFFFF}\x{BFFFE}\x{BFFFF}' .
-				'\x{CFFFE}\x{CFFFF}\x{DFFFE}\x{DFFFF}\x{EFFFE}\x{EFFFF}\x{FFFFE}\x{FFFFF}' .
-				'\x{10FFFE}\x{10FFFF}' .
-			']~Ssu',
-			$name
-		) ) {
+		if (
+			0 === $name_length ||
+			// Syntax-like characters.
+			strcspn( $name, '"\'>&</ =' ) !== $name_length ||
+			// Control characters.
+			strcspn(
+				$name,
+				"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F" .
+				"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F"
+			) !== $name_length ||
+			// Unicode noncharacters.
+			wp_has_noncharacters( $name )
+		) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Invalid attribute name.' ),
@@ -3931,12 +3979,23 @@ class WP_HTML_Tag_Processor {
 		} else {
 			$comparable_name = strtolower( $name );
 
-			/*
-			 * Escape URL attributes.
+			/**
+			 * Escape attribute values appropriately.
 			 *
 			 * @see https://html.spec.whatwg.org/#attributes-3
 			 */
-			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes(), true ) ? esc_url( $value ) : esc_attr( $value );
+			$escaped_new_value = in_array( $comparable_name, wp_kses_uri_attributes(), true )
+				? esc_url( $value )
+				: strtr(
+					$value,
+					array(
+						'<' => '&lt;',
+						'>' => '&gt;',
+						'&' => '&amp;',
+						'"' => '&quot;',
+						"'" => '&apos;',
+					)
+				);
 
 			// If the escaping functions wiped out the update, reject it and indicate it was rejected.
 			if ( '' === $escaped_new_value && '' !== $value ) {
