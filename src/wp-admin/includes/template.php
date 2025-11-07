@@ -1751,9 +1751,10 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
  * to output all the sections and fields that were added to that $page with
  * add_settings_section() and add_settings_field()
  *
+ * @since 2.7.0
+ *
  * @global array $wp_settings_sections Storage array of all settings sections added to admin pages.
  * @global array $wp_settings_fields Storage array of settings fields and info about their pages/sections.
- * @since 2.7.0
  *
  * @param string $page The slug name of the page whose settings sections you want to output.
  */
@@ -1800,9 +1801,9 @@ function do_settings_sections( $page ) {
  * a specific section. Should normally be called by do_settings_sections()
  * rather than directly.
  *
- * @global array $wp_settings_fields Storage array of settings fields and their pages/sections.
- *
  * @since 2.7.0
+ *
+ * @global array $wp_settings_fields Storage array of settings fields and their pages/sections.
  *
  * @param string $page Slug title of the admin page whose settings fields you want to show.
  * @param string $section Slug title of the settings section whose fields you want to show.
@@ -2245,30 +2246,43 @@ function iframe_footer() {
  * @return string Post states string.
  */
 function _post_states( $post, $display = true ) {
-	$post_states        = get_post_states( $post );
-	$post_states_string = '';
+	$post_states      = get_post_states( $post );
+	$post_states_html = '';
 
 	if ( ! empty( $post_states ) ) {
 		$state_count = count( $post_states );
 
 		$i = 0;
 
-		$post_states_string .= ' &mdash; ';
+		$post_states_html .= ' &mdash; ';
 
 		foreach ( $post_states as $state ) {
 			++$i;
 
 			$separator = ( $i < $state_count ) ? ', ' : '';
 
-			$post_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
+			$post_states_html .= "<span class='post-state'>{$state}{$separator}</span>";
 		}
 	}
 
+	/**
+	 * Filters the HTML string of post states.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string                 $post_states_html All relevant post states combined into an HTML string for display.
+	 *                                                 E.g. `&mdash; <span class='post-state'>Draft, </span><span class='post-state'>Sticky</span>`.
+	 * @param string<string, string> $post_states      A mapping of post state slugs to translated post state labels.
+	 *                                                 E.g. `array( 'draft' => __( 'Draft' ), 'sticky' => __( 'Sticky' ), ... )`.
+	 * @param WP_Post                $post             The current post object.
+	 */
+	$post_states_html = apply_filters( 'post_states_html', $post_states_html, $post_states, $post );
+
 	if ( $display ) {
-		echo $post_states_string;
+		echo $post_states_html;
 	}
 
-	return $post_states_string;
+	return $post_states_html;
 }
 
 /**
@@ -2341,8 +2355,9 @@ function get_post_states( $post ) {
 	 *              are used within the filter, their existence should be checked
 	 *              with `function_exists()` before being used.
 	 *
-	 * @param string[] $post_states An array of post display states.
-	 * @param WP_Post  $post        The current post object.
+	 * @param string<string, string> $post_states A mapping of post state slugs to translated post state labels.
+	 *                                            E.g. `array( 'draft' => __( 'Draft' ), 'sticky' => __( 'Sticky' ), ... )`.
+	 * @param WP_Post                $post        The current post object.
 	 */
 	return apply_filters( 'display_post_states', $post_states, $post );
 }
@@ -2479,7 +2494,7 @@ function get_media_states( $post ) {
 function compression_test() {
 	?>
 	<script type="text/javascript">
-	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ) ); ?>;
+	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 	var testCompression = {
 		get : function(test) {
 			var x;
@@ -2631,9 +2646,9 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 /**
  * Prints out the beginning of the admin HTML header.
  *
- * @global bool $is_IE
- *
  * @since 3.3.0
+ *
+ * @global bool $is_IE
  */
 function _wp_admin_html_begin() {
 	global $is_IE;
