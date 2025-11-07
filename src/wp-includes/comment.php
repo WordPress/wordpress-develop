@@ -2476,6 +2476,13 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 
 	$maybe_notify = $is_note ? get_option( 'wp_notes_notify', 1 ) : get_option( 'comments_notify' );
 
+	// By default, only notify for approved comments and notes.
+	if (
+		! isset( $comment->comment_approved ) ||
+		( '1' !== $comment->comment_approved && ! $is_note ) ) {
+			$maybe_notify = false;
+	}
+
 	/**
 	 * Filters whether to send the post author new comment notification emails,
 	 * overriding the site setting.
@@ -2493,13 +2500,6 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	 */
 	if ( ! $maybe_notify ) {
 		return false;
-	}
-
-	// Send notifications for approved comments and all notes.
-	if (
-		! isset( $comment->comment_approved ) ||
-		( '1' !== $comment->comment_approved && ! $is_note ) ) {
-			return false;
 	}
 
 	return wp_notify_postauthor( $comment_id );
