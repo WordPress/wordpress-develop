@@ -1192,7 +1192,7 @@ module.exports = function(grunt) {
 								// Convert the entities list to PHP array syntax.
 								entities = '\'' + emojiArray.filter( function( val ) {
 									return val.length >= 8 ? val : false ;
-								} ).join( '\', \'' ) + '\'';
+								} ).join( '\',\n\'' ) + '\'';
 
 								// Create a list of all characters used by the emoji list.
 								partials = partials.replace( /-/g, '\n' );
@@ -1203,7 +1203,7 @@ module.exports = function(grunt) {
 								// Convert the partials list to PHP array syntax.
 								partials = '\'' + Array.from( partialsSet ).filter( function( val ) {
 									return val.length >= 8 ? val : false ;
-								} ).join( '\', \'' ) + '\'';
+								} ).join( '\',\n\'' ) + '\'';
 
 								regex = '// START: emoji arrays\n';
 								regex += '\t$entities = array( ' + entities + ' );\n';
