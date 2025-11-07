@@ -816,13 +816,16 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The purpose of this test is to ensure that invalid dates do not
+	 * cause PHP errors when wp_insert_post() is called, and that the
+	 * posts are not actually "inserted" (created).
+	 *
 	 * @ticket 26798
 	 *
 	 * @dataProvider data_wp_insert_post_handle_malformed_post_date
 	 *
-	 * The purpose of this test is to ensure that invalid dates do not
-	 * cause PHP errors when wp_insert_post() is called, and that the
-	 * posts are not actually "inserted" (created).
+	 * @param string $input    The input post_date value.
+	 * @param bool   $expected Whether the post is expected to be inserted.
 	 */
 	public function test_wp_insert_post_handle_malformed_post_date( $input, $expected ) {
 		$post = array(
@@ -842,9 +845,16 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 26798
+	 * Data provider for test_wp_insert_post_handle_malformed_post_date().
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type string $input    The input post_date value.
+	 *     @type bool   $expected Whether the post is expected to be inserted.
+	 * }
 	 */
-	public function data_wp_insert_post_handle_malformed_post_date() {
+	public static function data_wp_insert_post_handle_malformed_post_date() {
 		return array(
 			array(
 				'2012-01-01',
@@ -940,12 +950,15 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests the regex inside of wp_resolve_post_date(), with
+	 * the emphasis on the date format (not the time).
+	 *
 	 * @ticket 26798
 	 *
 	 * @dataProvider data_wp_resolve_post_date_regex
 	 *
-	 * Tests the regex inside of wp_resolve_post_date(), with
-	 * the emphasis on the date format (not the time).
+	 * @param string       $date     The input post_date value.
+	 * @param string|false $expected The expected resolved post date, or false if invalid
 	 */
 	public function test_wp_resolve_post_date_regex( $date, $expected ) {
 		// Attempt to resolve post date.
@@ -956,9 +969,16 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 26798
+	 * Data provider for test_wp_resolve_post_date_regex().
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type string       $date     The input post_date value.
+	 *     @type string|false $expected The expected resolved post date, or false if invalid
+	 * }
 	 */
-	public function data_wp_resolve_post_date_regex() {
+	public static function data_wp_resolve_post_date_regex() {
 		return array(
 			array(
 				'2012-01-01',
