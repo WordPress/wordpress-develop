@@ -5,8 +5,8 @@
  * @since 6.9.0
  *
  * @group functions
- * @group multisite
  * @group ms-required
+ * @group multisite
  *
  * @covers ::force_ssl_content
  */

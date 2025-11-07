@@ -80,20 +80,37 @@ function _wp_ajax_menu_quick_search( $request = array() ) {
 				}
 			}
 		}
-	} elseif ( preg_match( '/quick-search-(posttype|taxonomy)-([a-zA-Z_-]*\b)/', $type, $matches ) ) {
+	} elseif ( preg_match( '/quick-search-(posttype|taxonomy)-([a-zA-Z0-9_-]*\b)/', $type, $matches ) ) {
 		if ( 'posttype' === $matches[1] && get_post_type_object( $matches[2] ) ) {
 			$post_type_obj = _wp_nav_menu_meta_box_object( get_post_type_object( $matches[2] ) );
-			$args          = array_merge(
-				$args,
-				array(
-					'no_found_rows'          => true,
-					'update_post_meta_cache' => false,
-					'update_post_term_cache' => false,
-					'posts_per_page'         => 10,
-					'post_type'              => $matches[2],
-					's'                      => $query,
-				)
+			$query_args    = array(
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'posts_per_page'         => 10,
+				'post_type'              => $matches[2],
+				's'                      => $query,
+				'search_columns'         => array( 'post_title' ),
 			);
+			/**
+			 * Filter the menu quick search arguments.
+			 *
+			 * @since 6.9.0
+			 *
+			 * @param array $args {
+			 *     Menu quick search arguments.
+			 *
+			 *     @type boolean      $no_found_rows          Whether to return found rows data. Default true.
+			 *     @type boolean      $update_post_meta_cache Whether to update post meta cache. Default false.
+			 *     @type boolean      $update_post_term_cache Whether to update post term cache. Default false.
+			 *     @type int          $posts_per_page         Number of posts to return. Default 10.
+			 *     @type string       $post_type              Type of post to return.
+			 *     @type string       $s                      Search query.
+			 *     @type array        $search_columns         Which post table columns to query.
+			 * }
+			*/
+			$query_args = apply_filters( 'wp_ajax_menu_quick_search_args', $query_args );
+			$args       = array_merge( $args, $query_args );
 
 			if ( isset( $post_type_obj->_default_query ) ) {
 				$args = array_merge( $args, (array) $post_type_obj->_default_query );
@@ -495,7 +512,6 @@ function wp_nav_menu_item_post_type_meta_box( $data_object, $box ) {
 		}
 	}
 
-	// @todo Transient caching of these results with proper invalidation on updating of a post of this type.
 	$get_posts = new WP_Query();
 	$posts     = $get_posts->query( $args );
 
@@ -1239,7 +1255,8 @@ function _wp_nav_menu_meta_box_object( $data_object = null ) {
  * @since 3.0.0
  *
  * @param int $menu_id Optional. The ID of the menu to format. Default 0.
- * @return string|WP_Error The menu formatted to edit or error object on failure.
+ * @return string|WP_Error|null The menu formatted to edit or error object on failure.
+ *                              Null if the `$menu_id` parameter is not supplied or the term does not exist.
  */
 function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 	$menu = wp_get_nav_menu_object( $menu_id );
@@ -1321,6 +1338,8 @@ function wp_get_nav_menu_to_edit( $menu_id = 0 ) {
 	} elseif ( is_wp_error( $menu ) ) {
 		return $menu;
 	}
+
+	return null;
 }
 
 /**

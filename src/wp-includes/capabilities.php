@@ -60,6 +60,12 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			break;
 		case 'edit_user':
 		case 'edit_users':
+			// Non-existent users can't edit users, not even themselves.
+			if ( $user_id < 1 ) {
+				$caps[] = 'do_not_allow';
+				break;
+			}
+
 			// Allow user to edit themselves.
 			if ( 'edit_user' === $cap && isset( $args[0] ) && $user_id === (int) $args[0] ) {
 				break;
@@ -470,7 +476,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			if ( $meta_key ) {
 				$allowed = ! is_protected_meta( $meta_key, $object_type );
 
-				if ( ! empty( $object_subtype ) && has_filter( "auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}" ) ) {
+				if ( has_filter( "auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}" ) ) {
 
 					/**
 					 * Filters whether the user is allowed to edit a specific meta key of a specific object type and subtype.
@@ -512,36 +518,33 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 					$allowed = apply_filters( "auth_{$object_type}_meta_{$meta_key}", $allowed, $meta_key, $object_id, $user_id, $cap, $caps );
 				}
 
-				if ( ! empty( $object_subtype ) ) {
-
-					/**
-					 * Filters whether the user is allowed to edit meta for specific object types/subtypes.
-					 *
-					 * Return true to have the mapped meta caps from `edit_{$object_type}` apply.
-					 *
-					 * The dynamic portion of the hook name, `$object_type` refers to the object type being filtered.
-					 * The dynamic portion of the hook name, `$object_subtype` refers to the object subtype being filtered.
-					 * The dynamic portion of the hook name, `$meta_key`, refers to the meta key passed to map_meta_cap().
-					 *
-					 * @since 4.6.0 As `auth_post_{$post_type}_meta_{$meta_key}`.
-					 * @since 4.7.0 Renamed from `auth_post_{$post_type}_meta_{$meta_key}` to
-					 *              `auth_{$object_type}_{$object_subtype}_meta_{$meta_key}`.
-					 * @deprecated 4.9.8 Use {@see 'auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}'} instead.
-					 *
-					 * @param bool     $allowed   Whether the user can add the object meta. Default false.
-					 * @param string   $meta_key  The meta key.
-					 * @param int      $object_id Object ID.
-					 * @param int      $user_id   User ID.
-					 * @param string   $cap       Capability name.
-					 * @param string[] $caps      Array of the user's capabilities.
-					 */
-					$allowed = apply_filters_deprecated(
-						"auth_{$object_type}_{$object_subtype}_meta_{$meta_key}",
-						array( $allowed, $meta_key, $object_id, $user_id, $cap, $caps ),
-						'4.9.8',
-						"auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}"
-					);
-				}
+				/**
+				 * Filters whether the user is allowed to edit meta for specific object types/subtypes.
+				 *
+				 * Return true to have the mapped meta caps from `edit_{$object_type}` apply.
+				 *
+				 * The dynamic portion of the hook name, `$object_type` refers to the object type being filtered.
+				 * The dynamic portion of the hook name, `$object_subtype` refers to the object subtype being filtered.
+				 * The dynamic portion of the hook name, `$meta_key`, refers to the meta key passed to map_meta_cap().
+				 *
+				 * @since 4.6.0 As `auth_post_{$post_type}_meta_{$meta_key}`.
+				 * @since 4.7.0 Renamed from `auth_post_{$post_type}_meta_{$meta_key}` to
+				 *              `auth_{$object_type}_{$object_subtype}_meta_{$meta_key}`.
+				 * @deprecated 4.9.8 Use {@see 'auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}'} instead.
+				 *
+				 * @param bool     $allowed   Whether the user can add the object meta. Default false.
+				 * @param string   $meta_key  The meta key.
+				 * @param int      $object_id Object ID.
+				 * @param int      $user_id   User ID.
+				 * @param string   $cap       Capability name.
+				 * @param string[] $caps      Array of the user's capabilities.
+				 */
+				$allowed = apply_filters_deprecated(
+					"auth_{$object_type}_{$object_subtype}_meta_{$meta_key}",
+					array( $allowed, $meta_key, $object_id, $user_id, $cap, $caps ),
+					'4.9.8',
+					"auth_{$object_type}_meta_{$meta_key}_for_{$object_subtype}"
+				);
 
 				if ( ! $allowed ) {
 					$caps[] = $cap;
@@ -1099,12 +1102,34 @@ function get_role( $role ) {
 /**
  * Adds a role, if it does not exist.
  *
- * @since 2.0.0
+ * The list of capabilities can be passed either as a numerically indexed array of capability names, or an
+ * associative array of boolean values keyed by the capability name. To explicitly deny the role a capability, set
+ * the value for that capability to false.
  *
- * @param string $role         Role name.
- * @param string $display_name Display name for role.
- * @param bool[] $capabilities List of capabilities keyed by the capability name,
- *                             e.g. array( 'edit_posts' => true, 'delete_posts' => false ).
+ * Examples:
+ *
+ *     // Add a role that can edit posts.
+ *     add_role( 'custom_role', 'Custom Role', array(
+ *         'read',
+ *         'edit_posts',
+ *     ) );
+ *
+ * Or, using an associative array:
+ *
+ *     // Add a role that can edit posts but explicitly cannot not delete them.
+ *     add_role( 'custom_role', 'Custom Role', array(
+ *         'read' => true,
+ *         'edit_posts' => true,
+ *         'delete_posts' => false,
+ *     ) );
+ *
+ * @since 2.0.0
+ * @since x.y.z Support was added for a numerically indexed array of strings for the capabilities array.
+ *
+ * @param string                               $role         Role name.
+ * @param string                               $display_name Display name for role.
+ * @param array<string,bool>|array<int,string> $capabilities Capabilities to be added to the role.
+ *                                                           Default empty array.
  * @return WP_Role|void WP_Role object, if the role is added.
  */
 function add_role( $role, $display_name, $capabilities = array() ) {
@@ -1227,6 +1252,7 @@ function grant_super_admin( $user_id ) {
  * Revokes Super Admin privileges.
  *
  * @since 3.0.0
+ * @since 6.9.0 Super admin privileges can be revoked regardless of email address.
  *
  * @global array $super_admins
  *
@@ -1253,7 +1279,7 @@ function revoke_super_admin( $user_id ) {
 	$super_admins = get_site_option( 'site_admins', array( 'admin' ) );
 
 	$user = get_userdata( $user_id );
-	if ( $user && 0 !== strcasecmp( $user->user_email, get_site_option( 'admin_email' ) ) ) {
+	if ( $user ) {
 		$key = array_search( $user->user_login, $super_admins, true );
 		if ( false !== $key ) {
 			unset( $super_admins[ $key ] );
