@@ -57,7 +57,7 @@ jobs:
   # - Updates the database.
   # - Checks the version of WordPress after the upgrade.
   upgrade-tests:
-    name: ${{ inputs.wp }} to ${{ inputs.new-version }} / PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
+    name: PHP ${{ inputs.php }} with ${{ 'mariadb' == inputs.db-type && 'MariaDB' || 'MySQL' }} ${{ inputs.db-version }}${{ inputs.multisite && ' multisite' || '' }}
     permissions:
       contents: read
     runs-on: ${{ inputs.os }}

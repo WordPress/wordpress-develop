@@ -64,13 +64,13 @@ PHPStan errors can be ignored in the following ways:
 
 	Baselines are a useful triage tool for handling PHPStan errors in legacy code, as they allow us to enforce stricter code quality checks on new code, while gradually chipping away at the existing issues over time. You should avoid adding PHPStan errors from new code whenever possible.
 
-	Baselining is done by running (replacing `{%n%}` with the desired level, e.g. `0`, `1`, `2`, etc):
+	Baselining is done by running:
 
 	```
-	npm run test:php:stan -- --generate-baseline=tests/phpstan/baseline/level-{%n%}.php
+	npm run test:php:stan -- --generate-baseline=tests/phpstan/baseline.php
 
 	# or, with Composer directly:
-	composer run analyse -- --generate-baseline=tests/phpstan/baseline/level-{%n%}.php
+	composer run analyse -- --generate-baseline=tests/phpstan/baseline.php
 	```
 
 	This will regenerate the baseline file with any new errors added to the existing ones. You can then commit the updated baseline file.

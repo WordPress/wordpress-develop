@@ -37,6 +37,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Send a notification to the post author when a new note is added via the REST API.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_Comment $comment The comment object.
+	 */
+	public static function wp_new_comment_via_rest_notify_postauthor( $comment ) {
+		if ( 'note' === $comment->comment_type ) {
+			wp_new_comment_notify_postauthor( $comment->comment_ID );
+		}
+	}
+	/**
 	 * Registers the routes for comments.
 	 *
 	 * @since 4.7.0
@@ -714,7 +726,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment, true );
+		// Don't check for duplicates or flooding for notes.
+		$prepared_comment['comment_approved'] =
+			'note' === $prepared_comment['comment_type'] ?
+			'1' :
+			wp_allow_comment( $prepared_comment, true );
 
 		if ( is_wp_error( $prepared_comment['comment_approved'] ) ) {
 			$error_code    = $prepared_comment['comment_approved']->get_error_code();
@@ -1254,12 +1270,29 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			array(
 				'count'   => true,
 				'orderby' => 'none',
+				'type'    => 'all',
 			)
 		);
 
 		if ( ! empty( $comment_children ) ) {
 			$args = array(
 				'parent' => $comment->comment_ID,
+			);
+
+			$rest_url = add_query_arg( $args, rest_url( $this->namespace . '/' . $this->rest_base ) );
+
+			$links['children'] = array(
+				'href'       => $rest_url,
+				'embeddable' => true,
+			);
+		}
+
+		// Embedding children for notes requires `type` and `status` inheritance.
+		if ( isset( $links['children'] ) && 'note' === $comment->comment_type ) {
+			$args = array(
+				'parent' => $comment->comment_ID,
+				'type'   => $comment->comment_type,
+				'status' => 'all',
 			);
 
 			$rest_url = add_query_arg( $args, rest_url( $this->namespace . '/' . $this->rest_base ) );
