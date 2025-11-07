@@ -816,9 +816,8 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The purpose of this test is to ensure that invalid dates do not
-	 * cause PHP errors when wp_insert_post() is called, and that the
-	 * posts are not actually "inserted" (created).
+	 * Tests that invalid dates do not cause PHP errors when wp_insert_post()
+	 * is called, and that the posts are not actually "inserted" (created).
 	 *
 	 * @ticket 26798
 	 *
