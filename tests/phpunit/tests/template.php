@@ -1632,6 +1632,38 @@ class Tests_Template extends WP_UnitTestCase {
 					),
 				),
 			),
+			'override_block_library_inline_style_late'    => array(
+				'set_up'            => static function () {
+					add_action(
+						'enqueue_block_assets',
+						function (): void {
+							// This tests what happens when the placeholder comment gets replaced unexpectedly.
+							wp_styles()->registered['wp-block-library']->extra['after'] = array( '/* OVERRIDDEN! */' );
+						}
+					);
+				},
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
+					'HEAD' => array(
+						'wp-img-auto-sizes-contain-inline-css',
+						'early-css',
+						'early-inline-css',
+						'wp-emoji-styles-inline-css',
+						'wp-block-library-css',
+						'wp-block-library-inline-css', // This contains the "OVERRIDDEN" text.
+						'wp-block-separator-css',
+						'global-styles-inline-css',
+						'core-block-supports-inline-css',
+						'classic-theme-styles-css',
+						'normal-css',
+						'normal-inline-css',
+						'wp-custom-css',
+						'late-css',
+						'late-inline-css',
+					),
+					'BODY' => array(),
+				),
+			),
 		);
 	}
 
@@ -1721,12 +1753,17 @@ class Tests_Template extends WP_UnitTestCase {
 		// Create a simulated output buffer.
 		$buffer = '<html lang="en"><head><meta charset="utf-8">' . $head_output . '</head><body><main>' . $content . '</main>' . $footer_output . '</body></html>';
 
+		$placeholder_regexp = '#/\*wp_block_styles_on_demand_placeholder:[a-f0-9]+\*/#';
+		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
+			$this->assertMatchesRegularExpression( $placeholder_regexp, $buffer, 'Expected the placeholder to be present in the buffer.' );
+		}
+
 		// Apply the output buffer filter.
 		$filtered_buffer = apply_filters( 'wp_template_enhancement_output_buffer', $buffer );
 
 		$this->assertStringContainsString( '</head>', $filtered_buffer, 'Expected the closing HEAD tag to be in the response.' );
 
-		$this->assertDoesNotMatchRegularExpression( '#/\*wp_late_styles_placeholder:[a-f0-9]+\*/#', $filtered_buffer, 'Expected the placeholder to be removed.' );
+		$this->assertDoesNotMatchRegularExpression( $placeholder_regexp, $filtered_buffer, 'Expected the placeholder to be removed.' );
 		$found_styles = array(
 			'HEAD' => array(),
 			'BODY' => array(),

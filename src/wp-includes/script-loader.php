@@ -3644,12 +3644,18 @@ function wp_hoist_late_printed_styles() {
 	}
 
 	/*
-	 * Print a placeholder comment where the late styles can be hoisted from the footer to be printed in the header
-	 * by means of a filter below on the template enhancement output buffer.
+	 * Add a placeholder comment into the inline styles for wp-block-library, after which where the late block styles
+	 * can be hoisted from the footer to be printed in the header by means of a filter below on the template enhancement
+	 * output buffer. The `wp_print_styles` action is used to ensure that if the inline style gets replaced at
+	 * `enqueue_block_assets` or `wp_enqueue_scripts` that the placeholder will be sure to be present.
 	 */
-	$placeholder = sprintf( '/*%s*/', uniqid( 'wp_late_styles_placeholder:' ) );
-
-	wp_add_inline_style( 'wp-block-library', $placeholder );
+	$placeholder = sprintf( '/*%s*/', uniqid( 'wp_block_styles_on_demand_placeholder:' ) );
+	add_action(
+		'wp_print_styles',
+		static function () use ( $placeholder ) {
+			wp_add_inline_style( 'wp-block-library', $placeholder );
+		}
+	);
 
 	/*
 	 * Create a substitute for `print_late_styles()` which is aware of block styles. This substitute does not print
@@ -3785,15 +3791,13 @@ function wp_hoist_late_printed_styles() {
 					'STYLE' === $processor->get_tag() &&
 					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
 				) {
-					// If the inline style lacks the placeholder comment, then all the styles will be inserted below at </head>.
 					$css_text = $processor->get_modifiable_text();
-					if ( ! str_contains( $css_text, $placeholder ) ) {
-						continue;
-					}
 
 					/*
-					 * Remove the placeholder now that we've located the inline style (and remove the inline style if it
-					 * is now empty, aside from a sourceURL comment).
+					 * A placeholder CSS comment is added to the inline style in order to force an inline STYLE tag to
+					 * be printed. Now that we've located the inline style, the placeholder comment can be removed. If
+					 * there is no CSS left in the STYLE tag after removing the placeholder (aside from the sourceURL
+					 * comment, then remove the STYLE entirely.)
 					 */
 					$css_text = str_replace( $placeholder, '', $css_text );
 					if ( preg_match( ':^/\*# sourceURL=\S+? \*/$:', trim( $css_text ) ) ) {
