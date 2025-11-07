@@ -12,6 +12,34 @@
  * @coversDefaultClass WP_Interactivity_API_Directives_Processor
  */
 class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_UnitTestCase {
+
+	/**
+	 * Regression: _process_directives should not fatal when encountering malformed markup
+	 * (e.g., a stray </br>) that causes get_attribute_names_with_prefix() to return null.
+	 *
+	 * Before the fix: PHP 8+ threw a TypeError from count(null).
+	 */
+	public function test_process_directives_handles_noncountable_each_child_attrs() {
+		$html = '<div><br></br><span data-wp-bind--text="state.foo">x</span></div>';
+
+		$api = new WP_Interactivity_API();
+
+		$ref    = new ReflectionClass( $api );
+		$method = $ref->getMethod( '_process_directives' );
+		$method->setAccessible( true );
+
+		// This would throw if there is an error.
+		$processed = $method->invoke( $api, $html );
+
+		$this->assertIsString( $processed );
+		$this->assertStringContainsString( '<span', $processed );
+		$this->assertStringContainsString( 'data-wp-bind--text', $processed );
+
+		// Assert content still intact despite the malformed </br>.
+		$this->assertStringContainsString( '<div>', $processed );
+	}
+
+
 	/**
 	 * Tests the `get_content_between_balanced_template_tags` method on template
 	 * tags.
