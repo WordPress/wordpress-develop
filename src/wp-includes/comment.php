@@ -2467,7 +2467,7 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
  */
 function wp_new_comment_via_rest_notify_postauthor( $comment ) {
 	if ( 'note' === $comment->comment_type ) {
-		wp_new_comment_notify_postauthor( $comment->comment_ID );
+		wp_new_comment_notify_postauthor( (int) $comment->comment_ID );
 	}
 }
 
