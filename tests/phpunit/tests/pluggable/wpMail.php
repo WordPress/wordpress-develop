@@ -408,21 +408,18 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the Sender field in the SMTP envelope is not set by Core.
+	 * Test that the Sender field in the SMTP envelope is set by Core.
 	 *
-	 * Correctly setting the Sender requires knowledge that is not available
-	 * to Core. An incorrect value will often lead to messages being rejected
-	 * by the receiving MTA, so it's the admin's responsibility to
-	 * set it correctly.
+	 * A missing Sender field can lead to messages failing DMARC SPF checks.
 	 *
-	 * @ticket 37736
+	 * @ticket 49687
 	 */
-	public function test_wp_mail_sender_not_set() {
-		wp_mail( 'user@example.org', 'Testing the Sender field', 'The Sender field should not have been set.' );
+	public function test_wp_mail_sender_set() {
+		wp_mail( 'user@example.org', 'Testing the Sender field', 'The Sender field should have been set.' );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertSame( '', $mailer->Sender );
+		$this->assertSame( 'wordpress@example.org', $mailer->Sender );
 	}
 
 	/**
@@ -559,14 +556,12 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 * Tests that wp_mail() can send embedded images.
 	 *
 	 * @ticket 28059
+	 *
+	 * @dataProvider data_wp_mail_can_send_embedded_images
+	 *
+	 * @param string[] $embeds The embeds to send.
 	 */
-	public function test_wp_mail_can_send_embedded_images() {
-		$embeds = array(
-			'canola' => DIR_TESTDATA . '/images/canola.jpg',
-			DIR_TESTDATA . '/images/test-image-2.gif',
-			DIR_TESTDATA . '/images/avif-lossy.avif',
-		);
-
+	public function test_wp_mail_can_send_embedded_images( $embeds ) {
 		$message = '';
 		foreach ( $embeds as $key => $path ) {
 			$message .= '<p><img src="cid:' . $key . '" alt="" /></p>';
@@ -591,6 +586,37 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		foreach ( $embeds as $key => $path ) {
 			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
+	}
+
+	/**
+	 * Data provider for test_wp_mail_can_send_embedded_images().
+	 *
+	 * @return array
+	 */
+	public static function data_wp_mail_can_send_embedded_images() {
+		return array(
+			'Mixed Array Embeds'       => array(
+				'embeds' => array(
+					'canola' => DIR_TESTDATA . '/images/canola.jpg',
+					DIR_TESTDATA . '/images/test-image-2.gif',
+					DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
+			),
+			'Associative Array Embeds' => array(
+				'embeds' => array(
+					'canola'       => DIR_TESTDATA . '/images/canola.jpg',
+					'test-image-2' => DIR_TESTDATA . '/images/test-image-2.gif',
+					'avif-lossy'   => DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
+			),
+			'Indexed Array Embeds'     => array(
+				'embeds' => array(
+					DIR_TESTDATA . '/images/canola.jpg',
+					DIR_TESTDATA . '/images/test-image-2.gif',
+					DIR_TESTDATA . '/images/avif-lossy.avif',
+				),
+			),
+		);
 	}
 
 	/**
@@ -624,5 +650,23 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		foreach ( $embeds_array as $key => $path ) {
 			$this->assertStringContainsString( 'cid:' . $key, $mailer->get_sent()->body, 'The cid ' . $key . ' is not referenced in the mail body.' );
 		}
+	}
+
+	/**
+	 * Test that the encoding of the email does not bleed between long and short emails.
+	 *
+	 * @ticket 33972
+	 */
+	public function test_wp_mail_encoding_does_not_bleed() {
+		$content = str_repeat( 'A', 1000 );
+		wp_mail( WP_TESTS_EMAIL, 'Looong line testing', $content );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertEquals( 'quoted-printable', $mailer->Encoding );
+
+		wp_mail( WP_TESTS_EMAIL, 'A follow up short email', 'Short email' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+		$this->assertEquals( '7bit', $mailer->Encoding );
 	}
 }

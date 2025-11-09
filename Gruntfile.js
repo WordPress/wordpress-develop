@@ -28,7 +28,7 @@ module.exports = function(grunt) {
 			'wp-content/themes/index.php',
 			'wp-content/themes/twenty*/**',
 			'wp-content/plugins/index.php',
-			'wp-content/plugins/hello-dolly/**',
+			'wp-content/plugins/hello.php',
 			'wp-content/plugins/akismet/**',
 			'!wp-content/themes/twenty*/node_modules/**',
 		],
@@ -1159,7 +1159,7 @@ module.exports = function(grunt) {
 								}
 
 								// Fetch a list of the files that Twemoji supplies.
-								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "v16.0.1:assets/svg") {... on Tree {entries {name}}}}}';
+								query = 'query={repository(owner: "jdecked", name: "twemoji") {object(expression: "v17.0.1:assets/svg") {... on Tree {entries {name}}}}}';
 								files = spawn( 'gh', [ 'api', 'graphql', '-f', query] );
 
 								if ( 0 !== files.status ) {
