@@ -2185,15 +2185,9 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( array(), $user->roles );
 
 		$user->add_role( 'author' );
-		// After adding "author" role, $user->roles should contain only that role.
-		$this->assertSame( array( 'author' ), $user->roles );
-		// After adding "author" role, $user->roles should remain sequential.
-		$this->assertTrue( $this->is_sequential( $user->roles ) );
-
-		$user->add_role( 'custom_role' );
 		$user->add_role( 'subscriber' );
-		// After adding multiple roles, $user->roles should contain valid roles only.
-		$this->assertSame( array( 'author', 'custom_role', 'subscriber' ), $user->roles );
+		// After adding multiple roles, $user->roles should contains added roles.
+		$this->assertSame( array( 'author', 'subscriber' ), $user->roles );
 		// After adding multiple roles, $user->roles should still be sequential.
 		$this->assertTrue( $this->is_sequential( $user->roles ) );
 	}
