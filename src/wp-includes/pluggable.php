@@ -289,6 +289,9 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$bcc      = array();
 		$reply_to = array();
 
+		// Store headers as numeric array to allow duplicates.
+		$custom_headers = array();
+
 		if ( empty( $headers ) ) {
 			$headers = array();
 		} else {
@@ -368,7 +371,13 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
 							break;
 						default:
-							// Add it to our grand headers array.
+							// Store in numeric array to allow duplicates.
+							$custom_headers[] = array(
+								'name'    => trim( $name ),
+								'content' => trim( $content ),
+							);
+
+							// Maintain backward compatibility by also storing in associative array.
 							$headers[ trim( $name ) ] = trim( $content );
 							break;
 					}
@@ -535,19 +544,22 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 */
 		$phpmailer->CharSet = apply_filters( 'wp_mail_charset', $charset );
 
-		// Set custom headers.
-		if ( ! empty( $headers ) ) {
-			foreach ( (array) $headers as $name => $content ) {
+		// Set custom headers using the numeric array to preserve duplicates.
+		if ( ! empty( $custom_headers ) ) {
+			foreach ( $custom_headers as $header ) {
 				// Only add custom headers not added automatically by PHPMailer.
-				if ( ! in_array( $name, array( 'MIME-Version', 'X-Mailer' ), true ) ) {
+				if ( ! in_array( $header['name'], array( 'MIME-Version', 'X-Mailer' ), true ) ) {
 					try {
-						$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+						$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $header['name'], $header['content'] ) );
 					} catch ( PHPMailer\PHPMailer\Exception $e ) {
 						continue;
 					}
 				}
 			}
+		}
 
+		// Handle multipart boundary if present.
+		if ( ! empty( $headers ) ) {
 			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
 				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
 			}
