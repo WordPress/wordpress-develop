@@ -37,6 +37,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Send a notification to the post author when a new note is added via the REST API.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param WP_Comment $comment The comment object.
+	 */
+	public static function wp_new_comment_via_rest_notify_postauthor( $comment ) {
+		if ( 'note' === $comment->comment_type ) {
+			wp_new_comment_notify_postauthor( $comment->comment_ID );
+		}
+	}
+	/**
 	 * Registers the routes for comments.
 	 *
 	 * @since 4.7.0
@@ -714,7 +726,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment, true );
+		// Don't check for duplicates or flooding for notes.
+		$prepared_comment['comment_approved'] =
+			'note' === $prepared_comment['comment_type'] ?
+			'1' :
+			wp_allow_comment( $prepared_comment, true );
 
 		if ( is_wp_error( $prepared_comment['comment_approved'] ) ) {
 			$error_code    = $prepared_comment['comment_approved']->get_error_code();
