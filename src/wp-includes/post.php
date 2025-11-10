@@ -2280,8 +2280,8 @@ function _add_post_type_submenus() {
  * @since 3.0.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
- * @since 6.9.0 Multiple calls to add support for the same feature with associative
- *              array arguments now merge the arguments instead of overwriting them.
+ * @since 6.9.0 Multiple calls to add support for the same feature with array
+ *              arguments now merge the arguments instead of overwriting them.
  *
  * @global array $_wp_post_type_features
  *
