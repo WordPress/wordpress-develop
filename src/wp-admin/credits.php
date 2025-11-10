@@ -22,6 +22,10 @@ $credits = wp_credits();
 <div class="wrap about__container">
 
 	<div class="about__header">
+		<div class="about__header-image">
+			<img src="images/about-release-logo.svg" alt="<?php _e( 'WordPress 6.9' ); ?>" />
+		</div>
+
 		<div class="about__header-title">
 			<h1>
 				<?php _e( 'Contributors' ); ?>
