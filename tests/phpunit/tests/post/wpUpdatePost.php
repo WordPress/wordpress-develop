@@ -107,9 +107,9 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 
 		$post['ID'] = 123456789;
 
-		$this->assertSame( 0, wp_update_post( $post ) );
+		$this->assertSame( 0, wp_update_post( $post ), 'wp_update_post should return 0 for invalid post ID.' );
 
-		$this->assertInstanceOf( 'WP_Error', wp_update_post( $post, true ) );
+		$this->assertInstanceOf( 'WP_Error', wp_update_post( $post, true ), 'wp_update_post should return WP_Error for invalid post ID when $wp_error is true.' );
 	}
 
 	/**
@@ -135,12 +135,12 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 		$post = get_post( $post_id );
 
 		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
-		$this->assertSameSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags );
+		$this->assertSameSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags, 'Post tags should match the initially assigned tags.' );
 
 		wp_update_post( $post );
 
 		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
-		$this->assertSameSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags );
+		$this->assertSameSets( array( $tag_1['term_id'], $tag_2['term_id'] ), $tags, 'Post tags should not change if tags_input is not provided.' );
 
 		wp_update_post(
 			array(
@@ -150,7 +150,7 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 		);
 
 		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
-		$this->assertSameSets( array( $tag_2['term_id'], $tag_3['term_id'] ), $tags );
+		$this->assertSameSets( array( $tag_2['term_id'], $tag_3['term_id'] ), $tags, 'Post tags should be updated if different tags_input is provided.' );
 	}
 
 	/**
@@ -167,8 +167,8 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 			)
 		);
 		$post    = get_post( $post_id );
-		$this->assertSame( '<script>Test</script>', $post->post_title );
-		$this->assertSame( 'draft', $post->post_status );
+		$this->assertSame( '<script>Test</script>', $post->post_title, 'Post title should not be filtered without content filtering.' );
+		$this->assertSame( 'draft', $post->post_status, 'Post status should be draft without content filtering.' );
 
 		kses_init_filters();
 
@@ -182,7 +182,7 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 		kses_remove_filters();
 
 		$post = get_post( $post->ID );
-		$this->assertSame( 'Test', $post->post_title );
+		$this->assertSame( 'Test', $post->post_title, 'Post title should be filtered with content filtering.' );
 	}
 
 	/**
@@ -214,8 +214,8 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 		wp_update_post( $update_data );
 		$updated_post = get_post( $post_id );
 
-		$this->assertSame( $future_date, $updated_post->post_date );
-		$this->assertSame( $expected_status, $updated_post->post_status );
+		$this->assertSame( $future_date, $updated_post->post_date, 'Post date should be preserved when updating to future status.' );
+		$this->assertSame( $expected_status, $updated_post->post_status, "Post status should be '{$expected_status}' after update." );
 	}
 
 	/**
