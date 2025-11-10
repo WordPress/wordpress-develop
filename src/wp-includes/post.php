@@ -2263,9 +2263,9 @@ function _add_post_type_submenus() {
  * additional information about supporting that feature.
  *
  * When calling this function multiple times for the same post type and feature
- * with associative array arguments, the arguments will be merged rather than
- * overwritten. This allows multiple calls to add different sub-properties to
- * the same feature.
+ * with array arguments, the arguments will be merged rather than overwritten.
+ * This allows multiple calls to add different sub-properties to the same
+ * feature.
  *
  * Example usage:
  *
