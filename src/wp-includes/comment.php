@@ -1636,12 +1636,14 @@ function wp_trash_comment( $comment_id ) {
  * @param int $comment_id The comment ID.
  */
 function wp_trash_comment_children( $comment_id ) {
-	$children = get_comments( array(
-		'parent'      => $comment_id,
-		'status'      => 'all',
-		'type'        => 'note',
-		'fields'      => 'ids',
-	) );
+	$children = get_comments(
+		array(
+			'parent' => $comment_id,
+			'status' => 'all',
+			'type'   => 'note',
+			'fields' => 'ids',
+		)
+	);
 	foreach ( $children as $child_id ) {
 		wp_trash_comment( $child_id );
 	}
