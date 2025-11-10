@@ -2489,6 +2489,7 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 	 * all notes and for approved comments.
 	 *
 	 * @since 4.4.0
+	 * @since 6.9.0 Comment approval status is checked before this filter. 
 	 *
 	 * @param bool $maybe_notify Whether to notify the post author about the new comment.
 	 * @param int  $comment_id   The ID of the comment for the notification.
