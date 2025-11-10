@@ -1574,6 +1574,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  * If Trash is disabled, comment is permanently deleted.
  *
  * @since 2.9.0
+ * @since 6.9.1 Any child notes are deleted when deleting a note.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1616,10 +1617,34 @@ function wp_trash_comment( $comment_id ) {
 		 */
 		do_action( 'trashed_comment', $comment->comment_ID, $comment );
 
+		// For top level 'note' type comments, also trash any children as well.
+		if ( 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
+			wp_trash_comment_children( $comment->comment_ID );
+		}
+
 		return true;
 	}
 
 	return false;
+}
+
+/**
+ * Delete all of a note's children (replies).
+ *
+ * @since 6.9.1
+ *
+ * @param int $comment_id The comment ID.
+ */
+function wp_trash_comment_children( $comment_id ) {
+	$children = get_comments( array(
+		'parent'      => $comment_id,
+		'status'      => 'all',
+		'type'        => 'note',
+		'fields'      => 'ids',
+	) );
+	foreach ( $children as $child_id ) {
+		wp_trash_comment( $child_id );
+	}
 }
 
 /**
