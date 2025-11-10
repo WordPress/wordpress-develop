@@ -2174,8 +2174,6 @@ class Tests_User extends WP_UnitTestCase {
 	 * Tests that the `roles` property is an sequential array.
 	 *
 	 * @ticket 63427
-	 *
-	 * @return void
 	 */
 	public function test_user_roles_property_is_sequential_array() {
 		$user = new WP_User( self::$author_id );
