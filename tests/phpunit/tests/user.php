@@ -2162,8 +2162,6 @@ class Tests_User extends WP_UnitTestCase {
 	 *
 	 * @param array $arr array.
 	 *
-	 * @ticket 63427
-	 *
 	 * @return bool
 	 */
 	private function is_sequential( array $arr ) {
