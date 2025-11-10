@@ -525,11 +525,13 @@ class WP_Date_Query {
 				$wpdb->users    => array(
 					'user_registered',
 				),
-				$wpdb->blogs    => array(
+			);
+			if ( is_multisite() ) {
+				$known_columns[ $wpdb->blogs ] = array(
 					'registered',
 					'last_updated',
-				),
-			);
+				);
+			}
 
 			// If it's a known column name, add the appropriate table prefix.
 			foreach ( $known_columns as $table_name => $table_columns ) {
