@@ -2158,11 +2158,11 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Check array is a sequential.
+	 * Determines whether an array has sequential numeric keys.
 	 *
-	 * @param array $arr array.
+	 * @param array $arr The array to check.
 	 *
-	 * @return bool
+	 * @return bool True if the array has sequential numeric keys, false otherwise.
 	 */
 	private function is_sequential( array $arr ) {
 		return array_keys( $arr ) === range( 0, count( $arr ) - 1 );
