@@ -174,6 +174,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * @since 5.5.0 is_email() is used for email validation,
 	 *              instead of PHPMailer's default validator.
 	 * @since 6.9.0 Added $embeds parameter.
+	 * @since 6.9.0 Improved Content-Type header handling for multipart messages.
 	 *
 	 * @global PHPMailer\PHPMailer\PHPMailer $phpmailer
 	 *
