@@ -695,7 +695,7 @@ EOT;
 		wp_mail( $to, $subject, $message, $headers );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertTrue( preg_match( '/boundary="(.*)"/', $mailer->get_sent()->header, $matches ), 'Expected to match boundary directive in header.' );
+		$this->assertSame( 1, preg_match( '/boundary="(.*)"/', $mailer->get_sent()->header, $matches ), 'Expected to match boundary directive in header.' );
 		$boundary = $matches[1];
 		$body     = '--' . $boundary . "\n";
 		$body    .= 'Content-Type: text/plain; charset=us-ascii' . "\n";
