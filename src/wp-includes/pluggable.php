@@ -1046,11 +1046,13 @@ endif;
 
 if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 	/**
-	 * Sets the authentication cookies based on user ID.
+	 * Sets the authentication cookies for a given user ID.
 	 *
-	 * The $remember parameter increases the time that the cookie will be kept. The
-	 * default the cookie is kept without remembering is two days. When $remember is
-	 * set, the cookies will be kept for 14 days or two weeks.
+	 * The `$remember` parameter controls cookie persistence:
+	 * - If true, the cookie is persistent (default 14 days, filterable via {@see 'auth_cookie_expiration'}).
+	 * - If false, the cookie is a browser session cookie (expires when the browser closes).
+	 *   Internally, {@see 'auth_cookie_expiration'} is still applied, to expire the login after
+	 *   two days or when the browser is closed, whichever occurs first.
 	 *
 	 * @since 2.5.0
 	 * @since 4.3.0 Added the `$token` parameter.
@@ -1893,6 +1895,20 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					$subject = sprintf( __( '[%1$s] Pingback: "%2$s"' ), $blogname, $post->post_title );
 					break;
 
+				case 'note':
+					/* translators: %s: Post title. */
+					$notify_message = sprintf( __( 'New note on your post "%s"' ), $post->post_title ) . "\r\n";
+					/* translators: 1: Note author's name, 2: Note author's IP address, 3: Note author's hostname. */
+					$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+					/* translators: %s: Note author email. */
+					$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
+					/* translators: %s: Note text. */
+					$notify_message .= sprintf( __( 'Note: %s' ), "\r\n" . ( empty( $comment_content ) ? __( 'resolved/reopened' ) : $comment_content ) ) . "\r\n\r\n";
+					$notify_message .= __( 'You can see all notes on this post here:' ) . "\r\n";
+					/* translators: Note notification email subject. 1: Site title, 2: Post title. */
+					$subject = sprintf( __( '[%1$s] Note: "%2$s"' ), $blogname, $post->post_title );
+					break;
+
 				default: // Comments.
 					/* translators: %s: Post title. */
 					$notify_message = sprintf( __( 'New comment on your post "%s"' ), $post->post_title ) . "\r\n";
@@ -1916,11 +1932,15 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					break;
 			}
 
-			$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
 			/* translators: %s: Comment URL. */
-			$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
+			if ( 'note' === $comment->comment_type ) {
+				$notify_message .= get_edit_post_link( $comment->comment_post_ID, 'url' ) . "\r\n";
+			} else {
+				$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
+				$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
+			}
 
-			if ( user_can( $post->post_author, 'edit_comment', $comment->comment_ID ) ) {
+			if ( 'note' !== $comment->comment_type && user_can( $post->post_author, 'edit_comment', $comment->comment_ID ) ) {
 				if ( EMPTY_TRASH_DAYS ) {
 					/* translators: Comment moderation. %s: Comment action URL. */
 					$notify_message .= sprintf( __( 'Trash it: %s' ), admin_url( "comment.php?action=trash&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";

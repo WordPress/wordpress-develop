@@ -213,4 +213,35 @@ OPTIONS;
 		);
 		$this->assertSame( $expected, $this->table->get_views() );
 	}
+
+	/**
+	 * Verify that the comments table never shows the note comment_type.
+	 *
+	 * @ticket 64198
+	 */
+	public function test_comments_list_table_does_not_show_note_comment_type() {
+		$post_id    = self::factory()->post->create();
+		$note_id    = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_content'  => 'This is a note.',
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_content'  => 'This is a regular comment.',
+				'comment_type'     => '',
+				'comment_approved' => '1',
+			)
+		);
+		// Request the note comment type.
+		$_REQUEST['comment_type'] = 'note';
+		$this->table->prepare_items();
+		$items = $this->table->items;
+		$this->assertCount( 1, $items );
+		$this->assertEquals( $comment_id, $items[0]->comment_ID );
+	}
 }
