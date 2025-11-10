@@ -2303,7 +2303,7 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
 				isset( $args[0] ) &&
 				is_array( $args[0] )
 			) {
-				// Merge the associative arrays to preserve existing properties.
+				// Merge the arrays to preserve existing properties.
 				$_wp_post_type_features[ $post_type ][ $feature ][0] = array_merge(
 					$_wp_post_type_features[ $post_type ][ $feature ][0],
 					$args[0]
