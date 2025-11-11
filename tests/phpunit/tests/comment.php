@@ -1896,6 +1896,9 @@ class Tests_Comment extends WP_UnitTestCase {
 
 	/**
 	 * Test wp_trash_comment deletes a note and it's descendants when EMPTY_TRASH_DAYS is set to 0.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_wp_delete_comment_deletes_descendants_when_empty_trash_days_is_zero() {
 		// Set EMPTY_TRASH_DAYS to 0 to disable trashing.
