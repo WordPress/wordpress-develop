@@ -1619,7 +1619,7 @@ function wp_trash_comment( $comment_id ) {
 
 		// For top level 'note' type comments, also trash any children as well.
 		if ( 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
-			wp_trash_comment_children( $comment->comment_ID );
+			wp_trash_note_descendants( $comment->comment_ID );
 		}
 
 		return true;
@@ -1629,24 +1629,33 @@ function wp_trash_comment( $comment_id ) {
 }
 
 /**
- * Delete all of a note's children (replies).
+ * Trash all of a note's descendants (replies).
  *
  * @since 6.9.0
  *
  * @param int $comment_id The comment ID.
+ * @return bool Whether the descendants were successfully trashed.
  */
-function wp_trash_comment_children( $comment_id ) {
-	$children = get_comments(
+function wp_trash_note_descendants( $comment_id ) {
+	$comment = get_comment( $comment_id );
+	if ( ! $comment ) {
+		return false;
+	}
+	$children = $comment->get_children(
 		array(
-			'parent' => $comment_id,
+			'fields' => 'ids',
 			'status' => 'all',
 			'type'   => 'note',
-			'fields' => 'ids',
 		)
 	);
+
+	$success = true;
 	foreach ( $children as $child_id ) {
-		wp_trash_comment( $child_id );
+		if ( ! wp_trash_comment( $child_id ) ) {
+			$success = false;
+		}
 	}
+	return $success;
 }
 
 /**
