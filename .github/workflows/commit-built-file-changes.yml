@@ -1,13 +1,13 @@
 # Commits all missed changes to built files back to pull request branches.
 name: Commit Built File Changes (PRs)
 
-# on:
-#   workflow_run:
-#     workflows:
-#       - 'Check Built Files (PRs)'
-#       - 'Test Default Themes & Create ZIPs'
-#     types:
-#       - completed
+on:
+  workflow_run:
+    workflows:
+      - 'Check Built Files (PRs)'
+      - 'Test Default Themes & Create ZIPs'
+    types:
+      - completed
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
