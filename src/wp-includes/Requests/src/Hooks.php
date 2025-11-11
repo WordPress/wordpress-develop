@@ -96,8 +96,4 @@ class Hooks implements HookManager {
 
 		return true;
 	}
-
-	public function __wakeup() {
-		throw new \LogicException( __CLASS__ . ' should never be unserialized' );
-	}
 }
