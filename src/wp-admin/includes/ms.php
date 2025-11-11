@@ -860,6 +860,8 @@ var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnima
  * @return bool
  */
 function confirm_delete_users( $users ) {
+	global $wpdb;
+
 	$current_user = wp_get_current_user();
 	if ( ! is_array( $users ) || empty( $users ) ) {
 		return false;
@@ -906,7 +908,6 @@ function confirm_delete_users( $users ) {
 				);
 			}
 
-			// TODO: Check if user has content.
 			?>
 			<tr>
 				<th scope="row"><?php echo $delete_user->user_login; ?>
@@ -940,43 +941,90 @@ function confirm_delete_users( $users ) {
 
 					if ( is_array( $blog_users ) && ! empty( $blog_users ) ) {
 						$user_site     = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
+						switch_to_blog( $details->userblog_id );
+						/**
+						 * Filters whether the users being deleted have additional content
+						 * associated with them outside of the `post_author` and `link_owner` relationships.
+						 *
+						 * @since 5.2.0
+						 *
+						 * @param bool  $users_have_additional_content Whether the users have additional content. Default false.
+						 * @param int[] $user_ids                      Array of IDs for users being deleted.
+						 */
+						$user_has_content = (bool) apply_filters( 'users_have_additional_content', false, array( $delete_user->ID ) );
 
-						?>
-						<ul>
-							<li>
+						if ( ! $user_has_content ) {
+							if ( $wpdb->get_var(
+								$wpdb->prepare(
+									"SELECT ID FROM {$wpdb->posts}
+									WHERE post_author = %d
+									LIMIT 1",
+									$delete_user->ID
+								)
+							) ) {
+								$user_has_content = true;
+							} elseif ( $wpdb->get_var(
+								$wpdb->prepare(
+									"SELECT link_id FROM {$wpdb->links}
+									WHERE link_owner = %d
+									LIMIT 1",
+									$delete_user->ID
+								)
+							) ) {
+								$user_has_content = true;
+							}
+						}
+						restore_current_blog();
+
+						if ( ! $user_has_content ) {
+							?>
+							<p>
+							<?php
+							/* translators: %s: Link to user's site. */
+							printf( __( 'Site: %s' ), $user_site );
+							?>
+							</p>
+							<input type="hidden" id="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
+							<p><?php _e( 'This user does not have any content.' ); ?></p>
+							<?php
+						} else {
+							?>
+							<p>
 								<?php
 								/* translators: %s: Link to user's site. */
 								printf( __( 'Site: %s' ), $user_site );
 								?>
-							</li>
-							<li>
-								<label>
-									<input type="radio" id="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
-									<?php _e( 'Delete all content.' ); ?>
-								</label>
-							</li>
-							<li>
-								<label>
-									<input type="radio" id="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" required />
-									<?php _e( 'Attribute all content to:' ); ?>
-								</label>
+							</p>
+							<ul>
+								<li>
+									<label>
+										<input type="radio" id="delete_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" required />
+										<?php _e( 'Delete all content.' ); ?>
+									</label>
+								</li>
+								<li>
+									<label>
+										<input type="radio" id="reassign_option_<?php echo esc_attr( $details->userblog_id . '_' . $delete_user->ID ); ?>" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" required />
+										<?php _e( 'Attribute all content to:' ); ?>
+									</label>
 
-								<?php
-								wp_dropdown_users(
-									array(
-										'show_option_none' => __( 'Select a user' ),
-										'name'             => "blog[$user_id][$key]",
-										'include'          => $blog_users,
-										'show'             => 'display_name_with_login',
-										'id'               => "reassign_user_{$details->userblog_id}_{$delete_user->ID}",
-									)
-								);
-								?>
+									<?php
+									wp_dropdown_users(
+										array(
+											'show_option_none' => __( 'Select a user' ),
+											'name'             => "blog[$user_id][$key]",
+											'include'          => $blog_users,
+											'show'             => 'display_name_with_login',
+											'id'               => "reassign_user_{$details->userblog_id}_{$delete_user->ID}",
+										)
+									);
+									?>
 
+								</li>
 							</li>
-						</li>
-						</ul>
-						<?php
+							</ul>
+							<?php
+						}
 					}
 				}
 				echo '</fieldset></td></tr>';
