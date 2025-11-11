@@ -32,7 +32,7 @@
 		"@wordpress/e2e-test-utils-playwright": "1.33.2",
 		"@wordpress/prettier-config": "4.33.1",
 		"@wordpress/scripts": "30.26.2",
-		"autoprefixer": "10.4.21",
+		"autoprefixer": "10.4.22",
 		"chalk": "5.6.2",
 		"check-node-version": "4.2.1",
 		"copy-webpack-plugin": "13.0.1",
