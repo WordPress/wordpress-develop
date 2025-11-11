@@ -2357,8 +2357,10 @@ $( function( $ ) {
 
 /**
  * Disable the submit button until all users radio buttons are checked.
+ *
+ * @since 7.0.0
  */
-(function($){
+(function(){
 	const usersForm = document.querySelector( '.users-php .delete-and-reassign-users-form' );
 
 	// Check if the form exists and contains any radio buttons.
@@ -2407,5 +2409,4 @@ $( function( $ ) {
 			radio.checked = e.target.value !== '-1';
 		});
 	});
-
-})(jQuery);
+})();
