@@ -1947,7 +1947,6 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertNull( get_comment( $child_note_1 ) );
 		$this->assertNull( get_comment( $child_note_2 ) );
 		$this->assertNull( get_comment( $child_note_3 ) );
-
 	}
 
 	/**
