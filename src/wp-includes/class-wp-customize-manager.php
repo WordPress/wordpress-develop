@@ -1772,7 +1772,17 @@ final class WP_Customize_Manager {
 			$stashed_theme_mods = get_option( 'customize_stashed_theme_mods' );
 			$stylesheet         = $this->get_stylesheet();
 			if ( isset( $stashed_theme_mods[ $stylesheet ] ) ) {
-				$values = array_merge( $values, wp_list_pluck( $stashed_theme_mods[ $stylesheet ], 'value' ) );
+				$stashed_values = wp_list_pluck( $stashed_theme_mods[ $stylesheet ], 'value' );
+
+				$valid_stashed_values = array_filter(
+					$stashed_values,
+					function ( $setting_id ) {
+						return $this->get_setting( $setting_id );
+					},
+					ARRAY_FILTER_USE_KEY
+				);
+
+				$values = array_merge( $values, $valid_stashed_values );
 			}
 		}
 
