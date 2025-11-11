@@ -1581,6 +1581,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  */
 function wp_trash_comment( $comment_id ) {
 	if ( ! EMPTY_TRASH_DAYS ) {
+		wp_trash_note_descendants( $comment_id );
 		return wp_delete_comment( $comment_id, true );
 	}
 
@@ -1629,7 +1630,7 @@ function wp_trash_comment( $comment_id ) {
 }
 
 /**
- * Trash all of a note's descendants (replies).
+ * Trash all of a note's descendants or delete immaediately if EMPTY_TRASH_DAYS is 0.
  *
  * @since 6.9.0
  *
@@ -1651,8 +1652,15 @@ function wp_trash_note_descendants( $comment_id ) {
 
 	$success = true;
 	foreach ( $children as $child_id ) {
-		if ( ! wp_trash_comment( $child_id ) ) {
-			$success = false;
+		if ( ! EMPTY_TRASH_DAYS ) {
+			// If trash is disabled, delete the comment permanently.
+			if ( ! wp_delete_comment( $child_id, true ) ) {
+				$success = false;
+			}
+ 		} else {
+			if ( ! wp_trash_comment( $child_id ) ) {
+				$success = false;
+			}
 		}
 	}
 	return $success;
