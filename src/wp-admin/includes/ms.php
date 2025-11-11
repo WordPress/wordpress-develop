@@ -942,15 +942,7 @@ function confirm_delete_users( $users ) {
 					if ( is_array( $blog_users ) && ! empty( $blog_users ) ) {
 						$user_site     = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
 						switch_to_blog( $details->userblog_id );
-						/**
-						 * Filters whether the users being deleted have additional content
-						 * associated with them outside of the `post_author` and `link_owner` relationships.
-						 *
-						 * @since 5.2.0
-						 *
-						 * @param bool  $users_have_additional_content Whether the users have additional content. Default false.
-						 * @param int[] $user_ids                      Array of IDs for users being deleted.
-						 */
+						/** This filter is documented in wp-admin/users.php *
 						$user_has_content = (bool) apply_filters( 'users_have_additional_content', false, array( $delete_user->ID ) );
 
 						if ( ! $user_has_content ) {
