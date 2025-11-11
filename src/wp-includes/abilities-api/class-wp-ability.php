@@ -356,6 +356,7 @@ class WP_Ability {
 			$args['meta'] ?? array(),
 			array(
 				'annotations' => static::$default_annotations,
+				'deprecated'  => false,
 			)
 		);
 
@@ -680,6 +681,13 @@ class WP_Ability {
 				sprintf( __( 'Ability "%s" does not have a valid execute callback.' ), $this->name )
 			);
 		} else {
+			// Trigger deprecation notice if the ability is deprecated.
+			if ( $this->get_meta_item( 'deprecated', false ) === true ) {
+				$version     = $this->get_meta_item( 'deprecated_version', '' );
+				$replacement = $this->get_meta_item( 'deprecated_replacement', '' );
+				_deprecated_ability( $this->name, $version, $replacement );
+			}
+
 			$result = $this->invoke_callback( $this->execute_callback, $input );
 		}
 
