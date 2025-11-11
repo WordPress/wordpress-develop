@@ -122,7 +122,11 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10041
+	 *
 	 * @dataProvider data_esc_like
+	 *
+	 * @param string $input    The input string.
+	 * @param string $expected The expected escaped string.
 	 */
 	public function test_esc_like( $input, $expected ) {
 		global $wpdb;
