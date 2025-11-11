@@ -19,6 +19,11 @@ if ( isset( $_GET['privacy-notice'] ) ) {
 $title = __( 'Freedoms' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
+$header_alt_text = sprintf(
+	/* translators: %s: Version number. */
+	__( 'WordPress %s' ),
+	$display_version
+);
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
@@ -26,7 +31,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 	<div class="about__header">
 		<div class="about__header-image">
-			<img src="images/about-release-logo.svg" alt="<?php _e( 'WordPress 6.9' ); ?>" />
+			<img src="images/about-release-logo.svg?ver=6.9" alt="<?php echo esc_attr( $header_alt_text ); ?>" />
 		</div>
 
 		<div class="about__header-title">

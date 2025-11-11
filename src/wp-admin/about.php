@@ -19,19 +19,19 @@ $display_major_version   = '6.9';
 $release_notes_url = sprintf(
 	/* translators: %s: WordPress version number. */
 	__( 'https://wordpress.org/documentation/wordpress-version/version-%s/' ),
-	'6-9'
+	sanitize_title( $display_major_version )
 );
 
 $field_guide_url = sprintf(
 	/* translators: %s: WordPress version number. */
 	__( 'https://make.wordpress.org/core/wordpress-%s-field-guide/' ),
-	'6-9'
+	sanitize_title( $display_major_version )
 );
 
 $release_page_url = sprintf(
 	/* translators: %s: WordPress version number. */
 	__( 'https://wordpress.org/download/releases/%s/' ),
-	'6-9'
+	sanitize_title( $display_major_version )
 );
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
