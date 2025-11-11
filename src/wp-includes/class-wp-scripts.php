@@ -351,8 +351,8 @@ class WP_Scripts extends WP_Dependencies {
 		$translations = $this->print_translations( $handle, false );
 		if ( $translations ) {
 			/**
-			 * The sourceURL comment is not included by @see WP_Scripts::print_translations()
-			 * when `$display == false` to prevent issues where the script tag contents are used
+			 * The sourceURL comment is not included by {@see WP_Scripts::print_translations()}
+			 * when `$display` is `false` to prevent issues where the script tag contents are used
 			 * by extenders for other purposes, for example concatenated with other script content.
 			 *
 			 * Include the sourceURL comment here as it would be when printed directly.
