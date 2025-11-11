@@ -64,7 +64,6 @@
 					"certificates",
 					"CHANGELOG.md",
 					"composer.json",
-					"library/Deprecated.php",
 					"library/README.md",
 					"LICENSE",
 					"README.md"
