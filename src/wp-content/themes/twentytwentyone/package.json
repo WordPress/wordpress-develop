@@ -38,7 +38,7 @@
 		"rtlcss": "^4.3.0",
 		"sass": "^1.83.0",
 		"stylelint": "^14.16.1",
-		"stylelint-config-recommended-scss": "^14.1.0"
+		"stylelint-config-recommended-scss": "^16.0.2"
 	},
 	"rtlcssConfig": {
 		"options": {
