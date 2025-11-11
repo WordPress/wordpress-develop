@@ -20,7 +20,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 	<div class="about__header">
 		<div class="about__header-image">
-			<img src="images/about-release-logo.svg" alt="<?php _e( 'WordPress 6.9' ); ?>" />
+			<img src="images/about-release-logo.svg?ver=6.9" alt="<?php _e( 'WordPress 6.9' ); ?>" />
 		</div>
 
 		<div class="about__header-title">
