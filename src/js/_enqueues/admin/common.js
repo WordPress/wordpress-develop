@@ -2374,7 +2374,7 @@ $( function( $ ) {
 	submitBtn.disabled = true;
 
 	// Listen for changes on any radio input in the form.
-	usersForm.addEventListener('change', function(e) {
+	usersForm.addEventListener('change', function() {
  		if ( ! usersForm.checkValidity() ) {
 			submitBtn.disabled = true;
 			return;
