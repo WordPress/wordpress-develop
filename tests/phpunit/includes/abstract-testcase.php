@@ -1868,8 +1868,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Clean up the unzip destination.
 	 *
+	 * @since 6.9.0
+	 *
 	 * @param string $unzip_destination Unzip destination.
-	 * @return void
 	 */
 	public function clean_up_unzip_destination( $unzip_destination ) {
 		if ( file_exists( $unzip_destination ) ) {
