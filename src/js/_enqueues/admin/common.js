@@ -2361,8 +2361,8 @@ $( function( $ ) {
 (function($){
 	const usersForm = document.querySelector( '.users-php .delete-and-reassign-users-form' );
 
-	// Check if the form contains any radio buttons.
-	if ( ! usersForm.querySelector( 'input[type="radio"]' ) ) {
+	// Check if the form exists and contains any radio buttons.
+	if ( ! usersForm || ! usersForm.querySelector( 'input[type="radio"]' ) ) {
 		return;
 	}
 
