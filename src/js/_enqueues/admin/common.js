@@ -2382,9 +2382,9 @@ $( function( $ ) {
 
 		// Check all radio groups for validity.
 		let allValid = true;
-		const radioGroups = usersForm.querySelectorAll( 'fieldset' );
-		radioGroups.forEach( function( fieldset ) {
-			const radios = fieldset.querySelectorAll( 'input[type="radio"]' );
+		const radioGroups = usersForm.querySelectorAll( 'fieldset ul' );
+		radioGroups.forEach( function( radioGroup ) {
+			const radios = radioGroup.querySelectorAll( 'input[type="radio"]' );
 			let checkedRadio = null;
 			radios.forEach( function( radio ) {
 				if ( radio.checked ) {
@@ -2393,7 +2393,7 @@ $( function( $ ) {
 			});
 
 			if ( checkedRadio && checkedRadio.value === 'reassign' ) {
-				const select = fieldset.querySelector( 'select' );
+				const select = radioGroup.querySelector( 'select' );
 				if ( select && select.value === '-1' ) {
 					allValid = false;
 				}
