@@ -719,13 +719,6 @@ EOT;
 		);
 	}
 
-	/*
-	 * 'phpmailer_init' action for test_wp_mail_plain_and_html_workaround().
-	 */
-	public function wp_mail_set_alt_body( $mailer ) {
-		$mailer->AltBody = strip_tags( $mailer->Body );
-	}
-
 	/**
 	 * Check workarounds using phpmailer_init still work around.
 	 *
@@ -736,9 +729,12 @@ EOT;
 		$subject = 'Test email with plain text derived from html version';
 		$message = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head><body><p>Hello World! γειά σου Κόσμε</p></body></html>';
 
-		add_action( 'phpmailer_init', array( $this, 'wp_mail_set_alt_body' ) );
+		$set_alt_body = static function ( WP_PHPMailer $mailer ) {
+			$mailer->AltBody = strip_tags( $mailer->Body );
+		};
+		add_action( 'phpmailer_init', $set_alt_body );
 		wp_mail( $to, $subject, $message );
-		remove_action( 'phpmailer_init', array( $this, 'wp_mail_set_alt_body' ) );
+		remove_action( 'phpmailer_init', $set_alt_body );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 
