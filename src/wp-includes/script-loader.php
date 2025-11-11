@@ -3434,7 +3434,13 @@ function wp_enqueue_command_palette_assets() {
 		'is_network_admin' => is_network_admin(),
 	);
 
-	// Only collect text nodes at root level (not wrapped in any HTML tags).
+	/**
+	 * Extracts root-level text nodes from HTML string.
+	 *
+	 * @ignore
+	 * @param string $label HTML string to extract text from.
+	 * @return string Extracted text content, trimmed.
+	 */
 	$extract_root_text = static function ( $label ) {
 		if ( '' === $label ) {
 			return '';
