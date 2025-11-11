@@ -350,7 +350,16 @@ class WP_Scripts extends WP_Dependencies {
 
 		$translations = $this->print_translations( $handle, false );
 		if ( $translations ) {
-			$translations = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
+			/**
+			 * The soucreURL comment is not included by @see WP_Scripts::print_translations()
+			 * when `$display == false` to prevent issues where the script tag contents are used
+			 * by extenders for other purposes, for example concatenated with other script content.
+			 *
+			 * Include the sourceURL comment here as it would be when printed directly.
+			 */
+			$source_url    = rawurlencode( "{$handle}-js-translations" );
+			$translations .= "\n//# sourceURL={$source_url}";
+			$translations  = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
 		if ( $this->do_concat ) {
