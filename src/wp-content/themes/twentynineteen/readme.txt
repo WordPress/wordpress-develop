@@ -41,7 +41,7 @@ GNU General Public License for more details.
 == Changelog ==
 
 = 3.2 =
-* Released: December 02, 2025
+* Released: December 2, 2025
 
 https://wordpress.org/documentation/article/twenty-nineteen-changelog/#Version_3.2
 

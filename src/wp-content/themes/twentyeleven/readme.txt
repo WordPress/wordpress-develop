@@ -45,7 +45,7 @@ Images
 == Changelog ==
 
 = 5.0 =
-* Released: December 02, 2025
+* Released: December 2, 2025
 
 https://wordpress.org/documentation/article/twenty-eleven-changelog/#Version_5.0
 

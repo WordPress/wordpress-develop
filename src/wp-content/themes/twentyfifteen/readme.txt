@@ -74,7 +74,7 @@ Source: https://stocksnap.io/photo/purple-yellow-ACF0693B9C
 == Changelog ==
 
 = 4.1 =
-* Released: December 02, 2025
+* Released: December 2, 2025
 
 https://wordpress.org/documentation/article/twenty-fifteen-changelog/#Version_4.1
 

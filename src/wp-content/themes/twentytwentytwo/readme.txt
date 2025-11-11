@@ -40,7 +40,7 @@ Follow these instructions for each of the following templates:
 == Changelog ==
 
 = 2.1 =
-* Released: December 02, 2025
+* Released: December 2, 2025
 
 https://wordpress.org/documentation/article/twenty-twenty-two-changelog/#Version_2.1
 

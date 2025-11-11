@@ -50,7 +50,7 @@ Source: https://fontsource.org/fonts/open-sans
 == Changelog ==
 
 = 4.7 =
-* Released: December 02, 2025
+* Released: December 2, 2025
 
 https://wordpress.org/documentation/article/twenty-twelve-changelog/#Version_4.7
 

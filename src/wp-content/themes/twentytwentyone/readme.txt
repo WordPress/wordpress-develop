@@ -31,7 +31,7 @@ No data is saved in the database or transferred.
 == Changelog ==
 
 = 2.7 =
-* Released: December 02, 2025
+* Released: December 2, 2025
 
 https://wordpress.org/documentation/article/twenty-twenty-one-changelog/#Version_2.7
 
