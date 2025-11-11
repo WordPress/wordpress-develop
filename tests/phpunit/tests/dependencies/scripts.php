@@ -445,7 +445,9 @@ JS;
 
 		$wp_scripts_reflection      = new ReflectionClass( WP_Scripts::class );
 		$filter_eligible_strategies = $wp_scripts_reflection->getMethod( 'filter_eligible_strategies' );
-		$filter_eligible_strategies->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$filter_eligible_strategies->setAccessible( true );
+		}
 		$this->assertSame( $expected, $filter_eligible_strategies->invokeArgs( wp_scripts(), array( $handle ) ), 'Expected return value of WP_Scripts::filter_eligible_strategies to match.' );
 	}
 
@@ -1230,10 +1232,11 @@ HTML
 				'fetchpriority' => 'high',
 			)
 		);
+		// Note: All of these scripts have fetchpriority=high because the leaf dependent script has that fetch priority.
 		$output    = get_echo( 'wp_print_scripts' );
-		$expected  = "<script type='text/javascript' src='/main-script-d4.js' id='main-script-d4-js' defer='defer' data-wp-strategy='defer'></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer='defer' data-wp-strategy='defer'></script>\n";
-		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer='defer' data-wp-strategy='async' fetchpriority='low'></script>\n";
+		$expected  = "<script type='text/javascript' src='/main-script-d4.js'        id='main-script-d4-js'        defer='defer' data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer='defer' data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
+		$expected .= "<script type='text/javascript' src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer='defer' data-wp-strategy='async' fetchpriority='high' data-wp-fetchpriority='low'></script>\n";
 		$expected .= "<script type='text/javascript' src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer='defer' data-wp-strategy='defer' fetchpriority='high'></script>\n";
 
 		$this->assertEqualHTML( $expected, $output, '<body>', 'Scripts registered as defer but that have dependents that are async are expected to have said dependents deferred.' );
@@ -1342,6 +1345,185 @@ HTML
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{enqueues: string[], expected: string}>
+	 */
+	public function data_provider_to_test_fetchpriority_bumping(): array {
+		return array(
+			'enqueue_bajo' => array(
+				'enqueues' => array( 'bajo' ),
+				'expected' => '<script fetchpriority="low" id="bajo-js" src="/bajo.js" type="text/javascript"></script>',
+			),
+			'enqueue_auto' => array(
+				'enqueues' => array( 'auto' ),
+				'expected' => '
+					<script type="text/javascript" src="/bajo.js" id="bajo-js" data-wp-fetchpriority="low"></script>
+					<script type="text/javascript" src="/auto.js" id="auto-js"></script>
+				',
+			),
+			'enqueue_alto' => array(
+				'enqueues' => array( 'alto' ),
+				'expected' => '
+					<script type="text/javascript" src="/bajo.js" id="bajo-js" fetchpriority="high" data-wp-fetchpriority="low"></script>
+					<script type="text/javascript" src="/auto.js" id="auto-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+					<script type="text/javascript" src="/alto.js" id="alto-js" fetchpriority="high"></script>
+				',
+			),
+		);
+	}
+
+	/**
+	 * Tests a higher fetchpriority on a dependent script module causes the fetchpriority of a dependency script module to be bumped.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Scripts::get_dependents
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 * @covers WP_Scripts::do_item
+	 *
+	 * @dataProvider data_provider_to_test_fetchpriority_bumping
+	 */
+	public function test_fetchpriority_bumping( array $enqueues, string $expected ) {
+		wp_register_script( 'bajo', '/bajo.js', array(), null, array( 'fetchpriority' => 'low' ) );
+		wp_register_script( 'auto', '/auto.js', array( 'bajo' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'alto', '/alto.js', array( 'auto' ), null, array( 'fetchpriority' => 'high' ) );
+
+		foreach ( $enqueues as $enqueue ) {
+			wp_enqueue_script( $enqueue );
+		}
+
+		$actual = get_echo( 'wp_print_scripts' );
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+	}
+
+	/**
+	 * Tests bumping fetchpriority with complex dependency graph.
+	 *
+	 * @ticket 61734
+	 * @link https://github.com/WordPress/wordpress-develop/pull/9770#issuecomment-3280065818
+	 *
+	 * @covers WP_Scripts::get_dependents
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 * @covers WP_Scripts::do_item
+	 */
+	public function test_fetchpriority_bumping_a_to_z() {
+		wp_register_script( 'a', '/a.js', array( 'b' ), null, array( 'fetchpriority' => 'low' ) );
+		wp_register_script( 'b', '/b.js', array( 'c' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'c', '/c.js', array( 'd', 'e' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'd', '/d.js', array( 'z' ), null, array( 'fetchpriority' => 'high' ) );
+		wp_register_script( 'e', '/e.js', array(), null, array( 'fetchpriority' => 'auto' ) );
+
+		wp_register_script( 'x', '/x.js', array( 'd', 'y' ), null, array( 'fetchpriority' => 'high' ) );
+		wp_register_script( 'y', '/y.js', array( 'z' ), null, array( 'fetchpriority' => 'auto' ) );
+		wp_register_script( 'z', '/z.js', array(), null, array( 'fetchpriority' => 'auto' ) );
+
+		wp_enqueue_script( 'a' );
+		wp_enqueue_script( 'x' );
+
+		$actual   = get_echo( 'wp_print_scripts' );
+		$expected = '
+			<script type="text/javascript" src="/z.js" id="z-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+			<script type="text/javascript" src="/d.js" id="d-js" fetchpriority="high"></script>
+			<script type="text/javascript" src="/e.js" id="e-js"></script>
+			<script type="text/javascript" src="/c.js" id="c-js"></script>
+			<script type="text/javascript" src="/b.js" id="b-js"></script>
+			<script type="text/javascript" src="/a.js" id="a-js" fetchpriority="low"></script>
+			<script type="text/javascript" src="/y.js" id="y-js" fetchpriority="high" data-wp-fetchpriority="auto"></script>
+			<script type="text/javascript" src="/x.js" id="x-js" fetchpriority="high"></script>
+		';
+		$this->assertEqualHTML( $expected, $actual, '<body>', "Snapshot:\n$actual" );
+	}
+
+	/**
+	 * Tests that `WP_Scripts::get_highest_fetchpriority_with_dependents()` correctly reuses cached results.
+	 *
+	 * @ticket 64194
+	 *
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 */
+	public function test_highest_fetchpriority_with_dependents_uses_cached_result() {
+		$wp_scripts = new WP_Scripts();
+		$wp_scripts->add( 'd', 'https://example.com/d.js' );
+		$wp_scripts->add_data( 'd', 'fetchpriority', 'low' );
+
+		/*
+		 * Simulate a pre-existing `$stored_results` cache entry for `d`.
+		 * If the caching logic works, the function should use this "high" value
+		 * instead of recalculating based on the actual (lower) value.
+		 */
+		$stored_results = array( 'd' => 'high' );
+
+		// Access the private method using reflection.
+		$method = new ReflectionMethod( WP_Scripts::class, 'get_highest_fetchpriority_with_dependents' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		// Pass `$stored_results` BY REFERENCE.
+		$result = $method->invokeArgs( $wp_scripts, array( 'd', array(), &$stored_results ) );
+
+		$this->assertSame(
+			'high',
+			$result,
+			'Expected "high" indicates that the cached `$stored_results` entry for D was used instead of recalculating.'
+		);
+	}
+
+	/**
+	 * Tests that printing a script without enqueueing has the same output as when it is enqueued.
+	 *
+	 * @ticket 61734
+	 *
+	 * @covers WP_Scripts::do_item
+	 * @covers WP_Scripts::do_items
+	 * @covers ::wp_default_scripts
+	 *
+	 * @dataProvider data_provider_enqueue_or_not_to_enqueue
+	 */
+	public function test_printing_default_script_comment_reply_enqueued_or_not_enqueued( bool $enqueue ) {
+		$wp_scripts = wp_scripts();
+		wp_default_scripts( $wp_scripts );
+
+		$this->assertArrayHasKey( 'comment-reply', $wp_scripts->registered );
+		$wp_scripts->registered['comment-reply']->ver = null;
+		$this->assertArrayHasKey( 'fetchpriority', $wp_scripts->registered['comment-reply']->extra );
+		$this->assertSame( 'low', $wp_scripts->registered['comment-reply']->extra['fetchpriority'] );
+		$this->assertArrayHasKey( 'strategy', $wp_scripts->registered['comment-reply']->extra );
+		$this->assertSame( 'async', $wp_scripts->registered['comment-reply']->extra['strategy'] );
+		if ( $enqueue ) {
+			wp_enqueue_script( 'comment-reply' );
+			$markup = get_echo( array( $wp_scripts, 'do_items' ), array( false ) );
+		} else {
+			$markup = get_echo( array( $wp_scripts, 'do_items' ), array( array( 'comment-reply' ) ) );
+		}
+
+		$this->assertEqualHTML(
+			sprintf(
+				'<script type="text/javascript" src="%s" id="comment-reply-js" async="async" data-wp-strategy="async" fetchpriority="low"></script>',
+				includes_url( 'js/comment-reply.js' )
+			),
+			$markup
+		);
+	}
+
+	/**
+	 * Data provider for test_default_scripts_comment_reply_not_enqueued.
+	 *
+	 * @return array[]
+	 */
+	public static function data_provider_enqueue_or_not_to_enqueue(): array {
+		return array(
+			'not_enqueued' => array(
+				false,
+			),
+			'enqueued'     => array(
+				true,
+			),
+		);
+	}
+
+	/**
 	 * Tests that scripts registered as defer become blocking when their dependents chain are all blocking.
 	 *
 	 * @ticket 12009
@@ -1385,6 +1567,41 @@ HTML
 		$expected = "<script type='text/javascript' src='/main-script-b2.js' id='main-script-b2-js'></script>\n";
 		$expected = str_replace( "'", '"', $expected );
 		$this->assertSame( $expected, $output, 'Scripts registered with no strategy assigned, and who have no dependencies, should have no loading strategy attributes printed.' );
+	}
+
+	/**
+	 * Tests that `WP_Scripts::filter_eligible_strategies()` correctly reuses cached results.
+	 *
+	 * @ticket 64194
+	 *
+	 * @covers WP_Scripts::filter_eligible_strategies
+	 */
+	public function test_filter_eligible_strategies_uses_cached_result() {
+		$wp_scripts = new WP_Scripts();
+		$wp_scripts->add( 'd', 'https://example.com/d.js' );
+		$wp_scripts->add_data( 'd', 'strategy', 'defer' );
+
+		/*
+		 * Simulate a cached result in `$stored_results` for D.
+		 * If caching logic is functioning properly, this cached value
+		 * should be returned immediately without recomputing.
+		 */
+		$stored_results = array( 'd' => array( 'async' ) );
+
+		// Access the private method via reflection.
+		$method = new ReflectionMethod( WP_Scripts::class, 'filter_eligible_strategies' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		// Invoke the method with `$stored_results` passed by reference.
+		$result = $method->invokeArgs( $wp_scripts, array( 'd', null, array(), &$stored_results ) );
+
+		$this->assertSame(
+			array( 'async' ),
+			$result,
+			'Expected cached `$stored_results` value for D to be reused instead of recomputed.'
+		);
 	}
 
 	/**
@@ -1812,38 +2029,16 @@ HTML
 	/**
 	 * Testing `wp_script_add_data` with the conditional key.
 	 *
+	 * @expectedDeprecated WP_Dependencies->add_data()
+	 *
+	 * @since 6.9.0 Conditional comments should now return an empty string.
+	 *
 	 * @ticket 16024
 	 */
 	public function test_wp_script_add_data_with_conditional_key() {
 		// Enqueue and add conditional comments.
 		wp_enqueue_script( 'test-only-conditional', 'example.com', array(), null );
 		wp_script_add_data( 'test-only-conditional', 'conditional', 'gt IE 7' );
-		$expected = "<!--[if gt IE 7]>\n<script type=\"text/javascript\" src=\"http://example.com\" id=\"test-only-conditional-js\"></script>\n<![endif]-->\n";
-
-		// Go!
-		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
-
-		// No scripts left to print.
-		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
-	}
-
-	/**
-	 * Testing `wp_script_add_data` with both the data & conditional keys.
-	 *
-	 * @ticket 16024
-	 */
-	public function test_wp_script_add_data_with_data_and_conditional_keys() {
-		// Enqueue and add data plus conditional comments for both.
-		wp_enqueue_script( 'test-conditional-with-data', 'example.com', array(), null );
-		wp_script_add_data( 'test-conditional-with-data', 'data', 'testing' );
-		wp_script_add_data( 'test-conditional-with-data', 'conditional', 'lt IE 9' );
-		$expected  = "<!--[if lt IE 9]>\n<script type='text/javascript' id='test-conditional-with-data-js-extra'>\n/* <![CDATA[ */\ntesting\n//# sourceURL=test-conditional-with-data-js-extra\n/* ]]> */\n</script>\n<![endif]-->\n";
-		$expected .= "<!--[if lt IE 9]>\n<script type='text/javascript' src='http://example.com' id='test-conditional-with-data-js'></script>\n<![endif]-->\n";
-		$expected  = str_replace( "'", '"', $expected );
-
-		// Go!
-		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
-
 		// No scripts left to print.
 		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
@@ -2256,7 +2451,10 @@ HTML;
 	}
 
 	/**
+	 * @expectedDeprecated WP_Dependencies->add_data()
+	 *
 	 * @ticket 14853
+	 * @ticket 63821
 	 */
 	public function test_wp_add_inline_script_after_and_before_with_concat_and_conditional() {
 		global $wp_scripts;
@@ -2264,17 +2462,9 @@ HTML;
 		$wp_scripts->do_concat    = true;
 		$wp_scripts->default_dirs = array( '/wp-admin/js/', '/wp-includes/js/' ); // Default dirs as in wp-includes/script-loader.php.
 
-		$expected_localized  = "<!--[if gte IE 9]>\n";
-		$expected_localized .= "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n/* ]]> */\n</script>\n";
-		$expected_localized .= "<![endif]-->\n";
-		$expected_localized  = str_replace( "'", '"', $expected_localized );
-
-		$expected  = "<!--[if gte IE 9]>\n";
-		$expected .= "<script type='text/javascript' id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n</script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script type='text/javascript' id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
-		$expected .= "<![endif]-->\n";
-		$expected  = str_replace( "'", '"', $expected );
+		// Conditional scripts should not output.
+		$expected_localized = '';
+		$expected           = '';
 
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_localize_script( 'test-example', 'testExample', array( 'foo' => 'bar' ) );
@@ -2312,21 +2502,18 @@ HTML;
 	}
 
 	/**
+	 * @expectedDeprecated WP_Dependencies->add_data()
+	 *
 	 * @ticket 36392
+	 * @ticket 63821
 	 */
 	public function test_wp_add_inline_script_after_with_concat_and_conditional_and_core_dependency() {
-		global $wp_scripts, $wp_version;
-
+		global $wp_scripts;
 		wp_default_scripts( $wp_scripts );
 
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
-
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<!--[if gte IE 9]>\n";
-		$expected .= "<script type=\"text/javascript\" src=\"http://example.com\" id=\"test-example-js\"></script>\n";
-		$expected .= "<script type=\"text/javascript\" id=\"test-example-js-after\">\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
-		$expected .= "<![endif]-->\n";
+		$expected              = '';
 
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
@@ -2633,6 +2820,73 @@ HTML;
 	}
 
 	/**
+	 * @ticket 63944
+	 */
+	public function test_wp_set_script_translations_uses_registered_domainpath_for_plugin() {
+		global $wp_textdomain_registry;
+
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'domain-path-plugin', '/wp-content/plugins/my-plugin/js/script.js', array(), null );
+
+		// Simulate a plugin declaring DomainPath: /languages by registering a custom path.
+		$wp_textdomain_registry->set_custom_path( 'internationalized-plugin', DIR_TESTDATA . '/languages/plugins' );
+		wp_set_script_translations( 'domain-path-plugin', 'internationalized-plugin' );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js' id='wp-i18n-js'></script>\n";
+		$expected .= str_replace(
+			array(
+				'__DOMAIN__',
+				'__HANDLE__',
+				'__JSON_TRANSLATIONS__',
+			),
+			array(
+				'internationalized-plugin',
+				'domain-path-plugin',
+				file_get_contents( DIR_TESTDATA . '/languages/plugins/internationalized-plugin-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json' ),
+			),
+			$this->wp_scripts_print_translations_output
+		);
+		$expected .= "<script type='text/javascript' src='/wp-content/plugins/my-plugin/js/script.js' id='domain-path-plugin-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * @ticket 63944
+	 *
+	 * Ensure human-readable script translation filenames are found when a
+	 * textdomain has a custom DomainPath registered and no explicit $path is passed.
+	 */
+	public function test_wp_set_script_translations_prefers_human_readable_filename_in_registered_domainpath() {
+		global $wp_textdomain_registry;
+
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'script-handle', '/wp-admin/js/script.js', array(), null );
+
+		// Register the admin textdomain path and use the admin translations file for this script-handle test.
+		$wp_textdomain_registry->set_custom_path( 'admin', DIR_TESTDATA . '/languages' );
+		wp_set_script_translations( 'script-handle', 'admin' );
+
+		$expected  = "<script type='text/javascript' src='/wp-includes/js/dist/wp-i18n.js' id='wp-i18n-js'></script>\n";
+		$expected .= str_replace(
+			array(
+				'__DOMAIN__',
+				'__HANDLE__',
+				'__JSON_TRANSLATIONS__',
+			),
+			array(
+				'admin',
+				'script-handle',
+				file_get_contents( DIR_TESTDATA . '/languages/admin-en_US-script-handle.json' ),
+			),
+			$this->wp_scripts_print_translations_output
+		);
+		$expected .= "<script type='text/javascript' src='/wp-admin/js/script.js' id='script-handle-js'></script>\n";
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
 	 * @ticket 45103
 	 */
 	public function test_wp_set_script_translations_for_plugin() {
@@ -2810,7 +3064,7 @@ HTML;
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_php_file_will_be_passed() {
-		$real_file              = WP_PLUGIN_DIR . '/hello-dolly/hello.php';
+		$real_file              = WP_PLUGIN_DIR . '/hello.php';
 		$wp_enqueue_code_editor = wp_enqueue_code_editor( array( 'file' => $real_file ) );
 		$this->assertNonEmptyMultidimensionalArray( $wp_enqueue_code_editor );
 
