@@ -1678,15 +1678,16 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_trash_comment
 	 * @covers ::wp_trash_comment_children
+	 * @dataProvider data_comment_approved_statuses
 	 */
-	public function test_wp_trash_comment_trashes_child_notes() {
+	public function test_wp_trash_comment_trashes_child_notes( $approved_status ) {
 		// Create a parent note (top-level, comment_parent=0).
 		$parent_note = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_type'     => 'note',
 				'comment_parent'   => 0,
-				'comment_approved' => '1',
+				'comment_approved' => $approved_status,
 			)
 		);
 
@@ -1696,7 +1697,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_post_ID'  => self::$post_id,
 				'comment_type'     => 'note',
 				'comment_parent'   => $parent_note,
-				'comment_approved' => '1',
+				'comment_approved' => $approved_status,
 			)
 		);
 
@@ -1705,7 +1706,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_post_ID'  => self::$post_id,
 				'comment_type'     => 'note',
 				'comment_parent'   => $parent_note,
-				'comment_approved' => '1',
+				'comment_approved' => $approved_status,
 			)
 		);
 
@@ -1714,15 +1715,9 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_post_ID'  => self::$post_id,
 				'comment_type'     => 'note',
 				'comment_parent'   => $parent_note,
-				'comment_approved' => '1',
+				'comment_approved' => $approved_status,
 			)
 		);
-
-		// Verify initial state - all notes are approved.
-		$this->assertSame( '1', get_comment( $parent_note )->comment_approved );
-		$this->assertSame( '1', get_comment( $child_note_1 )->comment_approved );
-		$this->assertSame( '1', get_comment( $child_note_2 )->comment_approved );
-		$this->assertSame( '1', get_comment( $child_note_3 )->comment_approved );
 
 		// Trash the parent note.
 		wp_trash_comment( $parent_note );
@@ -1734,6 +1729,16 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 'trash', get_comment( $child_note_1 )->comment_approved );
 		$this->assertSame( 'trash', get_comment( $child_note_2 )->comment_approved );
 		$this->assertSame( 'trash', get_comment( $child_note_3 )->comment_approved );
+	}
+
+	/**
+	 * Data provider for test_wp_trash_comment_trashes_child_notes.
+	 */
+	public function data_comment_approved_statuses() {
+		return array(
+			array( '1' ),
+			array( '0' ),
+		);
 	}
 
 	/**
@@ -1770,11 +1775,6 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_approved' => '1',
 			)
 		);
-
-		// Verify initial state - all comments are approved.
-		$this->assertSame( '1', get_comment( $parent_comment )->comment_approved );
-		$this->assertSame( '1', get_comment( $child_comment_1 )->comment_approved );
-		$this->assertSame( '1', get_comment( $child_comment_2 )->comment_approved );
 
 		// Trash the parent comment.
 		wp_trash_comment( $parent_comment );
