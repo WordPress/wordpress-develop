@@ -7,20 +7,6 @@ Welcome to the WordPress development repository! Please check out the [contribut
 
 ## Getting Started
 
-### Using GitHub Codespaces
-
-To get started, create a codespace for this repository by clicking this 👇 
-
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=trunk&repo=75645659)
-
-A codespace will open in a web-based version of Visual Studio Code. The [dev container](.devcontainer/devcontainer.json) is fully configured with software needed for this project.
-
-**Note**: Dev containers is an open spec which is supported by [GitHub Codespaces](https://github.com/codespaces) and [other tools](https://containers.dev/supporting).
-
-In some browsers the keyboard shortcut for opening the command palette (Ctrl/Command + Shift + P) may collide with a browser shortcut. The command palette can be opened via the `F1` key or via the cog icon in the bottom left of the editor.
-
-When opening your codespace, be sure to wait for the `postCreateCommand` to finish running to ensure your WordPress install is successfully set up. This can take a few minutes.
-
 ### Local development
 
 WordPress is a PHP, MySQL, and JavaScript based project, and uses Node for its JavaScript dependencies. A local development environment is available to quickly get up and running.
@@ -47,7 +33,22 @@ Ensure your container environment is running before using these commands.
 
 #### To start the development environment for the first time
 
-Clone the current repository using `git clone https://github.com/WordPress/wordpress-develop.git`. Then in your terminal move to the repository folder `cd wordpress-develop` and run the following commands:
+You can get started using the local development environment with these steps:
+
+1. Go to https://github.com/WordPress/wordpress-develop and fork the repository to your own GitHub account. 
+1. Then clone the forked repository to your computer using `git clone https://github.com/<your-username>/wordpress-develop.git`.
+1. Navigate into the directory for the cloned repository using `cd wordpress-develop`.
+1. Add the origin repo as an `upstream` remote via `git remote add upstream https://github.com/WordPress/wordpress-develop.git`.
+1. Then you can keep your branches up to date via `git pull --ff upstream/trunk`, for example.
+
+Alternatively, if you have the [GitHub CLI](https://cli.github.com/) installed, you can simply run `gh repo fork WordPress/wordpress-develop --clone --remote` ([docs](https://cli.github.com/manual/gh_repo_fork)). This command will:
+1. Fork the repository to your account (use the `--org` flag to clone into an organization).
+1. Clone the repository to your machine. 
+1. Add `WordPress/wordpress-develop` as `upstream` and set it to the default `remote` repository
+
+After this, remember to run `cd wordpress-develop`.
+
+Once you have forked and cloned the repository to your computer, run the following commands in a terminal:
 
 ```
 npm install
