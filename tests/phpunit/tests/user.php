@@ -2175,21 +2175,16 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function test_user_roles_property_is_sequential_array() {
 		$user = new WP_User( self::$author_id );
-		// Initial roles array should be sequential.
-		$this->assertTrue( $this->is_sequential( $user->roles ) );
+		$this->assertTrue( $this->is_sequential( $user->roles ), 'Initial roles array should be sequential' );
 
 		$user->remove_role( 'author' );
-		// After removing all roles, $user->roles should still be an array.
-		$this->assertIsArray( $user->roles );
-		// After removing all roles, $user->roles should be an empty array.
-		$this->assertSame( array(), $user->roles );
+		$this->assertIsArray( $user->roles, 'After removing all roles, $user->roles should still be an array' );
+		$this->assertSame( array(), $user->roles, 'After removing all roles, $user->roles should be an empty array' );
 
 		$user->add_role( 'author' );
 		$user->add_role( 'subscriber' );
-		// After adding multiple roles, $user->roles should contains added roles.
-		$this->assertSame( array( 'author', 'subscriber' ), $user->roles );
-		// After adding multiple roles, $user->roles should still be sequential.
-		$this->assertTrue( $this->is_sequential( $user->roles ) );
+		$this->assertSame( array( 'author', 'subscriber' ), $user->roles, 'After adding multiple roles, $user->roles should contains added roles' );
+		$this->assertTrue( $this->is_sequential( $user->roles ), 'After adding multiple roles, $user->roles should still be sequential' );
 	}
 
 	/**
