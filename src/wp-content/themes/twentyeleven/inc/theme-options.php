@@ -75,6 +75,8 @@ add_action( 'admin_init', 'twentyeleven_theme_options_init' );
  * By default, only administrators have either of these capabilities, but the desire here is
  * to allow for finer-grained control for roles and users.
  *
+ * @since Twenty Eleven 1.1
+ *
  * @param string $capability The capability used for the page, which is manage_options by default.
  * @return string The capability to actually use.
  */
