@@ -1631,7 +1631,7 @@ function wp_trash_comment( $comment_id ) {
 /**
  * Delete all of a note's children (replies).
  *
- * @since 6.9.1
+ * @since 6.9.0
  *
  * @param int $comment_id The comment ID.
  */
