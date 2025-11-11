@@ -83,8 +83,11 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		// We need some better assertions here but these catch the failure for now.
 		$this->assertSameIgnoreEOL( $body, $mailer->get_sent()->body );
-		$this->assertStringContainsString( 'boundary="----=_Part_4892_25692638.1192452070893"', $mailer->get_sent()->header );
-		$this->assertStringContainsString( 'charset=', $mailer->get_sent()->header );
+		$headers = iconv_mime_decode_headers( $mailer->get_sent()->header );
+		$this->assertArrayHasKey( 'Content-Type', $headers, 'Expected Content-Type header to be sent.' );
+		$content_type_headers = (array) $headers['Content-Type'];
+		$this->assertCount( 1, $content_type_headers, "Expected only one Content-Type header to be sent. Saw:\n" . implode( "\n", $content_type_headers ) );
+		$this->assertSame( 'multipart/mixed; boundary="----=_Part_4892_25692638.1192452070893"; charset=', $content_type_headers[0], 'Expected Content-Type to match.' );
 	}
 
 	/**
