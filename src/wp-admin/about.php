@@ -92,7 +92,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'Visual drag and drop' ); ?></h3>
 				<p>
 					<strong><?php _e( 'Design flows naturally.' ); ?></strong><br />
-					<?php _e( 'Easier ways to see your options in Data Views, and you can exclude sticky posts from the Query Loop. Plus, you&#8217;ll find lots of little improvements in the editor that smooth your way through everything you build.' ); ?>
+					<?php _e( 'Building layouts is now more intuitive and flexible with clear drag handles and a live preview that shows exactly what you&#8217;re moving—a faster way to build pages.' ); ?>
 				</p>
 			</div>
 		</div>
