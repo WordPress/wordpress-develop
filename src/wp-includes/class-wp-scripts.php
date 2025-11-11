@@ -722,18 +722,17 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
-		$source_url = rawurlencode( "{$handle}-js-translations" );
-
 		$output = <<<JS
 ( function( domain, translations ) {
 	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
 	localeData[""].domain = domain;
 	wp.i18n.setLocaleData( localeData, domain );
 } )( "{$domain}", {$json_translations} );
-//# sourceURL={$source_url}
 JS;
 
 		if ( $display ) {
+			$source_url = rawurlencode( "{$handle}-js-translations" );
+			$output    .= "\n//# sourceURL={$source_url}";
 			wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
