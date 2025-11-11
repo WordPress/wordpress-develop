@@ -19,7 +19,7 @@
 		"ext-dom": "*"
 	},
 	"require-dev": {
-		"composer/ca-bundle": "1.5.8",
+		"composer/ca-bundle": "1.5.9",
 		"james-heinrich/getid3": "1.9.23",
 		"paragonie/sodium_compat": "1.23.0",
 		"phpmailer/phpmailer": "6.11.1",
