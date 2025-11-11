@@ -206,15 +206,15 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 
 		$future_date = gmdate( 'Y-m-d H:i:s', strtotime( $time_offset ) );
 		$update_data = array(
-			'ID'          => $post_id,
-			'post_status' => 'future',
-			'post_date'   => $future_date,
+			'ID'            => $post_id,
+			'post_status'   => 'future',
+			'post_date_gmt' => $future_date,
 		);
 
 		wp_update_post( $update_data );
 		$updated_post = get_post( $post_id );
 
-		$this->assertSame( $future_date, $updated_post->post_date, 'Post date should be preserved when updating to future status.' );
+		$this->assertSame( $future_date, $updated_post->post_date_gmt, 'Post date should be updated accordingly.' );
 		$this->assertSame( $expected_status, $updated_post->post_status, "Post status should be '{$expected_status}' after update." );
 	}
 
@@ -238,7 +238,7 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 			'publish to future with 1 day more' => array(
 				'initial_status'  => 'publish',
 				'time_offset'     => '+1 day',
-				'expected_status' => 'publish',
+				'expected_status' => 'future',
 			),
 			'draft to future with 1 day less'   => array(
 				'initial_status'  => 'draft',
