@@ -110,7 +110,7 @@ add_action( 'admin_menu', 'twentyeleven_theme_options_add_page' );
 /**
  * Adds help documentation to the theme options page.
  *
- * @since Twenty Eleven 1.0
+ * @since Twenty Eleven 1.3
  */
 function twentyeleven_theme_options_help() {
 

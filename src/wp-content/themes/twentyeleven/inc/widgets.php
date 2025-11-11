@@ -157,9 +157,9 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @param array $new_instance New settings for this instance as input by the user.
-	 * @param array $old_instance Old settings for this instance.
-	 * @return array Updated settings to save.
+	 * @param array $new_instance New widget instance.
+	 * @param array $old_instance Original widget instance.
+	 * @return array Updated widget instance.
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance           = $old_instance;
