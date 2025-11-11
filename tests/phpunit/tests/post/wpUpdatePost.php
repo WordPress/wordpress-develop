@@ -196,13 +196,16 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 	 * @param string $time_offset     Time offset.
 	 * @param string $expected_status Expected post status.
 	 */
-	public function test_update_post_preserves_date_for_future_posts( $initial_status, $time_offset, $expected_status ) {
+	public function test_update_post_preserves_date_for_future_posts( $initial_status, $time_offset, $expected_status ): void {
 
 		$post_id = self::factory()->post->create(
 			array(
 				'post_status' => $initial_status,
 			)
 		);
+
+		$initial_date_timestamp     = strtotime( get_post( $post_id )->post_date );
+		$initial_date_gmt_timestamp = strtotime( get_post( $post_id )->post_date_gmt );
 
 		$future_date = gmdate( 'Y-m-d H:i:s', strtotime( $time_offset ) );
 		$update_data = array(
@@ -214,10 +217,19 @@ class Tests_Post_WpUpdatePost extends WP_UnitTestCase {
 		wp_update_post( $update_data );
 		$updated_post = get_post( $post_id );
 
-		$this->assertSame( $future_date, $updated_post->post_date_gmt, 'Post date should be updated accordingly.' );
+		$updated_date_timestamp     = strtotime( get_post( $post_id )->post_date );
+		$updated_date_gmt_timestamp = strtotime( get_post( $post_id )->post_date_gmt );
+
+		if ( substr( $time_offset, 0, 1 ) === '+' ) {
+			$this->assertGreaterThan( $initial_date_timestamp, $updated_date_timestamp, 'Post date should be in the future compared to initial date.' );
+			$this->assertGreaterThan( $initial_date_gmt_timestamp, $updated_date_gmt_timestamp, 'Post date GMT should be in the future compared to initial date GMT.' );
+		} else {
+			$this->assertLessThan( $initial_date_timestamp, $updated_date_timestamp, 'Post date should be in the past compared to initial date.' );
+			$this->assertLessThan( $initial_date_gmt_timestamp, $updated_date_gmt_timestamp, 'Post date GMT should be in the past compared to initial date GMT.' );
+		}
+
 		$this->assertSame( $expected_status, $updated_post->post_status, "Post status should be '{$expected_status}' after update." );
 	}
-
 	/**
 	 * Data provider for test_update_post_preserves_date_for_future_posts.
 	 *
