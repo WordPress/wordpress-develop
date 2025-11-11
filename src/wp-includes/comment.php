@@ -1657,7 +1657,7 @@ function wp_trash_note_descendants( $comment_id ) {
 			if ( ! wp_delete_comment( $child_id, true ) ) {
 				$success = false;
 			}
- 		} else {
+		} else {
 			if ( ! wp_trash_comment( $child_id ) ) {
 				$success = false;
 			}
