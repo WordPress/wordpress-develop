@@ -1947,5 +1947,49 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertNull( get_comment( $child_note_1 ) );
 		$this->assertNull( get_comment( $child_note_2 ) );
 		$this->assertNull( get_comment( $child_note_3 ) );
+
+	}
+
+	/**
+	 * Test that all descendants including grandchildren are trashed when
+	 * a parent note is trashed. Note that grandchildren are not currently
+	 * possible, but the code should support them.
+	 */
+	public function test_wp_trash_comment_trashes_all_descendants_including_grandchildren() {
+		// Create a parent note.
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+		// Create a child note.
+		$child_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+		// Create a grandchild note.
+		$grandchild_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $child_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Trash the parent note.
+		wp_trash_comment( $parent_note );
+
+		// Verify that all notes are trashed.
+		$this->assertSame( 'trash', get_comment( $parent_note )->comment_approved );
+		$this->assertSame( 'trash', get_comment( $child_note )->comment_approved );
+		$this->assertSame( 'trash', get_comment( $grandchild_note )->comment_approved );
 	}
 }
