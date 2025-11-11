@@ -1581,8 +1581,27 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  */
 function wp_trash_comment( $comment_id ) {
 	if ( ! EMPTY_TRASH_DAYS ) {
-		wp_trash_note_descendants( $comment_id );
-		return wp_delete_comment( $comment_id, true );
+		$comment = get_comment( $comment_id );
+		$success = wp_delete_comment( $comment_id, true );
+		// Also delete descendants of top level 'note' type comments.
+		if ( $comment && 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
+			$children = $comment->get_children(
+				array(
+					'fields' => 'ids',
+					'status' => 'all',
+					'type'   => 'note',
+				)
+			);
+
+			$success = true;
+			foreach ( $children as $child_id ) {
+				if ( ! wp_delete_comment( $child_id, true ) ) {
+					$success = false;
+				}
+			}
+		}
+
+		return $success;
 	}
 
 	$comment = get_comment( $comment_id );
@@ -1618,52 +1637,29 @@ function wp_trash_comment( $comment_id ) {
 		 */
 		do_action( 'trashed_comment', $comment->comment_ID, $comment );
 
-		// For top level 'note' type comments, also trash any children as well.
+		// For top level 'note' type comments, also trash any descendants as well.
 		if ( 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
-			wp_trash_note_descendants( $comment->comment_ID );
+			$children = $comment->get_children(
+				array(
+					'fields' => 'ids',
+					'status' => 'all',
+					'type'   => 'note',
+				)
+			);
+
+			$success = true;
+			foreach ( $children as $child_id ) {
+				if ( ! wp_trash_comment( $child_id ) ) {
+					$success = false;
+				}
+			}
+			return $success;
 		}
 
 		return true;
 	}
 
 	return false;
-}
-
-/**
- * Trash all of a note's descendants or delete immaediately if EMPTY_TRASH_DAYS is 0.
- *
- * @since 6.9.0
- *
- * @param int $comment_id The comment ID.
- * @return bool Whether the descendants were successfully trashed.
- */
-function wp_trash_note_descendants( $comment_id ) {
-	$comment = get_comment( $comment_id );
-	if ( ! $comment ) {
-		return false;
-	}
-	$children = $comment->get_children(
-		array(
-			'fields' => 'ids',
-			'status' => 'all',
-			'type'   => 'note',
-		)
-	);
-
-	$success = true;
-	foreach ( $children as $child_id ) {
-		if ( ! EMPTY_TRASH_DAYS ) {
-			// If trash is disabled, delete the comment permanently.
-			if ( ! wp_delete_comment( $child_id, true ) ) {
-				$success = false;
-			}
-		} else {
-			if ( ! wp_trash_comment( $child_id ) ) {
-				$success = false;
-			}
-		}
-	}
-	return $success;
 }
 
 /**
