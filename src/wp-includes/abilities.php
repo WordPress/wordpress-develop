@@ -96,11 +96,11 @@ function wp_register_core_abilities(): void {
 							'type' => 'string',
 							'enum' => $site_info_fields,
 						),
+						'default'              =>  array(),
 						'description' => __( 'Optional: Limit response to specific fields. If omitted, all fields are returned.' ),
 					),
 				),
 				'additionalProperties' => false,
-				'default'              => array(),
 			),
 			'output_schema'       => array(
 				'type'                 => 'object',

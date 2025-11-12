@@ -445,10 +445,18 @@ class WP_Ability {
 		}
 
 		$input_schema = $this->get_input_schema();
-		if ( ! empty( $input_schema ) && array_key_exists( 'default', $input_schema ) ) {
-			return $input_schema['default'];
+		// This tries to compute a default value from the input schema properties.
+		// It is a very basic implementation and does not cover all JSON Schema features.
+		// It only looks for `default` values in the top-level `properties`.
+		if ( ! empty( $input_schema ) && array_key_exists( 'properties', $input_schema ) ) {
+			$result = array(); 
+			foreach ( $input_schema['properties'] as $property_name => $property_schema ) {
+				if ( array_key_exists( 'default', $property_schema ) ) {
+					$result[ $property_name ] = $property_schema['default'];
+				}
+			}
+			return $result;
 		}
-
 		return null;
 	}
 
