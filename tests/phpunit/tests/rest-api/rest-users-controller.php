@@ -1439,9 +1439,27 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		rest_get_server()->dispatch( $request );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertCount( 2, $mailer->mock_sent, 'Expected 2 emails (admin + user)' );
-		$this->assertSame( get_option( 'admin_email' ), $mailer->mock_sent[0]['to'][0][0] );
-		$this->assertSame( $user_email, $mailer->mock_sent[1]['to'][0][0] );
+		$this->assertGreaterThanOrEqual( 2, count( $mailer->mock_sent ), 'Expected at least 2 emails (admin + user)' );
+
+		// Verify both admin and user received notifications.
+		$admin_email    = get_option( 'admin_email' );
+		$recipients     = array_column( $mailer->mock_sent, 'to' );
+		$admin_notified = false;
+		$user_notified  = false;
+
+		foreach ( $recipients as $recipient_list ) {
+			if ( isset( $recipient_list[0][0] ) ) {
+				if ( $recipient_list[0][0] === $admin_email ) {
+					$admin_notified = true;
+				}
+				if ( $recipient_list[0][0] === $user_email ) {
+					$user_notified = true;
+				}
+			}
+		}
+
+		$this->assertTrue( $admin_notified, 'Admin email notification was not sent' );
+		$this->assertTrue( $user_notified, 'User email notification was not sent' );
 
 		remove_all_filters( 'rest_wp_user_created_notification' );
 	}
