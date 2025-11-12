@@ -665,7 +665,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		 *                        - 'admin' (default) or an empty string: Notify only the site administrator.
 		 *                        - 'user': Notify only the new user.
 		 *                        - 'both': Notify both admin and user.
-		 *                        - 'false': Disable notifications entirely.
+		 *                        - false: Disable notifications entirely.
 		 * @param int    $user_id User ID.
 		 */
 		$notify = apply_filters( 'rest_wp_user_created_notification', 'admin', $user_id );
