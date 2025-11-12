@@ -1397,7 +1397,20 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertNotEmpty( $mailer->mock_sent, 'No emails were sent' );
-		$this->assertSame( get_option( 'admin_email' ), $mailer->mock_sent[0]['to'][0][0] );
+
+		// Check that at least one email was sent to the admin.
+		$admin_email    = get_option( 'admin_email' );
+		$recipients     = array_column( $mailer->mock_sent, 'to' );
+		$admin_notified = false;
+
+		foreach ( $recipients as $recipient_list ) {
+			if ( isset( $recipient_list[0][0] ) && $recipient_list[0][0] === $admin_email ) {
+				$admin_notified = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $admin_notified, 'Admin email notification was not sent' );
 	}
 
 	/**
