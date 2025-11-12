@@ -1677,7 +1677,6 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * Tests that trashing a top-level note also trashes all direct child notes.
 	 *
 	 * @covers ::wp_trash_comment
-	 * @covers ::wp_trash_comment_children
 	 * @dataProvider data_comment_approved_statuses
 	 */
 	public function test_wp_trash_comment_trashes_child_notes( $approved_status ) {
