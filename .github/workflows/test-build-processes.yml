@@ -78,7 +78,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-14 ]
+        os: [ macos-15-intel ]
         directory: [ 'build' ]
     with:
       os: ${{ matrix.os }}
