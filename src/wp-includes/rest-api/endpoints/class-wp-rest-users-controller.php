@@ -668,8 +668,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		 *                        - 'false': Disable notifications entirely.
 		 * @param int    $user_id User ID.
 		 */
-		$notify = apply_filters( 'rest_wp_user_created_notification', $notify = 'admin', $user_id );
-		if ( $notify && 'false' !== $notify ) {
+		$notify = apply_filters( 'rest_wp_user_created_notification', 'admin', $user_id );
+		if ( false !== $notify ) {
 			wp_new_user_notification( $user_id, null, $notify );
 		}
 
