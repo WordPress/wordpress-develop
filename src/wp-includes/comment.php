@@ -1583,6 +1583,11 @@ function wp_trash_comment( $comment_id ) {
 	if ( ! EMPTY_TRASH_DAYS ) {
 		$comment = get_comment( $comment_id );
 		$success = wp_delete_comment( $comment_id, true );
+
+		if ( ! $success ) {
+			return false;
+		}
+
 		// Also delete children of top level 'note' type comments.
 		if ( $comment && 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
 			$children = $comment->get_children(
