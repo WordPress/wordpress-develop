@@ -122,28 +122,41 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10041
+	 *
+	 * @dataProvider data_esc_like
+	 *
+	 * @param string $input    The input string.
+	 * @param string $expected The expected escaped string.
 	 */
-	public function test_esc_like() {
+	public function test_esc_like( $input, $expected ) {
 		global $wpdb;
 
-		$inputs   = array(
-			'howdy%',              // Single percent.
-			'howdy_',              // Single underscore.
-			'howdy\\',             // Single slash.
-			'howdy\\howdy%howdy_', // The works.
-			'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?', // Plain text.
-		);
-		$expected = array(
-			'howdy\\%',
-			'howdy\\_',
-			'howdy\\\\',
-			'howdy\\\\howdy\\%howdy\\_',
-			'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
-		);
+		$this->assertSame( $expected, $wpdb->esc_like( $input ) );
+	}
 
-		foreach ( $inputs as $key => $input ) {
-			$this->assertSame( $expected[ $key ], $wpdb->esc_like( $input ) );
-		}
+	public function data_esc_like() {
+		return array(
+			'single percent'    => array(
+				'howdy%',
+				'howdy\\%',
+			),
+			'single underscore' => array(
+				'howdy_',
+				'howdy\\_',
+			),
+			'single slash'      => array(
+				'howdy\\',
+				'howdy\\\\',
+			),
+			'the works'         => array(
+				'howdy\\howdy%howdy_',
+				'howdy\\\\howdy\\%howdy\\_',
+			),
+			'plain text'        => array(
+				'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
+				'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
+			),
+		);
 	}
 
 	/**

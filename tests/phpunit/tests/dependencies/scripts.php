@@ -4075,4 +4075,22 @@ HTML;
 
 		$this->assertEqualHTML( $expected, $print_scripts );
 	}
+
+	/**
+	 * Ensure that `::print_translations()` does not include the sourceURL comment when `$display` is false.
+	 *
+	 * @ticket 63887
+	 * @covers ::print_translations
+	 */
+	public function test_print_translations_no_display_no_sourceurl() {
+		global $wp_scripts;
+		$this->add_html5_script_theme_support();
+
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'test-example', '/wp-includes/js/script.js', array(), null );
+		wp_set_script_translations( 'test-example', 'default', DIR_TESTDATA . '/languages' );
+
+		$translations_script_data = $wp_scripts->print_translations( 'test-example', false );
+		$this->assertStringNotContainsStringIgnoringCase( 'sourceURL=', $translations_script_data );
+	}
 }
