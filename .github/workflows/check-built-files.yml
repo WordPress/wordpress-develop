@@ -46,6 +46,6 @@ jobs:
   check-for-built-file-changes:
     name: Check built files
     if: ${{ github.repository == 'wordpress/wordpress-develop' }}
-    uses: ./.github/workflows/reusable-check-built-files.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-check-built-files.yml@trunk
     permissions:
       contents: read
