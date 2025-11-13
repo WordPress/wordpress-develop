@@ -8,7 +8,7 @@ on:
   workflow_call:
     inputs:
       wp-version:
-        description: 'The WordPress version to test . Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
+        description: 'The WordPress version to test. Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
         type: string
         default: 'nightly'
       repository:

@@ -22,9 +22,21 @@ on:
   workflow_dispatch:
     inputs:
       new-version:
-        description: 'The version to test installing. Accepts major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
+        description: 'The version to test upgrading to. Accepts both major and minor versions, "latest", or "nightly". Major releases must not end with ".0".'
         type: string
         default: 'latest'
+
+env:
+  CURRENTLY_SUPPORTED_BRANCH: '6.8'
+  OLDEST_SECURITY_BRANCH: '4.7'
+  # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
+  # MySQL 9.0+ will also not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
+  DEFAULT_EXCLUSIONS: '[
+    { "php": "7.2","db-version": "8.4" },
+    { "php": "7.3","db-version": "8.4" },
+    { "php": "7.2","db-version": "9.4" },
+    { "php": "7.3","db-version": "9.4" },
+  ]'
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
@@ -38,7 +50,7 @@ concurrency:
 permissions: {}
 
 # Because the number of jobs spawned can quickly balloon out of control, the following methodology is applied when
-# building out the matrix below:
+# building out the test matrix for push events:
 #
 # - The two most recent releases of WordPress are tested against all PHP/MySQL LTS version combinations and the
 #   most recent innovation release.
@@ -56,12 +68,87 @@ permissions: {}
 #      modern architectures.
 #    - 5.6.x Docker containers are available and work, but 5.6 only accounts for ~2.3% of installs as of 12/6/2024.defaults:
 #    - 5.7.x accounts for ~20% of installs, so this is used below instead.
+#
+# When a workflow_dispatch event occurs, testing stops at the major version branch of the version specified. For
+# example, if the value of inputs.new-version is 6.4.4, the jobs testing versions 6.5 and higher will be skipped because
+# that would be a downgrade test.
 jobs:
+  # Generates a list of combinations to exclude in for each test matrix based on the version of WordPress being tested.
+  #
+  # When a major version is being tested (6.4 or 6.4.0), no upgrade would occur, so that version is excluded.
+  # When a minor version is being tested (6.4.1, 6.4.2, etc.), the corresponding major version (6.4) is tested.
+  generate-exclusions:
+    name: Build a list of matrix exclusions
+    runs-on: 'ubuntu-24.04'
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    timeout-minutes: 5
+    outputs:
+      matrix_exclusions: ${{ steps.set-exclusions.outputs.matrix_exclusions }}
+      major_version: ${{ steps.set-exclusions.outputs.major_version }}
+
+    steps:
+      - name: Set exclusions output
+        id: set-exclusions
+        shell: bash
+        env:
+          NEW_VERSION: ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
+        run: |
+          # The defaults are sufficient when not testing a specific version.
+          if [[ -z "$NEW_VERSION" ]] || \
+             [[ "$NEW_VERSION" == "latest" ]] || \
+             [[ "$NEW_VERSION" == "nightly" ]]; then
+            echo "matrix_exclusions=$(echo "$DEFAULT_EXCLUSIONS" | tr -d '\n' | tr -d ' ')" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Determine if this is a major release.
+          MAJOR_RELEASE=false
+          if [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.0$ ]]; then
+            MAJOR_RELEASE=true
+          fi
+
+          # Strip any preceding "v" and drop any ".0" values for major releases.
+          INPUT_VERSION=$(echo "$NEW_VERSION" | grep -oE '[0-9]+\.[0-9]+')
+          CURRENT_VERSION=$(echo "$CURRENTLY_SUPPORTED_BRANCH" | grep -oE '[0-9]+\.[0-9]+')
+          TEST_VERSION="$INPUT_VERSION"
+
+          # Save the major version number as an output.
+          echo "major_version=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
+
+          # Create an exclusion list.
+          GENERATED_EXCLUSIONS=''
+
+          while [[ "$TEST_VERSION" != "$CURRENT_VERSION" ]]; do
+            # Only test the current version when a minor version has been specified.
+            if [[ "$TEST_VERSION" != "$INPUT_VERSION" || "$MAJOR_RELEASE" == "true" ]]; then
+              GENERATED_EXCLUSIONS+='{"wp":"'"$TEST_VERSION"'"},'
+            fi
+
+            # Increment to next version.
+            MAJOR=$(echo "$TEST_VERSION" | cut -d. -f1)
+            MINOR=$(echo "$TEST_VERSION" | cut -d. -f2)
+            MINOR=$((MINOR + 1))
+
+            # Roll over to next major version if minor reaches 10
+            if [[ $MINOR -eq 10 ]]; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+            fi
+
+            TEST_VERSION="$MAJOR.$MINOR"
+          done
+
+          # Add the current version and close the array.
+          GENERATED_EXCLUSIONS+='{"wp":"'"$TEST_VERSION"'"}]'
+
+          echo "matrix_exclusions=$(echo "${DEFAULT_EXCLUSIONS%]}${GENERATED_EXCLUSIONS}" | tr -d '\n' | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
   # Tests the full list of PHP/MySQL combinations for the two most recent versions of WordPress.
   upgrade-tests-recent-releases:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    needs: [ 'generate-exclusions' ]
     permissions:
       contents: read
     strategy:
@@ -74,30 +161,21 @@ jobs:
         wp: [ '6.7', '6.8' ]
         multisite: [ false, true ]
 
-        exclude:
-          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '8.4'
-          - php: '7.3'
-            db-version: '8.4'
-          # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '9.4'
-          - php: '7.3'
-            db-version: '9.4'
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
       multisite: ${{ matrix.multisite }}
 
   # Tests 6.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 7 & 8.
   upgrade-tests-wp-6x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
+    needs: [ 'generate-exclusions' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     permissions:
       contents: read
@@ -111,23 +189,21 @@ jobs:
         wp: [ '6.0', '6.3', '6.4', '6.5' ]
         multisite: [ false, true ]
 
-        exclude:
-          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '8.4'
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
       multisite: ${{ matrix.multisite }}
 
   # Tests 5.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 7.
   upgrade-tests-wp-5x-php-7x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
+    needs: [ 'generate-exclusions' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     permissions:
       contents: read
@@ -138,20 +214,17 @@ jobs:
         php: [ '7.2', '7.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
-        wp: [ '5.0', '5.1', '5.3', '5.4', '5.5', '5.6', '5.9' ]
+        wp: [ '5.0', '5.1', '5.3', '5.4', '5.5', '5.6', 'v5.5.10' ]
         multisite: [ false, true ]
 
-        exclude:
-          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '8.4'
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
       multisite: ${{ matrix.multisite }}
 
   # Tests 5.x releases where the WordPress database version changed on the oldest and newest supported versions of PHP 8.
@@ -160,8 +233,9 @@ jobs:
   # - Use of __autoload().
   # - array/string offset with curly braces.
   upgrade-tests-wp-5x-php-8x-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
+    needs: [ 'generate-exclusions' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     permissions:
       contents: read
@@ -172,15 +246,17 @@ jobs:
         php: [ '8.0', '8.4' ]
         db-type: [ 'mysql' ]
         db-version: [ '5.7', '8.4' ]
-        wp: [ '5.3', '5.4', '5.5', '5.6', '5.9' ]
+        wp: [ '5.3', '5.4', '5.5', '5.6', 'v5.5.10' ]
         multisite: [ false, true ]
+
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
       multisite: ${{ matrix.multisite }}
 
   # The oldest version of WordPress receiving security updates should always be tested against
@@ -190,8 +266,9 @@ jobs:
   # - Use of __autoload().
   # - array/string offset with curly braces.
   upgrade-tests-oldest-wp-mysql:
-    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'latest' }}
+    name: ${{ matrix.wp }} to ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
     uses: ./.github/workflows/reusable-upgrade-testing.yml
+    needs: [ 'generate-exclusions' ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     permissions:
       contents: read
@@ -205,24 +282,14 @@ jobs:
         wp: [ '4.7' ]
         multisite: [ false, true ]
 
-        exclude:
-          # The PHP <= 7.3/MySQL 8.4 jobs currently fail due to mysql_native_password being disabled by default. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '8.4'
-          - php: '7.3'
-            db-version: '8.4'
-          # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
-          - php: '7.2'
-            db-version: '9.4'
-          - php: '7.3'
-            db-version: '9.4'
+        exclude: ${{ fromJSON( needs.generate-exclusions.outputs.matrix_exclusions ) || '[]' }}
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
       db-type: ${{ matrix.db-type }}
       db-version: ${{ matrix.db-version }}
       wp: ${{ matrix.wp }}
-      new-version: ${{ inputs.new-version && inputs.new-version || 'latest' }}
+      new-version: ${{ inputs.new-version && inputs.new-version || 'v5.5.10' }}
       multisite: ${{ matrix.multisite }}
 
   slack-notifications:
@@ -231,7 +298,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ upgrade-tests-recent-releases, upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-oldest-wp-mysql ]
+    needs: [ generate-exclusions, upgrade-tests-recent-releases, upgrade-tests-wp-6x-mysql, upgrade-tests-wp-5x-php-7x-mysql, upgrade-tests-wp-5x-php-8x-mysql, upgrade-tests-oldest-wp-mysql ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
