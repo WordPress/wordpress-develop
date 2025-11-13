@@ -218,7 +218,7 @@ module.exports = function(grunt) {
 			},
 			qunit: ['tests/qunit/compiled.html'],
 
-			// This is only meant to run within a numberd branch after branching has occurred.
+			// This is only meant to run within a numbered branch after branching has occurred.
 			workflows: [
 				// Reusable workflows should only be called from `trunk` in branches.
 				'.github/workflows/reusable-*.yml',
