@@ -59,6 +59,22 @@ module.exports = function(grunt) {
 			'!wp-includes/assets/script-modules-packages.min.php',
 		],
 
+		// All workflow files that should be deleted in old branches.
+		workflowFiles = [
+			// Reusable workflows should only be called from `trunk` in branches.
+			'.github/workflows/reusable-*.yml',
+			// These workflows are only intended to run from `trunk`.
+			'.github/workflows/commit-built-file-changes.yml',
+			'.github/workflows/failed-workflow.yml',
+			'.github/workflows/install-testing.yml',
+			'.github/workflows/test-and-zip-default-themes.yml',
+			'.github/workflows/install-testing.yml',
+			'.github/workflows/slack-notifications.yml',
+			'.github/workflows/test-coverage.yml',
+			'.github/workflows/test-old-branches.yml',
+			'.github/workflows/upgrade-testing.yml'
+		]
+
 		// Prepend `dir` to `file`, and keep `!` in place.
 		setFilePath = function( dir, file ) {
 			if ( '!' === file.charAt( 0 ) ) {
@@ -219,20 +235,15 @@ module.exports = function(grunt) {
 			qunit: ['tests/qunit/compiled.html'],
 
 			// This is only meant to run within a numbered branch after branching has occurred.
-			workflows: [
-				// Reusable workflows should only be called from `trunk` in branches.
-				'.github/workflows/reusable-*.yml',
-				// These workflows are only intended to run from `trunk`. Delete them to avoid any confusion.
-				'.github/workflows/commit-built-file-changes.yml',
-				'.github/workflows/failed-workflow.yml',
-				'.github/workflows/install-testing.yml',
-				'.github/workflows/test-and-zip-default-themes.yml',
-				'.github/workflows/install-testing.yml',
-				'.github/workflows/slack-notifications.yml',
-				'.github/workflows/test-coverage.yml',
-				'.github/workflows/test-old-branches.yml',
-				'.github/workflows/upgrade-testing.yml'
-			]
+			workflows: {
+				filter: function( filepath ) {
+					var allowedTasks = [ 'post-branching', 'clean:workflows' ];
+					return allowedTasks.some( function( task ) {
+						return grunt.cli.tasks.indexOf( task ) !== -1;
+					} );
+				},
+				src: workflowFiles
+			},
 		},
 		file_append: {
 			// grunt-file-append supports only strings for input and output.
