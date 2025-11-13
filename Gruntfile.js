@@ -216,7 +216,23 @@ module.exports = function(grunt) {
 				cwd: WORKING_DIR,
 				src: []
 			},
-			qunit: ['tests/qunit/compiled.html']
+			qunit: ['tests/qunit/compiled.html'],
+
+			// This is only meant to run within a numberd branch after branching has occurred.
+			workflows: [
+				// Reusable workflows should only be called from `trunk` in branches.
+				'.github/workflows/reusable-*.yml',
+				// These workflows are only intended to run from `trunk`. Delete them to avoid any confusion.
+				'.github/workflows/commit-built-file-changes.yml',
+				'.github/workflows/failed-workflow.yml',
+				'.github/workflows/install-testing.yml',
+				'.github/workflows/test-and-zip-default-themes.yml',
+				'.github/workflows/install-testing.yml',
+				'.github/workflows/slack-notifications.yml',
+				'.github/workflows/test-coverage.yml',
+				'.github/workflows/test-old-branches.yml',
+				'.github/workflows/upgrade-testing.yml'
+			]
 		},
 		file_append: {
 			// grunt-file-append supports only strings for input and output.
@@ -1706,6 +1722,11 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'replace:workflow-references-remote-to-local', [
 		'copy:workflow-references-remote-to-local',
+	]);
+
+	grunt.registerTask( 'post-branching', [
+		'clean:workflows',
+		'replace:workflow-references-local-to-remote'
 	]);
 
 	/**
