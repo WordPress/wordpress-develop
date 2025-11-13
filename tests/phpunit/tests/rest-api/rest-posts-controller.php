@@ -2796,9 +2796,9 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 			}
 		);
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
 		$response = rest_do_request( $request );
-		$data = $response->get_data();
+		$data     = $response->get_data();
 
 		$this->assertTrue( isset( $data['class_list'] ) );
 		$this->assertTrue( array_is_list( $data['class_list'] ) );
