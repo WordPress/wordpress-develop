@@ -68,7 +68,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 
 		$this->assertSame( 'object', $input_schema['type'] );
 		$this->assertArrayHasKey( 'default', $input_schema );
-		$this->assertEquals( (object) array(), $input_schema['default'] );
+		$this->assertSame( array(), $input_schema['default'] );
 
 		// Input schema should have optional fields array.
 		$this->assertArrayHasKey( 'fields', $input_schema['properties'] );
