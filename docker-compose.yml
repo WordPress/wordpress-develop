@@ -32,7 +32,7 @@ services:
   # The PHP container.
   ##
   php:
-    image: wordpressdevelop/php:${LOCAL_PHP-latest}
+    image: wordpressdevelop/php:${LOCAL_PHP-8.4-fpm}
 
     networks:
       - wpdevnet
