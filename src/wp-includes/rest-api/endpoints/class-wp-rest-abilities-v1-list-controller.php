@@ -214,6 +214,21 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			'meta'          => $ability->get_meta(),
 		);
 
+		// Convert top-level defaults to an object when its type is object and
+		// they are an empty array so they get serialized as {} instead of [].
+		if ( isset( $data['input_schema']['type'] ) && 'object' === $data['input_schema']['type'] && isset( $data['input_schema']['default'] ) ) {
+			$default = $data['input_schema']['default'];
+			if ( is_array( $default ) && empty( $default ) ) {
+				$data['input_schema']['default'] = (object) $default;
+			}
+		}
+		if ( isset( $data['output_schema']['type'] ) && 'object' === $data['output_schema']['type'] && isset( $data['output_schema']['default'] ) ) {
+			$default = $data['output_schema']['default'];
+			if ( is_array( $default ) && empty( $default ) ) {
+				$data['output_schema']['default'] = (object) $default;
+			}
+		}
+
 		$context = $request['context'] ?? 'view';
 		$data    = $this->add_additional_fields_to_object( $data, $request );
 		$data    = $this->filter_response_by_context( $data, $context );

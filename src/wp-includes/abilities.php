@@ -100,8 +100,7 @@ function wp_register_core_abilities(): void {
 					),
 				),
 				'additionalProperties' => false,
-				// Casting to object so when it is serilized to JSON it shows as {} instead of [].
-				'default'              => (object) array(),
+				'default'              => array(),
 			),
 			'output_schema'       => array(
 				'type'                 => 'object',
