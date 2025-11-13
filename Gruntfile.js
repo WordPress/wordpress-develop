@@ -73,7 +73,7 @@ module.exports = function(grunt) {
 			'.github/workflows/test-coverage.yml',
 			'.github/workflows/test-old-branches.yml',
 			'.github/workflows/upgrade-testing.yml'
-		]
+		],
 
 		// Prepend `dir` to `file`, and keep `!` in place.
 		setFilePath = function( dir, file ) {
@@ -236,7 +236,7 @@ module.exports = function(grunt) {
 
 			// This is only meant to run within a numbered branch after branching has occurred.
 			workflows: {
-				filter: function( filepath ) {
+				filter: function() {
 					var allowedTasks = [ 'post-branching', 'clean:workflows' ];
 					return allowedTasks.some( function( task ) {
 						return grunt.cli.tasks.indexOf( task ) !== -1;
