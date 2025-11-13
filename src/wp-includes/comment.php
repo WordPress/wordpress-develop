@@ -1598,7 +1598,6 @@ function wp_trash_comment( $comment_id ) {
 				)
 			);
 
-			$success = true;
 			foreach ( $children as $child_id ) {
 				if ( ! wp_delete_comment( $child_id, true ) ) {
 					$success = false;
