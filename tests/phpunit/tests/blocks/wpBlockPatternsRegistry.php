@@ -695,4 +695,11 @@ class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 			$property->setAccessible( false );
 		}
 	}
+
+	/**
+	 * @ticket 63957
+	 */
+	public function test_is_registered_with_null_pattern_name() {
+		$this->assertFalse( $this->registry->is_registered( null ) );
+	}
 }
