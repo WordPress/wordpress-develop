@@ -1105,9 +1105,7 @@ class WP_Query {
 
 		if ( $query_vars['page_id'] ) {
 			if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) == $query_vars['page_id'] ) {
-		if ( $qv['page_id'] ) {
-			if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) == $qv['page_id'] ) {
-				$posts_page = get_post( $this->queried_object_id );
+				$posts_page = get_post( $query_vars['page_id'] );
 				if ( ! $posts_page || 'publish' !== $posts_page->post_status ) {
 					$this->set_404();
 					return;
