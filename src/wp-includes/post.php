@@ -4435,9 +4435,9 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 }
 
 /**
- * Inserts or update a post.
+ * Inserts or updates a post.
  *
- * If the $postarr parameter has 'ID' set to a value, then post will be updated.
+ * If the $postarr parameter has 'ID' set to a value, then the post will be updated.
  *
  * You can set the post date manually, by setting the values for 'post_date'
  * and 'post_date_gmt' keys. You can close the comments or open the comments by
@@ -4502,6 +4502,43 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  * @param bool  $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool  $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
+ *
+ * @example Insert a new post:
+ * $post_id = wp_insert_post( [
+ *     'post_title'    => 'My New Post',
+ *     'post_content'  => 'This is the content of the post.',
+ *     'post_status'   => 'publish',
+ *     'post_author'   => 1,
+ *     'post_category' => [1, 2],
+ *     'tags_input'    => ['example', 'sample'],
+ *     'meta_input'    => [
+ *         'custom_key' => 'custom value',
+ *     ],
+ * ] );
+ *
+ * if ( is_wp_error( $post_id ) ) {
+ *     // Handle error.
+ *     echo 'Error: ' . $post_id->get_error_message();
+ * } else {
+ *     echo 'Post inserted with ID: ' . $post_id;
+ * }
+ *
+ * @example Update an existing post:
+ * $update_result = wp_insert_post( [
+ *     'ID'           => 123, // ID of the post to update.
+ *     'post_title'   => 'Updated Title',
+ *     'post_content' => 'Updated content goes here.',
+ *     'meta_input'   => [
+ *         'custom_key' => 'new value',
+ *     ],
+ * ] );
+ *
+ * if ( is_wp_error( $update_result ) ) {
+ *     // Handle error.
+ *     echo 'Error updating post: ' . $update_result->get_error_message();
+ * } else {
+ *     echo 'Post updated with ID: ' . $update_result;
+ * }
  */
 function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true ) {
 	global $wpdb;
