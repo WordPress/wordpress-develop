@@ -2101,7 +2101,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			if ( rest_is_field_included( 'class_list', $fields ) ) {
-				$data['class_list'] = array_values( get_post_class( array(), $post->ID ) );
+				$data['class_list'] = get_post_class( array(), $post->ID );
 			}
 		}
 
