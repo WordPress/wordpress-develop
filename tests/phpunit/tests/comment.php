@@ -1676,6 +1676,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Tests that trashing a top-level note also trashes all direct child notes.
 	 *
+	 * @ticket 64240
 	 * @covers ::wp_trash_comment
 	 * @dataProvider data_comment_approved_statuses
 	 */
@@ -1743,6 +1744,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Tests that trashing a regular comment does NOT trash its children.
 	 *
+	 * @ticket 64240
 	 * @covers ::wp_trash_comment
 	 */
 	public function test_wp_trash_comment_does_not_trash_child_comments() {
@@ -1789,6 +1791,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Tests that trashing a child note does not affect parent or siblings.
 	 *
+	 * @ticket 64240
 	 * @covers ::wp_trash_comment
 	 */
 	public function test_wp_trash_comment_child_note_does_not_affect_parent_or_siblings() {
@@ -1847,6 +1850,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Tests that only top-level notes trigger child deletion.
 	 *
+	 * @ticket 64240
 	 * @covers ::wp_trash_comment
 	 */
 	public function test_wp_trash_comment_only_top_level_notes_trigger_child_deletion() {
