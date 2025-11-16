@@ -1163,7 +1163,7 @@
 	grid-column-start: 4;
 }
 
-.about-wrap .column :first-child {
+.about-wrap .column:first-child {
 	margin-top: 0;
 }
 
