@@ -681,7 +681,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return integer|null
+	 * @return int|null
 	 */
 	public static function get_user_global_styles_post_id() {
 		if ( null !== static::$user_custom_post_type_id ) {
@@ -704,7 +704,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.9.0 Added a check in the parent theme.
 	 * @deprecated 6.2.0 Use wp_theme_has_theme_json() instead.
 	 *
-	 * @return bool
+	 * @return bool Whether the theme has theme.json support.
 	 */
 	public static function theme_has_support() {
 		_deprecated_function( __METHOD__, '6.2.0', 'wp_theme_has_theme_json()' );
@@ -780,7 +780,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @param array  $variation Theme.json shaped style variation object.
 	 * @param string $scope     Scope to check e.g. theme, block etc.
-	 * @return boolean
+	 * @return bool
 	 */
 	private static function style_variation_has_scope( $variation, $scope ) {
 		if ( 'block' === $scope ) {
@@ -805,7 +805,7 @@ class WP_Theme_JSON_Resolver {
 	 *              Added basic caching for read theme.json partial files.
 	 *
 	 * @param string $scope The scope or type of style variation to retrieve e.g. theme, block etc.
-	 * @return array
+	 * @return array An array of style variations.
 	 */
 	public static function get_style_variations( $scope = 'theme' ) {
 		$variation_files    = array();
