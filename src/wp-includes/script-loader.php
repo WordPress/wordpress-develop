@@ -3445,6 +3445,7 @@ function wp_enqueue_command_palette_assets() {
 	 * @param string $label HTML string to extract text from.
 	 * @return string Extracted text content, trimmed.
 	 */
+
 	$extract_root_text = static function ( $label ) {
 		if ( '' === $label ) {
 			return '';
@@ -3470,14 +3471,14 @@ function wp_enqueue_command_palette_assets() {
 
 			if ( $processor->is_tag_closer() ) {
 				if ( $depth > 0 ) {
-					$depth--;
+					--$depth;
 				}
 				continue;
 			}
 
 			$token_name = $processor->get_tag();
 			if ( $token_name && ! WP_HTML_Processor::is_void( $token_name ) ) {
-				$depth++;
+				++$depth;
 			}
 		}
 
