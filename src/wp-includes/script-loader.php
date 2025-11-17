@@ -3450,16 +3450,35 @@ function wp_enqueue_command_palette_assets() {
 			return '';
 		}
 
-		$processor  = WP_HTML_Processor::create_fragment( $label );
+		$processor  = new WP_HTML_Tag_Processor( $label );
 		$text_parts = array();
+		$depth      = 0;
 
-		if ( $processor->next_token() ) {
-			$root_depth = $processor->get_current_depth();
-			do {
-				if ( '#text' === $processor->get_token_type() && $root_depth === $processor->get_current_depth() ) {
+		while ( $processor->next_token() ) {
+			$token_type = $processor->get_token_type();
+
+			if ( '#text' === $token_type ) {
+				if ( 0 === $depth ) {
 					$text_parts[] = $processor->get_modifiable_text();
 				}
-			} while ( $processor->next_token() );
+				continue;
+			}
+
+			if ( '#tag' !== $token_type ) {
+				continue;
+			}
+
+			if ( $processor->is_tag_closer() ) {
+				if ( $depth > 0 ) {
+					$depth--;
+				}
+				continue;
+			}
+
+			$token_name = $processor->get_tag();
+			if ( $token_name && ! WP_HTML_Processor::is_void( $token_name ) ) {
+				$depth++;
+			}
 		}
 
 		return trim( implode( '', $text_parts ) );
