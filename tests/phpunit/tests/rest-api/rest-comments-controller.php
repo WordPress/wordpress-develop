@@ -4150,19 +4150,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'post_id'          => self::$post_id,
 		);
 
-		$count_1 = 5;
+		$count_1              = 5;
 		$args['comment_type'] = $comment_type_1;
 		for ( $i = 0; $i < $count_1; $i++ ) {
 			self::factory()->comment->create( $args );
 		}
 
-		$count_2 = 9;
+		$count_2              = 9;
 		$args['comment_type'] = $comment_type_2;
 		for ( $i = 0; $i < $count_2; $i++ ) {
 			self::factory()->comment->create( $args );
 		}
 
-		$count_3 = 3;
+		$count_3              = 3;
 		$args['comment_type'] = $note_comment_type;
 		for ( $i = 0; $i < $count_3; $i++ ) {
 			self::factory()->comment->create( $args );
@@ -4206,7 +4206,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
 
 		$request->set_param( 'comment_type', $note_comment_type );
-		foreach( $note_type_ids as $note_type_id ) {
+		foreach ( $note_type_ids as $note_type_id ) {
 			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $note_type_id ) );
 			$response = rest_get_server()->dispatch( $request );
 			$this->assertEquals( 401, $response->get_status() );
