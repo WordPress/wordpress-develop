@@ -940,7 +940,7 @@ class Services_JSON
      * @deprecated 5.3.0 Use the PHP native JSON extension instead.
      *
      * @param string
-     * @return int length
+     * @return integer length
      */
     function strlen8( $str ) 
     {
@@ -958,9 +958,9 @@ class Services_JSON
      * @deprecated 5.3.0 Use the PHP native JSON extension instead.
      *
      * @param string
-     * @param int start
-     * @param int length
-     * @return int length
+     * @param integer start
+     * @param integer length
+     * @return integer length
      */
     function substr8( $string, $start, $length=false ) 
     {
