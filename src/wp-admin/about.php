@@ -138,7 +138,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Performance updates' ); ?></h3>
-				<p><?php _e( 'WordPress 6.9 includes a broad set of performance enhancements. A better LCP metric by improvements in loading conditional and inlined stylesheet, script with fetchpriority support, and core optimizations, and Editor advances like fixes in layout shifts caused by the Video block, and a quicker load of the terms selector.' ); ?></p>
+				<p><?php _e( 'WordPress 6.9 includes a broad set of performance enhancements. A better <abbr title="Largest Contentful Paint">LCP</abbr> metric is achieved through improved loading of conditional and inlined stylesheets, script loading with fetchpriority support, and additional core optimizations. Editor advances include fixes for layout shifts caused by the Video block and faster loading of the terms selector.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">
