@@ -6625,7 +6625,7 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
  *
  * @param string $selected_zone Selected timezone.
  * @param string $locale        Optional. Locale to load the timezones in. Default current site locale.
- * @return string HTML select element of timezones.
+ * @return string HTML select element for timezones.
  */
 function wp_timezone_choice( $selected_zone, $locale = null ) {
 	static $mo_loaded = false, $locale_loaded = null;
@@ -6827,7 +6827,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
  * @see https://core.trac.wordpress.org/ticket/8497
  *
  * @param string $str Header comment to clean up.
- * @return string Cleaned up header comment.
+ * @return string Cleaned header comment.
  */
 function _cleanup_header_comment( $str ) {
 	return trim( preg_replace( '/\s*(?:\*\/|\?>).*/', '', $str ) );

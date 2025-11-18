@@ -681,7 +681,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return int|null
+	 * @return int|null Custom post type ID.
 	 */
 	public static function get_user_global_styles_post_id() {
 		if ( null !== static::$user_custom_post_type_id ) {
@@ -780,7 +780,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @param array  $variation Theme.json shaped style variation object.
 	 * @param string $scope     Scope to check e.g. theme, block etc.
-	 * @return bool
+	 * @return bool Whether the supplied style variation matches the provided scope.
 	 */
 	private static function style_variation_has_scope( $variation, $scope ) {
 		if ( 'block' === $scope ) {
