@@ -4140,6 +4140,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 */
 	public function data_comment_type_provider() {
 		return array(
+			'comment type'    => array( 'comment', 5 ),
 			'annotation type' => array( 'annotation', 5 ),
 			'discussion type' => array( 'discussion', 9 ),
 			'note type'       => array( 'note', 3 ),
@@ -4172,12 +4173,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'type', $comment_type );
+		$request->set_param( 'per_page', self::$per_page );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comments = $response->get_data();
-		$this->assertCount( $count, $comments );
+		$this->assertCount( 'comment' === $comment_type ? $count + self::$total_comments: $count, $comments );
 	}
 
 	/**
@@ -4212,8 +4214,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'per_page', self::$per_page );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 401, $response->get_status() );
-		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
+		$this->assertEquals( 'comment' === $comment_type ? 200 : 401, $response->get_status() );
+		if ( 'comment' !== $comment_type ) {
+			$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
+		}
 	}
 
 	/**
@@ -4244,6 +4248,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment_id ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertEquals( 'comment' === $comment_type ? 200 : 401, $response->get_status() );
+		if ( 'comment' !== $comment_type ) {
+			$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
+		}
 	}
 }
