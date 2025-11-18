@@ -1890,7 +1890,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return bool Whether the comment can be read.
 	 */
 	protected function check_read_permission( $comment, $request ) {
-		if ( 'comment' === $comment->comment_type && ! empty( $comment->comment_post_ID ) ) {
+		if ( 'note' !== $comment->comment_type && ! empty( $comment->comment_post_ID ) ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( $post ) {
 				if ( $this->check_read_post_permission( $post, $request ) && 1 === (int) $comment->comment_approved ) {

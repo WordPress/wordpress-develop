@@ -4226,8 +4226,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'per_page', self::$per_page );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 'comment' === $comment_type ? 200 : 401, $response->get_status() );
-		if ( 'comment' !== $comment_type ) {
+		$this->assertEquals( 'note' !== $comment_type ? 200 : 401, $response->get_status() );
+		if ( 'note' === $comment_type ) {
 			$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
 		}
 
@@ -4235,7 +4235,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		foreach( $comments as $comment ) {
 			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment ) );
 			$response = rest_get_server()->dispatch( $request );
-			$this->assertEquals( 'comment' === $comment_type ? 200 : 401, $response->get_status() );
+			$this->assertEquals( 'note' !== $comment_type ? 200 : 401, $response->get_status() );
 		}
 	}
 
