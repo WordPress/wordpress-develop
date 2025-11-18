@@ -4134,89 +4134,116 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertStringContainsString( 'type=note', $children[0]['href'] );
 	}
 	/**
-	 * Test comment permissions.
+	 * Data provider for comment type tests.
 	 *
-	 * @ticket 44157
+	 * @return array
 	 */
-	public function test_get_items_type_arg() {
+	public function data_comment_type_provider() {
+		return array(
+			'annotation type' => array( 'annotation', 5 ),
+			'discussion type' => array( 'discussion', 9 ),
+			'note type'       => array( 'note', 3 ),
+		);
+	}
+
+	/**
+	 * Test retrieving comments by type as authenticated user.
+	 *
+	 * @dataProvider data_comment_type_provider
+	 * @ticket 44157
+	 *
+	 * @param string $comment_type The comment type to test.
+	 * @param int    $count        The number of comments to create.
+	 */
+	public function test_get_items_type_arg_authenticated( $comment_type, $count ) {
 		wp_set_current_user( self::$admin_id );
-		$comment_type_1    = 'annotation';
-		$comment_type_2    = 'discussion';
-		$note_comment_type = 'note';
-		$args              = array(
+
+		$args = array(
 			'comment_approved' => 1,
 			'comment_post_ID'  => self::$post_id,
 			'user_id'          => self::$author_id,
-			'post_id'          => self::$post_id,
+			'comment_type'     => $comment_type,
 		);
 
-		$count_1              = 5;
-		$args['comment_type'] = $comment_type_1;
-		for ( $i = 0; $i < $count_1; $i++ ) {
-			self::factory()->comment->create( $args );
-		}
-
-		$count_2              = 9;
-		$args['comment_type'] = $comment_type_2;
-		for ( $i = 0; $i < $count_2; $i++ ) {
-			self::factory()->comment->create( $args );
-		}
-
-		$count_3              = 3;
-		$args['comment_type'] = $note_comment_type;
-		for ( $i = 0; $i < $count_3; $i++ ) {
+		// Create comments of the specified type.
+		for ( $i = 0; $i < $count; $i++ ) {
 			self::factory()->comment->create( $args );
 		}
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$request->set_param( 'type', $comment_type_1 );
+		$request->set_param( 'type', $comment_type );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
-		$comments = $response->get_data();
-		$this->assertCount( $count_1, $comments );
 
-		$request->set_param( 'type', $comment_type_2 );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();
-		$this->assertCount( $count_2, $comments );
-		$comment_type_ids = wp_list_pluck( $comments, 'id' );
+		$this->assertCount( $count, $comments );
+	}
 
-		$request->set_param( 'type', $note_comment_type );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-		$comments = $response->get_data();
-		$this->assertCount( $count_3, $comments );
-		$note_type_ids = wp_list_pluck( $comments, 'id' );
+	/**
+	 * Test retrieving comments by type as unauthenticated user.
+	 *
+	 * @dataProvider data_comment_type_provider
+	 * @ticket 44157
+	 *
+	 * @param string $comment_type The comment type to test.
+	 * @param int    $count        The number of comments to create.
+	 */
+	public function test_get_items_type_arg_unauthenticated( $comment_type, $count ) {
+		// First, create comments as admin.
+		wp_set_current_user( self::$admin_id );
 
-		// Log out the current user.
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => self::$post_id,
+			'user_id'          => self::$author_id,
+			'comment_type'     => $comment_type,
+		);
+
+		for ( $i = 0; $i < $count; $i++ ) {
+			self::factory()->comment->create( $args );
+		}
+
+		// Log out and test as unauthenticated user.
 		wp_logout();
 
-		$request->set_param( 'type', 'comments' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'type', $comment_type );
 		$request->set_param( 'per_page', self::$per_page );
+
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 401, $response->get_status() );
-		$comments = $response->get_data();
 		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
+	}
 
-		$request->set_param( 'comment_type', $comment_type_2 );
+	/**
+	 * Test retrieving individual comments by type as unauthenticated user.
+	 *
+	 * @dataProvider data_comment_type_provider
+	 * @ticket 44157
+	 *
+	 * @param string $comment_type The comment type to test.
+	 * @param int    $count        The number of comments to create (only 1 used).
+	 */
+	public function test_get_individual_comment_type_unauthenticated( $comment_type, $count ) {
+		// Create a single comment as admin.
+		wp_set_current_user( self::$admin_id );
+
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => self::$post_id,
+			'user_id'          => self::$author_id,
+			'comment_type'     => $comment_type,
+		);
+
+		$comment_id = self::factory()->comment->create( $args );
+
+		// Log out and test as unauthenticated user.
+		wp_logout();
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment_id ) );
 		$response = rest_get_server()->dispatch( $request );
-		$comments = $response->get_data();
-		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
 
-		$request->set_param( 'comment_type', $note_comment_type );
-		foreach ( $note_type_ids as $note_type_id ) {
-			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $note_type_id ) );
-			$response = rest_get_server()->dispatch( $request );
-			$this->assertEquals( 401, $response->get_status() );
-		}
-
-		// Custom comment types should also not be visible to unauthenticated users.
-		foreach ( $comment_type_ids as $comment_type_id ) {
-			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment_type_id ) );
-			$response = rest_get_server()->dispatch( $request );
-			$this->assertEquals( 401, $response->get_status() );
-		}
+		$this->assertEquals( 401, $response->get_status() );
 	}
 }
