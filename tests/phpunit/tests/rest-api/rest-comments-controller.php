@@ -4180,6 +4180,16 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$comments = $response->get_data();
 		$this->assertCount( 'comment' === $comment_type ? $count + self::$total_comments: $count, $comments );
+
+		// Next, test getting the individual comments.
+		foreach( $comments as $comment ) {
+			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment['id'] ) );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertEquals( 200, $response->get_status() );
+			$data = $response->get_data();
+			$this->assertEquals( $comment_type, $data['type'] );
+		}
 	}
 
 	/**
@@ -4202,8 +4212,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'comment_type'     => $comment_type,
 		);
 
+		$comments = array();
+
 		for ( $i = 0; $i < $count; $i++ ) {
-			self::factory()->comment->create( $args );
+			$comments[] = self::factory()->comment->create( $args );
 		}
 
 		// Log out and test as unauthenticated user.
@@ -4217,6 +4229,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 'comment' === $comment_type ? 200 : 401, $response->get_status() );
 		if ( 'comment' !== $comment_type ) {
 			$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
+		}
+
+		// Next, test getting the individual comments.
+		foreach( $comments as $comment ) {
+			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment ) );
+			$response = rest_get_server()->dispatch( $request );
+			$this->assertEquals( 'comment' === $comment_type ? 200 : 401, $response->get_status() );
 		}
 	}
 
