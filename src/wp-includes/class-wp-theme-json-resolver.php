@@ -681,7 +681,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @return int|null Custom post type ID.
+	 * @return int|null ID for a post of type `wp_global_styles`.
 	 */
 	public static function get_user_global_styles_post_id() {
 		if ( null !== static::$user_custom_post_type_id ) {
