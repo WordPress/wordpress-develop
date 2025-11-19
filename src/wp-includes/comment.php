@@ -2769,7 +2769,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
  * @since 2.5.0
  *
  * @param bool $defer
- * @return bool Current defer status.
+ * @return bool Whether comment counting is deferred.
  */
 function wp_defer_comment_counting( $defer = null ) {
 	static $_defer = false;
