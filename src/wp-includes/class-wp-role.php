@@ -25,7 +25,7 @@ class WP_Role {
 	/**
 	 * Role display name.
 	 *
-	 * @since 6.9
+	 * @since 6.9.0
 	 * @var string
 	 */
 	public $display_name;
