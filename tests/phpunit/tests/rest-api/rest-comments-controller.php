@@ -4226,50 +4226,24 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'per_page', self::$per_page );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 'note' !== $comment_type ? 200 : 401, $response->get_status() );
-		if ( 'note' === $comment_type ) {
+
+		// Only comments can be retrieved from the /comments (multiple) endpoint when unauthenticated.
+		$this->assertEquals( 'comment' === $comment_type ? 200 : 401, $response->get_status() );
+		if ( 'comment' !== $comment_type ) {
 			$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
 		}
 
-		// Next, test getting the individual comments.
+		// Individual comments.
 		foreach( $comments as $comment ) {
 			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment ) );
 			$response = rest_get_server()->dispatch( $request );
-			$this->assertEquals( 'note' !== $comment_type ? 200 : 401, $response->get_status() );
+
+			// Individual comments using the /comments/<id> endpoint can (unexpectedly) be
+			// retrieved by unauthenticated users - except for the 'note' type which is restricted.
+			// See https://core.trac.wordpress.org/ticket/44157.
+			$this->assertEquals( 'note' === $comment_type ? 401 : 200, $response->get_status() );
 		}
 	}
 
-	/**
-	 * Test retrieving individual comments by type as unauthenticated user.
-	 *
-	 * @dataProvider data_comment_type_provider
-	 * @ticket 44157
-	 *
-	 * @param string $comment_type The comment type to test.
-	 * @param int    $count        The number of comments to create (only 1 used).
-	 */
-	public function test_get_individual_comment_type_unauthenticated( $comment_type, $count ) {
-		// Create a single comment as admin.
-		wp_set_current_user( self::$admin_id );
 
-		$args = array(
-			'comment_approved' => 1,
-			'comment_post_ID'  => self::$post_id,
-			'user_id'          => self::$author_id,
-			'comment_type'     => $comment_type,
-		);
-
-		$comment_id = self::factory()->comment->create( $args );
-
-		// Log out and test as unauthenticated user.
-		wp_logout();
-
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment_id ) );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertEquals( 'comment' === $comment_type ? 200 : 401, $response->get_status() );
-		if ( 'comment' !== $comment_type ) {
-			$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
-		}
-	}
 }
