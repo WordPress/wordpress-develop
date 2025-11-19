@@ -972,10 +972,35 @@ function redirect_guess_404_permalink() {
 		 */
 		$strict_guess = apply_filters( 'strict_redirect_guess_404_permalink', false );
 
+		// Build WP_Query arguments.
+		$query_args = array(
+			'post_status'         => $publicly_viewable_statuses,
+			'posts_per_page'      => 1,
+			'no_found_rows'       => true,
+			'ignore_sticky_posts' => true,
+			'fields'              => 'ids',
+		);
+
+		// Handle strict vs. loose post_name matching.
 		if ( $strict_guess ) {
-			$where = $wpdb->prepare( 'post_name = %s', get_query_var( 'name' ) );
+			$query_args['name'] = get_query_var( 'name' );
 		} else {
-			$where = $wpdb->prepare( 'post_name LIKE %s', $wpdb->esc_like( get_query_var( 'name' ) ) . '%' );
+			// For loose matching (LIKE), we'll use a posts_where filter.
+			$post_name_for_filter = get_query_var( 'name' );
+
+			// Store the filter callback so we can remove it later.
+			$post_name_where_filter = function ( $where, $query ) use ( $post_name_for_filter, $wpdb ) {
+				// Only apply to our specific query.
+				if ( isset( $query->query_vars['redirect_guess_404'] ) && $query->query_vars['redirect_guess_404'] ) {
+					$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_name LIKE %s", $wpdb->esc_like( $post_name_for_filter ) . '%' );
+				}
+				return $where;
+			};
+
+			add_filter( 'posts_where', $post_name_where_filter, 10, 2 );
+
+			// Mark this query so our filter knows to apply the LIKE clause.
+			$query_args['redirect_guess_404'] = true;
 		}
 
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.
@@ -985,33 +1010,45 @@ function redirect_guess_404_permalink() {
 				if ( empty( $post_types ) ) {
 					return false;
 				}
-				$where .= " AND post_type IN ('" . join( "', '", esc_sql( get_query_var( 'post_type' ) ) ) . "')";
+				$query_args['post_type'] = $post_types;
 			} else {
 				if ( ! in_array( get_query_var( 'post_type' ), $publicly_viewable_post_types, true ) ) {
 					return false;
 				}
-				$where .= $wpdb->prepare( ' AND post_type = %s', get_query_var( 'post_type' ) );
+				$query_args['post_type'] = get_query_var( 'post_type' );
 			}
 		} else {
-			$where .= " AND post_type IN ('" . implode( "', '", esc_sql( $publicly_viewable_post_types ) ) . "')";
+			$query_args['post_type'] = $publicly_viewable_post_types;
 		}
 
+		// Handle date queries.
+		$date_query = array();
 		if ( get_query_var( 'year' ) ) {
-			$where .= $wpdb->prepare( ' AND YEAR(post_date) = %d', get_query_var( 'year' ) );
+			$date_query['year'] = get_query_var( 'year' );
 		}
 		if ( get_query_var( 'monthnum' ) ) {
-			$where .= $wpdb->prepare( ' AND MONTH(post_date) = %d', get_query_var( 'monthnum' ) );
+			$date_query['month'] = get_query_var( 'monthnum' );
 		}
 		if ( get_query_var( 'day' ) ) {
-			$where .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
+			$date_query['day'] = get_query_var( 'day' );
+		}
+		if ( ! empty( $date_query ) ) {
+			$query_args['date_query'] = array( $date_query );
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')" );
+		// Execute the query.
+		$query = new WP_Query( $query_args );
 
-		if ( ! $post_id ) {
+		// Clean up the filter if we added it (remove only our specific callback).
+		if ( ! $strict_guess && isset( $post_name_where_filter ) ) {
+			remove_filter( 'posts_where', $post_name_where_filter, 10 );
+		}
+
+		if ( empty( $query->posts ) ) {
 			return false;
 		}
+
+		$post_id = $query->posts[0];
 
 		if ( get_query_var( 'feed' ) ) {
 			return get_post_comments_feed_link( $post_id, get_query_var( 'feed' ) );
