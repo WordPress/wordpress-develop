@@ -306,7 +306,7 @@ function get_user_to_edit( $user_id ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID.
- * @return array Array of the user's draft posts.
+ * @return object[] The user's draft posts, with 'ID' and 'post_title' keys.
  */
 function get_users_drafts( $user_id ) {
 	global $wpdb;
