@@ -4133,10 +4133,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertStringContainsString( 'status=all', $children[0]['href'] );
 		$this->assertStringContainsString( 'type=note', $children[0]['href'] );
 	}
+
 	/**
 	 * Data provider for comment type tests.
 	 *
-	 * @return array
+	 * @return array[] Data provider.
 	 */
 	public function data_comment_type_provider() {
 		return array(
