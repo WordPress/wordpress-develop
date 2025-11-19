@@ -185,7 +185,7 @@ function next_widget_id_number( $id_base ) {
  * @global array $sidebars_widgets
  *
  * @param array $sidebar_args
- * @return array Updated sidebar args array.
+ * @return array Passed through value of `$sidebar_args` param.
  */
 function wp_widget_control( $sidebar_args ) {
 	global $wp_registered_widgets, $wp_registered_widget_controls, $sidebars_widgets;
