@@ -704,7 +704,7 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.9.0 Added a check in the parent theme.
 	 * @deprecated 6.2.0 Use wp_theme_has_theme_json() instead.
 	 *
-	 * @return bool Whether the theme has theme.json support.
+	 * @return bool Whether the active theme has a theme.json file.
 	 */
 	public static function theme_has_support() {
 		_deprecated_function( __METHOD__, '6.2.0', 'wp_theme_has_theme_json()' );
