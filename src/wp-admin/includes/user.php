@@ -603,7 +603,7 @@ function use_ssl_preference( $user ) {
  * @since MU (3.0.0)
  *
  * @param string $text
- * @return string Modified email text.
+ * @return string User site invitation email message.
  */
 function admin_created_user_email( $text ) {
 	$roles = get_editable_roles();
