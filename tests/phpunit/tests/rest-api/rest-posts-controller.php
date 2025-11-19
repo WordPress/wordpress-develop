@@ -2800,8 +2800,9 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$response = rest_do_request( $request );
 		$data     = $response->get_data();
 
-		$this->assertTrue( isset( $data['class_list'] ) );
-		$this->assertTrue( array_is_list( $data['class_list'] ) );
+		$this->assertArrayHasKey( 'class_list', $data );
+		$this->assertContains( 'duplicate-class', $data['class_list'] );
+		$this->assertTrue( array_is_list( $data['class_list'] ), 'Expected class_list to be a list.' );
 	}
 
 	public function test_create_item() {
