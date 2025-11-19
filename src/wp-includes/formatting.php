@@ -803,7 +803,7 @@ function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
  * @access private
  *
  * @param array $matches preg_replace_callback matches array
- * @return string Text with newlines converted to placeholders.
+ * @return string Text with newlines replaced with placeholders.
  */
 function _autop_newline_preservation_helper( $matches ) {
 	return str_replace( "\n", '<WPPreserveNewline />', $matches[0] );
