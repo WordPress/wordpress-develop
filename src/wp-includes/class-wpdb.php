@@ -467,7 +467,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $blogs;
 
@@ -476,7 +476,7 @@ class wpdb {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $blogmeta;
 
@@ -485,7 +485,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $registration_log;
 
@@ -494,7 +494,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $signups;
 
@@ -503,7 +503,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $site;
 
@@ -512,7 +512,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $sitecategories;
 
@@ -521,7 +521,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $sitemeta;
 
@@ -960,13 +960,7 @@ class wpdb {
 				return;
 			}
 
-			$modes_str = $modes_array[0];
-
-			if ( empty( $modes_str ) ) {
-				return;
-			}
-
-			$modes = explode( ',', $modes_str );
+			$modes = explode( ',', $modes_array[0] );
 		}
 
 		$modes = array_change_key_case( $modes, CASE_UPPER );
