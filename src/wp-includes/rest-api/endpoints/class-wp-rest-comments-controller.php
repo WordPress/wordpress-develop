@@ -198,6 +198,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! current_user_can( 'edit_posts' ) ) {
+			foreach ( $protected_params as $param ) {
+				if ( 'status' === $param ) {
+					if ( 'approve' !== $request[ $param ] ) {
+						$forbidden_params[] = $param;
+					}
+				} elseif ( 'type' === $param ) {
+					if ( 'comment' !== $request[ $param ] ) {
+						$forbidden_params[] = $param;
+					}
+				} elseif ( ! empty( $request[ $param ] ) ) {
+					$forbidden_params[] = $param;
+				}
+			}
+
 			if ( ! empty( $forbidden_params ) ) {
 				return new WP_Error(
 					'rest_forbidden_param',
