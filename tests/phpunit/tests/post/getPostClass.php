@@ -135,4 +135,27 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
+
+	/**
+	 * @ticket 64247
+	 */
+	public function test_class_list_is_list() {
+
+		// Filter 'post_class' to add a duplicate, which should be removed by `array_unique()`, causing a non-indexed array.
+		add_filter(
+			'post_class',
+			function ( $classes ) {
+				return array_merge(
+					array( 'duplicate-class', 'duplicate-class' ),
+					$classes
+				);
+			}
+		);
+
+		$class_list = get_post_class( 'original', $this->post_id );
+
+		$this->assertTrue( array_is_list( $class_list ), 'Expected get_post_class() to return list.' );
+		$this->assertContains( 'duplicate-class', $class_list );
+		$this->assertContains( 'original', $class_list );
+	}
 }
