@@ -4176,19 +4176,20 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'per_page', self::$per_page );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status(), 'Comments endpoint is expected to return a 200 status' );
 
-		$comments = $response->get_data();
-		$this->assertCount( 'comment' === $comment_type ? $count + self::$total_comments : $count, $comments );
+		$comments       = $response->get_data();
+		$expected_count = 'comment' === $comment_type ? $count + self::$total_comments : $count;
+		$this->assertCount( $expected_count, $comments, "comment type '{$comment_type}' is expect to have {$expected_count} comments" );
 
 		// Next, test getting the individual comments.
 		foreach ( $comments as $comment ) {
 			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment['id'] ) );
 			$response = rest_get_server()->dispatch( $request );
 
-			$this->assertEquals( 200, $response->get_status() );
+			$this->assertSame( 200, $response->get_status(), 'Individual comment endpoint is expected to return a 200 status' );
 			$data = $response->get_data();
-			$this->assertEquals( $comment_type, $data['type'] );
+			$this->assertSame( $comment_type, $data['type'], "Individual comment is expected to have type '{$comment_type}'" );
 		}
 	}
 
@@ -4228,9 +4229,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 
 		// Only comments can be retrieved from the /comments (multiple) endpoint when unauthenticated.
-		$this->assertEquals( 'comment' === $comment_type ? 200 : 401, $response->get_status() );
+		$expected_status = 'comment' === $comment_type ? 200 : 401;
+		$this->assertSame( $expected_status, $response->get_status(), 'Comments endpoint did not return the expected status' );
 		if ( 'comment' !== $comment_type ) {
-			$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
+			$this->assertErrorResponse( 'rest_forbidden_param', $response, 401, 'Comments endpoint did not return the expected error response for forbidden parameters' );
 		}
 
 		// Individual comments.
@@ -4241,7 +4243,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			// Individual comments using the /comments/<id> endpoint can (unexpectedly) be
 			// retrieved by unauthenticated users - except for the 'note' type which is restricted.
 			// See https://core.trac.wordpress.org/ticket/44157.
-			$this->assertEquals( 'note' === $comment_type ? 401 : 200, $response->get_status() );
+			$this->assertSame( 'note' === $comment_type ? 401 : 200, $response->get_status(), 'Individual comment endpoint did not return the expected status' );
 		}
 	}
 }
