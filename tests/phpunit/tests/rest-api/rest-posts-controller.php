@@ -2785,7 +2785,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	public function test_class_list_is_list() {
 		$post_id = self::factory()->post->create();
 
-		// Filter 'post_class' to add a duplicate, which should be removed by `array_unique()`, causing a non-indexed array.
+		// Filter 'post_class' to add a duplicate which should be removed by `array_unique()`.
 		add_filter(
 			'post_class',
 			function ( $classes ) {

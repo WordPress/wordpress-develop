@@ -139,9 +139,9 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 	/**
 	 * @ticket 64247
 	 */
-	public function test_class_list_is_list() {
+	public function test_list_return_value_when_duplicate_classes() {
 
-		// Filter 'post_class' to add a duplicate, which should be removed by `array_unique()`, causing a non-indexed array.
+		// Filter 'post_class' to add a duplicate which should be removed by `array_unique()`.
 		add_filter(
 			'post_class',
 			function ( $classes ) {
@@ -153,7 +153,6 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 		);
 
 		$class_list = get_post_class( 'original', $this->post_id );
-
 		$this->assertTrue( array_is_list( $class_list ), 'Expected get_post_class() to return list.' );
 		$this->assertContains( 'duplicate-class', $class_list );
 		$this->assertContains( 'original', $class_list );
