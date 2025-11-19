@@ -4241,8 +4241,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment ) );
 			$response = rest_get_server()->dispatch( $request );
 
-			// Individual comments using the /comments/<id> endpoint can (unexpectedly) be
-			// retrieved by unauthenticated users - except for the 'note' type which is restricted.
+			// Individual comments using the /comments/<id> endpoint can be retrieved by
+			// unauthenticated users - except for the 'note' type which is restricted.
 			// See https://core.trac.wordpress.org/ticket/44157.
 			$this->assertSame( 'note' === $comment_type ? 401 : 200, $response->get_status(), 'Individual comment endpoint did not return the expected status' );
 		}
