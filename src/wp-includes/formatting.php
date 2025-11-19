@@ -4809,7 +4809,7 @@ EOF;
  * @since 6.5.5 Allow hyphens in tag names (i.e. custom elements).
  *
  * @param string $tag_name
- * @return string Escaped tag name.
+ * @return string Sanitized tag name.
  */
 function tag_escape( $tag_name ) {
 	$safe_tag = strtolower( preg_replace( '/[^a-zA-Z0-9-_:]/', '', $tag_name ) );
