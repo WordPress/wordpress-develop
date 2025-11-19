@@ -805,7 +805,7 @@ class WP_Theme_JSON_Resolver {
 	 *              Added basic caching for read theme.json partial files.
 	 *
 	 * @param string $scope The scope or type of style variation to retrieve e.g. theme, block etc.
-	 * @return array An array of style variations.
+	 * @return array The style variations defined by the theme.
 	 */
 	public static function get_style_variations( $scope = 'theme' ) {
 		$variation_files    = array();
