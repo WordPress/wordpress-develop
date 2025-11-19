@@ -4179,10 +4179,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comments = $response->get_data();
-		$this->assertCount( 'comment' === $comment_type ? $count + self::$total_comments: $count, $comments );
+		$this->assertCount( 'comment' === $comment_type ? $count + self::$total_comments : $count, $comments );
 
 		// Next, test getting the individual comments.
-		foreach( $comments as $comment ) {
+		foreach ( $comments as $comment ) {
 			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment['id'] ) );
 			$response = rest_get_server()->dispatch( $request );
 
@@ -4234,7 +4234,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		}
 
 		// Individual comments.
-		foreach( $comments as $comment ) {
+		foreach ( $comments as $comment ) {
 			$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment ) );
 			$response = rest_get_server()->dispatch( $request );
 
@@ -4244,6 +4244,4 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$this->assertEquals( 'note' === $comment_type ? 401 : 200, $response->get_status() );
 		}
 	}
-
-
 }
