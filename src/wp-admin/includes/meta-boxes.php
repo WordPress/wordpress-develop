@@ -1677,10 +1677,10 @@ function register_and_do_post_meta_boxes( $post ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string                    $post_type Post type of the current screen. Can be 'post', 'page',
-	 *                                             custom post types, 'comment', or 'link'.
-	 * @param WP_Post|WP_Comment|object $post      The post, comment, or link object. Type varies depending on
-	 *                                             `$post_type`.
+	 * @param string                    $object_type The type of the current object that meta boxes were added to.
+	 *                                               Can be 'post', 'page', custom post types, 'comment', or 'link'.
+	 * @param WP_Post|WP_Comment|object $object      The post, comment, or link object. Type varies depending on
+	 *                                               `$post_type`.
 	 */
 	do_action( 'add_meta_boxes', $post_type, $post );
 
@@ -1700,8 +1700,8 @@ function register_and_do_post_meta_boxes( $post ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param WP_Post|WP_Comment|object $post The post, comment, or link object. Type varies depending on
-	 *                                        the hook name.
+	 * @param WP_Post|WP_Comment|object $object The post, comment, or link object. Type varies depending on
+	 *                                          the hook name.
 	 */
 	do_action( "add_meta_boxes_{$post_type}", $post );
 
