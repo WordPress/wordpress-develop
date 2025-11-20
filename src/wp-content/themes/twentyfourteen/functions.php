@@ -315,7 +315,7 @@ if ( ! function_exists( 'twentyfourteen_font_url' ) ) :
 	 * @since Twenty Fourteen 1.0
 	 * @since Twenty Fourteen 3.6 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string Fonts URL for the theme.
+	 * @return string Font stylesheet or empty string if disabled.
 	 */
 	function twentyfourteen_font_url() {
 		$font_url = '';
