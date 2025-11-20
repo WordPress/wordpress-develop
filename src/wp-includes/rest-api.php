@@ -254,7 +254,7 @@ function rest_sanitize_schema_properties_recursive( $data ) {
 	// Process nested elements recursively.
 	foreach ( $data_array as $key => $value ) {
 		if ( is_array( $value ) || is_object( $value ) ) {
-			$data_array[ $key ] = rest_sanitize_schema_properties( $value );
+			$data_array[ $key ] = rest_sanitize_schema_properties_recursive( $value );
 		}
 	}
 
@@ -275,8 +275,8 @@ function rest_api_init() {
 	global $wp;
 	$wp->add_query_var( 'rest_route' );
 
-	// Ensure empty property arrays in schema are converted to objects
-	add_filter( 'rest_pre_echo_response', 'rest_sanitize_schema_properties', 10, 1 );
+	// Ensure empty property arrays in schema are converted to objects.
+	add_filter( 'rest_pre_echo_response', 'rest_sanitize_schema_properties', 10, 3 );
 }
 
 /**
