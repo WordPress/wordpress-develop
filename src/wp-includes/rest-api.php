@@ -204,6 +204,35 @@ function register_rest_field( $object_type, $attribute, $args = array() ) {
  * In PHP, empty associative arrays become empty arrays ([]) when JSON-encoded,
  * not empty objects ({}), which would make the schema invalid.
  *
+ * This function only processes schema data from OPTIONS requests to avoid affecting
+ * regular response data that may legitimately have a 'properties' field.
+ *
+ * @since 6.9.0
+ *
+ * @param array|object    $data    The response data to sanitize.
+ * @param WP_REST_Server  $server  Server instance.
+ * @param WP_REST_Request $request Request used to generate the response.
+ * @return array|object The sanitized response data.
+ */
+function rest_sanitize_schema_properties( $data, $server, $request ) {
+	if ( $request->get_method() !== 'OPTIONS' ) {
+		return $data;
+	}
+
+	if ( ! is_array( $data ) || ! isset( $data['schema'] ) ) {
+		return $data;
+	}
+
+	$data['schema'] = rest_sanitize_schema_properties_recursive( $data['schema'] );
+
+	return $data;
+}
+
+/**
+ * Recursively sanitizes schema data ensuring empty properties arrays become objects.
+ *
+ * Helper function for rest_sanitize_schema_properties().
+ *
  * @since 6.9.0
  *
  * @param array|object $data The schema data to sanitize.
