@@ -238,7 +238,7 @@ function rest_sanitize_schema_properties( $data, $server, $request ) {
  * @param array|object $data The schema data to sanitize.
  * @return array|object The sanitized schema data.
  */
-function rest_sanitize_schema_properties( $data ) {
+function rest_sanitize_schema_properties_recursive( $data ) {
 	if ( ! is_array( $data ) && ! is_object( $data ) ) {
 		return $data;
 	}
@@ -246,12 +246,12 @@ function rest_sanitize_schema_properties( $data ) {
 	$is_object  = is_object( $data );
 	$data_array = $is_object ? (array) $data : $data;
 
-	// Convert empty properties array to empty object
+	// Convert empty properties array to empty object.
 	if ( isset( $data_array['properties'] ) && is_array( $data_array['properties'] ) && empty( $data_array['properties'] ) ) {
 		$data_array['properties'] = new stdClass();
 	}
 
-	// Process nested elements recursively
+	// Process nested elements recursively.
 	foreach ( $data_array as $key => $value ) {
 		if ( is_array( $value ) || is_object( $value ) ) {
 			$data_array[ $key ] = rest_sanitize_schema_properties( $value );
