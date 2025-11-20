@@ -147,7 +147,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				}
 
 				if ( $post && $is_note && ! $this->check_post_type_supports_notes( $post->post_type ) ) {
-					if ( current_user_can( get_post_type_object( $post->post_type )->cap->edit_posts ) ) {
+					if ( current_user_can( 'edit_post', $post->ID ) {
 						return new WP_Error(
 							'rest_comment_not_supported_post_type',
 							__( 'Sorry, this post type does not support notes.' ),
