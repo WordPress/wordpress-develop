@@ -2100,14 +2100,20 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @ticket 63186
 	 */
 	public function test_empty_properties_array_sanitized_to_object() {
-		$schema = array(
-			'type'       => 'object',
-			'properties' => array(),
+		$data = array(
+			'schema' => array(
+				'type'       => 'object',
+				'properties' => array(),
+			),
 		);
 
-		$sanitized_schema = apply_filters( 'rest_pre_echo_response', $schema );
-		$this->assertIsObject( $sanitized_schema['properties'], 'Empty properties array should be converted to an object.' );
-		$this->assertEmpty( (array) $sanitized_schema['properties'] );
+		$request = new WP_REST_Request( 'OPTIONS', '/test' );
+		$server  = rest_get_server();
+
+		$sanitized_data = apply_filters( 'rest_pre_echo_response', $data, $server, $request );
+
+		$this->assertIsObject( $sanitized_data['schema']['properties'], 'Empty properties array should be converted to an object.' );
+		$this->assertEmpty( (array) $sanitized_data['schema']['properties'] );
 	}
 
 	/**
