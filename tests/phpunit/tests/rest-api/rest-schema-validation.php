@@ -2140,4 +2140,25 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertIsArray( $sanitized_data['schema']['properties'], 'Non-empty properties should remain as an array.' );
 		$this->assertArrayHasKey( 'field', $sanitized_data['schema']['properties'] );
 	}
+
+	/**
+	 * Test that regular response data with empty properties field is not affected.
+	 *
+	 * @ticket 63186
+	 */
+	public function test_regular_response_properties_not_affected() {
+		$data = array(
+			'id'         => 123,
+			'title'      => 'Test Post',
+			'properties' => array(),
+		);
+
+		$request = new WP_REST_Request( 'GET', '/test' );
+		$server  = rest_get_server();
+
+		$result = apply_filters( 'rest_pre_echo_response', $data, $server, $request );
+
+		$this->assertIsArray( $result['properties'], 'Regular response data should not be affected.' );
+		$this->assertEmpty( $result['properties'] );
+	}
 }
