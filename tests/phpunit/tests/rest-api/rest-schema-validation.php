@@ -2122,16 +2122,22 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @ticket 63186
 	 */
 	public function test_non_empty_properties_array_remains_unchanged() {
-		$schema = array(
-			'type'       => 'object',
-			'properties' => array(
-				'field' => array( 'type' => 'string' ),
+		$data = array(
+			'schema' => array(
+				'type'       => 'object',
+				'properties' => array(
+					'field' => array( 'type' => 'string' ),
+				),
 			),
 		);
 
-		$sanitized_schema = apply_filters( 'rest_pre_echo_response', $schema );
-		$this->assertNotEmpty( $sanitized_schema['properties'] );
-		$this->assertIsArray( $sanitized_schema['properties'], 'Non-empty properties should remain as an array.' );
-		$this->assertArrayHasKey( 'field', $sanitized_schema['properties'] );
+		$request = new WP_REST_Request( 'OPTIONS', '/test' );
+		$server  = rest_get_server();
+
+		$sanitized_data = apply_filters( 'rest_pre_echo_response', $data, $server, $request );
+
+		$this->assertNotEmpty( $sanitized_data['schema']['properties'] );
+		$this->assertIsArray( $sanitized_data['schema']['properties'], 'Non-empty properties should remain as an array.' );
+		$this->assertArrayHasKey( 'field', $sanitized_data['schema']['properties'] );
 	}
 }
