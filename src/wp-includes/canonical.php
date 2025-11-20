@@ -972,13 +972,14 @@ function redirect_guess_404_permalink() {
 		 */
 		$strict_guess = apply_filters( 'strict_redirect_guess_404_permalink', false );
 
-		// Build WP_Query arguments.
 		$query_args = array(
-			'post_status'         => $publicly_viewable_statuses,
-			'posts_per_page'      => 1,
-			'no_found_rows'       => true,
-			'ignore_sticky_posts' => true,
-			'fields'              => 'ids',
+			'post_status'            => $publicly_viewable_statuses,
+			'posts_per_page'         => 1,
+			'no_found_rows'          => true,
+			'ignore_sticky_posts'    => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'fields'                 => 'ids',
 		);
 
 		// Handle strict vs. loose post_name matching.
@@ -991,7 +992,7 @@ function redirect_guess_404_permalink() {
 			// Store the filter callback so we can remove it later.
 			$post_name_where_filter = function ( $where, $query ) use ( $post_name_for_filter, $wpdb ) {
 				// Only apply to our specific query.
-				if ( isset( $query->query_vars['redirect_guess_404'] ) && $query->query_vars['redirect_guess_404'] ) {
+				if ( isset( $query->query_vars['redirect_guess_404'] ) ) {
 					$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_name LIKE %s", $wpdb->esc_like( $post_name_for_filter ) . '%' );
 				}
 				return $where;
@@ -1036,7 +1037,6 @@ function redirect_guess_404_permalink() {
 			$query_args['date_query'] = array( $date_query );
 		}
 
-		// Execute the query.
 		$query = new WP_Query( $query_args );
 
 		// Clean up the filter if we added it (remove only our specific callback).
