@@ -302,7 +302,7 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 		// Add filter to make get_comment return null.
 		add_action(
 			'export_wp',
-			function () {
+			static function () {
 				add_filter( 'get_comment', '__return_null' );
 			}
 		);
