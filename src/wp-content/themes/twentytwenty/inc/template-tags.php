@@ -148,7 +148,7 @@ function twentytwenty_site_description( $display = true ) {
  * @since Twenty Twenty 1.0
  *
  * @param object $comment Comment data.
- * @return bool True if the comment is by the post author, false otherwise.
+ * @return bool Whether the comment is by the post author.
  */
 function twentytwenty_is_comment_by_post_author( $comment = null ) {
 

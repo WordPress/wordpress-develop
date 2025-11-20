@@ -13,7 +13,7 @@
  * @since Twenty Twenty-One 1.0
  *
  * @param array $classes Classes for the body element.
- * @return array Filtered body classes with theme-specific additions.
+ * @return string[] Body classes with theme-specific additions.
  */
 function twenty_twenty_one_body_classes( $classes ) {
 
@@ -43,7 +43,7 @@ add_filter( 'body_class', 'twenty_twenty_one_body_classes' );
  * @since Twenty Twenty-One 1.0
  *
  * @param array $classes An array of CSS classes.
- * @return array Filtered post classes with 'entry' class added.
+ * @return string[] Post classes with 'entry' class added.
  */
 function twenty_twenty_one_post_classes( $classes ) {
 	$classes[] = 'entry';

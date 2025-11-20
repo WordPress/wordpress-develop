@@ -756,7 +756,7 @@ if ( ! class_exists( 'Featured_Content' ) && 'plugins.php' !== $GLOBALS['pagenow
  *
  * @global WP_Customize_Manager $wp_customize Customizer object.
  *
- * @return bool True if the site is being previewed in the Customizer, false otherwise.
+ * @return bool Whether the site is being previewed in the Customizer.
  */
 if ( ! function_exists( 'is_customize_preview' ) ) :
 	function is_customize_preview() {

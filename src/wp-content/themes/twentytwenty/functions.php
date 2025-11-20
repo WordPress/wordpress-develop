@@ -304,7 +304,7 @@ add_action( 'init', 'twentytwenty_menus' );
  * @since Twenty Twenty 1.0
  *
  * @param string $html The HTML output from get_custom_logo() (core function).
- * @return string Custom logo HTML with retina support.
+ * @return string|false Custom logo HTML or false if not available.
  */
 function twentytwenty_get_custom_logo( $html ) {
 
@@ -635,7 +635,7 @@ add_action( 'after_setup_theme', 'twentytwenty_block_editor_settings' );
  * Overwrite default more tag with styling and screen reader markup.
  *
  * @param string $html The default output HTML for the more tag.
- * @return string The filtered HTML of the more tag, wrapped in a wrapper div.
+ * @return string The the read more link wrapped in a `div`.
  */
 function twentytwenty_read_more_tag( $html ) {
 	return preg_replace( '/<a(.*)>(.*)<\/a>/iU', sprintf( '<div class="read-more-button-wrap"><a$1><span class="faux-button">$2</span> <span class="screen-reader-text">"%1$s"</span></a></div>', get_the_title( get_the_ID() ) ), $html );
