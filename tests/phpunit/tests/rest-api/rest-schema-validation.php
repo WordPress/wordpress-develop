@@ -2095,7 +2095,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that an empty properties array is sanitized to an empty object.
+	 * Test that an empty properties array is sanitized to an empty object in schema responses.
 	 *
 	 * @ticket 63186
 	 */
