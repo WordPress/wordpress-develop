@@ -270,7 +270,7 @@ if ( ! function_exists( 'twentythirteen_fonts_url' ) ) :
 	 * @since Twenty Thirteen 1.0
 	 * @since Twenty Thirteen 3.8 Replaced Google URL with self-hosted fonts.
 	 *
-	 * @return string Font stylesheet or empty string if disabled.
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentythirteen_fonts_url() {
 		$fonts_url = '';

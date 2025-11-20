@@ -160,7 +160,7 @@ if ( ! function_exists( 'twentytwelve_get_font_url' ) ) :
 	 * @since Twenty Twelve 1.2
 	 * @since Twenty Twelve 3.9 Replaced Google URL with self-hosted font.
 	 *
-	 * @return string Font stylesheet or empty string if disabled.
+	 * @return string Font stylesheet URL or empty string if disabled.
 	 */
 	function twentytwelve_get_font_url() {
 		$font_url = '';
