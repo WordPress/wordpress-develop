@@ -1712,11 +1712,11 @@ function register_and_do_post_meta_boxes( $post ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string                $post_type Post type of the post on Edit Post screen, 'link' on Edit Link screen,
-	 *                                         'dashboard' on Dashboard screen.
-	 * @param string                $context   Meta box context. Possible values include 'normal', 'advanced', 'side'.
-	 * @param WP_Post|object|string $post      Post object on Edit Post screen, link object on Edit Link screen,
-	 *                                         an empty string on Dashboard screen.
+	 * @param string                $object_type Post type of the post on Edit Post screen, 'link' on Edit Link screen,
+	 *                                           'dashboard' on Dashboard screen.
+	 * @param string                $context     Meta box context. Possible values include 'normal', 'advanced', 'side'.
+	 * @param WP_Post|object|string $object      Post object on Edit Post screen, link object on Edit Link screen,
+	 *                                           an empty string on Dashboard screen.
 	 */
 	do_action( 'do_meta_boxes', $post_type, 'normal', $post );
 	/** This action is documented in wp-admin/includes/meta-boxes.php */
