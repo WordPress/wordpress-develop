@@ -4135,20 +4135,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * Data provider for comment type tests.
-	 *
-	 * @return array[] Data provider.
-	 */
-	public function data_comment_type_provider() {
-		return array(
-			'comment type'    => array( 'comment', 5 ),
-			'annotation type' => array( 'annotation', 5 ),
-			'discussion type' => array( 'discussion', 9 ),
-			'note type'       => array( 'note', 3 ),
-		);
-	}
-
-	/**
 	 * Test retrieving comments by type as authenticated user.
 	 *
 	 * @dataProvider data_comment_type_provider
@@ -4246,5 +4232,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			// See https://core.trac.wordpress.org/ticket/44157.
 			$this->assertSame( 'note' === $comment_type ? 401 : 200, $response->get_status(), 'Individual comment endpoint did not return the expected status' );
 		}
+	}
+
+	/**
+	 * Data provider for comment type tests.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public function data_comment_type_provider() {
+		return array(
+			'comment type'    => array( 'comment', 5 ),
+			'annotation type' => array( 'annotation', 5 ),
+			'discussion type' => array( 'discussion', 9 ),
+			'note type'       => array( 'note', 3 ),
+		);
 	}
 }
