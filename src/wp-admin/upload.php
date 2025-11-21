@@ -180,7 +180,7 @@ if ( 'grid' === $mode ) {
 			'content' =>
 				'<p>' . __( 'All the files you&#8217;ve uploaded are listed in the Media Library, with the most recent uploads listed first.' ) . '</p>' .
 				'<p>' . __( 'You can view your media in a simple visual grid or a list with columns. Switch between these views using the icons to the left above the media.' ) . '</p>' .
-				'<p>' . __( 'To delete media items, click the Bulk Select button at the top of the screen. Select any items you wish to delete, then click the Delete Selected button. Clicking the Cancel Selection button takes you back to viewing your media.' ) . '</p>',
+				'<p>' . __( 'To delete media items, click the Bulk select button at the top of the screen. Select any items you wish to delete, then click the Delete permanently button. Clicking the Cancel button takes you back to viewing your media.' ) . '</p>',
 		)
 	);
 
