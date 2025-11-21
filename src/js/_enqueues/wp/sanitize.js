@@ -25,17 +25,9 @@
 		stripTags: function( text ) {
 			let _text = text || '';
 
-			// Do the search-replace until there is nothing to be replaced.
-			do {
-				// Keep pre-replace text for comparison.
-				text = _text;
-
-				// Do the replacement.
-				_text = text
-					.replace( /<!--[\s\S]*?(-->|$)/g, '' )
-					.replace( /<(script|style)[^>]*>[\s\S]*?(<\/\1>|$)/ig, '' )
-					.replace( /<\/?[a-z][\s\S]*?(>|$)/ig, '' );
-			} while ( _text !== text );
+			const htmlElement = document.createElement( 'div' );
+			htmlElement.innerHTML = _text;
+			_text = htmlElement.textContent || htmlElement.innerText || '';
 
 			// Return the text with stripped tags.
 			return _text;
