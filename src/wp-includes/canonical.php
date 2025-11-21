@@ -990,7 +990,7 @@ function redirect_guess_404_permalink() {
 			$post_name_for_filter = get_query_var( 'name' );
 
 			// Store the filter callback so we can remove it later.
-			$post_name_where_filter = function ( $where, $query ) use ( $post_name_for_filter, $wpdb ) {
+			$post_name_where_filter = static function ( $where, $query ) use ( $post_name_for_filter, $wpdb ) {
 				// Only apply to our specific query.
 				if ( isset( $query->query_vars['redirect_guess_404'] ) ) {
 					$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_name LIKE %s", $wpdb->esc_like( $post_name_for_filter ) . '%' );
