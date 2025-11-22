@@ -304,7 +304,7 @@ add_action( 'init', 'twentytwenty_menus' );
  * @since Twenty Twenty 1.0
  *
  * @param string $html The HTML output from get_custom_logo() (core function).
- * @return string|false Custom logo HTML or false if not available.
+ * @return string Custom logo HTML with "retina" resolution applied if enabled.
  */
 function twentytwenty_get_custom_logo( $html ) {
 
