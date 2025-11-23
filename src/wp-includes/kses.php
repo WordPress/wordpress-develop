@@ -109,10 +109,13 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'br'         => array(),
 		'button'     => array(
-			'disabled' => true,
-			'name'     => true,
-			'type'     => true,
-			'value'    => true,
+			'disabled'            => true,
+			'name'                => true,
+			'type'                => true,
+			'value'               => true,
+			'popovertarget'       => true,
+			'popovertargetaction' => true,
+			'aria-haspopup'       => true,
 		),
 		'caption'    => array(
 			'align' => true,
@@ -135,6 +138,9 @@ if ( ! CUSTOM_TAGS ) {
 			'valign'  => true,
 			'width'   => true,
 		),
+		'data'       => array(
+			'value' => true,
+		),
 		'del'        => array(
 			'datetime' => true,
 		),
@@ -143,9 +149,16 @@ if ( ! CUSTOM_TAGS ) {
 		'details'    => array(
 			'align' => true,
 			'open'  => true,
+			'name'  => true,
 		),
 		'div'        => array(
-			'align' => true,
+			'align'   => true,
+			'popover' => true,
+		),
+		'dialog'     => array(
+			'closedby' => true,
+			'open'     => true,
+			'popover'  => true,
 		),
 		'dl'         => array(),
 		'dt'         => array(),
@@ -234,6 +247,14 @@ if ( ! CUSTOM_TAGS ) {
 		'menu'       => array(
 			'type' => true,
 		),
+		'meter'      => array(
+			'high'    => true,
+			'low'     => true,
+			'max'     => true,
+			'min'     => true,
+			'optimum' => true,
+			'value'   => true,
+		),
 		'nav'        => array(
 			'align' => true,
 		),
@@ -253,6 +274,10 @@ if ( ! CUSTOM_TAGS ) {
 		'pre'        => array(
 			'width' => true,
 		),
+		'progress'   => array(
+			'max'   => true,
+			'value' => true,
+		),
 		'q'          => array(
 			'cite' => true,
 		),
@@ -263,6 +288,7 @@ if ( ! CUSTOM_TAGS ) {
 		'ruby'       => array(),
 		's'          => array(),
 		'samp'       => array(),
+		'search'     => array(),
 		'span'       => array(
 			'align' => true,
 		),
@@ -344,6 +370,9 @@ if ( ! CUSTOM_TAGS ) {
 			'charoff' => true,
 			'valign'  => true,
 		),
+		'time'       => array(
+			'datetime' => true,
+		),
 		'title'      => array(),
 		'tr'         => array(
 			'align'   => true,
@@ -362,7 +391,9 @@ if ( ! CUSTOM_TAGS ) {
 		'tt'         => array(),
 		'u'          => array(),
 		'ul'         => array(
-			'type' => true,
+			'type'    => true,
+			'popover' => true,
+			'role'    => true,
 		),
 		'ol'         => array(
 			'start'    => true,
@@ -382,6 +413,186 @@ if ( ! CUSTOM_TAGS ) {
 			'src'         => true,
 			'width'       => true,
 		),
+		'wbr'        => array(),
+	);
+
+	// https://www.w3.org/TR/mathml-core/#global-attributes
+	// Except common attributes added by _wp_add_global_attributes.
+	$math_global_attributes = array(
+		'displaystyle'   => true,
+		'scriptlevel'    => true,
+		'mathbackground' => true,
+		'mathcolor'      => true,
+		'mathsize'       => true,
+		// Common attributes also defined by _wp_add_global_attributes.
+		// We do not want to add all those global attributes though.
+		'class'          => true,
+		'data-*'         => true,
+		'dir'            => true,
+		'id'             => true,
+		'style'          => true,
+	);
+
+	$math_overunder_attributes = array(
+		'accentunder' => true,
+		'accent'      => true,
+	);
+
+	$allowedposttags = array_merge(
+		$allowedposttags,
+		array(
+			// https://www.w3.org/TR/mathml-core/#the-top-level-math-element
+			'math'          => array_merge(
+				$math_global_attributes,
+				array(
+					'display' => true,
+				)
+			),
+
+			// https://www.w3.org/TR/mathml-core/#token-elements
+			// https://www.w3.org/TR/mathml-core/#text-mtext
+			'mtext'         => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#the-mi-element
+			'mi'            => array_merge(
+				$math_global_attributes,
+				array(
+					'mathvariant' => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#number-mn
+			'mn'            => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#operator-fence-separator-or-accent-mo
+			'mo'            => array_merge(
+				$math_global_attributes,
+				array(
+					'form'          => true,
+					'fence'         => true,
+					'separator'     => true,
+					'lspace'        => true,
+					'rspace'        => true,
+					'stretchy'      => true,
+					'symmetric'     => true,
+					'maxsize'       => true,
+					'minsize'       => true,
+					'largeop'       => true,
+					'movablelimits' => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#space-mspace
+			'mspace'        => array_merge(
+				$math_global_attributes,
+				array(
+					'width'  => true,
+					'height' => true,
+					'depth'  => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#string-literal-ms
+			'ms'            => $math_global_attributes,
+
+			// https://www.w3.org/TR/mathml-core/#general-layout-schemata
+			// https://www.w3.org/TR/mathml-core/#horizontally-group-sub-expressions-mrow
+			'mrow'          => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#fractions-mfrac
+			'mfrac'         => array_merge(
+				$math_global_attributes,
+				array(
+					'linethickness' => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#radicals-msqrt-mroot
+			'msqrt'         => $math_global_attributes,
+			'mroot'         => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#style-change-mstyle
+			'mstyle'        => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#error-message-merror
+			'merror'        => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#adjust-space-around-content-mpadded
+			'mpadded'       => array_merge(
+				$math_global_attributes,
+				array(
+					'width'   => true,
+					'height'  => true,
+					'depth'   => true,
+					'lspace'  => true,
+					'voffset' => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#making-sub-expressions-invisible-mphantom
+			'mphantom'      => $math_global_attributes,
+
+			// https://www.w3.org/TR/mathml-core/#script-and-limit-schemata
+			// https://www.w3.org/TR/mathml-core/#subscripts-and-superscripts-msub-msup-msubsup
+			'msub'          => $math_global_attributes,
+			'msup'          => $math_global_attributes,
+			'msubsup'       => $math_global_attributes,
+			// https://www.w3.org/TR/mathml-core/#underscripts-and-overscripts-munder-mover-munderover
+			'munder'        => array_merge( $math_global_attributes, $math_overunder_attributes ),
+			'mover'         => array_merge( $math_global_attributes, $math_overunder_attributes ),
+			'munderover'    => array_merge( $math_global_attributes, $math_overunder_attributes ),
+			// https://www.w3.org/TR/mathml-core/#prescripts-and-tensor-indices-mmultiscripts
+			'mmultiscripts' => $math_global_attributes,
+			'mprescripts'   => $math_global_attributes,
+
+			// https://www.w3.org/TR/mathml-core/#tabular-math
+			// https://www.w3.org/TR/mathml-core/#table-or-matrix-mtable
+			'mtable'        => array_merge(
+				$math_global_attributes,
+				array(
+					// Non-standard, used by temml/katex.
+					// https://developer.mozilla.org/en-US/docs/Web/MathML/Reference/Element/mtable
+					'columnalign'   => true,
+					'rowspacing'    => true,
+					'columnspacing' => true,
+					'align'         => true,
+					'rowalign'      => true,
+					'columnlines'   => true,
+					'rowlines'      => true,
+					'frame'         => true,
+					'framespacing'  => true,
+					'width'         => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#row-in-table-or-matrix-mtr
+			'mtr'           => array_merge(
+				$math_global_attributes,
+				array(
+					// Non-standard, used by temml/katex.
+					// https://developer.mozilla.org/en-US/docs/Web/MathML/Reference/Element/mtr
+					'columnalign' => true,
+					'rowalign'    => true,
+				)
+			),
+			// https://www.w3.org/TR/mathml-core/#entry-in-table-or-matrix-mtd
+			'mtd'           => array_merge(
+				$math_global_attributes,
+				array(
+					'columnspan'  => true,
+					'rowspan'     => true,
+					// Non-standard, used by temml/katex.
+					// https://developer.mozilla.org/en-US/docs/Web/MathML/Reference/Element/mtd
+					'columnalign' => true,
+					'rowalign'    => true,
+				)
+			),
+
+			// https://www.w3.org/TR/mathml-core/#semantics-and-presentation
+			'semantics'     => $math_global_attributes,
+			'annotation'    => array_merge(
+				$math_global_attributes,
+				array(
+					'encoding' => true,
+				)
+			),
+
+			// Non-standard but widely supported, used by temml/katex.
+			'menclose'      => array_merge(
+				$math_global_attributes,
+				array(
+					'notation' => true,
+				)
+			),
+		)
 	);
 
 	/**
@@ -2418,6 +2629,7 @@ function kses_init() {
  * @since 6.4.0 Added support for `writing-mode`.
  * @since 6.5.0 Added support for `background-repeat`.
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
+ * @since 6.9.0 Added support for `white-space`.
  *
  * @param string $css        A string of CSS rules.
  * @param string $deprecated Not used.
@@ -2510,6 +2722,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'text-decoration',
 			'text-indent',
 			'text-transform',
+			'white-space',
 
 			'height',
 			'min-height',
