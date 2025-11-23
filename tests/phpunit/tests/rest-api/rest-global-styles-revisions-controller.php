@@ -986,7 +986,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	/**
 	 * Tests that block style variations in revisions are preserved.
 	 *
-	 * @ticket TBD
+	 * @ticket 64292
 	 *
 	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
 	 */
@@ -1072,7 +1072,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	/**
 	 * Tests that multiple block style variations are preserved.
 	 *
-	 * @ticket TBD
+	 * @ticket 64292
 	 *
 	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
 	 */
@@ -1176,7 +1176,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	/**
 	 * Tests that theme-defined block style variations are registered for revisions.
 	 *
-	 * @ticket TBD
+	 * @ticket 64292
 	 *
 	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
 	 */
@@ -1258,7 +1258,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	/**
 	 * Tests that block style variations are preserved in the revisions collection endpoint.
 	 *
-	 * @ticket TBD
+	 * @ticket 64292
 	 *
 	 * @covers WP_REST_Global_Styles_Revisions_Controller::get_items
 	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
