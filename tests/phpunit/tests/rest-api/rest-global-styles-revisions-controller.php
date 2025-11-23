@@ -1043,11 +1043,11 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		);
 
 		// Get the revision.
-		$revisions  = wp_get_post_revisions( $global_styles_id );
-		$revision   = array_shift( $revisions );
-		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . $global_styles_id . '/revisions/' . $revision->ID );
-		$response   = rest_get_server()->dispatch( $request );
-		$data       = $response->get_data();
+		$revisions = wp_get_post_revisions( $global_styles_id );
+		$revision  = array_shift( $revisions );
+		$request   = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . $global_styles_id . '/revisions/' . $revision->ID );
+		$response  = rest_get_server()->dispatch( $request );
+		$data      = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'Response status should be 200.' );
 		$this->assertArrayHasKey( 'styles', $data, 'Response should contain styles.' );
@@ -1137,11 +1137,11 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		);
 
 		// Get the revision.
-		$revisions  = wp_get_post_revisions( $global_styles_id );
-		$revision   = array_shift( $revisions );
-		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . $global_styles_id . '/revisions/' . $revision->ID );
-		$response   = rest_get_server()->dispatch( $request );
-		$data       = $response->get_data();
+		$revisions = wp_get_post_revisions( $global_styles_id );
+		$revision  = array_shift( $revisions );
+		$request   = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . $global_styles_id . '/revisions/' . $revision->ID );
+		$response  = rest_get_server()->dispatch( $request );
+		$data      = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'Response status should be 200.' );
 
@@ -1236,11 +1236,11 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 		);
 
 		// Get the revision.
-		$revisions  = wp_get_post_revisions( $global_styles_id );
-		$revision   = array_shift( $revisions );
-		$request    = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . $global_styles_id . '/revisions/' . $revision->ID );
-		$response   = rest_get_server()->dispatch( $request );
-		$data       = $response->get_data();
+		$revisions = wp_get_post_revisions( $global_styles_id );
+		$revision  = array_shift( $revisions );
+		$request   = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . $global_styles_id . '/revisions/' . $revision->ID );
+		$response  = rest_get_server()->dispatch( $request );
+		$data      = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'Response status should be 200.' );
 
