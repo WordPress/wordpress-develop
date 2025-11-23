@@ -665,11 +665,15 @@
 #available-menu-items .menu-item-handle.item-added .item-title,
 #available-menu-items .menu-item-handle.item-added:hover .item-add,
 #available-menu-items .menu-item-handle.item-added .item-add:focus {
-	color: #8c8f94;
+	color: #1d2327;
 }
 
 #available-menu-items .menu-item-handle.item-added .item-add:before {
 	content: "\f147" / '';
+}
+
+#available-menu-items .menu-item-handle.item-added:hover .item-add:before {
+	content: "\f543" / '';
 }
 
 #available-menu-items .accordion-section-title.loading .spinner,
