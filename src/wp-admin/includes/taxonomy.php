@@ -50,7 +50,7 @@ function get_category_to_edit( $id ) {
  *
  * @param int|string $cat_name        Category name.
  * @param int        $category_parent Optional. ID of parent category.
- * @return int|WP_Error
+ * @return int The ID number of category on success, or zero on failure.
  */
 function wp_create_category( $cat_name, $category_parent = 0 ) {
 	$id = category_exists( $cat_name, $category_parent );
