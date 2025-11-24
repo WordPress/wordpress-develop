@@ -57,7 +57,7 @@ jobs:
   # Runs the end-to-end test suite.
   e2e-tests:
     name: ${{ matrix.label }}
-    uses: ./.github/workflows/reusable-end-to-end-tests.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-end-to-end-tests.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -72,7 +72,7 @@ jobs:
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read

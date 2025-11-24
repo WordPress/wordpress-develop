@@ -52,7 +52,7 @@ jobs:
   # Runs the PHP coding standards checks.
   phpcs:
     name: Coding standards
-    uses: ./.github/workflows/reusable-coding-standards-php.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-php.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
@@ -60,14 +60,14 @@ jobs:
   # Runs the JavaScript coding standards checks.
   jshint:
     name: Coding standards
-    uses: ./.github/workflows/reusable-coding-standards-javascript.yml
+    uses: WordPress/wordpress-develop/.github/workflows/reusable-coding-standards-javascript.yml@trunk
     permissions:
       contents: read
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
   slack-notifications:
     name: Slack Notifications
-    uses: ./.github/workflows/slack-notifications.yml
+    uses: WordPress/wordpress-develop/.github/workflows/slack-notifications.yml@trunk
     permissions:
       actions: read
       contents: read
