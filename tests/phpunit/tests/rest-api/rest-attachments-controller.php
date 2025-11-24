@@ -1364,6 +1364,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @covers WP_REST_Posts_Controller::handle_featured_media()
 	 */
 	public function test_create_update_post_with_featured_media() {
+		$bad_post_id = self::factory()->post->create();
+		wp_delete_post( $bad_post_id, true );
+		$file          = DIR_TESTDATA . '/images/canola.jpg';
+		$attachment_id = self::factory()->attachment->create_object(
+			$file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'menu_order'     => rand( 1, 100 ),
+			)
+		);
+
 		// Add support for thumbnails on all attachment types to avoid incorrect-usage notice.
 		add_post_type_support( 'attachment', 'thumbnail' );
 
@@ -1382,28 +1394,24 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 		$request->set_header( 'Content-MD5', md5_file( self::$test_file ) );
 
-		$file          = DIR_TESTDATA . '/images/canola.jpg';
-		$attachment_id = self::factory()->attachment->create_object(
-			$file,
-			0,
-			array(
-				'post_mime_type' => 'image/jpeg',
-				'menu_order'     => rand( 1, 100 ),
-			)
-		);
+		// Create media with bad featured media.
+		$request->set_param( 'featured_media', $bad_post_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 400, $response->get_status() );
 
+		// Create media with good featured media.
+		if ( ! file_exists( self::$test_file ) ) {
+			copy( DIR_TESTDATA . '/images/canola.jpg', self::$test_file );
+		}
 		$request->set_param( 'featured_media', $attachment_id );
-
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-
 		$this->assertSame( 201, $response->get_status() );
-
 		$new_attachment = get_post( $data['id'] );
-
 		$this->assertSame( $attachment_id, get_post_thumbnail_id( $new_attachment->ID ) );
 		$this->assertSame( $attachment_id, $data['featured_media'] );
 
+		// Try deleting.
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/media/' . $new_attachment->ID );
 		$params  = $this->set_post_data(
 			array(
@@ -1417,6 +1425,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 0, $data['featured_media'] );
 		$this->assertSame( 0, get_post_thumbnail_id( $new_attachment->ID ) );
 
+		// Try setting it back.
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/media/' . $new_attachment->ID );
 		$params  = $this->set_post_data(
 			array(
@@ -1428,6 +1437,32 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 200, $response->get_status(), $response->is_error() ? 'Error: ' . $response->as_error()->get_error_message() : '' );
 		$data = $response->get_data();
 		$this->assertSame( $attachment_id, $data['featured_media'] );
+		$this->assertSame( $attachment_id, get_post_thumbnail_id( $new_attachment->ID ) );
+
+		// Try setting it again (for idempotency).
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/media/' . $new_attachment->ID );
+		$params  = $this->set_post_data(
+			array(
+				'featured_media' => $attachment_id,
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), $response->is_error() ? 'Error: ' . $response->as_error()->get_error_message() : '' );
+		$data = $response->get_data();
+		$this->assertSame( $attachment_id, $data['featured_media'] );
+		$this->assertSame( $attachment_id, get_post_thumbnail_id( $new_attachment->ID ) );
+
+		// Try updating it to something incorrect.
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/media/' . $new_attachment->ID );
+		$params  = $this->set_post_data(
+			array(
+				'featured_media' => $bad_post_id,
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 400, $response->get_status() );
 		$this->assertSame( $attachment_id, get_post_thumbnail_id( $new_attachment->ID ) );
 	}
 
