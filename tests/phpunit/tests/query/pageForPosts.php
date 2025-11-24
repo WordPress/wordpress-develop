@@ -1,6 +1,6 @@
 <?php
 
-class pageOnFront extends WP_UnitTestCase {
+class Tests_Query_PageForPosts extends WP_UnitTestCase {
 
 	private $posts_page_id;
 	public function set_up() {
@@ -13,7 +13,7 @@ class pageOnFront extends WP_UnitTestCase {
 				'post_type'  => 'page',
 			)
 		);
-		update_option('page_for_posts', $this->posts_page_id);
+		update_option( 'page_for_posts', $this->posts_page_id );
 		update_option(
 			'page_on_front',
 			self::factory()->post->create(
@@ -33,18 +33,22 @@ class pageOnFront extends WP_UnitTestCase {
 	 */
 	public function test_unpublished_posts_page_returns_404() {
 
-		wp_update_post( array(
-			'ID'          => $this->posts_page_id,
-			'post_status' => 'draft',
-		) );
+		wp_update_post(
+			array(
+				'ID'          => $this->posts_page_id,
+				'post_status' => 'draft',
+			)
+		);
 
-		$q = new WP_Query( array(
-			'pagename' => 'blog-page',
-		) );
+		$q = new WP_Query(
+			array(
+				'pagename' => 'blog-page',
+			)
+		);
 
 		$this->assertTrue(
 			$q->is_404(),
-			"Unpublished posts page with status should return 404"
+			'Unpublished posts page with status should return 404'
 		);
 	}
 }
