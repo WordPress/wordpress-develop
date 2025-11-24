@@ -3307,6 +3307,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		wp_set_current_user( self::$editor_id );
 
+		// Set the featured image initially.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params  = $this->set_post_data(
 			array(
@@ -3315,11 +3316,27 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		);
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 201, $response->get_status() );
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$this->assertSame( $attachment_id, $data['featured_media'] );
 		$this->assertSame( $attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
 
+		// Try updating the post with the same value.
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $new_post->ID );
+		$params  = $this->set_post_data(
+			array(
+				'featured_media' => $attachment_id,
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( $attachment_id, $data['featured_media'] );
+		$this->assertSame( $attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
+
+		// Try deleting the featured media.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $new_post->ID );
 		$params  = $this->set_post_data(
 			array(
@@ -3328,7 +3345,8 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		);
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
 		$this->assertSame( 0, $data['featured_media'] );
 		$this->assertSame( 0, (int) get_post_thumbnail_id( $new_post->ID ) );
 	}
