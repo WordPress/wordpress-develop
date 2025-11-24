@@ -1427,7 +1427,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
 	if ( null === $position || ! is_numeric( $position ) ) {
 		$menu[] = $new_menu;
 	} elseif ( isset( $menu[ (string) $position ] ) ) {
-		$collision_avoider = base_convert( substr( md5( $menu_slug . $menu_title ), -4 ), 16, 10 ) * 0.00001;
+		$collision_avoider = (int) base_convert( substr( md5( $menu_slug . $menu_title ), -4 ), 16, 10 ) * 0.00001;
 		$position          = (string) ( $position + $collision_avoider );
 		$menu[ $position ] = $new_menu;
 	} else {
@@ -2276,7 +2276,7 @@ function user_can_access_admin_page() {
  * @global array $new_allowed_options
  *
  * @param array $options
- * @return array
+ * @return array Updated allowed options.
  */
 function option_update_filter( $options ) {
 	global $new_allowed_options;
@@ -2297,7 +2297,7 @@ function option_update_filter( $options ) {
  *
  * @param array        $new_options
  * @param string|array $options
- * @return array
+ * @return array Updated allowed options.
  */
 function add_allowed_options( $new_options, $options = '' ) {
 	if ( '' === $options ) {
@@ -2332,7 +2332,7 @@ function add_allowed_options( $new_options, $options = '' ) {
  *
  * @param array        $del_options
  * @param string|array $options
- * @return array
+ * @return array Updated allowed options.
  */
 function remove_allowed_options( $del_options, $options = '' ) {
 	if ( '' === $options ) {
