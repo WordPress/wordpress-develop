@@ -600,7 +600,7 @@ final class WP_Screen {
 	 * @since 3.4.0
 	 *
 	 * @param string $id Help Tab ID.
-	 * @return ?array Help tab arguments.
+	 * @return ?array Help tab arguments, or null if no help tabs added.
 	 */
 	public function get_help_tab( $id ) {
 		if ( ! isset( $this->_help_tabs[ $id ] ) ) {
