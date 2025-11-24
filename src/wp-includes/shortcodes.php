@@ -762,3 +762,13 @@ function strip_shortcode_tag( $m ) {
 
 	return $m[1] . $m[6];
 }
+
+/**
+ * Displays the current year.
+ *
+ * Example: [current_year]
+ */
+function wp_shortcode_current_year( $atts ) {
+    return date_i18n( 'Y' );
+}
+add_shortcode( 'current_year', 'wp_shortcode_current_year' );
