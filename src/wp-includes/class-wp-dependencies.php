@@ -200,9 +200,27 @@ class WP_Dependencies {
 			}
 
 			$keep_going = true;
+			$missing_dependencies = ( isset( $this->registered[ $handle ] ) && $this->registered[ $handle ]->deps ) ? array_diff( $this->registered[ $handle ]->deps, array_keys( $this->registered ) ) : array();
 			if ( ! isset( $this->registered[ $handle ] ) ) {
 				$keep_going = false; // Item doesn't exist.
-			} elseif ( $this->registered[ $handle ]->deps && array_diff( $this->registered[ $handle ]->deps, array_keys( $this->registered ) ) ) {
+			} elseif ( $missing_dependencies ) {
+				// Prevent duplicate notices.
+				static $reported = array();
+
+				if ( ! isset( $reported[ $handle ] ) ) {
+					$reported[ $handle ] = true;
+
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: 1: Script module ID, 2: Comma-separated list of missing dependency IDs. */
+							__( 'The script with the handle %1$s was enqueued with dependencies that are not registered: %2$s.' ),
+							$handle,
+							implode( ', ', $missing_dependencies )
+						),
+						'7.0.0'
+					);
+				}
 				$keep_going = false; // Item requires dependencies that don't exist.
 			} elseif ( $this->registered[ $handle ]->deps && ! $this->all_deps( $this->registered[ $handle ]->deps, true, $new_group ) ) {
 				$keep_going = false; // Item requires dependencies that don't exist.
