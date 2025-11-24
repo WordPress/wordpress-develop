@@ -313,7 +313,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 
 		if ( ! empty( $global_styles_config['styles'] ) || ! empty( $global_styles_config['settings'] ) ) {
 			/*
-			 * Register block style variations from the revision data.
+			 * Register block style variations from the theme data.
 			 * This is required so the variations pass sanitization of theme.json data.
 			 */
 			if ( ! empty( $global_styles_config['styles']['blocks'] ) ) {
