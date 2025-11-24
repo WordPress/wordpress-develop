@@ -175,7 +175,7 @@ final class WP_Screen {
 	/**
 	 * Stores the result of the public show_screen_options function.
 	 *
-	 * Set when calling ::show_screen_options() for the first time.
+	 * Set when calling {@see self::show_screen_options()} for the first time.
 	 *
 	 * @since 3.3.0
 	 * @var ?bool
