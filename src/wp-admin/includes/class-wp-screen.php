@@ -951,8 +951,9 @@ final class WP_Screen {
 		if ( $this->get_option( 'layout_columns' ) ) {
 			$this->columns = (int) get_user_option( "screen_layout_$this->id" );
 
-			if ( ! $this->columns && $this->get_option( 'layout_columns', 'default' ) ) {
-				$this->columns = (int) $this->get_option( 'layout_columns', 'default' );
+			$layout_columns = (int) $this->get_option( 'layout_columns', 'default' );
+			if ( ! $this->columns && $layout_columns ) {
+				$this->columns = $layout_columns;
 			}
 		}
 		$GLOBALS['screen_layout_columns'] = $this->columns; // Set the global for back-compat.
