@@ -722,7 +722,26 @@ class WP_Script_Modules {
 		}
 
 		// If the item requires dependencies that do not exist, fail.
-		if ( count( array_diff( $dependency_ids, array_keys( $this->registered ) ) ) > 0 ) {
+		$missing_dependencies = array_diff( $dependency_ids, array_keys( $this->registered ) );
+		if ( count( $missing_dependencies ) > 0 ) {
+			// Prevent duplicate notices.
+			static $reported = array();
+
+			if ( ! isset( $reported[ $id ] ) ) {
+				$reported[ $id ] = true;
+
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: Script module ID, 2: Comma-separated list of missing dependency IDs. */
+						__( 'The script module %1$s was enqueued with dependencies that are not registered: %2$s.' ),
+						$id,
+						implode( ', ', $missing_dependencies )
+					),
+					'7.0.0'
+				);
+			}
+
 			return false;
 		}
 
