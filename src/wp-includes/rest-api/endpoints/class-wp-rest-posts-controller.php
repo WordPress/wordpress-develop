@@ -1571,7 +1571,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param int $featured_media Featured Media ID.
+	 * @param int $featured_media Featured Media ID. If zero, the featured media will be removed.
 	 * @param int $post_id        Post ID.
 	 * @return bool|WP_Error Whether the post thumbnail was successfully deleted, otherwise WP_Error.
 	 */
