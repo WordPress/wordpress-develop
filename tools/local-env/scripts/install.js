@@ -46,7 +46,7 @@ wait_on( {
 		process.exit( 1 );
 	} )
 	.then( () => {
-		wp_cli( 'db reset --yes' );
+		wp_cli( 'db reset --yes --defaults' );
 		const installCommand = process.env.LOCAL_MULTISITE === 'true'  ? 'multisite-install' : 'install';
 		wp_cli( `core ${ installCommand } --title="WordPress Develop" --admin_user=admin --admin_password=password --admin_email=test@example.com --skip-email --url=http://localhost:${process.env.LOCAL_PORT}` );
 	} )
