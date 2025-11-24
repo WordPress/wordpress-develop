@@ -735,7 +735,7 @@ final class WP_Screen {
 	 * @since 4.4.0
 	 *
 	 * @param string $key Screen reader text array named key.
-	 * @return ?string Screen reader text string. Null if no text is associated with the key.
+	 * @return ?string Screen reader text string, or null if no text is associated with the key.
 	 */
 	public function get_screen_reader_text( $key ) {
 		if ( ! isset( $this->_screen_reader_content[ $key ] ) ) {
