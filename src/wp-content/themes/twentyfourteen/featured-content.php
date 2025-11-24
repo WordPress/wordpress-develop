@@ -10,7 +10,7 @@
 ?>
 
 <div id="featured-content" class="featured-content">
-	<div class="featured-content-inner">
+	<div class="featured-content-inner" data-prev="<?php esc_attr_e( 'Previous', 'twentyfourteen' ); ?>" data-next="<?php esc_attr_e( 'Next', 'twentyfourteen' ); ?>">
 	<?php
 		/**
 		 * Fires before the Twenty Fourteen featured content.
@@ -20,12 +20,17 @@
 		do_action( 'twentyfourteen_featured_posts_before' );
 
 		$featured_posts = twentyfourteen_get_featured_posts();
+
+	$GLOBALS['index'] = 1;
 	foreach ( (array) $featured_posts as $order => $post ) :
 		setup_postdata( $post );
 
 		// Include the featured content template.
 		get_template_part( 'content', 'featured-post' );
-		endforeach;
+
+		++$GLOBALS['index'];
+	endforeach;
+	unset( $GLOBALS['index'] );
 
 		/**
 		 * Fires after the Twenty Fourteen featured content.
