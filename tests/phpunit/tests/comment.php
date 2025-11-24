@@ -1672,4 +1672,228 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$this->assertSame( '1', $comment->comment_approved );
 	}
+
+	/**
+	 * Tests that trashing a top-level note also trashes all direct child notes.
+	 *
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
+	 * @dataProvider data_comment_approved_statuses
+	 */
+	public function test_wp_trash_comment_trashes_child_notes( $approved_status ) {
+		// Create a parent note (top-level, comment_parent=0).
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		// Create child notes under the parent.
+		$child_note_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		$child_note_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		$child_note_3 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => $approved_status,
+			)
+		);
+
+		// Trash the parent note.
+		wp_trash_comment( $parent_note );
+
+		// Verify parent note is trashed.
+		$this->assertSame( 'trash', get_comment( $parent_note )->comment_approved );
+
+		// Verify all child notes are also trashed.
+		$this->assertSame( 'trash', get_comment( $child_note_1 )->comment_approved );
+		$this->assertSame( 'trash', get_comment( $child_note_2 )->comment_approved );
+		$this->assertSame( 'trash', get_comment( $child_note_3 )->comment_approved );
+	}
+
+	/**
+	 * Data provider for test_wp_trash_comment_trashes_child_notes.
+	 */
+	public function data_comment_approved_statuses() {
+		return array(
+			array( '1' ),
+			array( '0' ),
+		);
+	}
+
+	/**
+	 * Tests that trashing a regular comment does NOT trash its children.
+	 *
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
+	 */
+	public function test_wp_trash_comment_does_not_trash_child_comments() {
+		// Create a parent comment (default type='comment').
+		$parent_comment = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Create child comments under the parent.
+		$child_comment_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_comment_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'comment',
+				'comment_parent'   => $parent_comment,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Trash the parent comment.
+		wp_trash_comment( $parent_comment );
+
+		// Verify parent comment is trashed.
+		$this->assertSame( 'trash', get_comment( $parent_comment )->comment_approved );
+
+		// Verify child comments are NOT trashed (maintaining existing behavior).
+		$this->assertSame( '1', get_comment( $child_comment_1 )->comment_approved );
+		$this->assertSame( '1', get_comment( $child_comment_2 )->comment_approved );
+	}
+
+	/**
+	 * Tests that trashing a child note does not affect parent or siblings.
+	 *
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
+	 */
+	public function test_wp_trash_comment_child_note_does_not_affect_parent_or_siblings() {
+		// Create a parent note.
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Create multiple child notes.
+		$child_note_1 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_note_2 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		$child_note_3 = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Trash only one child note.
+		wp_trash_comment( $child_note_2 );
+
+		// Verify the parent note is still approved.
+		$this->assertSame( '1', get_comment( $parent_note )->comment_approved );
+
+		// Verify the trashed child is trashed.
+		$this->assertSame( 'trash', get_comment( $child_note_2 )->comment_approved );
+
+		// Verify sibling notes are still approved.
+		$this->assertSame( '1', get_comment( $child_note_1 )->comment_approved );
+		$this->assertSame( '1', get_comment( $child_note_3 )->comment_approved );
+	}
+
+	/**
+	 * Tests that only top-level notes trigger child deletion.
+	 *
+	 * @ticket 64240
+	 * @covers ::wp_trash_comment
+	 */
+	public function test_wp_trash_comment_only_top_level_notes_trigger_child_deletion() {
+		// Create a parent note.
+		$parent_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => 0,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Create a child note (not top-level, has comment_parent > 0).
+		$child_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Create a sibling note (also not top-level).
+		$sibling_note = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_type'     => 'note',
+				'comment_parent'   => $parent_note,
+				'comment_approved' => '1',
+			)
+		);
+
+		// Trash the child note (which has comment_parent > 0).
+		wp_trash_comment( $child_note );
+
+		// Verify the child note is trashed.
+		$this->assertSame( 'trash', get_comment( $child_note )->comment_approved );
+
+		// Verify the parent note is NOT trashed.
+		$this->assertSame( '1', get_comment( $parent_note )->comment_approved );
+
+		// Verify the sibling note is NOT trashed (no cascade since child is not top-level).
+		$this->assertSame( '1', get_comment( $sibling_note )->comment_approved );
+	}
 }

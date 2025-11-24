@@ -471,15 +471,11 @@ switch ( $action ) {
 						</tr>
 					<?php endif; // End if ! IS_PROFILE_PAGE. ?>
 
-					<?php if ( is_multisite() && is_network_admin() && ! IS_PROFILE_PAGE && current_user_can( 'manage_network_options' ) && ! isset( $super_admins ) ) : ?>
+					<?php if ( is_multisite() && is_network_admin() && ! IS_PROFILE_PAGE && ! isset( $super_admins ) ) : ?>
 						<tr class="user-super-admin-wrap">
 							<th><?php _e( 'Super Admin' ); ?></th>
 							<td>
-								<?php if ( 0 !== strcasecmp( $profile_user->user_email, get_site_option( 'admin_email' ) ) || ! is_super_admin( $profile_user->ID ) ) : ?>
-									<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
-								<?php else : ?>
-									<p><?php _e( 'Super admin privileges cannot be removed because this user has the network admin email.' ); ?></p>
-								<?php endif; ?>
+								<p><label><input type="checkbox" id="super_admin" name="super_admin"<?php checked( is_super_admin( $profile_user->ID ) ); ?> /> <?php _e( 'Grant this user super admin privileges for the Network.' ); ?></label></p>
 							</td>
 						</tr>
 					<?php endif; ?>
@@ -891,7 +887,7 @@ switch ( $action ) {
 					<?php
 					if ( IS_PROFILE_PAGE ) {
 						/**
-						 * Fires after the 'About Yourself' settings table on the 'Profile' editing screen.
+						 * Fires after the 'Application Passwords' section is loaded on the 'Profile' editing screen.
 						 *
 						 * The action only fires if the current user is editing their own profile.
 						 *
@@ -902,7 +898,9 @@ switch ( $action ) {
 						do_action( 'show_user_profile', $profile_user );
 					} else {
 						/**
-						 * Fires after the 'About the User' settings table on the 'Edit User' screen.
+						 * Fires after the 'Application Passwords' section is loaded on 'Edit User' screen.
+						 *
+						 * The action only fires if the current user is editing another user's profile.
 						 *
 						 * @since 2.0.0
 						 *
