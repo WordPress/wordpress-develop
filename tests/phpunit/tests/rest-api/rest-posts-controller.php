@@ -3288,6 +3288,9 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertSame( 'link', $data['format'] );
 	}
 
+	/**
+	 * @covers WP_REST_Posts_Controller::handle_featured_media()
+	 */
 	public function test_create_update_post_with_featured_media() {
 
 		$file          = DIR_TESTDATA . '/images/canola.jpg';

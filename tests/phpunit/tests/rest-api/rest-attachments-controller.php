@@ -1361,6 +1361,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 41692
+	 * @covers WP_REST_Posts_Controller::handle_featured_media()
 	 */
 	public function test_create_update_post_with_featured_media() {
 		// Add support for thumbnails on all attachment types to avoid incorrect-usage notice.
@@ -1424,7 +1425,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status(), $response->is_error() ? 'Error: ' . $response->as_error()->get_error_message() : '' );
 		$data = $response->get_data();
 		$this->assertSame( $attachment_id, $data['featured_media'] );
 		$this->assertSame( $attachment_id, get_post_thumbnail_id( $new_attachment->ID ) );
