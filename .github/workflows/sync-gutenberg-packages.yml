@@ -2,7 +2,7 @@ name: Sync Gutenberg Packages
 
 on:
   pull_request:
-    type:
+    types:
       - 'labeled'
   workflow_dispatch:
   # Gutenberg plugin releases happens every Tuesday.
