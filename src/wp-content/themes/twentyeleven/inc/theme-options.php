@@ -152,7 +152,7 @@ function twentyeleven_theme_options_help() {
  *
  * @since Twenty Eleven 1.0
  *
- * @return array An associative array of color scheme options.
+ * @return array<string, array<string, string>> An associative array of color scheme options.
  */
 function twentyeleven_color_schemes() {
 	$color_scheme_options = array(
@@ -175,7 +175,7 @@ function twentyeleven_color_schemes() {
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @param array $color_scheme_options An associative array of color scheme options.
+	 * @param array<string, array<string, string>> $color_scheme_options An associative array of color scheme options.
 	 */
 	return apply_filters( 'twentyeleven_color_schemes', $color_scheme_options );
 }
@@ -185,7 +185,7 @@ function twentyeleven_color_schemes() {
  *
  * @since Twenty Eleven 1.0
  *
- * @return array An associative array of layout options.
+ * @return array<string, array<string, string>> An associative array of layout options.
  */
 function twentyeleven_layouts() {
 	$layout_options = array(
@@ -211,7 +211,7 @@ function twentyeleven_layouts() {
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @param array $layout_options An associative array of layout options.
+	 * @param array<string, array<string, string>> $layout_options An associative array of layout options.
 	 */
 	return apply_filters( 'twentyeleven_layouts', $layout_options );
 }
@@ -221,7 +221,7 @@ function twentyeleven_layouts() {
  *
  * @since Twenty Eleven 1.0
  *
- * @return array An array of default theme options.
+ * @return array<string, string> An array of default theme options.
  */
 function twentyeleven_get_default_theme_options() {
 	$default_theme_options = array(
@@ -239,7 +239,7 @@ function twentyeleven_get_default_theme_options() {
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @param array $default_theme_options An array of default theme options.
+	 * @param array<string, string> $default_theme_options An array of default theme options.
 	 */
 	return apply_filters( 'twentyeleven_default_theme_options', $default_theme_options );
 }
@@ -251,7 +251,7 @@ function twentyeleven_get_default_theme_options() {
  *
  * @param string $color_scheme Optional. Color scheme.
  *                             Default null (or the active color scheme).
- * @return string The default link color.
+ * @return string|false The default link color, or false if not set.
  */
 function twentyeleven_get_default_link_color( $color_scheme = null ) {
 	if ( null === $color_scheme ) {
@@ -272,7 +272,7 @@ function twentyeleven_get_default_link_color( $color_scheme = null ) {
  *
  * @since Twenty Eleven 1.0
  *
- * @return array The theme options array.
+ * @return array<string, string> The theme options array.
  */
 function twentyeleven_get_theme_options() {
 	return get_option( 'twentyeleven_theme_options', twentyeleven_get_default_theme_options() );
@@ -385,7 +385,7 @@ function twentyeleven_theme_options_render_page() {
  * @since Twenty Eleven 1.0
  *
  * @param array $input An array of form input.
- * @return array An array of sanitized and validated form output.
+ * @return array<string, string> An array of sanitized and validated form output.
  */
 function twentyeleven_theme_options_validate( $input ) {
 	$defaults = twentyeleven_get_default_theme_options();
@@ -415,9 +415,9 @@ function twentyeleven_theme_options_validate( $input ) {
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @param array $output   An array of sanitized form output.
-	 * @param array $input    An array of un-sanitized form input.
-	 * @param array $defaults An array of default theme options.
+	 * @param array<string, string> $output   An array of sanitized form output.
+	 * @param array                 $input    An array of un-sanitized form input.
+	 * @param array<string, string> $defaults An array of default theme options.
 	 */
 	return apply_filters( 'twentyeleven_theme_options_validate', $output, $input, $defaults );
 }
@@ -500,8 +500,8 @@ add_action( 'wp_head', 'twentyeleven_print_link_color_style' );
  *
  * @since Twenty Eleven 1.0
  *
- * @param array $existing_classes An array of existing body classes.
- * @return array The filtered array of body classes.
+ * @param string[] $existing_classes An array of existing body classes.
+ * @return string[] The filtered array of body classes.
  */
 function twentyeleven_layout_classes( $existing_classes ) {
 	$options        = twentyeleven_get_theme_options();
@@ -526,8 +526,8 @@ function twentyeleven_layout_classes( $existing_classes ) {
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @param array  $classes        An array of body classes.
-	 * @param string $current_layout The current theme layout.
+	 * @param string[] $classes        An array of body classes.
+	 * @param string   $current_layout The current theme layout.
 	 */
 	$classes = apply_filters( 'twentyeleven_layout_classes', $classes, $current_layout );
 

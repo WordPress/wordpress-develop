@@ -49,8 +49,8 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @since Twenty Eleven 1.0
 	 *
-	 * @param array $args     An array of standard parameters for widgets in this theme.
-	 * @param array $instance An array of settings for this widget instance.
+	 * @param array                     $args     An array of standard parameters for widgets in this theme.
+	 * @param array<string, string|int> $instance An array of settings for this widget instance.
 	 */
 	public function widget( $args, $instance ) {
 		$cache = wp_cache_get( 'widget_twentyeleven_ephemera', 'widget' );
@@ -159,7 +159,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 *
 	 * @param array $new_instance New widget instance.
 	 * @param array $old_instance Original widget instance.
-	 * @return array Updated widget instance.
+	 * @return array<string, string|int> Updated widget instance.
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance           = $old_instance;
