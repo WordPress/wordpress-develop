@@ -204,4 +204,53 @@ EOF;
 		);
 		$this->assertSame( $expected, trim( $archives ) );
 	}
+
+	/**
+	 * @ticket 7.0.0
+	 */
+	public function test_wp_get_archives_limit_filter() {
+		$ids = array_slice( array_reverse( self::$post_ids ), 0, 3 );
+
+		$title1 = get_post( $ids[0] )->post_title;
+		$title2 = get_post( $ids[1] )->post_title;
+		$title3 = get_post( $ids[2] )->post_title;
+
+		// Test without filter - should return all 3 posts when limit is 3.
+		$archives_without_filter = wp_get_archives(
+			array(
+				'echo'  => false,
+				'type'  => 'postbypost',
+				'limit' => 3,
+			)
+		);
+		$this->assertStringContainsString( $title1, $archives_without_filter );
+		$this->assertStringContainsString( $title2, $archives_without_filter );
+		$this->assertStringContainsString( $title3, $archives_without_filter );
+
+		// Add filter to modify limit to 2.
+		add_filter(
+			'getarchives_limit',
+			function( $limit, $parsed_args ) {
+				// Modify limit from 3 to 2.
+				return ' LIMIT 2';
+			},
+			10,
+			2
+		);
+
+		// Test with filter - should return only 2 posts.
+		$archives_with_filter = wp_get_archives(
+			array(
+				'echo'  => false,
+				'type'  => 'postbypost',
+				'limit' => 3,
+			)
+		);
+		$this->assertStringContainsString( $title1, $archives_with_filter );
+		$this->assertStringContainsString( $title2, $archives_with_filter );
+		$this->assertStringNotContainsString( $title3, $archives_with_filter );
+
+		// Remove filter.
+		remove_all_filters( 'getarchives_limit' );
+	}
 }

@@ -2070,7 +2070,15 @@ function wp_get_archives( $args = '' ) {
 
 	$last_changed = wp_cache_get_last_changed( 'posts' );
 
-	$limit = $parsed_args['limit'];
+	/**
+	 * Filters the SQL LIMIT clause for retrieving archives.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $limit The limit of the query for the `wp_get_archives` function.
+	 * @param array  $parsed_args An array of default arguments.
+	 */
+	$limit = apply_filters( 'getarchives_limit', $parsed_args['limit'], $parsed_args );
 
 	if ( 'monthly' === $parsed_args['type'] ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY post_date $order $limit";
