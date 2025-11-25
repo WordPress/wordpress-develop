@@ -206,7 +206,7 @@ EOF;
 	}
 
 	/**
-	 * @ticket 7.0.0
+	 * @ticket 64304
 	 */
 	public function test_wp_get_archives_limit_filter() {
 		$ids = array_slice( array_reverse( self::$post_ids ), 0, 3 );
