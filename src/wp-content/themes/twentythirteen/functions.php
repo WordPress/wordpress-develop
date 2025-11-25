@@ -329,7 +329,7 @@ function twentythirteen_scripts_styles() {
 		'twentythirteen-script',
 		get_template_directory_uri() . '/js/functions.js',
 		array( 'jquery' ),
-		'20230526',
+		'20250727',
 		array(
 			'in_footer' => false, // Because involves header.
 			'strategy'  => 'defer',
@@ -341,7 +341,7 @@ function twentythirteen_scripts_styles() {
 	wp_enqueue_style( 'twentythirteen-fonts', twentythirteen_fonts_url(), array(), $font_version );
 
 	// Add Genericons font, used in the main stylesheet.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251202' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20251101' );
 
 	// Loads our main stylesheet.
 	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20251202' );
