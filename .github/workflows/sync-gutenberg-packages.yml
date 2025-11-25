@@ -1,0 +1,45 @@
+name: Sync Gutenberg Packages
+
+on:
+  pull_request:
+  workflow_dispatch:
+  # Gutenberg plugin releases happens every Tuesday.
+  # Running on Monday ensures only the previous week's release is detected.
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+
+  update-packages:
+    name: Update block editor packages
+    runs-on: 'ubuntu-24.04'
+    permissions:
+      contents: write
+      pull-requests: write
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Sync packages
+        run: npm run sync-gutenberg-packages
+
+      - name: Run post-sync script
+        run: npm run postsync-gutenberg-packages
+
+      - name: Detect changes
+        run: git diff
+
