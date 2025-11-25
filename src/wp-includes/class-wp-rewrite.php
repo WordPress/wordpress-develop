@@ -76,7 +76,7 @@ class WP_Rewrite {
 	 * Base of the search permalink structure (example.com/$search_base/query).
 	 *
 	 * @since 1.5.0
-	 * @var ?string
+	 * @var string
 	 */
 	public $search_base = 'search';
 
