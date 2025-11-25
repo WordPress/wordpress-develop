@@ -3487,7 +3487,7 @@ function wp_enqueue_command_palette_assets() {
 	if ( $menu ) {
 		$menu_commands = array();
 		foreach ( $menu as $menu_item ) {
-			if ( empty( $menu_item[0] ) || ! empty( $menu_item[1] ) && ! current_user_can( $menu_item[1] ) ) {
+			if ( empty( $menu_item[0] ) || ! is_string( $menu_item[0] ) || ! empty( $menu_item[1] ) && ! current_user_can( $menu_item[1] ) ) {
 				continue;
 			}
 
