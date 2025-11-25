@@ -1574,13 +1574,38 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  * If Trash is disabled, comment is permanently deleted.
  *
  * @since 2.9.0
+ * @since 6.9.0 Any child notes are deleted when deleting a note.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
  */
 function wp_trash_comment( $comment_id ) {
 	if ( ! EMPTY_TRASH_DAYS ) {
-		return wp_delete_comment( $comment_id, true );
+		$comment = get_comment( $comment_id );
+		$success = wp_delete_comment( $comment_id, true );
+
+		if ( ! $success ) {
+			return false;
+		}
+
+		// Also delete children of top level 'note' type comments.
+		if ( $comment && 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
+			$children = $comment->get_children(
+				array(
+					'fields' => 'ids',
+					'status' => 'all',
+					'type'   => 'note',
+				)
+			);
+
+			foreach ( $children as $child_id ) {
+				if ( ! wp_delete_comment( $child_id, true ) ) {
+					$success = false;
+				}
+			}
+		}
+
+		return $success;
 	}
 
 	$comment = get_comment( $comment_id );
@@ -1615,6 +1640,25 @@ function wp_trash_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The trashed comment.
 		 */
 		do_action( 'trashed_comment', $comment->comment_ID, $comment );
+
+		// For top level 'note' type comments, also trash children.
+		if ( 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
+			$children = $comment->get_children(
+				array(
+					'fields' => 'ids',
+					'status' => 'all',
+					'type'   => 'note',
+				)
+			);
+
+			$success = true;
+			foreach ( $children as $child_id ) {
+				if ( ! wp_trash_comment( $child_id ) ) {
+					$success = false;
+				}
+			}
+			return $success;
+		}
 
 		return true;
 	}
@@ -2425,8 +2469,9 @@ function wp_new_comment_notify_moderator( $comment_id ) {
  */
 function wp_new_comment_notify_postauthor( $comment_id ) {
 	$comment = get_comment( $comment_id );
+	$is_note = ( $comment && 'note' === $comment->comment_type );
 
-	$maybe_notify = get_option( 'comments_notify' );
+	$maybe_notify = $is_note ? get_option( 'wp_notes_notify', 1 ) : get_option( 'comments_notify' );
 
 	/**
 	 * Filters whether to send the post author new comment notification emails,
@@ -2447,12 +2492,27 @@ function wp_new_comment_notify_postauthor( $comment_id ) {
 		return false;
 	}
 
-	// Only send notifications for approved comments.
-	if ( ! isset( $comment->comment_approved ) || '1' !== $comment->comment_approved ) {
-		return false;
+	// Send notifications for approved comments and all notes.
+	if (
+		! isset( $comment->comment_approved ) ||
+		( '1' !== $comment->comment_approved && ! $is_note ) ) {
+			return false;
 	}
 
 	return wp_notify_postauthor( $comment_id );
+}
+
+/**
+ * Send a notification to the post author when a new note is added via the REST API.
+ *
+ * @since 6.9.0
+ *
+ * @param WP_Comment $comment The comment object.
+ */
+function wp_new_comment_via_rest_notify_postauthor( $comment ) {
+	if ( $comment instanceof WP_Comment && 'note' === $comment->comment_type ) {
+		wp_new_comment_notify_postauthor( (int) $comment->comment_ID );
+	}
 }
 
 /**
@@ -2709,7 +2769,7 @@ function wp_update_comment( $commentarr, $wp_error = false ) {
  * @since 2.5.0
  *
  * @param bool $defer
- * @return bool
+ * @return bool Whether comment counting is deferred.
  */
 function wp_defer_comment_counting( $defer = null ) {
 	static $_defer = false;
@@ -3311,7 +3371,7 @@ function weblog_ping( $server = '', $path = '' ) {
  * @see wp_http_validate_url()
  *
  * @param string $source_uri
- * @return string
+ * @return string Validated source URI.
  */
 function pingback_ping_source_uri( $source_uri ) {
 	return (string) wp_http_validate_url( $source_uri );

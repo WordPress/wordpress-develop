@@ -140,7 +140,9 @@ require_wp_db();
  *
  * @global string $table_prefix The database table prefix.
  */
-$GLOBALS['table_prefix'] = $table_prefix;
+if ( ! isset( $GLOBALS['table_prefix'] ) ) {
+	$GLOBALS['table_prefix'] = $table_prefix;
+}
 
 // Set the database table prefix and the format specifiers for database table columns.
 wp_set_wpdb_vars();
@@ -331,7 +333,6 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-sidebars-controller
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-widget-types-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-widgets-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-templates-controller.php';
-require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-registered-templates-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-url-details-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-navigation-fallback-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-families-controller.php';
