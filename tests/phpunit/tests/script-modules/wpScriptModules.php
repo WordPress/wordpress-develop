@@ -2337,9 +2337,9 @@ HTML;
 		);
 
 		// Assert the message mentions the missing dependency handle.
-		$this->assertStringContainsString( 
-			'The script module main-module was enqueued with dependencies that are not registered: missing-mod-dep', 
-			$this->caught_doing_it_wrong['WP_Script_Modules::sort_item_dependencies'] 
+		$this->assertStringContainsString(
+			'The script module main-module was enqueued with dependencies that are not registered: missing-mod-dep',
+			$this->caught_doing_it_wrong['WP_Script_Modules::sort_item_dependencies']
 		);
 	}
 }
