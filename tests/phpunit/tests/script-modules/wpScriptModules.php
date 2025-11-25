@@ -1965,6 +1965,9 @@ HTML;
 		global $wp_version;
 		$wp_version = '99.9.9';
 
+		if ( $use_global_function && $only_enqueue ) {
+			$this->setExpectedIncorrectUsage( 'WP_Script_Modules::sort_item_dependencies' );
+		}
 		$register = static function ( ...$args ) use ( $use_global_function ) {
 			if ( $use_global_function ) {
 				wp_register_script_module( ...$args );
@@ -2310,6 +2313,33 @@ HTML;
 			$script_modules,
 			'<body>',
 			"Expected script modules to match snapshot:\n$script_modules"
+		);
+	}
+
+	/**
+	 * Tests that a missing script module dependency triggers a _doing_it_wrong() notice.
+	 *
+	 * @ticket 64229
+	 * @covers WP_Script_Modules::sort_item_dependencies
+	 */
+	public function test_missing_script_module_dependency_triggers_incorrect_usage() {
+		$this->setExpectedIncorrectUsage( 'WP_Script_Modules::sort_item_dependencies' );
+
+		$this->script_modules->register( 'main-module', '/main-module.js', array( 'missing-mod-dep' ) );
+		$this->script_modules->enqueue( 'main-module' );
+
+		get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) );
+
+		$this->assertArrayHasKey(
+			'WP_Script_Modules::sort_item_dependencies',
+			$this->caught_doing_it_wrong,
+			'Expected WP_Script_Modules::sort_item_dependencies to be reported via doing_it_wrong().'
+		);
+
+		// Assert the message mentions the missing dependency handle.
+		$this->assertStringContainsString( 
+			'The script module main-module was enqueued with dependencies that are not registered: missing-mod-dep', 
+			$this->caught_doing_it_wrong['WP_Script_Modules::sort_item_dependencies'] 
 		);
 	}
 }
