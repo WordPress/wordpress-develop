@@ -2,6 +2,8 @@ name: Sync Gutenberg Packages
 
 on:
   pull_request:
+    type:
+      - 'labeled'
   workflow_dispatch:
   # Gutenberg plugin releases happens every Tuesday.
   # Running on Monday ensures only the previous week's release is detected.
@@ -11,8 +13,9 @@ on:
 jobs:
 
   update-packages:
-    name: Update block editor packages
+    name: Sync block editor-related package updates
     runs-on: 'ubuntu-24.04'
+    if: ${{ github.repository == 'wordpress/wordpress-develop' && ( github.event.action != 'labeled' || 'sync-gutenberg' == github.event.label.name ) }}
     permissions:
       contents: write
       pull-requests: write
@@ -22,6 +25,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.ref || github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.ref }}
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: true
 
@@ -30,6 +34,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: npm
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
 
       - name: Install npm Dependencies
         run: npm ci
@@ -40,6 +51,27 @@ jobs:
       - name: Run post-sync script
         run: npm run postsync-gutenberg-packages
 
-      - name: Detect changes
+      - name: Check for changes to versioned files
+        id: built-file-check
+        run: |
+          if git diff --quiet; then
+            echo "uncommitted_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "uncommitted_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Display changes to versioned files
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
         run: git diff
 
+      - name: Save diff to a file
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
+        run: git diff > ./changes.diff
+
+      # Uploads the diff file as an artifact.
+      - name: Upload diff file as artifact
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        if: ${{ steps.built-file-check.outputs.uncommitted_changes == 'true' }}
+        with:
+          name: pr-built-file-changes
+          path: changes.diff
