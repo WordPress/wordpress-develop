@@ -3445,7 +3445,7 @@ function wp_enqueue_command_palette_assets() {
 	 * @param string $label HTML string to extract text from.
 	 * @return string Extracted text content, trimmed.
 	 */
-	$extract_root_text = static function ( $label ) {
+	$extract_root_text = static function ( string $label ): string {
 		if ( '' === $label ) {
 			return '';
 		}
