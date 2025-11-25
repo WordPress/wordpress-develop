@@ -3179,9 +3179,14 @@
         'type' => 'boolean',
         'default' => true
       ),
-      'displayExcerpt' => array(
-        'type' => 'boolean',
-        'default' => true
+      'displayContent' => array(
+        'type' => 'string',
+        'default' => 'excerpt',
+        'enum' => array(
+          'none',
+          'excerpt',
+          'full'
+        )
       )
     ),
     'supports' => array(
@@ -4404,9 +4409,6 @@
     ),
     'textdomain' => 'default',
     'attributes' => array(
-      'align' => array(
-        'type' => 'string'
-      ),
       'content' => array(
         'type' => 'rich-text',
         'source' => 'rich-text',
@@ -4457,6 +4459,7 @@
       'typography' => array(
         'fontSize' => true,
         'lineHeight' => true,
+        'textAlign' => true,
         '__experimentalFontFamily' => true,
         '__experimentalTextDecoration' => true,
         '__experimentalFontStyle' => true,
@@ -7771,6 +7774,9 @@
       'isLink' => array(
         'type' => 'boolean',
         'default' => false
+      ),
+      'levelOptions' => array(
+        'type' => 'array'
       )
     ),
     'supports' => array(
