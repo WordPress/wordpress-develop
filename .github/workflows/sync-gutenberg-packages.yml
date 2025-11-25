@@ -84,3 +84,19 @@ jobs:
         with:
           name: pr-built-file-changes
           path: changes.diff
+
+      - name: Remove the sync-gutenberg label
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        if: ${{ github.event.action == 'labeled' && 'sync-gutenberg' == github.event.label.name }}
+        with:
+          retries: 2
+          retry-exempt-status-codes: 418
+          script: |
+            github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: process.env.ISSUE_NUMBER,
+              name: 'sync-gutenberg'
+            });
+        env:
+          ISSUE_NUMBER: ${{ github.event.number }}
