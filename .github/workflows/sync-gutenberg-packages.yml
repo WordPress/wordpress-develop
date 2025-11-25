@@ -15,7 +15,16 @@ jobs:
   update-packages:
     name: Sync block editor-related package updates
     runs-on: 'ubuntu-24.04'
-    if: ${{ github.repository == 'wordpress/wordpress-develop' && ( github.event.action != 'labeled' || 'sync-gutenberg' == github.event.label.name ) }}
+    if: |
+      (
+        github.repository != 'WordPress/wordpress-develop' &&
+        github.event_name == 'workflow_dispatch'
+      ) ||
+      github.repository == 'WordPress/wordpress-develop' &&
+      (
+        github.event.action != 'labeled' ||
+        'sync-gutenberg' == github.event.label.name
+      )
     permissions:
       contents: write
       pull-requests: write
