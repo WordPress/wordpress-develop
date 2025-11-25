@@ -230,7 +230,7 @@ EOF;
 		// Add filter to modify limit to 2.
 		add_filter(
 			'getarchives_limit',
-			function( $limit, $parsed_args ) {
+			function ( $limit, $parsed_args ) {
 				// Modify limit from 3 to 2.
 				return ' LIMIT 2';
 			},
