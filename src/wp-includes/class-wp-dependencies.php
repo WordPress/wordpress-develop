@@ -199,8 +199,11 @@ class WP_Dependencies {
 				continue;
 			}
 
-			$keep_going = true;
-			$missing_dependencies = ( isset( $this->registered[ $handle ] ) && $this->registered[ $handle ]->deps ) ? array_diff( $this->registered[ $handle ]->deps, array_keys( $this->registered ) ) : array();
+			$keep_going           = true;
+			$missing_dependencies = array();
+			if ( isset( $this->registered[ $handle ] ) && $this->registered[ $handle ]->deps ) {
+				$missing_dependencies = array_diff( $this->registered[ $handle ]->deps, array_keys( $this->registered ) );
+			}
 			if ( ! isset( $this->registered[ $handle ] ) ) {
 				$keep_going = false; // Item doesn't exist.
 			} elseif ( $missing_dependencies ) {
