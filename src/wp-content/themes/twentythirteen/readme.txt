@@ -1,9 +1,9 @@
 === Twenty Thirteen ===
 Contributors: wordpressdotorg
 Requires at least: 3.6
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 5.2.4
-Stable tag: 4.3
+Stable tag: 4.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, two-columns, right-sidebar, custom-header, custom-menu, editor-style, featured-images, footer-widgets, microformats, post-formats, rtl-language-support, sticky-post, translation-ready, accessibility-ready, block-patterns
@@ -15,7 +15,7 @@ For more information about Twenty Thirteen please go to https://codex.wordpress.
 
 == Installation ==
 
-1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
+1. In your admin panel, go to Appearance -> Themes and click the 'Add' button.
 2. Type in Twenty Thirteen in the search form and press the 'Enter' key in your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
 4. Go to https://codex.wordpress.org/Twenty_Thirteen for a guide to customize this theme.
@@ -38,10 +38,6 @@ GNU General Public License for more details.
 
 Twenty Thirteen Theme bundles the following third-party resources:
 
-HTML5 Shiv v3.7.0, Copyright 2014 Alexander Farkas
-Licenses: MIT/GPL2
-Source: https://github.com/aFarkas/html5shiv
-
 Genericons icon font, Copyright 2013-2017 Automattic Inc.
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
@@ -63,6 +59,11 @@ Torus Interior: https://www.flickr.com/photos/nasacommons/14076102195/in/album-7
 Toroidal Colony: https://www.flickr.com/photos/nasacommons/13889485757/in/album-72157644439092941/ Rick Guidice, NASA Ames Research Center.
 
 == Changelog ==
+
+= 4.4 =
+* Released: April 15, 2025
+
+https://wordpress.org/documentation/article/twenty-thirteen-changelog/#Version_4.4
 
 = 4.3 =
 * Released: November 12, 2024

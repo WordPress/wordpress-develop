@@ -440,7 +440,9 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$imagick_image_editor->load();
 
 		$property = new ReflectionProperty( $imagick_image_editor, 'image' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$color_top_left = $property->getValue( $imagick_image_editor )->getImagePixelColor( 0, 0 )->getColor();
 
@@ -459,7 +461,9 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$imagick_image_editor->load();
 
 		$property = new ReflectionProperty( $imagick_image_editor, 'image' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 
 		$color_top_left = $property->getValue( $imagick_image_editor )->getImagePixelColor( 0, 0 )->getColor();
 
@@ -656,6 +660,11 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}
 
+		$version = Imagick::getVersion();
+		if ( $version['versionNumber'] < 0x675 ) {
+			$this->markTestSkipped( 'The version of ImageMagick does not support removing alpha channels from PDFs.' );
+		}
+
 		$test_file     = DIR_TESTDATA . '/images/test-alpha.pdf';
 		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
 		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
@@ -696,6 +705,10 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Test filter `image_max_bit_depth` correctly sets the maximum bit depth of resized images.
 	 *
 	 * @ticket 62285
+	 *
+	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
+	 * See https://core.trac.wordpress.org/ticket/63932.
+	 * @requires PHP < 8.3
 	 */
 	public function test_image_max_bit_depth() {
 		$file                 = DIR_TESTDATA . '/images/colors_hdr_p3.avif';
@@ -765,8 +778,18 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * @ticket 36477
 	 *
 	 * @dataProvider data_resizes_are_small_for_16bit_images
+	 *
+	 * @param string $file Path to the image file.
 	 */
 	public function test_resizes_are_small_for_16bit_images( $file ) {
+
+		// Temporarily disabled. See https://core.trac.wordpress.org/ticket/63932.
+		if ( DIR_TESTDATA . '/images/png-tests/test8.png' === $file ) {
+			$version = Imagick::getVersion();
+			if ( $version['versionNumber'] >= 0x700 ) {
+				$this->markTestSkipped( 'ImageMagick 7 is unable to optimize grayscale images with 1-bit transparency.' );
+			}
+		}
 
 		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
 
@@ -778,7 +801,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$imagick_image_editor->resize( $size['width'] * .5, $size['height'] * .5 );
 
-		$saved = $imagick_image_editor->save( $temp_file );
+		$imagick_image_editor->save( $temp_file );
 
 		$new_filesize = filesize( $temp_file );
 
@@ -788,7 +811,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * data_test_resizes_are_small_for_16bit
+	 * Data provider for test_resizes_are_small_for_16bit_images.
 	 *
 	 * @return array[]
 	 */
@@ -808,6 +831,107 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			),
 			'test8'                   => array(
 				DIR_TESTDATA . '/images/png-tests/test8.png',
+			),
+		);
+	}
+
+	/**
+	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing
+	 * Used to identify indexed PNG images, see https://www.w3.org/TR/PNG-Chunks.html#C.IHDR.
+	 *
+	 * @ticket 63448
+	 * @dataProvider data_png_color_type_after_resize
+	 *
+	 * @param string $file_path             Path to the image file.
+	 * @param int    $expected_color_type   The expected original color type.
+	 */
+	public function test_png_color_type_is_preserved_after_resize( $file_path, $expected_color_type ) {
+
+		// Temporarily disabled. See https://core.trac.wordpress.org/ticket/63932.
+		if ( DIR_TESTDATA . '/images/png-tests/test8.png' === $file_path ) {
+			$version = Imagick::getVersion();
+			if ( $version['versionNumber'] >= 0x700 ) {
+				$this->markTestSkipped( 'ImageMagick 7 is unable to optimize grayscale images with 1-bit transparency.' );
+			}
+		}
+
+		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file_path );
+		$imagick_image_editor->load();
+
+		$size = $imagick_image_editor->get_size();
+		$imagick_image_editor->resize( $size['width'] * 0.5, $size['height'] * 0.5 );
+		$imagick_image_editor->save( $temp_file );
+
+		$imagick           = new Imagick( $temp_file );
+		$actual_color_type = $imagick->getImageProperty( 'png:IHDR.color-type-orig' );
+
+		unlink( $temp_file );
+
+		$this->assertSame( (string) $expected_color_type, $actual_color_type, "The PNG original color type should be preserved after resize for {$file_path}." );
+	}
+
+	/**
+	 * Data provider for test_png_color_type_is_preserved_after_resize.
+	 *
+	 * @return array[]
+	 */
+	public static function data_png_color_type_after_resize() {
+		return array(
+			'vivid-green-bird_color_type_6'         => array(
+				DIR_TESTDATA . '/images/png-tests/vivid-green-bird.png',
+				6, // RGBA.
+			),
+			'grayscale-test-image_color_type_4'     => array(
+				DIR_TESTDATA . '/images/png-tests/grayscale-test-image.png',
+				4, // Grayscale with Alpha.
+			),
+			'rabbit-time-paletted-or8_color_type_3' => array(
+				DIR_TESTDATA . '/images/png-tests/rabbit-time-paletted-or8.png',
+				3, // Paletted.
+			),
+			'test8_color_type_3'                    => array(
+				DIR_TESTDATA . '/images/png-tests/test8.png',
+				3, // Paletted.
+			),
+		);
+	}
+
+	/**
+	 * Tests that alpha transparency is preserved after resizing.
+	 *
+	 * @ticket 63448
+	 * @dataProvider data_alpha_transparency_is_preserved_after_resize
+	 *
+	 * @param string $file_path Path to the image file.
+	 */
+	public function test_alpha_transparency_is_preserved_after_resize( $file_path ) {
+
+		$temp_file = DIR_TESTDATA . '/images/test-temp.png';
+
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file_path );
+		$imagick_image_editor->load();
+
+		$size = $imagick_image_editor->get_size();
+		$imagick_image_editor->resize( $size['width'] * 0.5, $size['height'] * 0.5 );
+		$imagick_image_editor->save( $temp_file );
+
+		$imagick             = new Imagick( $temp_file );
+		$alpha_channel_depth = $imagick->getImageChannelDepth( Imagick::CHANNEL_ALPHA );
+
+		unlink( $temp_file );
+
+		$this->assertGreaterThan( 1, $alpha_channel_depth, "Alpha transparency should be preserved after resize for {$file_path}." );
+	}
+
+	public static function data_alpha_transparency_is_preserved_after_resize() {
+		return array(
+			'oval-or8'                   => array(
+				DIR_TESTDATA . '/images/png-tests/oval-or8.png',
+			),
+			'oval-or8-grayscale-indexed' => array(
+				DIR_TESTDATA . '/images/png-tests/oval-or8-grayscale-indexed.png',
 			),
 		);
 	}

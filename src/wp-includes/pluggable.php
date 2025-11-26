@@ -158,9 +158,23 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * The default charset is based on the charset used on the blog. The charset can
 	 * be set using the {@see 'wp_mail_charset'} filter.
 	 *
+	 * When using the `$embeds` parameter to embed images for use in HTML emails,
+	 * reference the embedded file in your HTML with a `cid:` URL whose value
+	 * matches the file's Content-ID. By default, the Content-ID (`cid`) used for
+	 * each embedded file is the key in the embeds array, unless modified via the
+	 * {@see 'wp_mail_embed_args'} filter. For example:
+	 *
+	 * `<img src="cid:0" alt="Logo">`
+	 * `<img src="cid:my-image" alt="Image">`
+	 *
+	 * You may also customize the Content-ID for each file by using the
+	 * {@see 'wp_mail_embed_args'} filter and setting the `cid` value.
+	 *
 	 * @since 1.2.1
 	 * @since 5.5.0 is_email() is used for email validation,
 	 *              instead of PHPMailer's default validator.
+	 * @since 6.9.0 Added $embeds parameter.
+	 * @since 6.9.0 Improved Content-Type header handling for multipart messages.
 	 *
 	 * @global PHPMailer\PHPMailer\PHPMailer $phpmailer
 	 *
@@ -169,9 +183,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * @param string          $message     Message contents.
 	 * @param string|string[] $headers     Optional. Additional headers.
 	 * @param string|string[] $attachments Optional. Paths to files to attach.
+	 * @param string|string[] $embeds      Optional. Paths to files to embed.
 	 * @return bool Whether the email was sent successfully.
 	 */
-	function wp_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
+	function wp_mail( $to, $subject, $message, $headers = '', $attachments = array(), $embeds = array() ) {
 		// Compact the input, apply the filters, and extract them back out.
 
 		/**
@@ -187,9 +202,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 *     @type string          $message     Message contents.
 		 *     @type string|string[] $headers     Additional headers.
 		 *     @type string|string[] $attachments Paths to files to attach.
+		 *     @type string|string[] $embeds      Paths to files to embed.
 		 * }
 		 */
-		$atts = apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) );
+		$atts = apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments', 'embeds' ) );
 
 		/**
 		 * Filters whether to preempt sending an email.
@@ -209,6 +225,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 *     @type string          $message     Message contents.
 		 *     @type string|string[] $headers     Additional headers.
 		 *     @type string|string[] $attachments Paths to files to attach.
+		 *     @type string|string[] $embeds      Paths to files to embed.
 		 * }
 		 */
 		$pre_wp_mail = apply_filters( 'pre_wp_mail', null, $atts );
@@ -244,6 +261,15 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		if ( ! is_array( $attachments ) ) {
 			$attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
 		}
+
+		if ( isset( $atts['embeds'] ) ) {
+			$embeds = $atts['embeds'];
+		}
+
+		if ( ! is_array( $embeds ) ) {
+			$embeds = explode( "\n", str_replace( "\r\n", "\n", $embeds ) );
+		}
+
 		global $phpmailer;
 
 		// (Re)create it, if it's gone missing.
@@ -326,6 +352,9 @@ if ( ! function_exists( 'wp_mail' ) ) :
 								} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
 									$boundary = trim( str_replace( array( 'BOUNDARY=', 'boundary=', '"' ), '', $charset_content ) );
 									$charset  = '';
+									if ( preg_match( '~^multipart/(\S+)~', $content_type, $matches ) ) {
+										$content_type = 'multipart/' . strtolower( $matches[1] ) . '; boundary="' . $boundary . '"';
+									}
 								}
 
 								// Avoid setting an empty $content_type.
@@ -358,6 +387,15 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$phpmailer->clearReplyTos();
 		$phpmailer->Body    = '';
 		$phpmailer->AltBody = '';
+
+		/*
+		 * Reset encoding to 8-bit, as it may have been automatically downgraded
+		 * to 7-bit by PHPMailer (based on the body contents) in a previous call
+		 * to wp_mail().
+		 *
+		 * See https://core.trac.wordpress.org/ticket/33972
+		 */
+		$phpmailer->Encoding = PHPMailer\PHPMailer\PHPMailer::ENCODING_8BIT;
 
 		// Set "From" name and email.
 
@@ -406,7 +444,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$from_name = apply_filters( 'wp_mail_from_name', $from_name );
 
 		try {
-			$phpmailer->setFrom( $from_email, $from_name, false );
+			$phpmailer->setFrom( $from_email, $from_name );
 		} catch ( PHPMailer\PHPMailer\Exception $e ) {
 			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
@@ -446,10 +484,10 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							$phpmailer->addAddress( $address, $recipient_name );
 							break;
 						case 'cc':
-							$phpmailer->addCc( $address, $recipient_name );
+							$phpmailer->addCC( $address, $recipient_name );
 							break;
 						case 'bcc':
-							$phpmailer->addBcc( $address, $recipient_name );
+							$phpmailer->addBCC( $address, $recipient_name );
 							break;
 						case 'reply_to':
 							$phpmailer->addReplyTo( $address, $recipient_name );
@@ -513,10 +551,6 @@ if ( ! function_exists( 'wp_mail' ) ) :
 					}
 				}
 			}
-
-			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
-				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
-			}
 		}
 
 		if ( ! empty( $attachments ) ) {
@@ -525,6 +559,50 @@ if ( ! function_exists( 'wp_mail' ) ) :
 
 				try {
 					$phpmailer->addAttachment( $attachment, $filename );
+				} catch ( PHPMailer\PHPMailer\Exception $e ) {
+					continue;
+				}
+			}
+		}
+
+		if ( ! empty( $embeds ) ) {
+			foreach ( $embeds as $key => $embed_path ) {
+				/**
+				 * Filters the arguments for PHPMailer's addEmbeddedImage() method.
+				 *
+				 * @since 6.9.0
+				 *
+				 * @param array $args {
+				 *     An array of arguments for `addEmbeddedImage()`.
+				 *     @type string $path        The path to the file.
+				 *     @type string $cid         The Content-ID of the image. Default: The key in the embeds array.
+				 *     @type string $name        The filename of the image.
+				 *     @type string $encoding    The encoding of the image. Default: 'base64'.
+				 *     @type string $type        The MIME type of the image. Default: empty string, which lets PHPMailer auto-detect.
+				 *     @type string $disposition The disposition of the image. Default: 'inline'.
+				 * }
+				 */
+				$embed_args = apply_filters(
+					'wp_mail_embed_args',
+					array(
+						'path'        => $embed_path,
+						'cid'         => (string) $key,
+						'name'        => basename( $embed_path ),
+						'encoding'    => 'base64',
+						'type'        => '',
+						'disposition' => 'inline',
+					)
+				);
+
+				try {
+					$phpmailer->addEmbeddedImage(
+						$embed_args['path'],
+						$embed_args['cid'],
+						$embed_args['name'],
+						$embed_args['encoding'],
+						$embed_args['type'],
+						$embed_args['disposition']
+					);
 				} catch ( PHPMailer\PHPMailer\Exception $e ) {
 					continue;
 				}
@@ -563,6 +641,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			 *     @type string   $message     Message contents.
 			 *     @type string[] $headers     Additional headers.
 			 *     @type string[] $attachments Paths to files to attach.
+			 *     @type string[] $embeds      Paths to files to embed.
 			 * }
 			 */
 			do_action( 'wp_mail_succeeded', $mail_data );
@@ -693,6 +772,7 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 	 *
 	 * @param string $cookie Optional. If used, will validate contents instead of cookie's.
 	 * @param string $scheme Optional. The cookie scheme to use: 'auth', 'secure_auth', or 'logged_in'.
+	 *                       Note: This does *not* default to 'auth' like other cookie functions.
 	 * @return int|false User ID if valid cookie, false if invalid.
 	 */
 	function wp_validate_auth_cookie( $cookie = '', $scheme = '' ) {
@@ -768,13 +848,17 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 			return false;
 		}
 
-		$pass_frag = substr( $user->user_pass, 8, 4 );
+		if ( str_starts_with( $user->user_pass, '$P$' ) || str_starts_with( $user->user_pass, '$2y$' ) ) {
+			// Retain previous behaviour of phpass or vanilla bcrypt hashed passwords.
+			$pass_frag = substr( $user->user_pass, 8, 4 );
+		} else {
+			// Otherwise, use a substring from the end of the hash to avoid dealing with potentially long hash prefixes.
+			$pass_frag = substr( $user->user_pass, -4 );
+		}
 
 		$key = wp_hash( $username . '|' . $pass_frag . '|' . $expiration . '|' . $token, $scheme );
 
-		// If ext/hash is not present, compat.php's hash_hmac() does not support sha256.
-		$algo = function_exists( 'hash' ) ? 'sha256' : 'sha1';
-		$hash = hash_hmac( $algo, $username . '|' . $expiration . '|' . $token, $key );
+		$hash = hash_hmac( 'sha256', $username . '|' . $expiration . '|' . $token, $key );
 
 		if ( ! hash_equals( $hash, $hmac ) ) {
 			/**
@@ -871,13 +955,17 @@ if ( ! function_exists( 'wp_generate_auth_cookie' ) ) :
 			$token   = $manager->create( $expiration );
 		}
 
-		$pass_frag = substr( $user->user_pass, 8, 4 );
+		if ( str_starts_with( $user->user_pass, '$P$' ) || str_starts_with( $user->user_pass, '$2y$' ) ) {
+			// Retain previous behaviour of phpass or vanilla bcrypt hashed passwords.
+			$pass_frag = substr( $user->user_pass, 8, 4 );
+		} else {
+			// Otherwise, use a substring from the end of the hash to avoid dealing with potentially long hash prefixes.
+			$pass_frag = substr( $user->user_pass, -4 );
+		}
 
 		$key = wp_hash( $user->user_login . '|' . $pass_frag . '|' . $expiration . '|' . $token, $scheme );
 
-		// If ext/hash is not present, compat.php's hash_hmac() does not support sha256.
-		$algo = function_exists( 'hash' ) ? 'sha256' : 'sha1';
-		$hash = hash_hmac( $algo, $user->user_login . '|' . $expiration . '|' . $token, $key );
+		$hash = hash_hmac( 'sha256', $user->user_login . '|' . $expiration . '|' . $token, $key );
 
 		$cookie = $user->user_login . '|' . $expiration . '|' . $token . '|' . $hash;
 
@@ -959,11 +1047,13 @@ endif;
 
 if ( ! function_exists( 'wp_set_auth_cookie' ) ) :
 	/**
-	 * Sets the authentication cookies based on user ID.
+	 * Sets the authentication cookies for a given user ID.
 	 *
-	 * The $remember parameter increases the time that the cookie will be kept. The
-	 * default the cookie is kept without remembering is two days. When $remember is
-	 * set, the cookies will be kept for 14 days or two weeks.
+	 * The `$remember` parameter controls cookie persistence:
+	 * - If true, the cookie is persistent (default 14 days, filterable via {@see 'auth_cookie_expiration'}).
+	 * - If false, the cookie is a browser session cookie (expires when the browser closes).
+	 *   Internally, {@see 'auth_cookie_expiration'} is still applied, to expire the login after
+	 *   two days or when the browser is closed, whichever occurs first.
 	 *
 	 * @since 2.5.0
 	 * @since 4.3.0 Added the `$token` parameter.
@@ -1806,6 +1896,20 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					$subject = sprintf( __( '[%1$s] Pingback: "%2$s"' ), $blogname, $post->post_title );
 					break;
 
+				case 'note':
+					/* translators: %s: Post title. */
+					$notify_message = sprintf( __( 'New note on your post "%s"' ), $post->post_title ) . "\r\n";
+					/* translators: 1: Note author's name, 2: Note author's IP address, 3: Note author's hostname. */
+					$notify_message .= sprintf( __( 'Author: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
+					/* translators: %s: Note author email. */
+					$notify_message .= sprintf( __( 'Email: %s' ), $comment->comment_author_email ) . "\r\n";
+					/* translators: %s: Note text. */
+					$notify_message .= sprintf( __( 'Note: %s' ), "\r\n" . ( empty( $comment_content ) ? __( 'resolved/reopened' ) : $comment_content ) ) . "\r\n\r\n";
+					$notify_message .= __( 'You can see all notes on this post here:' ) . "\r\n";
+					/* translators: Note notification email subject. 1: Site title, 2: Post title. */
+					$subject = sprintf( __( '[%1$s] Note: "%2$s"' ), $blogname, $post->post_title );
+					break;
+
 				default: // Comments.
 					/* translators: %s: Post title. */
 					$notify_message = sprintf( __( 'New comment on your post "%s"' ), $post->post_title ) . "\r\n";
@@ -1829,11 +1933,15 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					break;
 			}
 
-			$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
 			/* translators: %s: Comment URL. */
-			$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
+			if ( 'note' === $comment->comment_type ) {
+				$notify_message .= get_edit_post_link( $comment->comment_post_ID, 'url' ) . "\r\n";
+			} else {
+				$notify_message .= get_permalink( $comment->comment_post_ID ) . "#comments\r\n\r\n";
+				$notify_message .= sprintf( __( 'Permalink: %s' ), get_comment_link( $comment ) ) . "\r\n";
+			}
 
-			if ( user_can( $post->post_author, 'edit_comment', $comment->comment_ID ) ) {
+			if ( 'note' !== $comment->comment_type && user_can( $post->post_author, 'edit_comment', $comment->comment_ID ) ) {
 				if ( EMPTY_TRASH_DAYS ) {
 					/* translators: Comment moderation. %s: Comment action URL. */
 					$notify_message .= sprintf( __( 'Trash it: %s' ), admin_url( "comment.php?action=trash&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";
@@ -2347,7 +2455,7 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 	/**
 	 * Verifies that a correct security nonce was used with time limit.
 	 *
-	 * A nonce is valid for 24 hours (by default).
+	 * A nonce is valid for between 12 and 24 hours (by default).
 	 *
 	 * @since 2.0.3
 	 *
@@ -2629,8 +2737,9 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 	 * instead use the other package password hashing algorithm.
 	 *
 	 * @since 2.5.0
+	 * @since 6.8.0 The password is now hashed using bcrypt by default instead of phpass.
 	 *
-	 * @global PasswordHash $wp_hasher PHPass object.
+	 * @global PasswordHash $wp_hasher phpass object.
 	 *
 	 * @param string $password Plain text user password to hash.
 	 * @return string The hash string of the password.
@@ -2641,13 +2750,66 @@ if ( ! function_exists( 'wp_hash_password' ) ) :
 	) {
 		global $wp_hasher;
 
-		if ( empty( $wp_hasher ) ) {
-			require_once ABSPATH . WPINC . '/class-phpass.php';
-			// By default, use the portable hash from phpass.
-			$wp_hasher = new PasswordHash( 8, true );
+		if ( ! empty( $wp_hasher ) ) {
+			return $wp_hasher->HashPassword( trim( $password ) );
 		}
 
-		return $wp_hasher->HashPassword( trim( $password ) );
+		if ( strlen( $password ) > 4096 ) {
+			return '*';
+		}
+
+		/**
+		 * Filters the hashing algorithm to use in the password_hash() and password_needs_rehash() functions.
+		 *
+		 * The default is the value of the `PASSWORD_BCRYPT` constant which means bcrypt is used.
+		 *
+		 * **Important:** The only password hashing algorithm that is guaranteed to be available across PHP
+		 * installations is bcrypt. If you use any other algorithm you must make sure that it is available on
+		 * the server. The `password_algos()` function can be used to check which hashing algorithms are available.
+		 *
+		 * The hashing options can be controlled via the {@see 'wp_hash_password_options'} filter.
+		 *
+		 * Other available constants include:
+		 *
+		 * - `PASSWORD_ARGON2I`
+		 * - `PASSWORD_ARGON2ID`
+		 * - `PASSWORD_DEFAULT`
+		 *
+		 * The values of the algorithm constants are strings in PHP 7.4+ and integers in PHP 7.3 and earlier.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string|int $algorithm The hashing algorithm. Default is the value of the `PASSWORD_BCRYPT` constant.
+		 */
+		$algorithm = apply_filters( 'wp_hash_password_algorithm', PASSWORD_BCRYPT );
+
+		/**
+		 * Filters the options passed to the password_hash() and password_needs_rehash() functions.
+		 *
+		 * The default hashing algorithm is bcrypt, but this can be changed via the {@see 'wp_hash_password_algorithm'}
+		 * filter. You must ensure that the options are appropriate for the algorithm in use.
+		 *
+		 * The values of the algorithm constants are strings in PHP 7.4+ and integers in PHP 7.3 and earlier.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param array      $options   Array of options to pass to the password hashing functions.
+		 *                              By default this is an empty array which means the default
+		 *                              options will be used.
+		 * @param string|int $algorithm The hashing algorithm in use.
+		 */
+		$options = apply_filters( 'wp_hash_password_options', array(), $algorithm );
+
+		// Algorithms other than bcrypt don't need to use pre-hashing.
+		if ( PASSWORD_BCRYPT !== $algorithm ) {
+			return password_hash( $password, $algorithm, $options );
+		}
+
+		// Use SHA-384 to retain entropy from a password that's longer than 72 bytes, and a `wp-sha384` key for domain separation.
+		$password_to_hash = base64_encode( hash_hmac( 'sha384', trim( $password ), 'wp-sha384', true ) );
+
+		// Add a prefix to facilitate distinguishing vanilla bcrypt hashes.
+		return '$wp' . password_hash( $password_to_hash, $algorithm, $options );
 	}
 endif;
 
@@ -2655,23 +2817,23 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	/**
 	 * Checks a plaintext password against a hashed password.
 	 *
-	 * Maintains compatibility between old version and the new cookie authentication
-	 * protocol using PHPass library. The $hash parameter is the encrypted password
-	 * and the function compares the plain text password when encrypted similarly
-	 * against the already encrypted password to see if they match.
+	 * Note that this function may be used to check a value that is not a user password.
+	 * A plugin may use this function to check a password of a different type, and there
+	 * may not always be a user ID associated with the password.
 	 *
 	 * For integration with other applications, this function can be overwritten to
 	 * instead use the other package password hashing algorithm.
 	 *
 	 * @since 2.5.0
+	 * @since 6.8.0 Passwords in WordPress are now hashed with bcrypt by default. A
+	 *              password that wasn't hashed with bcrypt will be checked with phpass.
 	 *
-	 * @global PasswordHash $wp_hasher PHPass object used for checking the password
-	 *                                 against the $hash + $password.
-	 * @uses PasswordHash::CheckPassword
+	 * @global PasswordHash $wp_hasher phpass object. Used as a fallback for verifying
+	 *                                 passwords that were hashed with phpass.
 	 *
-	 * @param string     $password Plaintext user's password.
-	 * @param string     $hash     Hash of the user's password to check against.
-	 * @param string|int $user_id  Optional. User ID.
+	 * @param string     $password Plaintext password.
+	 * @param string     $hash     Hash of the password to check against.
+	 * @param string|int $user_id  Optional. ID of a user associated with the password.
 	 * @return bool False, if the $password does not match the hashed password.
 	 */
 	function wp_check_password(
@@ -2682,42 +2844,100 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	) {
 		global $wp_hasher;
 
-		// If the hash is still md5...
 		if ( strlen( $hash ) <= 32 ) {
+			// Check the hash using md5 regardless of the current hashing mechanism.
 			$check = hash_equals( $hash, md5( $password ) );
-			if ( $check && $user_id ) {
-				// Rehash using new hash.
-				wp_set_password( $password, $user_id );
-				$hash = wp_hash_password( $password );
-			}
-
-			/**
-			 * Filters whether the plaintext password matches the encrypted password.
-			 *
-			 * @since 2.5.0
-			 *
-			 * @param bool       $check    Whether the passwords match.
-			 * @param string     $password The plaintext password.
-			 * @param string     $hash     The hashed password.
-			 * @param string|int $user_id  User ID. Can be empty.
-			 */
-			return apply_filters( 'check_password', $check, $password, $hash, $user_id );
-		}
-
-		/*
-		 * If the stored hash is longer than an MD5,
-		 * presume the new style phpass portable hash.
-		 */
-		if ( empty( $wp_hasher ) ) {
+		} elseif ( ! empty( $wp_hasher ) ) {
+			// Check the password using the overridden hasher.
+			$check = $wp_hasher->CheckPassword( $password, $hash );
+		} elseif ( strlen( $password ) > 4096 ) {
+			// Passwords longer than 4096 characters are not supported.
+			$check = false;
+		} elseif ( str_starts_with( $hash, '$wp' ) ) {
+			// Check the password using the current prefixed hash.
+			$password_to_verify = base64_encode( hash_hmac( 'sha384', $password, 'wp-sha384', true ) );
+			$check              = password_verify( $password_to_verify, substr( $hash, 3 ) );
+		} elseif ( str_starts_with( $hash, '$P$' ) ) {
+			// Check the password using phpass.
 			require_once ABSPATH . WPINC . '/class-phpass.php';
-			// By default, use the portable hash from phpass.
-			$wp_hasher = new PasswordHash( 8, true );
+			$check = ( new PasswordHash( 8, true ) )->CheckPassword( $password, $hash );
+		} else {
+			// Check the password using compat support for any non-prefixed hash.
+			$check = password_verify( $password, $hash );
 		}
 
-		$check = $wp_hasher->CheckPassword( $password, $hash );
+		/**
+		 * Filters whether the plaintext password matches the hashed password.
+		 *
+		 * @since 2.5.0
+		 * @since 6.8.0 Passwords are now hashed with bcrypt by default.
+		 *              Old passwords may still be hashed with phpass or md5.
+		 *
+		 * @param bool       $check    Whether the passwords match.
+		 * @param string     $password The plaintext password.
+		 * @param string     $hash     The hashed password.
+		 * @param string|int $user_id  Optional ID of a user associated with the password.
+		 *                             Can be empty.
+		 */
+		return apply_filters( 'check_password', $check, $password, $hash, $user_id );
+	}
+endif;
+
+if ( ! function_exists( 'wp_password_needs_rehash' ) ) :
+	/**
+	 * Checks whether a password hash needs to be rehashed.
+	 *
+	 * Passwords are hashed with bcrypt using the default cost. A password hashed in a prior version
+	 * of WordPress may still be hashed with phpass and will need to be rehashed. If the default cost
+	 * or algorithm is changed in PHP or WordPress then a password hashed in a previous version will
+	 * need to be rehashed.
+	 *
+	 * Note that, just like wp_check_password(), this function may be used to check a value that is
+	 * not a user password. A plugin may use this function to check a password of a different type,
+	 * and there may not always be a user ID associated with the password.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @global PasswordHash $wp_hasher phpass object.
+	 *
+	 * @param string     $hash    Hash of a password to check.
+	 * @param string|int $user_id Optional. ID of a user associated with the password.
+	 * @return bool Whether the hash needs to be rehashed.
+	 */
+	function wp_password_needs_rehash( $hash, $user_id = '' ) {
+		global $wp_hasher;
+
+		if ( ! empty( $wp_hasher ) ) {
+			return false;
+		}
 
 		/** This filter is documented in wp-includes/pluggable.php */
-		return apply_filters( 'check_password', $check, $password, $hash, $user_id );
+		$algorithm = apply_filters( 'wp_hash_password_algorithm', PASSWORD_BCRYPT );
+
+		/** This filter is documented in wp-includes/pluggable.php */
+		$options = apply_filters( 'wp_hash_password_options', array(), $algorithm );
+
+		$prefixed = str_starts_with( $hash, '$wp' );
+
+		if ( ( PASSWORD_BCRYPT === $algorithm ) && ! $prefixed ) {
+			// If bcrypt is in use and the hash is not prefixed then it needs to be rehashed.
+			$needs_rehash = true;
+		} else {
+			// Otherwise check the hash minus its prefix if necessary.
+			$hash_to_check = $prefixed ? substr( $hash, 3 ) : $hash;
+			$needs_rehash  = password_needs_rehash( $hash_to_check, $algorithm, $options );
+		}
+
+		/**
+		 * Filters whether the password hash needs to be rehashed.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param bool       $needs_rehash Whether the password hash needs to be rehashed.
+		 * @param string     $hash         The password hash.
+		 * @param string|int $user_id      Optional. ID of a user associated with the password.
+		 */
+		return apply_filters( 'password_needs_rehash', $needs_rehash, $hash, $user_id );
 	}
 endif;
 
@@ -2869,6 +3089,7 @@ if ( ! function_exists( 'wp_set_password' ) ) :
 	 * of password resets if precautions are not taken to ensure it does not execute on every page load.
 	 *
 	 * @since 2.5.0
+	 * @since 6.8.0 The password is now hashed using bcrypt by default instead of phpass.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -2930,6 +3151,8 @@ if ( ! function_exists( 'get_avatar' ) ) :
 	 *                              - 'monsterid' (a monster)
 	 *                              - 'wavatar' (a cartoon face)
 	 *                              - 'identicon' (the "quilt", a geometric pattern)
+	 *                              - 'initials' (initials based avatar with background color)
+	 *                              - 'color' (generated background color)
 	 *                              - 'mystery', 'mm', or 'mysteryman' (The Oyster Man)
 	 *                              - 'blank' (transparent GIF)
 	 *                              - 'gravatar_default' (the Gravatar logo)

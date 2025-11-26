@@ -91,7 +91,7 @@ class WP_Dependencies {
 	 *
 	 * @since 5.4.0
 	 *
-	 * @var array
+	 * @var ?array<string, true>
 	 */
 	private $all_queued_deps;
 
@@ -288,6 +288,13 @@ class WP_Dependencies {
 	public function add_data( $handle, $key, $value ) {
 		if ( ! isset( $this->registered[ $handle ] ) ) {
 			return false;
+		}
+		if ( 'conditional' === $key && '_required-conditional-dependency_' !== $value ) {
+			_deprecated_argument(
+				'WP_Dependencies->add_data()',
+				'6.9.0',
+				__( 'IE conditional comments are ignored by all supported browsers.' )
+			);
 		}
 
 		return $this->registered[ $handle ]->add_data( $key, $value );

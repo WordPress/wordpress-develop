@@ -125,6 +125,7 @@ $allowed_options            = array(
 		'comment_order',
 		'comment_registration',
 		'show_comments_cookies_opt_in',
+		'wp_notes_notify',
 	),
 	'media'      => array(
 		'thumbnail_size_w',
@@ -404,21 +405,32 @@ foreach ( (array) $options as $option ) :
 		continue;
 	}
 
+	if ( 'home' === $option->option_name && defined( 'WP_HOME' ) ) {
+		$disabled = true;
+	}
+
+	if ( 'siteurl' === $option->option_name && defined( 'WP_SITEURL' ) ) {
+		$disabled = true;
+	}
+
 	if ( is_serialized( $option->option_value ) ) {
 		if ( is_serialized_string( $option->option_value ) ) {
 			// This is a serialized string, so we should display it.
 			$value               = maybe_unserialize( $option->option_value );
 			$options_to_update[] = $option->option_name;
-			$class               = 'all-options';
 		} else {
 			$value    = 'SERIALIZED DATA';
 			$disabled = true;
-			$class    = 'all-options disabled';
 		}
 	} else {
 		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;
-		$class               = 'all-options';
+	}
+
+	$class = 'all-options';
+
+	if ( $disabled ) {
+		$class .= ' disabled';
 	}
 
 	$name = esc_attr( $option->option_name );
