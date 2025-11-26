@@ -26,7 +26,20 @@
 			let _text = text || '';
 
 			const domParser = new DOMParser();
-			const htmlDocument = domParser.parseFromString( _text, 'text/html' );
+			const htmlDocument = domParser.parseFromString(
+				_text,
+				'text/html'
+			);
+
+			/*
+			 * This looks funny and appears to be a no-op, but it
+			 * enforces the escaping. How? when _read_ the `innerText`
+			 * property decodes character references, returning a raw
+			 * string. When _written_, however, it re-encodes to ensure
+			 * that the rendered text replicates what it’s given.
+			 *
+			 * See: https://github.com/WordPress/wordpress-develop/pull/10536#discussion_r2550615378
+			 */
 			htmlDocument.body.innerText = htmlDocument.body.innerText || '';
 
 			// Return the text with stripped tags.
