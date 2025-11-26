@@ -778,4 +778,311 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertFalse( $after_action_fired, 'after_execute_ability action should not be fired when output validation fails' );
 		$this->assertInstanceOf( WP_Error::class, $result, 'Should return WP_Error for output validation failure' );
 	}
+
+	/**
+	 * Tests wp_ability_validate_input filter receives all parameters.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_receives_all_parameters() {
+		$captured = array();
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'string',
+					'description' => 'Test input string.',
+					'required'    => true,
+				),
+				'execute_callback' => static function ( string $input ): int {
+					return strlen( $input );
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_input',
+			static function ( $is_valid, $input, $ability_name ) use ( &$captured ) {
+				$captured = array( $is_valid, $input, $ability_name );
+				return $is_valid;
+			},
+			10,
+			3
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute( 'hello' );
+
+		$this->assertTrue( $captured[0] );
+		$this->assertSame( 'hello', $captured[1] );
+		$this->assertSame( self::$test_ability_name, $captured[2] );
+	}
+
+	/**
+	 * Tests wp_ability_validate_input filter can override validation failure.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_overrides_validation_failure() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+					'required'    => true,
+				),
+				'output_schema'    => array(
+					'type'        => 'integer',
+					'description' => 'Result integer.',
+					'required'    => true,
+				),
+				'execute_callback' => static function () {
+					return 99;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_input',
+			static function ( $is_valid ) {
+				return true;
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 'invalid' );
+
+		$this->assertSame( 99, $result );
+	}
+
+	/**
+	 * Tests wp_ability_validate_input filter receives WP_Error on validation failure.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_receives_error_on_invalid_input() {
+		$error_code = null;
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+					'required'    => true,
+				),
+				'execute_callback' => static function ( int $input ): int {
+					return $input * 2;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_input',
+			static function ( $is_valid ) use ( &$error_code ) {
+				if ( is_wp_error( $is_valid ) ) {
+					$error_code = $is_valid->get_error_code();
+				}
+				return $is_valid;
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute( 'invalid' );
+
+		$this->assertSame( 'ability_invalid_input', $error_code );
+	}
+
+	/**
+	 * Tests wp_ability_validate_input filter can replace error with custom error.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_input_filter_replaces_error_with_custom() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'input_schema'     => array(
+					'type'        => 'integer',
+					'description' => 'Test input integer.',
+					'required'    => true,
+				),
+				'execute_callback' => static function ( int $input ): int {
+					return $input * 2;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_input',
+			static function () {
+				return new WP_Error( 'custom_error', 'Custom message.' );
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute( 'invalid' );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'custom_error', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests wp_ability_validate_output filter receives all parameters.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_output_filter_receives_all_parameters() {
+		$captured = array();
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'        => 'integer',
+					'description' => 'The result integer.',
+					'required'    => true,
+				),
+				'execute_callback' => static function (): int {
+					return 42;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_output',
+			static function ( $is_valid, $output, $ability_name ) use ( &$captured ) {
+				$captured = array( $is_valid, $output, $ability_name );
+				return $is_valid;
+			},
+			10,
+			3
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute();
+
+		$this->assertTrue( $captured[0] );
+		$this->assertSame( 42, $captured[1] );
+		$this->assertSame( self::$test_ability_name, $captured[2] );
+	}
+
+	/**
+	 * Tests wp_ability_validate_output filter can override validation failure.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_output_filter_overrides_validation_failure() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'        => 'string',
+					'description' => 'The result string.',
+					'required'    => true,
+				),
+				'execute_callback' => static function (): int {
+					return 42;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_output',
+			static function () {
+				return true;
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		$this->assertSame( 42, $result );
+	}
+
+	/**
+	 * Tests wp_ability_validate_output filter receives WP_Error on validation failure.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_output_filter_receives_error_on_invalid_output() {
+		$error_code = null;
+
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'        => 'string',
+					'description' => 'The result string.',
+					'required'    => true,
+				),
+				'execute_callback' => static function (): int {
+					return 42;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_output',
+			static function ( $is_valid ) use ( &$error_code ) {
+				if ( is_wp_error( $is_valid ) ) {
+					$error_code = $is_valid->get_error_code();
+				}
+				return $is_valid;
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$ability->execute();
+
+		$this->assertSame( 'ability_invalid_output', $error_code );
+	}
+
+	/**
+	 * Tests wp_ability_validate_output filter can replace error with custom error.
+	 *
+	 * @ticket 64311
+	 */
+	public function test_validate_output_filter_replaces_error_with_custom() {
+		$args = array_merge(
+			self::$test_ability_properties,
+			array(
+				'output_schema'    => array(
+					'type'        => 'string',
+					'description' => 'The result string.',
+					'required'    => true,
+				),
+				'execute_callback' => static function (): int {
+					return 42;
+				},
+			)
+		);
+
+		add_filter(
+			'wp_ability_validate_output',
+			static function () {
+				return new WP_Error( 'custom_output_error', 'Custom output message.' );
+			},
+			10,
+			1
+		);
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+		$result  = $ability->execute();
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'custom_output_error', $result->get_error_code() );
+	}
 }
