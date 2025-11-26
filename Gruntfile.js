@@ -59,6 +59,22 @@ module.exports = function(grunt) {
 			'!wp-includes/assets/script-modules-packages.min.php',
 		],
 
+		// All workflow files that should be deleted from non-default branches.
+		workflowFiles = [
+			// Reusable workflows should be called from `trunk` within branches.
+			'.github/workflows/reusable-*.yml',
+			// These workflows are only intended to run from `trunk`.
+			'.github/workflows/commit-built-file-changes.yml',
+			'.github/workflows/failed-workflow.yml',
+			'.github/workflows/install-testing.yml',
+			'.github/workflows/test-and-zip-default-themes.yml',
+			'.github/workflows/install-testing.yml',
+			'.github/workflows/slack-notifications.yml',
+			'.github/workflows/test-coverage.yml',
+			'.github/workflows/test-old-branches.yml',
+			'.github/workflows/upgrade-testing.yml'
+		],
+
 		// Prepend `dir` to `file`, and keep `!` in place.
 		setFilePath = function( dir, file ) {
 			if ( '!' === file.charAt( 0 ) ) {
@@ -216,7 +232,18 @@ module.exports = function(grunt) {
 				cwd: WORKING_DIR,
 				src: []
 			},
-			qunit: ['tests/qunit/compiled.html']
+			qunit: ['tests/qunit/compiled.html'],
+
+			// This is only meant to run within a numbered branch after branching has occurred.
+			workflows: {
+				filter: function() {
+					var allowedTasks = [ 'post-branching', 'clean:workflows' ];
+					return allowedTasks.some( function( task ) {
+						return grunt.cli.tasks.indexOf( task ) !== -1;
+					} );
+				},
+				src: workflowFiles
+			},
 		},
 		file_append: {
 			// grunt-file-append supports only strings for input and output.
@@ -1706,6 +1733,11 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'replace:workflow-references-remote-to-local', [
 		'copy:workflow-references-remote-to-local',
+	]);
+
+	grunt.registerTask( 'post-branching', [
+		'clean:workflows',
+		'replace:workflow-references-local-to-remote'
 	]);
 
 	/**
