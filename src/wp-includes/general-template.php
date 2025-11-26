@@ -2018,6 +2018,17 @@ function wp_get_archives( $args = '' ) {
 		'w'               => get_query_var( 'w' ),
 	);
 
+	/**
+	 * Filters the archive links list arguments.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @see wp_get_archives()
+	 *
+	 * @param array $args An array of arguments.
+	 */
+	$args = apply_filters( 'wp_get_archives_args', $args );
+
 	$parsed_args = wp_parse_args( $args, $defaults );
 
 	$post_type_object = get_post_type_object( $parsed_args['post_type'] );
@@ -2031,19 +2042,9 @@ function wp_get_archives( $args = '' ) {
 		$parsed_args['type'] = 'monthly';
 	}
 
-	/**
-	 * Filters the limit for the number of posts to include in the archive.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @param int   $limit       The limit for the number of posts to include in the archive. Default 0.
-	 * @param array $parsed_args An array of default arguments.
-	 */
-	$limit_number = (int) apply_filters( 'getarchives_limit', absint( $parsed_args['limit'] ), $parsed_args );
-	if ( $limit_number > 0 ) {
-		$limit = " LIMIT $limit_number";
-	} else {
-		$limit = '';
+	if ( ! empty( $parsed_args['limit'] ) ) {
+		$parsed_args['limit'] = absint( $parsed_args['limit'] );
+		$parsed_args['limit'] = ' LIMIT ' . $parsed_args['limit'];
 	}
 
 	$order = strtoupper( $parsed_args['order'] );
@@ -2079,6 +2080,8 @@ function wp_get_archives( $args = '' ) {
 	$output = '';
 
 	$last_changed = wp_cache_get_last_changed( 'posts' );
+
+	$limit = $parsed_args['limit'];
 
 	if ( 'monthly' === $parsed_args['type'] ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY post_date $order $limit";
