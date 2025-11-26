@@ -201,29 +201,17 @@ class WP_Dependencies {
 
 			$keep_going           = true;
 			$missing_dependencies = array();
-			if ( isset( $this->registered[ $handle ] ) && $this->registered[ $handle ]->deps ) {
+			if ( isset( $this->registered[ $handle ] ) && count( $this->registered[ $handle ]->deps ) > 0 ) {
 				$missing_dependencies = array_diff( $this->registered[ $handle ]->deps, array_keys( $this->registered ) );
 			}
 			if ( ! isset( $this->registered[ $handle ] ) ) {
 				$keep_going = false; // Item doesn't exist.
-			} elseif ( $missing_dependencies ) {
-				// Prevent duplicate notices.
-				static $reported = array();
-
-				if ( ! isset( $reported[ $handle ] ) ) {
-					$reported[ $handle ] = true;
-
-					_doing_it_wrong(
-						__METHOD__,
-						sprintf(
-							/* translators: 1: Script module ID, 2: Comma-separated list of missing dependency IDs. */
-							__( 'The script with the handle %1$s was enqueued with dependencies that are not registered: %2$s.' ),
-							$handle,
-							implode( ', ', $missing_dependencies )
-						),
-						'7.0.0'
-					);
-				}
+			} elseif ( count( $missing_dependencies ) > 0 ) {
+				_doing_it_wrong(
+					__METHOD__,
+					$this->get_dependency_warning_message( $handle, $missing_dependencies ),
+					'7.0.0'
+				);
 				$keep_going = false; // Item requires dependencies that don't exist.
 			} elseif ( $this->registered[ $handle ]->deps && ! $this->all_deps( $this->registered[ $handle ]->deps, true, $new_group ) ) {
 				$keep_going = false; // Item requires dependencies that don't exist.
@@ -555,5 +543,23 @@ class WP_Dependencies {
 		 * wp_hash() function.
 		 */
 		return 'W/"' . md5( $etag ) . '"';
+	}
+
+	/**
+	 * Gets a dependency warning message for a handle.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string   $handle                     Handle with missing dependencies.
+	 * @param string[] $missing_dependency_handles Missing dependency handles.
+	 * @return string Formatted, localized warning message.
+	 */
+	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
+		return sprintf(
+			/* translators: 1: Handle, 2: Comma-separated list of missing dependency handles. */
+			__( 'The handle %1$s was enqueued with dependencies that are not registered: %2$s.' ),
+			$handle,
+			implode( ', ', $missing_dependency_handles )
+		);
 	}
 }
