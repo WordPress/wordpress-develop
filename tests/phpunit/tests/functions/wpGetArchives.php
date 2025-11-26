@@ -249,8 +249,5 @@ EOF;
 		$this->assertStringContainsString( $title1, $archives_with_filter );
 		$this->assertStringContainsString( $title2, $archives_with_filter );
 		$this->assertStringNotContainsString( $title3, $archives_with_filter );
-
-		// Remove filter.
-		remove_all_filters( 'getarchives_limit' );
 	}
 }
