@@ -2276,6 +2276,7 @@ function media_upload_form( $errors = null ) {
 	 * @since 2.6.0
 	 */
 	do_action( 'pre-html-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+
 	$current_screen = get_current_screen();
 	$required       = $current_screen && 'media' === $current_screen->id ? ' required' : '';
 	?>
@@ -2286,7 +2287,7 @@ function media_upload_form( $errors = null ) {
 			_ex( 'Upload', 'verb' );
 			?>
 		</label>
-		<input type="file" name="async-upload" id="async-upload"<?php echo $required; ?>/>
+		<input type="file" name="async-upload" id="async-upload"<?php echo $required; ?> />
 		<?php submit_button( _x( 'Upload', 'verb' ), 'primary', 'html-upload', false ); ?>
 		<a href="#" onclick="try{top.tb_remove();}catch(e){}; return false;"><?php _e( 'Cancel' ); ?></a>
 	</p>
