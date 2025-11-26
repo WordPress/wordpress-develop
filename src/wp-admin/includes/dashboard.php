@@ -309,10 +309,10 @@ function wp_dashboard_right_now() {
 		if ( $num_posts && $num_posts->publish ) {
 			if ( 'post' === $post_type ) {
 				/* translators: %s: Number of posts. */
-				$text = _n( '%s Published Post', '%s Published Posts', $num_posts->publish );
+				$text = _n( '%s Published post', '%s Published posts', $num_posts->publish );
 			} else {
 				/* translators: %s: Number of pages. */
-				$text = _n( '%s Published Page', '%s Published Pages', $num_posts->publish );
+				$text = _n( '%s Published page', '%s Published pages', $num_posts->publish );
 			}
 
 			$text             = sprintf( $text, number_format_i18n( $num_posts->publish ) );
