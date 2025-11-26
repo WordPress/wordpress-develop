@@ -901,7 +901,6 @@ function wp_start_object_cache() {
 		wp_cache_add_global_groups(
 			array(
 				'blog-details',
-				'blog-id-cache',
 				'blog-lookup',
 				'blog_meta',
 				'global-posts',

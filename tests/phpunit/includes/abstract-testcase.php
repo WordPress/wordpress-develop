@@ -422,7 +422,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		wp_cache_add_global_groups(
 			array(
 				'blog-details',
-				'blog-id-cache',
 				'blog-lookup',
 				'blog_meta',
 				'global-posts',

@@ -555,7 +555,6 @@ function switch_to_blog( $new_blog_id, $deprecated = null ) {
 				wp_cache_add_global_groups(
 					array(
 						'blog-details',
-						'blog-id-cache',
 						'blog-lookup',
 						'blog_meta',
 						'global-posts',
@@ -650,7 +649,6 @@ function restore_current_blog() {
 				wp_cache_add_global_groups(
 					array(
 						'blog-details',
-						'blog-id-cache',
 						'blog-lookup',
 						'blog_meta',
 						'global-posts',

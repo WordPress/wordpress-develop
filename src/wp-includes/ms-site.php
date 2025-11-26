@@ -992,7 +992,6 @@ function clean_blog_cache( $blog ) {
 	wp_cache_delete( $blog_id, 'blog-details' );
 	wp_cache_delete( $blog_id . 'short', 'blog-details' );
 	wp_cache_delete( $domain_path_key, 'blog-lookup' );
-	wp_cache_delete( $domain_path_key, 'blog-id-cache' );
 	wp_cache_delete( $blog_id, 'blog_meta' );
 
 	/**
