@@ -464,32 +464,32 @@ class WP_Ability {
 		$input_schema = $this->get_input_schema();
 		if ( empty( $input_schema ) ) {
 			if ( null === $input ) {
-				$is_valid = true;
-			} else {
-				$is_valid = new WP_Error(
-					'ability_missing_input_schema',
-					sprintf(
-						/* translators: %s ability name. */
-						__( 'Ability "%s" does not define an input schema required to validate the provided input.' ),
-						esc_html( $this->name )
-					)
-				);
+				return true;
 			}
+
+			return new WP_Error(
+				'ability_missing_input_schema',
+				sprintf(
+					/* translators: %s ability name. */
+					__( 'Ability "%s" does not define an input schema required to validate the provided input.' ),
+					esc_html( $this->name )
+				)
+			);
+		}
+
+		$valid_input = rest_validate_value_from_schema( $input, $input_schema, 'input' );
+		if ( is_wp_error( $valid_input ) ) {
+			$is_valid = new WP_Error(
+				'ability_invalid_input',
+				sprintf(
+					/* translators: %1$s ability name, %2$s error message. */
+					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
+					esc_html( $this->name ),
+					$valid_input->get_error_message()
+				)
+			);
 		} else {
-			$valid_input = rest_validate_value_from_schema( $input, $input_schema, 'input' );
-			if ( is_wp_error( $valid_input ) ) {
-				$is_valid = new WP_Error(
-					'ability_invalid_input',
-					sprintf(
-						/* translators: %1$s ability name, %2$s error message. */
-						__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
-						esc_html( $this->name ),
-						$valid_input->get_error_message()
-					)
-				);
-			} else {
-				$is_valid = true;
-			}
+			$is_valid = true;
 		}
 
 		/**
@@ -584,22 +584,22 @@ class WP_Ability {
 	protected function validate_output( $output ) {
 		$output_schema = $this->get_output_schema();
 		if ( empty( $output_schema ) ) {
-			$is_valid = true;
+			return true;
+		}
+
+		$valid_output = rest_validate_value_from_schema( $output, $output_schema, 'output' );
+		if ( is_wp_error( $valid_output ) ) {
+			$is_valid = new WP_Error(
+				'ability_invalid_output',
+				sprintf(
+					/* translators: %1$s ability name, %2$s error message. */
+					__( 'Ability "%1$s" has invalid output. Reason: %2$s' ),
+					esc_html( $this->name ),
+					$valid_output->get_error_message()
+				)
+			);
 		} else {
-			$valid_output = rest_validate_value_from_schema( $output, $output_schema, 'output' );
-			if ( is_wp_error( $valid_output ) ) {
-				$is_valid = new WP_Error(
-					'ability_invalid_output',
-					sprintf(
-						/* translators: %1$s ability name, %2$s error message. */
-						__( 'Ability "%1$s" has invalid output. Reason: %2$s' ),
-						esc_html( $this->name ),
-						$valid_output->get_error_message()
-					)
-				);
-			} else {
-				$is_valid = true;
-			}
+			$is_valid = true;
 		}
 
 		/**
