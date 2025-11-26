@@ -2075,7 +2075,7 @@ function wp_get_archives( $args = '' ) {
 	 *
 	 * @since 7.0.0
 	 *
-	 * @param string $limit The limit of the query for the `wp_get_archives` function.
+	 * @param string $limit       The limit of the query for the `wp_get_archives` function.
 	 * @param array  $parsed_args An array of default arguments.
 	 */
 	$limit = apply_filters( 'getarchives_limit', $parsed_args['limit'], $parsed_args );
