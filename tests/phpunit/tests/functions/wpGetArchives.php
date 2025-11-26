@@ -210,7 +210,7 @@ EOF;
 	 */
 	public function test_wp_get_archives_args_filter() {
 		// Test that the filter can modify the limit argument.
-		$filter_callback = function( $args ) {
+		$filter_callback = function ( $args ) {
 			$args['limit'] = 3;
 			return $args;
 		};
