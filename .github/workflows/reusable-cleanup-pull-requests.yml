@@ -94,10 +94,26 @@ jobs:
         with:
           script: |
             const prNumbers = ${{ steps.linked-prs.outputs.result }};
+            const fixedList = "${{ steps.trac-tickets.outputs.fixed_list }}".split(' ').filter(Boolean);
+            const svnRevision = "${{ steps.git-svn-id.outputs.svn_revision_number }}";
+
+            // Output relevant URLs to workflow logs
+            console.log('=== Pull Request Cleanup Summary ===');
+            console.log(`SVN Changeset: https://core.trac.wordpress.org/changeset/${svnRevision}`);
+            console.log(`GitHub Commit: https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${{ github.sha }}`);
+            console.log(`Trac Tickets:`);
+            for (const ticket of fixedList) {
+              console.log(`  - https://core.trac.wordpress.org/ticket/${ticket}`);
+            }
+            console.log(`Pull Requests to be closed:`);
+            for (const prNumber of prNumbers) {
+              console.log(`  - https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}`);
+            }
+            console.log('===================================');
 
             const commentBody = `A commit was made that fixes the Trac ticket referenced in the description of this pull request.
 
-            SVN changeset: [${{ steps.git-svn-id.outputs.svn_revision_number }}](https://core.trac.wordpress.org/changeset/${{ steps.git-svn-id.outputs.svn_revision_number }})
+            SVN changeset: [${svnRevision}](https://core.trac.wordpress.org/changeset/${svnRevision})
             GitHub commit: https://github.com/WordPress/wordpress-develop/commit/${{ github.sha }}
 
             This PR will be closed, but please confirm the accuracy of this and reopen if there is more work to be done.`;

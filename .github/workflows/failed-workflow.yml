@@ -41,6 +41,22 @@ jobs:
               run_id: process.env.RUN_ID,
             });
 
+            // Output relevant URLs to workflow logs
+            console.log('=== Failed Workflow Rerun Summary ===');
+            console.log(`Workflow Run: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${process.env.RUN_ID}`);
+            console.log(`Workflow Name: ${workflow_run.data.name}`);
+            console.log(`Workflow Run Attempt: ${workflow_run.data.run_attempt}`);
+            if (workflow_run.data.head_branch) {
+              console.log(`Branch: ${workflow_run.data.head_branch}`);
+            }
+            if (workflow_run.data.pull_requests && workflow_run.data.pull_requests.length > 0) {
+              console.log(`Pull Requests:`);
+              for (const pr of workflow_run.data.pull_requests) {
+                console.log(`  - https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${pr.number}`);
+              }
+            }
+            console.log('====================================');
+
             // Only rerun after the first run attempt.
             if ( workflow_run.data.run_attempt > 1 ) {
               return;
