@@ -25,6 +25,17 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		$this->interactivity = new WP_Interactivity_API();
+		wp_default_script_modules();
+		$this->interactivity->add_hooks();
+	}
+
+	/**
+	 * Tear down.
+	 */
+	public function tear_down() {
+		global $wp_script_modules;
+		parent::tear_down();
+		$wp_script_modules = null;
 	}
 
 	public function charset_iso_8859_1() {
@@ -41,7 +52,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	private function set_internal_namespace_stack( ...$stack ) {
 		$interactivity   = new ReflectionClass( $this->interactivity );
 		$namespace_stack = $interactivity->getProperty( 'namespace_stack' );
-		$namespace_stack->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$namespace_stack->setAccessible( true );
+		}
 		$namespace_stack->setValue( $this->interactivity, $stack );
 	}
 
@@ -55,7 +68,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	private function set_internal_context_stack( ...$stack ) {
 		$interactivity = new ReflectionClass( $this->interactivity );
 		$context_stack = $interactivity->getProperty( 'context_stack' );
-		$context_stack->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$context_stack->setAccessible( true );
+		}
 		$context_stack->setValue( $this->interactivity, $stack );
 	}
 
@@ -231,7 +246,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * @return MockAction
 	 */
 	private function get_script_data_filter_result( ?Closure $callback = null ): MockAction {
-		$this->interactivity->add_hooks();
 		wp_enqueue_script_module( '@wordpress/interactivity' );
 		$filter = new MockAction();
 		add_filter( 'script_module_data_@wordpress/interactivity', array( $filter, 'filter' ) );
@@ -310,6 +324,132 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array( 'state' => array( 'myPlugin' => array( 'emptyArray' => array() ) ) ), $filter->get_args()[0][0] );
+	}
+	/**
+	 * Tests that derived state props invoked during directive evaluation are
+	 * serialized correctly.
+	 *
+	 * @ticket 63898
+	 */
+	public function test_invoked_derived_state_props_are_serialized() {
+		$returns_whatever = function () {
+			return 'whatever';
+		};
+
+		$returns_array = function () {
+			return array( 'prop' => 'whatever' );
+		};
+
+		$filter = $this->get_script_data_filter_result(
+			function () use ( $returns_whatever, $returns_array ) {
+				$this->interactivity->state(
+					'pluginWithInvokedDerivedState',
+					array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp'             => $returns_whatever,
+							'derivedPropReturnsArray' => $returns_array,
+						),
+					)
+				);
+
+				$this->interactivity->state(
+					'pluginWithInvokedDerivedStateReturningArray',
+					array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp'             => $returns_whatever,
+							'derivedPropReturnsArray' => $returns_array,
+						),
+					)
+				);
+
+				$this->interactivity->state(
+					'pluginWithoutInvokedDerivedState',
+					array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp' => $returns_whatever,
+						),
+					)
+				);
+
+				$this->set_internal_context_stack( array() );
+
+				// Multiple evaluations should be serialized only once.
+				$this->set_internal_namespace_stack( 'pluginWithInvokedDerivedState' );
+				$this->evaluate(
+					array(
+						'namespace' => 'pluginWithInvokedDerivedState',
+						'value'     => 'state.derivedProp',
+					)
+				);
+				$this->evaluate(
+					array(
+						'namespace' => 'pluginWithInvokedDerivedState',
+						'value'     => 'state.derivedProp',
+					)
+				);
+				$this->evaluate(
+					array(
+						'namespace' => 'pluginWithInvokedDerivedState',
+						'value'     => 'state.nested.derivedProp',
+					)
+				);
+				$this->evaluate(
+					array(
+						'namespace' => 'pluginWithInvokedDerivedState',
+						'value'     => 'state.nested.derivedProp',
+					)
+				);
+
+				// Only the path part that points to a derived state prop should be serialized.
+				$this->set_internal_namespace_stack( 'pluginWithInvokedDerivedStateReturningArray' );
+				$this->evaluate(
+					array(
+						'namespace' => 'pluginWithInvokedDerivedStateReturningArray',
+						'value'     => 'state.nested.derivedProp',
+					)
+				);
+			}
+		);
+
+		$this->assertSame(
+			array(
+				'state'                => array(
+					'pluginWithInvokedDerivedState'    => array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp'             => $returns_whatever,
+							'derivedPropReturnsArray' => $returns_array,
+						),
+					),
+					'pluginWithInvokedDerivedStateReturningArray' => array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp'             => $returns_whatever,
+							'derivedPropReturnsArray' => $returns_array,
+						),
+					),
+					'pluginWithoutInvokedDerivedState' => array(
+						'derivedProp' => $returns_whatever,
+						'nested'      => array(
+							'derivedProp' => $returns_whatever,
+						),
+					),
+				),
+				'derivedStateClosures' => array(
+					'pluginWithInvokedDerivedState' => array(
+						'state.derivedProp',
+						'state.nested.derivedProp',
+					),
+					'pluginWithInvokedDerivedStateReturningArray' => array(
+						'state.nested.derivedProp',
+					),
+				),
+			),
+			$filter->get_args()[0][0]
+		);
 	}
 
 	/**
@@ -586,7 +726,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	public function test_extract_directive_value() {
 		$extract_directive_value = new ReflectionMethod( $this->interactivity, 'extract_directive_value' );
-		$extract_directive_value->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$extract_directive_value->setAccessible( true );
+		}
 
 		$result = $extract_directive_value->invoke( $this->interactivity, 'state.foo', 'myPlugin' );
 		$this->assertSame( array( 'myPlugin', 'state.foo' ), $result );
@@ -649,7 +791,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	public function test_extract_directive_value_empty_values() {
 		$extract_directive_value = new ReflectionMethod( $this->interactivity, 'extract_directive_value' );
-		$extract_directive_value->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$extract_directive_value->setAccessible( true );
+		}
 
 		$result = $extract_directive_value->invoke( $this->interactivity, '', 'myPlugin' );
 		$this->assertSame( array( 'myPlugin', null ), $result );
@@ -683,7 +827,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	public function test_extract_directive_value_invalid_json() {
 		$extract_directive_value = new ReflectionMethod( $this->interactivity, 'extract_directive_value' );
-		$extract_directive_value->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$extract_directive_value->setAccessible( true );
+		}
 
 		// Invalid JSON due to missing quotes. Returns the original value.
 		$result = $extract_directive_value->invoke( $this->interactivity, '{ isOpen: false }', 'myPlugin' );
@@ -698,22 +844,301 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * Tests the ability to extract prefix and suffix from a directive attribute
 	 * name.
 	 *
-	 * @ticket 60356
+	 * @ticket 64106
 	 *
-	 * @covers ::extract_prefix_and_suffix
+	 * @covers ::parse_directive_name
 	 */
-	public function test_extract_prefix_and_suffix() {
-		$extract_prefix_and_suffix = new ReflectionMethod( $this->interactivity, 'extract_prefix_and_suffix' );
-		$extract_prefix_and_suffix->setAccessible( true );
+	public function test_parse_directive_name() {
+		$parse_directive_name = new ReflectionMethod( $this->interactivity, 'parse_directive_name' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$parse_directive_name->setAccessible( true );
+		}
 
-		$result = $extract_prefix_and_suffix->invoke( $this->interactivity, 'data-wp-interactive' );
-		$this->assertSame( array( 'data-wp-interactive' ), $result );
+		// Should parse directives without suffix or unique ID.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
 
-		$result = $extract_prefix_and_suffix->invoke( $this->interactivity, 'data-wp-bind--src' );
-		$this->assertSame( array( 'data-wp-bind', 'src' ), $result );
+		// Should parse directives with suffix only.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test--one' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( 'one', $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
 
-		$result = $extract_prefix_and_suffix->invoke( $this->interactivity, 'data-wp-foo--and--bar' );
-		$this->assertSame( array( 'data-wp-foo', 'and--bar' ), $result );
+		// Should parse directives with unique ID only.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test---unique-id' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertSame( 'unique-id', $result['unique_id'] );
+
+		// Should parse directives with suffix and unique ID.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test--suffix---unique-id' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( 'suffix', $result['suffix'] );
+		$this->assertSame( 'unique-id', $result['unique_id'] );
+
+		// Should handle empty suffix (just two dashes).
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test--' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
+
+		// Should handle empty unique ID (just three dashes).
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test---' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
+
+		// Should handle only dashes (4 or more dashes).
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test----' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( '--', $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
+
+		// Should handle suffix starting with 4 or more dashes but containing valid characters.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test------custom-suffix' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( '----custom-suffix', $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
+
+		// Should handle complex pattern with multiple dashes.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test--complex--suffix---complex--unique---id' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( 'complex--suffix', $result['suffix'] );
+		$this->assertSame( 'complex--unique---id', $result['unique_id'] );
+
+		// Should handle suffix with dashes followed by unique ID.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test----suffix---unique-id' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertSame( '--suffix', $result['suffix'] );
+		$this->assertSame( 'unique-id', $result['unique_id'] );
+
+		// Should handle unique IDs followed by suffix in wrong order.
+		$result = $parse_directive_name->invoke( $this->interactivity, 'data-wp-test---unique-id--wrong-suffix' );
+		$this->assertSame( 'test', $result['prefix'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertSame( 'unique-id--wrong-suffix', $result['unique_id'] );
+	}
+
+	/**
+	 * Tests the ability to get the valid entries of a specific directive in an HTML element.
+	 *
+	 * @ticket 64106
+	 *
+	 * @covers ::get_directive_entries
+	 */
+	public function test_get_directive_entries() {
+		$get_directive_entries = new ReflectionMethod( $this->interactivity, 'get_directive_entries' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_directive_entries->setAccessible( true );
+		}
+		$this->set_internal_namespace_stack( 'myPlugin' );
+
+		// Should process simple directives.
+		$html = '<div data-wp-test="test value"></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertCount( 1, $results );
+		$result = $results[0];
+		$this->assertSame( 'myPlugin', $result['namespace'] );
+		$this->assertSame( 'test value', $result['value'] );
+		$this->assertNull( $result['suffix'] );
+		$this->assertNull( $result['unique_id'] );
+
+		// Should process directives without value.
+		$html = '<div data-wp-test></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertNull( $results[0]['value'] );
+
+		// Should parse JSON values in directives.
+		$html = '<div data-wp-test=\'{"key": "value"}\'></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertSame( array( 'key' => 'value' ), $results[0]['value'] );
+
+		// Should handle malformed JSON and keep as string.
+		$html = '<div data-wp-test="{malformed: json}"></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertSame( '{malformed: json}', $results[0]['value'] );
+
+		// Should process directives with a custom namespace.
+		$html = '<div data-wp-test="my-namespace::test value"></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertSame( 'my-namespace', $results[0]['namespace'] );
+		$this->assertSame( 'test value', $results[0]['value'] );
+
+		// Should parse JSON values with a custom namespace.
+		$html = '<div data-wp-test=\'my-namespace::{"key": "value"}\'></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertSame( 'my-namespace', $results[0]['namespace'] );
+		$this->assertSame( array( 'key' => 'value' ), $results[0]['value'] );
+
+		// Should handle multiple directives with different unique IDs.
+		$html = '
+			<div
+				data-wp-test---plugin-a="value-a"
+				data-wp-test---plugin-b="value-b"
+				data-wp-test---plugin-c="value-c"
+			></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertCount( 3, $results );
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value-a',
+				'suffix'    => null,
+				'unique_id' => 'plugin-a',
+			),
+			$results[0]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value-b',
+				'suffix'    => null,
+				'unique_id' => 'plugin-b',
+			),
+			$results[1]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value-c',
+				'suffix'    => null,
+				'unique_id' => 'plugin-c',
+			),
+			$results[2]
+		);
+
+		// Should handle mix of different suffixes and unique IDs.
+		$html = '
+			<div
+				data-wp-test--suffix-a---id-1="value1"
+				data-wp-test--suffix-a---id-2="value2"
+				data-wp-test--suffix-b---id-1="value3"
+				data-wp-test--suffix-c---id-1="value4"
+			></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertCount( 4, $results );
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value1',
+				'suffix'    => 'suffix-a',
+				'unique_id' => 'id-1',
+			),
+			$results[0]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value2',
+				'suffix'    => 'suffix-a',
+				'unique_id' => 'id-2',
+			),
+			$results[1]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value3',
+				'suffix'    => 'suffix-b',
+				'unique_id' => 'id-1',
+			),
+			$results[2]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'value4',
+				'suffix'    => 'suffix-c',
+				'unique_id' => 'id-1',
+			),
+			$results[3]
+		);
+
+		// Should handle unique ID with namespace.
+		$html = '<div data-wp-test---unique-id="my-namespace::test value"></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertSame( 'my-namespace', $results[0]['namespace'] );
+		$this->assertSame( 'test value', $results[0]['value'] );
+		$this->assertSame( 'unique-id', $results[0]['unique_id'] );
+
+		// Should handle multiple directives with different namespaces and unique IDs.
+		$html = '
+			<div
+				data-wp-test---id-a="namespace-a::value1"
+				data-wp-test---id-b="namespace-b::value2"
+			></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertCount( 2, $results );
+		$this->assertSame(
+			array(
+				'namespace' => 'namespace-a',
+				'value'     => 'value1',
+				'suffix'    => null,
+				'unique_id' => 'id-a',
+			),
+			$results[0]
+		);
+		$this->assertSame(
+			array(
+				'namespace' => 'namespace-b',
+				'value'     => 'value2',
+				'suffix'    => null,
+				'unique_id' => 'id-b',
+			),
+			$results[1]
+		);
+		// Should sort directives by suffix and uniqueId for stable ordering.
+		$html = '
+			<div
+				data-wp-test---z
+				data-wp-test---a
+				data-wp-test--b---z
+				data-wp-test--b---a
+				data-wp-test--a
+				data-wp-test
+			></div>';
+		$p    = new WP_Interactivity_API_Directives_Processor( $html );
+		$p->next_tag();
+		$results = $get_directive_entries->invoke( $this->interactivity, $p, 'test' );
+		$this->assertCount( 6, $results );
+		$this->assertEquals(
+			array(
+				array( null, null ),
+				array( null, 'a' ),
+				array( null, 'z' ),
+				array( 'a', null ),
+				array( 'b', 'a' ),
+				array( 'b', 'z' ),
+			),
+			array_map(
+				function ( $d ) {
+					return array( $d['suffix'], $d['unique_id'] );
+				},
+				$results
+			)
+		);
 	}
 
 	/**
@@ -801,8 +1226,6 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_html_with_unbalanced_tags
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
-	 *
 	 * @param string $html HTML containing unbalanced tags and also a directive.
 	 */
 	public function test_process_directives_doesnt_change_html_if_contains_unbalanced_tags( $html ) {
@@ -831,6 +1254,31 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 			'SPAN closer after'  => array( '<div data-wp-bind--id="myPlugin::state.id">Inner content</div></span>' ),
 			'SPAN overlapping'   => array( '<div data-wp-bind--id="myPlugin::state.id"><span>Inner content</div></span>' ),
 		);
+	}
+
+	/**
+	 * Tests that the `process_directives` handles self-closing BR tags without
+	 * causing fatal errors and processes directives correctly.
+	 *
+	 * @ticket 63891
+	 * @covers ::process_directives
+	 */
+	public function test_process_directives_handles_br_self_closing_tags_with_invalid_closers() {
+		$this->interactivity->state(
+			'myPlugin',
+			array(
+				'id' => 'some-id',
+			)
+		);
+
+		$html = '</br><div data-wp-bind--id="myPlugin::state.id">Content</div>';
+
+		$processed_html = $this->interactivity->process_directives( $html );
+
+		$p = new WP_HTML_Tag_Processor( $processed_html );
+		$p->next_tag( 'div' );
+
+		$this->assertSame( 'some-id', $p->get_attribute( 'id' ) );
 	}
 
 	/**
@@ -964,10 +1412,10 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	/**
 	 * Invokes the private `evaluate` method of WP_Interactivity_API class.
 	 *
-	 * @param string $directive_value   The directive attribute value to evaluate.
+	 * @param string $entry The entry array containing namespace, value, suffix, and unique ID.
 	 * @return mixed The result of the evaluate method.
 	 */
-	private function evaluate( $directive_value ) {
+	private function evaluate( $entry ) {
 		/*
 		 * The global WP_Interactivity_API instance is momentarily replaced to
 		 * make global functions like `wp_interactivity_state` and
@@ -978,9 +1426,11 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$wp_interactivity      = $this->interactivity;
 
 		$evaluate = new ReflectionMethod( $this->interactivity, 'evaluate' );
-		$evaluate->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$evaluate->setAccessible( true );
+		}
 
-		$result = $evaluate->invokeArgs( $this->interactivity, array( $directive_value ) );
+		$result = $evaluate->invokeArgs( $this->interactivity, array( $entry ) );
 
 		// Restore the original WP_Interactivity_API instance.
 		$wp_interactivity = $wp_interactivity_prev;
@@ -1026,24 +1476,55 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				'otherPlugin' => array( 'key' => 'otherPlugin-context' ),
 			)
 		);
-		$this->set_internal_namespace_stack( 'myPlugin' );
+		$default_ns = 'myPlugin';
+		$this->set_internal_namespace_stack( $default_ns );
 
-		$result = $this->evaluate( 'state.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'state.key',
+			)
+		);
 		$this->assertSame( 'myPlugin-state', $result );
 
-		$result = $this->evaluate( 'context.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'context.key',
+			)
+		);
 		$this->assertSame( 'myPlugin-context', $result );
 
-		$result = $this->evaluate( 'otherPlugin::state.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'state.key',
+			)
+		);
 		$this->assertSame( 'otherPlugin-state', $result );
 
-		$result = $this->evaluate( 'otherPlugin::context.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'context.key',
+			)
+		);
 		$this->assertSame( 'otherPlugin-context', $result );
 
-		$result = $this->evaluate( 'state.obj.prop' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'state.obj.prop',
+			)
+		);
 		$this->assertSame( 'object property', $result );
 
-		$result = $this->evaluate( 'state.arrAccess.1' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'state.arrAccess.1',
+			)
+		);
 		$this->assertSame( '1', $result );
 	}
 
@@ -1064,18 +1545,39 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				'otherPlugin' => array( 'key' => 'otherPlugin-context' ),
 			)
 		);
-		$this->set_internal_namespace_stack( 'myPlugin' );
+		$default_ns = 'myPlugin';
+		$this->set_internal_namespace_stack( $default_ns );
 
-		$result = $this->evaluate( '!state.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => '!state.key',
+			)
+		);
 		$this->assertFalse( $result );
 
-		$result = $this->evaluate( '!context.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => '!context.key',
+			)
+		);
 		$this->assertFalse( $result );
 
-		$result = $this->evaluate( 'otherPlugin::!state.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => '!state.key',
+			)
+		);
 		$this->assertFalse( $result );
 
-		$result = $this->evaluate( 'otherPlugin::!context.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => '!context.key',
+			)
+		);
 		$this->assertFalse( $result );
 	}
 
@@ -1096,18 +1598,39 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				'otherPlugin' => array(),
 			)
 		);
-		$this->set_internal_namespace_stack( 'myPlugin' );
+		$default_ns = 'myPlugin';
+		$this->set_internal_namespace_stack( $default_ns );
 
-		$result = $this->evaluate( '!state.missing' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => '!state.missing',
+			)
+		);
 		$this->assertTrue( $result );
 
-		$result = $this->evaluate( '!context.missing' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => '!context.missing',
+			)
+		);
 		$this->assertTrue( $result );
 
-		$result = $this->evaluate( 'otherPlugin::!state.deeply.nested.missing' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => '!state.deeply.nested.missing',
+			)
+		);
 		$this->assertTrue( $result );
 
-		$result = $this->evaluate( 'otherPlugin::!context.deeply.nested.missing' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => '!context.deeply.nested.missing',
+			)
+		);
 		$this->assertTrue( $result );
 	}
 
@@ -1127,24 +1650,55 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				'otherPlugin' => array( 'key' => 'otherPlugin-context' ),
 			)
 		);
-		$this->set_internal_namespace_stack( 'myPlugin' );
+		$default_ns = 'myPlugin';
+		$this->set_internal_namespace_stack( $default_ns );
 
-		$result = $this->evaluate( 'state.nonExistentKey' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'state.nonExistentKey',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'context.nonExistentKey' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'context.nonExistentKey',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'otherPlugin::state.nonExistentKey' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'state.nonExistentKey',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'otherPlugin::context.nonExistentKey' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'context.nonExistentKey',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( ' state.key' ); // Extra space.
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => ' state.key',  // Extra space.
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'otherPlugin:: state.key' ); // Extra space.
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => ' state.key',  // Extra space.
+			)
+		);
 		$this->assertNull( $result );
 	}
 
@@ -1178,18 +1732,39 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->set_internal_namespace_stack( 'myPlugin' );
+		$default_ns = 'myPlugin';
+		$this->set_internal_namespace_stack( $default_ns );
 
-		$result = $this->evaluate( 'state.nested.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'state.nested.key',
+			)
+		);
 		$this->assertSame( 'myPlugin-state-nested', $result );
 
-		$result = $this->evaluate( 'context.nested.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => $default_ns,
+				'value'     => 'context.nested.key',
+			)
+		);
 		$this->assertSame( 'myPlugin-context-nested', $result );
 
-		$result = $this->evaluate( 'otherPlugin::state.nested.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'state.nested.key',
+			)
+		);
 		$this->assertSame( 'otherPlugin-state-nested', $result );
 
-		$result = $this->evaluate( 'otherPlugin::context.nested.key' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'context.nested.key',
+			)
+		);
 		$this->assertSame( 'otherPlugin-context-nested', $result );
 	}
 
@@ -1205,13 +1780,28 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->set_internal_context_stack( array() );
 		$this->set_internal_namespace_stack();
 
-		$result = $this->evaluate( 'path', 'null' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'null',
+				'value'     => 'path',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'path', '' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => '',
+				'value'     => 'path',
+			)
+		);
 		$this->assertNull( $result );
 
-		$result = $this->evaluate( 'path', '{}' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => '{}',
+				'value'     => 'path',
+			)
+		);
 		$this->assertNull( $result );
 	}
 
@@ -1249,7 +1839,12 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		);
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
-		$result = $this->evaluate( 'state.derived' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'state.derived',
+			)
+		);
 		$this->assertSame( "Derived state: myPlugin-state\nDerived context: myPlugin-context", $result );
 	}
 
@@ -1292,7 +1887,12 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		);
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
-		$result = $this->evaluate( 'state.derived' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'state.derived',
+			)
+		);
 		$this->assertSame( "Derived state: otherPlugin-state\nDerived context: otherPlugin-context", $result );
 	}
 
@@ -1335,7 +1935,12 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		);
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
-		$result = $this->evaluate( 'otherPlugin::state.derived' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'otherPlugin',
+				'value'     => 'state.derived',
+			)
+		);
 		$this->assertSame( "Derived state: otherPlugin-state\nDerived context: otherPlugin-context", $result );
 	}
 
@@ -1359,7 +1964,12 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->set_internal_context_stack();
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
-		$result = $this->evaluate( 'state.derivedThatThrows' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'state.derivedThatThrows',
+			)
+		);
 		$this->assertNull( $result );
 	}
 
@@ -1382,7 +1992,12 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 		$this->set_internal_context_stack();
 		$this->set_internal_namespace_stack( 'myPlugin' );
 
-		$result = $this->evaluate( 'state.derivedState.property' );
+		$result = $this->evaluate(
+			array(
+				'namespace' => 'myPlugin',
+				'value'     => 'state.derivedState.property',
+			)
+		);
 		$this->assertSame( 'value', $result );
 	}
 
@@ -1393,7 +2008,9 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 */
 	public function test_kebab_to_camel_case() {
 		$method = new ReflectionMethod( $this->interactivity, 'kebab_to_camel_case' );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 
 		$this->assertSame( '', $method->invoke( $this->interactivity, '' ) );
 		$this->assertSame( 'item', $method->invoke( $this->interactivity, 'item' ) );
@@ -1604,5 +2221,40 @@ HTML;
 		$this->assertStringContainsString( 'class="allowed"', $processed_html );
 		$this->assertStringNotContainsString( 'class="dis:allowed"', $processed_html );
 		$this->assertStringNotContainsString( 'class="[disallowed]"', $processed_html );
+	}
+
+	/**
+	 * Tests that add_client_navigation_support_to_script_module marks a
+	 * script module for client navigation.
+	 *
+	 * @ticket 64122
+	 *
+	 * @covers WP_Interactivity_API::add_client_navigation_support_to_script_module
+	 * @covers WP_Interactivity_API::add_load_on_client_navigation_attribute_to_script_modules
+	 */
+	public function test_add_client_navigation_support_to_script_module() {
+		$this->interactivity->add_client_navigation_support_to_script_module( 'marked-module' );
+
+		wp_register_script_module( 'marked-module', '/marked.js' );
+		wp_register_script_module( 'unmarked-module', '/unmarked.js' );
+		wp_enqueue_script_module( 'marked-module' );
+		wp_enqueue_script_module( 'unmarked-module' );
+
+		$output = get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) );
+
+		$p = new WP_HTML_Tag_Processor( $output );
+
+		// First module: marked-module should have the attribute.
+		$p->next_tag( array( 'tag_name' => 'SCRIPT' ) );
+		$this->assertSame( 'marked-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertSame(
+			'{"loadOnClientNavigation":true}',
+			$p->get_attribute( 'data-wp-router-options' )
+		);
+
+		// Second module: unmarked-module should NOT have the attribute.
+		$p->next_tag( array( 'tag_name' => 'SCRIPT' ) );
+		$this->assertSame( 'unmarked-module-js-module', $p->get_attribute( 'id' ) );
+		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
 	}
 }

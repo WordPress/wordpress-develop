@@ -297,6 +297,15 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return null;
 		}
 
+		if ( ! is_string( $html ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The HTML parameter must be a string.' ),
+				'6.9.0'
+			);
+			return null;
+		}
+
 		$context_processor = static::create_full_parser( "<!DOCTYPE html>{$context}", $encoding );
 		if ( null === $context_processor ) {
 			return null;
@@ -337,6 +346,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public static function create_full_parser( $html, $known_definite_encoding = 'UTF-8' ) {
 		if ( 'UTF-8' !== $known_definite_encoding ) {
+			return null;
+		}
+		if ( ! is_string( $html ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The HTML parameter must be a string.' ),
+				'6.9.0'
+			);
 			return null;
 		}
 
@@ -1304,10 +1321,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see static::serialize()
 	 *
 	 * @since 6.7.0
+	 * @since 6.9.0 Converted from protected to public method.
 	 *
 	 * @return string Serialization of token, or empty string if no serialization exists.
 	 */
-	protected function serialize_token(): string {
+	public function serialize_token(): string {
 		$html       = '';
 		$token_type = $this->get_token_type();
 
@@ -1469,7 +1487,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			case 'html':
 				$doctype = $this->get_doctype_info();
-				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatability_mode ) {
+				if ( null !== $doctype && 'quirks' === $doctype->indicated_compatibility_mode ) {
 					$this->compat_mode = WP_HTML_Tag_Processor::QUIRKS_MODE;
 				}
 
@@ -1760,6 +1778,11 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '+META':
 				$this->insert_html_element( $this->state->current_token );
 
+				// All following conditions depend on "tentative" encoding confidence.
+				if ( 'tentative' !== $this->state->encoding_confidence ) {
+					return true;
+				}
+
 				/*
 				 * > If the active speculative HTML parser is null, then:
 				 * >   - If the element has a charset attribute, and getting an encoding from
@@ -1767,7 +1790,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * >     tentative, then change the encoding to the resulting encoding.
 				 */
 				$charset = $this->get_attribute( 'charset' );
-				if ( is_string( $charset ) && 'tentative' === $this->state->encoding_confidence ) {
+				if ( is_string( $charset ) ) {
 					$this->bail( 'Cannot yet process META tags with charset to determine encoding.' );
 				}
 
@@ -1784,8 +1807,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				if (
 					is_string( $http_equiv ) &&
 					is_string( $content ) &&
-					0 === strcasecmp( $http_equiv, 'Content-Type' ) &&
-					'tentative' === $this->state->encoding_confidence
+					0 === strcasecmp( $http_equiv, 'Content-Type' )
 				) {
 					$this->bail( 'Cannot yet process META tags with http-equiv Content-Type to determine encoding.' );
 				}
@@ -5268,13 +5290,30 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Updates or creates a new attribute on the currently matched tag with the passed value.
 	 *
-	 * For boolean attributes special handling is provided:
+	 * This function handles all necessary HTML encoding. Provide normal, unescaped string values.
+	 * The HTML API will encode the strings appropriately so that the browser will interpret them
+	 * as the intended value.
+	 *
+	 * Example:
+	 *
+	 *     // Renders “Eggs & Milk” in a browser, encoded as `<abbr title="Eggs &amp; Milk">`.
+	 *     $processor->set_attribute( 'title', 'Eggs & Milk' );
+	 *
+	 *     // Renders “Eggs &amp; Milk” in a browser, encoded as `<abbr title="Eggs &amp;amp; Milk">`.
+	 *     $processor->set_attribute( 'title', 'Eggs &amp; Milk' );
+	 *
+	 *     // Renders `true` as `<abbr title>`.
+	 *     $processor->set_attribute( 'title', true );
+	 *
+	 *     // Renders without the attribute for `false` as `<abbr>`.
+	 *     $processor->set_attribute( 'title', false );
+	 *
+	 * Special handling is provided for boolean attribute values:
 	 *  - When `true` is passed as the value, then only the attribute name is added to the tag.
 	 *  - When `false` is passed, the attribute gets removed if it existed before.
 	 *
-	 * For string attributes, the value is escaped using the `esc_attr` function.
-	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
+	 * @since 6.9.0 Escapes all character references instead of trying to avoid double-escaping.
 	 *
 	 * @param string      $name  The attribute name to target.
 	 * @param string|bool $value The new attribute value.

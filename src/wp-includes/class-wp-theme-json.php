@@ -126,6 +126,7 @@ class WP_Theme_JSON {
 	 * @since 6.6.0 Added the `dimensions.aspectRatios` and `dimensions.defaultAspectRatios` presets.
 	 *              Updated the 'prevent_override' value for font size presets to use 'typography.defaultFontSizes'
 	 *              and spacing size presets to use `spacing.defaultSpacingSizes`.
+	 * @since 6.9.0 Added `border.radiusSizes`.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
@@ -204,6 +205,15 @@ class WP_Theme_JSON {
 			'css_vars'          => '--wp--preset--shadow--$slug',
 			'classes'           => array(),
 			'properties'        => array( 'box-shadow' ),
+		),
+		array(
+			'path'              => array( 'border', 'radiusSizes' ),
+			'prevent_override'  => false,
+			'use_default_names' => false,
+			'value_key'         => 'size',
+			'css_vars'          => '--wp--preset--border-radius--$slug',
+			'classes'           => array(),
+			'properties'        => array( 'border-radius' ),
 		),
 	);
 
@@ -384,6 +394,7 @@ class WP_Theme_JSON {
 	 *              `background.backgroundSize` and `dimensions.aspectRatio`.
 	 * @since 6.6.0 Added support for 'dimensions.aspectRatios', 'dimensions.defaultAspectRatios',
 	 *              'typography.defaultFontSizes', and 'spacing.defaultSpacingSizes'.
+	 * @since 6.9.0 Added support for `border.radiusSizes`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -394,10 +405,11 @@ class WP_Theme_JSON {
 			'backgroundSize'  => null,
 		),
 		'border'                        => array(
-			'color'  => null,
-			'radius' => null,
-			'style'  => null,
-			'width'  => null,
+			'color'       => null,
+			'radius'      => null,
+			'radiusSizes' => null,
+			'style'       => null,
+			'width'       => null,
 		),
 		'color'                         => array(
 			'background'       => null,
@@ -589,6 +601,7 @@ class WP_Theme_JSON {
 	 * @since 6.1.0
 	 * @since 6.2.0 Added support for ':link' and ':any-link'.
 	 * @since 6.8.0 Added support for ':focus-visible'.
+	 * @since 6.9.0 Added `textInput` and `select` elements.
 	 * @var array
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
@@ -604,19 +617,21 @@ class WP_Theme_JSON {
 	 * @var string[]
 	 */
 	const ELEMENTS = array(
-		'link'    => 'a:where(:not(.wp-element-button))', // The `where` is needed to lower the specificity.
-		'heading' => 'h1, h2, h3, h4, h5, h6',
-		'h1'      => 'h1',
-		'h2'      => 'h2',
-		'h3'      => 'h3',
-		'h4'      => 'h4',
-		'h5'      => 'h5',
-		'h6'      => 'h6',
+		'link'      => 'a:where(:not(.wp-element-button))', // The `where` is needed to lower the specificity.
+		'heading'   => 'h1, h2, h3, h4, h5, h6',
+		'h1'        => 'h1',
+		'h2'        => 'h2',
+		'h3'        => 'h3',
+		'h4'        => 'h4',
+		'h5'        => 'h5',
+		'h6'        => 'h6',
 		// We have the .wp-block-button__link class so that this will target older buttons that have been serialized.
-		'button'  => '.wp-element-button, .wp-block-button__link',
+		'button'    => '.wp-element-button, .wp-block-button__link',
 		// The block classes are necessary to target older content that won't use the new class names.
-		'caption' => '.wp-element-caption, .wp-block-audio figcaption, .wp-block-embed figcaption, .wp-block-gallery figcaption, .wp-block-image figcaption, .wp-block-table figcaption, .wp-block-video figcaption',
-		'cite'    => 'cite',
+		'caption'   => '.wp-element-caption, .wp-block-audio figcaption, .wp-block-embed figcaption, .wp-block-gallery figcaption, .wp-block-image figcaption, .wp-block-table figcaption, .wp-block-video figcaption',
+		'cite'      => 'cite',
+		'textInput' => 'textarea, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url])',
+		'select'    => 'select',
 	);
 
 	const __EXPERIMENTAL_ELEMENT_CLASS_NAMES = array(
@@ -2781,6 +2796,7 @@ class WP_Theme_JSON {
 			if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'] ) ) {
 				foreach ( $theme_json['styles']['blocks'][ $name ]['elements'] as $element => $node ) {
 					$node_path = array( 'styles', 'blocks', $name, 'elements', $element );
+
 					if ( $include_node_paths_only ) {
 						$nodes[] = array(
 							'path' => $node_path,
@@ -2798,12 +2814,6 @@ class WP_Theme_JSON {
 						foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $element ] as $pseudo_selector ) {
 							if ( isset( $theme_json['styles']['blocks'][ $name ]['elements'][ $element ][ $pseudo_selector ] ) ) {
 								$node_path = array( 'styles', 'blocks', $name, 'elements', $element );
-								if ( $include_node_paths_only ) {
-									$nodes[] = array(
-										'path' => $node_path,
-									);
-									continue;
-								}
 
 								$nodes[] = array(
 									'path'     => $node_path,
@@ -2894,7 +2904,7 @@ class WP_Theme_JSON {
 
 		$element_pseudo_allowed = array();
 
-		if ( isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ) {
+		if ( isset( $current_element, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] ) ) {
 			$element_pseudo_allowed = static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ];
 		}
 
@@ -3240,7 +3250,11 @@ class WP_Theme_JSON {
 			foreach ( static::PRESETS_METADATA as $preset_metadata ) {
 				$prevent_override = $preset_metadata['prevent_override'];
 				if ( is_array( $prevent_override ) ) {
-					$prevent_override = _wp_array_get( $this->theme_json['settings'], $preset_metadata['prevent_override'] );
+					$global_path  = array_merge( array( 'settings' ), $prevent_override );
+					$global_value = _wp_array_get( $this->theme_json, $global_path, null );
+
+					$node_level_path  = array_merge( $node['path'], $prevent_override );
+					$prevent_override = _wp_array_get( $this->theme_json, $node_level_path, $global_value );
 				}
 
 				foreach ( static::VALID_ORIGINS as $origin ) {
