@@ -16,6 +16,10 @@ declare( strict_types = 1 );
  *
  * @return void
  */
+
+function gutenberg_another_test(){
+
+}
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
 		'site',

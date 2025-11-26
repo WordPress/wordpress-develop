@@ -21,7 +21,9 @@ if ( 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
 require __DIR__ . '/wp-load.php';
 
 nocache_headers();
-
+function gutenberg_test() {
+	echo 'this is a test';
+}
 $comment = wp_handle_comment_submission( wp_unslash( $_POST ) );
 if ( is_wp_error( $comment ) ) {
 	$data = (int) $comment->get_error_data();

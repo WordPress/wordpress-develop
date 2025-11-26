@@ -1449,6 +1449,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:php', [
+		'prevent-gutenberg-functions',
 		'phpunit'
 	] );
 
@@ -1631,6 +1632,46 @@ module.exports = function(grunt) {
 		'cssmin:themes',
 		'usebanner'
 	] );
+
+	grunt.registerTask( 'prevent-gutenberg-functions', 'Check for the gutenberg_ prefix on function names', function() {
+		var done = this.async();
+		var found = false;
+
+		grunt.file.recurse( SOURCE_DIR, function( abspath, rootdir, subdir, filename ) {
+			// Skip non-PHP files, vendor, node_modules, and plugins directories.
+			if ( ! filename.match( /\.php$/ ) ||
+				abspath.match( /vendor|node_modules/ ) ||
+				abspath.match( /wp-content\/plugins/ ) ) {
+				return;
+			}
+
+			var content = grunt.file.read( abspath );
+			// Regex that captures the full function name including gutenberg_ prefix
+			var regex = /function\s+(gutenberg_[a-zA-Z0-9_]+)/g;
+			var match;
+			var matches = [];
+
+			while ( ( match = regex.exec( content ) ) !== null ) {
+				matches.push( match[1] ); // match[1] contains the captured group (function name)
+			}
+
+			if ( matches.length > 0 ) {
+				found = true;
+				grunt.log.error( 'Found gutenberg_ function in: ' + path.relative( SOURCE_DIR, abspath ) );
+				matches.forEach( function( funcName ) {
+					grunt.log.writeln('  - ' + funcName );
+				});
+			}
+		});
+
+		if ( found ) {
+			grunt.fail.warn( 'gutenberg_ prefixed functions found!' );
+			done( false );
+		} else {
+			grunt.log.ok( 'No gutenberg_ functions found.' );
+			done( true );
+		}
+	});
 
 	grunt.registerTask( 'certificates:upgrade-package', 'Upgrades the package responsible for supplying the certificate authority certificate store bundled with WordPress.', function() {
 		var done = this.async();

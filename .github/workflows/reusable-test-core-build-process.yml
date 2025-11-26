@@ -52,6 +52,9 @@ jobs:
   # - Sets up Node.js.
   # - Logs debug information about the GitHub Action runner.
   # - Installs npm dependencies.
+  # - Confirms that no PHP functions begin with `gutenberg_`.
+  # - Runs the Emoji precommit task.
+  # - Ensures that the Root Certificate files are correct.
   # - Builds WordPress to run from the desired location (src or build).
   # - Ensures version-controlled files are not modified or deleted.
   # - Creates a ZIP of the built WordPress files (when building to the build directory).
@@ -104,6 +107,9 @@ jobs:
 
       - name: Install npm Dependencies
         run: npm ci
+
+      - name: Check for PHP functions with the gutenberg_ prefix
+        run: npm run grunt prevent-gutenberg-functions || true
 
       - name: Run Emoji precommit task
         if: ${{ inputs.test-emoji }}
