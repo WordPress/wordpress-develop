@@ -2276,7 +2276,8 @@ function media_upload_form( $errors = null ) {
 	 * @since 2.6.0
 	 */
 	do_action( 'pre-html-upload-ui' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-	$required = 'media' === get_current_screen()->id ? ' required' : '';
+	$current_screen = get_current_screen();
+	$required       = $current_screen && 'media' === $current_screen->id ? ' required' : '';
 	?>
 	<p id="async-upload-wrap">
 		<label class="screen-reader-text" for="async-upload">
