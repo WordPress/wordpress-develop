@@ -232,7 +232,7 @@ EOF;
 			'getarchives_limit',
 			function ( $limit, $parsed_args ) {
 				// Modify limit from 3 to 2.
-				return ' LIMIT 2';
+				return 2;
 			},
 			10,
 			2
