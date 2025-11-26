@@ -340,7 +340,6 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 *
 	 * @param string $post_state The post state to test.
 	 */
-
 	public function test_post_states_function( $post_state, $expected_post_state_string ) {
 		$post = get_post( self::$post_ids[ $post_state ] );
 		if ( 'sticky' === $post_state ) {
@@ -360,7 +359,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 		$post_states = get_post_states( $post );
 		$this->assertContains( $expected_post_state_string, $post_states );
 	}
-	
+
 	/**
 	 * Data provider for test_post_states_function().
 	 *
