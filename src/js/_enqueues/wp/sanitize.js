@@ -23,11 +23,10 @@
 		 * @return {string} Stripped text.
 		 */
 		stripTags: function( text ) {
-			let _text = text || '';
 
 			const domParser = new DOMParser();
 			const htmlDocument = domParser.parseFromString(
-				_text,
+				text,
 				'text/html'
 			);
 
@@ -40,7 +39,7 @@
 			 *
 			 * See: https://github.com/WordPress/wordpress-develop/pull/10536#discussion_r2550615378
 			 */
-			htmlDocument.body.innerText = htmlDocument.body.innerText || '';
+			htmlDocument.body.innerText = htmlDocument.body.innerText;
 
 			// Return the text with stripped tags.
 			return htmlDocument.body.innerHTML;
