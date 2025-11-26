@@ -25,12 +25,12 @@
 		stripTags: function( text ) {
 			let _text = text || '';
 
-			const htmlElement = document.createElement( 'div' );
-			htmlElement.innerHTML = _text;
-			_text = htmlElement.textContent || htmlElement.innerText || '';
+			const domParser = new DOMParser();
+			const htmlDocument = domParser.parseFromString( _text, 'text/html' );
+			htmlDocument.body.innerText = htmlDocument.body.innerText || '';
 
 			// Return the text with stripped tags.
-			return _text;
+			return htmlDocument.body.innerHTML;
 		},
 
 		/**
