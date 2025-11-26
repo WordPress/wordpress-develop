@@ -1965,9 +1965,7 @@ HTML;
 		global $wp_version;
 		$wp_version = '99.9.9';
 
-		if ( $use_global_function && $only_enqueue ) {
-			$this->setExpectedIncorrectUsage( 'WP_Script_Modules::sort_item_dependencies' );
-		}
+		$this->setExpectedIncorrectUsage( 'WP_Script_Modules::sort_item_dependencies' );
 		$register = static function ( ...$args ) use ( $use_global_function ) {
 			if ( $use_global_function ) {
 				wp_register_script_module( ...$args );
