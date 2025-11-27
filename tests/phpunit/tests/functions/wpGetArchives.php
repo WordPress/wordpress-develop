@@ -235,6 +235,6 @@ EOF;
 			)
 		);
 
-		$this->assertSameIgnoreEOL( $expected, trim( $archives ) );
+		$this->assertEqualHTML( $expected, $archives );
 	}
 }
