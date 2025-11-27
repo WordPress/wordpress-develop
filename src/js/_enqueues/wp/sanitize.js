@@ -23,7 +23,6 @@
 		 * @return {string} Stripped text.
 		 */
 		stripTags: function( text ) {
-
 			const domParser = new DOMParser();
 			const htmlDocument = domParser.parseFromString(
 				text,
@@ -31,13 +30,13 @@
 			);
 
 			/*
-			 * This looks funny and appears to be a no-op, but it
-			 * enforces the escaping. How? when _read_ the `innerText`
-			 * property decodes character references, returning a raw
-			 * string. When _written_, however, it re-encodes to ensure
-			 * that the rendered text replicates what it’s given.
+			 * The following self-assignment appears to be a no-op, but it isn't.
+			 * It enforces the escaping. Reading the `innerText` property decodes
+			 * character references, returning a raw string. When written, however,
+			 * the text is re-escaped to ensure that the rendered text replicates
+			 * what it's given.
 			 *
-			 * See: https://github.com/WordPress/wordpress-develop/pull/10536#discussion_r2550615378
+			 * See <https://github.com/WordPress/wordpress-develop/pull/10536#discussion_r2550615378>.
 			 */
 			htmlDocument.body.innerText = htmlDocument.body.innerText;
 
