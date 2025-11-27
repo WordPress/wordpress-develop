@@ -227,9 +227,9 @@ EOF;
 		$title3 = get_post( $ids[2] )->post_title;
 
 		$expected = <<<EOF
-<li><a href='$link1'>$title1</a></li>
-	<li><a href='$link2'>$title2</a></li>
-	<li><a href='$link3'>$title3</a></li>
+			<li><a href='$link1'>$title1</a></li>
+			<li><a href='$link2'>$title2</a></li>
+			<li><a href='$link3'>$title3</a></li>
 EOF;
 		$archives = wp_get_archives(
 			array(

@@ -2019,13 +2019,13 @@ function wp_get_archives( $args = '' ) {
 	);
 
 	/**
-	 * Filters the archive links list arguments.
+	 * Filters the arguments for displaying archive links.
 	 *
 	 * @since 7.0.0
 	 *
 	 * @see wp_get_archives()
 	 *
-	 * @param array $args An array of arguments.
+	 * @param array<string, string|int|bool> $args Arguments.
 	 */
 	$args = apply_filters( 'wp_get_archives_args', $args );
 
