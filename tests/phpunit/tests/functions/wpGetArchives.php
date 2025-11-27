@@ -218,19 +218,15 @@ EOF;
 
 		$ids = array_slice( array_reverse( self::$post_ids ), 0, 3 );
 
-		$link1 = get_permalink( $ids[0] );
-		$link2 = get_permalink( $ids[1] );
-		$link3 = get_permalink( $ids[2] );
-
-		$title1 = get_post( $ids[0] )->post_title;
-		$title2 = get_post( $ids[1] )->post_title;
-		$title3 = get_post( $ids[2] )->post_title;
-
-		$expected = <<<EOF
-			<li><a href='$link1'>$title1</a></li>
-			<li><a href='$link2'>$title2</a></li>
-			<li><a href='$link3'>$title3</a></li>
-EOF;
+		$expected = join(
+			"\n",
+			array_map(
+				static function ( $id ) {
+					return sprintf( '<li><a href="%s">%s</a></li>', get_permalink( $id ), get_the_title( $id ) );
+				},
+				$ids
+			)
+		);
 		$archives = wp_get_archives(
 			array(
 				'echo'  => false,
