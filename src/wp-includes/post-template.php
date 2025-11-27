@@ -411,7 +411,7 @@ function the_excerpt() {
  * @return string Post excerpt.
  */
 function get_the_excerpt( $post = null ) {
-	if ( is_bool( $post ) ) {
+	if ( ! is_null( $post ) && ! is_numeric( $post ) && ! ( $post instanceof WP_Post ) ) {
 		_deprecated_argument( __FUNCTION__, '2.3.0' );
 	}
 
