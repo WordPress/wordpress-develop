@@ -2381,8 +2381,6 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 */
 		$message .= network_site_url( 'wp-login.php?login=' . rawurlencode( $user->user_login ) . "&key=$key&action=rp", 'login' ) . "\r\n\r\n";
 
-		$message .= wp_login_url() . "\r\n";
-
 		$wp_new_user_notification_email = array(
 			'to'      => $user->user_email,
 			/* translators: Login details notification email subject. %s: Site title. */
