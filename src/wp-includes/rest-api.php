@@ -238,10 +238,6 @@ function rest_sanitize_schema_properties( $data, $server, $request ) {
  * @return array|object The sanitized schema data.
  */
 function rest_sanitize_schema_properties_recursive( $data ) {
-	if ( ! is_array( $data ) && ! is_object( $data ) ) {
-		return $data;
-	}
-
 	$is_object  = is_object( $data );
 	$data_array = $is_object ? (array) $data : $data;
 
