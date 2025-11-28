@@ -243,7 +243,7 @@ function rest_sanitize_schema_properties_recursive( $data ) {
 
 	// Convert empty properties array to empty object.
 	if ( isset( $data_array['properties'] ) && is_array( $data_array['properties'] ) && empty( $data_array['properties'] ) ) {
-		$data_array['properties'] = new stdClass();
+		$data_array['properties'] = (object) array();
 	}
 
 	// Process nested elements recursively.
