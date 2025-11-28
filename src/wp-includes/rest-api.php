@@ -215,15 +215,14 @@ function register_rest_field( $object_type, $attribute, $args = array() ) {
  * @return array|object The sanitized response data.
  */
 function rest_sanitize_schema_properties( $data, $server, $request ) {
-	if ( $request->get_method() !== 'OPTIONS' ) {
-		return $data;
+	if (
+		$request->get_method() === 'OPTIONS' &&
+		is_array( $data ) &&
+		isset( $data['schema'] ) &&
+		is_array( $data['schema'] )
+	) {
+		$data['schema'] = rest_sanitize_schema_properties_recursive( $data['schema'] );
 	}
-
-	if ( ! is_array( $data ) || ! isset( $data['schema'] ) ) {
-		return $data;
-	}
-
-	$data['schema'] = rest_sanitize_schema_properties_recursive( $data['schema'] );
 
 	return $data;
 }
