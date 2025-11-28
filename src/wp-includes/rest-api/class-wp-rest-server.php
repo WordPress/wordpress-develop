@@ -41,8 +41,8 @@ class WP_REST_Server {
 
 	/**
 	 * Alias for PUT transport method.
-	 * 
-	 * @since 6.9.0
+	 *
+	 * @since 7.0.0
 	 * @var string
 	 */
 	const UPDATABLE = 'PUT, PATCH';
