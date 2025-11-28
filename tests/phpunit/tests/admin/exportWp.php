@@ -293,7 +293,6 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 61244
-	 * @covers ::export_wp
 	 */
 	public function test_export_wp_should_not_include_empty_comments_when_filtered() {
 		$post_id = self::factory()->post->create( array( 'post_title' => 'Test Post' ) );
@@ -307,24 +306,20 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 			}
 		);
 
-		$xml_obj = $this->get_the_export( array() );
-
+		$xml_obj      = $this->get_the_export( array() );
 		$comment_tags = $xml_obj->xpath( '//wp:comment' );
-
 		$this->assertEmpty( $comment_tags, 'No <wp:comment> tags should be present when comments are filtered out.' );
 	}
 
 	/**
 	 * @ticket 61244
-	 * @covers ::export_wp
 	 */
 	public function test_export_wp_includes_comments_when_not_filtered() {
 		$post_id       = self::factory()->post->create( array( 'post_title' => 'Test Post' ) );
 		$comment_count = 3;
 		self::factory()->comment->create_post_comments( $post_id, $comment_count );
 
-		$xml_obj = $this->get_the_export( array() );
-
+		$xml_obj      = $this->get_the_export( array() );
 		$comment_tags = $xml_obj->xpath( '//wp:comment' );
 
 		$this->assertCount( $comment_count, $comment_tags, 'Export should include all comments when not filtered.' );
