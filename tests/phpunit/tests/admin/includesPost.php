@@ -1355,6 +1355,6 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		$default_post = get_default_post_to_edit( 'no_title', true );
 		$post         = get_post( $default_post->ID );
-		$this->assertSame( '(no title supported)', $post->post_title );
+		$this->assertEmpty( $post->post_title );
 	}
 }
