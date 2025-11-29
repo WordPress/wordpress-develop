@@ -86,7 +86,7 @@ class Tests_Blocks_BlockProcessor_BlockProcessing extends WP_UnitTestCase {
 
 		$extracted = array();
 		while ( $processor->next_block( '*' ) ) {
-			$extracted[] = $processor->extract_block();
+			$extracted[] = $processor->extract_full_block_and_advance();
 		}
 
 		$this->assertSame(
