@@ -833,7 +833,8 @@ HTML;
 
 		wp_enqueue_style( 'main-style' );
 
-		get_echo( 'wp_print_styles' );
+		$markup = get_echo( 'wp_print_styles' );
+		$this->assertStringNotContainsString( 'main-style.css', $markup, 'Expected style to be absent.' );
 
 		$this->assertArrayHasKey(
 			$expected_key,
@@ -842,7 +843,7 @@ HTML;
 		);
 
 		$this->assertStringContainsString(
-			'The style with the handle main-style was enqueued with dependencies that are not registered: missing-style-dep',
+			'The style with the handle "main-style" was enqueued with dependencies that are not registered: missing-style-dep',
 			$this->caught_doing_it_wrong[ $expected_key ],
 			'Expected _doing_it_wrong() notice to indicate missing dependencies for enqueued styles.'
 		);

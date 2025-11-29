@@ -4108,7 +4108,8 @@ HTML;
 		wp_register_script( 'main', '/main.js', array( 'registered-dep', 'missing-dep' ) );
 		wp_enqueue_script( 'main' );
 
-		get_echo( 'wp_print_scripts' );
+		$markup = get_echo( 'wp_print_scripts' );
+		$this->assertStringNotContainsString( 'main.js', $markup, 'Expected script to be absent.' );
 
 		$this->assertArrayHasKey(
 			$expected_key,
@@ -4117,7 +4118,7 @@ HTML;
 		);
 
 		$this->assertStringContainsString(
-			'The script with the handle main was enqueued with dependencies that are not registered: missing-dep',
+			'The script with the handle "main" was enqueued with dependencies that are not registered: missing-dep',
 			$this->caught_doing_it_wrong[ $expected_key ],
 			'Expected _doing_it_wrong() notice to indicate missing dependencies for enqueued script.'
 		);

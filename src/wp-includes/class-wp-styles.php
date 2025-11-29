@@ -506,7 +506,7 @@ class WP_Styles extends WP_Dependencies {
 	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
 		return sprintf(
 			/* translators: 1: Style handle, 2: Comma-separated list of missing dependency handles. */
-			__( 'The style with the handle %1$s was enqueued with dependencies that are not registered: %2$s.' ),
+			__( 'The style with the handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
 			$handle,
 			implode( ', ', $missing_dependency_handles )
 		);

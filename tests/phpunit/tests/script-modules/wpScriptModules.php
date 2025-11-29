@@ -2326,7 +2326,8 @@ HTML;
 		$this->script_modules->register( 'main-module', '/main-module.js', array( 'missing-mod-dep' ) );
 		$this->script_modules->enqueue( 'main-module' );
 
-		get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) );
+		$markup = get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) );
+		$this->assertStringNotContainsString( 'main-module.js', $markup, 'Expected script module to be absent.' );
 
 		$this->assertArrayHasKey(
 			'WP_Script_Modules::sort_item_dependencies',
@@ -2336,7 +2337,7 @@ HTML;
 
 		// Assert the message mentions the missing dependency handle.
 		$this->assertStringContainsString(
-			'The script module main-module was enqueued with dependencies that are not registered: missing-mod-dep',
+			'The script module "main-module" was enqueued with dependencies that are not registered: missing-mod-dep',
 			$this->caught_doing_it_wrong['WP_Script_Modules::sort_item_dependencies']
 		);
 	}
