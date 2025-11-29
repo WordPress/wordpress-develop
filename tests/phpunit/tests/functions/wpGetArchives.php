@@ -210,11 +210,13 @@ EOF;
 	 */
 	public function test_wp_get_archives_args_filter() {
 		// Test that the filter can modify the limit argument.
-		$filter_callback = function ( $args ) {
-			$args['limit'] = 3;
-			return $args;
-		};
-		add_filter( 'wp_get_archives_args', $filter_callback );
+		add_filter(
+			'wp_get_archives_args',
+			static function ( $args ) {
+				$args['limit'] = 3;
+				return $args;
+			}
+		);
 
 		$ids = array_slice( array_reverse( self::$post_ids ), 0, 3 );
 
