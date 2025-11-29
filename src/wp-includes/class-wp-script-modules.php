@@ -737,9 +737,9 @@ class WP_Script_Modules {
 		if ( count( $missing_dependencies ) > 0 ) {
 			if ( ! in_array( $id, $this->modules_with_missing_dependencies, true ) ) {
 				_doing_it_wrong(
-					__METHOD__,
+					get_class( $this ) . '::register',
 					sprintf(
-					/* translators: 1: Script module ID, 2: Comma-separated list of missing dependency IDs. */
+						/* translators: 1: Script module ID, 2: Comma-separated list of missing dependency IDs. */
 						__( 'The script module "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
 						$id,
 						implode( ', ', $missing_dependencies )

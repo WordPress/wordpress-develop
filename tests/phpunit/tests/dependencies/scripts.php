@@ -4101,25 +4101,24 @@ HTML;
 	 * @covers WP_Dependencies::all_deps
 	 */
 	public function test_wp_scripts_doing_it_wrong_for_missing_dependencies() {
-		$expected_key = 'WP_Dependencies::all_deps';
-		$this->setExpectedIncorrectUsage( $expected_key );
+		$expected_incorrect_usage = 'WP_Scripts::add';
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
 
 		wp_register_script( 'registered-dep', '/registered-dep.js' );
-		wp_register_script( 'main', '/main.js', array( 'registered-dep', 'missing-dep' ) );
-		wp_enqueue_script( 'main' );
+		wp_enqueue_script( 'main', '/main.js', array( 'registered-dep', 'missing-dep' ) );
 
 		$markup = get_echo( 'wp_print_scripts' );
 		$this->assertStringNotContainsString( 'main.js', $markup, 'Expected script to be absent.' );
 
 		$this->assertArrayHasKey(
-			$expected_key,
+			$expected_incorrect_usage,
 			$this->caught_doing_it_wrong,
-			'Expected WP_Dependencies::all_deps to trigger a _doing_it_wrong() notice for missing dependency.'
+			"Expected $expected_incorrect_usage to trigger a _doing_it_wrong() notice for missing dependency."
 		);
 
 		$this->assertStringContainsString(
 			'The script with the handle "main" was enqueued with dependencies that are not registered: missing-dep',
-			$this->caught_doing_it_wrong[ $expected_key ],
+			$this->caught_doing_it_wrong[ $expected_incorrect_usage ],
 			'Expected _doing_it_wrong() notice to indicate missing dependencies for enqueued script.'
 		);
 	}

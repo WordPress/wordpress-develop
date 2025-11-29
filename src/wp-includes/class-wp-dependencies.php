@@ -221,7 +221,7 @@ class WP_Dependencies {
 			} elseif ( count( $missing_dependencies ) > 0 ) {
 				if ( ! in_array( $handle, $this->dependencies_with_missing_dependencies, true ) ) {
 					_doing_it_wrong(
-						__METHOD__,
+						get_class( $this ) . '::add',
 						$this->get_dependency_warning_message( $handle, $missing_dependencies ),
 						'7.0.0'
 					);
