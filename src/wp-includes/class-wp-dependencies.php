@@ -105,6 +105,18 @@ class WP_Dependencies {
 	private $queued_before_register = array();
 
 	/**
+	 * List of IDs for dependencies encountered which themselves have missing dependencies.
+	 *
+	 * A dependency handle is added to this list when it is discovered to have missing dependencies. At this time, a
+	 * warning is emitted with {@see _doing_it_wrong()}. The handle is then added to this list, so that duplicate
+	 * warnings don't occur.
+	 *
+	 * @since 7.0.0
+	 * @var string[]
+	 */
+	private $dependencies_with_missing_dependencies = array();
+
+	/**
 	 * Processes the items and dependencies.
 	 *
 	 * Processes the items passed to it or the queue, and their dependencies.
@@ -207,11 +219,14 @@ class WP_Dependencies {
 			if ( ! isset( $this->registered[ $handle ] ) ) {
 				$keep_going = false; // Item doesn't exist.
 			} elseif ( count( $missing_dependencies ) > 0 ) {
-				_doing_it_wrong(
-					__METHOD__,
-					$this->get_dependency_warning_message( $handle, $missing_dependencies ),
-					'7.0.0'
-				);
+				if ( ! in_array( $handle, $this->dependencies_with_missing_dependencies, true ) ) {
+					_doing_it_wrong(
+						__METHOD__,
+						$this->get_dependency_warning_message( $handle, $missing_dependencies ),
+						'7.0.0'
+					);
+					$this->dependencies_with_missing_dependencies[] = $handle;
+				}
 				$keep_going = false; // Item requires dependencies that don't exist.
 			} elseif ( $this->registered[ $handle ]->deps && ! $this->all_deps( $this->registered[ $handle ]->deps, true, $new_group ) ) {
 				$keep_going = false; // Item requires dependencies that don't exist.
