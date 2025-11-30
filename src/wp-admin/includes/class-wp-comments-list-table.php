@@ -81,11 +81,11 @@ class WP_Comments_List_Table extends WP_List_Table {
 	/**
 	 * Prepares the comments list items.
 	 *
-	 * @global string $mode           List table view mode.
-	 * @global int    $post_id
-	 * @global string $comment_status
-	 * @global string $comment_type
-	 * @global string $search
+	 * @global string $mode           Current list table display mode.
+	 * @global int    $post_id        Current post ID filter.
+	 * @global string $comment_status Comment status filter.
+	 * @global string $comment_type   Comment type filter.
+	 * @global string $search         Search term.
 	 */
 	public function prepare_items() {
 		global $mode, $post_id, $comment_status, $comment_type, $search;
