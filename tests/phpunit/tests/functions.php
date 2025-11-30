@@ -1584,18 +1584,18 @@ class Tests_Functions extends WP_UnitTestCase {
 			$expected = array_merge(
 				$expected,
 				array(
-					'bits' => 8,
-					'channels' => 3,
-					'mime' => 'image/heif',
-					'width_unit' => 'px',
+					'bits'        => 8,
+					'channels'    => 3,
+					'mime'        => 'image/heif',
+					'width_unit'  => 'px',
 					'height_unit' => 'px',
 				)
 			);
 		} else {
 			$expected['mime'] = 'image/heic';
 		}
-		
-		$result   = wp_getimagesize( $file );
+
+		$result = wp_getimagesize( $file );
 		$this->assertSame( $expected, $result );
 	}
 
