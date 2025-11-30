@@ -105,7 +105,7 @@ class WP_Dependencies {
 	private $queued_before_register = array();
 
 	/**
-	 * List of IDs for dependencies encountered which themselves have missing dependencies.
+	 * List of handles for dependencies encountered which themselves have missing dependencies.
 	 *
 	 * A dependency handle is added to this list when it is discovered to have missing dependencies. At this time, a
 	 * warning is emitted with {@see _doing_it_wrong()}. The handle is then added to this list, so that duplicate
