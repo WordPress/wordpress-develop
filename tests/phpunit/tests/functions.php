@@ -1577,9 +1577,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			'width="1180" height="1180"',
 		);
 
-		/*
-		 * As of PHP 8.5.0, getimagesize() supports HEIF/HEIC files.
-		 */
+		// As of PHP 8.5.0, getimagesize() supports HEIF/HEIC files.
 		if ( PHP_VERSION_ID >= 80500 ) {
 			$expected = array_merge(
 				$expected,
