@@ -2336,7 +2336,7 @@ HTML;
 
 		// Assert the message mentions the missing dependency handle.
 		$this->assertStringContainsString(
-			'The script module "main-module" was enqueued with dependencies that are not registered: missing-mod-dep',
+			'The script module with the ID "main-module" was enqueued with dependencies that are not registered: missing-mod-dep',
 			$this->caught_doing_it_wrong[ $expected_incorrect_usage ]
 		);
 	}

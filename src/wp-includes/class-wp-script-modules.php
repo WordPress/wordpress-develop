@@ -740,7 +740,7 @@ class WP_Script_Modules {
 					get_class( $this ) . '::register',
 					sprintf(
 						/* translators: 1: Script module ID, 2: Comma-separated list of missing dependency IDs. */
-						__( 'The script module "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
+						__( 'The script module with the ID "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
 						$id,
 						implode( ', ', $missing_dependencies )
 					),
