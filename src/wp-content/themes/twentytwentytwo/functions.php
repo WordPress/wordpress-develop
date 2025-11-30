@@ -9,7 +9,6 @@
  * @since Twenty Twenty-Two 1.0
  */
 
-
 if ( ! function_exists( 'twentytwentytwo_support' ) ) :
 
 	/**
@@ -35,7 +34,7 @@ add_action( 'after_setup_theme', 'twentytwentytwo_support' );
 if ( ! function_exists( 'twentytwentytwo_styles' ) ) :
 
 	/**
-	 * Enqueue styles.
+	 * Enqueues styles.
 	 *
 	 * @since Twenty Twenty-Two 1.0
 	 *
@@ -46,20 +45,26 @@ if ( ! function_exists( 'twentytwentytwo_styles' ) ) :
 		$theme_version = wp_get_theme()->get( 'Version' );
 
 		$version_string = is_string( $theme_version ) ? $theme_version : false;
-		wp_register_style(
+
+		$suffix = SCRIPT_DEBUG ? '' : '.min';
+		$src    = 'style' . $suffix . '.css';
+
+		wp_enqueue_style(
 			'twentytwentytwo-style',
-			get_template_directory_uri() . '/style.css',
+			get_parent_theme_file_uri( $src ),
 			array(),
 			$version_string
 		);
-
-		// Enqueue theme stylesheet.
-		wp_enqueue_style( 'twentytwentytwo-style' );
+		wp_style_add_data(
+			'twentytwentytwo-style',
+			'path',
+			get_parent_theme_file_path( $src )
+		);
 	}
 
 endif;
 
 add_action( 'wp_enqueue_scripts', 'twentytwentytwo_styles' );
 
-// Add block patterns
+// Add block patterns.
 require get_template_directory() . '/inc/block-patterns.php';

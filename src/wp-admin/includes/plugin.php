@@ -1253,7 +1253,20 @@ function validate_plugin_requirements( $plugin ) {
 		);
 	}
 
-	return true;
+	/**
+	 * Filters the plugin requirement validation response.
+	 *
+	 * If a plugin fails due to a Core-provided validation (incompatible WP, PHP versions), this
+	 * filter will not fire. A WP_Error response will already be returned.
+	 *
+	 * This filter is intended to add additional validation steps by site administrators.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param bool|WP_Error $met_requirements True if the plugin meets requirements, WP_Error if not.
+	 * @param string $plugin Path to the plugin file relative to the plugins directory.
+	 */
+	return apply_filters( 'validate_plugin_requirements', true, $plugin );
 }
 
 /**
@@ -1414,7 +1427,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
 	if ( null === $position || ! is_numeric( $position ) ) {
 		$menu[] = $new_menu;
 	} elseif ( isset( $menu[ (string) $position ] ) ) {
-		$collision_avoider = base_convert( substr( md5( $menu_slug . $menu_title ), -4 ), 16, 10 ) * 0.00001;
+		$collision_avoider = (int) base_convert( substr( md5( $menu_slug . $menu_title ), -4 ), 16, 10 ) * 0.00001;
 		$position          = (string) ( $position + $collision_avoider );
 		$menu[ $position ] = $new_menu;
 	} else {
@@ -2030,7 +2043,7 @@ function get_admin_page_parent( $parent_page = '' ) {
  *
  * @since 1.5.0
  *
- * @global string $title
+ * @global string $title       The title of the current screen.
  * @global array  $menu
  * @global array  $submenu
  * @global string $pagenow     The filename of the current screen.
@@ -2263,7 +2276,7 @@ function user_can_access_admin_page() {
  * @global array $new_allowed_options
  *
  * @param array $options
- * @return array
+ * @return array Updated allowed options.
  */
 function option_update_filter( $options ) {
 	global $new_allowed_options;
@@ -2284,7 +2297,7 @@ function option_update_filter( $options ) {
  *
  * @param array        $new_options
  * @param string|array $options
- * @return array
+ * @return array Updated allowed options.
  */
 function add_allowed_options( $new_options, $options = '' ) {
 	if ( '' === $options ) {
@@ -2319,7 +2332,7 @@ function add_allowed_options( $new_options, $options = '' ) {
  *
  * @param array        $del_options
  * @param string|array $options
- * @return array
+ * @return array Updated allowed options.
  */
 function remove_allowed_options( $del_options, $options = '' ) {
 	if ( '' === $options ) {
@@ -2610,7 +2623,7 @@ function deactivated_plugins_notice() {
 
 	if ( false === $blog_deactivated_plugins ) {
 		// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
-		update_option( 'wp_force_deactivated_plugins', array() );
+		update_option( 'wp_force_deactivated_plugins', array(), false );
 	}
 
 	if ( is_multisite() ) {
@@ -2664,7 +2677,7 @@ function deactivated_plugins_notice() {
 	}
 
 	// Empty the options.
-	update_option( 'wp_force_deactivated_plugins', array() );
+	update_option( 'wp_force_deactivated_plugins', array(), false );
 	if ( is_multisite() ) {
 		update_site_option( 'wp_force_deactivated_plugins', array() );
 	}

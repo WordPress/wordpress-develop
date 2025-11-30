@@ -60,6 +60,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 5.9.0 Added the Twenty Twenty-Two theme.
 	 * @since 6.1.0 Added the Twenty Twenty-Three theme.
 	 * @since 6.4.0 Added the Twenty Twenty-Four theme.
+	 * @since 6.7.0 Added the Twenty Twenty-Five theme.
 	 * @var string[]
 	 */
 	private static $default_themes = array(
@@ -79,6 +80,7 @@ final class WP_Theme implements ArrayAccess {
 		'twentytwentytwo'   => 'Twenty Twenty-Two',
 		'twentytwentythree' => 'Twenty Twenty-Three',
 		'twentytwentyfour'  => 'Twenty Twenty-Four',
+		'twentytwentyfive'  => 'Twenty Twenty-Five',
 	);
 
 	/**
@@ -112,7 +114,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Header data from the theme's style.css file after being sanitized.
 	 *
 	 * @since 3.4.0
-	 * @var array
+	 * @var ?array
 	 */
 	private $headers_sanitized;
 
@@ -120,7 +122,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Is this theme a block theme.
 	 *
 	 * @since 6.2.0
-	 * @var bool
+	 * @var ?bool
 	 */
 	private $block_theme;
 
@@ -130,7 +132,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Cached due to sorting functions running over the translated name.
 	 *
 	 * @since 3.4.0
-	 * @var string
+	 * @var ?string
 	 */
 	private $name_translated;
 
@@ -138,7 +140,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Errors encountered when initializing the theme.
 	 *
 	 * @since 3.4.0
-	 * @var WP_Error
+	 * @var ?WP_Error
 	 */
 	private $errors;
 
@@ -160,7 +162,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Otherwise, 'template' is the same as 'stylesheet'.
 	 *
 	 * @since 3.4.0
-	 * @var string
+	 * @var ?string
 	 */
 	private $template;
 
@@ -168,7 +170,7 @@ final class WP_Theme implements ArrayAccess {
 	 * A reference to the parent theme, in the case of a child theme.
 	 *
 	 * @since 3.4.0
-	 * @var WP_Theme
+	 * @var ?WP_Theme
 	 */
 	private $parent;
 
@@ -176,7 +178,7 @@ final class WP_Theme implements ArrayAccess {
 	 * URL to the theme root, usually an absolute URL to wp-content/themes
 	 *
 	 * @since 3.4.0
-	 * @var string
+	 * @var ?string
 	 */
 	private $theme_root_uri;
 
@@ -184,7 +186,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Flag for whether the theme's textdomain is loaded.
 	 *
 	 * @since 3.4.0
-	 * @var bool
+	 * @var ?bool
 	 */
 	private $textdomain_loaded;
 
@@ -200,7 +202,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Block template folders.
 	 *
 	 * @since 6.4.0
-	 * @var string[]
+	 * @var ?string[]
 	 */
 	private $block_template_folders;
 
@@ -240,7 +242,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @global array $wp_theme_directories
+	 * @global string[] $wp_theme_directories
 	 *
 	 * @param string        $theme_dir  Directory of the theme within the theme_root.
 	 * @param string        $theme_root Theme root.
@@ -1757,11 +1759,11 @@ final class WP_Theme implements ArrayAccess {
 			// Set the option so we never have to go through this pain again.
 			if ( is_admin() && $allowed_themes[ $blog_id ] ) {
 				if ( $current ) {
-					update_option( 'allowedthemes', $allowed_themes[ $blog_id ] );
+					update_option( 'allowedthemes', $allowed_themes[ $blog_id ], false );
 					delete_option( 'allowed_themes' );
 				} else {
 					switch_to_blog( $blog_id );
-					update_option( 'allowedthemes', $allowed_themes[ $blog_id ] );
+					update_option( 'allowedthemes', $allowed_themes[ $blog_id ], false );
 					delete_option( 'allowed_themes' );
 					restore_current_blog();
 				}
@@ -1846,7 +1848,7 @@ final class WP_Theme implements ArrayAccess {
 			$this->delete_pattern_cache();
 		}
 
-		$dirpath      = $this->get_stylesheet_directory() . '/patterns/';
+		$dirpath      = $this->get_stylesheet_directory() . '/patterns';
 		$pattern_data = array();
 
 		if ( ! file_exists( $dirpath ) ) {
@@ -1855,7 +1857,21 @@ final class WP_Theme implements ArrayAccess {
 			}
 			return $pattern_data;
 		}
-		$files = glob( $dirpath . '*.php' );
+
+		$files = (array) self::scandir( $dirpath, 'php', -1 );
+
+		/**
+		 * Filters list of block pattern files for a theme.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param array  $files   Array of theme files found within `patterns` directory.
+		 * @param string $dirpath Path of theme `patterns` directory being scanned.
+		 */
+		$files = apply_filters( 'theme_block_pattern_files', $files, $dirpath );
+
+		$dirpath = trailingslashit( $dirpath );
+
 		if ( ! $files ) {
 			if ( $can_use_cached ) {
 				$this->set_pattern_cache( $pattern_data );

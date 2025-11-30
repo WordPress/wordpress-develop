@@ -494,6 +494,9 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
 	 */
 	public function display_rows() {
 		foreach ( $this->items as $theme ) {
@@ -701,8 +704,14 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		global $status, $totals;
 
 		if ( $theme->errors() ) {
-			$pre = 'broken' === $status ? __( 'Broken Theme:' ) . ' ' : '';
-			echo '<p><strong class="error-message">' . $pre . $theme->errors()->get_error_message() . '</strong></p>';
+			$pre = 'broken' === $status ? '<strong class="error-message">' . __( 'Broken Theme:' ) . '</strong> ' : '';
+			wp_admin_notice(
+				$pre . $theme->errors()->get_error_message(),
+				array(
+					'type'               => 'error',
+					'additional_classes' => 'inline',
+				)
+			);
 		}
 
 		if ( $this->is_site_themes ) {

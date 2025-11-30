@@ -1145,6 +1145,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
 
+		$this->assertNotEmpty( $extensions );
+
 		foreach ( $extensions as $type => $extension_list ) {
 			foreach ( $extension_list as $extension ) {
 				$this->assertSame( $type, wp_ext2type( $extension ) );
@@ -1282,7 +1284,11 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
 		}
 
-		$this->assertSame( $expected, wp_get_image_mime( $file ) );
+		if ( is_array( $expected ) ) {
+			$this->assertContains( wp_get_image_mime( $file ), $expected );
+		} else {
+			$this->assertSame( $expected, wp_get_image_mime( $file ) );
+		}
 	}
 
 	/**
@@ -1355,6 +1361,12 @@ class Tests_Functions extends WP_UnitTestCase {
 				DIR_TESTDATA . '/images/avif-transparent.avif',
 				'image/avif',
 			),
+			// HEIC.
+			array(
+				DIR_TESTDATA . '/images/test-image.heic',
+				// In PHP 8.5, it returns 'image/heif'. Before that, it returns 'image/heic'.
+				array( 'image/heic', 'image/heif' ),
+			),
 		);
 
 		return $data;
@@ -1384,7 +1396,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data profider for test_wp_getimagesize().
+	 * Data provider for test_wp_getimagesize().
 	 */
 	public function data_wp_getimagesize() {
 		$data = array(
@@ -1540,6 +1552,35 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		return $data;
 	}
+
+	/**
+	 * Tests that wp_getimagesize() correctly handles HEIC image files.
+	 *
+	 * @ticket 53645
+	 */
+	public function test_wp_getimagesize_heic() {
+		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
+			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/test-image.heic';
+
+		$editor = wp_get_image_editor( $file );
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/heic' ) ) {
+			$this->markTestSkipped( 'No HEIC support in the editor engine on this system.' );
+		}
+
+		$expected = array(
+			1180,
+			1180,
+			IMAGETYPE_HEIC,
+			'width="1180" height="1180"',
+			'mime' => 'image/heic',
+		);
+		$result   = wp_getimagesize( $file );
+		$this->assertSame( $expected, $result );
+	}
+
 
 	/**
 	 * @ticket 39550
@@ -1793,6 +1834,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * Test file path validation
 	 *
 	 * @ticket 42016
+	 * @ticket 61488
 	 * @dataProvider data_validate_file
 	 *
 	 * @param string $file          File path.
@@ -1911,6 +1953,13 @@ class Tests_Functions extends WP_UnitTestCase {
 				'C:/WINDOWS/system32',
 				array( 'C:/WINDOWS/system32' ),
 				2,
+			),
+
+			// Windows Path with allowed file
+			array(
+				'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css',
+				array( 'Apache24\htdocs\wordpress/wp-content/themes/twentyten/style.css' ),
+				0,
 			),
 
 			// Disallowed files:

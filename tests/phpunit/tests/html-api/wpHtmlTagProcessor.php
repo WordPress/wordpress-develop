@@ -73,6 +73,23 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63854
+	 *
+	 * @covers WP_HTML_Tag_Processor::__construct
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::__construct
+	 */
+	public function test_constructor_validates_html_parameter() {
+		// Test that passing null triggers _doing_it_wrong and sets HTML to empty string.
+		$processor = new WP_HTML_Tag_Processor( null );
+
+		// Verify that the HTML was set to an empty string.
+		$this->assertSame( '', $processor->get_updated_html(), 'HTML should be set to empty string when null is passed' );
+
+		// Verify that next_token() works without errors (indicating the processor is in a valid state).
+		$this->assertFalse( $processor->next_token(), 'next_token() should work without errors when HTML is empty string' );
+	}
+
+	/**
 	 * Data provider. HTML tags which might have a self-closing flag, and an indicator if they do.
 	 *
 	 * @return array[]
@@ -292,6 +309,68 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->set_attribute( 'data-enabled', 'abc' );
 
 		$this->assertSame( '<div data-enabled="abc">Test</div>', $processor->get_updated_html(), 'A case-insensitive set_attribute call did not update the existing attribute' );
+	}
+
+	/**
+	 * Ensures that set_attribute doesn’t allow setting an
+	 * attribute with an invalid name and thus break syntax.
+	 *
+	 * @ticket 63863
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_attribute
+	 *
+	 * @dataProvider data_invalid_attribute_names
+	 *
+	 * @param string $invalid_name Invalid attribute name.
+	 */
+	public function test_set_attribute_rejects_invalid_names( $invalid_name ) {
+		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$processor->next_tag();
+
+		$this->assertFalse(
+			$processor->set_attribute( $invalid_name, true ),
+			'Should have rejected invalid attribute name.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_invalid_attribute_names() {
+		$invalid_names = array(
+			'Empty' => array( '' ),
+		);
+
+		// Syntax-like characters.
+		foreach ( str_split( '"\'>&</ =' ) as $c ) {
+			$invalid_names[ $c ] = array( "too{$c}late" );
+		}
+
+		// C0 controls.
+		for ( $i = 0; $i <= 0x1F; $i++ ) {
+			$c                                    = chr( $i );
+			$invalid_names[ "C0 Controls: {$i}" ] = array( "shut{$c}down" );
+		}
+
+		// Noncharacters.
+		for ( $i = 0xFDD0; $i <= 0xFDEF; $i++ ) {
+			$h                                       = dechex( $i );
+			$c                                       = mb_chr( $i );
+			$invalid_names[ "Noncharacter: U+{$h}" ] = array( "shut{$c}down" );
+		}
+
+		for ( $b = 0; $b <= 16; $b++ ) {
+			for ( $x = 0xFFFE; $x <= 0xFFFF; $x++ ) {
+				$i                                       = ( $b << 16 ) + $x;
+				$h                                       = dechex( $i );
+				$c                                       = mb_chr( $i );
+				$invalid_names[ "Noncharacter: U+{$h}" ] = array( "shut{$c}down" );
+			}
+		}
+
+		return $invalid_names;
 	}
 
 	/**
@@ -602,6 +681,31 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 61545
+	 */
+	public function test_next_tag_should_not_match_on_substrings_of_a_requested_tag() {
+		$processor = new WP_HTML_Tag_Processor( '<p><pic><picture>' );
+
+		$this->assertTrue(
+			$processor->next_tag( 'PICTURE' ),
+			'Failed to find a tag when requested: check test setup.'
+		);
+
+		$this->assertSame(
+			'PICTURE',
+			$processor->get_tag(),
+			'Should have skipped past substring tag matches, directly finding the PICTURE element.'
+		);
+
+		$processor = new WP_HTML_Tag_Processor( '<p><pic>' );
+
+		$this->assertFalse(
+			$processor->next_tag( 'PICTURE' ),
+			"Should not have found any PICTURE element, but found '{$processor->get_token_name()}' instead."
+		);
+	}
+
+	/**
 	 * @ticket 59209
 	 *
 	 * @covers WP_HTML_Tag_Processor::next_tag
@@ -799,7 +903,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 *
 	 * @param string $attribute_value A value with potential XSS exploit.
 	 */
-	public function test_set_attribute_prevents_xss( $attribute_value ) {
+	public function test_set_attribute_prevents_xss( $attribute_value, $escaped_attribute_value = null ) {
 		$processor = new WP_HTML_Tag_Processor( '<div></div>' );
 		$processor->next_tag();
 		$processor->set_attribute( 'test', $attribute_value );
@@ -819,7 +923,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		preg_match( '~^<div test=(.*)></div>$~', $processor->get_updated_html(), $match );
 		list( , $actual_value ) = $match;
 
-		$this->assertSame( '"' . esc_attr( $attribute_value ) . '"', $actual_value, 'Entities were not properly escaped in the attribute value' );
+		$this->assertSame( '"' . $escaped_attribute_value . '"', $actual_value, 'Entities were not properly escaped in the attribute value' );
 	}
 
 	/**
@@ -829,15 +933,18 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_set_attribute_prevents_xss() {
 		return array(
-			array( '"' ),
-			array( '&quot;' ),
-			array( '&' ),
-			array( '&amp;' ),
-			array( '&euro;' ),
-			array( "'" ),
-			array( '<>' ),
-			array( '&quot";' ),
-			array( '" onclick="alert(\'1\');"><span onclick=""></span><script>alert("1")</script>' ),
+			array( '"', '&quot;' ),
+			array( '&quot;', '&amp;quot;' ),
+			array( '&', '&amp;' ),
+			array( '&amp;', '&amp;amp;' ),
+			array( '&euro;', '&amp;euro;' ),
+			array( "'", '&apos;' ),
+			array( '<>', '&lt;&gt;' ),
+			array( '&quot";', '&amp;quot&quot;;' ),
+			array(
+				'" onclick="alert(\'1\');"><span onclick=""></span><script>alert("1")</script>',
+				'&quot; onclick=&quot;alert(&apos;1&apos;);&quot;&gt;&lt;span onclick=&quot;&quot;&gt;&lt;/span&gt;&lt;script&gt;alert(&quot;1&quot;)&lt;/script&gt;',
+			),
 		);
 	}
 
@@ -861,6 +968,21 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 			$processor->get_attribute( 'test-attribute' ),
 			'get_attribute() (called after get_updated_html()) did not return attribute added via set_attribute()'
 		);
+	}
+
+	/**
+	 * Ensure that attribute values that appear to contain HTML character references are correctly
+	 * encoded and preserve the original value.
+	 *
+	 * @ticket 64054
+	 */
+	public function test_set_attribute_encodes_html_character_references() {
+		$original  = 'HTML character references: &lt; &gt; &amp;';
+		$processor = new WP_HTML_Tag_Processor( '<span>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'data-attr', $original );
+		$this->assertSame( $original, $processor->get_attribute( 'data-attr' ) );
+		$this->assertEqualHTML( '<span data-attr="HTML character references: &amp;lt; &amp;gt; &amp;amp;">', $processor->get_updated_html() );
 	}
 
 	/**
@@ -1376,12 +1498,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->remove_class( 'main' );
 
 		$this->assertSame(
-			'<div class=" with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="with-border" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect class name removed from existing class attribute via remove_class()'
 		);
 		$this->assertSame(
-			' with-border',
+			'with-border',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect class name removed from existing class attribute via remove_class()"
 		);
@@ -1466,12 +1588,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->add_class( 'foo-class' );
 
 		$this->assertSame(
-			'<div class="   main   with-border foo-class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="main   with-border foo-class" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect existing excessive whitespace after adding class name via add_class()'
 		);
 		$this->assertSame(
-			'   main   with-border foo-class',
+			'main   with-border foo-class',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect existing excessive whitespace after adding class name via add_class()"
 		);
@@ -1490,12 +1612,12 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->remove_class( 'with-border' );
 
 		$this->assertSame(
-			'<div class="   main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
+			'<div class="main" id="first"><span class="not-main bold with-border" id="second">Text</span></div>',
 			$processor->get_updated_html(),
 			'Updated HTML does not reflect existing excessive whitespace after removing class name via remove_class()'
 		);
 		$this->assertSame(
-			'   main',
+			'main',
 			$processor->get_attribute( 'class' ),
 			"get_attribute( 'class' ) does not reflect existing excessive whitespace after removing class name via removing_class()"
 		);
@@ -1696,8 +1818,8 @@ HTML;
 		$expected_output = <<<HTML
 <div data-details="{ &quot;key&quot;: &quot;value&quot; }" selected class="merge-message is-processed" checked>
 	<div class="select-menu d-inline-block">
-		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case" />
-		<div checked class=" MixedCaseHTML position-relative button-group Another-Mixed-Case">
+		<div checked class="MixedCaseHTML position-relative button-group Another-Mixed-Case" />
+		<div checked class="MixedCaseHTML position-relative button-group Another-Mixed-Case">
 			<button type="button" class="merge-box-button btn-group-merge rounded-left-2 btn  BtnGroup-item js-details-target hx_create-pr-button" aria-expanded="false" data-details-container=".js-merge-pr" disabled="">
 			  Merge pull request
 			</button>
@@ -1957,6 +2079,81 @@ HTML;
 	}
 
 	/**
+	 * Test that script tags are parsed correctly.
+	 *
+	 * Script tag parsing is very complicated, see the following resources for more details:
+	 *
+	 * - https://html.spec.whatwg.org/multipage/parsing.html#script-data-state
+	 * - https://html.spec.whatwg.org/multipage/scripting.html#restrictions-for-contents-of-script-elements
+	 *
+	 * @ticket 63738
+	 *
+	 * @dataProvider data_script_tag
+	 */
+	public function test_script_tag_parsing( string $input, bool $closes ) {
+		$processor = new WP_HTML_Tag_Processor( $input );
+
+		if ( $closes ) {
+			$this->assertTrue( $processor->next_token(), 'Expected to find complete script tag.' );
+			$this->assertSame( 'SCRIPT', $processor->get_tag() );
+			return;
+		}
+
+		$this->assertFalse( $processor->next_token(), 'Expected to fail next_token().' );
+		$this->assertTrue( $processor->paused_at_incomplete_token(), 'Expected an incomplete SCRIPT tag token.' );
+	}
+
+	/**
+	 * Data provider.
+	 */
+	public static function data_script_tag(): Generator {
+			yield 'Basic script tag'                              => array( '<script></script>', true );
+			yield 'Script tag with </script> close'               => array( '<script></script>', true );
+			yield 'Script tag with </script/> close'              => array( '<script></script/>', true );
+			yield 'Script tag with </script > close'              => array( '<script></script >', true );
+			yield 'Script tag with </script\n> close'             => array( "<script></script\n>", true );
+			yield 'Script tag with </script\t> close'             => array( "<script></script\t>", true );
+			yield 'Script tag with </script\f> close'             => array( "<script></script\f>", true );
+			yield 'Script tag with </script\r> close'             => array( "<script></script\r>", true );
+			yield 'Script with type attribute'                    => array( '<script type="text/javascript"></script>', true );
+			yield 'Script data escaped'                           => array( '<script><!--</script>', true );
+			yield 'Script data double-escaped exit (comment)'     => array( '<script><!--<script>--></script>', true );
+			yield 'Script data double-escaped exit (closed ">")'  => array( '<script><!--<script></script></script>', true );
+			yield 'Script data double-escaped exit (closed "/")'  => array( '<script><!--<script></script/</script>', true );
+			yield 'Script data double-escaped exit (closed " ")'  => array( '<script><!--<script></script </script>', true );
+			yield 'Script data double-escaped exit (closed "\n")' => array( "<script><!--<script></script\n</script>", true );
+			yield 'Script data double-escaped exit (closed "\t")' => array( "<script><!--<script></script\t</script>", true );
+			yield 'Script data double-escaped exit (closed "\f")' => array( "<script><!--<script></script\f</script>", true );
+			yield 'Script data double-escaped exit (closed "\r")' => array( "<script><!--<script></script\r</script>", true );
+			yield 'Script data no double-escape'                  => array( '<script><!-- --><script></script>', true );
+			yield 'Script data no double-escape (short comment)'  => array( '<script><!--><script></script>', true );
+			yield 'Script data almost double-escaped'             => array( '<script><!--<script</script>', true );
+			yield 'Script data with complex JavaScript'           => array(
+				'<script>
+					var x = 10;
+					x--;
+					x < 0 ? x += 100 : x = (x + 1) - 1;
+				</script>',
+				true,
+			);
+
+			yield 'Script tag with self-close flag (ignored)'     => array( '<script />', false );
+			yield 'Script data double-escaped'                    => array( '<script><!--<script></script>', false );
+			yield 'Unclosed script in escaped state'              => array( '<script><!--------------', false );
+			yield 'Unclosed script in double escaped state'       => array( '<script><!--<script ', false );
+			yield 'Document end in closer start'                  => array( '<script></', false );
+			yield 'Document end in script closer'                 => array( '<script></script', false );
+			yield 'Document end in script closer with attributes' => array( '<script></script attr="val"', false );
+			yield 'Script tag double-escaped with <script>'       => array( '<script><!--<script></script>', false );
+			yield 'Script tag double-escaped with <script/'       => array( '<script><!--<script/</script>', false );
+			yield 'Script tag double-escaped with <script '       => array( '<script><!--<script </script>', false );
+			yield 'Script tag double-escaped with <script\n'      => array( "<script><!--<script\n</script>", false );
+			yield 'Script tag double-escaped with <script\t'      => array( "<script><!--<script\t</script>", false );
+			yield 'Script tag double-escaped with <script\f'      => array( "<script><!--<script\f</script>", false );
+			yield 'Script tag double-escaped with <script\r'      => array( "<script><!--<script\r</script>", false );
+	}
+
+	/**
 	 * Invalid tag names are comments on tag closers.
 	 *
 	 * @ticket 58007
@@ -2209,6 +2406,35 @@ HTML;
 		}
 
 		$this->assertSame( array( 'one' ), $found_classes, 'Visited multiple copies of the same class name when it should have skipped the duplicates.' );
+	}
+
+	/**
+	 * Ensures that null bytes are replaced with the replacement character (U+FFFD) in class_list.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 */
+	public function test_class_list_null_bytes_replaced() {
+		$processor = new WP_HTML_Tag_Processor( "<div class='a \0 b\0 \0c\0'>" );
+		$processor->next_tag();
+
+		$found_classes = iterator_to_array( $processor->class_list() );
+
+		$this->assertSame( array( 'a', "\u{FFFD}", "b\u{FFFD}", "\u{FFFD}c\u{FFFD}" ), $found_classes );
+	}
+
+	/**
+	 * Ensures that the tag processor matches class names with null bytes correctly.
+	 *
+	 * @ticket 61531
+	 *
+	 * @covers WP_HTML_Tag_Processor::has_class
+	 */
+	public function test_has_class_null_byte_class_name() {
+		$processor = new WP_HTML_Tag_Processor( "<div class='null-byte-\0-there'>" );
+		$processor->next_tag();
+		$this->assertTrue( $processor->has_class( 'null-byte-�-there' ) );
 	}
 
 	/**
@@ -2640,9 +2866,10 @@ HTML;
 		$processor->next_tag();
 		$processor->add_class( 'secondTag' );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$expected,
 			$processor->get_updated_html(),
+			'<body>',
 			'Did not properly update attributes and classnames given malformed input'
 		);
 	}
@@ -2660,11 +2887,11 @@ HTML;
 			),
 			'HTML tag opening inside attribute value'      => array(
 				'input'    => '<pre id="<code" class="wp-block-code <code is poetry&gt;"><code>This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
-				'expected' => '<pre foo="bar" id="<code" class="wp-block-code &lt;code is poetry&gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
+				'expected' => '<pre foo="bar" id="<code" class="wp-block-code &lt;code is poetry&amp;gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
 			),
 			'HTML tag brackets in attribute values and data markup' => array(
 				'input'    => '<pre id="<code-&gt;-block-&gt;" class="wp-block-code <code is poetry&gt;"><code>This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
-				'expected' => '<pre foo="bar" id="<code-&gt;-block-&gt;" class="wp-block-code &lt;code is poetry&gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
+				'expected' => '<pre foo="bar" id="<code-&gt;-block-&gt;" class="wp-block-code &lt;code is poetry&amp;gt; firstTag"><code class="secondTag">This &lt;is> a &lt;strong is="true">thing.</code></pre><span>test</span>',
 			),
 			'Single and double quotes in attribute value'  => array(
 				'input'    => '<p title="Demonstrating how to use single quote (\') and double quote (&quot;)"><span>test</span>',
@@ -2874,5 +3101,122 @@ HTML
 			$subclass->get_updated_html(),
 			'Should have properly applied the update from in front of the cursor.'
 		);
+	}
+
+	/**
+	 * Test an infinite loop bugfix in incomplete script tag parsing.
+	 *
+	 * @small
+	 *
+	 * @ticket 61810
+	 */
+	public function test_script_tag_processing_no_infinite_loop_final_dash() {
+		$processor = new WP_HTML_Tag_Processor( '<script>-' );
+
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test an infinite loop bugfix in incomplete script tag parsing.
+	 *
+	 * @small
+	 *
+	 * @ticket 61810
+	 */
+	public function test_script_tag_processing_no_infinite_loop_final_left_angle_bracket() {
+		$processor = new WP_HTML_Tag_Processor( '<script><' );
+
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test a bugfix where the input ends abruptly with a funky comment started.
+	 *
+	 * @ticket 61831
+	 */
+	public function test_unclosed_funky_comment_input_too_short() {
+		$processor = new WP_HTML_Tag_Processor( '</#' );
+		$this->assertFalse( $processor->next_tag() );
+		$this->assertTrue( $processor->paused_at_incomplete_token() );
+	}
+
+	/**
+	 * Test basic DOCTYPE handling.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_doctype_doc_name() {
+		$processor = new WP_HTML_Tag_Processor( '<!DOCTYPE html>' );
+		$this->assertTrue( $processor->next_token() );
+		$doctype = $processor->get_doctype_info();
+		$this->assertNotNull( $doctype );
+		$this->assertSame( 'html', $doctype->name );
+		$this->assertSame( 'no-quirks', $doctype->indicated_compatibility_mode );
+		$this->assertNull( $doctype->public_identifier );
+		$this->assertNull( $doctype->system_identifier );
+	}
+
+	/**
+	 * @ticket 62522
+	 *
+	 * @dataProvider data_alphabet_by_characters_lowercase
+	 */
+	public function test_recognizes_lowercase_tag_name( string $char ) {
+		/*
+		 * The spacing in the HTML string is important to the problematic
+		 * codepath in ticket #62522.
+		 */
+		$html      = " <{$char}> </{$char}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), "Failed to find open tag in '{$html}'." );
+		$this->assertTrue(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			"Failed to find close tag in '{$html}'."
+		);
+	}
+
+	/**
+	 * @ticket 62522
+	 *
+	 * @dataProvider data_alphabet_by_characters_uppercase
+	 */
+	public function test_recognizes_uppercase_tag_name( string $char ) {
+		/*
+		 * The spacing in the HTML string is important to the problematic
+		 * codepath in ticket #62522.
+		 */
+		$html      = " <{$char}> </{$char}>";
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), "Failed to find open tag in '{$html}'." );
+		$this->assertTrue(
+			$processor->next_tag( array( 'tag_closers' => 'visit' ) ),
+			"Failed to find close tag in '{$html}'."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator<array>
+	 */
+	public static function data_alphabet_by_characters_lowercase() {
+		$char = 'a';
+		while ( $char <= 'z' ) {
+			yield $char => array( $char );
+			$char = chr( ord( $char ) + 1 );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return Generator<array>
+	 */
+	public static function data_alphabet_by_characters_uppercase() {
+		foreach ( self::data_alphabet_by_characters_lowercase() as $data ) {
+			yield strtoupper( $data[0] ) => array( strtoupper( $data[0] ) );
+		}
 	}
 }

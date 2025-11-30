@@ -635,7 +635,7 @@ function wp_edit_theme_plugin_file( $args ) {
 			wp_opcache_invalidate( $real_file, true );
 
 			if ( ! isset( $result['message'] ) ) {
-				$message = __( 'Something went wrong.' );
+				$message = __( 'An error occurred. Please try again later.' );
 			} else {
 				$message = $result['message'];
 				unset( $result['message'] );
@@ -1241,6 +1241,24 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		}
 	}
 
+	$mime_type = wp_remote_retrieve_header( $response, 'content-type' );
+	if ( $mime_type && 'tmp' === pathinfo( $tmpfname, PATHINFO_EXTENSION ) ) {
+		$valid_mime_types = array_flip( get_allowed_mime_types() );
+		if ( ! empty( $valid_mime_types[ $mime_type ] ) ) {
+			$extensions     = explode( '|', $valid_mime_types[ $mime_type ] );
+			$new_image_name = substr( $tmpfname, 0, -4 ) . ".{$extensions[0]}";
+			if ( 0 === validate_file( $new_image_name ) ) {
+				if ( rename( $tmpfname, $new_image_name ) ) {
+					$tmpfname = $new_image_name;
+				}
+
+				if ( ( $tmpfname !== $new_image_name ) && file_exists( $new_image_name ) ) {
+					unlink( $new_image_name );
+				}
+			}
+		}
+	}
+
 	$content_md5 = wp_remote_retrieve_header( $response, 'Content-MD5' );
 
 	if ( $content_md5 ) {
@@ -1399,30 +1417,6 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
 			),
 			( ! function_exists( 'sodium_crypto_sign_verify_detached' ) ? 'sodium_crypto_sign_verify_detached' : 'sha384' )
-		);
-	}
-
-	// Check for an edge-case affecting PHP Maths abilities.
-	if (
-		! extension_loaded( 'sodium' ) &&
-		in_array( PHP_VERSION_ID, array( 70200, 70201, 70202 ), true ) &&
-		extension_loaded( 'opcache' )
-	) {
-		/*
-		 * Sodium_Compat isn't compatible with PHP 7.2.0~7.2.2 due to a bug in the PHP Opcache extension, bail early as it'll fail.
-		 * https://bugs.php.net/bug.php?id=75938
-		 */
-		return new WP_Error(
-			'signature_verification_unsupported',
-			sprintf(
-				/* translators: %s: The filename of the package. */
-				__( 'The authenticity of %s could not be verified as signature verification is unavailable on this system.' ),
-				'<span class="code">' . esc_html( $filename_for_errors ) . '</span>'
-			),
-			array(
-				'php'    => PHP_VERSION,
-				'sodium' => defined( 'SODIUM_LIBRARY_VERSION' ) ? SODIUM_LIBRARY_VERSION : ( defined( 'ParagonIE_Sodium_Compat::VERSION_STRING' ) ? ParagonIE_Sodium_Compat::VERSION_STRING : false ),
-			)
 		);
 	}
 
@@ -2496,7 +2490,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 		);
 
 		if ( ! wp_installing() ) {
-			update_option( 'ftp_credentials', $stored_credentials );
+			update_option( 'ftp_credentials', $stored_credentials, false );
 		}
 
 		return $credentials;
@@ -2628,7 +2622,7 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	<?php
 	if ( isset( $types['ssh'] ) ) {
 		$hidden_class = '';
-		if ( 'ssh' !== $connection_type || empty( $connection_type ) ) {
+		if ( 'ssh' !== $connection_type ) {
 			$hidden_class = ' class="hidden"';
 		}
 		?>
@@ -2795,7 +2789,7 @@ function wp_opcache_invalidate_directory( $dir ) {
 				__( '%s expects a non-empty string.' ),
 				'<code>wp_opcache_invalidate_directory()</code>'
 			);
-			trigger_error( $error_message );
+			wp_trigger_error( '', $error_message );
 		}
 		return;
 	}

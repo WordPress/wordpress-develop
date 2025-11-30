@@ -10,6 +10,10 @@ Full details of the WordPress Security Policy and the list of covered projects a
 
 | Version | Supported |
 |---------| --------- |
+| 6.9.x   | Yes       |
+| 6.8.x   | Yes       |
+| 6.7.x   | Yes       |
+| 6.6.x   | Yes       |
 | 6.5.x   | Yes       |
 | 6.4.x   | Yes       |
 | 6.3.x   | Yes       |
@@ -29,13 +33,7 @@ Full details of the WordPress Security Policy and the list of covered projects a
 | 4.9.x   | Yes       |
 | 4.8.x   | Yes       |
 | 4.7.x   | Yes       |
-| 4.6.x   | Yes       |
-| 4.5.x   | Yes       |
-| 4.4.x   | Yes       |
-| 4.3.x   | Yes       |
-| 4.2.x   | Yes       |
-| 4.1.x   | Yes       |
-| < 4.1.0 | No        |
+| < 4.7.0 | No        |
 
 ## Reporting a Vulnerability
 

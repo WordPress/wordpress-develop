@@ -19,12 +19,21 @@ if ( isset( $_GET['privacy-notice'] ) ) {
 $title = __( 'Freedoms' );
 
 list( $display_version ) = explode( '-', get_bloginfo( 'version' ) );
+$header_alt_text         = sprintf(
+	/* translators: %s: Version number. */
+	__( 'WordPress %s' ),
+	$display_version
+);
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 <div class="wrap about__container">
 
 	<div class="about__header">
+		<div class="about__header-image">
+			<img src="images/about-release-logo.svg?ver=6.9" alt="<?php echo esc_attr( $header_alt_text ); ?>" />
+		</div>
+
 		<div class="about__header-title">
 			<h1>
 				<?php _e( 'The Four Freedoms' ); ?>
@@ -85,7 +94,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<?php
 			printf(
 				/* translators: %s: https://wordpressfoundation.org/trademark-policy/ */
-				__( 'WordPress grows when people like you tell their friends about it, and the thousands of businesses and services that are built on and around WordPress share that fact with their users. We are flattered every time someone spreads the good word, just make sure to <a href="%s">check out our trademark guidelines</a> first.' ),
+				__( 'WordPress grows when people like you tell their friends about it, and the thousands of businesses and services that are built on and around WordPress share that fact with their users. The WordPress community is flattered every time someone spreads the good word, just make sure to <a href="%s">check out the WordPress Foundation trademark guidelines</a> first.' ),
 				'https://wordpressfoundation.org/trademark-policy/'
 			);
 			?>

@@ -52,12 +52,16 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 
 		// Set the request type as 'export_personal_data'.
 		$reflection_property = $reflection->getProperty( 'request_type' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 		$reflection_property->setValue( $instance, 'export_personal_data' );
 
 		// Set the post type as 'user_request'.
 		$reflection_property = $reflection->getProperty( 'post_type' );
-		$reflection_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_property->setAccessible( true );
+		}
 		$reflection_property->setValue( $instance, 'user_request' );
 
 		return $instance;
@@ -204,5 +208,44 @@ class Tests_Admin_wpPrivacyRequestsTable extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $this->get_mocked_class_instance()->get_views() );
+	}
+
+	/**
+	 * Test the get_timestamp_as_date method formats timestamps correctly.
+	 *
+	 * @ticket 44267
+	 *
+	 * @covers WP_Privacy_Requests_Table::get_timestamp_as_date
+	 */
+	public function test_get_timestamp_as_date() {
+		$table = $this->get_mocked_class_instance();
+
+		$reflection = new ReflectionClass( $table );
+		$method     = $reflection->getMethod( 'get_timestamp_as_date' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		$date_format = __( 'Y/m/d' );
+		$time_format = __( 'g:i a' );
+
+		$current_time = time();
+
+		$this->assertSame( '', $method->invoke( $table, '' ) );
+
+		// Test recent timestamp (less than 24 hours ago).
+		$recent_time = $current_time - HOUR_IN_SECONDS;
+		$result      = $method->invoke( $table, $recent_time );
+		$this->assertStringContainsString( 'ago', $result );
+
+		$old_time = $current_time - 2 * DAY_IN_SECONDS;
+		$result   = $method->invoke( $table, $old_time );
+
+		$date_part = date_i18n( $date_format, $old_time );
+		$time_part = date_i18n( $time_format, $old_time );
+
+		$this->assertStringContainsString( $date_part, $result );
+		$this->assertStringContainsString( 'at', $result );
+		$this->assertStringContainsString( $time_part, $result );
 	}
 }
