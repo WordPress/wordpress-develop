@@ -223,6 +223,7 @@ function get_default_block_editor_settings() {
 		'imageEditing'                     => true,
 		'imageSizes'                       => $available_image_sizes,
 		'maxUploadFileSize'                => $max_upload_size,
+		'__experimentalDashboardLink'      => admin_url( '/' ),
 		// The following flag is required to enable the new Gallery block format on the mobile apps in 5.9.
 		'__unstableGalleryWithImageBlocks' => true,
 	);
@@ -366,6 +367,7 @@ function _wp_get_iframed_editor_assets() {
 	ob_start();
 	wp_print_styles();
 	wp_print_font_faces();
+	wp_print_font_faces_from_style_variations();
 	$styles = ob_get_clean();
 
 	if ( $has_emoji_styles ) {
@@ -494,6 +496,14 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$custom_settings
 	);
 
+	$editor_settings['__experimentalBlockBindingsSupportedAttributes'] = array();
+	foreach ( array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() ) as $block_type ) {
+		$supported_block_attributes = get_block_bindings_supported_attributes( $block_type );
+		if ( ! empty( $supported_block_attributes ) ) {
+			$editor_settings['__experimentalBlockBindingsSupportedAttributes'][ $block_type ] = $supported_block_attributes;
+		}
+	}
+
 	$global_styles = array();
 	$presets       = array(
 		array(
@@ -532,7 +542,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		 * entered by users does not break other global styles.
 		 */
 		$global_styles[] = array(
-			'css'            => wp_get_global_styles_custom_css(),
+			'css'            => wp_get_global_stylesheet( array( 'custom-css' ) ),
 			'__unstableType' => 'user',
 			'isGlobalStyles' => true,
 		);
@@ -648,6 +658,8 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		$editor_settings['postContentAttributes'] = $post_content_block_attributes;
 	}
 
+	$editor_settings['canUpdateBlockBindings'] = current_user_can( 'edit_block_binding', $block_editor_context );
+
 	/**
 	 * Filters the settings to pass to the block editor for all editor type.
 	 *
@@ -762,7 +774,7 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 		'wp-api-fetch',
 		sprintf(
 			'wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( %s ) );',
-			wp_json_encode( $preload_data )
+			wp_json_encode( $preload_data, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 		),
 		'after'
 	);
@@ -851,4 +863,22 @@ function get_classic_theme_supports_block_editor_settings() {
 	}
 
 	return $theme_settings;
+}
+
+/**
+ * Initialize site preview.
+ *
+ * This function sets IFRAME_REQUEST to true if the site preview parameter is set.
+ *
+ * @since 6.8.0
+ */
+function wp_initialize_site_preview_hooks() {
+	if (
+		! defined( 'IFRAME_REQUEST' ) &&
+		isset( $_GET['wp_site_preview'] ) &&
+		1 === (int) $_GET['wp_site_preview'] &&
+		current_user_can( 'edit_theme_options' )
+	) {
+		define( 'IFRAME_REQUEST', true );
+	}
 }

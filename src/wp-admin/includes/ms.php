@@ -854,6 +854,8 @@ var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnima
 }
 
 /**
+ * @since 3.0.0
+ *
  * @param array $users
  * @return bool
  */
@@ -1171,4 +1173,18 @@ function get_site_screen_help_sidebar_content() {
 	return '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 		'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/#network-admin-sites-screen">Documentation on Site Management</a>' ) . '</p>' .
 		'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support forums</a>' ) . '</p>';
+}
+
+/**
+ * Stop execution if the role can not be assigned by the current user.
+ *
+ * @since 6.8.0
+ *
+ * @param string $role Role the user is attempting to assign.
+ */
+function wp_ensure_editable_role( $role ) {
+	$roles = get_editable_roles();
+	if ( ! isset( $roles[ $role ] ) ) {
+		wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
+	}
 }

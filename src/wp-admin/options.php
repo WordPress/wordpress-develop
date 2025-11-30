@@ -125,6 +125,7 @@ $allowed_options            = array(
 		'comment_order',
 		'comment_registration',
 		'show_comments_cookies_opt_in',
+		'wp_notes_notify',
 	),
 	'media'      => array(
 		'thumbnail_size_w',
@@ -158,7 +159,19 @@ $allowed_options['misc']    = array();
 $allowed_options['options'] = array();
 $allowed_options['privacy'] = array();
 
-$mail_options = array( 'mailserver_url', 'mailserver_port', 'mailserver_login', 'mailserver_pass' );
+/**
+ * Filters whether the post-by-email functionality is enabled.
+ *
+ * @since 3.0.0
+ *
+ * @param bool $enabled Whether post-by-email configuration is enabled. Default true.
+ */
+if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
+	$allowed_options['writing'][] = 'mailserver_url';
+	$allowed_options['writing'][] = 'mailserver_port';
+	$allowed_options['writing'][] = 'mailserver_login';
+	$allowed_options['writing'][] = 'mailserver_pass';
+}
 
 if ( ! is_utf8_charset() ) {
 	$allowed_options['reading'][] = 'blog_charset';
@@ -180,8 +193,9 @@ if ( ! is_multisite() ) {
 	$allowed_options['general'][] = 'users_can_register';
 	$allowed_options['general'][] = 'default_role';
 
-	$allowed_options['writing']   = array_merge( $allowed_options['writing'], $mail_options );
-	$allowed_options['writing'][] = 'ping_sites';
+	if ( '1' === get_option( 'blog_public' ) ) {
+		$allowed_options['writing'][] = 'ping_sites';
+	}
 
 	$allowed_options['media'][] = 'uploads_use_yearmonth_folders';
 
@@ -195,17 +209,6 @@ if ( ! is_multisite() ) {
 	) {
 		$allowed_options['media'][] = 'upload_path';
 		$allowed_options['media'][] = 'upload_url_path';
-	}
-} else {
-	/**
-	 * Filters whether the post-by-email functionality is enabled.
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param bool $enabled Whether post-by-email configuration is enabled. Default true.
-	 */
-	if ( apply_filters( 'enable_post_by_email_configuration', true ) ) {
-		$allowed_options['writing'] = array_merge( $allowed_options['writing'], $mail_options );
 	}
 }
 
@@ -402,21 +405,32 @@ foreach ( (array) $options as $option ) :
 		continue;
 	}
 
+	if ( 'home' === $option->option_name && defined( 'WP_HOME' ) ) {
+		$disabled = true;
+	}
+
+	if ( 'siteurl' === $option->option_name && defined( 'WP_SITEURL' ) ) {
+		$disabled = true;
+	}
+
 	if ( is_serialized( $option->option_value ) ) {
 		if ( is_serialized_string( $option->option_value ) ) {
 			// This is a serialized string, so we should display it.
 			$value               = maybe_unserialize( $option->option_value );
 			$options_to_update[] = $option->option_name;
-			$class               = 'all-options';
 		} else {
 			$value    = 'SERIALIZED DATA';
 			$disabled = true;
-			$class    = 'all-options disabled';
 		}
 	} else {
 		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;
-		$class               = 'all-options';
+	}
+
+	$class = 'all-options';
+
+	if ( $disabled ) {
+		$class .= ' disabled';
 	}
 
 	$name = esc_attr( $option->option_name );

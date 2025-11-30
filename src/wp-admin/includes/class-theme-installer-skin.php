@@ -121,14 +121,24 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 
 		$install_actions = array();
 
-		if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) && ! $theme_info->is_block_theme() ) {
-			$customize_url = add_query_arg(
-				array(
-					'theme'  => urlencode( $stylesheet ),
-					'return' => urlencode( admin_url( 'web' === $this->type ? 'theme-install.php' : 'themes.php' ) ),
-				),
-				admin_url( 'customize.php' )
-			);
+		if ( current_user_can( 'edit_theme_options' ) && ( $theme_info->is_block_theme() || current_user_can( 'customize' ) ) ) {
+			if ( $theme_info->is_block_theme() ) {
+				$customize_url = add_query_arg(
+					array(
+						'wp_theme_preview' => urlencode( $stylesheet ),
+						'return'           => urlencode( admin_url( 'web' === $this->type ? 'theme-install.php' : 'themes.php' ) ),
+					),
+					admin_url( 'site-editor.php' )
+				);
+			} else {
+				$customize_url = add_query_arg(
+					array(
+						'theme'  => urlencode( $stylesheet ),
+						'return' => urlencode( admin_url( 'web' === $this->type ? 'theme-install.php' : 'themes.php' ) ),
+					),
+					admin_url( 'customize.php' )
+				);
+			}
 
 			$install_actions['preview'] = sprintf(
 				'<a href="%s" class="hide-if-no-customize load-customize">' .
@@ -251,7 +261,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		);
 
 		$table  = '<table class="update-from-upload-comparison"><tbody>';
-		$table .= '<tr><th></th><th>' . esc_html_x( 'Active', 'theme' ) . '</th><th>' . esc_html_x( 'Uploaded', 'theme' ) . '</th></tr>';
+		$table .= '<tr><th></th><th>' . esc_html_x( 'Installed', 'theme' ) . '</th><th>' . esc_html_x( 'Uploaded', 'theme' ) . '</th></tr>';
 
 		$is_same_theme = true; // Let's consider only these rows.
 
@@ -319,7 +329,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$error = sprintf(
 				/* translators: 1: Current WordPress version, 2: Version required by the uploaded theme. */
 				__( 'Your WordPress version is %1$s, however the uploaded theme requires %2$s.' ),
-				get_bloginfo( 'version' ),
+				esc_html( wp_get_wp_version() ),
 				$requires_wp
 			);
 
@@ -333,7 +343,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			if ( $this->is_downgrading ) {
 				$warning = sprintf(
 					/* translators: %s: Documentation URL. */
-					__( 'You are uploading an older version of the active theme. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
+					__( 'You are uploading an older version of the installed theme. You can continue to install the older version, but be sure to <a href="%s">back up your database and files</a> first.' ),
 					__( 'https://developer.wordpress.org/advanced-administration/security/backup/' )
 				);
 			} else {
@@ -351,7 +361,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['overwrite_theme'] = sprintf(
 				'<a class="button button-primary update-from-upload-overwrite" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( add_query_arg( 'overwrite', $overwrite, $this->url ), 'theme-upload' ),
-				_x( 'Replace active with uploaded', 'theme' )
+				_x( 'Replace installed with uploaded', 'theme' )
 			);
 		} else {
 			echo $blocked_message;

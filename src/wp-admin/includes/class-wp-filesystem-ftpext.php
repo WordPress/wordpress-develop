@@ -17,7 +17,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 
 	/**
 	 * @since 2.5.0
-	 * @var resource
+	 * @var FTP\Connection|resource|false
 	 */
 	public $link;
 
@@ -299,7 +299,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	public function owner( $file ) {
 		$dir = $this->dirlist( $file );
 
-		return $dir[ $file ]['owner'];
+		return $dir[ $file ]['owner'] ?? '';
 	}
 
 	/**
@@ -313,7 +313,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	public function getchmod( $file ) {
 		$dir = $this->dirlist( $file );
 
-		return $dir[ $file ]['permsn'];
+		return $dir[ $file ]['permsn'] ?? '';
 	}
 
 	/**
@@ -327,7 +327,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	public function group( $file ) {
 		$dir = $this->dirlist( $file );
 
-		return $dir[ $file ]['group'];
+		return $dir[ $file ]['group'] ?? '';
 	}
 
 	/**
@@ -601,9 +601,11 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	}
 
 	/**
-	 * @param string $line
-	 * @return array {
-	 *     Array of file information.
+	 * Parses an individual entry from the FTP LIST command output.
+	 *
+	 * @param string $line A line from the directory listing.
+	 * @return array|string {
+	 *     Array of file information. Empty string if the line could not be parsed.
 	 *
 	 *     @type string       $name        Name of the file or directory.
 	 *     @type string       $perms       *nix representation of permissions.
@@ -658,7 +660,6 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			$lucifer = preg_split( '/[ ]/', $line, 9, PREG_SPLIT_NO_EMPTY );
 
 			if ( $lucifer ) {
-				// echo $line."\n";
 				$lcount = count( $lucifer );
 
 				if ( $lcount < 8 ) {

@@ -461,7 +461,7 @@ function wp_comment_reply( $position = 1, $checkbox = false, $mode = 'single', $
 	<legend>
 		<span class="hidden" id="editlegend"><?php _e( 'Edit Comment' ); ?></span>
 		<span class="hidden" id="replyhead"><?php _e( 'Reply to Comment' ); ?></span>
-		<span class="hidden" id="addhead"><?php _e( 'Add New Comment' ); ?></span>
+		<span class="hidden" id="addhead"><?php _e( 'Add Comment' ); ?></span>
 	</legend>
 
 	<div id="replycontainer">
@@ -735,7 +735,7 @@ function meta_form( $post = null ) {
 		natcasesort( $keys );
 	}
 	?>
-<p><strong><?php _e( 'Add New Custom Field:' ); ?></strong></p>
+<p><strong><?php _e( 'Add Custom Field:' ); ?></strong></p>
 <table id="newmeta">
 <thead>
 <tr>
@@ -817,9 +817,6 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 		$tab_index_attribute = " tabindex=\"$tab_index\"";
 	}
 
-	// @todo Remove this?
-	// echo '<label for="timestamp" style="display: block;"><input type="checkbox" class="checkbox" name="edit_date" value="1" id="timestamp"'.$tab_index_attribute.' /> '.__( 'Edit timestamp' ).'</label><br />';
-
 	$post_date = ( $for_post ) ? $post->post_date : get_comment()->comment_date;
 	$jj        = ( $edit ) ? mysql2date( 'd', $post_date, false ) : current_time( 'd' );
 	$mm        = ( $edit ) ? mysql2date( 'm', $post_date, false ) : current_time( 'm' );
@@ -850,19 +847,19 @@ function touch_time( $edit = 1, $for_post = 1, $tab_index = 0, $multi = 0 ) {
 	$day = '<label><span class="screen-reader-text">' .
 		/* translators: Hidden accessibility text. */
 		__( 'Day' ) .
-	'</span><input type="text" ' . ( $multi ? '' : 'id="jj" ' ) . 'name="jj" value="' . $jj . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	'</span><input type="text" ' . ( $multi ? '' : 'id="jj" ' ) . 'name="jj" value="' . $jj . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" inputmode="numeric" /></label>';
 	$year = '<label><span class="screen-reader-text">' .
 		/* translators: Hidden accessibility text. */
 		__( 'Year' ) .
-	'</span><input type="text" ' . ( $multi ? '' : 'id="aa" ' ) . 'name="aa" value="' . $aa . '" size="4" maxlength="4"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	'</span><input type="text" ' . ( $multi ? '' : 'id="aa" ' ) . 'name="aa" value="' . $aa . '" size="4" maxlength="4"' . $tab_index_attribute . ' autocomplete="off" class="form-required" inputmode="numeric" /></label>';
 	$hour = '<label><span class="screen-reader-text">' .
 		/* translators: Hidden accessibility text. */
 		__( 'Hour' ) .
-	'</span><input type="text" ' . ( $multi ? '' : 'id="hh" ' ) . 'name="hh" value="' . $hh . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	'</span><input type="text" ' . ( $multi ? '' : 'id="hh" ' ) . 'name="hh" value="' . $hh . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" inputmode="numeric" /></label>';
 	$minute = '<label><span class="screen-reader-text">' .
 		/* translators: Hidden accessibility text. */
 		__( 'Minute' ) .
-	'</span><input type="text" ' . ( $multi ? '' : 'id="mn" ' ) . 'name="mn" value="' . $mn . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" /></label>';
+	'</span><input type="text" ' . ( $multi ? '' : 'id="mn" ' ) . 'name="mn" value="' . $mn . '" size="2" maxlength="2"' . $tab_index_attribute . ' autocomplete="off" class="form-required" inputmode="numeric" /></label>';
 
 	echo '<div class="timestamp-wrap">';
 	/* translators: 1: Month, 2: Day, 3: Year, 4: Hour, 5: Minute. */
@@ -1050,7 +1047,7 @@ function wp_import_upload_form( $action ) {
  * @since 2.5.0
  * @since 4.4.0 The `$screen` parameter now accepts an array of screen IDs.
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  *
  * @param string                 $id            Meta box ID (used in the 'id' attribute for the meta box).
  * @param string                 $title         Title of the meta box.
@@ -1287,7 +1284,7 @@ function _get_plugin_from_callback( $callback ) {
  *
  * @since 2.5.0
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  *
  * @param string|WP_Screen $screen      The screen identifier. If you have used add_menu_page() or
  *                                      add_submenu_page() to create a new screen (and hence screen_id)
@@ -1472,7 +1469,7 @@ function do_meta_boxes( $screen, $context, $data_object ) {
  * @since 2.6.0
  * @since 4.4.0 The `$screen` parameter now accepts an array of screen IDs.
  *
- * @global array $wp_meta_boxes
+ * @global array $wp_meta_boxes Global meta box state.
  *
  * @param string                 $id      Meta box ID (used in the 'id' attribute for the meta box).
  * @param string|array|WP_Screen $screen  The screen or screens on which the meta box is shown (such as a
@@ -1566,23 +1563,24 @@ function do_accordion_sections( $screen, $context, $data_object ) {
 					++$i;
 					$hidden_class = in_array( $box['id'], $hidden, true ) ? 'hide-if-js' : '';
 
-					$open_class = '';
+					$open_class    = '';
+					$aria_expanded = 'false';
 					if ( ! $first_open && empty( $hidden_class ) ) {
-						$first_open = true;
-						$open_class = 'open';
+						$first_open    = true;
+						$open_class    = 'open';
+						$aria_expanded = 'true';
 					}
 					?>
 					<li class="control-section accordion-section <?php echo $hidden_class; ?> <?php echo $open_class; ?> <?php echo esc_attr( $box['id'] ); ?>" id="<?php echo esc_attr( $box['id'] ); ?>">
-						<h3 class="accordion-section-title hndle" tabindex="0">
-							<?php echo esc_html( $box['title'] ); ?>
-							<span class="screen-reader-text">
-								<?php
-								/* translators: Hidden accessibility text. */
-								_e( 'Press return or enter to open this section' );
-								?>
-							</span>
+						<h3 class="accordion-section-title hndle">
+							<button type="button" class="accordion-trigger" aria-expanded="<?php echo $aria_expanded; ?>" aria-controls="<?php echo esc_attr( $box['id'] ); ?>-content">
+								<span class="accordion-title">
+									<?php echo esc_html( $box['title'] ); ?>
+									<span class="dashicons dashicons-arrow-down" aria-hidden="true"></span>
+								</span>
+							</button>
 						</h3>
-						<div class="accordion-section-content <?php postbox_classes( $box['id'], $page ); ?>">
+						<div class="accordion-section-content <?php postbox_classes( $box['id'], $page ); ?>" id="<?php echo esc_attr( $box['id'] ); ?>-content">
 							<div class="inside">
 								<?php call_user_func( $box['callback'], $data_object, $box ); ?>
 							</div><!-- .inside -->
@@ -1753,9 +1751,10 @@ function add_settings_field( $id, $title, $callback, $page, $section = 'default'
  * to output all the sections and fields that were added to that $page with
  * add_settings_section() and add_settings_field()
  *
+ * @since 2.7.0
+ *
  * @global array $wp_settings_sections Storage array of all settings sections added to admin pages.
  * @global array $wp_settings_fields Storage array of settings fields and info about their pages/sections.
- * @since 2.7.0
  *
  * @param string $page The slug name of the page whose settings sections you want to output.
  */
@@ -1783,12 +1782,11 @@ function do_settings_sections( $page ) {
 			call_user_func( $section['callback'], $section );
 		}
 
-		if ( ! isset( $wp_settings_fields ) || ! isset( $wp_settings_fields[ $page ] ) || ! isset( $wp_settings_fields[ $page ][ $section['id'] ] ) ) {
-			continue;
+		if ( isset( $wp_settings_fields[ $page ][ $section['id'] ] ) ) {
+			echo '<table class="form-table" role="presentation">';
+			do_settings_fields( $page, $section['id'] );
+			echo '</table>';
 		}
-		echo '<table class="form-table" role="presentation">';
-		do_settings_fields( $page, $section['id'] );
-		echo '</table>';
 
 		if ( '' !== $section['after_section'] ) {
 			echo wp_kses_post( $section['after_section'] );
@@ -1803,9 +1801,9 @@ function do_settings_sections( $page ) {
  * a specific section. Should normally be called by do_settings_sections()
  * rather than directly.
  *
- * @global array $wp_settings_fields Storage array of settings fields and their pages/sections.
- *
  * @since 2.7.0
+ *
+ * @global array $wp_settings_fields Storage array of settings fields and their pages/sections.
  *
  * @param string $page Slug title of the admin page whose settings fields you want to show.
  * @param string $section Slug title of the settings section whose fields you want to show.
@@ -2248,30 +2246,43 @@ function iframe_footer() {
  * @return string Post states string.
  */
 function _post_states( $post, $display = true ) {
-	$post_states        = get_post_states( $post );
-	$post_states_string = '';
+	$post_states      = get_post_states( $post );
+	$post_states_html = '';
 
 	if ( ! empty( $post_states ) ) {
 		$state_count = count( $post_states );
 
 		$i = 0;
 
-		$post_states_string .= ' &mdash; ';
+		$post_states_html .= ' &mdash; ';
 
 		foreach ( $post_states as $state ) {
 			++$i;
 
 			$separator = ( $i < $state_count ) ? ', ' : '';
 
-			$post_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
+			$post_states_html .= "<span class='post-state'>{$state}{$separator}</span>";
 		}
 	}
 
+	/**
+	 * Filters the HTML string of post states.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string                 $post_states_html All relevant post states combined into an HTML string for display.
+	 *                                                 E.g. `&mdash; <span class='post-state'>Draft, </span><span class='post-state'>Sticky</span>`.
+	 * @param array<string, string>  $post_states      A mapping of post state slugs to translated post state labels.
+	 *                                                 E.g. `array( 'draft' => __( 'Draft' ), 'sticky' => __( 'Sticky' ), ... )`.
+	 * @param WP_Post                $post             The current post object.
+	 */
+	$post_states_html = apply_filters( 'post_states_html', $post_states_html, $post_states, $post );
+
 	if ( $display ) {
-		echo $post_states_string;
+		echo $post_states_html;
 	}
 
-	return $post_states_string;
+	return $post_states_html;
 }
 
 /**
@@ -2344,8 +2355,9 @@ function get_post_states( $post ) {
 	 *              are used within the filter, their existence should be checked
 	 *              with `function_exists()` before being used.
 	 *
-	 * @param string[] $post_states An array of post display states.
-	 * @param WP_Post  $post        The current post object.
+	 * @param array<string, string>  $post_states A mapping of post state slugs to translated post state labels.
+	 *                                            E.g. `array( 'draft' => __( 'Draft' ), 'sticky' => __( 'Sticky' ), ... )`.
+	 * @param WP_Post                $post        The current post object.
 	 */
 	return apply_filters( 'display_post_states', $post_states, $post );
 }
@@ -2482,7 +2494,7 @@ function get_media_states( $post ) {
 function compression_test() {
 	?>
 	<script type="text/javascript">
-	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ) ); ?>;
+	var compressionNonce = <?php echo wp_json_encode( wp_create_nonce( 'update_can_compress_scripts' ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 	var testCompression = {
 		get : function(test) {
 			var x;
@@ -2633,6 +2645,8 @@ function get_submit_button( $text = '', $type = 'primary large', $name = 'submit
 
 /**
  * Prints out the beginning of the admin HTML header.
+ *
+ * @since 3.3.0
  *
  * @global bool $is_IE
  */

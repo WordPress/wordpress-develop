@@ -493,7 +493,13 @@ function edit_post( $post_data = null ) {
  *
  * @param array|null $post_data Optional. The array of post data to process.
  *                              Defaults to the `$_POST` superglobal.
- * @return array
+ * @return array {
+ *     An array of updated, skipped, and locked post IDs.
+ *
+ *     @type int[] $updated An array of updated post IDs.
+ *     @type int[] $skipped An array of skipped post IDs.
+ *     @type int[] $locked  An array of locked post IDs.
+ * }
  */
 function bulk_edit_posts( $post_data = null ) {
 	global $wpdb;
@@ -762,13 +768,20 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 				'post_type'   => $post_type,
 				'post_status' => 'auto-draft',
 			),
-			false,
+			true,
 			false
 		);
-		$post    = get_post( $post_id );
+
+		if ( is_wp_error( $post_id ) ) {
+			wp_die( $post_id->get_error_message() );
+		}
+
+		$post = get_post( $post_id );
+
 		if ( current_theme_supports( 'post-formats' ) && post_type_supports( $post->post_type, 'post-formats' ) && get_option( 'default_post_format' ) ) {
 			set_post_format( $post, get_option( 'default_post_format' ) );
 		}
+
 		wp_after_insert_post( $post, false, null );
 
 		// Schedule auto-draft cleanup.
@@ -1171,7 +1184,7 @@ function _fix_attachment_links( $post ) {
 		$url_id = (int) $url_match[2];
 		$rel_id = (int) $rel_match[1];
 
-		if ( ! $url_id || ! $rel_id || $url_id != $rel_id || ! str_contains( $url_match[0], $site_url ) ) {
+		if ( ! $url_id || ! $rel_id || $url_id !== $rel_id || ! str_contains( $url_match[0], $site_url ) ) {
 			continue;
 		}
 
@@ -1211,7 +1224,7 @@ function get_available_post_statuses( $type = 'post' ) {
  *
  * @param array|false $q Optional. Array of query variables to use to build the query.
  *                       Defaults to the `$_GET` superglobal.
- * @return array
+ * @return string[] An array of all the statuses for the queried post type.
  */
 function wp_edit_posts_query( $q = false ) {
 	if ( false === $q ) {
@@ -1383,7 +1396,12 @@ function wp_edit_attachments_query_vars( $q = false ) {
  *
  * @param array|false $q Optional. Array of query variables to use to build the query.
  *                       Defaults to the `$_GET` superglobal.
- * @return array
+ * @return array {
+ *     Array containing the post mime types and available post mime types.
+ *
+ *     @type array[]  $post_mime_types       Post mime types.
+ *     @type string[] $avail_post_mime_types Available post mime types.
+ * }
  */
 function wp_edit_attachments_query( $q = false ) {
 	wp( wp_edit_attachments_query_vars( $q ) );
@@ -1804,18 +1822,21 @@ function _admin_notice_post_locked() {
 		$locked = false;
 	}
 
-	$sendback = wp_get_referer();
-	if ( $locked && $sendback && ! str_contains( $sendback, 'post.php' ) && ! str_contains( $sendback, 'post-new.php' ) ) {
+	$sendback      = wp_get_referer();
+	$sendback_text = __( 'Go back' );
 
-		$sendback_text = __( 'Go back' );
-	} else {
+	if ( ! $locked || ! $sendback || str_contains( $sendback, 'post.php' ) || str_contains( $sendback, 'post-new.php' ) ) {
 		$sendback = admin_url( 'edit.php' );
 
 		if ( 'post' !== $post->post_type ) {
 			$sendback = add_query_arg( 'post_type', $post->post_type, $sendback );
 		}
 
-		$sendback_text = get_post_type_object( $post->post_type )->labels->all_items;
+		$post_type_object = get_post_type_object( $post->post_type );
+
+		if ( $post_type_object ) {
+			$sendback_text = $post_type_object->labels->all_items;
+		}
 	}
 
 	$hidden = $locked ? '' : ' hidden';
@@ -2005,7 +2026,7 @@ function wp_create_post_autosave( $post_data ) {
 }
 
 /**
- * Autosave the revisioned meta fields.
+ * Autosaves the revisioned meta fields.
  *
  * Iterates through the revisioned meta fields and checks each to see if they are set,
  * and have a changed value. If so, the meta value is saved and attached to the autosave.
@@ -2027,15 +2048,14 @@ function wp_autosave_post_revisioned_meta_fields( $new_autosave ) {
 	$post_type = get_post_type( $new_autosave['post_parent'] );
 
 	/*
-	 * Go thru the revisioned meta keys and save them as part of the autosave, if
-	 * the meta key is part of the posted data, the meta value is not blank and
-	 * the the meta value has changes from the last autosaved value.
+	 * Go through the revisioned meta keys and save them as part of the autosave,
+	 * if the meta key is part of the posted data, the meta value is not blank,
+	 * and the meta value has changes from the last autosaved value.
 	 */
 	foreach ( wp_post_revision_meta_keys( $post_type ) as $meta_key ) {
 
-		if (
-		isset( $posted_data[ $meta_key ] ) &&
-		get_post_meta( $new_autosave['ID'], $meta_key, true ) !== wp_unslash( $posted_data[ $meta_key ] )
+		if ( isset( $posted_data[ $meta_key ] )
+			&& get_post_meta( $new_autosave['ID'], $meta_key, true ) !== wp_unslash( $posted_data[ $meta_key ] )
 		) {
 			/*
 			 * Use the underlying delete_metadata() and add_metadata() functions
@@ -2044,13 +2064,9 @@ function wp_autosave_post_revisioned_meta_fields( $new_autosave ) {
 			 */
 			delete_metadata( 'post', $new_autosave['ID'], $meta_key );
 
-			/*
-			 * One last check to ensure meta value not empty().
-			 */
+			// One last check to ensure meta value is not empty.
 			if ( ! empty( $posted_data[ $meta_key ] ) ) {
-				/*
-				 * Add the revisions meta data to the autosave.
-				 */
+				// Add the revisions meta data to the autosave.
 				add_metadata( 'post', $new_autosave['ID'], $meta_key, $posted_data[ $meta_key ] );
 			}
 		}
@@ -2177,23 +2193,23 @@ function wp_autosave( $post_data ) {
  *
  * @param int $post_id Optional. Post ID.
  */
-function redirect_post( $post_id = '' ) {
+function redirect_post( $post_id = 0 ) {
 	if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {
 		$status = get_post_status( $post_id );
 
-		if ( isset( $_POST['publish'] ) ) {
-			switch ( $status ) {
-				case 'pending':
-					$message = 8;
-					break;
-				case 'future':
-					$message = 9;
-					break;
-				default:
-					$message = 6;
-			}
-		} else {
-			$message = 'draft' === $status ? 10 : 1;
+		switch ( $status ) {
+			case 'pending':
+				$message = 8;
+				break;
+			case 'future':
+				$message = 9;
+				break;
+			case 'draft':
+				$message = 10;
+				break;
+			default:
+				$message = isset( $_POST['publish'] ) ? 6 : 1;
+				break;
 		}
 
 		$location = add_query_arg( 'message', $message, get_edit_post_link( $post_id, 'url' ) );
@@ -2345,7 +2361,7 @@ function get_block_editor_server_block_settings() {
  *
  * @global WP_Post   $post           Global post object.
  * @global WP_Screen $current_screen WordPress current screen object.
- * @global array     $wp_meta_boxes
+ * @global array     $wp_meta_boxes  Global meta box state.
  */
 function the_block_editor_meta_boxes() {
 	global $post, $current_screen, $wp_meta_boxes;
@@ -2433,7 +2449,7 @@ function the_block_editor_meta_boxes() {
 	 * our editor instance.
 	 */
 	$script = 'window._wpLoadBlockEditor.then( function() {
-		wp.data.dispatch( \'core/edit-post\' ).setAvailableMetaBoxesPerLocation( ' . wp_json_encode( $meta_boxes_per_location ) . ' );
+		wp.data.dispatch( \'core/edit-post\' ).setAvailableMetaBoxesPerLocation( ' . wp_json_encode( $meta_boxes_per_location, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ' );
 	} );';
 
 	wp_add_inline_script( 'wp-edit-post', $script );

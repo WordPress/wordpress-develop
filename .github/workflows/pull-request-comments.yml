@@ -3,7 +3,7 @@ name: Pull Request Comments
 
 on:
   pull_request_target:
-    types: [ 'opened' ]
+    types: [ 'opened', 'synchronize', 'reopened', 'edited' ]
   workflow_run:
     workflows: [ 'Test Build Processes' ]
     types:
@@ -22,7 +22,7 @@ permissions: {}
 jobs:
   # Comments on a pull request when the author is a first time contributor.
   post-welcome-message:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write
@@ -30,7 +30,7 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' }}
     steps:
       - name: Post a welcome comment
-        uses: wow-actions/welcome@72817eb31cda1de60f51893d80e2e82ce57f7e76 # v1.3.0
+        uses: wow-actions/welcome@68019c2c271561f63162fea75bb7707ef8a02c85 # v1.3.1
         with:
           FIRST_PR_REACTIONS: 'hooray'
           FIRST_PR_COMMENT: >
@@ -80,7 +80,7 @@ jobs:
   # Leaves a comment on a pull request with a link to test the changes in a WordPress Playground instance.
   playground-details:
     name: Comment on a pull request with Playground details
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write
@@ -90,13 +90,13 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Download artifact
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts( {
                owner: context.repo.owner,
                repo: context.repo.repo,
-               run_id: ${{ github.event.workflow_run.id }},
+               run_id: process.env.RUN_ID,
             } );
 
             const matchArtifact = artifacts.data.artifacts.filter( ( artifact ) => {
@@ -117,16 +117,32 @@ jobs:
 
             const fs = require( 'fs' );
             fs.writeFileSync( '${{github.workspace}}/pr-number.zip', Buffer.from( download.data ) )
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
 
       - name: Unzip the artifact containing the PR number
         run: unzip pr-number.zip
 
       - name: Leave a comment about testing with Playground
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const fs = require( 'fs' );
             const issue_number = Number( fs.readFileSync( './NR' ) );
+
+            core.info( `Checking pull request #${issue_number}.` );
+
+            // Confirm that the pull request is still open before leaving a comment.
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: issue_number,
+            });
+
+            if ( pr.data.state !== 'open' ) {
+              core.info( 'The pull request has been closed. No comment will be left.' );
+              return;
+            }
 
             // Comments are only added after the first successful build. Check for the presence of a comment and bail early.
             const commentInfo = {
@@ -139,6 +155,7 @@ jobs:
 
             for ( const currentComment of comments ) {
               if ( currentComment.user.type === 'Bot' && currentComment.body.includes( 'Test using WordPress Playground' ) ) {
+                core.info( 'A comment with instructions to test within a Playground instance already exists.' );
                 return;
               }
             };
@@ -155,7 +172,7 @@ jobs:
             - All changes will be lost when refreshing the page.
             - A fresh instance is created each time the link below is clicked.
             - Every time this pull request is updated, a new ZIP file containing all changes is created. If changes are not reflected in the Playground instance,
-            it's possible that the most recent build failed, or has not completed. Check the [list of workflow runs to be sure](https://github.com/WordPress/wordpress-develop/actions/workflows/wordpress-playground.yml).
+            it's possible that the most recent build failed, or has not completed. Check the [list of workflow runs to be sure](https://github.com/WordPress/wordpress-develop/actions/workflows/test-build-processes.yml).
 
             For more details about these limitations and more, check out the [Limitations page](https://wordpress.github.io/wordpress-playground/limitations/) in the WordPress Playground documentation.
 
@@ -164,17 +181,17 @@ jobs:
 
             github.rest.issues.createComment( commentInfo );
 
-  # Leaves a comment on a pull request when no Trac ticket is included in the pull request description.
+  # Manages comments reminding contributors to include a Trac ticket link when opening a pull request.
   trac-ticket-check:
-    name: Comment on a pull request when no Trac ticket is included
-    runs-on: ubuntu-latest
+    name: Manage Trac ticket reminders for pull requests
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name == 'pull_request_target' && ! github.event.pull_request.draft && github.event.pull_request.state == 'open' }}
     steps:
-      - name: Check for Trac ticket and comment if missing
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      - name: Check for Trac ticket and manage comment
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -183,11 +200,13 @@ jobs:
             // Check for the presence of a comment and bail early.
             const comments = ( await github.rest.issues.listComments( { owner, repo, issue_number: number } ) ).data;
 
-            const hasMissingTicketComment = comments.some( comment =>
-              comment.user.type === 'Bot' && comment.body.includes( 'Trac Ticket Missing' )
-            );
+            const hasMissingTicketComment = comments.find( comment => comment.user.type === 'Bot' && comment.body.includes( 'Trac Ticket Missing' ) );
 
-            if ( hasMissingTicketComment ) return;
+            if ( hasMissingTicketComment ) {
+              // Trac ticket link found, delete existing "Trac Ticket Missing" comment.
+              await github.rest.issues.deleteComment( { owner, repo, comment_id: hasMissingTicketComment.id } );
+              return;
+            }
 
             // No comment was found. Create one.
             const pr = ( await github.rest.pulls.get( { owner, repo, pull_number: number } ) ).data;
@@ -195,7 +214,7 @@ jobs:
             const prBody = pr.body ?? '';
             const prTitle = pr.title ?? '';
 
-            const tracTicketRegex = new RegExp( 'https?://core.trac.wordpress.org/ticket/([0-9]+)', 'g' );
+            const tracTicketRegex = new RegExp( '(https?://core.trac.wordpress.org/ticket/|Core-|ticket:)([0-9]+)', 'g' );
             const tracTicketMatches = prBody.match( tracTicketRegex ) || prTitle.match( tracTicketRegex );
 
             if ( ! tracTicketMatches ) {
