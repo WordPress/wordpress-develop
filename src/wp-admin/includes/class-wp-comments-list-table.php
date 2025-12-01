@@ -245,7 +245,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * @global string $comment_status
 	 * @global string $comment_type
 	 *
-	 * @return string[] Array of comment status links.
+	 * @return array<string, string> Comment status HTML links keyed by view.
 	 */
 	protected function get_views() {
 		global $post_id, $comment_status, $comment_type;
@@ -370,7 +370,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 *
 	 * @global string $comment_status Current comment status filter.
 	 *
-	 * @return array List of bulk action labels keyed by action name.
+	 * @return array<string, string> Bulk action labels keyed by action name.
 	 */
 	protected function get_bulk_actions() {
 		global $comment_status;
@@ -569,7 +569,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 	/**
 	 * Gets a list of sortable columns.
 	 *
-	 * @return array An associative array containing the sortable columns.
+	 * @return array<string, string|array> The sortable columns.
 	 */
 	protected function get_sortable_columns() {
 		return array(
