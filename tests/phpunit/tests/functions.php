@@ -1573,7 +1573,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$expected = array(
 			1180,
 			1180,
-			IMAGETYPE_HEIC,
+			IMAGETYPE_HEIF,
 			'width="1180" height="1180"',
 		);
 
