@@ -841,6 +841,8 @@ $_old_files = array(
 	'wp-includes/js/dist/undo-manager.min.js',
 	'wp-includes/js/dist/fields.min.js',
 	'wp-includes/js/dist/fields.js',
+	// 6.9
+	'wp-includes/SimplePie/src/Decode',
 );
 
 /**
