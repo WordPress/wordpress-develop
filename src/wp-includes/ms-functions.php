@@ -76,9 +76,12 @@ function get_active_blog_for_user( $user_id ) {
 	) {
 		$blogs = get_blogs_of_user( $user_id, true ); // If a user's primary blog is shut down, check their other blogs.
 		$ret   = false;
+
 		if ( is_array( $blogs ) && count( $blogs ) > 0 ) {
+			$current_network_id = get_current_network_id();
+
 			foreach ( (array) $blogs as $blog_id => $blog ) {
-				if ( get_current_network_id() !== $blog->site_id ) {
+				if ( $blog->site_id !== $current_network_id ) {
 					continue;
 				}
 
@@ -99,6 +102,7 @@ function get_active_blog_for_user( $user_id ) {
 		} else {
 			return;
 		}
+
 		return $ret;
 	} else {
 		return $primary;
@@ -481,10 +485,12 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 	}
 
 	$illegal_names = get_site_option( 'illegal_names' );
+
 	if ( ! is_array( $illegal_names ) ) {
 		$illegal_names = array( 'www', 'web', 'root', 'admin', 'main', 'invite', 'administrator' );
 		add_site_option( 'illegal_names', $illegal_names );
 	}
+
 	if ( in_array( $user_name, $illegal_names, true ) ) {
 		$errors->add( 'user_name', __( 'Sorry, that username is not allowed.' ) );
 	}
@@ -516,10 +522,12 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 	}
 
 	$limited_email_domains = get_site_option( 'limited_email_domains' );
+
 	if ( is_array( $limited_email_domains ) && ! empty( $limited_email_domains ) ) {
 		$limited_email_domains = array_map( 'strtolower', $limited_email_domains );
-		$emaildomain           = strtolower( substr( $user_email, 1 + strpos( $user_email, '@' ) ) );
-		if ( ! in_array( $emaildomain, $limited_email_domains, true ) ) {
+		$email_domain          = strtolower( substr( $user_email, 1 + strpos( $user_email, '@' ) ) );
+
+		if ( ! in_array( $email_domain, $limited_email_domains, true ) ) {
 			$errors->add( 'user_email', __( 'Sorry, that email address is not allowed!' ) );
 		}
 	}
@@ -562,7 +570,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
 			$wpdb->delete( $wpdb->signups, array( 'user_email' => $user_email ) );
 		} else {
-			$errors->add( 'user_email', __( 'That email address has already been used. Please check your inbox for an activation email. It will become available in a couple of days if you do nothing.' ) );
+			$errors->add( 'user_email', __( 'That email address is pending activation and is not available for new registration. If you made a previous attempt with this email address, please check your inbox for an activation email. If left unconfirmed, it will become available in a couple of days.' ) );
 		}
 	}
 
@@ -637,7 +645,8 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 
 	$errors        = new WP_Error();
 	$illegal_names = get_site_option( 'illegal_names' );
-	if ( false == $illegal_names ) {
+
+	if ( ! is_array( $illegal_names ) ) {
 		$illegal_names = array( 'www', 'web', 'root', 'admin', 'main', 'invite', 'administrator' );
 		add_site_option( 'illegal_names', $illegal_names );
 	}
@@ -721,7 +730,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	 * unless it's the user's own username.
 	 */
 	if ( username_exists( $blogname ) ) {
-		if ( ! is_object( $user ) || ( is_object( $user ) && ( $user->user_login != $blogname ) ) ) {
+		if ( ! $user instanceof WP_User || $user->user_login !== $blogname ) {
 			$errors->add( 'blogname', __( 'Sorry, that site is reserved!' ) );
 		}
 	}
@@ -929,7 +938,16 @@ function wpmu_signup_user( $user, $user_email, $meta = array() ) {
  * @param array  $meta       Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
  * @return bool
  */
-function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $user_email, $key, $meta = array() ) {
+function wpmu_signup_blog_notification(
+	$domain,
+	$path,
+	$title,
+	$user_login,
+	$user_email,
+	#[\SensitiveParameter]
+	$key,
+	$meta = array()
+) {
 	/**
 	 * Filters whether to bypass the new site email notification.
 	 *
@@ -1064,7 +1082,13 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
  * @param array  $meta       Optional. Signup meta data. Default empty array.
  * @return bool
  */
-function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = array() ) {
+function wpmu_signup_user_notification(
+	$user_login,
+	$user_email,
+	#[\SensitiveParameter]
+	$key,
+	$meta = array()
+) {
 	/**
 	 * Filters whether to bypass the email notification for new user sign-up.
 	 *
@@ -1166,7 +1190,10 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
  * @param string $key The activation key provided to the user.
  * @return array|WP_Error An array containing information about the activated user and/or blog.
  */
-function wpmu_activate_signup( $key ) {
+function wpmu_activate_signup(
+	#[\SensitiveParameter]
+	$key
+) {
 	global $wpdb;
 
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE activation_key = %s", $key ) );
@@ -1318,7 +1345,12 @@ function wp_delete_signup_on_user_delete( $id, $reassign, $user ) {
  * @param string $email     The new user's email address.
  * @return int|false Returns false on failure, or int $user_id on success.
  */
-function wpmu_create_user( $user_name, $password, $email ) {
+function wpmu_create_user(
+	$user_name,
+	#[\SensitiveParameter]
+	$password,
+	$email
+) {
 	$user_name = preg_replace( '/\s+/', '', sanitize_user( $user_name, true ) );
 
 	$user_id = wp_create_user( $user_name, $password, $email );
@@ -1602,7 +1634,14 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
  * @param array  $meta     Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
  * @return bool Whether the email notification was sent.
  */
-function wpmu_welcome_notification( $blog_id, $user_id, $password, $title, $meta = array() ) {
+function wpmu_welcome_notification(
+	$blog_id,
+	$user_id,
+	#[\SensitiveParameter]
+	$password,
+	$title,
+	$meta = array()
+) {
 	$current_network = get_network();
 
 	/**
@@ -1627,7 +1666,8 @@ function wpmu_welcome_notification( $blog_id, $user_id, $password, $title, $meta
 	$switched_locale = switch_to_user_locale( $user_id );
 
 	$welcome_email = get_site_option( 'welcome_email' );
-	if ( false == $welcome_email ) {
+
+	if ( ! $welcome_email ) {
 		/* translators: Do not translate USERNAME, SITE_NAME, BLOG_URL, PASSWORD: those are placeholders. */
 		$welcome_email = __(
 			'Howdy USERNAME,
@@ -1835,7 +1875,12 @@ Name: %3$s'
  * @param array  $meta     Optional. Signup meta data. Default empty array.
  * @return bool
  */
-function wpmu_welcome_user_notification( $user_id, $password, $meta = array() ) {
+function wpmu_welcome_user_notification(
+	$user_id,
+	#[\SensitiveParameter]
+	$password,
+	$meta = array()
+) {
 	$current_network = get_network();
 
 	/**
@@ -2261,7 +2306,12 @@ function add_existing_user_to_blog( $details = false ) {
  * @param string $password User password. Ignored.
  * @param array  $meta     Signup meta data.
  */
-function add_new_user_to_blog( $user_id, $password, $meta ) {
+function add_new_user_to_blog(
+	$user_id,
+	#[\SensitiveParameter]
+	$password,
+	$meta
+) {
 	if ( ! empty( $meta['add_to_blog'] ) ) {
 		$blog_id = $meta['add_to_blog'];
 		$role    = $meta['new_role'];
@@ -2370,15 +2420,15 @@ Thanks!
  *
  * @since 2.8.5
  *
- * @param bool $force
+ * @param bool|null $force Optional. Whether to force SSL in admin screens. Default null.
  * @return bool True if forced, false if not forced.
  */
-function force_ssl_content( $force = '' ) {
+function force_ssl_content( $force = null ) {
 	static $forced_content = false;
 
-	if ( ! $force ) {
+	if ( ! is_null( $force ) ) {
 		$old_forced     = $forced_content;
-		$forced_content = $force;
+		$forced_content = (bool) $force;
 		return $old_forced;
 	}
 
@@ -2766,11 +2816,12 @@ All at ###SITENAME###
 	 * Filters the text of the email sent when a change of network admin email address is attempted.
 	 *
 	 * The following strings have a special meaning and will get replaced dynamically:
-	 * ###USERNAME###  The current user's username.
-	 * ###ADMIN_URL### The link to click on to confirm the email change.
-	 * ###EMAIL###     The proposed new network admin email address.
-	 * ###SITENAME###  The name of the network.
-	 * ###SITEURL###   The URL to the network.
+	 *
+	 *  - `###USERNAME###`  The current user's username.
+	 *  - `###ADMIN_URL###` The link to click on to confirm the email change.
+	 *  - `###EMAIL###`     The proposed new network admin email address.
+	 *  - `###SITENAME###`  The name of the network.
+	 *  - `###SITEURL###`   The URL to the network.
 	 *
 	 * @since 4.9.0
 	 *
@@ -2819,8 +2870,8 @@ All at ###SITENAME###
 function wp_network_admin_email_change_notification( $option_name, $new_email, $old_email, $network_id ) {
 	$send = true;
 
-	// Don't send the notification to the default 'admin_email' value.
-	if ( 'you@example.com' === $old_email ) {
+	// Don't send the notification for an empty email address or the default 'admin_email' value.
+	if ( empty( $old_email ) || 'you@example.com' === $old_email ) {
 		$send = false;
 	}
 
@@ -2877,10 +2928,10 @@ All at ###SITENAME###
 	 *     @type string $subject The subject of the email.
 	 *     @type string $message The content of the email.
 	 *         The following strings have a special meaning and will get replaced dynamically:
-	 *         - ###OLD_EMAIL### The old network admin email address.
-	 *         - ###NEW_EMAIL### The new network admin email address.
-	 *         - ###SITENAME###  The name of the network.
-	 *         - ###SITEURL###   The URL to the site.
+	 *          - `###OLD_EMAIL###` The old network admin email address.
+	 *          - `###NEW_EMAIL###` The new network admin email address.
+	 *          - `###SITENAME###`  The name of the network.
+	 *          - `###SITEURL###`   The URL to the site.
 	 *     @type string $headers Headers.
 	 * }
 	 * @param string $old_email  The old network admin email address.

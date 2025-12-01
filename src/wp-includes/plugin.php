@@ -267,6 +267,7 @@ function apply_filters_ref_array( $hook_name, $args ) {
  * that evaluates to false (e.g. 0), so use the `===` operator for testing the return value.
  *
  * @since 2.5.0
+ * @since 6.9.0 Added the `$priority` parameter.
  *
  * @global WP_Hook[] $wp_filter Stores all of the filters and actions.
  *
@@ -274,18 +275,22 @@ function apply_filters_ref_array( $hook_name, $args ) {
  * @param callable|string|array|false $callback  Optional. The callback to check for.
  *                                               This function can be called unconditionally to speculatively check
  *                                               a callback that may or may not exist. Default false.
+ * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
+ *                                               Default false.
  * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
  *                  anything registered. When checking a specific function, the priority
  *                  of that hook is returned, or false if the function is not attached.
+ *                  If `$callback` and `$priority` are both provided, a boolean is returned
+ *                  for whether the specific function is registered at that priority.
  */
-function has_filter( $hook_name, $callback = false ) {
+function has_filter( $hook_name, $callback = false, $priority = false ) {
 	global $wp_filter;
 
 	if ( ! isset( $wp_filter[ $hook_name ] ) ) {
 		return false;
 	}
 
-	return $wp_filter[ $hook_name ]->has_filter( $hook_name, $callback );
+	return $wp_filter[ $hook_name ]->has_filter( $hook_name, $callback, $priority );
 }
 
 /**
@@ -359,7 +364,7 @@ function remove_all_filters( $hook_name, $priority = false ) {
  *
  * @global string[] $wp_current_filter Stores the list of current filters with the current one last
  *
- * @return string Hook name of the current filter.
+ * @return string|false Hook name of the current filter, false if no filter is running.
  */
 function current_filter() {
 	global $wp_current_filter;
@@ -574,6 +579,7 @@ function do_action_ref_array( $hook_name, $args ) {
  * that evaluates to false (e.g. 0), so use the `===` operator for testing the return value.
  *
  * @since 2.5.0
+ * @since 6.9.0 Added the `$priority` parameter.
  *
  * @see has_filter() This function is an alias of has_filter().
  *
@@ -581,12 +587,16 @@ function do_action_ref_array( $hook_name, $args ) {
  * @param callable|string|array|false $callback  Optional. The callback to check for.
  *                                               This function can be called unconditionally to speculatively check
  *                                               a callback that may or may not exist. Default false.
+ * @param int|false                   $priority  Optional. The specific priority at which to check for the callback.
+ *                                               Default false.
  * @return bool|int If `$callback` is omitted, returns boolean for whether the hook has
  *                  anything registered. When checking a specific function, the priority
  *                  of that hook is returned, or false if the function is not attached.
+ *                  If `$callback` and `$priority` are both provided, a boolean is returned
+ *                  for whether the specific function is registered at that priority.
  */
-function has_action( $hook_name, $callback = false ) {
-	return has_filter( $hook_name, $callback );
+function has_action( $hook_name, $callback = false, $priority = false ) {
+	return has_filter( $hook_name, $callback, $priority );
 }
 
 /**
@@ -632,7 +642,7 @@ function remove_all_actions( $hook_name, $priority = false ) {
  *
  * @since 3.9.0
  *
- * @return string Hook name of the current action.
+ * @return string|false Hook name of the current action, false if no action is running.
  */
 function current_action() {
 	return current_filter();
@@ -984,7 +994,8 @@ function _wp_call_all_hook( $args ) {
  *                                         or may not exist.
  * @param int                   $priority  Unused. The order in which the functions
  *                                         associated with a particular action are executed.
- * @return string Unique function ID for usage as array key.
+ * @return string|null Unique function ID for usage as array key.
+ *                     Null if a valid `$callback` is not passed.
  */
 function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
 	if ( is_string( $callback ) ) {
@@ -1005,4 +1016,6 @@ function _wp_filter_build_unique_id( $hook_name, $callback, $priority ) {
 		// Static calling.
 		return $callback[0] . '::' . $callback[1];
 	}
+
+	return null;
 }

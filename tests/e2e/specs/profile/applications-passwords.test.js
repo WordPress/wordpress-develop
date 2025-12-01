@@ -101,7 +101,7 @@ class ApplicationPasswords {
 		await expect( newPasswordField ).toBeVisible();
 		await newPasswordField.fill( applicationName );
 
-		await this.page.getByRole( 'button', { name: 'Add New Application Password' } ).click();
+		await this.page.getByRole( 'button', { name: 'Add Application Password' } ).click();
 		await expect( this.page.getByRole( 'alert' ) ).toBeVisible();
 	}
 

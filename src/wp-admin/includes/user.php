@@ -306,14 +306,14 @@ function get_user_to_edit( $user_id ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID.
- * @return array
+ * @return object[] The user's draft posts, with 'ID' and 'post_title' keys.
  */
 function get_users_drafts( $user_id ) {
 	global $wpdb;
 	$query = $wpdb->prepare( "SELECT ID, post_title FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'draft' AND post_author = %d ORDER BY post_modified DESC", $user_id );
 
 	/**
-	 * Filters the user's drafts query string.
+	 * Filters the SQL query string for the user's drafts query.
 	 *
 	 * @since 2.0.0
 	 *
@@ -603,7 +603,7 @@ function use_ssl_preference( $user ) {
  * @since MU (3.0.0)
  *
  * @param string $text
- * @return string
+ * @return string User site invitation email message.
  */
 function admin_created_user_email( $text ) {
 	$roles = get_editable_roles();

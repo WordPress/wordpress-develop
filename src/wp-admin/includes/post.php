@@ -493,7 +493,13 @@ function edit_post( $post_data = null ) {
  *
  * @param array|null $post_data Optional. The array of post data to process.
  *                              Defaults to the `$_POST` superglobal.
- * @return array
+ * @return array {
+ *     An array of updated, skipped, and locked post IDs.
+ *
+ *     @type int[] $updated An array of updated post IDs.
+ *     @type int[] $skipped An array of skipped post IDs.
+ *     @type int[] $locked  An array of locked post IDs.
+ * }
  */
 function bulk_edit_posts( $post_data = null ) {
 	global $wpdb;
@@ -762,13 +768,20 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 				'post_type'   => $post_type,
 				'post_status' => 'auto-draft',
 			),
-			false,
+			true,
 			false
 		);
-		$post    = get_post( $post_id );
+
+		if ( is_wp_error( $post_id ) ) {
+			wp_die( $post_id->get_error_message() );
+		}
+
+		$post = get_post( $post_id );
+
 		if ( current_theme_supports( 'post-formats' ) && post_type_supports( $post->post_type, 'post-formats' ) && get_option( 'default_post_format' ) ) {
 			set_post_format( $post, get_option( 'default_post_format' ) );
 		}
+
 		wp_after_insert_post( $post, false, null );
 
 		// Schedule auto-draft cleanup.
@@ -1171,7 +1184,7 @@ function _fix_attachment_links( $post ) {
 		$url_id = (int) $url_match[2];
 		$rel_id = (int) $rel_match[1];
 
-		if ( ! $url_id || ! $rel_id || $url_id != $rel_id || ! str_contains( $url_match[0], $site_url ) ) {
+		if ( ! $url_id || ! $rel_id || $url_id !== $rel_id || ! str_contains( $url_match[0], $site_url ) ) {
 			continue;
 		}
 
@@ -1211,7 +1224,7 @@ function get_available_post_statuses( $type = 'post' ) {
  *
  * @param array|false $q Optional. Array of query variables to use to build the query.
  *                       Defaults to the `$_GET` superglobal.
- * @return array
+ * @return string[] An array of all the statuses for the queried post type.
  */
 function wp_edit_posts_query( $q = false ) {
 	if ( false === $q ) {
@@ -1383,7 +1396,12 @@ function wp_edit_attachments_query_vars( $q = false ) {
  *
  * @param array|false $q Optional. Array of query variables to use to build the query.
  *                       Defaults to the `$_GET` superglobal.
- * @return array
+ * @return array {
+ *     Array containing the post mime types and available post mime types.
+ *
+ *     @type array[]  $post_mime_types       Post mime types.
+ *     @type string[] $avail_post_mime_types Available post mime types.
+ * }
  */
 function wp_edit_attachments_query( $q = false ) {
 	wp( wp_edit_attachments_query_vars( $q ) );
@@ -2175,7 +2193,7 @@ function wp_autosave( $post_data ) {
  *
  * @param int $post_id Optional. Post ID.
  */
-function redirect_post( $post_id = '' ) {
+function redirect_post( $post_id = 0 ) {
 	if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {
 		$status = get_post_status( $post_id );
 
@@ -2431,7 +2449,7 @@ function the_block_editor_meta_boxes() {
 	 * our editor instance.
 	 */
 	$script = 'window._wpLoadBlockEditor.then( function() {
-		wp.data.dispatch( \'core/edit-post\' ).setAvailableMetaBoxesPerLocation( ' . wp_json_encode( $meta_boxes_per_location ) . ' );
+		wp.data.dispatch( \'core/edit-post\' ).setAvailableMetaBoxesPerLocation( ' . wp_json_encode( $meta_boxes_per_location, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ' );
 	} );';
 
 	wp_add_inline_script( 'wp-edit-post', $script );

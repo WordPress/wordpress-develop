@@ -24,7 +24,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 
 		if ( ! $theme->exists() || ! $theme->is_allowed() ) {
 			wp_die(
-				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
+				'<h1>' . __( 'An error occurred.' ) . '</h1>' .
 				'<p>' . __( 'The requested theme does not exist.' ) . '</p>',
 				403
 			);
@@ -67,7 +67,7 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 
 		if ( ! $theme->exists() ) {
 			wp_die(
-				'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
+				'<h1>' . __( 'An error occurred while deleting the theme.' ) . '</h1>' .
 				'<p>' . __( 'The requested theme does not exist.' ) . '</p>',
 				403
 			);
@@ -153,7 +153,7 @@ if ( current_user_can( 'install_themes' ) ) {
 	} else {
 		$help_install = '<p>' . sprintf(
 			/* translators: %s: https://wordpress.org/themes/ */
-			__( 'If you would like to see more themes to choose from, click on the &#8220;Add New Theme&#8221; button and you will be able to browse or search for additional themes from the <a href="%s">WordPress Theme Directory</a>. Themes in the WordPress Theme Directory are designed and developed by third parties, and are compatible with the license WordPress uses. Oh, and they are free!' ),
+			__( 'If you would like to see more themes to choose from, click on the &#8220;Add Theme&#8221; button and you will be able to browse or search for additional themes from the <a href="%s">WordPress Theme Directory</a>. Themes in the WordPress Theme Directory are designed and developed by third parties, and are compatible with the license WordPress uses. Oh, and they are free!' ),
 			__( 'https://wordpress.org/themes/' )
 		) . '</p>';
 	}
@@ -231,7 +231,7 @@ wp_localize_script(
 			'adminUrl'      => parse_url( admin_url(), PHP_URL_PATH ),
 		),
 		'l10n'     => array(
-			'addNew'        => __( 'Add New Theme' ),
+			'addNew'        => __( 'Add Theme' ),
 			'search'        => __( 'Search installed themes' ),
 			/* translators: %d: Number of themes. */
 			'themesFound'   => __( 'Number of Themes found: %d' ),
@@ -252,7 +252,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<span class="title-count theme-count"><?php echo ! empty( $_GET['search'] ) ? __( '&hellip;' ) : count( $themes ); ?></span>
 	</h1>
 	<?php if ( ! is_multisite() && current_user_can( 'install_themes' ) ) : ?>
-		<a href="<?php echo esc_url( admin_url( 'theme-install.php' ) ); ?>" class="hide-if-no-js page-title-action"><?php echo esc_html__( 'Add New Theme' ); ?></a>
+		<a href="<?php echo esc_url( admin_url( 'theme-install.php' ) ); ?>" class="hide-if-no-js page-title-action"><?php echo esc_html__( 'Add Theme' ); ?></a>
 	<?php endif; ?>
 	<hr class="wp-header-end">
 	<form class="search-form search-themes"><p class="search-box"></p></form>
@@ -345,7 +345,7 @@ $current_theme = wp_get_theme();
 
 if ( $current_theme->errors() && ( ! is_multisite() || current_user_can( 'manage_network_themes' ) ) ) {
 	wp_admin_notice(
-		__( 'Error:' ) . ' ' . $current_theme->errors()->get_error_message(),
+		'<strong>' . __( 'Error:' ) . '</strong> ' . $current_theme->errors()->get_error_message(),
 		array(
 			'additional_classes' => array( 'error' ),
 		)
@@ -645,7 +645,7 @@ foreach ( $themes as $theme ) :
 			><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 
 			<?php
-			if ( ! $theme['blockTheme'] && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
+			if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
 				/* translators: %s: Theme name. */
 				$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
 				?>
@@ -1034,15 +1034,13 @@ function wp_theme_auto_update_setting_template() {
 						aria-label="<?php echo esc_attr( $aria_label ); ?>"
 					><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 
-					<# if ( ! data.blockTheme ) { #>
-						<?php
-						/* translators: %s: Theme name. */
-						$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
-						?>
-						<a class="button button-primary hide-if-no-customize disabled"
-							aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
-						><?php _e( 'Live Preview' ); ?></a>
-					<# } #>
+					<?php
+					/* translators: %s: Theme name. */
+					$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<a class="button button-primary hide-if-no-customize disabled"
+						aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
+					><?php _e( 'Live Preview' ); ?></a>
 				<# } #>
 			<# } #>
 		</div>
@@ -1261,16 +1259,14 @@ function wp_theme_auto_update_setting_template() {
 
 			<div class="inactive-theme">
 				<# if ( data.compatibleWP && data.compatiblePHP ) { #>
-					<# if ( ! data.blockTheme ) { #>
-						<?php
-						/* translators: %s: Theme name. */
-						$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
-						?>
-						<a class="button button-primary load-customize hide-if-no-customize"
-							href="{{{ data.actions.customize }}}"
-							aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
-						><?php _e( 'Live Preview' ); ?></a>
-					<# } #>
+					<?php
+					/* translators: %s: Theme name. */
+					$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<a class="button button-primary load-customize hide-if-no-customize"
+						href="{{{ data.actions.customize }}}"
+						aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
+					><?php _e( 'Live Preview' ); ?></a>
 
 					<# if ( data.actions.activate ) { #>
 						<?php
@@ -1283,15 +1279,13 @@ function wp_theme_auto_update_setting_template() {
 						><?php _e( 'Activate' ); ?></a>
 					<# } #>
 				<# } else { #>
-					<# if ( ! data.blockTheme ) { #>
-						<?php
-						/* translators: %s: Theme name. */
-						$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
-						?>
-						<a class="button button-primary hide-if-no-customize disabled"
-							aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
-						><?php _e( 'Live Preview' ); ?></a>
-					<# } #>
+					<?php
+					/* translators: %s: Theme name. */
+					$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<a class="button button-primary hide-if-no-customize disabled"
+						aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>"
+					><?php _e( 'Live Preview' ); ?></a>
 
 					<# if ( data.actions.activate ) { #>
 						<?php
