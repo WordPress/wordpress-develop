@@ -48,7 +48,7 @@ class WP_HTML_Active_Formatting_Elements {
 	 *
 	 * Do not use this method; it is meant to be used only by the HTML Processor.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @access private
 	 *

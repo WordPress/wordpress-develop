@@ -3067,7 +3067,7 @@ class WP_HTML_Tag_Processor {
 	 * Returns the adjusted attribute name for a given attribute, taking into
 	 * account the provided namespace.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @param string  $ns             The namespace to use: 'html', 'svg', or 'math'.
 	 * @param string  $attribute_name Which attribute to adjust.

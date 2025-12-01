@@ -262,7 +262,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * These attributes are not modifiable.
 	 *
-	 * @since 6.8.0
+	 * @since 7.0.0
 	 *
 	 * @var array
 	 */
@@ -5332,7 +5332,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * Returns the adjusted attribute name for a given attribute, taking into
 	 * account the current parsing context, whether HTML, SVG, or MathML.
 	 *
-	 * @since 6.8.0 Subclassed for the HTML Processor.
+	 * @since 7.0.0 Subclassed for the HTML Processor.
 	 *
 	 * @param string       $attribute_name Which attribute name to adjust.
 	 *
@@ -5942,7 +5942,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * > been explicitly closed.
 	 *
 	 * @since 6.4.0
-	 * @since 6.8.0 Added additional support.
+	 * @since 7.0.0 Added additional support.
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
