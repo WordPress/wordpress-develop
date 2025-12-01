@@ -22,7 +22,6 @@ function register_block_pattern( $pattern_name, $pattern_properties ) {
 	return WP_Block_Patterns_Registry::get_instance()->register( $pattern_name, $pattern_properties );
 }
 
-
 /**
  * Unregisters a block pattern.
  *
@@ -34,7 +33,6 @@ function register_block_pattern( $pattern_name, $pattern_properties ) {
 function unregister_block_pattern( $pattern_name ) {
 	return WP_Block_Patterns_Registry::get_instance()->unregister( $pattern_name );
 }
-
 
 /**
  * Registers a new pattern category.
