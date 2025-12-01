@@ -676,13 +676,14 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			$state_count = count( $site_states );
 
 			$i = 0;
+			$s = wp_get_list_item_separator();
 
 			echo ' &mdash; ';
 
 			foreach ( $site_states as $state ) {
 				++$i;
 
-				$separator = ( $i < $state_count ) ? ', ' : '';
+				$separator = ( $i < $state_count ) ? $s : '';
 
 				echo "<span class='post-state'>{$state}{$separator}</span>";
 			}
