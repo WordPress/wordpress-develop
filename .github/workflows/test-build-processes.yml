@@ -60,6 +60,7 @@ jobs:
         os: [ 'ubuntu-24.04' ]
         directory: [ 'src', 'build' ]
         test-certificates: [ true ]
+        check-gutenberg-functions: [ true ]
         include:
           # Only prepare artifacts for Playground once.
           - os: 'ubuntu-24.04'

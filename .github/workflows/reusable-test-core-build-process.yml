@@ -26,6 +26,11 @@ on:
         required: false
         type: 'boolean'
         default: false
+      check-gutenberg-functions:
+        description: 'Whether to check for the presence of functions prefixed with gutenberg_.'
+        required: false
+        type: boolean
+        default: false
       save-build:
         description: 'Whether to save a ZIP of built WordPress as an artifact.'
         required: false
@@ -109,7 +114,8 @@ jobs:
         run: npm ci
 
       - name: Check for PHP functions with the gutenberg_ prefix
-        run: npm run grunt prevent-gutenberg-functions || true
+        if: ${{ inputs.check-gutenberg-functions }}
+        run: npm run grunt prevent-gutenberg-functions
 
       - name: Run Emoji precommit task
         if: ${{ inputs.test-emoji }}
