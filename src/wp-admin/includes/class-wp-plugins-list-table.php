@@ -150,12 +150,30 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$plugins['dropins'] = get_dropins();
 			}
 
+			/**
+			 * REPLACE WITH (or ADD AFTER the above code):
+			 */
 			if ( current_user_can( 'update_plugins' ) ) {
 				$current = get_site_transient( 'update_plugins' );
+				// echo '<pre>';
+				// echo print_r( $current->response, true );
+				// echo '</pre>';
 				foreach ( (array) $plugins['all'] as $plugin_file => $plugin_data ) {
+					// Check if plugin has an available update.
 					if ( isset( $current->response[ $plugin_file ] ) ) {
+
 						$plugins['all'][ $plugin_file ]['update'] = true;
 						$plugins['upgrade'][ $plugin_file ]       = $plugins['all'][ $plugin_file ];
+
+						// Merge additional API data from update response.
+						// This includes: slug, tested, requires, requires_php, etc.
+						$api_data                       = (array) $current->response[ $plugin_file ];
+						$plugins['all'][ $plugin_file ] = array_merge( $plugins['all'][ $plugin_file ], $api_data );
+
+					} elseif ( isset( $current->no_update[ $plugin_file ] ) ) {
+						// Plugin is up-to-date, but we still want API data (tested, requires, etc.)
+						$api_data                       = (array) $current->no_update[ $plugin_file ];
+						$plugins['all'][ $plugin_file ] = array_merge( $plugins['all'][ $plugin_file ], $api_data );
 					}
 				}
 			}
@@ -454,7 +472,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		?>
 		<p class="search-box">
 			<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?></label>
-			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" />
+			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s"
+				value="<?php _admin_search_query(); ?>" />
 			<?php submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
 		</p>
 		<?php
@@ -758,6 +777,54 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		$compatible_php = is_php_version_compatible( $requires_php );
 		$compatible_wp  = is_wp_version_compatible( $requires_wp );
+
+		if ( ! function_exists( 'plugins_api' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+		}
+
+		$plugin_information = plugins_api(
+			'plugin_information',
+			array(
+				'slug'   => $plugin_slug,
+				'fields' => array(
+					'sections' => false,
+					'rating'   => false,
+					'downloaded' => false,
+					'last_updated' => false,
+					'banners' => false,
+					'icons' => false,
+					'active_installs' => false,
+					'short_description' => false,
+					'tags' => false,
+					'compatibility' => false,
+					'contributors' => false,
+					'ratings' => false,
+					'screenshots' => false,
+					'support_url' => false,
+					'added' => false,
+					'homepage' => false,
+					'download_link' => false,
+					'upgrade_notice' => false,
+					'versions' => false,
+					'business_model' => false,
+					'repository_url' => false,
+					'commercial_support_url' => false,
+					'donate_link' => false,
+					'preview_link' => false,
+				)
+			)
+		);
+
+		$tested_wp         = null;
+		$tested_compatible = true;
+
+		if ( ! is_wp_error( $plugin_information ) && isset( $plugin_information->tested ) ) {
+			$tested_wp = $plugin_information->tested;
+		}
+
+		if ( null !== $tested_wp ) {
+			$tested_compatible = is_tested_wp_version_compatible( $tested_wp );
+		}
 
 		$has_dependents          = WP_Plugin_Dependencies::has_dependents( $plugin_file );
 		$has_active_dependents   = WP_Plugin_Dependencies::has_active_dependents( $plugin_file );
@@ -1510,6 +1577,100 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		 *                            'search', 'paused', 'auto-update-enabled', 'auto-update-disabled'.
 		 */
 		do_action( "after_plugin_row_{$plugin_file}", $plugin_file, $plugin_data, $status );
+
+		if ( ! $tested_compatible ) {
+			global $wp_version;
+			$show_compat_warning = true;
+			$compat_message = sprintf(
+				/* translators: 1: Current WordPress version, 2: Version the plugin was tested up to. */
+				__( 'This plugin has not been tested with your current version of WordPress (%1$s). It may still work, but consider checking for an update or contacting the plugin author. Last tested with WordPress %2$s.' ),
+				$wp_version,
+				$tested_wp,
+			);
+
+			/**
+			 * Filters whether to show compatibility warning for a plugin.
+			 *
+			 * @since 6.8.0
+			 *
+			 * @param bool   $show_compat_warning Whether to show the compatibility warning.
+			 * @param string $plugin_file         Path to the plugin file relative to the plugins directory.
+			 * @param array  $plugin_data         An array of plugin data. See get_plugin_data()
+			 *                                    and the {@see 'plugin_row_meta'} filter for the list
+			 *                                    of possible values.
+			 * @param string $tested_wp      The WordPress version the plugin was tested up to.
+			 * @param string $wp_version          Current WordPress version.
+			 */
+			$show_compat_warning = apply_filters(
+				'show_plugin_compatibility_warning',
+				$show_compat_warning,
+				$plugin_file,
+				$plugin_data,
+				$tested_wp,
+				$wp_version
+			);
+
+			/**
+			 * Filters the compatibility warning message for a plugin.
+			 *
+			 * @since 6.8.0
+			 *
+			 * @param string $compat_message The compatibility warning message.
+			 * @param string $plugin_file    Path to the plugin file relative to the plugins directory.
+			 * @param array  $plugin_data    An array of plugin data. See get_plugin_data()
+			 *                               and the {@see 'plugin_row_meta'} filter for the list
+			 *                               of possible values.
+			 * @param string $tested_wp The WordPress version the plugin was tested up to.
+			 * @param string $wp_version     Current WordPress version.
+			 */
+			$compat_message = apply_filters(
+				'plugin_compatibility_warning_message',
+				$compat_message,
+				$plugin_file,
+				$plugin_data,
+				$tested_wp,
+				$wp_version
+			);
+
+			if ( $show_compat_warning && ! empty( $compat_message ) ) {
+				printf(
+					'<tr class="plugin-update-tr%s" id="%s" data-slug="%s" data-plugin="%s"><td colspan="%s" class="plugin-update colspanchange">',
+					$is_active ? ' active' : ' inactive',
+					esc_attr( $plugin_slug . '-compat-warning' ),
+					esc_attr( $plugin_slug ),
+					esc_attr( $plugin_file ),
+					esc_attr( $this->get_column_count() )
+				);
+
+				$details_url  = '';
+				$details_link = '';
+
+				if ( current_user_can( 'install_plugins' ) ) {
+					$details_url = network_admin_url(
+						'plugin-install.php?tab=plugin-information&plugin=' . $plugin_data['slug'] .
+						'&TB_iframe=true&width=600&height=550'
+					);
+
+					$details_link = sprintf(
+						' <a href="%s" class="thickbox open-plugin-details-modal" aria-label="%s">%s</a>',
+						esc_url( $details_url ),
+						/* translators: %s: Plugin name. */
+						esc_attr( sprintf( __( 'More information about %s' ), $plugin_data['Name'] ) ),
+						__( 'View details' )
+					);
+				}
+
+				wp_admin_notice(
+					$compat_message . $details_link,
+					array(
+						'type'               => 'warning',
+						'additional_classes' => array( 'notice-alt', 'inline' ),
+					)
+				);
+
+				echo '</td></tr>';
+			}
+		}
 	}
 
 	/**

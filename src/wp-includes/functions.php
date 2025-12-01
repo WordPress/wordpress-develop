@@ -8971,8 +8971,41 @@ function is_wp_version_compatible( $required ) {
 			$required = substr( $trimmed, 0, -2 );
 		}
 	}
-
 	return empty( $required ) || version_compare( $version, $required, '>=' );
+}
+
+/**
+ * Checks compatibility with the tested WordPress version.
+ *
+ * @since 6.9.0
+ *
+ * @global string $_wp_tests_wp_version The WordPress version string. Used only in Core tests.
+ *
+ * @param string $required Maximum required WordPress version.
+ * @return bool True if required version is compatible, false if not.
+ */
+function is_tested_wp_version_compatible( $required ) {
+	if (
+		defined( 'WP_RUN_CORE_TESTS' )
+		&& WP_RUN_CORE_TESTS
+		&& isset( $GLOBALS['_wp_tests_wp_version'] )
+	) {
+		$wp_version = $GLOBALS['_wp_tests_wp_version'];
+	} else {
+		$wp_version = wp_get_wp_version();
+	}
+
+	// Strip off any -alpha, -RC, -beta, -src suffixes.
+	list( $version ) = explode( '-', $wp_version );
+
+	if ( is_string( $required ) ) {
+		$trimmed = trim( $required );
+
+		if ( substr_count( $trimmed, '.' ) > 1 && str_ends_with( $trimmed, '.0' ) ) {
+			$required = substr( $trimmed, 0, -2 );
+		}
+	}
+	return version_compare( $version, $required, '<=' );
 }
 
 /**
