@@ -2253,14 +2253,13 @@ function _post_states( $post, $display = true ) {
 		$state_count = count( $post_states );
 
 		$i = 0;
-		$s = wp_get_list_item_separator();
 
 		$post_states_html .= ' &mdash; ';
 
 		foreach ( $post_states as $state ) {
 			++$i;
 
-			$separator = ( $i < $state_count ) ? $s : '';
+			$separator = ( $i < $state_count ) ? ', ' : '';
 
 			$post_states_html .= "<span class='post-state'>{$state}{$separator}</span>";
 		}
@@ -2382,14 +2381,13 @@ function _media_states( $post, $display = true ) {
 		$state_count = count( $media_states );
 
 		$i = 0;
-		$s = wp_get_list_item_separator();
 
 		$media_states_string .= ' &mdash; ';
 
 		foreach ( $media_states as $state ) {
 			++$i;
 
-			$separator = ( $i < $state_count ) ? $s : '';
+			$separator = ( $i < $state_count ) ? ', ' : '';
 
 			$media_states_string .= "<span class='post-state'>{$state}{$separator}</span>";
 		}
