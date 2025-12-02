@@ -2138,6 +2138,8 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  * @global string $admin_page_parent The parent slug of the current admin page.
  * @global string $plugin_page  The plugin page slug being loaded.
  * @global array  $_registered_pages Array of all registered admin page hooks.
+ *
+ * @return bool True if the admin page exists, false otherwise.
  */
 function admin_page_exists() {
 	global $admin_page_parent, $plugin_page, $_registered_pages;
