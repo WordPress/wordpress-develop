@@ -199,7 +199,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_tag( 'A' ) );
 		$this->assertSame(
 			array( 'HTML', 'BODY', 'DIV', 'A' ),
-			$processor->get_breadcrumbs(),
+			$processor->get_breadcrumbs()
 		);
 
 		/*
