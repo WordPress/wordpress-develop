@@ -373,7 +373,7 @@ if ( ! admin_page_exists() ) {
 	/**
 	 * Fires when access to an admin page which does not exist.
 	 *
-	 * @since 6.9.0
+	 * @since 7.0
 	 */
 	do_action( 'admin_page_not_found' );
 
