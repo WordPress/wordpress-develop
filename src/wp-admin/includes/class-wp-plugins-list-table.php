@@ -150,30 +150,12 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				$plugins['dropins'] = get_dropins();
 			}
 
-			/**
-			 * REPLACE WITH (or ADD AFTER the above code):
-			 */
 			if ( current_user_can( 'update_plugins' ) ) {
 				$current = get_site_transient( 'update_plugins' );
-				// echo '<pre>';
-				// echo print_r( $current->response, true );
-				// echo '</pre>';
 				foreach ( (array) $plugins['all'] as $plugin_file => $plugin_data ) {
-					// Check if plugin has an available update.
 					if ( isset( $current->response[ $plugin_file ] ) ) {
-
 						$plugins['all'][ $plugin_file ]['update'] = true;
 						$plugins['upgrade'][ $plugin_file ]       = $plugins['all'][ $plugin_file ];
-
-						// Merge additional API data from update response.
-						// This includes: slug, tested, requires, requires_php, etc.
-						$api_data                       = (array) $current->response[ $plugin_file ];
-						$plugins['all'][ $plugin_file ] = array_merge( $plugins['all'][ $plugin_file ], $api_data );
-
-					} elseif ( isset( $current->no_update[ $plugin_file ] ) ) {
-						// Plugin is up-to-date, but we still want API data (tested, requires, etc.)
-						$api_data                       = (array) $current->no_update[ $plugin_file ];
-						$plugins['all'][ $plugin_file ] = array_merge( $plugins['all'][ $plugin_file ], $api_data );
 					}
 				}
 			}
@@ -472,8 +454,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		?>
 		<p class="search-box">
 			<label for="<?php echo esc_attr( $input_id ); ?>"><?php echo $text; ?></label>
-			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s"
-				value="<?php _admin_search_query(); ?>" />
+			<input type="search" id="<?php echo esc_attr( $input_id ); ?>" class="wp-filter-search" name="s" value="<?php _admin_search_query(); ?>" />
 			<?php submit_button( $text, 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
 		</p>
 		<?php
@@ -811,7 +792,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					'commercial_support_url' => false,
 					'donate_link' => false,
 					'preview_link' => false,
-				)
+				),
 			)
 		);
 
@@ -1585,7 +1566,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				/* translators: 1: Current WordPress version, 2: Version the plugin was tested up to. */
 				__( 'This plugin has not been tested with your current version of WordPress (%1$s). It may still work, but consider checking for an update or contacting the plugin author. Last tested with WordPress %2$s.' ),
 				$wp_version,
-				$tested_wp,
+				$tested_wp
 			);
 
 			/**
