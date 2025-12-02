@@ -210,7 +210,7 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_tag( 'A' ) );
 		$this->assertSame(
 			array( 'HTML', 'BODY', 'A' ),
-			$processor->get_breadcrumbs(),
+			$processor->get_breadcrumbs()
 		);
 
 		// Finally, the trailing text is inside the A.
