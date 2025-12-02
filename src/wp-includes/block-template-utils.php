@@ -16,6 +16,9 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_FOOTER' ) ) {
 if ( ! defined( 'WP_TEMPLATE_PART_AREA_SIDEBAR' ) ) {
 	define( 'WP_TEMPLATE_PART_AREA_SIDEBAR', 'sidebar' );
 }
+if ( ! defined( 'WP_TEMPLATE_PART_AREA_OVERLAY' ) ) {
+	define( 'WP_TEMPLATE_PART_AREA_OVERLAY', 'overlay' );
+}
 if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
 	define( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED', 'uncategorized' );
 }
@@ -95,6 +98,15 @@ function get_allowed_block_template_part_areas() {
 			),
 			'icon'        => 'footer',
 			'area_tag'    => 'footer',
+		),
+		array(
+			'area'        => WP_TEMPLATE_PART_AREA_OVERLAY,
+			'label'       => _x( 'Overlay', 'template part area' ),
+			'description' => __(
+				'The Overlay template defines areas that can be used to overlay the content of the page.'
+			),
+			'icon'        => 'overlay',
+			'area_tag'    => 'div',
 		),
 	);
 
