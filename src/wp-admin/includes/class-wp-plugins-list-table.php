@@ -1579,7 +1579,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			 * @param array  $plugin_data         An array of plugin data. See get_plugin_data()
 			 *                                    and the {@see 'plugin_row_meta'} filter for the list
 			 *                                    of possible values.
-			 * @param string $tested_wp      The WordPress version the plugin was tested up to.
+			 * @param string $tested_wp           The WordPress version the plugin was tested up to.
 			 * @param string $wp_version          Current WordPress version.
 			 */
 			$show_compat_warning = apply_filters(
@@ -1601,7 +1601,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			 * @param array  $plugin_data    An array of plugin data. See get_plugin_data()
 			 *                               and the {@see 'plugin_row_meta'} filter for the list
 			 *                               of possible values.
-			 * @param string $tested_wp The WordPress version the plugin was tested up to.
+			 * @param string $tested_wp      The WordPress version the plugin was tested up to.
 			 * @param string $wp_version     Current WordPress version.
 			 */
 			$compat_message = apply_filters(
