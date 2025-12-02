@@ -1457,7 +1457,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 }
 
 .plugin-install-php .wp-filter {
-	margin-bottom: 0;
+	margin-bottom: 1rem;
 }
 
 /* Plugin card table view */
