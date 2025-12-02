@@ -2135,7 +2135,7 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  *
  * @since tba
  *
- * @global string $admin_page_parent
+ * @global string $admin_page_parent The parent slug of the current admin page.
  * @global string $plugin_page
  * @global array  $_registered_pages
  */
