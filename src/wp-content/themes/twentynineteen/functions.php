@@ -181,7 +181,9 @@ if ( ! function_exists( 'wp_get_list_item_separator' ) ) :
 	 *
 	 * Added for backward compatibility to support pre-6.0.0 WordPress versions.
 	 *
-	 * @since 6.0.0
+	 * @since Twenty Nineteen 2.3
+	 *
+	 * @return string Locale-specific list item separator.
 	 */
 	function wp_get_list_item_separator() {
 		/* translators: Used between list items, there is a space after the comma. */
@@ -278,7 +280,7 @@ function twentynineteen_scripts() {
 			'twentynineteen-touch-navigation',
 			get_theme_file_uri( '/js/touch-keyboard-navigation.js' ),
 			array(),
-			'20230621',
+			'20250802',
 			array(
 				'in_footer' => true,
 				'strategy'  => 'defer',
