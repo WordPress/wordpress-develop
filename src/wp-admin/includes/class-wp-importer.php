@@ -291,7 +291,7 @@ class WP_Importer {
  *
  * @param string $param    The parameter name to retrieve.
  * @param bool   $required Whether the parameter is required. Default false.
- * @return mixed The parameter value if found, null otherwise.
+ * @return string|bool|null The parameter value or true if found, null otherwise.
  */
 function get_cli_args( $param, $required = false ) {
 	$args = $_SERVER['argv'];
