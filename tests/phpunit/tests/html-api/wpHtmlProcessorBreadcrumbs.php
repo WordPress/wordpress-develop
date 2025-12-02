@@ -193,28 +193,30 @@ class Tests_HtmlApi_WpHtmlProcessorBreadcrumbs extends WP_UnitTestCase {
 	 * @ticket 61576
 	 */
 	public function test_reconstructs_unclosed_a_elements() {
-		$processor = WP_HTML_Processor::create_fragment( '<a><div><a></div></a>' );
+		$processor = WP_HTML_Processor::create_fragment( '<div><a></div>Found me!' );
 
-		$processor->next_tag( 'DIV' );
+		// First, there's an A tag inside the DIV.
+		$this->assertTrue( $processor->next_tag( 'A' ) );
 		$this->assertSame(
-			array( 'HTML', 'BODY', 'DIV' ),
+			array( 'HTML', 'BODY', 'DIV', 'A' ),
 			$processor->get_breadcrumbs(),
-			'Failed to construct breadcrumbs properly - the DIV should have closed the A element.'
 		);
 
-		// When the DIV re-opens, it reconstructs an unclosed A, then the A in the text is a second A.
-		$processor->next_tag( 'A' );
+		/*
+		 * There's a second A tag containing the text outside the DIV.
+		 * When the DIV closes, the unclosed A is reconstructed from inside the DIV
+		 * to contain the following text.
+		 */
+		$this->assertTrue( $processor->next_tag( 'A' ) );
 		$this->assertSame(
-			array( 'HTML', 'BODY', 'DIV', 'A' ),
-			'Failed to create proper breadcrumbs for recreated A element.'
+			array( 'HTML', 'BODY', 'A' ),
+			$processor->get_breadcrumbs(),
 		);
 
-		// This is the one that's second in the raw text.
-		$processor->next_tag( 'A' );
-		$this->assertSame(
-			array( 'HTML', 'BODY', 'DIV', 'A' ),
-			'Failed to create proper breadcrumbs for explicit A element - this A should have closed the reconstructed A.'
-		);
+		// Finally, the trailing text is inside the A.
+		$processor->next_token();
+		$this->assertSame( '#text', $processor->get_token_type() );
+		$this->assertSame( 'Found me!', $processor->get_modifiable_text() );
 	}
 
 	/**
