@@ -3886,6 +3886,23 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		$message  .= "\n<p><a href='javascript:history.back()'>$back_text</a></p>";
 	}
 
+	// Ensure HTTP 500 status code for critical errors, even if headers were already sent.
+	$is_critical_error = false;
+	if ( function_exists( 'is_wp_error' ) && is_wp_error( $message ) ) {
+			$error_code        = $message->get_error_code();
+			$is_critical_error = ( 'internal_server_error' === $error_code );
+	} elseif ( 'internal_server_error' === $parsed_args['code'] ) {
+			$is_critical_error = true;
+	}
+
+	// Also ensure HTTP 500 if response is already set to 500 (from fatal error handler).
+	if ( $is_critical_error || 500 === $parsed_args['response'] ) {
+		$parsed_args['response'] = 500;
+		if ( function_exists( 'http_response_code' ) ) {
+				http_response_code( 500 );
+		}
+	}
+
 	if ( ! did_action( 'admin_head' ) ) :
 		if ( ! headers_sent() ) {
 			header( "Content-Type: text/html; charset={$parsed_args['charset']}" );
@@ -4224,12 +4241,12 @@ function _xml_wp_die_handler( $message, $title = '', $args = array() ) {
 
 	$xml = <<<EOD
 <error>
-    <code>{$parsed_args['code']}</code>
-    <title><![CDATA[{$title}]]></title>
-    <message><![CDATA[{$message}]]></message>
-    <data>
-        <status>{$parsed_args['response']}</status>
-    </data>
+	<code>{$parsed_args['code']}</code>
+	<title><![CDATA[{$title}]]></title>
+	<message><![CDATA[{$message}]]></message>
+	<data>
+		<status>{$parsed_args['response']}</status>
+	</data>
 </error>
 
 EOD;
