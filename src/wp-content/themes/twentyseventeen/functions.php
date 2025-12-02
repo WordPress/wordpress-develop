@@ -444,7 +444,7 @@ function twentyseventeen_colors_css_wrap() {
 	}
 	?>
 	<style type="text/css" id="custom-theme-colors" <?php echo $customize_preview_data_hue; ?>>
-		<?php echo twentyseventeen_custom_colors_css(); ?>
+		<?php echo wp_strip_all_tags( twentyseventeen_custom_colors_css() ); ?>
 	</style>
 	<?php
 }
