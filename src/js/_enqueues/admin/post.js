@@ -775,7 +775,7 @@ jQuery( function($) {
 			if ( attemptedDate > currentDate ) {
 				publishOn = __( 'Schedule for:' );
 				$('#publish').val( _x( 'Schedule', 'post action/button label' ) );
-			} else if ( attemptedDate <= currentDate && $('#original_post_status').val() != 'publish' ) {
+			} else if ( attemptedDate <= currentDate && $('#original_post_status').val() != 'publish'  && 0 === postId ) {
 				publishOn = __( 'Publish on:' );
 				$('#publish').val( __( 'Publish' ) );
 			} else {
