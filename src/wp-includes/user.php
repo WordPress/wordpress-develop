@@ -4166,6 +4166,101 @@ function wp_user_personal_data_exporter( $email_address ) {
 }
 
 /**
+* Registers the personal data eraser for users.
+*
+* @since 6.7.0
+*
+* @param array $erasers An array of personal data erasers.
+* @return array An array of personal data erasers.
+*/
+function wp_register_user_personal_data_eraser( $erasers ) {
+	$erasers['wordpress-user'] = array(
+		'eraser_friendly_name' => __( 'WordPress User' ),
+		'callback'             => 'wp_user_personal_data_eraser',
+	);
+
+	return $erasers;
+}
+
+/**
+* Erases core user profile data for a personal data erasure request.
+*
+* @since 6.7.0
+*
+* @param string $email_address The user's email address.
+* @param int    $page          Unused. Part of the eraser signature.
+* @return array {
+*     Data removal results.
+*
+*     @type bool     $items_removed  Whether items were actually removed.
+*     @type bool     $items_retained Whether items were retained.
+*     @type string[] $messages       An array of messages about retained items.
+*     @type bool     $done           Whether the eraser is finished.
+* }
+*/
+function wp_user_personal_data_eraser( $email_address, $page = 1 ) {
+	$response = array(
+		'items_removed'  => false,
+		'items_retained' => false,
+		'messages'       => array(),
+		'done'           => true,
+	);
+
+	$email_address = trim( $email_address );
+
+	if ( empty( $email_address ) ) {
+		return $response;
+	}
+
+	$user = get_user_by( 'email', $email_address );
+
+	if ( ! $user instanceof WP_User ) {
+		return $response;
+	}
+
+	$user_id = $user->ID;
+
+	$meta_keys_to_erase = array( 'description' );
+
+	/**
+	 * Filters the list of user meta keys removed during a personal data erasure request.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @param string[] $meta_keys_to_erase User meta keys slated for deletion.
+	 * @param WP_User  $user               The user whose data is being erased.
+	 */
+	$meta_keys_to_erase = apply_filters( 'wp_privacy_user_personal_data_eraser_meta_keys', $meta_keys_to_erase, $user );
+
+	foreach ( $meta_keys_to_erase as $meta_key ) {
+		$meta_key = sanitize_key( $meta_key );
+
+		if ( '' === $meta_key ) {
+			continue;
+		}
+
+		if ( ! metadata_exists( 'user', $user_id, $meta_key ) ) {
+			continue;
+		}
+
+		$deleted = delete_user_meta( $user_id, $meta_key );
+
+		if ( $deleted ) {
+			$response['items_removed'] = true;
+		} else {
+			$response['items_retained'] = true;
+			$response['messages'][]     = sprintf(
+				/* translators: %s: User meta key. */
+				__( 'User meta "%s" could not be erased.' ),
+				$meta_key
+			);
+		}
+	}
+
+	return $response;
+}
+
+/**
  * Updates log when privacy request is confirmed.
  *
  * @since 4.9.6
