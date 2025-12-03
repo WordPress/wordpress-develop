@@ -4081,7 +4081,7 @@ class wpdb {
 		 * the polyfills from wp-includes/compat.php are not loaded.
 		 */
 		if ( '5.5.5' === $db_version && false !== strpos( $db_server_info, 'MariaDB' )
-			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
+			&& ( PHP_VERSION_ID < 80016 || ( PHP_VERSION_ID >= 80100 && PHP_VERSION_ID < 80103 ) ) // PHP 8.0.15 or older or PHP 8.1.0 to PHP 8.1.2.
 		) {
 			// Strip the '5.5.5-' prefix and set the version to the correct value.
 			$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );
