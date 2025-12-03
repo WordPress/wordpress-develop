@@ -412,7 +412,7 @@ function the_excerpt() {
  */
 function get_the_excerpt( $post = null ) {
 	if ( ! is_null( $post ) && ! is_numeric( $post ) && ! ( $post instanceof WP_Post ) ) {
-		_deprecated_argument( __FUNCTION__, '2.3.0' );
+		_deprecated_argument( __FUNCTION__, '2.3.0', __( 'The bool $fakeit argument has been replaced with an int|WP_Post $post argument.' ) );
 	}
 
 	$post = get_post( $post );
