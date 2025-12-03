@@ -436,10 +436,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$versioned_name = 'test/v1/add-numbers';
 		$result         = $this->registry->register( $versioned_name, self::$test_ability_args );
 
-		$this->assertSame(
-			new WP_Ability( $versioned_name, self::$test_ability_args ),
-			$result
-		);
+		$this->assertInstanceOf( WP_Ability::class, $result );
+		$this->assertSame( $versioned_name, $result->get_name() );
 	}
 
 	/**
