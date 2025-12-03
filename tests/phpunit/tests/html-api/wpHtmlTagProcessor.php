@@ -3032,11 +3032,8 @@ HTML
 	 * @ticket 64340
 	 */
 	public function test_class_changes_produce_correct_html() {
-		$processor = new WP_HTML_Tag_Processor( '<div>' );
+		$processor = new WP_HTML_Tag_Processor( '<div class="&amp;">' );
 		$processor->next_tag();
-
-		$processor->add_class( '&' );
-		$processor->get_updated_html();
 
 		$processor->add_class( '"' );
 		$processor->get_updated_html();
