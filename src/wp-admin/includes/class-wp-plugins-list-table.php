@@ -800,11 +800,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$tested_compatible = true;
 
 		if ( ! is_wp_error( $plugin_information ) && isset( $plugin_information->tested ) ) {
-			$tested_wp = $plugin_information->tested;
-		}
-
-		if ( null !== $tested_wp ) {
-			$tested_compatible = is_tested_wp_version_compatible( $tested_wp );
+			$tested_compatible = is_tested_wp_version_compatible( $plugin_information->tested );
 		}
 
 		$has_dependents          = WP_Plugin_Dependencies::has_dependents( $plugin_file );
