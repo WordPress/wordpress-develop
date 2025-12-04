@@ -949,4 +949,12 @@ class WP_Script_Modules {
 			. '<div id="a11y-speak-polite" class="a11y-speak-region" aria-live="polite" aria-relevant="additions text" aria-atomic="true"></div>'
 			. '</div>';
 	}
+
+	public function clone_without_enqueued_modules(): WP_Script_Modules {
+		$clone                                    = new WP_Script_Modules();
+		$clone->registered                        = $this->registered;
+		$clone->dependents_map                    = $this->dependents_map;
+		$clone->modules_with_missing_dependencies = $this->modules_with_missing_dependencies;
+		return $clone;
+	}
 }
