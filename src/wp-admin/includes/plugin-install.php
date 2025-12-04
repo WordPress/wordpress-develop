@@ -399,7 +399,7 @@ function display_plugins_table() {
 			);
 			break;
 		case 'install_plugins_featured':
-			echo '<br />';
+			echo '<br>';
 			break;
 		case 'install_plugins_recommended':
 			echo '<p>' . __( 'These suggestions are based on the plugins you and other users have installed.' ) . '</p>';
