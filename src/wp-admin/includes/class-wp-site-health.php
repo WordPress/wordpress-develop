@@ -3419,9 +3419,6 @@ class WP_Site_Health {
 
 			// Cloudflare
 			'cf-cache-status' => $cache_hit_callback,
-
-			// Apache mod_cache
-			'x-cache-detail' => $cache_hit_callback,
 		);
 
 		/**
