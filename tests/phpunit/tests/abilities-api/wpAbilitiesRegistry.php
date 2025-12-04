@@ -419,10 +419,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	public function test_register_new_ability() {
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 
-		$this->assertSame(
-			new WP_Ability( self::$test_ability_name, self::$test_ability_args ),
-			$result
-		);
+		$this->assertInstanceOf( WP_Ability::class, $result );
+		$this->assertSame( self::$test_ability_name, $result->get_name() );
 	}
 
 	/**
