@@ -1698,6 +1698,31 @@ function do_feed_atom( $for_comments ) {
 }
 
 /**
+ * Loads the MarkDown Feed Template.
+ *
+ * A simple HTML feed that outputs post content with MarkDown preserved.
+ *
+ * @since 6.7.0
+ *
+ * @see load_template()
+ *
+ * @param bool $for_comments Unused. Present for parity with other feed handlers.
+ */
+function do_feed_markdown( $for_comments ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+
+	load_template( ABSPATH . WPINC . '/feed-markdown.php' );
+}
+
+/**
+ * Registers the Markup feed rewrite and hook.
+ *
+ * @since 6.7.0
+ */
+function wp_register_markdown_feed() {
+	add_feed( 'markdown', 'do_feed_markdown' );
+}
+
+/**
  * Displays the default robots.txt file content.
  *
  * @since 2.1.0
