@@ -8977,7 +8977,7 @@ function is_wp_version_compatible( $required ) {
 /**
  * Checks compatibility with the tested WordPress version.
  *
- * @since 6.9.0
+ * @since 7.0.0
  *
  * @global string $_wp_tests_wp_version The WordPress version string. Used only in Core tests.
  *
