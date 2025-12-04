@@ -1594,7 +1594,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			/**
 			 * Filters the compatibility warning message for a plugin.
 			 *
-			 * @since 6.8.0
+			 * @since 7.0.0
 			 *
 			 * @param string $compat_message The compatibility warning message.
 			 * @param string $plugin_file    Path to the plugin file relative to the plugins directory.
