@@ -3414,14 +3414,14 @@ class WP_Site_Health {
 			'x-srcache-fetch-status' => $cache_hit_callback,
 
 			// Generic caching proxies (Nginx, Varnish, etc.)
-			'x-cache' => $cache_hit_callback,
+			'x-cache'        => $cache_hit_callback,
 			'x-cache-status' => $cache_hit_callback,
 			
 			// Cloudflare
 			'cf-cache-status' => $cache_hit_callback,
 			
 			// Apache mod_cache
-			'x-cache-detail' => $cache_hit_callback,			
+			'x-cache-detail' => $cache_hit_callback,
 		);
 
 		/**
