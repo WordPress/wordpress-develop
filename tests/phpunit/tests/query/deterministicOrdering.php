@@ -39,6 +39,13 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	protected static $menu_order_post_ids = array();
 
 	/**
+	 * Post IDs for search relevance tests.
+	 *
+	 * @var array
+	 */
+	protected static $search_relevance_post_ids = array();
+
+	/**
 	 * Set up shared fixtures for all tests.
 	 */
 	public static function set_up_before_class() {
@@ -106,6 +113,20 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 				)
 			);
 		}
+
+		// Create posts for search relevance tests.
+		// All posts will have the same content to ensure same relevance scores.
+		$identical_content = 'This is a search test post with identical content';
+		for ( $i = 1; $i <= 20; $i++ ) {
+			self::$search_relevance_post_ids[] = self::factory()->post->create(
+				array(
+					'post_type'    => 'wptests_time_ident',
+					'post_title'   => "Search Post $i",
+					'post_content' => $identical_content,
+					'post_excerpt' => $identical_content,
+				)
+			);
+		}
 	}
 
 	/**
@@ -115,10 +136,11 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 		_unregister_post_type( 'wptests_time_ident' );
 		_unregister_post_type( 'wptests_title_ident' );
 
-		self::$date_identical_post_ids  = array();
-		self::$title_identical_post_ids = array();
-		self::$search_post_ids          = array();
-		self::$menu_order_post_ids      = array();
+		self::$date_identical_post_ids   = array();
+		self::$title_identical_post_ids  = array();
+		self::$search_post_ids           = array();
+		self::$menu_order_post_ids       = array();
+		self::$search_relevance_post_ids = array();
 
 		parent::tear_down_after_class();
 	}
@@ -491,6 +513,120 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 		// Verify no overlap between pages (no duplicates)
 		$overlap = array_intersect( $page1_ids, $page2_ids );
 		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts when ordering by metadata' );
+
+		// Verify total count is correct
+		$this->assertEquals( 20, $query1->found_posts, 'Total posts should be 20' );
+		$this->assertEquals( 10, count( $page1_ids ), 'First page should have 10 posts' );
+		$this->assertEquals( 10, count( $page2_ids ), 'Second page should have 10 posts' );
+	}
+
+	/**
+	 * Test that deterministic ordering works with search relevance ordering.
+	 *
+	 * When ordering by search relevance, multiple posts can have the same relevance score,
+	 * causing duplicate records across pages without deterministic ordering.
+	 *
+	 * @ticket xxxxx
+	 */
+	public function test_deterministic_ordering_with_search_relevance() {
+		// Use shared fixtures with identical content (same relevance scores)
+		// Get first page ordering by relevance
+		$query1 = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$search_relevance_post_ids,
+				's'              => 'search test',
+				'orderby'        => 'relevance',
+				'order'          => 'DESC',
+				'posts_per_page' => 10,
+				'paged'          => 1,
+			)
+		);
+
+		// Get second page ordering by relevance
+		$query2 = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$search_relevance_post_ids,
+				's'              => 'search test',
+				'orderby'        => 'relevance',
+				'order'          => 'DESC',
+				'posts_per_page' => 10,
+				'paged'          => 2,
+			)
+		);
+
+		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
+		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
+
+		// Verify no overlap between pages (no duplicates)
+		$overlap = array_intersect( $page1_ids, $page2_ids );
+		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts when ordering by search relevance' );
+
+		// Verify total count is correct
+		$this->assertEquals( 20, $query1->found_posts, 'Total posts should be 20' );
+		$this->assertEquals( 10, count( $page1_ids ), 'First page should have 10 posts' );
+		$this->assertEquals( 10, count( $page2_ids ), 'Second page should have 10 posts' );
+
+		// Verify deterministic ordering: same query should return same results
+		$query1_repeat    = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$search_relevance_post_ids,
+				's'              => 'search test',
+				'orderby'        => 'relevance',
+				'order'          => 'DESC',
+				'posts_per_page' => 10,
+				'paged'          => 1,
+			)
+		);
+		$page1_repeat_ids = wp_list_pluck( $query1_repeat->posts, 'ID' );
+
+		$this->assertEquals( $page1_ids, $page1_repeat_ids, 'Same query should return same results when ordering by search relevance' );
+	}
+
+	/**
+	 * Test that deterministic ordering works with search when orderby is empty (defaults to relevance).
+	 *
+	 * When orderby is empty and search is present, WordPress orders by relevance.
+	 * Multiple posts can have the same relevance score, causing duplicate records across pages.
+	 *
+	 * @ticket xxxxx
+	 */
+	public function test_deterministic_ordering_with_search_empty_orderby() {
+		// Use shared fixtures with identical content (same relevance scores)
+		// Get first page with empty orderby (defaults to relevance)
+		$query1 = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$search_relevance_post_ids,
+				's'              => 'search test',
+				'orderby'        => '', // Empty orderby with search defaults to relevance
+				'order'          => 'DESC',
+				'posts_per_page' => 10,
+				'paged'          => 1,
+			)
+		);
+
+		// Get second page with empty orderby
+		$query2 = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$search_relevance_post_ids,
+				's'              => 'search test',
+				'orderby'        => '', // Empty orderby with search defaults to relevance
+				'order'          => 'DESC',
+				'posts_per_page' => 10,
+				'paged'          => 2,
+			)
+		);
+
+		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
+		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
+
+		// Verify no overlap between pages (no duplicates)
+		$overlap = array_intersect( $page1_ids, $page2_ids );
+		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts when ordering by search relevance (empty orderby)' );
 
 		// Verify total count is correct
 		$this->assertEquals( 20, $query1->found_posts, 'Total posts should be 20' );
