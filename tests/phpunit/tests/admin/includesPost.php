@@ -1341,7 +1341,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure default title is set to "(no title supported)" when CPT lacks title support.
+	 * Ensures default title empty when a CPT lacks title support.
 	 *
 	 * @ticket 45516
 	 */
