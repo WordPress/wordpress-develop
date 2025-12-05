@@ -210,7 +210,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 * Recursively validates that a schema only uses allowed keywords.
 	 *
 	 * @param array|null $schema           The schema to validate.
-	 * @param array      $allowed_keywords List of allowed schema keywords.
+	 * @param string[]   $allowed_keywords List of allowed schema keywords.
 	 * @param string     $context          Context for error messages.
 	 */
 	private function assert_schema_uses_valid_keywords( $schema, array $allowed_keywords, string $context ): void {
