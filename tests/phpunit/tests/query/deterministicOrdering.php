@@ -92,7 +92,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 			$post_ids[] = self::factory()->post->create(
 				array(
 					'post_title' => $identical_title,
-					'post_date'  => "2023-01-0$i 10:00:00",
+					'post_date'  => "2023-01-" . str_pad((string) $i, 2, '0', STR_PAD_LEFT) . " 10:00:00",
 				)
 			);
 		}
