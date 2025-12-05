@@ -3698,9 +3698,10 @@ function wp_hoist_late_printed_styles() {
 	 * later hoisted to the HEAD in the template enhancement output buffer. This will run at `wp_print_footer_scripts`
 	 * before `print_footer_scripts()` is called.
 	 */
-	$printed_block_styles = '';
-	$printed_late_styles  = '';
-	$capture_late_styles  = static function () use ( &$printed_block_styles, &$printed_late_styles ) {
+	$printed_block_styles  = '';
+	$printed_global_styles = '';
+	$printed_late_styles   = '';
+	$capture_late_styles   = static function () use ( &$printed_block_styles, &$printed_global_styles, &$printed_late_styles ) {
 		// Gather the styles related to on-demand block enqueues.
 		$all_block_style_handles = array();
 		foreach ( WP_Block_Type_Registry::get_instance()->get_all_registered() as $block_type ) {
@@ -3708,15 +3709,6 @@ function wp_hoist_late_printed_styles() {
 				$all_block_style_handles[] = $style_handle;
 			}
 		}
-		$all_block_style_handles = array_merge(
-			$all_block_style_handles,
-			array(
-				'global-styles',
-				'block-style-variation-styles',
-				'core-block-supports',
-				'core-block-supports-duotone',
-			)
-		);
 
 		/*
 		 * First print all styles related to blocks which should inserted right after the wp-block-library stylesheet
@@ -3727,6 +3719,13 @@ function wp_hoist_late_printed_styles() {
 			ob_start();
 			wp_styles()->do_items( $enqueued_block_styles );
 			$printed_block_styles = ob_get_clean();
+		}
+
+		// Capture the global-styles so that it can be printed separately after classic-theme-styles, to preserve the original order,
+		if ( wp_style_is( 'global-styles' ) ) {
+			ob_start();
+			wp_styles()->do_items( array( 'global-styles' ) );
+			$printed_global_styles = ob_get_clean();
 		}
 
 		/*
@@ -3767,7 +3766,7 @@ function wp_hoist_late_printed_styles() {
 	// Replace placeholder with the captured late styles.
 	add_filter(
 		'wp_template_enhancement_output_buffer',
-		static function ( $buffer ) use ( $placeholder, &$printed_block_styles, &$printed_late_styles ) {
+		static function ( $buffer ) use ( $placeholder, &$printed_block_styles, &$printed_global_styles, &$printed_late_styles ) {
 
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
@@ -3812,53 +3811,86 @@ function wp_hoist_late_printed_styles() {
 				}
 			};
 
-			/*
-			 * Insert block styles right after wp-block-library (if it is present), and then insert any remaining styles
-			 * at </head> (or else print everything there). The placeholder CSS comment will always be added to the
-			 * wp-block-library inline style since it gets printed at `wp_head` before the blocks are rendered.
-			 * This means that there may not actually be any block styles to hoist from the footer to insert after this
-			 * inline style. The placeholder CSS comment needs to be added so that the inline style gets printed, but
-			 * if the resulting inline style is empty after the placeholder is removed, then the inline style is
-			 * removed.
-			 */
+			// Locate the insertion points in the HEAD.
 			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 				if (
 					'STYLE' === $processor->get_tag() &&
 					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
 				) {
-					$css_text = $processor->get_modifiable_text();
-
-					/*
-					 * A placeholder CSS comment is added to the inline style in order to force an inline STYLE tag to
-					 * be printed. Now that we've located the inline style, the placeholder comment can be removed. If
-					 * there is no CSS left in the STYLE tag after removing the placeholder (aside from the sourceURL
-					 * comment, then remove the STYLE entirely.)
-					 */
-					$css_text = str_replace( $placeholder, '', $css_text );
-					if ( preg_match( ':^/\*# sourceURL=\S+? \*/$:', trim( $css_text ) ) ) {
-						$processor->remove();
-					} else {
-						$processor->set_modifiable_text( $css_text );
-					}
-
-					// Insert the $printed_late_styles immediately after the closing inline STYLE tag. This preserves the CSS cascade.
-					if ( '' !== $printed_block_styles ) {
-						$processor->insert_after( $printed_block_styles );
-
-						// Prevent printing them again at </head>.
-						$printed_block_styles = '';
-					}
-
-					// If there aren't any late styles, there's no need to continue to finding </head>.
-					if ( '' === $printed_late_styles ) {
-						break;
-					}
+					$processor->set_bookmark( 'wp_block_library' );
+				} elseif (
+					(
+						'STYLE' === $processor->get_tag() &&
+						'classic-theme-styles-inline-css' === $processor->get_attribute( 'id' )
+					) ||
+					(
+						'LINK' === $processor->get_tag() &&
+						'classic-theme-styles-css' === $processor->get_attribute( 'id' )
+					)
+				) {
+					$processor->set_bookmark( 'classic_theme_styles' );
 				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
-					$processor->insert_before( $printed_block_styles . $printed_late_styles );
+					$processor->set_bookmark( 'head_end' );
 					break;
 				}
 			}
 
+			/*
+			 * Insert block styles right after wp-block-library (if it is present). The placeholder CSS comment will
+			 * always be added to the wp-block-library inline style since it gets printed at `wp_head` before the blocks
+			 * are rendered. This means that there may not actually be any block styles to hoist from the footer to
+			 * insert after this inline style. The placeholder CSS comment needs to be added so that the inline style
+			 * gets printed, but if the resulting inline style is empty after the placeholder is removed, then the
+			 * inline style is removed.
+			 */
+			if ( $processor->has_bookmark( 'wp_block_library' ) ) {
+				$processor->seek( 'wp_block_library' );
+
+				$css_text = $processor->get_modifiable_text();
+
+				/*
+				 * A placeholder CSS comment is added to the inline style in order to force an inline STYLE tag to
+				 * be printed. Now that we've located the inline style, the placeholder comment can be removed. If
+				 * there is no CSS left in the STYLE tag after removing the placeholder (aside from the sourceURL
+				 * comment, then remove the STYLE entirely.)
+				 */
+				$css_text = str_replace( $placeholder, '', $css_text );
+				if ( preg_match( ':^/\*# sourceURL=\S+? \*/$:', trim( $css_text ) ) ) {
+					$processor->remove();
+				} else {
+					$processor->set_modifiable_text( $css_text );
+				}
+
+				$inserted_after = $printed_block_styles;
+				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
+					$inserted_after .= $printed_global_styles;
+
+					// Prevent printing them again at </head>.
+					$printed_global_styles = '';
+				}
+
+				if ( '' !== $inserted_after ) {
+					$processor->insert_after( $inserted_after );
+
+					// Prevent printing them again at </head>.
+					$printed_block_styles = '';
+				}
+			}
+
+			if ( $printed_global_styles && $processor->has_bookmark( 'classic_theme_styles' ) ) {
+				$processor->seek( 'classic_theme_styles' );
+				$processor->insert_after( $printed_global_styles );
+
+				// Prevent printing them again at </head>.
+				$printed_global_styles = '';
+			}
+
+			// Print all remaining styles.
+			$remaining_styles = $printed_block_styles . $printed_global_styles . $printed_late_styles;
+			if ( $remaining_styles && $processor->has_bookmark( 'head_end' ) ) {
+				$processor->seek( 'head_end' );
+				$processor->insert_before( $remaining_styles );
+			}
 			return $processor->get_updated_html();
 		}
 	);
