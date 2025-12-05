@@ -427,4 +427,74 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 
 		$this->assertEquals( $page1_ids, $page1_repeat_ids, 'Same query should return same results when ordering by menu_order' );
 	}
+
+	/**
+	 * Test that deterministic ordering works with metadata ordering.
+	 *
+	 * @ticket xxxxx
+	 */
+	public function test_deterministic_ordering_with_metadata() {
+		$post_ids = array();
+
+		// Create posts with identical meta values to trigger the bug
+		$identical_meta_value = 'same_price';
+		for ( $i = 1; $i <= 20; $i++ ) {
+			$post_id = self::factory()->post->create(
+				array(
+					'post_type'  => 'wptests_time_ident',
+					'post_title' => "Post $i",
+				)
+			);
+			add_post_meta( $post_id, 'price', $identical_meta_value );
+			$post_ids[] = $post_id;
+		}
+
+		// Get first page ordering by metadata
+		$query1 = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => $post_ids,
+				'meta_query'     => array(
+					'price_key' => array(
+						'key'     => 'price',
+						'compare' => 'EXISTS',
+					),
+				),
+				'orderby'        => 'price_key',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+				'paged'          => 1,
+			)
+		);
+
+		// Get second page ordering by metadata
+		$query2 = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => $post_ids,
+				'meta_query'     => array(
+					'price_key' => array(
+						'key'     => 'price',
+						'compare' => 'EXISTS',
+					),
+				),
+				'orderby'        => 'price_key',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+				'paged'          => 2,
+			)
+		);
+
+		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
+		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
+
+		// Verify no overlap between pages (no duplicates)
+		$overlap = array_intersect( $page1_ids, $page2_ids );
+		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts when ordering by metadata' );
+
+		// Verify total count is correct
+		$this->assertEquals( 20, $query1->found_posts, 'Total posts should be 20' );
+		$this->assertEquals( 10, count( $page1_ids ), 'First page should have 10 posts' );
+		$this->assertEquals( 10, count( $page2_ids ), 'Second page should have 10 posts' );
+	}
 }

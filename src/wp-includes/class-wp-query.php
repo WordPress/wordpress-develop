@@ -2531,24 +2531,14 @@ class WP_Query {
 			 * Ensure deterministic ordering to prevent duplicate records across pages.
 			 * When multiple posts have the same value for a field, add ID as secondary sort to guarantee consistent ordering.
 			 * Note: this is to circumvent a bug that is currently being tracked in https://core.trac.wordpress.org/ticket/44349.
+			 *
+			 * Use a blacklist approach: add ID as tie-breaker for all orderby fields except those that are
+			 * already deterministic (ID itself, random ordering, or search relevance).
 			 */
-			$fields_requiring_deterministic_orderby = array(
-				'post_name',
-				'post_author',
-				'post_date',
-				'post_title',
-				'post_modified',
-				'post_parent',
-				'post_type',
-				'name',
-				'author',
-				'date',
-				'title',
-				'modified',
-				'parent',
-				'type',
-				'menu_order',
-				'comment_count',
+			$fields_excluding_deterministic_orderby = array(
+				'ID',
+				'rand',
+				'relevance',
 			);
 
 			$orderby_array               = array();
@@ -2567,10 +2557,10 @@ class WP_Query {
 
 					$orderby_array[] = $parsed . ' ' . $this->parse_order( $order );
 
-					// Check if this field needs deterministic ordering
-					if ( in_array( $_orderby, $fields_requiring_deterministic_orderby, true ) ) {
+					// Check if this field should have deterministic ordering (not in blacklist).
+					if ( ! in_array( $_orderby, $fields_excluding_deterministic_orderby, true ) ) {
 						$needs_deterministic_orderby = true;
-						// Use the order from the array for ID tie-breaker
+						// Use the order from the array for ID tie-breaker.
 						$id_tie_breaker_order = $this->parse_order( $order );
 					} elseif ( 'ID' === $_orderby ) {
 						$has_id_orderby = true;
@@ -2589,8 +2579,8 @@ class WP_Query {
 
 					$orderby_array[] = $parsed . ' ' . $query_vars['order'];
 
-					// Check if this field needs deterministic ordering
-					if ( in_array( $orderby, $fields_requiring_deterministic_orderby, true ) ) {
+					// Check if this field should have deterministic ordering (not in blacklist).
+					if ( ! in_array( $orderby, $fields_excluding_deterministic_orderby, true ) ) {
 						$needs_deterministic_orderby = true;
 					} elseif ( 'ID' === $orderby ) {
 						$has_id_orderby = true;
@@ -2598,12 +2588,12 @@ class WP_Query {
 				}
 			}
 
-			// Add ID as tie-breaker if needed and not already present
+			// Add ID as tie-breaker if needed and not already present.
 			if ( $needs_deterministic_orderby && ! $has_id_orderby ) {
 				$orderby_array[] = "{$wpdb->posts}.ID " . $id_tie_breaker_order;
 			}
 
-			// Build the final orderby string
+			// Build the final orderby string.
 			if ( empty( $orderby_array ) ) {
 				$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'] . ', ' . "{$wpdb->posts}.ID " . $query_vars['order'];
 			} else {
