@@ -2539,6 +2539,10 @@ class WP_Query {
 				'ID',
 				'rand',
 				'relevance',
+				'post__in',
+				'post_name__in',
+				'post_parent__in',
+				'include',
 			);
 
 			$orderby_array               = array();
