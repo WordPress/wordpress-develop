@@ -231,27 +231,51 @@ final class WP_Post {
 	 */
 	public static function get_instance( $post_id ) {
 		global $wpdb;
-
+ 
 		$post_id = (int) $post_id;
+ 
+		/**
+		 * Filters the returned value for WP_Post::get_instance().
+		 *
+		 * Allows plugins/themes to return a faux or virtual WP_Post object
+		 * before WordPress queries the database.
+		 *
+		 * Returning a non-null value short-circuits the normal execution.
+		 *
+		 * @since 6.x.x
+		 *
+		 * @param WP_Post|object|null $post     A custom/faux post object or null.
+		 * @param int                 $post_id  Requested post ID.
+		 */
+		$pre = apply_filters( 'pre_wp_post_get_instance', null, $post_id );
+ 
+		if ( null !== $pre ) {
+			// Ensure the result is a proper WP_Post object.
+			return ( $pre instanceof WP_Post ) ? $pre : new WP_Post( $pre );
+		}
+ 
+		// Existing logic (unchanged)
 		if ( $post_id <= 0 ) {
 			return false;
 		}
-
+ 
 		$_post = wp_cache_get( $post_id, 'posts' );
-
+ 
 		if ( ! $_post ) {
-			$_post = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d LIMIT 1", $post_id ) );
-
+			$_post = $wpdb->get_row(
+				$wpdb->prepare( "SELECT * FROM $wpdb->posts WHERE ID = %d LIMIT 1", $post_id )
+			);
+ 
 			if ( ! $_post ) {
 				return false;
 			}
-
+ 
 			$_post = sanitize_post( $_post, 'raw' );
 			wp_cache_add( $_post->ID, $_post, 'posts' );
 		} elseif ( empty( $_post->filter ) || 'raw' !== $_post->filter ) {
 			$_post = sanitize_post( $_post, 'raw' );
 		}
-
+ 
 		return new WP_Post( $_post );
 	}
 
