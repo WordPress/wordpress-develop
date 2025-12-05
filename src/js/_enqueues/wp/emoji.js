@@ -215,22 +215,19 @@
 
 			// Compose the params for the twitter emoji library.
 			args = args || {};
+			const ignored = new Set([
+				'a9', 'ae', '2122',
+				'2194', '2195', '2196', '2197', '2198', '2199', '21a9', '21aa',
+				'2660', '2663', '2665', '2666',
+			]);
 			params = {
 				base: browserSupportsSvgAsImage() ? settings.svgUrl : settings.baseUrl,
 				ext:  browserSupportsSvgAsImage() ? settings.svgExt : settings.ext,
 				className: args.className || 'emoji',
 				callback: function( icon, options ) {
 					// Ignore some standard characters that TinyMCE recommends in its character map.
-					switch ( icon ) {
-						case 'a9':
-						case 'ae':
-						case '2122':
-						case '2194':
-						case '2660':
-						case '2663':
-						case '2665':
-						case '2666':
-							return false;
+					if ( ignored.has( icon ) ) {
+						return false;
 					}
 
 					if ( settings.supports.everythingExceptFlag &&
