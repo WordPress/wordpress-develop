@@ -446,6 +446,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 			'message'                  => 'Test Message',
 			'headers'                  => array(),
 			'attachments'              => array(),
+			'embeds'                   => array(),
 			'phpmailer_exception_code' => 2,
 		);
 
