@@ -1341,13 +1341,19 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures default title empty when a CPT lacks title support.
+	 * Ensures default title empty when a CPT lacks title support, and that it is present when it does.
 	 *
 	 * @ticket 45516
 	 *
 	 * @covers ::get_default_post_to_edit
 	 */
-	public function test_no_title_supported_when_title_not_supported() {
+	public function test_title_support_and_auto_draft_post_title() {
+		register_post_type(
+			'yes_title',
+			array(
+				'supports' => array( 'title', 'editor' ),
+			)
+		);
 		register_post_type(
 			'no_title',
 			array(
@@ -1355,8 +1361,11 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 			)
 		);
 
-		$default_post = get_default_post_to_edit( 'no_title', true );
-		$post         = get_post( $default_post->ID );
-		$this->assertSame( '', $post->post_title, 'Expected post_title to be an empty string.' );
+		// The ID is obtained because get_default_post_to_edit() will force the post_title to be overridden on the returned WP_Post object.
+		$default_no_title_post_id  = get_default_post_to_edit( 'no_title', true )->ID;
+		$default_yes_title_post_id = get_default_post_to_edit( 'yes_title', true )->ID;
+
+		$this->assertSame( '', get_post( $default_no_title_post_id )->post_title, 'Expected post_title to be an empty string.' );
+		$this->assertSame( __( 'Auto Draft' ), get_post( $default_yes_title_post_id )->post_title, 'Expected post_title to be the default title.' );
 	}
 }
