@@ -993,6 +993,148 @@ function _wp_specialchars( $text, $quote_style = ENT_NOQUOTES, $charset = false,
 }
 
 /**
+ * Normalize the escaping for content within an HTML string.
+ *
+ * @since {WP_VERSION}
+ *
+ * @param string $context "attribute" for strings comprising a full HTML attribute value,
+ *                        or "data" for text nodes.
+ * @param string $text    string containing HTML-escaped or escapable content, in UTF-8.
+ * @return string         version of input where all appropriate characters and escapes
+ *                        are standard and predictable.
+ */
+function wp_normalize_escaped_html_text( string $context, string $text ): string {
+	$normalized   = array();
+	$end          = strlen( $text );
+	$at           = 0;
+	$was_at       = 0;
+	$token_length = 0;
+
+	while ( $at < $end ) {
+		$next_character_reference_at = strpos( $text, '&', $at );
+		if ( false === $next_character_reference_at ) {
+			break;
+		}
+
+		$character_reference = WP_HTML_Decoder::read_character_reference( $context, $text, $next_character_reference_at, $token_length );
+
+		// This is an un-escaped ampersand character, so encode it.
+		if ( ! isset( $character_reference ) ) {
+			$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . '&amp;';
+			$at           = $next_character_reference_at + 1;
+			$was_at       = $at;
+			continue;
+		}
+
+		// Some characters are best left visible to the human mind.
+		$should_unhide = 1 === strspn( $character_reference, ',%()0123456789:[]ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{}' );
+		if ( $should_unhide ) {
+			$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . $character_reference;
+			$at           = $next_character_reference_at + $token_length;
+			$was_at       = $at;
+			continue;
+		}
+
+		$is_syntax = 1 === strspn( $character_reference, '&"\'<>' );
+		if ( $is_syntax && '#' === $text[ $next_character_reference_at + 1 ] ) {
+			$named_form   = strtr(
+				$character_reference,
+				array(
+					'&' => '&amp;',
+					'"' => '&quot;',
+					"'" => '&apos;',
+					'<' => '&lt;',
+					'>' => '&gt;',
+				)
+			);
+			$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . $named_form;
+			$at           = $next_character_reference_at + $token_length;
+			$was_at       = $at;
+			continue;
+		}
+
+		// This is a valid character reference, but it might not be normative.
+		$needs_semicolon = ';' !== $text[ $next_character_reference_at + $token_length - 1 ];
+
+		// This is a named character reference.
+		if ( '#' !== $text[ $next_character_reference_at + 1 ] ) {
+			// Nothing to do for already-normalized named character references.
+			if ( ! $needs_semicolon ) {
+				$at = $next_character_reference_at + $token_length;
+				continue;
+			}
+
+			// Add the missing semicolon.
+			$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at + $token_length ) . ';';
+			$at           = $next_character_reference_at + $token_length;
+			$was_at       = $at;
+			continue;
+		}
+
+		/*
+		 * While named character references have only a single form and are case sensitive,
+		 * numeric character references may contain upper or lowercase hex values and may
+		 * contain unlimited preceding zeros.
+		 */
+		$is_hex        = 'x' === $text[ $next_character_reference_at + 2 ] || 'X' === $text[ $next_character_reference_at + 2 ];
+		$digits_at     = $next_character_reference_at + ( $is_hex ? 3 : 2 );
+		$leading_zeros = '0' === $text[ $digits_at ] ? strspn( $text, '0', $digits_at ) : 0;
+
+		if ( ! $needs_semicolon && ! $is_hex && 0 === $leading_zeros ) {
+			// Nothing to do for already-normalized decimal numeric character references.
+			$at = $next_character_reference_at + $token_length;
+			continue;
+		}
+
+		$digits = substr( $text, $digits_at + $leading_zeros, $next_character_reference_at + $token_length - $digits_at - $leading_zeros - ( $needs_semicolon ? 0 : 1 ) );
+		if ( $is_hex ) {
+			$lower_digits = strtolower( $digits );
+
+			// Nothing to do for already-normalized hexadecimal numeric character references.
+			if ( $lower_digits === $digits && ! $needs_semicolon && 0 === $leading_zeros ) {
+				$at = $next_character_reference_at + $token_length;
+				continue;
+			}
+
+			$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . "&#x{$lower_digits};";
+			$at           = $next_character_reference_at + $token_length;
+			$was_at       = $at;
+			continue;
+		} else {
+			$normalized[] = substr( $text, $was_at, $next_character_reference_at - $was_at ) . "&#{$digits};";
+			$at           = $next_character_reference_at + $token_length;
+			$was_at       = $at;
+			continue;
+		}
+
+		die( 'should not have arrived here' );
+		++$at;
+	}
+
+	if ( 0 === $was_at ) {
+		$normalized_text = strtr( $text, '&', '&amp;' );
+	} else {
+		$normalized[]    = substr( $text, $was_at, $end - $was_at );
+		$normalized_text = implode( '', $normalized );
+	}
+
+	return strtr(
+		$normalized_text,
+		array(
+			'<' => '&lt;',
+			'>' => '&gt;',
+			'"' => '&quot;',
+			"'" => '&apos;',
+			/*
+			 * Stray ampersand "&" characters have already been replaced above,
+			 * so it’s inappropriate to replace again here, as all remaining
+			 * instances should be part of a normalized character reference.
+			 */
+		)
+	);
+}
+
+/**
  * Converts a number of HTML entities into their special characters.
  *
  * Specifically deals with: `&`, `<`, `>`, `"`, and `'`.
