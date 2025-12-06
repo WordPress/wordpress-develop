@@ -1476,7 +1476,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 }
 
 .plugin-card {
-	margin: 0 0 0 16px;
+	margin: 0 0 16px;
 	width: calc( 50% - 8px );
 	background-color: #fff;
 	border: 1px solid #dcdcde;
