@@ -1440,6 +1440,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 .plugin-install-php #the-list {
 	display: flex;
 	flex-wrap: wrap;
+	justify-content: space-between;
 }
 
 .plugin-install-php .plugin-card {
@@ -1456,6 +1457,10 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	margin: 2.5em 0 8px;
 }
 
+.plugin-install-php .wp-filter {
+	margin-bottom: 0;
+}
+
 /* Plugin card table view */
 .plugin-group {
 	overflow: hidden; /* clearfix */
@@ -1467,70 +1472,22 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 }
 
 .plugin-card {
-	float: left;
-	margin: 0 8px 16px;
-	width: 48.5%;
+	margin: 0 0 0 16px;
 	width: calc( 50% - 8px );
 	background-color: #fff;
 	border: 1px solid #dcdcde;
 	box-sizing: border-box;
 }
 
-.plugin-card:nth-child(odd) {
-	clear: both;
-	margin-left: 0;
-}
-
-.plugin-card:nth-child(even) {
-	margin-right: 0;
-}
-
 @media screen and (min-width: 1600px) and ( max-width: 2299px ) {
 	.plugin-card {
 		width: calc( (100% - 32px) / 3 );
-	}
-
-	.plugin-card:nth-child(odd) {
-		clear: none;
-		margin-left: 8px;
-	}
-
-	.plugin-card:nth-child(even) {
-		margin-right: 8px;
-	}
-
-	.plugin-card:nth-child(3n+1) {
-		clear: both;
-		margin-left: 0;
-	}
-
-	.plugin-card:nth-child(3n) {
-		margin-right: 0;
 	}
 }
 
 @media screen and (min-width: 2300px) {
 	.plugin-card {
-		width: 25%;
-		width: calc( 25% - 12px );
-	}
-
-	.plugin-card:nth-child(odd) {
-		clear: none;
-		margin-left: 8px;
-	}
-
-	.plugin-card:nth-child(even) {
-		margin-right: 8px;
-	}
-
-	.plugin-card:nth-child(4n+1) {
-		clear: both;
-		margin-left: 0;
-	}
-
-	.plugin-card:nth-child(4n) {
-		margin-right: 0;
+		width: calc( (100% - 48px) / 4 );
 	}
 }
 
