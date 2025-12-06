@@ -214,7 +214,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 * @param string     $context          Context for error messages.
 	 */
 	private function assert_schema_uses_valid_keywords( ?array $schema, array $allowed_keywords, string $context ): void {
-		if ( empty( $schema ) || ! is_array( $schema ) ) {
+		if ( null === $schema ) {
 			return;
 		}
 
