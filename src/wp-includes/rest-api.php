@@ -198,65 +198,6 @@ function register_rest_field( $object_type, $attribute, $args = array() ) {
 }
 
 /**
- * Sanitizes schema data ensuring empty properties arrays become objects for valid JSON Schema.
- *
- * The JSON Schema specification requires 'properties' to always be an object.
- * In PHP, empty associative arrays become empty arrays ([]) when JSON-encoded,
- * not empty objects ({}), which would make the schema invalid.
- *
- * This function only processes schema data from OPTIONS requests to avoid affecting
- * regular response data that may legitimately have a 'properties' field.
- *
- * @since 6.9.0
- *
- * @param array|object    $data    The response data to sanitize.
- * @param WP_REST_Server  $server  Server instance.
- * @param WP_REST_Request $request Request used to generate the response.
- * @return array|object The sanitized response data.
- */
-function rest_sanitize_schema_properties( $data, $server, $request ) {
-	if (
-		$request->get_method() === 'OPTIONS' &&
-		is_array( $data ) &&
-		isset( $data['schema'] ) &&
-		is_array( $data['schema'] )
-	) {
-		$data['schema'] = rest_sanitize_schema_properties_recursive( $data['schema'] );
-	}
-
-	return $data;
-}
-
-/**
- * Recursively sanitizes schema data ensuring empty properties arrays become objects.
- *
- * Helper function for rest_sanitize_schema_properties().
- *
- * @since 6.9.0
- *
- * @param array|object $data The schema data to sanitize.
- * @return array|object The sanitized schema data.
- */
-function rest_sanitize_schema_properties_recursive( $data ) {
-	$is_object  = is_object( $data );
-	$data_array = $is_object ? (array) $data : $data;
-
-	// Convert empty properties array to empty object.
-	if ( isset( $data_array['properties'] ) && is_array( $data_array['properties'] ) && empty( $data_array['properties'] ) ) {
-		$data_array['properties'] = (object) array();
-	}
-
-	// Process nested elements recursively.
-	foreach ( $data_array as $key => $value ) {
-		if ( is_array( $value ) || is_object( $value ) ) {
-			$data_array[ $key ] = rest_sanitize_schema_properties_recursive( $value );
-		}
-	}
-
-	return $is_object ? (object) $data_array : $data_array;
-}
-
-/**
  * Registers rewrite rules for the REST API.
  *
  * @since 4.4.0
@@ -269,9 +210,6 @@ function rest_api_init() {
 
 	global $wp;
 	$wp->add_query_var( 'rest_route' );
-
-	// Ensure empty property arrays in schema are converted to objects.
-	add_filter( 'rest_pre_echo_response', 'rest_sanitize_schema_properties', 10, 3 );
 }
 
 /**
