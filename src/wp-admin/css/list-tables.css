@@ -1440,7 +1440,7 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 .plugin-install-php #the-list {
 	display: flex;
 	flex-wrap: wrap;
-	justify-content: space-between;
+	gap: 16px;
 }
 
 .plugin-install-php .plugin-card {
@@ -1476,7 +1476,6 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 }
 
 .plugin-card {
-	margin: 0 0 16px;
 	width: calc( 50% - 8px );
 	background-color: #fff;
 	border: 1px solid #dcdcde;
