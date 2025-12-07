@@ -3237,8 +3237,8 @@ function edit_form_image_editor( $post ) {
 		<?php
 
 		printf(
-			/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
-			__( '<a href="%1$s" %2$s>Learn how to describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
+			/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text, 4: External link icon. */
+			__( 'Alt text describes the image\'s purpose. Leave it blank if the image is purely decorative. <a href="%1$s" %2$s>Learn more about alt text%3$s%4$s</a>.' ),
 			/* translators: Localized tutorial, if one exists. W3C Web Accessibility Initiative link has list of existing translations. */
 			esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
 			'target="_blank"',
@@ -3246,7 +3246,8 @@ function edit_form_image_editor( $post ) {
 				'<span class="screen-reader-text"> %s</span>',
 				/* translators: Hidden accessibility text. */
 				__( '(opens in a new tab)' )
-			)
+			),
+			'<span aria-hidden="true" class="dashicons dashicons-external"></span>'
 		);
 
 		?>
