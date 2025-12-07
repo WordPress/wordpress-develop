@@ -118,7 +118,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * List of default directories.
 	 *
 	 * @since 2.8.0
-	 * @var string[]
+	 * @var string[]|null
 	 */
 	public $default_dirs;
 
@@ -374,7 +374,8 @@ class WP_Scripts extends WP_Dependencies {
 			$filtered_src = apply_filters( 'script_loader_src', $src, $handle );
 
 			if (
-				$this->in_default_dir( $filtered_src )
+				is_string( $filtered_src )
+				&& $this->in_default_dir( $filtered_src )
 				&& ( $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
 			) {
 				$this->do_concat = false;
