@@ -158,7 +158,7 @@ function wp_print_media_templates() {
 
 	$alt_text_description = sprintf(
 		/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text, 4: External link icon. */
-		__( 'Alt text describes the image\'s purpose. Leave it blank if the image is purely decorative. <a href="%1$s" %2$s>Learn more about alt text%3$s%4$s</a>.' ),
+		__( 'Alt text describes the image\'s purpose. Leave it blank if the image is purely decorative. <a href="%1$s" %2$s>Learn more about alt text%3$s</a>%4$s.' ),
 		/* translators: Localized tutorial, if one exists. W3C Web Accessibility Initiative link has list of existing translations. */
 		esc_url( __( 'https://www.w3.org/WAI/tutorials/images/decision-tree/' ) ),
 		'target="_blank"',
