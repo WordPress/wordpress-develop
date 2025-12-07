@@ -118,7 +118,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * List of default directories.
 	 *
 	 * @since 2.8.0
-	 * @var string[]
+	 * @var string[]|null
 	 */
 	public $default_dirs;
 
