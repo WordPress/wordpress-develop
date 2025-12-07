@@ -412,9 +412,17 @@ class WP_Scripts extends WP_Dependencies {
 			$src = $this->base_url . $src;
 		}
 
-		if ( ! empty( $ver ) ) {
-			$src = add_query_arg( 'ver', $ver, $src );
+		$query_args = array();
+		if ( null !== $obj->ver ) {
+			$query_args['ver'] = false === $obj->ver ? $this->default_version : $obj->ver;
 		}
+		if ( isset( $this->args[ $handle ] ) ) {
+			parse_str( $this->args[ $handle ], $parsed_args );
+			if ( $parsed_args ) {
+				$query_args = array_merge( $query_args, $parsed_args );
+			}
+		}
+		$src = add_query_arg( $query_args, $src );
 
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
 		$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
