@@ -56,7 +56,7 @@ class WP_Dependencies {
 	/**
 	 * An array of additional arguments passed when a handle is registered.
 	 *
-	 * They keys are dependency handles and the values are query strings which are appended to the item URL's query
+	 * The keys are dependency handles and the values are query strings which are appended to the item URL's query
 	 * string, after the `ver` if provided.
 	 *
 	 * @since 2.6.0
