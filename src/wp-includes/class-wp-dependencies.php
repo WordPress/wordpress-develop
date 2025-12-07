@@ -60,7 +60,7 @@ class WP_Dependencies {
 	 *
 	 * @since 2.6.0
 	 *
-	 * @var array
+	 * @var array<string, string>
 	 */
 	public $args = array();
 
@@ -100,7 +100,7 @@ class WP_Dependencies {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @var array
+	 * @var array<string, string|null>
 	 */
 	private $queued_before_register = array();
 
