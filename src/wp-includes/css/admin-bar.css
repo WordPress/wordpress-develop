@@ -708,7 +708,9 @@ html:lang(he-il) .rtl #wpadminbar * {
 	padding: 0;
 	position: absolute;
 	width: 1px;
+	/* many screen reader and browser combinations announce broken words as they would appear visually */
 	word-wrap: normal !important;
+	word-break: normal !important;
 }
 
 #wpadminbar .screen-reader-shortcut {
@@ -800,7 +802,9 @@ html:lang(he-il) .rtl #wpadminbar * {
 		padding: 0;
 		position: absolute;
 		width: 1px;
+		/* many screen reader and browser combinations announce broken words as they would appear visually */
 		word-wrap: normal !important;
+		word-break: normal !important;
 	}
 
 	#wpadminbar .menupop li:hover > .ab-sub-wrapper,
