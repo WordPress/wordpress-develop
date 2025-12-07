@@ -708,7 +708,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	padding: 0;
 	position: absolute;
 	width: 1px;
-	/* many screen reader and browser combinations announce broken words as they would appear visually */
+	/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 	word-wrap: normal !important;
 	word-break: normal !important;
 }
@@ -802,7 +802,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 		padding: 0;
 		position: absolute;
 		width: 1px;
-		/* many screen reader and browser combinations announce broken words as they would appear visually */
+		/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 		word-wrap: normal !important;
 		word-break: normal !important;
 	}

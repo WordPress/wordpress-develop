@@ -135,7 +135,7 @@ function wp_enqueue_block_template_skip_link() {
 			padding: 0;
 			position: absolute !important;
 			width: 1px;
-			/* many screen reader and browser combinations announce broken words as they would appear visually */
+			/* Many screen reader and browser combinations announce broken words as they would appear visually. */
 			word-wrap: normal !important;
 			word-break: normal !important;
 		}
