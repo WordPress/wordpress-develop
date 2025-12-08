@@ -55,6 +55,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * Test versioning
 	 *
 	 * @ticket 11315
+	 * @ticket 64372
 	 */
 	public function test_wp_enqueue_style() {
 		wp_enqueue_style( 'no-deps-no-version', 'example.com' );
@@ -63,6 +64,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_enqueue_style( 'no-deps-null-version-print-media', 'example.com', array(), null, 'print' );
 		wp_enqueue_style( 'no-deps-arg-in-handle-with-ver?arg1=foo&arg2=bar', 'https://example.com/test.css', array(), '2.0' );
 		wp_enqueue_style( 'no-deps-arg-in-handle-without-ver?arg1=foo&arg2=bar', 'https://example.com/test.css', array(), null );
+		wp_register_style( 'registered-no-qs-handle-null-version-enqueued-with-qs', 'https://example.com/test.css' );
+		wp_enqueue_style( 'registered-no-qs-handle-null-version-enqueued-with-qs?arg1=foo&arg2=bar' );
 
 		$ver       = get_bloginfo( 'version' );
 		$expected  = "<link rel='stylesheet' id='no-deps-no-version-css' href='http://example.com?ver=$ver' type='text/css' media='all' />\n";
@@ -71,6 +74,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected .= "<link rel='stylesheet' id='no-deps-null-version-print-media-css' href='http://example.com' type='text/css' media='print' />\n";
 		$expected .= "<link rel='stylesheet' id='no-deps-arg-in-handle-with-ver-css' href='https://example.com/test.css?ver=2.0&#038;arg1=foo&#038;arg2=bar' type='text/css' media='all' />\n";
 		$expected .= "<link rel='stylesheet' id='no-deps-arg-in-handle-without-ver-css' href='https://example.com/test.css?arg1=foo&#038;arg2=bar' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='registered-no-qs-handle-null-version-enqueued-with-qs-css' href='https://example.com/test.css?ver={$ver}&#038;arg1=foo&#038;arg2=bar' type='text/css' media='all' />\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
 

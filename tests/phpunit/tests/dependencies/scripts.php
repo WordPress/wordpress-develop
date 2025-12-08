@@ -73,6 +73,7 @@ JS;
 	 * Test versioning
 	 *
 	 * @ticket 11315
+	 * @ticket 64372
 	 */
 	public function test_wp_enqueue_script() {
 		global $wp_version;
@@ -83,6 +84,8 @@ JS;
 		wp_enqueue_script( 'empty-deps-null-version', 'example.com', array(), null );
 		wp_enqueue_script( 'empty-deps-arg-in-handle-with-ver?arg1=foo&arg2=bar', 'https://example.com/test.js', array(), '2.0' );
 		wp_enqueue_script( 'empty-deps-arg-in-handle-without-ver?arg1=foo&arg2=bar', 'https://example.com/test.js', array(), null );
+		wp_register_script( 'registered-no-qs-handle-null-version-enqueued-with-qs', 'https://example.com/test.js' );
+		wp_enqueue_script( 'registered-no-qs-handle-null-version-enqueued-with-qs?arg1=foo&arg2=bar' );
 
 		$expected  = "<script type='text/javascript' src='http://example.com?ver={$wp_version}' id='no-deps-no-version-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com?ver={$wp_version}' id='empty-deps-no-version-js'></script>\n";
@@ -90,6 +93,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='http://example.com' id='empty-deps-null-version-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='https://example.com/test.js?ver=2.0&amp;arg1=foo&amp;arg2=bar' id='empty-deps-arg-in-handle-with-ver-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='https://example.com/test.js?arg1=foo&amp;arg2=bar' id='empty-deps-arg-in-handle-without-ver-js'></script>\n";
+		$expected .= "<script type='text/javascript' src='https://example.com/test.js?ver={$wp_version}&amp;arg1=foo&amp;arg2=bar' id='registered-no-qs-handle-null-version-enqueued-with-qs-js'></script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
 
