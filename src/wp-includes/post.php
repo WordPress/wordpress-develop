@@ -2340,15 +2340,39 @@ function get_all_post_type_supports( $post_type ) {
  *
  * @global array $_wp_post_type_features
  *
- * @param string $post_type The post type being checked.
- * @param string $feature   The feature being checked.
+ * @param string      $post_type   The post type being checked.
+ * @param string      $feature     The feature being checked.
+ * @param string|null $sub_feature The sub-feature being checked.
  * @return bool Whether the post type supports the given feature.
  */
-function post_type_supports( $post_type, $feature ) {
+function post_type_supports( $post_type, $feature, $sub_feature = null ) {
 	global $_wp_post_type_features;
 
-	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
+	if ( ! isset( $_wp_post_type_features[ $post_type ] ) ) {
+		return false;
+	}
+
+	if ( ! isset( $_wp_post_type_features[ $post_type ][ $feature ] ) ) {
+		return false;
+	}
+
+	if ( null === $sub_feature ) {
+		return ! empty( $_wp_post_type_features[ $post_type ][ $feature ] );
+	}
+
+	if ( ! is_array( $_wp_post_type_features[ $post_type ][ $feature ] ) ) {
+		return false;
+	}
+
+	if ( array_key_exists( $sub_feature, $_wp_post_type_features[ $post_type ][ $feature ] ) ) {
+		return true;
+	}
+
+	$sub_features = array_merge( ...$_wp_post_type_features[ $post_type ][ $feature ] );
+
+	return isset( $sub_features[ $sub_feature ] );
 }
+
 /**
  * Retrieves a list of post type names that support a specific feature.
  *
