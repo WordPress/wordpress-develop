@@ -218,13 +218,17 @@ if ( ! empty( $messages ) ) {
 			</th>
 			<td>
 			<?php if ( is_subdomain_install() ) { ?>
-				<input name="blog[domain]" type="text" class="regular-text ltr" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required /><span class="no-break">.<?php echo preg_replace( '|^www\.|', '', get_network()->domain ); ?></span>
+				<span class="code">
+					<input name="blog[domain]" type="text" class="regular-text code" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required /><code class="no-break">.<?php echo preg_replace( '|^www\.|', '', get_network()->domain ); ?></code>
+				</span>
 				<?php
 			} else {
-				echo get_network()->domain . get_network()->path
+				echo '<span class="code">';
+				echo '<code class="no-break">' . get_network()->domain . get_network()->path . '</code>';
 				?>
-				<input name="blog[domain]" type="text" class="regular-text ltr" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required />
+				<input name="blog[domain]" type="text" class="regular-text code" id="site-address" aria-describedby="site-address-desc" autocapitalize="none" autocorrect="off" required />
 				<?php
+				echo '</span>';
 			}
 			echo '<p class="description" id="site-address-desc">' . __( 'Only lowercase letters (a-z), numbers, and hyphens are allowed.' ) . '</p>';
 			?>
