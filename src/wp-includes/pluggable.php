@@ -445,12 +445,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 
 		try {
 			// This block should be removed once PHPMailer supports setting the envelope sender separately.
-			$sendmail_path = ini_get( 'sendmail_path' );
-			if ( str_contains( $sendmail_path, '-f' ) ) {
-				$phpmailer->setFrom( $from_email, $from_name, false );
-			} else {
-				$phpmailer->setFrom( $from_email, $from_name );
-			}
+			$auto = ! str_contains( $sendmail_path, ' -f' );
+			$phpmailer->setFrom( $from_email, $from_name, $auto );
 		} catch ( PHPMailer\PHPMailer\Exception $e ) {
 			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
