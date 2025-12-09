@@ -430,7 +430,7 @@ printf(
 			/>
 		<?php else : ?>
 			<span class="code permalink-structure-has-blog-prefix">
-				<code><?php echo $blog_prefix; ?></code>
+				<code class="no-break"><?php echo $blog_prefix; ?></code>
 				<input name="category_base" id="category_base" type="text"
 					value="<?php echo esc_attr( $category_base ); ?>" class="regular-text code"
 				/>
@@ -449,7 +449,7 @@ printf(
 			/>
 		<?php else : ?>
 			<span class="code permalink-structure-has-blog-prefix">
-				<code><?php echo $blog_prefix; ?></code>
+				<code class="no-break"><?php echo $blog_prefix; ?></code>
 				<input name="tag_base" id="tag_base" type="text"
 					value="<?php echo esc_attr( $tag_base ); ?>" class="regular-text code"
 				/>
