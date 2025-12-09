@@ -1744,12 +1744,6 @@ table.form-table td .updated p {
 		align-items: center;
 	}
 
-	.permalink-structure-has-blog-prefix code {
-		white-space: nowrap;
-		word-wrap: normal;
-		word-break: normal;
-	}
-
 	.form-table input.regular-text {
 		width: 100%;
 	}
