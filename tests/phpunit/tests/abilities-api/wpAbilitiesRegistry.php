@@ -468,7 +468,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->registry->register( 'test/three', self::$test_ability_args );
 
 		$result = $this->registry->get_registered( 'test/two' );
-		$this->assertEquals( 'test/two', $result->get_name() );
+		$this->assertSame( 'test/two', $result->get_name() );
 	}
 
 	/**
@@ -499,7 +499,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->registry->register( 'test/three', self::$test_ability_args );
 
 		$result = $this->registry->unregister( 'test/three' );
-		$this->assertEquals( 'test/three', $result->get_name() );
+		$this->assertSame( 'test/three', $result->get_name() );
 
 		$this->assertFalse( $this->registry->is_registered( 'test/three' ) );
 	}
