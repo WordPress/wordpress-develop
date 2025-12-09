@@ -444,8 +444,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$from_name = apply_filters( 'wp_mail_from_name', $from_name );
 
 		try {
-			// This block should be removed once PHPMailer supports setting the envelope sender separately.
-			// @see https://core.trac.wordpress.org/ticket/64368.
+			// Passing $auto can be removed once PHPMailer supports setting the envelope sender separately. See <https://core.trac.wordpress.org/ticket/64368>.
 			$auto = ! str_contains( ini_get( 'sendmail_path' ), ' -f' );
 			$phpmailer->setFrom( $from_email, $from_name, $auto );
 		} catch ( PHPMailer\PHPMailer\Exception $e ) {
