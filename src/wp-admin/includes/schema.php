@@ -184,7 +184,8 @@ CREATE TABLE $wpdb->posts (
 	KEY post_name (post_name($max_index_length)),
 	KEY type_status_date (post_type,post_status,post_date,ID),
 	KEY post_parent (post_parent),
-	KEY post_author (post_author)
+	KEY post_author (post_author),
+	KEY type_status_author (post_type,post_status,post_author)
 ) $charset_collate;\n";
 
 	// Single site users table. The multisite flavor of the users table is handled below.
@@ -245,8 +246,8 @@ CREATE TABLE $wpdb->posts (
 
 	// Multisite global tables.
 	$ms_global_tables = "CREATE TABLE $wpdb->blogs (
-	blog_id bigint(20) NOT NULL auto_increment,
-	site_id bigint(20) NOT NULL default '0',
+	blog_id bigint(20) unsigned NOT NULL auto_increment,
+	site_id bigint(20) unsigned NOT NULL default '0',
 	domain varchar(200) NOT NULL default '',
 	path varchar(100) NOT NULL default '',
 	registered datetime NOT NULL default '0000-00-00 00:00:00',
@@ -263,7 +264,7 @@ CREATE TABLE $wpdb->posts (
 ) $charset_collate;
 CREATE TABLE $wpdb->blogmeta (
 	meta_id bigint(20) unsigned NOT NULL auto_increment,
-	blog_id bigint(20) NOT NULL default '0',
+	blog_id bigint(20) unsigned NOT NULL default '0',
 	meta_key varchar(255) default NULL,
 	meta_value longtext,
 	PRIMARY KEY  (meta_id),
@@ -271,24 +272,24 @@ CREATE TABLE $wpdb->blogmeta (
 	KEY blog_id (blog_id)
 ) $charset_collate;
 CREATE TABLE $wpdb->registration_log (
-	ID bigint(20) NOT NULL auto_increment,
+	ID bigint(20) unsigned NOT NULL auto_increment,
 	email varchar(255) NOT NULL default '',
 	IP varchar(30) NOT NULL default '',
-	blog_id bigint(20) NOT NULL default '0',
+	blog_id bigint(20) unsigned NOT NULL default '0',
 	date_registered datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY  (ID),
 	KEY IP (IP)
 ) $charset_collate;
 CREATE TABLE $wpdb->site (
-	id bigint(20) NOT NULL auto_increment,
+	id bigint(20) unsigned NOT NULL auto_increment,
 	domain varchar(200) NOT NULL default '',
 	path varchar(100) NOT NULL default '',
 	PRIMARY KEY  (id),
 	KEY domain (domain(140),path(51))
 ) $charset_collate;
 CREATE TABLE $wpdb->sitemeta (
-	meta_id bigint(20) NOT NULL auto_increment,
-	site_id bigint(20) NOT NULL default '0',
+	meta_id bigint(20) unsigned NOT NULL auto_increment,
+	site_id bigint(20) unsigned NOT NULL default '0',
 	meta_key varchar(255) default NULL,
 	meta_value longtext,
 	PRIMARY KEY  (meta_id),
@@ -296,7 +297,7 @@ CREATE TABLE $wpdb->sitemeta (
 	KEY site_id (site_id)
 ) $charset_collate;
 CREATE TABLE $wpdb->signups (
-	signup_id bigint(20) NOT NULL auto_increment,
+	signup_id bigint(20) unsigned NOT NULL auto_increment,
 	domain varchar(200) NOT NULL default '',
 	path varchar(100) NOT NULL default '',
 	title longtext NOT NULL,
@@ -446,7 +447,7 @@ function populate_options( array $options = array() ) {
 		'moderation_keys'                 => '',
 		'active_plugins'                  => array(),
 		'category_base'                   => '',
-		'ping_sites'                      => 'http://rpc.pingomatic.com/',
+		'ping_sites'                      => 'https://rpc.pingomatic.com/',
 		'comment_max_links'               => 2,
 		'gmt_offset'                      => $gmt_offset,
 
@@ -559,6 +560,9 @@ function populate_options( array $options = array() ) {
 
 		// 6.4.0
 		'wp_attachment_pages_enabled'     => 0,
+
+		// 6.9.0
+		'wp_notes_notify'                 => 1,
 	);
 
 	// 3.3.0
@@ -713,6 +717,13 @@ function populate_options( array $options = array() ) {
  * @since 2.0.0
  */
 function populate_roles() {
+	$wp_roles = wp_roles();
+
+	// Disable role updates to the database while populating roles.
+	$original_use_db  = $wp_roles->use_db;
+	$wp_roles->use_db = false;
+
+	// Populate roles
 	populate_roles_160();
 	populate_roles_210();
 	populate_roles_230();
@@ -721,6 +732,14 @@ function populate_roles() {
 	populate_roles_270();
 	populate_roles_280();
 	populate_roles_300();
+
+	// Save the updated roles to the database.
+	if ( $original_use_db ) {
+		update_option( $wp_roles->role_key, $wp_roles->roles, true );
+	}
+
+	// Restore original value for writing to database.
+	$wp_roles->use_db = $original_use_db;
 }
 
 /**
@@ -988,6 +1007,20 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 
 	$network_id = (int) $network_id;
 
+	/**
+	 * Fires before a network is populated.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int    $network_id        ID of network to populate.
+	 * @param string $domain            The domain name for the network.
+	 * @param string $email             Email address for the network administrator.
+	 * @param string $site_name         The name of the network.
+	 * @param string $path              The path to append to the network's domain name.
+	 * @param bool   $subdomain_install Whether the network is a subdomain installation or a subdirectory installation.
+	 */
+	do_action( 'before_populate_network', $network_id, $domain, $email, $site_name, $path, $subdomain_install );
+
 	$errors = new WP_Error();
 	if ( '' === $domain ) {
 		$errors->add( 'empty_domain', __( 'You must provide a domain name.' ) );
@@ -1107,6 +1140,20 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 
 		flush_rewrite_rules();
 
+		/**
+		 * Fires after a network is created when converting a single site to multisite.
+		 *
+		 * @since 6.9.0
+		 *
+		 * @param int    $network_id        ID of network created.
+		 * @param string $domain            The domain name for the network.
+		 * @param string $email             Email address for the network administrator.
+		 * @param string $site_name         The name of the network.
+		 * @param string $path              The path to append to the network's domain name.
+		 * @param bool   $subdomain_install Whether the network is a subdomain installation or a subdirectory installation.
+		 */
+		do_action( 'after_upgrade_to_multisite', $network_id, $domain, $email, $site_name, $path, $subdomain_install );
+
 		if ( ! $subdomain_install ) {
 			return true;
 		}
@@ -1152,6 +1199,20 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 			return new WP_Error( 'no_wildcard_dns', $msg );
 		}
 	}
+
+	/**
+	 * Fires after a network is fully populated.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int    $network_id        ID of network created.
+	 * @param string $domain            The domain name for the network.
+	 * @param string $email             Email address for the network administrator.
+	 * @param string $site_name         The name of the network.
+	 * @param string $path              The path to append to the network's domain name.
+	 * @param bool   $subdomain_install Whether the network is a subdomain installation or a subdirectory installation.
+	 */
+	do_action( 'after_populate_network', $network_id, $domain, $email, $site_name, $path, $subdomain_install );
 
 	return true;
 }

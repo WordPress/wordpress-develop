@@ -1,9 +1,9 @@
 === Twenty Eleven ===
 Contributors: wordpressdotorg
 Requires at least: 3.2
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 5.2.4
-Stable tag: 4.9
+Stable tag: 5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, two-columns, left-sidebar, right-sidebar, custom-background, custom-colors, custom-header, custom-menu, editor-style, featured-image-header, featured-images, flexible-header, footer-widgets, full-width-template, microformats, post-formats, rtl-language-support, sticky-post, theme-options, translation-ready, block-patterns
@@ -38,15 +38,16 @@ GNU General Public License for more details.
 
 Twenty Eleven Theme bundles the following third-party resources:
 
-HTML5 Shiv v3.7.0, Copyright 2014 Alexander Farkas
-Licenses: MIT/GPL2
-Source: https://github.com/aFarkas/html5shiv
-
 Images
 "Yellow Flower Photo" by Bernard Spragg. CC0. https://stocksnap.io/photo/yellow-flower-GWT9JVALSV
 "People Woman Photo" by Brooke Cagle. CC0. https://stocksnap.io/photo/people-woman-MU7G67710S
 
 == Changelog ==
+
+= 5.0 =
+* Released: December 2, 2025
+
+https://wordpress.org/documentation/article/twenty-eleven-changelog/#Version_5.0
 
 = 4.9 =
 * Released: April 15, 2025

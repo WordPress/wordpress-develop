@@ -274,7 +274,7 @@ function media_send_to_editor( $html ) {
 	?>
 	<script type="text/javascript">
 	var win = window.dialogArguments || opener || parent || top;
-	win.send_to_editor( <?php echo wp_json_encode( $html ); ?> );
+	win.send_to_editor( <?php echo wp_json_encode( $html, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?> );
 	</script>
 	<?php
 	exit;
@@ -650,12 +650,12 @@ function media_buttons( $editor_id = 'content' ) {
 
 	wp_enqueue_media( array( 'post' => $post ) );
 
-	$img = '<span class="wp-media-buttons-icon"></span> ';
+	$img = '<span class="wp-media-buttons-icon" aria-hidden="true"></span> ';
 
 	$id_attribute = 1 === $instance ? ' id="insert-media-button"' : '';
 
 	printf(
-		'<button type="button"%s class="button insert-media add_media" data-editor="%s">%s</button>',
+		'<button type="button"%s class="button insert-media add_media" data-editor="%s" aria-haspopup="dialog" aria-controls="wp-media-modal">%s</button>',
 		$id_attribute,
 		esc_attr( $editor_id ),
 		$img . __( 'Add Media' )
@@ -2236,7 +2236,7 @@ function media_upload_form( $errors = null ) {
 
 	?>
 	var resize_height = <?php echo $large_size_h; ?>, resize_width = <?php echo $large_size_w; ?>,
-	wpUploaderInit = <?php echo wp_json_encode( $plupload_init ); ?>;
+	wpUploaderInit = <?php echo wp_json_encode( $plupload_init, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 	</script>
 
 	<div id="plupload-upload-ui" class="hide-if-no-js">
@@ -3028,27 +3028,15 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
  * Displays the multi-file uploader message.
  *
  * @since 2.6.0
- *
- * @global int $post_ID
  */
 function media_upload_flash_bypass() {
-	$browser_uploader = admin_url( 'media-new.php?browser-uploader' );
-
-	$post = get_post();
-	if ( $post ) {
-		$browser_uploader .= '&amp;post_id=' . (int) $post->ID;
-	} elseif ( ! empty( $GLOBALS['post_ID'] ) ) {
-		$browser_uploader .= '&amp;post_id=' . (int) $GLOBALS['post_ID'];
-	}
-
 	?>
 	<p class="upload-flash-bypass">
 	<?php
 		printf(
-			/* translators: 1: URL to browser uploader, 2: Additional link attributes. */
-			__( 'You are using the multi-file uploader. Problems? Try the <a href="%1$s" %2$s>browser uploader</a> instead.' ),
-			$browser_uploader,
-			'target="_blank"'
+			/* translators: %s: HTML attributes for button. */
+			__( 'You are using the multi-file uploader. Problems? Try the <button %s>browser uploader</button> instead.' ),
+			'type="button" class="button-link"'
 		);
 	?>
 	</p>
@@ -3063,7 +3051,13 @@ function media_upload_flash_bypass() {
 function media_upload_html_bypass() {
 	?>
 	<p class="upload-html-bypass hide-if-no-js">
-		<?php _e( 'You are using the browser&#8217;s built-in file uploader. The WordPress uploader includes multiple file selection and drag and drop capability. <a href="#">Switch to the multi-file uploader</a>.' ); ?>
+	<?php
+		printf(
+			/* translators: %s: HTML attributes for button. */
+			__( 'You are using the browser&#8217;s built-in file uploader. The WordPress uploader includes multiple file selection and drag and drop capability. <button %s>Switch to the multi-file uploader</button>.' ),
+			'type="button" class="button-link"'
+		);
+	?>
 	</p>
 	<?php
 }
@@ -3337,7 +3331,7 @@ function attachment_submitbox_metadata() {
 		$uploaded_by_link = get_edit_user_link( $author->ID );
 	}
 	?>
-	<div class="misc-pub-section misc-pub-uploadedby">
+	<div class="misc-pub-section misc-pub-uploadedby word-wrap-break-word">
 		<?php if ( $uploaded_by_link ) { ?>
 			<?php _e( 'Uploaded by:' ); ?> <a href="<?php echo $uploaded_by_link; ?>"><strong><?php echo $uploaded_by_name; ?></strong></a>
 		<?php } else { ?>
@@ -3534,7 +3528,7 @@ function wp_add_id3_tag_data( &$metadata, $data ) {
 		if ( ! empty( $data[ $version ]['comments'] ) ) {
 			foreach ( $data[ $version ]['comments'] as $key => $list ) {
 				if ( 'length' !== $key && ! empty( $list ) ) {
-					$metadata[ $key ] = wp_kses_post( reset( $list ) );
+					$metadata[ $key ] = is_array( $list ) ? wp_kses_post_deep( reset( $list ) ) : wp_kses_post( $list );
 					// Fix bug in byte stream analysis.
 					if ( 'terms_of_use' === $key && str_starts_with( $metadata[ $key ], 'yright notice.' ) ) {
 						$metadata[ $key ] = 'Cop' . $metadata[ $key ];

@@ -940,7 +940,7 @@ function spawn_cron( $gmt_time = 0 ) {
 	 *     An array of cron request URL arguments.
 	 *
 	 *     @type string $url  The cron request URL.
-	 *     @type int    $key  The 22 digit GMT microtime.
+	 *     @type string $key  The Unix timestamp (UTC) of the cron lock with microseconds.
 	 *     @type array  $args {
 	 *         An array of cron request arguments.
 	 *
@@ -949,7 +949,7 @@ function spawn_cron( $gmt_time = 0 ) {
 	 *         @type bool $sslverify Whether SSL should be verified for the request. Default false.
 	 *     }
 	 * }
-	 * @param string $doing_wp_cron The Unix timestamp (UTC) of the cron lock.
+	 * @param string $doing_wp_cron The Unix timestamp (UTC) of the cron lock with microseconds.
 	 */
 	$cron_request = apply_filters(
 		'cron_request',
@@ -972,30 +972,33 @@ function spawn_cron( $gmt_time = 0 ) {
 }
 
 /**
- * Registers _wp_cron() to run on the {@see 'wp_loaded'} action.
+ * Registers _wp_cron() to run on the {@see 'shutdown'} action.
  *
- * If the {@see 'wp_loaded'} action has already fired, this function calls
- * _wp_cron() directly.
- *
- * Warning: This function may return Boolean FALSE, but may also return a non-Boolean
- * value which evaluates to FALSE. For information about casting to booleans see the
- * {@link https://www.php.net/manual/en/language.types.boolean.php PHP documentation}. Use
- * the `===` operator for testing the return value of this function.
+ * The spawn_cron() function attempts to make a non-blocking loopback request to `wp-cron.php` (when alternative
+ * cron is not being used). However, the wp_remote_post() function does not always respect the `timeout` and
+ * `blocking` parameters. A timeout of `0.01` may end up taking 1 second. When this runs at the {@see 'wp_loaded'}
+ * action, it increases the Time To First Byte (TTFB) since the HTML cannot be sent while waiting for the cron request
+ * to initiate. Moving the spawning of cron to the {@see 'shutdown'} hook allows for the server to flush the HTML document to
+ * the browser while waiting for the request.
  *
  * @since 2.1.0
  * @since 5.1.0 Return value added to indicate success or failure.
  * @since 5.7.0 Functionality moved to _wp_cron() to which this becomes a wrapper.
- *
- * @return false|int|void On success an integer indicating number of events spawned (0 indicates no
- *                        events needed to be spawned), false if spawning fails for one or more events or
- *                        void if the function registered _wp_cron() to run on the action.
+ * @since 6.9.0 The _wp_cron() callback is moved from {@see 'wp_loaded'} to the {@see 'shutdown'} action,
+ *              unless `ALTERNATE_WP_CRON` is enabled; the function now always returns void.
  */
-function wp_cron() {
-	if ( did_action( 'wp_loaded' ) ) {
-		return _wp_cron();
+function wp_cron(): void {
+	if ( defined( 'ALTERNATE_WP_CRON' ) && ALTERNATE_WP_CRON ) {
+		if ( did_action( 'wp_loaded' ) ) {
+			_wp_cron();
+		} else {
+			add_action( 'wp_loaded', '_wp_cron', 20 );
+		}
+	} elseif ( doing_action( 'shutdown' ) ) {
+		_wp_cron();
+	} else {
+		add_action( 'shutdown', '_wp_cron' );
 	}
-
-	add_action( 'wp_loaded', '_wp_cron', 20 );
 }
 
 /**

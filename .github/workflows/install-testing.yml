@@ -47,7 +47,7 @@ jobs:
     permissions:
       contents: read
     secrets: inherit
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     with:
       wp-version: ${{ inputs.wp-version }}
 
@@ -63,7 +63,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ${{ matrix.os }}
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     timeout-minutes: 10
     needs: [ build-test-matrix ]
     strategy:
@@ -92,11 +92,15 @@ jobs:
             db-version: '8.4'
           # Only test the latest innovation release.
           - db-version: '9.0'
+          - db-version: '9.1'
+          - db-version: '9.2'
+          - db-version: '9.3'
+          - db-version: '9.4'
           # MySQL 9.0+ will not work on PHP 7.2 & 7.3. See https://core.trac.wordpress.org/ticket/61218.
           - php: '7.2'
-            db-version: '9.1'
+            db-version: '9.5'
           - php: '7.3'
-            db-version: '9.1'
+            db-version: '9.5'
 
     services:
       database:
@@ -115,7 +119,7 @@ jobs:
 
     steps:
       - name: Set up PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401 # v2.32.0
+        uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
         with:
           php-version: '${{ matrix.php }}'
           coverage: none
@@ -168,7 +172,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
