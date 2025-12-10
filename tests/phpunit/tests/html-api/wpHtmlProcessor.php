@@ -1083,7 +1083,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensure that the processor does not throw errors in cases of extreme HTML nesting.
 	 *
-	 * @ticket TBD
+	 * @ticket 64394
 	 *
 	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
 	 */
@@ -1102,7 +1102,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket TBD
+	 * @ticket 64394
 	 *
 	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
 	 */
