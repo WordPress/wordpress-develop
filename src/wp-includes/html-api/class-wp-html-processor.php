@@ -1040,8 +1040,17 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$token_name            = $this->get_token_name();
 
 		if ( self::REPROCESS_CURRENT_NODE !== $node_to_process ) {
+			try {
+				$bookmark_name = $this->bookmark_token();
+			} catch ( Exception $e ) {
+				if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
+					return false;
+				}
+				throw $e;
+			}
+
 			$this->state->current_token = new WP_HTML_Token(
-				$this->bookmark_token(),
+				$bookmark_name,
 				$token_name,
 				$this->has_self_closing_flag(),
 				$this->release_internal_bookmark_on_destruct
