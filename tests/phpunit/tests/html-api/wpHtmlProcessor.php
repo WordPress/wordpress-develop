@@ -1107,7 +1107,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_deep_nesting_fails_processing_virtual_tokens_without_error() {
-		$html      = str_repeat( '<table><td>', WP_HTML_Processor::MAX_BOOKMARKS );
+		$html      = str_repeat( '<table><td>', WP_HTML_Processor::MAX_BOOKMARKS * 2 );
 		$processor = WP_HTML_Processor::create_fragment( $html );
 
 		// The fragment parser starts with a few context tokens already bookmarked.
