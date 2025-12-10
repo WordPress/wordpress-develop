@@ -96,7 +96,7 @@ class WP_Styles extends WP_Dependencies {
 	 * List of default directories.
 	 *
 	 * @since 2.8.0
-	 * @var array
+	 * @var string[]|null
 	 */
 	public $default_dirs;
 
@@ -183,7 +183,7 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		if ( $this->do_concat ) {
-			if ( $this->in_default_dir( $src ) && ! isset( $obj->extra['alt'] ) ) {
+			if ( is_string( $src ) && $this->in_default_dir( $src ) && ! isset( $obj->extra['alt'] ) ) {
 				$this->concat         .= "$handle,";
 				$this->concat_version .= "$handle$ver";
 
@@ -497,7 +497,7 @@ class WP_Styles extends WP_Dependencies {
 	/**
 	 * Gets a style-specific dependency warning message.
 	 *
-	 * @since 7.0.0
+	 * @since 6.9.1
 	 *
 	 * @param string   $handle                     Style handle with missing dependencies.
 	 * @param string[] $missing_dependency_handles Missing dependency handles.

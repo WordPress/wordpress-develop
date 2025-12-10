@@ -56,11 +56,12 @@ class WP_Dependencies {
 	/**
 	 * An array of additional arguments passed when a handle is registered.
 	 *
-	 * Arguments are appended to the item query string.
+	 * The keys are dependency handles and the values are query strings which are appended to the item URL's query
+	 * string, after the `ver` if provided.
 	 *
 	 * @since 2.6.0
 	 *
-	 * @var array
+	 * @var array<string, string>
 	 */
 	public $args = array();
 
@@ -100,7 +101,7 @@ class WP_Dependencies {
 	 *
 	 * @since 5.9.0
 	 *
-	 * @var array
+	 * @var array<string, string|null>
 	 */
 	private $queued_before_register = array();
 
@@ -111,7 +112,7 @@ class WP_Dependencies {
 	 * warning is emitted with {@see _doing_it_wrong()}. The handle is then added to this list, so that duplicate
 	 * warnings don't occur.
 	 *
-	 * @since 7.0.0
+	 * @since 6.9.1
 	 * @var string[]
 	 */
 	private $dependencies_with_missing_dependencies = array();
@@ -223,7 +224,7 @@ class WP_Dependencies {
 					_doing_it_wrong(
 						get_class( $this ) . '::add',
 						$this->get_dependency_warning_message( $handle, $missing_dependencies ),
-						'7.0.0'
+						'6.9.1'
 					);
 					$this->dependencies_with_missing_dependencies[] = $handle;
 				}
@@ -563,7 +564,7 @@ class WP_Dependencies {
 	/**
 	 * Gets a dependency warning message for a handle.
 	 *
-	 * @since 7.0.0
+	 * @since 6.9.1
 	 *
 	 * @param string   $handle                     Handle with missing dependencies.
 	 * @param string[] $missing_dependency_handles Missing dependency handles.
