@@ -1098,4 +1098,38 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		}
 		$this->assertSame( WP_HTML_Processor::MAX_BOOKMARKS, $reached_tokens );
 	}
+
+	/**
+	 * @ticket TBD
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
+	 */
+	public function test_deep_nesting_fails_processing_virtual_tokens_without_error() {
+		$html      = str_repeat( '<table><td>', WP_HTML_Processor::MAX_BOOKMARKS );
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		// The fragment parser starts with a few context tokens already bookmarked.
+		$reached_tokens = ( fn() => count( $this->bookmarks ) )->call( $processor );
+		while ( $processor->next_token() ) {
+			++$reached_tokens;
+		}
+
+		/*
+		 * This test has some variability depending on how the virtual tokens align.
+		 * It will produce 1 real, 2 virtual, 1 real.
+		 *
+		 * "<table><td><table><td>…" produces:
+		 * └─TABLE
+		 *   └─TBODY (virtual)
+		 *     └─TR (virtual)
+		 *       └─TD
+		 *         └─TABLE
+		 *           └─TBODY (virtual)
+		 *             └─TR (virtual)
+		 *               └─TD
+		 *                 └─…
+		 */
+		$this->assertGreaterThanOrEqual( WP_HTML_Processor::MAX_BOOKMARKS - 1, $reached_tokens );
+		$this->assertLessThanOrEqual( WP_HTML_Processor::MAX_BOOKMARKS + 1, $reached_tokens );
+	}
 }
