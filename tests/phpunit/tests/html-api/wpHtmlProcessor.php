@@ -1092,7 +1092,9 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 
 		// The fragment parser starts with a few context tokens already bookmarked.
-		$reached_tokens = ( fn() => count( $this->bookmarks ) )->call( $processor );
+		$reached_tokens = ( function () {
+			return count( $this->bookmarks );
+		} )->call( $processor );
 		while ( $processor->next_token() ) {
 			++$reached_tokens;
 		}
@@ -1109,7 +1111,9 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$processor = WP_HTML_Processor::create_fragment( $html );
 
 		// The fragment parser starts with a few context tokens already bookmarked.
-		$reached_tokens = ( fn() => count( $this->bookmarks ) )->call( $processor );
+		$reached_tokens = ( function () {
+			return count( $this->bookmarks );
+		} )->call( $processor );
 		while ( $processor->next_token() ) {
 			++$reached_tokens;
 		}
