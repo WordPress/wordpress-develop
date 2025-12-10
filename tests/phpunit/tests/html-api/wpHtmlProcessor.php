@@ -1079,4 +1079,23 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 		$processor = WP_HTML_Processor::create_fragment( '<svg><RECT>' );
 		$this->assertTrue( $processor->next_tag( array( 'tag_name' => 'rect' ) ) );
 	}
+
+	/**
+	 * Ensure that the processor does not throw errors in cases of extreme HTML nesting.
+	 *
+	 * @ticket TBD
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
+	 */
+	public function test_deep_nesting_fails_process_without_error() {
+		$html      = str_repeat( '<i>', WP_HTML_Processor::MAX_BOOKMARKS * 2 );
+		$processor = WP_HTML_Processor::create_fragment( $html );
+
+		// The fragment parser starts with a few context tokens already bookmarked.
+		$reached_tokens = ( fn() => count( $this->bookmarks ) )->call( $processor );
+		while ( $processor->next_token() ) {
+			++$reached_tokens;
+		}
+		$this->assertSame( WP_HTML_Processor::MAX_BOOKMARKS, $reached_tokens );
+	}
 }
