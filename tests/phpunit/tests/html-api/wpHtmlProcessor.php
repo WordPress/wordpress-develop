@@ -1068,7 +1068,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensure that lowercased tag_name query matches tags case-insensitively.
 	 *
-	 * @group 62427
+	 * @ticket 62427
 	 */
 	public function test_next_tag_lowercase_tag_name() {
 		// The upper case <DIV> is irrelevant but illustrates the case-insentivity.
