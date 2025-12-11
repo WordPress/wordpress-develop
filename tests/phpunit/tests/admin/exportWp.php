@@ -321,7 +321,6 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 		$xml_obj      = $this->get_the_export( array() );
 		$comment_tags = $xml_obj->xpath( '//wp:comment' );
-
 		$this->assertCount( $comment_count, $comment_tags, 'Export should include all comments when not filtered.' );
 	}
 }
