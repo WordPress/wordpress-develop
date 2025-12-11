@@ -950,6 +950,16 @@ class WP_Script_Modules {
 			. '</div>';
 	}
 
+	/**
+	 * Creates a clone of the instance without enqueued modules.
+	 *
+	 * This method creates a copy of the current instance without any
+	 * state related to enqueued or printed modules.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @return WP_Script_Modules A new instance.
+	 */
 	public function clone_without_enqueued_modules(): self {
 		$clone                 = clone $this;
 		$clone->queue          = array();
