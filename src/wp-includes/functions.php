@@ -3888,9 +3888,8 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 
 	// Ensure HTTP 500 status code for critical errors, even if headers were already sent.
 	$is_critical_error = false;
-	if ( is_wp_error( $message ) ) {
-			$error_code        = $message->get_error_code();
-			$is_critical_error = ( 'internal_server_error' === $error_code );
+	if ( $message instanceof WP_Error ) {
+			$is_critical_error = $message->get_error_code();
 	} elseif ( 'internal_server_error' === $parsed_args['code'] || 500 === $parsed_args['response'] ) {
 			$is_critical_error = true;
 	}
