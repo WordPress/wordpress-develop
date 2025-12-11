@@ -417,7 +417,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	}
 
 	// Now we assume something is wrong and fail to schedule.
-	if ( ! is_int( $interval ) || 0 <= $interval ) {
+	if ( ! is_int( $interval ) || $interval <= 0 ) {
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_schedule',
