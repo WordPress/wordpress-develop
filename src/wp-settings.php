@@ -219,6 +219,8 @@ require ABSPATH . WPINC . '/post.php';
 require ABSPATH . WPINC . '/class-walker-page.php';
 require ABSPATH . WPINC . '/class-walker-page-dropdown.php';
 require ABSPATH . WPINC . '/class-wp-post-type.php';
+require ABSPATH . WPINC . '/class-wp-content-type.php';
+require ABSPATH . WPINC . '/content-type.php';
 require ABSPATH . WPINC . '/class-wp-post.php';
 require ABSPATH . WPINC . '/post-template.php';
 require ABSPATH . WPINC . '/revision.php';
