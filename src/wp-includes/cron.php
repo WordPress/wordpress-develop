@@ -359,7 +359,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	}
 
 	// Now we try to get it from the saved interval in case the schedule disappears.
-	if ( 0 === $interval ) {
+	if ( 0 === (int) $interval ) {
 		$scheduled_event = wp_get_scheduled_event( $hook, $args, $timestamp );
 
 		if ( $scheduled_event && isset( $scheduled_event->interval ) ) {
@@ -417,11 +417,15 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	}
 
 	// Now we assume something is wrong and fail to schedule.
-	if ( 0 === $interval ) {
+	if ( ! is_int( $interval ) || 0 <= $interval ) {
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_schedule',
-				__( 'Event schedule does not exist.' )
+				sprintf(
+					/* translators: %s is the interval encoded as JSON */
+					__( 'Event schedule is invalid. Interval must be positive integer, but got: %s' ),
+					wp_json_encode( $interval )
+				)
 			);
 		}
 
