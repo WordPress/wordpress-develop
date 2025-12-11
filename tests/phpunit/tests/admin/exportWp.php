@@ -308,7 +308,7 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 		$xml_obj      = $this->get_the_export( array() );
 		$comment_tags = $xml_obj->xpath( '//wp:comment' );
-		$this->assertEmpty( $comment_tags, 'No <wp:comment> tags should be present when comments are filtered out.' );
+		$this->assertCount( 0, $comment_tags, 'No <wp:comment> tags should be present when comments are filtered out.' );
 	}
 
 	/**
