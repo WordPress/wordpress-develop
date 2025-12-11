@@ -950,10 +950,11 @@ class WP_Script_Modules {
 			. '</div>';
 	}
 
-	public function clone_without_enqueued_modules(): WP_Script_Modules {
-		$clone = clone $this;
-		$clone->queue = array();
-		$clone->done  = array();
+	public function clone_without_enqueued_modules(): self {
+		$clone                 = clone $this;
+		$clone->queue          = array();
+		$clone->done           = array();
+		$clone->a11y_available = false;
 		return $clone;
 	}
 }
