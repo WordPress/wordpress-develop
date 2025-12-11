@@ -951,10 +951,9 @@ class WP_Script_Modules {
 	}
 
 	public function clone_without_enqueued_modules(): WP_Script_Modules {
-		$clone                                    = new WP_Script_Modules();
-		$clone->registered                        = $this->registered;
-		$clone->dependents_map                    = $this->dependents_map;
-		$clone->modules_with_missing_dependencies = $this->modules_with_missing_dependencies;
+		$clone = clone $this;
+		$clone->queue = array();
+		$clone->done  = array();
 		return $clone;
 	}
 }
