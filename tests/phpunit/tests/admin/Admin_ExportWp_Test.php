@@ -10,7 +10,7 @@
  * @runTestsInSeparateProcesses
  * @preserveGlobalState disabled
  */
-class Tests_Admin_ExportWp extends WP_UnitTestCase {
+class Admin_ExportWp_Test extends WP_UnitTestCase {
 	/**
 	 * Post IDs for posts, pages, and attachments.
 	 *
