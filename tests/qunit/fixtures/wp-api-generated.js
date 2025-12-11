@@ -260,6 +260,47 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/wp/v2"
             }
         },
+        "/wp/v2/content-types": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/content-types"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/content-types/(?P<content_type>[a-z0-9_-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "content_type": {
+                            "description": "Content type identifier.",
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/posts": {
             "namespace": "wp/v2",
             "methods": [

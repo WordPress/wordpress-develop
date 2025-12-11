@@ -133,6 +133,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)',
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
+			'/wp/v2/content-types',
+			'/wp/v2/content-types/(?P<content_type>[a-z0-9_-]+)',
 			'/wp/v2/global-styles/(?P<id>[\/\d+]+)',
 			'/wp/v2/global-styles/(?P<parent>[\d]+)/revisions',
 			'/wp/v2/global-styles/(?P<parent>[\d]+)/revisions/(?P<id>[\d]+)',
