@@ -277,7 +277,12 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->assertInstanceOf( Tests_Custom_Ability_Class::class, $result, 'Should return an instance of the custom class.' );
 
 		// Verify the custom execute method works.
-		$execute_result = $result->execute( array( 'a' => 5, 'b' => 3 ) );
+		$execute_result = $result->execute(
+			array(
+				'a' => 5,
+				'b' => 3,
+			)
+		);
 		$this->assertSame( 15, $execute_result, 'Custom do_execute should multiply instead of add.' );
 	}
 
