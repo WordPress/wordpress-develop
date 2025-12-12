@@ -1998,7 +1998,18 @@ function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
 	}
 
 	foreach ( (array) $taxonomies as $taxonomy ) {
+		// Check if the taxonomy exists first, necessary for attachment where category and post_tag have to be manually added.
+		if ( ! taxonomy_exists( $taxonomy ) ) {
+			continue;
+		}
+
 		$term_ids = wp_get_object_terms( $object_id, $taxonomy, array( 'fields' => 'ids' ) );
+
+		// Check if wp_get_object_terms() returned a WP_Error or an empty array.
+		if ( is_wp_error( $term_ids ) || empty( $term_ids ) ) {
+			continue;
+		}
+
 		$term_ids = array_map( 'intval', $term_ids );
 		wp_remove_object_terms( $object_id, $term_ids, $taxonomy );
 	}

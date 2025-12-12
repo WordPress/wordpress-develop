@@ -7031,6 +7031,44 @@ EOF;
 			'height' => 100,
 		);
 	}
+
+	/**
+	 * Test deleting an attachment when 'post_tag' has been unregistered,
+	 * simulating the scenario.
+	 *
+	 * @ticket 60052
+	 */
+	public function test_delete_attachment_with_unregistered_post_tag() {
+		global $wp_taxonomies;
+
+		// Create a test attachment.
+		$attachment_id = self::factory()->attachment->create_upload_object(
+			DIR_TESTDATA . '/images/canola.jpg'
+		);
+
+		// Unregister 'category' and 'post_tag' taxonomies.
+		unregister_taxonomy_for_object_type( 'category', 'post' );
+		unregister_taxonomy_for_object_type( 'post_tag', 'post' );
+
+		// Check if 'category' is registered before unregistering.
+		if ( taxonomy_exists( 'category' ) ) {
+			unregister_taxonomy( 'category' );
+			unset( $wp_taxonomies['category'] );
+		}
+
+		// Check if 'post_tag' is registered before unregistering.
+		if ( taxonomy_exists( 'post_tag' ) ) {
+			unregister_taxonomy( 'post_tag' );
+			unset( $wp_taxonomies['post_tag'] );
+		}
+
+		// Now, delete the attachment. In #60052, this would fail if 'post_tag' is missing,
+		// but the patched core should handle it gracefully.
+		$deleted_post = wp_delete_attachment( $attachment_id, true );
+
+		// Verify the attachment was deleted (returns WP_Post object on success).
+		$this->assertInstanceOf( 'WP_Post', $deleted_post );
+	}
 }
 
 /**
