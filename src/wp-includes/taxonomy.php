@@ -1999,8 +1999,11 @@ function wp_delete_object_term_relationships( $object_id, $taxonomies ) {
 
 	foreach ( (array) $taxonomies as $taxonomy ) {
 		$term_ids = wp_get_object_terms( $object_id, $taxonomy, array( 'fields' => 'ids' ) );
-		if ( is_wp_error( $term_ids ) ) {
-			// Skip this taxonomy if it returns an error
+		if ( ! is_array( $term_ids ) ) {
+			/*
+			 * Skip this taxonomy if it doesn't return an array. It could return a WP_Error, or it could return a string,
+			 * or with the 'wp_get_object_terms' filter it could return anything.
+			 */
 			continue;
 		}
 		$term_ids = array_map( 'intval', $term_ids );
