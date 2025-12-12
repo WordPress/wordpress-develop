@@ -387,7 +387,10 @@ function _wp_get_iframed_editor_assets() {
 	$wp_scripts        = $current_wp_scripts;
 	$wp_script_modules = $current_wp_script_modules;
 
-	return array( 'html' => $html );
+	return array(
+		'styles' => $html,
+		'html'   => $html,
+	);
 }
 
 /**
