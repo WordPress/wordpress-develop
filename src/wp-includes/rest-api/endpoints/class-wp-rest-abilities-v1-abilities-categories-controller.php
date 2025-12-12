@@ -16,7 +16,7 @@ declare( strict_types = 1 );
  *
  * @see WP_REST_Controller
  */
-class WP_REST_Abilities_V1_Categories_Controller extends WP_REST_Controller {
+class WP_REST_Abilities_V1_Abilities_Categories_Controller extends WP_REST_Controller {
 
 	/**
 	 * REST API namespace.
@@ -32,7 +32,7 @@ class WP_REST_Abilities_V1_Categories_Controller extends WP_REST_Controller {
 	 * @since 6.9.0
 	 * @var string
 	 */
-	protected $rest_base = 'categories';
+	protected $rest_base = 'abilities-categories';
 
 	/**
 	 * Registers the routes for ability categories.
@@ -212,7 +212,7 @@ class WP_REST_Abilities_V1_Categories_Controller extends WP_REST_Controller {
 					'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 				),
 				'abilities'  => array(
-					'href' => rest_url( sprintf( '%s/abilities?category=%s', $this->namespace, $category->get_slug() ) ),
+					'href' => rest_url( sprintf( '%s/abilities?ability_category=%s', $this->namespace, $category->get_slug() ) ),
 				),
 			);
 
