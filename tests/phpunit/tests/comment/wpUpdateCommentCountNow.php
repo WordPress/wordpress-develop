@@ -46,6 +46,43 @@ class Tests_Comment_wpUpdateCommentCountNow extends WP_UnitTestCase {
 		remove_filter( 'pre_wp_update_comment_count_now', array( $this, '_return_100' ) );
 	}
 
+	/**
+	* @ticket 64325
+	*/
+	public function test_only_approved_regular_comments_are_counted() {
+		$post_id = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 0,
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 1,
+			)
+		);
+
+		$this->assertTrue( wp_update_comment_count_now( $post_id ) );
+		$this->assertSame( '1', get_comments_number( $post_id ) );
+	}
+
 	public function _return_100() {
 		return 100;
 	}

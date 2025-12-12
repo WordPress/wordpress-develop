@@ -2059,7 +2059,7 @@ HTML;
 			"Snapshot:\n" . var_export( $actual, true )
 		);
 
-		$deregister( array( 'b', 'c ' ) );
+		$deregister( array( 'b', 'c' ) );
 
 		// Test that registered dependency in footer doesn't place dependant in footer.
 		$register( 'd', '/d.js', array(), '1.0.0', array( 'in_footer' => true ) );
@@ -2310,6 +2310,34 @@ HTML;
 			$script_modules,
 			'<body>',
 			"Expected script modules to match snapshot:\n$script_modules"
+		);
+	}
+
+	/**
+	 * Tests that a missing script module dependency triggers a _doing_it_wrong() notice.
+	 *
+	 * @ticket 64229
+	 * @covers WP_Script_Modules::sort_item_dependencies
+	 */
+	public function test_missing_script_module_dependency_triggers_incorrect_usage() {
+		$expected_incorrect_usage = 'WP_Script_Modules::register';
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+
+		$this->script_modules->enqueue( 'main-module', '/main-module.js', array( 'missing-mod-dep' ) );
+
+		$markup = get_echo( array( $this->script_modules, 'print_enqueued_script_modules' ) );
+		$this->assertStringNotContainsString( 'main-module.js', $markup, 'Expected script module to be absent.' );
+
+		$this->assertArrayHasKey(
+			$expected_incorrect_usage,
+			$this->caught_doing_it_wrong,
+			'Expected WP_Script_Modules::register to be reported via doing_it_wrong().'
+		);
+
+		// Assert the message mentions the missing dependency handle.
+		$this->assertStringContainsString(
+			'The script module with the ID "main-module" was enqueued with dependencies that are not registered: missing-mod-dep',
+			$this->caught_doing_it_wrong[ $expected_incorrect_usage ]
 		);
 	}
 }
