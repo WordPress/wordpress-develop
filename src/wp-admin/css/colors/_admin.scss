@@ -82,12 +82,26 @@ span.wp-media-buttons-icon:before {
 
 /* Forms */
 
-input[type=checkbox]:checked::before {
-	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27#{url-friendly-colour(variables.$form-checked)}%27%2F%3E%3C%2Fsvg%3E") / '';
+// Checkbox checked state - uses theme color
+input[type="checkbox"]:checked {
+	background: var(--wp-admin-theme-color);
+	border-color: var(--wp-admin-theme-color);
 }
 
-input[type=radio]:checked::before {
-	background: variables.$form-checked;
+// Checkbox checkmark - white for visibility on theme color background
+input[type="checkbox"]:checked::before {
+	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%23ffffff%27%2F%3E%3C%2Fsvg%3E") / '';
+}
+
+// Radio checked state - uses theme color
+input[type="radio"]:checked {
+	background: var(--wp-admin-theme-color);
+	border-color: var(--wp-admin-theme-color);
+}
+
+// Radio dot - white for visibility on theme color background
+input[type="radio"]:checked::before {
+	background: tokens.$white;
 }
 
 .wp-core-ui input[type="reset"]:hover,
@@ -95,6 +109,7 @@ input[type=radio]:checked::before {
 	color: variables.$link-focus;
 }
 
+// Text input focus - Gutenberg-style 1.5px border effect
 input[type="text"]:focus,
 input[type="password"]:focus,
 input[type="color"]:focus,
@@ -106,16 +121,45 @@ input[type="month"]:focus,
 input[type="number"]:focus,
 input[type="search"]:focus,
 input[type="tel"]:focus,
-input[type="text"]:focus,
 input[type="time"]:focus,
 input[type="url"]:focus,
 input[type="week"]:focus,
-input[type="checkbox"]:focus,
-input[type="radio"]:focus,
 select:focus,
 textarea:focus {
-	border-color: variables.$highlight-color;
-	box-shadow: 0 0 0 1px variables.$highlight-color;
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+}
+
+// Checkbox/Radio focus - Gutenberg-style outset focus ring
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+	border-color: tokens.$gray-900;
+	box-shadow: 0 0 0 2px tokens.$white, 0 0 0 4px var(--wp-admin-theme-color);
+	outline: 2px solid transparent;
+}
+
+// Select focus (wp-core-ui styled selects)
+.wp-core-ui select:focus {
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+}
+
+// Autocomplete focus state
+.wp-tags-autocomplete .ui-state-focus,
+.wp-tags-autocomplete [aria-selected="true"] {
+	background-color: var(--wp-admin-theme-color);
+}
+
+// Password field focus
+#pass1:focus,
+#pass1-text:focus {
+	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+}
+
+// Password toggle button focus
+.mailserver-pass-wrap .button.wp-hide-pw:focus {
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
 }
 
 
