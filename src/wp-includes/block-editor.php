@@ -374,7 +374,7 @@ function _wp_get_iframed_editor_assets() {
 
 	ob_start();
 	do_action( 'wp_print_iframe_html' );
-	$html = ob_end_clean();
+	$html = ob_get_clean();
 
 	if ( $has_emoji_styles ) {
 		add_action( 'wp_print_styles', 'print_emoji_styles' );
