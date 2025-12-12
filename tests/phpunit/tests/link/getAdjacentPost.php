@@ -644,7 +644,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Add a filter that doesn't modify the WHERE clause (returns unchanged).
 		add_filter(
 			'get_next_post_where',
-			static function( $where ) {
+			static function ( $where ) {
 				// Return unchanged - deterministic fallback should be applied.
 				return $where;
 			}
@@ -686,7 +686,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$filter_returned = '';
 		add_filter(
 			'get_next_post_where',
-			static function( $where ) use ( &$filter_received, &$filter_returned ) {
+			static function ( $where ) use ( &$filter_received, &$filter_returned ) {
 				$filter_received = $where;
 				// Modify the WHERE clause - deterministic fallback should NOT be applied.
 				// Add a harmless condition that won't affect results but proves the filter was applied.
@@ -733,7 +733,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Add a filter that doesn't modify the SORT clause (returns unchanged).
 		add_filter(
 			'get_next_post_sort',
-			static function( $sort ) {
+			static function ( $sort ) {
 				// Return unchanged - deterministic ID sort should be applied.
 				return $sort;
 			}
@@ -775,7 +775,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$filter_returned = '';
 		add_filter(
 			'get_next_post_sort',
-			static function( $sort, $post, $order ) use ( &$filter_received, &$filter_returned ) {
+			static function ( $sort, $post, $order ) use ( &$filter_received, &$filter_returned ) {
 				$filter_received = $sort;
 				// Modify to remove ID - deterministic ID sort should NOT be applied.
 				$filter_returned = "ORDER BY p.post_date $order LIMIT 1";
@@ -824,14 +824,14 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Add filters that don't modify the clauses.
 		add_filter(
 			'get_previous_post_where',
-			static function( $where ) {
+			static function ( $where ) {
 				return $where;
 			}
 		);
 
 		add_filter(
 			'get_previous_post_sort',
-			static function( $sort ) {
+			static function ( $sort ) {
 				return $sort;
 			}
 		);

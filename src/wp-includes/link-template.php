@@ -1989,7 +1989,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @param WP_Post      $post           WP_Post object.
 	 */
 	$where = apply_filters( "get_{$adjacent}_post_where", $where_prepared, $in_same_term, $excluded_terms, $taxonomy, $post );
-	
+
 	// Only force deterministic fallback if the where clause has not been modified by a filter.
 	if ( $where === $where_prepared ) {
 		$where = $where_prepared_with_deterministic_fallback;
@@ -2015,7 +2015,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @param string  $order   Sort order. 'DESC' for previous post, 'ASC' for next.
 	 */
 	$sort_prepared = "ORDER BY p.post_date $order LIMIT 1";
-	$sort = apply_filters( "get_{$adjacent}_post_sort", $sort_prepared, $post, $order );
+	$sort          = apply_filters( "get_{$adjacent}_post_sort", $sort_prepared, $post, $order );
 
 	// Only force deterministic sort if the sort clause has not been modified by a filter.
 	if ( $sort === $sort_prepared ) {
