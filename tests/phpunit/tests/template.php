@@ -1561,7 +1561,6 @@ class Tests_Template extends WP_UnitTestCase {
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
-						'wp-custom-css',
 					),
 					'BODY' => array(
 						'late-css',
@@ -1623,7 +1622,6 @@ class Tests_Template extends WP_UnitTestCase {
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
-						'wp-custom-css',
 					),
 					'BODY' => array(
 						'late-css',
