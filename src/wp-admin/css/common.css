@@ -630,11 +630,12 @@ code {
 	top: -3px;
 	margin-left: 4px;
 	border: 1px solid #2271b1;
-	border-radius: 3px;
-	background: #f6f7f7;
+	border-radius: 2px;
+	background: transparent;
 	font-size: 13px;
-	font-weight: 400;
-	line-height: 2.15384615;
+	font-weight: 500;
+	min-height: 40px;
+	line-height: 2.92307692; /* 38px for 40px height */
 	color: #2271b1; /* use the standard color used for buttons */
 	padding: 0 10px;
 	min-height: 30px;
@@ -648,7 +649,6 @@ code {
 
 .wrap .add-new-h2:hover, /* deprecated */
 .wrap .page-title-action:hover {
-	background: #f0f0f1;
 	border-color: #0a4b78;
 	color: #0a4b78;
 }
