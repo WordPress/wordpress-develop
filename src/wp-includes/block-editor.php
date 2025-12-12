@@ -310,8 +310,8 @@ function _wp_get_iframed_editor_assets() {
 	$current_wp_script_modules = $wp_script_modules;
 
 	// Create new instances to collect the assets.
-	$wp_styles  = new WP_Styles();
-	$wp_scripts = new WP_Scripts();
+	$wp_styles         = new WP_Styles();
+	$wp_scripts        = new WP_Scripts();
 	$wp_script_modules = $wp_script_modules->clone_without_enqueued_modules();
 
 	/*
@@ -369,38 +369,25 @@ function _wp_get_iframed_editor_assets() {
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
 	}
 
+	add_action( 'wp_print_iframe_html', array( $wp_script_modules, 'print_import_map' ) );
+	add_action( 'wp_print_iframe_html', array( $wp_script_modules, 'print_head_enqueued_script_modules' ) );
+	add_action( 'wp_print_iframe_html', array( $wp_script_modules, 'print_enqueued_script_modules' ) );
+	add_action( 'wp_print_iframe_html', array( $wp_script_modules, 'print_script_module_preloads' ) );
+
 	ob_start();
-	wp_print_styles();
-	wp_print_font_faces();
-	wp_print_font_faces_from_style_variations();
-	$styles = ob_get_clean();
+	do_action( 'wp_print_iframe_html' );
+	$html = ob_end_clean();
 
 	if ( $has_emoji_styles ) {
 		add_action( 'wp_print_styles', 'print_emoji_styles' );
 	}
-
-	ob_start();
-	wp_print_head_scripts();
-	wp_print_footer_scripts();
-	$scripts = ob_get_clean();
-
-	ob_start();
-	$wp_script_modules->print_import_map();
-	$wp_script_modules->print_head_enqueued_script_modules();
-	$wp_script_modules->print_enqueued_script_modules();
-	$wp_script_modules->print_script_module_preloads();
-	$script_modules = ob_get_clean();
 
 	// Restore the original instances.
 	$wp_styles         = $current_wp_styles;
 	$wp_scripts        = $current_wp_scripts;
 	$wp_script_modules = $current_wp_script_modules;
 
-	return array(
-		'styles'         => $styles,
-		'scripts'        => $scripts,
-		'script_modules' => $script_modules,
-	);
+	return array( 'html' => $html );
 }
 
 /**

@@ -373,6 +373,12 @@ add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_enqueue_scripts', 'wp_enqueue_emoji_styles' );
 add_action( 'wp_print_styles', 'print_emoji_styles' ); // Retained for backwards-compatibility. Unhooked by wp_enqueue_emoji_styles().
 
+add_action( 'wp_print_iframe_html', 'wp_print_styles' );
+add_action( 'wp_print_iframe_html', 'wp_print_font_faces' );
+add_action( 'wp_print_iframe_html', 'wp_print_font_faces_from_style_variations' );
+add_action( 'wp_print_iframe_html', 'wp_print_head_scripts' );
+add_action( 'wp_print_iframe_html', 'wp_print_footer_scripts' );
+
 if (
 	// Comment reply link.
 	isset( $_GET['replytocom'] )
