@@ -1627,7 +1627,7 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'code-editor', "/wp-admin/css/code-editor$suffix.css", array( 'wp-codemirror' ) );
 	$styles->add( 'site-health', "/wp-admin/css/site-health$suffix.css" );
 
-	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n' ) );
+	$styles->add( 'wp-admin', false, array( 'dashicons', 'common', 'forms', 'admin-menu', 'dashboard', 'list-tables', 'edit', 'revisions', 'media', 'themes', 'about', 'nav-menus', 'widgets', 'site-icon', 'l10n', 'wp-base-styles' ) );
 
 	$styles->add( 'login', "/wp-admin/css/login$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
 	$styles->add( 'install', "/wp-admin/css/install$suffix.css", array( 'dashicons', 'buttons', 'forms', 'l10n' ) );
@@ -1740,14 +1740,13 @@ function wp_default_styles( $styles ) {
 	);
 
 	$package_styles = array(
-		'block-editor'         => array( 'wp-base-styles', 'wp-components', 'wp-preferences' ),
+		'block-editor'         => array( 'wp-components', 'wp-preferences' ),
 		'block-library'        => array(),
 		'block-directory'      => array(),
 		'base-styles'          => array(),
 		'components'           => array(),
 		'commands'             => array( 'wp-components' ),
 		'edit-post'            => array(
-			'wp-base-styles',
 			'wp-components',
 			'wp-block-editor',
 			'wp-editor',
@@ -1764,7 +1763,7 @@ function wp_default_styles( $styles ) {
 			'wp-preferences',
 		),
 		'format-library'       => array(),
-		'list-reusable-blocks' => array( 'wp-base-styles', 'wp-components' ),
+		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
 		'patterns'             => array( 'wp-components' ),
 		'preferences'          => array( 'wp-components' ),
@@ -1773,7 +1772,6 @@ function wp_default_styles( $styles ) {
 			'wp-components',
 		),
 		'edit-widgets'         => array(
-			'wp-base-styles',
 			'wp-widgets',
 			'wp-block-editor',
 			'wp-editor',
@@ -1792,7 +1790,6 @@ function wp_default_styles( $styles ) {
 			'wp-preferences',
 		),
 		'edit-site'            => array(
-			'wp-base-styles',
 			'wp-components',
 			'wp-block-editor',
 			'wp-editor',
