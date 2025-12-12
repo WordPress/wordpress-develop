@@ -623,6 +623,233 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that deterministic ID fallback is applied when WHERE filter doesn't modify the clause.
+	 *
+	 * @ticket 64390
+	 */
+	public function test_get_adjacent_post_identical_dates_applies_deterministic_where_when_filter_unmodified() {
+		$identical_date = '2024-01-01 12:00:00';
+
+		// Create posts with identical dates but different IDs.
+		$post_ids = array();
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		// Add a filter that doesn't modify the WHERE clause (returns unchanged).
+		add_filter(
+			'get_next_post_where',
+			static function( $where ) {
+				// Return unchanged - deterministic fallback should be applied.
+				return $where;
+			}
+		);
+
+		// Test navigation from the middle post (ID: 3rd post).
+		$current_post_id = $post_ids[2]; // 3rd post
+		$this->go_to( get_permalink( $current_post_id ) );
+
+		// Next post should be the 4th post (higher ID, same date) - deterministic.
+		$next = get_adjacent_post( false, '', false );
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertEquals( $post_ids[3], $next->ID );
+
+		remove_all_filters( 'get_next_post_where' );
+	}
+
+	/**
+	 * Test that deterministic ID fallback is NOT applied when WHERE filter modifies the clause.
+	 *
+	 * @ticket 64390
+	 */
+	public function test_get_adjacent_post_identical_dates_respects_modified_where_filter() {
+		$identical_date = '2024-01-01 12:00:00';
+
+		// Create posts with identical dates but different IDs.
+		$post_ids = array();
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		// Capture what the filter receives and what it returns.
+		$filter_received = '';
+		$filter_returned = '';
+		add_filter(
+			'get_next_post_where',
+			static function( $where ) use ( &$filter_received, &$filter_returned ) {
+				$filter_received = $where;
+				// Modify the WHERE clause - deterministic fallback should NOT be applied.
+				// Add a harmless condition that won't affect results but proves the filter was applied.
+				$filter_returned = $where . ' AND 1=1';
+				return $filter_returned;
+			}
+		);
+
+		// Test navigation from the middle post (ID: 3rd post).
+		$current_post_id = $post_ids[2]; // 3rd post
+		$this->go_to( get_permalink( $current_post_id ) );
+
+		// Call get_adjacent_post to trigger the filter.
+		get_adjacent_post( false, '', false );
+
+		// Verify the filter received the non-deterministic WHERE clause (without ID fallback).
+		$this->assertNotEmpty( $filter_received, 'Filter should have been called.' );
+		$this->assertStringNotContainsString( 'AND p.ID', $filter_received, 'Filter should receive WHERE clause without deterministic ID fallback.' );
+		// Verify the filter's modification is preserved (proves deterministic logic wasn't applied on top).
+		$this->assertStringContainsString( 'AND 1=1', $filter_returned, 'Filter modification should be preserved.' );
+
+		remove_all_filters( 'get_next_post_where' );
+	}
+
+	/**
+	 * Test that deterministic ID sort is applied when SORT filter doesn't modify the clause.
+	 *
+	 * @ticket 64390
+	 */
+	public function test_get_adjacent_post_identical_dates_applies_deterministic_sort_when_filter_unmodified() {
+		$identical_date = '2024-01-01 12:00:00';
+
+		// Create posts with identical dates but different IDs.
+		$post_ids = array();
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		// Add a filter that doesn't modify the SORT clause (returns unchanged).
+		add_filter(
+			'get_next_post_sort',
+			static function( $sort ) {
+				// Return unchanged - deterministic ID sort should be applied.
+				return $sort;
+			}
+		);
+
+		// Test navigation from the middle post (ID: 3rd post).
+		$current_post_id = $post_ids[2]; // 3rd post
+		$this->go_to( get_permalink( $current_post_id ) );
+
+		// Next post should be the 4th post (higher ID, same date) - deterministic.
+		$next = get_adjacent_post( false, '', false );
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertEquals( $post_ids[3], $next->ID );
+
+		remove_all_filters( 'get_next_post_sort' );
+	}
+
+	/**
+	 * Test that deterministic ID sort is NOT applied when SORT filter modifies the clause.
+	 *
+	 * @ticket 64390
+	 */
+	public function test_get_adjacent_post_identical_dates_respects_modified_sort_filter() {
+		$identical_date = '2024-01-01 12:00:00';
+
+		// Create posts with identical dates but different IDs.
+		$post_ids = array();
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		// Capture what the filter receives and what it returns.
+		$filter_received = '';
+		$filter_returned = '';
+		add_filter(
+			'get_next_post_sort',
+			static function( $sort, $post, $order ) use ( &$filter_received, &$filter_returned ) {
+				$filter_received = $sort;
+				// Modify to remove ID - deterministic ID sort should NOT be applied.
+				$filter_returned = "ORDER BY p.post_date $order LIMIT 1";
+				return $filter_returned;
+			},
+			10,
+			3
+		);
+
+		// Test navigation from the middle post (ID: 3rd post).
+		$current_post_id = $post_ids[2]; // 3rd post
+		$this->go_to( get_permalink( $current_post_id ) );
+
+		// Call get_adjacent_post to trigger the filter.
+		get_adjacent_post( false, '', false );
+
+		// Verify the filter received the non-deterministic SORT clause (without ID).
+		$this->assertNotEmpty( $filter_received, 'Filter should have been called.' );
+		$this->assertStringNotContainsString( 'p.ID', $filter_received, 'Filter should receive SORT clause without deterministic ID sort.' );
+		// Verify the filter's modification is preserved (proves deterministic logic wasn't applied on top).
+		$this->assertStringNotContainsString( 'p.ID', $filter_returned, 'Filter modification should not include ID when filter removes it.' );
+		$this->assertStringContainsString( 'ORDER BY p.post_date', $filter_returned, 'Filter modification should be preserved.' );
+
+		remove_all_filters( 'get_next_post_sort' );
+	}
+
+	/**
+	 * Test that both WHERE and SORT filters work together correctly.
+	 *
+	 * @ticket 64390
+	 */
+	public function test_get_adjacent_post_identical_dates_with_both_filters_unmodified() {
+		$identical_date = '2024-01-01 12:00:00';
+
+		// Create posts with identical dates but different IDs.
+		$post_ids = array();
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		// Add filters that don't modify the clauses.
+		add_filter(
+			'get_previous_post_where',
+			static function( $where ) {
+				return $where;
+			}
+		);
+
+		add_filter(
+			'get_previous_post_sort',
+			static function( $sort ) {
+				return $sort;
+			}
+		);
+
+		// Test navigation from the middle post (ID: 3rd post).
+		$current_post_id = $post_ids[2]; // 3rd post
+		$this->go_to( get_permalink( $current_post_id ) );
+
+		// Previous post should be the 2nd post (lower ID, same date) - deterministic.
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertInstanceOf( 'WP_Post', $previous );
+		$this->assertEquals( $post_ids[1], $previous->ID );
+
+		remove_all_filters( 'get_previous_post_where' );
+		remove_all_filters( 'get_previous_post_sort' );
+	}
+
+	/**
 	 * Test get_adjacent_post with mixed dates and identical dates.
 	 *
 	 * @ticket 8107
