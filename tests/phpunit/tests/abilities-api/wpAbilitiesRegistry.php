@@ -260,7 +260,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	/**
 	 * Should allow ability registration with custom ability_class that overrides do_execute.
 	 *
-	 * @ticket 64098
+	 * @ticket 64407
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
