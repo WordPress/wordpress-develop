@@ -258,6 +258,30 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should allow ability registration with custom ability_class that overrides do_execute.
+	 *
+	 * @ticket 64098
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_register_with_custom_ability_class_without_execute_callback() {
+		// Remove execute_callback since the custom class provides its own implementation.
+		unset( self::$test_ability_args['execute_callback'] );
+
+		self::$test_ability_args['ability_class'] = 'Tests_Custom_Ability_Class';
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+
+		$this->assertInstanceOf( WP_Ability::class, $result, 'Should return a WP_Ability instance.' );
+		$this->assertInstanceOf( Tests_Custom_Ability_Class::class, $result, 'Should return an instance of the custom class.' );
+
+		// Verify the custom execute method works.
+		$execute_result = $result->execute( array( 'a' => 5, 'b' => 3 ) );
+		$this->assertSame( 15, $execute_result, 'Custom do_execute should multiply instead of add.' );
+	}
+
+	/**
 	 * Should reject ability registration without an execute callback.
 	 *
 	 * @ticket 64098
@@ -649,5 +673,34 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		$unfiltered_ability = $this->registry->register( 'test/another-ability', self::$test_ability_args );
 		$this->assertNotSame( $filtered_ability->get_label(), $unfiltered_ability->get_label(), 'The filter incorrectly modified the args for an ability it should not have.' );
+	}
+}
+
+/**
+ * Test custom ability class that extends WP_Ability.
+ *
+ * This class overrides do_execute() and check_permissions() directly,
+ * allowing registration without execute_callback or permission_callback.
+ */
+class Tests_Custom_Ability_Class extends WP_Ability {
+
+	/**
+	 * Custom execute implementation that multiplies instead of adds.
+	 *
+	 * @param mixed $input The input data.
+	 * @return int The result of multiplying a and b.
+	 */
+	protected function do_execute( $input = null ) {
+		return $input['a'] * $input['b'];
+	}
+
+	/**
+	 * Custom permission check that always returns true.
+	 *
+	 * @param mixed $input The input data.
+	 * @return bool Always true.
+	 */
+	public function check_permissions( $input = null ) {
+		return true;
 	}
 }

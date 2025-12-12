@@ -277,7 +277,8 @@ class WP_Ability {
 			);
 		}
 
-		if ( empty( $args['execute_callback'] ) || ! is_callable( $args['execute_callback'] ) ) {
+		// If we are not overriding `ability_class` parameter during instantiation, then we need to validate the execute_callback.
+		if ( get_class( $this ) === self::class && ( empty( $args['execute_callback'] ) || ! is_callable( $args['execute_callback'] ) ) ) {
 			throw new InvalidArgumentException(
 				__( 'The ability properties must contain a valid `execute_callback` function.' )
 			);
