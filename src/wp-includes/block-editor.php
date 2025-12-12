@@ -296,9 +296,7 @@ function get_legacy_widget_block_editor_settings() {
  * @return array {
  *     The block editor assets.
  *
- *     @type string|false $styles         String containing the HTML for styles.
- *     @type string|false $scripts        String containing the HTML for scripts.
- *     @type string|false $script_modules String containing the HTML for scripts.
+ *     @type string|false $html String containing the necessary HTML for the editor iframe.
  * }
  */
 function _wp_get_iframed_editor_assets() {
