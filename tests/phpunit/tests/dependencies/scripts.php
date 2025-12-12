@@ -4093,4 +4093,33 @@ HTML;
 		$translations_script_data = $wp_scripts->print_translations( 'test-example', false );
 		$this->assertStringNotContainsStringIgnoringCase( 'sourceURL=', $translations_script_data );
 	}
+
+	/**
+	 * Tests that WP_Scripts emits a _doing_it_wrong() notice for missing dependencies.
+	 *
+	 * @ticket 64229
+	 * @covers WP_Dependencies::all_deps
+	 */
+	public function test_wp_scripts_doing_it_wrong_for_missing_dependencies() {
+		$expected_incorrect_usage = 'WP_Scripts::add';
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+
+		wp_register_script( 'registered-dep', '/registered-dep.js' );
+		wp_enqueue_script( 'main', '/main.js', array( 'registered-dep', 'missing-dep' ) );
+
+		$markup = get_echo( 'wp_print_scripts' );
+		$this->assertStringNotContainsString( 'main.js', $markup, 'Expected script to be absent.' );
+
+		$this->assertArrayHasKey(
+			$expected_incorrect_usage,
+			$this->caught_doing_it_wrong,
+			"Expected $expected_incorrect_usage to trigger a _doing_it_wrong() notice for missing dependency."
+		);
+
+		$this->assertStringContainsString(
+			'The script with the handle "main" was enqueued with dependencies that are not registered: missing-dep',
+			$this->caught_doing_it_wrong[ $expected_incorrect_usage ],
+			'Expected _doing_it_wrong() notice to indicate missing dependencies for enqueued script.'
+		);
+	}
 }

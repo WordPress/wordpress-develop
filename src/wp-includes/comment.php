@@ -240,9 +240,12 @@ function get_comment( $comment = null, $output = OBJECT ) {
 	 *
 	 * @since 2.3.0
 	 *
-	 * @param WP_Comment $_comment Comment data.
+	 * @param WP_Comment|null $_comment Comment data.
 	 */
 	$_comment = apply_filters( 'get_comment', $_comment );
+	if ( ! ( $_comment instanceof WP_Comment ) ) {
+		return null;
+	}
 
 	if ( OBJECT === $output ) {
 		return $_comment;
@@ -2872,7 +2875,7 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1'", $post_id ) );
+		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type != 'note'", $post_id ) );
 	} else {
 		$new = (int) $new;
 	}
