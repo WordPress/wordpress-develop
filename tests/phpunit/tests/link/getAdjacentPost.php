@@ -688,8 +688,11 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 			'get_next_post_where',
 			static function ( $where ) use ( &$filter_received, &$filter_returned ) {
 				$filter_received = $where;
-				// Modify the WHERE clause - deterministic fallback should NOT be applied.
-				// Add a harmless condition that won't affect results but proves the filter was applied.
+				/*
+				 * Modify the WHERE clause - deterministic fallback should NOT be applied.
+				 * Add a harmless condition that won't affect results but proves the filter was applied.
+				 * This is to ensure that the deterministic fallback is not applied on top of the filter's modification.
+				 */
 				$filter_returned = $where . ' AND 1=1';
 				return $filter_returned;
 			}
