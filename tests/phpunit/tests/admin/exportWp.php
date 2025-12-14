@@ -290,4 +290,37 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 		$post_ids_key   = $expected_ids[0];
 		$args['author'] = self::$post_ids[ $post_ids_key ]['post_author'];
 	}
+
+	/**
+	 * @ticket 61244
+	 */
+	public function test_export_wp_should_not_include_empty_comments_when_filtered() {
+		$post_id = self::factory()->post->create( array( 'post_title' => 'Test Post' ) );
+		self::factory()->comment->create_post_comments( $post_id, 3 );
+
+		// Add filter to make get_comment return null.
+		add_action(
+			'export_wp',
+			static function () {
+				add_filter( 'get_comment', '__return_null' );
+			}
+		);
+
+		$xml_obj      = $this->get_the_export( array() );
+		$comment_tags = $xml_obj->xpath( '//wp:comment' );
+		$this->assertCount( 0, $comment_tags, 'No <wp:comment> tags should be present when comments are filtered out.' );
+	}
+
+	/**
+	 * @ticket 61244
+	 */
+	public function test_export_wp_includes_comments_when_not_filtered() {
+		$post_id       = self::factory()->post->create( array( 'post_title' => 'Test Post' ) );
+		$comment_count = 3;
+		self::factory()->comment->create_post_comments( $post_id, $comment_count );
+
+		$xml_obj      = $this->get_the_export( array() );
+		$comment_tags = $xml_obj->xpath( '//wp:comment' );
+		$this->assertCount( $comment_count, $comment_tags, 'Export should include all comments when not filtered.' );
+	}
 }

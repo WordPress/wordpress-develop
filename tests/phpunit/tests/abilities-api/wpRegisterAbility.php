@@ -253,7 +253,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 			$actual,
 			'Execution should fail due to no permissions'
 		);
-		$this->assertEquals( 'ability_invalid_permissions', $actual->get_error_code() );
+		$this->assertSame( 'ability_invalid_permissions', $actual->get_error_code() );
 	}
 
 	/**
