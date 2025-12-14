@@ -54,6 +54,9 @@ class Tests_Term_WpDeleteObjectTermRelationships extends WP_UnitTestCase {
 		$this->assertSameSets( array( $t2 ), $terms );
 	}
 
+	/**
+	 * @ticket 64406
+	 */
 	public function test_delete_when_error() {
 		$taxonomy_name = 'wptests_tax';
 		register_taxonomy( $taxonomy_name, 'post' );
