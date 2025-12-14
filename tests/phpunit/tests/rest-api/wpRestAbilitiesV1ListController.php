@@ -307,10 +307,10 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		$data = $response->get_data();
 		$this->assertCount( 7, $data, 'Response should contain all fields.' );
-		$this->assertEquals( 'test/calculator', $data['name'] );
-		$this->assertEquals( 'Calculator', $data['label'] );
-		$this->assertEquals( 'Performs basic calculations', $data['description'] );
-		$this->assertEquals( 'math', $data['category'] );
+		$this->assertSame( 'test/calculator', $data['name'] );
+		$this->assertSame( 'Calculator', $data['label'] );
+		$this->assertSame( 'Performs basic calculations', $data['description'] );
+		$this->assertSame( 'math', $data['category'] );
 		$this->assertArrayHasKey( 'input_schema', $data );
 		$this->assertArrayHasKey( 'output_schema', $data );
 		$this->assertArrayHasKey( 'meta', $data );
@@ -334,8 +334,8 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		$data = $response->get_data();
 		$this->assertCount( 2, $data, 'Response should only contain the requested fields.' );
-		$this->assertEquals( 'test/calculator', $data['name'] );
-		$this->assertEquals( 'Calculator', $data['label'] );
+		$this->assertSame( 'test/calculator', $data['name'] );
+		$this->assertSame( 'Calculator', $data['label'] );
 	}
 
 	/**
@@ -355,9 +355,9 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		$data = $response->get_data();
 		$this->assertCount( 3, $data, 'Response should only contain the fields for embed context.' );
-		$this->assertEquals( 'test/calculator', $data['name'] );
-		$this->assertEquals( 'Calculator', $data['label'] );
-		$this->assertEquals( 'math', $data['category'] );
+		$this->assertSame( 'test/calculator', $data['name'] );
+		$this->assertSame( 'Calculator', $data['label'] );
+		$this->assertSame( 'math', $data['category'] );
 	}
 
 	/**
@@ -374,7 +374,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertEquals( 404, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
 	}
 
 	/**
@@ -389,7 +389,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertEquals( 404, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_not_found', $data['code'] );
+		$this->assertSame( 'rest_ability_not_found', $data['code'] );
 	}
 
 	/**
@@ -581,8 +581,8 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'schema', $data );
 		$schema = $data['schema'];
 
-		$this->assertEquals( 'ability', $schema['title'] );
-		$this->assertEquals( 'object', $schema['type'] );
+		$this->assertSame( 'ability', $schema['title'] );
+		$this->assertSame( 'object', $schema['type'] );
 		$this->assertArrayHasKey( 'properties', $schema );
 
 		$properties = $schema['properties'];
@@ -745,7 +745,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		// Should only have math category abilities
 		foreach ( $data as $ability ) {
-			$this->assertEquals( 'math', $ability['category'], 'All abilities should be in math category' );
+			$this->assertSame( 'math', $ability['category'], 'All abilities should be in math category' );
 		}
 
 		// Should at least contain the calculator
