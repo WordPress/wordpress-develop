@@ -88,21 +88,21 @@ function wp_default_packages_vendor( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react',
-		'react-dom'         => array( 'react' ),
-		'react-jsx-runtime' => array( 'react' ),
-		'regenerator-runtime',
-		'moment',
-		'lodash',
-		'wp-polyfill-fetch',
-		'wp-polyfill-formdata',
-		'wp-polyfill-node-contains',
-		'wp-polyfill-url',
-		'wp-polyfill-dom-rect',
-		'wp-polyfill-element-closest',
-		'wp-polyfill-object-fit',
-		'wp-polyfill-inert',
-		'wp-polyfill',
+		'react'                       => array(),
+		'react-dom'                   => array( 'react' ),
+		'react-jsx-runtime'           => array( 'react' ),
+		'regenerator-runtime'         => array(),
+		'moment'                      => array(),
+		'lodash'                      => array(),
+		'wp-polyfill-fetch'           => array(),
+		'wp-polyfill-formdata'        => array(),
+		'wp-polyfill-node-contains'   => array(),
+		'wp-polyfill-url'             => array(),
+		'wp-polyfill-dom-rect'        => array(),
+		'wp-polyfill-element-closest' => array(),
+		'wp-polyfill-object-fit'      => array(),
+		'wp-polyfill-inert'           => array(),
+		'wp-polyfill'                 => array(),
 	);
 
 	$vendor_scripts_versions = array(
@@ -124,15 +124,13 @@ function wp_default_packages_vendor( $scripts ) {
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
-		if ( is_string( $dependencies ) ) {
-			$handle       = $dependencies;
-			$dependencies = array();
-		}
-
-		$path    = "/wp-includes/js/dist/vendor/$handle$suffix.js";
-		$version = $vendor_scripts_versions[ $handle ];
-
-		$scripts->add( $handle, $path, $dependencies, $version, 1 );
+		$scripts->add(
+			$handle,
+			"/wp-includes/js/dist/vendor/$handle$suffix.js",
+			$dependencies,
+			$vendor_scripts_versions[ $handle ],
+			1
+		);
 	}
 
 	did_action( 'init' ) && $scripts->add_inline_script( 'lodash', 'window.lodash = _.noConflict();' );
@@ -188,7 +186,7 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 		$src = $scripts->registered[ $handle ]->src;
 		$ver = $scripts->registered[ $handle ]->ver;
 
-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && str_starts_with( $src, $scripts->content_url ) ) ) {
+		if ( is_string( $src ) && ! preg_match( '|^(https?:)?//|', $src ) && ! ( $scripts->content_url && str_starts_with( $src, $scripts->content_url ) ) ) {
 			$src = $scripts->base_url . $src;
 		}
 
@@ -690,14 +688,14 @@ function wp_scripts_get_suffix( $type = '' ) {
 		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
 		 * wp-includes/functions.php is not loaded.
 		 */
-		require ABSPATH . WPINC . '/version.php';
+		$versions = require ABSPATH . WPINC . '/version.php';
 
 		/*
 		 * Note: str_contains() is not used here, as this file can be included
 		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
 		 * the polyfills from wp-includes/compat.php are not loaded.
 		 */
-		$develop_src = false !== strpos( $wp_version, '-src' );
+		$develop_src = false !== strpos( $versions['wp_version'] ?? '', '-src' );
 
 		if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 			define( 'SCRIPT_DEBUG', $develop_src );
@@ -1086,7 +1084,7 @@ function wp_default_scripts( $scripts ) {
 			'var mejsL10n = %s;',
 			wp_json_encode(
 				array(
-					'language' => strtolower( strtok( determine_locale(), '_-' ) ),
+					'language' => strtolower( (string) strtok( determine_locale(), '_-' ) ),
 					'strings'  => array(
 						'mejs.download-file'       => __( 'Download File' ),
 						'mejs.install-flash'       => __( 'You are using a browser that does not have Flash player enabled or installed. Please turn on your Flash player plugin or download the latest version from https://get.adobe.com/flashplayer/' ),
@@ -1553,7 +1551,7 @@ function wp_default_styles( $styles ) {
 	 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
 	 * wp-includes/functions.php is not loaded.
 	 */
-	require ABSPATH . WPINC . '/version.php';
+	$versions = require ABSPATH . WPINC . '/version.php';
 
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
 		/*
@@ -1561,7 +1559,7 @@ function wp_default_styles( $styles ) {
 		 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
 		 * the polyfills from wp-includes/compat.php are not loaded.
 		 */
-		define( 'SCRIPT_DEBUG', false !== strpos( $wp_version, '-src' ) );
+		define( 'SCRIPT_DEBUG', false !== strpos( $versions['wp_version'] ?? '', '-src' ) );
 	}
 
 	$guessurl = site_url();
@@ -1605,7 +1603,7 @@ function wp_default_styles( $styles ) {
 	}
 
 	// Register a stylesheet for the selected admin color scheme.
-	$styles->add( 'colors', true, array( 'wp-admin', 'buttons' ) );
+	$styles->add( 'colors', false, array( 'wp-admin', 'buttons' ) );
 
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
 
@@ -1904,7 +1902,7 @@ function wp_prototype_before_jquery( $js_array ) {
 
 	unset( $js_array[ $prototype ] );
 
-	array_splice( $js_array, $jquery, 0, 'prototype' );
+	array_splice( $js_array, (int) $jquery, 0, 'prototype' );
 
 	return $js_array;
 }
@@ -2080,7 +2078,7 @@ function wp_style_loader_src( $src, $handle ) {
 	global $_wp_admin_css_colors;
 
 	if ( wp_installing() ) {
-		return preg_replace( '#^wp-admin/#', './', $src );
+		return (string) preg_replace( '#^wp-admin/#', './', $src );
 	}
 
 	if ( 'colors' === $handle ) {
@@ -2352,7 +2350,7 @@ function print_admin_styles() {
  * @global WP_Styles $wp_styles
  * @global bool      $concatenate_scripts
  *
- * @return array|void
+ * @return string[]|void
  */
 function print_late_styles() {
 	global $wp_styles, $concatenate_scripts;
@@ -2508,8 +2506,8 @@ function wp_common_block_scripts_and_styles() {
  *
  * @since 6.1.0
  *
- * @param array $nodes The nodes to filter.
- * @return array A filtered array of style nodes.
+ * @param array<array<string, mixed>> $nodes The nodes to filter.
+ * @return array<array<string, mixed>> A filtered array of style nodes.
  */
 function wp_filter_out_block_nodes( $nodes ) {
 	return array_filter(
@@ -2869,7 +2867,7 @@ function wp_enqueue_editor_format_library_assets() {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String made of sanitized `<script>` tag attributes.
  */
 function wp_sanitize_script_attributes( $attributes ) {
@@ -2901,7 +2899,7 @@ function wp_sanitize_script_attributes( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String containing `<script>` opening and closing tags.
  */
 function wp_get_script_tag( $attributes ) {
@@ -2934,7 +2932,7 @@ function wp_get_script_tag( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
  */
 function wp_print_script_tag( $attributes ) {
 	echo wp_get_script_tag( $attributes );
@@ -2948,8 +2946,8 @@ function wp_print_script_tag( $attributes ) {
  *
  * @since 5.7.0
  *
- * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
@@ -2990,6 +2988,7 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 		! $is_html5 &&
 		(
 			! isset( $attributes['type'] ) ||
+			! is_string( $attributes['type'] ) ||
 			'module' === $attributes['type'] ||
 			str_contains( $attributes['type'], 'javascript' ) ||
 			str_contains( $attributes['type'], 'ecmascript' ) ||
@@ -3019,10 +3018,10 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	 *
 	 * @since 5.7.0
 	 *
-	 * @param array  $attributes Key-value pairs representing `<script>` tag attributes.
-	 *                           Only the attribute name is added to the `<script>` tag for
-	 *                           entries with a boolean value, and that are true.
-	 * @param string $data       Inline data.
+	 * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
+	 *                                               Only the attribute name is added to the `<script>` tag for
+	 *                                               entries with a boolean value, and that are true.
+	 * @param string                     $data       Inline data.
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
@@ -3038,7 +3037,7 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
  * @since 5.7.0
  *
  * @param string $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param array<string, >  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  */
 function wp_print_inline_script_tag( $data, $attributes = array() ) {
 	echo wp_get_inline_script_tag( $data, $attributes );
@@ -3057,7 +3056,7 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
  * @global WP_Styles $wp_styles
  */
 function wp_maybe_inline_styles() {
-	global $wp_styles;
+	$wp_styles = wp_styles();
 
 	$total_inline_limit = 40000;
 	/**
@@ -3079,7 +3078,7 @@ function wp_maybe_inline_styles() {
 		}
 		$src  = $wp_styles->registered[ $handle ]->src;
 		$path = $wp_styles->get_data( $handle, 'path' );
-		if ( $path && $src ) {
+		if ( is_string( $path ) && '' !== $path && is_string( $src ) && '' !== $src ) {
 			$size = wp_filesize( $path );
 			if ( ! $size ) {
 				continue;
@@ -3120,6 +3119,20 @@ function wp_maybe_inline_styles() {
 
 			// Get the styles if we don't already have them.
 			$style['css'] = file_get_contents( $style['path'] );
+			if ( false === $style['css'] ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: 'path', 2: filesystem path, 3: style handle */
+						__( 'Unable to read file contents the "%1$s" key with value "%2$s" for stylesheet "%3$s".' ),
+						'path',
+						esc_html( $style['path'] ),
+						esc_html( $style['handle'] )
+					),
+					'7.0.0'
+				);
+				continue;
+			}
 
 			/*
 			 * Check if the style contains relative URLs that need to be modified.
@@ -3155,7 +3168,7 @@ function wp_maybe_inline_styles() {
  * @return string The CSS with URLs made relative to the WordPress installation.
  */
 function _wp_normalize_relative_css_links( $css, $stylesheet_url ) {
-	return preg_replace_callback(
+	return (string) preg_replace_callback(
 		'#(url\s*\(\s*[\'"]?\s*)([^\'"\)]+)#',
 		static function ( $matches ) use ( $stylesheet_url ) {
 			list( , $prefix, $url ) = $matches;
@@ -3231,7 +3244,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
  *
  * @since 6.1.0
  *
- * @param array $options {
+ * @param array<string, bool> $options {
  *     Optional. An array of options to pass to wp_style_engine_get_stylesheet_from_context().
  *     Default empty array.
  *
@@ -3303,8 +3316,8 @@ function wp_enqueue_stored_styles( $options = array() ) {
  *
  * @since 5.9.0
  *
- * @param string $block_name The block-name, including namespace.
- * @param array  $args       {
+ * @param string                                   $block_name The block-name, including namespace.
+ * @param array<string, string|string[]|bool|null> $args       {
  *     An array of arguments. See wp_register_style() for full information about each argument.
  *
  *     @type string           $handle The handle for the stylesheet.
@@ -3726,7 +3739,7 @@ function wp_hoist_late_printed_styles() {
 		if ( count( $enqueued_block_styles ) > 0 ) {
 			ob_start();
 			wp_styles()->do_items( $enqueued_block_styles );
-			$printed_block_styles = ob_get_clean();
+			$printed_block_styles = (string) ob_get_clean();
 		}
 
 		/*
@@ -3736,7 +3749,7 @@ function wp_hoist_late_printed_styles() {
 		 */
 		ob_start();
 		wp_styles()->do_footer_items();
-		$printed_late_styles = ob_get_clean();
+		$printed_late_styles = (string) ob_get_clean();
 	};
 
 	/*
@@ -3753,14 +3766,14 @@ function wp_hoist_late_printed_styles() {
 		// The normal priority for wp_print_footer_scripts() is to run at 20.
 		add_action( 'wp_footer', $capture_late_styles, 20 );
 	} else {
-		remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts', $wp_print_footer_scripts_priority );
+		remove_action( 'wp_print_footer_scripts', '_wp_footer_scripts', (int) $wp_print_footer_scripts_priority );
 		add_action(
 			'wp_print_footer_scripts',
 			static function () use ( $capture_late_styles ) {
 				$capture_late_styles();
 				print_footer_scripts();
 			},
-			$wp_print_footer_scripts_priority
+			(int) $wp_print_footer_scripts_priority
 		);
 	}
 
