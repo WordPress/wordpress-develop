@@ -900,12 +900,19 @@ class Tests_User extends WP_UnitTestCase {
 		}
 
 		for ( $i = 0; $i < $num_blogs; $i++ ) {
-			$blog_id = self::factory()->blog->create( array( 'site_id' => get_current_network_id() ) );
+			$blog_id = self::factory()->blog->create(
+				array(
+					'site_id' => get_current_network_id(),
+				)
+			);
 			add_user_to_blog( $blog_id, $user_id, 'administrator' );
 			$blogs[] = $blog_id;
 		}
 
-		return array( 'user_id' => $user_id, 'blogs' => $blogs );
+		return array(
+			'user_id' => $user_id,
+			'blogs'   => $blogs,
+		);
 	}
 
 	/**
@@ -916,18 +923,23 @@ class Tests_User extends WP_UnitTestCase {
 			$this->markTestSkipped( 'This test is for multisite only.' );
 		}
 
-		$data = $this->create_user_with_blogs( 2 );
+		$data    = $this->create_user_with_blogs( 2 );
 		$user_id = $data['user_id'];
-		$blogs = $data['blogs'];
+		$blogs   = $data['blogs'];
 
 		// Mark user spam in user record (this alone should not change blog spam states).
-		$u = wp_update_user( array( 'ID' => $user_id, 'spam' => '1' ) );
+		$u = wp_update_user(
+			array(
+				'ID'   => $user_id,
+				'spam' => '1',
+			)
+		);
 		$this->assertNotWPError( $u );
 		$user = get_userdata( $user_id );
 		$this->assertSame( '1', $user->spam );
 
 		foreach ( $blogs as $blog_id ) {
-			$this->assertNotEquals( '1', get_blog_status( $blog_id, 'spam' ), "Blog {$blog_id} should not be marked spam by default." );
+			$this->assertNotSame( '1', get_blog_status( $blog_id, 'spam' ), "Blog {$blog_id} should not be marked spam by default." );
 		}
 	}
 
