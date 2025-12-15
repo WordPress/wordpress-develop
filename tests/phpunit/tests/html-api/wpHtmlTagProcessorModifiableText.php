@@ -626,7 +626,8 @@ HTML;
 		// Reprocess to ensure JSON value survives HTML round trip:
 		$processor = new WP_HTML_Tag_Processor( $expected );
 		$processor->next_tag( 'SCRIPT' );
-		$decoded_json_from_html = json_decode( $processor->get_modifiable_text(), true, 512, JSON_THROW_ON_ERROR );
+		$decoded_json_from_html = json_decode( $processor->get_modifiable_text(), true );
+		$this->assertSame( JSON_ERROR_NONE, json_last_error(), 'Precondition failed, JSON did not decode as expected: ' . json_last_error_msg() );
 		$this->assertEquals(
 			$expected_decoded_json,
 			$decoded_json_from_html
