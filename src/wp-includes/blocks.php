@@ -2742,9 +2742,10 @@ function build_query_vars_from_query_block( $block, $page ) {
 			}
 			$query['tax_query'] = array_merge( $query['tax_query'], $tax_query_back_compat );
 		}
-		$tax_query_input = $block->context['query']['taxQuery'];
-		if ( ! empty( $tax_query_input ) && is_array( $tax_query_input ) ) {
-			$tax_query = array();
+
+		if ( ! empty( $block->context['query']['taxQuery'] ) && is_array( $block->context['query']['taxQuery'] ) ) {
+			$tax_query_input = $block->context['query']['taxQuery'];
+			$tax_query       = array();
 			// If there are keys other than include/exclude, it's the old
 			// format e.g. "taxQuery":{"category":[4]}
 			if ( ! empty( array_diff( array_keys( $tax_query_input ), array( 'include', 'exclude' ) ) ) ) {
