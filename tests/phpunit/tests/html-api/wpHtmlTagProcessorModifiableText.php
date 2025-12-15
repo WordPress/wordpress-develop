@@ -559,7 +559,8 @@ HTML
 		);
 
 		$processor->set_modifiable_text( $importmap );
-		$decoded_importmap = json_decode( $processor->get_modifiable_text(), true, 512, JSON_THROW_ON_ERROR );
+		$decoded_importmap = json_decode( $processor->get_modifiable_text(), true );
+		$this->assertSame( JSON_ERROR_NONE, json_last_error(), 'Precondition failed, JSON did not decode as expected: ' . json_last_error_msg() );
 		$this->assertEquals(
 			$importmap_data,
 			$decoded_importmap,
@@ -602,7 +603,8 @@ HTML;
 		// This is not a typical JSON encoding or escaping, but it is valid.
 		$json_text             = '"Escaped BS: \\\\; Escaped BS+LT: \\\\<; Unescaped LT: <; Script closer: </script>"';
 		$expected_decoded_json = 'Escaped BS: \\; Escaped BS+LT: \\<; Unescaped LT: <; Script closer: </script>';
-		$decoded_json          = json_decode( $json_text, false, 512, JSON_THROW_ON_ERROR );
+		$decoded_json          = json_decode( $json_text, true );
+		$this->assertSame( JSON_ERROR_NONE, json_last_error(), 'Precondition failed, JSON did not decode as expected: ' . json_last_error_msg() );
 		$this->assertSame(
 			$expected_decoded_json,
 			$decoded_json,
