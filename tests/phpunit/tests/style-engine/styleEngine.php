@@ -119,6 +119,21 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_valid_dimension_preset_style'          => array(
+				'block_styles'    => array(
+					'dimensions' => array(
+						'width' => 'var:preset|dimension|large',
+					),
+				),
+				'options'         => null,
+				'expected_output' => array(
+					'css'          => 'width:var(--wp--preset--dimension--large);',
+					'declarations' => array(
+						'width' => 'var(--wp--preset--dimension--large)',
+					),
+				),
+			),
+
 			'inline_valid_box_model_style'                 => array(
 				'block_styles'    => array(
 					'spacing' => array(

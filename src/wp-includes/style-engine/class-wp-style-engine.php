@@ -222,7 +222,16 @@ final class WP_Style_Engine {
 				),
 				'path'          => array( 'dimensions', 'minHeight' ),
 				'css_vars'      => array(
-					'spacing' => '--wp--preset--spacing--$slug',
+					'dimension' => '--wp--preset--dimension--$slug',
+				),
+			),
+			'width'       => array(
+				'property_keys' => array(
+					'default' => 'width',
+				),
+				'path'          => array( 'dimensions', 'width' ),
+				'css_vars'      => array(
+					'dimension' => '--wp--preset--dimension--$slug',
 				),
 			),
 			'width'       => array(
