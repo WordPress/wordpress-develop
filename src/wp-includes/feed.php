@@ -806,6 +806,21 @@ function fetch_feed( $url ) {
 		require_once ABSPATH . WPINC . '/class-simplepie.php';
 	}
 
+	if ( is_array( $url ) && count( $url ) <= 1 ) {
+		$url = array_shift( $url );
+	} elseif ( is_array( $url ) ) {
+		$feeds = array();
+		foreach ( (array) $url as $feed_url ) {
+			$feeds[] = fetch_feed( $feed_url );
+		}
+		$items = SimplePie\SimplePie::merge_items( $feeds );
+
+		$feed = new SimplePie\SimplePie();
+		$feed->init();
+		$feed->data['items'] = $items;
+		return $feed;
+	}
+
 	require_once ABSPATH . WPINC . '/class-wp-feed-cache-transient.php';
 	require_once ABSPATH . WPINC . '/class-wp-simplepie-file.php';
 	require_once ABSPATH . WPINC . '/class-wp-simplepie-sanitize-kses.php';
