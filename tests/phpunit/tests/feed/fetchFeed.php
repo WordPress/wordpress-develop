@@ -34,6 +34,28 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure fetch_feed() accepts multiple feeds.
+	 *
+	 * The main purpose of this test is to ensure that the SimplePie deprecation warning
+	 * is not thrown when requesting multiple feeds.
+	 *
+	 * Secondly it confirms that the markup of the first two items match as they will
+	 * both be from the same feed URL as the array contains the WordPress News feed twice.
+	 *
+	 * @ticket 64136
+	 */
+	public function test_fetch_feed_supports_multiple_feeds() {
+		$feed    = fetch_feed( array( 'https://wordpress.org/news/feed/', 'https://wordpress.org/news/feed/' ) );
+		$content = array();
+
+		foreach ( $feed->get_items( 0, 2 ) as $item ) {
+			$content[] = $item->get_content();
+		}
+
+		$this->assertEqualHTML( $content[0], $content[1], null, 'The contents of both items should be identical.' );
+	}
+
+	/**
 	 * Ensure that fetch_feed() is cached on second and subsequent calls.
 	 *
 	 * Note: The HTTP request is mocked on the `pre_http_request` filter so
