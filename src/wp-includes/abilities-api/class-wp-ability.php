@@ -284,7 +284,8 @@ class WP_Ability {
 			);
 		}
 
-		if ( empty( $args['permission_callback'] ) || ! is_callable( $args['permission_callback'] ) ) {
+		// If we are not overriding `ability_class` parameter during instantiation, then we need to validate the permission_callback.
+		if ( get_class( $this ) === self::class && ( empty( $args['permission_callback'] ) || ! is_callable( $args['permission_callback'] ) ) ) {
 			throw new InvalidArgumentException(
 				__( 'The ability properties must provide a valid `permission_callback` function.' )
 			);

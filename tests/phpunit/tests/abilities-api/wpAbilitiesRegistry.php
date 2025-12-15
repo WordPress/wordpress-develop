@@ -268,8 +268,9 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Ability::prepare_properties
 	 */
 	public function test_register_with_custom_ability_class_without_execute_callback() {
-		// Remove execute_callback since the custom class provides its own implementation.
+		// Remove execute_callback and permission_callback since the custom class provides its own implementation.
 		unset( self::$test_ability_args['execute_callback'] );
+		unset( self::$test_ability_args['permission_callback'] );
 
 		self::$test_ability_args['ability_class'] = 'Tests_Custom_Ability_Class';
 
