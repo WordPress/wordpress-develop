@@ -805,35 +805,10 @@ function fetch_feed( $url ) {
 	if ( ! class_exists( 'SimplePie\SimplePie', false ) ) {
 		require_once ABSPATH . WPINC . '/class-simplepie.php';
 	}
+
 	require_once ABSPATH . WPINC . '/class-wp-feed-cache-transient.php';
 	require_once ABSPATH . WPINC . '/class-wp-simplepie-file.php';
 	require_once ABSPATH . WPINC . '/class-wp-simplepie-sanitize-kses.php';
-
-	if ( is_array( $url ) && count( $url ) <= 1 ) {
-		$url = array_shift( $url );
-	} elseif ( is_array( $url ) ) {
-		$feeds = array();
-		foreach ( (array) $url as $feed_url ) {
-			$feeds[] = fetch_feed( $feed_url );
-		}
-		$items = SimplePie\SimplePie::merge_items( $feeds );
-
-		$feed = new SimplePie\SimplePie();
-		$feed->get_registry()->register( SimplePie\Sanitize::class, 'WP_SimplePie_Sanitize_KSES', true );
-		$feed->sanitize = new WP_SimplePie_Sanitize_KSES();
-		if ( method_exists( 'SimplePie_Cache', 'register' ) ) {
-			SimplePie_Cache::register( 'wp_transient', 'WP_Feed_Cache_Transient' );
-			$feed->set_cache_location( 'wp_transient' );
-		} else {
-			// Back-compat for SimplePie 1.2.x.
-			require_once ABSPATH . WPINC . '/class-wp-feed-cache.php';
-			$feed->set_cache_class( 'WP_Feed_Cache' );
-		}
-		$feed->get_registry()->register( SimplePie\File::class, 'WP_SimplePie_File', true );
-		$feed->init();
-		$feed->data['items'] = $items;
-		return $feed;
-	}
 
 	$feed = new SimplePie\SimplePie();
 
@@ -856,6 +831,19 @@ function fetch_feed( $url ) {
 	}
 
 	$feed->get_registry()->register( SimplePie\File::class, 'WP_SimplePie_File', true );
+
+	if ( is_array( $url ) && count( $url ) <= 1 ) {
+		$url = array_shift( $url );
+	} elseif ( is_array( $url ) ) {
+		$feeds = array();
+		foreach ( (array) $url as $feed_url ) {
+			$feeds[] = fetch_feed( $feed_url );
+		}
+		$items = SimplePie\SimplePie::merge_items( $feeds );
+		$feed->init();
+		$feed->data['items'] = $items;
+		return $feed;
+	}
 
 	$feed->set_feed_url( $url );
 	/** This filter is documented in wp-includes/class-wp-feed-cache-transient.php */
