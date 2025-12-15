@@ -528,7 +528,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							),
 							'dimensions' => array(
 								'minHeight' => '50vh',
-								'width' => 'var:preset|dimension|large',
+								'width'     => 'var:preset|dimension|large',
 							),
 							'elements'   => array(
 								'link' => array(
