@@ -627,7 +627,7 @@ HTML;
 		$decoded_json_from_html = json_decode( $processor->get_modifiable_text(), true, 512, JSON_THROW_ON_ERROR );
 		$this->assertEquals(
 			$expected_decoded_json,
-			$decoded_json_from_html,
+			$decoded_json_from_html
 		);
 	}
 }
