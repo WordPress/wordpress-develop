@@ -549,7 +549,7 @@ HTML
 		$processor->set_attribute( 'type', 'importmap' );
 		$importmap_data = array(
 			'imports' => array(
-				'</SCRIPT>\\<!--\\<script>' => "./script",
+				'</SCRIPT>\\<!--\\<script>' => './script',
 			),
 		);
 
@@ -573,7 +573,7 @@ import '</SCRIPT>\\<!--\\<script>';
 JS;
 		$processor->set_modifiable_text( $javascript );
 
-		$expected = <<<'HTML'
+		$expected     = <<<'HTML'
 <script type="importmap">{"imports":{"\u003C/SCRIPT>\\\u003C!--\\\u003Cscript>":"./script"}}</script>
 <script type="module">import '</\u0053CRIPT>\\<!--\\<\u0073cript>';</script>
 <h1>OK</h1>
@@ -585,7 +585,7 @@ HTML;
 		$processor = new WP_HTML_Tag_Processor( $updated_html );
 		$processor->next_tag( 'SCRIPT' );
 		$this->assertSame( 'importmap', $processor->get_attribute( 'type' ) );
-		$importmap_json = $processor->get_modifiable_text();
+		$importmap_json    = $processor->get_modifiable_text();
 		$decoded_importmap = json_decode( $importmap_json, true );
 		$this->assertSame( 'No error', json_last_error_msg() );
 		$this->assertEquals(
