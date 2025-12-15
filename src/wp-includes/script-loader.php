@@ -3698,15 +3698,24 @@ function wp_hoist_late_printed_styles() {
 	 * later hoisted to the HEAD in the template enhancement output buffer. This will run at `wp_print_footer_scripts`
 	 * before `print_footer_scripts()` is called.
 	 */
-	$printed_block_styles  = '';
-	$printed_global_styles = '';
-	$printed_late_styles   = '';
-	$capture_late_styles   = static function () use ( &$printed_block_styles, &$printed_global_styles, &$printed_late_styles ) {
+	$printed_core_block_styles  = '';
+	$printed_other_block_styles = '';
+	$printed_global_styles      = '';
+	$printed_late_styles        = '';
+
+	$capture_late_styles = static function () use ( &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
 		// Gather the styles related to on-demand block enqueues.
-		$all_block_style_handles = array();
+		$all_core_block_style_handles  = array();
+		$all_other_block_style_handles = array();
 		foreach ( WP_Block_Type_Registry::get_instance()->get_all_registered() as $block_type ) {
-			foreach ( $block_type->style_handles as $style_handle ) {
-				$all_block_style_handles[] = $style_handle;
+			if ( str_starts_with( $block_type->name, 'core/' ) ) {
+				foreach ( $block_type->style_handles as $style_handle ) {
+					$all_core_block_style_handles[] = $style_handle;
+				}
+			} else {
+				foreach ( $block_type->style_handles as $style_handle ) {
+					$all_other_block_style_handles[] = $style_handle;
+				}
 			}
 		}
 
@@ -3714,11 +3723,18 @@ function wp_hoist_late_printed_styles() {
 		 * First print all styles related to blocks which should inserted right after the wp-block-library stylesheet
 		 * to preserve the CSS cascade. The logic in this `if` statement is derived from `wp_print_styles()`.
 		 */
-		$enqueued_block_styles = array_values( array_intersect( $all_block_style_handles, wp_styles()->queue ) );
-		if ( count( $enqueued_block_styles ) > 0 ) {
+		$enqueued_core_block_styles = array_values( array_intersect( $all_core_block_style_handles, wp_styles()->queue ) );
+		if ( count( $enqueued_core_block_styles ) > 0 ) {
 			ob_start();
-			wp_styles()->do_items( $enqueued_block_styles );
-			$printed_block_styles = ob_get_clean();
+			wp_styles()->do_items( $enqueued_core_block_styles );
+			$printed_core_block_styles = ob_get_clean();
+		}
+
+		$enqueued_other_block_styles = array_values( array_intersect( $all_other_block_style_handles, wp_styles()->queue ) );
+		if ( count( $enqueued_other_block_styles ) > 0 ) {
+			ob_start();
+			wp_styles()->do_items( $enqueued_other_block_styles );
+			$printed_other_block_styles = ob_get_clean();
 		}
 
 		// Capture the global-styles so that it can be printed separately after classic-theme-styles, to preserve the original order,
@@ -3766,7 +3782,7 @@ function wp_hoist_late_printed_styles() {
 	// Replace placeholder with the captured late styles.
 	add_filter(
 		'wp_template_enhancement_output_buffer',
-		static function ( $buffer ) use ( $placeholder, &$printed_block_styles, &$printed_global_styles, &$printed_late_styles ) {
+		static function ( $buffer ) use ( $placeholder, &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
 
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
@@ -3861,32 +3877,36 @@ function wp_hoist_late_printed_styles() {
 					$processor->set_modifiable_text( $css_text );
 				}
 
-				$inserted_after = $printed_block_styles;
+				$inserted_after = $printed_core_block_styles;
 				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
+					$inserted_after .= $printed_other_block_styles;
 					$inserted_after .= $printed_global_styles;
 
 					// Prevent printing them again at </head>.
-					$printed_global_styles = '';
+					$printed_other_block_styles = '';
+					$printed_global_styles      = '';
 				}
 
 				if ( '' !== $inserted_after ) {
 					$processor->insert_after( $inserted_after );
 
 					// Prevent printing them again at </head>.
-					$printed_block_styles = '';
+					$printed_core_block_styles = '';
 				}
 			}
 
-			if ( $printed_global_styles && $processor->has_bookmark( 'classic_theme_styles' ) ) {
+			$inserted_after = $printed_other_block_styles . $printed_global_styles;
+			if ( '' !== $inserted_after && $processor->has_bookmark( 'classic_theme_styles' ) ) {
 				$processor->seek( 'classic_theme_styles' );
-				$processor->insert_after( $printed_global_styles );
+				$processor->insert_after( $inserted_after );
 
 				// Prevent printing them again at </head>.
-				$printed_global_styles = '';
+				$printed_other_block_styles = '';
+				$printed_global_styles      = '';
 			}
 
 			// Print all remaining styles.
-			$remaining_styles = $printed_block_styles . $printed_global_styles . $printed_late_styles;
+			$remaining_styles = $printed_core_block_styles . $printed_other_block_styles . $printed_global_styles . $printed_late_styles;
 			if ( $remaining_styles && $processor->has_bookmark( 'head_end' ) ) {
 				$processor->seek( 'head_end' );
 				$processor->insert_before( $remaining_styles );

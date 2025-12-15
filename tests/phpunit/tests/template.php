@@ -146,6 +146,11 @@ class Tests_Template extends WP_UnitTestCase {
 		unregister_taxonomy( 'taxo' );
 		$this->set_permalink_structure( '' );
 
+		$registry = WP_Block_Type_Registry::get_instance();
+		if ( $registry->is_registered( 'third-party/test' ) ) {
+			$registry->unregister( 'third-party/test' );
+		}
+
 		parent::tear_down();
 	}
 
@@ -1483,6 +1488,7 @@ class Tests_Template extends WP_UnitTestCase {
 			'wp-block-library-css',
 			'wp-block-separator-css',
 			'classic-theme-styles-css',
+			'third-party-test-block-css',
 			'global-styles-inline-css',
 			'normal-css',
 			'normal-inline-css',
@@ -1513,6 +1519,7 @@ class Tests_Template extends WP_UnitTestCase {
 						'wp-block-library-inline-css',
 						'wp-block-separator-inline-css',
 						'classic-theme-styles-inline-css',
+						'third-party-test-block-css',
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
@@ -1558,6 +1565,7 @@ class Tests_Template extends WP_UnitTestCase {
 						'wp-emoji-styles-inline-css',
 						'wp-block-library-css',
 						'classic-theme-styles-css',
+						'third-party-test-block-css',
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
@@ -1620,6 +1628,7 @@ class Tests_Template extends WP_UnitTestCase {
 						'early-inline-css',
 						'wp-emoji-styles-inline-css',
 						'classic-theme-styles-css',
+						'third-party-test-block-css',
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
@@ -1653,6 +1662,7 @@ class Tests_Template extends WP_UnitTestCase {
 						'wp-block-library-inline-css', // This contains the "OVERRIDDEN" text.
 						'wp-block-separator-css',
 						'classic-theme-styles-css',
+						'third-party-test-block-css',
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
@@ -1694,6 +1704,14 @@ class Tests_Template extends WP_UnitTestCase {
 			static function () {
 				return '/* CUSTOM CSS from Customizer */';
 			}
+		);
+
+		wp_register_style( 'third-party-test-block', 'https://example.com/third-party-test-block.css', array(), null );
+		register_block_type(
+			'third-party/test',
+			array(
+				'style_handles' => array( 'third-party-test-block' ),
+			)
 		);
 
 		if ( $set_up ) {
@@ -1746,7 +1764,8 @@ class Tests_Template extends WP_UnitTestCase {
 		// Simulate the_content().
 		$content = apply_filters(
 			'the_content',
-			'<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator -->'
+			'<!-- wp:separator --><hr class="wp-block-separator has-alpha-channel-opacity"/><!-- /wp:separator -->' .
+			'<!-- wp:third-party/test --><div>This is only a test!</div><!-- /wp:third-party/test -->'
 		);
 
 		// Simulate footer scripts.
