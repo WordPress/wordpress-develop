@@ -61,7 +61,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	 * @ticket 64061
 	 */
 	public function test_block_visibility_support_hides_block_when_visibility_false() {
-		$block_type = $this->register_visibility_block_with_support(
+		$this->register_visibility_block_with_support(
 			'test/visibility-block',
 			array( 'visibility' => true )
 		);
@@ -88,7 +88,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	 * @ticket 64061
 	 */
 	public function test_block_visibility_support_shows_block_when_support_not_opted_in() {
-		$block_type = $this->register_visibility_block_with_support(
+		$this->register_visibility_block_with_support(
 			'test/visibility-block',
 			array( 'visibility' => false )
 		);
@@ -106,5 +106,243 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$result = wp_render_block_visibility_support( $block_content, $block );
 
 		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when blockVisibility support is not opted in.' );
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_no_visibility_attribute() {
+		$this->register_visibility_block_with_support(
+			'test/block-visibility-none',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/block-visibility-none',
+			'attrs'     => array(),
+		);
+
+		$block_content = '<div>Test content</div>';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertSame( $block_content, $result );
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_generated_css_with_display_none() {
+		$this->register_visibility_block_with_support(
+			'test/css-generation',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/css-generation',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(
+						'mobile' => false,
+					),
+				),
+			),
+		);
+
+		$block_content = '<div>Test content</div>';
+		wp_render_block_visibility_support( $block_content, $block );
+
+		$stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports' );
+
+		$this->assertStringContainsString( 'display:none!important', str_replace( ' ', '', $stylesheet ), 'display:none!important should be in the CSS' );
+		$this->assertStringContainsString( '.wp-block-hidden-mobile', $stylesheet, 'Stylesheet should contain the visibility class' );
+		$this->assertStringContainsString( '@media', $stylesheet, 'Stylesheet should contain media query' );
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_generated_css_with_mobile_breakpoint() {
+		$this->register_visibility_block_with_support(
+			'test/responsive-mobile',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/responsive-mobile',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(
+						'mobile' => false,
+					),
+				),
+			),
+		);
+
+		$block_content = '<div>Test content</div>';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertStringContainsString( 'wp-block-hidden-mobile', $result, 'Block should have the visibility class for the mobile breakpoint.' );
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_generated_css_with_multiple_breakpoints() {
+		$this->register_visibility_block_with_support(
+			'test/responsive-multiple',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/responsive-multiple',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(
+						'mobile'  => false,
+						'desktop' => false,
+					),
+				),
+			),
+		);
+
+		$block_content = '<div>Test content</div>';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertStringContainsString( 'wp-block-hidden-desktop-mobile', $result, 'Block should have the visibility class for both breakpoints (sorted alphabetically).' );
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_generated_css_with_tablet_breakpoint() {
+		$this->register_visibility_block_with_support(
+			'test/responsive-tablet',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/responsive-tablet',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(
+						'tablet' => false,
+					),
+				),
+			),
+		);
+
+		$block_content = '<div class="existing-class">Test content</div>';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertStringContainsString( 'existing-class', $result, 'Block should have the existing class.' );
+		$this->assertStringContainsString( 'wp-block-hidden-tablet', $result, 'Block should have the visibility class for the tablet breakpoint.' );
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_generated_css_with_all_breakpoints_visible() {
+		$this->register_visibility_block_with_support(
+			'test/responsive-all-visible',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/responsive-all-visible',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(
+						'mobile'  => true,
+						'tablet'  => true,
+						'desktop' => true,
+					),
+				),
+			),
+		);
+
+		$block_content = '<div>Test content</div>';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when all breakpoints are visible.' );
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_generated_css_with_empty_object() {
+		$this->register_visibility_block_with_support(
+			'test/responsive-empty',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/responsive-empty',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(),
+				),
+			),
+		);
+
+		$block_content = '<div>Test content</div>';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when there is no visibility object.' );
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_generated_css_with_unknown_breakpoints_ignored() {
+		$this->register_visibility_block_with_support(
+			'test/responsive-unknown-breakpoints',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/responsive-unknown-breakpoints',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(
+						'mobile'       => false,
+						'unknownBreak' => false,
+						'largeScreen'  => false,
+					),
+				),
+			),
+		);
+
+		$block_content = '<div>Test content</div>';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertStringContainsString( 'wp-block-hidden-mobile', $result, 'Block should have the visibility class for the mobile breakpoint.' );
+		$this->assertStringNotContainsString( 'unknownBreak', $result, 'Unknown breakpoints should not appear in the class name.' );
+		$this->assertStringNotContainsString( 'largeScreen', $result, 'Large screen breakpoints should not appear in the class name.' );
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_generated_css_with_empty_content() {
+		$this->register_visibility_block_with_support(
+			'test/empty-content',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/empty-content',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(
+						'mobile' => false,
+					),
+				),
+			),
+		);
+
+		$block_content = '';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertSame( '', $result, 'Block content should be empty when there is no content.' );
 	}
 }
