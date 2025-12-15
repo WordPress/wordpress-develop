@@ -52,7 +52,7 @@ class Tests_Feed_FetchFeed extends WP_UnitTestCase {
 			$content[] = $item->get_content();
 		}
 
-		$this->assertEqualHTML( $content[0], $content[1], null, 'The contents of both items should be identical.' );
+		$this->assertEqualHTML( $content[0], $content[1], null, 'The contents of the first two items should be identical.' );
 	}
 
 	/**
