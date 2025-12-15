@@ -1339,6 +1339,7 @@ class WP_Theme_JSON {
 	 *     @type string $scope                           Makes sure all style are scoped to a given selector
 	 *     @type string $root_selector                   Overwrites and forces a given selector to be used on the root node
 	 *     @type bool   $skip_root_layout_styles         Omits root layout styles from the generated stylesheet. Default false.
+	 *     @type bool   $base_layout_styles              When true generates only base layout styles without alignment rules. Default false.
 	 *     @type bool   $include_block_style_variations  Includes styles for block style variations in the generated stylesheet. Default false.
 	 * }
 	 * @return string The resulting stylesheet.
@@ -1394,7 +1395,7 @@ class WP_Theme_JSON {
 
 		if ( in_array( 'styles', $types, true ) ) {
 			if ( false !== $root_style_key && empty( $options['skip_root_layout_styles'] ) ) {
-				$stylesheet .= $this->get_root_layout_rules( $style_nodes[ $root_style_key ]['selector'], $style_nodes[ $root_style_key ] );
+				$stylesheet .= $this->get_root_layout_rules( $style_nodes[ $root_style_key ]['selector'], $style_nodes[ $root_style_key ], $options );
 			}
 			$stylesheet .= $this->get_block_classes( $style_nodes );
 		}
@@ -1585,14 +1586,13 @@ class WP_Theme_JSON {
 	 * @since 6.1.0
 	 * @since 6.3.0 Reduced specificity for layout margin rules.
 	 * @since 6.5.1 Only output rules referencing content and wide sizes when values exist.
-	 * @since 6.5.3 Add types parameter to check if only base layout styles are needed.
 	 * @since 6.6.0 Updated layout style specificity to be compatible with overall 0-1-0 specificity in global styles.
 	 *
 	 * @param array $block_metadata Metadata about the block to get styles for.
-	 * @param array $types          Optional. Types of styles to output. If empty, all styles will be output.
+	 * @param array $options        Optional. An array of options for now used for internal purposes only.
 	 * @return string Layout styles for the block.
 	 */
-	protected function get_layout_styles( $block_metadata, $types = array() ) {
+	protected function get_layout_styles( $block_metadata, $options = array() ) {
 		$block_rules = '';
 		$block_type  = null;
 
@@ -1740,9 +1740,9 @@ class WP_Theme_JSON {
 					foreach ( $base_style_rules as $base_style_rule ) {
 						$declarations = array();
 
-						// Skip outputting base styles for flow and constrained layout types for classic themes without theme.json.
+						// Skip outputting base styles for flow and constrained layout types when base_layout_styles is enabled.
 						// These themes don't use .wp-site-blocks wrapper, so these layout-specific alignment styles aren't needed.
-						if ( ! wp_is_block_theme() && ! wp_theme_has_theme_json() && ( 'default' === $layout_definition['name'] || 'constrained' === $layout_definition['name'] ) ) {
+						if ( ! empty( $options['base_layout_styles'] ) && ( 'default' === $layout_definition['name'] || 'constrained' === $layout_definition['name'] ) ) {
 							continue;
 						}
 
@@ -3022,9 +3022,10 @@ class WP_Theme_JSON {
 	 *
 	 * @param string $selector The root node selector.
 	 * @param array  $block_metadata The metadata for the root block.
+	 * @param array  $options        Optional. An array of options for now used for internal purposes only.
 	 * @return string The additional root rules CSS.
 	 */
-	public function get_root_layout_rules( $selector, $block_metadata ) {
+	public function get_root_layout_rules( $selector, $block_metadata, $options = array() ) {
 		$css              = '';
 		$settings         = $this->theme_json['settings'] ?? array();
 		$use_root_padding = isset( $this->theme_json['settings']['useRootPaddingAwareAlignments'] ) && true === $this->theme_json['settings']['useRootPaddingAwareAlignments'];
@@ -3065,9 +3066,9 @@ class WP_Theme_JSON {
 			$css .= '.has-global-padding :where(:not(.alignfull.is-layout-flow) > .has-global-padding:not(.wp-block-block, .alignfull)) > .alignfull { margin-left: 0; margin-right: 0; }';
 		}
 
-		// Skip outputting alignment styles for classic themes without theme.json.
+		// Skip outputting alignment styles when base_layout_styles is enabled.
 		// These styles target .wp-site-blocks which is only used by block themes.
-		if ( wp_is_block_theme() || wp_theme_has_theme_json() ) {
+		if ( empty( $options['base_layout_styles'] ) ) {
 			$css .= '.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }';
 			$css .= '.wp-site-blocks > .alignright { float: right; margin-left: 2em; }';
 			$css .= '.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }';
@@ -3083,7 +3084,7 @@ class WP_Theme_JSON {
 			// For backwards compatibility, ensure the legacy block gap CSS variable is still available.
 			$css .= static::ROOT_CSS_PROPERTIES_SELECTOR . " { --wp--style--block-gap: $block_gap_value; }";
 		}
-		$css .= $this->get_layout_styles( $block_metadata );
+		$css .= $this->get_layout_styles( $block_metadata, $options );
 
 		return $css;
 	}
