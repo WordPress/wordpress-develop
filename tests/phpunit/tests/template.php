@@ -1493,11 +1493,11 @@ class Tests_Template extends WP_UnitTestCase {
 			// The wp_common_block_scripts_and_styles() function also fires enqueue_block_assets, at which wp_enqueue_classic_theme_styles() runs.
 			'classic-theme-styles-css', // Printed at enqueue_block_assets.
 
-			// Other styles enqueued at enqueue_block_assets, which is fired by wp_common_block_scripts_and_styles().
-			'custom-block-styles-css', // Printed at enqueue_block_assets.
-
 			// Third-party block styles.
 			'third-party-test-block-css', // Hoisted.
+
+			// Other styles enqueued at enqueue_block_assets, which is fired by wp_common_block_scripts_and_styles().
+			'custom-block-styles-css', // Printed at enqueue_block_assets.
 
 			// Hoisted. Enqueued by wp_enqueue_global_styles() which runs at wp_enqueue_scripts priority 10 and wp_footer priority 1.
 			'global-styles-inline-css',
@@ -1536,8 +1536,8 @@ class Tests_Template extends WP_UnitTestCase {
 						'wp-block-library-inline-css',
 						'wp-block-separator-inline-css',
 						'classic-theme-styles-inline-css',
-						'custom-block-styles-css',
 						'third-party-test-block-css',
+						'custom-block-styles-css',
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
@@ -1583,8 +1583,8 @@ class Tests_Template extends WP_UnitTestCase {
 						'wp-emoji-styles-inline-css',
 						'wp-block-library-css',
 						'classic-theme-styles-css',
-						'custom-block-styles-css', // TODO: Test is failing here.
 						'third-party-test-block-css',
+						'custom-block-styles-css',
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
@@ -1682,8 +1682,8 @@ class Tests_Template extends WP_UnitTestCase {
 						'wp-block-library-inline-css', // This contains the "OVERRIDDEN" text.
 						'wp-block-separator-css',
 						'classic-theme-styles-css',
-						'custom-block-styles-css',
 						'third-party-test-block-css',
+						'custom-block-styles-css',
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
