@@ -155,8 +155,8 @@ async function main() {
 		console.log( '\n📥 Cloning Gutenberg repository (shallow clone)...' );
 		try {
 			// Generic shallow clone approach that works for both branches and commit hashes
-			// 1. Clone with no checkout
-			await exec( 'git', [ 'clone', '--no-checkout', GUTENBERG_REPO, 'gutenberg' ] );
+			// 1. Clone with no checkout and shallow depth
+			await exec( 'git', [ 'clone', '--depth', '1', '--no-checkout', GUTENBERG_REPO, 'gutenberg' ] );
 
 			// 2. Fetch the specific ref with depth 1 (works for branches, tags, and commits)
 			await exec( 'git', [ 'fetch', '--depth', '1', 'origin', ref ], { cwd: gutenbergDir } );
