@@ -4075,4 +4075,51 @@ HTML;
 
 		$this->assertEqualHTML( $expected, $print_scripts );
 	}
+
+	/**
+	 * Ensure that `::print_translations()` does not include the sourceURL comment when `$display` is false.
+	 *
+	 * @ticket 63887
+	 * @covers ::print_translations
+	 */
+	public function test_print_translations_no_display_no_sourceurl() {
+		global $wp_scripts;
+		$this->add_html5_script_theme_support();
+
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'test-example', '/wp-includes/js/script.js', array(), null );
+		wp_set_script_translations( 'test-example', 'default', DIR_TESTDATA . '/languages' );
+
+		$translations_script_data = $wp_scripts->print_translations( 'test-example', false );
+		$this->assertStringNotContainsStringIgnoringCase( 'sourceURL=', $translations_script_data );
+	}
+
+	/**
+	 * Tests that WP_Scripts emits a _doing_it_wrong() notice for missing dependencies.
+	 *
+	 * @ticket 64229
+	 * @covers WP_Dependencies::all_deps
+	 */
+	public function test_wp_scripts_doing_it_wrong_for_missing_dependencies() {
+		$expected_incorrect_usage = 'WP_Scripts::add';
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+
+		wp_register_script( 'registered-dep', '/registered-dep.js' );
+		wp_enqueue_script( 'main', '/main.js', array( 'registered-dep', 'missing-dep' ) );
+
+		$markup = get_echo( 'wp_print_scripts' );
+		$this->assertStringNotContainsString( 'main.js', $markup, 'Expected script to be absent.' );
+
+		$this->assertArrayHasKey(
+			$expected_incorrect_usage,
+			$this->caught_doing_it_wrong,
+			"Expected $expected_incorrect_usage to trigger a _doing_it_wrong() notice for missing dependency."
+		);
+
+		$this->assertStringContainsString(
+			'The script with the handle "main" was enqueued with dependencies that are not registered: missing-dep',
+			$this->caught_doing_it_wrong[ $expected_incorrect_usage ],
+			'Expected _doing_it_wrong() notice to indicate missing dependencies for enqueued script.'
+		);
+	}
 }

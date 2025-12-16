@@ -45,12 +45,14 @@ jobs:
             'test-build-processes.yml'
         ]
         branch: [
-            '6.8', '6.7', '6.6', '6.5', '6.4', '6.3', '6.2', '6.1','6.0',
+            '6.9', '6.8', '6.7', '6.6', '6.5', '6.4', '6.3', '6.2', '6.1','6.0',
             '5.9', '5.8', '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
             '4.9', '4.8', '4.7'
         ]
         include:
           # PHP Compatibility testing was introduced in 5.5.
+          - branch: '6.9'
+            workflow: 'php-compatibility.yml'
           - branch: '6.8'
             workflow: 'php-compatibility.yml'
           - branch: '6.7'
@@ -83,6 +85,8 @@ jobs:
           # End-to-end testing was introduced in 5.3 but was later removed as there were no meaningful assertions.
           # Starting in 5.8 with #52905, some additional tests with real assertions were introduced.
           # Branches 5.8 and newer should be tested to confirm no regressions are introduced.
+          - branch: '6.9'
+            workflow: 'end-to-end-tests.yml'
           - branch: '6.8'
             workflow: 'end-to-end-tests.yml'
           - branch: '6.7'
@@ -109,6 +113,8 @@ jobs:
           # Performance testing was introduced in 6.2 using Puppeteer but was overhauled to use Playwright instead in 6.4.
           # Since the workflow frequently failed for 6.2 and 6.3 due to the flaky nature of the Puppeteer tests,
           # the workflow was removed from those two branches.
+          - branch: '6.9'
+            workflow: 'performance.yml'
           - branch: '6.8'
             workflow: 'performance.yml'
           - branch: '6.7'
