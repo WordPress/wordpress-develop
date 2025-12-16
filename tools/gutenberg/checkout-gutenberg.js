@@ -152,7 +152,16 @@ async function main() {
 	if ( ! gutenbergExists ) {
 		console.log( '\n📥 Cloning Gutenberg repository (shallow clone)...' );
 		try {
-			await exec( 'git', [ 'clone', '--depth', '1', '--branch', ref, GUTENBERG_REPO, 'gutenberg' ] );
+			// Generic shallow clone approach that works for both branches and commit hashes
+			// 1. Clone with no checkout
+			await exec( 'git', [ 'clone', '--no-checkout', GUTENBERG_REPO, 'gutenberg' ] );
+
+			// 2. Fetch the specific ref with depth 1 (works for branches, tags, and commits)
+			await exec( 'git', [ 'fetch', '--depth', '1', 'origin', ref ], { cwd: gutenbergDir } );
+
+			// 3. Checkout FETCH_HEAD
+			await exec( 'git', [ 'checkout', 'FETCH_HEAD' ], { cwd: gutenbergDir } );
+
 			console.log( '✅ Cloned successfully' );
 		} catch ( error ) {
 			console.error( '❌ Clone failed:', error.message );
