@@ -193,3 +193,16 @@ function wp_default_script_modules() {
 		wp_register_script_module( $script_module_id, $path, $script_module_data['dependencies'], $script_module_data['version'], $args );
 	}
 }
+
+/**
+ * Enqueues script modules required by the block editor.
+ *
+ * @since 6.9.0
+ */
+function wp_enqueue_block_editor_script_modules() {
+	/*
+	 * Enqueue the LaTeX to MathML loader for the math block editor.
+	 * The loader dynamically imports the main LaTeX to MathML module when needed.
+	 */
+	wp_enqueue_script_module( '@wordpress/latex-to-mathml/loader' );
+}
