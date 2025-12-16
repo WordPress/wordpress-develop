@@ -6,9 +6,7 @@
     'title' => 'Accordion',
     'category' => 'design',
     'description' => 'Displays a foldable layout that groups content in collapsible sections.',
-    'example' => array(
-      
-    ),
+    'example' => array(),
     'supports' => array(
       'anchor' => true,
       'html' => false,
@@ -583,9 +581,7 @@
       ),
       'content' => array(
         'type' => 'object',
-        'default' => array(
-          
-        )
+        'default' => array()
       )
     ),
     'providesContext' => array(
@@ -2549,9 +2545,7 @@
     'attributes' => array(
       'images' => array(
         'type' => 'array',
-        'default' => array(
-          
-        ),
+        'default' => array(),
         'source' => 'query',
         'selector' => '.blocks-gallery-item',
         'query' => array(
@@ -2598,18 +2592,14 @@
         'items' => array(
           'type' => 'number'
         ),
-        'default' => array(
-          
-        )
+        'default' => array()
       ),
       'shortCodeTransforms' => array(
         'type' => 'array',
         'items' => array(
           'type' => 'object'
         ),
-        'default' => array(
-          
-        )
+        'default' => array()
       ),
       'columns' => array(
         'type' => 'number',
@@ -5908,18 +5898,12 @@
           'orderBy' => 'date',
           'author' => '',
           'search' => '',
-          'exclude' => array(
-            
-          ),
+          'exclude' => array(),
           'sticky' => '',
           'inherit' => true,
           'taxQuery' => null,
-          'parents' => array(
-            
-          ),
-          'format' => array(
-            
-          )
+          'parents' => array(),
+          'format' => array()
         )
       ),
       'tagName' => array(
@@ -6689,9 +6673,7 @@
       ),
       'query' => array(
         'type' => 'object',
-        'default' => array(
-          
-        )
+        'default' => array()
       ),
       'isSearchFieldHidden' => array(
         'type' => 'boolean',
@@ -7332,17 +7314,13 @@
       ),
       'head' => array(
         'type' => 'array',
-        'default' => array(
-          
-        ),
+        'default' => array(),
         'source' => 'query',
         'selector' => 'thead tr',
         'query' => array(
           'cells' => array(
             'type' => 'array',
-            'default' => array(
-              
-            ),
+            'default' => array(),
             'source' => 'query',
             'selector' => 'td,th',
             'query' => array(
@@ -7382,17 +7360,13 @@
       ),
       'body' => array(
         'type' => 'array',
-        'default' => array(
-          
-        ),
+        'default' => array(),
         'source' => 'query',
         'selector' => 'tbody tr',
         'query' => array(
           'cells' => array(
             'type' => 'array',
-            'default' => array(
-              
-            ),
+            'default' => array(),
             'source' => 'query',
             'selector' => 'td,th',
             'query' => array(
@@ -7432,17 +7406,13 @@
       ),
       'foot' => array(
         'type' => 'array',
-        'default' => array(
-          
-        ),
+        'default' => array(),
         'source' => 'query',
         'selector' => 'tfoot tr',
         'query' => array(
           'cells' => array(
             'type' => 'array',
-            'default' => array(
-              
-            ),
+            'default' => array(),
             'source' => 'query',
             'selector' => 'td,th',
             'query' => array(
@@ -7956,9 +7926,7 @@
           'taxonomy' => 'category',
           'order' => 'asc',
           'orderBy' => 'name',
-          'include' => array(
-            
-          ),
+          'include' => array(),
           'hideEmpty' => true,
           'showNested' => false,
           'inherit' => false
@@ -8006,12 +7974,8 @@
           )
         ),
         'default' => array(
-          array(
-            
-          ),
-          array(
-            
-          )
+          array(),
+          array()
         )
       ),
       'columns' => array(
@@ -8196,9 +8160,7 @@
         'items' => array(
           'type' => 'object'
         ),
-        'default' => array(
-          
-        )
+        'default' => array()
       )
     ),
     'supports' => array(
