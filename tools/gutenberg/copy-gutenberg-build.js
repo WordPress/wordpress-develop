@@ -11,6 +11,7 @@
 
 const fs = require( 'fs' );
 const path = require( 'path' );
+const json2php = require( 'json2php' );
 
 // Paths
 const rootDir = path.resolve( __dirname, '../..' );
@@ -281,11 +282,18 @@ function generateScriptModulesPackages() {
 
 	processDirectory( modulesDir, modulesDir );
 
-	// Generate both minified and non-minified PHP files
-	const phpContentMin = `<?php return ${ phpEncode( assetsMin ) };
-`;
-	const phpContentRegular = `<?php return ${ phpEncode( assetsRegular ) };
-`;
+	// Generate both minified and non-minified PHP files using json2php
+	const phpContentMin = '<?php return ' + json2php.make( {
+		linebreak: '\n',
+		indent: '  ',
+		shortArraySyntax: false
+	} )( assetsMin ) + ';';
+
+	const phpContentRegular = '<?php return ' + json2php.make( {
+		linebreak: '\n',
+		indent: '  ',
+		shortArraySyntax: false
+	} )( assetsRegular ) + ';';
 
 	const outputPathMin = path.join( wpIncludesDir, 'assets/script-modules-packages.min.php' );
 	const outputPathRegular = path.join( wpIncludesDir, 'assets/script-modules-packages.php' );
@@ -354,11 +362,18 @@ function generateScriptLoaderPackages() {
 		}
 	}
 
-	// Generate both minified and non-minified PHP files
-	const phpContentMin = `<?php return ${ phpEncode( assetsMin ) };
-`;
-	const phpContentRegular = `<?php return ${ phpEncode( assetsRegular ) };
-`;
+	// Generate both minified and non-minified PHP files using json2php
+	const phpContentMin = '<?php return ' + json2php.make( {
+		linebreak: '\n',
+		indent: '  ',
+		shortArraySyntax: false
+	} )( assetsMin ) + ';';
+
+	const phpContentRegular = '<?php return ' + json2php.make( {
+		linebreak: '\n',
+		indent: '  ',
+		shortArraySyntax: false
+	} )( assetsRegular ) + ';';
 
 	const outputPathMin = path.join( wpIncludesDir, 'assets/script-loader-packages.min.php' );
 	const outputPathRegular = path.join( wpIncludesDir, 'assets/script-loader-packages.php' );
@@ -460,6 +475,7 @@ ${ staticBlocks.map( name => `\t'${ name }',` ).join( '\n' ) }
 /**
  * Generate blocks-json.php from all block.json files.
  * Reads all block.json files and combines them into a single PHP array.
+ * Uses json2php to maintain consistency with Core's formatting.
  */
 function generateBlocksJson() {
 	const blocksDir = path.join( wpIncludesDir, 'blocks' );
@@ -489,9 +505,12 @@ function generateBlocksJson() {
 		}
 	}
 
-	// Generate the PHP file content
-	const phpContent = `<?php return ${ phpEncode( blocks ) };
-`;
+	// Generate the PHP file content using json2php for consistent formatting
+	const phpContent = '<?php return ' + json2php.make( {
+		linebreak: '\n',
+		indent: '  ',
+		shortArraySyntax: false
+	} )( blocks ) + ';';
 
 	fs.writeFileSync(
 		path.join( wpIncludesDir, 'blocks/blocks-json.php' ),
@@ -664,65 +683,6 @@ function parsePHPArray( phpArrayContent ) {
 	}
 }
 
-/**
- * Convert JavaScript value to PHP representation.
- * Similar to json2php used in Gruntfile.
- *
- * @param {*} value - Value to encode.
- * @param {number} indent - Indentation level.
- * @return {string} PHP representation.
- */
-function phpEncode( value, indent = 0 ) {
-	const indentStr = '  '.repeat( indent );
-	const nextIndentStr = '  '.repeat( indent + 1 );
-
-	if ( value === null ) {
-		return 'null';
-	}
-
-	if ( typeof value === 'boolean' ) {
-		return value ? 'true' : 'false';
-	}
-
-	if ( typeof value === 'number' ) {
-		return String( value );
-	}
-
-	if ( typeof value === 'string' ) {
-		// Escape single quotes and backslashes
-		const escaped = value
-			.replace( /\\/g, '\\\\' )
-			.replace( /'/g, "\\'" );
-		return `'${ escaped }'`;
-	}
-
-	if ( Array.isArray( value ) ) {
-		if ( value.length === 0 ) {
-			return 'array()';
-		}
-
-		const items = value.map( item => `${ nextIndentStr }${ phpEncode( item, indent + 1 ) }` );
-		return `array(\n${ items.join( ',\n' ) }\n${ indentStr })`;
-	}
-
-	if ( typeof value === 'object' ) {
-		const keys = Object.keys( value );
-
-		if ( keys.length === 0 ) {
-			return 'array()';
-		}
-
-		const items = keys.map( key => {
-			const phpKey = phpEncode( key, indent + 1 );
-			const phpValue = phpEncode( value[ key ], indent + 1 );
-			return `${ nextIndentStr }${ phpKey } => ${ phpValue }`;
-		} );
-
-		return `array(\n${ items.join( ',\n' ) }\n${ indentStr })`;
-	}
-
-	return 'null';
-}
 
 /**
  * Transform PHP file contents to work in Core.
