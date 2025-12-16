@@ -159,7 +159,7 @@
         )
       ),
       'shadow' => true,
-      'blockVisibility' => false,
+      'visibility' => false,
       'lock' => false
     ),
     'selectors' => array(
@@ -319,7 +319,7 @@
       'layout' => array(
         'allowEditing' => false
       ),
-      'blockVisibility' => false,
+      'visibility' => false,
       'contentRole' => true,
       'allowedBlocks' => true,
       'lock' => false
@@ -2522,7 +2522,7 @@
       'lock' => false,
       'reusable' => false,
       'renaming' => false,
-      'blockVisibility' => false
+      'visibility' => false
     ),
     'editorStyle' => 'wp-block-freeform-editor'
   ),
@@ -3641,7 +3641,34 @@
     ),
     'textdomain' => 'default',
     'supports' => array(
-      'html' => false
+      'html' => false,
+      '__experimentalBorder' => array(
+        'color' => true,
+        'radius' => true,
+        'style' => true,
+        'width' => true
+      ),
+      'color' => array(
+        'gradients' => true,
+        '__experimentalDefaultControls' => array(
+          'background' => true,
+          'text' => true
+        )
+      ),
+      'spacing' => array(
+        'margin' => true,
+        'padding' => true,
+        '__experimentalDefaultControls' => array(
+          'margin' => false,
+          'padding' => false
+        )
+      ),
+      'typography' => array(
+        'fontSize' => true,
+        '__experimentalDefaultControls' => array(
+          'fontSize' => true
+        )
+      )
     ),
     'attributes' => array(
       'latex' => array(
@@ -3840,7 +3867,7 @@
       'lock' => false,
       'reusable' => false,
       'renaming' => false,
-      'blockVisibility' => false,
+      'visibility' => false,
       'interactivity' => array(
         'clientNavigation' => true
       )
@@ -4001,6 +4028,7 @@
         'full'
       ),
       'ariaLabel' => true,
+      'contentRole' => true,
       'html' => false,
       'inserter' => true,
       'typography' => array(
@@ -4042,8 +4070,7 @@
         )
       ),
       'interactivity' => true,
-      'renaming' => false,
-      'contentRole' => true
+      'renaming' => false
     ),
     'editorStyle' => 'wp-block-navigation-editor',
     'style' => 'wp-block-navigation'
@@ -4086,7 +4113,8 @@
         'default' => false
       ),
       'url' => array(
-        'type' => 'string'
+        'type' => 'string',
+        'role' => 'content'
       ),
       'title' => array(
         'type' => 'string'
@@ -4171,7 +4199,8 @@
         'default' => false
       ),
       'url' => array(
-        'type' => 'string'
+        'type' => 'string',
+        'role' => 'content'
       ),
       'title' => array(
         'type' => 'string'
@@ -4492,7 +4521,7 @@
       'html' => false,
       'inserter' => false,
       'renaming' => false,
-      'blockVisibility' => false,
+      'visibility' => false,
       'interactivity' => array(
         'clientNavigation' => true
       )
@@ -5747,9 +5776,9 @@
     '$schema' => 'https://schemas.wp.org/trunk/block.json',
     'apiVersion' => 3,
     'name' => 'core/pullquote',
-    'title' => 'Pullquote',
+    'title' => 'Pullquote (deprecated)',
     'category' => 'text',
-    'description' => 'Give special visual emphasis to a quote from your text.',
+    'description' => 'This block is deprecated. Please use the Quote block instead.',
     'textdomain' => 'default',
     'attributes' => array(
       'value' => array(
@@ -5798,6 +5827,7 @@
           'minHeight' => false
         )
       ),
+      'inserter' => false,
       'spacing' => array(
         'margin' => true,
         'padding' => true
