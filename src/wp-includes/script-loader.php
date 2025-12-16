@@ -3747,6 +3747,7 @@ function wp_hoist_late_printed_styles() {
 			$printed_core_block_styles = ob_get_clean();
 		}
 
+		// Non-core block styles get printed after the classic-theme-styles stylesheet.
 		$enqueued_other_block_styles = array_values( array_intersect( $all_other_block_style_handles, wp_styles()->queue ) );
 		if ( count( $enqueued_other_block_styles ) > 0 ) {
 			ob_start();
@@ -3754,7 +3755,7 @@ function wp_hoist_late_printed_styles() {
 			$printed_other_block_styles = ob_get_clean();
 		}
 
-		// Capture the global-styles so that it can be printed separately after classic-theme-styles, to preserve the original order,
+		// Capture the global-styles so that it can be printed separately after classic-theme-styles and other styles enqueued at enqueue_block_assets,
 		if ( wp_style_is( 'global-styles' ) ) {
 			ob_start();
 			wp_styles()->do_items( array( 'global-styles' ) );
@@ -3907,10 +3908,12 @@ function wp_hoist_late_printed_styles() {
 				$inserted_after            = $printed_core_block_styles;
 				$printed_core_block_styles = '';
 
+				// If the classic-theme-styles is absent, then the third-party block styles cannot be inserted after it, so they get inserted here.
 				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
 					$inserted_after            .= "\n" . $printed_other_block_styles;
 					$printed_other_block_styles = '';
 
+					// If there aren't any other styles printed at enqueue_block_assets either, then the global styles needs to also be printed here.
 					if ( ! $processor->has_bookmark( 'last_style_at_enqueue_block_assets' ) ) {
 						$inserted_after       .= "\n" . $printed_global_styles;
 						$printed_global_styles = '';
@@ -3922,6 +3925,7 @@ function wp_hoist_late_printed_styles() {
 				}
 			}
 
+			// Insert global-styles after the styles enqueued at enqueue_block_assets.
 			if ( '' !== $printed_global_styles && $processor->has_bookmark( 'last_style_at_enqueue_block_assets' ) ) {
 				$processor->seek( 'last_style_at_enqueue_block_assets' );
 
@@ -3934,6 +3938,7 @@ function wp_hoist_late_printed_styles() {
 				}
 			}
 
+			// Insert third-party block styles right after the classic-theme-styles.
 			if ( '' !== $printed_other_block_styles && $processor->has_bookmark( 'classic_theme_styles' ) ) {
 				$processor->seek( 'classic_theme_styles' );
 				$processor->insert_after( "\n" . $printed_other_block_styles );
