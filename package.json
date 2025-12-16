@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"ref": "fd9449ca92766494a3764c4eef0923270e95c209"
+		"ref": "4801c4aaccc395b79948413b2542cbbb67935832"
 	},
 	"engines": {
 		"node": ">=20.10.0",

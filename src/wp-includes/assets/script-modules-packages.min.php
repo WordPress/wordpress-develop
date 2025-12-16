@@ -3,7 +3,7 @@
     'dependencies' => array(
       
     ),
-    'version' => '1ef5271b64094e31cc86',
+    'version' => '070006c1952723adf288',
     'type' => 'module'
   ),
   'abilities/index.min.js' => array(
@@ -40,14 +40,14 @@
         'import' => 'static'
       )
     ),
-    'version' => 'daf77b31de4fbcd816c6',
+    'version' => '3ac75c84bab01df66cbc',
     'type' => 'module'
   ),
   'block-library/form/view.min.js' => array(
     'dependencies' => array(
       
     ),
-    'version' => 'b09b6be2c9c26d809b02',
+    'version' => '5a31469ae99c89b85209',
     'type' => 'module'
   ),
   'block-library/image/view.min.js' => array(
@@ -91,7 +91,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '7b0d6f839c25f07f46e3',
+    'version' => '29874e80748c436bd760',
     'type' => 'module'
   ),
   'block-library/tabs/view.min.js' => array(
@@ -101,7 +101,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '8505d4d9e8f869f4a0c5',
+    'version' => '1786987b68ac0b72ef6f',
     'type' => 'module'
   ),
   'boot/index.min.js' => array(
@@ -119,7 +119,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '06d8331f788c7a650a20',
+    'version' => '0d446310bd4f02bccf1c',
     'type' => 'module'
   ),
   'core-abilities/index.min.js' => array(
@@ -170,14 +170,14 @@
         'import' => 'static'
       )
     ),
-    'version' => '8fb28753e86c1a3bf64f',
+    'version' => 'fc5e6fae8f1e8dc42054',
     'type' => 'module'
   ),
   'latex-to-mathml/index.min.js' => array(
     'dependencies' => array(
       
     ),
-    'version' => 'b604e0d35230d12eabf7',
+    'version' => 'fbbf921282750fed0380',
     'type' => 'module'
   ),
   'latex-to-mathml/loader.min.js' => array(
@@ -194,7 +194,7 @@
     'dependencies' => array(
       
     ),
-    'version' => '2e6d860bf4a1220ead4e',
+    'version' => 'e4582fa4bd0b681493b0',
     'type' => 'module'
   ),
   'route/index.min.js' => array(
