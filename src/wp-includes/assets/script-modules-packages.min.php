@@ -119,7 +119,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '0d446310bd4f02bccf1c',
+    'version' => 'cd0bd05978b1bf968746',
     'type' => 'module'
   ),
   'core-abilities/index.min.js' => array(
@@ -194,7 +194,7 @@
     'dependencies' => array(
       
     ),
-    'version' => 'e4582fa4bd0b681493b0',
+    'version' => '27ae9aabbe34a1730fd1',
     'type' => 'module'
   ),
   'route/index.min.js' => array(
@@ -211,7 +211,7 @@
         'import' => 'static'
       )
     ),
-    'version' => 'd8c59a2f2a364b3f51a0',
+    'version' => '54693498f890d17317a2',
     'type' => 'module'
   )
 );
