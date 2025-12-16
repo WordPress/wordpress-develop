@@ -249,15 +249,19 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	/**
 	 * Gets the permissions of the specified file or filepath in their octal format.
 	 *
-	 * FIXME does not handle errors in fileperms()
-	 *
 	 * @since 2.5.0
 	 *
 	 * @param string $file Path to the file.
-	 * @return string Mode of the file (the last 3 digits).
+	 * @return string|false Mode of the file (the last 3 digits), false on failure.
 	 */
 	public function getchmod( $file ) {
-		return substr( decoct( @fileperms( $file ) ), -3 );
+		$perms = @fileperms( $file );
+
+		if ( false === $perms ) {
+			return false;
+		}
+
+		return substr( decoct( $perms ), -3 );
 	}
 
 	/**
