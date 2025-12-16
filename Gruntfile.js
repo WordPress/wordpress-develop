@@ -1429,7 +1429,7 @@ module.exports = function(grunt) {
 			cmd: 'node',
 			args: [ 'tools/gutenberg/checkout-gutenberg.js' ],
 			opts: { stdio: 'inherit' }
-		}, function( error, result, code ) {
+		}, function( error ) {
 			done( ! error );
 		} );
 	} );
@@ -1440,7 +1440,7 @@ module.exports = function(grunt) {
 			cmd: 'node',
 			args: [ 'tools/gutenberg/build-gutenberg.js' ],
 			opts: { stdio: 'inherit' }
-		}, function( error, result, code ) {
+		}, function( error ) {
 			done( ! error );
 		} );
 	} );
@@ -1452,7 +1452,7 @@ module.exports = function(grunt) {
 			cmd: 'node',
 			args: [ 'tools/gutenberg/copy-gutenberg-build.js', `--build-dir=${ buildDir }` ],
 			opts: { stdio: 'inherit' }
-		}, function( error, result, code ) {
+		}, function( error ) {
 			done( ! error );
 		} );
 	} );
@@ -1470,7 +1470,7 @@ module.exports = function(grunt) {
 			cmd: 'node',
 			args: [ 'tools/vendors/copy-vendors.js', `--build-dir=${ buildDir }` ],
 			opts: { stdio: 'inherit' }
-		}, function( error, result, code ) {
+		}, function( error ) {
 			done( ! error );
 		} );
 	} );
