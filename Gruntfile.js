@@ -1414,6 +1414,59 @@ module.exports = function(grunt) {
 		grunt.task.run( 'wp-packages:refresh-deps' );
 	} );
 
+	// Gutenberg integration tasks.
+	grunt.registerTask( 'gutenberg-checkout', 'Checks out the Gutenberg repository.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/checkout-gutenberg.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error, result, code ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'gutenberg-build', 'Builds the Gutenberg repository.', function() {
+		const done = this.async();
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/build-gutenberg.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error, result, code ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'gutenberg-copy', 'Copies Gutenberg build output to WordPress Core.', function() {
+		const done = this.async();
+		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/gutenberg/copy-gutenberg-build.js', `--build-dir=${ buildDir }` ],
+			opts: { stdio: 'inherit' }
+		}, function( error, result, code ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'gutenberg-integrate', 'Complete Gutenberg integration workflow.', [
+		'gutenberg-checkout',
+		'gutenberg-build',
+		'gutenberg-copy'
+	] );
+
+	grunt.registerTask( 'copy-vendor-scripts', 'Copies vendor scripts from node_modules to wp-includes/js/dist/vendor/.', function() {
+		const done = this.async();
+		const buildDir = grunt.option( 'dev' ) ? 'src' : 'build';
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/vendors/copy-vendors.js', `--build-dir=${ buildDir }` ],
+			opts: { stdio: 'inherit' }
+		}, function( error, result, code ) {
+			done( ! error );
+		} );
+	} );
+
 	grunt.renameTask( 'watch', '_watch' );
 
 	grunt.registerTask( 'watch', function() {
@@ -1853,6 +1906,8 @@ module.exports = function(grunt) {
 			grunt.task.run( [
 				'build:js',
 				'build:css',
+				'gutenberg-integrate',
+				'copy-vendor-scripts',
 				'build:certificates'
 			] );
 		} else {
@@ -1861,6 +1916,8 @@ module.exports = function(grunt) {
 				'build:files',
 				'build:js',
 				'build:css',
+				'gutenberg-integrate',
+				'copy-vendor-scripts',
 				'replace:source-maps',
 				'verify:build'
 			] );

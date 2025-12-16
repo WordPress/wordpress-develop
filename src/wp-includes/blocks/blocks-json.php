@@ -6,9 +6,7 @@
     'title' => 'Accordion',
     'category' => 'design',
     'description' => 'Displays a foldable layout that groups content in collapsible sections.',
-    'example' => array(
-      
-    ),
+    'example' => array(),
     'supports' => array(
       'anchor' => true,
       'html' => false,
@@ -159,7 +157,7 @@
         )
       ),
       'shadow' => true,
-      'blockVisibility' => false,
+      'visibility' => false,
       'lock' => false
     ),
     'selectors' => array(
@@ -319,7 +317,7 @@
       'layout' => array(
         'allowEditing' => false
       ),
-      'blockVisibility' => false,
+      'visibility' => false,
       'contentRole' => true,
       'allowedBlocks' => true,
       'lock' => false
@@ -583,9 +581,7 @@
       ),
       'content' => array(
         'type' => 'object',
-        'default' => array(
-          
-        )
+        'default' => array()
       )
     ),
     'providesContext' => array(
@@ -627,9 +623,6 @@
       'type' => array(
         'type' => 'string',
         'default' => 'button'
-      ),
-      'textAlign' => array(
-        'type' => 'string'
       ),
       'url' => array(
         'type' => 'string',
@@ -698,6 +691,7 @@
         '__experimentalSkipSerialization' => array(
           'fontSize',
           'lineHeight',
+          'textAlign',
           'fontFamily',
           'fontWeight',
           'fontStyle',
@@ -707,6 +701,7 @@
         ),
         'fontSize' => true,
         'lineHeight' => true,
+        'textAlign' => true,
         '__experimentalFontFamily' => true,
         '__experimentalFontWeight' => true,
         '__experimentalFontStyle' => true,
@@ -1887,6 +1882,13 @@
       ),
       'interactivity' => array(
         'clientNavigation' => true
+      ),
+      'spacing' => array(
+        'margin' => true,
+        'padding' => true,
+        '__experimentalDefaultControls' => array(
+          'padding' => true
+        )
       )
     )
   ),
@@ -2516,13 +2518,12 @@
       )
     ),
     'supports' => array(
-      'html' => false,
       'className' => false,
       'customClassName' => false,
       'lock' => false,
       'reusable' => false,
       'renaming' => false,
-      'blockVisibility' => false
+      'visibility' => false
     ),
     'editorStyle' => 'wp-block-freeform-editor'
   ),
@@ -2544,9 +2545,7 @@
     'attributes' => array(
       'images' => array(
         'type' => 'array',
-        'default' => array(
-          
-        ),
+        'default' => array(),
         'source' => 'query',
         'selector' => '.blocks-gallery-item',
         'query' => array(
@@ -2593,18 +2592,14 @@
         'items' => array(
           'type' => 'number'
         ),
-        'default' => array(
-          
-        )
+        'default' => array()
       ),
       'shortCodeTransforms' => array(
         'type' => 'array',
         'items' => array(
           'type' => 'object'
         ),
-        'default' => array(
-          
-        )
+        'default' => array()
       ),
       'columns' => array(
         'type' => 'number',
@@ -3179,9 +3174,14 @@
         'type' => 'boolean',
         'default' => true
       ),
-      'displayExcerpt' => array(
-        'type' => 'boolean',
-        'default' => true
+      'displayContent' => array(
+        'type' => 'string',
+        'default' => 'excerpt',
+        'enum' => array(
+          'none',
+          'excerpt',
+          'full'
+        )
       )
     ),
     'supports' => array(
@@ -3636,7 +3636,34 @@
     ),
     'textdomain' => 'default',
     'supports' => array(
-      'html' => false
+      'html' => false,
+      '__experimentalBorder' => array(
+        'color' => true,
+        'radius' => true,
+        'style' => true,
+        'width' => true
+      ),
+      'color' => array(
+        'gradients' => true,
+        '__experimentalDefaultControls' => array(
+          'background' => true,
+          'text' => true
+        )
+      ),
+      'spacing' => array(
+        'margin' => true,
+        'padding' => true,
+        '__experimentalDefaultControls' => array(
+          'margin' => false,
+          'padding' => false
+        )
+      ),
+      'typography' => array(
+        'fontSize' => true,
+        '__experimentalDefaultControls' => array(
+          'fontSize' => true
+        )
+      )
     ),
     'attributes' => array(
       'latex' => array(
@@ -3835,7 +3862,7 @@
       'lock' => false,
       'reusable' => false,
       'renaming' => false,
-      'blockVisibility' => false,
+      'visibility' => false,
       'interactivity' => array(
         'clientNavigation' => true
       )
@@ -3934,6 +3961,9 @@
         'type' => 'string',
         'default' => 'mobile'
       ),
+      'overlay' => array(
+        'type' => 'string'
+      ),
       'icon' => array(
         'type' => 'string',
         'default' => 'handle'
@@ -3996,6 +4026,7 @@
         'full'
       ),
       'ariaLabel' => true,
+      'contentRole' => true,
       'html' => false,
       'inserter' => true,
       'typography' => array(
@@ -4037,8 +4068,7 @@
         )
       ),
       'interactivity' => true,
-      'renaming' => false,
-      'contentRole' => true
+      'renaming' => false
     ),
     'editorStyle' => 'wp-block-navigation-editor',
     'style' => 'wp-block-navigation'
@@ -4081,7 +4111,8 @@
         'default' => false
       ),
       'url' => array(
-        'type' => 'string'
+        'type' => 'string',
+        'role' => 'content'
       ),
       'title' => array(
         'type' => 'string'
@@ -4166,7 +4197,8 @@
         'default' => false
       ),
       'url' => array(
-        'type' => 'string'
+        'type' => 'string',
+        'role' => 'content'
       ),
       'title' => array(
         'type' => 'string'
@@ -4404,9 +4436,6 @@
     ),
     'textdomain' => 'default',
     'attributes' => array(
-      'align' => array(
-        'type' => 'string'
-      ),
       'content' => array(
         'type' => 'rich-text',
         'source' => 'rich-text',
@@ -4457,6 +4486,7 @@
       'typography' => array(
         'fontSize' => true,
         'lineHeight' => true,
+        'textAlign' => true,
         '__experimentalFontFamily' => true,
         '__experimentalTextDecoration' => true,
         '__experimentalFontStyle' => true,
@@ -4489,7 +4519,7 @@
       'html' => false,
       'inserter' => false,
       'renaming' => false,
-      'blockVisibility' => false,
+      'visibility' => false,
       'interactivity' => array(
         'clientNavigation' => true
       )
@@ -5744,9 +5774,9 @@
     '$schema' => 'https://schemas.wp.org/trunk/block.json',
     'apiVersion' => 3,
     'name' => 'core/pullquote',
-    'title' => 'Pullquote',
+    'title' => 'Pullquote (deprecated)',
     'category' => 'text',
-    'description' => 'Give special visual emphasis to a quote from your text.',
+    'description' => 'This block is deprecated. Please use the Quote block instead.',
     'textdomain' => 'default',
     'attributes' => array(
       'value' => array(
@@ -5795,6 +5825,7 @@
           'minHeight' => false
         )
       ),
+      'inserter' => false,
       'spacing' => array(
         'margin' => true,
         'padding' => true
@@ -5867,18 +5898,12 @@
           'orderBy' => 'date',
           'author' => '',
           'search' => '',
-          'exclude' => array(
-            
-          ),
+          'exclude' => array(),
           'sticky' => '',
           'inherit' => true,
           'taxQuery' => null,
-          'parents' => array(
-            
-          ),
-          'format' => array(
-            
-          )
+          'parents' => array(),
+          'format' => array()
         )
       ),
       'tagName' => array(
@@ -6648,9 +6673,7 @@
       ),
       'query' => array(
         'type' => 'object',
-        'default' => array(
-          
-        )
+        'default' => array()
       ),
       'isSearchFieldHidden' => array(
         'type' => 'boolean',
@@ -7291,17 +7314,13 @@
       ),
       'head' => array(
         'type' => 'array',
-        'default' => array(
-          
-        ),
+        'default' => array(),
         'source' => 'query',
         'selector' => 'thead tr',
         'query' => array(
           'cells' => array(
             'type' => 'array',
-            'default' => array(
-              
-            ),
+            'default' => array(),
             'source' => 'query',
             'selector' => 'td,th',
             'query' => array(
@@ -7341,17 +7360,13 @@
       ),
       'body' => array(
         'type' => 'array',
-        'default' => array(
-          
-        ),
+        'default' => array(),
         'source' => 'query',
         'selector' => 'tbody tr',
         'query' => array(
           'cells' => array(
             'type' => 'array',
-            'default' => array(
-              
-            ),
+            'default' => array(),
             'source' => 'query',
             'selector' => 'td,th',
             'query' => array(
@@ -7391,17 +7406,13 @@
       ),
       'foot' => array(
         'type' => 'array',
-        'default' => array(
-          
-        ),
+        'default' => array(),
         'source' => 'query',
         'selector' => 'tfoot tr',
         'query' => array(
           'cells' => array(
             'type' => 'array',
-            'default' => array(
-              
-            ),
+            'default' => array(),
             'source' => 'query',
             'selector' => 'td,th',
             'query' => array(
@@ -7771,6 +7782,9 @@
       'isLink' => array(
         'type' => 'boolean',
         'default' => false
+      ),
+      'levelOptions' => array(
+        'type' => 'array'
       )
     ),
     'supports' => array(
@@ -7912,9 +7926,7 @@
           'taxonomy' => 'category',
           'order' => 'asc',
           'orderBy' => 'name',
-          'include' => array(
-            
-          ),
+          'include' => array(),
           'hideEmpty' => true,
           'showNested' => false,
           'inherit' => false
@@ -7962,12 +7974,8 @@
           )
         ),
         'default' => array(
-          array(
-            
-          ),
-          array(
-            
-          )
+          array(),
+          array()
         )
       ),
       'columns' => array(
@@ -8152,9 +8160,7 @@
         'items' => array(
           'type' => 'object'
         ),
-        'default' => array(
-          
-        )
+        'default' => array()
       )
     ),
     'supports' => array(

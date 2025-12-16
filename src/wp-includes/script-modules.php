@@ -150,8 +150,8 @@ function wp_default_script_modules() {
 	 * Expects multidimensional array like:
 	 *
 	 *     'interactivity/index.min.js' => array('dependencies' => array(…), 'version' => '…'),
-	 *     'interactivity/debug.min.js' => array('dependencies' => array(…), 'version' => '…'),
-	 *     'interactivity-router/index.min.js' => …
+	 *     'interactivity-router/index.min.js' => array('dependencies' => array(…), 'version' => '…'),
+	 *     'block-library/navigation/view.min.js' => …
 	 */
 	$assets = include ABSPATH . WPINC . "/assets/script-modules-packages{$suffix}.php";
 
@@ -159,29 +159,11 @@ function wp_default_script_modules() {
 		/*
 		 * Build the WordPress Script Module ID from the file name.
 		 * Prepend `@wordpress/` and remove extensions and `/index` if present:
-		 *   - interactivity/index.min.js  => @wordpress/interactivity
-		 *   - interactivity/debug.min.js  => @wordpress/interactivity/debug
-		 *   - block-library/query/view.js => @wordpress/block-library/query/view
+		 *   - interactivity/index.min.js         => @wordpress/interactivity
+		 *   - interactivity-router/index.min.js  => @wordpress/interactivity-router
+		 *   - block-library/navigation/view.js   => @wordpress/block-library/navigation/view
 		 */
 		$script_module_id = '@wordpress/' . preg_replace( '~(?:/index)?(?:\.min)?\.js$~D', '', $file_name, 1 );
-
-		switch ( $script_module_id ) {
-			/*
-			 * Interactivity exposes two entrypoints, "/index" and "/debug".
-			 * "/debug" should replace "/index" in development.
-			 */
-			case '@wordpress/interactivity/debug':
-				if ( ! SCRIPT_DEBUG ) {
-					continue 2;
-				}
-				$script_module_id = '@wordpress/interactivity';
-				break;
-			case '@wordpress/interactivity':
-				if ( SCRIPT_DEBUG ) {
-					continue 2;
-				}
-				break;
-		}
 
 		/*
 		 * The Interactivity API is designed with server-side rendering as its primary goal, so all of its script modules
