@@ -3026,6 +3026,12 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
+	$script_tag = sprintf( '<script%s></script>', wp_sanitize_script_attributes( $attributes ) );
+	$processor  = new WP_HTML_Tag_Processor( $script_tag );
+	if ( $processor->next_tag( 'SCRIPT' ) && $processor->set_modifiable_text( $data ) ) {
+		return $processor->get_updated_html() . "\n";
+	}
+
 	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $data );
 }
 
