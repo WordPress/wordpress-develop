@@ -3811,29 +3811,83 @@ class WP_HTML_Tag_Processor {
 
 		switch ( $this->get_tag() ) {
 			case 'SCRIPT':
-				/**
-				 * This is over-protective, but ensures the update doesn't break
-				 * the HTML structure of the SCRIPT element.
+				/*
+				 * SCRIPT tag contents can be dangerous.
 				 *
-				 * More thorough analysis could track the HTML tokenizer states
-				 * and to ensure that the SCRIPT element closes at the expected
-				 * SCRIPT close tag as is done in {@see ::skip_script_data()}.
+				 * The text `</script>` could close the SCRIPT element prematurely.
 				 *
-				 * A SCRIPT element could be closed prematurely by contents
-				 * like `</script>`. A SCRIPT element could be prevented from
-				 * closing by contents like `<!--<script>`.
+				 * The text `<script>` could enter the "script data double escaped state", preventing the
+				 * SCRIPT element from closing as expected, for example:
 				 *
-				 * The following strings are essential for dangerous content,
-				 * although they are insufficient on their own. This trade-off
-				 * prevents dangerous scripts from being sent to the browser.
-				 * It is also unlikely to produce HTML that may confuse more
-				 * basic HTML tooling.
+				 *     <script>
+				 *     // If this "<!--" then "<script>" the closing tag will not be recognized.
+				 *     </script>
+				 *     <h1>This appears inside the preceding SCRIPT element.</h1>
+				 *
+				 * The relevant state transitions happen on text like:
+				 *     1. <
+				 *     2. / (optional)
+				 *     3. script (case-insensitive)
+				 *     4. One of the following characters:
+				 *        - \t
+				 *        - \n
+				 *        - \r (\r and \r\n newlines are normalized to \n in HTML pre-processing)
+				 *        - \f
+				 *        - " " (U+0020 SPACE)
+				 *        - /
+				 *        - >
+				 *
+				 * @see https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-state
 				 */
 				if (
 					false !== stripos( $plaintext_content, '</script' ) ||
 					false !== stripos( $plaintext_content, '<script' )
 				) {
-					return false;
+					/*
+					 * JavaScript can be safely escaped.
+					 */
+					if ( $this->is_javascript_script_tag() ) {
+						$plaintext_content = preg_replace_callback(
+							/*
+							 * This case-insensitive pattern consists of three groups:
+							 *
+							 * 1: "<" or "</"
+							 * 2: "s"
+							 * 3: "cript" + a trailing character that terminates a tag name.
+							 */
+							'~(</?)(s)(cript[\\t\\r\\n\\f />])~i',
+							static function ( $matches ) {
+								$escaped_s_char = 's' === $matches[2]
+									? '\\u0073'
+									: '\\u0053';
+								return "{$matches[1]}{$escaped_s_char}{$matches[3]}";
+							},
+							$plaintext_content
+						);
+					} elseif ( $this->is_json_script_tag() ) {
+						/**
+						 * JSON can be safely escaped.
+						 *
+						 * The following replacement may appear insuficcient, "<" is replaced
+						 * with its JSON escape sequence "\u003C" without considering whether
+						 * the "<" is preceded by an escaping slash. JSON does not support
+						 * arbitrary character escaping (like JavaScript strings) so "\<"
+						 * is invalid JSON and would have to be preceded by
+						 * an escaped backslash: "\\<".
+						 *
+						 * @see https://www.json.org/json-en.html
+						 */
+
+						$plaintext_content = strtr(
+							$plaintext_content,
+							array( '<' => '\\u003C' )
+						);
+					} else {
+						/*
+						 * Other types of script tags cannot be escaped safely.
+						 */
+						return false;
+					}
 				}
 
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
@@ -3886,6 +3940,169 @@ class WP_HTML_Tag_Processor {
 				);
 
 				return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Indicates if the currently matched tag is a JavaScript script tag.
+	 *
+	 * @see https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element
+	 *
+	 * @since {WP_VERSION}
+	 *
+	 * @return bool True if the script tag will be evaluated as JavaScript.
+	 */
+	public function is_javascript_script_tag(): bool {
+		if ( 'SCRIPT' !== $this->get_tag() || $this->get_namespace() !== 'html' ) {
+			return false;
+		}
+
+		/*
+		 * > If any of the following are true:
+		 * >   - el has a type attribute whose value is the empty string;
+		 * >   - el has no type attribute but it has a language attribute and that attribute's
+		 * >     value is the empty string; or
+		 * >   - el has neither a type attribute nor a language attribute,
+		 * > then let the script block's type string for this script element be "text/javascript".
+		 */
+		$type_attr     = $this->get_attribute( 'type' );
+		$language_attr = $this->get_attribute( 'language' );
+
+		if ( true === $type_attr || '' === $type_attr ) {
+			return true;
+		}
+		if (
+			null === $type_attr && (
+				true === $language_attr ||
+				'' === $language_attr ||
+				null === $language_attr
+			)
+		) {
+			return true;
+		}
+
+		/*
+		 * > Otherwise, if el has a type attribute, then let the script block's type string be
+		 * > the value of that attribute with leading and trailing ASCII whitespace stripped.
+		 * > Otherwise, el has a non-empty language attribute; let the script block's type string
+		 * > be the concatenation of "text/" and the value of el's language attribute.
+		 */
+		$type_string = $type_attr ? trim( $type_attr, " \t\f\r\n" ) : "text/{$language_attr}";
+
+		/*
+		 * > If the script block's type string is a JavaScript MIME type essence match, then
+		 * > set el's type to "classic".
+		 *
+		 * > A string is a JavaScript MIME type essence match if it is an ASCII case-insensitive
+		 * > match for one of the JavaScript MIME type essence strings.
+		 *
+		 * > A JavaScript MIME type is any MIME type whose essence is one of the following:
+		 * >
+		 * > - application/ecmascript
+		 * > - application/javascript
+		 * > - application/x-ecmascript
+		 * > - application/x-javascript
+		 * > - text/ecmascript
+		 * > - text/javascript
+		 * > - text/javascript1.0
+		 * > - text/javascript1.1
+		 * > - text/javascript1.2
+		 * > - text/javascript1.3
+		 * > - text/javascript1.4
+		 * > - text/javascript1.5
+		 * > - text/jscript
+		 * > - text/livescript
+		 * > - text/x-ecmascript
+		 * > - text/x-javascript
+		 *
+		 * @see https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match
+		 * @see https://mimesniff.spec.whatwg.org/#javascript-mime-type
+		 */
+		switch ( strtolower( $type_string ) ) {
+			case 'application/ecmascript':
+			case 'application/javascript':
+			case 'application/x-ecmascript':
+			case 'application/x-javascript':
+			case 'text/ecmascript':
+			case 'text/javascript':
+			case 'text/javascript1.0':
+			case 'text/javascript1.1':
+			case 'text/javascript1.2':
+			case 'text/javascript1.3':
+			case 'text/javascript1.4':
+			case 'text/javascript1.5':
+			case 'text/jscript':
+			case 'text/livescript':
+			case 'text/x-ecmascript':
+			case 'text/x-javascript':
+				return true;
+
+			/*
+			 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for
+			 * > the string "module", then set el's type to "module".
+			 *
+			 * A module is evaluated as JavaScript.
+			 */
+			case 'module':
+				return true;
+		}
+
+		/*
+		 * > - Otherwise, if the script block's type string is an ASCII case-insensitive match for
+		 * >   the string "importmap", then set el's type to "importmap".
+		 *
+		 * An importmap is JSON and not evaluated as JavaScript. This case is not handled here.
+		 */
+
+		/*
+		 * > Otherwise, return. (No script is executed, and el's type is left as null.)
+		 */
+		return false;
+	}
+
+	/**
+	 * Indicates if the currently matched tag is a JSON script tag.
+	 *
+	 * @since {WP_VERSION}
+	 *
+	 * @return bool True if the script tag should be treated as JSON.
+	 */
+	public function is_json_script_tag(): bool {
+		if ( 'SCRIPT' !== $this->get_tag() || $this->get_namespace() !== 'html' ) {
+			return false;
+		}
+
+		$type_attr = $this->get_attribute( 'type' );
+
+		if ( empty( $type_attr ) || true === $type_attr ) {
+			return false;
+		}
+
+		$type_string = strtolower( trim( $type_attr, " \t\f\r\n" ) );
+
+		/*
+		 * > …
+		 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for the string "importmap", then set el's type to "importmap".
+		 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for the string "speculationrules", then set el's type to "speculationrules".
+		 * @see https://html.spec.whatwg.org/#script-processing-model
+		 *
+		 * > A JSON MIME type is any MIME type whose subtype ends in "+json" or whose essence
+		 * > is "application/json" or "text/json".
+		 *
+		 * The JSON subtype ending in "+json" is not currently handled due to lack
+		 * of a MIME type parser.
+		 *
+		 * @see https://mimesniff.spec.whatwg.org/#json-mime-type
+		 */
+		if (
+			'application/json' === $type_string
+			|| 'importmap' === $type_string
+			|| 'speculationrules' === $type_string
+			|| 'text/json' === $type_string
+		) {
+			return true;
 		}
 
 		return false;

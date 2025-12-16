@@ -448,13 +448,14 @@ HTML
 	 * the structure of the containing element, such as in a script or comment.
 	 *
 	 * @ticket 61617
+	 * @ticket 62797
 	 *
 	 * @dataProvider data_unallowed_modifiable_text_updates
 	 *
 	 * @param string $html_with_nonempty_modifiable_text Will be used to find the test element.
 	 * @param string $invalid_update                     Update containing possibly-compromising text.
 	 */
-	public function test_rejects_updates_with_unallowed_substrings( string $html_with_nonempty_modifiable_text, string $invalid_update ) {
+	public function test_rejects_dangerous_updates( string $html_with_nonempty_modifiable_text, string $invalid_update ) {
 		$processor = new WP_HTML_Tag_Processor( $html_with_nonempty_modifiable_text );
 
 		while ( '' === $processor->get_modifiable_text() && $processor->next_token() ) {
@@ -486,11 +487,150 @@ HTML
 	 */
 	public static function data_unallowed_modifiable_text_updates() {
 		return array(
-			'Comment with -->'                 => array( '<!-- this is a comment -->', 'Comments end in -->' ),
-			'Comment with --!>'                => array( '<!-- this is a comment -->', 'Invalid but legitimate comments end in --!>' ),
-			'SCRIPT with </script>'            => array( '<script>Replace me</script>', 'Just a </script>' ),
-			'SCRIPT with </script attributes>' => array( '<script>Replace me</script>', 'before</script id=sneak>after' ),
-			'SCRIPT with "<script " opener'    => array( '<script>Replace me</script>', '<!--<script ' ),
+			'Comment with -->'                        => array( '<!-- this is a comment -->', 'Comments end in -->' ),
+			'Comment with --!>'                       => array( '<!-- this is a comment -->', 'Invalid but legitimate comments end in --!>' ),
+			'Non-JS SCRIPT with <script>'             => array( '<script type="text/html">Replace me</script>', '<!-- Just a <script>' ),
+			'Non-JS SCRIPT with </script>'            => array( '<script type="text/html">Replace me</script>', 'Just a </script>' ),
+			'Non-JS SCRIPT with <script attributes>'  => array( '<script language="text">Replace me</script>', '<!-- <script sneaky>after' ),
+			'Non-JS SCRIPT with </script attributes>' => array( '<script language="text">Replace me</script>', 'before</script sneaky>after' ),
+		);
+	}
+
+	/**
+	 * Ensures that JavaScript script tag contents are safely updated.
+	 *
+	 * @ticket 62797
+	 *
+	 * @dataProvider data_script_tag_text_updates
+	 *
+	 * @param string $html     HTML containing a SCRIPT tag to be modified.
+	 * @param string $update   Update containing possibly-compromising text.
+	 * @param string $expected Expected result.
+	 */
+	public function test_safely_updates_script_tag_contents( string $html, string $update, string $expected ) {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ) );
+		$this->assertTrue( $processor->set_modifiable_text( $update ) );
+		$this->assertSame( $expected, $processor->get_updated_html() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_script_tag_text_updates(): array {
+		return array(
+			'Simple update'                         => array( '<script></script>', '{}', '<script>{}</script>' ),
+			'Needs no replacement'                  => array( '<script></script>', '<!--<scriptish>', '<script><!--<scriptish></script>' ),
+			'var script;1<script>0'                 => array( '<script></script>', 'var script;1<script>0', '<script>var script;1<\u0073cript>0</script>' ),
+			'1</script>/'                           => array( '<script></script>', '1</script>/', '<script>1</\u0073cript>/</script>' ),
+			'var SCRIPT;1<SCRIPT>0'                 => array( '<script></script>', 'var SCRIPT;1<SCRIPT>0', '<script>var SCRIPT;1<\u0053CRIPT>0</script>' ),
+			'1</SCRIPT>/'                           => array( '<script></script>', '1</SCRIPT>/', '<script>1</\u0053CRIPT>/</script>' ),
+			'"</script>"'                           => array( '<script></script>', '"</script>"', '<script>"</\u0073cript>"</script>' ),
+			'"</ScRiPt>"'                           => array( '<script></script>', '"</ScRiPt>"', '<script>"</\u0053cRiPt>"</script>' ),
+			'Tricky script open tag with \r'        => array( '<script></script>', "<!-- <script\r>", "<script><!-- <\\u0073cript\r></script>" ),
+			'Tricky script open tag with \r\n'      => array( '<script></script>', "<!-- <script\r\n>", "<script><!-- <\\u0073cript\r\n></script>" ),
+			'Tricky script close tag with \r'       => array( '<script></script>', "// </script\r>", "<script>// </\\u0073cript\r></script>" ),
+			'Tricky script close tag with \r\n'     => array( '<script></script>', "// </script\r\n>", "<script>// </\\u0073cript\r\n></script>" ),
+			'Module tag'                            => array( '<script type="module"></script>', '"<script>"', '<script type="module">"<\u0073cript>"</script>' ),
+			'Tag with type'                         => array( '<script type="text/javascript"></script>', '"<script>"', '<script type="text/javascript">"<\u0073cript>"</script>' ),
+			'Tag with language'                     => array( '<script language="javascript"></script>', '"<script>"', '<script language="javascript">"<\u0073cript>"</script>' ),
+			'Non-JS script, save HTML-like content' => array( '<script type="text/html"></script>', '<h1>This & that</h1>', '<script type="text/html"><h1>This & that</h1></script>' ),
+		);
+	}
+
+	/**
+	 * @ticket 64419
+	 */
+	public function test_complex_javascript_and_json_auto_escaping() {
+		$processor = new WP_HTML_Tag_Processor( "<script></script>\n<script></script>\n<h1>OK</h1>" );
+		$processor->next_tag( 'SCRIPT' );
+		$processor->set_attribute( 'type', 'importmap' );
+		$importmap_data = array(
+			'imports' => array(
+				'</SCRIPT>\\<!--\\<script>' => './script',
+			),
+		);
+
+		$importmap = json_encode(
+			$importmap_data,
+			JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_LINE_TERMINATORS
+		);
+
+		$processor->set_modifiable_text( $importmap );
+		$decoded_importmap = json_decode( $processor->get_modifiable_text(), true );
+		$this->assertSame( JSON_ERROR_NONE, json_last_error(), 'Precondition failed, JSON did not decode as expected: ' . json_last_error_msg() );
+		$this->assertEquals(
+			$importmap_data,
+			$decoded_importmap,
+			'Precondition failed: importmap JSON did not decode/encode as expected: ' . json_last_error_msg()
+		);
+
+		$processor->next_tag( 'SCRIPT' );
+		$processor->set_attribute( 'type', 'module' );
+		$javascript = <<<'JS'
+import '</SCRIPT>\\<!--\\<script>';
+JS;
+		$processor->set_modifiable_text( $javascript );
+
+		$expected     = <<<'HTML'
+<script type="importmap">{"imports":{"\u003C/SCRIPT>\\\u003C!--\\\u003Cscript>":"./script"}}</script>
+<script type="module">import '</\u0053CRIPT>\\<!--\\<\u0073cript>';</script>
+<h1>OK</h1>
+HTML;
+		$updated_html = $processor->get_updated_html();
+		$this->assertEqualHTML( $expected, $updated_html );
+
+		// Re-process and verify the JSON is correct.
+		$processor = new WP_HTML_Tag_Processor( $updated_html );
+		$processor->next_tag( 'SCRIPT' );
+		$this->assertSame( 'importmap', $processor->get_attribute( 'type' ) );
+		$importmap_json    = $processor->get_modifiable_text();
+		$decoded_importmap = json_decode( $importmap_json, true );
+		$this->assertSame( 'No error', json_last_error_msg() );
+		$this->assertEquals(
+			$importmap_data,
+			$decoded_importmap,
+			'Precondition failed: re-processed importmap JSON did not decode/encode as expected: ' . json_last_error_msg()
+		);
+	}
+
+	/**
+	 * @ticket 64419
+	 */
+	public function test_json_auto_escaping() {
+		// This is not a typical JSON encoding or escaping, but it is valid.
+		$json_text             = '"Escaped BS: \\\\; Escaped BS+LT: \\\\<; Unescaped LT: <; Script closer: </script>"';
+		$expected_decoded_json = 'Escaped BS: \\; Escaped BS+LT: \\<; Unescaped LT: <; Script closer: </script>';
+		$decoded_json          = json_decode( $json_text, true );
+		$this->assertSame( JSON_ERROR_NONE, json_last_error(), 'Precondition failed, JSON did not decode as expected: ' . json_last_error_msg() );
+		$this->assertSame(
+			$expected_decoded_json,
+			$decoded_json,
+			'Precondition failed: test JSON text did not decode as expected.'
+		);
+
+		$processor = new WP_HTML_Tag_Processor( '<script type="application/json"></script>' );
+		$processor->next_tag( 'SCRIPT' );
+
+		$processor->set_modifiable_text( $json_text );
+
+		$expected = <<<'HTML'
+<script type="application/json">"Escaped BS: \\; Escaped BS+LT: \\\u003C; Unescaped LT: \u003C; Script closer: \u003C/script>"</script>
+HTML;
+
+		$updated_html = $processor->get_updated_html();
+		$this->assertEqualHTML( $expected, $updated_html );
+
+		// Reprocess to ensure JSON value survives HTML round trip:
+		$processor = new WP_HTML_Tag_Processor( $expected );
+		$processor->next_tag( 'SCRIPT' );
+		$decoded_json_from_html = json_decode( $processor->get_modifiable_text(), true );
+		$this->assertSame( JSON_ERROR_NONE, json_last_error(), 'Precondition failed, JSON did not decode as expected: ' . json_last_error_msg() );
+		$this->assertEquals(
+			$expected_decoded_json,
+			$decoded_json_from_html
 		);
 	}
 }
