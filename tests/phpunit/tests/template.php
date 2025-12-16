@@ -1485,14 +1485,31 @@ class Tests_Template extends WP_UnitTestCase {
 			'early-css',
 			'early-inline-css',
 			'wp-emoji-styles-inline-css',
-			'wp-block-library-css',
-			'wp-block-separator-css',
-			'classic-theme-styles-css',
-			'third-party-test-block-css',
+
+			// Core block styles enqueued by wp_common_block_scripts_and_styles() at which runs at wp_enqueue_scripts priority 10, added first.
+			'wp-block-library-css', // Inline printed.
+			'wp-block-separator-css', // Hoisted.
+
+			// The wp_common_block_scripts_and_styles() function also fires enqueue_block_assets, at which wp_enqueue_classic_theme_styles() runs.
+			'classic-theme-styles-css', // Printed at enqueue_block_assets.
+
+			// Other styles enqueued at enqueue_block_assets, which is fired by wp_common_block_scripts_and_styles().
+			'custom-block-styles-css', // Printed at enqueue_block_assets.
+
+			// Third-party block styles.
+			'third-party-test-block-css', // Hoisted.
+
+			// Hoisted. Enqueued by wp_enqueue_global_styles() which runs at wp_enqueue_scripts priority 10 and wp_footer priority 1.
 			'global-styles-inline-css',
+
+			// Styles enqueued at wp_enqueue_scripts (priority 10).
 			'normal-css',
 			'normal-inline-css',
+
+			// Styles printed at wp_head priority 10.
 			'wp-custom-css',
+
+			// Hoisted. Styles printed in the footer.
 			'late-css',
 			'late-inline-css',
 			'core-block-supports-inline-css',
@@ -1519,6 +1536,7 @@ class Tests_Template extends WP_UnitTestCase {
 						'wp-block-library-inline-css',
 						'wp-block-separator-inline-css',
 						'classic-theme-styles-inline-css',
+						'custom-block-styles-css',
 						'third-party-test-block-css',
 						'global-styles-inline-css',
 						'normal-css',
@@ -1565,6 +1583,7 @@ class Tests_Template extends WP_UnitTestCase {
 						'wp-emoji-styles-inline-css',
 						'wp-block-library-css',
 						'classic-theme-styles-css',
+						'custom-block-styles-css', // TODO: Test is failing here.
 						'third-party-test-block-css',
 						'global-styles-inline-css',
 						'normal-css',
@@ -1629,6 +1648,7 @@ class Tests_Template extends WP_UnitTestCase {
 						'wp-emoji-styles-inline-css',
 						'classic-theme-styles-css',
 						'third-party-test-block-css',
+						'custom-block-styles-css',
 						'global-styles-inline-css',
 						'normal-css',
 						'normal-inline-css',
@@ -1662,6 +1682,7 @@ class Tests_Template extends WP_UnitTestCase {
 						'wp-block-library-inline-css', // This contains the "OVERRIDDEN" text.
 						'wp-block-separator-css',
 						'classic-theme-styles-css',
+						'custom-block-styles-css',
 						'third-party-test-block-css',
 						'global-styles-inline-css',
 						'normal-css',
@@ -1712,6 +1733,17 @@ class Tests_Template extends WP_UnitTestCase {
 			array(
 				'style_handles' => array( 'third-party-test-block' ),
 			)
+		);
+
+		/*
+		 * This is very old guidance about how to add enqueue styles for blocks. Certain themes still enqueue block
+		 * styles using this action.
+		 */
+		add_action(
+			'enqueue_block_assets',
+			static function () {
+				wp_enqueue_style( 'custom-block-styles', 'https://example.com/custom-block-styles.css', array(), null );
+			}
 		);
 
 		if ( $set_up ) {
