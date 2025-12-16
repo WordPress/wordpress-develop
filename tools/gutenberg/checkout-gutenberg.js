@@ -171,60 +171,19 @@ async function main() {
 		console.log( '\n✅ Gutenberg directory already exists' );
 	}
 
-	// Check current ref
-	console.log( '\n🔍 Checking current ref...' );
-	let currentRef;
+	// Fetch and checkout target ref
+	console.log( `\n📡 Fetching and checking out: ${ ref }` );
 	try {
-		currentRef = await execOutput( 'git', [ 'rev-parse', 'HEAD' ], { cwd: gutenbergDir } );
-		console.log( `   Current: ${ currentRef }` );
-	} catch ( error ) {
-		console.error( '❌ Failed to get current ref:', error.message );
-		process.exit( 1 );
-	}
-
-	// Fetch latest changes (shallow)
-	console.log( '\n📡 Fetching latest changes...' );
-	try {
+		// Fetch the specific ref (works for branches, tags, and commit hashes)
 		await exec( 'git', [ 'fetch', '--depth', '1', 'origin', ref ], { cwd: gutenbergDir } );
-		console.log( '✅ Fetched successfully' );
+
+		// Checkout what was just fetched
+		await exec( 'git', [ 'checkout', 'FETCH_HEAD' ], { cwd: gutenbergDir } );
+
+		console.log( '✅ Checked out successfully' );
 	} catch ( error ) {
-		console.error( '❌ Fetch failed:', error.message );
+		console.error( '❌ Fetch/checkout failed:', error.message );
 		process.exit( 1 );
-	}
-
-	// Resolve target ref to commit hash
-	console.log( `\n🎯 Resolving target ref: ${ ref }` );
-	let targetRef;
-	try {
-		targetRef = await execOutput( 'git', [ 'rev-parse', `origin/${ ref }` ], {
-			cwd: gutenbergDir,
-		} );
-		console.log( `   Target: ${ targetRef }` );
-	} catch ( error ) {
-		// If it's not a branch, try as a tag or commit
-		try {
-			targetRef = await execOutput( 'git', [ 'rev-parse', ref ], {
-				cwd: gutenbergDir,
-			} );
-			console.log( `   Target: ${ targetRef }` );
-		} catch ( innerError ) {
-			console.error( '❌ Failed to resolve target ref:', error.message );
-			process.exit( 1 );
-		}
-	}
-
-	// Check out target ref if different from current
-	if ( currentRef !== targetRef ) {
-		console.log( '\n📦 Checking out target ref...' );
-		try {
-			await exec( 'git', [ 'checkout', targetRef ], { cwd: gutenbergDir } );
-			console.log( '✅ Checked out successfully' );
-		} catch ( error ) {
-			console.error( '❌ Checkout failed:', error.message );
-			process.exit( 1 );
-		}
-	} else {
-		console.log( '\n✅ Already at target ref' );
 	}
 
 	// Install dependencies
