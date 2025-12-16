@@ -2779,11 +2779,11 @@ function build_query_vars_from_query_block( $block, $page ) {
 
 				// Separate exclude from include terms.
 				$exclude_terms = isset( $tax_query_input['exclude'] ) && is_array( $tax_query_input['exclude'] )
-				? $tax_query_input['exclude']
-				: array();
+					? $tax_query_input['exclude']
+					: array();
 				$include_terms = isset( $tax_query_input['include'] ) && is_array( $tax_query_input['include'] )
-				? $tax_query_input['include']
-				: array();
+					? $tax_query_input['include']
+					: array();
 
 				$tax_query = array_merge(
 					$build_conditions( $include_terms ),
