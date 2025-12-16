@@ -1549,6 +1549,39 @@ class Tests_Template extends WP_UnitTestCase {
 					'BODY' => array(),
 				),
 			),
+			'classic_theme_styles_omitted'                => array(
+				'set_up'            => static function () {
+					// Note that wp_enqueue_scripts is used instead of enqueue_block_assets because it runs again at the former action.
+					add_action(
+						'wp_enqueue_scripts',
+						static function () {
+							wp_dequeue_style( 'classic-theme-styles' );
+						},
+						100
+					);
+				},
+				'inline_size_limit' => PHP_INT_MAX,
+				'expected_styles'   => array(
+					'HEAD' => array(
+						'wp-img-auto-sizes-contain-inline-css',
+						'early-css',
+						'early-inline-css',
+						'wp-emoji-styles-inline-css',
+						'wp-block-library-inline-css',
+						'wp-block-separator-inline-css',
+						'third-party-test-block-css',
+						'custom-block-styles-css',
+						'global-styles-inline-css',
+						'normal-css',
+						'normal-inline-css',
+						'wp-custom-css',
+						'late-css',
+						'late-inline-css',
+						'core-block-supports-inline-css',
+					),
+					'BODY' => array(),
+				),
+			),
 			'standard_classic_theme_config_extra_block_library_inline_style' => array(
 				'set_up'            => static function () {
 					add_action(

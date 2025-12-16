@@ -3907,13 +3907,14 @@ function wp_hoist_late_printed_styles() {
 				$inserted_after            = $printed_core_block_styles;
 				$printed_core_block_styles = '';
 
-				if ( ! $processor->has_bookmark( 'last_style_at_enqueued_block_assets' ) ) {
-					// TODO: There is no coverage for this.
-					$inserted_after .= $printed_other_block_styles;
-					$inserted_after .= $printed_global_styles;
-
+				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
+					$inserted_after            .= "\n" . $printed_other_block_styles;
 					$printed_other_block_styles = '';
-					$printed_global_styles      = '';
+
+					if ( ! $processor->has_bookmark( 'last_style_at_enqueued_block_assets' ) ) {
+						$inserted_after       .= "\n" . $printed_global_styles;
+						$printed_global_styles = '';
+					}
 				}
 
 				if ( '' !== $inserted_after ) {
@@ -3923,8 +3924,14 @@ function wp_hoist_late_printed_styles() {
 
 			if ( '' !== $printed_global_styles && $processor->has_bookmark( 'last_style_at_enqueued_block_assets' ) ) {
 				$processor->seek( 'last_style_at_enqueued_block_assets' );
+
 				$processor->insert_after( "\n" . $printed_global_styles );
 				$printed_global_styles = '';
+
+				if ( ! $processor->has_bookmark( 'classic_theme_styles' ) ) {
+					$processor->insert_after( "\n" . $printed_other_block_styles );
+					$printed_other_block_styles = '';
+				}
 			}
 
 			if ( '' !== $printed_other_block_styles && $processor->has_bookmark( 'classic_theme_styles' ) ) {
