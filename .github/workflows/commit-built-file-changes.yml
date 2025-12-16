@@ -37,7 +37,9 @@ jobs:
   update-built-files:
     name: Check and update built files
     runs-on: ubuntu-24.04
-    if: ${{ github.repository == 'wordpress/wordpress-develop' }}
+    # Temporarily disabled while working on Gutenberg integration
+    if: false
+    # if: ${{ github.repository == 'wordpress/wordpress-develop' }}
     timeout-minutes: 10
     permissions:
       contents: write
