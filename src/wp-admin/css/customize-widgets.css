@@ -509,7 +509,7 @@ body.adding-widget #customize-preview {
 /* dashicons-location-alt */
 #available-widgets [class*="locat"] .widget-title:before,
 #available-widgets [class*="map"] .widget-title:before {
-	content:"\f231;
+	content:"\f231";
 	content:"\f231" / '';
 }
 
