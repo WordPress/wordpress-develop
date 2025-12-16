@@ -3679,18 +3679,18 @@ function wp_hoist_late_printed_styles() {
 	}
 
 	// Capture the styles enqueued at the enqueue_block_assets action, so that non-core block styles and global styles can be inserted after at hoisting.
-	$style_handles_at_enqueued_block_assets = array();
+	$style_handles_at_enqueue_block_assets = array();
 	add_action(
 		'enqueue_block_assets',
-		static function () use ( &$style_handles_at_enqueued_block_assets ) {
-			$style_handles_at_enqueued_block_assets = wp_styles()->queue;
+		static function () use ( &$style_handles_at_enqueue_block_assets ) {
+			$style_handles_at_enqueue_block_assets = wp_styles()->queue;
 		},
 		PHP_INT_MIN
 	);
 	add_action(
 		'enqueue_block_assets',
-		static function () use ( &$style_handles_at_enqueued_block_assets ) {
-			$style_handles_at_enqueued_block_assets = array_values( array_diff( wp_styles()->queue, $style_handles_at_enqueued_block_assets ) );
+		static function () use ( &$style_handles_at_enqueue_block_assets ) {
+			$style_handles_at_enqueue_block_assets = array_values( array_diff( wp_styles()->queue, $style_handles_at_enqueue_block_assets ) );
 		},
 		PHP_INT_MAX
 	);
@@ -3799,7 +3799,7 @@ function wp_hoist_late_printed_styles() {
 	// Replace placeholder with the captured late styles.
 	add_filter(
 		'wp_template_enhancement_output_buffer',
-		static function ( $buffer ) use ( $placeholder, &$style_handles_at_enqueued_block_assets, &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
+		static function ( $buffer ) use ( $placeholder, &$style_handles_at_enqueue_block_assets, &$printed_core_block_styles, &$printed_other_block_styles, &$printed_global_styles, &$printed_late_styles ) {
 
 			// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans.
 			$processor = new class( $buffer ) extends WP_HTML_Tag_Processor {
@@ -3869,11 +3869,11 @@ function wp_hoist_late_printed_styles() {
 						$processor->set_bookmark( 'classic_theme_styles' );
 					}
 
-					if ( $handle && in_array( $handle, $style_handles_at_enqueued_block_assets, true ) ) {
-						if ( ! $processor->has_bookmark( 'first_style_at_enqueued_block_assets' ) ) {
-							$processor->set_bookmark( 'first_style_at_enqueued_block_assets' );
+					if ( $handle && in_array( $handle, $style_handles_at_enqueue_block_assets, true ) ) {
+						if ( ! $processor->has_bookmark( 'first_style_at_enqueue_block_assets' ) ) {
+							$processor->set_bookmark( 'first_style_at_enqueue_block_assets' );
 						}
-						$processor->set_bookmark( 'last_style_at_enqueued_block_assets' );
+						$processor->set_bookmark( 'last_style_at_enqueue_block_assets' );
 					}
 				}
 			}
@@ -3911,7 +3911,7 @@ function wp_hoist_late_printed_styles() {
 					$inserted_after            .= "\n" . $printed_other_block_styles;
 					$printed_other_block_styles = '';
 
-					if ( ! $processor->has_bookmark( 'last_style_at_enqueued_block_assets' ) ) {
+					if ( ! $processor->has_bookmark( 'last_style_at_enqueue_block_assets' ) ) {
 						$inserted_after       .= "\n" . $printed_global_styles;
 						$printed_global_styles = '';
 					}
@@ -3922,8 +3922,8 @@ function wp_hoist_late_printed_styles() {
 				}
 			}
 
-			if ( '' !== $printed_global_styles && $processor->has_bookmark( 'last_style_at_enqueued_block_assets' ) ) {
-				$processor->seek( 'last_style_at_enqueued_block_assets' );
+			if ( '' !== $printed_global_styles && $processor->has_bookmark( 'last_style_at_enqueue_block_assets' ) ) {
+				$processor->seek( 'last_style_at_enqueue_block_assets' );
 
 				$processor->insert_after( "\n" . $printed_global_styles );
 				$printed_global_styles = '';

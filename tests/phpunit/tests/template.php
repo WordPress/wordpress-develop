@@ -1582,6 +1582,38 @@ class Tests_Template extends WP_UnitTestCase {
 					'BODY' => array(),
 				),
 			),
+			'no_styles_at_enqueued_block_assets'          => array(
+				'set_up'            => static function () {
+					add_action(
+						'wp_enqueue_scripts',
+						static function () {
+							wp_dequeue_style( 'classic-theme-styles' );
+							wp_dequeue_style( 'custom-block-styles' );
+						},
+						100
+					);
+				},
+				'inline_size_limit' => PHP_INT_MAX,
+				'expected_styles'   => array(
+					'HEAD' => array(
+						'wp-img-auto-sizes-contain-inline-css',
+						'early-css',
+						'early-inline-css',
+						'wp-emoji-styles-inline-css',
+						'wp-block-library-inline-css',
+						'wp-block-separator-inline-css',
+						'third-party-test-block-css',
+						'global-styles-inline-css',
+						'normal-css',
+						'normal-inline-css',
+						'wp-custom-css',
+						'late-css',
+						'late-inline-css',
+						'core-block-supports-inline-css',
+					),
+					'BODY' => array(),
+				),
+			),
 			'standard_classic_theme_config_extra_block_library_inline_style' => array(
 				'set_up'            => static function () {
 					add_action(
