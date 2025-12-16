@@ -44,6 +44,7 @@ function exec( command, args, options = {} ) {
 		const child = spawn( command, args, {
 			cwd: options.cwd || rootDir,
 			stdio: [ 'ignore', 'pipe', 'pipe' ],
+			shell: process.platform === 'win32', // Use shell on Windows to find .cmd files
 			...options,
 		} );
 
@@ -93,6 +94,7 @@ function execOutput( command, args, options = {} ) {
 	return new Promise( ( resolve, reject ) => {
 		const child = spawn( command, args, {
 			cwd: options.cwd || rootDir,
+			shell: process.platform === 'win32', // Use shell on Windows to find .cmd files
 			...options,
 		} );
 
