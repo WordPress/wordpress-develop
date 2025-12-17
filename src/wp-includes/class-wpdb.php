@@ -3227,20 +3227,14 @@ class wpdb {
 		}
 
 		$charsets = array();
-		$columns  = array();
+		$columns  = $this->get_cols_meta( $table );
 
-		$table_parts = explode( '.', $table );
-		$table       = '`' . implode( '`.`', $table_parts ) . '`';
-		$results     = $this->get_results( "SHOW FULL COLUMNS FROM $table" );
-		if ( ! $results ) {
-			return new WP_Error( 'wpdb_get_table_charset_failure', __( 'Could not retrieve table charset.' ) );
+		if ( is_wp_error( $columns ) ) {
+			return $columns;
 		}
-
-		foreach ( $results as $column ) {
-			$columns[ strtolower( $column->Field ) ] = $column;
+		if ( empty( $columns ) ) {
+			$columns = array();
 		}
-
-		$this->col_meta[ $tablekey ] = $columns;
 
 		foreach ( $columns as $column ) {
 			if ( ! empty( $column->Collation ) ) {
@@ -3292,6 +3286,109 @@ class wpdb {
 	}
 
 	/**
+	 * Retrieves the column metadata for the given column.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $table Table name.
+	 * @return object|false|WP_Error Column meta set as an object. False if the column was
+	 *                               not found. WP_Error object if there was an error.
+	 */
+	public function get_cols_meta( $table ) {
+		$tablekey = strtolower( $table );
+
+		/**
+		 * Filters the columns meta value before the DB is checked.
+		 *
+		 * Passing a non-null value to the filter will short-circuit
+		 * checking the DB for the meta, returning that value instead.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param object[]|null|false|WP_Error $meta  The meta to use. Default null.
+		 * @param string                       $table The name of the table being checked.
+		 */
+		$col_meta = apply_filters( 'pre_get_cols_meta', null, $table );
+		if ( null !== $col_meta ) {
+			return $col_meta;
+		}
+
+		// Skip this entirely if this isn't a MySQL database.
+		if ( empty( $this->is_mysql ) ) {
+			return false;
+		}
+
+		// If no column information, fetch it from the database.
+		if ( empty( $this->col_meta[ $tablekey ] ) ) {
+			$columns = array();
+
+			$table_parts = explode( '.', $table );
+			$table       = '`' . implode( '`.`', $table_parts ) . '`';
+			$results     = $this->get_results( "SHOW FULL COLUMNS FROM $table" );
+			if ( ! $results ) {
+				return new WP_Error( 'wpdb_get_cols_meta_failure', __( 'Could not retrieve column metadata.' ) );
+			}
+
+			foreach ( $results as $column ) {
+				$columns[ strtolower( $column->Field ) ] = $column;
+			}
+
+			$this->col_meta[ $tablekey ] = $columns;
+		}
+
+		// If this table data doesn't exist, return false.
+		if ( empty( $this->col_meta[ $tablekey ] ) ) {
+			return false;
+		}
+
+		return $this->col_meta[ $tablekey ];
+	}
+
+	/**
+	 * Retrieves the column metadata for the given column.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $table  Table name.
+	 * @param string $column Column name.
+	 * @return object|false|WP_Error Column character set as a string. False if the column has
+	 *                               no character set. WP_Error object if there was an error.
+	 */
+	public function get_col_meta( $table, $column ) {
+		$columnkey = strtolower( $column );
+
+		/**
+		 * Filters the column meta value before the DB is checked.
+		 *
+		 * Passing a non-null value to the filter will short-circuit
+		 * checking the DB for the meta, returning that value instead.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param object|null|false|WP_Error $meta   The meta to use. Default null.
+		 * @param string                     $table  The name of the table being checked.
+		 * @param string                     $column The name of the column being checked.
+		 */
+		$col_meta = apply_filters( 'pre_get_col_meta', null, $table, $column );
+		if ( null !== $col_meta ) {
+			return $col_meta;
+		}
+
+		$cols_meta = $this->get_cols_meta( $table );
+
+		if ( is_wp_error( $cols_meta ) ) {
+			return $cols_meta;
+		}
+
+		// If this column doesn't exist, return false.
+		if ( empty( $cols_meta[ $columnkey ] ) ) {
+			return false;
+		}
+
+		return $cols_meta[ $columnkey ];
+	}
+
+	/**
 	 * Retrieves the character set for the given column.
 	 *
 	 * @since 4.2.0
@@ -3302,9 +3399,6 @@ class wpdb {
 	 *                               no character set. WP_Error object if there was an error.
 	 */
 	public function get_col_charset( $table, $column ) {
-		$tablekey  = strtolower( $table );
-		$columnkey = strtolower( $column );
-
 		/**
 		 * Filters the column charset value before the DB is checked.
 		 *
@@ -3322,35 +3416,23 @@ class wpdb {
 			return $charset;
 		}
 
-		// Skip this entirely if this isn't a MySQL database.
-		if ( empty( $this->is_mysql ) ) {
-			return false;
-		}
+		$col_meta = $this->get_col_meta( $table, $column );
 
-		if ( empty( $this->table_charset[ $tablekey ] ) ) {
-			// This primes column information for us.
-			$table_charset = $this->get_table_charset( $table );
-			if ( is_wp_error( $table_charset ) ) {
-				return $table_charset;
-			}
-		}
-
-		// If still no column information, return the table charset.
-		if ( empty( $this->col_meta[ $tablekey ] ) ) {
-			return $this->table_charset[ $tablekey ];
+		if ( is_wp_error( $col_meta ) ) {
+			return $col_meta;
 		}
 
 		// If this column doesn't exist, return the table charset.
-		if ( empty( $this->col_meta[ $tablekey ][ $columnkey ] ) ) {
-			return $this->table_charset[ $tablekey ];
+		if ( empty( $col_meta ) ) {
+			return $this->get_table_charset( $table );
 		}
 
 		// Return false when it's not a string column.
-		if ( empty( $this->col_meta[ $tablekey ][ $columnkey ]->Collation ) ) {
+		if ( empty( $col_meta->Collation ) ) {
 			return false;
 		}
 
-		list( $charset ) = explode( '_', $this->col_meta[ $tablekey ][ $columnkey ]->Collation );
+		list( $charset ) = explode( '_', $col_meta->Collation );
 		return $charset;
 	}
 
@@ -3372,27 +3454,17 @@ class wpdb {
 	 * }
 	 */
 	public function get_col_length( $table, $column ) {
-		$tablekey  = strtolower( $table );
-		$columnkey = strtolower( $column );
+		$col_meta = $this->get_col_meta( $table, $column );
 
-		// Skip this entirely if this isn't a MySQL database.
-		if ( empty( $this->is_mysql ) ) {
+		if ( is_wp_error( $col_meta ) ) {
+			return $col_meta;
+		}
+
+		if ( empty( $col_meta ) ) {
 			return false;
 		}
 
-		if ( empty( $this->col_meta[ $tablekey ] ) ) {
-			// This primes column information for us.
-			$table_charset = $this->get_table_charset( $table );
-			if ( is_wp_error( $table_charset ) ) {
-				return $table_charset;
-			}
-		}
-
-		if ( empty( $this->col_meta[ $tablekey ][ $columnkey ] ) ) {
-			return false;
-		}
-
-		$typeinfo = explode( '(', $this->col_meta[ $tablekey ][ $columnkey ]->Type );
+		$typeinfo = explode( '(', $col_meta->Type );
 
 		$type = strtolower( $typeinfo[0] );
 		if ( ! empty( $typeinfo[1] ) ) {
@@ -3510,8 +3582,9 @@ class wpdb {
 			return true;
 		}
 
-		$table = strtolower( $table );
-		if ( empty( $this->col_meta[ $table ] ) ) {
+		$cols_meta = $this->get_cols_meta( $table );
+
+		if ( is_wp_error( $cols_meta ) || empty( $cols_meta ) ) {
 			return false;
 		}
 
@@ -3525,7 +3598,7 @@ class wpdb {
 			'utf8mb4_general_ci',
 		);
 
-		foreach ( $this->col_meta[ $table ] as $col ) {
+		foreach ( $cols_meta as $col ) {
 			if ( empty( $col->Collation ) ) {
 				continue;
 			}
