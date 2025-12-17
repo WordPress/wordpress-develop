@@ -240,7 +240,9 @@ function generateScriptModulesPackages() {
 				processDirectory( fullPath, baseDir );
 			} else if ( entry.name.endsWith( '.min.asset.php' ) ) {
 				const relativePath = path.relative( baseDir, fullPath );
-				const jsPathMin = relativePath.replace( /\.asset\.php$/, '.js' );
+				// Normalize path separators to forward slashes for cross-platform consistency
+				const normalizedPath = relativePath.split( path.sep ).join( '/' );
+				const jsPathMin = normalizedPath.replace( /\.asset\.php$/, '.js' );
 				const jsPathRegular = jsPathMin.replace( /\.min\.js$/, '.js' );
 
 				try {
