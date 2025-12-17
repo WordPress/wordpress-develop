@@ -6,7 +6,7 @@
  * @group restapi
  * @covers ::wp_is_rest_endpoint
  */
-class Tests_Media_Wp_Is_Rest_Endpoint extends WP_UnitTestCase {
+class Tests_RestApi_WpIsRestEndpoint extends WP_UnitTestCase {
 
 	/**
 	 * Tests that `wp_is_rest_endpoint()` returns false by default.

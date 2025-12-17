@@ -12,7 +12,7 @@
  *
  * @covers wp_print_font_faces_from_style_variations
  */
-class Tests_Fonts_WpPrintFontFacesFromStyleVariations extends WP_Font_Face_UnitTestCase {
+class Tests_Fonts_FontFace_WpPrintFontFacesFromStyleVariations extends WP_Font_Face_UnitTestCase {
 	const FONTS_THEME = 'fonts-block-theme';
 
 	public static function set_up_before_class() {

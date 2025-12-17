@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestApplicationPasswordsController extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Subscriber user ID.

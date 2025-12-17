@@ -10,7 +10,7 @@
  *
  * @covers WP_Font_Library::unregister_font_collection
  */
-class Tests_Fonts_WpFontLibrary_UnregisterFontCollection extends WP_Font_Library_UnitTestCase {
+class Tests_Fonts_FontLibrary_WpFontLibrary_UnregisterFontCollection extends WP_Font_Library_UnitTestCase {
 
 	public function test_should_unregister_font_collection() {
 		$mock_collection_data = array(

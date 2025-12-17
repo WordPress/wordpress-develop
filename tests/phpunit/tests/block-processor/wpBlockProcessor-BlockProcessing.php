@@ -12,7 +12,7 @@
  *
  * @coversDefaultClass WP_Block_Processor
  */
-class Tests_Blocks_BlockProcessor_BlockProcessing extends WP_UnitTestCase {
+class Tests_BlockProcessor_WpBlockProcessorBlockProcessing extends WP_UnitTestCase {
 	public function test_get_breadcrumbs() {
 		$processor = new WP_Block_Processor( '<!-- wp:top --><!-- wp:inside /--><!-- /wp:top -->' );
 

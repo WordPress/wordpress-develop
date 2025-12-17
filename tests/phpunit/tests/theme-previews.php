@@ -5,7 +5,7 @@
  *
  * @group themes
  */
-class Tests_Theme_Previews extends WP_UnitTestCase {
+class Tests_ThemePreviews extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 	}

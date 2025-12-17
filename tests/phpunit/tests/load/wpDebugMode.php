@@ -12,7 +12,7 @@
  *
  * @covers ::wp_debug_mode
  */
-class Test_WP_Debug_Mode extends WP_UnitTestCase {
+class Tests_Load_WpDebugMode extends WP_UnitTestCase {
 	/**
 	 * Test: `wp_debug_mode()` should log, but not display, errors for `ms-files.php`.
 	 *

@@ -4,7 +4,7 @@
  * @group l10n
  * @group i18n
  */
-class WP_Translation_Controller_Tests extends WP_UnitTestCase {
+class Tests_L10n_WpTranslationController extends WP_UnitTestCase {
 	public function tear_down() {
 		remove_all_filters( 'translation_file_format' );
 		unload_textdomain( 'wp-tests-domain' );

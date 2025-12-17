@@ -5,7 +5,7 @@
  *
  * @covers ::wp_nav_menu
  */
-class Tests_Menu_wpNavMenu extends WP_UnitTestCase {
+class Tests_Menu_WpNavMenu extends WP_UnitTestCase {
 
 	private static $menu_id        = 0;
 	private static $lvl0_menu_item = 0;

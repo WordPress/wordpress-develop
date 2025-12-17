@@ -3,7 +3,7 @@
 /**
  * @group rewrite
  */
-class Tests_Rewrite_Tags extends WP_UnitTestCase {
+class Tests_Rewrite_RewriteTags extends WP_UnitTestCase {
 	protected $rewritecode;
 	protected $rewritereplace;
 	protected $queryreplace;

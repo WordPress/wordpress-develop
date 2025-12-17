@@ -4,7 +4,7 @@
  * @group comments
  * @group meta
  */
-class Tests_Lazy_Load_Comment_Meta extends WP_UnitTestCase {
+class Tests_Query_LazyLoadCommentMeta extends WP_UnitTestCase {
 
 	/**
 	 * @var int

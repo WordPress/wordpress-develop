@@ -4,7 +4,7 @@
  *
  * @covers ::wp_apply_aria_label_support
  */
-class Tests_Block_Supports_Aria_Label extends WP_UnitTestCase {
+class Tests_BlockSupports_AriaLabel extends WP_UnitTestCase {
 	/**
 	 * @var string|null
 	 */

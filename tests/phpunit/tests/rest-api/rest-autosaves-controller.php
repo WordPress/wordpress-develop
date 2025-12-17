@@ -8,7 +8,7 @@
  * @group restapi-autosave
  * @group restapi
  */
-class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
+class Tests_RestApi_RestAutosavesController extends WP_Test_REST_Post_Type_Controller_Testcase {
 	protected static $post_id;
 	protected static $page_id;
 	protected static $draft_page_id;

@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class Tests_REST_Server extends WP_Test_REST_TestCase {
+class Tests_RestApi_RestServer extends WP_Test_REST_TestCase {
 	protected static $icon_id;
 	protected static $admin_id;
 	protected static $post_id;

@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
+class Tests_RestApi_RestController extends WP_Test_REST_TestCase {
 
 	/**
 	 * @var WP_REST_Request

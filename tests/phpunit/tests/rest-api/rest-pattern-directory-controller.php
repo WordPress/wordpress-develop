@@ -8,7 +8,7 @@
  * @group restapi
  * @group pattern-directory
  */
-class WP_REST_Pattern_Directory_Controller_Test extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestPatternDirectoryController extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Contributor user id.

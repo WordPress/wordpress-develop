@@ -10,7 +10,7 @@
  *
  * @group interactivity-api
  */
-class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
+class Tests_InteractivityApi_WpInteractivityAPIWpEach extends WP_UnitTestCase {
 	/**
 	 * Instance of WP_Interactivity_API.
 	 *

@@ -6,7 +6,7 @@ require_once __DIR__ . '/base.php';
  * @group file
  * @group filesystem
  */
-class WP_Filesystem_Find_Folder_Test extends WP_Filesystem_UnitTestCase {
+class Tests_Filesystem_FindFolder extends WP_Filesystem_UnitTestCase {
 
 	public function test_ftp_has_root_access() {
 		global $wp_filesystem;

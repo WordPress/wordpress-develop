@@ -12,7 +12,7 @@
  *
  * @covers WP_Font_Face_Resolver::get_fonts_from_theme_json
  */
-class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_UnitTestCase {
+class Tests_Fonts_FontFace_WpFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_UnitTestCase {
 	const FONTS_THEME = 'fonts-block-theme';
 
 	public static function set_up_before_class() {

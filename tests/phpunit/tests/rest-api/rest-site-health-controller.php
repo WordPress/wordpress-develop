@@ -10,7 +10,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
+class Tests_RestApi_RestSiteHealthController extends WP_Test_REST_TestCase {
 
 	/**
 	 * Subscriber user ID.

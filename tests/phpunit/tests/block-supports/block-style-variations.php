@@ -8,7 +8,7 @@
  *
  * @group block-supports
  */
-class WP_Block_Supports_Block_Style_Variations_Test extends WP_UnitTestCase {
+class Tests_BlockSupports_BlockStyleVariations extends WP_UnitTestCase {
 	/**
 	 * Theme root directory.
 	 *

@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
+class Tests_RestApi_RestSchemaValidation extends WP_UnitTestCase {
 
 	public function test_type_number() {
 		$schema = array(

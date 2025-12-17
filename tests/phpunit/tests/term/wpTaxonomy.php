@@ -3,7 +3,7 @@
 /**
  * @group taxonomy
  */
-class Tests_WP_Taxonomy extends WP_UnitTestCase {
+class Tests_Term_WpTaxonomy extends WP_UnitTestCase {
 	public function test_instances() {
 		global $wp_taxonomies;
 

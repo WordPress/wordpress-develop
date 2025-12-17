@@ -5,7 +5,7 @@
  *
  * @covers ::wp_determine_option_autoload_value
  */
-class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
+class Tests_Option_WpDetermineOptionAutoloadValue extends WP_UnitTestCase {
 	public function set_up() {
 		add_filter( 'wp_max_autoloaded_option_size', array( $this, 'filter_max_option_size' ) );
 		parent::set_up();

@@ -3,7 +3,7 @@
  * @group media
  * @covers ::wp_playlist_shortcode
  */
-class Tests_Media_Wp_Playlist_Shortcode extends WP_UnitTestCase {
+class Tests_Media_WpPlaylistShortcode extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 63583

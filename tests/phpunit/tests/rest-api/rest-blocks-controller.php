@@ -11,7 +11,7 @@
  * @group restapi-blocks
  * @group restapi
  */
-class REST_Blocks_Controller_Test extends WP_UnitTestCase {
+class Tests_RestApi_RestBlocksController extends WP_UnitTestCase {
 
 	/**
 	 * Our fake block's post ID.

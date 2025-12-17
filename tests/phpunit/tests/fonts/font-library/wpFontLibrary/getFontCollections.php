@@ -10,7 +10,7 @@
  *
  * @covers WP_Font_Library::get_font_collections
  */
-class Tests_Fonts_WpFontLibrary_GetFontCollections extends WP_Font_Library_UnitTestCase {
+class Tests_Fonts_FontLibrary_WpFontLibrary_GetFontCollections extends WP_Font_Library_UnitTestCase {
 	public function test_should_get_an_empty_list() {
 		$font_collections = WP_Font_Library::get_instance()->get_font_collections();
 		$this->assertEmpty( $font_collections, 'Should return an empty array.' );

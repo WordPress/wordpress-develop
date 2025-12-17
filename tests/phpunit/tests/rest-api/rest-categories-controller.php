@@ -8,7 +8,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestCategoriesController extends WP_Test_REST_Controller_Testcase {
 	protected static $administrator;
 	protected static $contributor;
 	protected static $subscriber;

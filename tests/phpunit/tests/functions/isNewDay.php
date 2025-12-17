@@ -8,7 +8,7 @@
  *
  * @covers ::is_new_day
  */
-class Tests_Functions_IsNewDate extends WP_UnitTestCase {
+class Tests_Functions_IsNewDay extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 46627

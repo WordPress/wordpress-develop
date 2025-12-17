@@ -5,7 +5,7 @@
  * @group l10n
  * @group i18n
  */
-class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
+class Tests_L10n_WpTranslationsConvert extends WP_UnitTestCase {
 	/**
 	 * @covers ::instance
 	 */

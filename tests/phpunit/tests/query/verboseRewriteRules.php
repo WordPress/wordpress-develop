@@ -6,7 +6,7 @@ require_once __DIR__ . '/conditionals.php';
  * @group query
  * @group rewrite
  */
-class Tests_Query_VerbosePageRules extends Tests_Query_Conditionals {
+class Tests_Query_VerboseRewriteRules extends Tests_Query_Conditionals {
 	public function set_up() {
 		parent::set_up();
 

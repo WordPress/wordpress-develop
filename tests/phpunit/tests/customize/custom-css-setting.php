@@ -6,7 +6,7 @@
  *
  * @group customize
  */
-class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
+class Tests_Customize_CustomCssSetting extends WP_UnitTestCase {
 
 	/**
 	 * Instance of WP_Customize_Manager which is reset for each test.

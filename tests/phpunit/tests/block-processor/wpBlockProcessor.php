@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_Block_Processor
  */
-class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
+class Tests_BlockProcessor_WpBlockProcessor extends WP_UnitTestCase {
 	/**
 	 * Verifies that no block delimiters are found in an empty string.
 	 *

@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestCommentsController extends WP_Test_REST_Controller_Testcase {
 	protected static $superadmin_id;
 	protected static $admin_id;
 	protected static $editor_id;

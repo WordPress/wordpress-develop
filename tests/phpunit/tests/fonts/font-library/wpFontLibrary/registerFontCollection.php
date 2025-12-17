@@ -10,7 +10,7 @@
  *
  * @covers WP_Font_Library::register_font_collection
  */
-class Tests_Fonts_WpFontLibrary_RegisterFontCollection extends WP_Font_Library_UnitTestCase {
+class Tests_Fonts_FontLibrary_WpFontLibrary_RegisterFontCollection extends WP_Font_Library_UnitTestCase {
 	public function test_should_register_font_collection() {
 		$config = array(
 			'name'          => 'My Collection',

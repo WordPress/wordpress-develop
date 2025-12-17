@@ -5,7 +5,7 @@
  * @group widgets
  * @covers ::_wp_block_theme_register_classic_sidebars
  */
-class Tests_Widgets_WpBlockThemeRegisterClassicSidebars extends WP_UnitTestCase {
+class Tests_Widgets_WpBlockThemeRegisterClassicSidebar extends WP_UnitTestCase {
 	/**
 	 * Original global $wp_registered_sidebars.
 	 *

@@ -6,7 +6,7 @@ require_once __DIR__ . '/base.php';
  * @group block-templates
  * @covers ::get_template_hierarchy
  */
-class Tests_Block_Templates_GetTemplate_Hierarchy extends WP_Block_Templates_UnitTestCase {
+class Tests_BlockTemplates_GetTemplateHierarchy extends WP_Block_Templates_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();

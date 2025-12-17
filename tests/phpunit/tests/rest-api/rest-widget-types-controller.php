@@ -12,7 +12,7 @@
  * @group restapi
  * @group widgets
  */
-class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestWidgetTypesController extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Admin user ID.

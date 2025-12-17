@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Request_Validation extends WP_Test_REST_TestCase {
+class Tests_RestApi_RestRequestValidation extends WP_Test_REST_TestCase {
 
 	public function test_validate_within_min_max_range_inclusive() {
 		$request = new WP_REST_Request(

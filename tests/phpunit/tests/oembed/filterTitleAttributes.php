@@ -3,7 +3,7 @@
 /**
  * @group oembed
  */
-class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
+class Tests_Oembed_FilterTitleAttributes extends WP_UnitTestCase {
 	public function data_filter_oembed_iframe_title_attribute() {
 		return array(
 			array(

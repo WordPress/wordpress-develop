@@ -7,7 +7,7 @@
  *
  * @group testsuite
  */
-class Tests_Build_Equivalent_HTML_Semantic_Tree extends WP_UnitTestCase {
+class Tests_BuildVisualHtmlTree extends WP_UnitTestCase {
 	public function data_build_equivalent_html_semantic_tree() {
 		$block_markup = <<<END
 			<!-- wp:separator {"className":"is-style-default has-custom-classname","style":{"spacing":{"margin":{"top":"50px","bottom":"50px"}}},"backgroundColor":"accent-1"} -->

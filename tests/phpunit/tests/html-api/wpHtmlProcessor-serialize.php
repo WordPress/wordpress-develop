@@ -13,7 +13,7 @@
  *
  * @coversDefaultClass WP_HTML_Processor
  */
-class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
+class Tests_HtmlApi_WpHtmlProcessorSerialize extends WP_UnitTestCase {
 	/**
 	 * Ensures that basic text is properly encoded when serialized.
 	 *

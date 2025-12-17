@@ -9,7 +9,7 @@
  */
 require_once __DIR__ . '/base.php';
 
-class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
+class Tests_Image_EditorGd extends WP_Image_UnitTestCase {
 
 	public $editor_engine = 'WP_Image_Editor_GD';
 

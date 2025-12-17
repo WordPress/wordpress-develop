@@ -6,7 +6,7 @@
  * @group media
  * @covers ::wp_img_tag_add_width_and_height_attr
  */
-class Tests_Media_Wp_Img_Tag_Add_Width_And_Height_Attr extends WP_UnitTestCase {
+class Tests_Media_WpImgTagAddWidthAndHeightAttr extends WP_UnitTestCase {
 
 	protected static $attachment_id;
 	protected static $attachment_width;

@@ -8,7 +8,7 @@
  * @group restapi-themes
  * @group restapi
  */
-class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestThemesController extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Subscriber user ID.
 	 *

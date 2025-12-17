@@ -5,7 +5,7 @@
  *
  * @group customize
  */
-class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
+class Tests_Customize_NavMenus extends WP_UnitTestCase {
 
 	/**
 	 * Instance of WP_Customize_Manager which is reset for each test.

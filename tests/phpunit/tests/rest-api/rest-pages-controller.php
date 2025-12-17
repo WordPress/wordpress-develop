@@ -8,7 +8,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
+class Tests_RestApi_RestPagesController extends WP_Test_REST_Post_Type_Controller_Testcase {
 	protected static $editor_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {

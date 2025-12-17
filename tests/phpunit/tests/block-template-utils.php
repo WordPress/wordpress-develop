@@ -6,7 +6,7 @@
  *
  * @group block-templates
  */
-class Tests_Block_Template_Utils extends WP_UnitTestCase {
+class Tests_BlockTemplateUtils extends WP_UnitTestCase {
 
 	const TEST_THEME = 'block-theme';
 

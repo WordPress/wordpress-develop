@@ -11,7 +11,7 @@
  * @group restapi-blocks
  * @group restapi
  */
-class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestBlockRendererController extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * The REST API route for the block renderer.

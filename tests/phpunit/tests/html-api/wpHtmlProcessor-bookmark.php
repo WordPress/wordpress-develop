@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_HTML_Processor
  */
-class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
+class Tests_HtmlApi_WpHtmlProcessorBookmark extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_processor_constructors
 	 *

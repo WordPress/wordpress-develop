@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
+class Tests_RestApi_RestPostMetaFields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $post_id;
 	protected static $cpt_post_id;

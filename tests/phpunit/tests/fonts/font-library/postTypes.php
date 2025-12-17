@@ -8,7 +8,7 @@
  * @group fonts
  * @group font-library
  */
-class Tests_Fonts_Post_Types extends WP_UnitTestCase {
+class Tests_Fonts_FontLibrary_PostTypes extends WP_UnitTestCase {
 	/**
 	 * @ticket 41172
 	 */

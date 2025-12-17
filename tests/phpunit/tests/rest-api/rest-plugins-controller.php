@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestPluginsController extends WP_Test_REST_Controller_Testcase {
 
 	const BASE        = '/wp/v2/plugins';
 	const PLUGIN      = 'test-plugin/test-plugin';

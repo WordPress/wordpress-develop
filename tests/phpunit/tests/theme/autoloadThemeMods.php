@@ -10,7 +10,7 @@ require_once __DIR__ . '/base.php';
  *
  * @group themes
  */
-class Tests_Autoload_Theme_Mods extends WP_Theme_UnitTestCase {
+class Tests_Theme_AutoloadThemeMods extends WP_Theme_UnitTestCase {
 
 	/**
 	 * Tests that theme mods should not autoloaded after switch_theme.

@@ -18,7 +18,7 @@
  * @group restapi
  * @group navigation
  */
-class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestNavigationFallbackController extends WP_Test_REST_Controller_Testcase {
 
 	protected static $admin_user;
 	protected static $editor_user;

@@ -7,7 +7,7 @@
 
 require_once ABSPATH . 'wp-admin/includes/class-wp-site-icon.php';
 
-class Tests_WP_Site_Icon extends WP_UnitTestCase {
+class Tests_Image_SiteIcon extends WP_UnitTestCase {
 	protected $wp_site_icon;
 
 	public $attachment_id = 0;

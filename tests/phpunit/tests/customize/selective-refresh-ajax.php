@@ -12,7 +12,7 @@
  * @group customize
  * @group ajax
  */
-class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
+class Tests_Customize_SelectiveRefreshAjax extends WP_UnitTestCase {
 
 	/**
 	 * Manager.

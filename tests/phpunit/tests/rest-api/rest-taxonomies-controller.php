@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestTaxonomiesController extends WP_Test_REST_Controller_Testcase {
 
 	protected static $contributor_id;
 

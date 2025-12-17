@@ -3,7 +3,7 @@
 /**
  * @group taxonomy
  */
-class Tests_Term_Tax_Query extends WP_UnitTestCase {
+class Tests_Term_TaxQuery extends WP_UnitTestCase {
 	protected $q;
 
 	public function set_up() {

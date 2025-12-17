@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestPostStatusesController extends WP_Test_REST_Controller_Testcase {
 
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();

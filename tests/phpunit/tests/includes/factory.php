@@ -1,6 +1,6 @@
 <?php
 
-class TestFactoryFor extends WP_UnitTestCase {
+class Tests_Includes_Factory extends WP_UnitTestCase {
 
 	/**
 	 * @var WP_UnitTest_Factory_For_Term

@@ -3,7 +3,7 @@
  * @group post
  * @group menu
  */
-class Tests_Post_Nav_Menu extends WP_UnitTestCase {
+class Tests_Post_NavMenu extends WP_UnitTestCase {
 	/**
 	 * @var int
 	 */

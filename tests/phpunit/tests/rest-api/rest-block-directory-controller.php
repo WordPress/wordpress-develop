@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestBlockDirectoryController extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Administrator user id.

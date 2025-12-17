@@ -10,7 +10,7 @@
  *
  * @covers ::wp_get_font_dir
  */
-class Tests_Fonts_WpFontDir extends WP_UnitTestCase {
+class Tests_Fonts_FontLibrary_WpFontsDir extends WP_UnitTestCase {
 	private static $dir_defaults;
 
 	public static function set_up_before_class() {

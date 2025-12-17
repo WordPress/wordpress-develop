@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
+class Tests_RestApi_RestSchemaSanitization extends WP_UnitTestCase {
 
 	public function test_type_number() {
 		$schema = array(

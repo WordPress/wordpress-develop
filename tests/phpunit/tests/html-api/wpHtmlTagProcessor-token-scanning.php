@@ -11,7 +11,7 @@
  *
  * @coversDefaultClass WP_HTML_Tag_Processor
  */
-class Tests_HtmlApi_WpHtmlProcessor_Token_Scanning extends WP_UnitTestCase {
+class Tests_HtmlApi_WpHtmlTagProcessorTokenScanning extends WP_UnitTestCase {
 	/**
 	 * Ensures that scanning finishes in a complete form when the document is empty.
 	 *

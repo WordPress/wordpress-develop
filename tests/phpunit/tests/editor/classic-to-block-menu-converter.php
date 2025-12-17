@@ -10,7 +10,7 @@
  *
  * @group editor
  */
-class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
+class Tests_Editor_ClassicToBlockMenuConverter extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58557

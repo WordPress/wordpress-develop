@@ -12,7 +12,7 @@
  * @group restapi
  * @group widgets
  */
-class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestWidgetsController extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @var int
 	 */

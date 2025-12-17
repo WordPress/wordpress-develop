@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_REST_Test_Controller extends WP_REST_Controller {
+class Tests_RestApi_RestTestController extends WP_REST_Controller {
 	/**
 	 * Prepares the item for the REST response.
 	 *

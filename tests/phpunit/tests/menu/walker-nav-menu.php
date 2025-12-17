@@ -3,7 +3,7 @@
  * @group menu
  * @group walker
  */
-class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
+class Tests_Menu_WalkerNavMenu extends WP_UnitTestCase {
 
 	/**
 	 * @var \Walker_Nav_Menu The instance of the walker.

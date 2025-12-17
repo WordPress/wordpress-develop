@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_Post_wpGetPostAutosave extends WP_UnitTestCase {
+class Tests_Post_WpGetAutoSave extends WP_UnitTestCase {
 
 	/**
 	 * Admin user ID.

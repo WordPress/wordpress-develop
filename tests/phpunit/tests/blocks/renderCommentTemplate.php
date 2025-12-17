@@ -8,7 +8,7 @@
  *
  * @group blocks
  */
-class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
+class Tests_Blocks_RenderCommentTemplate extends WP_UnitTestCase {
 
 	private static $custom_post;
 	private static $comment_ids;

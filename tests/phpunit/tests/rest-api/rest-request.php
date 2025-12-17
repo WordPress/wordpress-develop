@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class Tests_REST_Request extends WP_UnitTestCase {
+class Tests_RestApi_RestRequest extends WP_UnitTestCase {
 	public $request;
 
 	public function set_up() {

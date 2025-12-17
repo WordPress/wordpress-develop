@@ -5,7 +5,7 @@
  * @group l10n
  * @group i18n
  */
-class WP_Translations_Tests extends WP_UnitTestCase {
+class Tests_L10n_WpTranslations extends WP_UnitTestCase {
 	public function tear_down() {
 		unload_textdomain( 'wp-tests-domain' );
 

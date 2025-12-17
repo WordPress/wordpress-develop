@@ -6,7 +6,7 @@
  *
  * @group customize
  */
-class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
+class Tests_Customize_SelectiveRefresh extends WP_UnitTestCase {
 
 	/**
 	 * Manager.

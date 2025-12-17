@@ -4,7 +4,7 @@
  * @group post
  * @group media
  */
-class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
+class Tests_Post_Thumbnails extends WP_UnitTestCase {
 	protected static $post;
 	protected static $different_post;
 	protected static $attachment_id;

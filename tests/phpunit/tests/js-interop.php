@@ -5,7 +5,7 @@
  * @package WordPress
  * @group js-interop
  */
-class Tests_JS_Interop extends WP_UnitTestCase {
+class Tests_JsInterop extends WP_UnitTestCase {
 	/**
 	 * Ensures proper recognition of a data attribute and how to transform its
 	 * name into what JavaScript code would read from an element's `dataset`.

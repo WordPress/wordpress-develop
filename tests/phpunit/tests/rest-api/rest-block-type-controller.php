@@ -11,7 +11,7 @@
  * @group restapi-blocks
  * @group restapi
  */
-class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestBlockTypeController extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Admin user ID.

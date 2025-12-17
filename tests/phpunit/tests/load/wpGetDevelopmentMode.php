@@ -11,7 +11,7 @@
  * @covers ::wp_get_development_mode
  * @covers ::wp_is_development_mode
  */
-class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
+class Tests_Load_WpGetDevelopmentMode extends WP_UnitTestCase {
 
 	/**
 	 * Tests that `wp_get_development_mode()` returns the value of the `WP_DEVELOPMENT_MODE` constant.

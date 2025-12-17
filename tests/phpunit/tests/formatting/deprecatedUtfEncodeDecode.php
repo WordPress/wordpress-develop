@@ -3,7 +3,7 @@
 /**
  * @group formatting
  */
-class Tests_DeprecatedUtf8EncodeDecodeTest extends WP_UnitTestCase {
+class Tests_Formatting_DeprecatedUtfEncodeDecode extends WP_UnitTestCase {
 	/**
 	 * Ensures that the fallback for {@see \utf8_encode()} maps the ISO-8859-1 characters properly.
 	 *

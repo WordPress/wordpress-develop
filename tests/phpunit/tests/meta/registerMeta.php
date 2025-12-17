@@ -2,7 +2,7 @@
 /**
  * @group meta
  */
-class Tests_Meta_Register_Meta extends WP_UnitTestCase {
+class Tests_Meta_RegisterMeta extends WP_UnitTestCase {
 
 	protected static $post_id;
 	protected static $term_id;

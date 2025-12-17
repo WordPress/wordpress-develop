@@ -5,7 +5,7 @@
  * @group taxonomy
  * @group meta
  */
-class Test_Lazy_Load_Term_Meta extends WP_UnitTestCase {
+class Tests_Query_LazyLoadTermMeta extends WP_UnitTestCase {
 	/**
 	 * @var array
 	 */

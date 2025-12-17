@@ -10,7 +10,7 @@
  * @group restapi
  * @group restapi-jsclient
  */
-class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
+class Tests_RestApi_RestSchemaSetup extends WP_Test_REST_TestCase {
 	const YOUTUBE_VIDEO_ID = 'i_cVJgIz_Cs';
 
 	public function set_up() {

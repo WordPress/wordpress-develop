@@ -10,7 +10,7 @@
  *
  * @covers ::wp_render_block_visibility_support
  */
-class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
+class Tests_BlockSupports_BlockVisibility extends WP_UnitTestCase {
 	/**
 	 * @var string|null
 	 */

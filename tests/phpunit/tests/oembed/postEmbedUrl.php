@@ -3,7 +3,7 @@
 /**
  * @group oembed
  */
-class Tests_Post_Embed_URL extends WP_UnitTestCase {
+class Tests_Oembed_PostEmbedUrl extends WP_UnitTestCase {
 	public function test_non_existent_post() {
 		$embed_url = get_post_embed_url( 0 );
 		$this->assertFalse( $embed_url );

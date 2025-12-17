@@ -3,7 +3,7 @@
 /**
  * @group phpunit
  */
-class Tests_TestHelpers extends WP_UnitTestCase {
+class Tests_Includes_Helpers extends WP_UnitTestCase {
 	/**
 	 * @ticket 30522
 	 */

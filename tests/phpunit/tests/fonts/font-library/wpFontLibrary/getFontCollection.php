@@ -10,7 +10,7 @@
  *
  * @covers WP_Font_Library::get_font_collection
  */
-class Tests_Fonts_WpFontLibrary_GetFontCollection extends WP_Font_Library_UnitTestCase {
+class Tests_Fonts_FontLibrary_WpFontLibrary_GetFontCollection extends WP_Font_Library_UnitTestCase {
 
 	public function test_should_get_font_collection() {
 		$mock_collection_data = array(

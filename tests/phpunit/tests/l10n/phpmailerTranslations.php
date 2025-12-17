@@ -18,7 +18,7 @@
  *
  * @since 6.8.0
  */
-class Test_PHPMailer_Translations extends WP_UnitTestCase {
+class Tests_L10n_PhpmailerTranslations extends WP_UnitTestCase {
 	/**
 	 * Tests that PHPMailer error message translation works as expected.
 	 *

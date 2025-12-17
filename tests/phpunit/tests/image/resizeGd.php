@@ -11,7 +11,7 @@
  */
 require_once __DIR__ . '/resize.php';
 
-class Test_Image_Resize_GD extends WP_Tests_Image_Resize_UnitTestCase {
+class Tests_Image_ResizeGd extends WP_Tests_Image_Resize_UnitTestCase {
 
 	/**
 	 * Use the GD image editor engine

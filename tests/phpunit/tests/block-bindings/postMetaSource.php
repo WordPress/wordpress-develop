@@ -9,7 +9,7 @@
  * @group blocks
  * @group block-bindings
  */
-class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
+class Tests_BlockBindings_PostMetaSource extends WP_UnitTestCase {
 	protected static $post;
 	protected static $wp_meta_keys_saved;
 

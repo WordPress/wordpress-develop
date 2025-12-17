@@ -6,7 +6,7 @@
  * @group media
  * @covers ::wp_img_tag_add_decoding_attr
  */
-class Tests_Media_Wp_Img_Tag_Add_Decoding_Attr extends WP_UnitTestCase {
+class Tests_Media_WpImageTagAddDecodingAttr extends WP_UnitTestCase {
 	/**
 	 * Tests that the `wp_img_tag_add_decoding_attr()` function should add
 	 * the 'decoding' attribute.

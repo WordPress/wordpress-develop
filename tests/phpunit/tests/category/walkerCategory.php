@@ -6,7 +6,7 @@
  *
  * @covers Walker_Category::start_el
  */
-class Tests_Category_Walker_Category extends WP_UnitTestCase {
+class Tests_Category_WalkerCategory extends WP_UnitTestCase {
 
 	/**
 	 * @var \Walker_Category The instance of the walker.

@@ -9,7 +9,7 @@
  * @group blocks
  * @group block-bindings
  */
-class Tests_Blocks_GetBlockBindingsProcessor extends WP_UnitTestCase {
+class Tests_BlockBindings_WpBlockGetBlockBindingsProcessor extends WP_UnitTestCase {
 
 	private static $get_block_bindings_processor_method;
 

@@ -10,7 +10,7 @@
  *
  * @group editor
  */
-class WP_Navigation_Fallback_Test extends WP_UnitTestCase {
+class Tests_Editor_NavigationFallback extends WP_UnitTestCase {
 
 	protected static $admin_user;
 	protected static $editor_user;

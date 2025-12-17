@@ -7,7 +7,7 @@
  *
  * @group restapi
  */
-class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
+class Tests_RestApi_RestSearchController extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Posts with title 'my-footitle'.
