@@ -359,7 +359,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	}
 
 	// Now we try to get it from the saved interval in case the schedule disappears.
-	if ( 0 === (int) $interval ) {
+	if ( 0 === $interval ) {
 		$scheduled_event = wp_get_scheduled_event( $hook, $args, $timestamp );
 
 		if ( $scheduled_event && isset( $scheduled_event->interval ) ) {
