@@ -172,7 +172,7 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#generic-raw-text-element-parsing-algorithm
 		 */
 		if ( stripos( $css, '</style' ) ) {
-			$validity->add( 'illegal_markup', __( 'Markup is not allowed in CSS.' ) );
+			$validity->add( 'illegal_markup', __( 'CSS must not contain possible closing STYLE tag "</style".' ) );
 		}
 
 		if ( ! $validity->has_errors() ) {
