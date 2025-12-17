@@ -253,8 +253,6 @@ function generateScriptModulesPackages() {
 					if ( match ) {
 						// Parse PHP array to JavaScript object
 						const assetData = parsePHPArray( match[1] );
-
-						// Create entries for both minified and non-minified versions
 						assetsMin[ jsPathMin ] = assetData;
 						assetsRegular[ jsPathRegular ] = assetData;
 					}
@@ -680,52 +678,18 @@ function parsePHPArray( phpArrayContent ) {
 function transformPHPContent( content, srcPath, destPath ) {
 	let transformed = content;
 
-	// Replace plugins_url() with includes_url()
-	// Handles patterns like: plugins_url( 'build/...' . $var, dirname( __FILE__ ) )
+	// Fix boot module asset file path for Core's different directory structure
+	// FROM: __DIR__ . '/../../modules/boot/index.min.asset.php'
+	// TO:   ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php'
+	// This is needed because Core copies modules to a different location than the plugin structure
 	transformed = transformed.replace(
-		/plugins_url\(\s*([^,]+),\s*(?:dirname\(\s*__FILE__\s*\)|__FILE__)\s*\)/g,
-		( match, firstArg ) => {
-			return `includes_url( ${ firstArg.trim() } )`;
-		}
-	);
-
-	// Replace plugin_dir_path( __FILE__ ) with ABSPATH . WPINC . '/build/'
-	transformed = transformed.replace(
-		/plugin_dir_path\(\s*__FILE__\s*\)/g,
-		"ABSPATH . WPINC . '/build/'"
-	);
-
-	// Replace dirname( __FILE__ ) patterns in path construction
-	transformed = transformed.replace(
-		/dirname\(\s*__FILE__\s*\)/g,
-		"ABSPATH . WPINC . '/build'"
-	);
-
-	// Replace __DIR__ with ABSPATH . WPINC . '/build'
-	transformed = transformed.replace(
-		/__DIR__\s*\.\s*['"]\/\.\.\/(.*?)['"]/g,
-		( match, relativePath ) => {
-			return `ABSPATH . WPINC . '/build/${ relativePath }'`;
-		}
+		/__DIR__\s*\.\s*['"]\/\.\.\/\.\.\/modules\/boot\/index\.min\.asset\.php['"]/g,
+		"ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php'"
 	);
 
 	// Special transformations for page-wp-admin.php files
 	if ( destPath.includes( 'page-wp-admin.php' ) ) {
-		// Fix boot module asset file path
-		// FROM: ABSPATH . WPINC . '/build/' . '../../modules/boot/index.min.asset.php'
-		// TO:   ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php'
-		transformed = transformed.replace(
-			/ABSPATH\s*\.\s*WPINC\s*\.\s*['"]\/build\/['"]\s*\.\s*['"]\.\.\/\.\.\/modules\/boot\/index\.min\.asset\.php['"]/g,
-			"ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php'"
-		);
 
-		// Fix loader.js path - replace plugin_dir_url with data URI for empty module
-		// FROM: plugin_dir_url( __FILE__ ) . 'loader.js'
-		// TO:   'data:text/javascript,' (empty module for dependency registration only)
-		transformed = transformed.replace(
-			/plugin_dir_url\(\s*__FILE__\s*\)\s*\.\s*['"]loader\.js['"]/g,
-			"'data:text/javascript,'"
-		);
 
 		// Fix enqueue condition to also work for direct page files (e.g., fonts.php)
 		// This allows the page to work both via menu (admin.php?page=X) and direct file (X.php)

@@ -13,9 +13,6 @@ const { spawn } = require( 'child_process' );
 const fs = require( 'fs' );
 const path = require( 'path' );
 
-// Constants
-const GUTENBERG_BUILD_COMMAND = 'npm run build';
-
 // Paths
 const rootDir = path.resolve( __dirname, '../..' );
 const gutenbergDir = path.join( rootDir, 'gutenberg' );
@@ -97,7 +94,6 @@ async function main() {
 	}
 
 	console.log( '✅ Gutenberg directory found' );
-	console.log( `   Build command: ${ GUTENBERG_BUILD_COMMAND }` );
 
 	// Modify Gutenberg's package.json for Core build
 	console.log( '\n⚙️  Configuring build for WordPress Core...' );
@@ -124,17 +120,20 @@ async function main() {
 		process.exit( 1 );
 	}
 
-	// Parse build command
-	const [ cmd, ...args ] = GUTENBERG_BUILD_COMMAND.split( ' ' );
-
 	// Build Gutenberg
-	console.log( '\n🔨 Building Gutenberg...' );
+	console.log( '\n🔨 Building Gutenberg for WordPress Core...' );
 	console.log( '   (This may take a few minutes)' );
 
 	const startTime = Date.now();
 
 	try {
-		await exec( cmd, args, { cwd: gutenbergDir } );
+		// On Windows, shell mode is used and needs the argument wrapped in quotes
+		// On Unix, arguments are passed directly without shell parsing
+		const baseUrlArg = process.platform === 'win32'
+			? '--base-url="includes_url( \'build\' )"'
+			: '--base-url=includes_url( \'build\' )';
+
+		await exec( 'npm', [ 'run', 'build', '--', baseUrlArg ], { cwd: gutenbergDir } );
 
 		const duration = Math.round( ( Date.now() - startTime ) / 1000 );
 		console.log( `✅ Build completed in ${ duration }s` );
