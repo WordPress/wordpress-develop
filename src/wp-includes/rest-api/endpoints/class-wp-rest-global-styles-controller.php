@@ -668,7 +668,15 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
 	 */
 	protected function validate_custom_css( $css ) {
-		if ( preg_match( '#</?\w+#', $css ) ) {
+		/**
+		 * Check for a closing STYLE tag inside the CSS.
+		 *
+		 * STYLE tags are processed using the "generic raw text parsing algorithm." They contain
+		 * raw text up until a matching closing tag.
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#generic-raw-text-element-parsing-algorithm
+		 */
+		if ( preg_match( '#</style[ \\t\\f\\n\\r/>]#', $css ) ) {
 			return new WP_Error(
 				'rest_custom_css_illegal_markup',
 				__( 'Markup is not allowed in CSS.' ),

@@ -163,7 +163,15 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 
 		$validity = new WP_Error();
 
-		if ( preg_match( '#</?\w+#', $css ) ) {
+		/**
+		 * Check for a closing STYLE tag inside the CSS.
+		 *
+		 * STYLE tags are processed using the "generic raw text parsing algorithm." They contain
+		 * raw text up until a matching closing tag.
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#generic-raw-text-element-parsing-algorithm
+		 */
+		if ( preg_match( '#</style[ \\t\\f\\n\\r/>]#', $css ) ) {
 			$validity->add( 'illegal_markup', __( 'Markup is not allowed in CSS.' ) );
 		}
 
