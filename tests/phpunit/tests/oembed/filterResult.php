@@ -3,7 +3,7 @@
 /**
  * @group oembed
  */
-class Tests_Oembed_FilterResult extends WP_UnitTestCase {
+class Tests_oEmbed_FilterResult extends WP_UnitTestCase {
 	public function test_filter_oembed_result_trusted_malicious_iframe() {
 		$html = '<p></p><iframe onload="alert(1)"></iframe>';
 

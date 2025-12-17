@@ -3,7 +3,7 @@
 /**
  * @group oembed
  */
-class Tests_Oembed_WpOembed extends WP_UnitTestCase {
+class Tests_oEmbed_WPoEmbed extends WP_UnitTestCase {
 	/**
 	 * @var WP_oEmbed
 	 */
