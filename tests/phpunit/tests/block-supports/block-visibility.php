@@ -239,6 +239,34 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	/*
 	 * @ticket 64414
 	 */
+	public function test_block_visibility_support_generated_css_with_all_breakpoints_hidden() {
+		$this->register_visibility_block_with_support(
+			'test/viewport-all-hidden',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/viewport-all-hidden',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(
+						'mobile'  => false,
+						'tablet'  => false,
+						'desktop' => false,
+					),
+				),
+			),
+		);
+
+		$block_content = '<div>Test content</div>';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertSame( '', $result, 'Block content should be empty when all breakpoints are hidden.' );
+	}
+
+	/*
+	 * @ticket 64414
+	 */
 	public function test_block_visibility_support_generated_css_with_empty_object() {
 		$this->register_visibility_block_with_support(
 			'test/responsive-empty',
@@ -257,7 +285,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$block_content = '<div>Test content</div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when there is no visibility object.' );
+		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when blockVisibility is an empty array.' );
 	}
 
 	/*
