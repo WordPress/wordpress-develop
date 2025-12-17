@@ -145,14 +145,14 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	}
 
 	/**
-	 * Validate a received value for being valid CSS.
+	 * Validate a received value for being safe HTML STYLE tag contents.
 	 *
-	 * Checks for imbalanced braces, brackets, and comments.
 	 * Notifications are rendered when the customizer state is saved.
 	 *
 	 * @since 4.7.0
 	 * @since 4.9.0 Checking for balanced characters has been moved client-side via linting in code editor.
 	 * @since 5.9.0 Renamed `$css` to `$value` for PHP 8 named parameter support.
+	 * @since 7.0.0 Relaxed to only check for safe HTML STYLE tag contents.
 	 *
 	 * @param string $value CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.

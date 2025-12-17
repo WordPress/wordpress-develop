@@ -659,10 +659,11 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Validate style.css as valid CSS.
 	 *
-	 * Currently just checks for invalid markup.
+	 * Currently just checks that CSS will not break an HTML STYLE tag.
 	 *
 	 * @since 6.2.0
 	 * @since 6.4.0 Changed method visibility to protected.
+	 * @since 7.0.0 Relaxed to only check for safe HTML STYLE tag contents.
 	 *
 	 * @param string $css CSS to validate.
 	 * @return true|WP_Error True if the input was validated, otherwise WP_Error.
