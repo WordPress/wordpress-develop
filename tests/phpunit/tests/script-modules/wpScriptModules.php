@@ -1234,7 +1234,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 </script>
 
 HTML;
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -1259,7 +1259,7 @@ HTML;
 </script>
 
 HTML;
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -1332,7 +1332,7 @@ HTML;
 
 HTML;
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
