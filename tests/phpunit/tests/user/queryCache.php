@@ -6,7 +6,7 @@
  *
  * @coversDefaultClass WP_User_Query
  */
-class Tests_User_QueryCache  extends WP_UnitTestCase {
+class Tests_User_QueryCache extends WP_UnitTestCase {
 	/**
 	 * @var int[]
 	 */
