@@ -359,12 +359,12 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @expectedDeprecated WP_Dependencies->add_data()
 	 */
 	public function test_conditional_inline_styles_are_also_conditional() {
-		$expected = '';
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
 		wp_style_add_data( 'handle', 'conditional', 'IE' );
 		wp_add_inline_style( 'handle', 'a { color: blue; }' );
 
-		$this->assertSameIgnoreEOL( $expected, get_echo( 'wp_print_styles' ) );
+		// Conditional styles are disabled.
+		$this->assertSame( '', get_echo( 'wp_print_styles' ) );
 	}
 
 	/**
