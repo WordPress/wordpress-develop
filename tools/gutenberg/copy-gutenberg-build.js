@@ -254,23 +254,6 @@ function generateScriptModulesPackages() {
 						// Parse PHP array to JavaScript object
 						const assetData = parsePHPArray( match[1] );
 
-						// For script modules, use module_dependencies as dependencies
-						// Regular script dependencies are not used for modules
-						if ( assetData.module_dependencies ) {
-							const moduleDeps = Array.isArray( assetData.module_dependencies )
-								? assetData.module_dependencies
-								: [ assetData.module_dependencies ];
-
-							assetData.dependencies = moduleDeps;
-							delete assetData.module_dependencies;
-						} else {
-							// If no module_dependencies, set to empty array
-							assetData.dependencies = [];
-						}
-
-						// Add 'type' => 'module' as Core expects
-						assetData.type = 'module';
-
 						// Create entries for both minified and non-minified versions
 						assetsMin[ jsPathMin ] = assetData;
 						assetsRegular[ jsPathRegular ] = assetData;

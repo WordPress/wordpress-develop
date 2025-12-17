@@ -189,8 +189,9 @@ function wp_default_script_modules() {
 			wp_interactivity()->add_client_navigation_support_to_script_module( $script_module_id );
 		}
 
-		$path = includes_url( "js/dist/script-modules/{$file_name}" );
-		wp_register_script_module( $script_module_id, $path, $script_module_data['dependencies'], $script_module_data['version'], $args );
+		$path        = includes_url( "js/dist/script-modules/{$file_name}" );
+		$module_deps = $script_module_data['module_dependencies'] ?? array();
+		wp_register_script_module( $script_module_id, $path, $module_deps, $script_module_data['version'], $args );
 	}
 }
 
