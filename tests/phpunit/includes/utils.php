@@ -571,6 +571,11 @@ class WpdbExposedMethodsForTesting extends wpdb {
 	public function __call( $name, $arguments ) {
 		return call_user_func_array( array( $this, $name ), $arguments );
 	}
+
+	public function reset_cache_values() {
+		$this->table_charset = array();
+		$this->col_meta      = array();
+	}
 }
 
 /**
