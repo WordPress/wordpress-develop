@@ -2762,7 +2762,7 @@ function build_query_vars_from_query_block( $block, $page ) {
 				// This is the new format e.g. "taxQuery":{"include":{"category":[4]},"exclude":{"post_tag":[5]}}
 
 				// Helper function to build tax_query conditions from taxonomy terms.
-				$build_conditions = static function ( $terms, $operator = 'IN' ) {
+				$build_conditions = static function ( array $terms, string $operator = 'IN' ): array {
 					$conditions = array();
 					foreach ( $terms as $taxonomy => $terms ) {
 						if ( ! empty( $terms ) && is_taxonomy_viewable( $taxonomy ) ) {
