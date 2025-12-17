@@ -83,41 +83,27 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 			return $block_content;
 		}
 
-		// If the block is hidden on all breakpoints, return empty string.
+		// If the block is hidden on all breakpoints, do not render the block.
 		if ( count( $hidden_on ) === count( $breakpoint_queries ) ) {
 			return '';
 		}
 
-		// Generate a unique class name based on which breakpoints are hidden.
+		// Maintain consistent order of breakpoints for class name generation.
 		sort( $hidden_on );
 
-		// Sanitize breakpoint names for use in HTML class attribute.
-		$sanitized_hidden_on = array_map( 'sanitize_html_class', $hidden_on );
-		$sanitized_hidden_on = array_filter( $sanitized_hidden_on );
-
-		// If all breakpoint names were invalid after sanitization, return unchanged.
-		if ( empty( $sanitized_hidden_on ) ) {
-			return $block_content;
-		}
-
-		$visibility_class = 'wp-block-hidden-' . implode( '-', $sanitized_hidden_on );
-
-		// Generate CSS rules for each hidden breakpoint.
-		$css_rules = array();
+		$visibility_class = 'wp-block-hidden-' . implode( '-', $hidden_on );
+		$css_rules        = array();
 
 		foreach ( $hidden_on as $breakpoint ) {
-			if ( isset( $breakpoint_queries[ $breakpoint ] ) ) {
-				$css_rules[] = array(
-					'selector'     => '.' . $visibility_class,
-					'declarations' => array(
-						'display' => 'none !important',
-					),
-					'rules_group'  => $breakpoint_queries[ $breakpoint ],
-				);
-			}
+			$css_rules[] = array(
+				'selector'     => '.' . $visibility_class,
+				'declarations' => array(
+					'display' => 'none !important',
+				),
+				'rules_group'  => $breakpoint_queries[ $breakpoint ],
+			);
 		}
 
-		// Use the style engine to enqueue the CSS.
 		if ( ! empty( $css_rules ) ) {
 			wp_style_engine_get_stylesheet_from_css_rules(
 				$css_rules,
@@ -127,7 +113,6 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 				)
 			);
 
-			// Add the visibility class to the block content.
 			if ( ! empty( $block_content ) ) {
 				$processor = new WP_HTML_Tag_Processor( $block_content );
 				if ( $processor->next_tag() ) {

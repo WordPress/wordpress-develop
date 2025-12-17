@@ -131,36 +131,6 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	/*
 	 * @ticket 64414
 	 */
-	public function test_block_visibility_support_generated_css_with_display_none() {
-		$this->register_visibility_block_with_support(
-			'test/css-generation',
-			array( 'visibility' => true )
-		);
-
-		$block = array(
-			'blockName' => 'test/css-generation',
-			'attrs'     => array(
-				'metadata' => array(
-					'blockVisibility' => array(
-						'mobile' => false,
-					),
-				),
-			),
-		);
-
-		$block_content = '<div>Test content</div>';
-		wp_render_block_visibility_support( $block_content, $block );
-
-		$stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports' );
-
-		$this->assertStringContainsString( 'display:none!important', str_replace( ' ', '', $stylesheet ), 'display:none!important should be in the CSS' );
-		$this->assertStringContainsString( '.wp-block-hidden-mobile', $stylesheet, 'Stylesheet should contain the visibility class' );
-		$this->assertStringContainsString( '@media', $stylesheet, 'Stylesheet should contain media query' );
-	}
-
-	/*
-	 * @ticket 64414
-	 */
 	public function test_block_visibility_support_generated_css_with_mobile_breakpoint() {
 		$this->register_visibility_block_with_support(
 			'test/responsive-mobile',
