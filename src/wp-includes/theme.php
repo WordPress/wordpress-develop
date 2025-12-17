@@ -1977,7 +1977,7 @@ function wp_custom_css_cb() {
 		$processor->set_attribute( 'type', 'text/css' );
 	}
 	$processor->set_attribute( 'id', 'wp-custom-css' );
-	$processor->set_modifiable_text( $styles );
+	$processor->set_modifiable_text( "\n{$styles}\n" );
 	echo $processor->get_updated_html();
 }
 
