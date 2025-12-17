@@ -234,7 +234,7 @@ class Tests_Includes_Helpers extends WP_UnitTestCase {
 	 * @ticket 28486
 	 */
 	public function test_setExpectedDeprecated() {
-		$this->setExpectedDeprecated( 'Tests_TestHelpers::mock_deprecated' );
+		$this->setExpectedDeprecated( __CLASS__ . '::mock_incorrect_usage' );
 		$this->assertTrue( $this->mock_deprecated() );
 	}
 
@@ -242,7 +242,7 @@ class Tests_Includes_Helpers extends WP_UnitTestCase {
 	 * @ticket 28486
 	 */
 	public function test_setExpectedIncorrectUsage() {
-		$this->setExpectedIncorrectUsage( 'Tests_TestHelpers::mock_incorrect_usage' );
+		$this->setExpectedIncorrectUsage( __CLASS__ . '::mock_incorrect_usage' );
 		$this->assertTrue( $this->mock_incorrect_usage() );
 	}
 
