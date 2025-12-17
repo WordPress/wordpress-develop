@@ -340,9 +340,10 @@ body.adding-widget #customize-preview {
 
 /* dashicons-category */
 #available-widgets [class*="categor"] .widget-title:before {
-	content:"\f318";
-	content:"\f318" / '';
-	top: -4px; }
+	content: "\f318";
+	content: "\f318" / '';
+	top: -4px;
+}
 
 /* dashicons-admin-comments */
 #available-widgets [class*="comment"] .widget-title:before,
