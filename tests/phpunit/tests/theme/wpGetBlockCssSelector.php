@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__ . '/base.php';
+
 /**
  * Tests wp_get_block_css_selector().
  *
