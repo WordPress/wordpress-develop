@@ -3,14 +3,14 @@
     'dependencies' => array(
       
     ),
-    'version' => '070006c1952723adf288',
+    'version' => '1c371cb517a97cdbcb9f',
     'type' => 'module'
   ),
   'abilities/index.min.js' => array(
     'dependencies' => array(
       
     ),
-    'version' => '59c4956caf2212a95c1a',
+    'version' => 'bd07cd6be9d3678c2a45',
     'type' => 'module'
   ),
   'block-editor/utils/fit-text-frontend.min.js' => array(
@@ -20,7 +20,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '1136a09da5e0d5619436',
+    'version' => '0646a7177f4ceed4f5a9',
     'type' => 'module'
   ),
   'block-library/accordion/view.min.js' => array(
@@ -30,7 +30,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '825c573cc35480051ab5',
+    'version' => '2af01b43d30739c3fb8d',
     'type' => 'module'
   ),
   'block-library/file/view.min.js' => array(
@@ -40,14 +40,14 @@
         'import' => 'static'
       )
     ),
-    'version' => '3ac75c84bab01df66cbc',
+    'version' => '7d4d261d10dca47ebecb',
     'type' => 'module'
   ),
   'block-library/form/view.min.js' => array(
     'dependencies' => array(
       
     ),
-    'version' => '5a31469ae99c89b85209',
+    'version' => '5542f8ad251fe43ef09e',
     'type' => 'module'
   ),
   'block-library/image/view.min.js' => array(
@@ -57,7 +57,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '154e9a4b9d670b82b2fe',
+    'version' => '3aa348554e724dae4f1f',
     'type' => 'module'
   ),
   'block-library/navigation/view.min.js' => array(
@@ -67,7 +67,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '68be749fe38fdd6cdb1b',
+    'version' => '7437ed5c45ee57daf02c',
     'type' => 'module'
   ),
   'block-library/query/view.min.js' => array(
@@ -81,7 +81,7 @@
         'import' => 'dynamic'
       )
     ),
-    'version' => 'a2e5eb0ef9298288861e',
+    'version' => '7a4ec5bfb61a7137cf4b',
     'type' => 'module'
   ),
   'block-library/search/view.min.js' => array(
@@ -91,7 +91,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '29874e80748c436bd760',
+    'version' => '38bd0e230eaffa354d2a',
     'type' => 'module'
   ),
   'block-library/tabs/view.min.js' => array(
@@ -101,7 +101,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '1786987b68ac0b72ef6f',
+    'version' => 'c08655def5ed243c4d65',
     'type' => 'module'
   ),
   'boot/index.min.js' => array(
@@ -119,7 +119,7 @@
         'import' => 'static'
       )
     ),
-    'version' => 'cd0bd05978b1bf968746',
+    'version' => '815eda5ae6583881d075',
     'type' => 'module'
   ),
   'core-abilities/index.min.js' => array(
@@ -129,7 +129,7 @@
         'import' => 'static'
       )
     ),
-    'version' => 'd9393e0e805a459b4ed8',
+    'version' => '336043fa59033fb5e9b0',
     'type' => 'module'
   ),
   'edit-site-init/index.min.js' => array(
@@ -139,14 +139,14 @@
         'import' => 'static'
       )
     ),
-    'version' => 'cdc2b8d54138d762ec11',
+    'version' => '86ba14602c8af2333ca2',
     'type' => 'module'
   ),
   'interactivity/index.min.js' => array(
     'dependencies' => array(
       
     ),
-    'version' => '4dfa4a84376ce7a27db5',
+    'version' => '771756b5dd00167d1664',
     'type' => 'module'
   ),
   'interactivity-router/full-page.min.js' => array(
@@ -156,7 +156,7 @@
         'import' => 'dynamic'
       )
     ),
-    'version' => 'ad40031055a251b1dc9f',
+    'version' => '5c07cd7a12ae073c5241',
     'type' => 'module'
   ),
   'interactivity-router/index.min.js' => array(
@@ -170,14 +170,14 @@
         'import' => 'static'
       )
     ),
-    'version' => 'fc5e6fae8f1e8dc42054',
+    'version' => 'bb48ce8e3364d5290463',
     'type' => 'module'
   ),
   'latex-to-mathml/index.min.js' => array(
     'dependencies' => array(
       
     ),
-    'version' => 'fbbf921282750fed0380',
+    'version' => 'e5fd3ae6d2c3b6e669da',
     'type' => 'module'
   ),
   'latex-to-mathml/loader.min.js' => array(
@@ -187,21 +187,21 @@
         'import' => 'dynamic'
       )
     ),
-    'version' => 'a4d2c9bec0c5b2ea3e9b',
+    'version' => '4f37456af539bd3d2351',
     'type' => 'module'
   ),
   'lazy-editor/index.min.js' => array(
     'dependencies' => array(
       
     ),
-    'version' => '27ae9aabbe34a1730fd1',
+    'version' => '7940d72bd43e2cd0660b',
     'type' => 'module'
   ),
   'route/index.min.js' => array(
     'dependencies' => array(
       
     ),
-    'version' => 'cfac356f473714810ed1',
+    'version' => '333002943024efaa0bcc',
     'type' => 'module'
   ),
   'workflow/index.min.js' => array(
@@ -211,7 +211,7 @@
         'import' => 'static'
       )
     ),
-    'version' => '54693498f890d17317a2',
+    'version' => '479f8d345f6ec535eba6',
     'type' => 'module'
   )
 );
