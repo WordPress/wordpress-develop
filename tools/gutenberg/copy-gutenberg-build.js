@@ -75,16 +75,28 @@ const COPY_CONFIG = {
 	},
 
 	// Blocks (to wp-includes/blocks/)
-	// Note: Copies JS/CSS/JSON from build, PHP from packages source (no prefixes)
+	// Unified configuration for all block types
 	blocks: {
-		source: 'scripts/block-library',
 		destination: 'blocks',
-		copyAll: true,
-		excludePHP: true, // PHP files copied separately from packages source
-		excludeExperimental: true, // Skip experimental blocks
+		sources: [
+			{
+				// Block library blocks
+				name: 'block-library',
+				scripts: 'scripts/block-library',
+				styles: 'styles/block-library',
+				php: 'block-library/src',
+			},
+			{
+				// Widget blocks
+				name: 'widgets',
+				scripts: 'scripts/widgets/blocks',
+				styles: 'styles/widgets',
+				php: 'widgets/src/blocks',
+			},
+		],
 	},
 
-	// PHP source files (copied from packages, not build, to avoid Gutenberg prefixes)
+	// PHP source files (non-block files, copied from packages)
 	phpSource: {
 		files: [
 			{
@@ -96,34 +108,8 @@ const COPY_CONFIG = {
 					'class-wp-block-parser-frame.php',
 				],
 				destination: '', // Root of wp-includes
-				transform: false, // These don't need path transformations
+				transform: false,
 			},
-			{
-				// Block library PHP files
-				package: 'block-library/src',
-				pattern: '*/index.php', // Each block directory
-				destination: 'blocks',
-				renamePattern: { from: '/index.php', to: '.php' }, // comment-template/index.php → comment-template.php
-				transform: true,
-			},
-			{
-				// Widgets PHP files
-				package: 'widgets/src/blocks',
-				files: [
-					{ from: 'legacy-widget/index.php', to: 'blocks/legacy-widget.php' },
-					{ from: 'widget-group/index.php', to: 'blocks/widget-group.php' },
-				],
-				transform: true,
-			},
-		],
-	},
-
-	// Widget block.json files (from build, not source)
-	widgetBlockJson: {
-		source: 'scripts/widgets/blocks',
-		files: [
-			{ from: 'legacy-widget/block.json', to: 'blocks/legacy-widget/block.json' },
-			{ from: 'widget-group/block.json', to: 'blocks/widget-group/block.json' },
 		],
 	},
 
@@ -207,6 +193,81 @@ function copyDirectory( src, dest, transform = null, options = {} ) {
 
 			fs.writeFileSync( destPath, content );
 		}
+	}
+}
+
+/**
+ * Copy all assets for blocks from Gutenberg to Core.
+ * Handles scripts, styles, PHP, and JSON for all block types in a unified way.
+ *
+ * @param {Object} config - Block configuration from COPY_CONFIG.blocks
+ */
+function copyBlockAssets( config ) {
+	const blocksDest = path.join( wpIncludesDir, config.destination );
+
+	for ( const source of config.sources ) {
+		const scriptsSrc = path.join( gutenbergBuildDir, source.scripts );
+		const stylesSrc = path.join( gutenbergBuildDir, source.styles );
+		const phpSrc = path.join( gutenbergPackagesDir, source.php );
+
+		if ( ! fs.existsSync( scriptsSrc ) ) {
+			continue;
+		}
+
+		// Get all block directories from the scripts source
+		const blockDirs = fs.readdirSync( scriptsSrc, { withFileTypes: true } )
+			.filter( entry => entry.isDirectory() )
+			.map( entry => entry.name );
+
+		for ( const blockName of blockDirs ) {
+			// Skip experimental blocks
+			const blockJsonPath = path.join( scriptsSrc, blockName, 'block.json' );
+			if ( isExperimentalBlock( blockJsonPath ) ) {
+				continue;
+			}
+
+			const blockDest = path.join( blocksDest, blockName );
+			fs.mkdirSync( blockDest, { recursive: true } );
+
+			// 1. Copy scripts/JSON (everything except PHP)
+			const blockScriptsSrc = path.join( scriptsSrc, blockName );
+			if ( fs.existsSync( blockScriptsSrc ) ) {
+				const files = fs.readdirSync( blockScriptsSrc );
+				for ( const file of files ) {
+					if ( file.endsWith( '.php' ) ) {
+						continue; // Skip PHP, copied from packages
+					}
+					fs.copyFileSync(
+						path.join( blockScriptsSrc, file ),
+						path.join( blockDest, file )
+					);
+				}
+			}
+
+			// 2. Copy styles (if they exist in per-block directory)
+			const blockStylesSrc = path.join( stylesSrc, blockName );
+			if ( fs.existsSync( blockStylesSrc ) ) {
+				const cssFiles = fs.readdirSync( blockStylesSrc )
+					.filter( file => file.endsWith( '.css' ) );
+				for ( const cssFile of cssFiles ) {
+					fs.copyFileSync(
+						path.join( blockStylesSrc, cssFile ),
+						path.join( blockDest, cssFile )
+					);
+				}
+			}
+
+			// 3. Copy and transform PHP from packages
+			const blockPhpSrc = path.join( phpSrc, blockName, 'index.php' );
+			if ( fs.existsSync( blockPhpSrc ) ) {
+				const phpDest = path.join( wpIncludesDir, config.destination, `${ blockName }.php` );
+				let content = fs.readFileSync( blockPhpSrc, 'utf8' );
+				content = transformPHPContent( content, blockPhpSrc, phpDest );
+				fs.writeFileSync( phpDest, content );
+			}
+		}
+
+		console.log( `   ✅ ${ source.name } blocks copied (${ blockDirs.length } blocks)` );
 	}
 }
 
@@ -882,33 +943,13 @@ async function main() {
 		console.log( '   ✅ Styles copied' );
 	}
 
-	// 5. Copy blocks (excluding PHP - copied separately from source)
+	// 5. Copy blocks (unified: scripts, styles, PHP, JSON)
 	console.log( '\n📦 Copying blocks...' );
-	const blocksConfig = COPY_CONFIG.blocks;
-	const blocksSrc = path.join( gutenbergBuildDir, blocksConfig.source );
-	const blocksDest = path.join( wpIncludesDir, blocksConfig.destination );
+	const blocksDest = path.join( wpIncludesDir, COPY_CONFIG.blocks.destination );
+	copyBlockAssets( COPY_CONFIG.blocks );
 
-	if ( fs.existsSync( blocksSrc ) ) {
-		// Transform function to remove source map comments from blocks/index.js and index.min.js
-		const blocksTransform = ( content, srcPath, destPath ) => {
-			// Only process blocks/index.js and blocks/index.min.js
-			if ( destPath.endsWith( path.join( 'blocks', 'index.js' ) ) ||
-				destPath.endsWith( path.join( 'blocks', 'index.min.js' ) ) ) {
-				// Remove sourceMappingURL comment
-				return content.replace( /\/\/# sourceMappingURL=.*$/m, '' ).trimEnd();
-			}
-			return content;
-		};
-
-		copyDirectory( blocksSrc, blocksDest, blocksTransform, {
-			excludePHP: blocksConfig.excludePHP,
-			excludeExperimental: blocksConfig.excludeExperimental,
-		} );
-		console.log( '   ✅ Blocks copied (JS/CSS/JSON, excluding experimental)' );
-	}
-
-	// 6. Copy PHP source files (from packages, to avoid Gutenberg prefixes)
-	console.log( '\n📦 Copying PHP source files...' );
+	// 6. Copy non-block PHP source files (from packages)
+	console.log( '\n📦 Copying non-block PHP files...' );
 	const phpSourceConfig = COPY_CONFIG.phpSource;
 
 	for ( const fileGroup of phpSourceConfig.files ) {
@@ -919,49 +960,11 @@ async function main() {
 			continue;
 		}
 
-		// Simple file list
-		if ( fileGroup.files && Array.isArray( fileGroup.files ) && typeof fileGroup.files[0] === 'string' ) {
-			for ( const file of fileGroup.files ) {
-				const src = path.join( packageSrc, file );
-				const dest = path.join( wpIncludesDir, fileGroup.destination, file );
+		for ( const file of fileGroup.files ) {
+			const src = path.join( packageSrc, file );
+			const dest = path.join( wpIncludesDir, fileGroup.destination, file );
 
-				if ( fs.existsSync( src ) ) {
-					fs.mkdirSync( path.dirname( dest ), { recursive: true } );
-					let content = fs.readFileSync( src, 'utf8' );
-
-					if ( fileGroup.transform ) {
-						content = transformPHPContent( content, src, dest );
-					}
-
-					fs.writeFileSync( dest, content );
-					console.log( `   ✅ ${ file }` );
-				}
-			}
-		}
-
-		// Pattern-based (e.g., */index.php for all block directories)
-		if ( fileGroup.pattern ) {
-			const entries = fs.readdirSync( packageSrc, { withFileTypes: true } );
-
-			for ( const entry of entries ) {
-				if ( ! entry.isDirectory() ) continue;
-
-				// Check if this block is experimental
-				const blockJsonPath = path.join( packageSrc, entry.name, 'block.json' );
-				if ( isExperimentalBlock( blockJsonPath ) ) {
-					continue;
-				}
-
-				const src = path.join( packageSrc, entry.name, 'index.php' );
-				if ( ! fs.existsSync( src ) ) continue;
-
-				// Apply rename pattern: comment-template/index.php → comment-template.php
-				const destFileName = fileGroup.renamePattern
-					? entry.name + fileGroup.renamePattern.to
-					: entry.name + '/index.php';
-
-				const dest = path.join( wpIncludesDir, fileGroup.destination, destFileName );
-
+			if ( fs.existsSync( src ) ) {
 				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
 				let content = fs.readFileSync( src, 'utf8' );
 
@@ -971,51 +974,11 @@ async function main() {
 
 				fs.writeFileSync( dest, content );
 			}
-			console.log( `   ✅ ${ fileGroup.package } PHP files (excluding experimental)` );
 		}
-
-		// Files with from/to mapping (widgets)
-		if ( fileGroup.files && Array.isArray( fileGroup.files ) && typeof fileGroup.files[0] === 'object' ) {
-			for ( const fileMap of fileGroup.files ) {
-				const src = path.join( packageSrc, fileMap.from );
-				const dest = path.join( wpIncludesDir, fileMap.to );
-
-				if ( fs.existsSync( src ) ) {
-					fs.mkdirSync( path.dirname( dest ), { recursive: true } );
-					let content = fs.readFileSync( src, 'utf8' );
-
-					if ( fileGroup.transform ) {
-						content = transformPHPContent( content, src, dest );
-					}
-
-					fs.writeFileSync( dest, content );
-					console.log( `   ✅ ${ fileMap.to }` );
-				}
-			}
-		}
+		console.log( `   ✅ ${ fileGroup.package } (${ fileGroup.files.length } files)` );
 	}
 
-	// 7. Copy widget block.json files (from build)
-	console.log( '\n📦 Copying widget block.json files...' );
-	const widgetBlockJsonConfig = COPY_CONFIG.widgetBlockJson;
-	const widgetSrc = path.join( gutenbergBuildDir, widgetBlockJsonConfig.source );
-
-	if ( fs.existsSync( widgetSrc ) ) {
-		for ( const fileMap of widgetBlockJsonConfig.files ) {
-			const src = path.join( widgetSrc, fileMap.from );
-			const dest = path.join( wpIncludesDir, fileMap.to );
-
-			if ( fs.existsSync( src ) ) {
-				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
-				fs.copyFileSync( src, dest );
-				console.log( `   ✅ ${ fileMap.to }` );
-			} else {
-				console.log( `   ⚠️  Not found: ${ fileMap.from }` );
-			}
-		}
-	}
-
-	// 8. Copy theme JSON files (from Gutenberg lib directory)
+	// 7. Copy theme JSON files (from Gutenberg lib directory)
 	console.log( '\n📦 Copying theme JSON files...' );
 	const themeJsonConfig = COPY_CONFIG.themeJson;
 	const gutenbergLibDir = path.join( gutenbergDir, 'lib' );
