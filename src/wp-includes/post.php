@@ -103,6 +103,7 @@ function create_initial_post_types() {
 			),
 			'public'                => true,
 			'show_ui'               => true,
+			'at_a_glance'           => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
 			'capability_type'       => 'post',

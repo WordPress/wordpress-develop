@@ -148,6 +148,15 @@ final class WP_Post_Type {
 	public $show_in_menu = null;
 
 	/**
+	 * Makes this post type visible in the At a Glance dashboard widget.
+	 *
+	 * Default is the value of $show_in_menu.
+	 *
+	 * @var bool $at_a_glance
+	 */
+	public $at_a_glance = null;
+
+	/**
 	 * Makes this post type available for selection in navigation menus.
 	 *
 	 * Default is the value $public.
@@ -553,6 +562,7 @@ final class WP_Post_Type {
 			'rest_base'                       => false,
 			'rest_namespace'                  => false,
 			'rest_controller_class'           => false,
+			'at_a_glance'                     => null,
 			'autosave_rest_controller_class'  => false,
 			'revisions_rest_controller_class' => false,
 			'late_route_registration'         => false,
@@ -589,6 +599,11 @@ final class WP_Post_Type {
 		// If not set, default to the setting for 'show_ui'.
 		if ( null === $args['show_in_menu'] || ! $args['show_ui'] ) {
 			$args['show_in_menu'] = $args['show_ui'];
+		}
+
+		// If not set, default to the setting for show_in_menu
+		if ( null === $args['at_a_glance'] ) {
+			$args['at_a_glance'] = (bool) $args['show_in_menu'];
 		}
 
 		// If not set, default to the setting for 'show_in_menu'.

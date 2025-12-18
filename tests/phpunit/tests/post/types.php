@@ -676,4 +676,24 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		);
 		$this->assertFalse( $post_type->embeddable, 'Post type should not be embeddable even though it is public' );
 	}
+
+	/**
+	 * @ticket 45035
+	 * @covers ::register_post_type()
+	 */
+	public function test_register_post_type_at_a_glance_should_default_to_value_of_show_in_menu() {
+		/*
+		 * 'public'       Default is false
+		 * 'show_ui'      Default is null ('public')
+		 * 'show_in_menu' Default is null ('show_ui' > 'public')
+		 * 'at_a_glance'  Default is null ('show_in_menu' > 'show_ui' > 'public')
+		 */
+		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
+		// Should fall back to 'show_in_menu'.
+		$this->assertSame( $args->show_in_menu, $args->at_a_glance );
+		// Should fall back to 'show_ui'.
+		$this->assertSame( $args->show_ui, $args->at_a_glance );
+		// Should fall back to 'public'.
+		$this->assertSame( $public, $args->at_a_glance );
+	}
 }
