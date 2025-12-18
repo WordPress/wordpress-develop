@@ -26,6 +26,8 @@
  * @since {WP_VERSION}
  */
 class WP_Mime_Type {
+	const BINARY_BYTES = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0B\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1C\x1D\x1E\x1F";
+
 	const TOKEN_CODE_POINTS = "!#$%&'*+-.0123456789^_`ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz|~";
 
 	/*
@@ -73,6 +75,16 @@ class WP_Mime_Type {
 	 */
 	protected $detected_apache_bug = false;
 
+	public function __construct( string $type, string $subtype, ?array $parameters = null ) {
+		$this->type    = strtolower( $type );
+		$this->subtype = strtolower( $subtype );
+
+		/** @todo Validate parameters */
+		if ( isset( $parameters ) ) {
+			$this->parameters = $parameters;
+		}
+	}
+
 	/**
 	 * @todo Rename to `WP_Mime_Type::sniff()`?
 	 */
@@ -116,9 +128,7 @@ class WP_Mime_Type {
 		}
 
 		// 10. Let mimeType be a new MIME type record whose type is type, in ASCII lowercase, and subtype is subtype, in ASCII lowercase.
-		$self          = new self();
-		$self->type    = strtolower( $type );
-		$self->subtype = strtolower( $subtype );
+		$self = new self( $type, $subtype );
 
 		// 11. While position is not past the end of input:
 		$position = $subtype_start + $subtype_length;
@@ -213,6 +223,241 @@ class WP_Mime_Type {
 		return $self;
 	}
 
+	public static function from_binary( string $resource_header ): ?self {
+		if ( strlen( $resource_header ) === 1455 ) {
+			$resource_header = substr( $resource_header, 0, 1455 );
+		}
+
+		$length = strlen( $resource_header );
+
+		if ( str_starts_with( $resource_header, '%PDF-' ) ) {
+			return new self( 'application', 'pdf' );
+		}
+
+		$leading_ws = strspn( $resource_header, " \t\f\r\n" );
+
+		if ( 0 === substr_compare( $resource_header, '<?xml', $leading_ws, 5, false ) ) {
+			return new self( 'text', 'xml' );
+		}
+
+		$html_prefixes = array(
+			array( '!DOCTYPE HTML', 13 ),
+			array( 'HTML', 4 ),
+			array( 'HEAD', 4 ),
+			array( 'SCRIPT', 6 ),
+			array( 'IFRAME', 6 ),
+			array( 'H1', 2 ),
+			array( 'DIV', 3 ),
+			array( 'FONT', 4 ),
+			array( 'TABLE', 5 ),
+			array( 'A', 1 ),
+			array( 'STYLE', 5 ),
+			array( 'TITLE', 5 ),
+			array( 'B', 1 ),
+			array( 'BODY', 4 ),
+			array( 'BR', 2 ),
+			array( 'P', 1 ),
+			array( '!--', 3 ),
+		);
+
+		if ( $length > $leading_ws && '<' === $resource_header[ $leading_ws ] ) {
+			$prefix_start = $leading_ws + 1;
+
+			foreach ( $html_prefixes as $prefix_pair ) {
+				list( $prefix, $prefix_length ) = $prefix_pair;
+				$prefix_end = $prefix_start + $prefix_length;
+
+				if (
+					$length >= $prefix_end &&
+					0 === substr_compare( $resource_header, $prefix[0], $prefix_start, $prefix_length, true ) &&
+					( ' ' === $resource_header[ $prefix_end ] || '>' === $resource_header[ $prefix_end ] )
+				) {
+					return new self( 'text', 'html' );
+				}
+			}
+		}
+
+		if ( str_starts_with( $resource_header, '%!PS-Adobe-' ) ) {
+			return new self( 'application', 'postscript' );
+		}
+
+		if (
+			$length >= 4 &&
+			(
+				str_starts_with( $resource_header, "\xFE\xFF" ) ||  // UTF-16BE BOM
+				str_starts_with( $resource_header, "\xFF\xFE" ) ||  // UTF-16LE BOM
+				str_starts_with( $resource_header, "\xEF\xBB\xBF" ) // UTF-8 BOM
+			)
+		) {
+			return new self( 'text', 'plain' );
+		}
+
+		$sniffed_type = self::sniff_image_binary( $resource_header );
+		if ( isset( $sniffed_type ) ) {
+			return $sniffed_type;
+		}
+
+		$sniffed_type = self::sniff_audio_video_binary( $resource_header );
+		if ( isset( $sniffed_type ) ) {
+			return $sniffed_type;
+		}
+
+		$sniffed_type = self::sniff_archive_binary( $resource_header );
+		if ( isset( $sniffed_type ) ) {
+			return $sniffed_type;
+		}
+
+		$nonbinary_length = strcspn( $resource_header, self::BINARY_BYTES );
+		return $length === $nonbinary_length
+			? new self( 'text', 'plain' )
+			: new self( 'application', 'octet-stream' );
+	}
+
+	private static function sniff_image_binary( string $resource_header ): ?self {
+		$image_byte_patterns = array(
+			array( "\x00\x00\x01\x00", 'image', 'x-icon' ), // Windows Icon
+			array( "\x00\x00\x02\x00", 'image', 'x-icon' ), // Windows Cursor
+			array( 'BM', 'image', 'bmp' ),                  // BMP
+			array( 'GIF87a', 'image', 'gif' ),              // GIF
+			array( 'GIF89a', 'image', 'gif' ),              // GIF
+			array( "\x89PNG\r\n\x1A\n", 'image', 'png' ),   // PNG
+			array( "\xFF\xD8\xFF", 'image', 'jpg' ),        // PNG
+		);
+
+		foreach ( $image_byte_patterns as $pattern_pair ) {
+			list( $prefix, $type, $subtype ) = $pattern_pair;
+
+			if ( str_starts_with( $resource_header, $prefix ) ) {
+				return new self( $type, $subtype );
+			}
+		}
+
+		if (
+			strlen( $resource_header ) >= 14 &&
+			str_starts_with( $resource_header, 'RIFF' ) &&
+			0 === substr_compare( $resource_header, 'WEBPVP', 8, 6, false )
+		) {
+			return new self( 'image', 'webp' );
+		}
+
+		return null;
+	}
+
+	private static function sniff_audio_video_binary( string $resource_header ): ?self {
+		$media_prefixes = array(
+			array( 'ID3', 'audio', 'mpeg' ),                  // ID3v2 MP3
+			array( "OggS\x00", 'application', 'ogg' ),        // Ogg
+			array( "MThd\x00\x00\x00\x06", 'audio', 'midi' ), // MIDI
+		);
+
+		foreach ( $media_prefixes as $prefix_pair ) {
+			list( $prefix, $type, $subtype ) = $prefix_pair;
+
+			if ( str_starts_with( $resource_header, $prefix ) ) {
+				return new self( $type, $subtype );
+			}
+		}
+
+		$length = strlen( $resource_header );
+
+		if (
+			$length >= 12 &&
+			str_starts_with( $resource_header, 'FORM' ) &&
+			0 === substr_compare( $resource_header, 'AIFF', 8, 4, false )
+		) {
+			return new self( 'audio', 'aiff' );
+		}
+
+		if ( $length >= 12 && str_starts_with( $resource_header, 'RIFF' ) ) {
+			if ( 0 === substr_compare( $resource_header, 'AVI ', 8, 4, false ) ) {
+				return new self( 'video', 'avi' );
+			}
+
+			if ( 0 === substr_compare( $resource_header, 'WAVE', 8, 4, false ) ) {
+				return new self( 'audio', 'wave' );
+			}
+		}
+
+		$media_type = self::sniff_mp4_binary( $resource_header );
+		if ( isset( $media_type ) ) {
+			return $media_type;
+		}
+
+		$media_type = self::sniff_webm_binary( $resource_header );
+		if ( isset( $media_type ) ) {
+			return $media_type;
+		}
+
+		$media_type = self::sniff_mp3_without_id3_binary( $resource_header );
+		if ( isset( $media_type ) ) {
+			return $media_type;
+		}
+
+		return null;
+	}
+
+	private static function sniff_mp4_binary( string $resource_header ): ?self {
+		$length = strlen( $resource_header );
+
+		if ( $length < 12 ) {
+			return null;
+		}
+
+		$box_size = unpack( 'N', $resource_header, 0 )[0];
+		if ( $length < $box_size || 0 !== ( $box_size % 4 ) ) {
+			return null;
+		}
+
+		if ( 0 !== substr_compare( $resource_header, 'ftyp', 4, 4, false ) ) {
+			return null;
+		}
+
+		if ( 0 === substr_compare( $resource_header, 'mp4', 8, 3, false ) ) {
+			return new self( 'video', 'mp4' );
+		}
+
+		$bytes_read = 16;
+		while ( $bytes_read < $box_size ) {
+			if ( 0 === substr_compare( $resource_header, 'mp4', $bytes_read, 3, false ) ) {
+				return new self( 'video', 'mp4' );
+			}
+
+			$bytes_read += 4;
+		}
+
+		return null;
+	}
+
+	/**
+	 * @see https://mimesniff.spec.whatwg.org/#signature-for-webm
+	 */
+	private static function sniff_webm_binary( string $resource_header ): ?self {
+		throw new Exception( 'Not Implemented' );
+	}
+
+	/**
+	 * @see https://mimesniff.spec.whatwg.org/#signature-for-mp3-without-id3
+	 */
+	private static function sniff_mp3_without_id3_binary( string $resource_header ): ?self {
+		throw new Exception( 'Not Implemented' );
+	}
+
+	private static function sniff_archive_binary( string $resource_header ): ?self {
+		$archive_prefixes = array(
+			array( "\x1F\x8B\x08", 'application', 'x-gzip' ),     // GZIP
+			array( "PK\x03\x04", 'application', 'zip' ),          // ZIP
+			array( "Rar!\x1A\x07\x00", 'application', 'x-gzip' ), // RAR 4.x
+		);
+
+		foreach ( $archive_prefixes as $prefix_pair ) {
+			list( $prefix, $type, $subtype ) = $prefix_pair;
+
+			if ( str_starts_with( $resource_header, $prefix ) ) {
+				return new self( $type, $subtype );
+			}
+		}
+	}
+
 	public function serialize(): string {
 		$serialization = $this->essence();
 
@@ -282,6 +527,13 @@ class WP_Mime_Type {
 
 	public function is_html(): bool {
 		return 'text' === $this->type && 'html' === $this->subtype;
+	}
+
+	public function is_html_family(): bool {
+		return (
+			$this->is_html() ||
+			( 'application' === $this->type && 'xhtml+xml' === $this->subtype )
+		);
 	}
 
 	public function is_image(): bool {
@@ -362,5 +614,37 @@ class WP_Mime_Type {
 			( 'application' === $this->type && 'zip' === $this->subtype ) ||
 			str_ends_with( $this->subtype, '+zip' )
 		);
+	}
+
+	/**
+	 * Returns a parsed MIME media type if the given string represents a JavaScript media type.
+	 *
+	 * @since {WP_VERSION}
+	 *
+	 * @param string $supplied_type
+	 * @return self|null
+	 */
+	public static function sniff_javascript( string $supplied_type ): ?self {
+		$mime_type = self::from_string( $supplied_type );
+
+		return isset( $mime_type ) && $mime_type->is_javascript()
+			? $mime_type
+			: null;
+	}
+
+	/**
+	 * Returns a parsed MIME media type if the given string represents a JSON media type.
+	 *
+	 * @since {WP_VERSION}
+	 *
+	 * @param string $supplied_type
+	 * @return self|null
+	 */
+	public static function sniff_json( string $supplied_type ): ?self {
+		$mime_type = self::from_string( $supplied_type );
+
+		return isset( $mime_type ) && $mime_type->is_json()
+			? $mime_type
+			: null;
 	}
 }
