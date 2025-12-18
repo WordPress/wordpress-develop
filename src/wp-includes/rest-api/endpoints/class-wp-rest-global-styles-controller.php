@@ -677,7 +677,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 		 *
 		 * @see https://html.spec.whatwg.org/multipage/parsing.html#generic-raw-text-element-parsing-algorithm
 		 */
-		if ( stripos( $css, '</style' ) ) {
+		if ( false !== stripos( $css, '</style' ) ) {
 			return new WP_Error(
 				'rest_custom_css_illegal_markup',
 				__( 'Markup is not allowed in CSS.' ),
