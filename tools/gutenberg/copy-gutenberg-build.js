@@ -41,7 +41,6 @@ const COPY_CONFIG = {
 		destination: 'build',
 		files: [ 'routes.php', 'pages.php' ],
 		directories: [ 'pages', 'routes' ],
-		transform: true, // Apply PHP transformations
 	},
 
 	// JavaScript packages (to wp-includes/js/dist/)
@@ -104,7 +103,6 @@ const COPY_CONFIG = {
 					'class-wp-block-parser-frame.php',
 				],
 				destination: '', // Root of wp-includes
-				transform: false,
 			},
 		],
 	},
@@ -115,7 +113,6 @@ const COPY_CONFIG = {
 			{ from: 'theme.json', to: 'theme.json' },
 			{ from: 'theme-i18n.json', to: 'theme-i18n.json' },
 		],
-		transform: true,
 	},
 };
 
@@ -268,7 +265,7 @@ function copyBlockAssets( config ) {
 				}
 			}
 
-			// 3. Copy and transform PHP from packages
+			// 3. Copy PHP from packages
 			const blockPhpSrc = path.join( phpSrc, blockName, 'index.php' );
 			if ( fs.existsSync( blockPhpSrc ) ) {
 				const phpDest = path.join(
@@ -276,8 +273,7 @@ function copyBlockAssets( config ) {
 					config.destination,
 					`${ blockName }.php`
 				);
-				let content = fs.readFileSync( blockPhpSrc, 'utf8' );
-				content = transformPHPContent( content, blockPhpSrc, phpDest );
+				const content = fs.readFileSync( blockPhpSrc, 'utf8' );
 				fs.writeFileSync( phpDest, content );
 			}
 		}
@@ -818,11 +814,9 @@ function parsePHPArray( phpArrayContent ) {
  * Transform PHP file contents to work in Core.
  *
  * @param {string} content  - File content.
- * @param {string} srcPath  - Source file path.
- * @param {string} destPath - Destination file path.
  * @return {string} Transformed content.
  */
-function transformPHPContent( content, srcPath, destPath ) {
+function transformPHPContent( content ) {
 	let transformed = content;
 
 	// Fix boot module asset file path for Core's different directory structure
@@ -833,26 +827,6 @@ function transformPHPContent( content, srcPath, destPath ) {
 		/__DIR__\s*\.\s*['"]\/\.\.\/\.\.\/modules\/boot\/index\.min\.asset\.php['"]/g,
 		"ABSPATH . WPINC . '/js/dist/script-modules/boot/index.min.asset.php'"
 	);
-
-	// Special transformations for page-wp-admin.php files
-	if ( destPath.includes( 'page-wp-admin.php' ) ) {
-		// Fix enqueue condition to also work for direct page files (e.g., fonts.php)
-		// This allows the page to work both via menu (admin.php?page=X) and direct file (X.php)
-		transformed = transformed.replace(
-			/\/\/ Only enqueue on our page\n\s+if \( ! isset\( \$_GET\['page'\] \) \|\| '([^']+)' !== \$_GET\['page'\] \) { \/\/ phpcs:ignore WordPress\.Security\.NonceVerification\.Recommended\n\s+return;\n\s+}/,
-			( match, pageName ) => {
-				// Extract the base name (e.g., 'font-library' from 'font-library-wp-admin')
-				const baseName = pageName.replace( '-wp-admin', '' );
-				return `// Only enqueue on our page (either ${ baseName }.php or the menu page)
-		$is_menu_page = isset( $_GET['page'] ) && '${ pageName }' === $_GET['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$is_direct_page = '${ baseName }.php' === $hook_suffix;
-
-		if ( ! $is_menu_page && ! $is_direct_page ) {
-			return;
-		}`;
-			}
-		);
-	}
 
 	return transformed;
 }
@@ -886,9 +860,7 @@ async function main() {
 		if ( fs.existsSync( src ) ) {
 			fs.mkdirSync( path.dirname( dest ), { recursive: true } );
 			let content = fs.readFileSync( src, 'utf8' );
-			if ( phpConfig.transform ) {
-				content = transformPHPContent( content, src, dest );
-			}
+			content = transformPHPContent( content );
 			fs.writeFileSync( dest, content );
 			console.log( `   ✅ ${ file }` );
 		} else {
@@ -905,8 +877,7 @@ async function main() {
 
 		if ( fs.existsSync( src ) ) {
 			console.log( `   📁 Copying ${ dir }/...` );
-			const transform = phpConfig.transform ? transformPHPContent : null;
-			copyDirectory( src, dest, transform );
+			copyDirectory( src, dest, transformPHPContent );
 			console.log( `   ✅ ${ dir }/ copied` );
 		}
 	}
@@ -1096,11 +1067,6 @@ async function main() {
 			if ( fs.existsSync( src ) ) {
 				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
 				let content = fs.readFileSync( src, 'utf8' );
-
-				if ( fileGroup.transform ) {
-					content = transformPHPContent( content, src, dest );
-				}
-
 				fs.writeFileSync( dest, content );
 			}
 		}
