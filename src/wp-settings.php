@@ -140,7 +140,9 @@ require_wp_db();
  *
  * @global string $table_prefix The database table prefix.
  */
-$GLOBALS['table_prefix'] = $table_prefix;
+if ( ! isset( $GLOBALS['table_prefix'] ) ) {
+	$GLOBALS['table_prefix'] = $table_prefix;
+}
 
 // Set the database table prefix and the format specifiers for database table columns.
 wp_set_wpdb_vars();
@@ -285,6 +287,12 @@ require ABSPATH . WPINC . '/nav-menu-template.php';
 require ABSPATH . WPINC . '/nav-menu.php';
 require ABSPATH . WPINC . '/admin-bar.php';
 require ABSPATH . WPINC . '/class-wp-application-passwords.php';
+require ABSPATH . WPINC . '/abilities-api/class-wp-ability-category.php';
+require ABSPATH . WPINC . '/abilities-api/class-wp-ability-categories-registry.php';
+require ABSPATH . WPINC . '/abilities-api/class-wp-ability.php';
+require ABSPATH . WPINC . '/abilities-api/class-wp-abilities-registry.php';
+require ABSPATH . WPINC . '/abilities-api.php';
+require ABSPATH . WPINC . '/abilities.php';
 require ABSPATH . WPINC . '/rest-api.php';
 require ABSPATH . WPINC . '/rest-api/class-wp-rest-server.php';
 require ABSPATH . WPINC . '/rest-api/class-wp-rest-response.php';
@@ -330,6 +338,9 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-navigation-fallback
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-families-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-faces-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-collections-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-categories-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-run-controller.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-comment-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-post-meta-fields.php';
@@ -393,6 +404,7 @@ require ABSPATH . WPINC . '/block-supports/shadow.php';
 require ABSPATH . WPINC . '/block-supports/background.php';
 require ABSPATH . WPINC . '/block-supports/block-style-variations.php';
 require ABSPATH . WPINC . '/block-supports/aria-label.php';
+require ABSPATH . WPINC . '/block-supports/block-visibility.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-declarations.php';

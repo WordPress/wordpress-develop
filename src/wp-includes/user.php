@@ -699,8 +699,7 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 	$count       = wp_cache_get_salted( $cache_key, 'post-queries', $cache_salts );
 
 	if ( false === $count ) {
-		$where  = get_posts_by_author_sql( $post_type, true, null, $public_only );
-		$result = $wpdb->get_results( "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author", ARRAY_N );
+		$result = $wpdb->get_results( $query, ARRAY_N );
 
 		$count = array_fill_keys( $users, 0 );
 		foreach ( $result as $row ) {
@@ -1197,24 +1196,14 @@ function is_user_member_of_blog( $user_id = 0, $blog_id = 0 ) {
 		return false;
 	}
 
-	$keys = get_user_meta( $user_id );
-	if ( empty( $keys ) ) {
-		return false;
+	if ( 1 === $blog_id ) {
+		$capabilities_key = $wpdb->base_prefix . 'capabilities';
+	} else {
+		$capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
 	}
+	$has_cap = get_user_meta( $user_id, $capabilities_key, true );
 
-	// No underscore before capabilities in $base_capabilities_key.
-	$base_capabilities_key = $wpdb->base_prefix . 'capabilities';
-	$site_capabilities_key = $wpdb->base_prefix . $blog_id . '_capabilities';
-
-	if ( isset( $keys[ $base_capabilities_key ] ) && 1 === $blog_id ) {
-		return true;
-	}
-
-	if ( isset( $keys[ $site_capabilities_key ] ) ) {
-		return true;
-	}
-
-	return false;
+	return is_array( $has_cap );
 }
 
 /**
@@ -3212,7 +3201,9 @@ function check_password_reset_key(
 		 * Filters the return value of check_password_reset_key() when an
 		 * old-style key or an expired key is used.
 		 *
-		 * @since 3.7.0 Previously plain-text keys were stored in the database.
+		 * Prior to 3.7, plain-text keys were stored in the database.
+		 *
+		 * @since 3.7.0
 		 * @since 4.3.0 Previously key hashes were stored without an expiration time.
 		 *
 		 * @param WP_Error $return  A WP_Error object denoting an expired key.
@@ -4881,6 +4872,13 @@ function wp_send_user_request( $request_id ) {
 		$switched_locale = switch_to_locale( get_locale() );
 	}
 
+	/*
+	 * Generate the new user request key first, as it is used by both the $request
+	 * object and the confirm_url array.
+	 * See https://core.trac.wordpress.org/ticket/44940
+	 */
+	$request->confirm_key = wp_generate_user_request_key( $request_id );
+
 	$email_data = array(
 		'request'     => $request,
 		'email'       => $request->email,
@@ -4889,7 +4887,7 @@ function wp_send_user_request( $request_id ) {
 			array(
 				'action'      => 'confirmaction',
 				'request_id'  => $request_id,
-				'confirm_key' => wp_generate_user_request_key( $request_id ),
+				'confirm_key' => $request->confirm_key,
 			),
 			wp_login_url()
 		),

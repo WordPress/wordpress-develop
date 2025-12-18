@@ -842,7 +842,12 @@ $_old_files = array(
 	'wp-includes/js/dist/fields.min.js',
 	'wp-includes/js/dist/fields.js',
 	// 6.9
-	'wp-content/plugins/hello.php',
+	'wp-includes/blocks/post-author/editor.css',
+	'wp-includes/blocks/post-author/editor.min.css',
+	'wp-includes/blocks/post-author/editor-rtl.css',
+	'wp-includes/blocks/post-author/editor-rtl.min.css',
+	'wp-includes/SimplePie/src/Decode',
+	'wp-includes/SimplePie/src/Core.php',
 );
 
 /**
@@ -975,7 +980,6 @@ $_new_bundled_files = array(
 	'themes/twentytwentythree/' => '6.1',
 	'themes/twentytwentyfour/'  => '6.4',
 	'themes/twentytwentyfive/'  => '6.7',
-	'plugins/hello-dolly/'      => '6.9',
 );
 
 /**

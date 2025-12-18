@@ -1436,6 +1436,41 @@ HTML
 	}
 
 	/**
+	 * Tests that `WP_Scripts::get_highest_fetchpriority_with_dependents()` correctly reuses cached results.
+	 *
+	 * @ticket 64194
+	 *
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 */
+	public function test_highest_fetchpriority_with_dependents_uses_cached_result() {
+		$wp_scripts = new WP_Scripts();
+		$wp_scripts->add( 'd', 'https://example.com/d.js' );
+		$wp_scripts->add_data( 'd', 'fetchpriority', 'low' );
+
+		/*
+		 * Simulate a pre-existing `$stored_results` cache entry for `d`.
+		 * If the caching logic works, the function should use this "high" value
+		 * instead of recalculating based on the actual (lower) value.
+		 */
+		$stored_results = array( 'd' => 'high' );
+
+		// Access the private method using reflection.
+		$method = new ReflectionMethod( WP_Scripts::class, 'get_highest_fetchpriority_with_dependents' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		// Pass `$stored_results` BY REFERENCE.
+		$result = $method->invokeArgs( $wp_scripts, array( 'd', array(), &$stored_results ) );
+
+		$this->assertSame(
+			'high',
+			$result,
+			'Expected "high" indicates that the cached `$stored_results` entry for D was used instead of recalculating.'
+		);
+	}
+
+	/**
 	 * Tests that printing a script without enqueueing has the same output as when it is enqueued.
 	 *
 	 * @ticket 61734
@@ -1532,6 +1567,41 @@ HTML
 		$expected = "<script type='text/javascript' src='/main-script-b2.js' id='main-script-b2-js'></script>\n";
 		$expected = str_replace( "'", '"', $expected );
 		$this->assertSame( $expected, $output, 'Scripts registered with no strategy assigned, and who have no dependencies, should have no loading strategy attributes printed.' );
+	}
+
+	/**
+	 * Tests that `WP_Scripts::filter_eligible_strategies()` correctly reuses cached results.
+	 *
+	 * @ticket 64194
+	 *
+	 * @covers WP_Scripts::filter_eligible_strategies
+	 */
+	public function test_filter_eligible_strategies_uses_cached_result() {
+		$wp_scripts = new WP_Scripts();
+		$wp_scripts->add( 'd', 'https://example.com/d.js' );
+		$wp_scripts->add_data( 'd', 'strategy', 'defer' );
+
+		/*
+		 * Simulate a cached result in `$stored_results` for D.
+		 * If caching logic is functioning properly, this cached value
+		 * should be returned immediately without recomputing.
+		 */
+		$stored_results = array( 'd' => array( 'async' ) );
+
+		// Access the private method via reflection.
+		$method = new ReflectionMethod( WP_Scripts::class, 'filter_eligible_strategies' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		// Invoke the method with `$stored_results` passed by reference.
+		$result = $method->invokeArgs( $wp_scripts, array( 'd', null, array(), &$stored_results ) );
+
+		$this->assertSame(
+			array( 'async' ),
+			$result,
+			'Expected cached `$stored_results` value for D to be reused instead of recomputed.'
+		);
 	}
 
 	/**
@@ -2994,7 +3064,7 @@ HTML;
 	 * @covers ::wp_enqueue_code_editor
 	 */
 	public function test_wp_enqueue_code_editor_when_php_file_will_be_passed() {
-		$real_file              = WP_PLUGIN_DIR . '/hello-dolly/hello.php';
+		$real_file              = WP_PLUGIN_DIR . '/hello.php';
 		$wp_enqueue_code_editor = wp_enqueue_code_editor( array( 'file' => $real_file ) );
 		$this->assertNonEmptyMultidimensionalArray( $wp_enqueue_code_editor );
 
@@ -4004,5 +4074,52 @@ var one = {"key":"val"};var two = {"key":"val"};
 HTML;
 
 		$this->assertEqualHTML( $expected, $print_scripts );
+	}
+
+	/**
+	 * Ensure that `::print_translations()` does not include the sourceURL comment when `$display` is false.
+	 *
+	 * @ticket 63887
+	 * @covers ::print_translations
+	 */
+	public function test_print_translations_no_display_no_sourceurl() {
+		global $wp_scripts;
+		$this->add_html5_script_theme_support();
+
+		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
+		wp_enqueue_script( 'test-example', '/wp-includes/js/script.js', array(), null );
+		wp_set_script_translations( 'test-example', 'default', DIR_TESTDATA . '/languages' );
+
+		$translations_script_data = $wp_scripts->print_translations( 'test-example', false );
+		$this->assertStringNotContainsStringIgnoringCase( 'sourceURL=', $translations_script_data );
+	}
+
+	/**
+	 * Tests that WP_Scripts emits a _doing_it_wrong() notice for missing dependencies.
+	 *
+	 * @ticket 64229
+	 * @covers WP_Dependencies::all_deps
+	 */
+	public function test_wp_scripts_doing_it_wrong_for_missing_dependencies() {
+		$expected_incorrect_usage = 'WP_Scripts::add';
+		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+
+		wp_register_script( 'registered-dep', '/registered-dep.js' );
+		wp_enqueue_script( 'main', '/main.js', array( 'registered-dep', 'missing-dep' ) );
+
+		$markup = get_echo( 'wp_print_scripts' );
+		$this->assertStringNotContainsString( 'main.js', $markup, 'Expected script to be absent.' );
+
+		$this->assertArrayHasKey(
+			$expected_incorrect_usage,
+			$this->caught_doing_it_wrong,
+			"Expected $expected_incorrect_usage to trigger a _doing_it_wrong() notice for missing dependency."
+		);
+
+		$this->assertStringContainsString(
+			'The script with the handle "main" was enqueued with dependencies that are not registered: missing-dep',
+			$this->caught_doing_it_wrong[ $expected_incorrect_usage ],
+			'Expected _doing_it_wrong() notice to indicate missing dependencies for enqueued script.'
+		);
 	}
 }

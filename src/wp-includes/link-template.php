@@ -1082,13 +1082,13 @@ function edit_tag_link( $link = '', $before = '', $after = '', $tag = null ) {
 function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
 	$term = get_term( $term, $taxonomy );
 	if ( ! $term || is_wp_error( $term ) ) {
-		return;
+		return null;
 	}
 
 	$tax     = get_taxonomy( $term->taxonomy );
 	$term_id = $term->term_id;
 	if ( ! $tax || ! current_user_can( 'edit_term', $term_id ) ) {
-		return;
+		return null;
 	}
 
 	$args = array(
@@ -1410,7 +1410,7 @@ function get_preview_post_link( $post = null, $query_args = array(), $preview_li
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return;
+		return null;
 	}
 
 	$post_type_object = get_post_type_object( $post->post_type );
@@ -1454,7 +1454,7 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 	$post = get_post( $post );
 
 	if ( ! $post ) {
-		return;
+		return null;
 	}
 
 	if ( 'revision' === $post->post_type ) {
@@ -1468,11 +1468,11 @@ function get_edit_post_link( $post = 0, $context = 'display' ) {
 	$post_type_object = get_post_type_object( $post->post_type );
 
 	if ( ! $post_type_object ) {
-		return;
+		return null;
 	}
 
 	if ( ! current_user_can( 'edit_post', $post->ID ) ) {
-		return;
+		return null;
 	}
 
 	$link = '';
@@ -1625,7 +1625,7 @@ function get_edit_comment_link( $comment_id = 0, $context = 'display' ) {
 	 * Filters the comment edit link.
 	 *
 	 * @since 2.3.0
-	 * @since 6.7.0 The $comment_id and $context parameters are now being passed to the filter.
+	 * @since 6.7.0 The `$comment_id` and `$context` parameters are now being passed to the filter.
 	 *
 	 * @param string $location   The edit link.
 	 * @param int    $comment_id Unique ID of the comment to generate an edit link.
@@ -1939,8 +1939,8 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		$where .= " AND p.post_status = 'publish'";
 	}
 
-	$op    = $previous ? '<' : '>';
-	$order = $previous ? 'DESC' : 'ASC';
+	$comparison_operator = $previous ? '<' : '>';
+	$order               = $previous ? 'DESC' : 'ASC';
 
 	/**
 	 * Filters the JOIN clause in the SQL for an adjacent post query.
@@ -1964,6 +1964,9 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 */
 	$join = apply_filters( "get_{$adjacent}_post_join", $join, $in_same_term, $excluded_terms, $taxonomy, $post );
 
+	// Prepare the where clause for the adjacent post query.
+	$where_prepared = $wpdb->prepare( "WHERE (p.post_date $comparison_operator %s OR (p.post_date = %s AND p.ID $comparison_operator %d)) AND p.post_type = %s $where", $current_post_date, $current_post_date, $post->ID, $post->post_type ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $comparison_operator is a string literal, either '<' or '>'.
+
 	/**
 	 * Filters the WHERE clause in the SQL for an adjacent post query.
 	 *
@@ -1977,6 +1980,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 *
 	 * @since 2.5.0
 	 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
+	 * @since 6.9.0 Adds ID-based fallback for posts with identical dates in adjacent post queries.
 	 *
 	 * @param string       $where          The `WHERE` clause in the SQL.
 	 * @param bool         $in_same_term   Whether post should be in the same taxonomy term.
@@ -1984,7 +1988,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @param string       $taxonomy       Taxonomy. Used to identify the term used when `$in_same_term` is true.
 	 * @param WP_Post      $post           WP_Post object.
 	 */
-	$where = apply_filters( "get_{$adjacent}_post_where", $wpdb->prepare( "WHERE p.post_date $op %s AND p.post_type = %s $where", $current_post_date, $post->post_type ), $in_same_term, $excluded_terms, $taxonomy, $post );
+	$where = apply_filters( "get_{$adjacent}_post_where", $where_prepared, $in_same_term, $excluded_terms, $taxonomy, $post );
 
 	/**
 	 * Filters the ORDER BY clause in the SQL for an adjacent post query.
@@ -2000,12 +2004,13 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @since 2.5.0
 	 * @since 4.4.0 Added the `$post` parameter.
 	 * @since 4.9.0 Added the `$order` parameter.
+	 * @since 6.9.0 Adds ID sort to ensure deterministic ordering for posts with identical dates.
 	 *
 	 * @param string $order_by The `ORDER BY` clause in the SQL.
 	 * @param WP_Post $post    WP_Post object.
 	 * @param string  $order   Sort order. 'DESC' for previous post, 'ASC' for next.
 	 */
-	$sort = apply_filters( "get_{$adjacent}_post_sort", "ORDER BY p.post_date $order LIMIT 1", $post, $order );
+	$sort = apply_filters( "get_{$adjacent}_post_sort", "ORDER BY p.post_date $order, p.ID $order LIMIT 1", $post, $order );
 
 	$query        = "SELECT p.ID FROM $wpdb->posts AS p $join $where $sort";
 	$key          = md5( $query );
@@ -4343,9 +4348,11 @@ function is_avatar_comment_type( $comment_type ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param array $types An array of content types. Default only contains 'comment'.
+	 * @since 6.9.0 The 'note' comment type was added.
+	 *
+	 * @param array $types An array of content types. Default contains 'comment' and 'note'.
 	 */
-	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment' ) );
+	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment', 'note' ) );
 
 	return in_array( $comment_type, (array) $allowed_comment_types, true );
 }

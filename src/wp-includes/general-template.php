@@ -1424,9 +1424,15 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 		$title = __( 'Page not found' );
 	}
 
-	$prefix = '';
-	if ( ! empty( $title ) ) {
-		$prefix = " $sep ";
+	if ( ! is_string( $title ) ) {
+		$title = '';
+	}
+
+	$prefix      = '';
+	$title_array = array();
+	if ( '' !== $title ) {
+		$prefix      = " $sep ";
+		$title_array = explode( $t_sep, $title );
 	}
 
 	/**
@@ -1436,7 +1442,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	 *
 	 * @param string[] $title_array Array of parts of the page title.
 	 */
-	$title_array = apply_filters( 'wp_title_parts', explode( $t_sep, $title ) );
+	$title_array = apply_filters( 'wp_title_parts', $title_array );
 
 	// Determines position of the separator and direction of the breadcrumb.
 	if ( 'right' === $seplocation ) { // Separator on right, so reverse the order.
@@ -2011,6 +2017,17 @@ function wp_get_archives( $args = '' ) {
 		'day'             => get_query_var( 'day' ),
 		'w'               => get_query_var( 'w' ),
 	);
+
+	/**
+	 * Filters the arguments for displaying archive links.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @see wp_get_archives()
+	 *
+	 * @param array<string, string|int|bool> $args Arguments.
+	 */
+	$args = apply_filters( 'wp_get_archives_args', $args );
 
 	$parsed_args = wp_parse_args( $args, $defaults );
 
@@ -3326,9 +3343,13 @@ function feed_links_extra( $args = array() ) {
 	 */
 	$args = apply_filters( 'feed_links_extra_args', $args );
 
-	if ( is_singular() ) {
-		$id   = 0;
-		$post = get_post( $id );
+	/*
+	 * The template conditionals are referring to the global query, so the queried object is used rather than
+	 * depending on a global $post being set.
+	 */
+	$queried_object = get_queried_object();
+	if ( is_singular() && $queried_object instanceof WP_Post ) {
+		$post = $queried_object;
 
 		/** This filter is documented in wp-includes/general-template.php */
 		$show_comments_feed = apply_filters( 'feed_links_show_comments_feed', true );
@@ -3348,12 +3369,17 @@ function feed_links_extra( $args = array() ) {
 		 */
 		$show_post_comments_feed = apply_filters( 'feed_links_extra_show_post_comments_feed', $show_comments_feed );
 
-		if ( $show_post_comments_feed && ( comments_open() || pings_open() || $post->comment_count > 0 ) ) {
+		if ( $show_post_comments_feed && ( comments_open( $post ) || pings_open( $post ) || (int) $post->comment_count > 0 ) ) {
 			$title = sprintf(
 				$args['singletitle'],
 				get_bloginfo( 'name' ),
 				$args['separator'],
-				the_title_attribute( array( 'echo' => false ) )
+				the_title_attribute(
+					array(
+						'echo' => false,
+						'post' => $post,
+					)
+				)
 			);
 
 			$feed_link = get_post_comments_feed_link( $post->ID );
