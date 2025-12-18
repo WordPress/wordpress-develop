@@ -2764,11 +2764,11 @@ function build_query_vars_from_query_block( $block, $page ) {
 				// Helper function to build tax_query conditions from taxonomy terms.
 				$build_conditions = static function ( array $terms, string $operator = 'IN' ): array {
 					$conditions = array();
-					foreach ( $terms as $taxonomy => $terms ) {
-						if ( ! empty( $terms ) && is_taxonomy_viewable( $taxonomy ) ) {
+					foreach ( $terms as $taxonomy => $tax_terms ) {
+						if ( ! empty( $tax_terms ) && is_taxonomy_viewable( $taxonomy ) ) {
 							$conditions[] = array(
 								'taxonomy'         => $taxonomy,
-								'terms'            => array_filter( array_map( 'intval', $terms ) ),
+								'terms'            => array_filter( array_map( 'intval', $tax_terms ) ),
 								'operator'         => $operator,
 								'include_children' => false,
 							);
