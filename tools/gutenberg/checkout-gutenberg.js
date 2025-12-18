@@ -72,7 +72,13 @@ function exec( command, args, options = {} ) {
 					console.error( '\nCommand errors:' );
 					console.error( stderr );
 				}
-				reject( new Error( `${ command } ${ args.join( ' ' ) } failed with code ${ code }` ) );
+				reject(
+					new Error(
+						`${ command } ${ args.join(
+							' '
+						) } failed with code ${ code }`
+					)
+				);
 			} else {
 				resolve();
 			}
@@ -134,7 +140,9 @@ async function main() {
 	// Read Gutenberg ref from package.json
 	let ref;
 	try {
-		const packageJson = JSON.parse( fs.readFileSync( packageJsonPath, 'utf8' ) );
+		const packageJson = JSON.parse(
+			fs.readFileSync( packageJsonPath, 'utf8' )
+		);
 		ref = packageJson.gutenberg?.ref;
 
 		if ( ! ref ) {
@@ -156,13 +164,24 @@ async function main() {
 		try {
 			// Generic shallow clone approach that works for both branches and commit hashes
 			// 1. Clone with no checkout and shallow depth
-			await exec( 'git', [ 'clone', '--depth', '1', '--no-checkout', GUTENBERG_REPO, 'gutenberg' ] );
+			await exec( 'git', [
+				'clone',
+				'--depth',
+				'1',
+				'--no-checkout',
+				GUTENBERG_REPO,
+				'gutenberg',
+			] );
 
 			// 2. Fetch the specific ref with depth 1 (works for branches, tags, and commits)
-			await exec( 'git', [ 'fetch', '--depth', '1', 'origin', ref ], { cwd: gutenbergDir } );
+			await exec( 'git', [ 'fetch', '--depth', '1', 'origin', ref ], {
+				cwd: gutenbergDir,
+			} );
 
 			// 3. Checkout FETCH_HEAD
-			await exec( 'git', [ 'checkout', 'FETCH_HEAD' ], { cwd: gutenbergDir } );
+			await exec( 'git', [ 'checkout', 'FETCH_HEAD' ], {
+				cwd: gutenbergDir,
+			} );
 
 			console.log( '✅ Cloned successfully' );
 		} catch ( error ) {
@@ -177,10 +196,14 @@ async function main() {
 	console.log( `\n📡 Fetching and checking out: ${ ref }` );
 	try {
 		// Fetch the specific ref (works for branches, tags, and commit hashes)
-		await exec( 'git', [ 'fetch', '--depth', '1', 'origin', ref ], { cwd: gutenbergDir } );
+		await exec( 'git', [ 'fetch', '--depth', '1', 'origin', ref ], {
+			cwd: gutenbergDir,
+		} );
 
 		// Checkout what was just fetched
-		await exec( 'git', [ 'checkout', 'FETCH_HEAD' ], { cwd: gutenbergDir } );
+		await exec( 'git', [ 'checkout', 'FETCH_HEAD' ], {
+			cwd: gutenbergDir,
+		} );
 
 		console.log( '✅ Checked out successfully' );
 	} catch ( error ) {
@@ -190,7 +213,9 @@ async function main() {
 
 	// Install dependencies
 	console.log( '\n📦 Installing dependencies...' );
-	const nodeModulesExists = fs.existsSync( path.join( gutenbergDir, 'node_modules' ) );
+	const nodeModulesExists = fs.existsSync(
+		path.join( gutenbergDir, 'node_modules' )
+	);
 
 	if ( ! nodeModulesExists ) {
 		console.log( '   (This may take a few minutes on first run)' );

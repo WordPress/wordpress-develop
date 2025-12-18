@@ -22,10 +22,12 @@ const gutenbergPackagesDir = path.join( gutenbergDir, 'packages' );
 // Determine build target from command line argument (--dev or --build-dir)
 // Default to 'src' for development
 const args = process.argv.slice( 2 );
-const buildDirArg = args.find( arg => arg.startsWith( '--build-dir=' ) );
+const buildDirArg = args.find( ( arg ) => arg.startsWith( '--build-dir=' ) );
 const buildTarget = buildDirArg
-	? buildDirArg.split( '=' )[1]
-	: ( args.includes( '--dev' ) ? 'src' : 'build' );
+	? buildDirArg.split( '=' )[ 1 ]
+	: args.includes( '--dev' )
+	? 'src'
+	: 'build';
 
 const wpIncludesDir = path.join( rootDir, buildTarget, 'wp-includes' );
 
@@ -37,14 +39,8 @@ const COPY_CONFIG = {
 	// PHP infrastructure files (to wp-includes/build/)
 	phpInfrastructure: {
 		destination: 'build',
-		files: [
-			'routes.php',
-			'pages.php',
-		],
-		directories: [
-			'pages',
-			'routes',
-		],
+		files: [ 'routes.php', 'pages.php' ],
+		directories: [ 'pages', 'routes' ],
 		transform: true, // Apply PHP transformations
 	},
 
@@ -56,8 +52,8 @@ const COPY_CONFIG = {
 		patterns: [ '*.js', '*.js.map' ],
 		// Rename vendors/ to vendor/ when copying
 		directoryRenames: {
-			'vendors': 'vendor'
-		}
+			vendors: 'vendor',
+		},
 	},
 
 	// Script modules (to wp-includes/js/dist/script-modules/)
@@ -134,7 +130,9 @@ function isExperimentalBlock( blockJsonPath ) {
 		if ( ! fs.existsSync( blockJsonPath ) ) {
 			return false;
 		}
-		const blockJson = JSON.parse( fs.readFileSync( blockJsonPath, 'utf8' ) );
+		const blockJson = JSON.parse(
+			fs.readFileSync( blockJsonPath, 'utf8' )
+		);
 		return !! blockJson.__experimental;
 	} catch ( error ) {
 		return false;
@@ -185,9 +183,16 @@ function copyDirectory( src, dest, transform = null, options = {} ) {
 			// Apply transformation if provided and file is text
 			if ( transform && /\.(php|js|css)$/.test( entry.name ) ) {
 				try {
-					content = transform( content.toString(), srcPath, destPath );
+					content = transform(
+						content.toString(),
+						srcPath,
+						destPath
+					);
 				} catch ( error ) {
-					console.error( `   ⚠️  Transform error in ${ entry.name }:`, error.message );
+					console.error(
+						`   ⚠️  Transform error in ${ entry.name }:`,
+						error.message
+					);
 				}
 			}
 
@@ -215,13 +220,18 @@ function copyBlockAssets( config ) {
 		}
 
 		// Get all block directories from the scripts source
-		const blockDirs = fs.readdirSync( scriptsSrc, { withFileTypes: true } )
-			.filter( entry => entry.isDirectory() )
-			.map( entry => entry.name );
+		const blockDirs = fs
+			.readdirSync( scriptsSrc, { withFileTypes: true } )
+			.filter( ( entry ) => entry.isDirectory() )
+			.map( ( entry ) => entry.name );
 
 		for ( const blockName of blockDirs ) {
 			// Skip experimental blocks
-			const blockJsonPath = path.join( scriptsSrc, blockName, 'block.json' );
+			const blockJsonPath = path.join(
+				scriptsSrc,
+				blockName,
+				'block.json'
+			);
 			if ( isExperimentalBlock( blockJsonPath ) ) {
 				continue;
 			}
@@ -247,8 +257,9 @@ function copyBlockAssets( config ) {
 			// 2. Copy styles (if they exist in per-block directory)
 			const blockStylesSrc = path.join( stylesSrc, blockName );
 			if ( fs.existsSync( blockStylesSrc ) ) {
-				const cssFiles = fs.readdirSync( blockStylesSrc )
-					.filter( file => file.endsWith( '.css' ) );
+				const cssFiles = fs
+					.readdirSync( blockStylesSrc )
+					.filter( ( file ) => file.endsWith( '.css' ) );
 				for ( const cssFile of cssFiles ) {
 					fs.copyFileSync(
 						path.join( blockStylesSrc, cssFile ),
@@ -260,14 +271,20 @@ function copyBlockAssets( config ) {
 			// 3. Copy and transform PHP from packages
 			const blockPhpSrc = path.join( phpSrc, blockName, 'index.php' );
 			if ( fs.existsSync( blockPhpSrc ) ) {
-				const phpDest = path.join( wpIncludesDir, config.destination, `${ blockName }.php` );
+				const phpDest = path.join(
+					wpIncludesDir,
+					config.destination,
+					`${ blockName }.php`
+				);
 				let content = fs.readFileSync( blockPhpSrc, 'utf8' );
 				content = transformPHPContent( content, blockPhpSrc, phpDest );
 				fs.writeFileSync( phpDest, content );
 			}
 		}
 
-		console.log( `   ✅ ${ source.name } blocks copied (${ blockDirs.length } blocks)` );
+		console.log(
+			`   ✅ ${ source.name } blocks copied (${ blockDirs.length } blocks)`
+		);
 	}
 }
 
@@ -302,23 +319,33 @@ function generateScriptModulesPackages() {
 			} else if ( entry.name.endsWith( '.min.asset.php' ) ) {
 				const relativePath = path.relative( baseDir, fullPath );
 				// Normalize path separators to forward slashes for cross-platform consistency
-				const normalizedPath = relativePath.split( path.sep ).join( '/' );
-				const jsPathMin = normalizedPath.replace( /\.asset\.php$/, '.js' );
+				const normalizedPath = relativePath
+					.split( path.sep )
+					.join( '/' );
+				const jsPathMin = normalizedPath.replace(
+					/\.asset\.php$/,
+					'.js'
+				);
 				const jsPathRegular = jsPathMin.replace( /\.min\.js$/, '.js' );
 
 				try {
 					// Read and parse the PHP asset file
 					const phpContent = fs.readFileSync( fullPath, 'utf8' );
 					// Extract the array from PHP: <?php return array(...);
-					const match = phpContent.match( /return\s+array\(([\s\S]*?)\);/  );
+					const match = phpContent.match(
+						/return\s+array\(([\s\S]*?)\);/
+					);
 					if ( match ) {
 						// Parse PHP array to JavaScript object
-						const assetData = parsePHPArray( match[1] );
+						const assetData = parsePHPArray( match[ 1 ] );
 						assetsMin[ jsPathMin ] = assetData;
 						assetsRegular[ jsPathRegular ] = assetData;
 					}
 				} catch ( error ) {
-					console.error( `   ⚠️  Error reading ${ relativePath }:`, error.message );
+					console.error(
+						`   ⚠️  Error reading ${ relativePath }:`,
+						error.message
+					);
 				}
 			}
 		}
@@ -327,26 +354,40 @@ function generateScriptModulesPackages() {
 	processDirectory( modulesDir, modulesDir );
 
 	// Generate both minified and non-minified PHP files using json2php
-	const phpContentMin = '<?php return ' + json2php.make( {
-		linebreak: '\n',
-		indent: '  ',
-		shortArraySyntax: false
-	} )( assetsMin ) + ';';
+	const phpContentMin =
+		'<?php return ' +
+		json2php.make( {
+			linebreak: '\n',
+			indent: '  ',
+			shortArraySyntax: false,
+		} )( assetsMin ) +
+		';';
 
-	const phpContentRegular = '<?php return ' + json2php.make( {
-		linebreak: '\n',
-		indent: '  ',
-		shortArraySyntax: false
-	} )( assetsRegular ) + ';';
+	const phpContentRegular =
+		'<?php return ' +
+		json2php.make( {
+			linebreak: '\n',
+			indent: '  ',
+			shortArraySyntax: false,
+		} )( assetsRegular ) +
+		';';
 
-	const outputPathMin = path.join( wpIncludesDir, 'assets/script-modules-packages.min.php' );
-	const outputPathRegular = path.join( wpIncludesDir, 'assets/script-modules-packages.php' );
+	const outputPathMin = path.join(
+		wpIncludesDir,
+		'assets/script-modules-packages.min.php'
+	);
+	const outputPathRegular = path.join(
+		wpIncludesDir,
+		'assets/script-modules-packages.php'
+	);
 
 	fs.mkdirSync( path.dirname( outputPathMin ), { recursive: true } );
 	fs.writeFileSync( outputPathMin, phpContentMin );
 	fs.writeFileSync( outputPathRegular, phpContentRegular );
 
-	console.log( `   ✅ Generated with ${ Object.keys( assetsMin ).length } modules` );
+	console.log(
+		`   ✅ Generated with ${ Object.keys( assetsMin ).length } modules`
+	);
 }
 
 /**
@@ -371,7 +412,11 @@ function generateScriptLoaderPackages() {
 			continue;
 		}
 
-		const assetFile = path.join( scriptsDir, entry.name, 'index.min.asset.php' );
+		const assetFile = path.join(
+			scriptsDir,
+			entry.name,
+			'index.min.asset.php'
+		);
 		if ( ! fs.existsSync( assetFile ) ) {
 			continue;
 		}
@@ -402,31 +447,48 @@ function generateScriptLoaderPackages() {
 				assetsRegular[ jsPathRegular ] = assetData;
 			}
 		} catch ( error ) {
-			console.error( `   ⚠️  Error reading ${ entry.name }/index.min.asset.php:`, error.message );
+			console.error(
+				`   ⚠️  Error reading ${ entry.name }/index.min.asset.php:`,
+				error.message
+			);
 		}
 	}
 
 	// Generate both minified and non-minified PHP files using json2php
-	const phpContentMin = '<?php return ' + json2php.make( {
-		linebreak: '\n',
-		indent: '  ',
-		shortArraySyntax: false
-	} )( assetsMin ) + ';';
+	const phpContentMin =
+		'<?php return ' +
+		json2php.make( {
+			linebreak: '\n',
+			indent: '  ',
+			shortArraySyntax: false,
+		} )( assetsMin ) +
+		';';
 
-	const phpContentRegular = '<?php return ' + json2php.make( {
-		linebreak: '\n',
-		indent: '  ',
-		shortArraySyntax: false
-	} )( assetsRegular ) + ';';
+	const phpContentRegular =
+		'<?php return ' +
+		json2php.make( {
+			linebreak: '\n',
+			indent: '  ',
+			shortArraySyntax: false,
+		} )( assetsRegular ) +
+		';';
 
-	const outputPathMin = path.join( wpIncludesDir, 'assets/script-loader-packages.min.php' );
-	const outputPathRegular = path.join( wpIncludesDir, 'assets/script-loader-packages.php' );
+	const outputPathMin = path.join(
+		wpIncludesDir,
+		'assets/script-loader-packages.min.php'
+	);
+	const outputPathRegular = path.join(
+		wpIncludesDir,
+		'assets/script-loader-packages.php'
+	);
 
 	fs.mkdirSync( path.dirname( outputPathMin ), { recursive: true } );
 	fs.writeFileSync( outputPathMin, phpContentMin );
 	fs.writeFileSync( outputPathRegular, phpContentRegular );
 
-	console.log( `   ✅ Generated with ${ Object.keys( assetsMin ).length } packages` );
+	console.log(
+		`   ✅ Generated with ${ Object.keys( assetsMin ).length } packages`
+	);
 }
 
 /**
@@ -490,7 +552,11 @@ function generateBlockRegistrationFiles() {
 
 // This file was autogenerated by tools/gutenberg/copy-gutenberg-build.js, do not change manually!
 // Requires files for dynamic blocks necessary for core blocks registration.
-${ dynamicBlocks.map( name => `require_once ABSPATH . WPINC . '/blocks/${ name }.php';` ).join( '\n' ) }
+${ dynamicBlocks
+	.map(
+		( name ) => `require_once ABSPATH . WPINC . '/blocks/${ name }.php';`
+	)
+	.join( '\n' ) }
 `;
 
 	fs.writeFileSync(
@@ -504,7 +570,7 @@ ${ dynamicBlocks.map( name => `require_once ABSPATH . WPINC . '/blocks/${ name }
 // This file was autogenerated by tools/gutenberg/copy-gutenberg-build.js, do not change manually!
 // Returns folder names for static blocks necessary for core blocks registration.
 return array(
-${ staticBlocks.map( name => `\t'${ name }',` ).join( '\n' ) }
+${ staticBlocks.map( ( name ) => `\t'${ name }',` ).join( '\n' ) }
 );
 `;
 
@@ -513,7 +579,9 @@ ${ staticBlocks.map( name => `\t'${ name }',` ).join( '\n' ) }
 		staticContent
 	);
 
-	console.log( `   ✅ Generated: ${ dynamicBlocks.length } dynamic, ${ staticBlocks.length } static blocks` );
+	console.log(
+		`   ✅ Generated: ${ dynamicBlocks.length } dynamic, ${ staticBlocks.length } static blocks`
+	);
 }
 
 /**
@@ -541,27 +609,37 @@ function generateBlocksJson() {
 
 		if ( fs.existsSync( blockJsonPath ) ) {
 			try {
-				const blockJson = JSON.parse( fs.readFileSync( blockJsonPath, 'utf8' ) );
+				const blockJson = JSON.parse(
+					fs.readFileSync( blockJsonPath, 'utf8' )
+				);
 				blocks[ entry.name ] = blockJson;
 			} catch ( error ) {
-				console.error( `   ⚠️  Error reading ${ entry.name }/block.json:`, error.message );
+				console.error(
+					`   ⚠️  Error reading ${ entry.name }/block.json:`,
+					error.message
+				);
 			}
 		}
 	}
 
 	// Generate the PHP file content using json2php for consistent formatting
-	const phpContent = '<?php return ' + json2php.make( {
-		linebreak: '\n',
-		indent: '  ',
-		shortArraySyntax: false
-	} )( blocks ) + ';';
+	const phpContent =
+		'<?php return ' +
+		json2php.make( {
+			linebreak: '\n',
+			indent: '  ',
+			shortArraySyntax: false,
+		} )( blocks ) +
+		';';
 
 	fs.writeFileSync(
 		path.join( wpIncludesDir, 'blocks/blocks-json.php' ),
 		phpContent
 	);
 
-	console.log( `   ✅ Generated with ${ Object.keys( blocks ).length } blocks` );
+	console.log(
+		`   ✅ Generated with ${ Object.keys( blocks ).length } blocks`
+	);
 }
 
 /**
@@ -584,10 +662,13 @@ function parsePHPArray( phpArrayContent ) {
 	let arrayStart = -1;
 
 	for ( let i = 0; i < content.length; i++ ) {
-		const char = content[i];
+		const char = content[ i ];
 
 		// Track strings
-		if ( ( char === "'" || char === '"' ) && ( i === 0 || content[i - 1] !== '\\' ) ) {
+		if (
+			( char === "'" || char === '"' ) &&
+			( i === 0 || content[ i - 1 ] !== '\\' )
+		) {
 			if ( ! inString ) {
 				inString = true;
 				stringChar = char;
@@ -621,7 +702,10 @@ function parsePHPArray( phpArrayContent ) {
 						// Found complete nested array
 						const placeholder = `__ARRAY_${ nestedArrays.length }__`;
 						nestedArrays.push( currentArray );
-						content = content.substring( 0, arrayStart ) + placeholder + content.substring( i + 1 );
+						content =
+							content.substring( 0, arrayStart ) +
+							placeholder +
+							content.substring( i + 1 );
 						i = arrayStart + placeholder.length - 1;
 						currentArray = '';
 					} else {
@@ -648,9 +732,12 @@ function parsePHPArray( phpArrayContent ) {
 	let currentPart = '';
 
 	for ( let i = 0; i < content.length; i++ ) {
-		const char = content[i];
+		const char = content[ i ];
 
-		if ( ( char === "'" || char === '"' ) && ( i === 0 || content[i - 1] !== '\\' ) ) {
+		if (
+			( char === "'" || char === '"' ) &&
+			( i === 0 || content[ i - 1 ] !== '\\' )
+		) {
 			inString = ! inString;
 		}
 
@@ -675,8 +762,8 @@ function parsePHPArray( phpArrayContent ) {
 
 		if ( arrowMatch ) {
 			isAssociative = true;
-			let key = arrowMatch[1].trim().replace( /^['"]|['"]$/g, '' );
-			let value = arrowMatch[2].trim();
+			let key = arrowMatch[ 1 ].trim().replace( /^['"]|['"]$/g, '' );
+			let value = arrowMatch[ 2 ].trim();
 
 			// Replace placeholders
 			while ( value.match( /__ARRAY_(\d+)__/ ) ) {
@@ -727,7 +814,6 @@ function parsePHPArray( phpArrayContent ) {
 	}
 }
 
-
 /**
  * Transform PHP file contents to work in Core.
  *
@@ -750,8 +836,6 @@ function transformPHPContent( content, srcPath, destPath ) {
 
 	// Special transformations for page-wp-admin.php files
 	if ( destPath.includes( 'page-wp-admin.php' ) ) {
-
-
 		// Fix enqueue condition to also work for direct page files (e.g., fonts.php)
 		// This allows the page to work both via menu (admin.php?page=X) and direct file (X.php)
 		transformed = transformed.replace(
@@ -759,9 +843,9 @@ function transformPHPContent( content, srcPath, destPath ) {
 			( match, pageName ) => {
 				// Extract the base name (e.g., 'font-library' from 'font-library-wp-admin')
 				const baseName = pageName.replace( '-wp-admin', '' );
-				return `// Only enqueue on our page (either ${baseName}.php or the menu page)
-		$is_menu_page = isset( $_GET['page'] ) && '${pageName}' === $_GET['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$is_direct_page = '${baseName}.php' === $hook_suffix;
+				return `// Only enqueue on our page (either ${ baseName }.php or the menu page)
+		$is_menu_page = isset( $_GET['page'] ) && '${ pageName }' === $_GET['page']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$is_direct_page = '${ baseName }.php' === $hook_suffix;
 
 		if ( ! $is_menu_page && ! $is_direct_page ) {
 			return;
@@ -808,7 +892,9 @@ async function main() {
 			fs.writeFileSync( dest, content );
 			console.log( `   ✅ ${ file }` );
 		} else {
-			console.log( `   ⚠️  ${ file } not found (may not exist in this Gutenberg version)` );
+			console.log(
+				`   ⚠️  ${ file } not found (may not exist in this Gutenberg version)`
+			);
 		}
 	}
 
@@ -844,10 +930,15 @@ async function main() {
 
 			if ( entry.isDirectory() ) {
 				// Check if this should be copied as a directory (like vendors/)
-				if ( scriptsConfig.copyDirectories && scriptsConfig.directoryRenames && scriptsConfig.directoryRenames[ entry.name ] ) {
+				if (
+					scriptsConfig.copyDirectories &&
+					scriptsConfig.directoryRenames &&
+					scriptsConfig.directoryRenames[ entry.name ]
+				) {
 					// Copy special directories with rename (vendors/ → vendor/)
 					// Only copy react-jsx-runtime from vendors (react and react-dom come from Core's node_modules)
-					const destName = scriptsConfig.directoryRenames[ entry.name ];
+					const destName =
+						scriptsConfig.directoryRenames[ entry.name ];
 					const dest = path.join( scriptsDest, destName );
 
 					if ( entry.name === 'vendors' ) {
@@ -860,8 +951,14 @@ async function main() {
 								const destFile = path.join( dest, file );
 								fs.mkdirSync( dest, { recursive: true } );
 
-								if ( file.endsWith( '.js' ) && ! file.endsWith( '.js.map' ) ) {
-									let content = fs.readFileSync( srcFile, 'utf8' );
+								if (
+									file.endsWith( '.js' ) &&
+									! file.endsWith( '.js.map' )
+								) {
+									let content = fs.readFileSync(
+										srcFile,
+										'utf8'
+									);
 									content = removeSourceMaps( content );
 									fs.writeFileSync( destFile, content );
 								} else {
@@ -870,11 +967,15 @@ async function main() {
 								copiedCount++;
 							}
 						}
-						console.log( `   ✅ ${ entry.name }/ → ${ destName }/ (react-jsx-runtime only, ${ copiedCount } files)` );
+						console.log(
+							`   ✅ ${ entry.name }/ → ${ destName }/ (react-jsx-runtime only, ${ copiedCount } files)`
+						);
 					} else {
 						// Copy other special directories normally
 						copyDirectory( src, dest, removeSourceMaps );
-						console.log( `   ✅ ${ entry.name }/ → ${ destName }/` );
+						console.log(
+							`   ✅ ${ entry.name }/ → ${ destName }/`
+						);
 					}
 				} else {
 					// Flatten package structure: package-name/index.js → package-name.js
@@ -882,17 +983,32 @@ async function main() {
 					const packageFiles = fs.readdirSync( src );
 
 					for ( const file of packageFiles ) {
-						if ( /^index\.(js|js\.map|min\.js|min\.js\.map|min\.asset\.php)$/.test( file ) ) {
+						if (
+							/^index\.(js|js\.map|min\.js|min\.js\.map|min\.asset\.php)$/.test(
+								file
+							)
+						) {
 							const srcFile = path.join( src, file );
 							// Replace 'index.' with 'package-name.'
-							const destFile = file.replace( /^index\./, `${ entry.name }.` );
+							const destFile = file.replace(
+								/^index\./,
+								`${ entry.name }.`
+							);
 							const destPath = path.join( scriptsDest, destFile );
 
-							fs.mkdirSync( path.dirname( destPath ), { recursive: true } );
+							fs.mkdirSync( path.dirname( destPath ), {
+								recursive: true,
+							} );
 
 							// Apply source map removal for .js files
-							if ( file.endsWith( '.js' ) && ! file.endsWith( '.js.map' ) ) {
-								let content = fs.readFileSync( srcFile, 'utf8' );
+							if (
+								file.endsWith( '.js' ) &&
+								! file.endsWith( '.js.map' )
+							) {
+								let content = fs.readFileSync(
+									srcFile,
+									'utf8'
+								);
 								content = removeSourceMaps( content );
 								fs.writeFileSync( destPath, content );
 							} else {
@@ -902,12 +1018,18 @@ async function main() {
 						}
 					}
 				}
-			} else if ( entry.isFile() && /\.(js|js\.map)$/.test( entry.name ) ) {
+			} else if (
+				entry.isFile() &&
+				/\.(js|js\.map)$/.test( entry.name )
+			) {
 				// Copy root-level JS files
 				const dest = path.join( scriptsDest, entry.name );
 				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
 
-				if ( entry.name.endsWith( '.js' ) && ! entry.name.endsWith( '.js.map' ) ) {
+				if (
+					entry.name.endsWith( '.js' ) &&
+					! entry.name.endsWith( '.js.map' )
+				) {
 					let content = fs.readFileSync( src, 'utf8' );
 					content = removeSourceMaps( content );
 					fs.writeFileSync( dest, content );
@@ -945,7 +1067,10 @@ async function main() {
 
 	// 5. Copy blocks (unified: scripts, styles, PHP, JSON)
 	console.log( '\n📦 Copying blocks...' );
-	const blocksDest = path.join( wpIncludesDir, COPY_CONFIG.blocks.destination );
+	const blocksDest = path.join(
+		wpIncludesDir,
+		COPY_CONFIG.blocks.destination
+	);
 	copyBlockAssets( COPY_CONFIG.blocks );
 
 	// 6. Copy non-block PHP source files (from packages)
@@ -962,7 +1087,11 @@ async function main() {
 
 		for ( const file of fileGroup.files ) {
 			const src = path.join( packageSrc, file );
-			const dest = path.join( wpIncludesDir, fileGroup.destination, file );
+			const dest = path.join(
+				wpIncludesDir,
+				fileGroup.destination,
+				file
+			);
 
 			if ( fs.existsSync( src ) ) {
 				fs.mkdirSync( path.dirname( dest ), { recursive: true } );
@@ -975,7 +1104,9 @@ async function main() {
 				fs.writeFileSync( dest, content );
 			}
 		}
-		console.log( `   ✅ ${ fileGroup.package } (${ fileGroup.files.length } files)` );
+		console.log(
+			`   ✅ ${ fileGroup.package } (${ fileGroup.files.length } files)`
+		);
 	}
 
 	// 7. Copy theme JSON files (from Gutenberg lib directory)

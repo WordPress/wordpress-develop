@@ -62,7 +62,13 @@ function exec( command, args, options = {} ) {
 					console.error( '\nCommand errors:' );
 					console.error( stderr );
 				}
-				reject( new Error( `${ command } ${ args.join( ' ' ) } failed with code ${ code }` ) );
+				reject(
+					new Error(
+						`${ command } ${ args.join(
+							' '
+						) } failed with code ${ code }`
+					)
+				);
 			} else {
 				resolve();
 			}
@@ -116,7 +122,10 @@ async function main() {
 		console.log( '   ✅ IS_GUTENBERG_PLUGIN = false' );
 		console.log( '   ✅ IS_WORDPRESS_CORE = true' );
 	} catch ( error ) {
-		console.error( '❌ Error modifying Gutenberg package.json:', error.message );
+		console.error(
+			'❌ Error modifying Gutenberg package.json:',
+			error.message
+		);
 		process.exit( 1 );
 	}
 
@@ -129,11 +138,14 @@ async function main() {
 	try {
 		// On Windows, shell mode is used and needs the argument wrapped in quotes
 		// On Unix, arguments are passed directly without shell parsing
-		const baseUrlArg = process.platform === 'win32'
-			? '--base-url="includes_url( \'build\' )"'
-			: '--base-url=includes_url( \'build\' )';
+		const baseUrlArg =
+			process.platform === 'win32'
+				? '--base-url="includes_url( \'build\' )"'
+				: "--base-url=includes_url( 'build' )";
 
-		await exec( 'npm', [ 'run', 'build', '--', baseUrlArg ], { cwd: gutenbergDir } );
+		await exec( 'npm', [ 'run', 'build', '--', baseUrlArg ], {
+			cwd: gutenbergDir,
+		} );
 
 		const duration = Math.round( ( Date.now() - startTime ) / 1000 );
 		console.log( `✅ Build completed in ${ duration }s` );
