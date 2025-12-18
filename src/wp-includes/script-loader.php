@@ -2206,7 +2206,7 @@ function _print_scripts() {
 	}
 
 	$concat    = trim( $wp_scripts->concat, ', ' );
-	$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : " type='text/javascript'";
+	$type_attr = '';
 
 	if ( $concat ) {
 		if ( ! empty( $wp_scripts->print_code ) ) {
@@ -2399,7 +2399,7 @@ function _print_styles() {
 	}
 
 	$concat    = trim( $wp_styles->concat, ', ' );
-	$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+	$type_attr = '';
 
 	if ( $concat ) {
 		$dir = $wp_styles->text_direction;
@@ -2905,12 +2905,8 @@ function wp_sanitize_script_attributes( $attributes ) {
  * @return string String containing `<script>` opening and closing tags.
  */
 function wp_get_script_tag( $attributes ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
-		$attributes = array_merge(
-			array( 'type' => 'text/javascript' ),
-			$attributes
-		);
+	if ( isset( $attributes['type'] ) && 'text/javascript' === $attributes['type'] ) {
+		unset( $attributes['type'] );
 	}
 	/**
 	 * Filters attributes to be added to a script tag.
@@ -2953,13 +2949,8 @@ function wp_print_script_tag( $attributes ) {
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
-	$is_html5 = current_theme_supports( 'html5', 'script' ) || is_admin();
-	if ( ! isset( $attributes['type'] ) && ! $is_html5 ) {
-		// Keep the type attribute as the first for legacy reasons (it has always been this way in core).
-		$attributes = array_merge(
-			array( 'type' => 'text/javascript' ),
-			$attributes
-		);
+	if ( isset( $attributes['type'] ) && 'text/javascript' === $attributes['type'] ) {
+		unset( $attributes['type'] );
 	}
 
 	/*
@@ -2987,15 +2978,12 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	 * @see https://www.w3.org/TR/xhtml1/#h-4.8
 	 */
 	if (
-		! $is_html5 &&
-		(
-			! isset( $attributes['type'] ) ||
-			'module' === $attributes['type'] ||
-			str_contains( $attributes['type'], 'javascript' ) ||
-			str_contains( $attributes['type'], 'ecmascript' ) ||
-			str_contains( $attributes['type'], 'jscript' ) ||
-			str_contains( $attributes['type'], 'livescript' )
-		)
+		! isset( $attributes['type'] ) ||
+		'module' === $attributes['type'] ||
+		str_contains( $attributes['type'], 'javascript' ) ||
+		str_contains( $attributes['type'], 'ecmascript' ) ||
+		str_contains( $attributes['type'], 'jscript' ) ||
+		str_contains( $attributes['type'], 'livescript' )
 	) {
 		/*
 		 * If the string `]]>` exists within the JavaScript it would break
