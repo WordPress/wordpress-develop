@@ -3868,7 +3868,7 @@ class WP_HTML_Tag_Processor {
 						/**
 						 * JSON can be safely escaped.
 						 *
-						 * The following replacement may appear insuficcient, "<" is replaced
+						 * The following replacement may appear insufficient, "<" is replaced
 						 * with its JSON escape sequence "\u003C" without considering whether
 						 * the "<" is preceded by an escaping slash. JSON does not support
 						 * arbitrary character escaping (like JavaScript strings) so "\<"
