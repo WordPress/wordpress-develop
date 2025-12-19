@@ -23,6 +23,8 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * Set up each test method.
 	 */
 	public function set_up(): void {
+		require_once DIR_TESTDATA . '/../includes/class-tests-custom-ability-class.php';
+
 		parent::set_up();
 
 		$this->registry = new WP_Abilities_Registry();
@@ -255,6 +257,36 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 		$this->assertNull( $result );
+	}
+
+	/**
+	 * Should allow ability registration with custom ability_class that overrides do_execute.
+	 *
+	 * @ticket 64407
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_register_with_custom_ability_class_without_execute_callback() {
+		// Remove execute_callback and permission_callback since the custom class provides its own implementation.
+		unset( self::$test_ability_args['execute_callback'] );
+		unset( self::$test_ability_args['permission_callback'] );
+
+		self::$test_ability_args['ability_class'] = 'Tests_Custom_Ability_Class';
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+
+		$this->assertInstanceOf( WP_Ability::class, $result, 'Should return a WP_Ability instance.' );
+		$this->assertInstanceOf( Tests_Custom_Ability_Class::class, $result, 'Should return an instance of the custom class.' );
+
+		// Verify the custom execute method works.
+		$execute_result = $result->execute(
+			array(
+				'a' => 5,
+				'b' => 3,
+			)
+		);
+		$this->assertSame( 15, $execute_result, 'Custom do_execute should multiply instead of add.' );
 	}
 
 	/**
