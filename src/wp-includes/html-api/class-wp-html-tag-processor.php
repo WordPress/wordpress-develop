@@ -3820,9 +3820,10 @@ class WP_HTML_Tag_Processor {
 				 * SCRIPT element from closing as expected, for example:
 				 *
 				 *     <script>
-				 *     // If this "<!--" then "<script>" the closing tag will not be recognized.
+				 *       // If "<!--" and "<script>" appear like this,
+				 *       // the following `</script>` close tag will not be recognized.
 				 *     </script>
-				 *     <h1>This appears inside the preceding SCRIPT element.</h1>
+				 *     <h1>This appears _inside_ the preceding SCRIPT element.</h1>
 				 *
 				 * The relevant state transitions happen on text like:
 				 *     1. <
