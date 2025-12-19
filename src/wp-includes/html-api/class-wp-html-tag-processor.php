@@ -3814,15 +3814,16 @@ class WP_HTML_Tag_Processor {
 				/*
 				 * SCRIPT tag contents can be dangerous.
 				 *
-				 * The text `</script>` could close the SCRIPT element prematurely.
+				 * The text "</script>" could close the SCRIPT element prematurely.
 				 *
-				 * The text `<script>` could enter the "script data double escaped state", preventing the
+				 * The text "<script>" could enter the “script data double escaped state”, preventing the
 				 * SCRIPT element from closing as expected, for example:
 				 *
 				 *     <script>
-				 *     // If this "<!--" then "<script>" the closing tag will not be recognized.
+				 *       // If "<!--" and "<script>" appear like this,
+				 *       // the following `</script>` close tag will not be recognized.
 				 *     </script>
-				 *     <h1>This appears inside the preceding SCRIPT element.</h1>
+				 *     <h1>This appears _inside_ the preceding SCRIPT element.</h1>
 				 *
 				 * The relevant state transitions happen on text like:
 				 *     1. <
@@ -3844,23 +3845,63 @@ class WP_HTML_Tag_Processor {
 					false !== stripos( $plaintext_content, '<script' )
 				) {
 					/*
-					 * JavaScript can be safely escaped.
+					 * JavaScript can be safely escaped with a few exceptions. This is achieved by
+					 * replacing dangerous sequences like "<script" and "</script" with a form
+					 * using a Unicode escape sequence "<\u0073cript>" and "</\u0073cript>".
+					 *
+					 * `<script` and `</script` appear in JavaScript source code in limited places,
+					 * all of which support a Unicode escape sequence on the "s" character.
+					 * JavaScript identifiers, string literals, template literals, and RegExp
+					 * literals all support Unicode escape sequences, meaning that the escaped form
+					 * is indistinguishable from the unescaped form when the JavaScript
+					 * is evaluated.
+					 *
+					 * There are a few exceptions where the escaped form can be detected:
+					 *
+					 * - The escaped form would appear in any JavaScript comments.
+					 * - “Raw” strings via `String.raw()` or the `raw` property of the first
+					 *   argument to a tagged template literal exposes the raw form, revealing any
+					 *   escaping that has been applied.
+					 * - The `source` property of a RegExp object reveals an escaped form the of
+					 *   the pattern.
+					 *
+					 * For JavaScript that needs to avoid these issues, workarounds may
+					 * be available. For example:
+					 *
+					 *      // Instead of:
+					 *      const rawStringWillBeEscaped = String.raw`</script>`;
+					 *
+					 *      // This will yield the same result with no escaping required:
+					 *      const rawStringWillBePreserved = String.raw`</scr` + String.raw`ipt>`;
+					 *
+					 *      // After the escaping has been applied and the JavaScript evaluated,
+					 *      // these are the resulting values:
+					 *      rawStringWillBeEscaped;  // "</\\u0073cript>"
+					 *      rawStringWillBePreserve; // "</script>"
+					 *
+					 *
+					 * Escaping is applied only where strictly necessary, reducing the likelyhood
+					 * that observable differences manifest in the escaped JavaScript.
+					 *
+					 * The alternatives are to reject JavaScript that could be safely escaped in
+					 * a majority of cases or to relax restrictions in ways that produce dangerous
+					 * or broken HTML documents, neither are desirable.
 					 */
 					if ( $this->is_javascript_script_tag() ) {
 						$plaintext_content = preg_replace_callback(
 							/*
-							 * This case-insensitive pattern consists of three groups:
+							 * This case-insensitive pattern consists of three groups (in order):
 							 *
-							 * 1: "<" or "</"
-							 * 2: "s"
-							 * 3: "cript" + a trailing character that terminates a tag name.
+							 * HEAD:   "<" or "</"
+							 * S_CHAR: "s"
+							 * TAIL:   "cript" + a trailing tag name termination character
 							 */
-							'~(</?)(s)(cript[\\t\\r\\n\\f />])~i',
+							'~(?P<HEAD></?)(?P<S_CHAR>s)(?P<TAIL>cript[\\t\\r\\n\\f />])~i',
 							static function ( $matches ) {
-								$escaped_s_char = 's' === $matches[2]
+								$escaped_s_char = 's' === $matches['S_CHAR']
 									? '\\u0073'
 									: '\\u0053';
-								return "{$matches[1]}{$escaped_s_char}{$matches[3]}";
+								return "{$matches['HEAD']}{$escaped_s_char}{$matches['TAIL']}";
 							},
 							$plaintext_content
 						);
@@ -3882,7 +3923,8 @@ class WP_HTML_Tag_Processor {
 						);
 					} else {
 						/*
-						 * Other types of script tags cannot be escaped safely.
+						 * Other types of script tags cannot be escaped safely because the type
+						 * of comment and escaping strategy are unknown.
 						 */
 						return false;
 					}
@@ -3948,11 +3990,14 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element
 	 *
-	 * @since {WP_VERSION}
+	 * @ignore
+	 * @todo Consider a public API that is clear and general.
+	 *
+	 * @since 7.0.0
 	 *
 	 * @return bool True if the script tag will be evaluated as JavaScript.
 	 */
-	public function is_javascript_script_tag(): bool {
+	private function is_javascript_script_tag(): bool {
 		if ( 'SCRIPT' !== $this->get_tag() || $this->get_namespace() !== 'html' ) {
 			return false;
 		}
@@ -4059,11 +4104,14 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Indicates if the currently matched tag is a JSON script tag.
 	 *
-	 * @since {WP_VERSION}
+	 * @ignore
+	 * @todo Consider a public API that is clear and general.
+	 *
+	 * @since 7.0.0
 	 *
 	 * @return bool True if the script tag should be treated as JSON.
 	 */
-	public function is_json_script_tag(): bool {
+	private function is_json_script_tag(): bool {
 		if ( 'SCRIPT' !== $this->get_tag() || $this->get_namespace() !== 'html' ) {
 			return false;
 		}
@@ -4083,16 +4131,15 @@ class WP_HTML_Tag_Processor {
 		 * > A JSON MIME type is any MIME type whose subtype ends in "+json" or whose essence
 		 * > is "application/json" or "text/json".
 		 *
-		 * The JSON subtype ending in "+json" is not currently handled due to lack
-		 * of a MIME type parser.
+		 * @todo The JSON MIME type handling handles some common cases but when MIME type parsing is available it should be leveraged here.
 		 *
 		 * @see https://mimesniff.spec.whatwg.org/#json-mime-type
 		 */
 		if (
-			'application/json' === $type
-			|| 'importmap' === $type
-			|| 'speculationrules' === $type
-			|| 'text/json' === $type
+			'importmap' === $type ||
+			'speculationrules' === $type ||
+			'application/json' === $type ||
+			'text/json' === $type
 		) {
 			return true;
 		}
