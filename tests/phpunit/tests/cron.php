@@ -847,6 +847,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49961
+	 * @ticket 64404
 	 *
 	 * @covers ::wp_schedule_event
 	 * @covers ::wp_reschedule_event
@@ -860,6 +861,33 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		$this->assertWPError( $rescheduled_event );
 		$this->assertSame( 'invalid_schedule', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 64404
+	 *
+	 * @covers ::wp_schedule_event
+	 * @covers ::wp_reschedule_event
+	 */
+	public function test_invalid_schedule_interval_returns_error() {
+		add_filter(
+			'cron_schedules',
+			static function ( $schedules ) {
+				$schedules['backwards_in_time'] = array(
+					'interval' => -3600,
+					'display'  => 'Back to the future!',
+				);
+				return $schedules;
+			}
+		);
+
+		$event = wp_schedule_event( time(), 'backwards_in_time', 'hook', array(), true );
+		$this->assertWPError( $event );
+		$this->assertSame( 'invalid_interval', $event->get_error_code() );
+
+		$rescheduled_event = wp_reschedule_event( time(), 'backwards_in_time', 'hook', array(), true );
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'invalid_interval', $rescheduled_event->get_error_code() );
 	}
 
 	/**
