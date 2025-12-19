@@ -3855,12 +3855,12 @@ class WP_HTML_Tag_Processor {
 							 * 2: "s"
 							 * 3: "cript" + a trailing character that terminates a tag name.
 							 */
-							'~(</?)(s)(cript[\\t\\r\\n\\f />])~i',
+							'~(?P<HEAD></?)(?P<S_CHAR>s)(?P<TAIL>cript[\\t\\r\\n\\f />])~i',
 							static function ( $matches ) {
-								$escaped_s_char = 's' === $matches[2]
+								$escaped_s_char = 's' === $matches['S_CHAR']
 									? '\\u0073'
 									: '\\u0053';
-								return "{$matches[1]}{$escaped_s_char}{$matches[3]}";
+								return "{$matches['HEAD']}{$escaped_s_char}{$matches['TAIL']}";
 							},
 							$plaintext_content
 						);
