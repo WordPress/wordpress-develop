@@ -3870,14 +3870,12 @@ class WP_HTML_Tag_Processor {
 						 *
 						 * The following replacement may appear insufficient, "<" is replaced
 						 * with its JSON escape sequence "\u003C" without considering whether
-						 * the "<" is preceded by an escaping slash. JSON does not support
-						 * arbitrary character escaping (like JavaScript strings) so "\<"
-						 * is invalid JSON and would have to be preceded by
-						 * an escaped backslash: "\\<".
+						 * the "<" is preceded by an escaping backslash. JSON does not support
+						 * arbitrary character escaping in strings (unlike JavaScript) so "\<"
+						 * is invalid JSON and does not need to be considered.
 						 *
 						 * @see https://www.json.org/json-en.html
 						 */
-
 						$plaintext_content = strtr(
 							$plaintext_content,
 							array( '<' => '\\u003C' )
