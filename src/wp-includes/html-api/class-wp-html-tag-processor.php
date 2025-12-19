@@ -3952,7 +3952,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @return bool True if the script tag will be evaluated as JavaScript.
 	 */
-	public function is_javascript_script_tag(): bool {
+	private function is_javascript_script_tag(): bool {
 		if ( 'SCRIPT' !== $this->get_tag() || $this->get_namespace() !== 'html' ) {
 			return false;
 		}
@@ -4063,7 +4063,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @return bool True if the script tag should be treated as JSON.
 	 */
-	public function is_json_script_tag(): bool {
+	private function is_json_script_tag(): bool {
 		if ( 'SCRIPT' !== $this->get_tag() || $this->get_namespace() !== 'html' ) {
 			return false;
 		}

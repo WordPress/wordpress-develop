@@ -23,9 +23,13 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	public function test_is_javascript_script_tag( string $html, bool $expected_result ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_tag();
+
+		$result = ( function () {
+			return $this->is_javascript_script_tag();
+		} )->call( $processor );
 		$this->assertSame(
 			$expected_result,
-			$processor->is_javascript_script_tag(),
+			$result,
 			'Failed to correctly identify JavaScript script tag'
 		);
 	}
@@ -122,9 +126,11 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	public function test_is_javascript_script_tag_returns_false_before_finding_tags() {
 		$processor = new WP_HTML_Tag_Processor( 'Just some text' );
 		$processor->next_token();
-
+		$result = ( function () {
+			return $this->is_javascript_script_tag();
+		} )->call( $processor );
 		$this->assertFalse(
-			$processor->is_javascript_script_tag(),
+			$result,
 			'Should return false when not stopped on script tag'
 		);
 	}
@@ -139,8 +145,11 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 		$processor->change_parsing_namespace( 'svg' );
 		$processor->next_tag();
 		$this->assertSame( 'SCRIPT', $processor->get_tag() );
+		$result = ( function () {
+			return $this->is_javascript_script_tag();
+		} )->call( $processor );
 		$this->assertFalse(
-			$processor->is_javascript_script_tag(),
+			$result,
 			'Should return false for script tags in non-HTML namespace'
 		);
 	}
@@ -158,9 +167,12 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	public function test_is_json_script_tag( string $html, bool $expected_result ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_tag();
+		$result = ( function () {
+			return $this->is_json_script_tag();
+		} )->call( $processor );
 		$this->assertSame(
 			$expected_result,
-			$processor->is_json_script_tag(),
+			$result,
 			'Failed to correctly identify JSON script tag'
 		);
 	}
@@ -224,8 +236,11 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	public function test_is_json_script_tag_returns_false_before_finding_tags() {
 		$processor = new WP_HTML_Tag_Processor( 'Just some text' );
 		$processor->next_token();
+		$result = ( function () {
+			return $this->is_json_script_tag();
+		} )->call( $processor );
 		$this->assertFalse(
-			$processor->is_json_script_tag(),
+			$result,
 			'Should return false when not stopped on script tag'
 		);
 	}
@@ -240,8 +255,11 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 		$processor->change_parsing_namespace( 'svg' );
 		$processor->next_tag();
 		$this->assertSame( 'SCRIPT', $processor->get_tag() );
+		$result = ( function () {
+			return $this->is_json_script_tag();
+		} )->call( $processor );
 		$this->assertFalse(
-			$processor->is_json_script_tag(),
+			$result,
 			'Should return false for script tags in non-HTML namespace'
 		);
 	}
