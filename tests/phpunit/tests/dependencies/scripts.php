@@ -4133,6 +4133,7 @@ HTML;
 
 	/**
 	 * @ticket 64372
+	 * @covers WP_Scripts::do_item
 	 */
 	public function test_varying_versions_with_args_added_to_enqueued_handle() {
 		$versions = array(
@@ -4160,17 +4161,17 @@ HTML;
 			wp_enqueue_script( "register-then-enqueue-qs-{$key}?qs1=q1&qs2=q2" );
 		}
 
-		$markup = get_echo( 'wp_print_scripts' );
+		$markup   = get_echo( 'wp_print_scripts' );
 		$expected = <<<'JS'
 			<script type="text/javascript" src="/path/to/qs-string.js?ver=1.0.0&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-string-js"></script>
-			<script type="text/javascript" src="/path/to/qs-null.js?ver=qs1=q1&amp;qs2=q2" id="enqueue-only-null-js"></script>
+			<script type="text/javascript" src="/path/to/qs-null.js?qs1=q1&amp;qs2=q2" id="enqueue-only-null-js"></script>
 			<script type="text/javascript" src="/path/to/qs-false.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-false-js"></script>
 			<script type="text/javascript" src="/path/to/qs-empty-string.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-empty-string-js"></script>
 			<script type="text/javascript" src="/path/to/qs-integer.js?ver=123&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-integer-js"></script>
 			<script type="text/javascript" src="/path/to/qs-float.js?ver=1.23&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-float-js"></script>
 			<script type="text/javascript" src="/path/to/qs-zero.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-zero-js"></script>
 			<script type="text/javascript" src="/path/to/qs3-string.js?ver=1.0.0&amp;qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-string-js"></script>
-			<script type="text/javascript" src="/path/to/qs3-null.js?ver=qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-null-js"></script>
+			<script type="text/javascript" src="/path/to/qs3-null.js?qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-null-js"></script>
 			<script type="text/javascript" src="/path/to/qs3-false.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-false-js"></script>
 			<script type="text/javascript" src="/path/to/qs3-empty-string.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-empty-string-js"></script>
 			<script type="text/javascript" src="/path/to/qs3-integer.js?ver=123&amp;qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-integer-js"></script>

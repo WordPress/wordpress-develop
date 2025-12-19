@@ -418,7 +418,7 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$query_args = array();
-		if ( false === $obj->ver && is_string( $this->default_version ) ) {
+		if ( empty( $obj->ver ) && null !== $obj->ver && is_string( $this->default_version ) ) {
 			$query_args['ver'] = $this->default_version;
 		} elseif ( is_scalar( $obj->ver ) ) {
 			$query_args['ver'] = (string) $obj->ver;

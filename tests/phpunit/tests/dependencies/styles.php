@@ -855,6 +855,7 @@ HTML;
 
 	/**
 	 * @ticket 64372
+	 * @covers WP_Styles::do_item
 	 */
 	public function test_varying_versions_with_args_added_to_enqueued_handle() {
 		$versions = array(
@@ -885,14 +886,14 @@ HTML;
 		$markup   = get_echo( 'wp_print_styles' );
 		$expected = <<<'JS'
 			<link rel='stylesheet' id='enqueue-only-string-css' href='/path/to/qs-string.css?ver=1.0.0&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='enqueue-only-null-css' href='/path/to/qs-null.css?ver=qs1=q1&#038;qs2=q2' type='text/css' media='all' />
+			<link rel='stylesheet' id='enqueue-only-null-css' href='/path/to/qs-null.css?qs1=q1&#038;qs2=q2' type='text/css' media='all' />
 			<link rel='stylesheet' id='enqueue-only-false-css' href='/path/to/qs-false.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
 			<link rel='stylesheet' id='enqueue-only-empty-string-css' href='/path/to/qs-empty-string.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
 			<link rel='stylesheet' id='enqueue-only-integer-css' href='/path/to/qs-integer.css?ver=123&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
 			<link rel='stylesheet' id='enqueue-only-float-css' href='/path/to/qs-float.css?ver=1.23&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
 			<link rel='stylesheet' id='enqueue-only-zero-css' href='/path/to/qs-zero.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
 			<link rel='stylesheet' id='register-then-enqueue-qs-string-css' href='/path/to/qs3-string.css?ver=1.0.0&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='register-then-enqueue-qs-null-css' href='/path/to/qs3-null.css?ver=qs1=q1&#038;qs2=q2' type='text/css' media='all' />
+			<link rel='stylesheet' id='register-then-enqueue-qs-null-css' href='/path/to/qs3-null.css?qs1=q1&#038;qs2=q2' type='text/css' media='all' />
 			<link rel='stylesheet' id='register-then-enqueue-qs-false-css' href='/path/to/qs3-false.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
 			<link rel='stylesheet' id='register-then-enqueue-qs-empty-string-css' href='/path/to/qs3-empty-string.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
 			<link rel='stylesheet' id='register-then-enqueue-qs-integer-css' href='/path/to/qs3-integer.css?ver=123&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />

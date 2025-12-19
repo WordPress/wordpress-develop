@@ -441,7 +441,7 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		$query_args = array();
-		if ( false === $ver && is_string( $this->default_version ) ) {
+		if ( empty( $ver ) && null !== $ver && is_string( $this->default_version ) ) {
 			$query_args['ver'] = $this->default_version;
 		} elseif ( is_scalar( $ver ) ) {
 			$query_args['ver'] = (string) $ver;
