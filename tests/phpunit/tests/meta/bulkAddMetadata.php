@@ -41,12 +41,12 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 		$next_mid = self::get_autoincrement( $meta_type );
 
 		// Set up mock actions and filters to track calls.
-		$action1 = new MockAction();
-		$action2 = new MockAction();
-		$action3 = new MockAction();
-		add_filter( "add_{$meta_type}_metadata", array( $action1, 'filter' ), 10, 5 );
-		add_action( "add_{$meta_type}_meta", array( $action2, 'action' ) );
-		add_action( "added_{$meta_type}_meta", array( $action3, 'action' ) );
+		$add_metadata_filter = new MockAction();
+		$add_meta_action     = new MockAction();
+		$added_meta_action   = new MockAction();
+		add_filter( "add_{$meta_type}_metadata", array( $add_metadata_filter, 'filter' ), 10, 5 );
+		add_action( "add_{$meta_type}_meta", array( $add_meta_action, 'action' ) );
+		add_action( "added_{$meta_type}_meta", array( $added_meta_action, 'action' ) );
 
 		// Bulk add the meta.
 		$result = bulk_add_metadata( $meta_type, $object_id, $meta );
@@ -67,9 +67,9 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 
 		$this->assertSame( $meta, $actual_vals, 'Actual meta values should match expected values.' );
 		$this->assertSame( $expected_mids, $result, 'Actual meta IDs should match expected meta IDs.' );
-		$this->assertSame( 3, $action1->get_call_count(), "'add_{$meta_type}_metadata' filter should be called the correct number of times." );
-		$this->assertSame( 3, $action2->get_call_count(), "'add_{$meta_type}_meta' action should be called the correct number of times." );
-		$this->assertSame( 3, $action3->get_call_count(), "'added_{$meta_type}_meta' action should be called the correct number of times." );
+		$this->assertSame( 3, $add_metadata_filter->get_call_count(), "'add_{$meta_type}_metadata' filter should be called the correct number of times." );
+		$this->assertSame( 3, $add_meta_action->get_call_count(), "'add_{$meta_type}_meta' action should be called the correct number of times." );
+		$this->assertSame( 3, $added_meta_action->get_call_count(), "'added_{$meta_type}_meta' action should be called the correct number of times." );
 	}
 
 	/**
@@ -103,12 +103,12 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 		$next_mid = self::get_autoincrement( $meta_type );
 
 		// Set up mock actions and filters to track calls.
-		$action1 = new MockAction();
-		$action2 = new MockAction();
-		$action3 = new MockAction();
-		add_filter( "add_{$meta_type}_metadata", array( $action1, 'filter' ), 10, 5 );
-		add_action( "add_{$meta_type}_meta", array( $action2, 'action' ) );
-		add_action( "added_{$meta_type}_meta", array( $action3, 'action' ) );
+		$add_metadata_filter = new MockAction();
+		$add_meta_action     = new MockAction();
+		$added_meta_action   = new MockAction();
+		add_filter( "add_{$meta_type}_metadata", array( $add_metadata_filter, 'filter' ), 10, 5 );
+		add_action( "add_{$meta_type}_meta", array( $add_meta_action, 'action' ) );
+		add_action( "added_{$meta_type}_meta", array( $added_meta_action, 'action' ) );
 
 		// Bulk add the meta.
 		$result = bulk_add_metadata( $meta_type, $object_id, $meta );
@@ -136,9 +136,9 @@ class Tests_Meta_BulkAddMetadata extends WP_UnitTestCase {
 
 		$this->assertSame( $expected_vals, $actual_vals, 'Actual meta values should match expected values.' );
 		$this->assertSame( $expected_mids, $result, 'Actual meta IDs should match expected meta IDs.' );
-		$this->assertSame( 3, $action1->get_call_count(), "'add_{$meta_type}_metadata' filter should be called the correct number of times." );
-		$this->assertSame( 2, $action2->get_call_count(), "'add_{$meta_type}_meta' action should be called the correct number of times." );
-		$this->assertSame( 2, $action3->get_call_count(), "'added_{$meta_type}_meta' action should be called the correct number of times." );
+		$this->assertSame( 3, $add_metadata_filter->get_call_count(), "'add_{$meta_type}_metadata' filter should be called the correct number of times." );
+		$this->assertSame( 2, $add_meta_action->get_call_count(), "'add_{$meta_type}_meta' action should be called the correct number of times." );
+		$this->assertSame( 2, $added_meta_action->get_call_count(), "'added_{$meta_type}_meta' action should be called the correct number of times." );
 	}
 
 	/**
