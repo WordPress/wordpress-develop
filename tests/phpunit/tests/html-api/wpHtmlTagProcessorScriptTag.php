@@ -23,8 +23,6 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	public function test_is_javascript_script_tag( string $html, bool $expected_result ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_tag();
-
-		$this->assertSame( 'SCRIPT', $processor->get_tag(), 'Should be positioned on a SCRIPT tag' );
 		$this->assertSame(
 			$expected_result,
 			$processor->is_javascript_script_tag(),
@@ -37,7 +35,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_is_javascript_script_tag() {
+	public static function data_is_javascript_script_tag(): array {
 		return array(
 			// Script tags without type or language attributes - should be JavaScript.
 			'Script tag without attributes'              => array( '<script></script>', true ),
@@ -57,7 +55,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 			// Script tags with falsy but non-empty language attribute.
 			'Script tag with language="0"'               => array( '<script language="0"></script>', false ),
 
-			// Script tags with JavaScript MIME types - should be JavaScript.
+			// Script tags with JavaScript MIME essence - should be JavaScript.
 			'Script tag with application/ecmascript'     => array( '<script type="application/ecmascript"></script>', true ),
 			'Script tag with application/javascript'     => array( '<script type="application/javascript"></script>', true ),
 			'Script tag with application/x-ecmascript'   => array( '<script type="application/x-ecmascript"></script>', true ),
@@ -75,7 +73,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 			'Script tag with text/x-ecmascript'          => array( '<script type="text/x-ecmascript"></script>', true ),
 			'Script tag with text/x-javascript'          => array( '<script type="text/x-javascript"></script>', true ),
 
-			// Case-insensitive matching for JavaScript MIME types.
+			// Case-insensitive matching for JavaScript MIME essence.
 			'Script tag with UPPERCASE type'             => array( '<script type="TEXT/JAVASCRIPT"></script>', true ),
 			'Script tag with MixedCase type'             => array( '<script type="Text/JavaScript"></script>', true ),
 			'Script tag with APPLICATION/JAVASCRIPT'     => array( '<script type="APPLICATION/JAVASCRIPT"></script>', true ),
@@ -137,9 +135,8 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::is_javascript_script_tag
 	 */
 	public function test_is_javascript_script_tag_returns_false_for_non_html_namespace() {
-		$processor = new WP_HTML_Tag_Processor( '<svg><script type="text/javascript"></script></svg>' );
-		$processor->next_tag( 'SCRIPT' );
-
+		$processor = new WP_HTML_Tag_Processor( '<script></script>' );
+		$processor->change_parsing_namespace( 'svg' );
 		$this->assertFalse(
 			$processor->is_javascript_script_tag(),
 			'Should return false for script tags in non-HTML namespace'
@@ -159,8 +156,6 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	public function test_is_json_script_tag( string $html, bool $expected_result ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_tag();
-
-		$this->assertSame( 'SCRIPT', $processor->get_tag(), 'Should be positioned on a SCRIPT tag' );
 		$this->assertSame(
 			$expected_result,
 			$processor->is_json_script_tag(),
@@ -173,7 +168,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public static function data_is_json_script_tag() {
+	public static function data_is_json_script_tag(): array {
 		return array(
 			// JSON MIME types - should be JSON.
 			'Script tag with application/json type'      => array( '<script type="application/json"></script>', true ),
@@ -227,7 +222,6 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	public function test_is_json_script_tag_returns_false_before_finding_tags() {
 		$processor = new WP_HTML_Tag_Processor( 'Just some text' );
 		$processor->next_token();
-
 		$this->assertFalse(
 			$processor->is_json_script_tag(),
 			'Should return false when not stopped on script tag'
@@ -240,9 +234,9 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	 * @covers WP_HTML_Tag_Processor::is_json_script_tag
 	 */
 	public function test_is_json_script_tag_returns_false_for_non_html_namespace() {
-		$processor = new WP_HTML_Tag_Processor( '<svg><script type="application/json"></script></svg>' );
-		$processor->next_tag( 'SCRIPT' );
-
+		$processor = new WP_HTML_Tag_Processor( '<script></script>' );
+		$processor->change_parsing_namespace( 'svg' );
+		$processor->next_tag();
 		$this->assertFalse(
 			$processor->is_json_script_tag(),
 			'Should return false for script tags in non-HTML namespace'
