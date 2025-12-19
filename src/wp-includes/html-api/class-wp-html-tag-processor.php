@@ -3967,16 +3967,12 @@ class WP_HTML_Tag_Processor {
 		 */
 		$type_attr     = $this->get_attribute( 'type' );
 		$language_attr = $this->get_attribute( 'language' );
-
 		if ( true === $type_attr || '' === $type_attr ) {
 			return true;
 		}
 		if (
-			null === $type_attr && (
-				true === $language_attr ||
-				'' === $language_attr ||
-				null === $language_attr
-			)
+			null === $type_attr
+			&& ( null === $language_attr || true === $language_attr || '' === $language_attr )
 		) {
 			return true;
 		}
@@ -3987,7 +3983,7 @@ class WP_HTML_Tag_Processor {
 		 * > Otherwise, el has a non-empty language attribute; let the script block's type string
 		 * > be the concatenation of "text/" and the value of el's language attribute.
 		 */
-		$type_string = $type_attr ? trim( $type_attr, " \t\f\r\n" ) : "text/{$language_attr}";
+		$type_string = null !== $type_attr ? trim( $type_attr, " \t\f\r\n" ) : "text/{$language_attr}";
 
 		/*
 		 * > If the script block's type string is a JavaScript MIME type essence match, then
@@ -4048,10 +4044,10 @@ class WP_HTML_Tag_Processor {
 		}
 
 		/*
-		 * > - Otherwise, if the script block's type string is an ASCII case-insensitive match for
-		 * >   the string "importmap", then set el's type to "importmap".
+		 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for the string "importmap", then set el's type to "importmap".
+		 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for the string "speculationrules", then set el's type to "speculationrules".
 		 *
-		 * An importmap is JSON and not evaluated as JavaScript. This case is not handled here.
+		 * These conditions indicate JSON content.
 		 */
 
 		/*
@@ -4072,13 +4068,11 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		$type_attr = $this->get_attribute( 'type' );
-
-		if ( empty( $type_attr ) || true === $type_attr ) {
+		$type = $this->get_attribute( 'type' );
+		if ( null === $type || true === $type || '' === $type ) {
 			return false;
 		}
-
-		$type_string = strtolower( trim( $type_attr, " \t\f\r\n" ) );
+		$type = strtolower( trim( $type, " \t\f\r\n" ) );
 
 		/*
 		 * > …
@@ -4095,10 +4089,10 @@ class WP_HTML_Tag_Processor {
 		 * @see https://mimesniff.spec.whatwg.org/#json-mime-type
 		 */
 		if (
-			'application/json' === $type_string
-			|| 'importmap' === $type_string
-			|| 'speculationrules' === $type_string
-			|| 'text/json' === $type_string
+			'application/json' === $type
+			|| 'importmap' === $type
+			|| 'speculationrules' === $type
+			|| 'text/json' === $type
 		) {
 			return true;
 		}
