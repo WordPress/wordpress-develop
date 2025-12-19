@@ -4130,4 +4130,53 @@ HTML;
 			'Expected _doing_it_wrong() notice to indicate missing dependencies for enqueued script.'
 		);
 	}
+
+	/**
+	 * @ticket 64372
+	 */
+	public function test_varying_versions_with_args_added_to_enqueued_handle() {
+		$versions = array(
+			'string'       => '1.0.0', // Same: ver=1.0.0&...
+			'null'         => null, // Different: Bug Fixed (no ver on this branch)
+			'false'        => false, // Same: 7.0-alpha...
+			'empty-string' => '', // trunk: 7.0-alpha...; this branch ver&qs1=
+			'integer'      => 123, // Same: 123
+			'float'        => 1.23, // Same: 1.23
+			'zero'         => 0, // trunk: 7.0-alpha...; this branch ver=0
+		);
+
+		foreach ( $versions as $key => $version ) {
+			wp_enqueue_script( "enqueue-only-{$key}?qs1=q1&qs2=q2", "/path/to/qs-{$key}.js", array(), $version );
+		}
+
+		// This does nothing on either trunk or feature branch. I think that's fine.
+		foreach ( $versions as $key => $version ) {
+			wp_register_script( "register-qs-then-enqueue-{$key}?qs1=q1&qs2=q2", "/path/to/qs2-{$key}.js", array(), $version );
+			wp_enqueue_script( "register-qs-then-enqueue-{$key}?qs1=q1&qs2=q2" );
+		}
+
+		foreach ( $versions as $key => $version ) {
+			wp_register_script( "register-then-enqueue-qs-{$key}", "/path/to/qs3-{$key}.js", array(), $version );
+			wp_enqueue_script( "register-then-enqueue-qs-{$key}?qs1=q1&qs2=q2" );
+		}
+
+		$markup = get_echo( 'wp_print_scripts' );
+		$expected = <<<'JS'
+			<script type="text/javascript" src="/path/to/qs-string.js?ver=1.0.0&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-string-js"></script>
+			<script type="text/javascript" src="/path/to/qs-null.js?ver=qs1=q1&amp;qs2=q2" id="enqueue-only-null-js"></script>
+			<script type="text/javascript" src="/path/to/qs-false.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-false-js"></script>
+			<script type="text/javascript" src="/path/to/qs-empty-string.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-empty-string-js"></script>
+			<script type="text/javascript" src="/path/to/qs-integer.js?ver=123&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-integer-js"></script>
+			<script type="text/javascript" src="/path/to/qs-float.js?ver=1.23&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-float-js"></script>
+			<script type="text/javascript" src="/path/to/qs-zero.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="enqueue-only-zero-js"></script>
+			<script type="text/javascript" src="/path/to/qs3-string.js?ver=1.0.0&amp;qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-string-js"></script>
+			<script type="text/javascript" src="/path/to/qs3-null.js?ver=qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-null-js"></script>
+			<script type="text/javascript" src="/path/to/qs3-false.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-false-js"></script>
+			<script type="text/javascript" src="/path/to/qs3-empty-string.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-empty-string-js"></script>
+			<script type="text/javascript" src="/path/to/qs3-integer.js?ver=123&amp;qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-integer-js"></script>
+			<script type="text/javascript" src="/path/to/qs3-float.js?ver=1.23&amp;qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-float-js"></script>
+			<script type="text/javascript" src="/path/to/qs3-zero.js?ver=7.0-alpha-61215-src&amp;qs1=q1&amp;qs2=q2" id="register-then-enqueue-qs-zero-js"></script>
+JS;
+		$this->assertEqualHTML( $expected, $markup, '<body>', "Expected equal snapshot for wp_print_scripts():\n$markup" );
+	}
 }
