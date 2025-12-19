@@ -137,6 +137,8 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	public function test_is_javascript_script_tag_returns_false_for_non_html_namespace() {
 		$processor = new WP_HTML_Tag_Processor( '<script></script>' );
 		$processor->change_parsing_namespace( 'svg' );
+		$processor->next_tag();
+		$this->assertSame( 'SCRIPT', $processor->get_tag() );
 		$this->assertFalse(
 			$processor->is_javascript_script_tag(),
 			'Should return false for script tags in non-HTML namespace'
@@ -237,6 +239,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 		$processor = new WP_HTML_Tag_Processor( '<script></script>' );
 		$processor->change_parsing_namespace( 'svg' );
 		$processor->next_tag();
+		$this->assertSame( 'SCRIPT', $processor->get_tag() );
 		$this->assertFalse(
 			$processor->is_json_script_tag(),
 			'Should return false for script tags in non-HTML namespace'
