@@ -3850,11 +3850,11 @@ class WP_HTML_Tag_Processor {
 					if ( $this->is_javascript_script_tag() ) {
 						$plaintext_content = preg_replace_callback(
 							/*
-							 * This case-insensitive pattern consists of three groups:
+							 * This case-insensitive pattern consists of three groups (in order):
 							 *
-							 * 1: "<" or "</"
-							 * 2: "s"
-							 * 3: "cript" + a trailing character that terminates a tag name.
+							 * HEAD:   "<" or "</"
+							 * S_CHAR: "s"
+							 * TAIL:   "cript" + a trailing tag name termination character
 							 */
 							'~(?P<HEAD></?)(?P<S_CHAR>s)(?P<TAIL>cript[\\t\\r\\n\\f />])~i',
 							static function ( $matches ) {
