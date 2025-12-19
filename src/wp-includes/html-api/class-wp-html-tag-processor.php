@@ -3814,9 +3814,9 @@ class WP_HTML_Tag_Processor {
 				/*
 				 * SCRIPT tag contents can be dangerous.
 				 *
-				 * The text `</script>` could close the SCRIPT element prematurely.
+				 * The text "</script>" could close the SCRIPT element prematurely.
 				 *
-				 * The text `<script>` could enter the "script data double escaped state", preventing the
+				 * The text "<script>" could enter the “script data double escaped state”, preventing the
 				 * SCRIPT element from closing as expected, for example:
 				 *
 				 *     <script>
