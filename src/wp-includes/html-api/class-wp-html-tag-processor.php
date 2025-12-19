@@ -3883,7 +3883,8 @@ class WP_HTML_Tag_Processor {
 						);
 					} else {
 						/*
-						 * Other types of script tags cannot be escaped safely.
+						 * Other types of script tags cannot be escaped safely because the type
+						 * of comment and escaping strategy are unknown.
 						 */
 						return false;
 					}
