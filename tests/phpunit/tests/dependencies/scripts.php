@@ -69,6 +69,20 @@ JS;
 		parent::tear_down();
 	}
 
+	/**
+	 * Asserts that two HTML SCRIPT tags are semantically equal within a larger HTML text.
+	 *
+	 * The expected string should contain a single SCRIPT tag with an ID attribute. This ID will
+	 * be used to locate the corresponding SCRIPT tag within the provided HTML.
+	 *
+	 * The provided HTML will be traversed to locate the SCRIPT tag with the matcing ID.
+	 *
+	 * These two tags will be compared for semantic equality of their HTML.
+	 *
+	 * @param string $expected The expected SCRIPT tag HTML.
+	 * @param string $html     The HTML to search within.
+	 * @param string $message  Optional. Message to display upon failure. Default 'The SCRIPT tag did not match.'.
+	 */
 	private function assertEqualHTMLScriptTagById( string $expected, string $html, string $message = 'The SCRIPT tag did not match.' ) {
 		$find_id_tag_processor = new WP_HTML_Tag_Processor( $expected );
 		$find_id_tag_processor->next_token();
