@@ -69,6 +69,28 @@ JS;
 		parent::tear_down();
 	}
 
+	private function assertEqualHTMLScriptTagById( string $expected, string $html, ?string $message ) {
+		$find_id_tag_processor = new WP_HTML_Tag_Processor( $expected );
+		$find_id_tag_processor->next_token();
+		$id = $find_id_tag_processor->get_attribute( 'id' );
+		assert( is_string( $id ) );
+
+		$processor = ( new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
+			public function get_script_html() {
+				assert( 'SCRIPT' === $this->get_tag() );
+				$this->set_bookmark( 'here' );
+				$span = $this->bookmarks['_here'];
+				return substr( $this->html, $span->start, $span->length );
+			}
+		} )::create_fragment( $html );
+
+		while ( $processor->next_tag( 'SCRIPT' ) && $processor->get_attribute( 'id' ) !== $id ) {
+			// Loop until we find the right script tag.
+		}
+		$this->assertSame( 'SCRIPT', $processor->get_tag(), "Matching tag `script#{$id}` could not be found." );
+		$this->assertEqualHTML( $expected, $processor->get_script_html(), '<body>', $message );
+	}
+
 	/**
 	 * Test versioning
 	 *
