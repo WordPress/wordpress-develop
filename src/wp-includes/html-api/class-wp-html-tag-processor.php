@@ -3948,6 +3948,9 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element
 	 *
+	 * @ignore
+	 * @todo Consider a public API that is clear and general.
+	 *
 	 * @since 7.0.0
 	 *
 	 * @return bool True if the script tag will be evaluated as JavaScript.
@@ -4058,6 +4061,9 @@ class WP_HTML_Tag_Processor {
 
 	/**
 	 * Indicates if the currently matched tag is a JSON script tag.
+	 *
+	 * @ignore
+	 * @todo Consider a public API that is clear and general.
 	 *
 	 * @since 7.0.0
 	 *
