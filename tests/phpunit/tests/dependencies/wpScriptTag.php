@@ -11,7 +11,7 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 	public function get_script_tag_type_set() {
 		add_theme_support( 'html5', array( 'script' ) );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			'<script src="https://localhost/PATH/FILE.js" type="application/javascript" nomodule></script>' . "\n",
 			wp_get_script_tag(
 				array(
@@ -25,7 +25,7 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 
 		remove_theme_support( 'html5' );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			'<script src="https://localhost/PATH/FILE.js" type="application/javascript" nomodule></script>' . "\n",
 			wp_get_script_tag(
 				array(
@@ -44,7 +44,7 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 	public function test_get_script_tag_type_not_set() {
 		add_theme_support( 'html5', array( 'script' ) );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			'<script src="https://localhost/PATH/FILE.js" nomodule></script>' . "\n",
 			wp_get_script_tag(
 				array(
@@ -80,7 +80,7 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 			'nomodule' => true,
 		);
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			wp_get_script_tag( $attributes ),
 			get_echo(
 				'wp_print_script_tag',
@@ -90,7 +90,7 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 
 		remove_theme_support( 'html5' );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			wp_get_script_tag( $attributes ),
 			get_echo(
 				'wp_print_script_tag',

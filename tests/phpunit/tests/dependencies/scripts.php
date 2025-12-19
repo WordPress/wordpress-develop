@@ -70,6 +70,44 @@ JS;
 	}
 
 	/**
+	 * Asserts that two HTML SCRIPT tags are semantically equal within a larger HTML text.
+	 *
+	 * The expected string should contain a single SCRIPT tag with an ID attribute. This ID will
+	 * be used to locate the corresponding SCRIPT tag within the provided HTML.
+	 *
+	 * The provided HTML will be traversed to locate the SCRIPT tag with the matcing ID.
+	 *
+	 * These two tags will be compared for semantic equality of their HTML.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $expected The expected SCRIPT tag HTML.
+	 * @param string $html     The HTML to search within.
+	 * @param string $message  Optional. Message to display upon failure. Default 'The SCRIPT tag did not match.'.
+	 */
+	private function assertEqualHTMLScriptTagById( string $expected, string $html, string $message = 'The SCRIPT tag did not match.' ) {
+		$find_id_tag_processor = new WP_HTML_Tag_Processor( $expected );
+		$find_id_tag_processor->next_token();
+		$id = $find_id_tag_processor->get_attribute( 'id' );
+		assert( is_string( $id ) );
+
+		$processor = ( new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
+			public function get_script_html() {
+				assert( 'SCRIPT' === $this->get_tag() );
+				$this->set_bookmark( 'here' );
+				$span = $this->bookmarks['_here'];
+				return substr( $this->html, $span->start, $span->length );
+			}
+		} )::create_fragment( $html );
+
+		while ( $processor->next_tag( 'SCRIPT' ) && $processor->get_attribute( 'id' ) !== $id ) {
+			// Loop until we find the right script tag.
+		}
+		$this->assertSame( 'SCRIPT', $processor->get_tag(), "Matching tag `script#{$id}` could not be found." );
+		$this->assertEqualHTML( $expected, $processor->get_script_html(), '<body>', $message );
+	}
+
+	/**
 	 * Test versioning
 	 *
 	 * @ticket 11315
@@ -1558,15 +1596,13 @@ HTML
 		wp_enqueue_script( 'main-script-b1', '/main-script-b1.js', array(), null );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-b1.js' id='main-script-b1-js'></script>\n";
-		$expected = str_replace( "'", '"', $expected );
-		$this->assertSame( $expected, $output, 'Scripts registered with a "blocking" strategy, and who have no dependencies, should have no loading strategy attributes printed.' );
+		$this->assertEqualHTML( $expected, $output, '<body>', 'Scripts registered with a "blocking" strategy, and who have no dependencies, should have no loading strategy attributes printed.' );
 
 		// strategy args not set.
 		wp_enqueue_script( 'main-script-b2', '/main-script-b2.js', array(), null, array() );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-b2.js' id='main-script-b2-js'></script>\n";
-		$expected = str_replace( "'", '"', $expected );
-		$this->assertSame( $expected, $output, 'Scripts registered with no strategy assigned, and who have no dependencies, should have no loading strategy attributes printed.' );
+		$this->assertEqualHTML( $expected, $output, '<body>', 'Scripts registered with no strategy assigned, and who have no dependencies, should have no loading strategy attributes printed.' );
 	}
 
 	/**
@@ -2616,14 +2652,6 @@ HTML;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		$expected_tail  = "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'></script>\n";
-		$expected_tail .= "<script type='text/javascript' id='customize-dependency-js-after'>\n";
-		$expected_tail .= "/* <![CDATA[ */\n";
-		$expected_tail .= "tryCustomizeDependency()\n";
-		$expected_tail .= "//# sourceURL=customize-dependency-js-after\n";
-		$expected_tail .= "/* ]]> */\n";
-		$expected_tail .= "</script>\n";
-
 		$handle = 'customize-dependency';
 		wp_enqueue_script( $handle, '/customize-dependency.js', array( 'customize-controls' ), null );
 		wp_add_inline_script( $handle, 'tryCustomizeDependency()' );
@@ -2635,9 +2663,16 @@ HTML;
 		_print_scripts();
 		$print_scripts = $this->getActualOutput();
 
-		$tail = substr( $print_scripts, strrpos( $print_scripts, '<script type="text/javascript" src="/customize-dependency.js" id="customize-dependency-js">' ) );
+		$expected = "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'></script>\n";
+		$this->assertEqualHTMLScriptTagById( $expected, $print_scripts );
 
-		$this->assertEqualHTML( $expected_tail, $tail );
+		$expected  = "<script type='text/javascript' id='customize-dependency-js-after'>\n";
+		$expected .= "/* <![CDATA[ */\n";
+		$expected .= "tryCustomizeDependency()\n";
+		$expected .= "//# sourceURL=customize-dependency-js-after\n";
+		$expected .= "/* ]]> */\n";
+		$expected .= "</script>\n";
+		$this->assertEqualHTMLScriptTagById( $expected, $print_scripts );
 	}
 
 	/**
