@@ -3845,7 +3845,48 @@ class WP_HTML_Tag_Processor {
 					false !== stripos( $plaintext_content, '<script' )
 				) {
 					/*
-					 * JavaScript can be safely escaped.
+					 * JavaScript can be safely escaped with a few exceptions. This is achieved by
+					 * replacing dangerous sequences like "<script" and "</script" with a form
+					 * using a Unicode escape sequence "<\u0073cript>" and "</\u0073cript>".
+					 *
+					 * `<script` and `</script` appear in JavaScript source code in limited places,
+					 * all of which support a Unicode escape sequence on the "s" character.
+					 * JavaScript identifiers, string literals, template literals, and RegExp
+					 * literals all support Unicode escape sequences, meaning that the escaped form
+					 * is indistinguishable from the unescaped form when the JavaScript
+					 * is evaluated.
+					 *
+					 * There are a few exceptions where the escaped form can be detected:
+					 *
+					 * - The escaped form would appear in any JavaScript comments.
+					 * - “Raw” strings via `String.raw()` or the `raw` property of the first
+					 *   argument to a tagged template literal exposes the raw form, revealing any
+					 *   escaping that has been applied.
+					 * - The `source` property of a RegExp object reveals an escaped form the of
+					 *   the pattern.
+					 *
+					 * For JavaScript that needs to avoid these issues, workarounds may
+					 * be available. For example:
+					 *
+					 *      // Instead of this:
+					 *      const rawStringWillBeEscaped = String.raw`</script>`;
+					 *
+					 *      // This is a safe alternative:
+					 *      const rawStringWillBePreserved = String.raw`</scr` + String.raw`ipt>`;
+					 *
+					 * After escaping, the JavaScript result looks like this:
+					 *
+					 *      const rawStringWillBeEscaped = String.raw`</\u0073cript>`;
+					 *      // Evaluates to `'</\\u0073cript>'`.
+					 *
+					 *      const rawStringWillBePreserved = String.raw`</scr` + String.raw`ipt>`;
+					 *      // Evaluates to `'</script>'`.
+					 *
+					 * Escaping is applied only where strictly necessary, reducing the likelyhood
+					 * that observable differences manifest in the escaped JavaScript.
+					 *
+					 * This escaping strategy strikes will make ALL JavaScript safe to embed in
+					 * HTML in a way that is completely transparent in most cases.
 					 */
 					if ( $this->is_javascript_script_tag() ) {
 						$plaintext_content = preg_replace_callback(
