@@ -130,35 +130,18 @@ function wp_print_scripts( $handles = false ) {
 function wp_add_inline_script( $handle, $data, $position = 'after' ) {
 	_wp_scripts_maybe_doing_it_wrong( __FUNCTION__, $handle );
 
-	/*
-	 * Check whether the script data appears to be enclosed in an HTML <script> tag.
-	 */
-	if (
-		/*
-		 * Detect a SCRIPT tag inside the provided script data.
-		 * $data must be sufficiently long and start with "<script" (case-insensitive),
-		 * followed by a tag name termination character.
-		 */
-		strlen( $data ) >= 17
-		&& 0 === substr_compare( $data, '<script', 0, 7, true )
-		&& 1 === strspn( $data, "\t\n\r\f />", 7, 1 )
-	) {
-		// Try to parse and extract the script contents.
-		$processor = new WP_HTML_Tag_Processor( $data );
-		$processor->next_token();
-		if ( $processor->get_tag() === 'SCRIPT' ) {
-			_doing_it_wrong(
-				__FUNCTION__,
-				sprintf(
-					/* translators: 1: <script>, 2: wp_add_inline_script() */
-					__( 'Do not pass %1$s tags to %2$s.' ),
-					'<code>&lt;script&gt;</code>',
-					'<code>wp_add_inline_script()</code>'
-				),
-				'4.5.0'
-			);
-			$data = $processor->get_modifiable_text();
-		}
+	if ( false !== stripos( $data, '</script>' ) ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: <script>, 2: wp_add_inline_script() */
+				__( 'Do not pass %1$s tags to %2$s.' ),
+				'<code>&lt;script&gt;</code>',
+				'<code>wp_add_inline_script()</code>'
+			),
+			'4.5.0'
+		);
+		$data = trim( preg_replace( '#<script[^>]*>(.*)</script>#is', '$1', $data ) );
 	}
 
 	return wp_scripts()->add_inline_script( $handle, $data, $position );
