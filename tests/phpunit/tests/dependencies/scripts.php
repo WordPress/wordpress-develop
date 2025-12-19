@@ -1580,15 +1580,13 @@ HTML
 		wp_enqueue_script( 'main-script-b1', '/main-script-b1.js', array(), null );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-b1.js' id='main-script-b1-js'></script>\n";
-		$expected = str_replace( "'", '"', $expected );
-		$this->assertSame( $expected, $output, 'Scripts registered with a "blocking" strategy, and who have no dependencies, should have no loading strategy attributes printed.' );
+		$this->assertEqualHTML( $expected, $output, '<body>', 'Scripts registered with a "blocking" strategy, and who have no dependencies, should have no loading strategy attributes printed.' );
 
 		// strategy args not set.
 		wp_enqueue_script( 'main-script-b2', '/main-script-b2.js', array(), null, array() );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = "<script type='text/javascript' src='/main-script-b2.js' id='main-script-b2-js'></script>\n";
-		$expected = str_replace( "'", '"', $expected );
-		$this->assertSame( $expected, $output, 'Scripts registered with no strategy assigned, and who have no dependencies, should have no loading strategy attributes printed.' );
+		$this->assertEqualHTML( $expected, $output, '<body>', 'Scripts registered with no strategy assigned, and who have no dependencies, should have no loading strategy attributes printed.' );
 	}
 
 	/**
