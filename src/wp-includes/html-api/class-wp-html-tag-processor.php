@@ -3868,24 +3868,25 @@ class WP_HTML_Tag_Processor {
 					 * For JavaScript that needs to avoid these issues, workarounds may
 					 * be available. For example:
 					 *
-					 *      // Instead of:
+					 *      // Instead of this:
 					 *      const rawStringWillBeEscaped = String.raw`</script>`;
 					 *
-					 *      // This will yield the same result with no escaping required:
+					 *      // This is a safe alternative:
 					 *      const rawStringWillBePreserved = String.raw`</scr` + String.raw`ipt>`;
 					 *
-					 *      // After the escaping has been applied and the JavaScript evaluated,
-					 *      // these are the resulting values:
-					 *      rawStringWillBeEscaped;  // "</\\u0073cript>"
-					 *      rawStringWillBePreserve; // "</script>"
+					 * After escaping, the JavaScript result looks like this:
 					 *
+					 *      const rawStringWillBeEscaped = String.raw`</\u0073cript>`;
+					 *      // Evaluates to `'</\\u0073cript>'`.
+					 *
+					 *      const rawStringWillBePreserved = String.raw`</scr` + String.raw`ipt>`;
+					 *      // Evaluates to `'</script>'`.
 					 *
 					 * Escaping is applied only where strictly necessary, reducing the likelyhood
 					 * that observable differences manifest in the escaped JavaScript.
 					 *
-					 * The alternatives are to reject JavaScript that could be safely escaped in
-					 * a majority of cases or to relax restrictions in ways that produce dangerous
-					 * or broken HTML documents, neither are desirable.
+					 * This escaping strategy strikes will make ALL JavaScript safe to embed in
+					 * HTML in a way that is completely transparent in most cases.
 					 */
 					if ( $this->is_javascript_script_tag() ) {
 						$plaintext_content = preg_replace_callback(
