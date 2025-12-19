@@ -69,7 +69,7 @@ JS;
 		parent::tear_down();
 	}
 
-	private function assertEqualHTMLScriptTagById( string $expected, string $html, ?string $message ) {
+	private function assertEqualHTMLScriptTagById( string $expected, string $html, string $message = 'The SCRIPT tag did not match.' ) {
 		$find_id_tag_processor = new WP_HTML_Tag_Processor( $expected );
 		$find_id_tag_processor->next_token();
 		$id = $find_id_tag_processor->get_attribute( 'id' );
