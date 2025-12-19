@@ -423,7 +423,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 				'invalid_schedule',
 				sprintf(
 					/* translators: 1: the event schedule recurrence, 2: the interval encoded as JSON */
-					__( 'Event schedule with recurrence "%$1s" does not exist or has is invalid. Interval must be positive integer, but got: %$2s' ),
+					__( 'Event schedule with recurrence "%1$s" does not exist or has is invalid. Interval must be positive integer, but got: %2$s' ),
 					$recurrence,
 					wp_json_encode( $interval )
 				)
