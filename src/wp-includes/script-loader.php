@@ -2923,7 +2923,14 @@ function wp_get_script_tag( $attributes ) {
 	 */
 	$attributes = apply_filters( 'wp_script_attributes', $attributes );
 
-	return sprintf( "<script%s></script>\n", wp_sanitize_script_attributes( $attributes ) );
+	$processor = new WP_HTML_Tag_Processor( "<script></script>\n" );
+	$processor->next_tag();
+	foreach ( $attributes as $name => $value ) {
+		if ( is_string( $value ) || true === $value ) {
+			$processor->set_attribute( $name, $value );
+		}
+	}
+	return $processor->get_updated_html();
 }
 
 /**
