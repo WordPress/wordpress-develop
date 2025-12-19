@@ -240,9 +240,12 @@ function get_comment( $comment = null, $output = OBJECT ) {
 	 *
 	 * @since 2.3.0
 	 *
-	 * @param WP_Comment $_comment Comment data.
+	 * @param WP_Comment|null $_comment Comment data.
 	 */
 	$_comment = apply_filters( 'get_comment', $_comment );
+	if ( ! ( $_comment instanceof WP_Comment ) ) {
+		return null;
+	}
 
 	if ( OBJECT === $output ) {
 		return $_comment;
@@ -595,7 +598,7 @@ function wp_set_comment_cookies( $comment, $user, $cookies_consent = true ) {
 	 * Filters the lifetime of the comment cookie in seconds.
 	 *
 	 * @since 2.8.0
-	 * @since 6.6.0 The default $seconds value changed from 30000000 to YEAR_IN_SECONDS.
+	 * @since 6.6.0 The default `$seconds` value changed from 30000000 to YEAR_IN_SECONDS.
 	 *
 	 * @param int $seconds Comment cookie lifetime. Default YEAR_IN_SECONDS.
 	 */

@@ -666,12 +666,12 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 		wp_mail( WP_TESTS_EMAIL, 'Looong line testing', $content );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( 'quoted-printable', $mailer->Encoding );
+		$this->assertSame( 'quoted-printable', $mailer->Encoding );
 
 		wp_mail( WP_TESTS_EMAIL, 'A follow up short email', 'Short email' );
 
 		$mailer = tests_retrieve_phpmailer_instance();
-		$this->assertEquals( '7bit', $mailer->Encoding );
+		$this->assertSame( '7bit', $mailer->Encoding );
 	}
 
 	/**
