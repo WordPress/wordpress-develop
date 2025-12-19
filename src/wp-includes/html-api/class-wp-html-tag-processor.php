@@ -4083,16 +4083,15 @@ class WP_HTML_Tag_Processor {
 		 * > A JSON MIME type is any MIME type whose subtype ends in "+json" or whose essence
 		 * > is "application/json" or "text/json".
 		 *
-		 * The JSON subtype ending in "+json" is not currently handled due to lack
-		 * of a MIME type parser.
+		 * @todo The JSON MIME type handling handles some common cases but when MIME type parsing is available it should be leveraged here.
 		 *
 		 * @see https://mimesniff.spec.whatwg.org/#json-mime-type
 		 */
 		if (
-			'application/json' === $type
-			|| 'importmap' === $type
-			|| 'speculationrules' === $type
-			|| 'text/json' === $type
+			'importmap' === $type ||
+			'speculationrules' === $type ||
+			'application/json' === $type ||
+			'text/json' === $type
 		) {
 			return true;
 		}
