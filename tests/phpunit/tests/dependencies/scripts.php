@@ -2637,13 +2637,6 @@ HTML;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		$expected_tail  = "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'></script>\n";
-		$expected_tail .= "<script type='text/javascript' id='customize-dependency-js-after'>\n";
-		$expected_tail .= "/* <![CDATA[ */\n";
-		$expected_tail .= "tryCustomizeDependency()\n";
-		$expected_tail .= "//# sourceURL=customize-dependency-js-after\n";
-		$expected_tail .= "/* ]]> */\n";
-		$expected_tail .= "</script>\n";
 
 		$handle = 'customize-dependency';
 		wp_enqueue_script( $handle, '/customize-dependency.js', array( 'customize-controls' ), null );
@@ -2656,9 +2649,16 @@ HTML;
 		_print_scripts();
 		$print_scripts = $this->getActualOutput();
 
-		$tail = substr( $print_scripts, strrpos( $print_scripts, '<script type="text/javascript" src="/customize-dependency.js" id="customize-dependency-js">' ) );
+		$expected = "<script type='text/javascript' src='/customize-dependency.js' id='customize-dependency-js'></script>\n";
+		$this->assertEqualHTMLScriptTagById( $expected, $print_scripts );
 
-		$this->assertEqualHTML( $expected_tail, $tail );
+		$expected  = "<script type='text/javascript' id='customize-dependency-js-after'>\n";
+		$expected .= "/* <![CDATA[ */\n";
+		$expected .= "tryCustomizeDependency()\n";
+		$expected .= "//# sourceURL=customize-dependency-js-after\n";
+		$expected .= "/* ]]> */\n";
+		$expected .= "</script>\n";
+		$this->assertEqualHTMLScriptTagById( $expected, $print_scripts );
 	}
 
 	/**
