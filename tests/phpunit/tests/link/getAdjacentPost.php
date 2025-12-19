@@ -657,9 +657,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Next post should be the 4th post (higher ID, same date) - deterministic.
 		$next = get_adjacent_post( false, '', false );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_ids[3], $next->ID );
-
-		remove_all_filters( 'get_next_post_where' );
+		$this->assertSame( $post_ids[3], $next->ID, 'Next post should be the 4th post (higher ID, same date).' );
 	}
 
 	/**
@@ -710,8 +708,6 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'AND p.ID', $filter_received, 'Filter should receive WHERE clause without deterministic ID fallback.' );
 		// Verify the filter's modification is preserved (proves deterministic logic wasn't applied on top).
 		$this->assertStringContainsString( 'AND 1=1', $filter_returned, 'Filter modification should be preserved.' );
-
-		remove_all_filters( 'get_next_post_where' );
 	}
 
 	/**
@@ -749,9 +745,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Next post should be the 4th post (higher ID, same date) - deterministic.
 		$next = get_adjacent_post( false, '', false );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_ids[3], $next->ID );
-
-		remove_all_filters( 'get_next_post_sort' );
+		$this->assertSame( $post_ids[3], $next->ID, 'Next post should be the 4th post (higher ID, same date).' );
 	}
 
 	/**
@@ -801,8 +795,6 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Verify the filter's modification is preserved (proves deterministic logic wasn't applied on top).
 		$this->assertStringNotContainsString( 'p.ID', $filter_returned, 'Filter modification should not include ID when filter removes it.' );
 		$this->assertStringContainsString( 'ORDER BY p.post_date', $filter_returned, 'Filter modification should be preserved.' );
-
-		remove_all_filters( 'get_next_post_sort' );
 	}
 
 	/**
@@ -846,10 +838,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Previous post should be the 2nd post (lower ID, same date) - deterministic.
 		$previous = get_adjacent_post( false, '', true );
 		$this->assertInstanceOf( 'WP_Post', $previous );
-		$this->assertEquals( $post_ids[1], $previous->ID );
-
-		remove_all_filters( 'get_previous_post_where' );
-		remove_all_filters( 'get_previous_post_sort' );
+		$this->assertSame( $post_ids[1], $previous->ID, 'Previous post should be the 2nd post (lower ID, same date).' );
 	}
 
 	/**
