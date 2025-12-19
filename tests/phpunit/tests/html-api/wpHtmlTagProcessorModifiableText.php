@@ -582,7 +582,7 @@ HTML;
 		$updated_html = $processor->get_updated_html();
 		$this->assertEqualHTML( $expected, $updated_html );
 
-		// Re-process and verify the JSON is correct.
+		// Reprocess to ensure JSON survives HTML round-trip:
 		$processor = new WP_HTML_Tag_Processor( $updated_html );
 		$processor->next_tag( 'SCRIPT' );
 		$this->assertSame( 'importmap', $processor->get_attribute( 'type' ) );
@@ -625,8 +625,8 @@ HTML;
 		$updated_html = $processor->get_updated_html();
 		$this->assertEqualHTML( $expected, $updated_html );
 
-		// Reprocess to ensure JSON value survives HTML round trip:
-		$processor = new WP_HTML_Tag_Processor( $expected );
+		// Reprocess to ensure JSON value survives HTML round-trip:
+		$processor = new WP_HTML_Tag_Processor( $updated_html );
 		$processor->next_tag( 'SCRIPT' );
 		$decoded_json_from_html = json_decode( $processor->get_modifiable_text(), true );
 		$this->assertSame( JSON_ERROR_NONE, json_last_error(), 'JSON failed to decode.' );
