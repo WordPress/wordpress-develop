@@ -2636,7 +2636,6 @@ HTML;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-
 		$handle = 'customize-dependency';
 		wp_enqueue_script( $handle, '/customize-dependency.js', array( 'customize-controls' ), null );
 		wp_add_inline_script( $handle, 'tryCustomizeDependency()' );
