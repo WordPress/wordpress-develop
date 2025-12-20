@@ -252,13 +252,13 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string $file Path to the file.
-	 * @return string|false Mode of the file (the last 3 digits), false on failure.
+	 * @return string Mode of the file (the last 3 digits), or the string "0" on failure.
 	 */
 	public function getchmod( $file ) {
 		$perms = @fileperms( $file );
 
 		if ( false === $perms ) {
-			return false;
+			return '0';
 		}
 
 		return substr( decoct( $perms ), -3 );
