@@ -318,8 +318,7 @@ function wp_dashboard_right_now() {
 			} else {
 				$post_label = $post_type_object->labels->name;
 			}
-			/* translators: %d: Number of posts, %s post label. */
-			$text = sprintf( '%d %s', number_format_i18n( $num_post_published ), $post_label );
+			$text = number_format_i18n( $num_post_published ) . ' ' . $post_label;
 
 			if ( $post_type_object && current_user_can( $post_type_object->cap->edit_posts ) ) {
 				printf( '<li class="%1$s-count"><a href="edit.php?post_type=%1$s">%2$s</a></li>', $post_type, $text );

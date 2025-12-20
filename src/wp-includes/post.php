@@ -1735,6 +1735,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         of a Dashicons helper class to use a font icon, e.g.
  *                                                        'dashicons-chart-pie'. Pass 'none' to leave div.wp-menu-image empty
  *                                                         so an icon can be added via CSS. Defaults to use the posts icon.
+ *     @type bool         $at_a_glance                     Whether to display this post type in the 'At a Glance' dashboard widget.
+ *                                                         Default is value of $show_in_menu.
  *     @type string|array $capability_type                 The string to use to build the read, edit, and delete capabilities.
  *                                                         May be passed as an array to allow for alternative plurals when using
  *                                                         this argument as a base to construct the capabilities, e.g.

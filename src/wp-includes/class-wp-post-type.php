@@ -547,6 +547,7 @@ final class WP_Post_Type {
 			'show_in_admin_bar'               => null,
 			'menu_position'                   => null,
 			'menu_icon'                       => null,
+			'at_a_glance'                     => null,
 			'capability_type'                 => 'post',
 			'capabilities'                    => array(),
 			'map_meta_cap'                    => null,
@@ -562,7 +563,6 @@ final class WP_Post_Type {
 			'rest_base'                       => false,
 			'rest_namespace'                  => false,
 			'rest_controller_class'           => false,
-			'at_a_glance'                     => null,
 			'autosave_rest_controller_class'  => false,
 			'revisions_rest_controller_class' => false,
 			'late_route_registration'         => false,
@@ -601,7 +601,7 @@ final class WP_Post_Type {
 			$args['show_in_menu'] = $args['show_ui'];
 		}
 
-		// If not set, default to the setting for show_in_menu
+		// If not set, default to the setting for show_in_menu.
 		if ( null === $args['at_a_glance'] ) {
 			$args['at_a_glance'] = (bool) $args['show_in_menu'];
 		}
