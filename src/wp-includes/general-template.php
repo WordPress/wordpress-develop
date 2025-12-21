@@ -765,7 +765,7 @@ function bloginfo( $show = '' ) {
 /**
  * Retrieves information about the current site.
  *
- * Possible values for `$show` include:
+ * Possible values for `$site_info` include:
  *
  * - 'name' - Site title (set in Settings > General)
  * - 'description' - Site tagline (set in Settings > General)
@@ -793,7 +793,7 @@ function bloginfo( $show = '' ) {
  * - 'comments_atom_url' - The comments Atom feed URL (/comments/feed)
  * - 'comments_rss2_url' - The comments RSS 2.0 feed URL (/comments/feed)
  *
- * Some `$show` values are deprecated and will be removed in future versions.
+ * Some `$site_info` values are deprecated and will be removed in future versions.
  * These options will trigger the _deprecated_argument() function.
  *
  * Deprecated arguments include:
@@ -805,12 +805,12 @@ function bloginfo( $show = '' ) {
  *
  * @global string $wp_version The WordPress version string.
  *
- * @param string $show   Optional. Site info to retrieve. Default empty (site name).
- * @param string $filter Optional. How to filter what is retrieved. Default 'raw'.
+ * @param string $site_info Optional. Site info to retrieve. Default empty (site name).
+ * @param string $filter    Optional. How to filter what is retrieved. Default 'raw'.
  * @return string Mostly string values, might be empty.
  */
-function get_bloginfo( $show = '', $filter = 'raw' ) {
-	switch ( $show ) {
+function get_bloginfo( $site_info = '', $filter = 'raw' ) {
+	switch ( $site_info ) {
 		case 'home':    // Deprecated.
 		case 'siteurl': // Deprecated.
 			_deprecated_argument(
@@ -819,7 +819,7 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 				sprintf(
 					/* translators: 1: 'siteurl'/'home' argument, 2: bloginfo() function name, 3: 'url' argument. */
 					__( 'The %1$s option is deprecated for the family of %2$s functions. Use the %3$s option instead.' ),
-					'<code>' . $show . '</code>',
+					'<code>' . $site_info . '</code>',
 					'<code>bloginfo()</code>',
 					'<code>url</code>'
 				)
@@ -900,7 +900,7 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 				sprintf(
 					/* translators: 1: 'text_direction' argument, 2: bloginfo() function name, 3: is_rtl() function name. */
 					__( 'The %1$s option is deprecated for the family of %2$s functions. Use the %3$s function instead.' ),
-					'<code>' . $show . '</code>',
+					'<code>' . $site_info . '</code>',
 					'<code>bloginfo()</code>',
 					'<code>is_rtl()</code>'
 				)
@@ -919,29 +919,29 @@ function get_bloginfo( $show = '', $filter = 'raw' ) {
 
 	if ( 'display' === $filter ) {
 		if (
-			str_contains( $show, 'url' )
-			|| str_contains( $show, 'directory' )
-			|| str_contains( $show, 'home' )
+			str_contains( $site_info, 'url' )
+			|| str_contains( $site_info, 'directory' )
+			|| str_contains( $site_info, 'home' )
 		) {
 			/**
 			 * Filters the URL returned by get_bloginfo().
 			 *
 			 * @since 2.0.5
 			 *
-			 * @param string $output The URL returned by bloginfo().
-			 * @param string $show   Type of information requested.
+			 * @param string $output    The URL returned by bloginfo().
+			 * @param string $site_info Type of information requested.
 			 */
-			$output = apply_filters( 'bloginfo_url', $output, $show );
+			$output = apply_filters( 'bloginfo_url', $output, $site_info );
 		} else {
 			/**
 			 * Filters the site information returned by get_bloginfo().
 			 *
 			 * @since 0.71
 			 *
-			 * @param mixed  $output The requested non-URL site information.
-			 * @param string $show   Type of information requested.
+			 * @param mixed  $output    The requested non-URL site information.
+			 * @param string $site_info Type of information requested.
 			 */
-			$output = apply_filters( 'bloginfo', $output, $show );
+			$output = apply_filters( 'bloginfo', $output, $site_info );
 		}
 	}
 
