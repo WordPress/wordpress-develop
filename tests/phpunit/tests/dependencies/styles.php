@@ -854,52 +854,85 @@ HTML;
 	}
 
 	/**
+	 * Test query string on handle when enqueuing styles directly.
+	 *
 	 * @ticket 64372
+	 *
 	 * @covers WP_Styles::do_item
+	 *
+	 * @dataProvider data_varying_versions_handle_args
+	 *
+	 * @param mixed  $version               Version to pass when enqueuing.
+	 * @param string $expected_query_string Expected query string portion of the style sheet URL.
 	 */
-	public function test_varying_versions_with_args_added_to_enqueued_handle() {
-		$versions = array(
-			'string'       => '1.0.0', // Same: ver=1.0.0&...
-			'null'         => null, // Different: Bug Fixed (no ver on this branch)
-			'false'        => false, // Same: 7.0-alpha...
-			'empty-string' => '', // trunk: 7.0-alpha...; this branch ver&qs1=
-			'integer'      => 123, // Same: 123
-			'float'        => 1.23, // Same: 1.23
-			'zero'         => 0, // trunk: 7.0-alpha...; this branch ver=0
+	public function test_varying_versions_added_to_handle_args_enqueued_styles( $version, $expected_query_string ) {
+		wp_enqueue_style( 'test-style?qs1=q1&qs2=q2', '/test-style.css', array(), $version );
+		$markup = get_echo( 'wp_print_styles' );
+
+		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' type='text/css' media='all' />";
+		$this->assertEqualHTML( $expected, $markup, '<body>', 'Expected equal snapshot for wp_print_styles() with version ' . var_export( $version, true ) . ":\n$markup" );
+	}
+
+	/**
+	 * Test query string on handle when registering then enqueuing styles.
+	 *
+	 * @ticket 64372
+	 *
+	 * @covers WP_Styles::do_item
+	 *
+	 * @dataProvider data_varying_versions_handle_args
+	 *
+	 * @param mixed  $version               Version to pass when enqueuing.
+	 * @param string $expected_query_string Expected query string portion of the style sheet URL.
+	 */
+	public function test_varying_versions_added_to_handle_args_registered_then_enqueued_styles( $version, $expected_query_string ) {
+		wp_register_style( 'test-style', '/test-style.css', array(), $version );
+		wp_enqueue_style( 'test-style?qs1=q1&qs2=q2' );
+		$markup = get_echo( 'wp_print_styles' );
+
+		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' type='text/css' media='all' />";
+		$this->assertEqualHTML( $expected, $markup, '<body>', 'Expected equal snapshot for wp_print_styles() with version ' . var_export( $version, true ) . ":\n$markup" );
+	}
+
+	/**
+	 * Data provider for:
+	 * - test_varying_versions_added_to_handle_args_enqueued_scripts
+	 * - test_varying_versions_added_to_handle_args_registered_then_enqueued_scripts
+	 *
+	 * @return array[]
+	 */
+	public function data_varying_versions_handle_args() {
+		$default_version = get_bloginfo( 'version' );
+
+		return array(
+			'string'       => array(
+				'1.0.0',
+				'ver=1.0.0&amp;qs1=q1&amp;qs2=q2',
+			),
+			'null'         => array(
+				null,
+				'qs1=q1&amp;qs2=q2',
+			),
+			'false'        => array(
+				false,
+				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
+			),
+			'empty-string' => array(
+				'',
+				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
+			),
+			'integer'      => array(
+				123,
+				'ver=123&amp;qs1=q1&amp;qs2=q2',
+			),
+			'float'        => array(
+				1.23,
+				'ver=1.23&amp;qs1=q1&amp;qs2=q2',
+			),
+			'zero'         => array(
+				0,
+				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
+			),
 		);
-
-		foreach ( $versions as $key => $version ) {
-			wp_enqueue_style( "enqueue-only-{$key}?qs1=q1&qs2=q2", "/path/to/qs-{$key}.css", array(), $version );
-		}
-
-		// This does nothing on either trunk or feature branch. I think that's fine.
-		foreach ( $versions as $key => $version ) {
-			wp_register_style( "register-qs-then-enqueue-{$key}?qs1=q1&qs2=q2", "/path/to/qs2-{$key}.css", array(), $version );
-			wp_enqueue_style( "register-qs-then-enqueue-{$key}?qs1=q1&qs2=q2" );
-		}
-
-		foreach ( $versions as $key => $version ) {
-			wp_register_style( "register-then-enqueue-qs-{$key}", "/path/to/qs3-{$key}.css", array(), $version );
-			wp_enqueue_style( "register-then-enqueue-qs-{$key}?qs1=q1&qs2=q2" );
-		}
-
-		$markup   = get_echo( 'wp_print_styles' );
-		$expected = <<<'JS'
-			<link rel='stylesheet' id='enqueue-only-string-css' href='/path/to/qs-string.css?ver=1.0.0&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='enqueue-only-null-css' href='/path/to/qs-null.css?qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='enqueue-only-false-css' href='/path/to/qs-false.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='enqueue-only-empty-string-css' href='/path/to/qs-empty-string.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='enqueue-only-integer-css' href='/path/to/qs-integer.css?ver=123&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='enqueue-only-float-css' href='/path/to/qs-float.css?ver=1.23&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='enqueue-only-zero-css' href='/path/to/qs-zero.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='register-then-enqueue-qs-string-css' href='/path/to/qs3-string.css?ver=1.0.0&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='register-then-enqueue-qs-null-css' href='/path/to/qs3-null.css?qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='register-then-enqueue-qs-false-css' href='/path/to/qs3-false.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='register-then-enqueue-qs-empty-string-css' href='/path/to/qs3-empty-string.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='register-then-enqueue-qs-integer-css' href='/path/to/qs3-integer.css?ver=123&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='register-then-enqueue-qs-float-css' href='/path/to/qs3-float.css?ver=1.23&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-			<link rel='stylesheet' id='register-then-enqueue-qs-zero-css' href='/path/to/qs3-zero.css?ver=7.0-alpha-61215-src&#038;qs1=q1&#038;qs2=q2' type='text/css' media='all' />
-JS;
-		$this->assertEqualHTML( $expected, $markup, '<body>', "Expected equal snapshot for wp_print_styles():\n$markup" );
 	}
 }
