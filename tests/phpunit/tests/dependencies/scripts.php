@@ -4199,6 +4199,10 @@ HTML;
 				'',
 				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
 			),
+			'zero-string'  => array(
+				'0',
+				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
+			),
 			'integer'      => array(
 				123,
 				'ver=123&amp;qs1=q1&amp;qs2=q2',
