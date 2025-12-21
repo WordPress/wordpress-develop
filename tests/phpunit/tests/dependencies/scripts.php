@@ -4177,7 +4177,7 @@ HTML;
 	 * - test_varying_versions_added_to_handle_args_enqueued_scripts
 	 * - test_varying_versions_added_to_handle_args_registered_then_enqueued_scripts
 	 *
-	 * @return array[]
+	 * @return array[] Data provider.
 	 */
 	public function data_varying_versions_handle_args() {
 		$default_version = get_bloginfo( 'version' );
