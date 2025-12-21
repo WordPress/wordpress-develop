@@ -4207,12 +4207,16 @@ HTML;
 				123,
 				'ver=123&amp;qs1=q1&amp;qs2=q2',
 			),
+			'zero-integer' => array(
+				0,
+				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
+			),
 			'float'        => array(
 				1.23,
 				'ver=1.23&amp;qs1=q1&amp;qs2=q2',
 			),
-			'zero'         => array(
-				0,
+			'zero-float'   => array(
+				0.0,
 				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
 			),
 		);
