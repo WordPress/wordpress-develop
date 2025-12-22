@@ -7,7 +7,7 @@
  * @group scripts
  * @covers ::wp_sanitize_script_attributes
  */
-class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
+class Tests_Dependencies_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 
 	public function test_sanitize_script_attributes_type_set() {
 		add_theme_support( 'html5', array( 'script' ) );
