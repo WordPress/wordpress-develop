@@ -769,6 +769,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64447
+	 *
 	 * @covers ::wp_maybe_inline_styles
 	 * @expectedIncorrectUsage wp_maybe_inline_styles
 	 */
