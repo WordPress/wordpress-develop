@@ -4146,7 +4146,7 @@ class WP_HTML_Tag_Processor {
 	 */
 	private function escape_javascript_script_contents( string $text ): string {
 		return preg_replace_callback(
-			'~(?P<HEAD></?)(?P<S_CHAR>s)(?P<TAIL>cript[\\t\\r\\n\\f />])~i',
+			'~(?P<HEAD></?)(?P<S_CHAR>s)(?P<TAIL>cript[ \\t\\f\\r\\n/>])~i',
 			static function ( $matches ) {
 				$escaped_s_char = 's' === $matches['S_CHAR']
 					? '\\u0073'
