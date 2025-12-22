@@ -533,7 +533,7 @@ class WP_Theme_JSON_Resolver {
 			);
 			if ( ! is_wp_error( $cpt_post_id ) ) {
 				$post = get_post( $cpt_post_id );
-				if ( is_object( $post ) ) {
+				if ( $post instanceof WP_Post ) {
 					$user_cpt = get_object_vars( $post );
 				}
 			}
