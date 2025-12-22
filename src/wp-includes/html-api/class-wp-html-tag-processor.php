@@ -4165,7 +4165,7 @@ class WP_HTML_Tag_Processor {
 	 * does not allow backslash escaping of "<", so there's no need to
 	 * consider whether the "<" is escaped.
 	 *
-	 * @see WP_HTML_Tag_Processor::escape_javascript_script_contents()
+	 * For more details, see {@see WP_HTML_Tag_Processor::escape_javascript_script_contents()}.
 	 * @see https://www.json.org/json-en.html
 	 */
 	private function escape_json_script_contents( string $text ): string {
