@@ -446,7 +446,7 @@ HTML
 	 *
 	 * For example, a modifiable text update that would change the structure of the HTML
 	 * document is not allowed, like attempting to set `-->` within a comment or `</script>`
-	 * within a a text/plain SCRIPT tag.
+	 * within a text/plain SCRIPT tag.
 	 *
 	 * @ticket 61617
 	 * @ticket 62797
