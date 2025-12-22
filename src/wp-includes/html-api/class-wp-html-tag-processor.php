@@ -3895,6 +3895,9 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Indicates if the currently matched tag is a JavaScript script tag.
 	 *
+	 * Note that this does not parse a MIME type. This behavior is well-documented in
+	 * in the HTML standard and uses string comparisons, *not* actual MIME Types.
+	 *
 	 * @see https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element
 	 *
 	 * @ignore
