@@ -515,7 +515,7 @@ class WP_Theme_JSON_Resolver {
 
 		$global_style_query = new WP_Query();
 		$recent_posts       = $global_style_query->query( $args );
-		if ( count( $recent_posts ) === 1 && is_object( $recent_posts[0] ) ) {
+		if ( count( $recent_posts ) === 1 && $recent_posts[0] instanceof WP_Post ) {
 			$user_cpt = get_object_vars( $recent_posts[0] );
 		} elseif ( $create_post ) {
 			$cpt_post_id = wp_insert_post(
