@@ -2305,7 +2305,7 @@ class WP_Site_Health {
 		if ( wp_convert_hr_to_bytes( $post_max_size ) < wp_convert_hr_to_bytes( $upload_max_filesize ) ) {
 			$result['label'] = sprintf(
 				/* translators: 1: post_max_size, 2: upload_max_filesize */
-				__( 'The "%1$s" value is smaller than "%2$s"' ),
+				__( 'The &#8220;%1$s&#8221; value is smaller than &#8220;%2$s&#8221;' ),
 				'post_max_size',
 				'upload_max_filesize'
 			);
