@@ -77,7 +77,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23ececec' /%3E%3C/svg%3E" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/6.9/01-notes.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
@@ -85,7 +85,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23ececec' /%3E%3C/svg%3E" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/6.9/02-visual-drag-drop.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
@@ -107,7 +107,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23ececec' /%3E%3C/svg%3E" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/6.9/03-command-palette-everywhere.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 		</div>
@@ -115,7 +115,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-2-columns">
 			<div class="column is-vertically-aligned-center">
 				<div class="about__image">
-					<img src="data:image/svg+xml,%3Csvg width='436' height='436' viewbox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23ececec' /%3E%3C/svg%3E" alt="" height="436" width="436" />
+					<img src="https://s.w.org/images/core/6.9/04-fit-text.webp" alt="" height="436" width="436" />
 				</div>
 			</div>
 			<div class="column is-vertically-aligned-center">
@@ -138,7 +138,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</svg>
 				</div>
 				<h3><?php _e( 'Performance updates' ); ?></h3>
-				<p><?php _e( 'WordPress 6.9 includes a broad set of performance updates, including a faster way of browsing and selecting styles, optimizations of the navigation link, fixes the layout shifts caused by the Video block, quicker load of the terms selector, no extra network request for retrieving feature media, and optimization in the Editor.' ); ?></p>
+				<p><?php _e( 'WordPress 6.9 includes a broad set of performance enhancements. A better <abbr>LCP</abbr> (Largest Contentful Paint) metric is achieved through improved loading of conditional and inlined stylesheets, script loading with fetchpriority support, and additional core optimizations. Editor advances include fixes for layout shifts caused by the Video block and faster loading of the terms selector.' ); ?></p>
 			</div>
 			<div class="column">
 				<div class="about__image">

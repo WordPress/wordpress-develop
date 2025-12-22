@@ -3300,7 +3300,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	 * Filters the "real" file type of the given file.
 	 *
 	 * @since 3.0.0
-	 * @since 5.1.0 The $real_mime parameter was added.
+	 * @since 5.1.0 The `$real_mime` parameter was added.
 	 *
 	 * @param array         $wp_check_filetype_and_ext {
 	 *     Values for the extension, mime type, and corrected filename.
@@ -3610,7 +3610,7 @@ function wp_get_ext_types() {
  */
 function wp_filesize( $path ) {
 	/**
-	 * Filters the result of wp_filesize before the PHP function is run.
+	 * Filters the result of wp_filesize() before the file_exists() PHP function is run.
 	 *
 	 * @since 6.0.0
 	 *
@@ -6023,7 +6023,7 @@ function _doing_it_wrong( $function_name, $message, $version ) {
 	 * Filters whether to trigger an error for _doing_it_wrong() calls.
 	 *
 	 * @since 3.1.0
-	 * @since 5.1.0 Added the $function_name, $message and $version parameters.
+	 * @since 5.1.0 Added the `$function_name`, `$message`, and `$version` parameters.
 	 *
 	 * @param bool   $trigger       Whether to trigger the error for _doing_it_wrong() calls. Default true.
 	 * @param string $function_name The function that was called.
@@ -6568,7 +6568,7 @@ function wp_timezone_override_offset() {
  *
  * @param array $a
  * @param array $b
- * @return int
+ * @return int Comparison result.
  */
 function _wp_timezone_choice_usort_callback( $a, $b ) {
 	// Don't use translated versions of Etc.
@@ -6625,7 +6625,7 @@ function _wp_timezone_choice_usort_callback( $a, $b ) {
  *
  * @param string $selected_zone Selected timezone.
  * @param string $locale        Optional. Locale to load the timezones in. Default current site locale.
- * @return string
+ * @return string HTML select element for timezones.
  */
 function wp_timezone_choice( $selected_zone, $locale = null ) {
 	static $mo_loaded = false, $locale_loaded = null;
@@ -6827,7 +6827,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
  * @see https://core.trac.wordpress.org/ticket/8497
  *
  * @param string $str Header comment to clean up.
- * @return string
+ * @return string Cleaned header comment.
  */
 function _cleanup_header_comment( $str ) {
 	return trim( preg_replace( '/\s*(?:\*\/|\?>).*/', '', $str ) );

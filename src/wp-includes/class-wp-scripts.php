@@ -22,7 +22,8 @@ class WP_Scripts extends WP_Dependencies {
 	 * Full URL with trailing slash.
 	 *
 	 * @since 2.6.0
-	 * @var string
+	 * @see wp_default_scripts()
+	 * @var string|null
 	 */
 	public $base_url;
 
@@ -30,7 +31,8 @@ class WP_Scripts extends WP_Dependencies {
 	 * URL of the content directory.
 	 *
 	 * @since 2.8.0
-	 * @var string
+	 * @see wp_default_scripts()
+	 * @var string|null
 	 */
 	public $content_url;
 
@@ -38,7 +40,8 @@ class WP_Scripts extends WP_Dependencies {
 	 * Default version string for scripts.
 	 *
 	 * @since 2.6.0
-	 * @var string
+	 * @see wp_default_scripts()
+	 * @var string|null
 	 */
 	public $default_version;
 
@@ -46,7 +49,7 @@ class WP_Scripts extends WP_Dependencies {
 	 * Holds handles of scripts which are enqueued in footer.
 	 *
 	 * @since 2.8.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $in_footer = array();
 
@@ -118,7 +121,8 @@ class WP_Scripts extends WP_Dependencies {
 	 * List of default directories.
 	 *
 	 * @since 2.8.0
-	 * @var array
+	 * @see wp_default_scripts()
+	 * @var string[]|null
 	 */
 	public $default_dirs;
 
@@ -350,7 +354,16 @@ class WP_Scripts extends WP_Dependencies {
 
 		$translations = $this->print_translations( $handle, false );
 		if ( $translations ) {
-			$translations = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
+			/*
+			 * The sourceURL comment is not included by WP_Scripts::print_translations()
+			 * when `$display` is `false` to prevent issues where the script tag contents are used
+			 * by extenders for other purposes, for example concatenated with other script content.
+			 *
+			 * Include the sourceURL comment here as it would be when printed directly.
+			 */
+			$source_url    = rawurlencode( "{$handle}-js-translations" );
+			$translations .= "\n//# sourceURL={$source_url}";
+			$translations  = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
 		if ( $this->do_concat ) {
@@ -365,7 +378,8 @@ class WP_Scripts extends WP_Dependencies {
 			$filtered_src = apply_filters( 'script_loader_src', $src, $handle );
 
 			if (
-				$this->in_default_dir( $filtered_src )
+				is_string( $filtered_src )
+				&& $this->in_default_dir( $filtered_src )
 				&& ( $before_script || $after_script || $translations_stop_concat || $this->is_delayed_strategy( $strategy ) )
 			) {
 				$this->do_concat = false;
@@ -403,9 +417,19 @@ class WP_Scripts extends WP_Dependencies {
 			$src = $this->base_url . $src;
 		}
 
-		if ( ! empty( $ver ) ) {
-			$src = add_query_arg( 'ver', $ver, $src );
+		$query_args = array();
+		if ( empty( $obj->ver ) && null !== $obj->ver && is_string( $this->default_version ) ) {
+			$query_args['ver'] = $this->default_version;
+		} elseif ( is_scalar( $obj->ver ) ) {
+			$query_args['ver'] = (string) $obj->ver;
 		}
+		if ( isset( $this->args[ $handle ] ) ) {
+			parse_str( $this->args[ $handle ], $parsed_args );
+			if ( $parsed_args ) {
+				$query_args = array_merge( $query_args, $parsed_args );
+			}
+		}
+		$src = add_query_arg( rawurlencode_deep( $query_args ), $src );
 
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
 		$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
@@ -580,9 +604,9 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $handle      Name of the script to attach data to.
-	 * @param string $object_name Name of the variable that will contain the data.
-	 * @param array  $l10n        Array of data to localize.
+	 * @param string               $handle      Name of the script to attach data to.
+	 * @param string               $object_name Name of the variable that will contain the data.
+	 * @param array<string, mixed> $l10n        Array of data to localize.
 	 * @return bool True on success, false on failure.
 	 */
 	public function localize( $handle, $object_name, $l10n ) {
@@ -722,18 +746,17 @@ class WP_Scripts extends WP_Dependencies {
 			return false;
 		}
 
-		$source_url = rawurlencode( "{$handle}-js-translations" );
-
 		$output = <<<JS
 ( function( domain, translations ) {
 	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
 	localeData[""].domain = domain;
 	wp.i18n.setLocaleData( localeData, domain );
 } )( "{$domain}", {$json_translations} );
-//# sourceURL={$source_url}
 JS;
 
 		if ( $display ) {
+			$source_url = rawurlencode( "{$handle}-js-translations" );
+			$output    .= "\n//# sourceURL={$source_url}";
 			wp_print_inline_script_tag( $output, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
@@ -1155,5 +1178,23 @@ JS;
 		$this->print_html     = '';
 		$this->ext_version    = '';
 		$this->ext_handles    = '';
+	}
+
+	/**
+	 * Gets a script-specific dependency warning message.
+	 *
+	 * @since 6.9.1
+	 *
+	 * @param string   $handle                     Script handle with missing dependencies.
+	 * @param string[] $missing_dependency_handles Missing dependency handles.
+	 * @return string Formatted, localized warning message.
+	 */
+	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
+		return sprintf(
+			/* translators: 1: Script handle, 2: Comma-separated list of missing dependency handles. */
+			__( 'The script with the handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
+			$handle,
+			implode( ', ', $missing_dependency_handles )
+		);
 	}
 }
