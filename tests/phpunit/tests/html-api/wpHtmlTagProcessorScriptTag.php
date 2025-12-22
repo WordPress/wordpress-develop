@@ -102,7 +102,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 			'Script tag with language="jscript"'         => array( '<script language="jscript"></script>', true ),
 			'Script tag with language="livescript"'      => array( '<script language="livescript"></script>', true ),
 
-			// Whitespace is not trimmed in the langauge attribute.
+			// Whitespace is not trimmed in the language attribute.
 			'Script tag with language=" javascript"'     => array( '<script language=" javascript"></script>', false ),
 
 			// Non-JavaScript script tags - should NOT be JavaScript.
