@@ -4016,6 +4016,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @ignore
 	 * @todo Consider a public API that is clear and general.
+	 * @todo Use a MIME type parser when available.
 	 *
 	 * @since 7.0.0
 	 *
