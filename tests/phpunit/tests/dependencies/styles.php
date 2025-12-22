@@ -774,7 +774,39 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_maybe_inline_styles
 	 * @expectedIncorrectUsage wp_maybe_inline_styles
 	 */
-	public function test_wp_maybe_inline_styles_bad_path() {
+	public function test_wp_maybe_inline_styles_bad_path_at_file_size_check() {
+		$handle   = 'test-handle';
+		$inc_path = '/css/ancient-themes.css'; // Does not exist.
+		$url      = '/' . WPINC . $inc_path;
+		wp_register_style( $handle, $url );
+		wp_style_add_data( $handle, 'path', ABSPATH . WPINC . $inc_path );
+		wp_enqueue_style( $handle );
+
+		wp_maybe_inline_styles();
+
+		$this->assertSame( $GLOBALS['wp_styles']->registered[ $handle ]->src, $url );
+	}
+
+	/**
+	 * @ticket 64447
+	 *
+	 * @covers ::wp_maybe_inline_styles
+	 * @expectedIncorrectUsage wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_bad_path_with_file_size_provided() {
+		// This ensures the initial file size check is bypassed.
+		add_filter(
+			'pre_wp_filesize',
+			static function ( $size, $path ) {
+				if ( str_contains( $path, 'ancient-themes.css' ) ) {
+					$size = 1000;
+				}
+				return $size;
+			},
+			10,
+			2
+		);
+
 		$handle   = 'test-handle';
 		$inc_path = '/css/ancient-themes.css'; // Does not exist.
 		$url      = '/' . WPINC . $inc_path;

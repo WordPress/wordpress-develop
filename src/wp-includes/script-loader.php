@@ -3130,7 +3130,7 @@ function wp_maybe_inline_styles() {
 			}
 
 			// Get the styles if we don't already have them.
-			$style['css'] = file_get_contents( $style['path'] );
+			$style['css'] = @file_get_contents( $style['path'] );
 			if ( false === $style['css'] ) {
 				_doing_it_wrong(
 					__FUNCTION__,
