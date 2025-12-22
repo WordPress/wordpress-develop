@@ -3812,116 +3812,22 @@ class WP_HTML_Tag_Processor {
 		switch ( $this->get_tag() ) {
 			case 'SCRIPT':
 				/*
-				 * SCRIPT tag contents can be dangerous.
+				 * SCRIPT tag contents can be dangerous:
 				 *
-				 * The text "</script>" could close the SCRIPT element prematurely.
+				 * - "</script>" could close the SCRIPT element prematurely.
+				 * - "<script>" could enter the “script data double escaped state” and preventing the
+				 *   SCRIPT element from closing as expected.
 				 *
-				 * The text "<script>" could enter the “script data double escaped state”, preventing the
-				 * SCRIPT element from closing as expected, for example:
-				 *
-				 *     <script>
-				 *       // If "<!--" and "<script>" appear like this,
-				 *       // the following SCRIPT close tag will not be recognized.
-				 *     </script>
-				 *     <h1>This appears _inside_ the preceding SCRIPT element.</h1>
-				 *
-				 * The relevant state transitions happen on text like:
-				 *     1. <
-				 *     2. / (optional)
-				 *     3. script (case-insensitive)
-				 *     4. One of the following characters:
-				 *        - \t
-				 *        - \n
-				 *        - \r (\r and \r\n newlines are normalized to \n in HTML pre-processing)
-				 *        - \f
-				 *        - " " (U+0020 SPACE)
-				 *        - /
-				 *        - >
-				 *
-				 * @see https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-state
+				 * Identify risky script contents to escape when possible or reject otherwise.
 				 */
-				if (
+				$needs_escaping =
 					false !== stripos( $plaintext_content, '</script' ) ||
-					false !== stripos( $plaintext_content, '<script' )
-				) {
-					/*
-					 * JavaScript can be safely escaped with a few exceptions. This is achieved by
-					 * replacing dangerous sequences like "<script" and "</script" with a form
-					 * using a Unicode escape sequence "<\u0073cript>" and "</\u0073cript>".
-					 *
-					 * `<script` and `</script` appear in JavaScript source code in limited places,
-					 * all of which support a Unicode escape sequence on the "s" character.
-					 * JavaScript identifiers, string literals, template literals, and RegExp
-					 * literals all support Unicode escape sequences, meaning that the escaped form
-					 * is indistinguishable from the unescaped form when the JavaScript
-					 * is evaluated.
-					 *
-					 * There are a few exceptions where the escaped form can be detected:
-					 *
-					 * - The escaped form would appear in any JavaScript comments.
-					 * - “Raw” strings via `String.raw()` or the `raw` property of the first
-					 *   argument to a tagged template literal exposes the raw form, revealing any
-					 *   escaping that has been applied.
-					 * - The `source` property of a RegExp object reveals an escaped form the of
-					 *   the pattern.
-					 *
-					 * For JavaScript that needs to avoid these issues, workarounds may
-					 * be available. For example:
-					 *
-					 *      // Instead of this:
-					 *      const rawStringWillBeEscaped = String.raw`</script>`;
-					 *
-					 *      // This is a safe alternative:
-					 *      const rawStringWillBePreserved = String.raw`</scr` + String.raw`ipt>`;
-					 *
-					 * After escaping, the JavaScript result looks like this:
-					 *
-					 *      const rawStringWillBeEscaped = String.raw`</\u0073cript>`;
-					 *      // Evaluates to `'</\\u0073cript>'`.
-					 *
-					 *      const rawStringWillBePreserved = String.raw`</scr` + String.raw`ipt>`;
-					 *      // Evaluates to `'</script>'`.
-					 *
-					 * Escaping is applied only where strictly necessary, reducing the likelyhood
-					 * that observable differences manifest in the escaped JavaScript.
-					 *
-					 * This escaping strategy strikes will make ALL JavaScript safe to embed in
-					 * HTML in a way that is completely transparent in most cases.
-					 */
+					false !== stripos( $plaintext_content, '<script' );
+				if ( $needs_escaping ) {
 					if ( $this->is_javascript_script_tag() ) {
-						$plaintext_content = preg_replace_callback(
-							/*
-							 * This case-insensitive pattern consists of three groups (in order):
-							 *
-							 * HEAD:   "<" or "</"
-							 * S_CHAR: "s"
-							 * TAIL:   "cript" + a trailing tag name termination character
-							 */
-							'~(?P<HEAD></?)(?P<S_CHAR>s)(?P<TAIL>cript[\\t\\r\\n\\f />])~i',
-							static function ( $matches ) {
-								$escaped_s_char = 's' === $matches['S_CHAR']
-									? '\\u0073'
-									: '\\u0053';
-								return "{$matches['HEAD']}{$escaped_s_char}{$matches['TAIL']}";
-							},
-							$plaintext_content
-						);
+						$plaintext_content = $this->escape_javascript_script_contents( $plaintext_content );
 					} elseif ( $this->is_json_script_tag() ) {
-						/**
-						 * JSON can be safely escaped.
-						 *
-						 * The following replacement may appear insufficient, "<" is replaced
-						 * with its JSON escape sequence "\u003C" without considering whether
-						 * the "<" is preceded by an escaping backslash. JSON does not support
-						 * arbitrary character escaping in strings (unlike JavaScript) so "\<"
-						 * is invalid JSON and does not need to be considered.
-						 *
-						 * @see https://www.json.org/json-en.html
-						 */
-						$plaintext_content = strtr(
-							$plaintext_content,
-							array( '<' => '\\u003C' )
-						);
+						$plaintext_content = $this->escape_json_script_contents( $plaintext_content );
 					} else {
 						/*
 						 * Other types of script tags cannot be escaped safely because the type
@@ -4146,6 +4052,83 @@ class WP_HTML_Tag_Processor {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Escape JavaScript script tag contents.
+	 *
+	 * Prevent JavaScript text from modifying the HTML structure of a document and
+	 * ensure that it's contained within its enclosing SCRIPT tag as intended.
+	 *
+	 * JavaScript can be safely escaped with a few exceptions. This is achieved by
+	 * replacing dangerous sequences like "<script" and "</script" with a form
+	 * using a Unicode escape sequence "<\u0073cript>" and "</\u0073cript>".
+	 *
+	 * This text may appear in the JavaScript in limited ways, all of which support
+	 * the use of Unicode escape sequences on the "s" character. The escaping is safe
+	 * to perform in all JavaScript and the modified JavaScript maintains identical
+	 * behavior with a few exceptions:
+	 *
+	 * - Comments.
+	 * - Tagged templates like `String.raw()` that access “raw” strings.
+	 * - The `source` property of a RegExp object.
+	 *
+	 * For example, this input JavaScript:
+	 *
+	 *     // A comment: "</script>"
+	 *
+	 *     console.log( String.raw`</script>` );
+	 *
+	 *     const regex = /<script>/;
+	 *     console.log( regex.source );
+	 *
+	 * Is transformed to:
+	 *
+	 *     // A comment: "</\u0073cript>"
+	 *
+	 *     console.log( String.raw`</\u0073cript>` );
+	 *
+	 *     const regex = /<\u0073cript>/;
+	 *     console.log( regex.source );
+	 *
+	 * Note that the RegExp's matching behavior is equivalent, meaning that
+	 * `regex.test( '<script>' ) === true` in both the unescaped and
+	 * escaped versions.
+	 *
+	 * @see https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements
+	 */
+	private function escape_javascript_script_contents( string $text ): string {
+		return preg_replace_callback(
+			'~(?P<HEAD></?)(?P<S_CHAR>s)(?P<TAIL>cript[\\t\\r\\n\\f />])~i',
+			static function ( $matches ) {
+				$escaped_s_char = 's' === $matches['S_CHAR']
+					? '\\u0073'
+					: '\\u0053';
+				return "{$matches['HEAD']}{$escaped_s_char}{$matches['TAIL']}";
+			},
+			$text
+		);
+	}
+
+	/**
+	 * Escape JSON script tag contents.
+	 *
+	 * Prevent JSON text from modifying the HTML structure of a document and
+	 * ensure that it's contained within its enclosing SCRIPT tag as intended.
+	 *
+	 * JSON can be escaped simply by replacing "<" with its Unicode escape
+	 * sequence "\u003C". "<" is not part of the JSON syntax and only appears
+	 * in JSON strings, so it's always safe to escape. Furthermore, JSON only
+	 * does not allow backslash escaping of "<", so there's no need to
+	 * consider whether the "<" is escaped.
+	 *
+	 * @see https://www.json.org/json-en.html
+	 */
+	private function escape_json_script_contents( string $text ): string {
+		return strtr(
+			$text,
+			array( '<' => '\\u003C' )
+		);
 	}
 
 	/**
