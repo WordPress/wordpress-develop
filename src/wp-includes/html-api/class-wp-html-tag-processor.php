@@ -4134,7 +4134,7 @@ class WP_HTML_Tag_Processor {
 	 *   └─────────▶ ║              ║  └────────── │  escaped  │ ─┘
 	 *               ╚══════════════╝              └───────────┘
 	 *
-	 *        † = Case insensitive 'script' followed by one of ' \t\f\c\n/>'
+	 *        † = Case insensitive 'script' followed by one of ' \t\f\r\n/>'
 	 *
 	 * The original source of this graph is included at the bottom of this file.
 	 *
@@ -4998,7 +4998,7 @@ digraph {
 	script_data_double_escaped -> script_data [label="-->"];
 	script_data_double_escaped -> script_data_escaped [label="</script†"];
 
-	label="† = Case insensitive 'script' followed by one of ' \\t\\f\\c\\n/>'";
+	label="† = Case insensitive 'script' followed by one of ' \\t\\f\\r\\n/>'";
 	labelloc=b;
 }
 */
