@@ -1553,16 +1553,15 @@ HTML;
 	 */
 	public function data_provider_to_test_fetchpriority_bumping(): array {
 		return array(
-			'enqueue_bajo' => array(
+			'enqueue_bajo'          => array(
 				'enqueues' => array( 'bajo' ),
 				'expected' => array(
 					'preload_links' => array(),
 					'script_tags'   => array(
 						'bajo' => array(
-							'url'                   => '/bajo.js',
-							'fetchpriority'         => 'high',
-							'in_footer'             => false,
-							'data-wp-fetchpriority' => 'low',
+							'url'           => '/bajo.js',
+							'fetchpriority' => 'low', // Priority of 'low' not 'high' because the 'auto' dependent was not enqueued.
+							'in_footer'     => false,
 						),
 					),
 					'import_map'    => array(
@@ -1570,7 +1569,30 @@ HTML;
 					),
 				),
 			),
-			'enqueue_auto' => array(
+			'enqueue_bajo_and_auto' => array(
+				'enqueues' => array( 'bajo', 'auto' ),
+				'expected' => array(
+					'preload_links' => array(),
+					'script_tags'   => array(
+						'bajo' => array(
+							'url'                   => '/bajo.js',
+							'fetchpriority'         => 'auto',
+							'in_footer'             => false,
+							'data-wp-fetchpriority' => 'low',
+						),
+						'auto' => array(
+							'url'           => '/auto.js',
+							'fetchpriority' => 'auto',
+							'in_footer'     => false,
+						),
+					),
+					'import_map'    => array(
+						'dyno' => '/dyno.js',
+						'bajo' => '/bajo.js',
+					),
+				),
+			),
+			'enqueue_auto'          => array(
 				'enqueues' => array( 'auto' ),
 				'expected' => array(
 					'preload_links' => array(
@@ -1582,10 +1604,9 @@ HTML;
 					),
 					'script_tags'   => array(
 						'auto' => array(
-							'url'                   => '/auto.js',
-							'fetchpriority'         => 'high',
-							'in_footer'             => false,
-							'data-wp-fetchpriority' => 'auto',
+							'url'           => '/auto.js',
+							'fetchpriority' => 'auto', // Priority of 'auto' not 'high' because the 'alto' dependent was not enqueued.
+							'in_footer'     => false,
 						),
 					),
 					'import_map'    => array(
@@ -1594,7 +1615,7 @@ HTML;
 					),
 				),
 			),
-			'enqueue_alto' => array(
+			'enqueue_alto'          => array(
 				'enqueues' => array( 'alto' ),
 				'expected' => array(
 					'preload_links' => array(
@@ -1826,6 +1847,29 @@ HTML;
 			$actual_footer_script_modules,
 			'<body>',
 			"Snapshot:\n$actual_footer_script_modules"
+		);
+	}
+
+	/**
+	 * Tests expected priority is used when a dependent is registered but not enqueued.
+	 *
+	 * @ticket 64429
+	 *
+	 * @covers ::wp_default_script_modules
+	 * @covers WP_Script_Modules::print_enqueued_script_modules
+	 * @covers WP_Script_Modules::get_highest_fetchpriority
+	 */
+	public function test_priority_of_dependency_for_non_enqueued_dependent() {
+		wp_default_script_modules();
+		wp_register_script_module( 'not-enqueued', 'https://example.com/not-enqueued.js', array( '@wordpress/a11y' ), null, array( 'priority' => 'high' ) );
+		wp_enqueue_script_module( '@wordpress/a11y' );
+
+		$actual = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) ) );
+		$this->assertEqualHTML(
+			'<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>',
+			$actual,
+			'<body>',
+			"Snapshot:\n$actual"
 		);
 	}
 
