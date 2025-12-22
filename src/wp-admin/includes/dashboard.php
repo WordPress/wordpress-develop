@@ -320,10 +320,31 @@ function wp_dashboard_right_now() {
 			}
 			$text = number_format_i18n( $num_post_published ) . ' ' . $post_label;
 
-			if ( $post_type_object && current_user_can( $post_type_object->cap->edit_posts ) ) {
-				printf( '<li class="%1$s-count"><a href="edit.php?post_type=%1$s">%2$s</a></li>', $post_type, $text );
+			$icon_class = '';
+
+			if ( str_starts_with( $post_type_object->menu_icon, 'dashicons' ) ) {
+				$icon_class = $post_type_object->menu_icon;
+			} elseif ( str_starts_with( $post_type_object->menu_icon, 'data:image/svg+xml;base64,' ) ) {
+				printf(
+					'<style>
+#dashboard_right_now li.%1$s-count a:before,
+#dashboard_right_now li.%1$s-count > span:before {
+	content: url( %2$s );
+	height: auto;
+	width: 20px;
+}
+</style>',
+					$post_type,
+					$post_type_object->menu_icon
+				);
+			}
+
+			$class_attr = $icon_class ? sprintf( ' class="%s"', $icon_class ) : '';
+
+			if ( current_user_can( $post_type_object->cap->edit_posts ) ) {
+				printf( '<li class="%1$s-count"><a%3$s href="edit.php?post_type=%1$s">%2$s</a></li>', $post_type, $text, $class_attr );
 			} else {
-				printf( '<li class="%1$s-count"><span>%2$s</span></li>', $post_type, $text );
+				printf( '<li class="%1$s-count"><span%3$s>%2$s</span></li>', $post_type, $text, $class_attr );
 			}
 		}
 	}

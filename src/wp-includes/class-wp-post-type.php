@@ -606,6 +606,11 @@ final class WP_Post_Type {
 			$args['at_a_glance'] = (bool) $args['show_in_menu'];
 		}
 
+		// If not set, default to the post icon.
+		if ( null === $args['menu_icon'] ) {
+			$args['menu_icon'] = 'dashicons-admin-post';
+		}
+
 		// If not set, default to the setting for 'show_in_menu'.
 		if ( null === $args['show_in_admin_bar'] ) {
 			$args['show_in_admin_bar'] = (bool) $args['show_in_menu'];
