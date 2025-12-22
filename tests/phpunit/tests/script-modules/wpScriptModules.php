@@ -1864,12 +1864,12 @@ HTML;
 		wp_register_script_module( 'not-enqueued', 'https://example.com/not-enqueued.js', array( '@wordpress/a11y' ), null, array( 'priority' => 'high' ) );
 		wp_enqueue_script_module( '@wordpress/a11y' );
 
-		$actual_script_modules = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) ) );
+		$actual = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) ) );
 		$this->assertEqualHTML(
 			'<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>',
-			$actual_script_modules,
+			$actual,
 			'<body>',
-			"Snapshot:\n$actual_script_modules"
+			"Snapshot:\n$actual"
 		);
 	}
 
