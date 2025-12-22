@@ -4106,6 +4106,38 @@ class WP_HTML_Tag_Processor {
 	 *     console.log( "\x3C/script>" );                       // "</script>"
 	 *     console.log( "<\/script>" );                         // "</script>"
 	 *
+	 * The following graph is a simplified interpretation of how HTML interprets the contents
+	 * of a SCRIPT tag and identifies the closing tag. It is useful to understand what text
+	 * is dangerous inside of a SCRIPT tag and why different approaches to escaping work.
+	 *
+	 *                              Open script
+	 *                                  │
+	 *                                  │
+	 *                                  ▼
+	 *               ╔═════════════════════════════════════════╗   <!--(…)>
+	 *               ║                                         ║   (all dashes)
+	 *               ║                 script                  ║ ───────────────┐
+	 *               ║                  data                   ║                │
+	 *   ┌────────── ║                                         ║ ◀──────────────┘
+	 *   │           ╚═════════════════════════════════════════╝
+	 *   │             │               ▲                    ▲
+	 *   │             │ <!--          │ -->                └─────┐
+	 *   │             ▼               │                          │
+	 *   │           ┌─────────────────────────────────────────┐  │
+	 *   │ </script† │                 escaped                 │  │
+	 *   │           └─────────────────────────────────────────┘  │
+	 *   │             │               ▲             │            │ -->
+	 *   │             │ </script†     │ </script†   │ <script†   │
+	 *   │             ▼               │             ▼            │
+	 *   │           ╔══════════════╗  │           ┌───────────┐  │
+	 *   │           ║ Close script ║  │           │  double   │  │
+	 *   └─────────▶ ║              ║  └────────── │  escaped  │ ─┘
+	 *               ╚══════════════╝              └───────────┘
+	 *
+	 *        † = Case insensitive 'script' followed by one of ' \t\f\c\n/>'
+	 *
+	 * The original source of this graph is included at the bottom of this file.
+	 *
 	 * @see https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements
 	 */
 	private function escape_javascript_script_contents( string $text ): string {
@@ -4133,6 +4165,7 @@ class WP_HTML_Tag_Processor {
 	 * does not allow backslash escaping of "<", so there's no need to
 	 * consider whether the "<" is escaped.
 	 *
+	 * @see WP_HTML_Tag_Processor::escape_javascript_script_contents()
 	 * @see https://www.json.org/json-en.html
 	 */
 	private function escape_json_script_contents( string $text ): string {
@@ -4932,3 +4965,40 @@ class WP_HTML_Tag_Processor {
 	 */
 	const TEXT_IS_WHITESPACE = 'TEXT_IS_WHITESPACE';
 }
+
+/*
+# This is the original Graphviz source for the SCRIPT content
+# parsinge behavior. It's used in the documention of
+# `WP_HTML_Tag_Processor::escape_javascript_script_contents()`.
+# ====
+digraph {
+	rankdir=TB;
+
+    // Entry point
+    entry [shape=plaintext label="Open script"];
+    entry -> script_data;
+
+	// Double-circle states arranged more compactly
+	data [shape=doublecircle label="Close script"];
+	script_data [shape=doublecircle color=blue label="script\ndata"];
+	script_data_escaped [shape=circle color=orange label="escaped"];
+	script_data_double_escaped [shape=circle color=red label="double\nescaped"];
+
+	// Group related nodes on same ranks where possible
+	{rank=same; script_data script_data_escaped script_data_double_escaped}
+
+	script_data -> script_data [label="<!--(…)>\n(all dashes)"];
+	script_data -> script_data_escaped [label="<!--"];
+	script_data -> data [label="</script†"];
+
+	script_data_escaped -> script_data [label="-->"];
+	script_data_escaped -> script_data_double_escaped [label="<script†"];
+	script_data_escaped -> data [label="</script†"];
+
+	script_data_double_escaped -> script_data [label="-->"];
+	script_data_double_escaped -> script_data_escaped [label="</script†"];
+
+	label="† = Case insensitive 'script' followed by one of ' \\t\\f\\c\\n/>'";
+    labelloc=b;
+}
+*/
