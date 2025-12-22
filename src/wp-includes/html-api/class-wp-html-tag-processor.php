@@ -3821,7 +3821,7 @@ class WP_HTML_Tag_Processor {
 				 *
 				 *     <script>
 				 *       // If "<!--" and "<script>" appear like this,
-				 *       // the following `</script>` close tag will not be recognized.
+				 *       // the following SCRIPT close tag will not be recognized.
 				 *     </script>
 				 *     <h1>This appears _inside_ the preceding SCRIPT element.</h1>
 				 *
