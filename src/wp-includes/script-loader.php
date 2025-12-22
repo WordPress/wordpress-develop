@@ -3081,7 +3081,7 @@ function wp_maybe_inline_styles() {
 		$path = $wp_styles->get_data( $handle, 'path' );
 		if ( $path && $src ) {
 			$size = wp_filesize( $path );
-			if ( 0 === $size ) {
+			if ( 0 === $size && ! file_exists( $path ) ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf(
