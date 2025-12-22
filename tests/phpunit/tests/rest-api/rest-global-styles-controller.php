@@ -650,6 +650,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::update_item
 	 * @ticket 57536
+	 * @ticket 64418
 	 */
 	public function test_update_item_invalid_styles_css() {
 		wp_set_current_user( self::$admin_id );
@@ -659,7 +660,9 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
 		$request->set_body_params(
 			array(
-				'styles' => array( 'css' => '<p>test</p> body { color: red; }' ),
+				'styles' => array(
+					'css' => '</style would close the containing element and is not allowed.',
+				),
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -825,5 +828,33 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertArrayHasKey( 'id', $route_data[0]['args'] );
 		$this->assertArrayHasKey( 'type', $route_data[0]['args']['id'] );
 		$this->assertSame( 'integer', $route_data[0]['args']['id']['type'] );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::update_item
+	 * @ticket 64418
+	 */
+	public function test_update_allows_valid_css_with_more_syntax() {
+		wp_set_current_user( self::$admin_id );
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin_id );
+		}
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$css     = <<<'CSS'
+@property --animate {
+	syntax: "<custom-ident>";
+	inherits: true;
+	initial-value: false;
+}
+CSS;
+		$request->set_body_params(
+			array(
+				'styles' => array( 'css' => $css ),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( $css, $data['styles']['css'] );
 	}
 }
