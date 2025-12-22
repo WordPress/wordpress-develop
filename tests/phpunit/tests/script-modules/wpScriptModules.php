@@ -1830,6 +1830,25 @@ HTML;
 	}
 
 	/**
+	 * Tests expected priority is used when a dependent is registered but not enqueued.
+	 *
+	 * @ticket 64429
+	 */
+	public function test_priority_of_dependency_for_non_enqueued_dependent() {
+		wp_default_script_modules();
+		wp_register_script_module( 'not-enqueued', 'https://example.com/not-enqueued.js', array( '@wordpress/a11y' ), null, array( 'priority' => 'high' ) );
+		wp_enqueue_script_module( '@wordpress/a11y' );
+
+		$actual_script_modules = $this->normalize_markup_for_snapshot( get_echo( array( wp_script_modules(), 'print_enqueued_script_modules' ) ) );
+		$this->assertEqualHTML(
+			'<script type="module" src="/wp-includes/js/dist/script-modules/a11y/index.min.js" id="@wordpress/a11y-js-module" fetchpriority="low"></script>',
+			$actual_script_modules,
+			'<body>',
+			"Snapshot:\n$actual_script_modules"
+		);
+	}
+
+	/**
 	 * Tests that a dependent with high priority for default script modules with a low fetch priority are printed as expected.
 	 *
 	 * @covers ::wp_default_script_modules
