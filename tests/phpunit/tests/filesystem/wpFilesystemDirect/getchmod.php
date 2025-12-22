@@ -33,16 +33,17 @@ class Tests_Filesystem_WpFilesystemDirect_Getchmod extends WP_Filesystem_Direct_
 
 	/**
 	 * Tests that `WP_Filesystem_Direct::getchmod()` returns
-	 * the permissions for a path that does not exist.
+	 * "0" for a path that does not exist.
 	 *
 	 * @dataProvider data_paths_that_do_not_exist
 	 *
 	 * @ticket 57774
+	 * @ticket 64426
 	 *
 	 * @param string $path The path.
 	 */
-	public function test_should_get_chmod_for_a_path_that_does_not_exist( $path ) {
+	public function test_should_return_zero_for_a_path_that_does_not_exist( $path ) {
 		$actual = self::$filesystem->getchmod( self::$file_structure['test_dir']['path'] . $path );
-		$this->assertNotSame( '', $actual );
+		$this->assertSame( '0', $actual );
 	}
 }

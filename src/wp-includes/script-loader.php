@@ -2088,8 +2088,8 @@ function wp_style_loader_src( $src, $handle ) {
 			$color = 'fresh';
 		}
 
-		$color = $_wp_admin_css_colors[ $color ];
-		$url   = $color->url;
+		$color = $_wp_admin_css_colors[ $color ] ?? null;
+		$url   = $color->url ?? '';
 
 		if ( ! $url ) {
 			return false;
