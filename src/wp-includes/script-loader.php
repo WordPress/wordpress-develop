@@ -3080,7 +3080,18 @@ function wp_maybe_inline_styles() {
 		$path = $wp_styles->get_data( $handle, 'path' );
 		if ( is_string( $path ) && '' !== $path && is_string( $src ) && '' !== $src ) {
 			$size = wp_filesize( $path );
-			if ( ! $size ) {
+			if ( 0 === $size ) {
+				_doing_it_wrong(
+					__FUNCTION__,
+					sprintf(
+						/* translators: 1: 'path', 2: filesystem path, 3: style handle */
+						__( 'Unable to read the "%1$s" key with value "%2$s" for stylesheet "%3$s".' ),
+						'path',
+						esc_html( $path ),
+						esc_html( $handle )
+					),
+					'7.0.0'
+				);
 				continue;
 			}
 			$styles[] = array(
@@ -3124,7 +3135,7 @@ function wp_maybe_inline_styles() {
 					__FUNCTION__,
 					sprintf(
 						/* translators: 1: 'path', 2: filesystem path, 3: style handle */
-						__( 'Unable to read file contents the "%1$s" key with value "%2$s" for stylesheet "%3$s".' ),
+						__( 'Unable to read the "%1$s" key with value "%2$s" for stylesheet "%3$s".' ),
 						'path',
 						esc_html( $style['path'] ),
 						esc_html( $style['handle'] )

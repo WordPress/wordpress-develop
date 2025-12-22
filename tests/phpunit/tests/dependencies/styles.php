@@ -769,6 +769,23 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_maybe_inline_styles
+	 * @expectedIncorrectUsage wp_maybe_inline_styles
+	 */
+	public function test_wp_maybe_inline_styles_bad_path() {
+		$handle   = 'test-handle';
+		$inc_path = '/css/ancient-themes.css'; // Does not exist.
+		$url      = '/' . WPINC . $inc_path;
+		wp_register_style( $handle, $url );
+		wp_style_add_data( $handle, 'path', ABSPATH . WPINC . $inc_path );
+		wp_enqueue_style( $handle );
+
+		wp_maybe_inline_styles();
+
+		$this->assertSame( $GLOBALS['wp_styles']->registered[ $handle ]->src, $url );
+	}
+
+	/**
 	 * @ticket 63887
 	 */
 	public function test_source_url_encoding() {
