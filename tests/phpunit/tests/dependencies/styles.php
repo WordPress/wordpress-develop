@@ -55,18 +55,26 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * Test versioning
 	 *
 	 * @ticket 11315
+	 * @ticket 64372
 	 */
 	public function test_wp_enqueue_style() {
 		wp_enqueue_style( 'no-deps-no-version', 'example.com' );
-		wp_enqueue_style( 'no-deps-version', 'example.com', array(), 1.2 );
+		wp_enqueue_style( 'no-deps-version', 'example.com', array(), '1.2' );
 		wp_enqueue_style( 'no-deps-null-version', 'example.com', array(), null );
 		wp_enqueue_style( 'no-deps-null-version-print-media', 'example.com', array(), null, 'print' );
+		wp_enqueue_style( 'no-deps-arg-in-handle-with-ver?arg1=foo&arg2=bar', 'https://example.com/test.css', array(), '2.0' );
+		wp_enqueue_style( 'no-deps-arg-in-handle-without-ver?arg1=foo&arg2=bar', 'https://example.com/test.css', array(), null );
+		wp_register_style( 'registered-no-qs-handle-null-version-enqueued-with-qs', 'https://example.com/test.css' );
+		wp_enqueue_style( 'registered-no-qs-handle-null-version-enqueued-with-qs?arg1=foo&arg2=bar' );
 
 		$ver       = get_bloginfo( 'version' );
 		$expected  = "<link rel='stylesheet' id='no-deps-no-version-css' href='http://example.com?ver=$ver' type='text/css' media='all' />\n";
 		$expected .= "<link rel='stylesheet' id='no-deps-version-css' href='http://example.com?ver=1.2' type='text/css' media='all' />\n";
 		$expected .= "<link rel='stylesheet' id='no-deps-null-version-css' href='http://example.com' type='text/css' media='all' />\n";
 		$expected .= "<link rel='stylesheet' id='no-deps-null-version-print-media-css' href='http://example.com' type='text/css' media='print' />\n";
+		$expected .= "<link rel='stylesheet' id='no-deps-arg-in-handle-with-ver-css' href='https://example.com/test.css?ver=2.0&#038;arg1=foo&#038;arg2=bar' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='no-deps-arg-in-handle-without-ver-css' href='https://example.com/test.css?arg1=foo&#038;arg2=bar' type='text/css' media='all' />\n";
+		$expected .= "<link rel='stylesheet' id='registered-no-qs-handle-null-version-enqueued-with-qs-css' href='https://example.com/test.css?ver={$ver}&#038;arg1=foo&#038;arg2=bar' type='text/css' media='all' />\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
 
@@ -842,6 +850,97 @@ HTML;
 			'The style with the handle "main-style" was enqueued with dependencies that are not registered: missing-style-dep',
 			$this->caught_doing_it_wrong[ $expected_incorrect_usage ],
 			'Expected _doing_it_wrong() notice to indicate missing dependencies for enqueued styles.'
+		);
+	}
+
+	/**
+	 * Test query string on handle when enqueuing styles directly.
+	 *
+	 * @ticket 64372
+	 *
+	 * @covers WP_Styles::do_item
+	 *
+	 * @dataProvider data_varying_versions_handle_args
+	 *
+	 * @param mixed  $version               Version to pass when enqueuing.
+	 * @param string $expected_query_string Expected query string portion of the style sheet URL.
+	 */
+	public function test_varying_versions_added_to_handle_args_enqueued_styles( $version, $expected_query_string ) {
+		wp_enqueue_style( 'test-style?qs1=q1&qs2=q2', '/test-style.css', array(), $version );
+		$markup = get_echo( 'wp_print_styles' );
+
+		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' type='text/css' media='all' />";
+		$this->assertEqualHTML( $expected, $markup, '<body>', 'Expected equal snapshot for wp_print_styles() with version ' . var_export( $version, true ) . ":\n$markup" );
+	}
+
+	/**
+	 * Test query string on handle when registering then enqueuing styles.
+	 *
+	 * @ticket 64372
+	 *
+	 * @covers WP_Styles::do_item
+	 *
+	 * @dataProvider data_varying_versions_handle_args
+	 *
+	 * @param mixed  $version               Version to pass when enqueuing.
+	 * @param string $expected_query_string Expected query string portion of the style sheet URL.
+	 */
+	public function test_varying_versions_added_to_handle_args_registered_then_enqueued_styles( $version, $expected_query_string ) {
+		wp_register_style( 'test-style', '/test-style.css', array(), $version );
+		wp_enqueue_style( 'test-style?qs1=q1&qs2=q2' );
+		$markup = get_echo( 'wp_print_styles' );
+
+		$expected = "<link rel='stylesheet' href='/test-style.css?{$expected_query_string}' id='test-style-css' type='text/css' media='all' />";
+		$this->assertEqualHTML( $expected, $markup, '<body>', 'Expected equal snapshot for wp_print_styles() with version ' . var_export( $version, true ) . ":\n$markup" );
+	}
+
+	/**
+	 * Data provider for:
+	 * - test_varying_versions_added_to_handle_args_enqueued_styles
+	 * - test_varying_versions_added_to_handle_args_registered_then_enqueued_styles
+	 *
+	 * @return array[] Data provider.
+	 */
+	public function data_varying_versions_handle_args() {
+		$default_version = get_bloginfo( 'version' );
+
+		return array(
+			'string'       => array(
+				'1.0.0',
+				'ver=1.0.0&amp;qs1=q1&amp;qs2=q2',
+			),
+			'null'         => array(
+				null,
+				'qs1=q1&amp;qs2=q2',
+			),
+			'false'        => array(
+				false,
+				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
+			),
+			'empty-string' => array(
+				'',
+				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
+			),
+			'zero-string'  => array(
+				'0',
+				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
+			),
+			'integer'      => array(
+				123,
+				'ver=123&amp;qs1=q1&amp;qs2=q2',
+			),
+			'zero-integer' => array(
+				0,
+				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
+			),
+			'float'        => array(
+				1.23,
+				'ver=1.23&amp;qs1=q1&amp;qs2=q2',
+			),
+			'zero-float'   => array(
+				0.0,
+				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
+			),
 		);
 	}
 }
