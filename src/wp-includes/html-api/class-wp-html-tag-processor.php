@@ -4095,6 +4095,17 @@ class WP_HTML_Tag_Processor {
 	 * `regex.test( '<script>' ) === true` in both the unescaped and
 	 * escaped versions.
 	 *
+	 * JavaScript that is relies on behavior affected by this escaping must provide
+	 * safe script contents in order to avoid this escaping. For example, a raw string
+	 * may be split up to make its contents safe or avoided altogether:
+	 *
+	 *     console.log( String.raw`</script>` );                // !!UNSAFE!! Will be escaped.
+	 *     console.log( String.raw`</\u0073cript>` );           // "</\u0073cript>"
+	 *     console.log( String.raw`</scr` + String.raw`ipt>` ); // "</script>"
+	 *     console.log( String.raw`</${"script"}>` );           // "</script>"
+	 *     console.log( "\x3C/script>" );                       // "</script>"
+	 *     console.log( "<\/script>" );                         // "</script>"
+	 *
 	 * @see https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements
 	 */
 	private function escape_javascript_script_contents( string $text ): string {
