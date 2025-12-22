@@ -38,6 +38,7 @@ class Tests_Filesystem_WpFilesystemDirect_Getchmod extends WP_Filesystem_Direct_
 	 * @dataProvider data_paths_that_do_not_exist
 	 *
 	 * @ticket 57774
+	 * @ticket 64426
 	 *
 	 * @param string $path The path.
 	 */

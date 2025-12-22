@@ -256,7 +256,6 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 */
 	public function getchmod( $file ) {
 		$perms = @fileperms( $file );
-
 		if ( false === $perms ) {
 			return '0';
 		}
