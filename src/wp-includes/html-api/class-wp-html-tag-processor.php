@@ -3811,14 +3811,14 @@ class WP_HTML_Tag_Processor {
 
 		switch ( $this->get_tag() ) {
 			case 'SCRIPT':
-				/*
-				 * SCRIPT tag contents can be dangerous:
+				/**
+				 * Identify risky script contents to escape when possible or reject otherwise:
 				 *
 				 * - "</script>" could close the SCRIPT element prematurely.
-				 * - "<script>" could enter the “script data double escaped state” and preventing the
+				 * - "<script>" could enter the “script data double escaped state” and prevent the
 				 *   SCRIPT element from closing as expected.
 				 *
-				 * Identify risky script contents to escape when possible or reject otherwise.
+				 * @see WP_HTML_Tag_Processor::escape_javascript_script_contents()
 				 */
 				$needs_escaping =
 					false !== stripos( $plaintext_content, '</script' ) ||
@@ -3830,8 +3830,8 @@ class WP_HTML_Tag_Processor {
 						$plaintext_content = $this->escape_json_script_contents( $plaintext_content );
 					} else {
 						/*
-						 * Other types of script tags cannot be escaped safely because the type
-						 * of comment and escaping strategy are unknown.
+						 * Other types of script tags cannot be escaped safely because there is
+						 * no general escaping mechanism for arbitrary types of content.
 						 */
 						return false;
 					}
@@ -4095,7 +4095,7 @@ class WP_HTML_Tag_Processor {
 	 * `regex.test( '<script>' ) === true` in both the unescaped and
 	 * escaped versions.
 	 *
-	 * JavaScript that is relies on behavior affected by this escaping must provide
+	 * JavaScript that relies on behavior affected by this escaping must provide
 	 * safe script contents in order to avoid this escaping. For example, a raw string
 	 * may be split up to make its contents safe or avoided altogether:
 	 *
@@ -4161,9 +4161,9 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * JSON can be escaped simply by replacing "<" with its Unicode escape
 	 * sequence "\u003C". "<" is not part of the JSON syntax and only appears
-	 * in JSON strings, so it's always safe to escape. Furthermore, JSON only
-	 * does not allow backslash escaping of "<", so there's no need to
-	 * consider whether the "<" is escaped.
+	 * in JSON strings, so it's always safe to escape. Furthermore, JSON does
+	 * not allow backslash escaping of "<", so there's no need to consider
+	 * whether the "<" is preceded by an escaping backslash.
 	 *
 	 * For more details, see {@see WP_HTML_Tag_Processor::escape_javascript_script_contents()}.
 	 * @see https://www.json.org/json-en.html
@@ -4967,16 +4967,16 @@ class WP_HTML_Tag_Processor {
 }
 
 /*
-# This is the original Graphviz source for the SCRIPT content
-# parsinge behavior. It's used in the documention of
+# This is the original Graphviz source for the SCRIPT tag
+# parsing behavior. It's used in the documentation for
 # `WP_HTML_Tag_Processor::escape_javascript_script_contents()`.
 # ====
 digraph {
 	rankdir=TB;
 
-    // Entry point
-    entry [shape=plaintext label="Open script"];
-    entry -> script_data;
+	// Entry point
+	entry [shape=plaintext label="Open script"];
+	entry -> script_data;
 
 	// Double-circle states arranged more compactly
 	data [shape=doublecircle label="Close script"];
@@ -4999,6 +4999,6 @@ digraph {
 	script_data_double_escaped -> script_data_escaped [label="</script†"];
 
 	label="† = Case insensitive 'script' followed by one of ' \\t\\f\\c\\n/>'";
-    labelloc=b;
+	labelloc=b;
 }
 */
