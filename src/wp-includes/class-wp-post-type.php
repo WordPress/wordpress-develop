@@ -199,7 +199,7 @@ final class WP_Post_Type {
 	 * @since 4.6.0
 	 * @var string $menu_icon
 	 */
-	public $menu_icon = null;
+	public $menu_icon;
 
 	/**
 	 * The string to use to build the read, edit, and delete capabilities.

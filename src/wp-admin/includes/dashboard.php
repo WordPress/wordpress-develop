@@ -303,16 +303,12 @@ function wp_dashboard_right_now() {
 	<ul>
 	<?php
 	// At a Glance Post Types.
-	foreach ( get_post_types( array( 'at_a_glance' => true ) ) as $post_type ) {
+	foreach ( get_post_types( array( 'at_a_glance' => true ), 'objects' ) as $post_type_object ) {
+		$post_type          = $post_type_object->name;
 		$num_posts          = wp_count_posts( $post_type );
 		$num_post_published = intval( $num_posts->publish );
 
 		if ( $num_posts && $num_post_published ) {
-			$post_type_object = get_post_type_object( $post_type );
-
-			if ( ! $post_type_object ) {
-				continue;
-			}
 			if ( 1 === $num_post_published ) {
 				$post_label = $post_type_object->labels->singular_name;
 			} else {
