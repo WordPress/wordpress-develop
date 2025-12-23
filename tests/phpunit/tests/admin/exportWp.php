@@ -452,9 +452,9 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_title'   => 'Test Post with Category',
-				'post_type'    => 'post',
-				'post_status'  => 'publish',
+				'post_title'  => 'Test Post with Category',
+				'post_type'   => 'post',
+				'post_status' => 'publish',
 			)
 		);
 
@@ -584,7 +584,7 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 		$this->assertNotFalse( $xml, 'Export should not fail with users having empty name fields' );
 
 		// Check that the author is in the export.
-		$authors = $xml->channel->children( 'wp', true );
+		$authors      = $xml->channel->children( 'wp', true );
 		$found_author = false;
 
 		foreach ( $authors as $author ) {
