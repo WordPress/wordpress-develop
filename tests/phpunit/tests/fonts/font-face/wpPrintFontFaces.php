@@ -37,11 +37,7 @@ class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 	public function test_should_print_given_fonts( array $fonts, $expected ) {
 		$expected_output = $this->get_expected_styles_output( $expected );
 
-		$output = get_echo(
-			function () use ( $fonts ) {
-				wp_print_font_faces( $fonts );
-			}
-		);
+		$output = get_echo( 'wp_print_font_faces', array( $fonts ) );
 		$this->assertEqualHTML( $expected_output, $output );
 	}
 
@@ -65,11 +61,7 @@ class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 
 CSS;
 
-		$output = get_echo(
-			function () use ( $fonts ) {
-				wp_print_font_faces( $fonts );
-			}
-		);
+		$output = get_echo( 'wp_print_font_faces', array( $fonts ) );
 		$this->assertEqualHTML( $expected_output, $output );
 	}
 
