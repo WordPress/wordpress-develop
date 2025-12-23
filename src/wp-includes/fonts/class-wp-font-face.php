@@ -73,21 +73,6 @@ class WP_Font_Face {
 	private $style_tag_attrs = array();
 
 	/**
-	 * Creates and initializes an instance of WP_Font_Face.
-	 *
-	 * @since 6.4.0
-	 */
-	public function __construct() {
-		if (
-			function_exists( 'is_admin' ) && ! is_admin()
-			&&
-			function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'html5', 'style' )
-		) {
-			$this->style_tag_attrs = array( 'type' => 'text/css' );
-		}
-	}
-
-	/**
 	 * Generates and prints the `@font-face` styles for the given fonts.
 	 *
 	 * @since 6.4.0
