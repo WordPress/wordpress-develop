@@ -20,7 +20,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 	 */
 	public function test_resolve_relative_path( $translation_path, $handle, $src, $textdomain, $filter = array() ) {
 		if ( ! empty( $filter ) ) {
-			add_filter( $filter[0], $filter[1], 10, isset( $filter[2] ) ? $filter[2] : 1 );
+			add_filter( $filter[0], $filter[1], 10, $filter[2] ?? 1 );
 		}
 		wp_enqueue_script( $handle, $src, array(), null );
 

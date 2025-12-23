@@ -1808,7 +1808,7 @@ function wp_ajax_closed_postboxes() {
 	$hidden = isset( $_POST['hidden'] ) ? explode( ',', $_POST['hidden'] ) : array();
 	$hidden = array_filter( $hidden );
 
-	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
+	$page = $_POST['page'] ?? '';
 
 	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
@@ -1839,7 +1839,7 @@ function wp_ajax_closed_postboxes() {
  */
 function wp_ajax_hidden_columns() {
 	check_ajax_referer( 'screen-options-nonce', 'screenoptionnonce' );
-	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
+	$page = $_POST['page'] ?? '';
 
 	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
@@ -1988,13 +1988,13 @@ function wp_ajax_menu_locations_save() {
 function wp_ajax_meta_box_order() {
 	check_ajax_referer( 'meta-box-order' );
 	$order        = isset( $_POST['order'] ) ? (array) $_POST['order'] : false;
-	$page_columns = isset( $_POST['page_columns'] ) ? $_POST['page_columns'] : 'auto';
+	$page_columns = $_POST['page_columns'] ?? 'auto';
 
 	if ( 'auto' !== $page_columns ) {
 		$page_columns = (int) $page_columns;
 	}
 
-	$page = isset( $_POST['page'] ) ? $_POST['page'] : '';
+	$page = $_POST['page'] ?? '';
 
 	if ( sanitize_key( $page ) !== $page ) {
 		wp_die( 0 );
@@ -2052,7 +2052,7 @@ function wp_ajax_get_permalink() {
 function wp_ajax_sample_permalink() {
 	check_ajax_referer( 'samplepermalink', 'samplepermalinknonce' );
 	$post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
-	$title   = isset( $_POST['new_title'] ) ? $_POST['new_title'] : '';
+	$title   = $_POST['new_title'] ?? '';
 	$slug    = isset( $_POST['new_slug'] ) ? $_POST['new_slug'] : null;
 	wp_die( get_sample_permalink_html( $post_id, $title, $slug ) );
 }

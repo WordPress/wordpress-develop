@@ -192,7 +192,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		wp_set_post_terms( $p2, array( $t ), 'wptests_tax' );
 
 		// Fake current page.
-		$_post           = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$_post           = $GLOBALS['post'] ?? null;
 		$GLOBALS['post'] = get_post( $p1 );
 
 		$found = get_adjacent_post( false, array( $t ), true, 'wptests_tax' );
@@ -229,7 +229,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		wp_delete_object_term_relationships( $p3, 'category' );
 
 		// Fake current page.
-		$_post           = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$_post           = $GLOBALS['post'] ?? null;
 		$GLOBALS['post'] = get_post( $p1 );
 
 		$found = get_adjacent_post( false, array( $t ), true, 'wptests_tax' );

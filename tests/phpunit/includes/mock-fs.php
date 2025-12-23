@@ -46,7 +46,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 			'/' => $this->fs,
 		);
 		$this->cache  = array(); // Used by find_folder() and friends.
-		$this->cwd    = isset( $this->fs_map[ $home_dir ] ) ? $this->fs_map[ $home_dir ] : '/';
+		$this->cwd    = $this->fs_map[ $home_dir ] ?? '/';
 		$this->setfs( $paths );
 	}
 
@@ -79,7 +79,7 @@ class WP_Filesystem_MockFS extends WP_Filesystem_Base {
 	 * Locates a filesystem "node"
 	 */
 	private function locate_node( $path ) {
-		return isset( $this->fs_map[ $path ] ) ? $this->fs_map[ $path ] : false;
+		return $this->fs_map[ $path ] ?? false;
 	}
 
 	/**

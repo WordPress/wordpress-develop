@@ -37,9 +37,9 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->old_wp_scripts          = isset( $GLOBALS['wp_scripts'] ) ? $GLOBALS['wp_scripts'] : null;
-		$this->old_wp_styles           = isset( $GLOBALS['wp_styles'] ) ? $GLOBALS['wp_styles'] : null;
-		$this->old_concatenate_scripts = isset( $GLOBALS['concatenate_scripts'] ) ? $GLOBALS['concatenate_scripts'] : null;
+		$this->old_wp_scripts          = $GLOBALS['wp_scripts'] ?? null;
+		$this->old_wp_styles           = $GLOBALS['wp_styles'] ?? null;
+		$this->old_concatenate_scripts = $GLOBALS['concatenate_scripts'] ?? null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();

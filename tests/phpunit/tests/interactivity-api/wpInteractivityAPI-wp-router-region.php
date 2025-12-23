@@ -45,7 +45,7 @@ class Tests_WP_Interactivity_API_WP_Router_Region extends WP_UnitTestCase {
 		$wp_filter['wp_footer']   = new WP_Hook();
 
 		// Removes all registered styles.
-		$this->original_wp_styles = isset( $GLOBALS['wp_styles'] ) ? $GLOBALS['wp_styles'] : null;
+		$this->original_wp_styles = $GLOBALS['wp_styles'] ?? null;
 		$GLOBALS['wp_styles']     = new WP_Styles();
 		remove_action( 'wp_default_styles', 'wp_default_styles' );
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
