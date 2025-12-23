@@ -153,7 +153,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'wp-block-hidden-mobile', $result, 'Block should have the visibility class for the mobile breakpoint.' );
 
-		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports' );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
 			'@media (max-width: 599px){.wp-block-hidden-mobile{display:none !important;}}',
@@ -187,7 +187,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'class="existing-class wp-block-hidden-tablet"', $result, 'Block should have the existing class and the visibility class for the tablet breakpoint in the class attribute.' );
 
-		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports' );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
 			'@media (min-width: calc(599px + 1px)) and (max-width: 959px){.wp-block-hidden-tablet{display:none !important;}}',
@@ -221,7 +221,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'class="wp-block-hidden-desktop"', $result, 'Block should have the visibility class for the desktop breakpoint in the class attribute.' );
 
-		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports' );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
 			'@media (min-width: calc(959px + 1px)){.wp-block-hidden-desktop{display:none !important;}}',
@@ -260,7 +260,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 			'Block should have both visibility classes in the class attribute'
 		);
 
-		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports' );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertSame(
 			'@media (min-width: calc(959px + 1px)){.wp-block-hidden-desktop{display:none !important;}}@media (max-width: 599px){.wp-block-hidden-mobile{display:none !important;}}',
