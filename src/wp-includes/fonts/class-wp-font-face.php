@@ -118,7 +118,13 @@ class WP_Font_Face {
 			return;
 		}
 
-		printf( $this->get_style_element(), $css );
+		$processor = new WP_HTML_Tag_Processor( "<style class=\"wp-fonts-local\"></style>\n" );
+		$processor->next_tag();
+		foreach ( $this->style_tag_attrs as $name => $value ) {
+			$processor->set_attribute( $name, $value );
+		}
+		$processor->set_modifiable_text( "\n{$css}\n" );
+		echo $processor->get_updated_html();
 	}
 
 	/**
@@ -217,34 +223,6 @@ class WP_Font_Face {
 		}
 
 		return $font_face;
-	}
-
-	/**
-	 * Gets the style element for wrapping the `@font-face` CSS.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @return string The style element.
-	 */
-	private function get_style_element() {
-		$attributes = $this->generate_style_element_attributes();
-
-		return "<style class='wp-fonts-local'{$attributes}>\n%s\n</style>\n";
-	}
-
-	/**
-	 * Gets the defined <style> element's attributes.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @return string A string of attribute=value when defined, else, empty string.
-	 */
-	private function generate_style_element_attributes() {
-		$attributes = '';
-		foreach ( $this->style_tag_attrs as $name => $value ) {
-			$attributes .= " {$name}='{$value}'";
-		}
-		return $attributes;
 	}
 
 	/**
