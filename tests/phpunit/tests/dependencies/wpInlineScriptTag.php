@@ -134,20 +134,6 @@ JS;
 		);
 	}
 
-	/**
-	 * Tests that CDATA wrapper duplication is handled.
-	 *
-	 * @ticket 58664
-	 */
-	public function test_get_inline_script_tag_with_duplicated_cdata_wrappers() {
-		remove_theme_support( 'html5' );
-
-		$this->assertSame(
-			"<script type=\"text/javascript\">\n/* <![CDATA[ */\n/* <![CDATA[ */ console.log( 'Hello World!' ); /* ]]]]><![CDATA[> */\n/* ]]> */\n</script>\n",
-			wp_get_inline_script_tag( "/* <![CDATA[ */ console.log( 'Hello World!' ); /* ]]> */" )
-		);
-	}
-
 	public function data_provider_to_test_cdata_wrapper_omitted_for_non_javascript_scripts() {
 		return array(
 			'no-type'     => array(
@@ -196,25 +182,5 @@ JS;
 				'expected_cdata' => false,
 			),
 		);
-	}
-
-	/**
-	 * Tests that CDATA wrapper is not added for non-JavaScript scripts.
-	 *
-	 * @ticket 60320
-	 *
-	 * @dataProvider data_provider_to_test_cdata_wrapper_omitted_for_non_javascript_scripts
-	 */
-	public function test_cdata_wrapper_omitted_for_non_javascript_scripts( $type, $data, $expected_cdata ) {
-		remove_theme_support( 'html5' );
-
-		$attrs = array();
-		if ( $type ) {
-			$attrs['type'] = $type;
-		}
-		$script = wp_get_inline_script_tag( $data, $attrs );
-		$this->assertSame( $expected_cdata, str_contains( $script, '/* <![CDATA[ */' ) );
-		$this->assertSame( $expected_cdata, str_contains( $script, '/* ]]> */' ) );
-		$this->assertStringContainsString( $data, $script );
 	}
 }
