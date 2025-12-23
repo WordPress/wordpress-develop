@@ -629,7 +629,7 @@ function export_wp( $args = array() ) {
 				 *
 				 * @param string $post_excerpt Excerpt for the current post.
 				 */
-				$excerpt = wxr_cdata( $post->post_excerpt );
+				$excerpt = wxr_cdata( apply_filters( 'the_excerpt_export', $post->post_excerpt ) );
 
 				$is_sticky = is_sticky( $post->ID ) ? 1 : 0;
 				?>
