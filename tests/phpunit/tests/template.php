@@ -1706,30 +1706,18 @@ class Tests_Template extends WP_UnitTestCase {
 		register_core_block_style_handles();
 		$this->assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'core/separator' ), 'Expected the core/separator block to be registered.' );
 
-		// Ensure all registered styles added as part of the build process are present on the disk. .These files are created as part of the build process, but the unit tests don't run the build prior to running unit tests on GHA.
-		foreach ( wp_styles()->registered as $handle => $dependency ) {
-			if ( ! is_string( $dependency->src ) ) {
-				continue;
-			}
-			$path     = wp_parse_url( $dependency->src, PHP_URL_PATH );
-			$position = strpos( $path, WPINC . '/' );
-			if ( false === $position ) {
-				continue;
-			}
-			$absolute_path = ABSPATH . substr( $path, $position );
-			if ( ! file_exists( $absolute_path ) ) {
-				self::touch( $absolute_path );
-				file_put_contents( $absolute_path, "/* Stub for $handle */" );
-			}
-		}
-
 		// Ensure stylesheet files exist on the filesystem since a build may not have been done.
 		$this->ensure_style_asset_file_created(
 			'wp-block-library',
-			wp_should_load_separate_core_block_assets() ? 'css/dist/block-library/common.css' : 'css/dist/block-library/style.css'
+			wp_should_load_separate_core_block_assets() ? 'css/dist/block-library/common.css' : 'css/dist/block-library/style.css',
+			wp_should_load_separate_core_block_assets()
 		);
+		$dependency = wp_styles()->query( 'wp-block-library' );
+		$this->assertTrue( (bool) $dependency, 'Expected wp-block-library stylesheet to be registered.' );
+		$this->assertIsString( $dependency->src, 'Expected wp-block-library to have a string src. Dependency: ' . json_encode( $dependency ) );
+
 		if ( wp_should_load_separate_core_block_assets() ) {
-			$this->ensure_style_asset_file_created( 'wp-block-separator', 'blocks/separator/style.css' );
+			$this->ensure_style_asset_file_created( 'wp-block-separator', 'blocks/separator/style.css', true );
 		}
 		$this->assertFalse( wp_is_block_theme(), 'Test is not relevant to block themes (only classic themes).' );
 
@@ -1834,10 +1822,11 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @param string $handle        Style handle.
 	 * @param string $relative_path Relative path to the CSS file in wp-includes.
+	 * @param bool   $add_path_data Whether to add the path data.
 	 *
 	 * @throws Exception If the supplied style handle is not registered as expected.
 	 */
-	private function ensure_style_asset_file_created( string $handle, string $relative_path ) {
+	private function ensure_style_asset_file_created( string $handle, string $relative_path, bool $add_path_data = false ) {
 		$dependency = wp_styles()->query( $handle );
 		if ( ! $dependency ) {
 			throw new Exception( "The stylesheet for $handle is not registered." );
@@ -1851,7 +1840,9 @@ class Tests_Template extends WP_UnitTestCase {
 			}
 			file_put_contents( $path, "/* CSS for $handle */" );
 		}
-		wp_style_add_data( $handle, 'path', $path );
+		if ( $add_path_data ) {
+			wp_style_add_data( $handle, 'path', $path );
+		}
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
