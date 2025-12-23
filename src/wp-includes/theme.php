@@ -3010,16 +3010,24 @@ function _custom_logo_header_styles() {
 		$classes = array_map( 'sanitize_html_class', $classes );
 		$classes = '.' . implode( ', .', $classes );
 
-		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
-		?>
-		<!-- Custom Logo: hide header text -->
-		<style id="custom-logo-css"<?php echo $type_attr; ?>>
-			<?php echo $classes; ?> {
-				position: absolute;
-				clip-path: inset(50%);
-			}
-		</style>
-		<?php
+		$css = <<<"CSS"
+
+{$classes} {
+	position: absolute;
+	clip-path: inset(50%);
+}
+
+CSS;
+
+		$processor = new WP_HTML_Tag_Processor(
+			"<!-- Custom Logo: hide header text -->\n<style id='custom-logo-css'></style>"
+		);
+		$processor->next_tag();
+		if ( ! current_theme_supports( 'html5', 'style' ) ) {
+			$processor->set_attribute( 'type', 'text/css' );
+		}
+		$processor->set_modifiable_text( $css );
+		echo $processor->get_updated_html();
 	}
 }
 
