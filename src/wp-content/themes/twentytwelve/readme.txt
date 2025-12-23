@@ -1,9 +1,9 @@
 === Twenty Twelve ===
 Contributors: wordpressdotorg
 Requires at least: 3.5
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 5.2.4
-Stable tag: 4.6
+Stable tag: 4.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, two-columns, right-sidebar, custom-background, custom-header, custom-menu, editor-style, featured-images, flexible-header, footer-widgets, full-width-template, microformats, post-formats, rtl-language-support, sticky-post, theme-options, translation-ready, block-patterns
@@ -38,10 +38,6 @@ GNU General Public License for more details.
 
 Twenty Twelve Theme bundles the following third-party resources:
 
-HTML5 Shiv v3.7.0, Copyright 2014 Alexander Farkas
-Licenses: MIT/GPL2
-Source: https://github.com/aFarkas/html5shiv
-
 Open Sans Font
 Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans)
 License: SIL Open Font License, 1.1, https://opensource.org/licenses/OFL-1.1
@@ -52,6 +48,11 @@ Source: https://fontsource.org/fonts/open-sans
 "Autumn City Photo" by Oleg Prokopenko. CC0. https://stocksnap.io/photo/autumn-city-PZP8EWR5MR
 
 == Changelog ==
+
+= 4.7 =
+* Released: December 2, 2025
+
+https://wordpress.org/documentation/article/twenty-twelve-changelog/#Version_4.7
 
 = 4.6 =
 * Released: July 15, 2025

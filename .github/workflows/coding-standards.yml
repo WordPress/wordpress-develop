@@ -9,9 +9,10 @@ on:
       - '3.[89]'
       - '[4-9].[0-9]'
     tags:
-      - '[0-9]+.[0-9]'
-      - '[0-9]+.[0-9].[0-9]+'
-      - '!3.7.[0-9]+'
+      - '3.[89]'
+      - '3.[89].[0-9]+'
+      - '[4-9].[0-9]'
+      - '[4-9].[0-9].[0-9]+'
   pull_request:
     branches:
       - trunk
@@ -23,6 +24,8 @@ on:
       - '**.php'
       # These files configure npm. Changes could affect the outcome.
       - 'package*.json'
+      - '.npmrc'
+      - '.nvmrc'
       # These files configure Composer. Changes could affect the outcome.
       - 'composer.*'
       # This file configures JSHint. Changes could affect the outcome.
@@ -48,19 +51,19 @@ permissions: {}
 jobs:
   # Runs the PHP coding standards checks.
   phpcs:
-    name: PHP coding standards
+    name: Coding standards
     uses: ./.github/workflows/reusable-coding-standards-php.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
   # Runs the JavaScript coding standards checks.
   jshint:
-    name: JavaScript coding standards
+    name: Coding standards
     uses: ./.github/workflows/reusable-coding-standards-javascript.yml
     permissions:
       contents: read
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
   slack-notifications:
     name: Slack Notifications
@@ -96,7 +99,7 @@ jobs:
 
     steps:
       - name: Dispatch workflow run
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418

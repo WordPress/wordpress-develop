@@ -152,14 +152,15 @@ if ( 'grid' === $mode ) {
 		0
 	);
 
-	$q = $_GET;
+	$query_string = $_GET;
 	// Let JS handle this.
-	unset( $q['s'] );
-	$vars   = wp_edit_attachments_query_vars( $q );
-	$ignore = array( 'mode', 'post_type', 'post_status', 'posts_per_page' );
-	foreach ( $vars as $key => $value ) {
+	unset( $query_string['s'] );
+	$query_vars = wp_edit_attachments_query_vars( $query_string );
+	$ignore     = array( 'mode', 'post_type', 'post_status', 'posts_per_page' );
+
+	foreach ( $query_vars as $key => $value ) {
 		if ( ! $value || in_array( $key, $ignore, true ) ) {
-			unset( $vars[ $key ] );
+			unset( $query_vars[ $key ] );
 		}
 	}
 
@@ -168,7 +169,7 @@ if ( 'grid' === $mode ) {
 		'_wpMediaGridSettings',
 		array(
 			'adminUrl'  => parse_url( self_admin_url(), PHP_URL_PATH ),
-			'queryVars' => (object) $vars,
+			'queryVars' => (object) $query_vars,
 		)
 	);
 
@@ -179,7 +180,7 @@ if ( 'grid' === $mode ) {
 			'content' =>
 				'<p>' . __( 'All the files you&#8217;ve uploaded are listed in the Media Library, with the most recent uploads listed first.' ) . '</p>' .
 				'<p>' . __( 'You can view your media in a simple visual grid or a list with columns. Switch between these views using the icons to the left above the media.' ) . '</p>' .
-				'<p>' . __( 'To delete media items, click the Bulk Select button at the top of the screen. Select any items you wish to delete, then click the Delete Selected button. Clicking the Cancel Selection button takes you back to viewing your media.' ) . '</p>',
+				'<p>' . __( 'To delete media items, click the <strong>Bulk select</strong> button at the top of the screen. Select any items you wish to delete, then click the <strong>Delete permanently</strong> button. Clicking the <strong>Cancel</strong> button takes you back to viewing your media.' ) . '</p>',
 		)
 	);
 

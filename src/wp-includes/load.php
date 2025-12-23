@@ -495,8 +495,9 @@ function timer_float() {
  * @since 0.71
  * @access private
  *
- * @global float $timestart Unix timestamp set at the beginning of the page load.
  * @see timer_stop()
+ *
+ * @global float $timestart Unix timestamp set at the beginning of the page load.
  *
  * @return bool Always returns true.
  */
@@ -1803,7 +1804,7 @@ function is_wp_error( $thing ) {
 
 	if ( $is_wp_error ) {
 		/**
-		 * Fires when `is_wp_error()` is called and its parameter is an instance of `WP_Error`.
+		 * Fires when `is_wp_error()` is called and its parameter is an instance of WP_Error.
 		 *
 		 * @since 5.6.0
 		 *

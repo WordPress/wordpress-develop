@@ -122,28 +122,41 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10041
+	 *
+	 * @dataProvider data_esc_like
+	 *
+	 * @param string $input    The input string.
+	 * @param string $expected The expected escaped string.
 	 */
-	public function test_esc_like() {
+	public function test_esc_like( $input, $expected ) {
 		global $wpdb;
 
-		$inputs   = array(
-			'howdy%',              // Single percent.
-			'howdy_',              // Single underscore.
-			'howdy\\',             // Single slash.
-			'howdy\\howdy%howdy_', // The works.
-			'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?', // Plain text.
-		);
-		$expected = array(
-			'howdy\\%',
-			'howdy\\_',
-			'howdy\\\\',
-			'howdy\\\\howdy\\%howdy\\_',
-			'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
-		);
+		$this->assertSame( $expected, $wpdb->esc_like( $input ) );
+	}
 
-		foreach ( $inputs as $key => $input ) {
-			$this->assertSame( $expected[ $key ], $wpdb->esc_like( $input ) );
-		}
+	public function data_esc_like() {
+		return array(
+			'single percent'    => array(
+				'howdy%',
+				'howdy\\%',
+			),
+			'single underscore' => array(
+				'howdy_',
+				'howdy\\_',
+			),
+			'single slash'      => array(
+				'howdy\\',
+				'howdy\\\\',
+			),
+			'the works'         => array(
+				'howdy\\howdy%howdy_',
+				'howdy\\\\howdy\\%howdy\\_',
+			),
+			'plain text'        => array(
+				'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
+				'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
+			),
+		);
 	}
 
 	/**
@@ -850,6 +863,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 			// @ticket 32763
 			'SELECT ' . str_repeat( 'a', 10000 ) . " FROM (SELECT * FROM $table) as subquery",
+
+			// @ticket 63777
+			"SET STATEMENT max_statement_time=1 FOR SELECT * FROM $table",
 		);
 
 		$querycount = count( $queries );
@@ -1984,7 +2000,9 @@ class Tests_DB extends WP_UnitTestCase {
 		$default = $wpdb->allow_unsafe_unquoted_parameters;
 
 		$property = new ReflectionProperty( $wpdb, 'allow_unsafe_unquoted_parameters' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( $wpdb, $allow );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -1992,7 +2010,9 @@ class Tests_DB extends WP_UnitTestCase {
 
 		// Reset.
 		$property->setValue( $wpdb, $default );
-		$property->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( false );
+		}
 
 		$this->assertSame( $expected, $actual );
 	}

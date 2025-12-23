@@ -148,7 +148,7 @@ function twentytwenty_site_description( $display = true ) {
  * @since Twenty Twenty 1.0
  *
  * @param object $comment Comment data.
- * @return bool
+ * @return bool Whether the comment is by the post author.
  */
 function twentytwenty_is_comment_by_post_author( $comment = null ) {
 
@@ -249,6 +249,7 @@ add_filter( 'edit_post_link', 'twentytwenty_edit_post_link', 10, 3 );
  *
  * @param int    $post_id  The ID of the post.
  * @param string $location The location where the meta is shown.
+ * @return string Post meta HTML.
  */
 function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' ) {
 
@@ -265,7 +266,7 @@ function twentytwenty_get_post_meta( $post_id = null, $location = 'single-top' )
 	 *
 	 * @since Twenty Twenty 1.0
 	 *
-	 * @param array Array of post types.
+	 * @param array $post_types Array of post types.
 	 */
 	$disallowed_post_types = apply_filters( 'twentytwenty_disallowed_post_types_for_meta_output', array( 'page' ) );
 
@@ -660,10 +661,14 @@ add_filter( 'walker_nav_menu_start_el', 'twentytwenty_nav_menu_social_icons', 10
  * @since Twenty Twenty 1.0
  */
 function twentytwenty_no_js_class() {
+	$js  = "document.documentElement.className = document.documentElement.className.replace( 'no-js', 'js' );";
+	$js .= "\n//# sourceURL=" . rawurlencode( __FUNCTION__ );
 
-	?>
-	<script>document.documentElement.className = document.documentElement.className.replace( 'no-js', 'js' );</script>
-	<?php
+	if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+		wp_print_inline_script_tag( $js );
+	} else {
+		echo "<script>$js</script>\n";
+	}
 }
 
 add_action( 'wp_head', 'twentytwenty_no_js_class' );

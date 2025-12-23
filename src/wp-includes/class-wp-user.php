@@ -515,9 +515,15 @@ class WP_User {
 
 		$wp_roles = wp_roles();
 
-		// Filter out caps that are not role names and assign to $this->roles.
+		// Select caps that are role names and assign to $this->roles.
 		if ( is_array( $this->caps ) ) {
-			$this->roles = array_filter( array_keys( $this->caps ), array( $wp_roles, 'is_role' ) );
+			$this->roles = array();
+
+			foreach ( $this->caps as $key => $value ) {
+				if ( $wp_roles->is_role( $key ) ) {
+					$this->roles[] = $key;
+				}
+			}
 		}
 
 		// Build $allcaps from role caps, overlay user's $caps.
@@ -648,7 +654,7 @@ class WP_User {
 		 * Fires after the user's role has changed.
 		 *
 		 * @since 2.9.0
-		 * @since 3.6.0 Added $old_roles to include an array of the user's previous roles.
+		 * @since 3.6.0 Added `$old_roles` to include an array of the user's previous roles.
 		 *
 		 * @param int      $user_id   The user ID.
 		 * @param string   $role      The new role.
