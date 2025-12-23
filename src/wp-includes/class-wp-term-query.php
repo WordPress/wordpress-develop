@@ -76,7 +76,7 @@ class WP_Term_Query {
 	 * List of terms located by the query.
 	 *
 	 * @since 4.6.0
-	 * @var array
+	 * @var array|null
 	 */
 	public $terms;
 
