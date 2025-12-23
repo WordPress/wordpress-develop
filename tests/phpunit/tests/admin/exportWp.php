@@ -350,7 +350,7 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 			$post_id,
 			'array_meta',
 			array(
-				'key' => 'value'
+				'key' => 'value',
 			)
 		);
 
@@ -566,8 +566,10 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 			array(
 				'display_name' => null,
 			),
-			array( 'ID' => $user_id ),
-			array( '%s'),
+			array(
+				'ID' => $user_id,
+			),
+			array( '%s' ),
 			array( '%d' )
 		);
 
