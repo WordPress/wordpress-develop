@@ -1517,6 +1517,30 @@ HTML
 	}
 
 	/**
+	 * Tests expected priority is used when a dependent is registered but not enqueued.
+	 *
+	 * @ticket 64429
+	 *
+	 * @covers WP_Scripts::print_scripts
+	 * @covers WP_Scripts::get_highest_fetchpriority_with_dependents
+	 */
+	public function test_priority_of_dependency_for_non_enqueued_dependent() {
+		$wp_scripts = wp_scripts();
+		wp_default_scripts( $wp_scripts );
+
+		$wp_scripts->add( 'not-enqueued', 'https://example.com/not-enqueued.js', array( 'comment-reply' ), null, array( 'priority' => 'high' ) );
+		$wp_scripts->enqueue( 'comment-reply' );
+
+		$actual = $this->normalize_markup_for_snapshot( get_echo( array( $wp_scripts, 'print_scripts' ) ) );
+		$this->assertEqualHTML(
+			'<script type="text/javascript" src="/wp-includes/js/comment-reply.js" id="comment-reply-js" async="async" data-wp-strategy="async" fetchpriority="low"></script>',
+			$actual,
+			'<body>',
+			"Snapshot:\n$actual"
+		);
+	}
+
+	/**
 	 * Tests that printing a script without enqueueing has the same output as when it is enqueued.
 	 *
 	 * @ticket 61734
@@ -4255,5 +4279,27 @@ HTML;
 				"ver={$default_version}&amp;qs1=q1&amp;qs2=q2",
 			),
 		);
+	}
+
+	/**
+	 * Normalizes markup for snapshot.
+	 *
+	 * @param string $markup Markup.
+	 * @return string Normalized markup.
+	 */
+	private function normalize_markup_for_snapshot( string $markup ): string {
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		$clean_url = static function ( string $url ): string {
+			$url = preg_replace( '#^https?://[^/]+#', '', $url );
+			return remove_query_arg( 'ver', $url );
+		};
+		while ( $processor->next_tag() ) {
+			if ( 'LINK' === $processor->get_tag() && is_string( $processor->get_attribute( 'href' ) ) ) {
+				$processor->set_attribute( 'href', $clean_url( $processor->get_attribute( 'href' ) ) );
+			} elseif ( 'SCRIPT' === $processor->get_tag() && is_string( $processor->get_attribute( 'src' ) ) ) {
+				$processor->set_attribute( 'src', $clean_url( $processor->get_attribute( 'src' ) ) );
+			}
+		}
+		return $processor->get_updated_html();
 	}
 }
