@@ -1677,11 +1677,6 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 */
 	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, int $inline_size_limit, array $expected_styles ): void {
-		// These files is created as part of the build process, but the unit tests don't run the build prior to running unit tests on GHA.
-		self::touch( ABSPATH . WPINC . '/css/dist/block-library/theme.css' );
-		self::touch( ABSPATH . WPINC . '/css/dist/block-library/style.css' );
-		self::touch( ABSPATH . WPINC . '/css/dist/block-library/common.css' );
-
 		switch_theme( 'default' );
 		global $wp_styles;
 		$wp_styles = null;
@@ -1710,6 +1705,23 @@ class Tests_Template extends WP_UnitTestCase {
 		// Ensure that separate core block assets get registered.
 		register_core_block_style_handles();
 		$this->assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'core/separator' ), 'Expected the core/separator block to be registered.' );
+
+		// Ensure all registered styles added as part of the build process are present on the disk. .These files are created as part of the build process, but the unit tests don't run the build prior to running unit tests on GHA.
+		foreach ( wp_styles()->registered as $handle => $dependency ) {
+			if ( ! is_string( $dependency->src ) ) {
+				continue;
+			}
+			$path     = wp_parse_url( $dependency->src, PHP_URL_PATH );
+			$position = strpos( $path, WPINC . '/' );
+			if ( false === $position ) {
+				continue;
+			}
+			$absolute_path = ABSPATH . substr( $path, $position );
+			if ( ! file_exists( $absolute_path ) ) {
+				self::touch( $absolute_path );
+				file_put_contents( $absolute_path, "/* Stub for $handle */" );
+			}
+		}
 
 		// Ensure stylesheet files exist on the filesystem since a build may not have been done.
 		$this->ensure_style_asset_file_created(
