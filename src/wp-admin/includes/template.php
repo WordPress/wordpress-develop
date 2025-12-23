@@ -1859,11 +1859,11 @@ function do_settings_fields( $page, $section ) {
  * @param string $setting  Slug title of the setting to which this error applies.
  * @param string $code     Slug-name to identify the error. Used as part of 'id' attribute in HTML output.
  * @param string $message  The formatted message text to display to the user (will be shown inside styled
- *                        `<div>` and `<p>` tags).
- * @param string $type    Optional. Message type, controls HTML class. Possible values include 'error',
- *                        'success', 'warning', 'info'. Default 'error'.
+ *                         `<div>` and `<p>` tags).
+ * @param string $type     Optional. Message type, controls HTML class. Possible values include 'error',
+ *                         'success', 'warning', 'info'. Default 'error'.
  * @param string $aria_live Optional. The ARIA live attribute value. Possible values include 'off', 'polite',
- *                        'assertive'. Default empty string which doesn't add the attribute.
+ *                         'assertive'. Default empty string which doesn't add the attribute.
  */
 function add_settings_error( $setting, $code, $message, $type = 'error', $aria_live = '' ) {
 	global $wp_settings_errors;
@@ -2014,7 +2014,7 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 		);
 
 		$aria_live_attr = '';
-		if ( ! empty( $details['aria_live'] ) && in_array( $details['aria_live'], array( 'off', 'polite', 'assertive' ), true ) ) {
+		if ( in_array( $details['aria_live'], array( 'off', 'polite', 'assertive' ), true ) ) {
 			$aria_live_attr = sprintf( ' aria-live="%s"', esc_attr( $details['aria_live'] ) );
 		}
 
