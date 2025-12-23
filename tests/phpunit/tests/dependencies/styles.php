@@ -622,7 +622,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 			$this->assertTrue( $processor->next_tag() );
 			$this->assertSame( 'STYLE', $processor->get_tag() );
 			$this->assertSame( $handle . '-inline-css', $processor->get_attribute( 'id' ) );
-			$this->assertSame( 'text/css', $processor->get_attribute( 'type' ) );
+			$this->assertNull( $processor->get_attribute( 'type' ) );
 
 			$expected_inline_styles = $expected_after;
 			if ( isset( $additional_inline_style ) ) {
