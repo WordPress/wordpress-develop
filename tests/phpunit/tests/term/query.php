@@ -452,7 +452,6 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @ticket 63256
 	 */
 	public function test_object_ids_null_should_return_all_terms() {
@@ -469,11 +468,10 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSameSets( $terms, $query->terms );
+		$this->assertSameSets( $terms, $query->terms, 'When object_ids is null, all terms should be returned without filtering.' );
 	}
 
 	/**
-	 *
 	 * @ticket 63256
 	 */
 	public function test_object_ids_zero_should_be_treated_as_numeric() {
@@ -490,7 +488,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertIsArray( $query->terms );
+		$this->assertIsArray( $query->terms, 'When object_ids is 0, it should be treated as a numeric value and return an array.' );
 	}
 
 	/**
