@@ -3130,8 +3130,7 @@ function wp_maybe_inline_styles() {
 			}
 
 			// Get the styles if we don't already have them.
-			$style['css'] = @file_get_contents( $style['path'] );
-			if ( false === $style['css'] ) {
+			if ( ! is_readable( $style['path'] ) ) {
 				_doing_it_wrong(
 					__FUNCTION__,
 					sprintf(
@@ -3145,6 +3144,7 @@ function wp_maybe_inline_styles() {
 				);
 				continue;
 			}
+			$style['css'] = file_get_contents( $style['path'] );
 
 			/*
 			 * Check if the style contains relative URLs that need to be modified.
