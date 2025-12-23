@@ -7,7 +7,7 @@
  */
 
 /**
- * Render nothing if the block is hidden.
+ * Render nothing if the block is hidden, or add viewport visibility styles.
  *
  * @since 6.9.0
  * @since 7.0.0 Added support for breakpoint visibility.
@@ -36,17 +36,26 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 		 * The following are taken from: https://github.com/WordPress/gutenberg/blob/trunk/packages/base-styles/_breakpoints.scss
 		 * The array is in a future, potential JSON format, and will be centralized
 		 * as the feature is developed.
+		 *
+		 * Breakpoints as array items are defined sequentially. The first item's size is the max value.
+		 * Each subsequent item's min is calc(previous size + 1px), and its size is the max.
+		 * The last item's min is previous size plus 1px, and it has no max.
 		 */
 		$breakpoints = array(
-			'mobile'  => array(
-				'max' => '599px',
+			array(
+				'name' => 'Mobile',
+				'slug' => 'mobile',
+				'size' => '599px',
 			),
-			'tablet'  => array(
-				'min' => '600px',
-				'max' => '959px',
+			array(
+				'name' => 'Tablet',
+				'slug' => 'tablet',
+				'size' => '959px',
 			),
-			'desktop' => array(
-				'min' => '960px',
+			array(
+				'name' => 'Desktop',
+				'slug' => 'desktop',
+				'size' => '960px',
 			),
 		);
 
@@ -56,17 +65,29 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 		 * as well as classname building, and declaration of the display property, if required.
 		 */
 		$breakpoint_queries = array();
-		foreach ( $breakpoints as $name => $values ) {
+		$previous_size      = null;
+		foreach ( $breakpoints as $index => $breakpoint ) {
+			$slug        = $breakpoint['slug'];
+			$size        = $breakpoint['size'];
 			$query_parts = array();
-			if ( isset( $values['min'] ) ) {
-				$query_parts[] = '(min-width: ' . $values['min'] . ')';
+
+			// First item: max = size.
+			if ( 0 === $index ) {
+				$query_parts[] = '(max-width: ' . $size . ')';
+			} elseif ( count( $breakpoints ) - 1 === $index ) {
+				// Last item: min = calc(previous size + 1px), no max.
+				$query_parts[] = '(min-width: calc(' . $previous_size . ' + 1px))';
+			} else {
+				// Middle items: min = calc(previous size + 1px), max = size.
+				$query_parts[] = '(min-width: calc(' . $previous_size . ' + 1px))';
+				$query_parts[] = '(max-width: ' . $size . ')';
 			}
-			if ( isset( $values['max'] ) ) {
-				$query_parts[] = '(max-width: ' . $values['max'] . ')';
-			}
+
 			if ( ! empty( $query_parts ) ) {
-				$breakpoint_queries[ $name ] = '@media ' . implode( ' and ', $query_parts );
+				$breakpoint_queries[ $slug ] = '@media ' . implode( ' and ', $query_parts );
 			}
+
+			$previous_size = $size;
 		}
 
 		$hidden_on = array();
@@ -83,7 +104,12 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 			return $block_content;
 		}
 
-		// If the block is hidden on all breakpoints, do not render the block.
+		/*
+		 * If the block is hidden on all breakpoints,
+		 * do not render the block. If these values ever become user-defined,
+		 * we might need to output the CSS regardless of the breakpoint count.
+		 * For example, if there is one breakpoint defined and it's hidden.
+		 */
 		if ( count( $hidden_on ) === count( $breakpoint_queries ) ) {
 			return '';
 		}
@@ -91,11 +117,17 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 		// Maintain consistent order of breakpoints for class name generation.
 		sort( $hidden_on );
 
-		$visibility_class = 'wp-block-hidden-' . implode( '-', $hidden_on );
-		$css_rules        = array();
+		$css_rules   = array();
+		$class_names = array();
 
 		foreach ( $hidden_on as $breakpoint ) {
-			$css_rules[] = array(
+			/*
+			 * If these values ever become user-defined,
+			 * they should be sanitized and kebab-cased.
+			 */
+			$visibility_class = 'wp-block-hidden-' . $breakpoint;
+			$class_names[]    = $visibility_class;
+			$css_rules[]      = array(
 				'selector'     => '.' . $visibility_class,
 				'declarations' => array(
 					'display' => 'none !important',
@@ -116,7 +148,7 @@ function wp_render_block_visibility_support( $block_content, $block ) {
 			if ( ! empty( $block_content ) ) {
 				$processor = new WP_HTML_Tag_Processor( $block_content );
 				if ( $processor->next_tag() ) {
-					$processor->add_class( $visibility_class );
+					$processor->add_class( implode( ' ', $class_names ) );
 					$block_content = $processor->get_updated_html();
 				}
 			}

@@ -125,7 +125,7 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$block_content = '<div>Test content</div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertSame( $block_content, $result );
+		$this->assertSame( $block_content, $result, 'Block content should remain unchanged when no visibility attribute is present.' );
 	}
 
 	/*
@@ -133,12 +133,12 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	 */
 	public function test_block_visibility_support_generated_css_with_mobile_breakpoint() {
 		$this->register_visibility_block_with_support(
-			'test/responsive-mobile',
+			'test/viewport-mobile',
 			array( 'visibility' => true )
 		);
 
 		$block = array(
-			'blockName' => 'test/responsive-mobile',
+			'blockName' => 'test/viewport-mobile',
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
@@ -152,6 +152,82 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
 		$this->assertStringContainsString( 'wp-block-hidden-mobile', $result, 'Block should have the visibility class for the mobile breakpoint.' );
+
+		$actual_stylesheet = gutenberg_style_engine_get_stylesheet_from_context( 'block-supports' );
+
+		$this->assertSame(
+			'@media (max-width: 599px){.wp-block-hidden-mobile{display:none !important;}}',
+			$actual_stylesheet,
+			'CSS should contain mobile visibility rule'
+		);
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_generated_css_with_tablet_breakpoint() {
+		$this->register_visibility_block_with_support(
+			'test/viewport-tablet',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/viewport-tablet',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(
+						'tablet' => false,
+					),
+				),
+			),
+		);
+
+		$block_content = '<div class="existing-class">Test content</div>';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertStringContainsString( 'class="existing-class wp-block-hidden-tablet"', $result, 'Block should have the existing class and the visibility class for the tablet breakpoint in the class attribute.' );
+
+		$actual_stylesheet = gutenberg_style_engine_get_stylesheet_from_context( 'block-supports' );
+
+		$this->assertSame(
+			'@media (min-width: calc(599px + 1px)) and (max-width: 959px){.wp-block-hidden-tablet{display:none !important;}}',
+			$actual_stylesheet,
+			'CSS should contain tablet visibility rule'
+		);
+	}
+
+	/*
+	 * @ticket 64414
+	 */
+	public function test_block_visibility_support_generated_css_with_desktop_breakpoint() {
+		$this->register_visibility_block_with_support(
+			'test/viewport-desktop',
+			array( 'visibility' => true )
+		);
+
+		$block = array(
+			'blockName' => 'test/viewport-desktop',
+			'attrs'     => array(
+				'metadata' => array(
+					'blockVisibility' => array(
+						'desktop' => false,
+					),
+				),
+			),
+		);
+
+		$block_content = '<div>Test content</div>';
+		$result        = wp_render_block_visibility_support( $block_content, $block );
+
+		$this->assertStringContainsString( 'class="wp-block-hidden-desktop"', $result, 'Block should have the visibility class for the desktop breakpoint in the class attribute.' );
+
+		$actual_stylesheet = gutenberg_style_engine_get_stylesheet_from_context( 'block-supports' );
+
+		$this->assertSame(
+			'@media (min-width: calc(959px + 1px)){.wp-block-hidden-desktop{display:none !important;}}',
+			$actual_stylesheet,
+			'CSS should contain desktop visibility rule'
+		);
 	}
 
 	/*
@@ -159,12 +235,12 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	 */
 	public function test_block_visibility_support_generated_css_with_multiple_breakpoints() {
 		$this->register_visibility_block_with_support(
-			'test/responsive-multiple',
+			'test/viewport-multiple',
 			array( 'visibility' => true )
 		);
 
 		$block = array(
-			'blockName' => 'test/responsive-multiple',
+			'blockName' => 'test/viewport-multiple',
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
@@ -178,34 +254,19 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$block_content = '<div>Test content</div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertStringContainsString( 'wp-block-hidden-desktop-mobile', $result, 'Block should have the visibility class for both breakpoints (sorted alphabetically).' );
-	}
-
-	/*
-	 * @ticket 64414
-	 */
-	public function test_block_visibility_support_generated_css_with_tablet_breakpoint() {
-		$this->register_visibility_block_with_support(
-			'test/responsive-tablet',
-			array( 'visibility' => true )
+		$this->assertStringContainsString(
+			'class="wp-block-hidden-desktop wp-block-hidden-mobile"',
+			$result,
+			'Block should have both visibility classes in the class attribute'
 		);
 
-		$block = array(
-			'blockName' => 'test/responsive-tablet',
-			'attrs'     => array(
-				'metadata' => array(
-					'blockVisibility' => array(
-						'tablet' => false,
-					),
-				),
-			),
+		$actual_stylesheet = gutenberg_style_engine_get_stylesheet_from_context( 'block-supports' );
+
+		$this->assertSame(
+			'@media (min-width: calc(959px + 1px)){.wp-block-hidden-desktop{display:none !important;}}@media (max-width: 599px){.wp-block-hidden-mobile{display:none !important;}}',
+			$actual_stylesheet,
+			'CSS should contain both visibility rules'
 		);
-
-		$block_content = '<div class="existing-class">Test content</div>';
-		$result        = wp_render_block_visibility_support( $block_content, $block );
-
-		$this->assertStringContainsString( 'existing-class', $result, 'Block should have the existing class.' );
-		$this->assertStringContainsString( 'wp-block-hidden-tablet', $result, 'Block should have the visibility class for the tablet breakpoint.' );
 	}
 
 	/*
@@ -213,12 +274,12 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	 */
 	public function test_block_visibility_support_generated_css_with_all_breakpoints_visible() {
 		$this->register_visibility_block_with_support(
-			'test/responsive-all-visible',
+			'test/viewport-all-visible',
 			array( 'visibility' => true )
 		);
 
 		$block = array(
-			'blockName' => 'test/responsive-all-visible',
+			'blockName' => 'test/viewport-all-visible',
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
@@ -269,12 +330,12 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	 */
 	public function test_block_visibility_support_generated_css_with_empty_object() {
 		$this->register_visibility_block_with_support(
-			'test/responsive-empty',
+			'test/viewport-empty',
 			array( 'visibility' => true )
 		);
 
 		$block = array(
-			'blockName' => 'test/responsive-empty',
+			'blockName' => 'test/viewport-empty',
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(),
@@ -293,12 +354,12 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	 */
 	public function test_block_visibility_support_generated_css_with_unknown_breakpoints_ignored() {
 		$this->register_visibility_block_with_support(
-			'test/responsive-unknown-breakpoints',
+			'test/viewport-unknown-breakpoints',
 			array( 'visibility' => true )
 		);
 
 		$block = array(
-			'blockName' => 'test/responsive-unknown-breakpoints',
+			'blockName' => 'test/viewport-unknown-breakpoints',
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
@@ -313,9 +374,11 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 		$block_content = '<div>Test content</div>';
 		$result        = wp_render_block_visibility_support( $block_content, $block );
 
-		$this->assertStringContainsString( 'wp-block-hidden-mobile', $result, 'Block should have the visibility class for the mobile breakpoint.' );
-		$this->assertStringNotContainsString( 'unknownBreak', $result, 'Unknown breakpoints should not appear in the class name.' );
-		$this->assertStringNotContainsString( 'largeScreen', $result, 'Large screen breakpoints should not appear in the class name.' );
+		$this->assertStringContainsString(
+			'class="wp-block-hidden-mobile"',
+			$result,
+			'Block should have the visibility class for the mobile breakpoint in the class attribute'
+		);
 	}
 
 	/*
@@ -323,12 +386,12 @@ class Tests_Block_Supports_Block_Visibility extends WP_UnitTestCase {
 	 */
 	public function test_block_visibility_support_generated_css_with_empty_content() {
 		$this->register_visibility_block_with_support(
-			'test/empty-content',
+			'test/viewport-empty-content',
 			array( 'visibility' => true )
 		);
 
 		$block = array(
-			'blockName' => 'test/empty-content',
+			'blockName' => 'test/viewport-empty-content',
 			'attrs'     => array(
 				'metadata' => array(
 					'blockVisibility' => array(
