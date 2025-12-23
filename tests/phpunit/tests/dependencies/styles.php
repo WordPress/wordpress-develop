@@ -716,10 +716,12 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 58394
+	 * @ticket 64447
 	 *
 	 * @covers ::wp_maybe_inline_styles
+	 * @expectedIncorrectUsage wp_maybe_inline_styles
 	 */
-	public function test_test_wp_maybe_inline_styles_missing_file() {
+	public function test_wp_maybe_inline_styles_missing_file() {
 		$filter = new MockAction();
 		add_filter( 'pre_wp_filesize', array( $filter, 'filter' ) );
 		$url = '/' . WPINC . '/css/invalid.css';
@@ -774,33 +776,14 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_maybe_inline_styles
 	 * @expectedIncorrectUsage wp_maybe_inline_styles
 	 */
-	public function test_wp_maybe_inline_styles_bad_path_at_file_size_check() {
-		$handle   = 'test-handle';
-		$inc_path = '/css/ancient-themes.css'; // Does not exist.
-		$url      = '/' . WPINC . $inc_path;
-		wp_register_style( $handle, $url );
-		wp_style_add_data( $handle, 'path', ABSPATH . WPINC . $inc_path );
-		wp_enqueue_style( $handle );
-
-		wp_maybe_inline_styles();
-
-		$this->assertSame( $GLOBALS['wp_styles']->registered[ $handle ]->src, $url );
-	}
-
-	/**
-	 * @ticket 64447
-	 *
-	 * @covers ::wp_maybe_inline_styles
-	 * @expectedIncorrectUsage wp_maybe_inline_styles
-	 */
 	public function test_wp_maybe_inline_styles_bad_path_with_file_size_provided() {
-		$inc_path = '/css/ancient-themes.css'; // Does not exist.
+		$style_path = '/css/invalid.css'; // Does not exist.
 
 		// This ensures the initial file size check is bypassed.
 		add_filter(
 			'pre_wp_filesize',
-			static function ( $size, $path ) use ( $inc_path ) {
-				if ( str_contains( $path, $inc_path ) ) {
+			static function ( $size, $path ) use ( $style_path ) {
+				if ( str_contains( $path, $style_path ) ) {
 					$size = 1000;
 				}
 				return $size;
@@ -810,9 +793,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		);
 
 		$handle = 'test-handle';
-		$url    = '/' . WPINC . $inc_path;
+		$url    = '/' . WPINC . $style_path;
 		wp_register_style( $handle, $url );
-		wp_style_add_data( $handle, 'path', ABSPATH . WPINC . $inc_path );
+		wp_style_add_data( $handle, 'path', ABSPATH . WPINC . $style_path );
 		wp_enqueue_style( $handle );
 
 		wp_maybe_inline_styles();
@@ -826,13 +809,13 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers ::wp_maybe_inline_styles
 	 */
 	public function test_wp_maybe_inline_styles_good_path_with_zero_file_size_provided() {
-		$inc_path = '/css/classic-themes.css';
+		$style_path = '/css/classic-themes.css';
 
 		// This simulates the file having a zero size.
 		add_filter(
 			'pre_wp_filesize',
-			static function ( $size, $path ) use ( $inc_path ) {
-				if ( str_contains( $path, $inc_path ) ) {
+			static function ( $size, $path ) use ( $style_path ) {
+				if ( str_contains( $path, $style_path ) ) {
 					$size = 0;
 				}
 				return $size;
@@ -842,8 +825,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		);
 
 		$handle = 'test-handle';
-		wp_register_style( $handle, '/' . WPINC . $inc_path );
-		wp_style_add_data( $handle, 'path', ABSPATH . WPINC . $inc_path );
+		wp_register_style( $handle, '/' . WPINC . $style_path );
+		wp_style_add_data( $handle, 'path', ABSPATH . WPINC . $style_path );
 		wp_enqueue_style( $handle );
 
 		wp_maybe_inline_styles();
