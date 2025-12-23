@@ -8,7 +8,7 @@
  * @covers ::wp_get_inline_script_tag
  * @covers ::wp_print_inline_script_tag
  */
-class Tests_Functions_wpInlineScriptTag extends WP_UnitTestCase {
+class Tests_Dependencies_wpInlineScriptTag extends WP_UnitTestCase {
 
 	private $original_theme_features = array();
 
