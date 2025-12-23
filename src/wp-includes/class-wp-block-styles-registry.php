@@ -140,7 +140,7 @@ final class WP_Block_Styles_Registry {
 	 *
 	 * @param string $block_name       Block type name including namespace.
 	 * @param string $block_style_name Block style name.
-	 * @return array Registered block style properties.
+	 * @return array|null Registered block style properties or `null` if the block style is not registered.
 	 */
 	public function get_registered( $block_name, $block_style_name ) {
 		if ( ! $this->is_registered( $block_name, $block_style_name ) ) {
@@ -181,12 +181,12 @@ final class WP_Block_Styles_Registry {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param string $block_name       Block type name including namespace.
-	 * @param string $block_style_name Block style name.
+	 * @param string|null $block_name       Block type name including namespace.
+	 * @param string|null $block_style_name Block style name.
 	 * @return bool True if the block style is registered, false otherwise.
 	 */
 	public function is_registered( $block_name, $block_style_name ) {
-		return isset( $this->registered_block_styles[ $block_name ][ $block_style_name ] );
+		return isset( $block_name, $block_style_name, $this->registered_block_styles[ $block_name ][ $block_style_name ] );
 	}
 
 	/**

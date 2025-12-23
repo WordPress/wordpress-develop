@@ -43,7 +43,7 @@ define( 'ARRAY_N', 'ARRAY_N' );
  * By default, WordPress uses this class to instantiate the global $wpdb object, providing
  * access to the WordPress database.
  *
- * It is possible to replace this class with your own by setting the $wpdb global variable
+ * It is possible to replace the global instance with your own by setting the $wpdb global variable
  * in wp-content/db.php file to your class. The wpdb class will still be included, so you can
  * extend it or simply use your own.
  *
@@ -237,7 +237,6 @@ class wpdb {
 	 * WordPress table prefix.
 	 *
 	 * You can set this to have multiple WordPress installations in a single database.
-	 * The second reason is for possible security precautions.
 	 *
 	 * @since 2.5.0
 	 *
@@ -468,7 +467,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $blogs;
 
@@ -477,7 +476,7 @@ class wpdb {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $blogmeta;
 
@@ -486,7 +485,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $registration_log;
 
@@ -495,7 +494,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $signups;
 
@@ -504,7 +503,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $site;
 
@@ -513,7 +512,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $sitecategories;
 
@@ -522,7 +521,7 @@ class wpdb {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $sitemeta;
 
@@ -827,7 +826,7 @@ class wpdb {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string $name  The private member to unset
+	 * @param string $name The private member to unset.
 	 */
 	public function __unset( $name ) {
 		unset( $this->$name );
@@ -941,7 +940,7 @@ class wpdb {
 	/**
 	 * Changes the current SQL mode, and ensures its WordPress compatibility.
 	 *
-	 * If no modes are passed, it will ensure the current MySQL server modes are compatible.
+	 * If no modes are passed, it will ensure the current SQL server modes are compatible.
 	 *
 	 * @since 3.9.0
 	 *
@@ -961,13 +960,7 @@ class wpdb {
 				return;
 			}
 
-			$modes_str = $modes_array[0];
-
-			if ( empty( $modes_str ) ) {
-				return;
-			}
-
-			$modes = explode( ',', $modes_str );
+			$modes = explode( ',', $modes_array[0] );
 		}
 
 		$modes = array_change_key_case( $modes, CASE_UPPER );
@@ -1369,7 +1362,7 @@ class wpdb {
 	}
 
 	/**
-	 * Quotes an identifier for a MySQL database, e.g. table/field names.
+	 * Quotes an identifier such as a table or field name.
 	 *
 	 * @since 6.2.0
 	 *
@@ -1433,6 +1426,13 @@ class wpdb {
 	 *     $wpdb->prepare(
 	 *         "SELECT DATE_FORMAT(`field`, '%%c') FROM `table` WHERE `column` = %s",
 	 *         'foo'
+	 *     );
+	 *
+	 *     $wpdb->prepare(
+	 *         "SELECT * FROM %i WHERE %i = %s",
+	 *         $table,
+	 *         $field,
+	 *         $value
 	 *     );
 	 *
 	 * @since 2.3.0
@@ -1957,7 +1957,7 @@ class wpdb {
 		$client_flags = defined( 'MYSQL_CLIENT_FLAGS' ) ? MYSQL_CLIENT_FLAGS : 0;
 
 		/*
-		 * Set the MySQLi error reporting off because WordPress handles its own.
+		 * Switch error reporting off because WordPress handles its own.
 		 * This is due to the default value change from `MYSQLI_REPORT_OFF`
 		 * to `MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT` in PHP 8.1.
 		 */
@@ -2100,7 +2100,7 @@ class wpdb {
 		}
 
 		$host = ! empty( $matches['host'] ) ? $matches['host'] : '';
-		// MySQLi port cannot be a string; must be null or an integer.
+		// Port cannot be a string; must be null or an integer.
 		$port = ! empty( $matches['port'] ) ? absint( $matches['port'] ) : null;
 
 		return array( $host, $port, $socket, $is_ipv6 );
@@ -2290,7 +2290,7 @@ class wpdb {
 		if ( $this->dbh instanceof mysqli ) {
 			$this->last_error = mysqli_error( $this->dbh );
 		} else {
-			$this->last_error = __( 'Unable to retrieve the error message from MySQL' );
+			$this->last_error = __( 'Unable to retrieve the error message from the database server' );
 		}
 
 		if ( $this->last_error ) {
@@ -2653,12 +2653,12 @@ class wpdb {
 	 * @see wpdb::$field_types
 	 * @see wp_set_wpdb_vars()
 	 *
-	 * @param string       $table           Table name.
-	 * @param array        $data            Data to update (in column => value pairs).
+	 * @param string          $table        Table name.
+	 * @param array           $data         Data to update (in column => value pairs).
 	 *                                      Both $data columns and $data values should be "raw" (neither should be SQL escaped).
 	 *                                      Sending a null value will cause the column to be set to NULL - the corresponding
 	 *                                      format is ignored in this case.
-	 * @param array        $where           A named array of WHERE clauses (in column => value pairs).
+	 * @param array           $where        A named array of WHERE clauses (in column => value pairs).
 	 *                                      Multiple clauses will be joined with ANDs.
 	 *                                      Both $where columns and $where values should be "raw".
 	 *                                      Sending a null value will create an IS NULL comparison - the corresponding
@@ -2866,8 +2866,12 @@ class wpdb {
 	 * @return array {
 	 *     Array of values and formats keyed by their field names.
 	 *
-	 *     @type mixed  $value  The value to be formatted.
-	 *     @type string $format The format to be mapped to the value.
+	 *     @type array ...$0 {
+	 *         Value and format for this field.
+	 *
+	 *         @type mixed  $value  The value to be formatted.
+	 *         @type string $format The format to be mapped to the value.
+	 *     }
 	 * }
 	 */
 	protected function process_field_formats( $data, $format ) {
@@ -2900,7 +2904,7 @@ class wpdb {
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param array $data {
+	 * @param array  $data {
 	 *     Array of values and formats keyed by their field names,
 	 *     as it comes from the wpdb::process_field_formats() method.
 	 *
@@ -2951,7 +2955,7 @@ class wpdb {
 	 *
 	 * @since 4.2.1
 	 *
-	 * @param array $data {
+	 * @param array  $data {
 	 *     Array of values, formats, and charsets keyed by their field names,
 	 *     as it comes from the wpdb::process_field_charsets() method.
 	 *
@@ -3469,7 +3473,7 @@ class wpdb {
 	}
 
 	/**
-	 * Checks if the query is accessing a collation considered safe on the current version of MySQL.
+	 * Checks if the query is accessing a collation considered safe.
 	 *
 	 * @since 4.2.0
 	 *
@@ -3793,6 +3797,9 @@ class wpdb {
 		// Strip everything between parentheses except nested selects.
 		$query = preg_replace( '/\((?!\s*select)[^(]*?\)/is', '()', $query );
 
+		// Strip any leading SET STATEMENT statements.
+		$query = preg_replace( '/^SET STATEMENT.+?\sFOR\s+/is', '', $query );
+
 		// Quickly match most common queries.
 		if ( preg_match(
 			'/^\s*(?:'
@@ -3983,11 +3990,11 @@ class wpdb {
 	}
 
 	/**
-	 * Determines whether MySQL database is at least the required minimum version.
+	 * Determines whether the database server is at least the required minimum version.
 	 *
 	 * @since 2.5.0
 	 *
-	 * @global string $required_mysql_version The required MySQL version string.
+	 * @global string $required_mysql_version The minimum required MySQL version string.
 	 * @return void|WP_Error
 	 */
 	public function check_database_version() {
@@ -4043,7 +4050,7 @@ class wpdb {
 	 *
 	 * Capability sniffs for the database server and current version of WPDB.
 	 *
-	 * Database sniffs are based on the version of MySQL the site is using.
+	 * Database sniffs are based on the version of the database server in use.
 	 *
 	 * WPDB sniffs are added as new features are introduced to allow theme and plugin
 	 * developers to determine feature support. This is to account for drop-ins which may
@@ -4074,7 +4081,8 @@ class wpdb {
 		 * the polyfills from wp-includes/compat.php are not loaded.
 		 */
 		if ( '5.5.5' === $db_version && false !== strpos( $db_server_info, 'MariaDB' )
-			&& PHP_VERSION_ID < 80016 // PHP 8.0.15 or older.
+			&& ( PHP_VERSION_ID <= 80015 // PHP 8.0.15 or older.
+				|| 80100 <= PHP_VERSION_ID && PHP_VERSION_ID <= 80102 ) // PHP 8.1.0 to PHP 8.1.2.
 		) {
 			// Strip the '5.5.5-' prefix and set the version to the correct value.
 			$db_server_info = preg_replace( '/^5\.5\.5-(.*)/', '$1', $db_server_info );
@@ -4115,7 +4123,7 @@ class wpdb {
 	}
 
 	/**
-	 * Retrieves the database server version.
+	 * Retrieves the database server version number.
 	 *
 	 * @since 2.7.0
 	 *
@@ -4126,11 +4134,11 @@ class wpdb {
 	}
 
 	/**
-	 * Returns the version of the MySQL server.
+	 * Returns the raw version string of the database server.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return string Server version as a string.
+	 * @return string Database server version as a string.
 	 */
 	public function db_server_info() {
 		return mysqli_get_server_info( $this->dbh );

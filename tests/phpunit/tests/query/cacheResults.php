@@ -102,7 +102,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		}
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
 		$cache_key_2 = $reflection->invoke( $query1, $query_vars, $request_no_placeholder );
@@ -158,7 +160,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), serialize( $query_vars ), 'Query vars should not contain the wpdb placeholder.' );
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request );
 
@@ -191,7 +195,9 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request1   = str_replace( $fields, "{$wpdb->posts}.*", $query1->request );
 
 		$reflection = new ReflectionMethod( $query1, 'generate_cache_key' );
-		$reflection->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection->setAccessible( true );
+		}
 
 		$cache_key_1 = $reflection->invoke( $query1, $query_vars, $request1 );
 		unregister_post_type( 'wptests_pt' );
@@ -227,10 +233,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
 
 		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
-		$reflection_q1->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q1->setAccessible( true );
+		}
 
 		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
-		$reflection_q2->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q2->setAccessible( true );
+		}
 
 		$this->assertNotSame( $request1, $request2, 'Queries should not match' );
 
@@ -288,10 +298,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
 
 		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
-		$reflection_q1->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q1->setAccessible( true );
+		}
 
 		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
-		$reflection_q2->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q2->setAccessible( true );
+		}
 
 		$this->assertNotSame( $request1, $request2, 'Queries should not match' );
 
@@ -345,10 +359,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
 
 		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
-		$reflection_q1->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q1->setAccessible( true );
+		}
 
 		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
-		$reflection_q2->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q2->setAccessible( true );
+		}
 
 		$this->assertNotSame( $request1, $request2, 'Queries should not match' );
 
@@ -385,10 +403,14 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$request2 = str_replace( $fields, "{$wpdb->posts}.*", $query2->request );
 
 		$reflection_q1 = new ReflectionProperty( $query1, 'query_cache_key' );
-		$reflection_q1->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q1->setAccessible( true );
+		}
 
 		$reflection_q2 = new ReflectionProperty( $query2, 'query_cache_key' );
-		$reflection_q2->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_q2->setAccessible( true );
+		}
 
 		$this->assertSame( $request1, $request2, 'Queries should match' );
 

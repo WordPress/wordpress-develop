@@ -416,6 +416,14 @@ function create_initial_rest_routes() {
 	// Font Collections.
 	$font_collections_controller = new WP_REST_Font_Collections_Controller();
 	$font_collections_controller->register_routes();
+
+	// Abilities.
+	$abilities_categories_controller = new WP_REST_Abilities_V1_Categories_Controller();
+	$abilities_categories_controller->register_routes();
+	$abilities_run_controller = new WP_REST_Abilities_V1_Run_Controller();
+	$abilities_run_controller->register_routes();
+	$abilities_list_controller = new WP_REST_Abilities_V1_List_Controller();
+	$abilities_list_controller->register_routes();
 }
 
 /**
@@ -434,7 +442,7 @@ function rest_api_loaded() {
 	if ( ! is_string( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
 		$rest_type_error = new WP_Error(
 			'rest_path_invalid_type',
-			__( 'The rest route parameter must be a string.' ),
+			__( 'The REST route parameter must be a string.' ),
 			array( 'status' => 400 )
 		);
 		wp_die( $rest_type_error );

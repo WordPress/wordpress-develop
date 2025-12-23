@@ -28,6 +28,11 @@ on:
         description: 'A specific version of Gutenberg to install.'
         required: false
         type: 'string'
+      install-playwright:
+        description: 'Whether to install Playwright browsers.'
+        required: false
+        type: 'boolean'
+        default: true
 
 env:
   LOCAL_DIR: build
@@ -58,7 +63,7 @@ jobs:
   # - Uploads screenshots and HTML snapshots as an artifact.
   # - Ensures version-controlled files are not modified or deleted.
   e2e-tests:
-    name: Run E2E tests
+    name: SCRIPT_DEBUG ${{ inputs.LOCAL_SCRIPT_DEBUG && 'enabled' || 'disabled' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -71,13 +76,13 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -94,6 +99,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
+        if: ${{ inputs.install-playwright }}
         run: npx playwright install --with-deps
 
       - name: Build WordPress
@@ -139,7 +145,7 @@ jobs:
         run: npm run test:e2e
 
       - name: Archive debug artifacts (screenshots, HTML snapshots)
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         if: always()
         with:
           name: failures-artifacts${{ inputs.LOCAL_SCRIPT_DEBUG && '-SCRIPT_DEBUG' || '' }}-${{ github.run_id }}

@@ -764,17 +764,24 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 	if ( $create_in_db ) {
 		$post_id = wp_insert_post(
 			array(
-				'post_title'  => __( 'Auto Draft' ),
+				'post_title'  => post_type_supports( $post_type, 'title' ) ? __( 'Auto Draft' ) : '',
 				'post_type'   => $post_type,
 				'post_status' => 'auto-draft',
 			),
-			false,
+			true,
 			false
 		);
-		$post    = get_post( $post_id );
+
+		if ( is_wp_error( $post_id ) ) {
+			wp_die( $post_id->get_error_message() );
+		}
+
+		$post = get_post( $post_id );
+
 		if ( current_theme_supports( 'post-formats' ) && post_type_supports( $post->post_type, 'post-formats' ) && get_option( 'default_post_format' ) ) {
 			set_post_format( $post, get_option( 'default_post_format' ) );
 		}
+
 		wp_after_insert_post( $post, false, null );
 
 		// Schedule auto-draft cleanup.
@@ -1887,7 +1894,7 @@ function _admin_notice_post_locked() {
 		 * Fires inside the post locked dialog before the buttons are displayed.
 		 *
 		 * @since 3.6.0
-		 * @since 5.4.0 The $user parameter was added.
+		 * @since 5.4.0 The `$user` parameter was added.
 		 *
 		 * @param WP_Post $post Post object.
 		 * @param WP_User $user The user with the lock for the post.
@@ -2186,7 +2193,7 @@ function wp_autosave( $post_data ) {
  *
  * @param int $post_id Optional. Post ID.
  */
-function redirect_post( $post_id = '' ) {
+function redirect_post( $post_id = 0 ) {
 	if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {
 		$status = get_post_status( $post_id );
 
@@ -2442,7 +2449,7 @@ function the_block_editor_meta_boxes() {
 	 * our editor instance.
 	 */
 	$script = 'window._wpLoadBlockEditor.then( function() {
-		wp.data.dispatch( \'core/edit-post\' ).setAvailableMetaBoxesPerLocation( ' . wp_json_encode( $meta_boxes_per_location ) . ' );
+		wp.data.dispatch( \'core/edit-post\' ).setAvailableMetaBoxesPerLocation( ' . wp_json_encode( $meta_boxes_per_location, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ' );
 	} );';
 
 	wp_add_inline_script( 'wp-edit-post', $script );

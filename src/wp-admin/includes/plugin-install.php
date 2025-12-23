@@ -399,11 +399,7 @@ function display_plugins_table() {
 			);
 			break;
 		case 'install_plugins_featured':
-			printf(
-				/* translators: %s: https://wordpress.org/plugins/ */
-				'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may install plugins in the <a href="%s">WordPress Plugin Directory</a> right from here, or upload a plugin in .zip format by clicking the button at the top of this page.' ) . '</p>',
-				__( 'https://wordpress.org/plugins/' )
-			);
+			echo '<br>';
 			break;
 		case 'install_plugins_recommended':
 			echo '<p>' . __( 'These suggestions are based on the plugins you and other users have installed.' ) . '</p>';

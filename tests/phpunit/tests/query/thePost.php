@@ -49,6 +49,86 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure custom 'fields' values are respected.
+	 *
+	 * @ticket 56992
+	 */
+	public function test_wp_query_respects_custom_fields_values() {
+		global $wpdb;
+		add_filter(
+			'posts_fields',
+			function ( $fields, $query ) {
+				global $wpdb;
+
+				if ( $query->get( 'fields' ) === 'custom' ) {
+					$fields = "$wpdb->posts.ID,$wpdb->posts.post_author";
+				}
+
+				return $fields;
+			},
+			10,
+			2
+		);
+
+		$query = new WP_Query(
+			array(
+				'fields'    => 'custom',
+				'post_type' => 'page',
+				'post__in'  => self::$page_child_ids,
+			)
+		);
+
+		$this->assertNotEmpty( $query->posts, 'The query is expected to return results' );
+		$this->assertSame( $query->get( 'fields' ), 'custom', 'The WP_Query class is expected to use the custom fields value' );
+		$this->assertStringContainsString( "$wpdb->posts.ID,$wpdb->posts.post_author", $query->request, 'The database query is expected to use the custom fields value' );
+	}
+
+	/**
+	 * Ensure custom 'fields' populates the global post in the loop.
+	 *
+	 * @ticket 56992
+	 */
+	public function test_wp_query_with_custom_fields_value_populates_the_global_post() {
+		global $wpdb;
+		add_filter(
+			'posts_fields',
+			function ( $fields, $query ) {
+				global $wpdb;
+
+				if ( $query->get( 'fields' ) === 'custom' ) {
+					$fields = "$wpdb->posts.ID,$wpdb->posts.post_author";
+				}
+
+				return $fields;
+			},
+			10,
+			2
+		);
+
+		$query = new WP_Query(
+			array(
+				'fields'    => 'custom',
+				'post_type' => 'page',
+				'post__in'  => self::$page_child_ids,
+				'orderby'   => 'id',
+				'order'     => 'ASC',
+			)
+		);
+
+		$query->the_post();
+
+		// Get the global post and specific post.
+		$global_post   = get_post();
+		$specific_post = get_post( self::$page_child_ids[0], ARRAY_A );
+
+		$this->assertSameSetsWithIndex( $specific_post, $global_post->to_array(), 'The global post is expected to be fully populated.' );
+
+		$this->assertNotEmpty( get_the_title(), 'The title is expected to be populated.' );
+		$this->assertNotEmpty( get_the_content(), 'The content is expected to be populated.' );
+		$this->assertNotEmpty( get_the_excerpt(), 'The excerpt is expected to be populated.' );
+	}
+
+	/**
 	 * Ensure that a secondary loop populates the global post completely regardless of the fields parameter.
 	 *
 	 * @ticket 56992
@@ -75,11 +155,11 @@ class Tests_Query_ThePost extends WP_UnitTestCase {
 		$global_post   = get_post();
 		$specific_post = get_post( self::$page_child_ids[0], ARRAY_A );
 
+		$this->assertSameSetsWithIndex( $specific_post, $global_post->to_array(), 'The global post is expected to be fully populated.' );
+
 		$this->assertNotEmpty( get_the_title(), 'The title is expected to be populated.' );
 		$this->assertNotEmpty( get_the_content(), 'The content is expected to be populated.' );
 		$this->assertNotEmpty( get_the_excerpt(), 'The excerpt is expected to be populated.' );
-
-		$this->assertSameSetsWithIndex( $specific_post, $global_post->to_array(), 'The global post is expected to be fully populated.' );
 	}
 
 	/**

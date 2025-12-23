@@ -494,6 +494,11 @@ class WP_REST_Request implements ArrayAccess {
 			}
 		}
 
+		// Exclude rest_route if pretty permalinks are not enabled.
+		if ( ! get_option( 'permalink_structure' ) ) {
+			unset( $params['rest_route'] );
+		}
+
 		return $params;
 	}
 
@@ -530,7 +535,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_query_params() {
 		return $this->params['GET'];
@@ -582,7 +587,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_file_params() {
 		return $this->params['FILES'];
@@ -608,7 +613,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_default_params() {
 		return $this->params['defaults'];

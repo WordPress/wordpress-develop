@@ -2345,7 +2345,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$result = wp_delete_term( $term_id, $taxonomy->name );
 
 		if ( is_wp_error( $result ) ) {
-			return new IXR_Error( 500, $term->get_error_message() );
+			return new IXR_Error( 500, $result->get_error_message() );
 		}
 
 		if ( ! $result ) {
@@ -5152,7 +5152,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		$post_content  = xmlrpc_removepostdata( $content );
 
 		$post_date     = current_time( 'mysql' );
-		$post_date_gmt = current_time( 'mysql', 1 );
+		$post_date_gmt = current_time( 'mysql', true );
 
 		$post_data = compact(
 			'post_author',
@@ -6544,7 +6544,7 @@ class wp_xmlrpc_server extends IXR_Server {
 
 	/*
 	 * MovableType API functions.
-	 * Specs archive on http://web.archive.org/web/20050220091302/http://www.movabletype.org:80/docs/mtmanual_programmatic.html
+	 * Specs archive on https://web.archive.org/web/20050220091302/http://www.movabletype.org/docs/mtmanual_programmatic.html
 	 */
 
 	/**

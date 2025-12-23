@@ -22,7 +22,8 @@ class WP_Styles extends WP_Dependencies {
 	 * Full URL with trailing slash.
 	 *
 	 * @since 2.6.0
-	 * @var string
+	 * @see wp_default_styles()
+	 * @var string|null
 	 */
 	public $base_url;
 
@@ -30,7 +31,8 @@ class WP_Styles extends WP_Dependencies {
 	 * URL of the content directory.
 	 *
 	 * @since 2.8.0
-	 * @var string
+	 * @see wp_default_styles()
+	 * @var string|null
 	 */
 	public $content_url;
 
@@ -38,7 +40,8 @@ class WP_Styles extends WP_Dependencies {
 	 * Default version string for stylesheets.
 	 *
 	 * @since 2.6.0
-	 * @var string
+	 * @see wp_default_styles()
+	 * @var string|null
 	 */
 	public $default_version;
 
@@ -46,6 +49,7 @@ class WP_Styles extends WP_Dependencies {
 	 * The current text direction.
 	 *
 	 * @since 2.6.0
+	 * @see wp_default_styles()
 	 * @var string
 	 */
 	public $text_direction = 'ltr';
@@ -96,7 +100,8 @@ class WP_Styles extends WP_Dependencies {
 	 * List of default directories.
 	 *
 	 * @since 2.8.0
-	 * @var array
+	 * @see wp_default_styles()
+	 * @var string[]|null
 	 */
 	public $default_dirs;
 
@@ -118,9 +123,15 @@ class WP_Styles extends WP_Dependencies {
 	 */
 	public function __construct() {
 		if (
-			function_exists( 'is_admin' ) && ! is_admin()
-		&&
-			function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'html5', 'style' )
+			(
+				function_exists( 'is_admin' ) &&
+				! is_admin()
+			)
+			&&
+			(
+				function_exists( 'current_theme_supports' ) &&
+				! current_theme_supports( 'html5', 'style' )
+			)
 		) {
 			$this->type_attr = " type='text/css'";
 		}
@@ -154,7 +165,10 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		$obj = $this->registered[ $handle ];
+		if ( $obj->extra['conditional'] ?? false ) {
 
+			return false;
+		}
 		if ( null === $obj->ver ) {
 			$ver = '';
 		} else {
@@ -165,16 +179,7 @@ class WP_Styles extends WP_Dependencies {
 			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
 		}
 
-		$src                   = $obj->src;
-		$ie_conditional_prefix = '';
-		$ie_conditional_suffix = '';
-		$conditional           = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
-
-		if ( $conditional ) {
-			$ie_conditional_prefix = "<!--[if {$conditional}]>\n";
-			$ie_conditional_suffix = "<![endif]-->\n";
-		}
-
+		$src          = $obj->src;
 		$inline_style = $this->print_inline_style( $handle, false );
 
 		if ( $inline_style ) {
@@ -189,7 +194,7 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		if ( $this->do_concat ) {
-			if ( $this->in_default_dir( $src ) && ! $conditional && ! isset( $obj->extra['alt'] ) ) {
+			if ( is_string( $src ) && $this->in_default_dir( $src ) && ! isset( $obj->extra['alt'] ) ) {
 				$this->concat         .= "$handle,";
 				$this->concat_version .= "$handle$ver";
 
@@ -200,7 +205,7 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		if ( isset( $obj->args ) ) {
-			$media = esc_attr( $obj->args );
+			$media = $obj->args;
 		} else {
 			$media = 'all';
 		}
@@ -218,22 +223,22 @@ class WP_Styles extends WP_Dependencies {
 			return true;
 		}
 
-		$href = $this->_css_href( $src, $ver, $handle );
+		$href = $this->_css_href( $src, $obj->ver, $handle );
 		if ( ! $href ) {
 			return true;
 		}
 
 		$rel   = isset( $obj->extra['alt'] ) && $obj->extra['alt'] ? 'alternate stylesheet' : 'stylesheet';
-		$title = isset( $obj->extra['title'] ) ? sprintf( " title='%s'", esc_attr( $obj->extra['title'] ) ) : '';
+		$title = isset( $obj->extra['title'] ) ? $obj->extra['title'] : '';
 
 		$tag = sprintf(
 			"<link rel='%s' id='%s-css'%s href='%s'%s media='%s' />\n",
 			$rel,
-			$handle,
-			$title,
+			esc_attr( $handle ),
+			$title ? sprintf( " title='%s'", esc_attr( $title ) ) : '',
 			$href,
 			$this->type_attr,
-			$media
+			esc_attr( $media )
 		);
 
 		/**
@@ -261,11 +266,11 @@ class WP_Styles extends WP_Dependencies {
 			$rtl_tag = sprintf(
 				"<link rel='%s' id='%s-rtl-css'%s href='%s'%s media='%s' />\n",
 				$rel,
-				$handle,
-				$title,
+				esc_attr( $handle ),
+				$title ? sprintf( " title='%s'", esc_attr( $title ) ) : '',
 				$rtl_href,
 				$this->type_attr,
-				$media
+				esc_attr( $media )
 			);
 
 			/** This filter is documented in wp-includes/class-wp-styles.php */
@@ -279,17 +284,13 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		if ( $this->do_concat ) {
-			$this->print_html .= $ie_conditional_prefix;
 			$this->print_html .= $tag;
 			if ( $inline_style_tag ) {
 				$this->print_html .= $inline_style_tag;
 			}
-			$this->print_html .= $ie_conditional_suffix;
 		} else {
-			echo $ie_conditional_prefix;
 			echo $tag;
 			$this->print_inline_style( $handle );
-			echo $ie_conditional_suffix;
 		}
 
 		return true;
@@ -333,8 +334,28 @@ class WP_Styles extends WP_Dependencies {
 	public function print_inline_style( $handle, $display = true ) {
 		$output = $this->get_data( $handle, 'after' );
 
-		if ( empty( $output ) ) {
+		if ( empty( $output ) || ! is_array( $output ) ) {
 			return false;
+		}
+
+		if ( ! $this->do_concat ) {
+
+			// Obtain the original `src` for a stylesheet possibly inlined by wp_maybe_inline_styles().
+			$inlined_src = $this->get_data( $handle, 'inlined_src' );
+
+			// If there's only one `after` inline style, and that inline style had been inlined, then use the $inlined_src
+			// as the sourceURL. Otherwise, if there is more than one inline `after` style associated with the handle,
+			// then resort to using the handle to construct the sourceURL since there isn't a single source.
+			if ( count( $output ) === 1 && is_string( $inlined_src ) && strlen( $inlined_src ) > 0 ) {
+				$source_url = esc_url_raw( $inlined_src );
+			} else {
+				$source_url = rawurlencode( "{$handle}-inline-css" );
+			}
+
+			$output[] = sprintf(
+				'/*# sourceURL=%s */',
+				$source_url
+			);
 		}
 
 		$output = implode( "\n", $output );
@@ -351,6 +372,28 @@ class WP_Styles extends WP_Dependencies {
 		);
 
 		return true;
+	}
+
+	/**
+	 * Overrides the add_data method from WP_Dependencies, to allow unsetting dependencies for conditional styles.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string $handle Name of the item. Should be unique.
+	 * @param string $key    The data key.
+	 * @param mixed  $value  The data value.
+	 * @return bool True on success, false on failure.
+	 */
+	public function add_data( $handle, $key, $value ) {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return false;
+		}
+
+		if ( 'conditional' === $key ) {
+			$this->registered[ $handle ]->deps = array();
+		}
+
+		return parent::add_data( $handle, $key, $value );
 	}
 
 	/**
@@ -387,9 +430,9 @@ class WP_Styles extends WP_Dependencies {
 	 *
 	 * @since 2.6.0
 	 *
-	 * @param string $src    The source of the enqueued style.
-	 * @param string $ver    The version of the enqueued style.
-	 * @param string $handle The style's registered handle.
+	 * @param string            $src    The source of the enqueued style.
+	 * @param string|false|null $ver    The version of the enqueued style.
+	 * @param string            $handle The style's registered handle.
 	 * @return string Style's fully-qualified URL.
 	 */
 	public function _css_href( $src, $ver, $handle ) {
@@ -397,9 +440,19 @@ class WP_Styles extends WP_Dependencies {
 			$src = $this->base_url . $src;
 		}
 
-		if ( ! empty( $ver ) ) {
-			$src = add_query_arg( 'ver', $ver, $src );
+		$query_args = array();
+		if ( empty( $ver ) && null !== $ver && is_string( $this->default_version ) ) {
+			$query_args['ver'] = $this->default_version;
+		} elseif ( is_scalar( $ver ) ) {
+			$query_args['ver'] = (string) $ver;
 		}
+		if ( isset( $this->args[ $handle ] ) ) {
+			parse_str( $this->args[ $handle ], $parsed_args );
+			if ( $parsed_args ) {
+				$query_args = array_merge( $query_args, $parsed_args );
+			}
+		}
+		$src = add_query_arg( rawurlencode_deep( $query_args ), $src );
 
 		/**
 		 * Filters an enqueued style's fully-qualified URL.
@@ -460,5 +513,23 @@ class WP_Styles extends WP_Dependencies {
 		$this->concat         = '';
 		$this->concat_version = '';
 		$this->print_html     = '';
+	}
+
+	/**
+	 * Gets a style-specific dependency warning message.
+	 *
+	 * @since 6.9.1
+	 *
+	 * @param string   $handle                     Style handle with missing dependencies.
+	 * @param string[] $missing_dependency_handles Missing dependency handles.
+	 * @return string Formatted, localized warning message.
+	 */
+	protected function get_dependency_warning_message( $handle, $missing_dependency_handles ) {
+		return sprintf(
+			/* translators: 1: Style handle, 2: Comma-separated list of missing dependency handles. */
+			__( 'The style with the handle "%1$s" was enqueued with dependencies that are not registered: %2$s.' ),
+			$handle,
+			implode( ', ', $missing_dependency_handles )
+		);
 	}
 }

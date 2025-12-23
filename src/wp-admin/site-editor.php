@@ -31,7 +31,7 @@ if ( ! current_user_can( 'edit_theme_options' ) ) {
  */
 function _wp_get_site_editor_redirection_url() {
 	global $pagenow;
-	if ( 'site-editor.php' !== $pagenow || isset( $_REQUEST['p'] ) || ! $_SERVER['QUERY_STRING'] ) {
+	if ( 'site-editor.php' !== $pagenow || isset( $_REQUEST['p'] ) || empty( $_SERVER['QUERY_STRING'] ) ) {
 		return false;
 	}
 
@@ -239,7 +239,7 @@ if ( $block_editor_context->post ) {
 			$preload_paths[] = add_query_arg(
 				'slug',
 				// @see https://github.com/WordPress/gutenberg/blob/e093fefd041eb6cc4a4e7f67b92ab54fd75c8858/packages/core-data/src/private-selectors.ts#L244-L254
-				empty( $block_editor_context->post->post_name ) ? 'page' : 'page-' . $post->post_name,
+				empty( $block_editor_context->post->post_name ) ? 'page' : 'page-' . $block_editor_context->post->post_name,
 				'/wp/v2/templates/lookup'
 			);
 		}
@@ -257,14 +257,14 @@ wp_add_inline_script(
 		'wp.domReady( function() {
 			wp.editSite.initializeEditor( "site-editor", %s );
 		} );',
-		wp_json_encode( $editor_settings )
+		wp_json_encode( $editor_settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 	)
 );
 
 // Preload server-registered block schemas.
 wp_add_inline_script(
 	'wp-blocks',
-	'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . ');'
+	'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ');'
 );
 
 // Preload server-registered block bindings sources.
@@ -278,7 +278,7 @@ if ( ! empty( $registered_sources ) ) {
 			'usesContext' => $source->uses_context,
 		);
 	}
-	$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources ) );
+	$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
 	wp_add_inline_script(
 		'wp-blocks',
 		$script
@@ -287,7 +287,7 @@ if ( ! empty( $registered_sources ) ) {
 
 wp_add_inline_script(
 	'wp-blocks',
-	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( isset( $editor_settings['blockCategories'] ) ? $editor_settings['blockCategories'] : array() ) ),
+	sprintf( 'wp.blocks.setCategories( %s );', wp_json_encode( isset( $editor_settings['blockCategories'] ) ? $editor_settings['blockCategories'] : array(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ),
 	'after'
 );
 
