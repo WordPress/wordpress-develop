@@ -290,4 +290,275 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 		$post_ids_key   = $expected_ids[0];
 		$args['author'] = self::$post_ids[ $post_ids_key ]['post_author'];
 	}
+
+	/**
+	 * Tests that export handles posts with NULL postmeta values without fatal errors.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @ticket 64347
+	 */
+	public function test_export_with_null_postmeta_values() {
+		global $wpdb;
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Test Post with NULL Meta',
+				'post_content' => 'Test content',
+				'post_type'    => 'post',
+			)
+		);
+
+		// Add multiple types of postmeta values.
+		add_post_meta( $post_id, 'string_meta', 'normal string' );
+		add_post_meta( $post_id, 'numeric_string_meta', 123 );
+		add_post_meta( $post_id, 'empty_string_meta', '' );
+		add_post_meta(
+			$post_id,
+			'array_meta',
+			array(
+				'key' => 'value'
+			)
+		);
+
+		// Directly insert NULL and non-string values into postmeta.
+		$wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'post_id'    => $post_id,
+				'meta_key'   => 'null_meta',
+				'meta_value' => null,
+			),
+			array( '%d', '%s', '%s' )
+		);
+
+		$xml = $this->get_the_export(
+			array(
+				'content' => 'post',
+			)
+		);
+
+		$this->assertNotFalse( $xml, 'Export should not fail with NULL postmeta values' );
+		$this->assertGreaterThan( 0, count( $xml->channel->item ), 'Export should contain items' );
+
+		// Post should be present in export.
+		$found_post = false;
+		foreach ( $xml->channel->item as $item ) {
+			$wp_item = $item->children( 'wp', true );
+			if ( (int) $wp_item->post_id === $post_id ) {
+				$found_post = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $found_post, 'Post with NULL metadata should be included in export' );
+	}
+
+	/**
+	 * Tests that export handles comments with NULL values without fatal errors.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @ticket 64347
+	 */
+	public function test_export_with_null_comment_values() {
+		global $wpdb;
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title' => 'Test Post for Comments',
+				'post_type'  => 'post',
+			)
+		);
+
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID' => $post_id,
+				'comment_content' => 'Test comment',
+			)
+		);
+
+		// Insert NULL comment meta.
+		$wpdb->insert(
+			$wpdb->commentmeta,
+			array(
+				'comment_id' => $comment_id,
+				'meta_key'   => 'null_comment_meta',
+				'meta_value' => null,
+			),
+			array( '%d', '%s', '%s' )
+		);
+
+		$xml = $this->get_the_export(
+			array(
+				'content' => 'post',
+			)
+		);
+
+		$this->assertNotFalse( $xml, 'Export should not fail with NULL comment meta values' );
+		$this->assertGreaterThan( 0, count( $xml->channel->item ), 'Export should contain items' );
+	}
+
+	/**
+	 * Tests that export handles term meta with NULL values without fatal errors.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @ticket 64347
+	 */
+	public function test_export_with_null_term_meta_values() {
+		global $wpdb;
+
+		// Create term.
+		$term = self::factory()->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Test Category',
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Test Post with Category',
+				'post_type'    => 'post',
+				'post_status'  => 'publish',
+			)
+		);
+
+		wp_set_object_terms( $post_id, $term, 'category' );
+
+		// Insert NULL term meta.
+		$wpdb->insert(
+			$wpdb->termmeta,
+			array(
+				'term_id'    => $term,
+				'meta_key'   => 'null_term_meta',
+				'meta_value' => null,
+			),
+			array( '%d', '%s', '%s' )
+		);
+
+		$xml = $this->get_the_export(
+			array(
+				'content' => 'all',
+			)
+		);
+
+		$this->assertNotFalse( $xml, 'Export should not fail with NULL term meta values' );
+		$this->assertGreaterThan( 0, count( $xml->channel->item ), 'Export should contain items' );
+	}
+
+	/**
+	 * Tests that export handles posts with NULL title and content without fatal errors.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @ticket 64347
+	 */
+	public function test_export_with_null_post_fields() {
+		global $wpdb;
+
+		// Create a post first.
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Test Post',
+				'post_content' => 'Test content',
+				'post_type'    => 'post',
+			)
+		);
+
+		// Update to set NULL values directly (bypassing WordPress API).
+		$wpdb->update(
+			$wpdb->posts,
+			array(
+				'post_excerpt' => null,
+			),
+			array( 'ID' => $post_id ),
+			array( '%s' ),
+			array( '%d' )
+		);
+
+		$xml = $this->get_the_export(
+			array(
+				'content' => 'post',
+			)
+		);
+
+		$this->assertNotFalse( $xml, 'Export should not fail with NULL post fields' );
+		$this->assertGreaterThan( 0, count( $xml->channel->item ), 'Export should contain items' );
+
+		// Verify the post is in the export.
+		$found_post = false;
+		foreach ( $xml->channel->item as $item ) {
+			$wp_item = $item->children( 'wp', true );
+			if ( (int) $wp_item->post_id === $post_id ) {
+				$found_post = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $found_post, 'Post with NULL excerpt should be included in export' );
+	}
+
+	/**
+	 * Tests that export handles user fields with potential NULL values.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @ticket 64347
+	 */
+	public function test_export_with_users_having_empty_fields() {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create(
+			array(
+				'user_login'   => 'testuser_export',
+				'user_email'   => 'testuser@example.com',
+				'first_name'   => '',
+				'last_name'    => '',
+				'display_name' => 'Test User',
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Post by User with Empty Fields',
+				'post_author' => $user_id,
+				'post_type'   => 'post',
+			)
+		);
+
+		$wpdb->update(
+			$wpdb->users,
+			array(
+				'display_name' => null,
+			),
+			array( 'ID' => $user_id ),
+			array( '%s'),
+			array( '%d' )
+		);
+
+		clean_user_cache( $user_id );
+
+		$xml = $this->get_the_export(
+			array(
+				'content' => 'post',
+			)
+		);
+
+		$this->assertNotFalse( $xml, 'Export should not fail with users having empty name fields' );
+
+		// Check that the author is in the export.
+		$authors = $xml->channel->children( 'wp', true );
+		$found_author = false;
+
+		foreach ( $authors as $author ) {
+			if ( isset( $author->author_id ) && (int) $author->author_id === $user_id ) {
+				$found_author = true;
+				break;
+			}
+		}
+
+		$this->assertTrue( $found_author, 'User with empty name fields should be included in export' );
+	}
 }

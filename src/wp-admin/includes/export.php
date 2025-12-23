@@ -243,9 +243,7 @@ function export_wp( $args = array() ) {
 	 * @return string
 	 */
 	function wxr_cdata( $str ) {
-		if ( ! is_string( $str ) ) {
-			return '';
-		}
+		$str = (string) $str;
 
 		if ( ! wp_is_valid_utf8( $str ) ) {
 			$str = utf8_encode( $str );
@@ -631,7 +629,7 @@ function export_wp( $args = array() ) {
 				 *
 				 * @param string $post_excerpt Excerpt for the current post.
 				 */
-				$excerpt = wxr_cdata( apply_filters( 'the_excerpt_export', $post->post_excerpt ) );
+				$excerpt = wxr_cdata( $post->post_excerpt );
 
 				$is_sticky = is_sticky( $post->ID ) ? 1 : 0;
 				?>
