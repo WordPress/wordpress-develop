@@ -2288,6 +2288,9 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	// Restore octets.
 	$title = preg_replace( '|---([a-fA-F0-9][a-fA-F0-9])---|', '%$1', $title );
 
+	// Convert multiplication sign and times entities to 'x'.
+	$title = str_replace( array( '×', '&times;', '&#215;' ), 'x', $title );
+
 	if ( wp_is_valid_utf8( $title ) ) {
 		if ( function_exists( 'mb_strtolower' ) ) {
 			$title = mb_strtolower( $title, 'UTF-8' );
