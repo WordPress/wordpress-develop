@@ -1677,8 +1677,10 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 */
 	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, int $inline_size_limit, array $expected_styles ): void {
-		// This file is created as part of the build process, but the unit tests don't run the build prior to running unit tests on GHA.
+		// These files is created as part of the build process, but the unit tests don't run the build prior to running unit tests on GHA.
 		self::touch( ABSPATH . WPINC . '/css/dist/block-library/theme.css' );
+		self::touch( ABSPATH . WPINC . '/css/dist/block-library/style.css' );
+		self::touch( ABSPATH . WPINC . '/css/dist/block-library/common.css' );
 
 		switch_theme( 'default' );
 		global $wp_styles;
