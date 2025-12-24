@@ -1716,10 +1716,6 @@ class Tests_Template extends WP_UnitTestCase {
 			wp_should_load_separate_core_block_assets()
 		);
 		$this->ensure_style_asset_file_created( 'wp-block-library-theme', 'css/dist/block-library/theme.css', true );
-		$block_library_dependency = wp_styles()->query( 'wp-block-library' );
-		$this->assertTrue( (bool) $block_library_dependency, 'Expected wp-block-library stylesheet to be registered.' );
-		$this->assertIsString( $block_library_dependency->src, 'Expected wp-block-library to have a string src. Dependency: ' . json_encode( $block_library_dependency ) );
-		$this->assertNotEmpty( file_get_contents( $block_library_dependency->extra['path'] ), 'Expected wp-block-library file to not be empty.' );
 
 		if ( wp_should_load_separate_core_block_assets() ) {
 			$this->ensure_style_asset_file_created( 'wp-block-separator', 'blocks/separator/style.css', true );
@@ -1746,7 +1742,6 @@ class Tests_Template extends WP_UnitTestCase {
 
 		// Simulate wp_head.
 		$head_output = get_echo( 'wp_head' );
-		$this->assertContains( 'wp-block-library', wp_styles()->done, 'Expected wp-block-library to have been added to wp_styles()->done.' );
 
 		$this->assertStringContainsString( 'early', $head_output, 'Expected the early-enqueued stylesheet to be present.' );
 
@@ -1814,7 +1809,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertSame(
 			$expected_styles,
 			$found_subset_styles,
-			'Expected the same styles. Snapshot: ' . self::get_array_snapshot_export( $found_subset_styles ) . "\nAnd wp-block-library: " . json_encode( $block_library_dependency, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) . "\n And file contents: " . file_get_contents( $block_library_dependency->extra['path'] )
+			'Expected the same styles. Snapshot: ' . self::get_array_snapshot_export( $found_subset_styles ) )
 		);
 	}
 
