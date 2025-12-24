@@ -239,7 +239,7 @@ function export_wp( $args = array() ) {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $str String to wrap in XML CDATA tag.
+	 * @param string|null $str String to wrap in XML CDATA tag. May be null.
 	 * @return string
 	 */
 	function wxr_cdata( $str ) {
