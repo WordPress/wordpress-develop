@@ -474,6 +474,26 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 63256
 	 */
+	public function test_object_ids_false_should_return_all_terms() {
+		register_taxonomy( 'wptests_tax_1', 'post' );
+
+		$terms = self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax_1' ) );
+
+		$query = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax_1',
+				'object_ids' => false,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSameSets( $terms, $query->terms, 'When object_ids is false, all terms should be returned without filtering.' );
+	}
+
+	/**
+	 * @ticket 63256
+	 */
 	public function test_object_ids_zero_should_be_treated_as_numeric() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
 
