@@ -68,10 +68,20 @@ window.wp = window.wp || {};
 		 */
 		$.extend( true, this, options );
 
-		// Proxy all methods so this always refers to the current instance.
+		/*
+		 * Bind all methods so this always refers to the current instance.
+		 * Note: Using .bind() creates new function references. If these bound functions
+		 * are used with jQuery event handlers, be aware that jQuery's event subsystem
+		 * tracks functions by reference. The bound function will be seen as a single
+		 * function even when binding different contexts, which can make unbinding
+		 * specific handlers difficult. Use unique event namespaces (e.g., 'click.myproxy1')
+		 * when binding and unbinding to avoid removing the wrong handler.
+		 *
+		 * Ref - https://api.jquery.com/jQuery.proxy/
+		 */
 		for ( key in this ) {
 			if ( typeof this[ key ] === 'function' ) {
-				this[ key ] = $.proxy( this[ key ], this );
+				this[ key ] = this[ key ].bind( this );
 			}
 		}
 

@@ -116,7 +116,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 						selection.set({cropDetails: controller.state().imgSelect.getSelection()});
 
 						this.$el.text(l10n.cropping);
-						this.$el.attr('disabled', true);
+						this.$el.prop( 'disabled', true );
 
 						controller.state().doCrop( selection ).done( function( croppedImage ) {
 							controller.trigger('cropped', croppedImage );
