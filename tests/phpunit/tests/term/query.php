@@ -477,7 +477,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	public function test_object_ids_zero_should_be_treated_as_numeric() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
 
-		$term = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_1' ) );
+		self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_1' ) );
 
 		$query = new WP_Term_Query(
 			array(
@@ -488,7 +488,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertIsArray( $query->terms, 'When object_ids is 0, it should be treated as a numeric value and return an array.' );
+		$this->assertSame( array(), $query->terms, 'When object_ids is 0, it should be treated as a numeric value and return an array.' );
 	}
 
 	/**
