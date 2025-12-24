@@ -1712,13 +1712,12 @@ class Tests_Template extends WP_UnitTestCase {
 		// Ensure stylesheet files exist on the filesystem since a build may not have been done.
 		$this->ensure_style_asset_file_created(
 			'wp-block-library',
-			wp_should_load_separate_core_block_assets() ? 'css/dist/block-library/common.css' : 'css/dist/block-library/style.css',
-			wp_should_load_separate_core_block_assets()
+			wp_should_load_separate_core_block_assets() ? 'css/dist/block-library/common.css' : 'css/dist/block-library/style.css'
 		);
-		$this->ensure_style_asset_file_created( 'wp-block-library-theme', 'css/dist/block-library/theme.css', true );
+		$this->ensure_style_asset_file_created( 'wp-block-library-theme', 'css/dist/block-library/theme.css' );
 
 		if ( wp_should_load_separate_core_block_assets() ) {
-			$this->ensure_style_asset_file_created( 'wp-block-separator', 'blocks/separator/style.css', true );
+			$this->ensure_style_asset_file_created( 'wp-block-separator', 'blocks/separator/style.css' );
 		}
 		$this->assertFalse( wp_is_block_theme(), 'Test is not relevant to block themes (only classic themes).' );
 
@@ -1809,7 +1808,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->assertSame(
 			$expected_styles,
 			$found_subset_styles,
-			'Expected the same styles. Snapshot: ' . self::get_array_snapshot_export( $found_subset_styles ) )
+			'Expected the same styles. Snapshot: ' . self::get_array_snapshot_export( $found_subset_styles )
 		);
 	}
 
@@ -1823,11 +1822,10 @@ class Tests_Template extends WP_UnitTestCase {
 	 *
 	 * @param string $handle        Style handle.
 	 * @param string $relative_path Relative path to the CSS file in wp-includes.
-	 * @param bool   $add_path_data Whether to add the path data.
 	 *
 	 * @throws Exception If the supplied style handle is not registered as expected.
 	 */
-	private function ensure_style_asset_file_created( string $handle, string $relative_path, bool $add_path_data = false ) {
+	private function ensure_style_asset_file_created( string $handle, string $relative_path ) {
 		$dependency = wp_styles()->query( $handle );
 		if ( ! $dependency ) {
 			throw new Exception( "The stylesheet for $handle is not registered." );
@@ -1838,9 +1836,7 @@ class Tests_Template extends WP_UnitTestCase {
 		if ( 0 === filesize( $path ) ) {
 			file_put_contents( $path, "/* CSS for $handle */" );
 		}
-		if ( $add_path_data ) {
-			wp_style_add_data( $handle, 'path', $path );
-		}
+		wp_style_add_data( $handle, 'path', $path );
 	}
 
 	public function assertTemplateHierarchy( $url, array $expected, $message = '' ) {
