@@ -1719,6 +1719,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$block_library_dependency = wp_styles()->query( 'wp-block-library' );
 		$this->assertTrue( (bool) $block_library_dependency, 'Expected wp-block-library stylesheet to be registered.' );
 		$this->assertIsString( $block_library_dependency->src, 'Expected wp-block-library to have a string src. Dependency: ' . json_encode( $block_library_dependency ) );
+		$this->assertNotEmpty( file_get_contents( $block_library_dependency->extra['path'] ), 'Expected wp-block-library file to not be empty.' );
 
 		if ( wp_should_load_separate_core_block_assets() ) {
 			$this->ensure_style_asset_file_created( 'wp-block-separator', 'blocks/separator/style.css', true );
@@ -1838,11 +1839,8 @@ class Tests_Template extends WP_UnitTestCase {
 		}
 		$dependency->src = includes_url( $relative_path );
 		$path            = ABSPATH . WPINC . '/' . $relative_path;
-		if ( ! file_exists( $path ) ) {
-			$dir = dirname( $path );
-			if ( ! file_exists( $dir ) ) {
-				mkdir( $dir, 0777, true );
-			}
+		self::touch( $path );
+		if ( 0 === filesize( $path ) ) {
 			file_put_contents( $path, "/* CSS for $handle */" );
 		}
 		if ( $add_path_data ) {
