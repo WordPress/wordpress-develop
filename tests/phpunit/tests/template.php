@@ -1715,6 +1715,7 @@ class Tests_Template extends WP_UnitTestCase {
 			wp_should_load_separate_core_block_assets() ? 'css/dist/block-library/common.css' : 'css/dist/block-library/style.css',
 			wp_should_load_separate_core_block_assets()
 		);
+		$this->ensure_style_asset_file_created( 'wp-block-library-theme', 'css/dist/block-library/theme.css', true );
 		$dependency = wp_styles()->query( 'wp-block-library' );
 		$this->assertTrue( (bool) $dependency, 'Expected wp-block-library stylesheet to be registered.' );
 		$this->assertIsString( $dependency->src, 'Expected wp-block-library to have a string src. Dependency: ' . json_encode( $dependency ) );
