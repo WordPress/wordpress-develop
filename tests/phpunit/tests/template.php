@@ -1744,6 +1744,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		// Simulate wp_head.
 		$head_output = get_echo( 'wp_head' );
+		$this->assertContains( 'wp-block-library', wp_styles()->done, 'Expected wp-block-library to have been added to wp_styles()->done.' );
 
 		$this->assertStringContainsString( 'early', $head_output, 'Expected the early-enqueued stylesheet to be present.' );
 
