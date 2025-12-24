@@ -141,11 +141,53 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return array|WP_Error Array on success, or error object on failure.
-	 */
+    */
 	public function update_item( $request ) {
-		$options = $this->get_registered_options();
+        $options = $this->get_registered_options();
+        $params  = $request->get_params();
 
-		$params = $request->get_params();
+		/**
+		 * Validate that the request contains only registered settings and internal 
+		 * WordPress parameters.
+		 *
+		 * This ensures the settings endpoint returns a 400 Bad Request when sent
+		 * unknown properties or an empty body, aligning it with other REST 
+		 * API controllers.
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/41604
+		 */
+		$internal_params = array(
+			'_wpnonce',
+			'_method',
+			'_envelope',
+			'_jsonp',
+			'_locale',
+			'_fields', // Used for sparse fieldsets.
+			'_embed',  // Used to embed linked resources.
+		);
+
+		$request_keys = array_keys( $params );
+		$allowed_keys = array_merge( array_keys( $options ), $internal_params );
+		$unknown      = array_diff( $request_keys, $allowed_keys );
+
+		if ( ! empty( $unknown ) ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				/* translators: %s: List of invalid parameters. */
+				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', $unknown ) ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$provided_settings = array_intersect( $request_keys, array_keys( $options ) );
+
+		if ( empty( $provided_settings ) ) {
+			return new WP_Error(
+				'rest_empty_request',
+				__( 'No valid settings provided for update.' ),
+				array( 'status' => 400 )
+			);
+		}
 
 		foreach ( $options as $name => $args ) {
 			if ( ! array_key_exists( $name, $params ) ) {
