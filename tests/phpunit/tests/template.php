@@ -1677,6 +1677,9 @@ class Tests_Template extends WP_UnitTestCase {
 	 * @dataProvider data_wp_hoist_late_printed_styles
 	 */
 	public function test_wp_hoist_late_printed_styles( ?Closure $set_up, int $inline_size_limit, array $expected_styles ): void {
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
+
 		switch_theme( 'default' );
 		global $wp_styles;
 		$wp_styles = null;
