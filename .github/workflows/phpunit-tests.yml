@@ -69,7 +69,7 @@ jobs:
     secrets: inherit
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
@@ -146,7 +146,7 @@ jobs:
     secrets: inherit
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
@@ -198,7 +198,7 @@ jobs:
     secrets: inherit
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [ ubuntu-24.04 ]
         php: [ '7.2', '7.3', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
@@ -246,7 +246,7 @@ jobs:
     secrets: inherit
     if: ${{ startsWith( github.repository, 'WordPress/' ) && ( github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' ) }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         php: [ '7.2', '7.4', '8.0', '8.4' ]
         db-type: [ 'mysql' ]
@@ -275,7 +275,7 @@ jobs:
     secrets: inherit
     if: ${{ ! startsWith( github.repository, 'WordPress/' ) && github.event_name == 'pull_request' }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         php: [ '7.2', '8.4' ]
         db-version: [ '8.4', '11.8' ]
