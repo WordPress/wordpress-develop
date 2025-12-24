@@ -6677,7 +6677,7 @@ EOF;
 	 * @dataProvider data_provider_data_provider_to_test_wp_enqueue_img_auto_sizes_contain_css_fix
 	 */
 	public function test_wp_enqueue_img_auto_sizes_contain_css_fix( ?Closure $set_up, bool $expected, ?string $expected_deprecated = null ): void {
-		// These files is created as part of the build process, but the unit tests don't run the build prior to running unit tests on GHA.
+		// These files are created as part of the build process, but the unit tests don't run the build prior to running unit tests on GHA.
 		self::touch( ABSPATH . WPINC . '/css/dist/block-library/style.css' );
 		self::touch( ABSPATH . WPINC . '/css/dist/block-library/common.css' );
 
