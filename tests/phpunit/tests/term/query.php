@@ -474,7 +474,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 63256
 	 */
-	public function test_object_ids_false_should_return_all_terms() {
+	public function test_object_ids_false_should_return_no_terms() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
 
 		self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax_1' ) );
@@ -488,7 +488,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( array(), $query->terms, 'When object_ids is false, all terms should be returned without filtering.' );
+		$this->assertSame( array(), $query->terms, 'When object_ids is false, no terms should be returned without filtering.' );
 	}
 
 	/**
