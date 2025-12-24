@@ -327,8 +327,6 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 	/**
 	 * Tests that export handles posts with NULL postmeta values without fatal errors.
 	 *
-	 * @since n.e.x.t
-	 *
 	 * @ticket 64347
 	 */
 	public function test_export_with_null_postmeta_values() {
@@ -390,8 +388,6 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 	/**
 	 * Tests that export handles comments with NULL values without fatal errors.
 	 *
-	 * @since n.e.x.t
-	 *
 	 * @ticket 64347
 	 */
 	public function test_export_with_null_comment_values() {
@@ -434,8 +430,6 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 	/**
 	 * Tests that export handles term meta with NULL values without fatal errors.
-	 *
-	 * @since n.e.x.t
 	 *
 	 * @ticket 64347
 	 */
@@ -483,8 +477,6 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 	/**
 	 * Tests that export handles posts with NULL title and content without fatal errors.
-	 *
-	 * @since n.e.x.t
 	 *
 	 * @ticket 64347
 	 */
@@ -535,8 +527,6 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 	/**
 	 * Tests that export handles user fields with potential NULL values.
-	 *
-	 * @since n.e.x.t
 	 *
 	 * @ticket 64347
 	 */
