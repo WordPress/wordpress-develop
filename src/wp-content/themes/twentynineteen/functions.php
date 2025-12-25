@@ -326,7 +326,7 @@ function twentynineteen_editor_customizer_styles() {
 	if ( 'custom' === get_theme_mod( 'primary_color' ) ) {
 		// Include color patterns.
 		require_once get_parent_theme_file_path( '/inc/color-patterns.php' );
-		wp_add_inline_style( 'twentynineteen-editor-customizer-styles', twentynineteen_custom_colors_css() );
+		wp_add_inline_style( 'twentynineteen-editor-customizer-styles', wp_strip_all_tags( twentynineteen_custom_colors_css() ) );
 	}
 }
 add_action( 'enqueue_block_editor_assets', 'twentynineteen_editor_customizer_styles' );
@@ -350,7 +350,7 @@ function twentynineteen_colors_css_wrap() {
 	?>
 
 	<style type="text/css" id="custom-theme-colors" <?php echo is_customize_preview() ? 'data-hue="' . absint( $primary_color ) . '"' : ''; ?>>
-		<?php echo twentynineteen_custom_colors_css(); ?>
+		<?php echo wp_strip_all_tags( twentynineteen_custom_colors_css() ); ?>
 	</style>
 	<?php
 }
