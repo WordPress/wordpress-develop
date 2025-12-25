@@ -54,7 +54,12 @@ function wp_apply_anchor_support( $block_type, $block_attributes ) {
 	}
 
 	$has_anchor = array_key_exists( 'anchor', $block_attributes );
-	if ( ! $has_anchor || empty( $block_attributes['anchor'] ) ) {
+	if ( ! $has_anchor ) {
+		return array();
+	}
+
+	$anchor_value = (string) $block_attributes['anchor'];
+	if ( '' === $anchor_value ) {
 		return array();
 	}
 

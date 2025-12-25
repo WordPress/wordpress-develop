@@ -70,7 +70,7 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 	 */
 	public function data_anchor_block_support() {
 		return array(
-			'anchor id attribute is applied' => array(
+			'anchor id attribute is applied'          => array(
 				'support'  => true,
 				'value'    => 'my-anchor',
 				'expected' => array( 'id' => 'my-anchor' ),
@@ -78,6 +78,56 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 			'anchor id attribute is not applied if block does not support it' => array(
 				'support'  => false,
 				'value'    => 'my-anchor',
+				'expected' => array(),
+			),
+			'empty anchor value returns empty array'  => array(
+				'support'  => true,
+				'value'    => '',
+				'expected' => array(),
+			),
+			'null anchor value returns empty array'   => array(
+				'support'  => true,
+				'value'    => null,
+				'expected' => array(),
+			),
+			'whitespace-only anchor value is applied' => array(
+				'support'  => true,
+				'value'    => '   ',
+				'expected' => array( 'id' => '   ' ),
+			),
+			'anchor with hyphen and numbers'          => array(
+				'support'  => true,
+				'value'    => 'section-123',
+				'expected' => array( 'id' => 'section-123' ),
+			),
+			'anchor with underscore'                  => array(
+				'support'  => true,
+				'value'    => 'my_anchor_id',
+				'expected' => array( 'id' => 'my_anchor_id' ),
+			),
+			'anchor with colon (valid in HTML5)'      => array(
+				'support'  => true,
+				'value'    => 'my:anchor',
+				'expected' => array( 'id' => 'my:anchor' ),
+			),
+			'anchor with period (valid in HTML5)'     => array(
+				'support'  => true,
+				'value'    => 'my.anchor',
+				'expected' => array( 'id' => 'my.anchor' ),
+			),
+			'numeric anchor value'                    => array(
+				'support'  => true,
+				'value'    => '123',
+				'expected' => array( 'id' => '123' ),
+			),
+			'zero string anchor value is applied'     => array(
+				'support'  => true,
+				'value'    => '0',
+				'expected' => array( 'id' => '0' ),
+			), 1Code has comments. Press enter to view.
+			'false value is treated as empty'         => array(
+				'support'  => true,
+				'value'    => false,
 				'expected' => array(),
 			),
 		);
