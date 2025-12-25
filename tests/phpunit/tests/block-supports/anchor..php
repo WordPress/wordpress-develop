@@ -124,7 +124,7 @@ class Tests_Block_Supports_Anchor extends WP_UnitTestCase {
 				'support'  => true,
 				'value'    => '0',
 				'expected' => array( 'id' => '0' ),
-			), 1Code has comments. Press enter to view.
+			),
 			'false value is treated as empty'         => array(
 				'support'  => true,
 				'value'    => false,
