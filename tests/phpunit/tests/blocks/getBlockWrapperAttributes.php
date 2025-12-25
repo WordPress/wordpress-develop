@@ -118,4 +118,3 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 		$this->assertSame( 'class="wp-block-example"', $result );
 	}
 }
-
