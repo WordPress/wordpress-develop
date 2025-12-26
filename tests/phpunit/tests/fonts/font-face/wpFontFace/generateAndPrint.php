@@ -34,7 +34,7 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 		$style_element   = "<style class='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
 		$expected_output = sprintf( $style_element, $expected );
 
-		$this->expectOutputString( $expected_output );
-		$font_face->generate_and_print( $fonts );
+		$output = get_echo( array( $font_face, 'generate_and_print' ), array( $fonts ) );
+		$this->assertEqualHTML( $expected_output, $output );
 	}
 }
