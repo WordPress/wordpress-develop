@@ -2474,7 +2474,12 @@ function wp_filter_global_styles_post( $data ) {
 		$data_to_encode = WP_Theme_JSON::remove_insecure_properties( $decoded_data, 'custom' );
 
 		$data_to_encode['isGlobalStylesUserThemeJSON'] = true;
-		return wp_slash( wp_json_encode( $data_to_encode ) );
+		/*
+		 * JSON_UNESCAPED_SLASHES - There's no reason to escape the "/" character in this JSON.
+		 * JSON_HEX_TAG - Unicode escape "<" and ">" to prevent HTML-oriented filters from mangling
+		 *                HTML tag-like CSS, e.g. `@property --my-prop { syntax: "<custom-ident>"; }`.
+		 */
+		return wp_slash( wp_json_encode( $data_to_encode, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG ) );
 	}
 	return $data;
 }
