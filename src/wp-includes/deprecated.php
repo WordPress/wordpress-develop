@@ -5897,7 +5897,7 @@ function _wp_theme_json_webfonts_handler() {
 function print_embed_styles() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_embed_styles' );
 
-	$suffix    = SCRIPT_DEBUG ? '' : '.min';
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
 	?>
 	<style>
 		<?php echo file_get_contents( ABSPATH . WPINC . "/css/wp-embed-template$suffix.css" ); ?>
