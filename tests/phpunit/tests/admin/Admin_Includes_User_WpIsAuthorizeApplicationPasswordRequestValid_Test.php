@@ -3,16 +3,16 @@
 /**
  * @group admin
  * @group user
+ *
+ * @covers ::wp_is_authorize_application_password_request_valid
  */
-class Tests_Admin_IncludesUser extends WP_UnitTestCase {
+class Admin_Includes_User_WpIsAuthorizeApplicationPasswordRequestValid_Test extends WP_UnitTestCase {
 
 	/**
 	 * Test redirect URLs for application password authorization requests.
 	 *
 	 * @ticket 42790
 	 * @ticket 52617
-	 *
-	 * @covers ::wp_is_authorize_application_password_request_valid
 	 *
 	 * @dataProvider data_is_authorize_application_password_request_valid
 	 *

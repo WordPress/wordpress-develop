@@ -37,8 +37,8 @@ class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 	public function test_should_print_given_fonts( array $fonts, $expected ) {
 		$expected_output = $this->get_expected_styles_output( $expected );
 
-		$this->expectOutputString( $expected_output );
-		wp_print_font_faces( $fonts );
+		$output = get_echo( 'wp_print_font_faces', array( $fonts ) );
+		$this->assertEqualHTML( $expected_output, $output );
 	}
 
 	public function test_should_escape_tags() {
@@ -60,9 +60,9 @@ class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 </style>
 
 CSS;
-		$this->expectOutputString( $expected_output );
 
-		wp_print_font_faces( $fonts );
+		$output = get_echo( 'wp_print_font_faces', array( $fonts ) );
+		$this->assertEqualHTML( $expected_output, $output );
 	}
 
 	public function test_should_print_fonts_in_merged_data() {
@@ -71,8 +71,8 @@ CSS;
 		$expected        = $this->get_expected_fonts_for_fonts_block_theme( 'font_face_styles' );
 		$expected_output = $this->get_expected_styles_output( $expected );
 
-		$this->expectOutputString( $expected_output );
-		wp_print_font_faces();
+		$output = get_echo( 'wp_print_font_faces' );
+		$this->assertEqualHTML( $expected_output, $output );
 	}
 
 	private function get_expected_styles_output( $styles ) {
