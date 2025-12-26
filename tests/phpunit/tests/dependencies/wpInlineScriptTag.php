@@ -143,7 +143,7 @@ JS;
 		remove_theme_support( 'html5' );
 
 		$this->assertSame(
-			"<script type=\"text/javascript\">\n/* <![CDATA[ */\n/* <![CDATA[ */ console.log( 'Hello World!' ); /* ]]]]><![CDATA[> */\n/* ]]> */\n</script>\n",
+			"<script>\n/* <![CDATA[ */\n/* <![CDATA[ */ console.log( 'Hello World!' ); /* ]]]]><![CDATA[> */\n/* ]]> */\n</script>\n",
 			wp_get_inline_script_tag( "/* <![CDATA[ */ console.log( 'Hello World!' ); /* ]]> */" )
 		);
 	}
