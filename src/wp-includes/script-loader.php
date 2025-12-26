@@ -2415,7 +2415,7 @@ function _print_styles() {
 		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
 
 		if ( ! empty( $wp_styles->print_code ) ) {
-			$processor = new WP_HTML_Tag_Processor( "<style></style>" );
+			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
 			$processor->next_tag();
 			$style_tag_contents = "\n{$wp_styles->print_code}\n"
 				. sprintf( "/*# sourceURL=%s */\n", rawurlencode( $concat_source_url ) );
