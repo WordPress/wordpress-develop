@@ -185,9 +185,6 @@ JS;
 	/**
 	 * Tests that inline scripts in the `after` position, attached to a blocking main script, are rendered as javascript.
 	 *
-	 * If a main script with a `blocking` strategy has an `after` inline script,
-	 * the inline script should be rendered as.
-	 *
 	 * @ticket 12009
 	 *
 	 * @covers WP_Scripts::do_item
