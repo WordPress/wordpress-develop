@@ -1722,7 +1722,7 @@ function _redirect_to_about_wordpress( $new_version ) {
 	);
 	echo '</div>';
 	?>
-<script type="text/javascript">
+<script>
 window.location = 'about.php?updated';
 </script>
 	<?php
