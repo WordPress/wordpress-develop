@@ -2478,8 +2478,10 @@ function wp_filter_global_styles_post( $data ) {
 		 * JSON_UNESCAPED_SLASHES - There's no reason to escape the "/" character in this JSON.
 		 * JSON_HEX_TAG - Unicode escape "<" and ">" to prevent HTML-oriented filters from mangling
 		 *                HTML tag-like CSS, e.g. `@property --my-prop { syntax: "<custom-ident>"; }`.
+		 * JSON_HEX_TAG - Unicode escape "&" to prevent HTML-oriented filters from mangling CSS with
+		 *                HTML special characters, e.g. `*::before { content: "fun & games"; }`.
 		 */
-		return wp_slash( wp_json_encode( $data_to_encode, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG ) );
+		return wp_slash( wp_json_encode( $data_to_encode, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ) );
 	}
 	return $data;
 }
