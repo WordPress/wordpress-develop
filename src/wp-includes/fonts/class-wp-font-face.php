@@ -62,17 +62,6 @@ class WP_Font_Face {
 	private $valid_font_display = array( 'auto', 'block', 'fallback', 'swap', 'optional' );
 
 	/**
-	 * Array of font-face style tag's attribute(s)
-	 * where the key is the attribute name and the
-	 * value is its value.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var string[]
-	 */
-	private $style_tag_attrs = array();
-
-	/**
 	 * Generates and prints the `@font-face` styles for the given fonts.
 	 *
 	 * @since 6.4.0
@@ -212,24 +201,7 @@ class WP_Font_Face {
 	 * @return string The style element.
 	 */
 	private function get_style_element() {
-		$attributes = $this->generate_style_element_attributes();
-
-		return "<style class='wp-fonts-local'{$attributes}>\n%s\n</style>\n";
-	}
-
-	/**
-	 * Gets the defined <style> element's attributes.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @return string A string of attribute=value when defined, else, empty string.
-	 */
-	private function generate_style_element_attributes() {
-		$attributes = '';
-		foreach ( $this->style_tag_attrs as $name => $value ) {
-			$attributes .= " {$name}='{$value}'";
-		}
-		return $attributes;
+		return "<style class='wp-fonts-local'>\n%s\n</style>\n";
 	}
 
 	/**
