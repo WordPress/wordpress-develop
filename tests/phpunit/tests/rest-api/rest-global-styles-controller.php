@@ -846,6 +846,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	inherits: true;
 	initial-value: false;
 }
+h1::before { content: "fun & games"; }
 CSS;
 		$request->set_body_params(
 			array(
@@ -856,5 +857,10 @@ CSS;
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( $css, $data['styles']['css'] );
+
+		// Compare expected API output to WP internal values.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( $css, $response->get_data()['styles']['css'] );
 	}
 }
