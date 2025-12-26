@@ -96,7 +96,7 @@ if ( isset( $_GET['action'] ) ) {
 								/**
 								 * Filters whether to propagate the blog status when a user is marked as spam.
 								 *
-								 * @since 6.9.0
+								 * @since 7.0.0
 								 *
 								 * @param bool $propagate Whether to propagate the blog status. Default false.
 								 * @param int  $user_id   User ID.
