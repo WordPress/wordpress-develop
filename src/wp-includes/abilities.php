@@ -9,6 +9,8 @@
 
 declare( strict_types = 1 );
 
+require_once __DIR__ . '/abilities/class-wp-posts-abilities.php';
+
 /**
  * Registers the core ability categories.
  *
@@ -30,6 +32,14 @@ function wp_register_core_ability_categories(): void {
 		array(
 			'label'       => __( 'User' ),
 			'description' => __( 'Abilities that retrieve or modify user information and settings.' ),
+		)
+	);
+
+	wp_register_ability_category(
+		'post',
+		array(
+			'label'       => __( 'Post' ),
+			'description' => __( 'Abilities related to the creation and management of posts of all types.' ),
 		)
 	);
 }
@@ -259,4 +269,6 @@ function wp_register_core_abilities(): void {
 			),
 		)
 	);
+
+	WP_Posts_Abilities::register();
 }
