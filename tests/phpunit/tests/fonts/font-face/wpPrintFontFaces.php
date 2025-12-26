@@ -37,11 +37,7 @@ class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 	public function test_should_print_given_fonts( array $fonts, $expected ) {
 		$expected_output = $this->get_expected_styles_output( $expected );
 
-		$output = get_echo(
-			function () use ( $fonts ) {
-				wp_print_font_faces( $fonts );
-			}
-		);
+		$output = get_echo( 'wp_print_font_faces', array( $fonts ) );
 		$this->assertEqualHTML( $expected_output, $output );
 	}
 
@@ -59,17 +55,13 @@ class Tests_Fonts_WpPrintFontFaces extends WP_Font_Face_UnitTestCase {
 		);
 
 		$expected_output = <<<CSS
-<style class='wp-fonts-local' type='text/css'>
+<style class='wp-fonts-local'>
 @font-face{font-family:"Source Serif Pro";font-style:normal;font-weight:200 900;font-display:fallback;src:url('http://example.com/assets/source-serif-pro/SourceSerif4Variable-Roman.ttf.woff2') format('woff2');font-stretch:;}
 </style>
 
 CSS;
 
-		$output = get_echo(
-			function () use ( $fonts ) {
-				wp_print_font_faces( $fonts );
-			}
-		);
+		$output = get_echo( 'wp_print_font_faces', array( $fonts ) );
 		$this->assertEqualHTML( $expected_output, $output );
 	}
 
@@ -84,7 +76,7 @@ CSS;
 	}
 
 	private function get_expected_styles_output( $styles ) {
-		$style_element = "<style class='wp-fonts-local' type='text/css'>\n%s\n</style>\n";
+		$style_element = "<style class='wp-fonts-local'>\n%s\n</style>\n";
 		return sprintf( $style_element, $styles );
 	}
 }

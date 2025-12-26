@@ -62,32 +62,6 @@ class WP_Font_Face {
 	private $valid_font_display = array( 'auto', 'block', 'fallback', 'swap', 'optional' );
 
 	/**
-	 * Array of font-face style tag's attribute(s)
-	 * where the key is the attribute name and the
-	 * value is its value.
-	 *
-	 * @since 6.4.0
-	 *
-	 * @var string[]
-	 */
-	private $style_tag_attrs = array();
-
-	/**
-	 * Creates and initializes an instance of WP_Font_Face.
-	 *
-	 * @since 6.4.0
-	 */
-	public function __construct() {
-		if (
-			function_exists( 'is_admin' ) && ! is_admin()
-			&&
-			function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'html5', 'style' )
-		) {
-			$this->style_tag_attrs = array( 'type' => 'text/css' );
-		}
-	}
-
-	/**
 	 * Generates and prints the `@font-face` styles for the given fonts.
 	 *
 	 * @since 6.4.0
@@ -120,9 +94,6 @@ class WP_Font_Face {
 
 		$processor = new WP_HTML_Tag_Processor( "<style class=\"wp-fonts-local\"></style>\n" );
 		$processor->next_tag();
-		foreach ( $this->style_tag_attrs as $name => $value ) {
-			$processor->set_attribute( $name, $value );
-		}
 		$processor->set_modifiable_text( "\n{$css}\n" );
 		echo $processor->get_updated_html();
 	}
