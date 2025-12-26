@@ -31,6 +31,44 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Override method to prevent KSES HTML content filter from mangling CSS content in JSON.
+	 *
+	 * @inheritDoc
+	 *
+	 * @since 7.0.0
+	 */
+	public function update_item( $request ) {
+		$priority = has_filter( 'content_save_pre', 'wp_filter_post_kses' );
+		if ( false !== $priority ) {
+			remove_filter( 'content_save_pre', 'wp_filter_post_kses', $priority );
+		}
+		$result = parent::update_item( $request );
+		if ( false !== $priority ) {
+			add_filter( 'content_save_pre', 'wp_filter_post_kses', $priority );
+		}
+		return $result;
+	}
+
+	/**
+	 * Override method to prevent KSES HTML content filter from mangling CSS content in JSON.
+	 *
+	 * @inheritDoc
+	 *
+	 * @since 7.0.0
+	 */
+	public function create_item( $request ) {
+		$priority = has_filter( 'content_save_pre', 'wp_filter_post_kses' );
+		if ( false !== $priority ) {
+			remove_filter( 'content_save_pre', 'wp_filter_post_kses', $priority );
+		}
+		$result = parent::create_item( $request );
+		if ( false !== $priority ) {
+			add_filter( 'content_save_pre', 'wp_filter_post_kses', $priority );
+		}
+		return $result;
+	}
+
+	/**
 	 * Registers the controllers routes.
 	 *
 	 * @since 5.9.0
