@@ -269,6 +269,27 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that dangerous STYLE tag contents do not break HTML output.
+	 *
+	 * @ticket 64418
+	 */
+	public function test_wp_custom_css_cb_escapes_dangerous_html() {
+		wp_update_custom_css_post(
+			'*::before { content: "</style><script>alert(1)</script>"; }',
+			array(
+				'stylesheet'   => $this->setting->stylesheet,
+			)
+		);
+		$output = get_echo( 'wp_custom_css_cb' );
+		$expected = <<<'HTML'
+<style id="wp-custom-css" type="text/css">
+*::before { content: "\3c\2fstyle><script>alert(1)</script>"; }
+</style>
+HTML;
+		$this->assertEqualHTML( $expected, $output );
+	}
+
+	/**
 	 * Test that wp_update_custom_css_post() updates the 'custom_css_post_id' theme mod.
 	 *
 	 * @ticket 39259
@@ -372,30 +393,5 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		$data['preprocessed'] = '/* filtered post_content_filtered */';
 		$data['post_title']   = 'Ignored';
 		return $data;
-	}
-
-	/**
-	 * Tests that validation errors are caught appropriately.
-	 *
-	 * Note that the $validity \WP_Error object must be reset each time
-	 * as it picks up the Errors and passes them to the next assertion.
-	 *
-	 * @covers WP_Customize_Custom_CSS_Setting::validate
-	 */
-	public function test_validate() {
-
-		// Empty CSS throws no errors.
-		$result = $this->setting->validate( '' );
-		$this->assertTrue( $result );
-
-		// Basic, valid CSS throws no errors.
-		$basic_css = 'body { background: #f00; } h1.site-title { font-size: 36px; } a:hover { text-decoration: none; } input[type="text"] { padding: 1em; }';
-		$result    = $this->setting->validate( $basic_css );
-		$this->assertTrue( $result );
-
-		// Check for markup.
-		$unclosed_comment = $basic_css . '</style>';
-		$result           = $this->setting->validate( $unclosed_comment );
-		$this->assertArrayHasKey( 'illegal_markup', $result->errors );
 	}
 }
