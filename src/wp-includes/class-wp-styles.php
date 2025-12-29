@@ -106,36 +106,11 @@ class WP_Styles extends WP_Dependencies {
 	public $default_dirs;
 
 	/**
-	 * Holds a string which contains the type attribute for style tag.
-	 *
-	 * If the active theme does not declare HTML5 support for 'style',
-	 * then it initializes as `type='text/css'`.
-	 *
-	 * @since 5.3.0
-	 * @var string
-	 */
-	private $type_attr = '';
-
-	/**
 	 * Constructor.
 	 *
 	 * @since 2.6.0
 	 */
 	public function __construct() {
-		if (
-			(
-				function_exists( 'is_admin' ) &&
-				! is_admin()
-			)
-			&&
-			(
-				function_exists( 'current_theme_supports' ) &&
-				! current_theme_supports( 'html5', 'style' )
-			)
-		) {
-			$this->type_attr = " type='text/css'";
-		}
-
 		/**
 		 * Fires when the WP_Styles instance is initialized.
 		 *
@@ -183,7 +158,7 @@ class WP_Styles extends WP_Dependencies {
 		$inline_style = $this->print_inline_style( $handle, false );
 
 		if ( $inline_style ) {
-			$processor = new WP_HTML_Tag_Processor( "<style{$this->type_attr}></style>\n" );
+			$processor = new WP_HTML_Tag_Processor( "<style></style>\n" );
 			$processor->next_tag();
 			$processor->set_attribute( 'id', "{$handle}-inline-css" );
 			$processor->set_modifiable_text( "\n{$inline_style}\n" );
@@ -231,12 +206,11 @@ class WP_Styles extends WP_Dependencies {
 		$title = isset( $obj->extra['title'] ) ? $obj->extra['title'] : '';
 
 		$tag = sprintf(
-			"<link rel='%s' id='%s-css'%s href='%s'%s media='%s' />\n",
+			"<link rel='%s' id='%s-css'%s href='%s' media='%s' />\n",
 			$rel,
 			esc_attr( $handle ),
 			$title ? sprintf( " title='%s'", esc_attr( $title ) ) : '',
 			$href,
-			$this->type_attr,
 			esc_attr( $media )
 		);
 
@@ -263,12 +237,11 @@ class WP_Styles extends WP_Dependencies {
 			}
 
 			$rtl_tag = sprintf(
-				"<link rel='%s' id='%s-rtl-css'%s href='%s'%s media='%s' />\n",
+				"<link rel='%s' id='%s-rtl-css'%s href='%s' media='%s' />\n",
 				$rel,
 				esc_attr( $handle ),
 				$title ? sprintf( " title='%s'", esc_attr( $title ) ) : '',
 				$rtl_href,
-				$this->type_attr,
 				esc_attr( $media )
 			);
 
@@ -363,7 +336,7 @@ class WP_Styles extends WP_Dependencies {
 			return $output;
 		}
 
-		$processor = new WP_HTML_Tag_Processor( "<style{$this->type_attr}></style>\n" );
+		$processor = new WP_HTML_Tag_Processor( "<style></style>\n" );
 		$processor->next_tag();
 		$processor->set_attribute( 'id', "{$handle}-inline-css" );
 		$processor->set_modifiable_text( "\n{$output}\n" );
