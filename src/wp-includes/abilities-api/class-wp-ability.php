@@ -472,7 +472,7 @@ class WP_Ability {
 				sprintf(
 					/* translators: %s ability name. */
 					__( 'Ability "%s" does not define an input schema required to validate the provided input.' ),
-					esc_html( $this->name )
+					$this->name
 				)
 			);
 		}
@@ -484,7 +484,7 @@ class WP_Ability {
 				sprintf(
 					/* translators: %1$s ability name, %2$s error message. */
 					__( 'Ability "%1$s" has invalid input. Reason: %2$s' ),
-					esc_html( $this->name ),
+					$this->name,
 					$valid_input->get_error_message()
 				)
 			);
@@ -503,11 +503,18 @@ class WP_Ability {
 		 *
 		 * @since 7.0.0
 		 *
-		 * @param true|WP_Error $is_valid      The validation result from default validation.
-		 * @param mixed         $input         The input data being validated.
-		 * @param string        $ability_name  The name of the ability.
+		 * @param true|WP_Error $is_valid     The validation result from default validation.
+		 * @param mixed         $input        The input data being validated.
+		 * @param string        $ability_name The name of the ability.
 		 */
-		return apply_filters( 'wp_ability_validate_input', $is_valid, $input, $this->name );
+		$validity = apply_filters( 'wp_ability_validate_input', $is_valid, $input, $this->name );
+		if ( false === $validity ) {
+			$validity = new WP_Error( 'ability_invalid_input', __( 'Invalid input.' ) );
+		}
+		if ( ! is_wp_error( $validity ) || ! $validity->has_errors() ) {
+			$validity = true;
+		}
+		return $validity;
 	}
 
 	/**
@@ -593,7 +600,7 @@ class WP_Ability {
 					sprintf(
 						/* translators: %1$s ability name, %2$s error message. */
 						__( 'Ability "%1$s" has invalid output. Reason: %2$s' ),
-						esc_html( $this->name ),
+						$this->name,
 						$valid_output->get_error_message()
 					)
 				);
@@ -613,11 +620,18 @@ class WP_Ability {
 		 *
 		 * @since 7.0.0
 		 *
-		 * @param true|WP_Error $is_valid      The validation result from default validation.
-		 * @param mixed         $output        The output data being validated.
-		 * @param string        $ability_name  The name of the ability.
+		 * @param true|WP_Error $is_valid     The validation result from default validation.
+		 * @param mixed         $output       The output data being validated.
+		 * @param string        $ability_name The name of the ability.
 		 */
-		return apply_filters( 'wp_ability_validate_output', $is_valid, $output, $this->name );
+		$validity = apply_filters( 'wp_ability_validate_output', $is_valid, $output, $this->name );
+		if ( false === $validity ) {
+			$validity = new WP_Error( 'ability_invalid_output', __( 'Invalid output.' ) );
+		}
+		if ( ! is_wp_error( $validity ) || ! $validity->has_errors() ) {
+			$validity = true;
+		}
+		return $validity;
 	}
 
 	/**
