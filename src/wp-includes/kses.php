@@ -2474,9 +2474,11 @@ function wp_filter_global_styles_post( $data ) {
 		$data_to_encode = WP_Theme_JSON::remove_insecure_properties( $decoded_data, 'custom' );
 
 		$data_to_encode['isGlobalStylesUserThemeJSON'] = true;
-		/*
+		/**
 		 * JSON encode the data stored in post content.
-		 * Encode characters that are likely be mangled by HTML filters: "<>&".
+		 * Escape characters that are likely be mangled by HTML filters: "<>&".
+		 *
+		 * This matches the escaping in {@see WP_REST_Global_Styles_Controller::prepare_item_for_database}.
 		 */
 		return wp_slash( wp_json_encode( $data_to_encode, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP ) );
 	}
