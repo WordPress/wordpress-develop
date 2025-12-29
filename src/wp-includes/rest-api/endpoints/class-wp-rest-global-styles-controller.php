@@ -275,7 +275,14 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			}
 			$config['isGlobalStylesUserThemeJSON'] = true;
 			$config['version']                     = WP_Theme_JSON::LATEST_SCHEMA;
-			$changes->post_content                 = wp_json_encode( $config );
+			/**
+			 * JSON encode the data stored in post content.
+			 * Escape characters that are likely be mangled by HTML filters: "<>&".
+			 *
+			 * This data is later re-encoded by {@see wp_filter_global_styles_post}.
+			 * The escaping is also applied here as a precaution.
+			 */
+			$changes->post_content = wp_json_encode( $config, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP );
 		}
 
 		// Post title.
