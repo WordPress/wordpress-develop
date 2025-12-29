@@ -444,8 +444,9 @@ HTML
 	/**
 	 * Ensures that updates with potentially-compromising values aren't accepted.
 	 *
-	 * For example, a modifiable text update should be allowed which would break
-	 * the structure of the containing element, such as in a script or comment.
+	 * For example, a modifiable text update that would change the structure of the HTML
+	 * document is not allowed, like attempting to set `-->` within a comment or `</script>`
+	 * within a text/plain SCRIPT tag.
 	 *
 	 * @ticket 61617
 	 * @ticket 62797
@@ -467,7 +468,7 @@ HTML
 
 		$this->assertFalse(
 			$processor->set_modifiable_text( $invalid_update ),
-			'Should have reject possibly-compromising modifiable text update.'
+			'Should have rejected possibly-compromising modifiable text update.'
 		);
 
 		// Flush updates.
@@ -490,7 +491,7 @@ HTML
 			'Comment with -->'                        => array( '<!-- this is a comment -->', 'Comments end in -->' ),
 			'Comment with --!>'                       => array( '<!-- this is a comment -->', 'Invalid but legitimate comments end in --!>' ),
 			'Non-JS SCRIPT with <script>'             => array( '<script type="text/html">Replace me</script>', '<!-- Just a <script>' ),
-			'Non-JS SCRIPT with </script>'            => array( '<script type="text/html">Replace me</script>', 'Just a </script>' ),
+			'Non-JS SCRIPT with </script>'            => array( '<script type="text/plain">Replace me</script>', 'Just a </script>' ),
 			'Non-JS SCRIPT with <script attributes>'  => array( '<script language="text">Replace me</script>', '<!-- <script sneaky>after' ),
 			'Non-JS SCRIPT with </script attributes>' => array( '<script language="text">Replace me</script>', 'before</script sneaky>after' ),
 		);

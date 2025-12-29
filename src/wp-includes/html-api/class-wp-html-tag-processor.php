@@ -3811,14 +3811,14 @@ class WP_HTML_Tag_Processor {
 
 		switch ( $this->get_tag() ) {
 			case 'SCRIPT':
-				/*
-				 * SCRIPT tag contents can be dangerous:
+				/**
+				 * Identify risky script contents to escape when possible or reject otherwise:
 				 *
-				 * - "</script>" could close the SCRIPT element prematurely.
-				 * - "<script>" could enter the “script data double escaped state” and preventing the
+				 * - "</script" could close the SCRIPT element prematurely.
+				 * - "<script" could enter the “script data double escaped state” and prevent the
 				 *   SCRIPT element from closing as expected.
 				 *
-				 * Identify risky script contents to escape when possible or reject otherwise.
+				 * @see WP_HTML_Tag_Processor::escape_javascript_script_contents()
 				 */
 				$needs_escaping =
 					false !== stripos( $plaintext_content, '</script' ) ||
@@ -3830,8 +3830,8 @@ class WP_HTML_Tag_Processor {
 						$plaintext_content = $this->escape_json_script_contents( $plaintext_content );
 					} else {
 						/*
-						 * Other types of script tags cannot be escaped safely because the type
-						 * of comment and escaping strategy are unknown.
+						 * Other types of script tags cannot be escaped safely because there is
+						 * no general escaping mechanism for arbitrary types of content.
 						 */
 						return false;
 					}
@@ -3894,6 +3894,9 @@ class WP_HTML_Tag_Processor {
 
 	/**
 	 * Indicates if the currently matched tag is a JavaScript script tag.
+	 *
+	 * Note that this does not parse a MIME type. This behavior is well-documented in
+	 * in the HTML standard and uses string comparisons, *not* actual MIME Types.
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element
 	 *
@@ -4013,6 +4016,7 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * @ignore
 	 * @todo Consider a public API that is clear and general.
+	 * @todo Use a MIME type parser when available.
 	 *
 	 * @since 7.0.0
 	 *
@@ -4095,11 +4099,54 @@ class WP_HTML_Tag_Processor {
 	 * `regex.test( '<script>' ) === true` in both the unescaped and
 	 * escaped versions.
 	 *
+	 * JavaScript that relies on behavior affected by this escaping must provide
+	 * safe script contents in order to avoid this escaping. For example, a raw string
+	 * may be split up to make its contents safe or avoided altogether:
+	 *
+	 *     console.log( String.raw`</script>` );                // !!UNSAFE!! Will be escaped.
+	 *     console.log( String.raw`</\u0073cript>` );           // "</\u0073cript>"
+	 *     console.log( String.raw`</scr` + String.raw`ipt>` ); // "</script>"
+	 *     console.log( String.raw`</${"script"}>` );           // "</script>"
+	 *     console.log( "\x3C/script>" );                       // "</script>"
+	 *     console.log( "<\/script>" );                         // "</script>"
+	 *
+	 * The following graph is a simplified interpretation of how HTML interprets the contents
+	 * of a SCRIPT tag and identifies the closing tag. It is useful to understand what text
+	 * is dangerous inside of a SCRIPT tag and why different approaches to escaping work.
+	 *
+	 *                              Open script
+	 *                                  │
+	 *                                  │
+	 *                                  ▼
+	 *               ╔═════════════════════════════════════════╗   <!--(…)>
+	 *               ║                                         ║   (all dashes)
+	 *               ║                 script                  ║ ───────────────┐
+	 *               ║                  data                   ║                │
+	 *   ┌────────── ║                                         ║ ◀──────────────┘
+	 *   │           ╚═════════════════════════════════════════╝
+	 *   │             │               ▲                    ▲
+	 *   │             │ <!--          │ -->                └─────┐
+	 *   │             ▼               │                          │
+	 *   │           ┌─────────────────────────────────────────┐  │
+	 *   │ </script† │                 escaped                 │  │
+	 *   │           └─────────────────────────────────────────┘  │
+	 *   │             │               ▲             │            │ -->
+	 *   │             │ </script†     │ </script†   │ <script†   │
+	 *   │             ▼               │             ▼            │
+	 *   │           ╔══════════════╗  │           ┌───────────┐  │
+	 *   │           ║ Close script ║  │           │  double   │  │
+	 *   └─────────▶ ║              ║  └────────── │  escaped  │ ─┘
+	 *               ╚══════════════╝              └───────────┘
+	 *
+	 *        † = Case insensitive 'script' followed by one of ' \t\f\r\n/>'
+	 *
+	 * The original source of this graph is included at the bottom of this file.
+	 *
 	 * @see https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements
 	 */
 	private function escape_javascript_script_contents( string $text ): string {
 		return preg_replace_callback(
-			'~(?P<HEAD></?)(?P<S_CHAR>s)(?P<TAIL>cript[\\t\\r\\n\\f />])~i',
+			'~(?P<HEAD></?)(?P<S_CHAR>s)(?P<TAIL>cript[ \\t\\f\\r\\n/>])~i',
 			static function ( $matches ) {
 				$escaped_s_char = 's' === $matches['S_CHAR']
 					? '\\u0073'
@@ -4118,10 +4165,11 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * JSON can be escaped simply by replacing "<" with its Unicode escape
 	 * sequence "\u003C". "<" is not part of the JSON syntax and only appears
-	 * in JSON strings, so it's always safe to escape. Furthermore, JSON only
-	 * does not allow backslash escaping of "<", so there's no need to
-	 * consider whether the "<" is escaped.
+	 * in JSON strings, so it's always safe to escape. Furthermore, JSON does
+	 * not allow backslash escaping of "<", so there's no need to consider
+	 * whether the "<" is preceded by an escaping backslash.
 	 *
+	 * For more details, see {@see WP_HTML_Tag_Processor::escape_javascript_script_contents()}.
 	 * @see https://www.json.org/json-en.html
 	 */
 	private function escape_json_script_contents( string $text ): string {
@@ -4921,3 +4969,40 @@ class WP_HTML_Tag_Processor {
 	 */
 	const TEXT_IS_WHITESPACE = 'TEXT_IS_WHITESPACE';
 }
+
+/*
+# This is the original Graphviz source for the SCRIPT tag
+# parsing behavior. It's used in the documentation for
+# `WP_HTML_Tag_Processor::escape_javascript_script_contents()`.
+# ====
+digraph {
+	rankdir=TB;
+
+	// Entry point
+	entry [shape=plaintext label="Open script"];
+	entry -> script_data;
+
+	// Double-circle states arranged more compactly
+	data [shape=doublecircle label="Close script"];
+	script_data [shape=doublecircle color=blue label="script\ndata"];
+	script_data_escaped [shape=circle color=orange label="escaped"];
+	script_data_double_escaped [shape=circle color=red label="double\nescaped"];
+
+	// Group related nodes on same ranks where possible
+	{rank=same; script_data script_data_escaped script_data_double_escaped}
+
+	script_data -> script_data [label="<!--(…)>\n(all dashes)"];
+	script_data -> script_data_escaped [label="<!--"];
+	script_data -> data [label="</script†"];
+
+	script_data_escaped -> script_data [label="-->"];
+	script_data_escaped -> script_data_double_escaped [label="<script†"];
+	script_data_escaped -> data [label="</script†"];
+
+	script_data_double_escaped -> script_data [label="-->"];
+	script_data_double_escaped -> script_data_escaped [label="</script†"];
+
+	label="† = Case insensitive 'script' followed by one of ' \\t\\f\\r\\n/>'";
+	labelloc=b;
+}
+*/
