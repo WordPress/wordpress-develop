@@ -3851,13 +3851,9 @@ class WP_HTML_Tag_Processor {
 				return true;
 
 			case 'STYLE':
-				$plaintext_content = preg_replace_callback(
-					'~</(?P<TAG_NAME>style)~i',
-					static function ( $tag_match ) {
-						return "\\3c\\2f{$tag_match['TAG_NAME']}";
-					},
-					$plaintext_content
-				);
+				if ( false !== stripos( $plaintext_content, '</style' ) ) {
+					$plaintext_content = $this->escape_style_contents( $plaintext_content );
+				}
 
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 					$this->text_starts_at,
@@ -4238,6 +4234,25 @@ class WP_HTML_Tag_Processor {
 		}
 
 		return $escaped;
+	}
+
+	/**
+	 * Escape style tag contents.
+	 *
+	 * Prevent CSS text from modifying the HTML structure of a document and
+	 * ensure that it's contained within its enclosing STYLE tag as intended.
+	 */
+	private function escape_style_contents( string $text ): string {
+		return preg_replace_callback(
+			'~</(?P<S_CHAR>s)(?P<TAIL>tyle[ \\t\\f\\r\\n/>])~i',
+			static function ( $matches ) {
+				$escaped_s_char = 's' === $matches['S_CHAR']
+					? '\\73'
+					: '\\53';
+				return "</{$escaped_s_char}{$matches['TAIL']}";
+			},
+			$text
+		);
 	}
 
 	/**
