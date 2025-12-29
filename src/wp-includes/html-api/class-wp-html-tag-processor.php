@@ -3814,8 +3814,8 @@ class WP_HTML_Tag_Processor {
 				/**
 				 * Identify risky script contents to escape when possible or reject otherwise:
 				 *
-				 * - "</script>" could close the SCRIPT element prematurely.
-				 * - "<script>" could enter the “script data double escaped state” and prevent the
+				 * - "</script" could close the SCRIPT element prematurely.
+				 * - "<script" could enter the “script data double escaped state” and prevent the
 				 *   SCRIPT element from closing as expected.
 				 *
 				 * @see WP_HTML_Tag_Processor::escape_javascript_script_contents()
