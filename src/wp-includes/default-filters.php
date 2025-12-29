@@ -175,7 +175,7 @@ add_filter( 'comment_text', 'capital_P_dangit', 31 );
 // Format titles.
 foreach ( array( 'single_post_title', 'single_cat_title', 'single_tag_title', 'single_month_title', 'nav_menu_attr_title', 'nav_menu_description' ) as $filter ) {
 	add_filter( $filter, 'wptexturize' );
-	add_filter( $filter, 'strip_tags' );
+	add_filter( $filter, 'wp_strip_all_tags' );
 }
 
 // Format text area for display.
@@ -254,7 +254,7 @@ add_filter( 'block_type_metadata', 'wp_migrate_old_typography_shape' );
 add_filter( 'wp_get_custom_css', 'wp_replace_insecure_home_url' );
 
 // RSS filters.
-add_filter( 'the_title_rss', 'strip_tags' );
+add_filter( 'the_title_rss', 'wp_strip_all_tags' );
 add_filter( 'the_title_rss', 'ent2ncr', 8 );
 add_filter( 'the_title_rss', 'esc_html' );
 add_filter( 'the_content_rss', 'ent2ncr', 8 );

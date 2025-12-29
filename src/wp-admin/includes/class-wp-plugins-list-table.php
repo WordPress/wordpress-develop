@@ -375,7 +375,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		global $s;
 
 		foreach ( $plugin as $value ) {
-			if ( is_string( $value ) && false !== stripos( strip_tags( $value ), urldecode( $s ) ) ) {
+			if ( is_string( $value ) && false !== stripos( wp_strip_all_tags( $value ), urldecode( $s ) ) ) {
 				return true;
 			}
 		}

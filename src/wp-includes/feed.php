@@ -25,7 +25,7 @@
  * @return string
  */
 function get_bloginfo_rss( $show = '' ) {
-	$info = strip_tags( get_bloginfo( $show ) );
+	$info = wp_strip_all_tags( get_bloginfo( $show ) );
 	/**
 	 * Filters the bloginfo for use in RSS feeds.
 	 *

@@ -253,11 +253,11 @@ if ( isset( $_GET['editwidget'] ) && $_GET['editwidget'] ) {
 		$control          = $wp_registered_widget_controls[ $widget_id ];
 		$control_callback = $control['callback'];
 	} elseif ( ! isset( $wp_registered_widget_controls[ $widget_id ] ) && isset( $wp_registered_widgets[ $widget_id ] ) ) {
-		$name = esc_html( strip_tags( $wp_registered_widgets[ $widget_id ]['name'] ) );
+		$name = esc_html( wp_strip_all_tags( $wp_registered_widgets[ $widget_id ]['name'] ) );
 	}
 
 	if ( ! isset( $name ) ) {
-		$name = esc_html( strip_tags( $control['name'] ) );
+		$name = esc_html( wp_strip_all_tags( $control['name'] ) );
 	}
 
 	if ( ! isset( $sidebar ) ) {

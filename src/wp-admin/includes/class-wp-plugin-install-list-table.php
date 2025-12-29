@@ -533,7 +533,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			$title = wp_kses( $plugin['name'], $plugins_allowedtags );
 
 			// Remove any HTML from the description.
-			$description = strip_tags( $plugin['short_description'] );
+			$description = wp_strip_all_tags( $plugin['short_description'] );
 
 			/**
 			 * Filters the plugin card description on the Add Plugins screen.
@@ -548,7 +548,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 			$version = wp_kses( $plugin['version'], $plugins_allowedtags );
 
-			$name = strip_tags( $title . ' ' . $version );
+			$name = wp_strip_all_tags( $title . ' ' . $version );
 
 			$author = wp_kses( $plugin['author'], $plugins_allowedtags );
 			if ( ! empty( $author ) ) {

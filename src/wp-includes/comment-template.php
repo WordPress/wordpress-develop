@@ -659,7 +659,7 @@ function get_comment_excerpt( $comment_id = 0 ) {
 	$comment = get_comment( $comment_id );
 
 	if ( ! post_password_required( $comment->comment_post_ID ) ) {
-		$comment_text = strip_tags( str_replace( array( "\n", "\r" ), ' ', $comment->comment_content ) );
+		$comment_text = wp_strip_all_tags( str_replace( array( "\n", "\r" ), ' ', $comment->comment_content ) );
 	} else {
 		$comment_text = __( 'Password protected' );
 	}
@@ -975,7 +975,7 @@ function get_comments_number_text( $zero = false, $one = false, $more = false, $
 			if ( 'on' === _x( 'off', 'Comment number declension: on or off' ) ) {
 				$text = preg_replace( '#<span class="screen-reader-text">.+?</span>#', '', $more );
 				$text = preg_replace( '/&.+?;/', '', $text ); // Remove HTML entities.
-				$text = trim( strip_tags( $text ), '% ' );
+				$text = trim( wp_strip_all_tags( $text ), '% ' );
 
 				// Replace '% Comments' with a proper plural form.
 				if ( $text && ! preg_match( '/[0-9]+/', $text ) && str_contains( $more, '%' ) ) {
@@ -1291,7 +1291,7 @@ function trackback_rdf( $deprecated = '' ) {
 	echo '    dc:identifier="';
 	the_permalink();
 	echo '"' . "\n";
-	echo '    dc:title="' . str_replace( '--', '&#x2d;&#x2d;', wptexturize( strip_tags( get_the_title() ) ) ) . '"' . "\n";
+	echo '    dc:title="' . str_replace( '--', '&#x2d;&#x2d;', wptexturize( wp_strip_all_tags( get_the_title() ) ) ) . '"' . "\n";
 	echo '    trackback:ping="' . get_trackback_url() . '"' . " />\n";
 	echo '</rdf:RDF>';
 }

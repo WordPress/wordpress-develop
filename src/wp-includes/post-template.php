@@ -94,7 +94,7 @@ function the_title_attribute( $args = '' ) {
 	}
 
 	$title = $parsed_args['before'] . $title . $parsed_args['after'];
-	$title = esc_attr( strip_tags( $title ) );
+	$title = esc_attr( wp_strip_all_tags( $title ) );
 
 	if ( $parsed_args['echo'] ) {
 		echo $title;
@@ -337,7 +337,7 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		$content = explode( $matches[0], $content, 2 );
 
 		if ( ! empty( $matches[1] ) && ! empty( $more_link_text ) ) {
-			$more_link_text = strip_tags( wp_kses_no_null( trim( $matches[1] ) ) );
+			$more_link_text = wp_strip_all_tags( wp_kses_no_null( trim( $matches[1] ) ) );
 		}
 
 		$has_teaser = true;

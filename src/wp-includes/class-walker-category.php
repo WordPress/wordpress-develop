@@ -122,7 +122,7 @@ class Walker_Category extends Walker {
 			 * @param string  $description Category description.
 			 * @param WP_Term $category    Category object.
 			 */
-			$atts['title'] = strip_tags( apply_filters( 'category_description', $category->description, $category ) );
+			$atts['title'] = wp_strip_all_tags( apply_filters( 'category_description', $category->description, $category ) );
 		}
 
 		/**

@@ -641,7 +641,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	$current_network = get_network();
 	$base            = $current_network->path;
 
-	$blog_title = strip_tags( $blog_title );
+	$blog_title = wp_strip_all_tags( $blog_title );
 
 	$errors        = new WP_Error();
 	$illegal_names = get_site_option( 'illegal_names' );
@@ -1407,7 +1407,7 @@ function wpmu_create_blog( $domain, $path, $title, $user_id, $options = array(),
 	);
 	$options  = wp_parse_args( $options, $defaults );
 
-	$title   = strip_tags( $title );
+	$title   = wp_strip_all_tags( $title );
 	$user_id = (int) $user_id;
 
 	// Check if the domain has been used already. We should return an error message.

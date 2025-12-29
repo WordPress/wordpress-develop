@@ -3121,7 +3121,7 @@ function do_trackbacks( $post ) {
 
 	/** This filter is documented in wp-includes/post-template.php */
 	$post_title = apply_filters( 'the_title', $post->post_title, $post->ID );
-	$post_title = strip_tags( $post_title );
+	$post_title = wp_strip_all_tags( $post_title );
 
 	foreach ( (array) $to_ping as $tb_ping ) {
 		$tb_ping = trim( $tb_ping );
@@ -3608,7 +3608,7 @@ function wp_handle_comment_submission( $comment_data ) {
 		$comment_post_id = (int) $comment_data['comment_post_ID'];
 	}
 	if ( isset( $comment_data['author'] ) && is_string( $comment_data['author'] ) ) {
-		$comment_author = trim( strip_tags( $comment_data['author'] ) );
+		$comment_author = trim( wp_strip_all_tags( $comment_data['author'] ) );
 	}
 	if ( isset( $comment_data['email'] ) && is_string( $comment_data['email'] ) ) {
 		$comment_author_email = trim( $comment_data['email'] );

@@ -1277,7 +1277,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 			if ( is_wp_error( $rss ) ) {
 				$widget_options[ $widget_id ]['title'] = htmlentities( __( 'Unknown Feed' ) );
 			} else {
-				$widget_options[ $widget_id ]['title'] = htmlentities( strip_tags( $rss->get_title() ) );
+				$widget_options[ $widget_id ]['title'] = htmlentities( wp_strip_all_tags( $rss->get_title() ) );
 				$rss->__destruct();
 				unset( $rss );
 			}

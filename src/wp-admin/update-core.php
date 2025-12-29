@@ -562,7 +562,7 @@ function list_plugin_updates() {
 
 		// Get the upgrade notice for the new plugin version.
 		if ( isset( $plugin_data->update->upgrade_notice ) ) {
-			$upgrade_notice = '<br />' . strip_tags( $plugin_data->update->upgrade_notice );
+			$upgrade_notice = '<br />' . wp_strip_all_tags( $plugin_data->update->upgrade_notice );
 		} else {
 			$upgrade_notice = '';
 		}

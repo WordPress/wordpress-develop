@@ -84,7 +84,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 
 		if ( str_contains( $feedback, '%' ) ) {
 			if ( $args ) {
-				$args     = array_map( 'strip_tags', $args );
+				$args     = array_map( 'wp_strip_all_tags', $args );
 				$args     = array_map( 'esc_html', $args );
 				$feedback = vsprintf( $feedback, $args );
 			}
@@ -134,7 +134,7 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 			$messages = array();
 			foreach ( $errors->get_error_messages() as $emessage ) {
 				if ( $errors->get_error_data() && is_string( $errors->get_error_data() ) ) {
-					$messages[] = $emessage . ' ' . esc_html( strip_tags( $errors->get_error_data() ) );
+					$messages[] = $emessage . ' ' . esc_html( wp_strip_all_tags( $errors->get_error_data() ) );
 				} else {
 					$messages[] = $emessage;
 				}

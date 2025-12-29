@@ -92,7 +92,7 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 			$error_data = $this->errors->get_error_data( $error_code );
 
 			if ( $error_data && is_string( $error_data ) ) {
-				$messages[] = $this->errors->get_error_message( $error_code ) . ' ' . esc_html( strip_tags( $error_data ) );
+				$messages[] = $this->errors->get_error_message( $error_code ) . ' ' . esc_html( wp_strip_all_tags( $error_data ) );
 			} else {
 				$messages[] = $this->errors->get_error_message( $error_code );
 			}

@@ -7099,7 +7099,7 @@ class wp_xmlrpc_server extends IXR_Server {
 				$excerpt     = trim( $excerpt );
 				$preg_marker = preg_quote( $marker, '|' );
 				$excerpt     = preg_replace( "|.*?\s(.{0,100}$preg_marker.{0,100})\s.*|s", '$1', $excerpt );
-				$excerpt     = strip_tags( $excerpt ); // YES, again, to remove the marker wrapper.
+				$excerpt     = wp_strip_all_tags( $excerpt ); // YES, again, to remove the marker wrapper.
 				break;
 			}
 		}

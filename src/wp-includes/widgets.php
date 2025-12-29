@@ -1642,9 +1642,9 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 		while ( ! empty( $link ) && stristr( $link, 'http' ) !== $link ) {
 			$link = substr( $link, 1 );
 		}
-		$link = esc_url( strip_tags( $link ) );
+		$link = esc_url( wp_strip_all_tags( $link ) );
 
-		$title = esc_html( trim( strip_tags( $item->get_title() ) ) );
+		$title = esc_html( trim( wp_strip_all_tags( $item->get_title() ) ) );
 		if ( empty( $title ) ) {
 			$title = __( 'Untitled' );
 		}
@@ -1678,7 +1678,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 			$author = $item->get_author();
 			if ( is_object( $author ) ) {
 				$author = $author->get_name();
-				$author = ' <cite>' . esc_html( strip_tags( $author ) ) . '</cite>';
+				$author = ' <cite>' . esc_html( wp_strip_all_tags( $author ) ) . '</cite>';
 			}
 		}
 
@@ -1797,8 +1797,8 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 	if ( $items < 1 || 20 < $items ) {
 		$items = 10;
 	}
-	$url          = sanitize_url( strip_tags( $widget_rss['url'] ) );
-	$title        = isset( $widget_rss['title'] ) ? trim( strip_tags( $widget_rss['title'] ) ) : '';
+	$url          = sanitize_url( wp_strip_all_tags( $widget_rss['url'] ) );
+	$title        = isset( $widget_rss['title'] ) ? trim( wp_strip_all_tags( $widget_rss['title'] ) ) : '';
 	$show_summary = isset( $widget_rss['show_summary'] ) ? (int) $widget_rss['show_summary'] : 0;
 	$show_author  = isset( $widget_rss['show_author'] ) ? (int) $widget_rss['show_author'] : 0;
 	$show_date    = isset( $widget_rss['show_date'] ) ? (int) $widget_rss['show_date'] : 0;
@@ -1811,7 +1811,7 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 		if ( is_wp_error( $rss ) ) {
 			$error = $rss->get_error_message();
 		} else {
-			$link = esc_url( strip_tags( $rss->get_permalink() ) );
+			$link = esc_url( wp_strip_all_tags( $rss->get_permalink() ) );
 			while ( stristr( $link, 'http' ) !== $link ) {
 				$link = substr( $link, 1 );
 			}

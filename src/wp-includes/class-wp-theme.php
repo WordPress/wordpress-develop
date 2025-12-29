@@ -982,13 +982,13 @@ final class WP_Theme implements ArrayAccess {
 				$value = sanitize_url( $value );
 				break;
 			case 'Tags':
-				$value = array_filter( array_map( 'trim', explode( ',', strip_tags( $value ) ) ) );
+				$value = array_filter( array_map( 'trim', explode( ',', wp_strip_all_tags( $value ) ) ) );
 				break;
 			case 'Version':
 			case 'RequiresWP':
 			case 'RequiresPHP':
 			case 'UpdateURI':
-				$value = strip_tags( $value );
+				$value = wp_strip_all_tags( $value );
 				break;
 		}
 

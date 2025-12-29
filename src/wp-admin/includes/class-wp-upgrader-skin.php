@@ -182,7 +182,7 @@ class WP_Upgrader_Skin {
 		} elseif ( is_wp_error( $errors ) && $errors->has_errors() ) {
 			foreach ( $errors->get_error_messages() as $message ) {
 				if ( $errors->get_error_data() && is_string( $errors->get_error_data() ) ) {
-					$this->feedback( $message . ' ' . esc_html( strip_tags( $errors->get_error_data() ) ) );
+					$this->feedback( $message . ' ' . esc_html( wp_strip_all_tags( $errors->get_error_data() ) ) );
 				} else {
 					$this->feedback( $message );
 				}
@@ -206,7 +206,7 @@ class WP_Upgrader_Skin {
 
 		if ( str_contains( $feedback, '%' ) ) {
 			if ( $args ) {
-				$args     = array_map( 'strip_tags', $args );
+				$args     = array_map( 'wp_strip_all_tags', $args );
 				$args     = array_map( 'esc_html', $args );
 				$feedback = vsprintf( $feedback, $args );
 			}

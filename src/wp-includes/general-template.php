@@ -1416,7 +1416,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	// If it's a search.
 	if ( is_search() ) {
 		/* translators: 1: Separator, 2: Search query. */
-		$title = sprintf( __( 'Search Results %1$s %2$s' ), $t_sep, strip_tags( $search ) );
+		$title = sprintf( __( 'Search Results %1$s %2$s' ), $t_sep, wp_strip_all_tags( $search ) );
 	}
 
 	// If it's a 404 page.
@@ -2212,7 +2212,7 @@ function wp_get_archives( $args = '' ) {
 					$url = get_permalink( $result );
 					if ( $result->post_title ) {
 						/** This filter is documented in wp-includes/post-template.php */
-						$text = strip_tags( apply_filters( 'the_title', $result->post_title, $result->ID ) );
+						$text = wp_strip_all_tags( apply_filters( 'the_title', $result->post_title, $result->ID ) );
 					} else {
 						$text = $result->ID;
 					}

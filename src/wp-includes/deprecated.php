@@ -1697,7 +1697,7 @@ function the_content_rss($more_link_text='(more...)', $stripteaser=0, $more_file
 	} elseif ( 0 == $encode_html ) {
 		$content = make_url_footnote($content);
 	} elseif ( 2 == $encode_html ) {
-		$content = strip_tags($content);
+		$content = wp_strip_all_tags($content);
 	}
 	if ( $cut ) {
 		$blah = explode(' ', $content);
@@ -1744,7 +1744,7 @@ function make_url_footnote( $content ) {
 		$link_url = ( ( strtolower( substr( $link_url, 0, 7 ) ) !== 'http://' ) && ( strtolower( substr( $link_url, 0, 8 ) ) !== 'https://' ) ) ? get_option( 'home' ) . $link_url : $link_url;
 		$links_summary .= "\n" . $link_number . ' ' . $link_url;
 	}
-	$content  = strip_tags( $content );
+	$content  = wp_strip_all_tags( $content );
 	$content .= $links_summary;
 	return $content;
 }

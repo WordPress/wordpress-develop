@@ -1827,7 +1827,7 @@ final class _WP_Editors {
 
 			$results[] = array(
 				'ID'        => $post->ID,
-				'title'     => trim( esc_html( strip_tags( get_the_title( $post ) ) ) ),
+				'title'     => trim( esc_html( wp_strip_all_tags( get_the_title( $post ) ) ) ),
 				'permalink' => get_permalink( $post->ID ),
 				'info'      => $info,
 			);

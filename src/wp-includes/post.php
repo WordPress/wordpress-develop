@@ -6077,7 +6077,7 @@ function trackback_url_list( $tb_list, $post_id ) {
 		$postdata = get_post( $post_id, ARRAY_A );
 
 		// Form an excerpt.
-		$excerpt = strip_tags( $postdata['post_excerpt'] ? $postdata['post_excerpt'] : $postdata['post_content'] );
+		$excerpt = wp_strip_all_tags( $postdata['post_excerpt'] ? $postdata['post_excerpt'] : $postdata['post_content'] );
 
 		if ( strlen( $excerpt ) > 255 ) {
 			$excerpt = substr( $excerpt, 0, 252 ) . '&hellip;';
