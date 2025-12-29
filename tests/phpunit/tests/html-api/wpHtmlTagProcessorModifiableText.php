@@ -426,18 +426,21 @@ HTML
 	 */
 	public static function data_tokens_with_basic_modifiable_text_updates() {
 		return array(
-			'Text node (start)'       => array( 'Text', 1, 'Blubber', 'Blubber' ),
-			'Text node (middle)'      => array( '<em>Bold move</em>', 2, 'yo', '<em>yo</em>' ),
-			'Text node (end)'         => array( '<img>of a dog', 2, 'of a cat', '<img>of a cat' ),
-			'Encoded text node'       => array( '<figcaption>birds and dogs</figcaption>', 2, '<birds> & <dogs>', '<figcaption>&lt;birds&gt; &amp; &lt;dogs&gt;</figcaption>' ),
-			'SCRIPT tag'              => array( 'before<script></script>after', 2, 'const img = "<img> & <br>";', 'before<script>const img = "<img> & <br>";</script>after' ),
-			'STYLE tag'               => array( '<style></style>', 1, 'p::before { content: "<img> & </style>"; }', '<style>p::before { content: "<img> & \3c\2fstyle>"; }</style>' ),
-			'TEXTAREA tag'            => array( 'a<textarea>has no need to escape</textarea>b', 2, "so it <doesn't>", "a<textarea>so it <doesn't></textarea>b" ),
-			'TEXTAREA (escape)'       => array( 'a<textarea>has no need to escape</textarea>b', 2, 'but it does for </textarea>', 'a<textarea>but it does for &lt;/textarea></textarea>b' ),
-			'TEXTAREA (escape+attrs)' => array( 'a<textarea>has no need to escape</textarea>b', 2, 'but it does for </textarea not an="attribute">', 'a<textarea>but it does for &lt;/textarea not an="attribute"></textarea>b' ),
-			'TITLE tag'               => array( 'a<title>has no need to escape</title>b', 2, "so it <doesn't>", "a<title>so it <doesn't></title>b" ),
-			'TITLE (escape)'          => array( 'a<title>has no need to escape</title>b', 2, 'but it does for </title>', 'a<title>but it does for &lt;/title></title>b' ),
-			'TITLE (escape+attrs)'    => array( 'a<title>has no need to escape</title>b', 2, 'but it does for </title not an="attribute">', 'a<title>but it does for &lt;/title not an="attribute"></title>b' ),
+			'Text node (start)'               => array( 'Text', 1, 'Blubber', 'Blubber' ),
+			'Text node (middle)'              => array( '<em>Bold move</em>', 2, 'yo', '<em>yo</em>' ),
+			'Text node (end)'                 => array( '<img>of a dog', 2, 'of a cat', '<img>of a cat' ),
+			'Encoded text node'               => array( '<figcaption>birds and dogs</figcaption>', 2, '<birds> & <dogs>', '<figcaption>&lt;birds&gt; &amp; &lt;dogs&gt;</figcaption>' ),
+			'SCRIPT tag'                      => array( 'before<script></script>after', 2, 'const img = "<img> & <br>";', 'before<script>const img = "<img> & <br>";</script>after' ),
+			'STYLE tag'                       => array( '<style></style>', 1, 'p::before { content: "<img> & </style>"; }', '<style>p::before { content: "<img> & </\73tyle>"; }</style>' ),
+			'STYLE tag (mixed casing)'        => array( '<style></style>', 1, 'p::before { content: "<img> & </StYlE>"; }', '<style>p::before { content: "<img> & </\53tYlE>"; }</style>' ),
+			'STYLE tag (trailing characters)' => array( '<style></style>', 1, "p::before { content: \"<img> & </style\t>\"; }", "<style>p::before { content: \"<img> & </\\73tyle\t>\"; }</style>" ),
+			'STYLE tag (non-closing tag)'     => array( '<style></style>', 1, 'p::before { content: "<img> & </stylesheet>"; }', '<style>p::before { content: "<img> & </stylesheet>"; }</style>' ),
+			'TEXTAREA tag'                    => array( 'a<textarea>has no need to escape</textarea>b', 2, "so it <doesn't>", "a<textarea>so it <doesn't></textarea>b" ),
+			'TEXTAREA (escape)'               => array( 'a<textarea>has no need to escape</textarea>b', 2, 'but it does for </textarea>', 'a<textarea>but it does for &lt;/textarea></textarea>b' ),
+			'TEXTAREA (escape+attrs)'         => array( 'a<textarea>has no need to escape</textarea>b', 2, 'but it does for </textarea not an="attribute">', 'a<textarea>but it does for &lt;/textarea not an="attribute"></textarea>b' ),
+			'TITLE tag'                       => array( 'a<title>has no need to escape</title>b', 2, "so it <doesn't>", "a<title>so it <doesn't></title>b" ),
+			'TITLE (escape)'                  => array( 'a<title>has no need to escape</title>b', 2, 'but it does for </title>', 'a<title>but it does for &lt;/title></title>b' ),
+			'TITLE (escape+attrs)'            => array( 'a<title>has no need to escape</title>b', 2, 'but it does for </title not an="attribute">', 'a<title>but it does for &lt;/title not an="attribute"></title>b' ),
 		);
 	}
 
