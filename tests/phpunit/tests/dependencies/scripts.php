@@ -48,14 +48,12 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 		$this->wp_scripts_print_translations_output  = <<<JS
 <script id='__HANDLE__-js-translations'>
-/* <![CDATA[ */
 ( function( domain, translations ) {
 	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
 	localeData[""].domain = domain;
 	wp.i18n.setLocaleData( localeData, domain );
 } )( "__DOMAIN__", __JSON_TRANSLATIONS__ );
 //# sourceURL=__HANDLE__-js-translations
-/* ]]> */
 </script>
 JS;
 		$this->wp_scripts_print_translations_output .= "\n";
@@ -238,16 +236,16 @@ JS;
 				'id' => 'ds-i1-1-js-before',
 			)
 		);
-		$expected .= "<script src='http://example.org/ds-i1-1.js' id='ds-i1-1-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>\n";
-		$expected .= "<script src='http://example.org/ds-i1-2.js' id='ds-i1-2-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>\n";
-		$expected .= "<script src='http://example.org/ds-i1-3.js' id='ds-i1-3-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>\n";
+		$expected .= "<script src='http://example.org/ds-i1-1.js' id='ds-i1-1-js' {$strategy} data-wp-strategy='{$strategy}'></script>\n";
+		$expected .= "<script src='http://example.org/ds-i1-2.js' id='ds-i1-2-js' {$strategy} data-wp-strategy='{$strategy}'></script>\n";
+		$expected .= "<script src='http://example.org/ds-i1-3.js' id='ds-i1-3-js' {$strategy} data-wp-strategy='{$strategy}'></script>\n";
 		$expected .= wp_get_inline_script_tag(
 			"console.log('before last');\n//# sourceURL=ms-i1-1-js-before",
 			array(
 				'id' => 'ms-i1-1-js-before',
 			)
 		);
-		$expected .= "<script src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>\n";
+		$expected .= "<script src='http://example.org/ms-i1-1.js' id='ms-i1-1-js' {$strategy} data-wp-strategy='{$strategy}'></script>\n";
 
 		$this->assertEqualHTML( $expected, $output, '<body>', 'Inline scripts in the "before" position, that are attached to a deferred main script, are failing to print/execute.' );
 	}
@@ -266,7 +264,7 @@ JS;
 		// No dependents, No dependencies then async.
 		wp_enqueue_script( 'main-script-a1', '/main-script-a1.js', array(), null, array( 'strategy' => 'async' ) );
 		$output   = get_echo( 'wp_print_scripts' );
-		$expected = "<script src='/main-script-a1.js' id='main-script-a1-js' async='async' data-wp-strategy='async'></script>\n";
+		$expected = "<script src='/main-script-a1.js' id='main-script-a1-js' async data-wp-strategy='async'></script>\n";
 		$this->assertEqualHTML( $expected, $output, '<body>', 'Scripts enqueued with an async loading strategy are failing to have the async attribute applied to the script handle when being printed.' );
 	}
 
@@ -289,7 +287,7 @@ JS;
 		wp_enqueue_script( 'main-script-a2', '/main-script-a2.js', array( 'dependency-script-a2' ), null, compact( 'strategy' ) );
 		$output    = get_echo( 'wp_print_scripts' );
 		$expected  = "<script id='dependency-script-a2-js' src='/dependency-script-a2.js'></script>\n";
-		$expected .= "<script src='/main-script-a2.js' id='main-script-a2-js' {$strategy}='{$strategy}' data-wp-strategy='{$strategy}'></script>";
+		$expected .= "<script src='/main-script-a2.js' id='main-script-a2-js' {$strategy} data-wp-strategy='{$strategy}'></script>";
 		$this->assertEqualHTML( $expected, $output, '<body>', 'Dependents of a blocking dependency are free to have any strategy.' );
 	}
 
@@ -331,7 +329,6 @@ JS;
 	 * @param string $strategy Strategy.
 	 */
 	public function test_delayed_dependent_with_blocking_dependency_not_enqueued( $strategy ) {
-		$this->add_html5_script_theme_support();
 		wp_enqueue_script( 'main-script-a4', '/main-script-a4.js', array(), null, compact( 'strategy' ) );
 		// This dependent is registered but not enqueued, so it should not factor into the eligible loading strategy.
 		wp_register_script( 'dependent-script-a4', '/dependent-script-a4.js', array( 'main-script-a4' ), null );
@@ -563,30 +560,22 @@ JS;
 				},
 				'expected_markup' => <<<HTML
 <script id="blocking-not-async-without-dependency-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-not-async-without-dependency: before inline" )
 //# sourceURL=blocking-not-async-without-dependency-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=blocking-not-async-without-dependency%3A+script' id='blocking-not-async-without-dependency-js'></script>
 <script id="blocking-not-async-without-dependency-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-not-async-without-dependency: after inline" )
 //# sourceURL=blocking-not-async-without-dependency-js-after
-/* ]]> */
 </script>
 <script id="async-with-blocking-dependency-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "async-with-blocking-dependency: before inline" )
 //# sourceURL=async-with-blocking-dependency-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=async-with-blocking-dependency%3A+script' id='async-with-blocking-dependency-js' data-wp-strategy='async'></script>
 <script id="async-with-blocking-dependency-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "async-with-blocking-dependency: after inline" )
 //# sourceURL=async-with-blocking-dependency-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -612,43 +601,31 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="async-no-dependency-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "async-no-dependency: before inline" )
 //# sourceURL=async-no-dependency-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=async-no-dependency%3A+script' id='async-no-dependency-js' data-wp-strategy='async'></script>
 <script id="async-no-dependency-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "async-no-dependency: after inline" )
 //# sourceURL=async-no-dependency-js-after
-/* ]]> */
 </script>
 <script id="async-one-async-dependency-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "async-one-async-dependency: before inline" )
 //# sourceURL=async-one-async-dependency-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=async-one-async-dependency%3A+script' id='async-one-async-dependency-js' data-wp-strategy='async'></script>
 <script id="async-one-async-dependency-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "async-one-async-dependency: after inline" )
 //# sourceURL=async-one-async-dependency-js-after
-/* ]]> */
 </script>
 <script id="async-two-async-dependencies-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "async-two-async-dependencies: before inline" )
 //# sourceURL=async-two-async-dependencies-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=async-two-async-dependencies%3A+script' id='async-two-async-dependencies-js' data-wp-strategy='async'></script>
 <script id="async-two-async-dependencies-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "async-two-async-dependencies: after inline" )
 //# sourceURL=async-two-async-dependencies-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -666,30 +643,22 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="async-with-blocking-dependent-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "async-with-blocking-dependent: before inline" )
 //# sourceURL=async-with-blocking-dependent-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=async-with-blocking-dependent%3A+script' id='async-with-blocking-dependent-js' data-wp-strategy='async'></script>
 <script id="async-with-blocking-dependent-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "async-with-blocking-dependent: after inline" )
 //# sourceURL=async-with-blocking-dependent-js-after
-/* ]]> */
 </script>
 <script id="blocking-dependent-of-async-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependent-of-async: before inline" )
 //# sourceURL=blocking-dependent-of-async-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=blocking-dependent-of-async%3A+script' id='blocking-dependent-of-async-js'></script>
 <script id="blocking-dependent-of-async-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependent-of-async: after inline" )
 //# sourceURL=blocking-dependent-of-async-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -707,30 +676,22 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="async-with-defer-dependent-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "async-with-defer-dependent: before inline" )
 //# sourceURL=async-with-defer-dependent-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=async-with-defer-dependent%3A+script' id='async-with-defer-dependent-js' data-wp-strategy='async'></script>
 <script id="async-with-defer-dependent-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "async-with-defer-dependent: after inline" )
 //# sourceURL=async-with-defer-dependent-js-after
-/* ]]> */
 </script>
 <script id="defer-dependent-of-async-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-async: before inline" )
 //# sourceURL=defer-dependent-of-async-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=defer-dependent-of-async%3A+script' id='defer-dependent-of-async-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-async-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-async: after inline" )
 //# sourceURL=defer-dependent-of-async-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -751,29 +712,21 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="blocking-bundle-of-none-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-of-none: before inline" )
 //# sourceURL=blocking-bundle-of-none-js-before
-/* ]]> */
 </script>
 <script id="blocking-bundle-of-none-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-of-none: after inline" )
 //# sourceURL=blocking-bundle-of-none-js-after
-/* ]]> */
 </script>
 <script id="defer-dependent-of-blocking-bundle-of-none-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-none: before inline" )
 //# sourceURL=defer-dependent-of-blocking-bundle-of-none-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-bundle-of-none%3A+script' id='defer-dependent-of-blocking-bundle-of-none-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-blocking-bundle-of-none-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-none: after inline" )
 //# sourceURL=defer-dependent-of-blocking-bundle-of-none-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -797,43 +750,31 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="blocking-bundle-member-one-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-member-one: before inline" )
 //# sourceURL=blocking-bundle-member-one-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=blocking-bundle-member-one%3A+script' id='blocking-bundle-member-one-js'></script>
 <script id="blocking-bundle-member-one-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-member-one: after inline" )
 //# sourceURL=blocking-bundle-member-one-js-after
-/* ]]> */
 </script>
 <script id="blocking-bundle-member-two-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-member-two: before inline" )
 //# sourceURL=blocking-bundle-member-two-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=blocking-bundle-member-two%3A+script' id='blocking-bundle-member-two-js'></script>
 <script id="blocking-bundle-member-two-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-bundle-member-two: after inline" )
 //# sourceURL=blocking-bundle-member-two-js-after
-/* ]]> */
 </script>
 <script id="defer-dependent-of-blocking-bundle-of-two-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-two: before inline" )
 //# sourceURL=defer-dependent-of-blocking-bundle-of-two-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-bundle-of-two%3A+script' id='defer-dependent-of-blocking-bundle-of-two-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-blocking-bundle-of-two-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-bundle-of-two: after inline" )
 //# sourceURL=defer-dependent-of-blocking-bundle-of-two-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -856,29 +797,21 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="defer-bundle-of-none-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-bundle-of-none: before inline" )
 //# sourceURL=defer-bundle-of-none-js-before
-/* ]]> */
 </script>
 <script id="defer-bundle-of-none-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-bundle-of-none: after inline" )
 //# sourceURL=defer-bundle-of-none-js-after
-/* ]]> */
 </script>
 <script id="defer-dependent-of-defer-bundle-of-none-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-defer-bundle-of-none: before inline" )
 //# sourceURL=defer-dependent-of-defer-bundle-of-none-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=defer-dependent-of-defer-bundle-of-none%3A+script' id='defer-dependent-of-defer-bundle-of-none-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-defer-bundle-of-none-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-defer-bundle-of-none: after inline" )
 //# sourceURL=defer-dependent-of-defer-bundle-of-none-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -899,43 +832,31 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="blocking-dependency-with-defer-following-dependency-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependency-with-defer-following-dependency: before inline" )
 //# sourceURL=blocking-dependency-with-defer-following-dependency-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=blocking-dependency-with-defer-following-dependency%3A+script' id='blocking-dependency-with-defer-following-dependency-js'></script>
 <script id="blocking-dependency-with-defer-following-dependency-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependency-with-defer-following-dependency: after inline" )
 //# sourceURL=blocking-dependency-with-defer-following-dependency-js-after
-/* ]]> */
 </script>
 <script id="defer-dependency-with-blocking-preceding-dependency-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependency-with-blocking-preceding-dependency: before inline" )
 //# sourceURL=defer-dependency-with-blocking-preceding-dependency-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=defer-dependency-with-blocking-preceding-dependency%3A+script' id='defer-dependency-with-blocking-preceding-dependency-js' data-wp-strategy='defer'></script>
 <script id="defer-dependency-with-blocking-preceding-dependency-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependency-with-blocking-preceding-dependency: after inline" )
 //# sourceURL=defer-dependency-with-blocking-preceding-dependency-js-after
-/* ]]> */
 </script>
 <script id="defer-dependent-of-blocking-and-defer-dependencies-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-and-defer-dependencies: before inline" )
 //# sourceURL=defer-dependent-of-blocking-and-defer-dependencies-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=defer-dependent-of-blocking-and-defer-dependencies%3A+script' id='defer-dependent-of-blocking-and-defer-dependencies-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-blocking-and-defer-dependencies-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-blocking-and-defer-dependencies: after inline" )
 //# sourceURL=defer-dependent-of-blocking-and-defer-dependencies-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -956,43 +877,31 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="defer-dependency-with-blocking-following-dependency-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependency-with-blocking-following-dependency: before inline" )
 //# sourceURL=defer-dependency-with-blocking-following-dependency-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=defer-dependency-with-blocking-following-dependency%3A+script' id='defer-dependency-with-blocking-following-dependency-js' data-wp-strategy='defer'></script>
 <script id="defer-dependency-with-blocking-following-dependency-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependency-with-blocking-following-dependency: after inline" )
 //# sourceURL=defer-dependency-with-blocking-following-dependency-js-after
-/* ]]> */
 </script>
 <script id="blocking-dependency-with-defer-preceding-dependency-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependency-with-defer-preceding-dependency: before inline" )
 //# sourceURL=blocking-dependency-with-defer-preceding-dependency-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=blocking-dependency-with-defer-preceding-dependency%3A+script' id='blocking-dependency-with-defer-preceding-dependency-js'></script>
 <script id="blocking-dependency-with-defer-preceding-dependency-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "blocking-dependency-with-defer-preceding-dependency: after inline" )
 //# sourceURL=blocking-dependency-with-defer-preceding-dependency-js-after
-/* ]]> */
 </script>
 <script id="defer-dependent-of-defer-and-blocking-dependencies-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-defer-and-blocking-dependencies: before inline" )
 //# sourceURL=defer-dependent-of-defer-and-blocking-dependencies-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=defer-dependent-of-defer-and-blocking-dependencies%3A+script' id='defer-dependent-of-defer-and-blocking-dependencies-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-defer-and-blocking-dependencies-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-defer-and-blocking-dependencies: after inline" )
 //# sourceURL=defer-dependent-of-defer-and-blocking-dependencies-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -1010,30 +919,22 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="defer-with-async-dependent-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-with-async-dependent: before inline" )
 //# sourceURL=defer-with-async-dependent-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=defer-with-async-dependent%3A+script' id='defer-with-async-dependent-js' data-wp-strategy='defer'></script>
 <script id="defer-with-async-dependent-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-with-async-dependent: after inline" )
 //# sourceURL=defer-with-async-dependent-js-after
-/* ]]> */
 </script>
 <script id="async-dependent-of-defer-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "async-dependent-of-defer: before inline" )
 //# sourceURL=async-dependent-of-defer-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=async-dependent-of-defer%3A+script' id='async-dependent-of-defer-js' data-wp-strategy='async'></script>
 <script id="async-dependent-of-defer-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "async-dependent-of-defer: after inline" )
 //# sourceURL=async-dependent-of-defer-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -1047,12 +948,10 @@ HTML
 				},
 				'expected_markup' => <<<HTML
 <script id="defer-with-before-inline-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-with-before-inline: before inline" )
 //# sourceURL=defer-with-before-inline-js-before
-/* ]]> */
 </script>
-<script src='https://example.com/external.js?script_event_log=defer-with-before-inline%3A+script' id='defer-with-before-inline-js' defer='defer' data-wp-strategy='defer'></script>
+<script src='https://example.com/external.js?script_event_log=defer-with-before-inline%3A+script' id='defer-with-before-inline-js' defer data-wp-strategy='defer'></script>
 HTML
 				,
 			),
@@ -1066,10 +965,8 @@ HTML
 				'expected_markup' => <<<HTML
 <script src='https://example.com/external.js?script_event_log=defer-with-after-inline%3A+script' id='defer-with-after-inline-js' data-wp-strategy='defer'></script>
 <script id="defer-with-after-inline-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-with-after-inline: after inline" )
 //# sourceURL=defer-with-after-inline-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -1085,9 +982,9 @@ HTML
 					wp_enqueue_script( 'theme-functions', 'https://example.com/theme-functions.js', array( 'jquery' ), null, array( 'strategy' => 'defer' ) );
 				},
 				'expected_markup' => <<<HTML
-<script src='http://$wp_tests_domain/wp-includes/js/jquery/jquery.js' id='jquery-core-js' defer='defer' data-wp-strategy='defer'></script>
-<script src='http://$wp_tests_domain/wp-includes/js/jquery/jquery-migrate.js' id='jquery-migrate-js' defer='defer' data-wp-strategy='defer'></script>
-<script src='https://example.com/theme-functions.js' id='theme-functions-js' defer='defer' data-wp-strategy='defer'></script>
+<script src='http://$wp_tests_domain/wp-includes/js/jquery/jquery.js' id='jquery-core-js' defer data-wp-strategy='defer'></script>
+<script src='http://$wp_tests_domain/wp-includes/js/jquery/jquery-migrate.js' id='jquery-migrate-js' defer data-wp-strategy='defer'></script>
+<script src='https://example.com/theme-functions.js' id='theme-functions-js' defer data-wp-strategy='defer'></script>
 HTML
 				,
 			),
@@ -1114,17 +1011,13 @@ HTML
 <script src='https://example.com/external.js?script_event_log=inner-bundle-member-two%3A+script' id='inner-bundle-member-two-js' data-wp-strategy='defer'></script>
 <script src='https://example.com/external.js?script_event_log=outer-bundle-leaf-member%3A+script' id='outer-bundle-leaf-member-js'></script>
 <script id="defer-dependent-of-nested-aliases-js-before">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-nested-aliases: before inline" )
 //# sourceURL=defer-dependent-of-nested-aliases-js-before
-/* ]]> */
 </script>
 <script src='https://example.com/external.js?script_event_log=defer-dependent-of-nested-aliases%3A+script' id='defer-dependent-of-nested-aliases-js' data-wp-strategy='defer'></script>
 <script id="defer-dependent-of-nested-aliases-js-after">
-/* <![CDATA[ */
 scriptEventLog.push( "defer-dependent-of-nested-aliases: after inline" )
 //# sourceURL=defer-dependent-of-nested-aliases-js-after
-/* ]]> */
 </script>
 HTML
 				,
@@ -1143,9 +1036,9 @@ HTML
 					$this->enqueue_test_script( 'defer-dependent-of-async-aliases', 'defer', array( $alias_handle ) );
 				},
 				'expected_markup' => <<<HTML
-<script src='https://example.com/external.js?script_event_log=async1%3A+script' id='async1-js' defer='defer' data-wp-strategy='async'></script>
-<script src='https://example.com/external.js?script_event_log=async2%3A+script' id='async2-js' defer='defer' data-wp-strategy='async'></script>
-<script src='https://example.com/external.js?script_event_log=defer-dependent-of-async-aliases%3A+script' id='defer-dependent-of-async-aliases-js' defer='defer' data-wp-strategy='defer'></script>
+<script src='https://example.com/external.js?script_event_log=async1%3A+script' id='async1-js' defer data-wp-strategy='async'></script>
+<script src='https://example.com/external.js?script_event_log=async2%3A+script' id='async2-js' defer data-wp-strategy='async'></script>
+<script src='https://example.com/external.js?script_event_log=defer-dependent-of-async-aliases%3A+script' id='defer-dependent-of-async-aliases-js' defer data-wp-strategy='defer'></script>
 HTML
 				,
 			),
@@ -1181,7 +1074,6 @@ HTML
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_defer_having_no_dependents_nor_dependencies() {
-		$this->add_html5_script_theme_support();
 		wp_enqueue_script( 'main-script-d1', 'http://example.com/main-script-d1.js', array(), null, array( 'strategy' => 'defer' ) );
 		$output   = get_echo( 'wp_print_scripts' );
 		$expected = str_replace( "'", '"', "<script src='http://example.com/main-script-d1.js' id='main-script-d1-js' defer data-wp-strategy='defer'></script>\n" );
@@ -1198,7 +1090,6 @@ HTML
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_defer_dependent_and_varied_dependencies() {
-		$this->add_html5_script_theme_support();
 		wp_enqueue_script( 'dependency-script-d2-1', 'http://example.com/dependency-script-d2-1.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'dependency-script-d2-2', 'http://example.com/dependency-script-d2-2.js', array(), null );
 		wp_enqueue_script( 'dependency-script-d2-3', 'http://example.com/dependency-script-d2-3.js', array( 'dependency-script-d2-2' ), null, array( 'strategy' => 'defer' ) );
@@ -1218,7 +1109,6 @@ HTML
 	 * @covers ::wp_enqueue_script
 	 */
 	public function test_loading_strategy_with_all_defer_dependencies() {
-		$this->add_html5_script_theme_support();
 		wp_enqueue_script( 'main-script-d3', 'http://example.com/main-script-d3.js', array(), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'dependent-script-d3-1', 'http://example.com/dependent-script-d3-1.js', array( 'main-script-d3' ), null, array( 'strategy' => 'defer' ) );
 		wp_enqueue_script( 'dependent-script-d3-2', 'http://example.com/dependent-script-d3-2.js', array( 'dependent-script-d3-1' ), null, array( 'strategy' => 'defer' ) );
@@ -1276,10 +1166,10 @@ HTML
 		);
 		// Note: All of these scripts have fetchpriority=high because the leaf dependent script has that fetch priority.
 		$output    = get_echo( 'wp_print_scripts' );
-		$expected  = "<script src='/main-script-d4.js'        id='main-script-d4-js'        defer='defer' data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
-		$expected .= "<script src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer='defer' data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
-		$expected .= "<script src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer='defer' data-wp-strategy='async' fetchpriority='high' data-wp-fetchpriority='low'></script>\n";
-		$expected .= "<script src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer='defer' data-wp-strategy='defer' fetchpriority='high'></script>\n";
+		$expected  = "<script src='/main-script-d4.js'        id='main-script-d4-js'        defer data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
+		$expected .= "<script src='/dependent-script-d4-1.js' id='dependent-script-d4-1-js' defer data-wp-strategy='defer' fetchpriority='high' data-wp-fetchpriority='auto'></script>\n";
+		$expected .= "<script src='/dependent-script-d4-2.js' id='dependent-script-d4-2-js' defer data-wp-strategy='async' fetchpriority='high' data-wp-fetchpriority='low'></script>\n";
+		$expected .= "<script src='/dependent-script-d4-3.js' id='dependent-script-d4-3-js' defer data-wp-strategy='defer' fetchpriority='high'></script>\n";
 
 		$this->assertEqualHTML( $expected, $output, '<body>', 'Scripts registered as defer but that have dependents that are async are expected to have said dependents deferred.' );
 	}
@@ -1529,7 +1419,7 @@ HTML
 
 		$actual = $this->normalize_markup_for_snapshot( get_echo( array( $wp_scripts, 'print_scripts' ) ) );
 		$this->assertEqualHTML(
-			'<script src="/wp-includes/js/comment-reply.js" id="comment-reply-js" async="async" data-wp-strategy="async" fetchpriority="low"></script>',
+			'<script src="/wp-includes/js/comment-reply.js" id="comment-reply-js" async data-wp-strategy="async" fetchpriority="low"></script>',
 			$actual,
 			'<body>',
 			"Snapshot:\n$actual"
@@ -1566,7 +1456,7 @@ HTML
 
 		$this->assertEqualHTML(
 			sprintf(
-				'<script src="%s" id="comment-reply-js" async="async" data-wp-strategy="async" fetchpriority="low"></script>',
+				'<script src="%s" id="comment-reply-js" async data-wp-strategy="async" fetchpriority="low"></script>',
 				includes_url( 'js/comment-reply.js' )
 			),
 			$markup
@@ -1916,7 +1806,7 @@ HTML
 		$print_scripts = get_echo( '_print_scripts' );
 
 		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep,two-concat-dep,three-concat-dep&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script src='/main-script.js' id='main-defer-script-js' defer='defer' data-wp-strategy='defer'></script>\n";
+		$expected .= "<script src='/main-script.js' id='main-defer-script-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertEqualHTML( $expected, $print_scripts, '<body>', 'Scripts are being incorrectly concatenated when a main script is registered with a "defer" loading strategy. Deferred scripts should not be part of the script concat loading query.' );
 	}
@@ -1947,7 +1837,7 @@ HTML
 		$print_scripts = get_echo( '_print_scripts' );
 
 		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-1,two-concat-dep-1,three-concat-dep-1&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script src='/main-script.js' id='main-async-script-1-js' async='async' data-wp-strategy='async'></script>\n";
+		$expected .= "<script src='/main-script.js' id='main-async-script-1-js' async data-wp-strategy='async'></script>\n";
 
 		$this->assertEqualHTML( $expected, $print_scripts, '<body>', 'Scripts are being incorrectly concatenated when a main script is registered with an "async" loading strategy. Async scripts should not be part of the script concat loading query.' );
 	}
@@ -1982,7 +1872,7 @@ HTML
 		$print_scripts = get_echo( '_print_scripts' );
 
 		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-2,two-concat-dep-2,three-concat-dep-2,four-concat-dep-2,five-concat-dep-2,six-concat-dep-2&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script src='/main-script.js' id='deferred-script-2-js' defer='defer' data-wp-strategy='defer'></script>\n";
+		$expected .= "<script src='/main-script.js' id='deferred-script-2-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertEqualHTML( $expected, $print_scripts, '<body>', 'Scripts are being incorrectly concatenated when a main script is registered as deferred after other blocking scripts are registered. Deferred scripts should not be part of the script concat loader query string. ' );
 	}
@@ -1992,8 +1882,6 @@ HTML
 	 */
 	public function test_wp_enqueue_script_with_html5_support_does_not_contain_type_attribute() {
 		global $wp_version;
-
-		$this->add_html5_script_theme_support();
 
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
@@ -2080,7 +1968,7 @@ HTML
 		// Enqueue and add data.
 		wp_enqueue_script( 'test-only-data', 'example.com', array(), null );
 		wp_script_add_data( 'test-only-data', 'data', 'testing' );
-		$expected  = "<script id='test-only-data-js-extra'>\n/* <![CDATA[ */\ntesting\n//# sourceURL=test-only-data-js-extra\n/* ]]> */\n</script>\n";
+		$expected  = "<script id='test-only-data-js-extra'>\ntesting\n//# sourceURL=test-only-data-js-extra\n</script>\n";
 		$expected .= "<script src='http://example.com' id='test-only-data-js'></script>\n";
 
 		// Go!
@@ -2318,10 +2206,8 @@ HTML
 
 		$expected  = <<<HTML
 <script id='test-example-js-before'>
-/* <![CDATA[ */
 console.log("before");
 //# sourceURL=test-example-js-before
-/* ]]> */
 </script>
 HTML;
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
@@ -2339,10 +2225,8 @@ HTML;
 		$expected  = "<script src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= <<<HTML
 <script id='test-example-js-after'>
-/* <![CDATA[ */
 console.log("after");
 //# sourceURL=test-example-js-after
-/* ]]> */
 </script>
 HTML;
 
@@ -2357,9 +2241,9 @@ HTML;
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 
-		$expected  = "<script id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n</script>\n";
+		$expected  = "<script id='test-example-js-before'>\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n</script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='test-example-js-after'>\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n</script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
 	}
@@ -2372,7 +2256,7 @@ HTML;
 		wp_enqueue_script( 'test-example' );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 
-		$expected = "<script id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n</script>\n";
+		$expected = "<script id='test-example-js-before'>\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n</script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
 	}
@@ -2385,7 +2269,7 @@ HTML;
 		wp_enqueue_script( 'test-example' );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 
-		$expected = "<script id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
+		$expected = "<script id='test-example-js-after'>\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n</script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
 	}
@@ -2399,8 +2283,8 @@ HTML;
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 
-		$expected  = "<script id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n</script>\n";
-		$expected .= "<script id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
+		$expected  = "<script id='test-example-js-before'>\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n</script>\n";
+		$expected .= "<script id='test-example-js-after'>\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n</script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
 	}
@@ -2415,9 +2299,9 @@ HTML;
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 
-		$expected  = "<script id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n</script>\n";
+		$expected  = "<script id='test-example-js-before'>\nconsole.log(\"before\");\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n</script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='test-example-js-after'>\nconsole.log(\"after\");\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n</script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
 	}
@@ -2431,10 +2315,10 @@ HTML;
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
 
-		$expected  = "<script id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {\"foo\":\"bar\"};\n//# sourceURL=test-example-js-extra\n/* ]]> */\n</script>\n";
-		$expected .= "<script id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n</script>\n";
+		$expected  = "<script id='test-example-js-extra'>\nvar testExample = {\"foo\":\"bar\"};\n//# sourceURL=test-example-js-extra\n</script>\n";
+		$expected .= "<script id='test-example-js-before'>\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n</script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='test-example-js-after'>\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n</script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
 	}
@@ -2455,9 +2339,9 @@ HTML;
 		wp_add_inline_script( 'one', 'console.log("before one");', 'before' );
 		wp_add_inline_script( 'two', 'console.log("before two");', 'before' );
 
-		$expected  = "<script id='one-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before one\");\n//# sourceURL=one-js-before\n/* ]]> */\n</script>\n";
+		$expected  = "<script id='one-js-before'>\nconsole.log(\"before one\");\n//# sourceURL=one-js-before\n</script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}one.js?ver={$wp_version}' id='one-js'></script>\n";
-		$expected .= "<script id='two-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before two\");\n//# sourceURL=two-js-before\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='two-js-before'>\nconsole.log(\"before two\");\n//# sourceURL=two-js-before\n</script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}two.js?ver={$wp_version}' id='two-js'></script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}three.js?ver={$wp_version}' id='three-js'></script>\n";
 
@@ -2479,7 +2363,7 @@ HTML;
 
 		wp_add_inline_script( 'one', 'console.log("before one");', 'before' );
 
-		$expected  = "<script id='one-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before one\");\n//# sourceURL=one-js-before\n/* ]]> */\n</script>\n";
+		$expected  = "<script id='one-js-before'>\nconsole.log(\"before one\");\n//# sourceURL=one-js-before\n</script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}one.js?ver={$wp_version}' id='one-js'></script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}two.js?ver={$wp_version}' id='two-js'></script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}three.js?ver={$wp_version}' id='three-js'></script>\n";
@@ -2506,9 +2390,9 @@ HTML;
 
 		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}two.js?ver={$wp_version}' id='two-js'></script>\n";
-		$expected .= "<script id='two-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after two\");\n//# sourceURL=two-js-after\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='two-js-after'>\nconsole.log(\"after two\");\n//# sourceURL=two-js-after\n</script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}three.js?ver={$wp_version}' id='three-js'></script>\n";
-		$expected .= "<script id='three-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after three\");\n//# sourceURL=three-js-after\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='three-js-after'>\nconsole.log(\"after three\");\n//# sourceURL=three-js-after\n</script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}four.js?ver={$wp_version}' id='four-js'></script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
@@ -2554,7 +2438,7 @@ HTML;
 
 		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script id='test-example-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='test-example-js-after'>\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n</script>\n";
 
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
 		wp_add_inline_script( 'test-example', 'console.log("after");' );
@@ -2602,7 +2486,7 @@ HTML;
 		$wp_scripts->do_concat = true;
 
 		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script id='test-example-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='test-example-js-before'>\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n</script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
 
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
@@ -2628,19 +2512,17 @@ HTML;
 
 		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-dom-ready,wp-hooks&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script id='test-example-js-before'>\n";
-		$expected .= "/* <![CDATA[ */\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n/* ]]> */\n";
+		$expected .= "console.log(\"before\");\n//# sourceURL=test-example-js-before\n";
 		$expected .= "</script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script src='/wp-includes/js/dist/i18n.min.js' id='wp-i18n-js'></script>\n";
 		$expected .= "<script id='wp-i18n-js-after'>\n";
-		$expected .= "/* <![CDATA[ */\n";
 		$expected .= "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );\n";
 		$expected .= "//# sourceURL=wp-i18n-js-after\n";
-		$expected .= "/* ]]> */\n";
 		$expected .= "</script>\n";
 		$expected .= "<script src='/wp-includes/js/dist/a11y.min.js' id='wp-a11y-js'></script>\n";
 		$expected .= "<script src='http://example2.com' id='test-example2-js'></script>\n";
-		$expected .= "<script id='test-example2-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after\");\n//# sourceURL=test-example2-js-after\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='test-example2-js-after'>\nconsole.log(\"after\");\n//# sourceURL=test-example2-js-after\n</script>\n";
 		wp_enqueue_script( 'test-example', 'http://example.com', array( 'jquery' ), null );
 		wp_add_inline_script( 'test-example', 'console.log("before");', 'before' );
 		wp_enqueue_script( 'test-example2', 'http://example2.com', array( 'wp-a11y' ), null );
@@ -2695,10 +2577,8 @@ HTML;
 		$this->assertEqualHTMLScriptTagById( $expected, $print_scripts );
 
 		$expected  = "<script id='customize-dependency-js-after'>\n";
-		$expected .= "/* <![CDATA[ */\n";
 		$expected .= "tryCustomizeDependency()\n";
 		$expected .= "//# sourceURL=customize-dependency-js-after\n";
-		$expected .= "/* ]]> */\n";
 		$expected .= "</script>\n";
 		$this->assertEqualHTMLScriptTagById( $expected, $print_scripts );
 	}
@@ -2719,7 +2599,7 @@ HTML;
 		wp_enqueue_script( 'four', '/wp-includes/js/script4.js' );
 
 		$expected  = "<script src='/wp-includes/js/script.js?ver={$wp_version}' id='one-js'></script>\n";
-		$expected .= "<script id='one-js-after'>\n/* <![CDATA[ */\nconsole.log(\"after one\");\n//# sourceURL=one-js-after\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='one-js-after'>\nconsole.log(\"after one\");\n//# sourceURL=one-js-after\n</script>\n";
 		$expected .= "<script src='/wp-includes/js/script2.js?ver={$wp_version}' id='two-js'></script>\n";
 		$expected .= "<script src='/wp-includes/js/script3.js?ver={$wp_version}' id='three-js'></script>\n";
 		$expected .= "<script src='/wp-includes/js/script4.js?ver={$wp_version}' id='four-js'></script>\n";
@@ -2743,7 +2623,7 @@ HTML;
 		wp_enqueue_script( 'four', '/wp-includes/js/script4.js' );
 
 		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one,two&amp;ver={$wp_version}'></script>\n";
-		$expected .= "<script id='three-js-before'>\n/* <![CDATA[ */\nconsole.log(\"before three\");\n//# sourceURL=three-js-before\n/* ]]> */\n</script>\n";
+		$expected .= "<script id='three-js-before'>\nconsole.log(\"before three\");\n//# sourceURL=three-js-before\n</script>\n";
 		$expected .= "<script src='/wp-includes/js/script3.js?ver={$wp_version}' id='three-js'></script>\n";
 		$expected .= "<script src='/wp-includes/js/script4.js?ver={$wp_version}' id='four-js'></script>\n";
 
@@ -2764,7 +2644,7 @@ HTML;
 				),
 				'delayed'        => false,
 				'expected_data'  => "/*before foo 1*/\n//# sourceURL=foo-js-before",
-				'expected_tag'   => "<script id='foo-js-before'>\n/* <![CDATA[ */\n/*before foo 1*/\n//# sourceURL=foo-js-before\n/* ]]> */\n</script>\n",
+				'expected_tag'   => "<script id='foo-js-before'>\n/*before foo 1*/\n//# sourceURL=foo-js-before\n</script>\n",
 			),
 			'after-blocking'  => array(
 				'position'       => 'after',
@@ -2774,7 +2654,7 @@ HTML;
 				),
 				'delayed'        => false,
 				'expected_data'  => "/*after foo 1*/\n/*after foo 2*/\n//# sourceURL=foo-js-after",
-				'expected_tag'   => "<script id='foo-js-after'>\n/* <![CDATA[ */\n/*after foo 1*/\n/*after foo 2*/\n//# sourceURL=foo-js-after\n/* ]]> */\n</script>\n",
+				'expected_tag'   => "<script id='foo-js-after'>\n/*after foo 1*/\n/*after foo 2*/\n//# sourceURL=foo-js-after\n</script>\n",
 			),
 			'before-delayed'  => array(
 				'position'       => 'before',
@@ -2783,7 +2663,7 @@ HTML;
 				),
 				'delayed'        => true,
 				'expected_data'  => "/*before foo 1*/\n//# sourceURL=foo-js-before",
-				'expected_tag'   => "<script id='foo-js-before'>\n/* <![CDATA[ */\n/*before foo 1*/\n//# sourceURL=foo-js-before\n/* ]]> */\n</script>\n",
+				'expected_tag'   => "<script id='foo-js-before'>\n/*before foo 1*/\n//# sourceURL=foo-js-before\n</script>\n",
 			),
 			'after-delayed'   => array(
 				'position'       => 'after',
@@ -2793,7 +2673,7 @@ HTML;
 				),
 				'delayed'        => true,
 				'expected_data'  => "/*after foo 1*/\n/*after foo 2*/\n//# sourceURL=foo-js-after",
-				'expected_tag'   => "<script id='foo-js-after'>\n/* <![CDATA[ */\n/*after foo 1*/\n/*after foo 2*/\n//# sourceURL=foo-js-after\n/* ]]> */\n</script>\n",
+				'expected_tag'   => "<script id='foo-js-after'>\n/*after foo 1*/\n/*after foo 2*/\n//# sourceURL=foo-js-after\n</script>\n",
 			),
 		);
 	}
@@ -3502,7 +3382,7 @@ HTML;
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_localize_script( 'test-example', 'testExample', $l10n_data );
 
-		$expected  = "<script id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {$expected};\n//# sourceURL=test-example-js-extra\n/* ]]> */\n</script>\n";
+		$expected  = "<script id='test-example-js-extra'>\nvar testExample = {$expected};\n//# sourceURL=test-example-js-extra\n</script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ) );
@@ -3603,13 +3483,6 @@ HTML;
 		$actual = get_echo( 'wp_print_scripts', array( array( 'test-script' ) ) );
 
 		$this->assertStringContainsString( $strategy, $actual );
-	}
-
-	/**
-	 * Adds html5 script theme support.
-	 */
-	protected function add_html5_script_theme_support() {
-		add_theme_support( 'html5', array( 'script' ) );
 	}
 
 	/**
@@ -3762,10 +3635,10 @@ HTML;
 					);
 				},
 				'expected_header'    => '
-					<script src="https://example.com/script-a.js" id="script-a-js" defer="defer" data-wp-strategy="defer"></script>
+					<script src="https://example.com/script-a.js" id="script-a-js" defer data-wp-strategy="defer"></script>
 				',
 				'expected_footer'    => '
-					<script src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
+					<script src="https://example.com/script-b.js" id="script-b-js" defer data-wp-strategy="defer"></script>
 				',
 				'expected_in_footer' => array(
 					'script-b',
@@ -3812,12 +3685,12 @@ HTML;
 					);
 				},
 				'expected_header'    => '
-					<script src="https://example.com/script-a.js" id="script-a-js" defer="defer" data-wp-strategy="defer"></script>
-					<script src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
+					<script src="https://example.com/script-a.js" id="script-a-js" defer data-wp-strategy="defer"></script>
+					<script src="https://example.com/script-b.js" id="script-b-js" defer data-wp-strategy="defer"></script>
 				',
 				'expected_footer'    => '
-					<script src="https://example.com/script-c.js" id="script-c-js" defer="defer" data-wp-strategy="defer"></script>
-					<script src="https://example.com/script-d.js" id="script-d-js" defer="defer" data-wp-strategy="defer"></script>
+					<script src="https://example.com/script-c.js" id="script-c-js" defer data-wp-strategy="defer"></script>
+					<script src="https://example.com/script-d.js" id="script-d-js" defer data-wp-strategy="defer"></script>
 				',
 				'expected_in_footer' => array(
 					'script-c',
@@ -3860,9 +3733,9 @@ HTML;
 				'expected_header'    => '',
 				'expected_footer'    => '
 					<script src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
-					<script src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
+					<script src="https://example.com/script-b.js" id="script-b-js" defer data-wp-strategy="defer"></script>
 					<script src="https://example.com/script-c.js" id="script-c-js"></script>
-					<script src="https://example.com/script-d.js" id="script-d-js" defer="defer" data-wp-strategy="defer"></script>
+					<script src="https://example.com/script-d.js" id="script-d-js" defer data-wp-strategy="defer"></script>
 				',
 				'expected_in_footer' => array(
 					'script-a',
@@ -3907,11 +3780,11 @@ HTML;
 				},
 				'expected_header'    => '
 					<script src="https://example.com/script-a.js" id="script-a-js" data-wp-strategy="defer"></script>
-					<script src="https://example.com/script-b.js" id="script-b-js" defer="defer" data-wp-strategy="defer"></script>
+					<script src="https://example.com/script-b.js" id="script-b-js" defer data-wp-strategy="defer"></script>
 				',
 				'expected_footer'    => '
 					<script src="https://example.com/script-c.js" id="script-c-js"></script>
-					<script src="https://example.com/script-d.js" id="script-d-js" defer="defer" data-wp-strategy="defer"></script>
+					<script src="https://example.com/script-d.js" id="script-d-js" defer data-wp-strategy="defer"></script>
 				',
 				'expected_in_footer' => array(
 					'script-c',
@@ -4076,8 +3949,6 @@ HTML;
 	 * @ticket 63887
 	 */
 	public function test_source_url_encoding() {
-		$this->add_html5_script_theme_support();
-
 		$handle = '# test/</script> #';
 
 		wp_enqueue_script( $handle, '/example.js', array(), '0.0' );
@@ -4110,7 +3981,6 @@ HTML;
 	 */
 	public function test_source_url_with_concat() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
-		$this->add_html5_script_theme_support();
 
 		$concatenate_scripts = true;
 
@@ -4127,10 +3997,8 @@ HTML;
 
 		$expected = <<<HTML
 <script>
-/* <![CDATA[ */
 var one = {"key":"val"};var two = {"key":"val"};
 //# sourceURL=js-inline-concat-one%2Ctwo
-/* ]]> */
 </script>
 <script src="/wp-admin/load-scripts.php?c=0&load%5Bchunk_0%5D=one,two&ver={$wp_version}"></script>
 
@@ -4147,7 +4015,6 @@ HTML;
 	 */
 	public function test_print_translations_no_display_no_sourceurl() {
 		global $wp_scripts;
-		$this->add_html5_script_theme_support();
 
 		wp_register_script( 'wp-i18n', '/wp-includes/js/dist/wp-i18n.js', array(), null );
 		wp_enqueue_script( 'test-example', '/wp-includes/js/script.js', array(), null );
