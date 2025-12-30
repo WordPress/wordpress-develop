@@ -4124,7 +4124,7 @@ class WP_HTML_Tag_Processor {
 			}
 
 			$tag_name_at       = $tag_at + 1;
-			$has_closing_slash = $tag_name_at < $end || '/' === $sourcecode[ $tag_name_at ];
+			$has_closing_slash = $tag_name_at < $end && '/' === $sourcecode[ $tag_name_at ];
 			$tag_name_at      += $has_closing_slash ? 1 : 0;
 
 			if ( 0 !== substr_compare( $sourcecode, 'script', $tag_name_at, 5, true ) ) {
