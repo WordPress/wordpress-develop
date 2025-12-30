@@ -3811,36 +3811,27 @@ class WP_HTML_Tag_Processor {
 
 		switch ( $this->get_tag() ) {
 			case 'SCRIPT':
-				/**
-				 * Identify risky script contents to escape when possible or reject otherwise:
-				 *
-				 * - "</script" could close the SCRIPT element prematurely.
-				 * - "<script" could enter the “script data double escaped state” and prevent the
-				 *   SCRIPT element from closing as expected.
-				 *
-				 * @see WP_HTML_Tag_Processor::escape_javascript_script_contents()
-				 */
-				$needs_escaping =
-					false !== stripos( $plaintext_content, '</script' ) ||
-					false !== stripos( $plaintext_content, '<script' );
-				if ( $needs_escaping ) {
-					if ( $this->is_javascript_script_tag() ) {
-						$plaintext_content = $this->escape_javascript_script_contents( $plaintext_content );
-					} elseif ( $this->is_json_script_tag() ) {
-						$plaintext_content = $this->escape_json_script_contents( $plaintext_content );
-					} else {
-						/*
-						 * Other types of script tags cannot be escaped safely because there is
-						 * no general escaping mechanism for arbitrary types of content.
-						 */
-						return false;
-					}
+				$script_content_type = $this->get_script_content_type();
+				switch ( $script_content_type ) {
+					case 'javascript':
+					case 'json':
+						$escaped_content = self::escape_javascript_script_contents( $plaintext_content );
+						break;
+
+					default:
+						// There is no safe escaping for unrecognized script content types.
+						if (
+							false !== stripos( $plaintext_content, '<script' ) ||
+							false !== stripos( $plaintext_content, '</script' )
+						) {
+							return false;
+						}
 				}
 
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 					$this->text_starts_at,
 					$this->text_length,
-					$plaintext_content
+					$escaped_content
 				);
 
 				return true;
@@ -3893,23 +3884,25 @@ class WP_HTML_Tag_Processor {
 	}
 
 	/**
-	 * Indicates if the currently matched tag is a JavaScript script tag.
+	 * Returns the content type of the currently-matched SCRIPT tag, if matched and
+	 * recognized, otherwise returns `null` to indicate an unrecognized content type.
 	 *
-	 * Note that this does not parse a MIME type. This behavior is well-documented in
-	 * in the HTML standard and uses string comparisons, *not* actual MIME Types.
+	 * Note! This concept is related but distinct from the MIME type of the script.
+	 * Parsing MUST match the specific algorithm in the HTML specification, which
+	 * relies on exact string comparison in some cases.
+	 *
+	 * Only 'javascript' and 'json' content types are currently recognized.
 	 *
 	 * @see https://html.spec.whatwg.org/multipage/scripting.html#prepare-the-script-element
 	 *
-	 * @ignore
-	 * @todo Consider a public API that is clear and general.
-	 *
 	 * @since 7.0.0
 	 *
-	 * @return bool True if the script tag will be evaluated as JavaScript.
+	 * @return 'javascript'|'json'|null Type of script element content if matched and recognized.
 	 */
-	private function is_javascript_script_tag(): bool {
+	private function get_script_content_type(): ?string {
+		// SVG and MathML SCRIPT elements are not recognized.
 		if ( 'SCRIPT' !== $this->get_tag() || $this->get_namespace() !== 'html' ) {
-			return false;
+			return null;
 		}
 
 		/*
@@ -3920,16 +3913,15 @@ class WP_HTML_Tag_Processor {
 		 * >   - el has neither a type attribute nor a language attribute,
 		 * > then let the script block's type string for this script element be "text/javascript".
 		 */
-		$type_attr     = $this->get_attribute( 'type' );
-		$language_attr = $this->get_attribute( 'language' );
-		if ( true === $type_attr || '' === $type_attr ) {
-			return true;
+		$type = $this->get_attribute( 'type' );
+		$lang = $this->get_attribute( 'language' );
+
+		if ( true === $type || '' === $type ) {
+			return 'javascript';
 		}
-		if (
-			null === $type_attr
-			&& ( null === $language_attr || true === $language_attr || '' === $language_attr )
-		) {
-			return true;
+
+		if ( null === $type && ( null === $lang || true === $lang || '' === $lang ) ) {
+			return 'javascript';
 		}
 
 		/*
@@ -3938,7 +3930,10 @@ class WP_HTML_Tag_Processor {
 		 * > Otherwise, el has a non-empty language attribute; let the script block's type string
 		 * > be the concatenation of "text/" and the value of el's language attribute.
 		 */
-		$type_string = null !== $type_attr ? trim( $type_attr, " \t\f\r\n" ) : "text/{$language_attr}";
+		$type_string = is_string( $type ) ? trim( $type, " \t\f\r\n" ) : "text/{$lang}";
+
+		// All matches are ASCII case-insensitive; eagerly lower-case for comparison.
+		$type_string = strtolower( $type_string );
 
 		/*
 		 * > If the script block's type string is a JavaScript MIME type essence match, then
@@ -3969,7 +3964,7 @@ class WP_HTML_Tag_Processor {
 		 * @see https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match
 		 * @see https://mimesniff.spec.whatwg.org/#javascript-mime-type
 		 */
-		switch ( strtolower( $type_string ) ) {
+		switch ( $type_string ) {
 			case 'application/ecmascript':
 			case 'application/javascript':
 			case 'application/x-ecmascript':
@@ -3986,7 +3981,7 @@ class WP_HTML_Tag_Processor {
 			case 'text/livescript':
 			case 'text/x-ecmascript':
 			case 'text/x-javascript':
-				return true;
+				return 'javascript';
 
 			/*
 			 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for
@@ -3995,67 +3990,28 @@ class WP_HTML_Tag_Processor {
 			 * A module is evaluated as JavaScript.
 			 */
 			case 'module':
-				return true;
-		}
+				return 'javascript';
 
-		/*
-		 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for the string "importmap", then set el's type to "importmap".
-		 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for the string "speculationrules", then set el's type to "speculationrules".
-		 *
-		 * These conditions indicate JSON content.
-		 */
+			/*
+			 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for the string "importmap", then set el's type to "importmap".
+			 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for the string "speculationrules", then set el's type to "speculationrules".
+			 *
+			 * These conditions indicate JSON content.
+			 */
+			case 'importmap':
+			case 'speculationrules':
+				return 'json';
+
+			/** @todo Rely on a full MIME parser for determining JSON content. */
+			case 'application/json':
+			case 'text/json':
+				return 'json';
+		}
 
 		/*
 		 * > Otherwise, return. (No script is executed, and el's type is left as null.)
 		 */
-		return false;
-	}
-
-	/**
-	 * Indicates if the currently matched tag is a JSON script tag.
-	 *
-	 * @ignore
-	 * @todo Consider a public API that is clear and general.
-	 * @todo Use a MIME type parser when available.
-	 *
-	 * @since 7.0.0
-	 *
-	 * @return bool True if the script tag should be treated as JSON.
-	 */
-	private function is_json_script_tag(): bool {
-		if ( 'SCRIPT' !== $this->get_tag() || $this->get_namespace() !== 'html' ) {
-			return false;
-		}
-
-		$type = $this->get_attribute( 'type' );
-		if ( null === $type || true === $type || '' === $type ) {
-			return false;
-		}
-		$type = strtolower( trim( $type, " \t\f\r\n" ) );
-
-		/*
-		 * > …
-		 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for the string "importmap", then set el's type to "importmap".
-		 * > Otherwise, if the script block's type string is an ASCII case-insensitive match for the string "speculationrules", then set el's type to "speculationrules".
-		 * @see https://html.spec.whatwg.org/#script-processing-model
-		 *
-		 * > A JSON MIME type is any MIME type whose subtype ends in "+json" or whose essence
-		 * > is "application/json" or "text/json".
-		 *
-		 * @todo The JSON MIME type handling handles some common cases but when MIME type parsing is available it should be leveraged here.
-		 *
-		 * @see https://mimesniff.spec.whatwg.org/#json-mime-type
-		 */
-		if (
-			'importmap' === $type ||
-			'speculationrules' === $type ||
-			'application/json' === $type ||
-			'text/json' === $type
-		) {
-			return true;
-		}
-
-		return false;
+		return null;
 	}
 
 	/**
@@ -4073,9 +4029,9 @@ class WP_HTML_Tag_Processor {
 	 * to perform in all JavaScript and the modified JavaScript maintains identical
 	 * behavior with a few exceptions:
 	 *
-	 * - Comments.
-	 * - Tagged templates like `String.raw()` that access “raw” strings.
-	 * - The `source` property of a RegExp object.
+	 *  - Comments.
+	 *  - Tagged templates like `String.raw()` that access “raw” strings.
+	 *  - The `source` property of a RegExp object.
 	 *
 	 * For example, this input JavaScript:
 	 *
@@ -4143,40 +4099,59 @@ class WP_HTML_Tag_Processor {
 	 * The original source of this graph is included at the bottom of this file.
 	 *
 	 * @see https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements
+	 * @see wp_html_api_script_element_escaping_diagram_source()
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $sourcecode Raw contents intended to be serialized into an HTML SCRIPT element.
+	 * @return string Escaped form of input contents which will not lead to premature closing of the containing SCRIPT element.
 	 */
-	private function escape_javascript_script_contents( string $text ): string {
-		return preg_replace_callback(
-			'~(?P<HEAD></?)(?P<S_CHAR>s)(?P<TAIL>cript[ \\t\\f\\r\\n/>])~i',
-			static function ( $matches ) {
-				$escaped_s_char = 's' === $matches['S_CHAR']
-					? '\\u0073'
-					: '\\u0053';
-				return "{$matches['HEAD']}{$escaped_s_char}{$matches['TAIL']}";
-			},
-			$text
-		);
-	}
+	public static function escape_javascript_script_contents( string $sourcecode ): string {
+		$at      = 0;
+		$was_at  = 0;
+		$end     = strlen( $sourcecode );
+		$escaped = '';
 
-	/**
-	 * Escape JSON script tag contents.
-	 *
-	 * Prevent JSON text from modifying the HTML structure of a document and
-	 * ensure that it's contained within its enclosing SCRIPT tag as intended.
-	 *
-	 * JSON can be escaped simply by replacing "<" with its Unicode escape
-	 * sequence "\u003C". "<" is not part of the JSON syntax and only appears
-	 * in JSON strings, so it's always safe to escape. Furthermore, JSON does
-	 * not allow backslash escaping of "<", so there's no need to consider
-	 * whether the "<" is preceded by an escaping backslash.
-	 *
-	 * For more details, see {@see WP_HTML_Tag_Processor::escape_javascript_script_contents()}.
-	 * @see https://www.json.org/json-en.html
-	 */
-	private function escape_json_script_contents( string $text ): string {
-		return strtr(
-			$text,
-			array( '<' => '\\u003C' )
-		);
+		/*
+		 * Replace all instances of the ASCII case-insensitive match of "<script"
+		 * and "</script", when followed by whitespace or "/" or ">", by using a
+		 * character replacement for the "s" (or the "S").
+		 */
+		while ( $at < $end ) {
+			$tag_at = strpos( $sourcecode, '<', $at );
+			if ( false === $tag_at ) {
+				break;
+			}
+
+			$tag_name_at       = $tag_at + 1;
+			$has_closing_slash = $tag_name_at < $end || '/' === $sourcecode[ $tag_name_at ];
+			$tag_name_at      += $has_closing_slash ? 1 : 0;
+
+			if ( 0 !== substr_compare( $sourcecode, 'script', $tag_name_at, 5, true ) ) {
+				$at = $tag_at + 1;
+				continue;
+			}
+
+			if ( 1 !== strspn( $sourcecode, " \t\f\r\n/>" ) ) {
+				$at = $tag_name_at + 5;
+				continue;
+			}
+
+			$escaped .= substr( $sourcecode, $was_at, $tag_name_at - $was_at );
+			$escaped .= 's' === $sourcecode[ $tag_name_at ] ? '\u0073' : '\u0053';
+			$was_at   = $tag_name_at + 1;
+			$at       = $tag_name_at + 6;
+		}
+
+		if ( '' === $escaped ) {
+			return $sourcecode;
+		}
+
+		if ( $was_at < $end ) {
+			$escaped .= substr( $sourcecode, $was_at );
+		}
+
+		return $escaped;
 	}
 
 	/**
@@ -4969,40 +4944,3 @@ class WP_HTML_Tag_Processor {
 	 */
 	const TEXT_IS_WHITESPACE = 'TEXT_IS_WHITESPACE';
 }
-
-/*
-# This is the original Graphviz source for the SCRIPT tag
-# parsing behavior. It's used in the documentation for
-# `WP_HTML_Tag_Processor::escape_javascript_script_contents()`.
-# ====
-digraph {
-	rankdir=TB;
-
-	// Entry point
-	entry [shape=plaintext label="Open script"];
-	entry -> script_data;
-
-	// Double-circle states arranged more compactly
-	data [shape=doublecircle label="Close script"];
-	script_data [shape=doublecircle color=blue label="script\ndata"];
-	script_data_escaped [shape=circle color=orange label="escaped"];
-	script_data_double_escaped [shape=circle color=red label="double\nescaped"];
-
-	// Group related nodes on same ranks where possible
-	{rank=same; script_data script_data_escaped script_data_double_escaped}
-
-	script_data -> script_data [label="<!--(…)>\n(all dashes)"];
-	script_data -> script_data_escaped [label="<!--"];
-	script_data -> data [label="</script†"];
-
-	script_data_escaped -> script_data [label="-->"];
-	script_data_escaped -> script_data_double_escaped [label="<script†"];
-	script_data_escaped -> data [label="</script†"];
-
-	script_data_double_escaped -> script_data [label="-->"];
-	script_data_double_escaped -> script_data_escaped [label="</script†"];
-
-	label="† = Case insensitive 'script' followed by one of ' \\t\\f\\r\\n/>'";
-	labelloc=b;
-}
-*/
