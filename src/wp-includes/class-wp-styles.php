@@ -158,11 +158,11 @@ class WP_Styles extends WP_Dependencies {
 		$inline_style = $this->print_inline_style( $handle, false );
 
 		if ( $inline_style ) {
-			$processor = new WP_HTML_Tag_Processor( "<style></style>\n" );
+			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
 			$processor->next_tag();
 			$processor->set_attribute( 'id', "{$handle}-inline-css" );
 			$processor->set_modifiable_text( "\n{$inline_style}\n" );
-			$inline_style_tag = $processor->get_updated_html();
+			$inline_style_tag = "{$processor->get_updated_html()}\n";
 		} else {
 			$inline_style_tag = '';
 		}
@@ -336,11 +336,11 @@ class WP_Styles extends WP_Dependencies {
 			return $output;
 		}
 
-		$processor = new WP_HTML_Tag_Processor( "<style></style>\n" );
+		$processor = new WP_HTML_Tag_Processor( '<style></style>' );
 		$processor->next_tag();
 		$processor->set_attribute( 'id', "{$handle}-inline-css" );
 		$processor->set_modifiable_text( "\n{$output}\n" );
-		echo $processor->get_updated_html();
+		echo "{$processor->get_updated_html()}\n";
 
 		return true;
 	}

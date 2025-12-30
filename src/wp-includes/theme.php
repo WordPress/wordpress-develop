@@ -1951,12 +1951,12 @@ function _custom_background_cb() {
 		$style .= $image . $position . $size . $repeat . $attachment;
 	}
 
-	$processor = new WP_HTML_Tag_Processor( "<style{$type_attr} id=\"custom-background-css\"></style>\n" );
+	$processor = new WP_HTML_Tag_Processor( "<style{$type_attr} id=\"custom-background-css\"></style>" );
 	$processor->next_tag();
 
 	$style_tag_content = 'body.custom-background { ' . trim( $style ) . ' }';
 	$processor->set_modifiable_text( "\n{$style_tag_content}\n" );
-	echo $processor->get_updated_html();
+	echo "{$processor->get_updated_html()}\n";
 }
 
 /**
@@ -1970,14 +1970,14 @@ function wp_custom_css_cb() {
 		return;
 	}
 
-	$processor = new WP_HTML_Tag_Processor( "<style></style>\n" );
+	$processor = new WP_HTML_Tag_Processor( '<style></style>' );
 	$processor->next_tag();
 	if ( ! current_theme_supports( 'html5', 'style' ) ) {
 		$processor->set_attribute( 'type', 'text/css' );
 	}
 	$processor->set_attribute( 'id', 'wp-custom-css' );
 	$processor->set_modifiable_text( "\n{$styles}\n" );
-	echo $processor->get_updated_html();
+	echo "{$processor->get_updated_html()}\n";
 }
 
 /**
