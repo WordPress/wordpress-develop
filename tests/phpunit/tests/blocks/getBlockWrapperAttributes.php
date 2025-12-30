@@ -50,6 +50,7 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 				'ariaLabel' => 0,
 			),
 		);
+
 		$result = get_block_wrapper_attributes();
 		$this->assertSame( 'class="0 wp-block-example" aria-label="0"', $result );
 	}
