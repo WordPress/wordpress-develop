@@ -3826,6 +3826,7 @@ class WP_HTML_Tag_Processor {
 						) {
 							return false;
 						}
+						$escaped_content = $plaintext_content;
 				}
 
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
