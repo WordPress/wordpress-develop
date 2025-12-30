@@ -871,6 +871,73 @@ class WP_Debug_Data {
 				'value' => $loading,
 				'debug' => 'loading...',
 			),
+		);
+
+		// Add individual plugin size fields.
+		if ( is_dir( WP_PLUGIN_DIR ) ) {
+			$plugins = get_plugins();
+			$plugin_fields = array();
+
+			foreach ( $plugins as $plugin_path => $plugin_data ) {
+				// Get the plugin directory name (slug).
+				$plugin_dir = dirname( $plugin_path );
+				if ( '.' === $plugin_dir ) {
+					// Single file plugin, skip.
+					continue;
+				}
+
+				$plugin_slug = sanitize_file_name( $plugin_dir );
+				$plugin_key  = 'plugin_' . $plugin_slug . '_size';
+
+				// Skip if we already added this plugin.
+				if ( isset( $plugin_fields[ $plugin_key ] ) ) {
+					continue;
+				}
+
+				// Use lowercase plugin slug for display (as shown in example).
+				$plugin_display_name = strtolower( $plugin_slug );
+
+				$plugin_fields[ $plugin_key ] = array(
+					'plugin_name' => $plugin_display_name, // Store for sorting.
+					'plugin_slug' => $plugin_slug, // Store slug for reference.
+					'label' => $plugin_display_name, // Will be formatted in display.
+					'value' => $loading,
+					'debug' => 'loading...',
+					'is_plugin_individual' => true, // Mark as individual plugin field.
+				);
+			}
+
+			// Sort plugins by name for consistent display.
+			uasort( $plugin_fields, function( $a, $b ) {
+				return strcasecmp( $a['plugin_name'], $b['plugin_name'] );
+			} );
+
+			// Add "Plugins (individual)" header before plugin fields.
+			$plugins_individual_header = array(
+				'plugins_individual_header' => array(
+					'label' => 'Plugins (individual)',
+					'value' => '',
+					'debug' => '',
+					'is_plugins_header' => true, // Mark as header field.
+				),
+			);
+
+			// Remove temporary plugin_name key and format labels with tree characters.
+			$plugin_count = count( $plugin_fields );
+			$index = 0;
+			foreach ( $plugin_fields as $key => $field ) {
+				$index++;
+				$is_last = ( $index === $plugin_count );
+				$tree_char = $is_last ? '└─' : '├─';
+				$plugin_fields[ $key ]['label'] = '    ' . $tree_char . ' ' . $field['plugin_name'];
+				unset( $plugin_fields[ $key ]['plugin_name'] );
+			}
+
+			// Merge header and plugin fields.
+			$fields = array_merge( $fields, $plugins_individual_header, $plugin_fields );
+		}
+
+		$fields = array_merge( $fields, array(	
 			'fonts_path'     => array(
 				'label' => __( 'Fonts directory location' ),
 				'value' => wp_get_font_dir()['basedir'],
@@ -890,7 +957,7 @@ class WP_Debug_Data {
 				'value' => $loading,
 				'debug' => 'loading...',
 			),
-		);
+		) );
 
 		return array(
 			/* translators: Filesystem directory paths and storage sizes. */
@@ -1992,6 +2059,59 @@ class WP_Debug_Data {
 			}
 
 			$all_sizes[ $name ] = $results;
+		}
+
+		// Calculate individual plugin sizes.
+		if ( isset( $all_sizes['plugins_size'] ) && is_dir( WP_PLUGIN_DIR ) ) {
+			$plugins = get_plugins();
+			$plugin_sizes = array();
+
+			foreach ( $plugins as $plugin_path => $plugin_data ) {
+				// Get the plugin directory name (slug).
+				$plugin_dir = dirname( $plugin_path );
+				if ( '.' === $plugin_dir ) {
+					// Single file plugin, skip as it's already counted in plugins_size.
+					continue;
+				}
+
+				$plugin_dir_path = WP_PLUGIN_DIR . '/' . $plugin_dir;
+				$plugin_slug     = sanitize_file_name( $plugin_dir );
+				$plugin_key      = 'plugin_' . $plugin_slug . '_size';
+
+				// Skip if we already calculated this plugin size.
+				if ( isset( $plugin_sizes[ $plugin_key ] ) ) {
+					continue;
+				}
+
+				$plugin_dir_size = null;
+				$plugin_results  = array(
+					'path' => $plugin_dir_path,
+					'raw'  => 0,
+				);
+
+				// Only calculate if we still have time.
+				if ( microtime( true ) - WP_START_TIMESTAMP < $max_execution_time ) {
+					$plugin_dir_size = recurse_dirsize( $plugin_dir_path, null, $max_execution_time );
+				}
+
+				if ( false === $plugin_dir_size ) {
+					$plugin_results['size']  = __( 'The size cannot be calculated. The directory is not accessible.' );
+					$plugin_results['debug'] = 'not accessible';
+				} elseif ( null === $plugin_dir_size ) {
+					$plugin_results['size']  = __( 'The directory size calculation has timed out.' );
+					$plugin_results['debug'] = 'timeout while calculating size';
+				} else {
+					$plugin_results['raw']   = $plugin_dir_size;
+					$plugin_results['size']  = size_format( $plugin_dir_size, 2 );
+					$plugin_results['debug'] = $plugin_results['size'] . " ({$plugin_dir_size} bytes)";
+				}
+
+				$plugin_sizes[ $plugin_key ] = $plugin_results;
+			}
+
+			// Merge plugin sizes into all_sizes, sorted by plugin name.
+			ksort( $plugin_sizes );
+			$all_sizes = array_merge( $all_sizes, $plugin_sizes );
 		}
 
 		if ( $size_db > 0 ) {

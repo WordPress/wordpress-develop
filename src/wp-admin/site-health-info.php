@@ -63,8 +63,17 @@ wp_admin_notice(
 	<div id="health-check-debug" class="health-check-accordion">
 
 		<?php
-
+		// Build sizes_fields array to include all plugin size fields dynamically.
 		$sizes_fields = array( 'uploads_size', 'themes_size', 'plugins_size', 'fonts_size', 'wordpress_size', 'database_size', 'total_size' );
+
+		// Add individual plugin size fields if they exist in the info data.
+		if ( isset( $info['wp-paths-sizes'] ) && isset( $info['wp-paths-sizes']['fields'] ) ) {
+			foreach ( $info['wp-paths-sizes']['fields'] as $field_name => $field ) {
+				if ( strpos( $field_name, 'plugin_' ) === 0 && strpos( $field_name, '_size' ) !== false ) {
+					$sizes_fields[] = $field_name;
+				}
+			}
+		}
 
 		foreach ( $info as $section => $details ) {
 			if ( ! isset( $details['fields'] ) || empty( $details['fields'] ) ) {
@@ -113,6 +122,17 @@ wp_admin_notice(
 					<?php
 
 					foreach ( $details['fields'] as $field_name => $field ) {
+						// Check if this is the plugins individual header.
+						if ( isset( $field['is_plugins_header'] ) && $field['is_plugins_header'] ) {
+							// Format header with tree character.
+							$header_label = ' ├─ ' . esc_html( $field['label'] );
+							printf( '<tr><th scope="row">%s</th><td></td></tr>', $header_label );
+							continue;
+						}
+
+						// Check if this is an individual plugin field.
+						$is_plugin_individual = isset( $field['is_plugin_individual'] ) && $field['is_plugin_individual'];
+						
 						if ( is_array( $field['value'] ) ) {
 							$values = '<ul>';
 
@@ -125,10 +145,24 @@ wp_admin_notice(
 							$values = esc_html( $field['value'] );
 						}
 
-						if ( in_array( $field_name, $sizes_fields, true ) ) {
-							printf( '<tr><th scope="row">%s</th><td class="%s">%s</td></tr>', esc_html( $field['label'] ), esc_attr( $field_name ), $values );
+						// Format plugin individual fields: show plugin name with tree character in label, "plugin_name: size" in value.
+						if ( $is_plugin_individual ) {
+							// Label already has tree character and plugin name from class-wp-debug-data.php.
+							$label = esc_html( $field['label'] );
+							// Format value as "plugin_name: size" if we have a size value.
+							if ( ! empty( $values ) && $values !== esc_html( __( 'Loading&hellip;' ) ) ) {
+								// Extract plugin name from label (remove tree characters and spaces).
+								$plugin_name = preg_replace( '/^\s*[├└]─\s*/', '', $field['label'] );
+								$values = esc_html( $plugin_name ) . ': ' . $values;
+							}
 						} else {
-							printf( '<tr><th scope="row">%s</th><td>%s</td></tr>', esc_html( $field['label'] ), $values );
+							$label = esc_html( $field['label'] );
+						}
+
+						if ( in_array( $field_name, $sizes_fields, true ) ) {
+							printf( '<tr><th scope="row">%s</th><td class="%s">%s</td></tr>', $label, esc_attr( $field_name ), $values );
+						} else {
+							printf( '<tr><th scope="row">%s</th><td>%s</td></tr>', $label, $values );
 						}
 					}
 
