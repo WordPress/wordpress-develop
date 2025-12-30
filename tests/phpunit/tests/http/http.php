@@ -569,6 +569,9 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			'underscore_in_hostname'						=> array(
 				'url'			=> 'https://foo_bar.example.com/',
 			),
+			'valid_ip_host'									=> array(
+				'url'			=> 'https://1.1.1.1/',
+			),
 		);
 	}
 
