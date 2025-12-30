@@ -65,10 +65,10 @@ class Tests_Blocks_GetBlockWrapperAttributes extends WP_UnitTestCase {
 
 		$result = get_block_wrapper_attributes(
 			array(
-				'class' => '0',
+				'class'      => '0',
 				'aria-label' => 0,
-				'data-foo' => 0,
-				'data-var' => '0',
+				'data-foo'   => 0,
+				'data-var'   => '0',
 			)
 		);
 		$this->assertSame( 'class="0 wp-block-example" aria-label="0" data-foo="0" data-var="0"', $result );
