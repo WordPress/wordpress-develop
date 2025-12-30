@@ -589,16 +589,23 @@ function wp_http_validate_url( $url ) {
 	$host        = trim( $parsed_url['host'], '.' );
 
 	if ( ! $same_host ) {
+		$is_ipv4 = (bool) preg_match(
+			'#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#',
+			$host
+		);
+
 		if (
-			function_exists( 'filter_var' )
-			&& defined( 'FILTER_VALIDATE_DOMAIN' )
-			&& defined( 'FILTER_FLAG_HOSTNAME' )
-			&& ! filter_var( $host, FILTER_VALIDATE_IP )
-			&& ! filter_var( $host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME )
+			! $is_ipv4
+			&& function_exists( 'filter_var' )
+			&& ! filter_var(
+				$host,
+				FILTER_VALIDATE_DOMAIN,
+				array( 'flags' => FILTER_FLAG_HOSTNAME )
+			)
 		) {
 			return false;
 		}
-		if ( preg_match( '#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#', $host ) ) {
+		if ( $is_ipv4 ) {
 			$ip = $host;
 		} else {
 			$ip = gethostbyname( $host );

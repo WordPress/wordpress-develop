@@ -566,8 +566,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 				'url'           => 'https://example.com:81/caniload.php',
 				'cb_safe_ports' => 'callback_remove_safe_ports',
 			),
-			'underscore_in_hostname' => array(
-				'url' => 'https://foo_bar.example.com/',
+			'underscore_in_hostname'						=> array(
+				'url'			=> 'https://foo_bar.example.com/',
 			),
 		);
 	}
