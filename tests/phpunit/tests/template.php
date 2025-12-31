@@ -575,7 +575,7 @@ class Tests_Template extends WP_UnitTestCase {
 
 		file_put_contents( $template_path, "<?php\n// Test template\n" );
 
-		$filter_callback = static function( $template_paths ) use ( $temp_dir ) {
+		$filter_callback = static function ( $template_paths ) use ( $temp_dir ) {
 			array_unshift( $template_paths, trailingslashit( $temp_dir ) );
 			return $template_paths;
 		};
