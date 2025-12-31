@@ -633,4 +633,223 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 		$this->assertEquals( 10, count( $page1_ids ), 'First page should have 10 posts' );
 		$this->assertEquals( 10, count( $page2_ids ), 'Second page should have 10 posts' );
 	}
+
+	/**
+	 * Test that filters receive the original orderby value (without ID tie-breaker).
+	 *
+	 * This ensures backward compatibility - filters should receive the same orderby
+	 * value they received before the deterministic ordering changes.
+	 *
+	 * @ticket xxxxx
+	 */
+	public function test_filters_receive_original_orderby() {
+		global $wpdb;
+
+		$received_orderby = '';
+
+		// Capture the orderby value received by the filter.
+		$filter_callback = function( $orderby ) use ( &$received_orderby ) {
+			$received_orderby = $orderby;
+			return $orderby;
+		};
+
+		add_filter( 'posts_orderby', $filter_callback );
+
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$date_identical_post_ids,
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+			)
+		);
+
+		remove_filter( 'posts_orderby', $filter_callback );
+
+		// Filter should receive orderby without ID tie-breaker.
+		$expected_orderby = "{$wpdb->posts}.post_date ASC";
+		$this->assertEquals( $expected_orderby, $received_orderby, 'Filter should receive original orderby without ID tie-breaker' );
+
+		// But the final query should still have ID tie-breaker for deterministic ordering.
+		$this->assertStringContainsString( 'ID ASC', $query->request, 'Final query should have ID tie-breaker' );
+	}
+
+	/**
+	 * Test that posts_clauses filter receives original orderby (without ID tie-breaker).
+	 *
+	 * @ticket xxxxx
+	 */
+	public function test_posts_clauses_filter_receives_original_orderby() {
+		global $wpdb;
+
+		$received_orderby = '';
+
+		// Capture the orderby value received by the filter.
+		$filter_callback = function( $clauses ) use ( &$received_orderby ) {
+			$received_orderby = $clauses['orderby'] ?? '';
+			return $clauses;
+		};
+
+		add_filter( 'posts_clauses', $filter_callback );
+
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$date_identical_post_ids,
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+			)
+		);
+
+		remove_filter( 'posts_clauses', $filter_callback );
+
+		// Filter should receive orderby without ID tie-breaker.
+		$expected_orderby = "{$wpdb->posts}.post_date ASC";
+		$this->assertEquals( $expected_orderby, $received_orderby, 'posts_clauses filter should receive original orderby without ID tie-breaker' );
+
+		// But the final query should still have ID tie-breaker.
+		$this->assertStringContainsString( 'ID ASC', $query->request, 'Final query should have ID tie-breaker' );
+	}
+
+	/**
+	 * Test that deterministic ordering works when filters modify orderby.
+	 *
+	 * Even if a filter modifies the orderby, the ID tie-breaker should still
+	 * be added after the filter to ensure deterministic ordering.
+	 *
+	 * @ticket xxxxx
+	 */
+	public function test_deterministic_ordering_works_after_filter_modifies_orderby() {
+		// Filter that modifies the orderby.
+		$filter_callback = function( $orderby ) {
+			// Add a custom field to the orderby.
+			global $wpdb;
+			return $orderby . ', ' . "{$wpdb->posts}.post_title ASC";
+		};
+
+		add_filter( 'posts_orderby', $filter_callback );
+
+		$query1 = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$date_identical_post_ids,
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+				'paged'          => 1,
+			)
+		);
+
+		$query2 = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$date_identical_post_ids,
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+				'paged'          => 2,
+			)
+		);
+
+		remove_filter( 'posts_orderby', $filter_callback );
+
+		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
+		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
+
+		// Verify no duplicates across pages even when filter modifies orderby.
+		$overlap = array_intersect( $page1_ids, $page2_ids );
+		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts even when filter modifies orderby' );
+
+		// Verify ID tie-breaker is still present in the final query.
+		$this->assertStringContainsString( 'ID ASC', $query1->request, 'ID tie-breaker should be present after filter modifies orderby' );
+	}
+
+	/**
+	 * Test that deterministic ordering works when posts_clauses filter modifies orderby.
+	 *
+	 * @ticket xxxxx
+	 */
+	public function test_deterministic_ordering_works_after_posts_clauses_modifies_orderby() {
+		// Filter that modifies the orderby via posts_clauses.
+		$filter_callback = function( $clauses ) {
+			global $wpdb;
+			// Modify orderby to add post_title.
+			$clauses['orderby'] = "{$wpdb->posts}.post_date ASC, {$wpdb->posts}.post_title ASC";
+			return $clauses;
+		};
+
+		add_filter( 'posts_clauses', $filter_callback );
+
+		$query1 = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$date_identical_post_ids,
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+				'paged'          => 1,
+			)
+		);
+
+		$query2 = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$date_identical_post_ids,
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+				'paged'          => 2,
+			)
+		);
+
+		remove_filter( 'posts_clauses', $filter_callback );
+
+		$page1_ids = wp_list_pluck( $query1->posts, 'ID' );
+		$page2_ids = wp_list_pluck( $query2->posts, 'ID' );
+
+		// Verify no duplicates across pages.
+		$overlap = array_intersect( $page1_ids, $page2_ids );
+		$this->assertEmpty( $overlap, 'Pages should not contain duplicate posts even when posts_clauses modifies orderby' );
+
+		// Verify ID tie-breaker is still present.
+		$this->assertStringContainsString( 'ID ASC', $query1->request, 'ID tie-breaker should be present after posts_clauses modifies orderby' );
+	}
+
+	/**
+	 * Test that ID tie-breaker is not duplicated when filter already includes ID.
+	 *
+	 * If a filter adds ID to the orderby, we should not add it again.
+	 *
+	 * @ticket xxxxx
+	 */
+	public function test_id_tie_breaker_not_duplicated_when_filter_includes_id() {
+		global $wpdb;
+
+		// Filter that already includes ID in orderby.
+		$filter_callback = function( $orderby ) use ( $wpdb ) {
+			return "{$wpdb->posts}.post_date ASC, {$wpdb->posts}.ID ASC";
+		};
+
+		add_filter( 'posts_orderby', $filter_callback );
+
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'wptests_time_ident',
+				'post__in'       => self::$date_identical_post_ids,
+				'orderby'        => 'post_date',
+				'order'          => 'ASC',
+				'posts_per_page' => 10,
+			)
+		);
+
+		remove_filter( 'posts_orderby', $filter_callback );
+
+		// Should not have duplicate ID ordering.
+		$this->assertStringContainsString( 'ID ASC', $query->request, 'ID should be present' );
+		// Count occurrences of "ID ASC" - should be exactly 1.
+		$id_count = substr_count( $query->request, 'ID ASC' );
+		$this->assertEquals( 1, $id_count, 'ID should not be duplicated when filter already includes it' );
+	}
 }
