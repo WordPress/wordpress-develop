@@ -1,65 +1,107 @@
 <?php
 
 /**
- * Core class for working with MIME type strings.
+ * Core class for sniffing MIME types from various sources in standardized and secure ways.
+ *
+ * This class exists to harmonize content-type detection between the server and browsers.
+ * See the following introduction from the WHATWG MIME Sniffing specification:
+ *
+ * > The HTTP Content-Type header field is intended to indicate the MIME type of an HTTP response.
+ * > However, many HTTP servers supply a Content-Type header field value that does not match the
+ * > actual contents of the response. Historically, web browsers have tolerated these servers by
+ * > examining the content of HTTP responses in addition to the Content-Type header field in order
+ * > to determine the effective MIME type of the response.
+ * >
+ * > Without a clear specification for how to "sniff" the MIME type, each user agent has been
+ * > forced to reverse-engineer the algorithms of other user agents in order to maintain
+ * > interoperability. Inevitably, these efforts have not been entirely successful, resulting
+ * > in divergent behaviors among user agents. In some cases, these divergent behaviors have
+ * > had security implications, as a user agent could interpret an HTTP response as a different
+ * > MIME type than the server intended.
+ * >
+ * > These security issues are most severe when an "honest" server allows potentially malicious
+ * > users to upload their own files and then serves the contents of those files with a low-privilege
+ * > MIME type. For example, if a server believes that the client will treat a contributed file as an
+ * > image (and thus treat it as benign), but a user agent believes the content to be HTML (and thus
+ * > privileged to execute any scripts contained therein), an attacker might be able to steal the
+ * > user’s authentication credentials and mount other cross-site scripting attacks. (Malicious
+ * > servers, of course, can specify an arbitrary MIME type in the Content-Type header field.)
+ * >
+ * > This document describes a content sniffing algorithm that carefully balances the compatibility
+ * > needs of user agent with the security constraints imposed by existing web content. The algorithm
+ * > originated from research conducted by Adam Barth, Juan Caballero, and Dawn Song, based on content
+ * > sniffing algorithms present in popular user agents, an extensive database of existing web content,
+ * > and metrics collected from implementations deployed to a sizable number of users.
+ * >
+ * >  - https://mimesniff.spec.whatwg.org/#introduction
+ *
+ * Some MIME types are inferred from string sources, such as HTTP headers and HTML meta values. These
+ * are usually intentional declarations of a MIME type, and while not always accurate, they are meant
+ * to explicitly convey content types.
  *
  * Example:
  *
- *     $mime_type = WP_Mime_Type::from_string( $headers['content-type'] );
+ *     $mime_type = WP_Mime_Sniffer::from_declaration( $headers['content-type'] );
  *     if ( isset( $mime_type ) && $mime_type->is_json() ) {
  *         echo '<script type="application/json">';
  *     }
  *
- *     $mime_type = WP_Mime_Type::from_string( 'text/HTML  ; charset=utf8' );
+ *     $mime_type = WP_Mime_Sniffer::from_declaration( 'text/HTML  ; charset=utf8' );
  *     'text/html;charset=utf8' === $mime_type->serialize();
  *
- * @todo Many of these feel like they would be better as static methods taking strings, but also there is
- *       some non-trivial parsing involved, so those static methods should still parse unless we duplicate
- *       all of the parsing logic.
- * @todo Should the `supplied_type` be stored for further raw analysis?
+ * In other cases the MIME types are inferred from _binary_ data, which may pose a higher security
+ * risk due to the complexity of binary decoders. While strings and binary data in PHP are both
+ * stored identically in a `string` type, the binary sniffing expects non-human-readable inputs,
+ * like media files or archives, and operates on the data from inside the file.
+ *
+ * Example:
+ *
+ *     $mime_type = WP_Mime_Sniffer::from_binary_file_contents( $uploaded_file_data );
+ *
+ * It is not necessary to read the file contents before sniffing the MIME type, however. It may
+ * be preferable to pass a file path, in which case this class will only read as many bytes as
+ * are necessary to perform the sniff. This can prevent out-of-memory crashing when working with
+ * large files, such as video content.
+ *
+ * Example:
+ *
+ *     $mime_type = WP_Mime_Sniffer::from_file( $tempfile );
  *
  * @see https://mimesniff.spec.whatwg.org/
  * @see https://www.rfc-editor.org/rfc/rfc2045#section-5.1
  * @see https://www.rfc-editor.org/rfc/rfc9110#name-media-type
  * @see https://www.iana.org/assignments/media-types/media-types.xhtml
  *
- * @since {WP_VERSION}
+ * @since 7.0.0
  */
-class WP_Mime_Type {
-	const BINARY_BYTES = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0B\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1C\x1D\x1E\x1F";
-
-	const TOKEN_CODE_POINTS = "!#$%&'*+-.0123456789^_`ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz|~";
-
-	/*
-	 * > An HTTP quoted-string token code point is U+0009 TAB, a code point in the range U+0020 SPACE to U+007E (~),
-	 * > inclusive, or a code point in the range U+0080 through U+00FF (ÿ), inclusive.
-	 *
-	 * This list includes the inverse set of the above.
-	 *
-	 * @since {WP_VERSION}
-	 */
-	const QUOTED_STRING_FORBIDDEN = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0A\x0B\x0C\x0D\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x7F";
-
+class WP_Mime_Sniffer {
 	/**
-	 * @since {WP_VERSION}
+	 * @since 7.0.0
 	 *
 	 * @var string
 	 */
 	protected $type;
 
 	/**
-	 * @since {WP_VERSION}
+	 * @since 7.0.0
 	 *
 	 * @var string
 	 */
 	protected $subtype;
 
 	/**
-	 * @since {WP_VERSION}
+	 * @since 7.0.0
 	 *
 	 * @var Array<string, string>
 	 */
 	protected $parameters = array();
+
+	/**
+	 * @since 7.0.0
+	 *
+	 * @var string|null
+	 */
+	private static $last_error = null;
 
 	/**
 	 * @todo Not sure what to do with this, or if it’s necessary. It could be masquerading HTML content types.
@@ -69,7 +111,7 @@ class WP_Mime_Type {
 	 *
 	 * @see https://web.archive.org/web/20250511162054/https://bz.apache.org/bugzilla/show_bug.cgi?id=13986
 	 *
-	 * @since {WP_VERSION}
+	 * @since 7.0.0
 	 *
 	 * @var bool
 	 */
@@ -86,11 +128,28 @@ class WP_Mime_Type {
 	}
 
 	/**
-	 * @todo Rename to `WP_Mime_Type::sniff()`?
+	 * Parses a supplied MIME type declaration, if valid, otherwise returns `null`.
+	 *
+	 * Example:
+	 *
+	 *     $mime_type = WP_Mime_Sniffer::from_declaration( 'text/html; charset=utf8' );
+	 *     true   === $mime_type->is_html();
+	 *     'utf8' === $mime_type->indicated_charset();
+	 *
+	 *     null === WP_Mime_Sniffer::from_declaration( 'html' );
+	 *
+	 *     $mime_type = WP_Mime_Sniffer::from_declaration( 'text/json' );
+	 *     true               === $mime_type->is_json();
+	 *     'application/json' === $mime_type->essence();
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $supplied_type Provided text of MIME type, e.g. from HTTP "Content-Type" header.
+	 * @return self|null MIME type instance if valid, otherwise `null`.
 	 */
-	public static function from_string( string $supplied_type ): ?self {
+	public static function from_declaration( string $supplied_type ): ?self {
 		// 1. Remove any leading and trailing HTTP whitespace from input.
-		$input = trim( $supplied_type, " \t\r\n" );
+		$input = trim( $supplied_type, self::HTTP_WHITESPACE );
 
 		// 2. Let position be a position variable for input, initially pointing at the start of input.
 		$position = 0;
@@ -120,7 +179,7 @@ class WP_Mime_Type {
 
 		// 8. Remove any trailing HTTP whitespace from subtype.
 		$subtype = substr( $input, $subtype_start, $subtype_length );
-		$subtype = rtrim( $subtype, " \t\r\n" );
+		$subtype = rtrim( $subtype, self::HTTP_WHITESPACE );
 
 		// 9. If subtype is the empty string or does not solely contain HTTP token code points, then return failure.
 		if ( '' === $subtype || strspn( $subtype, self::TOKEN_CODE_POINTS ) !== strlen( $subtype ) ) {
@@ -137,7 +196,7 @@ class WP_Mime_Type {
 			++$position;
 
 			// 2. Collect a sequence of code points that are HTTP whitespace from input given position.
-			$position += strspn( $input, " \t\r\n", $position );
+			$position += strspn( $input, self::HTTP_WHITESPACE, $position );
 
 			// 3. Let parameterName be the result of collecting a sequence of code points that are not U+003B (;) or U+003D (=) from input, given position.
 			$parameter_start  = $position;
@@ -187,7 +246,7 @@ class WP_Mime_Type {
 				$position     = $value_start + $value_length;
 
 				// 2. Remove any trailing HTTP whitespace from parameterValue.
-				$value = rtrim( substr( $input, $value_start, $value_length ), " \t\r\n" );
+				$value = rtrim( substr( $input, $value_start, $value_length ), self::HTTP_WHITESPACE );
 
 				// 3. If parameterValue is the empty string, then continue.
 				if ( '' === $value ) {
@@ -223,9 +282,36 @@ class WP_Mime_Type {
 		return $self;
 	}
 
-	public static function from_binary( string $resource_header ): ?self {
-		if ( strlen( $resource_header ) === 1455 ) {
-			$resource_header = substr( $resource_header, 0, 1455 );
+	public static function from_file( string $file_path ): ?self {
+		$is_file_scheme = 0 === substr_compare( $file_path, 'file://', 0, 7, false );
+		$filename       = $is_file_scheme ? $file_path : "file://{$file_path}";
+
+		$handle = fopen( $filename, 'rb' );
+		if ( false === $handle ) {
+			self::$last_error = 'File not found.';
+			return null;
+		}
+
+		$resource_header = fread( $handle, 1445 );
+		if ( false === $resource_header ) {
+			self::$last_error = 'Could not read file.';
+			return null;
+		}
+
+		return self::from_binary_file_contents( $resource_header );
+	}
+
+	/**
+	 * Sniffs a MIME type from the contents of a binary file, if possible, otherwise returns `null`.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string $resource_header Contents of a file, of which only a maximum of 1455 bytes will be analyzed.
+	 * @return self|null MIME type instance if detected, otherwise `null`.
+	 */
+	public static function from_binary_file_contents( string $resource_header ): ?self {
+		if ( strlen( $resource_header ) > 1445 ) {
+			$resource_header = substr( $resource_header, 0, 1445 );
 		}
 
 		$length = strlen( $resource_header );
@@ -619,13 +705,13 @@ class WP_Mime_Type {
 	/**
 	 * Returns a parsed MIME media type if the given string represents a JavaScript media type.
 	 *
-	 * @since {WP_VERSION}
+	 * @since 7.0.0
 	 *
 	 * @param string $supplied_type
 	 * @return self|null
 	 */
 	public static function sniff_javascript( string $supplied_type ): ?self {
-		$mime_type = self::from_string( $supplied_type );
+		$mime_type = self::from_declaration( $supplied_type );
 
 		return isset( $mime_type ) && $mime_type->is_javascript()
 			? $mime_type
@@ -635,16 +721,53 @@ class WP_Mime_Type {
 	/**
 	 * Returns a parsed MIME media type if the given string represents a JSON media type.
 	 *
-	 * @since {WP_VERSION}
+	 * @since 7.0.0
 	 *
 	 * @param string $supplied_type
 	 * @return self|null
 	 */
 	public static function sniff_json( string $supplied_type ): ?self {
-		$mime_type = self::from_string( $supplied_type );
+		$mime_type = self::from_declaration( $supplied_type );
 
 		return isset( $mime_type ) && $mime_type->is_json()
 			? $mime_type
 			: null;
 	}
+
+	/**
+	 * > A binary data byte is a byte in the range 0x00 to 0x08 (NUL to BS), the byte 0x0B (VT),
+	 * > a byte in the range 0x0E to 0x1A (SO to SUB), or a byte in the range 0x1C to 0x1F (FS to US).
+	 *
+	 * @since 7.0.0
+	 */
+	const BINARY_BYTES = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0B\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1C\x1D\x1E\x1F";
+
+	/**
+	 * > HTTP whitespace is U+000A LF, U+000D CR, or an HTTP tab or space.
+	 * > An HTTP tab or space is U+0009 TAB or U+0020 SPACE.
+	 *
+	 * @see https://fetch.spec.whatwg.org/#http-whitespace
+	 *
+	 * @since 7.0.0
+	 */
+	const HTTP_WHITESPACE = " \t\f\r\n";
+
+	/**
+	 * > An HTTP quoted-string token code point is U+0009 TAB, a code point in the range U+0020 SPACE to U+007E (~),
+	 * > inclusive, or a code point in the range U+0080 through U+00FF (ÿ), inclusive.
+	 *
+	 * This is the inverse set of the above code points for ease of use as a shorter string.
+	 *
+	 * @since 7.0.0
+	 */
+	const QUOTED_STRING_FORBIDDEN = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0A\x0B\x0C\x0D\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x7F";
+
+	/**
+	 * > An HTTP token code point is U+0021 (!), U+0023 (#), U+0024 ($), U+0025 (%), U+0026 (&), U+0027 ('),
+	 * > U+002A (*), U+002B (+), U+002D (-), U+002E (.), U+005E (^), U+005F (_), U+0060 (`), U+007C (|),
+	 * > U+007E (~), or an ASCII alphanumeric.
+	 *
+	 * @since 7.0.0
+	 */
+	const TOKEN_CODE_POINTS = "!#$%&'*+-.0123456789^_`ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz|~";
 }
