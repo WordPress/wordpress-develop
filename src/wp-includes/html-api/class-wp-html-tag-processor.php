@@ -3811,7 +3811,9 @@ class WP_HTML_Tag_Processor {
 
 		switch ( $this->get_tag() ) {
 			case 'SCRIPT':
+				$escaped_content     = $plaintext_content;
 				$script_content_type = $this->get_script_content_type();
+
 				switch ( $script_content_type ) {
 					case 'javascript':
 					case 'json':
@@ -3826,7 +3828,6 @@ class WP_HTML_Tag_Processor {
 						) {
 							return false;
 						}
-						$escaped_content = $plaintext_content;
 				}
 
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
@@ -4128,12 +4129,12 @@ class WP_HTML_Tag_Processor {
 			$has_closing_slash = $tag_name_at < $end && '/' === $sourcecode[ $tag_name_at ];
 			$tag_name_at      += $has_closing_slash ? 1 : 0;
 
-			if ( 0 !== substr_compare( $sourcecode, 'script', $tag_name_at, 5, true ) ) {
+			if ( 0 !== substr_compare( $sourcecode, 'script', $tag_name_at, 6, true ) ) {
 				$at = $tag_at + 1;
 				continue;
 			}
 
-			if ( 1 !== strspn( $sourcecode, " \t\f\r\n/>" ) ) {
+			if ( 1 !== strspn( $sourcecode, " \t\f\r\n/>", $tag_name_at + 6, 1 ) ) {
 				$at = $tag_name_at + 5;
 				continue;
 			}
@@ -4141,7 +4142,7 @@ class WP_HTML_Tag_Processor {
 			$escaped .= substr( $sourcecode, $was_at, $tag_name_at - $was_at );
 			$escaped .= 's' === $sourcecode[ $tag_name_at ] ? '\u0073' : '\u0053';
 			$was_at   = $tag_name_at + 1;
-			$at       = $tag_name_at + 6;
+			$at       = $tag_name_at + 7;
 		}
 
 		if ( '' === $escaped ) {
