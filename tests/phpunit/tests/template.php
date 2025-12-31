@@ -556,6 +556,54 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the `locate_template_paths` filter allows modifying template paths.
+	 *
+	 * @group themes
+	 * @covers ::locate_template
+	 */
+	public function test_locate_template_paths_filter() {
+		// Create a temporary directory.
+		$temp_file = wp_tempnam();
+		unlink( $temp_file );
+
+		$temp_dir = $temp_file . '-templates';
+		wp_mkdir_p( $temp_dir );
+
+		// Create a test template file.
+		$template_name = 'test-custom-template.php';
+		$template_path = trailingslashit( $temp_dir ) . $template_name;
+
+		file_put_contents( $template_path, "<?php\n// Test template\n" );
+
+		$filter_callback = static function( $template_paths ) use ( $temp_dir ) {
+			array_unshift( $template_paths, trailingslashit( $temp_dir ) );
+			return $template_paths;
+		};
+
+		add_filter( 'locate_template_paths', $filter_callback );
+
+		$located = locate_template( array( $template_name ) );
+		$this->assertSame(
+			$template_path,
+			$located,
+			'Template should be located in the directory added via locate_template_paths filter.'
+		);
+
+		remove_filter( 'locate_template_paths', $filter_callback );
+
+		$located_after_removal = locate_template( array( $template_name ) );
+		$this->assertSame(
+			'',
+			$located_after_removal,
+			'Template should not be located once the filter is removed.'
+		);
+
+		// Cleanup.
+		unlink( $template_path );
+		rmdir( $temp_dir );
+	}
+
+	/**
 	 * Tests that wp_start_template_enhancement_output_buffer() does not start a buffer in a block theme when no filters are present.
 	 *
 	 * @ticket 43258
