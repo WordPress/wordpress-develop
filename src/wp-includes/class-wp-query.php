@@ -2508,9 +2508,9 @@ class WP_Query {
 		// Order by.
 		// Store metadata for deterministic ordering to be applied after filters.
 		$deterministic_orderby_meta = array(
-			'needed'   => false,
-			'has_id'   => false,
-			'order'    => $query_vars['order'],
+			'needed' => false,
+			'has_id' => false,
+			'order'  => $query_vars['order'],
 		);
 
 		if ( empty( $query_vars['orderby'] ) ) {
@@ -2525,10 +2525,10 @@ class WP_Query {
 				 * Ensure deterministic ordering to prevent duplicate records across pages.
 				 * When multiple posts have the same value for a field, add ID as secondary sort to guarantee consistent ordering.
 				 * Note: this is to circumvent a bug that is currently being tracked in https://core.trac.wordpress.org/ticket/44349.
-				 * 
+				 *
 				 * Build base orderby without ID tie-breaker for filters, then add it after filters.
 				 */
-				$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'];
+				$orderby                              = "{$wpdb->posts}.post_date " . $query_vars['order'];
 				$deterministic_orderby_meta['needed'] = true;
 			}
 			// See get_pages(): when sort_column is 'none', the get_pages() function should not generate any ORDER BY clause.
@@ -2544,7 +2544,7 @@ class WP_Query {
 			 *
 			 * Use a blacklist approach: add ID as tie-breaker for all orderby fields except those that are
 			 * already deterministic (ID itself, random ordering, or search relevance).
-			 * 
+			 *
 			 * Build base orderby without ID tie-breaker for filters, then add it after filters.
 			 */
 			$fields_excluding_deterministic_orderby = array(
@@ -2603,7 +2603,7 @@ class WP_Query {
 
 			// Build the base orderby string (without ID tie-breaker) for filters.
 			if ( empty( $orderby_array ) ) {
-				$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'];
+				$orderby                              = "{$wpdb->posts}.post_date " . $query_vars['order'];
 				$deterministic_orderby_meta['needed'] = true;
 			} else {
 				$orderby = trim( implode( ', ', $orderby_array ) );
@@ -3220,9 +3220,9 @@ class WP_Query {
 			 */
 			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
 
-			$where    = $clauses['where'] ?? '';
-			$groupby  = $clauses['groupby'] ?? '';
-			$join     = $clauses['join'] ?? '';
+			$where   = $clauses['where'] ?? '';
+			$groupby = $clauses['groupby'] ?? '';
+			$join    = $clauses['join'] ?? '';
 			// Preserve orderby from posts_orderby_request if posts_clauses_request doesn't provide one.
 			$orderby  = $clauses['orderby'] ?? $orderby;
 			$distinct = $clauses['distinct'] ?? '';
@@ -3235,7 +3235,7 @@ class WP_Query {
 		 * Add ID tie-breaker after filters have been applied, so filters receive
 		 * the original orderby value (for backward compatibility) and the tie-breaker
 		 * is preserved even if filters modify the orderby.
-		 * 
+		 *
 		 * Note: this is to circumvent a bug that is currently being tracked in
 		 * https://core.trac.wordpress.org/ticket/44349.
 		 */
@@ -5249,4 +5249,3 @@ class WP_Query {
 		return $check;
 	}
 }
-
