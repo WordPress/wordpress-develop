@@ -648,7 +648,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 		$received_orderby = '';
 
 		// Capture the orderby value received by the filter.
-		$filter_callback = function( $orderby ) use ( &$received_orderby ) {
+		$filter_callback = function ( $orderby ) use ( &$received_orderby ) {
 			$received_orderby = $orderby;
 			return $orderby;
 		};
@@ -686,7 +686,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 		$received_orderby = '';
 
 		// Capture the orderby value received by the filter.
-		$filter_callback = function( $clauses ) use ( &$received_orderby ) {
+		$filter_callback = function ( $clauses ) use ( &$received_orderby ) {
 			$received_orderby = $clauses['orderby'] ?? '';
 			return $clauses;
 		};
@@ -723,7 +723,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 */
 	public function test_deterministic_ordering_works_after_filter_modifies_orderby() {
 		// Filter that modifies the orderby.
-		$filter_callback = function( $orderby ) {
+		$filter_callback = function ( $orderby ) {
 			// Add a custom field to the orderby.
 			global $wpdb;
 			return $orderby . ', ' . "{$wpdb->posts}.post_title ASC";
@@ -773,7 +773,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 */
 	public function test_deterministic_ordering_works_after_posts_clauses_modifies_orderby() {
 		// Filter that modifies the orderby via posts_clauses.
-		$filter_callback = function( $clauses ) {
+		$filter_callback = function ( $clauses ) {
 			global $wpdb;
 			// Modify orderby to add post_title.
 			$clauses['orderby'] = "{$wpdb->posts}.post_date ASC, {$wpdb->posts}.post_title ASC";
@@ -828,7 +828,7 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 		global $wpdb;
 
 		// Filter that already includes ID in orderby.
-		$filter_callback = function( $orderby ) use ( $wpdb ) {
+		$filter_callback = function ( $orderby ) use ( $wpdb ) {
 			return "{$wpdb->posts}.post_date ASC, {$wpdb->posts}.ID ASC";
 		};
 
