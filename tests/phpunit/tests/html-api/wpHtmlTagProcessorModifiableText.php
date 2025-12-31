@@ -572,7 +572,7 @@ JS;
 
 		$expected = <<<'HTML'
 <script type="importmap">
-{"imports":{"\u003C/SCRIPT>\\\u003C!--\\\u003Cscript>":"./script"}}
+{"imports":{"</\u0053CRIPT>\\<!--\\<\u0073cript>":"./script"}}
 </script>
 <script type="module">
 import '</\u0053CRIPT>\\<!--\\<\u0073cript>';
@@ -619,7 +619,7 @@ HTML;
 
 		$expected = <<<'HTML'
 <script type="application/json">
-"Escaped BS: \\; Escaped BS+LT: \\\u003C; Unescaped LT: \u003C; Script closer: \u003C/script>"
+"Escaped BS: \\; Escaped BS+LT: \\<; Unescaped LT: <; Script closer: </\u0073cript>"
 </script>
 HTML;
 
