@@ -587,13 +587,12 @@ function wp_http_validate_url( $url ) {
 	$parsed_home = parse_url( get_option( 'home' ) );
 	$same_host   = isset( $parsed_home['host'] ) && strtolower( $parsed_home['host'] ) === strtolower( $parsed_url['host'] );
 	$host        = trim( $parsed_url['host'], '.' );
+	$is_ipv4     = (bool) preg_match(
+		'#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#',
+		$host
+	);
 
 	if ( ! $same_host ) {
-		$is_ipv4 = (bool) preg_match(
-			'#^(([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)\.){3}([1-9]?\d|1\d\d|25[0-5]|2[0-4]\d)$#',
-			$host
-		);
-
 		if (
 			! $is_ipv4
 			&& extension_loaded( 'filter' )
