@@ -13,7 +13,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	/**
 	 * @ticket 64419
 	 *
-	 * @covers WP_HTML_Tag_Processor::is_javascript_script_tag
+	 * @covers ::get_script_content_type()
 	 *
 	 * @dataProvider data_is_javascript_script_tag
 	 *
@@ -136,7 +136,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	/**
 	 * @ticket 64419
 	 *
-	 * @covers WP_HTML_Tag_Processor::is_javascript_script_tag
+	 * @covers ::get_script_content_type()
 	 */
 	public function test_is_javascript_script_tag_returns_false_before_finding_tags() {
 		$processor = new WP_HTML_Tag_Processor( 'Just some text' );
@@ -151,7 +151,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	/**
 	 * @ticket 64419
 	 *
-	 * @covers WP_HTML_Tag_Processor::is_javascript_script_tag
+	 * @covers ::get_script_content_type()
 	 */
 	public function test_is_javascript_script_tag_returns_false_for_non_html_namespace() {
 		$processor = new WP_HTML_Tag_Processor( '<script></script>' );
@@ -173,7 +173,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	/**
 	 * @ticket 64419
 	 *
-	 * @covers WP_HTML_Tag_Processor::is_json_script_tag
+	 * @covers ::get_script_content_type()
 	 *
 	 * @dataProvider data_is_json_script_tag
 	 *
@@ -260,7 +260,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	/**
 	 * @ticket 64419
 	 *
-	 * @covers WP_HTML_Tag_Processor::is_json_script_tag
+	 * @covers ::get_script_content_type()
 	 */
 	public function test_is_json_script_tag_returns_false_before_finding_tags() {
 		$processor = new WP_HTML_Tag_Processor( 'Just some text' );
@@ -275,7 +275,7 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	/**
 	 * @ticket 64419
 	 *
-	 * @covers WP_HTML_Tag_Processor::is_json_script_tag
+	 * @covers ::get_script_content_type()
 	 */
 	public function test_is_json_script_tag_returns_false_for_non_html_namespace() {
 		$processor = new WP_HTML_Tag_Processor( '<script></script>' );
