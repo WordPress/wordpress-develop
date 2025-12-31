@@ -177,10 +177,10 @@ class Tests_HtmlApi_WpHtmlTagProcessorScriptTag extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_is_json_script_tag
 	 *
-	 * @param string $html             HTML containing a script tag.
-	 * @param bool   $expected_result  Whether the script tag should be identified as JSON.
+	 * @param string      $html          HTML containing a script tag.
+	 * @param string|null $content_type  Inferred content type of SCRIPT element.
 	 */
-	public function test_is_json_script_tag( string $html, bool $expected_result ) {
+	public function test_is_json_script_tag( string $html, ?string $content_type ) {
 		$processor = new WP_HTML_Tag_Processor( $html );
 		$processor->next_tag();
 
