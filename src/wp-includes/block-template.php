@@ -301,7 +301,121 @@ function get_the_block_template_html() {
 
 	// Wrap block template in .wp-site-blocks to allow for specific descendant styles
 	// (e.g. `.wp-site-blocks > *`).
-	return '<div class="wp-site-blocks">' . $content . '</div>';
+	$template_html = '<div class="wp-site-blocks">' . $content . '</div>';
+
+	return _block_template_skip_link_markup( $template_html );
+}
+
+/**
+ * Inserts the block template skip link into the template HTML.
+ *
+ * Uses the HTML API to ensure that the main content element has an ID and to
+ * inject the skip-link anchor before the block template wrapper.
+ *
+ * @access private
+ * @since 7.0.0
+ *
+ * @global string $_wp_current_template_content
+ *
+ * @param string $template_html Block template markup.
+ * @return string Modified markup with skip link when applicable.
+ */
+function _block_template_skip_link_markup( $template_html ) {
+	global $_wp_current_template_content;
+
+	// Back-compat for plugins that disable functionality by unhooking this action.
+	if ( ! has_action( 'wp_footer', 'the_block_template_skip_link' ) ) {
+		return $template_html;
+	}
+
+	// Early exit if not a block theme.
+	if ( ! current_theme_supports( 'block-templates' ) ) {
+		return $template_html;
+	}
+
+	// Early exit if not a block template.
+	if ( ! $_wp_current_template_content ) {
+		return $template_html;
+	}
+
+	// Ensure a skip-link target exists and has an ID.
+	$processor           = new WP_HTML_Tag_Processor( $template_html );
+	$skip_link_target_id = null;
+
+	// Get the first <main> element.
+	while ( $processor->next_tag() ) {
+		if ( 'MAIN' !== $processor->get_tag() || $processor->is_tag_closer() ) {
+			continue;
+		}
+
+		$skip_link_target_id = $processor->get_attribute( 'id' );
+		if ( ! $skip_link_target_id ) {
+			$skip_link_target_id = 'wp--skip-link--target';
+			$processor->set_attribute( 'id', $skip_link_target_id );
+		}
+
+		// Only consider the first <main> element.
+		break;
+	}
+
+	// Early exit if a skip-link target can't be located.
+	if ( ! $skip_link_target_id ) {
+		return $template_html;
+	}
+
+	// Apply any updates from setting the main ID.
+	$template_html = $processor->get_updated_html();
+
+	// If a skip link already exists, don't insert another one.
+	$existing = new WP_HTML_Tag_Processor( $template_html );
+	while ( $existing->next_tag() ) {
+		if ( 'A' === $existing->get_tag() && 'wp-skip-link' === $existing->get_attribute( 'id' ) ) {
+			return $template_html;
+		}
+	}
+
+	// Anonymous subclass of WP_HTML_Tag_Processor which exposes underlying bookmark spans
+	// so that text can be inserted before the current token.
+	$inserter = new class( $template_html ) extends WP_HTML_Tag_Processor {
+		/**
+		 * Gets the span for the current token.
+		 *
+		 * @return WP_HTML_Span Current token span.
+		 */
+		private function get_span(): WP_HTML_Span {
+			// Note: This call will never fail according to the usage of this class, given it is always called after ::next_tag() is true.
+			$this->set_bookmark( 'here' );
+			return $this->bookmarks['here'];
+		}
+
+		/**
+		 * Inserts text before the current token.
+		 *
+		 * @param string $text Text to insert.
+		 */
+		public function insert_before( string $text ) {
+			$this->lexical_updates[] = new WP_HTML_Text_Replacement( $this->get_span()->start, 0, $text );
+		}
+	};
+
+	while ( $inserter->next_tag() ) {
+		if ( $inserter->is_tag_closer() ) {
+			continue;
+		}
+
+		if ( 'DIV' === $inserter->get_tag() && $inserter->has_class( 'wp-site-blocks' ) ) {
+			$skip_link = sprintf(
+				'<a class="skip-link screen-reader-text" id="wp-skip-link" href="#%s">%s</a>',
+				esc_attr( $skip_link_target_id ),
+				/* translators: Hidden accessibility text. Do not use HTML entities (&nbsp;, etc.). */
+				esc_html__( 'Skip to content' )
+			);
+			$inserter->insert_before( $skip_link );
+			break;
+		}
+	}
+
+	return $inserter->get_updated_html();
 }
 
 /**
