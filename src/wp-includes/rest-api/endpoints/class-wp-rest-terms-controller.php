@@ -164,13 +164,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		// Otherwise grant access if the post is readable by the logged-in user.
-		if ( current_user_can( 'read_post', $post->ID ) ) {
-			return true;
-		}
-
-		// Otherwise, deny access.
-		return false;
+		// Deny access if the post is not readable by the logged-in user.
+		return current_user_can( 'read_post', $post->ID );
 	}
 
 	/**

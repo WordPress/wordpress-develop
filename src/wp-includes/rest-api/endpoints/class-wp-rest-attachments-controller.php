@@ -507,11 +507,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, WP_Error object on failure.
 	 */
 	public function post_process_item( $request ) {
-		switch ( $request['action'] ) {
-			case 'create-image-subsizes':
-				require_once ABSPATH . 'wp-admin/includes/image.php';
-				wp_update_image_subsizes( $request['id'] );
-				break;
+		if ( 'create-image-subsizes' === $request['action'] ) {
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			wp_update_image_subsizes( $request['id'] );
 		}
 
 		$request['context'] = 'edit';

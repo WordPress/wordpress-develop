@@ -85,12 +85,7 @@ abstract class WP_REST_Meta_Fields {
 			$all_values = get_metadata( $this->get_meta_type(), $object_id, $meta_key, false );
 
 			if ( $args['single'] ) {
-				if ( empty( $all_values ) ) {
-					$value = $args['schema']['default'];
-				} else {
-					$value = $all_values[0];
-				}
-
+				$value = empty( $all_values ) ? $args['schema']['default'] : $all_values[0];
 				$value = $this->prepare_value_for_response( $value, $request, $args );
 			} else {
 				$value = array();
@@ -554,11 +549,7 @@ abstract class WP_REST_Meta_Fields {
 	 * @return mixed Value prepared for output. If a non-JsonSerializable object, null.
 	 */
 	public static function prepare_value( $value, $request, $args ) {
-		if ( $args['single'] ) {
-			$schema = $args['schema'];
-		} else {
-			$schema = $args['schema']['items'];
-		}
+		$schema = $args['single'] ? $args['schema'] : $args['schema']['items'];
 
 		if ( '' === $value && in_array( $schema['type'], array( 'boolean', 'integer', 'number' ), true ) ) {
 			$value = static::get_empty_value_for_type( $schema['type'] );

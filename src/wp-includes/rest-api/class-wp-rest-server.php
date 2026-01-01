@@ -364,11 +364,7 @@ class WP_REST_Server {
 		}
 
 		if ( empty( $path ) ) {
-			if ( isset( $_SERVER['PATH_INFO'] ) ) {
-				$path = $_SERVER['PATH_INFO'];
-			} else {
-				$path = '/';
-			}
+			$path = isset( $_SERVER['PATH_INFO'] ) ? $_SERVER['PATH_INFO'] : '/';
 		}
 
 		$request = new WP_REST_Request( $_SERVER['REQUEST_METHOD'], $path );
@@ -1161,16 +1157,14 @@ class WP_REST_Server {
 			}
 		}
 
-		if ( $with_namespace ) {
-			$routes = array_merge( ...$with_namespace );
-		} else {
-			$routes = $this->get_routes();
-		}
+		$routes = array() !== $with_namespace
+			? array_merge( ...$with_namespace )
+			: $this->get_routes();
 
 		foreach ( $routes as $route => $handlers ) {
 			$match = preg_match( '@^' . $route . '$@i', $path, $matches );
 
-			if ( ! $match ) {
+			if ( 1 !== $match ) {
 				continue;
 			}
 
@@ -1286,11 +1280,9 @@ class WP_REST_Server {
 			$dispatch_result = apply_filters( 'rest_dispatch_request', null, $request, $route, $handler );
 
 			// Allow plugins to halt the request via this filter.
-			if ( null !== $dispatch_result ) {
-				$response = $dispatch_result;
-			} else {
-				$response = call_user_func( $handler['callback'], $request );
-			}
+			$response = null === $dispatch_result
+				? call_user_func( $handler['callback'], $request )
+				: $dispatch_result;
 		}
 
 		/**
@@ -1316,11 +1308,9 @@ class WP_REST_Server {
 		 */
 		$response = apply_filters( 'rest_request_after_callbacks', $response, $handler, $request );
 
-		if ( is_wp_error( $response ) ) {
-			$response = $this->error_to_response( $response );
-		} else {
-			$response = rest_ensure_response( $response );
-		}
+		$response = is_wp_error( $response )
+			? $this->error_to_response( $response )
+			: rest_ensure_response( $response );
 
 		$response->set_matched_route( $route );
 		$response->set_matched_handler( $handler );

@@ -295,19 +295,15 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			$data = array();
 
 			if ( isset( $value['size'] ) ) {
-				if ( is_string( $value['size'] ) ) {
-					$data['size'] = sanitize_text_field( $value['size'] );
-				} else {
-					$data['size'] = (int) $value['size'];
-				}
+				$data['size'] = is_string( $value['size'] )
+					? sanitize_text_field( $value['size'] )
+					: (int) $value['size'];
 			}
 
 			if ( isset( $value['debug'] ) ) {
-				if ( is_string( $value['debug'] ) ) {
-					$data['debug'] = sanitize_text_field( $value['debug'] );
-				} else {
-					$data['debug'] = (int) $value['debug'];
-				}
+				$data['debug'] = is_string( $value['debug'] )
+					? sanitize_text_field( $value['debug'] )
+					: (int) $value['debug'];
 			}
 
 			if ( ! empty( $value['raw'] ) ) {

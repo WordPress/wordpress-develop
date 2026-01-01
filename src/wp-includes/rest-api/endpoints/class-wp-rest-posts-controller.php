@@ -2047,12 +2047,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'template', $fields ) ) {
-			$template = get_page_template_slug( $post->ID );
-			if ( $template ) {
-				$data['template'] = $template;
-			} else {
-				$data['template'] = '';
-			}
+			$template         = get_page_template_slug( $post->ID );
+			$data['template'] = $template ? $template : '';
 		}
 
 		if ( rest_is_field_included( 'format', $fields ) ) {
