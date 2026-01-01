@@ -11,7 +11,8 @@
  * WordPress tests aren’t broken because of it.
  */
 
-$opts = getopt( 'q', array( 'color::' ) );
+$opts     = getopt( 'q', array( 'color::', 'force' ) );
+$force_it = isset( $opts['force'] );
 if ( isset( $opts['q'] ) || 'never' === ( $opts['color'] ?? 'auto' ) ) {
 	$use_color = false;
 } elseif ( 'always' === ( $opts['color'] ?? 'auto' ) ) {
@@ -41,6 +42,7 @@ foreach ( $manifest['FilePath:ETag'] as $file_path => $etag ) {
 	$ch  = curl_init();
 
 	echo "{$_}Fetching '{$c}{$url}{$_}'...{$z}\n";
+	$use_etag = ! $force_it && is_string( $etag );
 
 	curl_setopt_array( $ch, [
 		CURLOPT_URL            => $url,
@@ -50,9 +52,7 @@ foreach ( $manifest['FilePath:ETag'] as $file_path => $etag ) {
 		CURLOPT_USERAGENT      => 'PHP/WordPress Tests/updating-test-data',
 		CURLOPT_TIMEOUT        => 30,
 		CURLOPT_CONNECTTIMEOUT => 10,
-		CURLOPT_HTTPHEADER     => array(
-			isset( $etag ) ? "If-None-Match: \"{$etag}\"" : '',
-		),
+		CURLOPT_HTTPHEADER     => $use_etag ? array( "If-None-Match: \"{$etag}\"" ) : array(),
 		CURLOPT_HEADER         => true,
 	] );
 
@@ -79,12 +79,14 @@ foreach ( $manifest['FilePath:ETag'] as $file_path => $etag ) {
 		continue;
 	}
 
-	$test_decode = json_decode( $test_data, true );
-	if ( null === $test_decode || JSON_ERROR_NONE !== json_last_error() ) {
-		$error = json_last_error_msg();
-		echo "{$_}Unable to parse JSON for '{$g}{$file_path}{$_}'. Skipping.{$z}\n";
-		echo "{$r}  {$error}{$z}\n";
-		continue;
+	if ( str_ends_with( $file_path, ".json" ) ) {
+		$test_decode = json_decode( $test_data, true );
+		if ( null === $test_decode || JSON_ERROR_NONE !== json_last_error() ) {
+			$error = json_last_error_msg();
+			echo "{$_}Unable to parse JSON for '{$g}{$file_path}{$_}'. Skipping.{$z}\n";
+			echo "{$r}  {$error}{$z}\n";
+			continue;
+		}
 	}
 
 	$new_etag   = null;
@@ -92,7 +94,7 @@ foreach ( $manifest['FilePath:ETag'] as $file_path => $etag ) {
 		$new_etag = $etag_match['ETAG_VALUE'];
 	}
 
-	file_put_contents( basename( $file_path ), $test_data );
+	file_put_contents( __DIR__ . '/wpt-tests/' . basename( $file_path ), $test_data );
 	if ( isset( $new_etag ) ) {
 		$manifest[ 'FilePath:ETag' ][ $file_path ] = $new_etag;
 		echo "{$_}Updated '{$g}{$file_path}{$_}' setting ETag to '{$v}{$new_etag}{$_}'.{$z}\n";

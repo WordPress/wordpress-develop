@@ -1,5 +1,6 @@
 {
     "FilePath:ETag": {
+        "LICENSE.md": "df56994c53fd4d23b794258400a8e3519473cae98a4c590148028c25525238b3",
         "mimesniff\/mime-types\/resources\/generated-mime-types.json": "66586a88f18e7b6e1c8bcf8b6348470181977b41f1ec85618251582aac4ae4a3",
         "mimesniff\/mime-types\/resources\/mime-groups.json": "d3769412d4ed166ac262cd0b403588362aaa874b79328a92f27749374600a2c5",
         "mimesniff\/mime-types\/resources\/mime-types-minimized.json": "4bdd2793b286fda8548c6e96c435fd037daf3029a5d5048fdbb183ff6f666ad4",
